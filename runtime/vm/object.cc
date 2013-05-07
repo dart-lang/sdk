@@ -7528,6 +7528,15 @@ intptr_t DeoptInfo::Instruction(intptr_t index) const {
 }
 
 
+intptr_t DeoptInfo::FrameSize() const {
+  intptr_t pos = 0;
+  while (Instruction(pos) == DeoptInstr::kMaterializeObject) {
+    pos++;
+  }
+  return TranslationLength() - pos;
+}
+
+
 intptr_t DeoptInfo::TranslationLength() const {
   intptr_t length = Length();
   if (Instruction(length - 1) != DeoptInstr::kSuffix) return length;

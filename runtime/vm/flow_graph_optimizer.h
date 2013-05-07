@@ -44,6 +44,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void InferSmiRanges();
 
+  // Remove environments from the instructions which do not deoptimize.
+  void EliminateEnvironments();
+
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitRelationalOp(RelationalOpInstr* instr);
@@ -317,6 +320,30 @@ class IfConverter : public AllStatic {
   static void Simplify(FlowGraph* flow_graph);
 };
 
+
+class AllocationSinking : public ZoneAllocated {
+ public:
+  explicit AllocationSinking(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        materializations_(5) { }
+
+  void Optimize();
+
+  void DetachMaterializations();
+
+ private:
+  void InsertMaterializations(AllocateObjectInstr* alloc);
+
+  void CreateMaterializationAt(
+      Instruction* exit,
+      AllocateObjectInstr* alloc,
+      const Class& cls,
+      const ZoneGrowableArray<const Field*>& fields);
+
+  FlowGraph* flow_graph_;
+
+  GrowableArray<MaterializeObjectInstr*> materializations_;
+};
 
 }  // namespace dart
 

@@ -395,11 +395,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (preserve_eax) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
   }
-  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  __ pushl(Immediate(Smi::RawValue(0)));  // Space for the result.
+  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry);
+  // Result tells stub how many bytes to remove from the expression stack
+  // of the bottom-most frame. They were used as materialization arguments.
+  __ popl(EBX);
+  __ SmiUntag(EBX);
   if (preserve_eax) {
     __ popl(EAX);  // Restore result.
   }
   __ LeaveFrame();
+
+  __ popl(ECX);  // Pop return address.
+  __ addl(ESP, EBX);  // Remove materialization arguments.
+  __ pushl(ECX);  // Push return address.
   __ ret();
 }
 

@@ -586,7 +586,7 @@ class EmbeddedArray<T, 0> {
   M(Float32x4Clamp)                                                            \
   M(Float32x4With)                                                             \
   M(Float32x4ToUint32x4)                                                       \
-
+  M(MaterializeObject)                                                         \
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -3499,6 +3499,66 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   Identity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectInstr);
+};
+
+
+// This instruction captures the state of the object which had its allocation
+// removed during the AllocationSinking pass.
+// It does not produce any real code only deoptimization information.
+class MaterializeObjectInstr : public Definition {
+ public:
+  MaterializeObjectInstr(const Class& cls,
+                         const ZoneGrowableArray<const Field*>& fields,
+                         ZoneGrowableArray<Value*>* values)
+      : cls_(cls), fields_(fields), values_(values), locations_(NULL) {
+    ASSERT(fields_.length() == values_->length());
+    for (intptr_t i = 0; i < InputCount(); i++) {
+      InputAt(i)->set_instruction(this);
+      InputAt(i)->set_use_index(i);
+    }
+  }
+
+  const Class& cls() const { return cls_; }
+  const Field& FieldAt(intptr_t i) const {
+    return *fields_[i];
+  }
+  const Location& LocationAt(intptr_t i) {
+    return locations_[i];
+  }
+
+  DECLARE_INSTRUCTION(MaterializeObject)
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual intptr_t InputCount() const {
+    return values_->length();
+  }
+
+  virtual Value* InputAt(intptr_t i) const {
+    return (*values_)[i];
+  }
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  LocationSummary* locs() {
+    UNREACHABLE();
+    return NULL;
+  }
+
+  Location* locations() { return locations_; }
+  void set_locations(Location* locations) { locations_ = locations; }
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*values_)[i] = value;
+  }
+
+  const Class& cls_;
+  const ZoneGrowableArray<const Field*>& fields_;
+  ZoneGrowableArray<Value*>* values_;
+  Location* locations_;
+
+  DISALLOW_COPY_AND_ASSIGN(MaterializeObjectInstr);
 };
 
 

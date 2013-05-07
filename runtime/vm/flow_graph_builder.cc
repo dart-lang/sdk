@@ -292,6 +292,11 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
       call_block->AddDominatedBlock(block);
     }
   }
+
+  // Neither call nor callee entry are in the graph at this point. Remove them
+  // from use lists.
+  callee_entry->UnuseAllInputs();
+  call_->UnuseAllInputs();
 }
 
 

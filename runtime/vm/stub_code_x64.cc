@@ -388,12 +388,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (preserve_rax) {
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
   }
-  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  __ pushq(Immediate(Smi::RawValue(0)));  // Space for the result.
+  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry);
+  // Result tells stub how many bytes to remove from the expression stack
+  // of the bottom-most frame. They were used as materialization arguments.
+  __ popq(RBX);
+  __ SmiUntag(RBX);
   if (preserve_rax) {
     __ popq(RAX);  // Restore result.
   }
   __ LeaveFrame();
 
+  __ popq(RCX);  // Pop return address.
+  __ addq(RSP, RBX);  // Remove materialization arguments.
+  __ pushq(RCX);  // Push return address.
   __ ret();
 }
 

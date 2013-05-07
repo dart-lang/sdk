@@ -157,9 +157,12 @@ EffectSet LoadFieldInstr::Dependencies() const {
 bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
-  ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
-         ((immutable_ == other_load->immutable_)));
-  return offset_in_bytes() == other_load->offset_in_bytes();
+  if (field() != NULL) {
+    return (other_load->field() != NULL) &&
+        (field()->raw() == other_load->field()->raw());
+  }
+  return (other_load->field() == NULL) &&
+      (offset_in_bytes() == other_load->offset_in_bytes());
 }
 
 
@@ -1167,21 +1170,14 @@ MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
 
 
 bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
+  if (RawObject::IsTypedDataClassId(cid) ||
+      RawObject::IsExternalTypedDataClassId(cid)) {
+    return true;
+  }
+
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-    case kTypedDataFloat32x4ArrayCid:
       return true;
     default:
       return false;
@@ -1295,7 +1291,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
     Value* use = comp->input_use_list();
     if ((use->instruction() == this) && comp->HasOnlyUse(use)) {
       RemoveEnvironment();
-      InheritDeoptTarget(comp);
+      flow_graph->CopyDeoptTarget(this, comp);
 
       comp->RemoveFromGraph();
       SetComparison(comp);
@@ -1533,6 +1529,17 @@ LocationSummary* ConstraintInstr::MakeLocationSummary() const {
 
 
 void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+
+LocationSummary* MaterializeObjectInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 

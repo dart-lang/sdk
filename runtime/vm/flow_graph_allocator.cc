@@ -102,18 +102,6 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph)
 }
 
 
-// Remove environments from the instructions which can't deoptimize.
-void FlowGraphAllocator::EliminateEnvironments() {
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* block = block_order_[i];
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
-      if (!current->CanDeoptimize()) current->RemoveEnvironment();
-    }
-  }
-}
-
-
 void SSALivenessAnalysis::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
@@ -152,10 +140,17 @@ void SSALivenessAnalysis::ComputeInitialSets() {
         for (Environment::DeepIterator env_it(current->env());
              !env_it.Done();
              env_it.Advance()) {
-          Value* value = env_it.CurrentValue();
-          if (!value->definition()->IsPushArgument() &&
-              !value->BindsToConstant()) {
-            live_in->Add(value->definition()->ssa_temp_index());
+          Definition* defn = env_it.CurrentValue()->definition();
+          if (defn->IsMaterializeObject()) {
+            // MaterializeObject instruction is not in the graph.
+            // Treat its inputs as part of the environment.
+            for (intptr_t i = 0; i < defn->InputCount(); i++) {
+              if (!defn->InputAt(i)->BindsToConstant()) {
+                live_in->Add(defn->InputAt(i)->definition()->ssa_temp_index());
+              }
+            }
+          } else if (!defn->IsPushArgument() && !defn->IsConstant()) {
+            live_in->Add(defn->ssa_temp_index());
           }
         }
       }
@@ -742,6 +737,16 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
         continue;
       }
 
+      MaterializeObjectInstr* mat = def->AsMaterializeObject();
+      if (mat != NULL) {
+        // MaterializeObject itself produces no value. But its uses
+        // are treated as part of the environment: allocated locations
+        // will be used when building deoptimization data.
+        locations[i] = Location::NoLocation();
+        ProcessMaterializationUses(block, block_start_pos, use_pos, mat);
+        continue;
+      }
+
       const intptr_t vreg = def->ssa_temp_index();
       LiveRange* range = GetLiveRange(vreg);
       range->AddUseInterval(block_start_pos, use_pos);
@@ -751,6 +756,42 @@ void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
     env->set_locations(locations);
     env = env->outer();
   }
+}
+
+
+void FlowGraphAllocator::ProcessMaterializationUses(
+    BlockEntryInstr* block,
+    const intptr_t block_start_pos,
+    const intptr_t use_pos,
+    MaterializeObjectInstr* mat) {
+  // Materialization can occur several times in the same environment.
+  // Check if we already processed this one.
+  if (mat->locations() != NULL) {
+    return;  // Already processed.
+  }
+
+  // Initialize location for every input of the MaterializeObject instruction.
+  Location* locations =
+      Isolate::Current()->current_zone()->Alloc<Location>(mat->InputCount());
+
+  for (intptr_t i = 0; i < mat->InputCount(); ++i) {
+    Definition* def = mat->InputAt(i)->definition();
+
+    ConstantInstr* constant = def->AsConstant();
+    if (constant != NULL) {
+      locations[i] = Location::Constant(constant->value());
+      continue;
+    }
+
+    locations[i] = Location::Any();
+
+    const intptr_t vreg = def->ssa_temp_index();
+    LiveRange* range = GetLiveRange(vreg);
+    range->AddUseInterval(block_start_pos, use_pos);
+    range->AddUse(use_pos, &locations[i]);
+  }
+
+  mat->set_locations(locations);
 }
 
 
@@ -2434,8 +2475,6 @@ void FlowGraphAllocator::CollectRepresentations() {
 
 void FlowGraphAllocator::AllocateRegisters() {
   CollectRepresentations();
-
-  EliminateEnvironments();
 
   liveness_.Analyze();
 

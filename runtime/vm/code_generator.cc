@@ -1546,7 +1546,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   intptr_t unoptimized_stack_size =
-      + deopt_info.TranslationLength()
+      + deopt_info.FrameSize()
       - num_args
       - kParamEndSlotFromFp
       - 1;  // For fp.
@@ -1581,16 +1581,44 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
                                       Array::Handle(code.object_table()),
                                       num_args,
                                       static_cast<DeoptReasonId>(deopt_reason));
-  for (intptr_t to_index = len - 1; to_index >= 0; to_index--) {
-    deopt_instructions[to_index]->Execute(&deopt_context, to_index);
+  const intptr_t frame_size = deopt_info.FrameSize();
+
+  // All kMaterializeObject instructions are emitted before the instructions
+  // that describe stack frames. Skip them and defer materialization of
+  // objects until the frame is fully reconstructed and it is safe to perform
+  // GC.
+  // Arguments (class of the instance to allocate and field-value pairs) are
+  // described as part of the expression stack for the bottom-most deoptimized
+  // frame. They will be used during materialization and removed from the stack
+  // right before control switches to the unoptimized code.
+  const intptr_t num_materializations = len - frame_size;
+  Isolate::Current()->PrepareForDeferredMaterialization(num_materializations);
+  for (intptr_t from_index = 0, to_index = 1;
+       from_index < num_materializations;
+       from_index++) {
+    const intptr_t field_count =
+        DeoptInstr::GetFieldCount(deopt_instructions[from_index]);
+    intptr_t* args = deopt_context.GetToFrameAddressAt(to_index);
+    DeferredObject* obj = new DeferredObject(field_count, args);
+    Isolate::Current()->SetDeferredObjectAt(from_index, obj);
+    to_index += obj->ArgumentCount();
   }
+
+  // Populate stack frames.
+  for (intptr_t to_index = frame_size - 1, from_index = len - 1;
+       to_index >= 0;
+       to_index--, from_index--) {
+    intptr_t* to_addr = deopt_context.GetToFrameAddressAt(to_index);
+    deopt_instructions[from_index]->Execute(&deopt_context, to_addr);
+  }
+
   if (FLAG_trace_deoptimization_verbose) {
-    for (intptr_t i = 0; i < len; i++) {
-      OS::PrintErr("*%"Pd". [%p] %#014"Px" [%s]\n",
-          i,
-          &start[i],
-          start[i],
-          deopt_instructions[i]->ToCString());
+    for (intptr_t i = 0; i < frame_size; i++) {
+      OS::PrintErr("*%"Pd". [%"Px"] %#014"Px" [%s]\n",
+                   i,
+                   reinterpret_cast<uword>(&start[i]),
+                   start[i],
+                   deopt_instructions[i + (len - frame_size)]->ToCString());
     }
   }
   return deopt_context.GetCallerFp();
@@ -1641,17 +1669,30 @@ END_LEAF_RUNTIME_ENTRY
 
 
 // This is the last step in the deoptimization, GC can occur.
-DEFINE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles, 0) {
-  DeferredObject* deferred_object = Isolate::Current()->DetachDeferredObjects();
+// Returns number of bytes to remove from the expression stack of the
+// bottom-most deoptimized frame. Those arguments were artificially injected
+// under return address to keep them discoverable by GC that can occur during
+// materialization phase.
+DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
+  // First materialize all unboxed "primitive" values (doubles, mints, simd)
+  // then materialize objects. The order is important: objects might be
+  // referencing boxes allocated on the first step. At the same time
+  // objects can't be referencing other deferred objects because storing
+  // an object into a field is always conservatively treated as escaping by
+  // allocation sinking and load forwarding.
+  isolate->MaterializeDeferredBoxes();
+  isolate->MaterializeDeferredObjects();
 
-  while (deferred_object != NULL) {
-    DeferredObject* current = deferred_object;
-    deferred_object  = deferred_object->next();
-
-    current->Materialize();
-
-    delete current;
+  // Compute total number of artificial arguments used during deoptimization.
+  intptr_t deopt_arguments = 0;
+  for (intptr_t i = 0; i < isolate->DeferredObjectsCount(); i++) {
+    deopt_arguments += isolate->GetDeferredObject(i)->ArgumentCount();
   }
+  Isolate::Current()->DeleteDeferredObjects();
+
+  // Return value tells deoptimization stub to remove the given number of bytes
+  // from the stack.
+  arguments.SetReturn(Smi::Handle(Smi::New(deopt_arguments * kWordSize)));
 
   // Since this is the only step where GC can occur during deoptimization,
   // use it to report the source line where deoptimization occured.

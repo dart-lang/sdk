@@ -451,12 +451,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (preserve_result) {
     __ Push(T1);  // Preserve result, it will be GC-d here.
   }
-  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  __ PushObject(Smi::ZoneHandle());  // Space for the result.
+  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry);
+  // Result tells stub how many bytes to remove from the expression stack
+  // of the bottom-most frame. They were used as materialization arguments.
+  __ Pop(T1);
+  __ SmiUntag(T1);
   if (preserve_result) {
     __ Pop(V0);  // Restore result.
   }
+  __ LeaveStubFrame();
 
-  __ LeaveStubFrameAndReturn();
+  // Return.
+  __ jr(RA);
+  __ delay_slot()->addu(SP, SP, T1);  // Remove materialization arguments.
 }
 
 

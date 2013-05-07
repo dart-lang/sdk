@@ -150,6 +150,23 @@ class FlowGraph : public ZoneAllocated {
   // Remove the redefinition instructions inserted to inhibit code motion.
   void RemoveRedefinitions();
 
+  // Copy deoptimization target from one instruction to another if we still
+  // have to keep deoptimization environment at gotos for LICM purposes.
+  void CopyDeoptTarget(Instruction* to, Instruction* from) {
+    if (is_licm_allowed()) {
+      to->InheritDeoptTarget(from);
+    }
+  }
+
+  // Returns true if every Goto in the graph is expected to have a
+  // deoptimization environment and can be used as deoptimization target
+  // for hoisted instructions.
+  bool is_licm_allowed() const { return licm_allowed_; }
+
+  // Stop preserving environments on Goto instructions. LICM is not allowed
+  // after this point.
+  void disallow_licm() { licm_allowed_ = false; }
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -205,6 +222,7 @@ class FlowGraph : public ZoneAllocated {
   ConstantInstr* constant_null_;
 
   BlockEffects* block_effects_;
+  bool licm_allowed_;
 };
 
 

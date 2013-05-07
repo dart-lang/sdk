@@ -45,6 +45,8 @@ DEFINE_FLAG(bool, common_subexpression_elimination, true,
 DEFINE_FLAG(bool, loop_invariant_code_motion, true,
     "Do loop invariant code motion.");
 DEFINE_FLAG(bool, propagate_types, true, "Do static type propagation.");
+DEFINE_FLAG(bool, allocation_sinking, true,
+    "attempt to sink temporary allocations to side exits");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
@@ -292,6 +294,20 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         propagator.Propagate();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
+
+      // Detach environments from the instructions that can't deoptimize.
+      // Do it before we attempt to perform allocation sinking to minimize
+      // amount of materializations it has to perform.
+      optimizer.EliminateEnvironments();
+
+      // Attempt to sink allocations of temporary non-escaping objects to
+      // the deoptimization path.
+      AllocationSinking* sinking = NULL;
+      if (FLAG_allocation_sinking) {
+        sinking = new AllocationSinking(flow_graph);
+        sinking->Optimize();
+      }
+
       if (optimizer.Canonicalize()) {
         // To fully remove redundant boxing (e.g. BoxDouble used only in
         // environments and UnboxDouble instructions) instruction we
@@ -301,6 +317,14 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         optimizer.Canonicalize();
       }
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
+
+      if (sinking != NULL) {
+        // Remove all MaterializeObject instructions inserted by allocation
+        // sinking from the flow graph and let them float on the side referenced
+        // only from environments. Register allocator will consider them
+        // as part of a deoptimization environment.
+        sinking->DetachMaterializations();
+      }
 
       // Perform register allocation on the SSA graph.
       FlowGraphAllocator allocator(*flow_graph);

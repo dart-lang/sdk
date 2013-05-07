@@ -311,6 +311,56 @@ void DeferredUint32x4::Materialize() {
 }
 
 
+void DeferredObjectRef::Materialize() {
+  DeferredObject* obj = Isolate::Current()->GetDeferredObject(index());
+  *slot() = obj->object();
+  if (FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr("writing instance ref at %"Px": %s\n",
+                 reinterpret_cast<uword>(slot()),
+                 Instance::Handle(obj->object()).ToCString());
+  }
+}
+
+
+RawInstance* DeferredObject::object() {
+  if (object_ == NULL) {
+    Materialize();
+  }
+  return object_->raw();
+}
+
+
+void DeferredObject::Materialize() {
+  Class& cls = Class::Handle();
+  cls ^= GetClass();
+
+  if (FLAG_trace_deoptimization_verbose) {
+    OS::PrintErr("materializing instance of %s (%"Px", %"Pd" fields)\n",
+                 cls.ToCString(),
+                 reinterpret_cast<uword>(args_),
+                 field_count_);
+  }
+
+  const Instance& obj = Instance::ZoneHandle(Instance::New(cls));
+
+  Field& field = Field::Handle();
+  Object& value = Object::Handle();
+  for (intptr_t i = 0; i < field_count_; i++) {
+    field ^= GetField(i);
+    value = GetValue(i);
+    obj.SetField(field, value);
+
+    if (FLAG_trace_deoptimization_verbose) {
+      OS::PrintErr("    %s <- %s\n",
+                   String::Handle(field.name()).ToCString(),
+                   value.ToCString());
+    }
+  }
+
+  object_ = &obj;
+}
+
+
 Isolate::Isolate()
     : store_buffer_(),
       message_notify_callback_(NULL),
@@ -344,6 +394,9 @@ Isolate::Isolate()
       deopt_fpu_registers_copy_(NULL),
       deopt_frame_copy_(NULL),
       deopt_frame_copy_size_(0),
+      deferred_boxes_(NULL),
+      deferred_object_refs_(NULL),
+      deferred_objects_count_(0),
       deferred_objects_(NULL),
       stacktrace_(NULL),
       stack_frame_index_(-1) {
@@ -991,6 +1044,31 @@ char* Isolate::GetStatus(const char* request) {
   // TODO(tball): "/isolate/<handle>/stacktrace/<frame-index>"/disassemble"
 
   return NULL;  // Unimplemented query.
+}
+
+
+static void FillDeferredSlots(DeferredSlot** slot_list) {
+  DeferredSlot* slot = *slot_list;
+  *slot_list = NULL;
+
+  while (slot != NULL) {
+    DeferredSlot* current = slot;
+    slot = slot->next();
+
+    current->Materialize();
+
+    delete current;
+  }
+}
+
+
+void Isolate::MaterializeDeferredBoxes() {
+  FillDeferredSlots(&deferred_boxes_);
+}
+
+
+void Isolate::MaterializeDeferredObjects() {
+  FillDeferredSlots(&deferred_object_refs_);
 }
 
 

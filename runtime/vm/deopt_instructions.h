@@ -15,6 +15,7 @@ namespace dart {
 
 class Location;
 class Value;
+class MaterializeObjectInstr;
 
 // Holds all data relevant for execution of deoptimization instructions.
 class DeoptimizationContext : public ValueObject {
@@ -111,6 +112,8 @@ class DeoptInstr : public ZoneAllocated {
     kCallerFp,
     kCallerPc,
     kSuffix,
+    kMaterializedObjectRef,
+    kMaterializeObject
   };
 
   static DeoptInstr* Create(intptr_t kind_as_int, intptr_t from_index);
@@ -121,7 +124,7 @@ class DeoptInstr : public ZoneAllocated {
   virtual const char* ToCString() const = 0;
 
   virtual void Execute(DeoptimizationContext* deopt_context,
-                       intptr_t to_index) = 0;
+                       intptr_t* to_addr) = 0;
 
   virtual DeoptInstr::Kind kind() const = 0;
 
@@ -139,10 +142,17 @@ class DeoptInstr : public ZoneAllocated {
                              const Array& object_table,
                              Function* func);
 
- protected:
-  virtual intptr_t from_index() const = 0;
+  // Return number of initialized fields in the object that will be
+  // materialized by kMaterializeObject instruction.
+  static intptr_t GetFieldCount(DeoptInstr* instr) {
+    ASSERT(instr->kind() == DeoptInstr::kMaterializeObject);
+    return instr->from_index();
+  }
 
+ protected:
   friend class DeoptInfoBuilder;
+
+  virtual intptr_t from_index() const = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptInstr);
@@ -173,13 +183,41 @@ class DeoptInfoBuilder : public ValueObject {
   void AddCallerFp(intptr_t to_index);
   void AddCallerPc(intptr_t to_index);
 
+  // Add object to be materialized. Emit kMaterializeObject instruction.
+  void AddMaterialization(MaterializeObjectInstr* mat);
+
+  // For every materialized object emit instructions describing data required
+  // for materialization: class of the instance to allocate and field-value
+  // pairs for initialization.
+  // Emitted instructions are expected to follow return-address slot emitted
+  // first. This way they become a part of the bottom-most deoptimized frame
+  // and are discoverable by GC.
+  // At deoptimization they will be removed by the stub at the very end:
+  // after they were used to materialize objects.
+  // Returns the index of the next stack slot. Used for verification.
+  intptr_t EmitMaterializationArguments();
+
   RawDeoptInfo* CreateDeoptInfo();
+
+  // Mark the actual start of the frame description after all materialization
+  // instructions were emitted. Used for verification purposes.
+  void MarkFrameStart() {
+    ASSERT(frame_start_ == -1);
+    frame_start_ = instructions_.length();
+  }
 
  private:
   class TrieNode;
 
   intptr_t FindOrAddObjectInTable(const Object& obj) const;
+  intptr_t FindMaterialization(MaterializeObjectInstr* mat) const;
   intptr_t CalculateStackIndex(const Location& from_loc) const;
+
+  intptr_t FrameSize() const {
+    return instructions_.length() - frame_start_;
+  }
+
+  void AddConstant(const Object& obj, intptr_t to_index);
 
   GrowableArray<DeoptInstr*> instructions_;
   const GrowableObjectArray& object_table_;
@@ -188,6 +226,9 @@ class DeoptInfoBuilder : public ValueObject {
   // Used to compress entries by sharing suffixes.
   TrieNode* trie_root_;
   intptr_t current_info_number_;
+
+  intptr_t frame_start_;
+  GrowableArray<MaterializeObjectInstr*> materializations_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptInfoBuilder);
 };

@@ -29,7 +29,8 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     preorder_(),
     postorder_(),
     reverse_postorder_(),
-    block_effects_(NULL) {
+    block_effects_(NULL),
+    licm_allowed_(true) {
   DiscoverBlocks();
 }
 

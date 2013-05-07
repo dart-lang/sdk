@@ -41,9 +41,22 @@ void CompilerDeoptInfo::AllocateIncomingParametersRecursive(
   if (env == NULL) return;
   AllocateIncomingParametersRecursive(env->outer(), stack_height);
   for (Environment::ShallowIterator it(env); !it.Done(); it.Advance()) {
-    if (it.CurrentLocation().IsInvalid()) {
-      ASSERT(it.CurrentValue()->definition()->IsPushArgument());
+    if (it.CurrentLocation().IsInvalid() &&
+        it.CurrentValue()->definition()->IsPushArgument()) {
       it.SetCurrentLocation(Location::StackSlot((*stack_height)++));
+    }
+  }
+}
+
+
+void CompilerDeoptInfo::EmitMaterializations(Environment* env,
+                                             DeoptInfoBuilder* builder) {
+  for (Environment::DeepIterator it(env); !it.Done(); it.Advance()) {
+    if (it.CurrentLocation().IsInvalid()) {
+      MaterializeObjectInstr* mat =
+          it.CurrentValue()->definition()->AsMaterializeObject();
+      ASSERT(mat != NULL);
+      builder->AddMaterialization(mat);
     }
   }
 }
@@ -59,9 +72,20 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   intptr_t slot_ix = 0;
   Environment* current = deoptimization_env_;
 
+  // Emit all kMaterializeObject instructions describing objects to be
+  // materialized on the deoptimization as a prefix to the deoptimization info.
+  EmitMaterializations(deoptimization_env_, builder);
+
+  // The real frame starts here.
+  builder->MarkFrameStart();
   builder->AddReturnAddress(current->function(),
                             deopt_id(),
                             slot_ix++);
+
+  // Emit all values that are needed for materialization as a part of the
+  // expression stack for the bottom-most frame. This guarantees that GC
+  // will be able to find them during materialization.
+  slot_ix = builder->EmitMaterializationArguments();
 
   // For the innermost environment, set outgoing arguments and the locals.
   for (intptr_t i = current->Length() - 1;
