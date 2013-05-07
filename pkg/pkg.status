@@ -110,6 +110,9 @@ analyzer_experimental/test/generated/scanner_test: Skip
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
 
+[ $compiler == dartanalyzer ]
+unittest/test/mock_regexp_negative_test: fail
+unittest/test/mock_stepwise_negative_test: fail
 
 [ $compiler == dart2js ]
 unittest/test/instance_test: Skip
