@@ -110,18 +110,17 @@ class PathSource extends Source {
 
   /// Ensures that [description] is a valid path description. It must be a map,
   /// with a "path" key containing a path that points to an existing directory.
-  /// Throws a [FormatException] if the path is invalid.
+  /// Throws an [ApplicationException] if the path is invalid.
   void _validatePath(String name, description) {
     var dir = description["path"];
 
     if (dirExists(dir)) return;
 
     if (fileExists(dir)) {
-      throw new FormatException(
-          "Path dependency for package '$name' must refer to a "
-          "directory, not a file. Was '$dir'.");
+      fail("Path dependency for package '$name' must refer to a "
+           "directory, not a file. Was '$dir'.");
     }
 
-    throw new FormatException("Could not find package '$name' at '$dir'.");
+    fail("Could not find package '$name' at '$dir'.");
   }
 }
