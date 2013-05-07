@@ -6,6 +6,7 @@
 library pub.io;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:json';
@@ -48,12 +49,74 @@ bool fileExists(String file) => new File(file).existsSync();
 /// filesystem; nonexistent or unreadable path entries are treated as normal
 /// directories.
 String canonicalize(String pathString) {
-  var components = path.split(path.normalize(path.absolute(pathString)));
-  var newPath = components.removeAt(0);
-  // Rebuild the path one level at a time, resolving the symlinks for each level
-  // in turn.
-  for (var component in components) {
-    newPath = resolveLink(path.join(newPath, component));
+  var seen = new Set<String>();
+  var components = new Queue<String>.from(
+      path.split(path.normalize(path.absolute(pathString))));
+
+  // The canonical path, built incrementally as we iterate through [components].
+  var newPath = components.removeFirst();
+
+  // Move through the components of the path, resolving each one's symlinks as
+  // necessary. A resolved component may also add new components that need to be
+  // resolved in turn.
+  while (!components.isEmpty) {
+    seen.add(path.join(newPath, path.joinAll(components)));
+    var resolvedPath = resolveLink(
+        path.join(newPath, components.removeFirst()));
+    var relative = path.relative(resolvedPath, from: newPath);
+
+    // If the resolved path of the component relative to `newPath` is just ".",
+    // that means component was a symlink pointing to its parent directory. We
+    // can safely ignore such components.
+    if (relative == '.') continue;
+
+    var relativeComponents = new Queue<String>.from(path.split(relative));
+
+    // If the resolved path is absolute relative to `newPath`, that means it's
+    // on a different drive. We need to canonicalize the entire target of that
+    // symlink again.
+    if (path.isAbsolute(relative)) {
+      // If we've already tried to canonicalize the new path, we've encountered
+      // a symlink loop. Avoid going infinite by treating the recursive symlink
+      // as the canonical path.
+      if (seen.contains(relative)) {
+        newPath = relative;
+      } else {
+        newPath = relativeComponents.removeFirst();
+        relativeComponents.addAll(components);
+        components = relativeComponents;
+      }
+      continue;
+    }
+
+    // Pop directories off `newPath` if the component links upwards in the
+    // directory hierarchy.
+    while (relativeComponents.first == '..') {
+      newPath = path.dirname(newPath);
+      relativeComponents.removeFirst();
+    }
+
+    // If there's only one component left, [resolveLink] guarantees that it's
+    // not a link (or is a broken link). We can just add it to `newPath` and
+    // continue resolving the remaining components.
+    if (relativeComponents.length == 1) {
+      newPath = path.join(newPath, relativeComponents.single);
+      continue;
+    }
+
+    // If we've already tried to canonicalize the new path, we've encountered a
+    // symlink loop. Avoid going infinite by treating the recursive symlink as
+    // the canonical path.
+    var newSubPath = path.join(newPath, path.joinAll(relativeComponents));
+    if (seen.contains(newSubPath)) {
+      newPath = newSubPath;
+      continue;
+    }
+
+    // If there are multiple new components to resolve, add them to the
+    // beginning of the queue.
+    relativeComponents.addAll(components);
+    components = relativeComponents;
   }
   return newPath;
 }
