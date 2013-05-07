@@ -41,12 +41,12 @@ DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
 
 
 intptr_t DeoptimizationContext::GetFromFp() const {
-  return from_frame_[from_frame_size_ - num_args_ - kLastParamSlotIndex];
+  return from_frame_[from_frame_size_ - num_args_ - 1 - kParamEndSlotFromFp];
 }
 
 
 intptr_t DeoptimizationContext::GetFromPc() const {
-  return from_frame_[from_frame_size_ - num_args_ + kPcSlotIndexFromSp];
+  return from_frame_[from_frame_size_ - num_args_ + kSavedPcSlotFromSp];
 }
 
 intptr_t DeoptimizationContext::GetCallerFp() const {
@@ -526,8 +526,8 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
     ASSERT(!code.IsNull());
-    intptr_t pc_marker = code.EntryPoint() +
-                         Assembler::kOffsetOfSavedPCfromEntrypoint;
+    const intptr_t pc_marker =
+        code.EntryPoint() + Assembler::kEntryPointToPcMarkerOffset;
     intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
     *to_addr = pc_marker;
     // Increment the deoptimization counter. This effectively increments each
@@ -763,7 +763,7 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 intptr_t DeoptInfoBuilder::CalculateStackIndex(const Location& from_loc) const {
   return from_loc.stack_index() < 0 ?
             from_loc.stack_index() + num_args_ :
-            from_loc.stack_index() + num_args_ - kFirstLocalSlotIndex + 1;
+            from_loc.stack_index() + num_args_ - kFirstLocalSlotFromFp + 1;
 }
 
 

@@ -90,7 +90,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Comment("Stack Check");
     __ TraceSimMsg("Stack Check");
     const intptr_t fp_sp_dist =
-        (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+        (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
     ASSERT(fp_sp_dist <= 0);
     __ subu(T2, SP, FP);
 
@@ -814,10 +814,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in A2.
   if (!function().HasOptionalParameters()) {
-    __ AddImmediate(A2, FP, (kLastParamSlotIndex +
-                             function().NumParameters() - 1) * kWordSize);
+    __ AddImmediate(A2, FP, (kParamEndSlotFromFp +
+                             function().NumParameters()) * kWordSize);
   } else {
-    __ AddImmediate(A2, FP, kFirstLocalSlotIndex * kWordSize);
+    __ AddImmediate(A2, FP, kFirstLocalSlotFromFp * kWordSize);
   }
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
@@ -1676,7 +1676,7 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore SP from FP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
-      (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+      (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 

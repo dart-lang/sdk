@@ -1482,15 +1482,16 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
   // FP, PC-marker and return-address will be copied as well.
   const intptr_t frame_copy_size =
       // Deoptimized function's return address: caller_frame->pc().
-      - kPcSlotIndexFromSp
+      - kSavedPcSlotFromSp
       + ((frame.fp() - frame.sp()) / kWordSize)
-      + kLastParamSlotIndex
+      + 1  // For fp.
+      + kParamEndSlotFromFp
       + num_args;
   intptr_t* frame_copy = new intptr_t[frame_copy_size];
   ASSERT(frame_copy != NULL);
   // Include the return address of optimized code.
   intptr_t* start = reinterpret_cast<intptr_t*>(
-      frame.sp() + (kPcSlotIndexFromSp * kWordSize));
+      frame.sp() + (kSavedPcSlotFromSp * kWordSize));
   for (intptr_t i = 0; i < frame_copy_size; i++) {
     frame_copy[i] = *(start + i);
   }
@@ -1545,8 +1546,10 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   intptr_t unoptimized_stack_size =
-      + deopt_info.TranslationLength() - num_args
-      - kLastParamSlotIndex;  // Subtract caller FP and PC (possibly pc marker).
+      + deopt_info.TranslationLength()
+      - num_args
+      - kParamEndSlotFromFp
+      - 1;  // For fp.
   return unoptimized_stack_size * kWordSize;
 }
 END_LEAF_RUNTIME_ENTRY
@@ -1563,14 +1566,15 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
   deopt_info.ToInstructions(deopt_table, &deopt_instructions);
 
   intptr_t* start = reinterpret_cast<intptr_t*>(
-      caller_frame.sp() + (kPcSlotIndexFromSp * kWordSize));
+      caller_frame.sp() + (kSavedPcSlotFromSp * kWordSize));
   const Function& function = Function::Handle(code.function());
   const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   const intptr_t to_frame_size =
-      - kPcSlotIndexFromSp  // Deoptimized function's return address.
+      - kSavedPcSlotFromSp  // Deoptimized function's return address.
       + (caller_frame.fp() - caller_frame.sp()) / kWordSize
-      + kLastParamSlotIndex
+      + 1  // For fp.
+      + kParamEndSlotFromFp
       + num_args;
   DeoptimizationContext deopt_context(start,
                                       to_frame_size,

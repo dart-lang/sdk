@@ -261,7 +261,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 
 // Input parameters:
 //   A1: Smi-tagged argument count, may be zero.
-//   FP[kLastParamSlotIndex]: Last argument.
+//   FP[kParamEndSlotFromFp + 1]: Last argument.
 static void PushArgumentsArray(Assembler* assembler) {
   __ TraceSimMsg("PushArgumentsArray");
   // Allocate array to store arguments of caller.
@@ -275,7 +275,7 @@ static void PushArgumentsArray(Assembler* assembler) {
   __ Push(V0);  // Array is in V0 and on top of stack.
   __ sll(T1, A1, 1);
   __ addu(T1, FP, T1);
-  __ AddImmediate(T1, (kLastParamSlotIndex - 1) * kWordSize);
+  __ AddImmediate(T1, kParamEndSlotFromFp * kWordSize);
   // T1: address of first argument on stack.
   // T2: address of first argument in array.
 
@@ -308,7 +308,7 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   __ lw(A1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
   __ sll(TMP1, A1, 1);  // A1 is Smi.
   __ addu(TMP1, FP, TMP1);
-  __ lw(T1, Address(TMP1, (kLastParamSlotIndex - 1) * kWordSize));
+  __ lw(T1, Address(TMP1, kParamEndSlotFromFp * kWordSize));
 
   // Push space for the return value.
   // Push the receiver.
@@ -773,18 +773,19 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save the old Context pointer. Use T1 as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
-  // FP - kExitLinkOffsetInEntryFrame.
+  // FP - kExitLinkSlotFromEntryFp.
   // EntryFrame::SavedContext reads the context saved in this frame.
   __ lw(T1, Address(T2, Isolate::top_context_offset()));
 
-  // The constants kSavedContextOffsetInEntryFrame and
-  // kExitLinkOffsetInEntryFrame must be kept in sync with the code below.
+  // The constants kSavedContextSlotFromEntryFp and
+  // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
+  ASSERT(kExitLinkSlotFromEntryFp == -10);
+  ASSERT(kSavedContextSlotFromEntryFp == -11);
   __ sw(T0, Address(SP, 1 * kWordSize));
   __ sw(T1, Address(SP, 0 * kWordSize));
 
   // After the call, The stack pointer is restored to this location.
   // Pushed A3, S0-7, T0, T1 = 11.
-  const intptr_t kSavedContextOffsetInEntryFrame = -11 * kWordSize;
 
   // Load arguments descriptor array into S4, which is passed to Dart code.
   __ lw(S4, Address(A1, VMHandles::kOffsetOfRawPtrInHandle));
@@ -824,7 +825,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ lw(CTX, Address(CTX, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Get rid of arguments pushed on the stack.
-  __ AddImmediate(SP, FP, kSavedContextOffsetInEntryFrame);
+  __ AddImmediate(SP, FP, kSavedContextSlotFromEntryFp * kWordSize);
 
   // Load Isolate pointer from Context structure into CTX. Drop Context.
   __ lw(CTX, FieldAddress(CTX, Context::isolate_offset()));

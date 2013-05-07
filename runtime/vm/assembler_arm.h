@@ -660,7 +660,7 @@ class Assembler : public ValueObject {
   // Instruction pattern from entrypoint is used in Dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
-  static const intptr_t kOffsetOfSavedPCfromEntrypoint = Instr::kPCReadOffset;
+  static const intptr_t kEntryPointToPcMarkerOffset = Instr::kPCReadOffset;
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

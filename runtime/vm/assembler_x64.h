@@ -749,7 +749,7 @@ class Assembler : public ValueObject {
   //   movq rbp, rsp      (size is 3 bytes)
   //   call L             (size is 5 bytes)
   //   L:
-  static const intptr_t kOffsetOfSavedPCfromEntrypoint = 9;
+  static const intptr_t kEntryPointToPcMarkerOffset = 9;
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

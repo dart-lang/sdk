@@ -37,16 +37,11 @@ class StackFrame : public ValueObject {
   uword sp() const { return sp_; }
   uword fp() const { return fp_; }
   uword pc() const {
-    return *reinterpret_cast<uword*>(sp_ + PcAddressOffsetFromSp());
+    return *reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize));
   }
 
   void set_pc(uword value) {
-    *reinterpret_cast<uword*>(sp_ + PcAddressOffsetFromSp()) = value;
-  }
-
-  void SetEntrypointMarker(uword value) {
-    ASSERT(!(IsStubFrame() || IsEntryFrame() || IsExitFrame()));
-    *reinterpret_cast<uword*>(fp_ + EntrypointMarkerOffsetFromFp()) = value;
+    *reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize)) = value;
   }
 
   // Visit objects in the frame.
@@ -83,11 +78,13 @@ class StackFrame : public ValueObject {
  private:
   RawCode* GetCodeObject() const;
 
-  // Target specific implementations for locating pc and caller fp/sp values.
-  static intptr_t PcAddressOffsetFromSp();
-  static intptr_t EntrypointMarkerOffsetFromFp();
-  uword GetCallerSp() const;
-  uword GetCallerFp() const;
+  uword GetCallerSp() const {
+    return fp() + (kCallerSpSlotFromFp * kWordSize);
+  }
+  uword GetCallerFp() const {
+    return *(reinterpret_cast<uword*>(
+        fp() + (kSavedCallerFpSlotFromFp * kWordSize)));
+  }
 
   uword fp_;
   uword sp_;
@@ -142,8 +139,6 @@ class EntryFrame : public StackFrame {
 
  private:
   EntryFrame() { }
-  intptr_t ExitLinkOffset() const;
-  intptr_t SavedContextOffset() const;
 
   friend class StackFrameIterator;
   DISALLOW_COPY_AND_ASSIGN(EntryFrame);
@@ -176,8 +171,8 @@ class StackFrameIterator : public ValueObject {
       if (fp_ == 0) {
         return false;
       }
-      intptr_t offset = StackFrame::PcAddressOffsetFromSp();
-      uword pc = *(reinterpret_cast<uword*>(sp_ + offset));
+      const uword pc = *(reinterpret_cast<uword*>(
+          sp_ + (kSavedPcSlotFromSp * kWordSize)));
       return !StubCode::InInvocationStub(pc);
     }
 

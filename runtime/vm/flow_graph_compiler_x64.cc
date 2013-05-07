@@ -665,7 +665,7 @@ void FlowGraphCompiler::CopyParameters() {
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
   ASSERT(function.NumParameters() == num_params);
-  ASSERT(parsed_function().first_parameter_index() == kFirstLocalSlotIndex);
+  ASSERT(parsed_function().first_parameter_index() == kFirstLocalSlotFromFp);
 
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
@@ -683,24 +683,25 @@ void FlowGraphCompiler::CopyParameters() {
   __ j(GREATER, &wrong_num_arguments);
 
   // Copy positional arguments.
-  // Argument i passed at fp[kLastParamSlotIndex + num_args - 1 - i] is copied
-  // to fp[kFirstLocalSlotIndex - i].
+  // Argument i passed at fp[kParamEndSlotFromFp + num_args - i] is copied
+  // to fp[kFirstLocalSlotFromFp - i].
 
   __ movq(RBX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   // Since RBX and RCX are Smi, use TIMES_4 instead of TIMES_8.
   // Let RBX point to the last passed positional argument, i.e. to
-  // fp[kLastParamSlotIndex + num_args - 1 - (num_pos_args - 1)].
+  // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
   __ subq(RBX, RCX);
-  __ leaq(RBX, Address(RBP, RBX, TIMES_4, kLastParamSlotIndex * kWordSize));
+  __ leaq(RBX, Address(RBP, RBX, TIMES_4,
+                       (kParamEndSlotFromFp + 1) * kWordSize));
 
   // Let RDI point to the last copied positional argument, i.e. to
-  // fp[kFirstLocalSlotIndex - (num_pos_args - 1)].
+  // fp[kFirstLocalSlotFromFp - (num_pos_args - 1)].
   __ SmiUntag(RCX);
   __ movq(RAX, RCX);
   __ negq(RAX);
   // -num_pos_args is in RAX.
   __ leaq(RDI,
-          Address(RBP, RAX, TIMES_8, (kFirstLocalSlotIndex + 1) * kWordSize));
+          Address(RBP, RAX, TIMES_8, (kFirstLocalSlotFromFp + 1) * kWordSize));
   Label loop, loop_condition;
   __ jmp(&loop_condition, Assembler::kNearJump);
   // We do not use the final allocation index of the variable here, i.e.
@@ -744,9 +745,9 @@ void FlowGraphCompiler::CopyParameters() {
             FieldAddress(R10, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(RCX);
     // Let RBX point to the first passed argument, i.e. to
-    // fp[kLastParamSlotIndex + num_args - 1]; num_args (RBX) is Smi.
+    // fp[kParamEndSlotFromFp + num_args]; num_args (RBX) is Smi.
     __ leaq(RBX,
-            Address(RBP, RBX, TIMES_4, (kLastParamSlotIndex - 1) * kWordSize));
+            Address(RBP, RBX, TIMES_4, kParamEndSlotFromFp * kWordSize));
     // Let RDI point to the entry of the first named argument.
     __ leaq(RDI,
             FieldAddress(R10, ArgumentsDescriptor::first_named_entry_offset()));
@@ -760,7 +761,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ CompareObject(RAX, opt_param[i]->name());
       __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
       // Load RAX with passed-in argument at provided arg_pos, i.e. at
-      // fp[kLastParamSlotIndex + num_args - 1 - arg_pos].
+      // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ movq(RAX, Address(RDI, ArgumentsDescriptor::position_offset()));
       // RAX is arg_pos as Smi.
       // Point to next named entry.
@@ -776,11 +777,11 @@ void FlowGraphCompiler::CopyParameters() {
               param_pos - num_fixed_params));
       __ LoadObject(RAX, value);
       __ Bind(&assign_optional_parameter);
-      // Assign RAX to fp[kFirstLocalSlotIndex - param_pos].
+      // Assign RAX to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
+      const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
       const Address param_addr(RBP, computed_param_pos * kWordSize);
       __ movq(param_addr, RAX);
     }
@@ -806,11 +807,11 @@ void FlowGraphCompiler::CopyParameters() {
       const Object& value = Object::ZoneHandle(
           parsed_function().default_parameter_values().At(i));
       __ LoadObject(RAX, value);
-      // Assign RAX to fp[kFirstLocalSlotIndex - param_pos].
+      // Assign RAX to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
+      const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
       const Address param_addr(RBP, computed_param_pos * kWordSize);
       __ movq(param_addr, RAX);
       __ Bind(&next_parameter);
@@ -873,7 +874,7 @@ void FlowGraphCompiler::CopyParameters() {
   Label null_args_loop, null_args_loop_condition;
   __ jmp(&null_args_loop_condition, Assembler::kNearJump);
   const Address original_argument_addr(
-      RBP, RCX, TIMES_8, kLastParamSlotIndex * kWordSize);
+      RBP, RCX, TIMES_8, (kParamEndSlotFromFp + 1) * kWordSize);
   __ Bind(&null_args_loop);
   __ movq(original_argument_addr, raw_null);
   __ Bind(&null_args_loop_condition);

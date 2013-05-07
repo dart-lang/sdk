@@ -9,25 +9,32 @@ namespace dart {
 
 /* MIPS Dart Frame Layout
 
-               |                   | <- TOS
-Callee frame   | ...               |
-               | current RA        |    (PC of current frame)
-               | PC Marker         |    (callee's frame code entry)
-               +-------------------+
-Current frame  | ...               | <- SP of current frame
-               | first local       |
-               | caller's PP       |
-               | caller's FP       | <- FP of current frame
-               | caller's RA       |    (PC of caller frame)
-               | PC Marker         |    (current frame's code entry)
-               +-------------------+
-Caller frame   | last parameter    |
-               |  ...              |
+               |                    | <- TOS
+Callee frame   | ...                |
+               | current RA         |    (PC of current frame)
+               | callee's PC marker |
+               +--------------------+
+Current frame  | ...                | <- SP of current frame
+               | first local        |
+               | caller's PP        |
+               | caller's FP        | <- FP of current frame
+               | caller's RA        |    (PC of caller frame)
+               | PC marker          |    (current frame's code entry + offset)
+               +--------------------+
+Caller frame   | last parameter     | <- SP of caller frame
+               |  ...               |
 */
 
-static const int kLastParamSlotIndex = 3;  // From fp.
-static const int kFirstLocalSlotIndex = -2;  // From fp.
-static const int kPcSlotIndexFromSp = -2;
+static const int kSavedPcSlotFromSp = -2;
+static const int kFirstLocalSlotFromFp = -2;
+static const int kSavedCallerFpSlotFromFp = 0;
+static const int kPcMarkerSlotFromFp = 2;
+static const int kParamEndSlotFromFp = 2;  // Same slot as current pc marker.
+static const int kCallerSpSlotFromFp = 3;
+
+// Entry and exit frame layout.
+static const int kSavedContextSlotFromEntryFp = -11;
+static const int kExitLinkSlotFromEntryFp = -10;
 
 }  // namespace dart
 

@@ -2963,10 +2963,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       const Function& function = owner()->parsed_function().function();
       int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
-          (kLastParamSlotIndex + num_params - 1) : kFirstLocalSlotIndex;
+          (kParamEndSlotFromFp + num_params) : kFirstLocalSlotFromFp;
       // Handle the saved arguments descriptor as an additional parameter.
       if (owner()->parsed_function().GetSavedArgumentsDescriptorVar() != NULL) {
-        ASSERT(param_frame_index == kFirstLocalSlotIndex);
+        ASSERT(param_frame_index == kFirstLocalSlotFromFp);
         num_params++;
       }
       for (int pos = 0; pos < num_params; param_frame_index--, pos++) {

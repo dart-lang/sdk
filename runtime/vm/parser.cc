@@ -159,22 +159,22 @@ void ParsedFunction::AllocateVariables() {
   // Compute start indices to parameters and locals, and the number of
   // parameters to copy.
   if (num_opt_params == 0) {
-    // Parameter i will be at fp[kLastParamSlotIndex + num_params - 1 - i] and
-    // local variable j will be at fp[kFirstLocalSlotIndex - j].
+    // Parameter i will be at fp[kParamEndSlotFromFp + num_params - i] and
+    // local variable j will be at fp[kFirstLocalSlotFromFp - j].
     ASSERT(GetSavedArgumentsDescriptorVar() == NULL);
-    first_parameter_index_ = kLastParamSlotIndex + num_params - 1;
-    first_stack_local_index_ = kFirstLocalSlotIndex;
+    first_parameter_index_ = kParamEndSlotFromFp + num_params;
+    first_stack_local_index_ = kFirstLocalSlotFromFp;
     num_copied_params_ = 0;
   } else {
-    // Parameter i will be at fp[kFirstLocalSlotIndex - i] and local variable
-    // j will be at fp[kFirstLocalSlotIndex - num_params - j].
+    // Parameter i will be at fp[kFirstLocalSlotFromFp - i] and local variable
+    // j will be at fp[kFirstLocalSlotFromFp - num_params - j].
     // The saved arguments descriptor variable must be allocated similarly to
     // a parameter, so that it gets both a frame slot and a context slot when
     // captured.
     if (GetSavedArgumentsDescriptorVar() != NULL) {
       num_params += 1;
     }
-    first_parameter_index_ = kFirstLocalSlotIndex;
+    first_parameter_index_ = kFirstLocalSlotFromFp;
     first_stack_local_index_ = first_parameter_index_ - num_params;
     num_copied_params_ = num_params;
   }

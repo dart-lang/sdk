@@ -179,7 +179,7 @@ class Assembler : public ValueObject {
   // to set up the frame and save a PC which can be used to figure out the
   // RawInstruction object corresponding to the code running in the frame.
   // See EnterDartFrame. There are 6 instructions before we know the PC.
-  static const intptr_t kOffsetOfSavedPCfromEntrypoint = 6 * Instr::kInstrSize;
+  static const intptr_t kEntryPointToPcMarkerOffset = 6 * Instr::kInstrSize;
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.

@@ -90,10 +90,10 @@ Location Location::AnyOrConstant(Value* value) {
 Address Location::ToStackSlotAddress() const {
   const intptr_t index = stack_index();
   if (index < 0) {
-    const intptr_t offset = (kLastParamSlotIndex - index - 1)  * kWordSize;
+    const intptr_t offset = (kParamEndSlotFromFp - index)  * kWordSize;
     return Address(FPREG, offset);
   } else {
-    const intptr_t offset = (kFirstLocalSlotIndex - index) * kWordSize;
+    const intptr_t offset = (kFirstLocalSlotFromFp - index) * kWordSize;
     return Address(FPREG, offset);
   }
 }

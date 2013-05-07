@@ -85,7 +85,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Comment("Stack Check");
     Label done;
     const intptr_t fp_sp_dist =
-        (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+        (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
     ASSERT(fp_sp_dist <= 0);
     __ movq(RDI, RSP);
     __ subq(RDI, RBP);
@@ -1059,11 +1059,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in RAX.
   if (!function().HasOptionalParameters()) {
-    __ leaq(RAX, Address(RBP, (kLastParamSlotIndex +
-                               function().NumParameters() - 1) * kWordSize));
+    __ leaq(RAX, Address(RBP, (kParamEndSlotFromFp +
+                               function().NumParameters()) * kWordSize));
   } else {
     __ leaq(RAX,
-            Address(RBP, kFirstLocalSlotIndex * kWordSize));
+            Address(RBP, kFirstLocalSlotFromFp * kWordSize));
   }
   __ movq(RBX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ movq(R10, Immediate(NativeArguments::ComputeArgcTag(function())));
@@ -2052,7 +2052,7 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore RSP from RBP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
-      (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+      (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ leaq(RSP, Address(RBP, fp_sp_dist));
 
