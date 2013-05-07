@@ -80,17 +80,61 @@ class ProxyServer {
   HttpServer server;
   HttpClient client;
   int requestCount = 0;
+  String authScheme;
+  String realm = "test";
   String username;
   String password;
 
+  var ha1;
+  String serverAlgorithm = "MD5";
+  String serverQop = "auth";
+  Set ncs = new Set();
+
+  var nonce = "12345678";  // No need for random nonce in test.
+
   ProxyServer() : client = new HttpClient();
 
-  authenticationRequired(request) {
+  void useBasicAuthentication(String username, String password) {
+    this.username = username;
+    this.password = password;
+    authScheme = "Basic";
+  }
+
+  void useDigestAuthentication(String username, String password) {
+    this.username = username;
+    this.password = password;
+    authScheme = "Digest";
+
+    // Calculate ha1.
+    var hasher = new MD5();
+    hasher.add("${username}:${realm}:${password}".codeUnits);
+    ha1 = CryptoUtils.bytesToHex(hasher.close());
+  }
+
+  basicAuthenticationRequired(request) {
     request.fold(null, (x, y) {}).then((_) {
       var response = request.response;
       response.headers.set(HttpHeaders.PROXY_AUTHENTICATE,
-                           "Basic, realm=realm");
+                           "Basic, realm=$realm");
       response.statusCode = HttpStatus.PROXY_AUTHENTICATION_REQUIRED;
+      response.close();
+    });
+  }
+
+  digestAuthenticationRequired(request, {stale: false}) {
+    request.fold(null, (x, y) {}).then((_) {
+      var response = request.response;
+      response.statusCode = HttpStatus.PROXY_AUTHENTICATION_REQUIRED;
+      StringBuffer authHeader = new StringBuffer();
+      authHeader.write('Digest');
+      authHeader.write(', realm="$realm"');
+      authHeader.write(', nonce="$nonce"');
+      if (stale) authHeader.write(', stale="true"');
+      if (serverAlgorithm != null) {
+        authHeader.write(', algorithm=$serverAlgorithm');
+      }
+      if (serverQop != null) authHeader.write(', qop="$serverQop"');
+      response.headers.set(HttpHeaders.PROXY_AUTHENTICATE, authHeader);
       response.close();
     });
   }
@@ -104,20 +148,75 @@ class ProxyServer {
         requestCount++;
         if (username != null && password != null) {
           if (request.headers[HttpHeaders.PROXY_AUTHORIZATION] == null) {
-            authenticationRequired(request);
+            if (authScheme == "Digest") {
+              digestAuthenticationRequired(request);
+            } else {
+              basicAuthenticationRequired(request);
+            }
             return;
           } else {
             Expect.equals(
                 1, request.headers[HttpHeaders.PROXY_AUTHORIZATION].length);
             String authorization =
               request.headers[HttpHeaders.PROXY_AUTHORIZATION][0];
-            List<String> tokens = authorization.split(" ");
-            Expect.equals("Basic", tokens[0]);
-            String auth =
-                CryptoUtils.bytesToBase64(encodeUtf8("$username:$password"));
-            if (auth != tokens[1]) {
-              authenticationRequired(request);
-              return;
+            if (authScheme == "Basic") {
+              List<String> tokens = authorization.split(" ");
+              Expect.equals("Basic", tokens[0]);
+              String auth =
+                  CryptoUtils.bytesToBase64(encodeUtf8("$username:$password"));
+              if (auth != tokens[1]) {
+                basicAuthenticationRequired(request);
+                return;
+              }
+            } else {
+              HeaderValue header =
+                  HeaderValue.parse(
+                      authorization, parameterSeparator: ",");
+              Expect.equals("Digest", header.value);
+              var uri = header.parameters["uri"];
+              var qop = header.parameters["qop"];
+              var cnonce = header.parameters["cnonce"];
+              var nc = header.parameters["nc"];
+              Expect.equals(username, header.parameters["username"]);
+              Expect.equals(realm, header.parameters["realm"]);
+              Expect.equals("MD5", header.parameters["algorithm"]);
+              Expect.equals(nonce, header.parameters["nonce"]);
+              Expect.equals(request.uri.toString(), uri);
+              if (qop != null) {
+                // A server qop of auth-int is downgraded to none by the client.
+                Expect.equals("auth", serverQop);
+                Expect.equals("auth", header.parameters["qop"]);
+                Expect.isNotNull(cnonce);
+                Expect.isNotNull(nc);
+                Expect.isFalse(ncs.contains(nc));
+                ncs.add(nc);
+              } else {
+                Expect.isNull(cnonce);
+                Expect.isNull(nc);
+              }
+              Expect.isNotNull(header.parameters["response"]);
+
+              var hasher = new MD5();
+              hasher.add("${request.method}:${uri}".codeUnits);
+              var ha2 = CryptoUtils.bytesToHex(hasher.close());
+
+              var x;
+              hasher = new MD5();
+              if (qop == null || qop == "" || qop == "none") {
+                hasher.add("$ha1:${nonce}:$ha2".codeUnits);
+              } else {
+                hasher.add(
+                    "$ha1:${nonce}:${nc}:${cnonce}:${qop}:$ha2".codeUnits);
+              }
+              Expect.equals(CryptoUtils.bytesToHex(hasher.close()),
+                            header.parameters["response"]);
+
+              // Add a bogus Proxy-Authentication-Info for testing.
+              var info = 'rspauth="77180d1ab3d6c9de084766977790f482", '
+                         'cnonce="8f971178", '
+                         'nc=000002c74, '
+                         'qop=auth';
+              request.response.headers.set("Proxy-Authentication-Info", info);
             }
           }
         }
@@ -412,16 +511,23 @@ void testProxyFromEnviroment() {
 
 
 int testProxyAuthenticateCount = 0;
-void testProxyAuthenticate() {
+Future testProxyAuthenticate(bool useDigestAuthentication) {
+  testProxyAuthenticateCount = 0;
+  var completer = new Completer();
+
   setupProxyServer().then((proxyServer) {
-  proxyServer.username = "test";
-  proxyServer.password = "test";
   setupServer(1).then((server) {
   setupServer(1, secure: true).then((secureServer) {
     HttpClient client = new HttpClient();
 
     Completer step1 = new Completer();
     Completer step2 = new Completer();
+
+    if (useDigestAuthentication) {
+      proxyServer.useDigestAuthentication("dart", "password");
+    } else {
+      proxyServer.useBasicAuthentication("dart", "password");
+    }
 
     // Test with no authentication.
     client.findProxy = (Uri uri) {
@@ -459,15 +565,25 @@ void testProxyAuthenticate() {
     }
     step1.future.then((_) {
       testProxyAuthenticateCount = 0;
-      client.findProxy = (Uri uri) {
-        return "PROXY test:test@localhost:${proxyServer.port}";
-      };
+      if (useDigestAuthentication) {
+        client.findProxy = (Uri uri) => "PROXY localhost:${proxyServer.port}";
+        client.addProxyCredentials(
+            "localhost",
+            proxyServer.port,
+            "test",
+            new HttpClientDigestCredentials("dart", "password"));
+      } else {
+        client.findProxy = (Uri uri) {
+          return "PROXY dart:password@localhost:${proxyServer.port}";
+        };
+      }
 
       for (int i = 0; i < loopCount; i++) {
         test(bool secure) {
+          var path = useDigestAuthentication ? "A" : "$i";
           String url = secure
-              ? "https://localhost:${secureServer.port}/$i"
-              : "http://localhost:${server.port}/$i";
+              ? "https://localhost:${secureServer.port}/$path"
+              : "http://localhost:${server.port}/$path";
 
           client.postUrl(Uri.parse(url))
             .then((HttpClientRequest clientRequest) {
@@ -504,7 +620,7 @@ void testProxyAuthenticate() {
             "localhost",
             proxyServer.port,
             "realm",
-            new HttpClientBasicCredentials("test", "test"));
+            new HttpClientBasicCredentials("dart", "password"));
         return new Future.value(true);
       };
 
@@ -531,6 +647,7 @@ void testProxyAuthenticate() {
                   server.shutdown();
                   secureServer.shutdown();
                   client.close();
+                  completer.complete(null);
                 }
               });
             });
@@ -543,16 +660,19 @@ void testProxyAuthenticate() {
   });
   });
   });
+
+  return completer.future;
 }
 
 int testRealProxyDoneCount = 0;
 void testRealProxy() {
   setupServer(1).then((server) {
     HttpClient client = new HttpClient();
-     client.addProxyCredentials("localhost",
-                                8080,
-                                "test",
-                                new HttpClientBasicCredentials("test", "test"));
+     client.addProxyCredentials(
+         "localhost",
+         8080,
+         "test",
+         new HttpClientBasicCredentials("dart", "password"));
 
     List<String> proxy =
         ["PROXY localhost:8080",
@@ -593,10 +713,10 @@ void testRealProxyAuth() {
     HttpClient client = new HttpClient();
 
     List<String> proxy =
-        ["PROXY test:test@localhost:8080",
-         "PROXY test:test@localhost:8080; PROXY hede.hule.hest:8080",
-         "PROXY hede.hule.hest:8080; PROXY test:test@localhost:8080",
-         "PROXY test:test@localhost:8080; DIRECT"];
+        ["PROXY dart:password@localhost:8080",
+         "PROXY dart:password@localhost:8080; PROXY hede.hule.hest:8080",
+         "PROXY hede.hule.hest:8080; PROXY dart:password@localhost:8080",
+         "PROXY dart:password@localhost:8080; DIRECT"];
 
     client.findProxy = (Uri uri) {
       // Pick the proxy configuration based on the request path.
@@ -639,7 +759,10 @@ main() {
   testProxy();
   testProxyChain();
   testProxyFromEnviroment();
-  testProxyAuthenticate();
+  // The two invocations of uses the same global variable for state -
+  // run one after the other.
+  testProxyAuthenticate(false)
+      .then((_) => testProxyAuthenticate(true));
   // This test is not normally run. It can be used for locally testing
   // with a real proxy server (e.g. Apache).
   //testRealProxy();
