@@ -8,6 +8,9 @@
  * IFrame, so the configuration consists of two parts - a 'parent'
  * config that manages all the tests, and a 'child' config for the
  * IFrame that runs the individual tests.
+ * 
+ * Note: this unit test configuration will not work with the debugger (the tests
+ * are executed in a separate IFrame).
  */
 library unittest_interactive_html_config;
 
@@ -462,8 +465,11 @@ void _prepareDom() {
 }
 
 /**
- * Allocate a Configuration. We allocate either a parent or
- * child, depending on whether the URL has a search part.
+ * Allocate a Configuration. We allocate either a parent or child, depending on
+ * whether the URL has a search part.
+ * 
+ * Note: this unit test configuration will not work with the debugger (the tests
+ * are executed in a separate IFrame).
  */
 void useInteractiveHtmlConfiguration() {
   if (window.location.search == '') { // This is the parent.
