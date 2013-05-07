@@ -293,11 +293,26 @@ enum InstructionFields {
   kOffset12Bits = 12,
   kOffset12Mask = 0x00000fff,
 
-  // Mul instruction register fields encodings.
+  // Mul instruction register field encodings.
   kMulRdShift = 16,
   kMulRdBits = 4,
   kMulRnShift = 12,
   kMulRnBits = 4,
+
+  // Div instruction register field encodings.
+  kDivRdShift = 16,
+  kDivRdBits = 4,
+  kDivRmShift = 8,
+  kDivRmBits = 4,
+  kDivRnShift = 0,
+  kDivRnBits = 4,
+
+  // ldrex/strex register field encodings.
+  kLdExRnShift = 16,
+  kLdExRtShift = 12,
+  kStrExRnShift = 16,
+  kStrExRdShift = 12,
+  kStrExRtShift = 0,
 
   // MRC instruction offset field encoding.
   kCRmShift = 0,
@@ -442,6 +457,16 @@ class Instr {
     uint64_t imm64 = (Bit(19)*(1LL << 63)) | (((1LL << 8) - Bit(18)) << 54) |
                      (Bits(16, 2)*(1LL << 52)) | (Bits(0, 4)*(1LL << 48));
     return bit_cast<double, uint64_t>(imm64);
+  }
+
+  inline Register DivRdField() const {
+    return static_cast<Register>(Bits(kDivRdShift, kDivRdBits));
+  }
+  inline Register DivRmField() const {
+    return static_cast<Register>(Bits(kDivRmShift, kDivRmBits));
+  }
+  inline Register DivRnField() const {
+    return static_cast<Register>(Bits(kDivRnShift, kDivRnBits));
   }
 
   // Test for data processing instructions of type 0 or 1.

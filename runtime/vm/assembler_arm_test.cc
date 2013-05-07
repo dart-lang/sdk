@@ -1389,7 +1389,10 @@ ASSEMBLER_TEST_RUN(VstmsVldms_off, test) {
 // are in agreement.
 #if defined(USING_SIMULATOR)
 ASSEMBLER_TEST_GENERATE(MrcHaveDiv, assembler) {
-  __ mrc(R0, 15, 0, 0, 2, 0);
+  __ mrc(R0, 15, 0, 0, 2, 0);  // Accesses ID_ISAR0.
+  // Bits 24 - 27 describe the presence of integer division. Bit 24 is set if
+  // it is available in the Thumb instruction set. Bit 25 is set if it is
+  // available both in Thumb and in the ARM instruction set.
   __ Lsr(R0, R0, 24);
   __ and_(R0, R0, ShifterOperand(0xf));
   __ mov(PC, ShifterOperand(LR));
@@ -1401,7 +1404,7 @@ ASSEMBLER_TEST_RUN(MrcHaveDiv, test) {
   typedef int (*Tst)();
   bool b = CPUFeatures::integer_division_supported();
   CPUFeatures::set_integer_division_supported(true);
-  EXPECT_LT(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  EXPECT_EQ(2, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   CPUFeatures::set_integer_division_supported(b);
 }
 
@@ -1422,7 +1425,6 @@ ASSEMBLER_TEST_RUN(MrcNoDiv, test) {
   EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   CPUFeatures::set_integer_division_supported(b);
 }
-#endif  // defined(USING_SIMULATOR)
 
 
 ASSEMBLER_TEST_GENERATE(MrcReal, assembler) {
@@ -1439,18 +1441,23 @@ ASSEMBLER_TEST_RUN(MrcReal, test) {
   bool have_div = CPUFeatures::integer_division_supported();
   int32_t r = EXECUTE_TEST_CODE_INT32(Tst, test->entry());
   if (have_div) {
-    EXPECT_LT(0, r);
+    EXPECT_EQ(2, r);
   } else {
     EXPECT_EQ(0, r);
   }
 }
+#endif  // defined(USING_SIMULATOR)
 
 
 ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
-  __ mov(R0, ShifterOperand(27));
-  __ mov(R1, ShifterOperand(9));
-  __ udiv(R2, R0, R1);
-  __ Mov(R0, R2);
+  if (CPUFeatures::integer_division_supported()) {
+    __ mov(R0, ShifterOperand(27));
+    __ mov(R1, ShifterOperand(9));
+    __ udiv(R2, R0, R1);
+    __ Mov(R0, R2);
+  } else {
+    __ mov(R0, ShifterOperand(3));
+  }
   __ mov(PC, ShifterOperand(LR));
 }
 
@@ -1463,10 +1470,14 @@ ASSEMBLER_TEST_RUN(Udiv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
-  __ mov(R0, ShifterOperand(27));
-  __ LoadImmediate(R1, -9);
-  __ sdiv(R2, R0, R1);
-  __ Mov(R0, R2);
+  if (CPUFeatures::integer_division_supported()) {
+    __ mov(R0, ShifterOperand(27));
+    __ LoadImmediate(R1, -9);
+    __ sdiv(R2, R0, R1);
+    __ Mov(R0, R2);
+  } else {
+    __ LoadImmediate(R0, -3);
+  }
   __ mov(PC, ShifterOperand(LR));
 }
 
@@ -1479,10 +1490,14 @@ ASSEMBLER_TEST_RUN(Sdiv, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
-  __ mov(R0, ShifterOperand(27));
-  __ mov(R1, ShifterOperand(0));
-  __ udiv(R2, R0, R1);
-  __ Mov(R0, R2);
+  if (CPUFeatures::integer_division_supported()) {
+    __ mov(R0, ShifterOperand(27));
+    __ mov(R1, ShifterOperand(0));
+    __ udiv(R2, R0, R1);
+    __ Mov(R0, R2);
+  } else {
+    __ LoadImmediate(R0, 0);
+  }
   __ mov(PC, ShifterOperand(LR));
 }
 
@@ -1495,10 +1510,14 @@ ASSEMBLER_TEST_RUN(Udiv_zero, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
-  __ mov(R0, ShifterOperand(27));
-  __ mov(R1, ShifterOperand(0));
-  __ udiv(R2, R0, R1);
-  __ Mov(R0, R2);
+  if (CPUFeatures::integer_division_supported()) {
+    __ mov(R0, ShifterOperand(27));
+    __ mov(R1, ShifterOperand(0));
+    __ udiv(R2, R0, R1);
+    __ Mov(R0, R2);
+  } else {
+    __ LoadImmediate(R0, 0);
+  }
   __ mov(PC, ShifterOperand(LR));
 }
 
@@ -1511,10 +1530,14 @@ ASSEMBLER_TEST_RUN(Sdiv_zero, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
-  __ LoadImmediate(R0, 0x80000000);
-  __ LoadImmediate(R1, 0xffffffff);
-  __ udiv(R2, R0, R1);
-  __ Mov(R0, R2);
+  if (CPUFeatures::integer_division_supported()) {
+    __ LoadImmediate(R0, 0x80000000);
+    __ LoadImmediate(R1, 0xffffffff);
+    __ udiv(R2, R0, R1);
+    __ Mov(R0, R2);
+  } else {
+    __ LoadImmediate(R0, 0);
+  }
   __ mov(PC, ShifterOperand(LR));
 }
 
@@ -1527,10 +1550,14 @@ ASSEMBLER_TEST_RUN(Udiv_corner, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
-  __ LoadImmediate(R0, 0x80000000);
-  __ LoadImmediate(R1, 0xffffffff);
-  __ sdiv(R2, R0, R1);
-  __ Mov(R0, R2);
+  if (CPUFeatures::integer_division_supported()) {
+    __ LoadImmediate(R0, 0x80000000);
+    __ LoadImmediate(R1, 0xffffffff);
+    __ sdiv(R2, R0, R1);
+    __ Mov(R0, R2);
+  } else {
+    __ LoadImmediate(R0, 0x80000000);
+  }
   __ mov(PC, ShifterOperand(LR));
 }
 
