@@ -267,7 +267,9 @@ class Serialization {
    * CustomRule subclasses, in which case it requires additional setup and
    * is off by default.
    */
-  void set selfDescribing(bool value) => _selfDescribing = value;
+  void set selfDescribing(bool value) {
+    _selfDescribing = value;
+  }
 
   /**
    * Creates a new serialization with a default set of rules for primitives
