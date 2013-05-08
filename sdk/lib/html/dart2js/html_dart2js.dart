@@ -18417,7 +18417,16 @@ class TableSectionElement extends Element native "HTMLTableSectionElement" {
 
 @DocsEditable
 @DomName('HTMLTemplateElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class TemplateElement extends Element native "HTMLTemplateElement" {
+
+  @DomName('HTMLTemplateElement.HTMLTemplateElement')
+  @DocsEditable
+  factory TemplateElement() => document.$dom_createElement("template");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => Element.isTagSupported('template');
 
   @DomName('HTMLTemplateElement.content')
   @DocsEditable

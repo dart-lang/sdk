@@ -171,6 +171,11 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 }, dart2jsOnly=True)
 
+_blink_experimental_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@Experimental",
+]
+
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",
@@ -300,6 +305,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'HTMLOutputElement': _no_ie_annotations,
   'HTMLProgressElement': _all_but_ie9_annotations,
   'HTMLShadowElement': _shadow_dom_annotations,
+  'HTMLTemplateElement': _blink_experimental_annotations,
   'HTMLTrackElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.IE, '10')",

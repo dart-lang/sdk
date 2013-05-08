@@ -88,6 +88,7 @@ element_types_test/supported_keygen: Fail
 element_types_test/supported_meter: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_shadow: Fail
+element_types_test/supported_template: Fail
 fileapi_test/supported: Fail
 history_test/supported_HashChangeEvent: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
@@ -151,6 +152,7 @@ element_types_test/supported_meter: Fail
 element_types_test/supported_output: Fail
 element_types_test/supported_progress: Fail
 element_types_test/supported_shadow: Fail
+element_types_test/supported_template: Fail
 element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
 form_data_test/supported: Fail
@@ -239,6 +241,7 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari doe
 element_types_test/supported_content: Fail
 element_types_test/supported_datalist: Fail
 element_types_test/supported_shadow: Fail
+element_types_test/supported_template: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
@@ -288,6 +291,7 @@ audiocontext_test/supported: Fail
 crypto_test/supported: Fail
 css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
+element_types_test/supported_template: Fail
 indexeddb_1_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail
 mutationobserver_test/supported: Fail
@@ -317,6 +321,7 @@ element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_object: Fail
 element_types_test/supported_shadow: Fail
+element_types_test/supported_template: Fail
 element_types_test/supported_track: Fail
 fileapi_test/supported: Fail
 indexeddb_1_test/supportsDatabaseNames: Fail

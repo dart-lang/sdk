@@ -70,6 +70,12 @@ main() {
     });
   });
 
+  group('supported_template', () {
+    test('supported', () {
+      expect(TemplateElement.supported, true);
+    });
+  });
+
   group('supported_track', () {
     test('supported', () {
       expect(TrackElement.supported, true);
@@ -258,6 +264,10 @@ main() {
     });
     test('table', () {
       expect((new TableElement()) is TableElement, true);
+    });
+    test('template', () {
+      expect((new TemplateElement()) is TemplateElement,
+          TemplateElement.supported);
     });
     test('textarea', () {
       expect((new TextAreaElement()) is TextAreaElement, true);

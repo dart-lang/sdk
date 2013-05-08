@@ -184,6 +184,7 @@ _html_element_constructors = monitored.Dict(
   'HTMLTableElement': 'table',
   'HTMLTableRowElement': 'tr',
   #'HTMLTableSectionElement'  <thead> <tbody> <tfoot>
+  'HTMLTemplateElement': 'template',
   'HTMLTextAreaElement': 'textarea',
   'HTMLTitleElement': 'title',
   'HTMLTrackElement': 'track',
@@ -332,6 +333,7 @@ _js_support_checks_basic_element_with_constructors = [
   'HTMLObjectElement',
   'HTMLOutputElement',
   'HTMLProgressElement',
+  'HTMLTemplateElement',
   'HTMLTrackElement',
 ]
 

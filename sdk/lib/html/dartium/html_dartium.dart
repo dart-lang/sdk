@@ -19822,8 +19822,17 @@ class TableSectionElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLTemplateElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class TemplateElement extends _Element_Merged {
   TemplateElement.internal() : super.internal();
+
+  @DomName('HTMLTemplateElement.HTMLTemplateElement')
+  @DocsEditable
+  factory TemplateElement() => document.$dom_createElement("template");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
 
   @DomName('HTMLTemplateElement.content')
   @DocsEditable
