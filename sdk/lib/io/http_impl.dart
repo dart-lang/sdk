@@ -280,10 +280,6 @@ class _HttpClientResponse
                                                  _httpRequest)
               .then((request) => request.close());
           });
-
-      // Fall through to here to perform normal response handling if
-      // there is no sensible authorization handling.
-      return new Future.value(this);
     }
 
     List<String> authChallenge() {
