@@ -406,7 +406,7 @@ class DatabaseBuilder(object):
           old_interface = self._database.GetInterface(target)
           self._merge_interfaces(old_interface, interface, import_options)
         else:
-          raise Exception("Supplemental target '%s' not found", target)
+          _logger.warning("Supplemental target '%s' not found", target)
 
     # Step 4: Resolve 'implements' statements
     for impl_stmt, import_options in self._impl_stmts:

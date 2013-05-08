@@ -10,6 +10,8 @@ import logging.config
 import os.path
 import sys
 
+_logger = logging.getLogger('fremontcutbuilder')
+
 FEATURE_DISABLED = [
     'ENABLE_BATTERY_STATUS',
     'ENABLE_CSS3_CONDITIONAL_RULES',
@@ -107,12 +109,12 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
 
   unused_conditionals = known_conditionals - conditionals_met
   if unused_conditionals:
-    raise Exception('There are some unused conditionals %s' %
+    _logger.warning('There are some unused conditionals %s' %
         sorted(unused_conditionals))
 
   unknown_conditionals = conditionals_met - known_conditionals
   if unknown_conditionals:
-    raise Exception('There are some unknown conditionals %s' %
+    _logger.warning('There are some unknown conditionals %s' %
         sorted(unknown_conditionals))
 
   db.Save()
