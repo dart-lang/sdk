@@ -54,7 +54,6 @@
           'link_settings': {
             'libraries': [
               '-lc',
-              '-lpthread',
             ],
           },
         }],

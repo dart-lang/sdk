@@ -285,7 +285,7 @@
        }],
         ['OS=="android"', {
           'link_settings': {
-            'libraries': [ '-llog' ],
+            'libraries': [ '-ldl', '-lrt' ],
           },
        }]
       ],
