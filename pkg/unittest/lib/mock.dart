@@ -11,12 +11,16 @@
  * file.
  *
  *     dependencies:
- *       mock: any
+ *       unittest: any
  *
  * Then run `pub install`.
  *
- * For more information, see the
- * [mock package on pub.dartlang.org](http://pub.dartlang.org/packages/mock).
+ * Import this into your Dart code with:
+ *
+ *     import 'package:unittest/mock.dart';
+ *
+ * For more information, see the [unittest package on pub.dartlang.org]
+ * (http://pub.dartlang.org/packages/unittest).
  *
  * ## Using ##
  *

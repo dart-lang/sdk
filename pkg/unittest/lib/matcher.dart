@@ -11,12 +11,16 @@
  * file.
  *
  *     dependencies:
- *       matcher: any
+ *       unittest: any
  *
  * Then run `pub install`.
  *
- * For more information, see the
- * [matcher package on pub.dartlang.org][pkg].
+ * Import this into your Dart code with:
+ *
+ *     import 'package:unittest/matcher.dart';
+ *
+ * For more information, see the [unittest package on pub.dartlang.org].
+ * (http://pub.dartlang.org/packages/unittest).
  *
  * [pub]: http://pub.dartlang.org
  * [pkg]: http://pub.dartlang.org/packages/matcher
