@@ -27012,7 +27012,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
 
 _makeSendPortFuture(spawnRequest) {
-  final completer = new Completer<SendPort>();
+  final completer = new Completer<SendPort>.sync();
   final port = new ReceivePort();
   port.receive((result, _) {
     completer.complete(result);
