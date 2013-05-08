@@ -567,6 +567,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
                                        onCancel: _onListen);
     _outbound._addStream(_controller.stream)
         .then((_) {
+                _onListen();  // Make sure we unsubscribe.
                 _done();
                 _closeCompleter.complete(_outbound);
               },
