@@ -143,6 +143,3 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
-
-[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
-unittest/test/unittest_test: Timeout # http://dartbug.com/10470
