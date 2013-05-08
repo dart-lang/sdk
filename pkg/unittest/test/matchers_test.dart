@@ -523,6 +523,27 @@ void main() {
           "Expected: equals <[3, 1]> unordered "
           "but: has no match for element <3> at position 0.");
     });
+
+    test('pairwise compare', () {
+      var c = [1, 2];
+      var d = [1, 2, 3];
+      var e = [1, 4, 9];
+      shouldFail('x', pairwiseCompare(e, (e,a) => a <= e,
+          "less than or equal"),
+          "Expected: pairwise less than or equal <[1, 4, 9]> but: "
+          "not an Iterable.");
+      shouldFail(c, pairwiseCompare(e, (e,a) => a <= e, "less than or equal"),
+          "Expected: pairwise less than or equal <[1, 4, 9]> but: "
+          "length was 2 instead of 3.");
+      shouldPass(d, pairwiseCompare(e, (e,a) => a <= e, "less than or equal"));
+      shouldFail(d, pairwiseCompare(e, (e,a) => a < e, "less than"),
+          "Expected: pairwise less than <[1, 4, 9]> but: "
+          "<1> not less than <1> at position 0.");
+      shouldPass(d, pairwiseCompare(e, (e,a) => a * a == e, "square root of"));
+      shouldFail(d, pairwiseCompare(e, (e,a) => a + a == e, "double"),
+          "Expected: pairwise double <[1, 4, 9]> but: "
+          "<1> not double <1> at position 0.");
+    });
   });
 
   group('Map Matchers', () {
