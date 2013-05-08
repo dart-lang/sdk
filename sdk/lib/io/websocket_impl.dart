@@ -496,7 +496,7 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
     createFrame(opcode, data, webSocket._serverSide).forEach(sink.add);
   }
 
-  static Iterator createFrame(int opcode, List<int> data, bool serverSide) {
+  static Iterable createFrame(int opcode, List<int> data, bool serverSide) {
     bool mask = !serverSide;  // Masking not implemented for server.
     int dataLength = data == null ? 0 : data.length;
     // Determine the header size.
