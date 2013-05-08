@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/builtin.h"
-
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
-#include "bin/dartutils.h"
 #include "include/dart_api.h"
+
 #include "platform/assert.h"
 
+#include "bin/builtin.h"
+#include "bin/dartutils.h"
+#include "bin/io_natives.h"
 
 namespace dart {
 namespace bin {
@@ -69,8 +71,11 @@ static struct NativeEntries {
 };
 
 
-Dart_NativeFunction Builtin::BuiltinNativeLookup(Dart_Handle name,
-                                                 int argument_count) {
+/**
+ * Looks up native functions in both libdart_builtin and libdart_io.
+ */
+Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
+                                          int argument_count) {
   const char* function_name = NULL;
   Dart_Handle result = Dart_StringToCString(name, &function_name);
   DART_CHECK_VALID(result);
@@ -83,34 +88,29 @@ Dart_NativeFunction Builtin::BuiltinNativeLookup(Dart_Handle name,
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
-  return NULL;
+  return IONativeLookup(name, argument_count);
 }
 
 
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
-
-void Builtin::PrintString(FILE* out, Dart_Handle str) {
+void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
+  Dart_EnterScope();
   intptr_t length = 0;
   uint8_t* chars = NULL;
+  Dart_Handle str = Dart_GetNativeArgument(args, 0);
   Dart_Handle result = Dart_StringToUTF8(str, &chars, &length);
   if (Dart_IsError(result)) {
     // TODO(turnidge): Consider propagating some errors here.  What if
     // an isolate gets interrupted by the embedder in the middle of
     // Dart_StringToUTF8?  We need to make sure not to swallow the
     // interrupt.
-    fputs(Dart_GetError(result), out);
+    fputs(Dart_GetError(result), stdout);
   } else {
-    fwrite(chars, sizeof(*chars), length, out);
+    fwrite(chars, sizeof(*chars), length, stdout);
   }
-  fputc('\n', out);
-  fflush(out);
-}
-
-
-void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Builtin::PrintString(stdout, Dart_GetNativeArgument(args, 0));
+  fputc('\n', stdout);
+  fflush(stdout);
   Dart_ExitScope();
 }
 

@@ -5,9 +5,9 @@
 #ifndef BIN_DARTUTILS_H_
 #define BIN_DARTUTILS_H_
 
-#include "bin/builtin.h"
-#include "bin/utils.h"
 #include "include/dart_api.h"
+
+#include "platform/assert.h"
 #include "platform/globals.h"
 
 namespace dart {
@@ -15,6 +15,7 @@ namespace bin {
 
 // Forward declarations.
 class File;
+class OSError;
 
 /* Handles error handles returned from Dart API functions.  If a value
  * is an error, uses Dart_PropagateError to throw it to the enclosing
@@ -190,10 +191,6 @@ class DartUtils {
   static const char* kIOLibURL;
   static const char* kIOLibPatchURL;
   static const char* kUriLibURL;
-  static const char* kUtfLibURL;
-  static const char* kIsolateLibURL;
-  static const char* kScalarlistLibURL;
-  static const char* kWebLibURL;
 
   static const char* kIdFieldName;
 

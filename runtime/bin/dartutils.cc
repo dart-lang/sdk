@@ -4,13 +4,16 @@
 
 #include "bin/dartutils.h"
 
+#include "include/dart_api.h"
+
+#include "platform/assert.h"
+#include "platform/globals.h"
+
 #include "bin/extensions.h"
 #include "bin/directory.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
-#include "include/dart_api.h"
-#include "platform/assert.h"
-#include "platform/globals.h"
+#include "bin/utils.h"
 
 namespace dart {
 namespace bin {
@@ -24,7 +27,6 @@ const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
 const char* DartUtils::kUriLibURL = "dart:uri";
-const char* DartUtils::kUtfLibURL = "dart:utf";
 
 const char* DartUtils::kIdFieldName = "_id";
 
@@ -323,12 +325,22 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return result;
   }
+  Dart_Handle library_url = Dart_LibraryUrl(library);
+  const char* library_url_string = NULL;
+  result = Dart_StringToCString(library_url, &library_url_string);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_string);
+  bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
   bool is_dart_extension_url = DartUtils::IsDartExtensionSchemeURL(url_string);
+
+  // Handle URI canonicalization requests.
   if (tag == kCanonicalizeUrl) {
-    // If this is a Dart Scheme URL then it is not modified as it will be
-    // handled by the VM internally.
-    if (is_dart_scheme_url) {
+    // If this is a Dart Scheme URL or 'part' of a io library
+    // then it is not modified as it will be handled internally.
+    if (is_dart_scheme_url || is_io_library) {
       return url;
     }
     // Resolve the url within the context of the library's URL.
@@ -340,30 +352,41 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
     }
     return ResolveUri(library_url, url, builtin_lib);
   }
+
+  // Handle 'import' of dart scheme URIs (i.e they start with 'dart:').
   if (is_dart_scheme_url) {
     if (tag == kImportTag) {
       // Handle imports of other built-in libraries present in the SDK.
-      Builtin::BuiltinLibraryId id;
       if (DartUtils::IsDartIOLibURL(url_string)) {
-        id = Builtin::kIOLibrary;
-      } else {
-        return Dart_Error("Do not know how to load '%s'", url_string);
+        return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
       }
-      return Builtin::LoadAndCheckLibrary(id);
+      return Dart_Error("Do not know how to load '%s'", url_string);
     } else {
       ASSERT(tag == kSourceTag);
       return Dart_Error("Unable to load source '%s' ", url_string);
     }
-  } else {
-    // Get the file path out of the url.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    Dart_Handle file_path = FilePathFromUri(url, builtin_lib);
-    if (Dart_IsError(file_path)) {
-      return file_path;
-    }
-    Dart_StringToCString(file_path, &url_string);
   }
+
+  // Handle 'part' of IO library.
+  if (is_io_library) {
+    if (tag == kSourceTag) {
+      return Dart_LoadSource(
+          library, url, Builtin::PartSource(Builtin::kIOLibrary, url_string));
+    } else {
+      ASSERT(tag == kImportTag);
+      return Dart_Error("Unable to import '%s' ", url_string);
+    }
+  }
+
+  // Handle 'import' or 'part' requests for all other URIs.
+  // Get the file path out of the url.
+  Dart_Handle builtin_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+  Dart_Handle file_path = FilePathFromUri(url, builtin_lib);
+  if (Dart_IsError(file_path)) {
+    return file_path;
+  }
+  Dart_StringToCString(file_path, &url_string);
   if (is_dart_extension_url) {
     if (tag != kImportTag) {
       return Dart_Error("Dart extensions must use import: '%s'", url_string);

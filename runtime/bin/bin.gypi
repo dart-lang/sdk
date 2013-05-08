@@ -37,7 +37,7 @@
         {
           'action_name': 'generate_builtin_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
+            '../tools/gen_library_src_paths.py',
             '<(builtin_in_cc_file)',
             '<@(_sources)',
           ],
@@ -46,11 +46,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(builtin_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
-            '--var_name', 'dart::bin::Builtin::builtin_source_',
+            '--var_name', 'dart::bin::Builtin::builtin_source_paths_',
+            '--library_name', 'dart:builtin',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(builtin_cc_file)'' file.'
@@ -61,50 +62,32 @@
       'target_name': 'generate_io_cc_file',
       'type': 'none',
       'toolsets':['target','host'],
-      'variables': {
-        'io_dart': '<(gen_source_dir)/io_gen.dart',
-      },
       'sources': [
-        'io.dart',
+        '../../sdk/lib/io/io.dart',
       ],
       'includes': [
         '../../sdk/lib/io/iolib_sources.gypi',
       ],
       'actions': [
         {
-          'action_name': 'generate_io_dart',
-          'inputs': [
-            '../tools/concat_library.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(io_dart)',
-          ],
-          'action': [
-            'python',
-            '<@(_inputs)',
-            '--output', '<(io_dart)',
-          ],
-          'message': 'Generating ''<(io_dart)'' file.',
-        },
-        {
           'action_name': 'generate_io_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
+            '../tools/gen_library_src_paths.py',
             '<(builtin_in_cc_file)',
-            '<(io_dart)',
+            '<@(_sources)',
           ],
           'outputs': [
             '<(io_cc_file)',
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(io_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
-            '--var_name', 'dart::bin::Builtin::io_source_',
-            '<(io_dart)',
+            '--var_name', 'dart::bin::Builtin::io_source_paths_',
+            '--library_name', 'dart:io',
+            '<@(_sources)',
           ],
           'message': 'Generating ''<(io_cc_file)'' file.'
         },
@@ -121,7 +104,7 @@
         {
           'action_name': 'generate_io_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
+            '../tools/gen_library_src_paths.py',
             '<(builtin_in_cc_file)',
             '<@(_sources)',
           ],
@@ -130,11 +113,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(io_patch_cc_file)',
             '--input_cc', '<(builtin_in_cc_file)',
             '--include', 'bin/builtin.h',
-            '--var_name', 'dart::bin::Builtin::io_patch_',
+            '--var_name', 'dart::bin::Builtin::io_patch_paths_',
+            '--library_name', 'dart:io',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(io_patch_cc_file)'' file.'
@@ -154,9 +138,6 @@
         '..',
       ],
       'sources': [
-        'builtin_natives.cc',
-        'builtin.h',
-        'io_natives.h',
         'log_android.cc',
         'log_linux.cc',
         'log_macos.cc',
@@ -270,8 +251,10 @@
       ],
       'sources': [
         'gen_snapshot.cc',
-        # Only looks up native functions in libdart_builtin, not libdart_io.
+        # Very limited native resolver provided.
         'builtin_gen_snapshot.cc',
+        'builtin.cc',
+        'builtin.h',
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',
@@ -393,7 +376,10 @@
       ],
       'sources': [
         'main.cc',
+        'builtin_natives.cc',
         'builtin_nolib.cc',
+        'builtin.h',
+        'io_natives.h',
         'resources.h',
         'vmstats.h',
         'vmstats_impl.cc',
@@ -443,6 +429,9 @@
       'sources': [
         'main.cc',
         'builtin.cc',
+        'builtin_natives.cc',
+        'builtin.h',
+        'io_natives.h',
         'resources.h',
         'vmstats.h',
         'vmstats_impl.cc',
@@ -503,6 +492,9 @@
       'sources': [
         'run_vm_tests.cc',
         'builtin.cc',
+        'builtin_natives.cc',
+        'builtin.h',
+        'io_natives.h',
         # Include generated source files.
         '<(builtin_cc_file)',
         '<(io_cc_file)',
@@ -521,6 +513,7 @@
         ['exclude', '\\.(cc|h)$'],
         ['include', 'run_vm_tests.cc'],
         ['include', 'builtin.cc'],
+        ['include', 'builtin_natives.cc'],
         ['include', '_gen\\.cc$'],
         ['include', '_test\\.(cc|h)$'],
       ],

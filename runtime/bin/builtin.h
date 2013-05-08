@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "include/dart_api.h"
+
 #include "platform/assert.h"
 #include "platform/globals.h"
 
@@ -33,27 +34,37 @@ class Builtin {
     kInvalidLibrary,
   };
 
+  // Get source corresponding to built in library specified in 'id'.
   static Dart_Handle Source(BuiltinLibraryId id);
+
+  // Get source of part file specified in 'uri'.
+  static Dart_Handle PartSource(BuiltinLibraryId id, const char* part_uri);
+
+  // Setup native resolver method built in library specified in 'id'.
   static void SetNativeResolver(BuiltinLibraryId id);
+
+  // Check if built in library specified in 'id' is already loaded, if not
+  // load it.
   static Dart_Handle LoadAndCheckLibrary(BuiltinLibraryId id);
-  static void PrintString(FILE* out, Dart_Handle object);
 
  private:
+  // Map specified URI to an actual file name from 'source_paths' and read
+  // the file.
+  static Dart_Handle GetSource(const char** source_paths, const char* uri);
+
+  // Native method support.
   static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                           int argument_count);
-  static Dart_NativeFunction BuiltinNativeLookup(Dart_Handle name,
-                                                 int argument_count);
 
-  static const char builtin_source_[];
-  static const char io_source_[];
-  static const char io_patch_[];
-  static const char web_source_[];
+  static const char* builtin_source_paths_[];
+  static const char* io_source_paths_[];
+  static const char* io_patch_paths_[];
 
   typedef struct {
     const char* url_;
-    const char* source_;
+    const char** source_paths_;
     const char* patch_url_;
-    const char* patch_source_;
+    const char** patch_paths_;
     bool has_natives_;
   } builtin_lib_props;
   static builtin_lib_props builtin_libraries_[];

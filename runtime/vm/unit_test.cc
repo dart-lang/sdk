@@ -63,11 +63,19 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
   if (Dart_IsError(result)) {
     return Dart_Error("accessing url characters failed");
   }
+  Dart_Handle library_url = Dart_LibraryUrl(library);
+  const char* library_url_string = NULL;
+  result = Dart_StringToCString(library_url, &library_url_string);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_chars);
+  bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
   if (tag == kCanonicalizeUrl) {
     // If this is a Dart Scheme URL then it is not modified as it will be
     // handled by the VM internally.
-    if (is_dart_scheme_url) {
+    if (is_dart_scheme_url || is_io_library) {
       return url;
     }
     Dart_Handle builtin_lib =
@@ -85,6 +93,13 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     } else {
       return Dart_Error("Do not know how to load '%s'", url_chars);
     }
+  }
+  if (is_io_library) {
+    ASSERT(tag == kSourceTag);
+    return Dart_LoadSource(library,
+                           url,
+                           Builtin::PartSource(Builtin::kIOLibrary,
+                                               url_chars));
   }
   return DartUtils::LoadSource(NULL,
                                library,
