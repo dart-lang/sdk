@@ -614,7 +614,7 @@ class IsolateNatives {
   // TODO(sigmund): clean up above, after we make the new API the default:
 
   static spawn(String functionName, String uri, bool isLight) {
-    Completer<SendPort> completer = new Completer<SendPort>();
+    Completer<SendPort> completer = new Completer.sync<SendPort>();
     ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {
       port.close();

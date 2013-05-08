@@ -31,16 +31,16 @@ class Bootstrap : public AllStatic {
   static const char* uri_source_paths_[];
   static const char* utf_source_paths_[];
 
-  // Patch sources for libaries (concatenated source).
-  static const char async_patch_[];
-  static const char corelib_patch_[];
-  static const char collection_patch_[];
-  static const char collection_dev_patch_[];
-  static const char isolate_patch_[];
-  static const char json_patch_[];
-  static const char math_patch_[];
-  static const char mirrors_patch_[];
-  static const char typed_data_patch_[];
+  // Source path mapping for patch URI and 'parts'.
+  static const char* async_patch_paths_[];
+  static const char* corelib_patch_paths_[];
+  static const char* collection_patch_paths_[];
+  static const char* collection_dev_patch_paths_[];
+  static const char* isolate_patch_paths_[];
+  static const char* json_patch_paths_[];
+  static const char* math_patch_paths_[];
+  static const char* mirrors_patch_paths_[];
+  static const char* typed_data_patch_paths_[];
 };
 
 }  // namespace dart

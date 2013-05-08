@@ -173,117 +173,35 @@ main() {
   });
 
   group('creates a packages directory in', () {
-    integration('"test/" and its subdirectories', () {
-      d.dir(appPath, [
-        d.appPubspec([]),
-        d.libDir('foo'),
-        d.dir("test", [d.dir("subtest")])
-      ]).create();
+    for (var dir in ["benchmark", "example", "test", "tool", "web"]) {
+      integration('"$dir/" and its subdirectories', () {
+        d.dir(appPath, [
+          d.appPubspec([]),
+          d.libDir('foo'),
+          d.dir(dir, [d.dir("sub${dir}")])
+        ]).create();
 
-      schedulePub(args: ['install'],
-          output: new RegExp(r"Dependencies installed!$"));
+        schedulePub(args: ['install'],
+            output: new RegExp(r"Dependencies installed!$"));
 
-      d.dir(appPath, [
-        d.dir("test", [
-          d.dir("packages", [
-            d.dir("myapp", [
-              d.file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
-          d.dir("subtest", [
+        d.dir(appPath, [
+          d.dir(dir, [
             d.dir("packages", [
               d.dir("myapp", [
                 d.file('foo.dart', 'main() => "foo";')
               ])
-            ])
-          ])
-        ])
-      ]).validate();
-    });
-
-    integration('"example/" and its subdirectories', () {
-      d.dir(appPath, [
-        d.appPubspec([]),
-        d.libDir('foo'),
-        d.dir("example", [d.dir("subexample")])
-      ]).create();
-
-      schedulePub(args: ['install'],
-          output: new RegExp(r"Dependencies installed!$"));
-
-      d.dir(appPath, [
-        d.dir("example", [
-          d.dir("packages", [
-            d.dir("myapp", [
-              d.file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
-          d.dir("subexample", [
-            d.dir("packages", [
-              d.dir("myapp", [
-                d.file('foo.dart', 'main() => "foo";')
+            ]),
+            d.dir("sub${dir}", [
+              d.dir("packages", [
+                d.dir("myapp", [
+                  d.file('foo.dart', 'main() => "foo";')
+                ])
               ])
             ])
           ])
-        ])
-      ]).validate();
-    });
-
-    integration('"tool/" and its subdirectories', () {
-      d.dir(appPath, [
-        d.appPubspec([]),
-        d.libDir('foo'),
-        d.dir("tool", [d.dir("subtool")])
-      ]).create();
-
-      schedulePub(args: ['install'],
-          output: new RegExp(r"Dependencies installed!$"));
-
-      d.dir(appPath, [
-        d.dir("tool", [
-          d.dir("packages", [
-            d.dir("myapp", [
-              d.file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
-          d.dir("subtool", [
-            d.dir("packages", [
-              d.dir("myapp", [
-                d.file('foo.dart', 'main() => "foo";')
-              ])
-            ])
-          ])
-        ])
-      ]).validate();
-    });
-
-    integration('"web/" and its subdirectories', () {
-      d.dir(appPath, [
-        d.appPubspec([]),
-        d.libDir('foo'),
-        d.dir("web", [d.dir("subweb")])
-      ]).create();
-
-      schedulePub(args: ['install'],
-          output: new RegExp(r"Dependencies installed!$"));
-
-      d.dir(appPath, [
-        d.dir("web", [
-          d.dir("packages", [
-            d.dir("myapp", [
-              d.file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
-          d.dir("subweb", [
-            d.dir("packages", [
-              d.dir("myapp", [
-                d.file('foo.dart', 'main() => "foo";')
-              ])
-            ])
-          ])
-        ])
-      ]).validate();
-    });
+        ]).validate();
+      });
+    }
 
     integration('"bin/"', () {
       d.dir(appPath, [

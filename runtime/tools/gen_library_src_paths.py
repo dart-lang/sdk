@@ -38,6 +38,7 @@ def makeFile(output_file, input_cc_file, include, var_name, lib_name, in_files):
           os.path.basename(string_file).replace('\\', '\\\\') + '", ')
       part_index.append('"' +
           os.path.abspath(string_file).replace('\\', '\\\\') + '", \n')
+  bootstrap_cc_text = bootstrap_cc_text.replace("{{LIBRARY_SOURCE_MAP}}", '')
   bootstrap_cc_text = bootstrap_cc_text.replace("{{PART_SOURCE_MAP}}",
                                                 ''.join(part_index))
   open(output_file, 'w').write(bootstrap_cc_text)

@@ -32,18 +32,10 @@ class PathSource extends Source {
   }
 
   bool descriptionsEqual(description1, description2) {
-    try {
-      // Compare real paths after normalizing and resolving symlinks.
-      var path1 = new File(description1["path"]).fullPathSync();
-      var path2 = new File(description2["path"]).fullPathSync();
-      return path1 == path2;
-    } on FileIOException catch (ex) {
-      // If either of the files couldn't be found, fall back to just comparing
-      // the normalized paths.
-      var path1 = path.normalize(path.absolute(description1["path"]));
-      var path2 = path.normalize(path.absolute(description2["path"]));
-      return path1 == path2;
-    }
+    // Compare real paths after normalizing and resolving symlinks.
+    var path1 = canonicalize(description1["path"]);
+    var path2 = canonicalize(description2["path"]);
+    return path1 == path2;
   }
 
   Future<bool> install(PackageId id, String destination) {
@@ -110,18 +102,17 @@ class PathSource extends Source {
 
   /// Ensures that [description] is a valid path description. It must be a map,
   /// with a "path" key containing a path that points to an existing directory.
-  /// Throws a [FormatException] if the path is invalid.
+  /// Throws an [ApplicationException] if the path is invalid.
   void _validatePath(String name, description) {
     var dir = description["path"];
 
     if (dirExists(dir)) return;
 
     if (fileExists(dir)) {
-      throw new FormatException(
-          "Path dependency for package '$name' must refer to a "
-          "directory, not a file. Was '$dir'.");
+      fail("Path dependency for package '$name' must refer to a "
+           "directory, not a file. Was '$dir'.");
     }
 
-    throw new FormatException("Could not find package '$name' at '$dir'.");
+    fail("Could not find package '$name' at '$dir'.");
   }
 }

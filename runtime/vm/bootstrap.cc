@@ -27,7 +27,7 @@ typedef struct {
   const char* uri_;
   const char** source_paths_;
   const char* patch_uri_;
-  const char* patch_source_;
+  const char** patch_paths_;
 } bootstrap_lib_props;
 
 
@@ -35,19 +35,19 @@ static bootstrap_lib_props bootstrap_libraries[] = {
   INIT_LIBRARY(ObjectStore::kCore,
                core,
                Bootstrap::corelib_source_paths_,
-               Bootstrap::corelib_patch_),
+               Bootstrap::corelib_patch_paths_),
   INIT_LIBRARY(ObjectStore::kAsync,
                async,
                Bootstrap::async_source_paths_,
-               Bootstrap::async_patch_),
+               Bootstrap::async_patch_paths_),
   INIT_LIBRARY(ObjectStore::kCollection,
                collection,
                Bootstrap::collection_source_paths_,
-               Bootstrap::collection_patch_),
+               Bootstrap::collection_patch_paths_),
   INIT_LIBRARY(ObjectStore::kCollectionDev,
                _collection-dev,
                Bootstrap::collection_dev_source_paths_,
-               Bootstrap::collection_dev_patch_),
+               Bootstrap::collection_dev_patch_paths_),
   INIT_LIBRARY(ObjectStore::kCrypto,
                crypto,
                Bootstrap::crypto_source_paths_,
@@ -55,23 +55,23 @@ static bootstrap_lib_props bootstrap_libraries[] = {
   INIT_LIBRARY(ObjectStore::kIsolate,
                isolate,
                Bootstrap::isolate_source_paths_,
-               Bootstrap::isolate_patch_),
+               Bootstrap::isolate_patch_paths_),
   INIT_LIBRARY(ObjectStore::kJson,
                json,
                Bootstrap::json_source_paths_,
-               Bootstrap::json_patch_),
+               Bootstrap::json_patch_paths_),
   INIT_LIBRARY(ObjectStore::kMath,
                math,
                Bootstrap::math_source_paths_,
-               Bootstrap::math_patch_),
+               Bootstrap::math_patch_paths_),
   INIT_LIBRARY(ObjectStore::kMirrors,
                mirrors,
                Bootstrap::mirrors_source_paths_,
-               Bootstrap::mirrors_patch_),
+               Bootstrap::mirrors_patch_paths_),
   INIT_LIBRARY(ObjectStore::kTypedData,
                typed_data,
                Bootstrap::typed_data_source_paths_,
-               Bootstrap::typed_data_patch_),
+               Bootstrap::typed_data_patch_paths_),
   INIT_LIBRARY(ObjectStore::kUtf,
                utf,
                Bootstrap::utf_source_paths_,
@@ -90,38 +90,32 @@ static RawString* GetLibrarySource(const Library& lib,
                                    bool patch) {
   // First check if this is a valid boot strap library and find it's index
   // in the 'bootstrap_libraries' table above.
-  intptr_t index = 0;
+  intptr_t index;
   const String& lib_uri = String::Handle(lib.url());
-  while (bootstrap_libraries[index].index_ != ObjectStore::kNone) {
+  for (index = 0;
+       bootstrap_libraries[index].index_ != ObjectStore::kNone;
+       ++index) {
     if (lib_uri.Equals(bootstrap_libraries[index].uri_)) {
       break;
     }
-    index += 1;
   }
   if (bootstrap_libraries[index].index_ == ObjectStore::kNone) {
     return String::null();  // Library is not a boot strap library.
   }
 
-  if (patch) {
-    // TODO(asiva): Replace with actual read of the source file.
-    const char* source = bootstrap_libraries[index].patch_source_;
-    ASSERT(source != NULL);
-    return String::New(source, Heap::kOld);
-  }
-
   // Try to read the source using the path specified for the uri.
-  const char** source_paths = bootstrap_libraries[index].source_paths_;
+  const char** source_paths = patch ?
+      bootstrap_libraries[index].patch_paths_ :
+      bootstrap_libraries[index].source_paths_;
   if (source_paths == NULL) {
     return String::null();  // No path mapping information exists for library.
   }
-  intptr_t i = 0;
   const char* source_path = NULL;
-  while (source_paths[i] != NULL) {
+  for (intptr_t i = 0; source_paths[i] != NULL; i += 2) {
     if (uri.Equals(source_paths[i])) {
       source_path = source_paths[i + 1];
       break;
     }
-    i += 2;
   }
   if (source_path == NULL) {
     return String::null();  // Uri does not exist in path mapping information.
@@ -234,6 +228,39 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
+static RawError* LoadPatchFiles(Isolate* isolate,
+                                const Library& lib,
+                                const String& patch_uri,
+                                const char** patch_files) {
+  String& patch_file_uri = String::Handle(isolate);
+  String& source = String::Handle(isolate);
+  Script& script = Script::Handle(isolate);
+  Error& error = Error::Handle(isolate);
+  const Array& strings = Array::Handle(isolate, Array::New(3));
+  strings.SetAt(0, patch_uri);
+  strings.SetAt(1, Symbols::Slash());
+  for (intptr_t j = 0; patch_files[j] != NULL; j += 2) {
+    patch_file_uri = String::New(patch_files[j]);
+    source = GetLibrarySource(lib, patch_file_uri, true);
+    if (source.IsNull()) {
+      return Api::UnwrapErrorHandle(
+          isolate,
+          Api::NewError("Unable to find dart patch source for %s",
+                        patch_file_uri.ToCString())).raw();
+    }
+    // Prepend the patch library URI to form a unique script URI for the patch.
+    strings.SetAt(2, patch_file_uri);
+    patch_file_uri = String::ConcatAll(strings);
+    script = Script::New(patch_file_uri, source, RawScript::kPatchTag);
+    error = lib.Patch(script);
+    if (!error.IsNull()) {
+      return error.raw();
+    }
+  }
+  return Error::null();
+}
+
+
 RawError* Bootstrap::LoadandCompileScripts() {
   Isolate* isolate = Isolate::Current();
   String& uri = String::Handle();
@@ -253,8 +280,9 @@ RawError* Bootstrap::LoadandCompileScripts() {
   Dart_EnterScope();
 
   // Create library objects for all the bootstrap libraries.
-  intptr_t i = 0;
-  while (bootstrap_libraries[i].index_ != ObjectStore::kNone) {
+  for (intptr_t i = 0;
+       bootstrap_libraries[i].index_ != ObjectStore::kNone;
+       ++i) {
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     if (lib.IsNull()) {
@@ -263,12 +291,12 @@ RawError* Bootstrap::LoadandCompileScripts() {
     }
     isolate->object_store()->set_bootstrap_library(
         bootstrap_libraries[i].index_, lib);
-    i = i + 1;
   }
 
-  // Load and compile bootstrap libraries.
-  i = 0;
-  while (bootstrap_libraries[i].index_ != ObjectStore::kNone) {
+  // Load, compile and patch bootstrap libraries.
+  for (intptr_t i = 0;
+       bootstrap_libraries[i].index_ != ObjectStore::kNone;
+       ++i) {
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     ASSERT(!lib.IsNull());
@@ -285,23 +313,16 @@ RawError* Bootstrap::LoadandCompileScripts() {
       break;
     }
     // If a patch exists, load and patch the script.
-    if (bootstrap_libraries[i].patch_source_ != NULL) {
-      patch_uri = String::New(bootstrap_libraries[i].patch_uri_,
-                              Heap::kOld);
-      source = GetLibrarySource(lib, uri, true);
-      if (source.IsNull()) {
-        error ^= Api::UnwrapErrorHandle(
-            isolate, Api::NewError("Unable to find dart patch source for %s",
-                                   uri.ToCString())).raw();
-        break;
-      }
-      script = Script::New(patch_uri, source, RawScript::kPatchTag);
-      error = lib.Patch(script);
+    if (bootstrap_libraries[i].patch_paths_ != NULL) {
+      patch_uri = Symbols::New(bootstrap_libraries[i].patch_uri_);
+      error = LoadPatchFiles(isolate,
+                             lib,
+                             patch_uri,
+                             bootstrap_libraries[i].patch_paths_);
       if (!error.IsNull()) {
         break;
       }
     }
-    i = i + 1;
   }
   if (error.IsNull()) {
     SetupNativeResolver();

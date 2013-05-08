@@ -1757,7 +1757,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (doAddToScope) {
       Element existing = scope.add(element);
       if (existing != element) {
-        error(node, MessageKind.DUPLICATE_DEFINITION, {'name': node});
+        compiler.reportErrorCode(
+            node, MessageKind.DUPLICATE_DEFINITION, {'name': node});
+        compiler.reportMessage(
+            compiler.spanFromSpannable(existing),
+            MessageKind.EXISTING_DEFINITION.error({'name': node}),
+            Diagnostic.INFO);
       }
     }
     return element;
@@ -2130,18 +2135,25 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   void resolveArguments(NodeList list) {
     if (list == null) return;
-    List<SourceString> seenNamedArguments = <SourceString>[];
+    Map<SourceString, Node> seenNamedArguments = new Map<SourceString, Node>();
     for (Link<Node> link = list.nodes; !link.isEmpty; link = link.tail) {
       Expression argument = link.head;
       visit(argument);
       NamedArgument namedArgument = argument.asNamedArgument();
       if (namedArgument != null) {
         SourceString source = namedArgument.name.source;
-        if (seenNamedArguments.contains(source)) {
-          error(argument, MessageKind.DUPLICATE_DEFINITION,
-                {'name': source});
+        if (seenNamedArguments.containsKey(source)) {
+          compiler.reportErrorCode(
+              argument,
+              MessageKind.DUPLICATE_DEFINITION,
+              {'name': source});
+          compiler.reportMessage(
+              compiler.spanFromSpannable(seenNamedArguments[source]),
+              MessageKind.EXISTING_DEFINITION.error({'name': source}),
+              Diagnostic.INFO);
+        } else {
+          seenNamedArguments[source] = namedArgument;
         }
-        seenNamedArguments.add(source);
       } else if (!seenNamedArguments.isEmpty) {
         error(argument, MessageKind.INVALID_ARGUMENT_AFTER_NAMED);
       }

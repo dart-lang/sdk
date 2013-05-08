@@ -306,10 +306,9 @@ bool FlowGraphOptimizer::Canonicalize() {
   bool changed = false;
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
-    entry->Accept(this);
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      Instruction* replacement = current->Canonicalize(this);
+      Instruction* replacement = current->Canonicalize(flow_graph());
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.
@@ -363,8 +362,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
       const double dbl_val = Smi::Cast(constant->value()).AsDoubleValue();
       const Double& dbl_obj =
           Double::ZoneHandle(Double::New(dbl_val, Heap::kOld));
-      ConstantInstr* double_const = new ConstantInstr(dbl_obj);
-      InsertBefore(insert_before, double_const, NULL, Definition::kValue);
+      ConstantInstr* double_const = flow_graph()->GetConstant(dbl_obj);
       converted = new UnboxDoubleInstr(new Value(double_const), deopt_id);
     } else {
       converted = new UnboxDoubleInstr(use->CopyWithType(), deopt_id);
@@ -1131,8 +1129,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
                  call->env(),
                  Definition::kEffect);
     ConstantInstr* constant =
-        new ConstantInstr(Smi::Handle(Smi::New(value - 1)));
-    InsertBefore(call, constant, NULL, Definition::kValue);
+        flow_graph()->GetConstant(Smi::Handle(Smi::New(value - 1)));
     BinarySmiOpInstr* bin_op =
         new BinarySmiOpInstr(Token::kBIT_AND, call,
                              new Value(left),
@@ -1178,8 +1175,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
              (op_kind == Token::kNEGATE)) {
     AddReceiverCheck(call);
     ConstantInstr* minus_one =
-        new ConstantInstr(Double::ZoneHandle(Double::NewCanonical(-1)));
-    InsertBefore(call, minus_one, NULL, Definition::kValue);
+        flow_graph()->GetConstant(Double::ZoneHandle(Double::NewCanonical(-1)));
     unary_op = new BinaryDoubleOpInstr(Token::kMUL,
                                        new Value(input),
                                        new Value(minus_one),
@@ -1372,9 +1368,7 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
   LoadFieldInstr* load = BuildLoadStringLength(call->ArgumentAt(0));
   InsertBefore(call, load, NULL, Definition::kValue);
 
-  ConstantInstr* zero = new ConstantInstr(Smi::Handle(Smi::New(0)));
-  InsertBefore(call, zero, NULL, Definition::kValue);
-
+  ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
   StrictCompareInstr* compare =
       new StrictCompareInstr(Token::kEQ_STRICT,
                              new Value(load),
@@ -2025,8 +2019,7 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
   // len_in_bytes = length * kBytesPerElement(receiver)
   intptr_t element_size = FlowGraphCompiler::ElementSizeFor(receiver_cid);
   ConstantInstr* bytes_per_element =
-      new ConstantInstr(Smi::Handle(Smi::New(element_size)));
-  InsertBefore(call, bytes_per_element, NULL, Definition::kValue);
+      flow_graph()->GetConstant(Smi::Handle(Smi::New(element_size)));
   BinarySmiOpInstr* len_in_bytes =
       new BinarySmiOpInstr(Token::kMUL,
                            call,
@@ -2113,8 +2106,15 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
       if (negate) {
         as_bool = Bool::Get(!as_bool.value());
       }
-      ConstantInstr* bool_const = new ConstantInstr(as_bool);
-      ReplaceCall(call, bool_const);
+      ConstantInstr* bool_const = flow_graph()->GetConstant(as_bool);
+      for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+        PushArgumentInstr* push = call->PushArgumentAt(i);
+        push->ReplaceUsesWith(push->value()->definition());
+        push->RemoveFromGraph();
+      }
+      call->ReplaceUsesWith(bool_const);
+      ASSERT(current_iterator()->Current() == call);
+      current_iterator()->RemoveCurrentFromGraph();
       return;
     }
   }
@@ -2679,6 +2679,15 @@ void RangeAnalysis::Analyze() {
 
 
 void RangeAnalysis::CollectSmiValues() {
+  const GrowableArray<Definition*>& initial =
+      *flow_graph_->graph_entry()->initial_definitions();
+  for (intptr_t i = 0; i < initial.length(); ++i) {
+    Definition* current = initial[i];
+    if (current->Type()->ToCid() == kSmiCid) {
+      smi_values_.Add(current);
+    }
+  }
+
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done();
        block_it.Advance()) {
@@ -2702,7 +2711,7 @@ void RangeAnalysis::CollectSmiValues() {
     if (join != NULL) {
       for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
         PhiInstr* current = phi_it.Current();
-        if ((current->Type()->ToCid() == kSmiCid)) {
+        if (current->Type()->ToCid() == kSmiCid) {
           smi_values_.Add(current);
         }
       }
@@ -3106,6 +3115,14 @@ void RangeAnalysis::InferRanges() {
   }
 
   // Infer initial values of ranges.
+  const GrowableArray<Definition*>& initial =
+      *flow_graph_->graph_entry()->initial_definitions();
+  for (intptr_t i = 0; i < initial.length(); ++i) {
+    Definition* definition = initial[i];
+    if (smi_definitions_->Contains(definition->ssa_temp_index())) {
+      definition->InferRange();
+    }
+  }
   InferRangesRecursive(flow_graph_->graph_entry());
 
   if (FLAG_trace_range_analysis) {
@@ -3148,6 +3165,7 @@ static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
 
 
 LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
+  ASSERT(flow_graph->is_licm_allowed());
 }
 
 
@@ -3238,8 +3256,7 @@ void LICM::Optimize() {
            !it.Done();
            it.Advance()) {
         Instruction* current = it.Current();
-        if (!current->IsPushArgument() &&
-            current->AllowsCSE() &&
+        if (current->AllowsCSE() &&
             flow_graph()->block_effects()->CanBeMovedTo(current, pre_header)) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
@@ -3268,10 +3285,7 @@ void LICM::Optimize() {
 
 
 static bool IsLoadEliminationCandidate(Definition* def) {
-  // Immutable loads (not affected by side effects) are handled
-  // in the DominatorBasedCSE pass.
-  // TODO(fschneider): Extend to other load instructions.
-  return (def->IsLoadField() && !def->Dependencies().IsNone())
+  return def->IsLoadField()
       || def->IsLoadIndexed()
       || def->IsLoadStaticField()
       || def->IsCurrentContext();
@@ -3344,14 +3358,19 @@ class Alias : public ValueObject {
 };
 
 
-// Set mapping alias to a list of loads sharing this alias.
+// Set mapping alias to a list of loads sharing this alias. Additionally
+// carries a set of loads that can be aliased by side-effects, essentially
+// those that are affected by calls.
 class AliasedSet : public ZoneAllocated {
  public:
   explicit AliasedSet(intptr_t max_expr_id)
       : max_expr_id_(max_expr_id),
         sets_(),
-        field_ids_(),
-        max_field_id_(0) { }
+        // BitVector constructor throws if requested length is 0.
+        aliased_by_effects_(max_expr_id > 0 ? new BitVector(max_expr_id)
+                                            : NULL),
+        max_field_id_(0),
+        field_ids_() { }
 
   Alias ComputeAliasForLoad(Definition* defn) {
     if (defn->IsLoadIndexed()) {
@@ -3422,7 +3441,14 @@ class AliasedSet : public ZoneAllocated {
     return sets_[alias.ToIndex()];
   }
 
-  void Add(const Alias alias, intptr_t ssa_index) {
+  void AddRepresentative(Definition* defn) {
+    AddIdForAlias(ComputeAliasForLoad(defn), defn->expr_id());
+    if (!IsIndependentFromEffects(defn)) {
+      aliased_by_effects_->Add(defn->expr_id());
+    }
+  }
+
+  void AddIdForAlias(const Alias alias, intptr_t expr_id) {
     const intptr_t idx = alias.ToIndex();
 
     while (sets_.length() <= idx) {
@@ -3433,19 +3459,15 @@ class AliasedSet : public ZoneAllocated {
       sets_[idx] = new BitVector(max_expr_id_);
     }
 
-    sets_[idx]->Add(ssa_index);
+    sets_[idx]->Add(expr_id);
   }
 
   intptr_t max_expr_id() const { return max_expr_id_; }
   bool IsEmpty() const { return max_expr_id_ == 0; }
 
+  BitVector* aliased_by_effects() const { return aliased_by_effects_; }
+
  private:
-  const intptr_t max_expr_id_;
-
-  // Maps alias index to a set of ssa indexes corresponding to loads with the
-  // given alias.
-  GrowableArray<BitVector*> sets_;
-
   // Get id assigned to the given field. Assign a new id if the field is seen
   // for the first time.
   intptr_t GetFieldId(intptr_t instance_id, const Field& field) {
@@ -3509,13 +3531,49 @@ class AliasedSet : public ZoneAllocated {
           escapes = true;
           break;
         }
-
-        alloc->set_identity(escapes ? AllocateObjectInstr::kAliased
-                                    : AllocateObjectInstr::kNotAliased);
       }
+
+      alloc->set_identity(escapes ? AllocateObjectInstr::kAliased
+                                  : AllocateObjectInstr::kNotAliased);
     }
 
     return alloc->identity() != AllocateObjectInstr::kNotAliased;
+  }
+
+  // Returns true if the given load is unaffected by external side-effects.
+  // This essentially means that no stores to the same location can
+  // occur in other functions.
+  bool IsIndependentFromEffects(Definition* defn) {
+    LoadFieldInstr* load_field = defn->AsLoadField();
+    if (load_field != NULL) {
+      // Note that we can't use LoadField's is_immutable attribute here because
+      // some VM-fields (those that have no corresponding Field object and
+      // accessed through offset alone) can share offset but have different
+      // immutability properties.
+      // One example is the length property of growable and fixed size list. If
+      // loads of these two properties occur in the same function for the same
+      // receiver then they will get the same expression number. However
+      // immutability of the length of fixed size list does not mean that
+      // growable list also has immutable property. Thus we will make a
+      // conservative assumption for the VM-properties.
+      // TODO(vegorov): disambiguate immutable and non-immutable VM-fields with
+      // the same offset e.g. through recognized kind.
+      if ((load_field->field() != NULL) &&
+          (load_field->field()->is_final())) {
+        return true;
+      }
+
+      AllocateObjectInstr* alloc =
+          load_field->instance()->definition()->AsAllocateObject();
+      return (alloc != NULL) && !CanBeAliased(alloc);
+    }
+
+    LoadStaticFieldInstr* load_static_field = defn->AsLoadStaticField();
+    if (load_static_field != NULL) {
+      return load_static_field->field().is_final();
+    }
+
+    return false;
   }
 
   class FieldIdPair {
@@ -3555,9 +3613,17 @@ class AliasedSet : public ZoneAllocated {
     Value value_;
   };
 
+  const intptr_t max_expr_id_;
+
+  // Maps alias index to a set of ssa indexes corresponding to loads with the
+  // given alias.
+  GrowableArray<BitVector*> sets_;
+
+  BitVector* aliased_by_effects_;
+
   // Table mapping static field to their id used during optimization pass.
-  DirectChainedHashMap<FieldIdPair> field_ids_;
   intptr_t max_field_id_;
+  DirectChainedHashMap<FieldIdPair> field_ids_;
 };
 
 
@@ -3724,7 +3790,7 @@ static AliasedSet* NumberLoadExpressions(
   AliasedSet* aliased_set = new AliasedSet(expr_id);
   for (intptr_t i = 0; i < loads.length(); i++) {
     Definition* defn = loads[i];
-    aliased_set->Add(aliased_set->ComputeAliasForLoad(defn), defn->expr_id());
+    aliased_set->AddRepresentative(defn);
   }
   return aliased_set;
 }
@@ -3760,6 +3826,25 @@ class LoadOptimizer : public ValueObject {
     }
   }
 
+  static bool OptimizeGraph(FlowGraph* graph) {
+    ASSERT(FLAG_load_cse);
+
+    DirectChainedHashMap<LoadKeyValueTrait> map;
+    AliasedSet* aliased_set = NumberLoadExpressions(graph, &map);
+    if (!aliased_set->IsEmpty()) {
+      // If any loads were forwarded return true from Optimize to run load
+      // forwarding again. This will allow to forward chains of loads.
+      // This is especially important for context variables as they are built
+      // as loads from loaded context.
+      // TODO(vegorov): renumber newly discovered congruences during the
+      // forwarding to forward chains without running whole pass twice.
+      LoadOptimizer load_optimizer(graph, aliased_set, &map);
+      return load_optimizer.Optimize();
+    }
+    return false;
+  }
+
+ private:
   bool Optimize() {
     ComputeInitialSets();
     ComputeOutValues();
@@ -3768,7 +3853,6 @@ class LoadOptimizer : public ValueObject {
     return forwarded_;
   }
 
- private:
   // Compute sets of loads generated and killed by each block.
   // Additionally compute upwards exposed and generated loads for each block.
   // Exposed loads are those that can be replaced if a corresponding
@@ -3826,18 +3910,59 @@ class LoadOptimizer : public ValueObject {
           continue;
         }
 
-        // Other instructions with side effects kill all loads.
+        // If instruction has effects then kill all loads affected.
         if (!instr->Effects().IsNone()) {
-          kill->SetAll();
-          // There is no need to clear out_values when clearing GEN set
-          // because only those values that are in the GEN set
+          kill->AddAll(aliased_set_->aliased_by_effects());
+          // There is no need to clear out_values when removing values from GEN
+          // set because only those values that are in the GEN set
           // will ever be used.
-          gen->Clear();
+          gen->RemoveAll(aliased_set_->aliased_by_effects());
           continue;
         }
 
         Definition* defn = instr->AsDefinition();
-        if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
+        if (defn == NULL) {
+          continue;
+        }
+
+        // For object allocation forward initial values of the fields to
+        // subsequent loads.
+        // For simplicity we ignore escaping objects and objects that have
+        // type arguments.
+        // The reason to ignore escaping objects is that final fields are
+        // initialized in constructor that potentially can be not inlined into
+        // the function that we are currently optimizing. However at the same
+        // time we assume that values of the final fields can be forwarded
+        // across side-effects. If we add 'null' as known values for these
+        // fields here we will incorrectly propagate this null across
+        // constructor invocation.
+        // TODO(vegorov): record null-values at least for not final fields of
+        // escaping object.
+        // TODO(vegorov): enable forwarding of type arguments.
+        AllocateObjectInstr* alloc = instr->AsAllocateObject();
+        if ((alloc != NULL) &&
+            (alloc->identity() == AllocateObjectInstr::kNotAliased) &&
+            (alloc->ArgumentCount() == 0)) {
+          for (Value* use = alloc->input_use_list();
+               use != NULL;
+               use = use->next_use()) {
+            // Look for all immediate loads from this object.
+            if (use->use_index() != 0) {
+              continue;
+            }
+
+            LoadFieldInstr* load = use->instruction()->AsLoadField();
+            if (load != NULL) {
+              // Found a load. Initialize current value of the field to null.
+              gen->Add(load->expr_id());
+              if (out_values == NULL) out_values = CreateBlockOutValues();
+              (*out_values)[load->expr_id()] = graph_->constant_null();
+            }
+          }
+          continue;
+        }
+
+        if (!IsLoadEliminationCandidate(defn)) {
           continue;
         }
 
@@ -4241,19 +4366,7 @@ class CSEInstructionMap : public ValueObject {
 bool DominatorBasedCSE::Optimize(FlowGraph* graph) {
   bool changed = false;
   if (FLAG_load_cse) {
-    GrowableArray<BitVector*> kill_by_offs(10);
-    DirectChainedHashMap<LoadKeyValueTrait> map;
-    AliasedSet* aliased_set = NumberLoadExpressions(graph, &map);
-    if (!aliased_set->IsEmpty()) {
-      // If any loads were forwarded return true from Optimize to run load
-      // forwarding again. This will allow to forward chains of loads.
-      // This is especially important for context variables as they are built
-      // as loads from loaded context.
-      // TODO(vegorov): renumber newly discovered congruences during the
-      // forwarding to forward chains without running whole pass twice.
-      LoadOptimizer load_optimizer(graph, aliased_set, &map);
-      changed = load_optimizer.Optimize() || changed;
-    }
+    changed = LoadOptimizer::OptimizeGraph(graph) || changed;
   }
 
   CSEInstructionMap map;
@@ -4527,6 +4640,11 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
     }
   }
   SetValue(instr, value);
+}
+
+
+void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
+  SetValue(instr, instr->value()->definition()->constant_value());
 }
 
 
@@ -4804,6 +4922,11 @@ void ConstantPropagator::VisitLoadUntagged(LoadUntaggedInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitLoadClassId(LoadClassIdInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
       (instr->instance()->definition()->IsCreateArray())) {
@@ -5019,6 +5142,12 @@ void ConstantPropagator::VisitConstant(ConstantInstr* instr) {
 
 void ConstantPropagator::VisitConstraint(ConstraintInstr* instr) {
   // Should not be used outside of range analysis.
+  UNREACHABLE();
+}
+
+
+void ConstantPropagator::VisitMaterializeObject(MaterializeObjectInstr* instr) {
+  // Should not be used outside of allocation elimination pass.
   UNREACHABLE();
 }
 
@@ -5350,7 +5479,9 @@ void ConstantPropagator::Transform() {
                     defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
         }
-        defn->ReplaceWith(new ConstantInstr(defn->constant_value()), &i);
+        ConstantInstr* constant = graph_->GetConstant(defn->constant_value());
+        defn->ReplaceUsesWith(constant);
+        i.RemoveCurrentFromGraph();
       }
     }
 
@@ -5440,10 +5571,9 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   //   Branch(Comparison(kind, Phi, Constant))
   //
   // These are the branches produced by inlining in a test context.  Also,
-  // the phi and the constant have no other uses so they can simply be
-  // eliminated.  The block has no other phis and no instructions
-  // intervening between the phi, constant, and branch so the block can
-  // simply be eliminated.
+  // the phi has no other uses so they can simply be eliminated.  The block
+  // has no other phis and no instructions intervening between the phi and
+  // branch so the block can simply be eliminated.
   BranchInstr* branch = block->last_instruction()->AsBranch();
   ASSERT(branch != NULL);
   ComparisonInstr* comparison = branch->comparison();
@@ -5455,9 +5585,7 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
       (constant != NULL) &&
       (phi->GetBlock() == block) &&
       PhiHasSingleUse(phi, left) &&
-      constant->HasOnlyUse(right) &&
-      (block->next() == constant) &&
-      (constant->next() == branch) &&
+      (block->next() == branch) &&
       (block->phis()->length() == 1);
 }
 
@@ -5473,14 +5601,6 @@ JoinEntryInstr* BranchSimplifier::ToJoinEntry(TargetEntryInstr* target) {
   join->set_last_instruction(target->last_instruction());
   target->UnuseAllInputs();
   return join;
-}
-
-
-ConstantInstr* BranchSimplifier::CloneConstant(FlowGraph* flow_graph,
-                                               ConstantInstr* constant) {
-  ConstantInstr* new_constant = new ConstantInstr(constant->value());
-  new_constant->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
-  return new_constant;
 }
 
 
@@ -5569,16 +5689,35 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
             block->PredecessorAt(i)->last_instruction()->AsGoto();
         ASSERT(old_goto != NULL);
 
-        // Insert a copy of the constant in all the predecessors.
-        ConstantInstr* new_constant = CloneConstant(flow_graph, constant);
-        new_constant->InsertBefore(old_goto);
-
         // Replace the goto in each predecessor with a rewritten branch,
         // rewritten to use the corresponding phi input instead of the phi.
         Value* new_left = phi->InputAt(i)->Copy();
-        Value* new_right = new Value(new_constant);
+        Value* new_right = new Value(constant);
         BranchInstr* new_branch = CloneBranch(branch, new_left, new_right);
-        new_branch->InheritDeoptTarget(old_goto);
+        if (branch->env() == NULL) {
+          new_branch->InheritDeoptTarget(old_goto);
+        } else {
+          // Take the environment from the branch if it has one.
+          new_branch->InheritDeoptTarget(branch);
+          // InheritDeoptTarget gave the new branch's comparison the same
+          // deopt id that it gave the new branch.  The id should be the
+          // deopt id of the original comparison.
+          new_branch->comparison()->SetDeoptId(comparison->GetDeoptId());
+          // The phi can be used in the branch's environment.  Rename such
+          // uses.
+          for (Environment::DeepIterator it(new_branch->env());
+               !it.Done();
+               it.Advance()) {
+            Value* use = it.CurrentValue();
+            if (use->definition() == phi) {
+              Definition* replacement = phi->InputAt(i)->definition();
+              use->RemoveFromUseList();
+              use->set_definition(replacement);
+              replacement->AddEnvUse(use);
+            }
+          }
+        }
+
         new_branch->InsertBefore(old_goto);
         new_branch->set_next(NULL);  // Detaching the goto from the graph.
         old_goto->UnuseAllInputs();
@@ -5616,6 +5755,7 @@ void BranchSimplifier::Simplify(FlowGraph* flow_graph) {
       phi->UnuseAllInputs();
       branch->UnuseAllInputs();
       block->UnuseAllInputs();
+      ASSERT(!phi->HasUses());
     }
   }
 
@@ -5753,6 +5893,242 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
     flow_graph->DiscoverBlocks();
     GrowableArray<BitVector*> dominance_frontier;
     flow_graph->ComputeDominators(&dominance_frontier);
+  }
+}
+
+
+void FlowGraphOptimizer::EliminateEnvironments() {
+  // After this pass we can no longer perform LICM and hoist instructions
+  // that can deoptimize.
+
+  flow_graph_->disallow_licm();
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* block = block_order_[i];
+    block->RemoveEnvironment();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (!current->CanDeoptimize()) current->RemoveEnvironment();
+    }
+  }
+}
+
+
+// Right now we are attempting to sink allocation only into
+// deoptimization exit. So candidate should only be used in StoreInstanceField
+// instructions that write into fields of the allocated object.
+// We do not support materialization of the object that has type arguments.
+static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc) {
+  // TODO(vegorov): support AllocateObject with type arguments.
+  if (alloc->ArgumentCount() > 0) {
+    return false;
+  }
+
+  for (Value* use = alloc->input_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    if (!(use->instruction()->IsStoreInstanceField() &&
+          use->use_index() == 0)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+// Remove the given allocation from the graph. It is not observable.
+// If deoptimization occurs the object will be materialized.
+static void EliminateAllocation(AllocateObjectInstr* alloc) {
+  ASSERT(IsAllocationSinkingCandidate(alloc));
+
+  if (FLAG_trace_optimization) {
+    OS::Print("removing allocation from the graph: v%"Pd"\n",
+              alloc->ssa_temp_index());
+  }
+
+  // As an allocation sinking candidate it is only used in stores to its own
+  // fields. Remove these stores.
+  for (Value* use = alloc->input_use_list();
+       use != NULL;
+       use = alloc->input_use_list()) {
+    use->instruction()->RemoveFromGraph();
+  }
+
+  // There should be no environment uses. The pass replaced them with
+  // MaterializeObject instructions.
+  ASSERT(alloc->env_use_list() == NULL);
+  ASSERT(alloc->input_use_list() == NULL);
+  alloc->RemoveFromGraph();
+}
+
+
+void AllocationSinking::Optimize() {
+  GrowableArray<AllocateObjectInstr*> candidates(5);
+
+  // Collect sinking candidates.
+  const GrowableArray<BlockEntryInstr*>& postorder = flow_graph_->postorder();
+  for (BlockIterator block_it(postorder);
+       !block_it.Done();
+       block_it.Advance()) {
+    BlockEntryInstr* block = block_it.Current();
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      AllocateObjectInstr* alloc = it.Current()->AsAllocateObject();
+      if ((alloc != NULL) && IsAllocationSinkingCandidate(alloc)) {
+        if (FLAG_trace_optimization) {
+          OS::Print("discovered allocation sinking candidate: v%"Pd"\n",
+                    alloc->ssa_temp_index());
+        }
+        candidates.Add(alloc);
+      }
+    }
+  }
+
+  // Insert MaterializeObject instructions that will describe the state of the
+  // object at all deoptimization points. Each inserted materialization looks
+  // like this (where v_0 is allocation that we are going to eliminate):
+  //   v_1     <- LoadField(v_0, field_1)
+  //           ...
+  //   v_N     <- LoadField(v_0, field_N)
+  //   v_{N+1} <- MaterializeObject(field_1 = v_1, ..., field_N = v_{N})
+  for (intptr_t i = 0; i < candidates.length(); i++) {
+    InsertMaterializations(candidates[i]);
+  }
+
+  // Run load forwarding to eliminate LoadField instructions inserted above.
+  // All loads will be successfully eliminated because:
+  //   a) they use fields (not offsets) and thus provide precise aliasing
+  //      information
+  //   b) candidate does not escape and thus its fields is not affected by
+  //      external effects from calls.
+  LoadOptimizer::OptimizeGraph(flow_graph_);
+
+  // At this point we have computed the state of object at each deoptimization
+  // point and we can eliminate it. Loads inserted above were forwarded so there
+  // are no uses of the allocation just as in the begging of the pass.
+  for (intptr_t i = 0; i < candidates.length(); i++) {
+    EliminateAllocation(candidates[i]);
+  }
+
+  // Process materializations and unbox their arguments: materializations
+  // are part of the environment and can materialize boxes for double/mint/simd
+  // values when needed.
+  // TODO(vegorov): handle all box types here.
+  for (intptr_t i = 0; i < materializations_.length(); i++) {
+    MaterializeObjectInstr* mat = materializations_[i];
+    for (intptr_t j = 0; j < mat->InputCount(); j++) {
+      Definition* defn = mat->InputAt(j)->definition();
+      if (defn->IsBoxDouble()) {
+        mat->InputAt(j)->BindTo(defn->InputAt(0)->definition());
+      }
+    }
+  }
+}
+
+
+// Remove materializations from the graph. Register allocator will treat them
+// as part of the environment not as a real instruction.
+void AllocationSinking::DetachMaterializations() {
+  for (intptr_t i = 0; i < materializations_.length(); i++) {
+    ASSERT(materializations_[i]->input_use_list() == NULL);
+    materializations_[i]->previous()->LinkTo(materializations_[i]->next());
+  }
+}
+
+
+// Add the given field to the list of fields if it is not yet present there.
+static void AddField(ZoneGrowableArray<const Field*>* fields,
+                     const Field& field) {
+  for (intptr_t i = 0; i < fields->length(); i++) {
+    if ((*fields)[i]->raw() == field.raw()) {
+      return;
+    }
+  }
+  fields->Add(&field);
+}
+
+
+// Add given instruction to the list of the instructions if it is not yet
+// present there.
+static void AddInstruction(GrowableArray<Instruction*>* exits,
+                           Instruction* exit) {
+  for (intptr_t i = 0; i < exits->length(); i++) {
+    if ((*exits)[i] == exit) {
+      return;
+    }
+  }
+  exits->Add(exit);
+}
+
+
+// Insert MaterializeObject instruction for the given allocation before
+// the given instruction that can deoptimize.
+void AllocationSinking::CreateMaterializationAt(
+    Instruction* exit,
+    AllocateObjectInstr* alloc,
+    const Class& cls,
+    const ZoneGrowableArray<const Field*>& fields) {
+  ZoneGrowableArray<Value*>* values =
+      new ZoneGrowableArray<Value*>(fields.length());
+
+  // Insert load instruction for every field.
+  for (intptr_t i = 0; i < fields.length(); i++) {
+    const Field* field = fields[i];
+    LoadFieldInstr* load = new LoadFieldInstr(new Value(alloc),
+                                              field->Offset(),
+                                              AbstractType::ZoneHandle());
+    load->set_field(field);
+    flow_graph_->InsertBefore(
+        exit, load, NULL, Definition::kValue);
+    values->Add(new Value(load));
+  }
+
+  MaterializeObjectInstr* mat = new MaterializeObjectInstr(cls, fields, values);
+  flow_graph_->InsertBefore(exit, mat, NULL, Definition::kValue);
+
+  // Replace all mentions of this allocation with a newly inserted
+  // MaterializeObject instruction.
+  // We must preserve the identity: all mentions are replaced by the same
+  // materialization.
+  for (Environment::DeepIterator env_it(exit->env());
+       !env_it.Done();
+       env_it.Advance()) {
+    Value* use = env_it.CurrentValue();
+    if (use->definition() == alloc) {
+      use->RemoveFromUseList();
+      use->set_definition(mat);
+      mat->AddEnvUse(use);
+    }
+  }
+
+  // Record inserted materialization.
+  materializations_.Add(mat);
+}
+
+
+void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
+  // Collect all fields that are written for this instance.
+  ZoneGrowableArray<const Field*>* fields =
+      new ZoneGrowableArray<const Field*>(5);
+
+  for (Value* use = alloc->input_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    ASSERT(use->instruction()->IsStoreInstanceField());
+    AddField(fields, use->instruction()->AsStoreInstanceField()->field());
+  }
+
+  // Collect all instructions that mention this object in the environment.
+  GrowableArray<Instruction*> exits(10);
+  for (Value* use = alloc->env_use_list();
+       use != NULL;
+       use = use->next_use()) {
+    AddInstruction(&exits, use->instruction());
+  }
+
+  // Insert materializations at environment uses.
+  const Class& cls = Class::Handle(alloc->constructor().Owner());
+  for (intptr_t i = 0; i < exits.length(); i++) {
+    CreateMaterializationAt(exits[i], alloc, cls, *fields);
   }
 }
 

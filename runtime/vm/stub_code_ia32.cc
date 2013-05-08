@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/scavenger.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
 
@@ -394,11 +395,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (preserve_eax) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
   }
-  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  __ pushl(Immediate(Smi::RawValue(0)));  // Space for the result.
+  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry);
+  // Result tells stub how many bytes to remove from the expression stack
+  // of the bottom-most frame. They were used as materialization arguments.
+  __ popl(EBX);
+  __ SmiUntag(EBX);
   if (preserve_eax) {
     __ popl(EAX);  // Restore result.
   }
   __ LeaveFrame();
+
+  __ popl(ECX);  // Pop return address.
+  __ addl(ESP, EBX);  // Remove materialization arguments.
+  __ pushl(ECX);  // Push return address.
   __ ret();
 }
 
@@ -741,8 +751,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save the top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
-  // code below: kExitLinkOffsetInEntryFrame = -4 * kWordSize.
+  // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
+  // code below.
+  ASSERT(kExitLinkSlotFromEntryFp == -4);
   __ movl(EDX, Address(EDI, Isolate::top_exit_frame_info_offset()));
   __ pushl(EDX);
   __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -750,10 +761,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save the old Context pointer. Use ECX as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
-  // FP - kExitLinkOffsetInEntryFrame.
+  // FP - kExitLinkSlotFromEntryFp.
   // EntryFrame::SavedContext reads the context saved in this frame.
-  // The constant kSavedContextOffsetInEntryFrame must be kept in sync with
-  // the code below: kSavedContextOffsetInEntryFrame = -5 * kWordSize.
+  // The constant kSavedContextSlotFromEntryFp must be kept in sync with
+  // the code below.
+  ASSERT(kSavedContextSlotFromEntryFp == -5);
   __ movl(ECX, Address(EDI, Isolate::top_context_offset()));
   __ pushl(ECX);
 

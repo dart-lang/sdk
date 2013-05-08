@@ -67,7 +67,7 @@ class Server {
           HeaderValue header =
               HeaderValue.parse(
                   authorization, parameterSeparator: ",");
-          if (header.value == "basic") {
+          if (header.value.toLowerCase() == "basic") {
             sendUnauthorizedResponse(response);
           } else if (!useNextNonce && nonceCount == nonceStaleAfter) {
             nonce = "87654321";
@@ -78,12 +78,12 @@ class Server {
             var qop = header.parameters["qop"];
             var cnonce = header.parameters["cnonce"];
             var nc = header.parameters["nc"];
-            Expect.equals("digest", header.value);
+            Expect.equals("digest", header.value.toLowerCase());
             Expect.equals("dart", header.parameters["username"]);
             Expect.equals(realm, header.parameters["realm"]);
             Expect.equals("MD5", header.parameters["algorithm"]);
             Expect.equals(nonce, header.parameters["nonce"]);
-            Expect.equals(request.uri.path, uri);
+            Expect.equals(request.uri.toString(), uri);
             if (qop != null) {
               // A server qop of auth-int is downgraded to none by the client.
               Expect.equals("auth", serverQop);
@@ -201,10 +201,17 @@ void testCredentials(String algorithm, String qop) {
         new HttpClientDigestCredentials("dart", "password"));
 
     var futures = [];
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 2; i++) {
+      String uriBase = "http://127.0.0.1:${server.port}/digest";
       futures.add(
           makeRequest(
-              Uri.parse("http://127.0.0.1:${server.port}/digest")));
+              Uri.parse(uriBase)));
+      futures.add(
+          makeRequest(
+              Uri.parse("$uriBase?querystring")));
+      futures.add(
+          makeRequest(
+              Uri.parse("$uriBase?querystring#fragment")));
     }
     Future.wait(futures).then((_) {
       server.shutdown();

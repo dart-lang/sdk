@@ -6,6 +6,8 @@ library command_update;
 
 import 'dart:async';
 
+import 'package:args/args.dart';
+
 import 'command.dart';
 import 'entrypoint.dart';
 import 'log.dart' as log;
@@ -17,6 +19,14 @@ class UpdateCommand extends PubCommand {
 
   String get usage => 'pub update [dependencies...]';
 
+  ArgParser get commandParser {
+    return new ArgParser()
+        ..addFlag('offline',
+            help: 'Use cached packages instead of accessing the network.');
+  }
+
+  bool get isOffline => commandOptions['offline'];
+
   Future onRun() {
     var future;
     if (commandOptions.rest.isEmpty) {
@@ -24,7 +34,13 @@ class UpdateCommand extends PubCommand {
     } else {
       future = entrypoint.updateDependencies(commandOptions.rest);
     }
-    return future
-        .then((_) => log.message("Dependencies updated!"));
+
+    return future.then((_) {
+      log.message("Dependencies updated!");
+      if (isOffline) {
+        log.warning("Warning: Updating when offline may not update you to the "
+                    "latest versions of your dependencies.");
+      }
+    });
   }
 }

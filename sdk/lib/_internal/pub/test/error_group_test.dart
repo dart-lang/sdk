@@ -63,10 +63,12 @@ main() {
         "been called", () {
       completer.complete('value');
 
-      expect(() => errorGroup.registerFuture(new Future.value()),
-          throwsStateError);
-      expect(() => errorGroup.registerStream(new StreamController().stream),
-          throwsStateError);
+      completer.future.then(expectAsync1((_) {
+        expect(() => errorGroup.registerFuture(new Future.value()),
+            throwsStateError);
+        expect(() => errorGroup.registerStream(new StreamController().stream),
+            throwsStateError);
+      }));
     });
 
     test('should pass through an exception from the future if it has a '

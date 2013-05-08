@@ -44,6 +44,9 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void InferSmiRanges();
 
+  // Remove environments from the instructions which do not deoptimize.
+  void EliminateEnvironments();
+
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
   virtual void VisitRelationalOp(RelationalOpInstr* instr);
@@ -291,19 +294,15 @@ class BranchSimplifier : public AllStatic {
  public:
   static void Simplify(FlowGraph* flow_graph);
 
- private:
-  // Match an instance of the pattern to rewrite.  See the implementation
-  // for the patterns that are handled by this pass.
-  static bool Match(JoinEntryInstr* block);
-
   // Replace a target entry instruction with a join entry instruction.  Does
   // not update the original target's predecessors to point to the new block
   // and does not replace the target in already computed block order lists.
   static JoinEntryInstr* ToJoinEntry(TargetEntryInstr* target);
 
-  // Duplicate a constant, assigning it a new SSA name.
-  static ConstantInstr* CloneConstant(FlowGraph* flow_graph,
-                                      ConstantInstr* constant);
+ private:
+  // Match an instance of the pattern to rewrite.  See the implementation
+  // for the patterns that are handled by this pass.
+  static bool Match(JoinEntryInstr* block);
 
   // Duplicate a branch while replacing its comparison's left and right
   // inputs.
@@ -321,6 +320,30 @@ class IfConverter : public AllStatic {
   static void Simplify(FlowGraph* flow_graph);
 };
 
+
+class AllocationSinking : public ZoneAllocated {
+ public:
+  explicit AllocationSinking(FlowGraph* flow_graph)
+      : flow_graph_(flow_graph),
+        materializations_(5) { }
+
+  void Optimize();
+
+  void DetachMaterializations();
+
+ private:
+  void InsertMaterializations(AllocateObjectInstr* alloc);
+
+  void CreateMaterializationAt(
+      Instruction* exit,
+      AllocateObjectInstr* alloc,
+      const Class& cls,
+      const ZoneGrowableArray<const Field*>& fields);
+
+  FlowGraph* flow_graph_;
+
+  GrowableArray<MaterializeObjectInstr*> materializations_;
+};
 
 }  // namespace dart
 

@@ -5,6 +5,19 @@
 
 // VM implementation of DateTime.
 patch class DateTime {
+  // Natives.
+  // The natives have been moved up here to work around Issue 10401.
+  static int _getCurrentMs() native "DateNatives_currentTimeMillis";
+
+  static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch)
+      native "DateNatives_timeZoneName";
+
+  static int _timeZoneOffsetInSecondsForClampedSeconds(int secondsSinceEpoch)
+      native "DateNatives_timeZoneOffsetInSeconds";
+
+  static int _localTimeZoneAdjustmentInSeconds()
+      native "DateNatives_localTimeZoneAdjustmentInSeconds";
+
   /* patch */ DateTime._internal(int year,
                                  int month,
                                  int day,
@@ -310,16 +323,4 @@ patch class DateTime {
     int equivalentSeconds = _equivalentSeconds(millisecondsSinceEpoch);
     return _timeZoneNameForClampedSeconds(equivalentSeconds);
   }
-
-  // Natives
-  static int _getCurrentMs() native "DateNatives_currentTimeMillis";
-
-  static String _timeZoneNameForClampedSeconds(int secondsSinceEpoch)
-      native "DateNatives_timeZoneName";
-
-  static int _timeZoneOffsetInSecondsForClampedSeconds(int secondsSinceEpoch)
-      native "DateNatives_timeZoneOffsetInSeconds";
-
-  static int _localTimeZoneAdjustmentInSeconds()
-      native "DateNatives_localTimeZoneAdjustmentInSeconds";
 }

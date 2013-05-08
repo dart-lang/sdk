@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/scavenger.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
 
@@ -387,12 +388,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (preserve_rax) {
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
   }
-  __ CallRuntime(kDeoptimizeMaterializeDoublesRuntimeEntry);
+  __ pushq(Immediate(Smi::RawValue(0)));  // Space for the result.
+  __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry);
+  // Result tells stub how many bytes to remove from the expression stack
+  // of the bottom-most frame. They were used as materialization arguments.
+  __ popq(RBX);
+  __ SmiUntag(RBX);
   if (preserve_rax) {
     __ popq(RAX);  // Restore result.
   }
   __ LeaveFrame();
 
+  __ popq(RCX);  // Pop return address.
+  __ addq(RSP, RBX);  // Remove materialization arguments.
+  __ pushq(RCX);  // Push return address.
   __ ret();
 }
 
@@ -729,8 +738,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save the top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  // The constant kExitLinkOffsetInEntryFrame must be kept in sync with the
-  // code below: kExitLinkOffsetInEntryFrame = -8 * kWordSize.
+  // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
+  // code below.
+  ASSERT(kExitLinkSlotFromEntryFp == -8);
   __ movq(RAX, Address(R8, Isolate::top_exit_frame_info_offset()));
   __ pushq(RAX);
   __ movq(Address(R8, Isolate::top_exit_frame_info_offset()), Immediate(0));
@@ -738,10 +748,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save the old Context pointer. Use RAX as a temporary register.
   // Note that VisitObjectPointers will find this saved Context pointer during
   // GC marking, since it traverses any information between SP and
-  // FP - kExitLinkOffsetInEntryFrame.
+  // FP - kExitLinkSlotFromEntryFp * kWordSize.
   // EntryFrame::SavedContext reads the context saved in this frame.
-  // The constant kSavedContextOffsetInEntryFrame must be kept in sync with
-  // the code below: kSavedContextOffsetInEntryFrame = -9 * kWordSize.
+  // The constant kSavedContextSlotFromEntryFp must be kept in sync with
+  // the code below.
+  ASSERT(kSavedContextSlotFromEntryFp == -9);
   __ movq(RAX, Address(R8, Isolate::top_context_offset()));
   __ pushq(RAX);
 

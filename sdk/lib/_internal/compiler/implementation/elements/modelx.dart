@@ -387,14 +387,18 @@ class ScopeX {
   }
 
   void add(Element element, DiagnosticListener listener) {
+    SourceString name = element.name;
     if (element.isAccessor()) {
-      addAccessor(element, contents[element.name], listener);
+      addAccessor(element, contents[name], listener);
     } else {
-      Element existing = contents.putIfAbsent(element.name, () => element);
+      Element existing = contents.putIfAbsent(name, () => element);
       if (!identical(existing, element)) {
-        // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
-        listener.cancel('duplicate definition', token: element.position());
-        listener.cancel('existing definition', token: existing.position());
+        listener.reportErrorCode(element,
+            MessageKind.DUPLICATE_DEFINITION, {'name': name});
+        listener.reportMessage(
+            listener.spanFromSpannable(existing),
+            MessageKind.EXISTING_DEFINITION.error({'name': name}),
+            api.Diagnostic.INFO);
       }
     }
   }

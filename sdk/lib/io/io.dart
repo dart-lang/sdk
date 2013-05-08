@@ -40,6 +40,8 @@ part 'http_body.dart';
 part 'http_body_impl.dart';
 part 'http_headers.dart';
 part 'http_impl.dart';
+part 'http_multipart_form_data.dart';
+part 'http_multipart_form_data_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
 part 'http_utils.dart';

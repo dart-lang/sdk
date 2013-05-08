@@ -598,7 +598,7 @@ void FlowGraphCompiler::CopyParameters() {
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
   ASSERT(function.NumParameters() == num_params);
-  ASSERT(parsed_function().first_parameter_index() == kFirstLocalSlotIndex);
+  ASSERT(parsed_function().first_parameter_index() == kFirstLocalSlotFromFp);
 
   // Check that min_num_pos_args <= num_pos_args <= max_num_pos_args,
   // where num_pos_args is the number of positional arguments passed in.
@@ -616,21 +616,21 @@ void FlowGraphCompiler::CopyParameters() {
                          &wrong_num_arguments);
 
   // Copy positional arguments.
-  // Argument i passed at fp[kLastParamSlotIndex + num_args - 1 - i] is copied
-  // to fp[kFirstLocalSlotIndex - i].
+  // Argument i passed at fp[kParamEndSlotFromFp + num_args - i] is copied
+  // to fp[kFirstLocalSlotFromFp - i].
 
   __ lw(T1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
   // Since T1 and T2 are Smi, use sll 1 instead of sll 2.
   // Let T1 point to the last passed positional argument, i.e. to
-  // fp[kLastParamSlotIndex + num_args - 1 - (num_pos_args - 1)].
+  // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
   __ subu(T1, T1, T2);
   __ sll(T1, T1, 1);
   __ addu(T1, FP, T1);
-  __ AddImmediate(T1, kLastParamSlotIndex * kWordSize);
+  __ AddImmediate(T1, (kParamEndSlotFromFp + 1) * kWordSize);
 
   // Let T0 point to the last copied positional argument, i.e. to
-  // fp[kFirstLocalSlotIndex - (num_pos_args - 1)].
-  __ AddImmediate(T0, FP, (kFirstLocalSlotIndex + 1) * kWordSize);
+  // fp[kFirstLocalSlotFromFp - (num_pos_args - 1)].
+  __ AddImmediate(T0, FP, (kFirstLocalSlotFromFp + 1) * kWordSize);
   __ sll(T2, T2, 1);  // T2 is a Smi.
 
   Label loop, loop_exit;
@@ -671,10 +671,10 @@ void FlowGraphCompiler::CopyParameters() {
     __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(T2);
     // Let T1 point to the first passed argument, i.e. to
-    // fp[kLastParamSlotIndex + num_args - 1 - 0]; num_args (T1) is Smi.
+    // fp[kParamEndSlotFromFp + num_args - 0]; num_args (T1) is Smi.
     __ sll(T3, T1, 1);
     __ addu(T1, FP, T3);
-    __ AddImmediate(T1, (kLastParamSlotIndex - 1) * kWordSize);
+    __ AddImmediate(T1, kParamEndSlotFromFp * kWordSize);
     // Let T0 point to the entry of the first named argument.
     __ AddImmediate(T0, S4,
         ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag);
@@ -688,7 +688,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ BranchNotEqual(T3, opt_param[i]->name(), &load_default_value);
 
       // Load T3 with passed-in argument at provided arg_pos, i.e. at
-      // fp[kLastParamSlotIndex + num_args - 1 - arg_pos].
+      // fp[kParamEndSlotFromFp + num_args - arg_pos].
       __ lw(T3, Address(T0, ArgumentsDescriptor::position_offset()));
       // T3 is arg_pos as Smi.
       // Point to next named entry.
@@ -706,11 +706,11 @@ void FlowGraphCompiler::CopyParameters() {
               param_pos - num_fixed_params));
       __ LoadObject(T3, value);
       __ Bind(&assign_optional_parameter);
-      // Assign T3 to fp[kFirstLocalSlotIndex - param_pos].
+      // Assign T3 to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
+      const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
       __ sw(T3, Address(FP, computed_param_pos * kWordSize));
     }
     delete[] opt_param;
@@ -735,11 +735,11 @@ void FlowGraphCompiler::CopyParameters() {
       const Object& value = Object::ZoneHandle(
           parsed_function().default_parameter_values().At(i));
       __ LoadObject(T3, value);
-      // Assign T3 to fp[kFirstLocalSlotIndex - param_pos].
+      // Assign T3 to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
-      const intptr_t computed_param_pos = kFirstLocalSlotIndex - param_pos;
+      const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
       __ sw(T3, Address(FP, computed_param_pos * kWordSize));
       __ Bind(&next_parameter);
     }
@@ -803,7 +803,8 @@ void FlowGraphCompiler::CopyParameters() {
 
   Label null_args_loop, null_args_loop_exit;
   __ blez(T2, &null_args_loop_exit);
-  __ delay_slot()->addiu(T1, FP, Immediate(kLastParamSlotIndex * kWordSize));
+  __ delay_slot()->addiu(T1, FP,
+                         Immediate((kParamEndSlotFromFp + 1) * kWordSize));
   __ Bind(&null_args_loop);
   __ addiu(T2, T2, Immediate(-kWordSize));
   __ addu(T3, T1, T2);

@@ -66,9 +66,6 @@ class FlowGraphAllocator : public ValueObject {
  private:
   void CollectRepresentations();
 
-  // Eliminate unnecessary environments from the IL.
-  void EliminateEnvironments();
-
   // Visit blocks in the code generation order (reverse post order) and
   // linearly assign consequent lifetime positions to every instruction.
   // We assign position as follows:
@@ -107,6 +104,10 @@ class FlowGraphAllocator : public ValueObject {
   Instruction* ConnectOutgoingPhiMoves(BlockEntryInstr* block,
                                        BitVector* interference_set);
   void ProcessEnvironmentUses(BlockEntryInstr* block, Instruction* current);
+  void ProcessMaterializationUses(BlockEntryInstr* block,
+                                  const intptr_t block_start_pos,
+                                  const intptr_t use_pos,
+                                  MaterializeObjectInstr* mat);
   void ProcessOneInstruction(BlockEntryInstr* block,
                              Instruction* instr,
                              BitVector* interference_set);

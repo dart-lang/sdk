@@ -23,7 +23,7 @@ DECLARE_FLAG(int, heap_growth_space_ratio);
 // of the VM
 #define BENCHMARK(name)                                                        \
   void Dart_Benchmark##name(Benchmark* benchmark);                             \
-  static const Benchmark kRegister##name(Dart_Benchmark##name, #name);         \
+  static Benchmark kRegister##name(Dart_Benchmark##name, #name);               \
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark);                \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
     FLAG_heap_growth_space_ratio = 100;                                        \

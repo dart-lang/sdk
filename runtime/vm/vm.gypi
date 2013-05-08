@@ -274,8 +274,8 @@
         {
           'action_name': 'generate_corelib_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -283,11 +283,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(corelib_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::corelib_patch_',
+            '--var_name', 'dart::Bootstrap::corelib_patch_paths_',
+            '--library_name', 'dart:corelib',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(corelib_patch_cc_file)'' file.'
@@ -353,8 +354,8 @@
         {
           'action_name': 'generate_collection_dev_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -362,11 +363,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(collection_dev_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::collection_dev_patch_',
+            '--var_name', 'dart::Bootstrap::collection_dev_patch_paths_',
+            '--library_name', 'dart:_collection-dev',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(collection_dev_patch_cc_file)'' file.'
@@ -505,8 +507,8 @@
         {
           'action_name': 'generate_math_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -514,11 +516,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(math_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::math_patch_',
+            '--var_name', 'dart::Bootstrap::math_patch_paths_',
+            '--library_name', 'dart:math',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(math_patch_cc_file)'' file.'
@@ -584,8 +587,8 @@
         {
           'action_name': 'generate_mirrors_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -593,11 +596,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(mirrors_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::mirrors_patch_',
+            '--var_name', 'dart::Bootstrap::mirrors_patch_paths_',
+            '--library_name', 'dart:mirrors',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(mirrors_patch_cc_file)'' file.'
@@ -663,8 +667,8 @@
         {
           'action_name': 'generate_async_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -672,11 +676,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(async_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::async_patch_',
+            '--var_name', 'dart::Bootstrap::async_patch_paths_',
+            '--library_name', 'dart:async',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(async_patch_cc_file)'' file.'
@@ -702,8 +707,8 @@
         {
           'action_name': 'generate_collection_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -711,11 +716,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(collection_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::collection_patch_',
+            '--var_name', 'dart::Bootstrap::collection_patch_paths_',
+            '--library_name', 'dart:collection',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(collection_patch_cc_file)'' file.'
@@ -741,8 +747,8 @@
         {
           'action_name': 'generate_isolate_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -750,11 +756,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(isolate_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::isolate_patch_',
+            '--var_name', 'dart::Bootstrap::isolate_patch_paths_',
+            '--library_name', 'dart:isolate',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(isolate_patch_cc_file)'' file.'
@@ -813,8 +820,8 @@
         {
           'action_name': 'generate_json_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -822,11 +829,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(json_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::json_patch_',
+            '--var_name', 'dart::Bootstrap::json_patch_paths_',
+            '--library_name', 'dart:json',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(json_patch_cc_file)'' file.'
@@ -892,8 +900,8 @@
         {
           'action_name': 'generate_typed_data_patch_cc',
           'inputs': [
-            '../tools/create_string_literal.py',
-            '<(builtin_in_cc_file)',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
@@ -901,11 +909,12 @@
           ],
           'action': [
             'python',
-            'tools/create_string_literal.py',
+            'tools/gen_library_src_paths.py',
             '--output', '<(typed_data_patch_cc_file)',
-            '--input_cc', '<(builtin_in_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
             '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::typed_data_patch_',
+            '--var_name', 'dart::Bootstrap::typed_data_patch_paths_',
+            '--library_name', 'dart:typed_data',
             '<@(_sources)',
           ],
           'message': 'Generating ''<(typed_data_patch_cc_file)'' file.'

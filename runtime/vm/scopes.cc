@@ -569,15 +569,15 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
 int LocalVariable::BitIndexIn(intptr_t fixed_parameter_count) const {
   ASSERT(!is_captured());
   // Parameters have positive indexes with the lowest index being
-  // kLastParamSlotIndex.  Locals and copied parameters have negative indexes
-  // with the lowest (closest to zero) index being kFirstLocalSlotIndex.
+  // kParamEndSlotFromFp + 1.  Locals and copied parameters have negative
+  // indexes with the lowest (closest to 0) index being kFirstLocalSlotFromFp.
   if (index() > 0) {
     // Shift non-negative indexes so that the lowest one is 0.
-    return (fixed_parameter_count - 1) - (index() - kLastParamSlotIndex);
+    return fixed_parameter_count - (index() - kParamEndSlotFromFp);
   } else {
     // Shift negative indexes so that the lowest one is 0 (they are still
     // non-positive).
-    return fixed_parameter_count - (index() - kFirstLocalSlotIndex);
+    return fixed_parameter_count - (index() - kFirstLocalSlotFromFp);
   }
 }
 

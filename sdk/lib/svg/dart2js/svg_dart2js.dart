@@ -5744,7 +5744,7 @@ class SvgDocument extends Document native "SVGDocument" {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _AttributeClassSet extends CssClassSet {
+class _AttributeClassSet extends CssClassSetImpl {
   final Element _element;
 
   _AttributeClassSet(this._element);

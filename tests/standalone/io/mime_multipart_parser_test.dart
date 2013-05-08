@@ -279,12 +279,8 @@ Content-Type: text/plain\r
 --\r\r\r
 -\r""";
   testParse(message, "boundary", [headers, headers], [body1, body2]);
-}
 
-void testParseInvalid() {
-  String message;
-
-  // Missing initial CRLF. One body part less.
+  // Without initial CRLF.
   message = """
 --xxx\r
 \r
@@ -295,7 +291,11 @@ Body 1\r
 \r
 Body2\r
 --xxx--\r\n""";
-  testParse(message, "xxx", null, ["\r\nBody2"]);
+  testParse(message, "xxx", null, ["\r\nBody 1", "\r\nBody2"]);
+}
+
+void testParseInvalid() {
+  String message;
 
   // Missing end boundary.
   message = """

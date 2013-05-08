@@ -5,7 +5,6 @@
 import 'package:pathos/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
 
-import '../../../lib/src/exit_codes.dart' as exit_codes;
 import '../../descriptor.dart' as d;
 import '../../test_pub.dart';
 
@@ -38,6 +37,6 @@ main() {
     schedulePub(args: ['install'],
         error: new RegExp("Path dependency for package 'foo' must refer to a "
                           "directory, not a file. Was '$escapePath'."),
-        exitCode: exit_codes.DATA);
+        exitCode: 1);
   });
 }

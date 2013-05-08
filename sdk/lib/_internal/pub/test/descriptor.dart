@@ -83,14 +83,6 @@ Descriptor libDir(String name, [String code]) {
   ]);
 }
 
-/// Describes a directory for a package installed from the mock package server.
-/// This directory is of the form found in the global package cache.
-Descriptor packageCacheDir(String name, String version) {
-  return dir("$name-$version", [
-    libDir(name, '$name $version')
-  ]);
-}
-
 /// Describes a directory for a Git package. This directory is of the form
 /// found in the revision cache of the global package cache.
 Descriptor gitPackageRevisionCacheDir(String name, [int modifier]) {
@@ -137,14 +129,25 @@ Descriptor packagesDir(Map<String, String> packages) {
 ///
 /// A package's value may also be a list of versions, in which case all
 /// versions are expected to be installed.
-Descriptor cacheDir(Map packages) {
+///
+/// If [includePubspecs] is `true`, then pubspecs will be created for each
+/// package. Defaults to `false` so that the contents of pubspecs are not
+/// validated since they will often lack the dependencies section that the
+/// real pubspec being compared against has. You usually only need to pass
+/// `true` for this if you plan to call [create] on the resulting descriptor.
+Descriptor cacheDir(Map packages, {bool includePubspecs: false}) {
   var contents = <Descriptor>[];
   packages.forEach((name, versions) {
     if (versions is! List) versions = [versions];
     for (var version in versions) {
-      contents.add(packageCacheDir(name, version));
+      var packageContents = [libDir(name, '$name $version')];
+      if (includePubspecs) {
+        packageContents.add(libPubspec(name, version));
+      }
+      contents.add(dir("$name-$version", packageContents));
     }
   });
+
   return dir(cachePath, [
     dir('hosted', [
       async(port.then((p) => dir('localhost%58$p', contents)))

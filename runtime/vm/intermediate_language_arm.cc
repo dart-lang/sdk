@@ -87,7 +87,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label stack_ok;
     __ Comment("Stack Check");
     const intptr_t fp_sp_dist =
-        (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+        (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
     ASSERT(fp_sp_dist <= 0);
     __ sub(R2, SP, ShifterOperand(FP));
     __ CompareImmediate(R2, fp_sp_dist);
@@ -800,10 +800,10 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in R2.
   if (!function().HasOptionalParameters()) {
-    __ AddImmediate(R2, FP, (kLastParamSlotIndex +
-                             function().NumParameters() - 1) * kWordSize);
+    __ AddImmediate(R2, FP, (kParamEndSlotFromFp +
+                             function().NumParameters()) * kWordSize);
   } else {
-    __ AddImmediate(R2, FP, kFirstLocalSlotIndex * kWordSize);
+    __ AddImmediate(R2, FP, kFirstLocalSlotFromFp * kWordSize);
   }
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
@@ -840,6 +840,17 @@ LocationSummary* LoadUntaggedInstr::MakeLocationSummary() const {
 
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* LoadClassIdInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNIMPLEMENTED();
 }
 
@@ -1717,7 +1728,7 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore SP from FP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
-      (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+      (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 
@@ -2299,7 +2310,7 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptPolymorphicInstanceCallTestFail);
   if (ic_data().NumberOfChecks() == 0) {
     __ b(deopt);
@@ -2309,7 +2320,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!with_checks()) {
     ASSERT(ic_data().HasOneTarget());
     const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
-    compiler->GenerateStaticCall(instance_call()->deopt_id(),
+    compiler->GenerateStaticCall(deopt_id(),
                                  instance_call()->token_pos(),
                                  target,
                                  instance_call()->ArgumentCount(),
@@ -2329,7 +2340,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                             instance_call()->ArgumentCount(),
                             instance_call()->argument_names(),
                             deopt,
-                            instance_call()->deopt_id(),
+                            deopt_id(),
                             instance_call()->token_pos(),
                             locs());
 }
@@ -2789,4 +2800,3 @@ void CreateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM
-

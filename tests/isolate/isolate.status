@@ -36,6 +36,15 @@ unresolved_ports_negative_test: Fail, OK # Fails at runtime.
 isolate2_negative_test: Pass
 compute_this_script_browser_test: Pass
 
+[ $compiler == dartanalyzer ]
+isolate2_negative_test: fail
+isolate3_negative_test: fail
+isolate_import_negative_test: fail
+isolate_negative_test: fail
+spawn_function_negative_test: fail
+spawn_uri_negative_test: fail
+spawn_uri_vm_negative_test: fail
+unresolved_ports_negative_test: fail
 
 [ $compiler == dart2js && ($runtime == d8 || $jscl) ]
 illegal_msg_stream_test: Fail # Issue 6750

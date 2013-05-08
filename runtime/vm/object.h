@@ -2596,9 +2596,17 @@ class ExceptionHandlers : public Object {
 };
 
 
-// Holds deopt information at one deoptimization point. The information
-// is a list of DeoptInstr objects, specifying transformation information
-// for each slot in unoptimized frame(s).
+// Holds deopt information at one deoptimization point. The information consists
+// of two parts:
+//  - first a prefix consiting of kMaterializeObject instructions describing
+//    objects which had their allocation removed as part of AllocationSinking
+//    pass and have to be materialized;
+//  - followed by a list of DeoptInstr objects, specifying transformation
+//    information for each slot in unoptimized frame(s).
+// Arguments for object materialization (class of instance to be allocated and
+// field-value pairs) are added as artificial slots to the expression stack
+// of the bottom-most frame. They are removed from the stack at the very end
+// of deoptimization by the deoptimization stub.
 class DeoptInfo : public Object {
  private:
   // Describes the layout of deopt info data. The index of a deopt-info entry
@@ -2616,6 +2624,10 @@ class DeoptInfo : public Object {
   // The number of real (non-suffix) instructions needed to execute the
   // deoptimization translation.
   intptr_t TranslationLength() const;
+
+  // Size of the frame part of the translation not counting kMaterializeObject
+  // instructions in the prefix.
+  intptr_t FrameSize() const;
 
   static RawDeoptInfo* New(intptr_t num_commands);
 

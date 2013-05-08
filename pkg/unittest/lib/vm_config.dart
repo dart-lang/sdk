@@ -11,6 +11,32 @@ import 'dart:io';
 import 'unittest.dart';
 
 class VMConfiguration extends Configuration {
+  // Color constants used for generating messages.
+  final String GREEN_COLOR = '\u001b[32m';
+  final String RED_COLOR = '\u001b[31m';
+  final String MAGENTA_COLOR = '\u001b[35m';
+  final String NO_COLOR = '\u001b[0m';
+
+  // We make this public so the user can turn it off if they want.
+  bool useColor;
+
+  VMConfiguration() :
+    super(), useColor = stdioType(stdout) == StdioType.TERMINAL;
+
+  String formatResult(TestCase testCase) {
+    String result = super.formatResult(testCase);
+    if (useColor) {
+      if (testCase.result == PASS) {
+        return "${GREEN_COLOR}${result}${NO_COLOR}";
+      } else if (testCase.result == FAIL) {
+        return "${RED_COLOR}${result}${NO_COLOR}";
+      } else if (testCase.result == ERROR) {
+        return "${MAGENTA_COLOR}${result}${NO_COLOR}";
+      }
+    }
+    return result;
+  }
+
   void onDone(bool success) {
     try {
       super.onDone(success);

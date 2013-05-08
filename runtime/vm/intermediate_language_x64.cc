@@ -85,7 +85,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Comment("Stack Check");
     Label done;
     const intptr_t fp_sp_dist =
-        (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+        (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
     ASSERT(fp_sp_dist <= 0);
     __ movq(RDI, RSP);
     __ subq(RDI, RBP);
@@ -1059,11 +1059,11 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in RAX.
   if (!function().HasOptionalParameters()) {
-    __ leaq(RAX, Address(RBP, (kLastParamSlotIndex +
-                               function().NumParameters() - 1) * kWordSize));
+    __ leaq(RAX, Address(RBP, (kParamEndSlotFromFp +
+                               function().NumParameters()) * kWordSize));
   } else {
     __ leaq(RAX,
-            Address(RBP, kFirstLocalSlotIndex * kWordSize));
+            Address(RBP, kFirstLocalSlotFromFp * kWordSize));
   }
   __ movq(RBX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ movq(R10, Immediate(NativeArguments::ComputeArgcTag(function())));
@@ -1089,13 +1089,10 @@ static bool CanBeImmediateIndex(Value* index, intptr_t cid) {
 
 LocationSummary* StringFromCharCodeInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   // TODO(fschneider): Allow immediate operands for the char code.
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::RequiresRegister());
-  return locs;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -1113,12 +1110,9 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::RequiresRegister());
-  return locs;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -1126,6 +1120,29 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register object = locs()->in(0).reg();
   Register result = locs()->out().reg();
   __ movq(result, FieldAddress(object, offset()));
+}
+
+
+LocationSummary* LoadClassIdInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+
+void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register object = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  Label load, done;
+  __ testq(object, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &load, Assembler::kNearJump);
+  __ movq(result, Immediate(Smi::RawValue(kSmiCid)));
+  __ jmp(&done);
+  __ Bind(&load);
+  __ LoadClassId(result, object);
+  __ SmiTag(result);
+  __ Bind(&done);
 }
 
 
@@ -2035,7 +2052,7 @@ void CatchEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore RSP from RBP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
-      (kFirstLocalSlotIndex + 1 - compiler->StackSize()) * kWordSize;
+      (kFirstLocalSlotFromFp + 1 - compiler->StackSize()) * kWordSize;
   ASSERT(fp_sp_dist <= 0);
   __ leaq(RSP, Address(RBP, fp_sp_dist));
 
@@ -2747,12 +2764,9 @@ void BoxFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* UnboxFloat32x4Instr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(Location::RequiresFpuRegister());
-  return summary;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresFpuRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -3324,12 +3338,9 @@ void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* UnarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  return summary;
+  return LocationSummary::Make(kNumInputs,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -3411,7 +3422,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const intptr_t kNumberOfArguments = 1;
   __ pushq(value_obj);
-  compiler->GenerateStaticCall(instance_call()->deopt_id(),
+  compiler->GenerateStaticCall(deopt_id(),
                                instance_call()->token_pos(),
                                target,
                                kNumberOfArguments,
@@ -3520,7 +3531,7 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptPolymorphicInstanceCallTestFail);
   if (ic_data().NumberOfChecks() == 0) {
     __ jmp(deopt);
@@ -3530,7 +3541,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!with_checks()) {
     ASSERT(ic_data().HasOneTarget());
     const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
-    compiler->GenerateStaticCall(instance_call()->deopt_id(),
+    compiler->GenerateStaticCall(deopt_id(),
                                  instance_call()->token_pos(),
                                  target,
                                  instance_call()->ArgumentCount(),
@@ -3549,7 +3560,7 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                             instance_call()->ArgumentCount(),
                             instance_call()->argument_names(),
                             deopt,
-                            instance_call()->deopt_id(),
+                            deopt_id(),
                             instance_call()->token_pos(),
                             locs());
 }

@@ -15,9 +15,17 @@ UNIT_TEST_CASE(Id) {
 #elif defined(TARGET_ARCH_X64)
   EXPECT_STREQ("x64", CPU::Id());
 #elif defined(TARGET_ARCH_ARM)
+#if defined(HOST_ARCH_ARM)
   EXPECT_STREQ("arm", CPU::Id());
+#else  // defined(HOST_ARCH_ARM)
+  EXPECT_STREQ("simarm", CPU::Id());
+#endif  // defined(HOST_ARCH_ARM)
 #elif defined(TARGET_ARCH_MIPS)
+#if defined(HOST_ARCH_MIPS)
   EXPECT_STREQ("mips", CPU::Id());
+#else  // defined(HOST_ARCH_MIPS)
+  EXPECT_STREQ("simmips", CPU::Id());
+#endif  // defined(HOST_ARCH_MIPS)
 #else
 #error Architecture was not detected as supported by Dart.
 #endif

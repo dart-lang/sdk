@@ -13,11 +13,11 @@ abstract class MimeMultipart extends Stream<List<int>> {
   Map<String, String> get headers;
 }
 
-class _MimeMultipartImpl extends MimeMultipart {
+class _MimeMultipart extends MimeMultipart {
   final Map<String, String> headers;
   final Stream<List<int>> _stream;
 
-  _MimeMultipartImpl(this.headers, this._stream);
+  _MimeMultipart(this.headers, this._stream);
 
   StreamSubscription<List<int>> listen(void onData(List<int> data),
                                        {void onDone(),
@@ -64,7 +64,7 @@ class MimeMultipartTransformer
 
   List<int> _boundary;
   int _state = _START;
-  int _boundaryIndex = 0;
+  int _boundaryIndex = 2;
 
   // Current index in the data buffer. If index is negative then it
   // is the index into the artificial prefix of the boundary string.
@@ -119,7 +119,7 @@ class MimeMultipartTransformer
               onDone: () {
                 if (_state != _DONE) {
                   _controller.addError(
-                      new MimeParserException("Bad multipart ending"));
+                      new MimeMultipartException("Bad multipart ending"));
                 }
                 _controller.close();
               },
@@ -187,7 +187,7 @@ class MimeMultipartTransformer
       }
       switch (_state) {
         case _START:
-          if (_toLowerCase(byte) == _toLowerCase(_boundary[_boundaryIndex])) {
+          if (byte == _boundary[_boundaryIndex]) {
             _boundaryIndex++;
             if (_boundaryIndex == _boundary.length) {
               _state = _FIRST_BOUNDARY_ENDING;
@@ -246,7 +246,7 @@ class MimeMultipartTransformer
             _state = _HEADER_VALUE_START;
           } else {
             if (!_isTokenChar(byte)) {
-              throw new MimeParserException("Invalid header field name");
+              throw new MimeMultipartException("Invalid header field name");
             }
             _headerField.writeCharCode(_toLowerCase(byte));
           }
@@ -281,7 +281,7 @@ class MimeMultipartTransformer
           } else {
             String headerField = _headerField.toString();
             String headerValue =_headerValue.toString();
-            _headers[headerField] = headerValue;
+            _headers[headerField.toLowerCase()] = headerValue;
             _headerField = new StringBuffer();
             _headerValue = new StringBuffer();
             if (byte == _CharCode.CR) {
@@ -305,7 +305,7 @@ class MimeMultipartTransformer
                 _parse();
               });
           _controller.add(
-              new _MimeMultipartImpl(_headers, _multipartController.stream));
+              new _MimeMultipart(_headers, _multipartController.stream));
           _headers = null;
           _state = _CONTENT;
           contentStartIndex = _index + 1;
@@ -388,20 +388,20 @@ class MimeMultipartTransformer
 
   void _expect(int val1, int val2) {
     if (val1 != val2) {
-      throw new MimeParserException("Failed to parse multipart mime 1");
+      throw new MimeMultipartException("Failed to parse multipart mime 1");
     }
   }
 
   void _expectWS(int byte) {
     if (byte != _CharCode.SP && byte != _CharCode.HT) {
-      throw new MimeParserException("Failed to parse multipart mime 2");
+      throw new MimeMultipartException("Failed to parse multipart mime 2");
     }
   }
 }
 
 
-class MimeParserException implements Exception {
-  const MimeParserException([String this.message = ""]);
-  String toString() => "MimeParserException: $message";
+class MimeMultipartException implements Exception {
+  const MimeMultipartException([String this.message = ""]);
+  String toString() => "MimeMultipartException: $message";
   final String message;
 }

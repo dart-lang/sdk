@@ -61,7 +61,6 @@ main() {}
 main() {
   int count = 0;
   Future<String> provider(Uri uri) {
-    Completer<String> completer = new Completer<String>();
     String source;
     if (uri.path.length > 100) {
       // Simulate an OS error.
@@ -84,8 +83,7 @@ main() {
     } else {
      throw "unexpected URI $uri";
     }
-    completer.complete(source);
-    return completer.future;
+    return new Future.value(source);
   }
 
   int warningCount = 0;

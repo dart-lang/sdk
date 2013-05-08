@@ -125,7 +125,7 @@ testEarlyClose2() {
           if (++count < 10) {
             makeRequest();
           } else {
-            server.close();
+            runAsync(server.close);
           }
         });
       });

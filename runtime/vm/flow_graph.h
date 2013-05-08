@@ -98,6 +98,7 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t max_block_id() const { return max_block_id_; }
   void set_max_block_id(intptr_t id) { max_block_id_ = id; }
+  intptr_t allocate_block_id() { return ++max_block_id_; }
 
   GraphEntryInstr* graph_entry() const {
     return graph_entry_;
@@ -111,7 +112,7 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t InstructionCount() const;
 
-  ConstantInstr* AddConstantToInitialDefinitions(const Object& object);
+  ConstantInstr* GetConstant(const Object& object);
   void AddToInitialDefinitions(Definition* defn);
 
   void InsertBefore(Instruction* next,
@@ -145,6 +146,26 @@ class FlowGraph : public ZoneAllocated {
   // discover side-effect free paths.
   void ComputeBlockEffects();
   BlockEffects* block_effects() const { return block_effects_; }
+
+  // Remove the redefinition instructions inserted to inhibit code motion.
+  void RemoveRedefinitions();
+
+  // Copy deoptimization target from one instruction to another if we still
+  // have to keep deoptimization environment at gotos for LICM purposes.
+  void CopyDeoptTarget(Instruction* to, Instruction* from) {
+    if (is_licm_allowed()) {
+      to->InheritDeoptTarget(from);
+    }
+  }
+
+  // Returns true if every Goto in the graph is expected to have a
+  // deoptimization environment and can be used as deoptimization target
+  // for hoisted instructions.
+  bool is_licm_allowed() const { return licm_allowed_; }
+
+  // Stop preserving environments on Goto instructions. LICM is not allowed
+  // after this point.
+  void disallow_licm() { licm_allowed_ = false; }
 
  private:
   friend class IfConverter;
@@ -201,6 +222,7 @@ class FlowGraph : public ZoneAllocated {
   ConstantInstr* constant_null_;
 
   BlockEffects* block_effects_;
+  bool licm_allowed_;
 };
 
 

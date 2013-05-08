@@ -17,6 +17,8 @@ io/raw_socket_test: Pass, Fail # Issue 8901
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
+io/http_server_early_client_close_test: Pass, Fail # http://dartbug.com/10408
+io/http_server_early_client_close2_test: Pass, Fail # http://dartbug.com/10408
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
@@ -35,6 +37,8 @@ io/directory_fuzz_test: Skip
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
+
+debugger/basic_debugger_test: Pass, Crash # Issue 10488
 
 # These tests pass on MacOS 10.8.2 but fails on the buildbot machines
 # that are running an earlier version of MacOS. The issue is that the
@@ -73,6 +77,17 @@ io/http_parser_test: Skip  # dartc cannot parse dart:io unit tests.
 io/web_socket_protocol_processor_test: Skip  # dart:io unit test.
 
 io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
+
+[ $compiler == dartanalyzer ]
+crypto/base64_test: fail
+io/file_constructor_test: fail
+io/http_date_test: fail
+io/http_headers_test: fail
+io/http_parser_test: fail
+io/process_exit_negative_test: fail
+io/url_encoding_test: fail
+io/web_socket_protocol_processor_test: fail
+
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.

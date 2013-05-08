@@ -28,12 +28,8 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'Database': 'SqlDatabase', # Avoid conflict with Index DB's Database.
     'DatabaseSync': 'SqlDatabaseSync',
     'DOMApplicationCache': 'ApplicationCache',
-    'DOMCoreException': 'DomException',
     'DOMFileSystem': 'FileSystem',
-    'DOMFormData': 'FormData',
     'DOMPoint': '_DomPoint',
-    'DOMURL': 'Url',
-    'DOMWindow': 'Window',
     'EntryCallback': '_EntryCallback',
     'EntriesCallback': '_EntriesCallback',
     'ErrorCallback': '_ErrorCallback',
@@ -59,9 +55,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'SVGGradientElement': '_GradientElement',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
-    'WebKitCSSKeyframeRule': 'CssKeyframeRule',
-    'WebKitCSSKeyframesRule': 'CssKeyframesRule',
-    'WebKitCSSTransformValue': 'CssTransformValue',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestException': 'HttpRequestException',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
@@ -649,7 +642,7 @@ class HtmlRenamer(object):
       if any(interface.id in ['Element', 'Document']
              for interface in self._database.Hierarchy(interface)):
         return interface.id[len('HTML'):]
-    return self.DartifyTypeName(interface.id)
+    return self.DartifyTypeName(interface.javascript_binding_name)
 
 
   def RenameMember(self, interface_name, member_node, member, member_prefix='',
@@ -747,6 +740,7 @@ class HtmlRenamer(object):
     name = re.sub(r'^SVG', '', type_name)
     name = re.sub(r'^IDB', '', name)
     name = re.sub(r'^WebGL', '', name)
+    name = re.sub(r'^WebKit', '', name)
 
     return self._CamelCaseName(name)
 

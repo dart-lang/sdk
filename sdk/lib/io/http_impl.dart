@@ -381,7 +381,33 @@ class _HttpClientResponse
 
     var cr =  _httpClient._findProxyCredentials(proxy);
     if (cr != null) {
-      return retryWithProxyCredentials(cr);
+      if (cr.scheme == _AuthenticationScheme.BASIC) {
+        return retryWithProxyCredentials(cr);
+      }
+
+      // Digest authentication only supports the MD5 algorithm.
+      if (cr.scheme == _AuthenticationScheme.DIGEST &&
+          (header.parameters["algorithm"] == null ||
+           header.parameters["algorithm"].toLowerCase() == "md5")) {
+        if (cr.nonce == null || cr.nonce == header.parameters["nonce"]) {
+          // If the nonce is not set then this is the first authenticate
+          // response for these credentials. Set up authentication state.
+          if (cr.nonce == null) {
+            cr.nonce = header.parameters["nonce"];
+            cr.algorithm = "MD5";
+            cr.qop = header.parameters["qop"];
+            cr.nonceCount = 0;
+          }
+          // Credentials where found, prepare for retrying the request.
+          return retryWithProxyCredentials(cr);
+        } else if (header.parameters["stale"] != null &&
+                   header.parameters["stale"].toLowerCase() == "true") {
+          // If stale is true retry with new nonce.
+          cr.nonce = header.parameters["nonce"];
+          // Credentials where found, prepare for retrying the request.
+          return retryWithProxyCredentials(cr);
+        }
+      }
     }
 
     // Ask for more credentials if none found.
@@ -914,6 +940,40 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     _responseCompleter.completeError(error);
   }
 
+  // Generate the request URI based on the method and proxy.
+  String _requestUri() {
+    // Generate the request URI starting from the path component.
+    String uriStartingFromPath() {
+      String result = uri.path;
+      if (result.length == 0) result = "/";
+      if (uri.query != "") {
+        if (uri.fragment != "") {
+          result = "${result}?${uri.query}#${uri.fragment}";
+        } else {
+          result = "${result}?${uri.query}";
+        }
+      }
+      return result;
+    }
+
+    if (_proxy.isDirect) {
+      return uriStartingFromPath();
+    } else {
+      if (method == "CONNECT") {
+        // For the connect method the request URI is the host:port of
+        // the requested destination of the tunnel (see RFC 2817
+        // section 5.2)
+        return "${uri.domain}:${uri.port}";
+      } else {
+        if (_httpClientConnection._proxyTunnel) {
+          return uriStartingFromPath();
+        } else {
+          return uri.toString();
+        }
+      }
+    }
+  }
+
   void _writeHeader() {
     var buffer = new _BufferList();
 
@@ -921,42 +981,13 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
     writeCRLF() => buffer.add(const [_CharCode.CR, _CharCode.LF]);
 
-    void writePath() {
-      String path = uri.path;
-      if (path.length == 0) path = "/";
-      if (uri.query != "") {
-        if (uri.fragment != "") {
-          path = "${path}?${uri.query}#${uri.fragment}";
-        } else {
-          path = "${path}?${uri.query}";
-        }
-      }
-      buffer.add(path.codeUnits);
-    }
-
     // Write the request method.
     buffer.add(method.codeUnits);
     writeSP();
     // Write the request URI.
-    if (_proxy.isDirect) {
-      writePath();
-    } else {
-      if (method == "CONNECT") {
-        // For the connect method the request URI is the host:port of
-        // the requested destination of the tunnel (see RFC 2817
-        // section 5.2)
-        buffer.add(uri.domain.codeUnits);
-        buffer.add(const [_CharCode.COLON]);
-        buffer.add(uri.port.toString().codeUnits);
-      } else {
-        if (_httpClientConnection._proxyTunnel) {
-          writePath();
-        } else {
-          buffer.add(uri.toString().codeUnits);
-        }
-      }
-    }
+    buffer.add(_requestUri().codeUnits);
     writeSP();
+    // Write HTTP/1.1.
     buffer.add(_Const.HTTP11);
     writeCRLF();
 
@@ -1120,7 +1151,8 @@ class _HttpClientConnection {
   _HttpClientRequest send(Uri uri, int port, String method, _Proxy proxy) {
     // Start with pausing the parser.
     _subscription.pause();
-    _Credentials cr;  // Credentials used to authorize this request.
+    _ProxyCredentials proxyCreds;  // Credentials used to authorize proxy.
+    _SiteCredentials creds;  // Credentials used to authorize this request.
     var outgoing = new _HttpOutgoing(_socket);
     // Create new request object, wrapping the outgoing connection.
     var request = new _HttpClientRequest(outgoing,
@@ -1139,9 +1171,9 @@ class _HttpClientConnection {
           _encodeString("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
     } else if (!proxy.isDirect && _httpClient._proxyCredentials.length > 0) {
-      var cr =  _httpClient._findProxyCredentials(proxy);
-      if (cr != null) {
-        cr.authorize(request);
+      proxyCreds = _httpClient._findProxyCredentials(proxy);
+      if (proxyCreds != null) {
+        proxyCreds.authorize(request);
       }
     }
     if (uri.userInfo != null && !uri.userInfo.isEmpty) {
@@ -1152,9 +1184,9 @@ class _HttpClientConnection {
       request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
     } else {
       // Look for credentials.
-      cr = _httpClient._findCredentials(uri);
-      if (cr != null) {
-        cr.authorize(request);
+      creds = _httpClient._findCredentials(uri);
+      if (creds != null) {
+        creds.authorize(request);
       }
     }
     // Start sending the request (lazy, delayed until the user provides
@@ -1179,16 +1211,31 @@ class _HttpClientConnection {
                     destroy();
                   }
                 });
-                // For digest authentication check if the server
-                // requests the client to start using a new nonce.
-                if (cr != null && cr.scheme == _AuthenticationScheme.DIGEST) {
+                // For digest authentication if proxy check if the proxy
+                // requests the client to start using a new nonce for proxy
+                // authentication.
+                if (proxyCreds != null &&
+                    proxyCreds.scheme == _AuthenticationScheme.DIGEST) {
+                  var authInfo = incoming.headers["proxy-authentication-info"];
+                  if (authInfo != null && authInfo.length == 1) {
+                    var header =
+                        _HeaderValue.parse(
+                            authInfo[0], parameterSeparator: ',');
+                    var nextnonce = header.parameters["nextnonce"];
+                    if (nextnonce != null) proxyCreds.nonce = nextnonce;
+                  }
+                }
+                // For digest authentication check if the server requests the
+                // client to start using a new nonce.
+                if (creds != null &&
+                    creds.scheme == _AuthenticationScheme.DIGEST) {
                   var authInfo = incoming.headers["authentication-info"];
                   if (authInfo != null && authInfo.length == 1) {
                     var header =
                         _HeaderValue.parse(
                             authInfo[0], parameterSeparator: ',');
                     var nextnonce = header.parameters["nextnonce"];
-                    if (nextnonce != null) cr.nonce = nextnonce;
+                    if (nextnonce != null) creds.nonce = nextnonce;
                   }
                 }
                 request._onIncoming(incoming);
@@ -1354,7 +1401,7 @@ class _HttpClient implements HttpClient {
   }
 
   void addCredentials(Uri url, String realm, HttpClientCredentials cr) {
-    _credentials.add(new _Credentials(url, realm, cr));
+    _credentials.add(new _SiteCredentials(url, realm, cr));
   }
 
   set authenticateProxy(
@@ -1527,10 +1574,10 @@ class _HttpClient implements HttpClient {
     return connect(new HttpException("No proxies given"));
   }
 
-  _Credentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
+  _SiteCredentials _findCredentials(Uri url, [_AuthenticationScheme scheme]) {
     // Look for credentials.
-    _Credentials cr =
-        _credentials.fold(null, (_Credentials prev, _Credentials value) {
+    _SiteCredentials cr =
+        _credentials.fold(null, (prev, value) {
           if (value.applies(url, scheme)) {
             if (prev == null) return value;
             return value.uri.path.length > prev.uri.path.length ? value : prev;
@@ -2008,8 +2055,19 @@ class _AuthenticationScheme {
 }
 
 
-class _Credentials {
-  _Credentials(this.uri, this.realm, this.credentials) {
+abstract class _Credentials {
+  _HttpClientCredentials credentials;
+  String realm;
+  bool used = false;
+
+  // Digest specific fields.
+  String ha1;
+  String nonce;
+  String algorithm;
+  String qop;
+  int nonceCount;
+
+  _Credentials(this.credentials, this.realm) {
     if (credentials.scheme == _AuthenticationScheme.DIGEST) {
       // Calculate the H(A1) value once. There is no mentioning of
       // username/password encoding in RFC 2617. However there is an
@@ -2029,6 +2087,15 @@ class _Credentials {
   }
 
   _AuthenticationScheme get scheme => credentials.scheme;
+
+  void authorize(HttpClientRequest request);
+}
+
+class _SiteCredentials extends _Credentials {
+  Uri uri;
+
+  _SiteCredentials(this.uri, realm, _HttpClientCredentials creds)
+  : super(creds, realm);
 
   bool applies(Uri uri, _AuthenticationScheme scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
@@ -2050,38 +2117,32 @@ class _Credentials {
     credentials.authorize(this, request);
     used = true;
   }
-
-  bool used = false;
-  Uri uri;
-  String realm;
-  _HttpClientCredentials credentials;
-
-  // Digest specific fields.
-  String ha1;
-  String nonce;
-  String algorithm;
-  String qop;
-  int nonceCount;
 }
 
 
-class _ProxyCredentials {
-  _ProxyCredentials(this.host, this.port, this.realm, this.credentials);
+class _ProxyCredentials extends _Credentials {
+  String host;
+  int port;
 
-  _AuthenticationScheme get scheme => credentials.scheme;
+  _ProxyCredentials(this.host,
+                    this.port,
+                    realm,
+                    _HttpClientCredentials creds)
+  : super(creds, realm);
 
   bool applies(_Proxy proxy, _AuthenticationScheme scheme) {
     return proxy.host == host && proxy.port == port;
   }
 
   void authorize(HttpClientRequest request) {
+    // Digest credentials cannot be used without a nonce from the
+    // server.
+    if (credentials.scheme == _AuthenticationScheme.DIGEST &&
+        nonce == null) {
+      return;
+    }
     credentials.authorizeProxy(this, request);
   }
-
-  String host;
-  int port;
-  String realm;
-  _HttpClientCredentials credentials;
 }
 
 
@@ -2133,11 +2194,12 @@ class _HttpClientDigestCredentials
 
   _AuthenticationScheme get scheme => _AuthenticationScheme.DIGEST;
 
-  String authorization(_Credentials credentials, HttpClientRequest request) {
+  String authorization(_Credentials credentials, _HttpClientRequest request) {
+    String requestUri = request._requestUri();
     MD5 hasher = new MD5();
     hasher.add(request.method.codeUnits);
     hasher.add([_CharCode.COLON]);
-    hasher.add(request.uri.path.codeUnits);
+    hasher.add(requestUri.codeUnits);
     var ha2 = CryptoUtils.bytesToHex(hasher.close());
 
     String qop;
@@ -2174,7 +2236,7 @@ class _HttpClientDigestCredentials
     buffer.write('username="$username"');
     buffer.write(', realm="${credentials.realm}"');
     buffer.write(', nonce="${credentials.nonce}"');
-    buffer.write(', uri="${request.uri.path}"');
+    buffer.write(', uri="$requestUri"');
     buffer.write(', algorithm="${credentials.algorithm}"');
     if (qop == "auth") {
       buffer.write(', qop="$qop"');
@@ -2186,13 +2248,14 @@ class _HttpClientDigestCredentials
   }
 
   void authorize(_Credentials credentials, HttpClientRequest request) {
-    request.headers.set(HttpHeaders.AUTHORIZATION, authorization(credentials, request));
+    request.headers.set(HttpHeaders.AUTHORIZATION,
+                        authorization(credentials, request));
   }
 
   void authorizeProxy(_ProxyCredentials credentials,
                       HttpClientRequest request) {
-    // TODO(sgjesse): Implement!!!
-    throw new UnsupportedError("Digest authentication not yet supported");
+    request.headers.set(HttpHeaders.PROXY_AUTHORIZATION,
+                        authorization(credentials, request));
   }
 
   String username;

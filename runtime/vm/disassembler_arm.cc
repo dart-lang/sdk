@@ -601,8 +601,8 @@ void ARMDecoder::DecodeType01(Instr* instr) {
           break;
         }
         case 7: {
-          if (instr->Bits(21, 2) == 0x1) {
-            Format(instr, "bkpt'cond #'imm12_4");
+          if ((instr->Bits(21, 2) == 0x1) && (instr->ConditionField() == AL)) {
+            Format(instr, "bkpt #'imm12_4");
           } else {
              // Format(instr, "smc'cond");
             Unknown(instr);  // Not used.
@@ -861,9 +861,9 @@ void ARMDecoder::DecodeType2(Instr* instr) {
 void ARMDecoder::DecodeType3(Instr* instr) {
   if (instr->IsDivision()) {
     if (instr->Bit(21)) {
-      Format(instr, "udiv'cond 'rd, 'rn, 'rm");
+      Format(instr, "udiv'cond 'rn, 'rs, 'rm");
     } else {
-      Format(instr, "sdiv'cond 'rd, 'rn, 'rm");
+      Format(instr, "sdiv'cond 'rn, 'rs, 'rm");
     }
     return;
   }

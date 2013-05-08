@@ -560,6 +560,11 @@ LibTest/async/Completer/completeError_A01_t01: Fail # No AsyncError anymore. Iss
 LibTest/async/Future/Future.immediateError_A01_t01: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Future/catchError_A02_t01: Fail # No AsyncError anymore. Issue 407
 
+LibTest/async/Completer/complete_A01_t03: Fail # Completer is now asynchronous. Issue TODO
+LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. Issue TODO
+LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue TODO
+LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue TODO
+
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail # Issue 397
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail # Issue 397
 Language/11_Expressions/11_Instance_Creation/1_New_A08_t01: Fail # Issue 397

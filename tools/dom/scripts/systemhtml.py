@@ -55,6 +55,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'HTMLTableElement.createTBody',
     'IDBDatabase.transaction',
     'KeyboardEvent.initKeyboardEvent',
+    'Location.origin',
     'MouseEvent.offsetX',
     'MouseEvent.offsetY',
     'Navigator.language',

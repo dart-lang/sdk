@@ -336,7 +336,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
  * and errors out when the request errors.
  */
 Future _completeRequest(Request request) {
-  var completer = new Completer();
+  var completer = new Completer.sync();
   // TODO: make sure that completer.complete is synchronous as transactions
   // may be committed if the result is not processed immediately.
   request.onSuccess.listen((e) {

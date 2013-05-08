@@ -11,7 +11,7 @@ namespace dart {
 
 class Version : public AllStatic {
  public:
-  static const char* String() { return str_; }
+  static const char* String();
 
  private:
   static const char* str_;

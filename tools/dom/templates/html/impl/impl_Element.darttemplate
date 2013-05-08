@@ -137,11 +137,32 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 }
 
+/** 
+ * An immutable list containing HTML elements. This list contains some
+ * additional methods for ease of CSS manipulation on a group of elements.
+ */
+abstract class ElementList<T extends Element> extends ListBase<T> {
+  /**
+   * The union of all CSS classes applied to the elements in this list.
+   *
+   * This set makes it easy to add, remove or toggle (add if not present, remove
+   * if present) the classes applied to a collection of elements.
+   *
+   *     htmlList.classes.add('selected');
+   *     htmlList.classes.toggle('isOnline');
+   *     htmlList.classes.remove('selected');
+   */
+  CssClassSet get classes;
+
+  /** Replace the classes with `value` for every element in this list. */
+  set classes(Iterable<String> value);
+}
+
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList<T extends Element> extends ListBase<T> {
+class _FrozenElementList<T extends Element> extends ListBase<T> implements ElementList {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -167,30 +188,12 @@ class _FrozenElementList<T extends Element> extends ListBase<T> {
   Element get last => _nodeList.last;
 
   Element get single => _nodeList.single;
-}
 
-class _ElementCssClassSet extends CssClassSet {
+  CssClassSet get classes => new _MultiElementCssClassSet(
+      _nodeList.where((e) => e is Element));
 
-  final Element _element;
-
-  _ElementCssClassSet(this._element);
-
-  Set<String> readClasses() {
-    var s = new LinkedHashSet<String>();
-    var classname = _element.$dom_className;
-
-    for (String name in classname.split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  void writeClasses(Set<String> s) {
-    List list = new List.from(s);
-    _element.$dom_className = s.join(' ');
+  void set classes(Iterable<String> value) {
+    _nodeList.where((e) => e is Element).forEach((e) => e.classes = value);
   }
 }
 
@@ -289,7 +292,7 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    *
    *     var items = element.query('.itemClassName');
    */
-  List<Element> queryAll(String selectors) =>
+  ElementList queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   /**

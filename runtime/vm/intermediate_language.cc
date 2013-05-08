@@ -157,9 +157,12 @@ EffectSet LoadFieldInstr::Dependencies() const {
 bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
   LoadFieldInstr* other_load = other->AsLoadField();
   ASSERT(other_load != NULL);
-  ASSERT((offset_in_bytes() != other_load->offset_in_bytes()) ||
-         ((immutable_ == other_load->immutable_)));
-  return offset_in_bytes() == other_load->offset_in_bytes();
+  if (field() != NULL) {
+    return (other_load->field() != NULL) &&
+        (field()->raw() == other_load->field()->raw());
+  }
+  return (other_load->field() == NULL) &&
+      (offset_in_bytes() == other_load->offset_in_bytes());
 }
 
 
@@ -499,12 +502,16 @@ void Value::RemoveFromUseList() {
 }
 
 
+// True if the definition has a single input use and is used only in
+// environments at the same instruction as that input use.
 bool Definition::HasOnlyUse(Value* use) const {
-  return (input_use_list() == use) &&
-     (use->next_use() == NULL) &&
-     ((env_use_list() == NULL) ||
-      ((env_use_list()->instruction() == use->instruction()) &&
-       (env_use_list()->next_use() == NULL)));
+  if ((input_use_list() != use) || (use->next_use() != NULL)) return false;
+
+  Instruction* target = use->instruction();
+  for (Value::Iterator it(env_use_list()); !it.Done(); it.Advance()) {
+    if (it.Current()->instruction() != target) return false;
+  }
+  return true;
 }
 
 
@@ -1049,7 +1056,7 @@ static Definition* CanonicalizeCommutativeArithmetic(Token::Kind op,
 }
 
 
-Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
   result = CanonicalizeCommutativeArithmetic(op_kind(),
@@ -1072,7 +1079,7 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* BinarySmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
   result = CanonicalizeCommutativeArithmetic(op_kind(),
@@ -1095,7 +1102,7 @@ Definition* BinarySmiOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* BinaryMintOpInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* result = NULL;
 
   result = CanonicalizeCommutativeArithmetic(op_kind(),
@@ -1119,12 +1126,12 @@ Definition* BinaryMintOpInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 
 
 // Optimizations that eliminate or simplify individual instructions.
-Instruction* Instruction::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* Instruction::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
 
-Definition* Definition::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
   return this;
 }
 
@@ -1163,21 +1170,14 @@ MethodRecognizer::Kind LoadFieldInstr::RecognizedKindFromArrayCid(
 
 
 bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
+  if (RawObject::IsTypedDataClassId(cid) ||
+      RawObject::IsExternalTypedDataClassId(cid)) {
+    return true;
+  }
+
   switch (cid) {
     case kArrayCid:
     case kImmutableArrayCid:
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid:
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid:
-    case kTypedDataFloat32x4ArrayCid:
       return true;
     default:
       return false;
@@ -1185,12 +1185,12 @@ bool LoadFieldInstr::IsFixedLengthArrayCid(intptr_t cid) {
 }
 
 
-Definition* ConstantInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* ConstantInstr::Canonicalize(FlowGraph* flow_graph) {
   return HasUses() ? this : NULL;
 }
 
 
-Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!IsImmutableLengthLoad()) return this;
 
   // For fixed length arrays if the array is the result of a known constructor
@@ -1206,7 +1206,7 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* AssertBooleanInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* AssertBooleanInstr::Canonicalize(FlowGraph* flow_graph) {
   if (FLAG_eliminate_type_checks && (value()->Type()->ToCid() == kBoolCid)) {
     return value()->definition();
   }
@@ -1215,7 +1215,7 @@ Definition* AssertBooleanInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
   if (FLAG_eliminate_type_checks &&
       value()->Type()->IsAssignableTo(dst_type())) {
     return value()->definition();
@@ -1235,17 +1235,14 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     const AbstractType& new_dst_type = AbstractType::Handle(
         dst_type().InstantiateFrom(instantiator_type_args, NULL));
     set_dst_type(AbstractType::ZoneHandle(new_dst_type.Canonicalize()));
-    ConstantInstr* null_constant = new ConstantInstr(Object::ZoneHandle());
-    // It is ok to insert instructions before the current during
-    // forward iteration.
-    optimizer->InsertBefore(this, null_constant, NULL, Definition::kValue);
+    ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
   }
   return this;
 }
 
 
-Definition* BoxDoubleInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* BoxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == NULL) {
     // Environments can accomodate any representation. No need to box.
     return value()->definition();
@@ -1261,17 +1258,17 @@ Definition* BoxDoubleInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* UnboxDoubleInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* UnboxDoubleInstr::Canonicalize(FlowGraph* flow_graph) {
   // Fold away UnboxDouble(BoxDouble(v)).
   BoxDoubleInstr* defn = value()->definition()->AsBoxDouble();
   return (defn != NULL) ? defn->value()->definition() : this;
 }
 
 
-Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   // Only handle strict-compares.
   if (comparison()->IsStrictCompare()) {
-    Definition* replacement = comparison()->Canonicalize(optimizer);
+    Definition* replacement = comparison()->Canonicalize(flow_graph);
     if ((replacement == comparison()) || (replacement == NULL)) {
       return this;
     }
@@ -1294,7 +1291,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
     Value* use = comp->input_use_list();
     if ((use->instruction() == this) && comp->HasOnlyUse(use)) {
       RemoveEnvironment();
-      InheritDeoptTarget(comp);
+      flow_graph->CopyDeoptTarget(this, comp);
 
       comp->RemoveFromGraph();
       SetComparison(comp);
@@ -1312,7 +1309,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!right()->BindsToConstant()) {
     return this;
   }
@@ -1342,7 +1339,7 @@ Definition* StrictCompareInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
   // TODO(vegorov): Replace class checks with null checks when ToNullableCid
   // matches.
 
@@ -1355,7 +1352,7 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Instruction* GuardFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* GuardFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   if (field().guarded_cid() == kDynamicCid) {
     return NULL;  // Nothing to guard.
   }
@@ -1374,13 +1371,12 @@ Instruction* GuardFieldInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
 }
 
 
-Instruction* CheckSmiInstr::Canonicalize(FlowGraphOptimizer* optimizer) {
+Instruction* CheckSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   return (value()->Type()->ToCid() == kSmiCid) ?  NULL : this;
 }
 
 
-Instruction* CheckEitherNonSmiInstr::Canonicalize(
-    FlowGraphOptimizer* optimizer) {
+Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
   if ((left()->Type()->ToCid() == kDoubleCid) ||
       (right()->Type()->ToCid() == kDoubleCid)) {
     return NULL;  // Remove from the graph.
@@ -1494,6 +1490,17 @@ void PhiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* RedefinitionInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void RedefinitionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+
 LocationSummary* ParameterInstr::MakeLocationSummary() const {
   UNREACHABLE();
   return NULL;
@@ -1522,6 +1529,17 @@ LocationSummary* ConstraintInstr::MakeLocationSummary() const {
 
 
 void ConstraintInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNREACHABLE();
+}
+
+
+LocationSummary* MaterializeObjectInstr::MakeLocationSummary() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void MaterializeObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 

@@ -18,7 +18,9 @@ class DirectoryValidator extends Validator {
   DirectoryValidator(Entrypoint entrypoint)
     : super(entrypoint);
 
-  static final _PLURAL_NAMES = ["tools", "tests", "docs", "examples"];
+  static final _PLURAL_NAMES = [
+    "benchmarks", "docs", "examples", "tests", "tools"
+  ];
 
   Future validate() {
     return new Future.sync(() {

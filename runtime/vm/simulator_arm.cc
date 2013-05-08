@@ -1482,8 +1482,8 @@ void Simulator::DecodeType01(Instr* instr) {
           break;
         }
         case 7: {
-          if (instr->Bits(21, 2) == 0x1) {
-            // Format(instr, "bkpt'cond #'imm12_4");
+          if ((instr->Bits(21, 2) == 0x1) && (instr->ConditionField() == AL)) {
+            // Format(instr, "bkpt #'imm12_4");
             SimulatorDebugger dbg(this);
             set_pc(get_pc() + Instr::kInstrSize);
             char buffer[32];
@@ -2067,12 +2067,12 @@ void Simulator::DecodeType2(Instr* instr) {
 
 void Simulator::DoDivision(Instr* instr) {
   ASSERT(CPUFeatures::integer_division_supported());
-  Register rd = instr->RdField();
-  Register rn = instr->RnField();
-  Register rm = instr->RmField();
+  Register rd = instr->DivRdField();
+  Register rn = instr->DivRnField();
+  Register rm = instr->DivRmField();
 
-  // TODO(zra): Does the hardware trap on divide-by-zero?
-  //     Revisit when we test on ARM hardware.
+  // ARMv7-a does not trap on divide-by-zero. The destination register is just
+  // set to 0.
   if (get_register(rm) == 0) {
     set_register(rd, 0);
     return;

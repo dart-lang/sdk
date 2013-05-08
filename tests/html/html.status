@@ -12,6 +12,8 @@ interactive_test: Skip # Must be run manually.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+async_test: Timeout # http://dartbug.com/10470
+dom_isolates_test: Timeout # http://dartbug.com/10470
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
@@ -175,6 +177,7 @@ media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
 mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
+range_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
@@ -365,4 +368,5 @@ js_interop_1_test: Skip            # Test cannot run under CSP restrictions (tim
 js_interop_2_test: Fail, OK        # Test cannot run under CSP restrictions.
 js_interop_3_test: Skip            # Test cannot run under CSP restrictions (times out).
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
+safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
 shadow_dom_layout_test: Fail, OK   # Test cannot run under CSP restrictions.

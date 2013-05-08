@@ -187,6 +187,9 @@ class AnchorElement extends Element native "HTMLAnchorElement" {
 
 @DocsEditable
 @DomName('WebKitAnimationEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class AnimationEvent extends Event native "WebKitAnimationEvent" {
 
   @DomName('AnimationEvent.animationName')
@@ -982,7 +985,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
 
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable
-  DomPath currentPath;
+  Path currentPath;
 
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable
@@ -1826,6 +1829,22 @@ class CssCharsetRule extends CssRule native "CSSCharsetRule" {
 
 
 @DocsEditable
+@DomName('WebKitCSSFilterRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class CssFilterRule extends CssRule native "WebKitCSSFilterRule" {
+
+  @DomName('WebKitCSSFilterRule.style')
+  @DocsEditable
+  final CssStyleDeclaration style;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('CSSFontFaceLoadEvent')
 class CssFontFaceLoadEvent extends Event native "CSSFontFaceLoadEvent" {
 
@@ -1903,6 +1922,9 @@ class CssImportRule extends CssRule native "CSSImportRule" {
 
 @DocsEditable
 @DomName('WebKitCSSKeyframeRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
 
   @DomName('WebKitCSSKeyframeRule.keyText')
@@ -1920,6 +1942,9 @@ class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
 
 @DocsEditable
 @DomName('WebKitCSSKeyframesRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
 
   @DomName('WebKitCSSKeyframesRule.cssRules')
@@ -1987,6 +2012,24 @@ class CssPageRule extends CssRule native "CSSPageRule" {
   @DomName('CSSPageRule.style')
   @DocsEditable
   final CssStyleDeclaration style;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitCSSRegionRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class CssRegionRule extends CssRule native "WebKitCSSRegionRule" {
+
+  @DomName('WebKitCSSRegionRule.cssRules')
+  @DocsEditable
+  @Returns('_CssRuleList')
+  @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6041,7 +6084,7 @@ class Document extends Node  native "Document"
 
   @DomName('Document.securityPolicy')
   @DocsEditable
-  final DomSecurityPolicy securityPolicy;
+  final SecurityPolicy securityPolicy;
 
   @JSName('selectedStylesheetSet')
   @DomName('Document.selectedStylesheetSet')
@@ -6301,7 +6344,7 @@ class Document extends Node  native "Document"
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  DomNamedFlowCollection getNamedFlows() native;
+  NamedFlowCollection getNamedFlows() native;
 
   @DomName('Document.webkitRegister')
   @DocsEditable
@@ -6541,7 +6584,7 @@ class Document extends Node  native "Document"
    * For details about CSS selector syntax, see the
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
-  List<Element> queryAll(String selectors) {
+  ElementList queryAll(String selectors) {
     return new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
   }
 }
@@ -6744,273 +6787,6 @@ class DomImplementation native "DOMImplementation" {
 
 
 @DocsEditable
-@DomName('MimeType')
-class DomMimeType native "MimeType" {
-
-  @DomName('DOMMimeType.description')
-  @DocsEditable
-  final String description;
-
-  @DomName('DOMMimeType.enabledPlugin')
-  @DocsEditable
-  final DomPlugin enabledPlugin;
-
-  @DomName('DOMMimeType.suffixes')
-  @DocsEditable
-  final String suffixes;
-
-  @DomName('DOMMimeType.type')
-  @DocsEditable
-  final String type;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('MimeTypeArray')
-class DomMimeTypeArray implements JavaScriptIndexingBehavior, List<DomMimeType> native "MimeTypeArray" {
-
-  @DomName('DOMMimeTypeArray.length')
-  @DocsEditable
-  int get length => JS("int", "#.length", this);
-
-  DomMimeType operator[](int index) => JS("DomMimeType", "#[#]", this, index);
-
-  void operator[]=(int index, DomMimeType value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<DomMimeType> mixins.
-  // DomMimeType is the element type.
-
-  // From Iterable<DomMimeType>:
-
-  Iterator<DomMimeType> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<DomMimeType>(this);
-  }
-
-  DomMimeType reduce(DomMimeType combine(DomMimeType value, DomMimeType element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, DomMimeType element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(DomMimeType element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(DomMimeType element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(DomMimeType element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<DomMimeType> where(bool f(DomMimeType element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(DomMimeType element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(DomMimeType element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(DomMimeType element)) => IterableMixinWorkaround.any(this, f);
-
-  List<DomMimeType> toList({ bool growable: true }) =>
-      new List<DomMimeType>.from(this, growable: growable);
-
-  Set<DomMimeType> toSet() => new Set<DomMimeType>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<DomMimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<DomMimeType> takeWhile(bool test(DomMimeType value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<DomMimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<DomMimeType> skipWhile(bool test(DomMimeType value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  DomMimeType firstWhere(bool test(DomMimeType value), { DomMimeType orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  DomMimeType lastWhere(bool test(DomMimeType value), {DomMimeType orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  DomMimeType singleWhere(bool test(DomMimeType value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  DomMimeType elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<DomMimeType>:
-
-  void add(DomMimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<DomMimeType> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<DomMimeType>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<DomMimeType> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(DomMimeType a, DomMimeType b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(DomMimeType element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(DomMimeType element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  DomMimeType get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  DomMimeType get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  DomMimeType get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, DomMimeType element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<DomMimeType> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<DomMimeType> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  DomMimeType removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  DomMimeType removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(DomMimeType element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(DomMimeType element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<DomMimeType> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<DomMimeType> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [DomMimeType fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<DomMimeType> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<DomMimeType> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <DomMimeType>[]);
-  }
-
-  Map<int, DomMimeType> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<DomMimeType> mixins.
-
-  @DomName('DOMMimeTypeArray.item')
-  @DocsEditable
-  DomMimeType item(int index) native;
-
-  @DomName('DOMMimeTypeArray.namedItem')
-  @DocsEditable
-  DomMimeType namedItem(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('WebKitNamedFlowCollection')
-class DomNamedFlowCollection native "WebKitNamedFlowCollection" {
-
-  @DomName('DOMNamedFlowCollection.length')
-  @DocsEditable
-  final int length;
-
-  @DomName('DOMNamedFlowCollection.item')
-  @DocsEditable
-  NamedFlow item(int index) native;
-
-  @DomName('DOMNamedFlowCollection.namedItem')
-  @DocsEditable
-  NamedFlow namedItem(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('DOMParser')
 class DomParser native "DOMParser" {
 
@@ -7024,507 +6800,6 @@ class DomParser native "DOMParser" {
   @DomName('DOMParser.parseFromString')
   @DocsEditable
   Document parseFromString(String str, String contentType) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('Path')
-class DomPath native "Path" {
-
-  @DomName('DOMPath.DOMPath')
-  @DocsEditable
-  factory DomPath([path_OR_text]) {
-    if (!?path_OR_text) {
-      return DomPath._create_1();
-    }
-    if ((path_OR_text is DomPath || path_OR_text == null)) {
-      return DomPath._create_2(path_OR_text);
-    }
-    if ((path_OR_text is String || path_OR_text == null)) {
-      return DomPath._create_3(path_OR_text);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  static DomPath _create_1() => JS('DomPath', 'new Path()');
-  static DomPath _create_2(path_OR_text) => JS('DomPath', 'new Path(#)', path_OR_text);
-  static DomPath _create_3(path_OR_text) => JS('DomPath', 'new Path(#)', path_OR_text);
-
-  @DomName('DOMPath.arc')
-  @DocsEditable
-  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
-
-  @DomName('DOMPath.arcTo')
-  @DocsEditable
-  void arcTo(num x1, num y1, num x2, num y2, num radius) native;
-
-  @DomName('DOMPath.bezierCurveTo')
-  @DocsEditable
-  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
-
-  @DomName('DOMPath.closePath')
-  @DocsEditable
-  void closePath() native;
-
-  @DomName('DOMPath.lineTo')
-  @DocsEditable
-  void lineTo(num x, num y) native;
-
-  @DomName('DOMPath.moveTo')
-  @DocsEditable
-  void moveTo(num x, num y) native;
-
-  @DomName('DOMPath.quadraticCurveTo')
-  @DocsEditable
-  void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
-
-  @DomName('DOMPath.rect')
-  @DocsEditable
-  void rect(num x, num y, num width, num height) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('Plugin')
-class DomPlugin native "Plugin" {
-
-  @DomName('DOMPlugin.description')
-  @DocsEditable
-  final String description;
-
-  @DomName('DOMPlugin.filename')
-  @DocsEditable
-  final String filename;
-
-  @DomName('DOMPlugin.length')
-  @DocsEditable
-  final int length;
-
-  @DomName('DOMPlugin.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('DOMPlugin.item')
-  @DocsEditable
-  DomMimeType item(int index) native;
-
-  @DomName('DOMPlugin.namedItem')
-  @DocsEditable
-  DomMimeType namedItem(String name) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('PluginArray')
-class DomPluginArray implements JavaScriptIndexingBehavior, List<DomPlugin> native "PluginArray" {
-
-  @DomName('DOMPluginArray.length')
-  @DocsEditable
-  int get length => JS("int", "#.length", this);
-
-  DomPlugin operator[](int index) => JS("DomPlugin", "#[#]", this, index);
-
-  void operator[]=(int index, DomPlugin value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<DomPlugin> mixins.
-  // DomPlugin is the element type.
-
-  // From Iterable<DomPlugin>:
-
-  Iterator<DomPlugin> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<DomPlugin>(this);
-  }
-
-  DomPlugin reduce(DomPlugin combine(DomPlugin value, DomPlugin element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, DomPlugin element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(DomPlugin element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(DomPlugin element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(DomPlugin element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<DomPlugin> where(bool f(DomPlugin element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(DomPlugin element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(DomPlugin element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(DomPlugin element)) => IterableMixinWorkaround.any(this, f);
-
-  List<DomPlugin> toList({ bool growable: true }) =>
-      new List<DomPlugin>.from(this, growable: growable);
-
-  Set<DomPlugin> toSet() => new Set<DomPlugin>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<DomPlugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<DomPlugin> takeWhile(bool test(DomPlugin value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<DomPlugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<DomPlugin> skipWhile(bool test(DomPlugin value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  DomPlugin firstWhere(bool test(DomPlugin value), { DomPlugin orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  DomPlugin lastWhere(bool test(DomPlugin value), {DomPlugin orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  DomPlugin singleWhere(bool test(DomPlugin value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  DomPlugin elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<DomPlugin>:
-
-  void add(DomPlugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<DomPlugin> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<DomPlugin>:
-  void set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<DomPlugin> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(DomPlugin a, DomPlugin b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(DomPlugin element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(DomPlugin element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  DomPlugin get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  DomPlugin get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  DomPlugin get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, DomPlugin element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<DomPlugin> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<DomPlugin> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  DomPlugin removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  DomPlugin removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(DomPlugin element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(DomPlugin element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<DomPlugin> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<DomPlugin> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [DomPlugin fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<DomPlugin> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<DomPlugin> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <DomPlugin>[]);
-  }
-
-  Map<int, DomPlugin> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
-  // -- end List<DomPlugin> mixins.
-
-  @DomName('DOMPluginArray.item')
-  @DocsEditable
-  DomPlugin item(int index) native;
-
-  @DomName('DOMPluginArray.namedItem')
-  @DocsEditable
-  DomPlugin namedItem(String name) native;
-
-  @DomName('DOMPluginArray.refresh')
-  @DocsEditable
-  void refresh(bool reload) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('SecurityPolicy')
-class DomSecurityPolicy native "SecurityPolicy" {
-
-  @DomName('DOMSecurityPolicy.allowsEval')
-  @DocsEditable
-  final bool allowsEval;
-
-  @DomName('DOMSecurityPolicy.allowsInlineScript')
-  @DocsEditable
-  final bool allowsInlineScript;
-
-  @DomName('DOMSecurityPolicy.allowsInlineStyle')
-  @DocsEditable
-  final bool allowsInlineStyle;
-
-  @DomName('DOMSecurityPolicy.isActive')
-  @DocsEditable
-  final bool isActive;
-
-  @DomName('DOMSecurityPolicy.reportURIs')
-  @DocsEditable
-  @Returns('DomStringList')
-  @Creates('DomStringList')
-  final List<String> reportURIs;
-
-  @DomName('DOMSecurityPolicy.allowsConnectionTo')
-  @DocsEditable
-  bool allowsConnectionTo(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsFontFrom')
-  @DocsEditable
-  bool allowsFontFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsFormAction')
-  @DocsEditable
-  bool allowsFormAction(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsFrameFrom')
-  @DocsEditable
-  bool allowsFrameFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsImageFrom')
-  @DocsEditable
-  bool allowsImageFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsMediaFrom')
-  @DocsEditable
-  bool allowsMediaFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsObjectFrom')
-  @DocsEditable
-  bool allowsObjectFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsPluginType')
-  @DocsEditable
-  bool allowsPluginType(String type) native;
-
-  @DomName('DOMSecurityPolicy.allowsScriptFrom')
-  @DocsEditable
-  bool allowsScriptFrom(String url) native;
-
-  @DomName('DOMSecurityPolicy.allowsStyleFrom')
-  @DocsEditable
-  bool allowsStyleFrom(String url) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('Selection')
-class DomSelection native "Selection" {
-
-  @DomName('DOMSelection.anchorNode')
-  @DocsEditable
-  final Node anchorNode;
-
-  @DomName('DOMSelection.anchorOffset')
-  @DocsEditable
-  final int anchorOffset;
-
-  @DomName('DOMSelection.baseNode')
-  @DocsEditable
-  final Node baseNode;
-
-  @DomName('DOMSelection.baseOffset')
-  @DocsEditable
-  final int baseOffset;
-
-  @DomName('DOMSelection.extentNode')
-  @DocsEditable
-  final Node extentNode;
-
-  @DomName('DOMSelection.extentOffset')
-  @DocsEditable
-  final int extentOffset;
-
-  @DomName('DOMSelection.focusNode')
-  @DocsEditable
-  final Node focusNode;
-
-  @DomName('DOMSelection.focusOffset')
-  @DocsEditable
-  final int focusOffset;
-
-  @DomName('DOMSelection.isCollapsed')
-  @DocsEditable
-  final bool isCollapsed;
-
-  @DomName('DOMSelection.rangeCount')
-  @DocsEditable
-  final int rangeCount;
-
-  @DomName('DOMSelection.type')
-  @DocsEditable
-  final String type;
-
-  @DomName('DOMSelection.addRange')
-  @DocsEditable
-  void addRange(Range range) native;
-
-  @DomName('DOMSelection.collapse')
-  @DocsEditable
-  void collapse(Node node, int index) native;
-
-  @DomName('DOMSelection.collapseToEnd')
-  @DocsEditable
-  void collapseToEnd() native;
-
-  @DomName('DOMSelection.collapseToStart')
-  @DocsEditable
-  void collapseToStart() native;
-
-  @DomName('DOMSelection.containsNode')
-  @DocsEditable
-  bool containsNode(Node node, bool allowPartial) native;
-
-  @DomName('DOMSelection.deleteFromDocument')
-  @DocsEditable
-  void deleteFromDocument() native;
-
-  @DomName('DOMSelection.empty')
-  @DocsEditable
-  void empty() native;
-
-  @DomName('DOMSelection.extend')
-  @DocsEditable
-  void extend(Node node, int offset) native;
-
-  @DomName('DOMSelection.getRangeAt')
-  @DocsEditable
-  Range getRangeAt(int index) native;
-
-  @DomName('DOMSelection.modify')
-  @DocsEditable
-  void modify(String alter, String direction, String granularity) native;
-
-  @DomName('DOMSelection.removeAllRanges')
-  @DocsEditable
-  void removeAllRanges() native;
-
-  @DomName('DOMSelection.selectAllChildren')
-  @DocsEditable
-  void selectAllChildren(Node node) native;
-
-  @DomName('DOMSelection.setBaseAndExtent')
-  @DocsEditable
-  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
-
-  @DomName('DOMSelection.setPosition')
-  @DocsEditable
-  void setPosition(Node node, int offset) native;
-
-  @DomName('DOMSelection.toString')
-  @DocsEditable
-  String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7935,11 +7210,32 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 }
 
+/** 
+ * An immutable list containing HTML elements. This list contains some
+ * additional methods for ease of CSS manipulation on a group of elements.
+ */
+abstract class ElementList<T extends Element> extends ListBase<T> {
+  /**
+   * The union of all CSS classes applied to the elements in this list.
+   *
+   * This set makes it easy to add, remove or toggle (add if not present, remove
+   * if present) the classes applied to a collection of elements.
+   *
+   *     htmlList.classes.add('selected');
+   *     htmlList.classes.toggle('isOnline');
+   *     htmlList.classes.remove('selected');
+   */
+  CssClassSet get classes;
+
+  /** Replace the classes with `value` for every element in this list. */
+  set classes(Iterable<String> value);
+}
+
 // TODO(jacobr): this is an inefficient implementation but it is hard to see
 // a better option given that we cannot quite force NodeList to be an
 // ElementList as there are valid cases where a NodeList JavaScript object
 // contains Node objects that are not Elements.
-class _FrozenElementList<T extends Element> extends ListBase<T> {
+class _FrozenElementList<T extends Element> extends ListBase<T> implements ElementList {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -7965,30 +7261,12 @@ class _FrozenElementList<T extends Element> extends ListBase<T> {
   Element get last => _nodeList.last;
 
   Element get single => _nodeList.single;
-}
 
-class _ElementCssClassSet extends CssClassSet {
+  CssClassSet get classes => new _MultiElementCssClassSet(
+      _nodeList.where((e) => e is Element));
 
-  final Element _element;
-
-  _ElementCssClassSet(this._element);
-
-  Set<String> readClasses() {
-    var s = new LinkedHashSet<String>();
-    var classname = _element.$dom_className;
-
-    for (String name in classname.split(' ')) {
-      String trimmed = name.trim();
-      if (!trimmed.isEmpty) {
-        s.add(trimmed);
-      }
-    }
-    return s;
-  }
-
-  void writeClasses(Set<String> s) {
-    List list = new List.from(s);
-    _element.$dom_className = s.join(' ');
+  void set classes(Iterable<String> value) {
+    _nodeList.where((e) => e is Element).forEach((e) => e.classes = value);
   }
 }
 
@@ -8088,7 +7366,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
    *
    *     var items = element.query('.itemClassName');
    */
-  List<Element> queryAll(String selectors) =>
+  ElementList queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   /**
@@ -13607,7 +12885,7 @@ class LocalMediaStream extends MediaStream implements EventTarget native "LocalM
   @DocsEditable
   void stop() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13637,10 +12915,6 @@ class Location implements LocationBase native "Location" {
   @DomName('Location.href')
   @DocsEditable
   String href;
-
-  @DomName('Location.origin')
-  @DocsEditable
-  final String origin;
 
   @DomName('Location.pathname')
   @DocsEditable
@@ -13677,6 +12951,15 @@ class Location implements LocationBase native "Location" {
   @DomName('Location.valueOf')
   @DocsEditable
   Object valueOf() native;
+
+
+  @DomName('Location.origin')
+  String get origin {
+    if (JS('bool', '("origin" in #)', this)) {
+      return JS('String', '#.origin', this);
+    }
+    return '${this.protocol}//${this.host}';
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14939,6 +14222,252 @@ class MeterElement extends Element native "HTMLMeterElement" {
 
 
 @DocsEditable
+@DomName('MimeType')
+class MimeType native "MimeType" {
+
+  @DomName('DOMMimeType.description')
+  @DocsEditable
+  final String description;
+
+  @DomName('DOMMimeType.enabledPlugin')
+  @DocsEditable
+  final Plugin enabledPlugin;
+
+  @DomName('DOMMimeType.suffixes')
+  @DocsEditable
+  final String suffixes;
+
+  @DomName('DOMMimeType.type')
+  @DocsEditable
+  final String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('MimeTypeArray')
+class MimeTypeArray implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
+
+  @DomName('DOMMimeTypeArray.length')
+  @DocsEditable
+  int get length => JS("int", "#.length", this);
+
+  MimeType operator[](int index) => JS("MimeType", "#[#]", this, index);
+
+  void operator[]=(int index, MimeType value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<MimeType> mixins.
+  // MimeType is the element type.
+
+  // From Iterable<MimeType>:
+
+  Iterator<MimeType> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<MimeType>(this);
+  }
+
+  MimeType reduce(MimeType combine(MimeType value, MimeType element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, MimeType element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(MimeType element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(MimeType element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(MimeType element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<MimeType> where(bool f(MimeType element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(MimeType element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(MimeType element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(MimeType element)) => IterableMixinWorkaround.any(this, f);
+
+  List<MimeType> toList({ bool growable: true }) =>
+      new List<MimeType>.from(this, growable: growable);
+
+  Set<MimeType> toSet() => new Set<MimeType>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<MimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<MimeType> takeWhile(bool test(MimeType value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<MimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<MimeType> skipWhile(bool test(MimeType value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  MimeType firstWhere(bool test(MimeType value), { MimeType orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  MimeType lastWhere(bool test(MimeType value), {MimeType orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  MimeType singleWhere(bool test(MimeType value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  MimeType elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<MimeType>:
+
+  void add(MimeType value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<MimeType> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<MimeType>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<MimeType> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(MimeType a, MimeType b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(MimeType element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(MimeType element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  MimeType get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  MimeType get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  MimeType get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, MimeType element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<MimeType> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<MimeType> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  MimeType removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  MimeType removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  bool remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(MimeType element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(MimeType element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<MimeType> iterable, [int skipCount=0]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<MimeType> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [MimeType fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<MimeType> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<MimeType> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <MimeType>[]);
+  }
+
+  Map<int, MimeType> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<MimeType> mixins.
+
+  @DomName('DOMMimeTypeArray.item')
+  @DocsEditable
+  MimeType item(int index) native;
+
+  @DomName('DOMMimeTypeArray.namedItem')
+  @DocsEditable
+  MimeType namedItem(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('HTMLModElement')
 class ModElement extends Element native "HTMLModElement" {
 
@@ -15333,6 +14862,9 @@ class MutationRecord native "MutationRecord" {
 
 @DocsEditable
 @DomName('WebKitNamedFlow')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 class NamedFlow extends EventTarget native "WebKitNamedFlow" {
 
   @DomName('NamedFlow.firstEmptyRegionIndex')
@@ -15378,6 +14910,30 @@ class NamedFlow extends EventTarget native "WebKitNamedFlow" {
   @DomName('NamedFlow.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitNamedFlowCollection')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+class NamedFlowCollection native "WebKitNamedFlowCollection" {
+
+  @DomName('DOMNamedFlowCollection.length')
+  @DocsEditable
+  final int length;
+
+  @DomName('DOMNamedFlowCollection.item')
+  @DocsEditable
+  NamedFlow item(int index) native;
+
+  @DomName('DOMNamedFlowCollection.namedItem')
+  @DocsEditable
+  NamedFlow namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15485,7 +15041,7 @@ class Navigator native "Navigator" {
 
   @DomName('Navigator.mimeTypes')
   @DocsEditable
-  final DomMimeTypeArray mimeTypes;
+  final MimeTypeArray mimeTypes;
 
   @DomName('Navigator.onLine')
   @DocsEditable
@@ -15497,7 +15053,7 @@ class Navigator native "Navigator" {
 
   @DomName('Navigator.plugins')
   @DocsEditable
-  final DomPluginArray plugins;
+  final PluginArray plugins;
 
   @DomName('Navigator.product')
   @DocsEditable
@@ -16864,6 +16420,65 @@ class ParamElement extends Element native "HTMLParamElement" {
 
 
 @DocsEditable
+@DomName('Path')
+class Path native "Path" {
+
+  @DomName('DOMPath.DOMPath')
+  @DocsEditable
+  factory Path([path_OR_text]) {
+    if (!?path_OR_text) {
+      return Path._create_1();
+    }
+    if ((path_OR_text is Path || path_OR_text == null)) {
+      return Path._create_2(path_OR_text);
+    }
+    if ((path_OR_text is String || path_OR_text == null)) {
+      return Path._create_3(path_OR_text);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  static Path _create_1() => JS('Path', 'new Path()');
+  static Path _create_2(path_OR_text) => JS('Path', 'new Path(#)', path_OR_text);
+  static Path _create_3(path_OR_text) => JS('Path', 'new Path(#)', path_OR_text);
+
+  @DomName('DOMPath.arc')
+  @DocsEditable
+  void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
+
+  @DomName('DOMPath.arcTo')
+  @DocsEditable
+  void arcTo(num x1, num y1, num x2, num y2, num radius) native;
+
+  @DomName('DOMPath.bezierCurveTo')
+  @DocsEditable
+  void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
+
+  @DomName('DOMPath.closePath')
+  @DocsEditable
+  void closePath() native;
+
+  @DomName('DOMPath.lineTo')
+  @DocsEditable
+  void lineTo(num x, num y) native;
+
+  @DomName('DOMPath.moveTo')
+  @DocsEditable
+  void moveTo(num x, num y) native;
+
+  @DomName('DOMPath.quadraticCurveTo')
+  @DocsEditable
+  void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
+
+  @DomName('DOMPath.rect')
+  @DocsEditable
+  void rect(num x, num y, num width, num height) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('Performance')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -17195,6 +16810,264 @@ class PerformanceTiming native "PerformanceTiming" {
   @DomName('PerformanceTiming.unloadEventStart')
   @DocsEditable
   final int unloadEventStart;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('Plugin')
+class Plugin native "Plugin" {
+
+  @DomName('DOMPlugin.description')
+  @DocsEditable
+  final String description;
+
+  @DomName('DOMPlugin.filename')
+  @DocsEditable
+  final String filename;
+
+  @DomName('DOMPlugin.length')
+  @DocsEditable
+  final int length;
+
+  @DomName('DOMPlugin.name')
+  @DocsEditable
+  final String name;
+
+  @DomName('DOMPlugin.item')
+  @DocsEditable
+  MimeType item(int index) native;
+
+  @DomName('DOMPlugin.namedItem')
+  @DocsEditable
+  MimeType namedItem(String name) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('PluginArray')
+class PluginArray implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
+
+  @DomName('DOMPluginArray.length')
+  @DocsEditable
+  int get length => JS("int", "#.length", this);
+
+  Plugin operator[](int index) => JS("Plugin", "#[#]", this, index);
+
+  void operator[]=(int index, Plugin value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<Plugin> mixins.
+  // Plugin is the element type.
+
+  // From Iterable<Plugin>:
+
+  Iterator<Plugin> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<Plugin>(this);
+  }
+
+  Plugin reduce(Plugin combine(Plugin value, Plugin element)) {
+    return IterableMixinWorkaround.reduce(this, combine);
+  }
+
+  dynamic fold(dynamic initialValue,
+               dynamic combine(dynamic previousValue, Plugin element)) {
+    return IterableMixinWorkaround.fold(this, initialValue, combine);
+  }
+
+  bool contains(Plugin element) => IterableMixinWorkaround.contains(this, element);
+
+  void forEach(void f(Plugin element)) => IterableMixinWorkaround.forEach(this, f);
+
+  String join([String separator = ""]) =>
+      IterableMixinWorkaround.joinList(this, separator);
+
+  Iterable map(f(Plugin element)) =>
+      IterableMixinWorkaround.mapList(this, f);
+
+  Iterable<Plugin> where(bool f(Plugin element)) =>
+      IterableMixinWorkaround.where(this, f);
+
+  Iterable expand(Iterable f(Plugin element)) =>
+      IterableMixinWorkaround.expand(this, f);
+
+  bool every(bool f(Plugin element)) => IterableMixinWorkaround.every(this, f);
+
+  bool any(bool f(Plugin element)) => IterableMixinWorkaround.any(this, f);
+
+  List<Plugin> toList({ bool growable: true }) =>
+      new List<Plugin>.from(this, growable: growable);
+
+  Set<Plugin> toSet() => new Set<Plugin>.from(this);
+
+  bool get isEmpty => this.length == 0;
+
+  Iterable<Plugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
+
+  Iterable<Plugin> takeWhile(bool test(Plugin value)) {
+    return IterableMixinWorkaround.takeWhile(this, test);
+  }
+
+  Iterable<Plugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
+
+  Iterable<Plugin> skipWhile(bool test(Plugin value)) {
+    return IterableMixinWorkaround.skipWhile(this, test);
+  }
+
+  Plugin firstWhere(bool test(Plugin value), { Plugin orElse() }) {
+    return IterableMixinWorkaround.firstWhere(this, test, orElse);
+  }
+
+  Plugin lastWhere(bool test(Plugin value), {Plugin orElse()}) {
+    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
+  }
+
+  Plugin singleWhere(bool test(Plugin value)) {
+    return IterableMixinWorkaround.singleWhere(this, test);
+  }
+
+  Plugin elementAt(int index) {
+    return this[index];
+  }
+
+  // From Collection<Plugin>:
+
+  void add(Plugin value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<Plugin> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<Plugin>:
+  void set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  void clear() {
+    throw new UnsupportedError("Cannot clear immutable List.");
+  }
+
+  Iterable<Plugin> get reversed {
+    return IterableMixinWorkaround.reversedList(this);
+  }
+
+  void sort([int compare(Plugin a, Plugin b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  int indexOf(Plugin element, [int start = 0]) =>
+      Lists.indexOf(this, element, start, this.length);
+
+  int lastIndexOf(Plugin element, [int start]) {
+    if (start == null) start = length - 1;
+    return Lists.lastIndexOf(this, element, start);
+  }
+
+  Plugin get first {
+    if (this.length > 0) return this[0];
+    throw new StateError("No elements");
+  }
+
+  Plugin get last {
+    if (this.length > 0) return this[this.length - 1];
+    throw new StateError("No elements");
+  }
+
+  Plugin get single {
+    if (length == 1) return this[0];
+    if (length == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  void insert(int index, Plugin element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<Plugin> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<Plugin> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Plugin removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  Plugin removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  bool remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(Plugin element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(Plugin element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<Plugin> iterable, [int skipCount=0]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<Plugin> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [Plugin fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  Iterable<Plugin> getRange(int start, int end) =>
+    IterableMixinWorkaround.getRangeList(this, start, end);
+
+  List<Plugin> sublist(int start, [int end]) {
+    if (end == null) end = length;
+    return Lists.getRange(this, start, end, <Plugin>[]);
+  }
+
+  Map<int, Plugin> asMap() =>
+    IterableMixinWorkaround.asMapList(this);
+
+  String toString() {
+    StringBuffer buffer = new StringBuffer('[');
+    buffer.writeAll(this, ', ');
+    buffer.write(']');
+    return buffer.toString();
+  }
+
+  // -- end List<Plugin> mixins.
+
+  @DomName('DOMPluginArray.item')
+  @DocsEditable
+  Plugin item(int index) native;
+
+  @DomName('DOMPluginArray.namedItem')
+  @DocsEditable
+  Plugin namedItem(String name) native;
+
+  @DomName('DOMPluginArray.refresh')
+  @DocsEditable
+  void refresh(bool reload) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17544,6 +17417,16 @@ class Range native "Range" {
   @DocsEditable
   String toString() native;
 
+
+  /**
+   * Checks if createContextualFragment is supported.
+   *
+   * See also:
+   *
+   * * [createContextualFragment]
+   */
+  static bool get supportsCreateContextualFragment =>
+      JS('bool', '("createContextualFragment" in window.Range.prototype)');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18364,6 +18247,77 @@ class ScriptProfileNode native "ScriptProfileNode" {
 
 
 @DocsEditable
+@DomName('SecurityPolicy')
+class SecurityPolicy native "SecurityPolicy" {
+
+  @DomName('DOMSecurityPolicy.allowsEval')
+  @DocsEditable
+  final bool allowsEval;
+
+  @DomName('DOMSecurityPolicy.allowsInlineScript')
+  @DocsEditable
+  final bool allowsInlineScript;
+
+  @DomName('DOMSecurityPolicy.allowsInlineStyle')
+  @DocsEditable
+  final bool allowsInlineStyle;
+
+  @DomName('DOMSecurityPolicy.isActive')
+  @DocsEditable
+  final bool isActive;
+
+  @DomName('DOMSecurityPolicy.reportURIs')
+  @DocsEditable
+  @Returns('DomStringList')
+  @Creates('DomStringList')
+  final List<String> reportURIs;
+
+  @DomName('DOMSecurityPolicy.allowsConnectionTo')
+  @DocsEditable
+  bool allowsConnectionTo(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsFontFrom')
+  @DocsEditable
+  bool allowsFontFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsFormAction')
+  @DocsEditable
+  bool allowsFormAction(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsFrameFrom')
+  @DocsEditable
+  bool allowsFrameFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsImageFrom')
+  @DocsEditable
+  bool allowsImageFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsMediaFrom')
+  @DocsEditable
+  bool allowsMediaFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsObjectFrom')
+  @DocsEditable
+  bool allowsObjectFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsPluginType')
+  @DocsEditable
+  bool allowsPluginType(String type) native;
+
+  @DomName('DOMSecurityPolicy.allowsScriptFrom')
+  @DocsEditable
+  bool allowsScriptFrom(String url) native;
+
+  @DomName('DOMSecurityPolicy.allowsStyleFrom')
+  @DocsEditable
+  bool allowsStyleFrom(String url) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('SecurityPolicyViolationEvent')
 class SecurityPolicyViolationEvent extends Event native "SecurityPolicyViolationEvent" {
 
@@ -18515,6 +18469,119 @@ class SelectElement extends Element native "HTMLSelectElement" {
 
 
 @DocsEditable
+@DomName('Selection')
+class Selection native "Selection" {
+
+  @DomName('DOMSelection.anchorNode')
+  @DocsEditable
+  final Node anchorNode;
+
+  @DomName('DOMSelection.anchorOffset')
+  @DocsEditable
+  final int anchorOffset;
+
+  @DomName('DOMSelection.baseNode')
+  @DocsEditable
+  final Node baseNode;
+
+  @DomName('DOMSelection.baseOffset')
+  @DocsEditable
+  final int baseOffset;
+
+  @DomName('DOMSelection.extentNode')
+  @DocsEditable
+  final Node extentNode;
+
+  @DomName('DOMSelection.extentOffset')
+  @DocsEditable
+  final int extentOffset;
+
+  @DomName('DOMSelection.focusNode')
+  @DocsEditable
+  final Node focusNode;
+
+  @DomName('DOMSelection.focusOffset')
+  @DocsEditable
+  final int focusOffset;
+
+  @DomName('DOMSelection.isCollapsed')
+  @DocsEditable
+  final bool isCollapsed;
+
+  @DomName('DOMSelection.rangeCount')
+  @DocsEditable
+  final int rangeCount;
+
+  @DomName('DOMSelection.type')
+  @DocsEditable
+  final String type;
+
+  @DomName('DOMSelection.addRange')
+  @DocsEditable
+  void addRange(Range range) native;
+
+  @DomName('DOMSelection.collapse')
+  @DocsEditable
+  void collapse(Node node, int index) native;
+
+  @DomName('DOMSelection.collapseToEnd')
+  @DocsEditable
+  void collapseToEnd() native;
+
+  @DomName('DOMSelection.collapseToStart')
+  @DocsEditable
+  void collapseToStart() native;
+
+  @DomName('DOMSelection.containsNode')
+  @DocsEditable
+  bool containsNode(Node node, bool allowPartial) native;
+
+  @DomName('DOMSelection.deleteFromDocument')
+  @DocsEditable
+  void deleteFromDocument() native;
+
+  @DomName('DOMSelection.empty')
+  @DocsEditable
+  void empty() native;
+
+  @DomName('DOMSelection.extend')
+  @DocsEditable
+  void extend(Node node, int offset) native;
+
+  @DomName('DOMSelection.getRangeAt')
+  @DocsEditable
+  Range getRangeAt(int index) native;
+
+  @DomName('DOMSelection.modify')
+  @DocsEditable
+  void modify(String alter, String direction, String granularity) native;
+
+  @DomName('DOMSelection.removeAllRanges')
+  @DocsEditable
+  void removeAllRanges() native;
+
+  @DomName('DOMSelection.selectAllChildren')
+  @DocsEditable
+  void selectAllChildren(Node node) native;
+
+  @DomName('DOMSelection.setBaseAndExtent')
+  @DocsEditable
+  void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
+
+  @DomName('DOMSelection.setPosition')
+  @DocsEditable
+  void setPosition(Node node, int offset) native;
+
+  @DomName('DOMSelection.toString')
+  @DocsEditable
+  String toString() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
@@ -18587,7 +18654,7 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
 
   @DomName('ShadowRoot.getSelection')
   @DocsEditable
-  DomSelection getSelection() native;
+  Selection getSelection() native;
 
   static bool get supported =>
       JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
@@ -21724,34 +21791,6 @@ typedef void VoidCallback();
 
 
 @DocsEditable
-@DomName('WebKitCSSFilterRule')
-class WebKitCssFilterRule extends CssRule native "WebKitCSSFilterRule" {
-
-  @DomName('WebKitCSSFilterRule.style')
-  @DocsEditable
-  final CssStyleDeclaration style;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('WebKitCSSRegionRule')
-class WebKitCssRegionRule extends CssRule native "WebKitCSSRegionRule" {
-
-  @DomName('WebKitCSSRegionRule.cssRules')
-  @DocsEditable
-  @Returns('_CssRuleList')
-  @Creates('_CssRuleList')
-  final List<CssRule> cssRules;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 /**
  * Use the WebSocket interface to connect to a WebSocket,
  * and to send and receive data on that WebSocket.
@@ -22725,7 +22764,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   @DomName('DOMWindow.getSelection')
   @DocsEditable
-  DomSelection getSelection() native;
+  Selection getSelection() native;
 
   @DomName('DOMWindow.matchMedia')
   @DocsEditable
@@ -24278,6 +24317,9 @@ abstract class _DirectoryReaderSync native "DirectoryReaderSync" {
 
 @DocsEditable
 @DomName('WebKitPoint')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
@@ -26490,78 +26532,28 @@ abstract class HistoryBase {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/** A Set that stores the CSS class names for an element. */
 abstract class CssClassSet implements Set<String> {
-
-  String toString() {
-    return readClasses().join(' ');
-  }
 
   /**
    * Adds the class [value] to the element if it is not on it, removes it if it
    * is.
    */
-  bool toggle(String value) {
-    Set<String> s = readClasses();
-    bool result = false;
-    if (s.contains(value)) {
-      s.remove(value);
-    } else {
-      s.add(value);
-      result = true;
-    }
-    writeClasses(s);
-    return result;
-  }
+  bool toggle(String value);
 
   /**
    * Returns [:true:] if classes cannot be added or removed from this
    * [:CssClassSet:].
    */
-  bool get frozen => false;
+  bool get frozen;
 
-  // interface Iterable - BEGIN
-  Iterator<String> get iterator => readClasses().iterator;
-  // interface Iterable - END
-
-  // interface Collection - BEGIN
-  void forEach(void f(String element)) {
-    readClasses().forEach(f);
-  }
-
-  String join([String separator = ""]) => readClasses().join(separator);
-
-  Iterable map(f(String element)) => readClasses().map(f);
-
-  Iterable<String> where(bool f(String element)) => readClasses().where(f);
-
-  Iterable expand(Iterable f(String element)) => readClasses().expand(f);
-
-  bool every(bool f(String element)) => readClasses().every(f);
-
-  bool any(bool f(String element)) => readClasses().any(f);
-
-  bool get isEmpty => readClasses().isEmpty;
-
-  int get length => readClasses().length;
-
-  String reduce(String combine(String value, String element)) {
-    return readClasses().reduce(combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-      dynamic combine(dynamic previousValue, String element)) {
-    return readClasses().fold(initialValue, combine);
-  }
-  // interface Collection - END
-
-  // interface Set - BEGIN
   /**
    * Determine if this element contains the class [value].
    *
    * This is the Dart equivalent of jQuery's
    * [hasClass](http://api.jquery.com/hasClass/).
    */
-  bool contains(String value) => readClasses().contains(value);
+  bool contains(String value);
 
   /**
    * Add the class [value] to element.
@@ -26569,11 +26561,7 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    */
-  void add(String value) {
-    // TODO - figure out if we need to do any validation here
-    // or if the browser natively does enough.
-    _modify((s) => s.add(value));
-  }
+  void add(String value);
 
   /**
    * Remove the class [value] from element, and return true on successful
@@ -26582,13 +26570,7 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  bool remove(Object value) {
-    if (value is! String) return false;
-    Set<String> s = readClasses();
-    bool result = s.remove(value);
-    writeClasses(s);
-    return result;
-  }
+  bool remove(Object value);
 
   /**
    * Add all classes specified in [iterable] to element.
@@ -26596,10 +26578,7 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [addClass](http://api.jquery.com/addClass/).
    */
-  void addAll(Iterable<String> iterable) {
-    // TODO - see comment above about validation.
-    _modify((s) => s.addAll(iterable));
-  }
+  void addAll(Iterable<String> iterable);
 
   /**
    * Remove all classes specified in [iterable] from element.
@@ -26607,9 +26586,7 @@ abstract class CssClassSet implements Set<String> {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  void removeAll(Iterable<String> iterable) {
-    _modify((s) => s.removeAll(iterable));
-  }
+  void removeAll(Iterable<String> iterable);
 
   /**
    * Toggles all classes specified in [iterable] on element.
@@ -26618,58 +26595,34 @@ abstract class CssClassSet implements Set<String> {
    * remove it if it is. This is the Dart equivalent of jQuery's
    * [toggleClass](http://api.jquery.com/toggleClass/).
    */
-  void toggleAll(Iterable<String> iterable) {
-    iterable.forEach(toggle);
+  void toggleAll(Iterable<String> iterable);
+}
+
+/**
+ * A set (union) of the CSS classes that are present in a set of elements.
+ * Implemented separately from _ElementCssClassSet for performance.
+ */
+class _MultiElementCssClassSet extends CssClassSetImpl {
+  final Iterable<Element> _elementIterable;
+  Iterable<_ElementCssClassSet> _elementCssClassSetIterable;
+
+  _MultiElementCssClassSet(this._elementIterable) {
+    _elementCssClassSetIterable = new List.from(_elementIterable).map(
+        (e) => new _ElementCssClassSet(e));
   }
 
-  void retainAll(Iterable<String> iterable) {
-    _modify((s) => s.retainAll(iterable));
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    _elementCssClassSetIterable.forEach((e) => s.addAll(e.readClasses()));
+    return s;
   }
 
-  void removeWhere(bool test(String name)) {
-    _modify((s) => s.removeWhere(test));
+  void writeClasses(Set<String> s) {
+    var classes = new List.from(s).join(' ');
+    for (Element e in _elementIterable) {
+      e.$dom_className = classes;
+    }
   }
-
-  void retainWhere(bool test(String name)) {
-    _modify((s) => s.retainWhere(test));
-  }
-
-  bool containsAll(Iterable<String> collection) =>
-    readClasses().containsAll(collection);
-
-  Set<String> intersection(Set<String> other) =>
-    readClasses().intersection(other);
-
-  Set<String> union(Set<String> other) =>
-    readClasses().union(other);
-
-  Set<String> difference(Set<String> other) =>
-    readClasses().difference(other);
-
-  String get first => readClasses().first;
-  String get last => readClasses().last;
-  String get single => readClasses().single;
-  List<String> toList({ bool growable: true }) =>
-      readClasses().toList(growable: growable);
-  Set<String> toSet() => readClasses().toSet();
-  Iterable<String> take(int n) => readClasses().take(n);
-  Iterable<String> takeWhile(bool test(String value)) =>
-      readClasses().takeWhile(test);
-  Iterable<String> skip(int n) => readClasses().skip(n);
-  Iterable<String> skipWhile(bool test(String value)) =>
-      readClasses().skipWhile(test);
-  String firstWhere(bool test(String value), { String orElse() }) =>
-      readClasses().firstWhere(test, orElse: orElse);
-  String lastWhere(bool test(String value), {String orElse()}) =>
-      readClasses().lastWhere(test, orElse: orElse);
-  String singleWhere(bool test(String value)) =>
-      readClasses().singleWhere(test);
-  String elementAt(int index) => readClasses().elementAt(index);
-
-  void clear() {
-    _modify((s) => s.clear());
-  }
-  // interface Set - END
 
   /**
    * Helper method used to modify the set of css classes on this element.
@@ -26680,25 +26633,53 @@ abstract class CssClassSet implements Set<String> {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  void _modify( f(Set<String> s)) {
-    Set<String> s = readClasses();
-    f(s);
-    writeClasses(s);
+  void modify( f(Set<String> s)) {
+    _elementCssClassSetIterable.forEach((e) => e.modify(f));
   }
 
   /**
-   * Read the class names from the Element class property,
-   * and put them into a set (duplicates are discarded).
-   * This is intended to be overridden by specific implementations.
+   * Adds the class [value] to the element if it is not on it, removes it if it
+   * is.
    */
-  Set<String> readClasses();
+  bool toggle(String value) =>
+      _modifyWithReturnValue((e) => e.toggle(value));
 
   /**
-   * Join all the elements of a set into one string and write
-   * back to the element.
-   * This is intended to be overridden by specific implementations.
+   * Remove the class [value] from element, and return true on successful
+   * removal.
+   *
+   * This is the Dart equivalent of jQuery's
+   * [removeClass](http://api.jquery.com/removeClass/).
    */
-  void writeClasses(Set<String> s);
+  bool remove(Object value) => _modifyWithReturnValue((e) => e.remove(value));
+
+  bool _modifyWithReturnValue(f) => _elementCssClassSetIterable.fold(
+      false, (prevValue, element) => f(element) || prevValue);
+}
+
+class _ElementCssClassSet extends CssClassSetImpl {
+
+  final Element _element;
+
+  _ElementCssClassSet(this._element);
+
+  Set<String> readClasses() {
+    var s = new LinkedHashSet<String>();
+    var classname = _element.$dom_className;
+
+    for (String name in classname.split(' ')) {
+      String trimmed = name.trim();
+      if (!trimmed.isEmpty) {
+        s.add(trimmed);
+      }
+    }
+    return s;
+  }
+
+  void writeClasses(Set<String> s) {
+    List list = new List.from(s);
+    _element.$dom_className = s.join(' ');
+  }
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29469,7 +29450,12 @@ class _LocationWrapper implements Location {
   }
 
   // final String origin;
-  String get origin => _get(_ptr, 'origin');
+  String get origin {
+    if (JS('bool', '("origin" in #)', _ptr)) {
+      return JS('String', '#.origin', _ptr);
+    }
+    return '${this.protocol}//${this.host}';
+  }
 
   // String pathname;
   String get pathname => _get(_ptr, 'pathname');

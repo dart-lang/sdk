@@ -305,7 +305,8 @@ class MockCompiler extends Compiler {
 
   resolverVisitor() {
     Element mockElement =
-        new ElementX(buildSourceString(''), ElementKind.FUNCTION, mainApp);
+        new ElementX(buildSourceString(''), ElementKind.FUNCTION,
+            mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
                             new CollectingTreeElements(mockElement));

@@ -23,6 +23,10 @@
             'LinkIncremental': '2',
             'GenerateDebugInformation': 'true',
             'StackReserveSize': '2097152',
+            'AdditionalDependencies': [
+              'advapi32.lib',
+              'shell32.lib',
+            ],
           },
         },
       },
@@ -46,6 +50,10 @@
             'OptimizeReferences': '2',
             'EnableCOMDATFolding': '2',
             'StackReserveSize': '2097152',
+            'AdditionalDependencies': [
+              'advapi32.lib',
+              'shell32.lib',
+            ],
           },
         },
       },

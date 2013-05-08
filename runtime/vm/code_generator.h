@@ -47,7 +47,7 @@ DECLARE_RUNTIME_ENTRY(StackOverflow);
 DECLARE_RUNTIME_ENTRY(Throw);
 DECLARE_RUNTIME_ENTRY(TraceFunctionEntry);
 DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
-DECLARE_RUNTIME_ENTRY(DeoptimizeMaterializeDoubles);
+DECLARE_RUNTIME_ENTRY(DeoptimizeMaterialize);
 DECLARE_RUNTIME_ENTRY(UpdateICDataTwoArgs);
 DECLARE_RUNTIME_ENTRY(UpdateFieldCid);
 

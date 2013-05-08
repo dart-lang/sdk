@@ -268,6 +268,11 @@ class GdbCodeObserver : public CodeObserver {
 };
 
 
+const char* OS::Name() {
+  return "linux";
+}
+
+
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
   if (seconds != seconds_since_epoch) return false;

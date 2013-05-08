@@ -5,6 +5,11 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
+// An extra check since we are assuming the existence of /proc/cpuinfo below.
+#if !defined(USING_SIMULATOR) && !defined(__linux__)
+#error ARM cross-compile only supported on Linux
+#endif
+
 #include "vm/assembler.h"
 #include "vm/simulator.h"
 #include "vm/runtime_entry.h"
@@ -27,6 +32,8 @@ bool CPUFeatures::integer_division_supported() {
 }
 
 
+// If we are using the simulator, allow tests to enable/disable support for
+// integer division.
 #if defined(USING_SIMULATOR)
 void CPUFeatures::set_integer_division_supported(bool supported) {
   integer_division_supported_ = supported;
@@ -34,20 +41,55 @@ void CPUFeatures::set_integer_division_supported(bool supported) {
 #endif
 
 
-#define __ assembler.
+// Probe /proc/cpuinfo for features of the ARM processor.
+#if !defined(USING_SIMULATOR)
+static bool CPUInfoContainsString(const char* search_string) {
+  const char* file_name = "/proc/cpuinfo";
+  // This is written as a straight shot one pass parser
+  // and not using STL string and ifstream because,
+  // on Linux, it's reading from a (non-mmap-able)
+  // character special device.
+  FILE* f = NULL;
+  const char* what = search_string;
+
+  if (NULL == (f = fopen(file_name, "r")))
+    return false;
+
+  int k;
+  while (EOF != (k = fgetc(f))) {
+    if (k == *what) {
+      ++what;
+      while ((*what != '\0') && (*what == fgetc(f))) {
+        ++what;
+      }
+      if (*what == '\0') {
+        fclose(f);
+        return true;
+      } else {
+        what = search_string;
+      }
+    }
+  }
+  fclose(f);
+
+  // Did not find string in the proc file.
+  return false;
+}
+#endif
 
 void CPUFeatures::InitOnce() {
 #if defined(USING_SIMULATOR)
   integer_division_supported_ = true;
 #else
-  integer_division_supported_ = false;
+  ASSERT(CPUInfoContainsString("ARMv7"));  // Implements ARMv7.
+  ASSERT(CPUInfoContainsString("vfp"));  // Has floating point unit.
+  // Has integer division.
+  integer_division_supported_ = CPUInfoContainsString("idiva");
 #endif  // defined(USING_SIMULATOR)
 #if defined(DEBUG)
   initialized_ = true;
 #endif
 }
-
-#undef __
 
 
 // Instruction encoding bits.
@@ -89,13 +131,6 @@ enum {
   B25 = 1 << 25,
   B26 = 1 << 26,
   B27 = 1 << 27,
-
-  // ldrex/strex register field encodings.
-  kLdExRnShift = 16,
-  kLdExRtShift = 12,
-  kStrExRnShift = 16,
-  kStrExRdShift = 12,
-  kStrExRtShift = 0,
 };
 
 
@@ -491,10 +526,10 @@ void Assembler::EmitDivOp(Condition cond, int32_t opcode,
   ASSERT(cond != kNoCondition);
   int32_t encoding = opcode |
     (static_cast<int32_t>(cond) << kConditionShift) |
-    (static_cast<int32_t>(rn) << kRnShift) |
-    (static_cast<int32_t>(rd) << kRdShift) |
+    (static_cast<int32_t>(rn) << kDivRnShift) |
+    (static_cast<int32_t>(rd) << kDivRdShift) |
     B26 | B25 | B24 | B20 | B4 |
-    (static_cast<int32_t>(rm) << kRmShift);
+    (static_cast<int32_t>(rm) << kDivRmShift);
   Emit(encoding);
 }
 

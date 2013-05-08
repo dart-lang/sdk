@@ -21,7 +21,7 @@ namespace dart {
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
   uword saved_pc =
-      *(reinterpret_cast<uword*>(fp() + EntrypointMarkerOffsetFromFp()));
+      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
   return (saved_pc == 0);
 }
 
@@ -37,17 +37,18 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 RawContext* EntryFrame::SavedContext() const {
-  return *(reinterpret_cast<RawContext**>(fp() + SavedContextOffset()));
+  return *(reinterpret_cast<RawContext**>(
+      fp() + (kSavedContextSlotFromEntryFp * kWordSize)));
 }
 
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
-  RawObject** start = reinterpret_cast<RawObject**>(sp());
-  RawObject** end = reinterpret_cast<RawObject**>(
-      fp() - kWordSize + ExitLinkOffset());
-  visitor->VisitPointers(start, end);
+  RawObject** first = reinterpret_cast<RawObject**>(sp());
+  RawObject** last = reinterpret_cast<RawObject**>(
+      fp() + (kExitLinkSlotFromEntryFp - 1) * kWordSize);
+  visitor->VisitPointers(first, last);
 }
 
 
@@ -60,9 +61,9 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // helper functions to the raw object interface.
   ASSERT(visitor != NULL);
   NoGCScope no_gc;
-  RawObject** start_addr = reinterpret_cast<RawObject**>(sp());
-  RawObject** end_addr =
-      reinterpret_cast<RawObject**>(fp()) + kFirstLocalSlotIndex;
+  RawObject** first = reinterpret_cast<RawObject**>(sp());
+  RawObject** last = reinterpret_cast<RawObject**>(
+      fp() + (kFirstLocalSlotFromFp * kWordSize));
   Code code;
   code = LookupDartCode();
   if (!code.IsNull()) {
@@ -93,24 +94,24 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // Spill slots are at the 'bottom' of the frame.
       intptr_t spill_slot_count = length - map.RegisterBitCount();
       for (intptr_t bit = 0; bit < spill_slot_count; ++bit) {
-        if (map.IsObject(bit)) visitor->VisitPointer(end_addr);
-        --end_addr;
+        if (map.IsObject(bit)) visitor->VisitPointer(last);
+        --last;
       }
 
       // The live registers at the 'top' of the frame comprise the rest of the
       // stack map.
       for (intptr_t bit = length - 1; bit >= spill_slot_count; --bit) {
-        if (map.IsObject(bit)) visitor->VisitPointer(start_addr);
-        ++start_addr;
+        if (map.IsObject(bit)) visitor->VisitPointer(first);
+        ++first;
       }
 
-      // The end address can be one slot (but not more) past the start
-      // address in the case that all slots were covered by the stack map.
-      ASSERT((end_addr + 1) >= start_addr);
+      // The last slot can be one slot (but not more) past the last slot
+      // in the case that all slots were covered by the stack map.
+      ASSERT((last + 1) >= first);
     }
   }
-  // Each slot between the start and end address are tagged objects.
-  visitor->VisitPointers(start_addr, end_addr);
+  // Each slot between the first and last included are tagged objects.
+  visitor->VisitPointers(first, last);
 }
 
 
@@ -139,11 +140,11 @@ RawCode* StackFrame::GetCodeObject() const {
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
   NoGCScope no_gc;
-  uword saved_pc =
-      *(reinterpret_cast<uword*>(fp() + EntrypointMarkerOffsetFromFp()));
-  if (saved_pc != 0) {
-    uword entry_point =
-        (saved_pc - Assembler::kOffsetOfSavedPCfromEntrypoint);
+  const uword pc_marker =
+      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
+  if (pc_marker != 0) {
+    const uword entry_point =
+        (pc_marker - Assembler::kEntryPointToPcMarkerOffset);
     RawInstructions* instr = Instructions::FromEntryPoint(entry_point);
     if (instr != Instructions::null()) {
       return instr->ptr()->code_;
@@ -199,6 +200,21 @@ bool StackFrame::IsValid() const {
     return true;
   }
   return (LookupDartCode() != Code::null());
+}
+
+
+void StackFrameIterator::SetupLastExitFrameData() {
+  Isolate* current = Isolate::Current();
+  uword exit_marker = current->top_exit_frame_info();
+  frames_.fp_ = exit_marker;
+}
+
+
+void StackFrameIterator::SetupNextExitFrameData() {
+  uword exit_address = entry_.fp() + (kExitLinkSlotFromEntryFp * kWordSize);
+  uword exit_marker = *reinterpret_cast<uword*>(exit_address);
+  frames_.fp_ = exit_marker;
+  frames_.sp_ = 0;
 }
 
 

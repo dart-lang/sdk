@@ -116,8 +116,6 @@ class CompilerDeoptInfo : public ZoneAllocated {
   RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler,
                                 DeoptInfoBuilder* builder);
 
-  void AllocateIncomingParametersRecursive(Environment* env,
-                                           intptr_t* stack_height);
 
   // No code needs to be generated.
   virtual void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix) {}
@@ -133,6 +131,11 @@ class CompilerDeoptInfo : public ZoneAllocated {
   void set_deoptimization_env(Environment* env) { deoptimization_env_ = env; }
 
  private:
+  void EmitMaterializations(Environment* env, DeoptInfoBuilder* builder);
+
+  void AllocateIncomingParametersRecursive(Environment* env,
+                                           intptr_t* stack_height);
+
   intptr_t pc_offset_;
   const intptr_t deopt_id_;
   const DeoptReasonId reason_;
@@ -452,6 +455,10 @@ class FlowGraphCompiler : public ValueObject {
                                                    Register array,
                                                    Register index);
 
+  // Returns 'sorted' array in decreasing count order.
+  static void SortICDataByCount(const ICData& ic_data,
+                                GrowableArray<CidTarget>* sorted);
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
@@ -540,11 +547,6 @@ class FlowGraphCompiler : public ValueObject {
   intptr_t reverse_index(intptr_t index) const {
     return block_order_.length() - index - 1;
   }
-
-  // Returns 'sorted' array in decreasing count order.
-  // The expected number of elements to sort is less than 10.
-  static void SortICDataByCount(const ICData& ic_data,
-                                GrowableArray<CidTarget>* sorted);
 
   void CompactBlock(BlockEntryInstr* block);
   void CompactBlocks();

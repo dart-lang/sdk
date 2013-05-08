@@ -13,6 +13,7 @@ import 'dart:_foreign_helper' show JS;
 import 'metadata.dart';
 export 'metadata.dart';
 
+part 'css_class_set.dart';
 part 'conversions.dart';
 part 'device.dart';
 part 'filtered_element_list.dart';

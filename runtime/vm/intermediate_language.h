@@ -22,8 +22,8 @@ class ComparisonInstr;
 class ControlInstruction;
 class Definition;
 class Environment;
+class FlowGraph;
 class FlowGraphCompiler;
-class FlowGraphOptimizer;
 class FlowGraphVisitor;
 class Instruction;
 class LocalVariable;
@@ -497,6 +497,7 @@ class EmbeddedArray<T, 0> {
   M(TargetEntry)                                                               \
   M(CatchBlockEntry)                                                           \
   M(Phi)                                                                       \
+  M(Redefinition)                                                              \
   M(Parameter)                                                                 \
   M(ParallelMove)                                                              \
   M(PushArgument)                                                              \
@@ -534,6 +535,7 @@ class EmbeddedArray<T, 0> {
   M(LoadField)                                                                 \
   M(StoreVMField)                                                              \
   M(LoadUntagged)                                                              \
+  M(LoadClassId)                                                               \
   M(InstantiateTypeArguments)                                                  \
   M(ExtractConstructorTypeArguments)                                           \
   M(ExtractConstructorInstantiator)                                            \
@@ -584,7 +586,7 @@ class EmbeddedArray<T, 0> {
   M(Float32x4Clamp)                                                            \
   M(Float32x4With)                                                             \
   M(Float32x4ToUint32x4)                                                       \
-
+  M(MaterializeObject)                                                         \
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -764,7 +766,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Returns a replacement for the instruction or NULL if the instruction can
   // be eliminated.  By default returns the this instruction which means no
   // change.
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   // Insert this instruction before 'next' after use lists are computed.
   // Instructions cannot be inserted before a block entry or any other
@@ -876,6 +878,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class TargetEntryInstr;
   friend class JoinEntryInstr;
   friend class InstanceOfInstr;
+  friend class PolymorphicInstanceCallInstr;
+  friend class SmiToDoubleInstr;
+  friend class DoubleToIntegerInstr;
+  friend class BranchSimplifier;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1044,13 +1050,13 @@ class BlockEntryInstr : public Instruction {
   intptr_t end_pos() const { return end_pos_; }
 
   BlockEntryInstr* dominator() const { return dominator_; }
-  void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
   const GrowableArray<BlockEntryInstr*>& dominated_blocks() {
     return dominated_blocks_;
   }
 
   void AddDominatedBlock(BlockEntryInstr* block) {
+    block->set_dominator(this);
     dominated_blocks_.Add(block);
   }
   void ClearDominatedBlocks() { dominated_blocks_.Clear(); }
@@ -1150,6 +1156,8 @@ class BlockEntryInstr : public Instruction {
 
   virtual void ClearPredecessors() = 0;
   virtual void AddPredecessor(BlockEntryInstr* predecessor) = 0;
+
+  void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
   intptr_t block_id_;
   const intptr_t try_index_;
@@ -1309,6 +1317,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   // Classes that have access to predecessors_ when inlining.
   friend class BlockEntryInstr;
   friend class InlineExitCollector;
+  friend class PolymorphicInliner;
 
   // Direct access to phis_ in order to resize it due to phi elimination.
   friend class ConstantPropagator;
@@ -1542,7 +1551,7 @@ class Definition : public Instruction {
   // Definitions can be canonicalized only into definitions to ensure
   // this check statically we override base Canonicalize with a Canonicalize
   // returning Definition (return type is covariant).
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static const intptr_t kReplacementMarker = -2;
 
@@ -1954,7 +1963,7 @@ class BranchInstr : public ControlInstruction {
   void ReplaceWith(ComparisonInstr* other,
                    ForwardInstructionIterator* ignored);
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual void PrintTo(BufferFormatter* f) const;
 
@@ -2000,7 +2009,7 @@ class StoreContextInstr : public TemplateInstruction<1> {
     SetInputAt(0, value);
   }
 
-  DECLARE_INSTRUCTION(StoreContext);
+  DECLARE_INSTRUCTION(StoreContext)
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -2043,6 +2052,28 @@ class TemplateDefinition : public Definition {
   }
 
   LocationSummary* locs_;
+};
+
+
+class RedefinitionInstr : public TemplateDefinition<1> {
+ public:
+  explicit RedefinitionInstr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  DECLARE_INSTRUCTION(Redefinition)
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual CompileType ComputeType() const;
+  virtual bool RecomputeType();
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
 };
 
 
@@ -2275,7 +2306,7 @@ class ConstantInstr : public TemplateDefinition<0> {
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   const Object& value() const { return value_; }
 
@@ -2334,7 +2365,7 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -2367,7 +2398,7 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -2546,6 +2577,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
         ic_data_(ic_data),
         with_checks_(with_checks) {
     ASSERT(instance_call_ != NULL);
+    deopt_id_ = instance_call->deopt_id();
   }
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
@@ -2675,7 +2707,7 @@ class StrictCompareInstr : public ComparisonInstr {
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
                               BranchInstr* branch);
@@ -3132,7 +3164,7 @@ class GuardFieldInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -3152,7 +3184,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
  public:
   explicit LoadStaticFieldInstr(const Field& field) : field_(field) {}
 
-  DECLARE_INSTRUCTION(LoadStaticField);
+  DECLARE_INSTRUCTION(LoadStaticField)
   virtual CompileType ComputeType() const;
 
   const Field& field() const { return field_; }
@@ -3181,7 +3213,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
     SetInputAt(0, value);
   }
 
-  DECLARE_INSTRUCTION(StoreStaticField);
+  DECLARE_INSTRUCTION(StoreStaticField)
   virtual CompileType* ComputeInitialType() const;
 
   const Field& field() const { return field_; }
@@ -3470,6 +3502,66 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
 };
 
 
+// This instruction captures the state of the object which had its allocation
+// removed during the AllocationSinking pass.
+// It does not produce any real code only deoptimization information.
+class MaterializeObjectInstr : public Definition {
+ public:
+  MaterializeObjectInstr(const Class& cls,
+                         const ZoneGrowableArray<const Field*>& fields,
+                         ZoneGrowableArray<Value*>* values)
+      : cls_(cls), fields_(fields), values_(values), locations_(NULL) {
+    ASSERT(fields_.length() == values_->length());
+    for (intptr_t i = 0; i < InputCount(); i++) {
+      InputAt(i)->set_instruction(this);
+      InputAt(i)->set_use_index(i);
+    }
+  }
+
+  const Class& cls() const { return cls_; }
+  const Field& FieldAt(intptr_t i) const {
+    return *fields_[i];
+  }
+  const Location& LocationAt(intptr_t i) {
+    return locations_[i];
+  }
+
+  DECLARE_INSTRUCTION(MaterializeObject)
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual intptr_t InputCount() const {
+    return values_->length();
+  }
+
+  virtual Value* InputAt(intptr_t i) const {
+    return (*values_)[i];
+  }
+
+  virtual bool CanDeoptimize() const { return false; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  LocationSummary* locs() {
+    UNREACHABLE();
+    return NULL;
+  }
+
+  Location* locations() { return locations_; }
+  void set_locations(Location* locations) { locations_ = locations; }
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    (*values_)[i] = value;
+  }
+
+  const Class& cls_;
+  const ZoneGrowableArray<const Field*>& fields_;
+  ZoneGrowableArray<Value*>* values_;
+  Location* locations_;
+
+  DISALLOW_COPY_AND_ASSIGN(MaterializeObjectInstr);
+};
+
+
 class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
  public:
   AllocateObjectWithBoundsCheckInstr(ConstructorCallNode* node,
@@ -3574,7 +3666,7 @@ class CreateClosureInstr : public TemplateDefinition<0> {
 
 class LoadUntaggedInstr : public TemplateDefinition<1> {
  public:
-  explicit LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
+  LoadUntaggedInstr(Value* object, intptr_t offset) : offset_(offset) {
     SetInputAt(0, object);
   }
 
@@ -3601,6 +3693,34 @@ class LoadUntaggedInstr : public TemplateDefinition<1> {
   intptr_t offset_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadUntaggedInstr);
+};
+
+
+class LoadClassIdInstr : public TemplateDefinition<1> {
+ public:
+  explicit LoadClassIdInstr(Value* object) {
+    SetInputAt(0, object);
+  }
+
+  virtual Representation representation() const {
+    return kTagged;
+  }
+  DECLARE_INSTRUCTION(LoadClassId)
+  virtual CompileType ComputeType() const;
+
+  Value* object() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+  virtual EffectSet Dependencies() const {
+    return EffectSet::Externalization();
+  }
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 
 
@@ -3652,7 +3772,7 @@ class LoadFieldInstr : public TemplateDefinition<1> {
 
   bool IsImmutableLengthLoad() const;
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   static MethodRecognizer::Kind RecognizedKindFromArrayCid(intptr_t cid);
 
@@ -3824,7 +3944,7 @@ class AllocateContextInstr : public TemplateDefinition<0> {
       : token_pos_(token_pos),
         num_context_variables_(num_context_variables) {}
 
-  DECLARE_INSTRUCTION(AllocateContext);
+  DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
 
   intptr_t token_pos() const { return token_pos_; }
@@ -3935,7 +4055,7 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -3970,7 +4090,7 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxDoubleInstr);
@@ -4087,7 +4207,7 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
-  Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxDoubleInstr);
@@ -4136,8 +4256,6 @@ class UnboxUint32x4Instr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const {
     return (value()->Type()->ToCid() != kUint32x4Cid);
   }
-
-  virtual bool HasSideEffect() const { return false; }
 
   virtual Representation representation() const {
     return kUnboxedUint32x4;
@@ -4266,7 +4384,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
   DECLARE_INSTRUCTION(BinaryDoubleOp)
   virtual CompileType ComputeType() const;
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
@@ -4953,7 +5071,7 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     return deopt_id_;
   }
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   DECLARE_INSTRUCTION(BinaryMintOp)
   virtual CompileType ComputeType() const;
@@ -5125,7 +5243,7 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
 
   virtual void InferRange();
 
-  virtual Definition* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   // Returns true if right is a non-zero Smi constant which absolute value is
   // a power of two.
@@ -5233,6 +5351,7 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
   DoubleToIntegerInstr(Value* value, InstanceCallInstr* instance_call)
       : instance_call_(instance_call) {
     SetInputAt(0, value);
+    deopt_id_ = instance_call->deopt_id();
   }
 
   Value* value() const { return inputs_[0]; }
@@ -5413,7 +5532,7 @@ class CheckClassInstr : public TemplateInstruction<1> {
 
   const ICData& unary_checks() const { return unary_checks_; }
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -5451,7 +5570,7 @@ class CheckSmiInstr : public TemplateInstruction<1> {
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual Instruction* Canonicalize(FlowGraphOptimizer* optimizer);
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }

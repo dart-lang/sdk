@@ -19,6 +19,8 @@
     'http_body_impl.dart',
     'http_headers.dart',
     'http_impl.dart',
+    'http_multipart_form_data.dart',
+    'http_multipart_form_data_impl.dart',
     'http_parser.dart',
     'http_session.dart',
     'http_utils.dart',
