@@ -490,7 +490,8 @@ class _OneByteString extends _StringBase implements String {
   // set using _setAt.
   static _OneByteString _allocate(int length) native "OneByteString_allocate";
 
-  // Code point value must be a valid Latin1 (0..0xFF). Index must be valid.
+  // This is internal helper method. Code point value must be a valid
+  // Latin1 value (0..0xFF), index must be valid.
   void _setAt(int index, int codePoint) native "OneByteString_setAt";
 }
 

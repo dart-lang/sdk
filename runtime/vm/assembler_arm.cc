@@ -5,15 +5,15 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
-// An extra check since we are assuming the existence of /proc/cpuinfo below.
-#if !defined(USING_SIMULATOR) && !defined(__linux__)
-#error ARM cross-compile only supported on Linux
-#endif
-
 #include "vm/assembler.h"
 #include "vm/simulator.h"
 #include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
+
+// An extra check since we are assuming the existence of /proc/cpuinfo below.
+#if !defined(USING_SIMULATOR) && !defined(__linux__)
+#error ARM cross-compile only supported on Linux
+#endif
 
 namespace dart {
 
