@@ -520,6 +520,13 @@ class HtmlDartInterfaceGenerator(object):
     if implements:
       implements_str = ' implements ' + ', '.join(set(implements))
 
+    mixins = self._backend.Mixins()
+    mixins_str = ''
+    if mixins:
+      mixins_str = ' with ' + ', '.join(mixins)
+      if not base_class:
+        base_class = 'Object'
+
     annotations = self._metadata.GetFormattedMetadata(
         self._library_name, self._interface.doc_js_name, '')
 
@@ -535,6 +542,7 @@ class HtmlDartInterfaceGenerator(object):
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,
+        MIXINS=mixins_str,
         DOMNAME=self._interface.doc_js_name,
         NATIVESPEC=self._backend.NativeSpec())
     self._backend.StartInterface(self._implementation_members_emitter)

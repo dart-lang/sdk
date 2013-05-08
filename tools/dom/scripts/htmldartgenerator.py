@@ -326,6 +326,17 @@ class HtmlDartGenerator(object):
       implements.append('List<%s>' % item_type_info.dart_type())
     return implements
 
+  def Mixins(self):
+    mixins = []
+    if self._interface_type_info.list_item_type():
+      item_type = self._type_registry.TypeInfo(
+          self._interface_type_info.list_item_type()).dart_type()
+      mixins.append('ListMixin<%s>' % item_type)
+      mixins.append('ImmutableListMixin<%s>' % item_type)
+
+    return mixins
+
+
   def AddConstructors(self,
       constructors, factory_name, factory_constructor_name):
     """ Adds all of the constructors.
@@ -524,8 +535,6 @@ class HtmlDartGenerator(object):
     # TODO(sra): Use separate mixins for mutable implementations of List<T>.
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
-    has_contains = any(op.id == 'contains' for op in self._interface.operations)
-    has_clear = any(op.id == 'clear' for op in self._interface.operations)
     has_length = False
     has_length_setter = False
 
@@ -540,8 +549,6 @@ class HtmlDartGenerator(object):
     template = self._template_loader.Load(
         template_file,
         {
-          'DEFINE_CONTAINS': not has_contains,
-          'DEFINE_CLEAR': not has_clear,
           'DEFINE_LENGTH_AS_NUM_ITEMS': not has_length and has_num_items,
           'DEFINE_LENGTH_SETTER': not has_length_setter,
         })
