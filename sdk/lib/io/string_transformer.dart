@@ -185,12 +185,34 @@ class StringEncoder implements StreamTransformer<String, List<int>> {
 String _decodeString(List<int> bytes, [Encoding encoding = Encoding.UTF_8]) {
   if (bytes.length == 0) return "";
   var string;
+  var error;
   var controller = new StreamController();
   controller.stream
     .transform(new StringDecoder(encoding))
-    .listen((data) => string = data);
+    .listen((data) => string = data,
+            onError: (e) => error = e);
   controller.add(bytes);
   controller.close();
+  if (error != null) throw error;
+  assert(string != null);
+  return string;
+}
+
+
+// Utility function to synchronously decode a utf8-encoded list of bytes,
+// throwing on error.
+String _decodeUtf8Strict(List<int> bytes) {
+  if (bytes.length == 0) return "";
+  var string;
+  var error;
+  var controller = new StreamController();
+  controller.stream
+    .transform(new Utf8DecoderTransformer(null))
+    .listen((data) => string = data,
+            onError: (e) => error = e);
+  controller.add(bytes);
+  controller.close();
+  if (error != null) throw error;
   assert(string != null);
   return string;
 }

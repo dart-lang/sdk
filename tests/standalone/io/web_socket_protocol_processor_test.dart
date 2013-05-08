@@ -28,9 +28,10 @@ class WebSocketMessageCollector {
   List<int> expectedMessage;
 
   int messageCount = 0;
-  int closeCount = 0;
 
   var data;
+
+  Function onClosed;
 
   WebSocketMessageCollector(Stream stream,
                             [List<int> this.expectedMessage = null]) {
@@ -44,10 +45,6 @@ class WebSocketMessageCollector {
     Expect.listEquals(expectedMessage, buffer);
     messageCount++;
     data = buffer;
-  }
-
-  void onClosed() {
-    closeCount++;
   }
 
   void onError(e) {
@@ -78,7 +75,7 @@ List<int> createFrame(bool fin,
   frameSize += count;
   // No masking.
   assert(maskingKey == null);
-  List<int> frame = new List<int>(frameSize);
+  List<int> frame = new Uint8List(frameSize);
   int frameIndex = 0;
   frame[frameIndex++] = (fin ? 0x80 : 0x00) | opcode;
   if (count < 126) {
@@ -115,33 +112,35 @@ void testFullMessages() {
     // Update the transformer with one big chunk.
     messageCount++;
     controller.add(frame);
-    Expect.isNotNull(mc.data);
-    Expect.equals(0, transformer._state);
-
-    mc.data = null;
-
-    // Only run this part on small messages.
-    if (message.length < 1000) {
-      // Update the transformer one byte at the time.
-      messageCount++;
-      for (int i = 0; i < frame.length; i++) {
-        controller.add(<int>[frame[i]]);
-      }
-      Expect.equals(0, transformer._state);
+    mc.onClosed = () {
       Expect.isNotNull(mc.data);
+      Expect.equals(0, transformer._state);
+
       mc.data = null;
 
-      // Update the transformer two bytes at the time.
-      messageCount++;
-      for (int i = 0; i < frame.length; i += 2) {
-        controller.add(frame.sublist(i, min(i + 2, frame.length)));
+      // Only run this part on small messages.
+      if (message.length < 1000) {
+        // Update the transformer one byte at the time.
+        messageCount++;
+        for (int i = 0; i < frame.length; i++) {
+          controller.add(<int>[frame[i]]);
+        }
+        Expect.equals(0, transformer._state);
+        Expect.isNotNull(mc.data);
+        mc.data = null;
+
+        // Update the transformer two bytes at the time.
+        messageCount++;
+        for (int i = 0; i < frame.length; i += 2) {
+          controller.add(frame.sublist(i, min(i + 2, frame.length)));
+        }
+        Expect.equals(0, transformer._state);
+        Expect.isNotNull(mc.data);
       }
-      Expect.equals(0, transformer._state);
-      Expect.isNotNull(mc.data);
-    }
-    Expect.equals(messageCount, mc.messageCount);
-    Expect.equals(0, mc.closeCount);
-    print("Messages test, messages $messageCount");
+      Expect.equals(messageCount, mc.messageCount);
+      print("Messages test, messages $messageCount");
+    };
+    controller.close();
   }
 
   void runTest(int from, int to, int step) {
@@ -227,7 +226,6 @@ void testFragmentedMessages() {
   runTest(65534, 65537, 1);
   print("Fragment messages test, messages $messageCount, frames $frameCount");
   Expect.equals(messageCount, mc.messageCount);
-  Expect.equals(0, mc.closeCount);
 }
 
 void testUnmaskedMessage() {

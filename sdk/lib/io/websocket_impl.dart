@@ -76,6 +76,10 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
         switch (_state) {
           case START:
             _fin = (byte & 0x80) != 0;
+            if ((byte & 0x70) != 0) {
+              // The RSV1, RSV2 bits RSV3 most be all zero.
+              throw new WebSocketException("Protocol error");
+            }
             _opcode = (byte & 0xF);
             switch (_opcode) {
             case _WebSocketOpcode.CONTINUATION:
@@ -89,7 +93,15 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                 throw new WebSocketException("Protocol error");
               }
               _currentMessageType = _WebSocketMessageType.TEXT;
-              _buffer = new StringBuffer();
+              _controller = new StreamController();
+              _controller.stream
+                  .transform(new Utf8DecoderTransformer(null))
+                  .fold(new StringBuffer(), (buffer, str) => buffer..write(str))
+                  .then((buffer) {
+                    sink.add(buffer.toString());
+                  }, onError: (error) {
+                    sink.addError(error);
+                  });
               break;
 
             case _WebSocketOpcode.BINARY:
@@ -97,7 +109,14 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                 throw new WebSocketException("Protocol error");
               }
               _currentMessageType = _WebSocketMessageType.BINARY;
-              _buffer = new _BufferList();
+              _controller = new StreamController();
+              _controller.stream
+                  .fold(new _BufferList(), (buffer, data) => buffer..add(data))
+                  .then((buffer) {
+                    sink.add(buffer.readBytes());
+                  }, onError: (error) {
+                    sink.addError(error);
+                  });
               break;
 
             case _WebSocketOpcode.CLOSE:
@@ -116,7 +135,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
           case LEN_FIRST:
             _masked = (byte & 0x80) != 0;
             _len = byte & 0x7F;
-            if (_isControlFrame() && _len > 126) {
+            if (_isControlFrame() && _len > 125) {
               throw new WebSocketException("Protocol error");
             }
             if (_len < 126) {
@@ -183,29 +202,14 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                 _controlFrameEnd(sink);
               }
             } else {
-              switch (_currentMessageType) {
-                case _WebSocketMessageType.NONE:
+              if (_currentMessageType != _WebSocketMessageType.TEXT &&
+                  _currentMessageType != _WebSocketMessageType.BINARY) {
                   throw new WebSocketException("Protocol error");
-
-                case _WebSocketMessageType.TEXT:
-                  _buffer.write(_decodeString(
-                      buffer.sublist(index, index + payload)));
-                  index += payload;
-                  if (_remainingPayloadBytes == 0) {
-                    _messageFrameEnd(sink);
-                  }
-                  break;
-
-                case _WebSocketMessageType.BINARY:
-                  _buffer.write(buffer.sublist(index, index + payload));
-                  index += payload;
-                  if (_remainingPayloadBytes == 0) {
-                    _messageFrameEnd(sink);
-                  }
-                  break;
-
-                default:
-                  throw new WebSocketException("Protocol error");
+              }
+              _controller.add(new Uint8List.view(buffer.buffer, index, payload));
+              index += payload;
+              if (_remainingPayloadBytes == 0) {
+                _messageFrameEnd(sink);
               }
             }
 
@@ -255,10 +259,10 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
             sink.close();
             break;
           case _WebSocketOpcode.PING:
-            // TODO(ajohnsen): Handle ping.
+            sink.add(new _WebSocketPing());
             break;
           case _WebSocketOpcode.PONG:
-            // TODO(ajohnsen): Handle pong.
+            sink.add(new _WebSocketPong());
             break;
         }
         _prepareForNextFrame();
@@ -274,13 +278,13 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
     if (_fin) {
       switch (_currentMessageType) {
         case _WebSocketMessageType.TEXT:
-          sink.add(_buffer.toString());
+          _controller.close();
           break;
         case _WebSocketMessageType.BINARY:
-          sink.add(_buffer.readBytes());
+          _controller.close();
           break;
       }
-      _buffer = null;
+      _controller = null;
       _currentMessageType = _WebSocketMessageType.NONE;
     }
     _prepareForNextFrame();
@@ -299,8 +303,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
             throw new WebSocketException("Protocol error");
           }
           if (_controlPayload.length > 2) {
-            closeReason = _decodeString(
-                _controlPayload.sublist(2));
+            closeReason = _decodeUtf8Strict(_controlPayload.sublist(2));
           }
         }
         _state = CLOSED;
@@ -308,11 +311,11 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
         break;
 
       case _WebSocketOpcode.PING:
-        // TODO(ajohnsen): Handle ping.
+        sink.add(new _WebSocketPing(_controlPayload));
         break;
 
       case _WebSocketOpcode.PONG:
-        // TODO(ajohnsen): Handle pong.
+        sink.add(new _WebSocketPong(_controlPayload));
         break;
     }
     _prepareForNextFrame();
@@ -351,10 +354,22 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
 
   int _currentMessageType;
   List<int> _controlPayload;
-  var _buffer;  // Either StringBuffer or _BufferList.
+  StreamController _controller;
 
   int closeCode = WebSocketStatus.NO_STATUS_RECEIVED;
   String closeReason = "";
+}
+
+
+class _WebSocketPing {
+  final List<int> payload;
+  _WebSocketPing([this.payload = null]);
+}
+
+
+class _WebSocketPong {
+  final List<int> payload;
+  _WebSocketPong([this.payload = null]);
 }
 
 
@@ -434,6 +449,14 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
   _WebSocketOutgoingTransformer(_WebSocketImpl this.webSocket);
 
   void handleData(message, EventSink<List<int>> sink) {
+    if (message is _WebSocketPong) {
+      addFrame(_WebSocketOpcode.PONG, message.payload, sink);
+      return;
+    }
+    if (message is _WebSocketPing) {
+      addFrame(_WebSocketOpcode.PONG, message.payload, sink);
+      return;
+    }
     List<int> data;
     int opcode;
     if (message != null) {
@@ -470,7 +493,11 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
   }
 
   void addFrame(int opcode, List<int> data, EventSink<List<int>> sink) {
-    bool mask = !webSocket._serverSide;  // Masking not implemented for server.
+    createFrame(opcode, data, webSocket._serverSide).forEach(sink.add);
+  }
+
+  static Iterator createFrame(int opcode, List<int> data, bool serverSide) {
+    bool mask = !serverSide;  // Masking not implemented for server.
     int dataLength = data == null ? 0 : data.length;
     // Determine the header size.
     int headerSize = (mask) ? 6 : 2;
@@ -511,9 +538,10 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
       }
     }
     assert(index == headerSize);
-    sink.add(header);
-    if (data != null) {
-      sink.add(data);
+    if (data == null) {
+      return [header];
+    } else {
+      return [header, data];
     }
   }
 }
@@ -584,12 +612,17 @@ class _WebSocketConsumer implements StreamConsumer {
   }
 
   Future close() {
+    _ensureController();
     Future closeSocket() {
       return socket.close().then((_) => webSocket);
     }
-    if (_controller == null) return closeSocket();
     _controller.close();
     return _closeCompleter.future.then((_) => closeSocket());
+  }
+
+  void add(data) {
+    _ensureController();
+    _controller.add(data);
   }
 }
 
@@ -682,22 +715,34 @@ class _WebSocketImpl extends Stream implements WebSocket {
 
   _WebSocketImpl._fromSocket(Socket this._socket,
                              [bool this._serverSide = false]) {
-    _sink = new _StreamSinkImpl(new _WebSocketConsumer(this, _socket));
+    var consumer = new _WebSocketConsumer(this, _socket);
+    _sink = new _StreamSinkImpl(consumer);
     _readyState = WebSocket.OPEN;
 
     var transformer = new _WebSocketProtocolTransformer(_serverSide);
     _socket.transform(transformer).listen(
         (data) {
-          _controller.add(data);
+          if (data is _WebSocketPing) {
+            consumer.add(new _WebSocketPong(data.payload));
+          } else if (data is _WebSocketPong) {
+            // TODO(ajohnsen): Notify pong?
+          } else {
+            _controller.add(data);
+          }
         },
         onError: (error) {
+          if (error is ArgumentError) {
+            close(WebSocketStatus.INVALID_FRAME_PAYLOAD_DATA);
+          } else {
+            close(WebSocketStatus.PROTOCOL_ERROR);
+          }
           _controller.addError(error);
           _controller.close();
         },
         onDone: () {
           if (_readyState == WebSocket.OPEN) {
             _readyState = WebSocket.CLOSING;
-            if (transformer.closeCode != WebSocketStatus.NO_STATUS_RECEIVED) {
+            if (!_isReservedStatusCode(transformer.closeCode)) {
               close(transformer.closeCode);
             } else {
               close();
@@ -735,9 +780,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
 
   Future close([int code, String reason]) {
     if (!_writeClosed) {
-      if (code == WebSocketStatus.RESERVED_1004 ||
-          code == WebSocketStatus.NO_STATUS_RECEIVED ||
-          code == WebSocketStatus.RESERVED_1015) {
+      if (_isReservedStatusCode(code)) {
         throw new WebSocketException("Reserved status code $code");
       }
       _outCloseCode = code;
@@ -745,5 +788,17 @@ class _WebSocketImpl extends Stream implements WebSocket {
       _writeClosed = true;
     }
     return _sink.close();
+  }
+
+  static bool _isReservedStatusCode(int code) {
+    return code != null &&
+           (code < WebSocketStatus.NORMAL_CLOSURE ||
+            code == WebSocketStatus.RESERVED_1004 ||
+            code == WebSocketStatus.NO_STATUS_RECEIVED ||
+            code == WebSocketStatus.ABNORMAL_CLOSURE ||
+            (code > WebSocketStatus.INTERNAL_SERVER_ERROR &&
+             code < WebSocketStatus.RESERVED_1015) ||
+            (code >= WebSocketStatus.RESERVED_1015 &&
+             code < 3000));
   }
 }

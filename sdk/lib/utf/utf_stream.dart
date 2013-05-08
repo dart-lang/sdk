@@ -23,56 +23,64 @@ abstract class _StringDecoder
   _StringDecoder(int this._replacementChar);
 
   void handleData(List<int> bytes, EventSink<String> sink) {
-    _buffer = <int>[];
-    List<int> carry = _carry;
-    _carry = null;
-    int pos = 0;
-    int available = bytes.length;
-    // If we have carry-over data, start from negative index, indicating carry
-    // index.
-    int goodChars = 0;
-    if (carry != null) pos = -carry.length;
-    while (pos < available) {
-      int currentPos = pos;
-      int getNext() {
-        if (pos < 0) {
-          return carry[pos++ + carry.length];
-        } else if (pos < available) {
-          return bytes[pos++];
+    try {
+      _buffer = <int>[];
+      List<int> carry = _carry;
+      _carry = null;
+      int pos = 0;
+      int available = bytes.length;
+      // If we have carry-over data, start from negative index, indicating carry
+      // index.
+      int goodChars = 0;
+      if (carry != null) pos = -carry.length;
+      while (pos < available) {
+        int currentPos = pos;
+        int getNext() {
+          if (pos < 0) {
+            return carry[pos++ + carry.length];
+          } else if (pos < available) {
+            return bytes[pos++];
+          }
+          return null;
         }
-        return null;
-      }
-      int consumed = _processBytes(getNext);
-      if (consumed > 0) {
-        goodChars = _buffer.length;
-      } else if (consumed == 0) {
-        _buffer.length = goodChars;
-        if (currentPos < 0) {
-          _carry = [];
-          _carry.addAll(carry);
-          _carry.addAll(bytes);
+        int consumed = _processBytes(getNext);
+        if (consumed > 0) {
+          goodChars = _buffer.length;
+        } else if (consumed == 0) {
+          _buffer.length = goodChars;
+          if (currentPos < 0) {
+            _carry = [];
+            _carry.addAll(carry);
+            _carry.addAll(bytes);
+          } else {
+            _carry = bytes.sublist(currentPos);
+          }
+          break;
         } else {
-          _carry = bytes.sublist(currentPos);
+          // Invalid byte at position pos - 1
+          _buffer.length = goodChars;
+          _addChar(-1);
+          goodChars = _buffer.length;
         }
-        break;
-      } else {
-        // Invalid byte at position pos - 1
-        _buffer.length = goodChars;
-        _addChar(-1);
-        goodChars = _buffer.length;
       }
+      if (_buffer.length > 0) {
+        // Limit to 'goodChars', if lower than actual charCodes in the buffer.
+        sink.add(new String.fromCharCodes(_buffer));
+      }
+      _buffer = null;
+    } catch (e) {
+      sink.addError(e);
     }
-    if (_buffer.length > 0) {
-      // Limit to 'goodChars', if lower than actual charCodes in the buffer.
-      sink.add(new String.fromCharCodes(_buffer));
-    }
-    _buffer = null;
   }
 
   void handleDone(EventSink<String> sink) {
     if (_carry != null) {
-      sink.add(new String.fromCharCodes(
-          new List.filled(_carry.length, _replacementChar)));
+      if (_replacementChar != null) {
+        sink.add(new String.fromCharCodes(
+            new List.filled(_carry.length, _replacementChar)));
+      } else {
+        throw new ArgumentError('Invalid codepoint');
+      }
     }
     sink.close();
   }
@@ -80,7 +88,16 @@ abstract class _StringDecoder
   int _processBytes(int getNext());
 
   void _addChar(int char) {
-    if (char > 0x10FFFF || char < 0) char = _replacementChar;
+    void error() {
+      if (_replacementChar != null) {
+        char = _replacementChar;
+      } else {
+        throw new ArgumentError('Invalid codepoint');
+      }
+    }
+    if (char < 0) error();
+    if (char >= 0xD800 && char <= 0xDFFF) error();
+    if (char > 0x10FFFF) error();
     _buffer.add(char);
   }
 }
@@ -127,6 +144,9 @@ class Utf8DecoderTransformer extends _StringDecoder {
         if (next == null) return 0;  // Not enough chars, reset.
         if ((next & 0xc0) != 0x80 || (next & 0xff) != next) return -1;
         value = value << 6 | (next & 0x3f);
+        if (additionalBytes >= 3 && i == 0 && value << 12 > 0x10FFFF) {
+          _addChar(-1);
+        }
       }
       // Invalid charCode if less then minimum expected.
       if (value < min) value = -1;
