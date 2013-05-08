@@ -227,13 +227,7 @@ class Serialization {
    * The serialization is controlled by the list of Serialization rules. These
    * are most commonly added via [addRuleFor].
    */
-  List _rules = [];
-
-  /**
-   * The serialization is controlled by the list of Serialization rules. These
-   * are most commonly added via [addRuleFor].
-   */
-  List get rules => _rules;
+  final List<SerializationRule> rules = new List<SerializationRule>();
 
   /**
    * When reading, we may need to resolve references to existing objects in
@@ -264,7 +258,7 @@ class Serialization {
     // TODO(alanknight): Should this be moved to the format?
     // TODO(alanknight): Allow self-describing in the presence of CustomRule.
     if (_selfDescribing != null) return _selfDescribing;
-    return !_rules.any((x) => x is CustomRule);
+    return !rules.any((x) => x is CustomRule);
   }
 
   /**
@@ -273,7 +267,7 @@ class Serialization {
    * CustomRule subclasses, in which case it requires additional setup and
    * is off by default.
    */
-  set selfDescribing(x) => _selfDescribing = x;
+  void set selfDescribing(bool value) => _selfDescribing = value;
 
   /**
    * Creates a new serialization with a default set of rules for primitives
@@ -350,8 +344,8 @@ class Serialization {
    * method.
    */
   void addRule(SerializationRule rule) {
-    rule.number = _rules.length;
-    _rules.add(rule);
+    rule.number = rules.length;
+    rules.add(rule);
   }
 
   /**
@@ -416,10 +410,10 @@ class Serialization {
     var target, candidateRules;
     if (object is DesignatedRuleForObject) {
       target = object.target;
-      candidateRules = object.possibleRules(_rules);
+      candidateRules = object.possibleRules(rules);
     } else {
       target = object;
-      candidateRules = _rules;
+      candidateRules = rules;
     }
     Iterable applicable = candidateRules.where(
         (each) => each.appliesTo(target, w));

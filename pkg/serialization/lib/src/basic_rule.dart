@@ -28,7 +28,7 @@ class BasicRule extends SerializationRule {
   Constructor constructor;
 
   /** This holds onto our list of fields, and can also calculate them. */
-  _FieldList fields;
+  _FieldList _fields;
 
   /**
    * Instances can either use maps or lists to hold the object's state. The list
@@ -63,7 +63,7 @@ class BasicRule extends SerializationRule {
       List excludeFields) {
     _findFields(constructorFields, regularFields, excludeFields);
     constructor = new Constructor(
-        type, constructorName, fields.constructorFieldIndices());
+        type, constructorName, _fields.constructorFieldIndices());
     configureForLists();
   }
 
@@ -92,9 +92,9 @@ class BasicRule extends SerializationRule {
    * Note that the function is passed the owning object as well as the field
    * value, but that it is passed as a mirror.
    */
-  setFieldWith(String fieldName, SetWithFunction setWith) {
-    fields.addAllByName([fieldName]);
-    _NamedField field = fields.named(_asSymbol(fieldName));
+  void setFieldWith(String fieldName, SetWithFunction setWith) {
+    _fields.addAllByName([fieldName]);
+    _NamedField field = _fields.named(_asSymbol(fieldName));
     Function setter = (setWith == null) ? field.defaultSetter : setWith;
     field.customSetter = setter;
   }
@@ -103,10 +103,10 @@ class BasicRule extends SerializationRule {
   String get constructorName => constructor.name;
 
   /** Return the list of field names to be passed to the constructor.*/
-  List<String> get constructorFields => fields.constructorFieldNames();
+  List<String> get constructorFields => _fields.constructorFieldNames();
 
   /** Return the list of field names not used in the constructor. */
-  List<String> get regularFields => fields.regularFieldNames();
+  List<String> get regularFields => _fields.regularFieldNames();
 
   String toString() => "Basic Rule for ${type.simpleName}";
 
@@ -116,7 +116,7 @@ class BasicRule extends SerializationRule {
    * is much more compact and used by default. The map representation is
    * much easier to debug. The default is to use lists.
    */
-  configureForMaps() {
+  void configureForMaps() {
     useMaps = true;
   }
 
@@ -126,7 +126,7 @@ class BasicRule extends SerializationRule {
    * is much more compact and used by default. The map representation is
    * much easier to debug. The default is to use lists.
    */
-  configureForLists() {
+  void configureForLists() {
     useMaps = false;
   }
 
@@ -138,9 +138,9 @@ class BasicRule extends SerializationRule {
    * If a list is returned, it is growable.
    */
    createStateHolder() {
-     if (useMaps) return new _MapWrapper(fields.contents);
+     if (useMaps) return new _MapWrapper(_fields.contents);
      List list = [];
-     list.length = fields.length;
+     list.length = _fields.length;
      return list;
    }
 
@@ -161,18 +161,18 @@ class BasicRule extends SerializationRule {
        var newKey = (each is Reference) ? each.inflated() : each;
        newState[newKey] = state[each];
      }
-     return new _MapWrapper.fromMap(newState, fields.contents);
+     return new _MapWrapper.fromMap(newState, _fields.contents);
    }
 
   /**
    * Extract the state from [object] using an instanceMirror and the field
-   * names in [fields]. Call the function [callback] on each value.
+   * names in [_fields]. Call the function [callback] on each value.
    */
   extractState(object, Function callback, Writer w) {
     var result = createStateHolder();
     var mirror = reflect(object);
 
-    keysAndValues(fields).forEach(
+    keysAndValues(_fields).forEach(
         (index, field) {
           var value = _value(mirror, field);
           callback(field.name);
@@ -203,7 +203,7 @@ class BasicRule extends SerializationRule {
    * to designating the rule, since we so far only have one rule per object.
    */
   checkForEssentialLists(index, value) {
-    if (value is List && fields.contents[index].isEssential) {
+    if (value is List && _fields.contents[index].isEssential) {
       return new DesignatedRuleForObject(value,
           (SerializationRule rule) => rule is ListRuleEssential);
     } else {
@@ -230,7 +230,7 @@ class BasicRule extends SerializationRule {
   inflateNonEssential(rawState, object, Reader reader) {
     InstanceMirror mirror = reflect(object);
     var state = makeIndexableByNumber(rawState);
-    fields.forEachRegularField( (_Field field) {
+    _fields.forEachRegularField( (_Field field) {
       var value = reader.inflateReference(state[field.index]);
       field.setValue(mirror, value);
     });
@@ -249,17 +249,17 @@ class BasicRule extends SerializationRule {
    */
   void _findFields(List constructorFields, List regularFields,
       List excludeFields) {
-    fields = new _FieldList(type);
-    fields.constructorFields = constructorFields;
-    fields.regular = regularFields;
+    _fields = new _FieldList(type);
+    _fields.constructorFields = constructorFields;
+    _fields.regular = regularFields;
     // TODO(alanknight): The order of this matters. It shouldn't.
-    fields.exclude = excludeFields;
-    fields.figureOutFields();
+    _fields.exclude = excludeFields;
+    _fields.figureOutFields();
   }
 
   bool get hasVariableLengthEntries => false;
 
-  int get dataLength => fields.length;
+  int get dataLength => _fields.length;
 
   /**
    * Extract the value of [field] from the object reflected
@@ -342,7 +342,7 @@ abstract class _Field implements Comparable<_Field> {
   // Because [x] may not be a named field, we compare the toString. We don't
   // care that much where constants come in the sort order as long as it's
   // consistent.
-  compareTo(_Field x) => toString().compareTo(x.toString());
+  int compareTo(_Field x) => toString().compareTo(x.toString());
 }
 
 /**
@@ -430,7 +430,7 @@ class _ConstantField extends _Field {
  * are kept in a separate object, which also has the ability to compute the
  * default fields to use reflectively.
  */
-class _FieldList extends IterableBase {
+class _FieldList extends IterableBase<_Field> {
   /**
    * All of our fields, indexed by name. Note that the names are
    * typically Symbols, but can also be arbitrary constants.
@@ -523,7 +523,7 @@ class _FieldList extends IterableBase {
     contents;
   }
 
-  Iterator get iterator => contents.iterator;
+  Iterator<_Field> get iterator => contents.iterator;
 
   /** Return a cached, sorted list of all the fields. */
   List<_Field> get contents {
@@ -650,8 +650,8 @@ class Constructor {
  * from the index into a field name and then looks it up in the map.
  */
 class _MapWrapper {
-  final _map;
-  List fieldList;
+  final Map _map;
+  final List fieldList;
   _MapWrapper(this.fieldList) : _map = new Map();
   _MapWrapper.fromMap(this._map, this.fieldList);
 
@@ -660,7 +660,7 @@ class _MapWrapper {
   operator []=(key, value) { _map[fieldList[key].name] = value; }
   get length => _map.length;
 
-  asMap() => _map;
+  Map asMap() => _map;
 }
 
 /**
@@ -668,7 +668,7 @@ class _MapWrapper {
  * Symbol. If it is any other type, or if the string is an
  * invalid symbol, return null;
  */
-_asSymbol(value) {
+Symbol _asSymbol(value) {
   if (value is Symbol) return value;
   if (value is String) {
     try {

@@ -27,10 +27,10 @@ abstract class SerializationRule {
    * Rules belong uniquely to a particular Serialization instance, and can
    * be identified within it by number.
    */
-  void set number(x) {
-    if (_number != null && _number != x) throw
+  void set number(int value) {
+    if (_number != null && _number != value) throw
         new SerializationException("Rule numbers cannot be changed, once set");
-    _number = x;
+    _number = value;
   }
 
   /**
@@ -91,7 +91,7 @@ abstract class SerializationRule {
    * to see how bad it is.
    */
   // TODO(alanknight): Reconsider whether this should be handled differently.
-  get mustBePrimary => false;
+  bool get mustBePrimary => false;
 
   /**
    * Create the new object corresponding to [state] using the rules
