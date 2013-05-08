@@ -12009,8 +12009,8 @@ class InputElement extends _Element_Merged implements
 
 
 // Interfaces representing the InputElement APIs which are supported
-// for the various types of InputElement.
-// From http://dev.w3.org/html5/spec/the-input-element.html#the-input-element.
+// for the various types of InputElement. From:
+// http://www.w3.org/html/wg/drafts/html/master/forms.html#the-input-element.
 
 /**
  * Exposes the functionality common between all InputElement types.
@@ -12056,7 +12056,7 @@ abstract class InputElementBase implements Element {
 /**
  * Hidden input which is not intended to be seen or edited by the user.
  */
-abstract class HiddenInputElement implements Element {
+abstract class HiddenInputElement implements InputElementBase {
   factory HiddenInputElement() => new InputElement(type: 'hidden');
 }
 
