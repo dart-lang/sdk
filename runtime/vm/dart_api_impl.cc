@@ -3805,7 +3805,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
 
   if (obj.IsNull() || obj.IsInstance()) {
-    Instance& instance = Instance::Handle();
+    Instance& instance = Instance::Handle(isolate);
     instance ^= obj.raw();
     const Function& function = Function::Handle(
         isolate,

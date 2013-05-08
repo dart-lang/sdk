@@ -90,13 +90,14 @@ static RawString* GetLibrarySource(const Library& lib,
                                    bool patch) {
   // First check if this is a valid boot strap library and find it's index
   // in the 'bootstrap_libraries' table above.
-  intptr_t index = 0;
+  intptr_t index;
   const String& lib_uri = String::Handle(lib.url());
-  while (bootstrap_libraries[index].index_ != ObjectStore::kNone) {
+  for (index = 0;
+       bootstrap_libraries[index].index_ != ObjectStore::kNone;
+       ++index) {
     if (lib_uri.Equals(bootstrap_libraries[index].uri_)) {
       break;
     }
-    index += 1;
   }
   if (bootstrap_libraries[index].index_ == ObjectStore::kNone) {
     return String::null();  // Library is not a boot strap library.
@@ -109,14 +110,12 @@ static RawString* GetLibrarySource(const Library& lib,
   if (source_paths == NULL) {
     return String::null();  // No path mapping information exists for library.
   }
-  intptr_t i = 0;
   const char* source_path = NULL;
-  while (source_paths[i] != NULL) {
+  for (intptr_t i = 0; source_paths[i] != NULL; i += 2) {
     if (uri.Equals(source_paths[i])) {
       source_path = source_paths[i + 1];
       break;
     }
-    i += 2;
   }
   if (source_path == NULL) {
     return String::null();  // Uri does not exist in path mapping information.
@@ -240,8 +239,7 @@ static RawError* LoadPatchFiles(Isolate* isolate,
   const Array& strings = Array::Handle(isolate, Array::New(3));
   strings.SetAt(0, patch_uri);
   strings.SetAt(1, Symbols::Slash());
-  intptr_t j = 0;
-  while (patch_files[j] != NULL) {
+  for (intptr_t j = 0; patch_files[j] != NULL; j += 2) {
     patch_file_uri = String::New(patch_files[j]);
     source = GetLibrarySource(lib, patch_file_uri, true);
     if (source.IsNull()) {
@@ -258,7 +256,6 @@ static RawError* LoadPatchFiles(Isolate* isolate,
     if (!error.IsNull()) {
       return error.raw();
     }
-    j += 2;
   }
   return Error::null();
 }
@@ -283,8 +280,9 @@ RawError* Bootstrap::LoadandCompileScripts() {
   Dart_EnterScope();
 
   // Create library objects for all the bootstrap libraries.
-  intptr_t i = 0;
-  while (bootstrap_libraries[i].index_ != ObjectStore::kNone) {
+  for (intptr_t i = 0;
+       bootstrap_libraries[i].index_ != ObjectStore::kNone;
+       ++i) {
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     if (lib.IsNull()) {
@@ -293,12 +291,12 @@ RawError* Bootstrap::LoadandCompileScripts() {
     }
     isolate->object_store()->set_bootstrap_library(
         bootstrap_libraries[i].index_, lib);
-    i = i + 1;
   }
 
   // Load, compile and patch bootstrap libraries.
-  i = 0;
-  while (bootstrap_libraries[i].index_ != ObjectStore::kNone) {
+  for (intptr_t i = 0;
+       bootstrap_libraries[i].index_ != ObjectStore::kNone;
+       ++i) {
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     ASSERT(!lib.IsNull());
@@ -325,7 +323,6 @@ RawError* Bootstrap::LoadandCompileScripts() {
         break;
       }
     }
-    i = i + 1;
   }
   if (error.IsNull()) {
     SetupNativeResolver();
