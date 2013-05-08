@@ -1922,7 +1922,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform1fv')
   @DocsEditable
-  void uniform1fv(UniformLocation location, List<double> v) native "WebGLRenderingContext_uniform1fv_Callback";
+  void uniform1fv(UniformLocation location, Float32List v) native "WebGLRenderingContext_uniform1fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable
@@ -1930,7 +1930,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform1iv')
   @DocsEditable
-  void uniform1iv(UniformLocation location, List<int> v) native "WebGLRenderingContext_uniform1iv_Callback";
+  void uniform1iv(UniformLocation location, Int32List v) native "WebGLRenderingContext_uniform1iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable
@@ -1938,7 +1938,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform2fv')
   @DocsEditable
-  void uniform2fv(UniformLocation location, List<double> v) native "WebGLRenderingContext_uniform2fv_Callback";
+  void uniform2fv(UniformLocation location, Float32List v) native "WebGLRenderingContext_uniform2fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable
@@ -1946,7 +1946,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform2iv')
   @DocsEditable
-  void uniform2iv(UniformLocation location, List<int> v) native "WebGLRenderingContext_uniform2iv_Callback";
+  void uniform2iv(UniformLocation location, Int32List v) native "WebGLRenderingContext_uniform2iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable
@@ -1954,7 +1954,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform3fv')
   @DocsEditable
-  void uniform3fv(UniformLocation location, List<double> v) native "WebGLRenderingContext_uniform3fv_Callback";
+  void uniform3fv(UniformLocation location, Float32List v) native "WebGLRenderingContext_uniform3fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable
@@ -1962,7 +1962,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform3iv')
   @DocsEditable
-  void uniform3iv(UniformLocation location, List<int> v) native "WebGLRenderingContext_uniform3iv_Callback";
+  void uniform3iv(UniformLocation location, Int32List v) native "WebGLRenderingContext_uniform3iv_Callback";
 
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable
@@ -1970,7 +1970,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform4fv')
   @DocsEditable
-  void uniform4fv(UniformLocation location, List<double> v) native "WebGLRenderingContext_uniform4fv_Callback";
+  void uniform4fv(UniformLocation location, Float32List v) native "WebGLRenderingContext_uniform4fv_Callback";
 
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable
@@ -1978,19 +1978,19 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.uniform4iv')
   @DocsEditable
-  void uniform4iv(UniformLocation location, List<int> v) native "WebGLRenderingContext_uniform4iv_Callback";
+  void uniform4iv(UniformLocation location, Int32List v) native "WebGLRenderingContext_uniform4iv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix2fv')
   @DocsEditable
-  void uniformMatrix2fv(UniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
+  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) native "WebGLRenderingContext_uniformMatrix2fv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix3fv')
   @DocsEditable
-  void uniformMatrix3fv(UniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
+  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) native "WebGLRenderingContext_uniformMatrix3fv_Callback";
 
   @DomName('WebGLRenderingContext.uniformMatrix4fv')
   @DocsEditable
-  void uniformMatrix4fv(UniformLocation location, bool transpose, List<double> array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
+  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) native "WebGLRenderingContext_uniformMatrix4fv_Callback";
 
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable
@@ -2006,7 +2006,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib1fv')
   @DocsEditable
-  void vertexAttrib1fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
+  void vertexAttrib1fv(int indx, Float32List values) native "WebGLRenderingContext_vertexAttrib1fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable
@@ -2014,7 +2014,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib2fv')
   @DocsEditable
-  void vertexAttrib2fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
+  void vertexAttrib2fv(int indx, Float32List values) native "WebGLRenderingContext_vertexAttrib2fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable
@@ -2022,7 +2022,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib3fv')
   @DocsEditable
-  void vertexAttrib3fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
+  void vertexAttrib3fv(int indx, Float32List values) native "WebGLRenderingContext_vertexAttrib3fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable
@@ -2030,7 +2030,7 @@ class RenderingContext extends CanvasRenderingContext {
 
   @DomName('WebGLRenderingContext.vertexAttrib4fv')
   @DocsEditable
-  void vertexAttrib4fv(int indx, List<double> values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
+  void vertexAttrib4fv(int indx, Float32List values) native "WebGLRenderingContext_vertexAttrib4fv_Callback";
 
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable

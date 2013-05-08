@@ -63,15 +63,15 @@ class AnalyserNode extends AudioNode {
 
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable
-  void getByteFrequencyData(List<int> array) native "AnalyserNode_getByteFrequencyData_Callback";
+  void getByteFrequencyData(Uint8List array) native "AnalyserNode_getByteFrequencyData_Callback";
 
   @DomName('AnalyserNode.getByteTimeDomainData')
   @DocsEditable
-  void getByteTimeDomainData(List<int> array) native "AnalyserNode_getByteTimeDomainData_Callback";
+  void getByteTimeDomainData(Uint8List array) native "AnalyserNode_getByteTimeDomainData_Callback";
 
   @DomName('AnalyserNode.getFloatFrequencyData')
   @DocsEditable
-  void getFloatFrequencyData(List<double> array) native "AnalyserNode_getFloatFrequencyData_Callback";
+  void getFloatFrequencyData(Float32List array) native "AnalyserNode_getFloatFrequencyData_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -112,7 +112,7 @@ class AudioBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable
-  List<double> getChannelData(int channelIndex) native "AudioBuffer_getChannelData_Callback";
+  Float32List getChannelData(int channelIndex) native "AudioBuffer_getChannelData_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -367,7 +367,7 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.createWaveTable')
   @DocsEditable
-  WaveTable createWaveTable(List<double> real, List<double> imag) native "AudioContext_createWaveTable_Callback";
+  WaveTable createWaveTable(Float32List real, Float32List imag) native "AudioContext_createWaveTable_Callback";
 
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable
@@ -571,7 +571,7 @@ class AudioParam extends NativeFieldWrapperClass1 {
 
   @DomName('AudioParam.setValueCurveAtTime')
   @DocsEditable
-  void setValueCurveAtTime(List<double> values, num time, num duration) native "AudioParam_setValueCurveAtTime_Callback";
+  void setValueCurveAtTime(Float32List values, num time, num duration) native "AudioParam_setValueCurveAtTime_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -662,7 +662,7 @@ class BiquadFilterNode extends AudioNode {
 
   @DomName('BiquadFilterNode.getFrequencyResponse')
   @DocsEditable
-  void getFrequencyResponse(List<double> frequencyHz, List<double> magResponse, List<double> phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
+  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) native "BiquadFilterNode_getFrequencyResponse_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1105,11 +1105,11 @@ class WaveShaperNode extends AudioNode {
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable
-  List<double> get curve native "WaveShaperNode_curve_Getter";
+  Float32List get curve native "WaveShaperNode_curve_Getter";
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable
-  void set curve(List<double> value) native "WaveShaperNode_curve_Setter";
+  void set curve(Float32List value) native "WaveShaperNode_curve_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

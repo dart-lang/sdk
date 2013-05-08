@@ -13528,7 +13528,7 @@ class MediaElement extends _Element_Merged {
   @DocsEditable
   void play() native "HTMLMediaElement_play_Callback";
 
-  void addKey(String keySystem, List<int> key, [List<int> initData, String sessionId]) {
+  void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -13548,7 +13548,7 @@ class MediaElement extends _Element_Merged {
   @Experimental
   void cancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void generateKeyRequest(String keySystem, [List<int> initData]) {
+  void generateKeyRequest(String keySystem, [Uint8List initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -13740,7 +13740,7 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.initData')
   @DocsEditable
-  List<int> get initData native "MediaKeyEvent_initData_Getter";
+  Uint8List get initData native "MediaKeyEvent_initData_Getter";
 
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable
@@ -13748,7 +13748,7 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.message')
   @DocsEditable
-  List<int> get message native "MediaKeyEvent_message_Getter";
+  Uint8List get message native "MediaKeyEvent_message_Getter";
 
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable
@@ -18625,7 +18625,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('SourceBuffer.append')
   @DocsEditable
-  void append(List<int> data) native "SourceBuffer_append_Callback";
+  void append(Uint8List data) native "SourceBuffer_append_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

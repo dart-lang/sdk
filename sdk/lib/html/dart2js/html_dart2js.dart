@@ -12827,9 +12827,7 @@ class MediaKeyEvent extends Event native "MediaKeyEvent" {
 
   @DomName('MediaKeyEvent.initData')
   @DocsEditable
-  @Returns('Uint8List')
-  @Creates('Uint8List')
-  final List<int> initData;
+  final Uint8List initData;
 
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable
@@ -12837,9 +12835,7 @@ class MediaKeyEvent extends Event native "MediaKeyEvent" {
 
   @DomName('MediaKeyEvent.message')
   @DocsEditable
-  @Returns('Uint8List')
-  @Creates('Uint8List')
-  final List<int> message;
+  final Uint8List message;
 
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable
