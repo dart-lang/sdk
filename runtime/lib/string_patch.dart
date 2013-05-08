@@ -336,12 +336,23 @@ class _StringBase {
    * into a result string.
    */
   static String _interpolate(List values) {
-    int numValues = values.length;
+    final int numValues = values.length;
     _ObjectArray stringList = new List(numValues);
+    bool isOneByteString = true;
+    int totalLength = 0;
     for (int i = 0; i < numValues; i++) {
-      stringList[i] = values[i].toString();
+      var s = values[i].toString();
+      if (isOneByteString && (s is _OneByteString)) {
+        totalLength += s.length;
+      } else {
+        isOneByteString = false;
+      }
+      stringList[i] = s;
     }
-    return _concatAll(stringList);
+    if (isOneByteString) {
+      return _OneByteString._concatAll(stringList, totalLength);
+    }
+    return _concatAllNative(stringList);
   }
 
   Iterable<Match> allMatches(String str) {
@@ -434,24 +445,56 @@ class _StringBase {
 
   static String concatAll(Iterable<String> strings) {
     _ObjectArray stringsArray;
+    final len = strings.length;
+    bool isOneByteString = true;
+    int totalLength = 0;
     if (strings is _ObjectArray) {
       stringsArray = strings;
-      for (int i = 0; i < strings.length; i++) {
-        if (strings[i] is! String) throw new ArgumentError(strings[i]);
+      for (int i = 0; i < len; i++) {
+        var string = strings[i];
+        if (string is _OneByteString) {
+          totalLength += string.length;
+        } else {
+          isOneByteString = false;
+          if (string is! String) throw new ArgumentError(string);
+        }
       }
     } else {
-      int len = strings.length;
+      // Copy into an _ObjectArray.
       stringsArray = new _ObjectArray(len);
       int i = 0;
-      for (String string in strings) {
-        if (string is! String) throw new ArgumentError(string);
+      for (int i = 0; i < len; i++) {
+        var string = strings[i];
+        if (string is _OneByteString) {
+          totalLength += s.length;
+        } else {
+          isOneByteString = false;
+          if (string is! String) throw new ArgumentError(string);
+        }
         stringsArray[i++] = string;
       }
     }
-    return _concatAll(stringsArray);
+    if (isOneByteString) {
+      return _OneByteString._concatAll(stringsArray, totalLength);
+    }
+    return _concatAllNative(stringsArray);
   }
 
-  static String _concatAll(_ObjectArray<String> strings)
+  static String _concatAll(_ObjectArray<String> strings) {
+    int totalLength = 0;
+    final stringsLength = strings.length;
+    for (int i = 0; i < stringsLength; i++) {
+      var e = strings[i];
+      if (e is! _OneByteString) {
+        return _concatAllNative(strings);
+      }
+      totalLength += e.length;
+    }
+    return _OneByteString._concatAll(strings, totalLength);
+  }
+
+  // Call this method if not all list elements are OneByteString-s.
+  static String _concatAllNative(_ObjectArray<String> strings)
       native "Strings_concatAll";
 }
 
@@ -484,6 +527,26 @@ class _OneByteString extends _StringBase implements String {
       return _splitWithCharCode(pattern.codeUnitAt(0));
     }
     return super.split(pattern);
+  }
+
+  // All element of 'strings' must be OneByteStrings.
+  static _concatAll(_ObjectArray<String> strings, int totalLength) {
+    // TODO(srdjan): Improve code below and raise or eliminate the limit.
+    if (totalLength > 128) {
+      // Native is quicker.
+      return _StringBase._concatAllNative(strings);
+    }
+    var res = _OneByteString._allocate(totalLength);
+    final stringsLength = strings.length;
+    int rIx = 0;
+    for (int i = 0; i < stringsLength; i++) {
+      _OneByteString e = strings[i];
+      final eLength = e.length;
+      for (int s = 0; s < eLength; s++) {
+        res._setAt(rIx++, e.codeUnitAt(s));
+      }
+    }
+    return res;
   }
 
   // Allocates a string of given length, expecting its content to be
