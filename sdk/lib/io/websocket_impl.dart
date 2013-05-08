@@ -60,7 +60,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
   /**
    * Process data received from the underlying communication channel.
    */
-  void handleData(List<int> buffer, EventSink sink) {
+  void handleData(Uint8List buffer, EventSink sink) {
     int count = buffer.length;
     int index = 0;
     int lastIndex = count;
@@ -206,7 +206,8 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                   _currentMessageType != _WebSocketMessageType.BINARY) {
                   throw new WebSocketException("Protocol error");
               }
-              _controller.add(new Uint8List.view(buffer.buffer, index, payload));
+              _controller.add(
+                  new Uint8List.view(buffer.buffer, index, payload));
               index += payload;
               if (_remainingPayloadBytes == 0) {
                 _messageFrameEnd(sink);
