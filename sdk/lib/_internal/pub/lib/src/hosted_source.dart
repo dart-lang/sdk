@@ -98,13 +98,10 @@ class HostedSource extends Source {
   /// from that site.
   Future<String> systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
-    var url = _getSourceDirectory(parsed.last);
-    var urlDir = replace(url, new RegExp(r'[<>:"\\/|?*%]'), (match) {
-      return '%${match[0].codeUnitAt(0)}';
-    });
+    var dir = _getSourceDirectory(parsed.last);
 
     return new Future.value(
-        path.join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}"));
+        path.join(systemCacheRoot, dir, "${parsed.first}-${id.version}"));
   }
 
   String packageName(description) => _parseDescription(description).first;
@@ -123,19 +120,21 @@ class HostedSource extends Source {
     return description;
   }
 
-  List<Package> getCachedPackages() {
+  List<Package> getCachedPackages([String url]) {
+    if (url == null) url = _defaultUrl;
+
     var cacheDir = path.join(systemCacheRoot,
-                             _getSourceDirectory(_defaultUrl));
+                             _getSourceDirectory(url));
     if (!dirExists(cacheDir)) return [];
 
     return listDir(path.join(cacheDir)).map((entry) {
       // TODO(keertip): instead of catching exception in pubspec parse with
-      // sdk dependency, fix to parse and report usage of sdk dependency. 
+      // sdk dependency, fix to parse and report usage of sdk dependency.
       // dartbug.com/10190
       try {
         return new Package.load(null, entry, systemCache.sources);
       }  on ArgumentError catch (e) {
-        log.error(e);         
+        log.error(e);
       }
     }).where((package) => package != null).toList();
   }
@@ -161,14 +160,52 @@ class HostedSource extends Source {
     // Otherwise re-throw the original exception.
     throw error;
   }
+}
 
+/// This is the modified hosted source used when pub install or update are run
+/// with "--offline". This uses the system cache to get the list of available
+/// packages and does no network access.
+class OfflineHostedSource extends HostedSource {
+  /// Gets the list of all versions of [name] that are in the system cache.
+  Future<List<Version>> getVersions(String name, description) {
+    return new Future(() {
+      var parsed = _parseDescription(description);
+      var server = parsed.last;
+      log.io("Finding versions of $name in "
+             "${systemCache.rootDir}/${_getSourceDirectory(server)}");
+      return getCachedPackages(server)
+          .where((package) => package.name == name)
+          .map((package) => package.version)
+          .toList();
+    }).then((versions) {
+      // If there are no versions in the cache, report a clearer error.
+      if (versions.isEmpty) fail('Could not find package "$name" in cache.');
+
+      return versions;
+    });
+  }
+
+  Future<bool> install(PackageId id, String destPath) {
+    // Since HostedSource returns `true` for [shouldCache], install will only
+    // be called for uncached packages.
+    throw new UnsupportedError("Cannot install packages when offline.");
+  }
+
+  Future<Pubspec> describe(PackageId id) {
+    // [getVersions()] will only return packages that are already cached.
+    // SystemCache should only call [describe()] on a package after it has
+    // failed to find it in the cache, so this code should not be reached.
+    throw new UnsupportedError("Cannot describe packages when offline.");
+  }
 }
 
 /// The URL of the default package repository.
 final _defaultUrl = "https://pub.dartlang.org";
 
 String _getSourceDirectory(String url) {
-  return url.replaceAll(new RegExp(r"^https?://"), "");
+  url = url.replaceAll(new RegExp(r"^https?://"), "");
+  return replace(url, new RegExp(r'[<>:"\\/|?*%]'),
+      (match) => '%${match[0].codeUnitAt(0)}');
 }
 
 /// Parses [description] into its server and package name components, then

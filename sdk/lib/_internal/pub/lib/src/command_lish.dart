@@ -35,11 +35,11 @@ class LishCommand extends PubCommand {
     // TODO(nweiz): Use HostedSource.defaultUrl as the default value once we use
     // dart:io for HTTPS requests.
     parser.addFlag('dry-run', abbr: 'n', negatable: false,
-        help: 'Validate but do not publish the package');
+        help: 'Validate but do not publish the package.');
     parser.addFlag('force', abbr: 'f', negatable: false,
-        help: 'Publish without confirmation if there are no errors');
+        help: 'Publish without confirmation if there are no errors.');
     parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
-        help: 'The package server to which to upload this package');
+        help: 'The package server to which to upload this package.');
     return parser;
   }
 

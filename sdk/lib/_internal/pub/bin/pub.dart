@@ -37,7 +37,7 @@ ArgParser get pubArgParser {
         'all':    'Show all output including internal tracing messages.'
       });
   parser.addFlag('verbose', abbr: 'v', negatable: false,
-      help: 'Shortcut for "--verbosity=all"');
+      help: 'Shortcut for "--verbosity=all".');
   return parser;
 }
 
@@ -91,8 +91,6 @@ void main() {
   }
 
   validatePlatform().then((_) {
-    var cache = new SystemCache.withSources(cacheDir);
-
     // Select the command.
     var command = PubCommand.commands[globalOptions.rest[0]];
     if (command == null) {
@@ -103,7 +101,7 @@ void main() {
     }
 
     var commandArgs = globalOptions.rest.sublist(1);
-    command.run(cache, globalOptions, commandArgs);
+    command.run(cacheDir, globalOptions, commandArgs);
   });
 }
 

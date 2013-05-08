@@ -31,9 +31,9 @@ class UploaderCommand extends PubCommand {
     // TODO(nweiz): Use HostedSource.defaultUrl as the default value once we use
     // dart:io for HTTPS requests.
     parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
-        help: 'The package server on which the package is hosted');
+        help: 'The package server on which the package is hosted.');
     parser.addOption('package', help: 'The package whose uploaders will be '
-        'modified\n'
+        'modified.\n'
         '(defaults to the current package)');
     return parser;
   }

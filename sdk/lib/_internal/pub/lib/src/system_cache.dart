@@ -45,11 +45,19 @@ class SystemCache {
   : _pendingInstalls = new Map<PackageId, Future<Package>>(),
     sources = new SourceRegistry();
 
-  /// Creates a system cache and registers the standard set of sources.
-  factory SystemCache.withSources(String rootDir) {
+  /// Creates a system cache and registers the standard set of sources. If
+  /// [isOffline] is `true`, then the offline hosted source will be used.
+  /// Defaults to `false`.
+  factory SystemCache.withSources(String rootDir, {bool isOffline: false}) {
     var cache = new SystemCache(rootDir);
     cache.register(new GitSource());
-    cache.register(new HostedSource());
+
+    if (isOffline) {
+      cache.register(new OfflineHostedSource());
+    } else {
+      cache.register(new HostedSource());
+    }
+
     cache.register(new PathSource());
     cache.sources.setDefault('hosted');
     return cache;

@@ -69,9 +69,13 @@ abstract class PubCommand {
   /// available in [commandOptions].
   ArgParser get commandParser => new ArgParser();
 
-  void run(SystemCache cache_, ArgResults globalOptions_,
+  /// Override this to use offline-only sources instead of hitting the network.
+  /// This will only be called before the [SystemCache] is created. After that,
+  /// it has no effect.
+  bool get isOffline => false;
+
+  void run(String cacheDir, ArgResults globalOptions_,
       List<String> commandArgs) {
-    cache = cache_;
     globalOptions = globalOptions_;
 
     try {
@@ -81,6 +85,8 @@ abstract class PubCommand {
       log.error('Use "pub help" for more information.');
       exit(exit_codes.USAGE);
     }
+
+    cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
 
     handleError(error) {
       var trace = getAttachedStackTrace(error);
@@ -139,7 +145,7 @@ and include the results in a bug report on http://dartbug.com/new.
       if (commandFuture == null) return true;
 
       return commandFuture;
-    }).whenComplete(() => cache_.deleteTempDir()).catchError((e) {
+    }).whenComplete(() => cache.deleteTempDir()).catchError((e) {
       if (e is PubspecNotFoundException && e.name == null) {
         e = 'Could not find a file named "pubspec.yaml" in the directory '
           '${path.current}.';
