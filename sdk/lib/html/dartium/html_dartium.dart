@@ -13642,11 +13642,9 @@ class LocalMediaStream extends MediaStream implements EventTarget {
   void stop() native "LocalMediaStream_stop_Callback";
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable
@@ -13745,6 +13743,7 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
   @DomName('Location.valueOf')
   @DocsEditable
   Object valueOf() native "Location_valueOf_Callback";
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

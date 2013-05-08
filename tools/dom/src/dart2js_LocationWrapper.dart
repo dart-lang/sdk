@@ -44,7 +44,12 @@ class _LocationWrapper implements Location {
   }
 
   // final String origin;
-  String get origin => _get(_ptr, 'origin');
+  String get origin {
+    if (JS('bool', '("origin" in #)', _ptr)) {
+      return JS('String', '#.origin', _ptr);
+    }
+    return '${this.protocol}//${this.host}';
+  }
 
   // String pathname;
   String get pathname => _get(_ptr, 'pathname');

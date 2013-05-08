@@ -12885,7 +12885,7 @@ class LocalMediaStream extends MediaStream implements EventTarget native "LocalM
   @DocsEditable
   void stop() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -12915,10 +12915,6 @@ class Location implements LocationBase native "Location" {
   @DomName('Location.href')
   @DocsEditable
   String href;
-
-  @DomName('Location.origin')
-  @DocsEditable
-  final String origin;
 
   @DomName('Location.pathname')
   @DocsEditable
@@ -12955,6 +12951,15 @@ class Location implements LocationBase native "Location" {
   @DomName('Location.valueOf')
   @DocsEditable
   Object valueOf() native;
+
+
+  @DomName('Location.origin')
+  String get origin {
+    if (JS('bool', '("origin" in #)', this)) {
+      return JS('String', '#.origin', this);
+    }
+    return '${this.protocol}//${this.host}';
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29445,7 +29450,12 @@ class _LocationWrapper implements Location {
   }
 
   // final String origin;
-  String get origin => _get(_ptr, 'origin');
+  String get origin {
+    if (JS('bool', '("origin" in #)', _ptr)) {
+      return JS('String', '#.origin', _ptr);
+    }
+    return '${this.protocol}//${this.host}';
+  }
 
   // String pathname;
   String get pathname => _get(_ptr, 'pathname');
