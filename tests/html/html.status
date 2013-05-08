@@ -40,14 +40,11 @@ postmessage_structured_test/primitives: Fail # Issue 10097
 [ $runtime == chrome ]
 touchevent_test/supported: Fail
 
-[ $runtime == chrome && ($system == windows || $system == macos)]
-audiocontext_test: Skip # Issue 9566
+[ $runtime == chrome || $runtime == drt ]
+audiocontext_test: Skip # Issue 9322
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome]
 webgl_1_test: Pass, Fail # Issue 8219
-
-[ $runtime == drt ]
-audiocontext_test: Skip # Issue 9322
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
