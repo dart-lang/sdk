@@ -271,24 +271,66 @@ class _HttpClientResponse
         challenge != null && challenge.length == 1;
   }
 
-  Future<HttpClientResponse> _authenticate() {
-    Future<HttpClientResponse> retryWithCredentials(_Credentials cr) {
-      if (cr != null && cr.scheme != _AuthenticationScheme.UNKNOWN) {
-        // Drain body and retry.
-        return fold(null, (x, y) {}).then((_) {
-            return _httpClient._openUrlFromRequest(_httpRequest.method,
-                                                   _httpRequest.uri,
-                                                   _httpRequest)
-                .then((request) => request.close());
+  Future<HttpClientResponse> _authenticate(bool proxyAuth) {
+    Future<HttpClientResponse> retry() {
+      // Drain body and retry.
+      return fold(null, (x, y) {}).then((_) {
+          return _httpClient._openUrlFromRequest(_httpRequest.method,
+                                                 _httpRequest.uri,
+                                                 _httpRequest)
+              .then((request) => request.close());
           });
-      }
 
       // Fall through to here to perform normal response handling if
       // there is no sensible authorization handling.
       return new Future.value(this);
     }
 
-    List<String> challenge = headers[HttpHeaders.WWW_AUTHENTICATE];
+    List<String> authChallenge() {
+      if (proxyAuth) {
+        return headers[HttpHeaders.PROXY_AUTHENTICATE];
+      } else {
+        return headers[HttpHeaders.WWW_AUTHENTICATE];
+      }
+    }
+
+    _Credentials findCredentials(_AuthenticationScheme scheme) {
+      if (proxyAuth) {
+        return  _httpClient._findProxyCredentials(_httpRequest._proxy, scheme);
+      } else {
+        return _httpClient._findCredentials(_httpRequest.uri, scheme);
+      }
+    }
+
+    void removeCredentials(_Credentials cr) {
+      if (proxyAuth) {
+        _httpClient._removeProxyCredentials(cr);
+      } else {
+        _httpClient._removeCredentials(cr);
+      }
+    }
+
+    Future requestAuthentication(_AuthenticationScheme scheme, String realm) {
+      if (proxyAuth) {
+        if (_httpClient._authenticateProxy == null) {
+          return new Future.value(false);
+        }
+        var proxy = _httpRequest._proxy;
+        return _httpClient._authenticateProxy(proxy.host,
+                                              proxy.port,
+                                              scheme.toString(),
+                                              realm);
+      } else {
+        if (_httpClient._authenticate == null) {
+          return new Future.value(false);
+        }
+        return _httpClient._authenticate(_httpRequest.uri,
+                                         scheme.toString(),
+                                         realm);
+      }
+    }
+
+    List<String> challenge = authChallenge();
     assert(challenge != null || challenge.length == 1);
     _HeaderValue header =
         _HeaderValue.parse(challenge[0], parameterSeparator: ",");
@@ -297,14 +339,14 @@ class _HttpClientResponse
     String realm = header.parameters["realm"];
 
     // See if any matching credentials are available.
-    _Credentials cr = _httpClient._findCredentials(_httpRequest.uri, scheme);
+    _Credentials cr = findCredentials(scheme);
     if (cr != null) {
       // For basic authentication don't retry already used credentials
       // as they must have already been added to the request causing
       // this authenticate response.
       if (cr.scheme == _AuthenticationScheme.BASIC && !cr.used) {
         // Credentials where found, prepare for retrying the request.
-        return retryWithCredentials(cr);
+        return retry();
       }
 
       // Digest authentication only supports the MD5 algorithm.
@@ -321,13 +363,13 @@ class _HttpClientResponse
             cr.nonceCount = 0;
           }
           // Credentials where found, prepare for retrying the request.
-          return retryWithCredentials(cr);
+          return retry();
         } else if (header.parameters["stale"] != null &&
                    header.parameters["stale"].toLowerCase() == "true") {
           // If stale is true retry with new nonce.
           cr.nonce = header.parameters["nonce"];
           // Credentials where found, prepare for retrying the request.
-          return retryWithCredentials(cr);
+          return retry();
         }
       }
     }
@@ -336,99 +378,18 @@ class _HttpClientResponse
     // already been used. If it has already been used it must now be
     // invalid and is removed.
     if (cr != null) {
-      _httpClient._removeCredentials(cr);
+      removeCredentials(cr);
       cr = null;
     }
-    if (_httpClient._authenticate != null) {
-      Future authComplete = _httpClient._authenticate(_httpRequest.uri,
-                                                      scheme.toString(),
-                                                      realm);
-      return authComplete.then((credsAvailable) {
-        if (credsAvailable) {
-          cr = _httpClient._findCredentials(_httpRequest.uri, scheme);
-          return retryWithCredentials(cr);
-        } else {
-          // No credentials available, complete with original response.
-          return this;
-        }
-      });
-    }
-
-    // No credentials were found and the callback was not set.
-    return new Future.value(this);
-  }
-
-  Future<HttpClientResponse> _authenticateProxy() {
-    Future<HttpClientResponse> retryWithProxyCredentials(_ProxyCredentials cr) {
-      return fold(null, (x, y) {}).then((_) {
-          return _httpClient._openUrlFromRequest(_httpRequest.method,
-                                                 _httpRequest.uri,
-                                                 _httpRequest)
-              .then((request) => request.close());
-        });
-    }
-
-    List<String> challenge = headers[HttpHeaders.PROXY_AUTHENTICATE];
-    assert(challenge != null || challenge.length == 1);
-    _HeaderValue header =
-        _HeaderValue.parse(challenge[0], parameterSeparator: ",");
-    _AuthenticationScheme scheme =
-        new _AuthenticationScheme.fromString(header.value);
-    String realm = header.parameters["realm"];
-
-    // See if any credentials are available.
-    var proxy = _httpRequest._proxy;
-
-    var cr =  _httpClient._findProxyCredentials(proxy);
-    if (cr != null) {
-      if (cr.scheme == _AuthenticationScheme.BASIC) {
-        return retryWithProxyCredentials(cr);
+    return requestAuthentication(scheme, realm).then((credsAvailable) {
+      if (credsAvailable) {
+        cr = _httpClient._findCredentials(_httpRequest.uri, scheme);
+        return retry();
+      } else {
+        // No credentials available, complete with original response.
+        return this;
       }
-
-      // Digest authentication only supports the MD5 algorithm.
-      if (cr.scheme == _AuthenticationScheme.DIGEST &&
-          (header.parameters["algorithm"] == null ||
-           header.parameters["algorithm"].toLowerCase() == "md5")) {
-        if (cr.nonce == null || cr.nonce == header.parameters["nonce"]) {
-          // If the nonce is not set then this is the first authenticate
-          // response for these credentials. Set up authentication state.
-          if (cr.nonce == null) {
-            cr.nonce = header.parameters["nonce"];
-            cr.algorithm = "MD5";
-            cr.qop = header.parameters["qop"];
-            cr.nonceCount = 0;
-          }
-          // Credentials where found, prepare for retrying the request.
-          return retryWithProxyCredentials(cr);
-        } else if (header.parameters["stale"] != null &&
-                   header.parameters["stale"].toLowerCase() == "true") {
-          // If stale is true retry with new nonce.
-          cr.nonce = header.parameters["nonce"];
-          // Credentials where found, prepare for retrying the request.
-          return retryWithProxyCredentials(cr);
-        }
-      }
-    }
-
-    // Ask for more credentials if none found.
-    if (_httpClient._authenticateProxy != null) {
-      Future authComplete = _httpClient._authenticateProxy(proxy.host,
-                                                           proxy.port,
-                                                           "basic",
-                                                           realm);
-      return authComplete.then((credsAvailable) {
-        if (credsAvailable) {
-          var cr =  _httpClient._findProxyCredentials(proxy);
-          return retryWithProxyCredentials(cr);
-        } else {
-          // No credentials available, complete with original response.
-          return this;
-        }
-      });
-    }
-
-    // No credentials were found and the callback was not set.
-    return new Future.value(this);
+    });
   }
 }
 
@@ -923,9 +884,9 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
                 new RedirectLimitExceededException(response.redirects)));
       }
     } else if (response._shouldAuthenticateProxy) {
-      future = response._authenticateProxy();
+      future = response._authenticate(true);
     } else if (response._shouldAuthenticate) {
-      future = response._authenticate();
+      future = response._authenticate(false);
     } else {
       future = new Future<HttpClientResponse>.value(response);
     }
@@ -1588,11 +1549,12 @@ class _HttpClient implements HttpClient {
     return cr;
   }
 
-  _ProxyCredentials _findProxyCredentials(_Proxy proxy) {
+  _ProxyCredentials _findProxyCredentials(_Proxy proxy,
+                                          [_AuthenticationScheme scheme]) {
     // Look for credentials.
     var it = _proxyCredentials.iterator;
     while (it.moveNext()) {
-      if (it.current.applies(proxy, _AuthenticationScheme.BASIC)) {
+      if (it.current.applies(proxy, scheme)) {
         return it.current;
       }
     }
@@ -1602,6 +1564,13 @@ class _HttpClient implements HttpClient {
     int index = _credentials.indexOf(cr);
     if (index != -1) {
       _credentials.removeAt(index);
+    }
+  }
+
+  void _removeProxyCredentials(_Credentials cr) {
+    int index = _proxyCredentials.indexOf(cr);
+    if (index != -1) {
+      _proxyCredentials.removeAt(index);
     }
   }
 
@@ -2131,6 +2100,7 @@ class _ProxyCredentials extends _Credentials {
   : super(creds, realm);
 
   bool applies(_Proxy proxy, _AuthenticationScheme scheme) {
+    if (scheme != null && credentials.scheme != scheme) return false;
     return proxy.host == host && proxy.port == port;
   }
 
