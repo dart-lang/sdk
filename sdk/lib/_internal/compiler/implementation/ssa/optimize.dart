@@ -1173,7 +1173,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
     while (instruction != null) {
       HInstruction next = instruction.next;
       if (instruction.useGvn()
-          && (instruction is !HCheck)
+          && !instruction.canThrow()
           && !instruction.sideEffects.dependsOn(dependsFlags)) {
         bool loopInvariantInputs = true;
         List<HInstruction> inputs = instruction.inputs;
