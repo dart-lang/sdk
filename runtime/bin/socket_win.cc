@@ -10,6 +10,7 @@
 #include "bin/file.h"
 #include "bin/log.h"
 #include "bin/socket.h"
+#include "bin/utils.h"
 
 
 namespace dart {

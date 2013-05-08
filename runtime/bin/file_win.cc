@@ -16,6 +16,7 @@
 
 #include "bin/builtin.h"
 #include "bin/log.h"
+#include "bin/utils.h"
 
 
 namespace dart {
