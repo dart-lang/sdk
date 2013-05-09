@@ -428,7 +428,12 @@ class DartiumBackend(HtmlDartGenerator):
     else:
       self._members_emitter.Emit(
           '\n'
-          '  $TYPE operator[](int index) native "$(INTERFACE)_item_Callback";\n',
+          '  $TYPE operator[](int index) {\n'
+          '    if (index < 0 || index >= length)\n'
+          '      throw new RangeError.range(index, 0, length);\n'
+          '    return _nativeIndexedGetter(index);\n'
+          '  }\n'
+          '  $TYPE _nativeIndexedGetter(int index) native "$(INTERFACE)_item_Callback";\n',
           TYPE=self.SecureOutputType(element_type),
           INTERFACE=self._interface.id)
 

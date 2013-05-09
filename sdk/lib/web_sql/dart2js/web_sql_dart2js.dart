@@ -199,8 +199,12 @@ class SqlResultSetRowList extends Object with ListMixin<Map>, ImmutableListMixin
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Map operator[](int index) => this.item(index);
-
+  Map operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return this.item(index);
+  }
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -212,6 +216,31 @@ class SqlResultSetRowList extends Object with ListMixin<Map>, ImmutableListMixin
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Map get first {
+    if (this.length > 0) {
+      return JS('Map', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Map get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Map', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Map get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Map', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Map elementAt(int index) => this[index];
   // -- end List<Map> mixins.
 
   @DomName('SQLResultSetRowList.item')

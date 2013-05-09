@@ -3273,7 +3273,12 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
   @DocsEditable
   int get numberOfItems native "SVGLengthList_numberOfItems_Getter";
 
-  Length operator[](int index) native "SVGLengthList_item_Callback";
+  Length operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Length _nativeIndexedGetter(int index) native "SVGLengthList_item_Callback";
 
   void operator[]=(int index, Length value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -3288,6 +3293,31 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Length get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Length get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Length get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Length elementAt(int index) => this[index];
   // -- end List<Length> mixins.
 
   @DomName('SVGLengthList.appendItem')
@@ -3811,7 +3841,12 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
   @DocsEditable
   int get numberOfItems native "SVGNumberList_numberOfItems_Getter";
 
-  Number operator[](int index) native "SVGNumberList_item_Callback";
+  Number operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Number _nativeIndexedGetter(int index) native "SVGNumberList_item_Callback";
 
   void operator[]=(int index, Number value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -3826,6 +3861,31 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Number get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Number get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Number get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Number elementAt(int index) => this[index];
   // -- end List<Number> mixins.
 
   @DomName('SVGNumberList.appendItem')
@@ -4776,7 +4836,12 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
   @DocsEditable
   int get numberOfItems native "SVGPathSegList_numberOfItems_Getter";
 
-  PathSeg operator[](int index) native "SVGPathSegList_item_Callback";
+  PathSeg operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  PathSeg _nativeIndexedGetter(int index) native "SVGPathSegList_item_Callback";
 
   void operator[]=(int index, PathSeg value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -4791,6 +4856,31 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  PathSeg get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  PathSeg get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  PathSeg get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  PathSeg elementAt(int index) => this[index];
   // -- end List<PathSeg> mixins.
 
   @DomName('SVGPathSegList.appendItem')
@@ -5595,7 +5685,12 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
   @DocsEditable
   int get numberOfItems native "SVGStringList_numberOfItems_Getter";
 
-  String operator[](int index) native "SVGStringList_item_Callback";
+  String operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  String _nativeIndexedGetter(int index) native "SVGStringList_item_Callback";
 
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -5610,6 +5705,31 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  String get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  String get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
   @DomName('SVGStringList.appendItem')
@@ -6679,7 +6799,12 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
   @DocsEditable
   int get numberOfItems native "SVGTransformList_numberOfItems_Getter";
 
-  Transform operator[](int index) native "SVGTransformList_item_Callback";
+  Transform operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Transform _nativeIndexedGetter(int index) native "SVGTransformList_item_Callback";
 
   void operator[]=(int index, Transform value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -6694,6 +6819,31 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Transform get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Transform get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Transform get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Transform elementAt(int index) => this[index];
   // -- end List<Transform> mixins.
 
   @DomName('SVGTransformList.appendItem')
@@ -7089,7 +7239,12 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
   @DocsEditable
   int get length native "SVGElementInstanceList_length_Getter";
 
-  ElementInstance operator[](int index) native "SVGElementInstanceList_item_Callback";
+  ElementInstance operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  ElementInstance _nativeIndexedGetter(int index) native "SVGElementInstanceList_item_Callback";
 
   void operator[]=(int index, ElementInstance value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -7102,6 +7257,31 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  ElementInstance get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  ElementInstance get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  ElementInstance get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  ElementInstance elementAt(int index) => this[index];
   // -- end List<ElementInstance> mixins.
 
   @DomName('SVGElementInstanceList.item')

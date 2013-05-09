@@ -12,4 +12,41 @@ $if DEFINE_LENGTH_SETTER
   }
 $endif
 
+  $E get first {
+    if (this.length > 0) {
+$if DART2JS
+      return JS('$E', '#[0]', this);
+$else
+      return this[0];
+$endif
+    }
+    throw new StateError("No elements");
+  }
+
+  $E get last {
+    int len = this.length;
+    if (len > 0) {
+$if DART2JS
+      return JS('$E', '#[#]', this, len - 1);
+$else
+      return this[len - 1];
+$endif
+    }
+    throw new StateError("No elements");
+  }
+
+  $E get single {
+    int len = this.length;
+    if (len == 1) {
+$if DART2JS
+      return JS('$E', '#[0]', this);
+$else
+      return this[0];
+$endif
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  $E elementAt(int index) => this[index];
   // -- end List<$E> mixins.

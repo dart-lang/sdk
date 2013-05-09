@@ -7247,7 +7247,12 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
   @DocsEditable
   int get length native "DOMStringList_length_Getter";
 
-  String operator[](int index) native "DOMStringList_item_Callback";
+  String operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  String _nativeIndexedGetter(int index) native "DOMStringList_item_Callback";
 
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -7260,6 +7265,31 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  String get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  String get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
   @DomName('DOMStringList.contains')
@@ -9767,7 +9797,12 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
   @DocsEditable
   int get length native "FileList_length_Getter";
 
-  File operator[](int index) native "FileList_item_Callback";
+  File operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  File _nativeIndexedGetter(int index) native "FileList_item_Callback";
 
   void operator[]=(int index, File value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -9780,6 +9815,31 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  File get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  File get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  File get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  File elementAt(int index) => this[index];
   // -- end List<File> mixins.
 
   @DomName('FileList.item')
@@ -10613,7 +10673,12 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
   @DocsEditable
   int get length native "HTMLAllCollection_length_Getter";
 
-  Node operator[](int index) native "HTMLAllCollection_item_Callback";
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "HTMLAllCollection_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -10626,6 +10691,31 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('HTMLAllCollection.item')
@@ -10657,7 +10747,12 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
   @DocsEditable
   int get length native "HTMLCollection_length_Getter";
 
-  Node operator[](int index) native "HTMLCollection_item_Callback";
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "HTMLCollection_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -10670,6 +10765,31 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('HTMLCollection.item')
@@ -14792,7 +14912,12 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
   @DocsEditable
   int get length native "DOMMimeTypeArray_length_Getter";
 
-  MimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
+  MimeType operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  MimeType _nativeIndexedGetter(int index) native "DOMMimeTypeArray_item_Callback";
 
   void operator[]=(int index, MimeType value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -14805,6 +14930,31 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  MimeType get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  MimeType get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  MimeType get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  MimeType elementAt(int index) => this[index];
   // -- end List<MimeType> mixins.
 
   @DomName('MimeTypeArray.item')
@@ -15965,7 +16115,12 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
   @DocsEditable
   int get length native "NodeList_length_Getter";
 
-  Node operator[](int index) native "NodeList_item_Callback";
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "NodeList_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -15978,6 +16133,31 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('NodeList.item')
@@ -17102,7 +17282,12 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
   @DocsEditable
   int get length native "DOMPluginArray_length_Getter";
 
-  Plugin operator[](int index) native "DOMPluginArray_item_Callback";
+  Plugin operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Plugin _nativeIndexedGetter(int index) native "DOMPluginArray_item_Callback";
 
   void operator[]=(int index, Plugin value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -17115,6 +17300,31 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Plugin get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Plugin get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Plugin get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Plugin elementAt(int index) => this[index];
   // -- end List<Plugin> mixins.
 
   @DomName('PluginArray.item')
@@ -18892,7 +19102,12 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   @DocsEditable
   int get length native "SourceBufferList_length_Getter";
 
-  SourceBuffer operator[](int index) native "SourceBufferList_item_Callback";
+  SourceBuffer operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  SourceBuffer _nativeIndexedGetter(int index) native "SourceBufferList_item_Callback";
 
   void operator[]=(int index, SourceBuffer value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -18905,6 +19120,31 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SourceBuffer get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SourceBuffer elementAt(int index) => this[index];
   // -- end List<SourceBuffer> mixins.
 
   @DomName('SourceBufferList.addEventListener')
@@ -19045,7 +19285,12 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
   @DocsEditable
   int get length native "SpeechGrammarList_length_Getter";
 
-  SpeechGrammar operator[](int index) native "SpeechGrammarList_item_Callback";
+  SpeechGrammar operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  SpeechGrammar _nativeIndexedGetter(int index) native "SpeechGrammarList_item_Callback";
 
   void operator[]=(int index, SpeechGrammar value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -19058,6 +19303,31 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechGrammar get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
   void addFromString(String string, [num weight]) {
@@ -20752,7 +21022,12 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
   @DocsEditable
   int get length native "TextTrackCueList_length_Getter";
 
-  TextTrackCue operator[](int index) native "TextTrackCueList_item_Callback";
+  TextTrackCue operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  TextTrackCue _nativeIndexedGetter(int index) native "TextTrackCueList_item_Callback";
 
   void operator[]=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -20765,6 +21040,31 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  TextTrackCue get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrackCue elementAt(int index) => this[index];
   // -- end List<TextTrackCue> mixins.
 
   @DomName('TextTrackCueList.getCueById')
@@ -20796,7 +21096,12 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DocsEditable
   int get length native "TextTrackList_length_Getter";
 
-  TextTrack operator[](int index) native "TextTrackList_item_Callback";
+  TextTrack operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  TextTrack _nativeIndexedGetter(int index) native "TextTrackList_item_Callback";
 
   void operator[]=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -20809,6 +21114,31 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  TextTrack get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrack get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrack get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrack elementAt(int index) => this[index];
   // -- end List<TextTrack> mixins.
 
   @DomName('TextTrackList.addEventListener')
@@ -21057,7 +21387,12 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
   @DocsEditable
   int get length native "TouchList_length_Getter";
 
-  Touch operator[](int index) native "TouchList_item_Callback";
+  Touch operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Touch _nativeIndexedGetter(int index) native "TouchList_item_Callback";
 
   void operator[]=(int index, Touch value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -21070,6 +21405,31 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Touch get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Touch get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Touch get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Touch elementAt(int index) => this[index];
   // -- end List<Touch> mixins.
 
   @DomName('TouchList.item')
@@ -23186,7 +23546,12 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
   @DocsEditable
   int get length native "ClientRectList_length_Getter";
 
-  Rect operator[](int index) native "ClientRectList_item_Callback";
+  Rect operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Rect _nativeIndexedGetter(int index) native "ClientRectList_item_Callback";
 
   void operator[]=(int index, Rect value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23199,6 +23564,31 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Rect get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Rect get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Rect get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Rect elementAt(int index) => this[index];
   // -- end List<Rect> mixins.
 
   @DomName('ClientRectList.item')
@@ -23235,7 +23625,12 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
   @DocsEditable
   int get length native "CSSRuleList_length_Getter";
 
-  CssRule operator[](int index) native "CSSRuleList_item_Callback";
+  CssRule operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  CssRule _nativeIndexedGetter(int index) native "CSSRuleList_item_Callback";
 
   void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23248,6 +23643,31 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  CssRule get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  CssRule get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  CssRule get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  CssRule elementAt(int index) => this[index];
   // -- end List<CssRule> mixins.
 
   @DomName('CSSRuleList.item')
@@ -23271,7 +23691,12 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   @DocsEditable
   int get length native "CSSValueList_length_Getter";
 
-  _CSSValue operator[](int index) native "CSSValueList_item_Callback";
+  _CSSValue operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  _CSSValue _nativeIndexedGetter(int index) native "CSSValueList_item_Callback";
 
   void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23284,6 +23709,31 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  _CSSValue get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _CSSValue elementAt(int index) => this[index];
   // -- end List<_CSSValue> mixins.
 
   @DomName('CSSValueList.item')
@@ -23572,7 +24022,12 @@ class _EntryArray extends NativeFieldWrapperClass1 with ListMixin<Entry>, Immuta
   @DocsEditable
   int get length native "EntryArray_length_Getter";
 
-  Entry operator[](int index) native "EntryArray_item_Callback";
+  Entry operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Entry _nativeIndexedGetter(int index) native "EntryArray_item_Callback";
 
   void operator[]=(int index, Entry value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23585,6 +24040,31 @@ class _EntryArray extends NativeFieldWrapperClass1 with ListMixin<Entry>, Immuta
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Entry get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Entry elementAt(int index) => this[index];
   // -- end List<Entry> mixins.
 
   @DomName('EntryArray.item')
@@ -23608,7 +24088,12 @@ class _EntryArraySync extends NativeFieldWrapperClass1 with ListMixin<_EntrySync
   @DocsEditable
   int get length native "EntryArraySync_length_Getter";
 
-  _EntrySync operator[](int index) native "EntryArraySync_item_Callback";
+  _EntrySync operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  _EntrySync _nativeIndexedGetter(int index) native "EntryArraySync_item_Callback";
 
   void operator[]=(int index, _EntrySync value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23621,6 +24106,31 @@ class _EntryArraySync extends NativeFieldWrapperClass1 with ListMixin<_EntrySync
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  _EntrySync get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _EntrySync elementAt(int index) => this[index];
   // -- end List<_EntrySync> mixins.
 
   @DomName('EntryArraySync.item')
@@ -23705,7 +24215,12 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
   @DocsEditable
   int get length native "GamepadList_length_Getter";
 
-  Gamepad operator[](int index) native "GamepadList_item_Callback";
+  Gamepad operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Gamepad _nativeIndexedGetter(int index) native "GamepadList_item_Callback";
 
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23718,6 +24233,31 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Gamepad get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Gamepad get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Gamepad get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Gamepad elementAt(int index) => this[index];
   // -- end List<Gamepad> mixins.
 
   @DomName('GamepadList.item')
@@ -23832,7 +24372,12 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
   @DocsEditable
   int get length native "NamedNodeMap_length_Getter";
 
-  Node operator[](int index) native "NamedNodeMap_item_Callback";
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "NamedNodeMap_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23845,6 +24390,31 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('NamedNodeMap.getNamedItem')
@@ -23976,7 +24546,12 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
   @DocsEditable
   int get length native "SpeechInputResultList_length_Getter";
 
-  SpeechInputResult operator[](int index) native "SpeechInputResultList_item_Callback";
+  SpeechInputResult operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  SpeechInputResult _nativeIndexedGetter(int index) native "SpeechInputResultList_item_Callback";
 
   void operator[]=(int index, SpeechInputResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23989,6 +24564,31 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechInputResult get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechInputResult elementAt(int index) => this[index];
   // -- end List<SpeechInputResult> mixins.
 
   @DomName('SpeechInputResultList.item')
@@ -24012,7 +24612,12 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
   @DocsEditable
   int get length native "SpeechRecognitionResultList_length_Getter";
 
-  SpeechRecognitionResult operator[](int index) native "SpeechRecognitionResultList_item_Callback";
+  SpeechRecognitionResult operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  SpeechRecognitionResult _nativeIndexedGetter(int index) native "SpeechRecognitionResultList_item_Callback";
 
   void operator[]=(int index, SpeechRecognitionResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -24025,6 +24630,31 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechRecognitionResult get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechRecognitionResult elementAt(int index) => this[index];
   // -- end List<SpeechRecognitionResult> mixins.
 
   @DomName('SpeechRecognitionResultList.item')
@@ -24048,7 +24678,12 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
   @DocsEditable
   int get length native "StyleSheetList_length_Getter";
 
-  StyleSheet operator[](int index) native "StyleSheetList_item_Callback";
+  StyleSheet operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  StyleSheet _nativeIndexedGetter(int index) native "StyleSheetList_item_Callback";
 
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -24061,6 +24696,31 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  StyleSheet get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  StyleSheet elementAt(int index) => this[index];
   // -- end List<StyleSheet> mixins.
 
   @DomName('StyleSheetList.item')

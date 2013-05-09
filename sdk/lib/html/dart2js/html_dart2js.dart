@@ -6830,8 +6830,12 @@ class DomStringList extends Object with ListMixin<String>, ImmutableListMixin<St
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  String operator[](int index) => JS("String", "#[#]", this, index);
-
+  String operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("String", "#[#]", this, index);
+  }
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -6843,6 +6847,31 @@ class DomStringList extends Object with ListMixin<String>, ImmutableListMixin<St
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  String get first {
+    if (this.length > 0) {
+      return JS('String', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  String get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('String', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('String', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
   @DomName('DOMStringList.contains')
@@ -9433,8 +9462,12 @@ class FileList extends Object with ListMixin<File>, ImmutableListMixin<File> imp
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  File operator[](int index) => JS("File", "#[#]", this, index);
-
+  File operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("File", "#[#]", this, index);
+  }
   void operator[]=(int index, File value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -9446,6 +9479,31 @@ class FileList extends Object with ListMixin<File>, ImmutableListMixin<File> imp
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  File get first {
+    if (this.length > 0) {
+      return JS('File', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  File get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('File', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  File get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('File', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  File elementAt(int index) => this[index];
   // -- end List<File> mixins.
 
   @DomName('FileList.item')
@@ -10230,8 +10288,12 @@ class HtmlAllCollection extends Object with ListMixin<Node>, ImmutableListMixin<
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
+  Node operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Node", "#[#]", this, index);
+  }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -10243,6 +10305,31 @@ class HtmlAllCollection extends Object with ListMixin<Node>, ImmutableListMixin<
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return JS('Node', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Node', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Node', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('HTMLAllCollection.item')
@@ -10272,8 +10359,12 @@ class HtmlCollection extends Object with ListMixin<Node>, ImmutableListMixin<Nod
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
+  Node operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Node", "#[#]", this, index);
+  }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -10285,6 +10376,31 @@ class HtmlCollection extends Object with ListMixin<Node>, ImmutableListMixin<Nod
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return JS('Node', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Node', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Node', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('HTMLCollection.item')
@@ -13811,8 +13927,12 @@ class MimeTypeArray extends Object with ListMixin<MimeType>, ImmutableListMixin<
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  MimeType operator[](int index) => JS("MimeType", "#[#]", this, index);
-
+  MimeType operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("MimeType", "#[#]", this, index);
+  }
   void operator[]=(int index, MimeType value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -13824,6 +13944,31 @@ class MimeTypeArray extends Object with ListMixin<MimeType>, ImmutableListMixin<
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  MimeType get first {
+    if (this.length > 0) {
+      return JS('MimeType', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  MimeType get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('MimeType', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  MimeType get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('MimeType', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  MimeType elementAt(int index) => this[index];
   // -- end List<MimeType> mixins.
 
   @DomName('MimeTypeArray.item')
@@ -15018,8 +15163,12 @@ class NodeList extends Object with ListMixin<Node>, ImmutableListMixin<Node> imp
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
+  Node operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Node", "#[#]", this, index);
+  }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -15031,6 +15180,31 @@ class NodeList extends Object with ListMixin<Node>, ImmutableListMixin<Node> imp
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return JS('Node', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Node', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Node', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @JSName('item')
@@ -15999,8 +16173,12 @@ class PluginArray extends Object with ListMixin<Plugin>, ImmutableListMixin<Plug
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Plugin operator[](int index) => JS("Plugin", "#[#]", this, index);
-
+  Plugin operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Plugin", "#[#]", this, index);
+  }
   void operator[]=(int index, Plugin value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -16012,6 +16190,31 @@ class PluginArray extends Object with ListMixin<Plugin>, ImmutableListMixin<Plug
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Plugin get first {
+    if (this.length > 0) {
+      return JS('Plugin', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Plugin get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Plugin', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Plugin get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Plugin', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Plugin elementAt(int index) => this[index];
   // -- end List<Plugin> mixins.
 
   @DomName('PluginArray.item')
@@ -17654,8 +17857,12 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  SourceBuffer operator[](int index) => JS("SourceBuffer", "#[#]", this, index);
-
+  SourceBuffer operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("SourceBuffer", "#[#]", this, index);
+  }
   void operator[]=(int index, SourceBuffer value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -17667,6 +17874,31 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SourceBuffer get first {
+    if (this.length > 0) {
+      return JS('SourceBuffer', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('SourceBuffer', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('SourceBuffer', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SourceBuffer elementAt(int index) => this[index];
   // -- end List<SourceBuffer> mixins.
 
   @JSName('addEventListener')
@@ -17769,8 +18001,12 @@ class SpeechGrammarList extends Object with ListMixin<SpeechGrammar>, ImmutableL
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  SpeechGrammar operator[](int index) => JS("SpeechGrammar", "#[#]", this, index);
-
+  SpeechGrammar operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("SpeechGrammar", "#[#]", this, index);
+  }
   void operator[]=(int index, SpeechGrammar value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -17782,6 +18018,31 @@ class SpeechGrammarList extends Object with ListMixin<SpeechGrammar>, ImmutableL
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechGrammar get first {
+    if (this.length > 0) {
+      return JS('SpeechGrammar', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('SpeechGrammar', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('SpeechGrammar', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
   @DomName('SpeechGrammarList.addFromString')
@@ -19207,8 +19468,12 @@ class TextTrackCueList extends Object with ListMixin<TextTrackCue>, ImmutableLis
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  TextTrackCue operator[](int index) => JS("TextTrackCue", "#[#]", this, index);
-
+  TextTrackCue operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("TextTrackCue", "#[#]", this, index);
+  }
   void operator[]=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -19220,6 +19485,31 @@ class TextTrackCueList extends Object with ListMixin<TextTrackCue>, ImmutableLis
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  TextTrackCue get first {
+    if (this.length > 0) {
+      return JS('TextTrackCue', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('TextTrackCue', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('TextTrackCue', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrackCue elementAt(int index) => this[index];
   // -- end List<TextTrackCue> mixins.
 
   @DomName('TextTrackCueList.getCueById')
@@ -19247,8 +19537,12 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  TextTrack operator[](int index) => JS("TextTrack", "#[#]", this, index);
-
+  TextTrack operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("TextTrack", "#[#]", this, index);
+  }
   void operator[]=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -19260,6 +19554,31 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  TextTrack get first {
+    if (this.length > 0) {
+      return JS('TextTrack', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrack get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('TextTrack', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrack get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('TextTrack', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrack elementAt(int index) => this[index];
   // -- end List<TextTrack> mixins.
 
   @JSName('addEventListener')
@@ -19513,8 +19832,12 @@ class TouchList extends Object with ListMixin<Touch>, ImmutableListMixin<Touch> 
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Touch operator[](int index) => JS("Touch", "#[#]", this, index);
-
+  Touch operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Touch", "#[#]", this, index);
+  }
   void operator[]=(int index, Touch value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -19526,6 +19849,31 @@ class TouchList extends Object with ListMixin<Touch>, ImmutableListMixin<Touch> 
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Touch get first {
+    if (this.length > 0) {
+      return JS('Touch', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Touch get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Touch', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Touch get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Touch', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Touch elementAt(int index) => this[index];
   // -- end List<Touch> mixins.
 
   @DomName('TouchList.item')
@@ -21801,8 +22149,12 @@ class _ClientRectList extends Object with ListMixin<Rect>, ImmutableListMixin<Re
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Rect operator[](int index) => JS("Rect", "#[#]", this, index);
-
+  Rect operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Rect", "#[#]", this, index);
+  }
   void operator[]=(int index, Rect value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -21814,6 +22166,31 @@ class _ClientRectList extends Object with ListMixin<Rect>, ImmutableListMixin<Re
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Rect get first {
+    if (this.length > 0) {
+      return JS('Rect', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Rect get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Rect', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Rect get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Rect', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Rect elementAt(int index) => this[index];
   // -- end List<Rect> mixins.
 
   @DomName('ClientRectList.item')
@@ -21842,8 +22219,12 @@ class _CssRuleList extends Object with ListMixin<CssRule>, ImmutableListMixin<Cs
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  CssRule operator[](int index) => JS("CssRule", "#[#]", this, index);
-
+  CssRule operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("CssRule", "#[#]", this, index);
+  }
   void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -21855,6 +22236,31 @@ class _CssRuleList extends Object with ListMixin<CssRule>, ImmutableListMixin<Cs
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  CssRule get first {
+    if (this.length > 0) {
+      return JS('CssRule', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  CssRule get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('CssRule', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  CssRule get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('CssRule', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  CssRule elementAt(int index) => this[index];
   // -- end List<CssRule> mixins.
 
   @DomName('CSSRuleList.item')
@@ -21874,8 +22280,12 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  _CSSValue operator[](int index) => JS("_CSSValue", "#[#]", this, index);
-
+  _CSSValue operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("_CSSValue", "#[#]", this, index);
+  }
   void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -21887,6 +22297,31 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  _CSSValue get first {
+    if (this.length > 0) {
+      return JS('_CSSValue', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('_CSSValue', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('_CSSValue', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _CSSValue elementAt(int index) => this[index];
   // -- end List<_CSSValue> mixins.
 
   @DomName('CSSValueList.item')
@@ -21995,8 +22430,12 @@ class _EntryArray extends Object with ListMixin<Entry>, ImmutableListMixin<Entry
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Entry operator[](int index) => JS("Entry", "#[#]", this, index);
-
+  Entry operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Entry", "#[#]", this, index);
+  }
   void operator[]=(int index, Entry value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22008,6 +22447,31 @@ class _EntryArray extends Object with ListMixin<Entry>, ImmutableListMixin<Entry
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Entry get first {
+    if (this.length > 0) {
+      return JS('Entry', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Entry', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Entry', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Entry elementAt(int index) => this[index];
   // -- end List<Entry> mixins.
 
   @DomName('EntryArray.item')
@@ -22027,8 +22491,12 @@ class _EntryArraySync extends Object with ListMixin<_EntrySync>, ImmutableListMi
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  _EntrySync operator[](int index) => JS("_EntrySync", "#[#]", this, index);
-
+  _EntrySync operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("_EntrySync", "#[#]", this, index);
+  }
   void operator[]=(int index, _EntrySync value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22040,6 +22508,31 @@ class _EntryArraySync extends Object with ListMixin<_EntrySync>, ImmutableListMi
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  _EntrySync get first {
+    if (this.length > 0) {
+      return JS('_EntrySync', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('_EntrySync', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('_EntrySync', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _EntrySync elementAt(int index) => this[index];
   // -- end List<_EntrySync> mixins.
 
   @DomName('EntryArraySync.item')
@@ -22102,8 +22595,12 @@ class _GamepadList extends Object with ListMixin<Gamepad>, ImmutableListMixin<Ga
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Gamepad operator[](int index) => JS("Gamepad", "#[#]", this, index);
-
+  Gamepad operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Gamepad", "#[#]", this, index);
+  }
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22115,6 +22612,31 @@ class _GamepadList extends Object with ListMixin<Gamepad>, ImmutableListMixin<Ga
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Gamepad get first {
+    if (this.length > 0) {
+      return JS('Gamepad', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Gamepad get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Gamepad', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Gamepad get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Gamepad', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Gamepad elementAt(int index) => this[index];
   // -- end List<Gamepad> mixins.
 
   @DomName('GamepadList.item')
@@ -22197,8 +22719,12 @@ class _NamedNodeMap extends Object with ListMixin<Node>, ImmutableListMixin<Node
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
+  Node operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Node", "#[#]", this, index);
+  }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22210,6 +22736,31 @@ class _NamedNodeMap extends Object with ListMixin<Node>, ImmutableListMixin<Node
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return JS('Node', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Node', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Node', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('NamedNodeMap.getNamedItem')
@@ -22318,8 +22869,12 @@ class _SpeechInputResultList extends Object with ListMixin<SpeechInputResult>, I
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  SpeechInputResult operator[](int index) => JS("SpeechInputResult", "#[#]", this, index);
-
+  SpeechInputResult operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("SpeechInputResult", "#[#]", this, index);
+  }
   void operator[]=(int index, SpeechInputResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22331,6 +22886,31 @@ class _SpeechInputResultList extends Object with ListMixin<SpeechInputResult>, I
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechInputResult get first {
+    if (this.length > 0) {
+      return JS('SpeechInputResult', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('SpeechInputResult', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('SpeechInputResult', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechInputResult elementAt(int index) => this[index];
   // -- end List<SpeechInputResult> mixins.
 
   @DomName('SpeechInputResultList.item')
@@ -22350,8 +22930,12 @@ class _SpeechRecognitionResultList extends Object with ListMixin<SpeechRecogniti
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  SpeechRecognitionResult operator[](int index) => JS("SpeechRecognitionResult", "#[#]", this, index);
-
+  SpeechRecognitionResult operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("SpeechRecognitionResult", "#[#]", this, index);
+  }
   void operator[]=(int index, SpeechRecognitionResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22363,6 +22947,31 @@ class _SpeechRecognitionResultList extends Object with ListMixin<SpeechRecogniti
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechRecognitionResult get first {
+    if (this.length > 0) {
+      return JS('SpeechRecognitionResult', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('SpeechRecognitionResult', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('SpeechRecognitionResult', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechRecognitionResult elementAt(int index) => this[index];
   // -- end List<SpeechRecognitionResult> mixins.
 
   @DomName('SpeechRecognitionResultList.item')
@@ -22382,8 +22991,12 @@ class _StyleSheetList extends Object with ListMixin<StyleSheet>, ImmutableListMi
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  StyleSheet operator[](int index) => JS("StyleSheet", "#[#]", this, index);
-
+  StyleSheet operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("StyleSheet", "#[#]", this, index);
+  }
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22395,6 +23008,31 @@ class _StyleSheetList extends Object with ListMixin<StyleSheet>, ImmutableListMi
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  StyleSheet get first {
+    if (this.length > 0) {
+      return JS('StyleSheet', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('StyleSheet', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('StyleSheet', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  StyleSheet elementAt(int index) => this[index];
   // -- end List<StyleSheet> mixins.
 
   @DomName('StyleSheetList.item')

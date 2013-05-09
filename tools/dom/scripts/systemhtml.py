@@ -712,19 +712,22 @@ class Dart2JSBackend(HtmlDartGenerator):
       'CustomIndexedSetter' in ext_attrs)
 
     if has_indexed_getter:
+      indexed_getter = ('JS("%s", "#[#]", this, index)' %
+          self.SecureOutputType(element_type));
+    elif any(op.id == 'getItem' for op in self._interface.operations):
+      indexed_getter = 'this.getItem(index)'
+    elif any(op.id == 'item' for op in self._interface.operations):
+      indexed_getter = 'this.item(index)'
+
+    if indexed_getter:
       self._members_emitter.Emit(
           '\n'
-          '  $TYPE operator[](int index) => '
-          'JS("$TYPE", "#[#]", this, index);\n',
-          TYPE=self.SecureOutputType(element_type))
-    else:
-      if any(op.id == 'getItem' for op in self._interface.operations):
-        indexed_getter = 'this.getItem(index)'
-      elif any(op.id == 'item' for op in self._interface.operations):
-        indexed_getter = 'this.item(index)'
-      self._members_emitter.Emit(
-          '\n'
-          '  $TYPE operator[](int index) => $INDEXED_GETTER;\n',
+          '  $TYPE operator[](int index) {\n'
+          '    if (JS("bool", "# >>> 0 !== # || # >= #", index,\n'
+          '        index, index, length))\n'
+          '      throw new RangeError.range(index, 0, length);\n'
+          '    return $INDEXED_GETTER;\n'
+          '  }',
           INDEXED_GETTER=indexed_getter,
           TYPE=self.SecureOutputType(element_type))
 

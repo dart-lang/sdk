@@ -118,6 +118,17 @@ main() {
       expect(makeNodeWithChildren().nodes, isNodeList);
     });
 
+    test('indexer', () {
+      var node = new DivElement();
+      expect(() {
+        node.nodes[0];
+      }, throwsRangeError);
+
+      expect(() {
+        node.nodes[-1];
+      }, throwsRangeError);
+    });
+
     test('first', () {
       var node = makeNodeWithChildren();
       expect(node.nodes.first, isText);

@@ -3012,8 +3012,12 @@ class LengthList extends Object with ListMixin<Length>, ImmutableListMixin<Lengt
   @DocsEditable
   final int numberOfItems;
 
-  Length operator[](int index) => this.getItem(index);
-
+  Length operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return this.getItem(index);
+  }
   void operator[]=(int index, Length value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -3027,6 +3031,31 @@ class LengthList extends Object with ListMixin<Length>, ImmutableListMixin<Lengt
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Length get first {
+    if (this.length > 0) {
+      return JS('Length', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Length get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Length', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Length get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Length', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Length elementAt(int index) => this[index];
   // -- end List<Length> mixins.
 
   @DomName('SVGLengthList.appendItem')
@@ -3473,8 +3502,12 @@ class NumberList extends Object with ListMixin<Number>, ImmutableListMixin<Numbe
   @DocsEditable
   final int numberOfItems;
 
-  Number operator[](int index) => this.getItem(index);
-
+  Number operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return this.getItem(index);
+  }
   void operator[]=(int index, Number value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -3488,6 +3521,31 @@ class NumberList extends Object with ListMixin<Number>, ImmutableListMixin<Numbe
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Number get first {
+    if (this.length > 0) {
+      return JS('Number', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Number get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Number', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Number get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Number', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Number elementAt(int index) => this[index];
   // -- end List<Number> mixins.
 
   @DomName('SVGNumberList.appendItem')
@@ -4165,8 +4223,12 @@ class PathSegList extends Object with ListMixin<PathSeg>, ImmutableListMixin<Pat
   @DocsEditable
   final int numberOfItems;
 
-  PathSeg operator[](int index) => this.getItem(index);
-
+  PathSeg operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return this.getItem(index);
+  }
   void operator[]=(int index, PathSeg value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -4180,6 +4242,31 @@ class PathSegList extends Object with ListMixin<PathSeg>, ImmutableListMixin<Pat
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  PathSeg get first {
+    if (this.length > 0) {
+      return JS('PathSeg', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  PathSeg get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('PathSeg', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  PathSeg get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('PathSeg', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  PathSeg elementAt(int index) => this[index];
   // -- end List<PathSeg> mixins.
 
   @DomName('SVGPathSegList.appendItem')
@@ -4887,8 +4974,12 @@ class StringList extends Object with ListMixin<String>, ImmutableListMixin<Strin
   @DocsEditable
   final int numberOfItems;
 
-  String operator[](int index) => this.getItem(index);
-
+  String operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return this.getItem(index);
+  }
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -4902,6 +4993,31 @@ class StringList extends Object with ListMixin<String>, ImmutableListMixin<Strin
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  String get first {
+    if (this.length > 0) {
+      return JS('String', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  String get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('String', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('String', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
   @DomName('SVGStringList.appendItem')
@@ -5882,8 +5998,12 @@ class TransformList extends Object with ListMixin<Transform>, ImmutableListMixin
   @DocsEditable
   final int numberOfItems;
 
-  Transform operator[](int index) => this.getItem(index);
-
+  Transform operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return this.getItem(index);
+  }
   void operator[]=(int index, Transform value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -5897,6 +6017,31 @@ class TransformList extends Object with ListMixin<Transform>, ImmutableListMixin
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Transform get first {
+    if (this.length > 0) {
+      return JS('Transform', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Transform get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Transform', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Transform get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Transform', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Transform elementAt(int index) => this[index];
   // -- end List<Transform> mixins.
 
   @DomName('SVGTransformList.appendItem')
@@ -6238,8 +6383,12 @@ class _ElementInstanceList extends Object with ListMixin<ElementInstance>, Immut
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  ElementInstance operator[](int index) => this.item(index);
-
+  ElementInstance operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return this.item(index);
+  }
   void operator[]=(int index, ElementInstance value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -6251,6 +6400,31 @@ class _ElementInstanceList extends Object with ListMixin<ElementInstance>, Immut
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  ElementInstance get first {
+    if (this.length > 0) {
+      return JS('ElementInstance', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  ElementInstance get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('ElementInstance', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  ElementInstance get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('ElementInstance', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  ElementInstance elementAt(int index) => this[index];
   // -- end List<ElementInstance> mixins.
 
   @DomName('SVGElementInstanceList.item')
