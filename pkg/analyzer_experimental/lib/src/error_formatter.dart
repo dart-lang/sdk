@@ -1,14 +1,31 @@
-part of analyzer;
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library error_formatter;
+
+import 'dart:async';
+import 'dart:io';
+
+import 'generated/java_io.dart';
+import 'generated/engine.dart';
+import 'generated/error.dart';
+import 'generated/source_io.dart';
+import 'generated/sdk.dart';
+import 'generated/sdk_io.dart';
+import 'generated/ast.dart';
+import 'generated/element.dart';
+import '../options.dart';
 
 /**
  * Helper for formatting [AnalysisError]s.
  * The two format options are a user consumable format and a machine consumable format.
  */
-class _ErrorFormatter {
+class ErrorFormatter {
   StringSink out;
   CommandLineOptions options;
 
-  _ErrorFormatter(this.out, this.options);
+  ErrorFormatter(this.out, this.options);
 
   void startAnalysis() {
     if (!options.machineFormat) {
