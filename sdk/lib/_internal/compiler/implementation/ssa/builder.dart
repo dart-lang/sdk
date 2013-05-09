@@ -274,7 +274,8 @@ class LocalsHandler {
     });
     if (closureData.isClosure()) {
       // Inside closure redirect references to itself to [:this:].
-      HThis thisInstruction = new HThis(closureData.thisElement);
+      HThis thisInstruction = new HThis(closureData.thisElement,
+                                        HType.NON_NULL);
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
