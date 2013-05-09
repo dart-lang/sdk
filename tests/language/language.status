@@ -677,7 +677,6 @@ duplicate_constructor_test/01: fail
 duplicate_export_negative_test: fail
 dynamic2_test/00: fail
 dynamic_field_test: fail
-export_cyclic_test: fail
 f_bounded_quantification_test/01: fail
 f_bounded_quantification_test/02: fail
 factory1_test/00: skip

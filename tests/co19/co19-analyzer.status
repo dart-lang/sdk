@@ -291,15 +291,6 @@ Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t17: fail
 Language/13_Libraries_and_Scripts/1_Imports_A01_t46: fail
 Language/13_Libraries_and_Scripts/1_Imports_A02_t12: fail
 Language/13_Libraries_and_Scripts/1_Imports_A02_t15: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t01: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t06: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t21: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t26: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t31: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t41: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t46: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t61: fail
-Language/13_Libraries_and_Scripts/1_Imports_A03_t66: fail
 Language/13_Libraries_and_Scripts/1_Imports_A04_t03: fail
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail
 Language/13_Libraries_and_Scripts/2_Exports_A04_t02: fail
