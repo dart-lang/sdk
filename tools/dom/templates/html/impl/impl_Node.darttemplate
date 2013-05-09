@@ -121,7 +121,7 @@ $endif
     // time.
     Node child = _this.$dom_firstChild;
     while (child != null) {
-      Node nextChild = child.nextSibling;
+      Node nextChild = child.nextNode;
       if (test(child) == removeMatching) {
         _this.$dom_removeChild(child);
       }
@@ -245,96 +245,49 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
     }
   }
 
-  // Note that this may either be the locally set model or a cached value
-  // of the inherited model. This is cached to minimize model change
-  // notifications.
-$if DART2JS
-  @Creates('Null')
-$endif
-  var _model;
-  bool _hasLocalModel;
-  Set<StreamController<Node>> _modelChangedStreams;
-
-  /**
-   * The data model which is inherited through the tree.
-   *
-   * Setting this will propagate the value to all descendant nodes. If the
-   * model is not set on this node then it will be inherited from ancestor
-   * nodes.
-   *
-   * Currently this does not support propagation through Shadow DOMs.
-   *
-   * [clearModel] must be used to remove the model property from this node
-   * and have the model inherit from ancestor nodes.
-   */
-  @Experimental
-  get model {
-    // If we have a change handler then we've cached the model locally.
-    if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
-      return _model;
-    }
-    // Otherwise start looking up the tree.
-    for (var node = this; node != null; node = node.parentNode) {
-      if (node._hasLocalModel == true) {
-        return node._model;
-      }
-    }
-    return null;
-  }
-
-  @Experimental
-  void set model(value) {
-    var changed = model != value;
-    _model = value;
-    _hasLocalModel = true;
-    _ModelTreeObserver.initialize();
-
-    if (changed) {
-      if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
-        _modelChangedStreams.toList().forEach((stream) => stream.add(this));
-      }
-      // Propagate new model to all descendants.
-      _ModelTreeObserver.propagateModel(this, value, false);
-    }
-  }
-
-  /**
-   * Clears the locally set model and makes this model be inherited from parent
-   * nodes.
-   */
-  @Experimental
-  void clearModel() {
-    if (_hasLocalModel == true) {
-      _hasLocalModel = false;
-
-      // Propagate new model to all descendants.
-      if (parentNode != null) {
-        _ModelTreeObserver.propagateModel(this, parentNode.model, false);
-      } else {
-        _ModelTreeObserver.propagateModel(this, null, false);
-      }
-    }
-  }
-
-  /**
-   * Get a stream of models, whenever the model changes.
-   */
-  Stream<Node> get onModelChanged {
-    if (_modelChangedStreams == null) {
-      _modelChangedStreams = new Set<StreamController<Node>>();
-    }
-    var controller;
-    controller = new StreamController(
-        onListen: () { _modelChangedStreams.add(controller); },
-        onCancel: () { _modelChangedStreams.remove(controller); });
-    return controller.stream;
-  }
-
   /**
    * Print out a String representation of this Node.
    */
   String toString() => localName == null ?
       (nodeValue == null ? super.toString() : nodeValue) : localName;
+
+  /**
+   * Binds the attribute [name] to the [path] of the [model].
+   * Path is a String of accessors such as `foo.bar.baz`.
+   */
+  @Experimental
+  void bind(String name, model, String path) {
+    // TODO(jmesserly): should we throw instead?
+    window.console.error('Unhandled binding to Node: '
+        '$this $name $model $path');
+  }
+
+  /** Unbinds the attribute [name]. */
+  @Experimental
+  void unbind(String name) {}
+
+  /** Unbinds all bound attributes. */
+  @Experimental
+  void unbindAll() {}
+
+  TemplateInstance _templateInstance;
+
+  // TODO(arv): Consider storing all "NodeRareData" on a single object?
+  int __instanceTerminatorCount;
+  int get _instanceTerminatorCount {
+    if (__instanceTerminatorCount == null) return 0;
+    return __instanceTerminatorCount;
+  }
+  set _instanceTerminatorCount(int value) {
+    if (value == 0) value = null;
+    __instanceTerminatorCount = value;
+  }
+
+  /** Gets the template instance that instantiated this node, if any. */
+  @Experimental
+  TemplateInstance get templateInstance =>
+      _templateInstance != null ? _templateInstance :
+      (parent != null ? parent.templateInstance : null);
 
 $!MEMBERS
 }

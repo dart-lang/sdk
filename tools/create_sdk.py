@@ -36,6 +36,7 @@
 # ......isolate/
 # ......json/
 # ......math/
+# ......mdv_observe_impl/
 # ......mirrors/
 # ......uri/
 # ......utf/
@@ -218,7 +219,7 @@ def Main(argv):
                   join('html', 'dart2js'), join('html', 'dartium'),
                   join('html', 'html_common'),
                   join('indexed_db', 'dart2js'), join('indexed_db', 'dartium'),
-                  'json', 'math', 'mirrors', 'typed_data',
+                  'json', 'math', 'mdv_observe_impl', 'mirrors', 'typed_data',
                   join('svg', 'dart2js'), join('svg', 'dartium'),
                   'uri', 'utf',
                   join('web_audio', 'dart2js'), join('web_audio', 'dartium'),
@@ -273,12 +274,12 @@ def Main(argv):
   DARTANALYZER_SRC = join(HOME, build_dir, 'dartanalyzer')
   DARTANALYZER_DEST = join(UTIL, 'dartanalyzer')
   os.makedirs(DARTANALYZER_DEST)
-  
+
   jarFiles = glob.glob(join(DARTANALYZER_SRC, '*.jar'))
-  
+
   for jarFile in jarFiles:
     copyfile(jarFile, join(DARTANALYZER_DEST, os.path.basename(jarFile)))
-  
+
   # Copy in 7zip for Windows.
   if HOST_OS == 'win32':
     copytree(join(HOME, 'third_party', '7zip'),

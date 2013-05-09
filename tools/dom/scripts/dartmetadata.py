@@ -56,6 +56,14 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('String|CanvasGradient|CanvasPattern')",
     ],
 
+    # Normally DOMWindow is nevernull, but starting from a <template> element in
+    # JavaScript, this will be null:
+    #     template.content.ownerDocument.defaultView
+    'Document.window': [
+      "@Creates('Window|=Object|Null')",
+      "@Returns('Window|=Object|Null')",
+    ],
+
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
     'DOMWindow': [
