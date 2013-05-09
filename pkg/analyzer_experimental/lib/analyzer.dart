@@ -18,6 +18,7 @@ import 'src/utils.dart';
 export 'src/error.dart';
 export 'src/generated/ast.dart';
 export 'src/generated/error.dart';
+export 'src/generated/utilities_dart.dart';
 
 /// Parses a Dart file into an AST.
 CompilationUnit parseDartFile(String path) {
