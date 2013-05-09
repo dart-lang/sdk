@@ -70,9 +70,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t07: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t08: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t11: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A05_t01: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A05_t02: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A05_t03: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A11_t04: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A11_t05: fail
@@ -144,8 +141,6 @@ Language/11_Expressions/05_Strings_A02_t48: fail
 Language/11_Expressions/06_Lists_A01_t03: fail
 Language/11_Expressions/06_Lists_A01_t04: fail
 Language/11_Expressions/06_Lists_A03_t01: fail
-Language/11_Expressions/07_Maps_A01_t05: crash
-Language/11_Expressions/07_Maps_A01_t06: crash
 Language/11_Expressions/07_Maps_A02_t02: fail
 Language/11_Expressions/08_Throw_A06_t01: fail
 Language/11_Expressions/08_Throw_A06_t02: fail
@@ -187,7 +182,6 @@ Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A01_t05: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t05: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t01: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t02: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t03: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t04: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t05: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t06: fail
