@@ -2541,10 +2541,6 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DocsEditable
   CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
 
-  @DomName('CSSStyleDeclaration._getPropertyValue')
-  @DocsEditable
-  String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
-
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable
   String getPropertyPriority(String propertyName) native "CSSStyleDeclaration_getPropertyPriority_Callback";
@@ -2552,6 +2548,10 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
   @DocsEditable
   String getPropertyShorthand(String propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
+
+  @DomName('CSSStyleDeclaration.getPropertyValue')
+  @DocsEditable
+  String _getPropertyValue(String propertyName) native "CSSStyleDeclaration_getPropertyValue_Callback";
 
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
   @DocsEditable
@@ -2567,7 +2567,7 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   @DomName('CSSStyleDeclaration.setProperty')
   @DocsEditable
-  void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
+  void setProperty(String propertyName, String value, String priority) native "CSSStyleDeclaration_setProperty_Callback";
 
 
   String getPropertyValue(String propertyName) {
@@ -14776,13 +14776,13 @@ class MutationObserver extends NativeFieldWrapperClass1 {
   @DocsEditable
   static MutationObserver _create(callback) native "MutationObserver_constructorCallback";
 
-  @DomName('MutationObserver._observe')
-  @DocsEditable
-  void _observe(Node target, Map options) native "MutationObserver__observe_Callback";
-
   @DomName('MutationObserver.disconnect')
   @DocsEditable
   void disconnect() native "MutationObserver_disconnect_Callback";
+
+  @DomName('MutationObserver.observe')
+  @DocsEditable
+  void _observe(Node target, Map options) native "MutationObserver_observe_Callback";
 
   @DomName('MutationObserver.takeRecords')
   @DocsEditable

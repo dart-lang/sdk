@@ -2104,11 +2104,6 @@ class CssStyleDeclaration native "CSSStyleDeclaration" {
   @DocsEditable
   final CssRule parentRule;
 
-  @JSName('getPropertyValue')
-  @DomName('CSSStyleDeclaration.getPropertyValue')
-  @DocsEditable
-  String _getPropertyValue(String propertyName) native;
-
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable
   String getPropertyPriority(String propertyName) native;
@@ -2116,6 +2111,11 @@ class CssStyleDeclaration native "CSSStyleDeclaration" {
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
   @DocsEditable
   String getPropertyShorthand(String propertyName) native;
+
+  @JSName('getPropertyValue')
+  @DomName('CSSStyleDeclaration.getPropertyValue')
+  @DocsEditable
+  String _getPropertyValue(String propertyName) native;
 
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
   @DocsEditable
@@ -13790,6 +13790,10 @@ class MutationEvent extends Event native "MutationEvent" {
 @Experimental
 class MutationObserver native "MutationObserver,WebKitMutationObserver" {
 
+  @DomName('MutationObserver.disconnect')
+  @DocsEditable
+  void disconnect() native;
+
   @DomName('MutationObserver.observe')
   @DocsEditable
   void _observe(Node target, Map options) {
@@ -13801,10 +13805,6 @@ class MutationObserver native "MutationObserver,WebKitMutationObserver" {
   @DomName('MutationObserver.observe')
   @DocsEditable
   void __observe_1(Node target, options) native;
-
-  @DomName('MutationObserver.disconnect')
-  @DocsEditable
-  void disconnect() native;
 
   @DomName('MutationObserver.takeRecords')
   @DocsEditable
