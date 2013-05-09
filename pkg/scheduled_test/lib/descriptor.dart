@@ -100,6 +100,18 @@ FileDescriptor file(String name, [String contents='']) =>
 FileDescriptor binaryFile(String name, List<int> contents) =>
   new FileDescriptor.binary(name, contents);
 
+/// Creates a new text [FileDescriptor] with [name] that matches its String
+/// contents against [matcher]. If the file is created, it's considered to be
+/// empty.
+FileDescriptor matcherFile(String name, matcher) =>
+  new FileDescriptor.matcher(name, wrapMatcher(matcher));
+
+/// Creates a new binary [FileDescriptor] with [name] that matches its binary
+/// contents against [matcher]. If the file is created, it's considered to be
+/// empty.
+FileDescriptor binaryMatcherFile(String name, matcher) =>
+  new FileDescriptor.binaryMatcher(name, wrapMatcher(matcher));
+
 /// Creates a new [DirectoryDescriptor] descriptor with [name] and [contents].
 DirectoryDescriptor dir(String name, [Iterable<Descriptor> contents]) =>
    new DirectoryDescriptor(name, contents == null? <Descriptor>[] : contents);

@@ -180,4 +180,98 @@ void main() {
       ]), verbose: true);
     });
   }, passing: ['test 2']);
+
+  expectTestsPass('matcherFile().create() creates an empty file', () {
+    test('test', () {
+      scheduleSandbox();
+
+      d.matcherFile('name.txt', isNot(isEmpty)).create();
+
+      schedule(() {
+        expect(new File(path.join(sandbox, 'name.txt')).readAsString(),
+            completion(equals('')));
+      });
+    });
+  });
+
+  expectTestsPass('matcherFile().validate() completes successfully if the '
+      'string contents of the file matches the matcher', () {
+    test('test', () {
+      scheduleSandbox();
+
+      schedule(() {
+        return new File(path.join(sandbox, 'name.txt'))
+            .writeAsString('barfoobaz');
+      });
+
+      d.matcherFile('name.txt', contains('foo')).validate();
+    });
+  });
+
+  expectTestsPass("matcherFile().validate() fails if the string contents of "
+      "the file doesn't match the matcher", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() {
+        return new File(path.join(sandbox, 'name.txt'))
+            .writeAsString('barfoobaz');
+      });
+
+      d.matcherFile('name.txt', contains('baaz')).validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error.message), equals([
+        "Expected: contains 'baaz'\n     but: was 'barfoobaz'.\n"
+      ]), verbose: true);
+    });
+  }, passing: ['test 2']);
+
+  expectTestsPass('binaryMatcherFile().validate() completes successfully if '
+      'the string contents of the file matches the matcher', () {
+    test('test', () {
+      scheduleSandbox();
+
+      schedule(() {
+        return new File(path.join(sandbox, 'name.txt'))
+            .writeAsString('barfoobaz');
+      });
+
+      d.binaryMatcherFile('name.txt', contains(111)).validate();
+    });
+  });
+
+  expectTestsPass("binaryMatcherFile().validate() fails if the string contents "
+      "of the file doesn't match the matcher", () {
+    var errors;
+    test('test 1', () {
+      scheduleSandbox();
+
+      currentSchedule.onException.schedule(() {
+        errors = currentSchedule.errors;
+      });
+
+      schedule(() {
+        return new File(path.join(sandbox, 'name.txt'))
+            .writeAsString('barfoobaz');
+      });
+
+      d.binaryMatcherFile('name.txt', contains(12)).validate();
+    });
+
+    test('test 2', () {
+      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
+      expect(errors.map((e) => e.error.message), equals([
+        "Expected: contains <12>\n"
+        "     but: was <[98, 97, 114, 102, 111, 111, 98, 97, 122]>.\n"
+      ]), verbose: true);
+    });
+  }, passing: ['test 2']);
 }
