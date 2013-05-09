@@ -25,7 +25,8 @@ String errorsForFile(String contents) {
       parseDartFile(path);
     } on AnalyzerErrorGroup catch (e) {
       return e.toString().replaceAllMapped(
-          new RegExp(r"^(Error on line \d+ of )([^:]+): .*$", multiLine: true),
+          new RegExp(r"^(Error on line \d+ of )((?:[A-Z]+:)?[^:]+): .*$",
+                     multiLine: true),
           (match) => match[1] + pathos.basename(match[2]) + ': ...');
     }
     return null;
