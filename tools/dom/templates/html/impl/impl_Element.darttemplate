@@ -137,7 +137,7 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 }
 
-/**
+/** 
  * An immutable list containing HTML elements. This list contains some
  * additional methods for ease of CSS manipulation on a group of elements.
  */
@@ -625,266 +625,8 @@ $if DART2JS
 $else
 $endif
 
-  @Creates('Null')
-  Map<String, StreamSubscription> _attributeBindings;
-
-  // TODO(jmesserly): I'm concerned about adding these to every element.
-  // Conceptually all of these belong on TemplateElement. They are here to
-  // support browsers that don't have <template> yet.
-  // However even in the polyfill they're restricted to certain tags
-  // (see [isTemplate]). So we can probably convert it to a (public) mixin, and
-  // only mix it in to the elements that need it.
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  var _model;
-
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  _TemplateIterator _templateIterator;
-
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  Element _templateInstanceRef;
-
-  // Note: only used if `this is! TemplateElement`
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  DocumentFragment _templateContent;
-
-  bool _templateIsDecorated;
-
-  // TODO(jmesserly): should path be optional, and default to empty path?
-  // It is used that way in at least one path in JS TemplateElement tests
-  // (see "BindImperative" test in original JS code).
-  @Experimental
-  void bind(String name, model, String path) {
-    _bindElement(this, name, model, path);
-  }
-
-  // TODO(jmesserly): this is static to work around http://dartbug.com/10166
-  // Similar issue for unbind/unbindAll below.
-  static void _bindElement(Element self, String name, model, String path) {
-    if (self._bindTemplate(name, model, path)) return;
-
-    if (self._attributeBindings == null) {
-      self._attributeBindings = new Map<String, StreamSubscription>();
-    }
-
-    self.attributes.remove(name);
-
-    var changed;
-    if (name.endsWith('?')) {
-      name = name.substring(0, name.length - 1);
-
-      changed = (value) {
-        if (_templateBooleanConversion(value)) {
-          self.attributes[name] = '';
-        } else {
-          self.attributes.remove(name);
-        }
-      };
-    } else {
-      changed = (value) {
-        // TODO(jmesserly): escape value if needed to protect against XSS.
-        // See https://github.com/toolkitchen/mdv/issues/58
-        self.attributes[name] = value == null ? '' : '$value';
-      };
-    }
-
-    self.unbind(name);
-
-    self._attributeBindings[name] =
-        new PathObserver(model, path).bindSync(changed);
-  }
-
-  @Experimental
-  void unbind(String name) {
-    _unbindElement(this, name);
-  }
-
-  static _unbindElement(Element self, String name) {
-    if (self._unbindTemplate(name)) return;
-    if (self._attributeBindings != null) {
-      var binding = self._attributeBindings.remove(name);
-      if (binding != null) binding.cancel();
-    }
-  }
-
-  @Experimental
-  void unbindAll() {
-    _unbindAllElement(this);
-  }
-
-  static void _unbindAllElement(Element self) {
-    self._unbindAllTemplate();
-
-    if (self._attributeBindings != null) {
-      for (var binding in self._attributeBindings.values) {
-        binding.cancel();
-      }
-      self._attributeBindings = null;
-    }
-  }
-
-  // TODO(jmesserly): unlike the JS polyfill, we can't mixin
-  // HTMLTemplateElement at runtime into things that are semantically template
-  // elements. So instead we implement it here with a runtime check.
-  // If the bind succeeds, we return true, otherwise we return false and let
-  // the normal Element.bind logic kick in.
-  bool _bindTemplate(String name, model, String path) {
-    if (isTemplate) {
-      switch (name) {
-        case 'bind':
-        case 'repeat':
-        case 'if':
-          _ensureTemplate();
-          if (_templateIterator == null) {
-            _templateIterator = new _TemplateIterator(this);
-          }
-          _templateIterator.inputs.bind(name, model, path);
-          return true;
-      }
-    }
-    return false;
-  }
-
-  bool _unbindTemplate(String name) {
-    if (isTemplate) {
-      switch (name) {
-        case 'bind':
-        case 'repeat':
-        case 'if':
-          _ensureTemplate();
-          if (_templateIterator != null) {
-            _templateIterator.inputs.unbind(name);
-          }
-          return true;
-      }
-    }
-    return false;
-  }
-
-  void _unbindAllTemplate() {
-    if (isTemplate) {
-      unbind('bind');
-      unbind('repeat');
-      unbind('if');
-    }
-  }
-
-  /**
-   * Gets the template this node refers to.
-   * This is only supported if [isTemplate] is true.
-   */
-  @Experimental
-  Element get ref {
-    _ensureTemplate();
-
-    Element ref = null;
-    var refId = attributes['ref'];
-    if (refId != null) {
-      ref = document.getElementById(refId);
-    }
-
-    return ref != null ? ref : _templateInstanceRef;
-  }
-
-  /**
-   * Gets the content of this template.
-   * This is only supported if [isTemplate] is true.
-   */
-  @Experimental
-  DocumentFragment get content {
-    _ensureTemplate();
-    return _templateContent;
-  }
-
-  /**
-   * Creates an instance of the template.
-   * This is only supported if [isTemplate] is true.
-   */
-  @Experimental
-  DocumentFragment createInstance() {
-    _ensureTemplate();
-
-    var template = ref;
-    if (template == null) template = this;
-
-    var instance = _createDeepCloneAndDecorateTemplates(template.content,
-        attributes['syntax']);
-
-    if (TemplateElement._instanceCreated != null) {
-      TemplateElement._instanceCreated.add(instance);
-    }
-    return instance;
-  }
-
-  /**
-   * The data model which is inherited through the tree.
-   * This is only supported if [isTemplate] is true.
-   *
-   * Setting this will destructive propagate the value to all descendant nodes,
-   * and reinstantiate all of the nodes expanded by this template.
-   *
-   * Currently this does not support propagation through Shadow DOMs.
-   */
-  @Experimental
-  get model => _model;
-
-  @Experimental
-  void set model(value) {
-    _ensureTemplate();
-
-    _model = value;
-    _addBindings(this, model);
-  }
-
-  // TODO(jmesserly): const set would be better
-  static const _TABLE_TAGS = const {
-    'caption': null,
-    'col': null,
-    'colgroup': null,
-    'tbody': null,
-    'td': null,
-    'tfoot': null,
-    'th': null,
-    'thead': null,
-    'tr': null,
-  };
-
-  bool get _isAttributeTemplate => attributes.containsKey('template') &&
-      (localName == 'option' || _TABLE_TAGS.containsKey(localName));
-
-  /**
-   * Returns true if this node is a template.
-   *
-   * A node is a template if [tagName] is TEMPLATE, or the node has the
-   * 'template' attribute and this tag supports attribute form for backwards
-   * compatibility with existing HTML parsers. The nodes that can use attribute
-   * form are table elments (THEAD, TBODY, TFOOT, TH, TR, TD, CAPTION, COLGROUP
-   * and COL) and OPTION.
-   */
-  // TODO(jmesserly): this is not a public MDV API, but it seems like a useful
-  // place to document which tags our polyfill considers to be templates.
-  // Otherwise I'd be repeating it in several other places.
-  // See if we can replace this with a TemplateMixin.
-  @Experimental
-  bool get isTemplate => tagName == 'TEMPLATE' || _isAttributeTemplate;
-
-  void _ensureTemplate() {
-    if (!isTemplate) {
-      throw new UnsupportedError('$this is not a template.');
-    }
-    TemplateElement.decorate(this);
-  }
-
 $!MEMBERS
 }
-
 
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
@@ -903,6 +645,19 @@ class _ElementFactoryProvider {
     'track' : 'audio',
   };
 
+  // TODO(jmesserly): const set would be better
+  static const _TABLE_TAGS = const {
+    'caption': null,
+    'col': null,
+    'colgroup': null,
+    'tbody': null,
+    'td': null,
+    'tfoot': null,
+    'th': null,
+    'thead': null,
+    'tr': null,
+  };
+
   @DomName('Document.createElement')
   static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
@@ -916,7 +671,7 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (Device.isIE && Element._TABLE_TAGS.containsKey(tag)) {
+      if (Device.isIE && _TABLE_TAGS.containsKey(tag)) {
         return _createTableForIE(html, tag);
       }
       parentTag = _CUSTOM_PARENT_TAG_MAP[tag];

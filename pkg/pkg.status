@@ -143,7 +143,3 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
-
-# Skip mdv_observe tests on command line VM, they only run in the browser.
-[ $runtime == vm ]
-mdv_observe: Skip

@@ -55,7 +55,7 @@ $endif
     e.innerHtml = value;
 
     // Copy list first since we don't want liveness during iteration.
-    List nodes = new List.from(e.nodes, growable: false);
+    List nodes = new List.from(e.nodes);
     this.nodes.addAll(nodes);
   }
 

@@ -102,10 +102,8 @@ def compile_dart2js(dart_file, checked):
 
 def gen():
   os.chdir(os.path.join('tools', 'dom', 'scripts'))
-  result = call([os.path.join(os.getcwd(), 'dartdomgenerator.py'),
+  return call([os.path.join(os.getcwd(), 'dartdomgenerator.py'),
       '--rebuild', '--parallel', '--systems=htmldart2js,htmldartium'])
-  os.chdir(os.path.join('..', '..', '..'))
-  return result
 
 def http_server():
   print('Browse tests at '

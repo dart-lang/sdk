@@ -235,7 +235,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'HTMLTableRowElement.insertCell',
   'HTMLTableSectionElement.insertRow',
   'HTMLTableSectionElement.rows',
-  'HTMLTemplateElement.content',
   'IDBCursor.delete',
   'IDBCursor.update',
   'IDBDatabase.createObjectStore',
