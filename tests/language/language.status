@@ -565,7 +565,6 @@ assign_static_type_test/04: fail
 assign_static_type_test/05: fail
 assign_static_type_test/06: fail
 bad_initializer2_negative_test: fail
-bad_named_constructor_negative_test: fail
 bad_named_parameters2_test: fail
 bad_named_parameters_test: fail
 bad_override_test/01: fail
@@ -654,9 +653,6 @@ const_syntax_test/06: fail
 constructor2_negative_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
-constructor_name_test/01: fail
-constructor_name_test/02: fail
-constructor_name_test/03: fail
 constructor_negative_test: fail
 constructor_redirect1_negative_test: fail
 constructor_redirect2_negative_test: fail
