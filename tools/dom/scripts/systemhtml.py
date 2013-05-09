@@ -530,7 +530,7 @@ class HtmlDartInterfaceGenerator(object):
         base_class = 'Object'
 
     annotations = self._metadata.GetFormattedMetadata(
-        self._library_name, self._interface.doc_js_name, '')
+        self._library_name, self._interface, None, '')
 
     class_modifiers = ''
     if self._renamer.ShouldSuppressInterface(self._interface):
@@ -1046,7 +1046,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def _Metadata(self, idl_type, idl_member_name, indent='  '):
     anns = self._metadata.GetDart2JSMetadata(
-        idl_type, self._library_name, self._interface.id, idl_member_name)
+        idl_type, self._library_name, self._interface, idl_member_name)
 
     if not self._metadata.AnyConversionAnnotations(
         idl_type, self._interface.id, idl_member_name):

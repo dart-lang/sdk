@@ -357,7 +357,7 @@ class HtmlDartGenerator(object):
       return
 
     metadata = self._metadata.GetFormattedMetadata(
-        self._library_name, self._interface.id, self._interface.id, '  ')
+        self._library_name, self._interface, self._interface.id, '  ')
 
     if not factory_constructor_name:
       factory_constructor_name = '_create'

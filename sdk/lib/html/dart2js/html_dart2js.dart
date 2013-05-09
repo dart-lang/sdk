@@ -192,11 +192,11 @@ class AnchorElement extends Element native "HTMLAnchorElement" {
 @Experimental
 class AnimationEvent extends Event native "WebKitAnimationEvent" {
 
-  @DomName('AnimationEvent.animationName')
+  @DomName('WebKitAnimationEvent.animationName')
   @DocsEditable
   final String animationName;
 
-  @DomName('AnimationEvent.elapsedTime')
+  @DomName('WebKitAnimationEvent.elapsedTime')
   @DocsEditable
   final num elapsedTime;
 }
@@ -6741,11 +6741,11 @@ class DomException native "DOMException" {
     return errorName;
   }
 
-  @DomName('DOMCoreException.message')
+  @DomName('DOMException.message')
   @DocsEditable
   final String message;
 
-  @DomName('DOMCoreException.toString')
+  @DomName('DOMException.toString')
   @DocsEditable
   String toString() native;
 
@@ -9568,7 +9568,7 @@ class FontLoader extends EventTarget native "FontLoader" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class FormData native "FormData" {
 
-  @DomName('DOMFormData.DOMFormData')
+  @DomName('FormData.DOMFormData')
   @DocsEditable
   factory FormData([FormElement form]) {
     if (?form) {
@@ -9582,7 +9582,7 @@ class FormData native "FormData" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.FormData)');
 
-  @DomName('DOMFormData.append')
+  @DomName('FormData.append')
   @DocsEditable
   void append(String name, value, [String filename]) native;
 }
@@ -13481,19 +13481,19 @@ class MeterElement extends Element native "HTMLMeterElement" {
 @DomName('MimeType')
 class MimeType native "MimeType" {
 
-  @DomName('DOMMimeType.description')
+  @DomName('MimeType.description')
   @DocsEditable
   final String description;
 
-  @DomName('DOMMimeType.enabledPlugin')
+  @DomName('MimeType.enabledPlugin')
   @DocsEditable
   final Plugin enabledPlugin;
 
-  @DomName('DOMMimeType.suffixes')
+  @DomName('MimeType.suffixes')
   @DocsEditable
   final String suffixes;
 
-  @DomName('DOMMimeType.type')
+  @DomName('MimeType.type')
   @DocsEditable
   final String type;
 }
@@ -13506,7 +13506,7 @@ class MimeType native "MimeType" {
 @DomName('MimeTypeArray')
 class MimeTypeArray extends Object with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
 
-  @DomName('DOMMimeTypeArray.length')
+  @DomName('MimeTypeArray.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
@@ -13525,11 +13525,11 @@ class MimeTypeArray extends Object with ListMixin<MimeType>, ImmutableListMixin<
 
   // -- end List<MimeType> mixins.
 
-  @DomName('DOMMimeTypeArray.item')
+  @DomName('MimeTypeArray.item')
   @DocsEditable
   MimeType item(int index) native;
 
-  @DomName('DOMMimeTypeArray.namedItem')
+  @DomName('MimeTypeArray.namedItem')
   @DocsEditable
   MimeType namedItem(String name) native;
 }
@@ -13938,47 +13938,47 @@ class MutationRecord native "MutationRecord" {
 @Experimental
 class NamedFlow extends EventTarget native "WebKitNamedFlow" {
 
-  @DomName('NamedFlow.firstEmptyRegionIndex')
+  @DomName('WebKitNamedFlow.firstEmptyRegionIndex')
   @DocsEditable
   final int firstEmptyRegionIndex;
 
-  @DomName('NamedFlow.name')
+  @DomName('WebKitNamedFlow.name')
   @DocsEditable
   final String name;
 
-  @DomName('NamedFlow.overset')
+  @DomName('WebKitNamedFlow.overset')
   @DocsEditable
   final bool overset;
 
   @JSName('addEventListener')
-  @DomName('NamedFlow.addEventListener')
+  @DomName('WebKitNamedFlow.addEventListener')
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('NamedFlow.dispatchEvent')
+  @DomName('WebKitNamedFlow.dispatchEvent')
   @DocsEditable
   bool dispatchEvent(Event event) native;
 
-  @DomName('NamedFlow.getContent')
+  @DomName('WebKitNamedFlow.getContent')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getContent() native;
 
-  @DomName('NamedFlow.getRegions')
+  @DomName('WebKitNamedFlow.getRegions')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getRegions() native;
 
-  @DomName('NamedFlow.getRegionsByContent')
+  @DomName('WebKitNamedFlow.getRegionsByContent')
   @DocsEditable
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getRegionsByContent(Node contentNode) native;
 
   @JSName('removeEventListener')
-  @DomName('NamedFlow.removeEventListener')
+  @DomName('WebKitNamedFlow.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
@@ -13994,15 +13994,15 @@ class NamedFlow extends EventTarget native "WebKitNamedFlow" {
 @Experimental
 class NamedFlowCollection native "WebKitNamedFlowCollection" {
 
-  @DomName('DOMNamedFlowCollection.length')
+  @DomName('WebKitNamedFlowCollection.length')
   @DocsEditable
   final int length;
 
-  @DomName('DOMNamedFlowCollection.item')
+  @DomName('WebKitNamedFlowCollection.item')
   @DocsEditable
   NamedFlow item(int index) native;
 
-  @DomName('DOMNamedFlowCollection.namedItem')
+  @DomName('WebKitNamedFlowCollection.namedItem')
   @DocsEditable
   NamedFlow namedItem(String name) native;
 }
@@ -15309,7 +15309,7 @@ class ParamElement extends Element native "HTMLParamElement" {
 @DomName('Path')
 class Path native "Path" {
 
-  @DomName('DOMPath.DOMPath')
+  @DomName('Path.DOMPath')
   @DocsEditable
   factory Path([path_OR_text]) {
     if (!?path_OR_text) {
@@ -15327,35 +15327,35 @@ class Path native "Path" {
   static Path _create_2(path_OR_text) => JS('Path', 'new Path(#)', path_OR_text);
   static Path _create_3(path_OR_text) => JS('Path', 'new Path(#)', path_OR_text);
 
-  @DomName('DOMPath.arc')
+  @DomName('Path.arc')
   @DocsEditable
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
-  @DomName('DOMPath.arcTo')
+  @DomName('Path.arcTo')
   @DocsEditable
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
-  @DomName('DOMPath.bezierCurveTo')
+  @DomName('Path.bezierCurveTo')
   @DocsEditable
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
 
-  @DomName('DOMPath.closePath')
+  @DomName('Path.closePath')
   @DocsEditable
   void closePath() native;
 
-  @DomName('DOMPath.lineTo')
+  @DomName('Path.lineTo')
   @DocsEditable
   void lineTo(num x, num y) native;
 
-  @DomName('DOMPath.moveTo')
+  @DomName('Path.moveTo')
   @DocsEditable
   void moveTo(num x, num y) native;
 
-  @DomName('DOMPath.quadraticCurveTo')
+  @DomName('Path.quadraticCurveTo')
   @DocsEditable
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
-  @DomName('DOMPath.rect')
+  @DomName('Path.rect')
   @DocsEditable
   void rect(num x, num y, num width, num height) native;
 }
@@ -15706,27 +15706,27 @@ class PerformanceTiming native "PerformanceTiming" {
 @DomName('Plugin')
 class Plugin native "Plugin" {
 
-  @DomName('DOMPlugin.description')
+  @DomName('Plugin.description')
   @DocsEditable
   final String description;
 
-  @DomName('DOMPlugin.filename')
+  @DomName('Plugin.filename')
   @DocsEditable
   final String filename;
 
-  @DomName('DOMPlugin.length')
+  @DomName('Plugin.length')
   @DocsEditable
   final int length;
 
-  @DomName('DOMPlugin.name')
+  @DomName('Plugin.name')
   @DocsEditable
   final String name;
 
-  @DomName('DOMPlugin.item')
+  @DomName('Plugin.item')
   @DocsEditable
   MimeType item(int index) native;
 
-  @DomName('DOMPlugin.namedItem')
+  @DomName('Plugin.namedItem')
   @DocsEditable
   MimeType namedItem(String name) native;
 }
@@ -15739,7 +15739,7 @@ class Plugin native "Plugin" {
 @DomName('PluginArray')
 class PluginArray extends Object with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
 
-  @DomName('DOMPluginArray.length')
+  @DomName('PluginArray.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
@@ -15758,15 +15758,15 @@ class PluginArray extends Object with ListMixin<Plugin>, ImmutableListMixin<Plug
 
   // -- end List<Plugin> mixins.
 
-  @DomName('DOMPluginArray.item')
+  @DomName('PluginArray.item')
   @DocsEditable
   Plugin item(int index) native;
 
-  @DomName('DOMPluginArray.namedItem')
+  @DomName('PluginArray.namedItem')
   @DocsEditable
   Plugin namedItem(String name) native;
 
-  @DomName('DOMPluginArray.refresh')
+  @DomName('PluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native;
 }
@@ -16951,65 +16951,65 @@ class ScriptProfileNode native "ScriptProfileNode" {
 @DomName('SecurityPolicy')
 class SecurityPolicy native "SecurityPolicy" {
 
-  @DomName('DOMSecurityPolicy.allowsEval')
+  @DomName('SecurityPolicy.allowsEval')
   @DocsEditable
   final bool allowsEval;
 
-  @DomName('DOMSecurityPolicy.allowsInlineScript')
+  @DomName('SecurityPolicy.allowsInlineScript')
   @DocsEditable
   final bool allowsInlineScript;
 
-  @DomName('DOMSecurityPolicy.allowsInlineStyle')
+  @DomName('SecurityPolicy.allowsInlineStyle')
   @DocsEditable
   final bool allowsInlineStyle;
 
-  @DomName('DOMSecurityPolicy.isActive')
+  @DomName('SecurityPolicy.isActive')
   @DocsEditable
   final bool isActive;
 
-  @DomName('DOMSecurityPolicy.reportURIs')
+  @DomName('SecurityPolicy.reportURIs')
   @DocsEditable
   @Returns('DomStringList')
   @Creates('DomStringList')
   final List<String> reportURIs;
 
-  @DomName('DOMSecurityPolicy.allowsConnectionTo')
+  @DomName('SecurityPolicy.allowsConnectionTo')
   @DocsEditable
   bool allowsConnectionTo(String url) native;
 
-  @DomName('DOMSecurityPolicy.allowsFontFrom')
+  @DomName('SecurityPolicy.allowsFontFrom')
   @DocsEditable
   bool allowsFontFrom(String url) native;
 
-  @DomName('DOMSecurityPolicy.allowsFormAction')
+  @DomName('SecurityPolicy.allowsFormAction')
   @DocsEditable
   bool allowsFormAction(String url) native;
 
-  @DomName('DOMSecurityPolicy.allowsFrameFrom')
+  @DomName('SecurityPolicy.allowsFrameFrom')
   @DocsEditable
   bool allowsFrameFrom(String url) native;
 
-  @DomName('DOMSecurityPolicy.allowsImageFrom')
+  @DomName('SecurityPolicy.allowsImageFrom')
   @DocsEditable
   bool allowsImageFrom(String url) native;
 
-  @DomName('DOMSecurityPolicy.allowsMediaFrom')
+  @DomName('SecurityPolicy.allowsMediaFrom')
   @DocsEditable
   bool allowsMediaFrom(String url) native;
 
-  @DomName('DOMSecurityPolicy.allowsObjectFrom')
+  @DomName('SecurityPolicy.allowsObjectFrom')
   @DocsEditable
   bool allowsObjectFrom(String url) native;
 
-  @DomName('DOMSecurityPolicy.allowsPluginType')
+  @DomName('SecurityPolicy.allowsPluginType')
   @DocsEditable
   bool allowsPluginType(String type) native;
 
-  @DomName('DOMSecurityPolicy.allowsScriptFrom')
+  @DomName('SecurityPolicy.allowsScriptFrom')
   @DocsEditable
   bool allowsScriptFrom(String url) native;
 
-  @DomName('DOMSecurityPolicy.allowsStyleFrom')
+  @DomName('SecurityPolicy.allowsStyleFrom')
   @DocsEditable
   bool allowsStyleFrom(String url) native;
 }
@@ -17173,107 +17173,107 @@ class SelectElement extends Element native "HTMLSelectElement" {
 @DomName('Selection')
 class Selection native "Selection" {
 
-  @DomName('DOMSelection.anchorNode')
+  @DomName('Selection.anchorNode')
   @DocsEditable
   final Node anchorNode;
 
-  @DomName('DOMSelection.anchorOffset')
+  @DomName('Selection.anchorOffset')
   @DocsEditable
   final int anchorOffset;
 
-  @DomName('DOMSelection.baseNode')
+  @DomName('Selection.baseNode')
   @DocsEditable
   final Node baseNode;
 
-  @DomName('DOMSelection.baseOffset')
+  @DomName('Selection.baseOffset')
   @DocsEditable
   final int baseOffset;
 
-  @DomName('DOMSelection.extentNode')
+  @DomName('Selection.extentNode')
   @DocsEditable
   final Node extentNode;
 
-  @DomName('DOMSelection.extentOffset')
+  @DomName('Selection.extentOffset')
   @DocsEditable
   final int extentOffset;
 
-  @DomName('DOMSelection.focusNode')
+  @DomName('Selection.focusNode')
   @DocsEditable
   final Node focusNode;
 
-  @DomName('DOMSelection.focusOffset')
+  @DomName('Selection.focusOffset')
   @DocsEditable
   final int focusOffset;
 
-  @DomName('DOMSelection.isCollapsed')
+  @DomName('Selection.isCollapsed')
   @DocsEditable
   final bool isCollapsed;
 
-  @DomName('DOMSelection.rangeCount')
+  @DomName('Selection.rangeCount')
   @DocsEditable
   final int rangeCount;
 
-  @DomName('DOMSelection.type')
+  @DomName('Selection.type')
   @DocsEditable
   final String type;
 
-  @DomName('DOMSelection.addRange')
+  @DomName('Selection.addRange')
   @DocsEditable
   void addRange(Range range) native;
 
-  @DomName('DOMSelection.collapse')
+  @DomName('Selection.collapse')
   @DocsEditable
   void collapse(Node node, int index) native;
 
-  @DomName('DOMSelection.collapseToEnd')
+  @DomName('Selection.collapseToEnd')
   @DocsEditable
   void collapseToEnd() native;
 
-  @DomName('DOMSelection.collapseToStart')
+  @DomName('Selection.collapseToStart')
   @DocsEditable
   void collapseToStart() native;
 
-  @DomName('DOMSelection.containsNode')
+  @DomName('Selection.containsNode')
   @DocsEditable
   bool containsNode(Node node, bool allowPartial) native;
 
-  @DomName('DOMSelection.deleteFromDocument')
+  @DomName('Selection.deleteFromDocument')
   @DocsEditable
   void deleteFromDocument() native;
 
-  @DomName('DOMSelection.empty')
+  @DomName('Selection.empty')
   @DocsEditable
   void empty() native;
 
-  @DomName('DOMSelection.extend')
+  @DomName('Selection.extend')
   @DocsEditable
   void extend(Node node, int offset) native;
 
-  @DomName('DOMSelection.getRangeAt')
+  @DomName('Selection.getRangeAt')
   @DocsEditable
   Range getRangeAt(int index) native;
 
-  @DomName('DOMSelection.modify')
+  @DomName('Selection.modify')
   @DocsEditable
   void modify(String alter, String direction, String granularity) native;
 
-  @DomName('DOMSelection.removeAllRanges')
+  @DomName('Selection.removeAllRanges')
   @DocsEditable
   void removeAllRanges() native;
 
-  @DomName('DOMSelection.selectAllChildren')
+  @DomName('Selection.selectAllChildren')
   @DocsEditable
   void selectAllChildren(Node node) native;
 
-  @DomName('DOMSelection.setBaseAndExtent')
+  @DomName('Selection.setBaseAndExtent')
   @DocsEditable
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
 
-  @DomName('DOMSelection.setPosition')
+  @DomName('Selection.setPosition')
   @DocsEditable
   void setPosition(Node node, int offset) native;
 
-  @DomName('DOMSelection.toString')
+  @DomName('Selection.toString')
   @DocsEditable
   String toString() native;
 }
@@ -20212,73 +20212,73 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
    */
   static bool get supportsPointConversions => _DomPoint.supported;
 
-  @DomName('DOMWindow.DOMContentLoadedEvent')
+  @DomName('Window.DOMContentLoadedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
-  @DomName('DOMWindow.devicemotionEvent')
+  @DomName('Window.devicemotionEvent')
   @DocsEditable
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
-  @DomName('DOMWindow.deviceorientationEvent')
+  @DomName('Window.deviceorientationEvent')
   @DocsEditable
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
-  @DomName('DOMWindow.hashchangeEvent')
+  @DomName('Window.hashchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
-  @DomName('DOMWindow.messageEvent')
+  @DomName('Window.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('DOMWindow.offlineEvent')
+  @DomName('Window.offlineEvent')
   @DocsEditable
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
-  @DomName('DOMWindow.onlineEvent')
+  @DomName('Window.onlineEvent')
   @DocsEditable
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
-  @DomName('DOMWindow.pagehideEvent')
+  @DomName('Window.pagehideEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pageHideEvent = const EventStreamProvider<Event>('pagehide');
 
-  @DomName('DOMWindow.pageshowEvent')
+  @DomName('Window.pageshowEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
-  @DomName('DOMWindow.popstateEvent')
+  @DomName('Window.popstateEvent')
   @DocsEditable
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
-  @DomName('DOMWindow.resizeEvent')
+  @DomName('Window.resizeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  @DomName('DOMWindow.storageEvent')
+  @DomName('Window.storageEvent')
   @DocsEditable
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  @DomName('DOMWindow.unloadEvent')
+  @DomName('Window.unloadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  @DomName('DOMWindow.webkitAnimationEndEvent')
+  @DomName('Window.webkitAnimationEndEvent')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
-  @DomName('DOMWindow.webkitAnimationIterationEvent')
+  @DomName('Window.webkitAnimationIterationEvent')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
-  @DomName('DOMWindow.webkitAnimationStartEvent')
+  @DomName('Window.webkitAnimationStartEvent')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -20289,183 +20289,183 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   static const int TEMPORARY = 0;
 
-  @DomName('DOMWindow.applicationCache')
+  @DomName('Window.applicationCache')
   @DocsEditable
   final ApplicationCache applicationCache;
 
-  @DomName('DOMWindow.closed')
+  @DomName('Window.closed')
   @DocsEditable
   final bool closed;
 
-  @DomName('DOMWindow.crypto')
+  @DomName('Window.crypto')
   @DocsEditable
   final Crypto crypto;
 
-  @DomName('DOMWindow.defaultStatus')
+  @DomName('Window.defaultStatus')
   @DocsEditable
   String defaultStatus;
 
-  @DomName('DOMWindow.defaultstatus')
+  @DomName('Window.defaultstatus')
   @DocsEditable
   String defaultstatus;
 
-  @DomName('DOMWindow.devicePixelRatio')
+  @DomName('Window.devicePixelRatio')
   @DocsEditable
   final num devicePixelRatio;
 
-  @DomName('DOMWindow.event')
+  @DomName('Window.event')
   @DocsEditable
   final Event event;
 
-  @DomName('DOMWindow.history')
+  @DomName('Window.history')
   @DocsEditable
   final History history;
 
-  @DomName('DOMWindow.innerHeight')
+  @DomName('Window.innerHeight')
   @DocsEditable
   final int innerHeight;
 
-  @DomName('DOMWindow.innerWidth')
+  @DomName('Window.innerWidth')
   @DocsEditable
   final int innerWidth;
 
-  @DomName('DOMWindow.localStorage')
+  @DomName('Window.localStorage')
   @DocsEditable
   final Storage localStorage;
 
-  @DomName('DOMWindow.locationbar')
+  @DomName('Window.locationbar')
   @DocsEditable
   final BarInfo locationbar;
 
-  @DomName('DOMWindow.menubar')
+  @DomName('Window.menubar')
   @DocsEditable
   final BarInfo menubar;
 
-  @DomName('DOMWindow.name')
+  @DomName('Window.name')
   @DocsEditable
   String name;
 
-  @DomName('DOMWindow.navigator')
+  @DomName('Window.navigator')
   @DocsEditable
   final Navigator navigator;
 
-  @DomName('DOMWindow.offscreenBuffering')
+  @DomName('Window.offscreenBuffering')
   @DocsEditable
   final bool offscreenBuffering;
 
   WindowBase get opener => _convertNativeToDart_Window(this._get_opener);
   @JSName('opener')
-  @DomName('DOMWindow.opener')
+  @DomName('Window.opener')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _get_opener;
 
-  @DomName('DOMWindow.outerHeight')
+  @DomName('Window.outerHeight')
   @DocsEditable
   final int outerHeight;
 
-  @DomName('DOMWindow.outerWidth')
+  @DomName('Window.outerWidth')
   @DocsEditable
   final int outerWidth;
 
-  @DomName('DOMWindow.pageXOffset')
+  @DomName('Window.pageXOffset')
   @DocsEditable
   final int pageXOffset;
 
-  @DomName('DOMWindow.pageYOffset')
+  @DomName('Window.pageYOffset')
   @DocsEditable
   final int pageYOffset;
 
   WindowBase get parent => _convertNativeToDart_Window(this._get_parent);
   @JSName('parent')
-  @DomName('DOMWindow.parent')
+  @DomName('Window.parent')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _get_parent;
 
-  @DomName('DOMWindow.performance')
+  @DomName('Window.performance')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE)
   final Performance performance;
 
-  @DomName('DOMWindow.personalbar')
+  @DomName('Window.personalbar')
   @DocsEditable
   final BarInfo personalbar;
 
-  @DomName('DOMWindow.screen')
+  @DomName('Window.screen')
   @DocsEditable
   final Screen screen;
 
-  @DomName('DOMWindow.screenLeft')
+  @DomName('Window.screenLeft')
   @DocsEditable
   final int screenLeft;
 
-  @DomName('DOMWindow.screenTop')
+  @DomName('Window.screenTop')
   @DocsEditable
   final int screenTop;
 
-  @DomName('DOMWindow.screenX')
+  @DomName('Window.screenX')
   @DocsEditable
   final int screenX;
 
-  @DomName('DOMWindow.screenY')
+  @DomName('Window.screenY')
   @DocsEditable
   final int screenY;
 
-  @DomName('DOMWindow.scrollX')
+  @DomName('Window.scrollX')
   @DocsEditable
   final int scrollX;
 
-  @DomName('DOMWindow.scrollY')
+  @DomName('Window.scrollY')
   @DocsEditable
   final int scrollY;
 
-  @DomName('DOMWindow.scrollbars')
+  @DomName('Window.scrollbars')
   @DocsEditable
   final BarInfo scrollbars;
 
   WindowBase get self => _convertNativeToDart_Window(this._get_self);
   @JSName('self')
-  @DomName('DOMWindow.self')
+  @DomName('Window.self')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _get_self;
 
-  @DomName('DOMWindow.sessionStorage')
+  @DomName('Window.sessionStorage')
   @DocsEditable
   final Storage sessionStorage;
 
-  @DomName('DOMWindow.status')
+  @DomName('Window.status')
   @DocsEditable
   String status;
 
-  @DomName('DOMWindow.statusbar')
+  @DomName('Window.statusbar')
   @DocsEditable
   final BarInfo statusbar;
 
-  @DomName('DOMWindow.styleMedia')
+  @DomName('Window.styleMedia')
   @DocsEditable
   final StyleMedia styleMedia;
 
-  @DomName('DOMWindow.toolbar')
+  @DomName('Window.toolbar')
   @DocsEditable
   final BarInfo toolbar;
 
   WindowBase get top => _convertNativeToDart_Window(this._get_top);
   @JSName('top')
-  @DomName('DOMWindow.top')
+  @DomName('Window.top')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _get_top;
 
   @JSName('webkitNotifications')
-  @DomName('DOMWindow.webkitNotifications')
+  @DomName('Window.webkitNotifications')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -20473,7 +20473,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   final NotificationCenter notifications;
 
   @JSName('webkitStorageInfo')
-  @DomName('DOMWindow.webkitStorageInfo')
+  @DomName('Window.webkitStorageInfo')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -20482,88 +20482,88 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   WindowBase get window => _convertNativeToDart_Window(this._get_window);
   @JSName('window')
-  @DomName('DOMWindow.window')
+  @DomName('Window.window')
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _get_window;
 
   @JSName('addEventListener')
-  @DomName('DOMWindow.addEventListener')
+  @DomName('Window.addEventListener')
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('DOMWindow.alert')
+  @DomName('Window.alert')
   @DocsEditable
   void alert(String message) native;
 
-  @DomName('DOMWindow.atob')
+  @DomName('Window.atob')
   @DocsEditable
   String atob(String string) native;
 
-  @DomName('DOMWindow.btoa')
+  @DomName('Window.btoa')
   @DocsEditable
   String btoa(String string) native;
 
-  @DomName('DOMWindow.captureEvents')
+  @DomName('Window.captureEvents')
   @DocsEditable
   void captureEvents() native;
 
   @JSName('clearInterval')
-  @DomName('DOMWindow.clearInterval')
+  @DomName('Window.clearInterval')
   @DocsEditable
   void _clearInterval(int handle) native;
 
   @JSName('clearTimeout')
-  @DomName('DOMWindow.clearTimeout')
+  @DomName('Window.clearTimeout')
   @DocsEditable
   void _clearTimeout(int handle) native;
 
-  @DomName('DOMWindow.close')
+  @DomName('Window.close')
   @DocsEditable
   void close() native;
 
-  @DomName('DOMWindow.confirm')
+  @DomName('Window.confirm')
   @DocsEditable
   bool confirm(String message) native;
 
-  @DomName('DOMWindow.dispatchEvent')
+  @DomName('Window.dispatchEvent')
   @DocsEditable
   bool dispatchEvent(Event evt) native;
 
-  @DomName('DOMWindow.find')
+  @DomName('Window.find')
   @DocsEditable
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native;
 
   @JSName('getComputedStyle')
-  @DomName('DOMWindow.getComputedStyle')
+  @DomName('Window.getComputedStyle')
   @DocsEditable
   CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native;
 
   @JSName('getMatchedCSSRules')
-  @DomName('DOMWindow.getMatchedCSSRules')
+  @DomName('Window.getMatchedCSSRules')
   @DocsEditable
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native;
 
-  @DomName('DOMWindow.getSelection')
+  @DomName('Window.getSelection')
   @DocsEditable
   Selection getSelection() native;
 
-  @DomName('DOMWindow.matchMedia')
+  @DomName('Window.matchMedia')
   @DocsEditable
   MediaQueryList matchMedia(String query) native;
 
-  @DomName('DOMWindow.moveBy')
+  @DomName('Window.moveBy')
   @DocsEditable
   void moveBy(num x, num y) native;
 
-  @DomName('DOMWindow.moveTo')
+  @DomName('Window.moveTo')
   @DocsEditable
   void moveTo(num x, num y) native;
 
-  @DomName('DOMWindow.openDatabase')
+  @DomName('Window.openDatabase')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -20571,7 +20571,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @Creates('SqlDatabase')
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  @DomName('DOMWindow.postMessage')
+  @DomName('Window.postMessage')
   @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
     if (?messagePorts) {
@@ -20584,71 +20584,71 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
     return;
   }
   @JSName('postMessage')
-  @DomName('DOMWindow.postMessage')
+  @DomName('Window.postMessage')
   @DocsEditable
   void _postMessage_1(message, targetOrigin, List messagePorts) native;
   @JSName('postMessage')
-  @DomName('DOMWindow.postMessage')
+  @DomName('Window.postMessage')
   @DocsEditable
   void _postMessage_2(message, targetOrigin) native;
 
-  @DomName('DOMWindow.print')
+  @DomName('Window.print')
   @DocsEditable
   void print() native;
 
-  @DomName('DOMWindow.releaseEvents')
+  @DomName('Window.releaseEvents')
   @DocsEditable
   void releaseEvents() native;
 
   @JSName('removeEventListener')
-  @DomName('DOMWindow.removeEventListener')
+  @DomName('Window.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  @DomName('DOMWindow.resizeBy')
+  @DomName('Window.resizeBy')
   @DocsEditable
   void resizeBy(num x, num y) native;
 
-  @DomName('DOMWindow.resizeTo')
+  @DomName('Window.resizeTo')
   @DocsEditable
   void resizeTo(num width, num height) native;
 
-  @DomName('DOMWindow.scroll')
+  @DomName('Window.scroll')
   @DocsEditable
   void scroll(int x, int y) native;
 
-  @DomName('DOMWindow.scrollBy')
+  @DomName('Window.scrollBy')
   @DocsEditable
   void scrollBy(int x, int y) native;
 
-  @DomName('DOMWindow.scrollTo')
+  @DomName('Window.scrollTo')
   @DocsEditable
   void scrollTo(int x, int y) native;
 
   @JSName('setInterval')
-  @DomName('DOMWindow.setInterval')
+  @DomName('Window.setInterval')
   @DocsEditable
   int _setInterval(Object handler, int timeout) native;
 
   @JSName('setTimeout')
-  @DomName('DOMWindow.setTimeout')
+  @DomName('Window.setTimeout')
   @DocsEditable
   int _setTimeout(Object handler, int timeout) native;
 
-  @DomName('DOMWindow.showModalDialog')
+  @DomName('Window.showModalDialog')
   @DocsEditable
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
-  @DomName('DOMWindow.stop')
+  @DomName('Window.stop')
   @DocsEditable
   void stop() native;
 
-  @DomName('DOMWindow.toString')
+  @DomName('Window.toString')
   @DocsEditable
   String toString() native;
 
   @JSName('webkitConvertPointFromNodeToPage')
-  @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
+  @DomName('Window.webkitConvertPointFromNodeToPage')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -20656,7 +20656,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   _DomPoint _convertPointFromNodeToPage(Node node, _DomPoint p) native;
 
   @JSName('webkitConvertPointFromPageToNode')
-  @DomName('DOMWindow.webkitConvertPointFromPageToNode')
+  @DomName('Window.webkitConvertPointFromPageToNode')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -20664,14 +20664,14 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   _DomPoint _convertPointFromPageToNode(Node node, _DomPoint p) native;
 
   @JSName('webkitRequestFileSystem')
-  @DomName('DOMWindow.webkitRequestFileSystem')
+  @DomName('Window.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
   void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native;
 
   @JSName('webkitRequestFileSystem')
-  @DomName('DOMWindow.webkitRequestFileSystem')
+  @DomName('Window.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
@@ -20684,14 +20684,14 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   }
 
   @JSName('webkitResolveLocalFileSystemURL')
-  @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
+  @DomName('Window.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
   void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
-  @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
+  @DomName('Window.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
@@ -20703,215 +20703,215 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
     return completer.future;
   }
 
-  @DomName('DOMWindow.onDOMContentLoaded')
+  @DomName('Window.onDOMContentLoaded')
   @DocsEditable
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
-  @DomName('DOMWindow.onabort')
+  @DomName('Window.onabort')
   @DocsEditable
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  @DomName('DOMWindow.onblur')
+  @DomName('Window.onblur')
   @DocsEditable
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  @DomName('DOMWindow.onchange')
+  @DomName('Window.onchange')
   @DocsEditable
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  @DomName('DOMWindow.onclick')
+  @DomName('Window.onclick')
   @DocsEditable
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  @DomName('DOMWindow.oncontextmenu')
+  @DomName('Window.oncontextmenu')
   @DocsEditable
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondblclick')
+  @DomName('Window.ondblclick')
   @DocsEditable
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondevicemotion')
+  @DomName('Window.ondevicemotion')
   @DocsEditable
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondeviceorientation')
+  @DomName('Window.ondeviceorientation')
   @DocsEditable
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondrag')
+  @DomName('Window.ondrag')
   @DocsEditable
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragend')
+  @DomName('Window.ondragend')
   @DocsEditable
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragenter')
+  @DomName('Window.ondragenter')
   @DocsEditable
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragleave')
+  @DomName('Window.ondragleave')
   @DocsEditable
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragover')
+  @DomName('Window.ondragover')
   @DocsEditable
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragstart')
+  @DomName('Window.ondragstart')
   @DocsEditable
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondrop')
+  @DomName('Window.ondrop')
   @DocsEditable
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  @DomName('DOMWindow.onerror')
+  @DomName('Window.onerror')
   @DocsEditable
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  @DomName('DOMWindow.onfocus')
+  @DomName('Window.onfocus')
   @DocsEditable
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  @DomName('DOMWindow.onhashchange')
+  @DomName('Window.onhashchange')
   @DocsEditable
   Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
-  @DomName('DOMWindow.oninput')
+  @DomName('Window.oninput')
   @DocsEditable
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  @DomName('DOMWindow.oninvalid')
+  @DomName('Window.oninvalid')
   @DocsEditable
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  @DomName('DOMWindow.onkeydown')
+  @DomName('Window.onkeydown')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  @DomName('DOMWindow.onkeypress')
+  @DomName('Window.onkeypress')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  @DomName('DOMWindow.onkeyup')
+  @DomName('Window.onkeyup')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  @DomName('DOMWindow.onload')
+  @DomName('Window.onload')
   @DocsEditable
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmessage')
+  @DomName('Window.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmousedown')
+  @DomName('Window.onmousedown')
   @DocsEditable
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmousemove')
+  @DomName('Window.onmousemove')
   @DocsEditable
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmouseout')
+  @DomName('Window.onmouseout')
   @DocsEditable
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmouseover')
+  @DomName('Window.onmouseover')
   @DocsEditable
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmouseup')
+  @DomName('Window.onmouseup')
   @DocsEditable
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmousewheel')
+  @DomName('Window.onmousewheel')
   @DocsEditable
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  @DomName('DOMWindow.onoffline')
+  @DomName('Window.onoffline')
   @DocsEditable
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
-  @DomName('DOMWindow.ononline')
+  @DomName('Window.ononline')
   @DocsEditable
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
-  @DomName('DOMWindow.onpagehide')
+  @DomName('Window.onpagehide')
   @DocsEditable
   Stream<Event> get onPageHide => pageHideEvent.forTarget(this);
 
-  @DomName('DOMWindow.onpageshow')
+  @DomName('Window.onpageshow')
   @DocsEditable
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
-  @DomName('DOMWindow.onpopstate')
+  @DomName('Window.onpopstate')
   @DocsEditable
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  @DomName('DOMWindow.onreset')
+  @DomName('Window.onreset')
   @DocsEditable
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  @DomName('DOMWindow.onresize')
+  @DomName('Window.onresize')
   @DocsEditable
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  @DomName('DOMWindow.onscroll')
+  @DomName('Window.onscroll')
   @DocsEditable
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  @DomName('DOMWindow.onsearch')
+  @DomName('Window.onsearch')
   @DocsEditable
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  @DomName('DOMWindow.onselect')
+  @DomName('Window.onselect')
   @DocsEditable
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
-  @DomName('DOMWindow.onstorage')
+  @DomName('Window.onstorage')
   @DocsEditable
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  @DomName('DOMWindow.onsubmit')
+  @DomName('Window.onsubmit')
   @DocsEditable
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  @DomName('DOMWindow.ontouchcancel')
+  @DomName('Window.ontouchcancel')
   @DocsEditable
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  @DomName('DOMWindow.ontouchend')
+  @DomName('Window.ontouchend')
   @DocsEditable
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.ontouchmove')
+  @DomName('Window.ontouchmove')
   @DocsEditable
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  @DomName('DOMWindow.ontouchstart')
+  @DomName('Window.ontouchstart')
   @DocsEditable
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.onunload')
+  @DomName('Window.onunload')
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
-  @DomName('DOMWindow.onwebkitAnimationEnd')
+  @DomName('Window.onwebkitAnimationEnd')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.onwebkitAnimationIteration')
+  @DomName('Window.onwebkitAnimationIteration')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
-  @DomName('DOMWindow.onwebkitAnimationStart')
+  @DomName('Window.onwebkitAnimationStart')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.onwebkitTransitionEnd')
+  @DomName('Window.onwebkitTransitionEnd')
   @DocsEditable
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
@@ -21550,12 +21550,9 @@ abstract class _DirectoryReaderSync native "DirectoryReaderSync" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
 class _DomPoint native "WebKitPoint" {
 
-  @DomName('DOMPoint.DOMPoint')
+  @DomName('WebKitPoint.DOMPoint')
   @DocsEditable
   factory _DomPoint(num x, num y) {
     return _DomPoint._create_1(x, y);
@@ -21565,11 +21562,11 @@ class _DomPoint native "WebKitPoint" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebKitPoint)');
 
-  @DomName('DOMPoint.x')
+  @DomName('WebKitPoint.x')
   @DocsEditable
   num x;
 
-  @DomName('DOMPoint.y')
+  @DomName('WebKitPoint.y')
   @DocsEditable
   num y;
 }
