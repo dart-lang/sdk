@@ -11,11 +11,7 @@ library export_map;
 import 'dart:io';
 import 'dart:uri';
 
-import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/parser.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
-import 'package:analyzer_experimental/src/generated/source.dart';
+import 'package:analyzer_experimental/analyzer.dart';
 import 'package:pathos/path.dart' as pathos;
 
 import 'dartdoc/utils.dart';
@@ -253,7 +249,7 @@ class Export {
 Pair<List<String>, List<Export>> _importsAndExportsForFile(String file,
     String packageRoot) {
   var collector = new _ImportExportCollector();
-  _parseFile(file).accept(collector);
+  parseDartFile(file).accept(collector);
 
   var imports = collector.imports.map((import) {
     return _pathForDirective(import, pathos.dirname(file), packageRoot);
@@ -285,37 +281,10 @@ Pair<List<String>, List<Export>> _importsAndExportsForFile(String file,
 /// [packageRoot] is the path from which `package:` imports should be resolved.
 String _pathForDirective(NamespaceDirective directive, String basePath,
     String packageRoot) {
-  var uri = Uri.parse(_stringLiteralToString(directive.uri));
+  var uri = Uri.parse(stringLiteralToString(directive.uri));
   var path = importUriToPath(uri, basePath: basePath, packageRoot: packageRoot);
   if (path == null) return null;
   return pathos.normalize(pathos.absolute(path));
-}
-
-/// Parses a Dart file into an AST.
-CompilationUnit _parseFile(String path) {
-  var contents = new File(path).readAsStringSync();
-  var errorCollector = new _ErrorCollector();
-  var scanner = new StringScanner(null, contents, errorCollector);
-  var token = scanner.tokenize();
-  var parser = new Parser(null, errorCollector);
-  var unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = new LineInfo(scanner.lineStarts);
-
-  if (!errorCollector.errors.isEmpty) {
-    throw new FormatException(
-        errorCollector.errors.map((e) => e.toString()).join("\n"));
-  }
-
-  return unit;
-}
-
-/// A simple error listener that collects errors into a list.
-class _ErrorCollector extends AnalysisErrorListener {
-  final errors = <AnalysisError>[];
-
-  _ErrorCollector();
-
-  void onError(AnalysisError error) => errors.add(error);
 }
 
 /// A simple visitor that collects import and export nodes.
@@ -327,16 +296,4 @@ class _ImportExportCollector extends GeneralizingASTVisitor {
 
   visitImportDirective(ImportDirective node) => imports.add(node);
   visitExportDirective(ExportDirective node) => exports.add(node);
-}
-
-// TODO(nweiz): fold this into the analyzer (issue 9781).
-/// Converts an AST node representing a string literal into a [String].
-String _stringLiteralToString(StringLiteral literal) {
-  if (literal is AdjacentStrings) {
-    return literal.strings.map(_stringLiteralToString).join();
-  } else if (literal is SimpleStringLiteral) {
-    return literal.value;
-  } else {
-    throw new ArgumentError('Unknown string type for $literal');
-  }
 }

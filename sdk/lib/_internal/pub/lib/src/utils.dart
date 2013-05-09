@@ -433,7 +433,7 @@ bool isUserFacingException(error) {
     error is HttpException ||
     error is HttpParserException ||
     error is LinkIOException ||
-    error is MimeParserException ||
+    error is MimeMultipartException ||
     error is OSError ||
     error is ProcessException ||
     error is SocketIOException ||

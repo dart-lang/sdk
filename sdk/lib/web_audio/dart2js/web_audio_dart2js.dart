@@ -87,9 +87,7 @@ class AudioBuffer native "AudioBuffer" {
 
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable
-  @Returns('Float32List')
-  @Creates('Float32List')
-  List<double> getChannelData(int channelIndex) native;
+  Float32List getChannelData(int channelIndex) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -865,9 +863,7 @@ class WaveShaperNode extends AudioNode native "WaveShaperNode" {
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable
-  @Returns('Float32List')
-  @Creates('Float32List')
-  List<double> curve;
+  Float32List curve;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

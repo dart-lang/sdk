@@ -96,7 +96,7 @@
             '--exclude-lib=webdriver',
             '--exclude-lib=yaml',
             '--include-lib=matcher',
-            '--include-lib=mock',
+            '--extra-lib=pkg/unittest/lib/mock.dart',
           ],
           'message': 'Running apidoc: <(_action)',
         },

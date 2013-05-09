@@ -2,71 +2,70 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "include/dart_api.h"
 
 #include "bin/builtin.h"
-#include "bin/dartutils.h"
-
 
 namespace dart {
 namespace bin {
 
-Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
-  /* { url_, source_, patch_url_, patch_source_, has_natives_ } */
-  { DartUtils::kBuiltinLibURL, builtin_source_, NULL, NULL, true },
-  { DartUtils::kIOLibURL, io_source_,
-    DartUtils::kIOLibPatchURL, io_patch_, true },
+// Lists the native function implementing basic logging facility.
+#define BUILTIN_NATIVE_LIST(V)                                                 \
+  V(Logger_PrintString, 1)
+
+BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
+
+static struct NativeEntries {
+  const char* name_;
+  Dart_NativeFunction function_;
+  int argument_count_;
+} BuiltinEntries[] = {
+  BUILTIN_NATIVE_LIST(REGISTER_FUNCTION)
 };
-
-
-Dart_Handle Builtin::Source(BuiltinLibraryId id) {
-  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-         kInvalidLibrary);
-  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
-  return DartUtils::NewString(builtin_libraries_[id].source_);
-}
 
 
 Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
                                           int argument_count) {
-  UNREACHABLE();
+  const char* function_name = NULL;
+  Dart_Handle result = Dart_StringToCString(name, &function_name);
+  DART_CHECK_VALID(result);
+  ASSERT(function_name != NULL);
+  int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    struct NativeEntries* entry = &(BuiltinEntries[i]);
+    if (!strcmp(function_name, entry->name_) &&
+        (entry->argument_count_ == argument_count)) {
+      return reinterpret_cast<Dart_NativeFunction>(entry->function_);
+    }
+  }
   return NULL;
 }
 
 
-void Builtin::SetNativeResolver(BuiltinLibraryId id) {
-  UNREACHABLE();
-}
-
-
-Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
-  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-         kInvalidLibrary);
-  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
-  Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
-  Dart_Handle library = Dart_LookupLibrary(url);
-  if (Dart_IsError(library)) {
-    library = Dart_LoadLibrary(url, Source(id));
-    if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
-      // Setup the native resolver for built in library functions.
-      // Looks up native functions only in libdart_builtin, not libdart_io.
-      // This is for use in the snapshot generator, which should be
-      // independent of most of the dart:io C++ code.
-      DART_CHECK_VALID(Dart_SetNativeResolver(library, BuiltinNativeLookup));
-    }
-    if (builtin_libraries_[id].patch_url_ != NULL) {
-      ASSERT(builtin_libraries_[id].patch_source_ != NULL);
-      Dart_Handle patch_url =
-          DartUtils::NewString(builtin_libraries_[id].patch_url_);
-      Dart_Handle patch_source =
-          DartUtils::NewString(builtin_libraries_[id].patch_source_);
-      DART_CHECK_VALID(Dart_LoadPatch(library, patch_url, patch_source));
-    }
+// Implementation of native functions which are used for some
+// test/debug functionality in standalone dart mode.
+void FUNCTION_NAME(Logger_PrintString)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t length = 0;
+  uint8_t* chars = NULL;
+  Dart_Handle str = Dart_GetNativeArgument(args, 0);
+  Dart_Handle result = Dart_StringToUTF8(str, &chars, &length);
+  if (Dart_IsError(result)) {
+    // TODO(turnidge): Consider propagating some errors here.  What if
+    // an isolate gets interrupted by the embedder in the middle of
+    // Dart_StringToUTF8?  We need to make sure not to swallow the
+    // interrupt.
+    fputs(Dart_GetError(result), stdout);
+  } else {
+    fwrite(chars, sizeof(*chars), length, stdout);
   }
-  DART_CHECK_VALID(library);
-  return library;
+  fputc('\n', stdout);
+  fflush(stdout);
+  Dart_ExitScope();
 }
 
 }  // namespace bin

@@ -21,6 +21,7 @@ _convertDartToNative_DateTime(DateTime date) {
 }
 
 WindowBase _convertNativeToDart_Window(win) {
+  if (win == null) return null;
   return _DOMWindowCrossFrame._createSafe(win);
 }
 

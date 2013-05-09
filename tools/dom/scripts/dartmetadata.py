@@ -56,6 +56,14 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('String|CanvasGradient|CanvasPattern')",
     ],
 
+    # Normally DOMWindow is nevernull, but starting from a <template> element in
+    # JavaScript, this will be null:
+    #     template.content.ownerDocument.defaultView
+    'Document.window': [
+      "@Creates('Window|=Object|Null')",
+      "@Returns('Window|=Object|Null')",
+    ],
+
     # Methods returning Window can return a local window, or a cross-frame
     # window (=Object) that needs wrapping.
     'DOMWindow': [
@@ -171,6 +179,11 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 }, dart2jsOnly=True)
 
+_blink_experimental_annotations = [
+  "@SupportedBrowser(SupportedBrowser.CHROME)",
+  "@Experimental",
+]
+
 _indexed_db_annotations = [
   "@SupportedBrowser(SupportedBrowser.CHROME)",
   "@SupportedBrowser(SupportedBrowser.FIREFOX, '15')",
@@ -257,6 +270,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   ],
   'DOMFileSystem': _file_system_annotations,
   'DOMFileSystemSync': _file_system_annotations,
+  'DOMPoint': _webkit_experimental_annotations,
   'DOMWindow.webkitConvertPointFromNodeToPage': _webkit_experimental_annotations,
   'DOMWindow.webkitConvertPointFromPageToNode': _webkit_experimental_annotations,
   'DOMWindow.indexedDB': _indexed_db_annotations,
@@ -274,7 +288,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
     "@Experimental",
   ],
   'Event.clipboardData': _webkit_experimental_annotations,
-  'FormData': _all_but_ie9_annotations,
+  'DOMFormData': _all_but_ie9_annotations,
   'HashChangeEvent': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",
@@ -300,6 +314,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'HTMLOutputElement': _no_ie_annotations,
   'HTMLProgressElement': _all_but_ie9_annotations,
   'HTMLShadowElement': _shadow_dom_annotations,
+  'HTMLTemplateElement': _blink_experimental_annotations,
   'HTMLTrackElement': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.IE, '10')",
@@ -364,7 +379,6 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'SQLTransactionSync': _web_sql_annotations,
   'WebGLRenderingContext': _webgl_annotations,
   'WebKitCSSMatrix': _webkit_experimental_annotations,
-  'WebKitPoint': _webkit_experimental_annotations,
   'WebSocket': _all_but_ie9_annotations,
   'Worker': _all_but_ie9_annotations,
   'XMLHttpRequest.onloadend': _all_but_ie9_annotations,
@@ -390,15 +404,15 @@ class DartMetadata(object):
     self._doc_comments = json.load(comments_file)
     comments_file.close()
 
-  def GetFormattedMetadata(self, library_name, interface_name, member_id=None,
+  def GetFormattedMetadata(self, library_name, interface, member_id=None,
       indentation=''):
     """ Gets all comments and annotations for an interface or member.
     """
     return self.FormatMetadata(
-        self.GetMetadata(library_name, interface_name, member_id),
+        self.GetMetadata(library_name, interface, member_id),
         indentation)
 
-  def GetMetadata(self, library_name, interface_name,
+  def GetMetadata(self, library_name, interface,
         member_name=None, source_member_name=None):
     """ Gets all comments and annotations for an interface or member.
 
@@ -407,20 +421,20 @@ class DartMetadata(object):
         then this is used to apply the support annotations from the other
         member.
     """
-    annotations = self._GetComments(library_name, interface_name, member_name)
+    annotations = self._GetComments(library_name, interface, member_name)
     annotations = annotations + self._GetCommonAnnotations(
-        interface_name, member_name, source_member_name)
+        interface, member_name, source_member_name)
 
     return annotations
 
   def GetDart2JSMetadata(self, idl_type, library_name,
-      interface_name, member_name,):
+      interface, member_name,):
     """ Gets all annotations for Dart2JS members- including annotations for
     both dart2js and dartium.
     """
-    annotations = self.GetMetadata(library_name, interface_name, member_name)
+    annotations = self.GetMetadata(library_name, interface, member_name)
 
-    ann2 = self._GetDart2JSSpecificAnnotations(idl_type, interface_name, member_name)
+    ann2 = self._GetDart2JSSpecificAnnotations(idl_type, interface.id, member_name)
     if ann2:
       if annotations:
         annotations.extend(ann2)
@@ -428,14 +442,16 @@ class DartMetadata(object):
         annotations = ann2
     return annotations
 
-  def _GetCommonAnnotations(self, interface_name, member_name=None,
+  def _GetCommonAnnotations(self, interface, member_name=None,
       source_member_name=None):
     if member_name:
-      key = '%s.%s' % (interface_name, member_name)
+      key = '%s.%s' % (interface.id, member_name)
+      dom_name = '%s.%s' % (interface.javascript_binding_name, member_name)
     else:
-      key = interface_name
+      key = interface.id
+      dom_name = interface.javascript_binding_name
 
-    annotations = ["@DomName('" + key + "')"]
+    annotations = ["@DomName('" + dom_name + "')"]
 
     # Only add this for members, so we don't add DocsEditable to templated
     # classes (they get it from the default class template)
@@ -445,8 +461,9 @@ class DartMetadata(object):
     if key in _annotations:
       annotations.extend(_annotations[key])
 
-    if (not member_name and interface_name.startswith('WebKit') and
-        interface_name not in html_interface_renames):
+    if (not member_name and
+        interface.javascript_binding_name.startswith('WebKit') and
+        interface.id not in html_interface_renames):
       annotations.extend(_webkit_experimental_annotations)
 
     if (member_name and member_name.startswith('webkit') and
@@ -457,11 +474,11 @@ class DartMetadata(object):
       member_name = source_member_name
 
     # TODO(blois): Emit support level annotations
-    self._GetSupportLevelAnnotation(interface_name, member_name)
+    self._GetSupportLevelAnnotation(interface.id, member_name)
 
     return annotations
 
-  def _GetComments(self, library_name, interface_name, member_name=None):
+  def _GetComments(self, library_name, interface, member_name=None):
     """ Gets all comments for the interface or member and returns a list. """
 
     # Add documentation from JSON.
@@ -469,8 +486,8 @@ class DartMetadata(object):
     library_name = 'dart.dom.%s' % library_name
     if library_name in self._doc_comments:
       library_info = self._doc_comments[library_name]
-      if interface_name in library_info:
-        interface_info = library_info[interface_name]
+      if interface.id in library_info:
+        interface_info = library_info[interface.id]
         if member_name:
           if 'members' in interface_info and member_name in interface_info['members']:
             comments = interface_info['members'][member_name]

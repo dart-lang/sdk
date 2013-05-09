@@ -240,8 +240,11 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType visitExpressionStatement(ExpressionStatement node) {
-    analyze(node.expression);
-    return StatementType.NOT_RETURNING;
+    Expression expression = node.expression;
+    analyze(expression);
+    return (expression.asThrow() != null)
+        ? StatementType.RETURNING
+        : StatementType.NOT_RETURNING;
   }
 
   /** Dart Programming Language Specification: 11.5.1 For Loop */
@@ -630,7 +633,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   DartType visitThrow(Throw node) {
     analyze(node.expression);
-    return StatementType.RETURNING;
+    return types.dynamicType;
   }
 
   DartType computeType(Element element) {

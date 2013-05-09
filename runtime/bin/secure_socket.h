@@ -15,11 +15,12 @@
 #include <prnetdb.h>
 #include <ssl.h>
 
-#include "bin/builtin.h"
-#include "bin/dartutils.h"
 #include "platform/globals.h"
 #include "platform/thread.h"
 
+#include "bin/builtin.h"
+#include "bin/dartutils.h"
+#include "bin/utils.h"
 
 namespace dart {
 namespace bin {

@@ -235,6 +235,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'HTMLTableRowElement.insertCell',
   'HTMLTableSectionElement.insertRow',
   'HTMLTableSectionElement.rows',
+  'HTMLTemplateElement.content',
   'IDBCursor.delete',
   'IDBCursor.update',
   'IDBDatabase.createObjectStore',
@@ -309,6 +310,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
+    'CSSStyleDeclaration.getPropertyValue': '_getPropertyValue',
     'DirectoryEntry.getDirectory': '_getDirectory',
     'DirectoryEntry.getFile': '_getFile',
     'Document.createCDATASection': 'createCDataSection',
@@ -328,6 +330,7 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Element.querySelector': 'query',
     'Element.webkitCreateShadowRoot': 'createShadowRoot',
     'Element.webkitMatchesSelector' : 'matches',
+    'MutationObserver.observe': '_observe',
     'Navigator.webkitGetUserMedia': '_getUserMedia',
     'Node.appendChild': 'append',
     'Node.cloneNode': 'clone',

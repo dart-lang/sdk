@@ -18,8 +18,8 @@ main() {
   a1.street = 'N 34th';
   a1.city = 'Seattle';
 
-  var formats = [new SimpleFlatFormat(), new SimpleMapFormat(),
-                 new SimpleJsonFormat(storeRoundTripInfo: true)];
+  var formats = [const SimpleFlatFormat(), const SimpleMapFormat(),
+                 const SimpleJsonFormat(storeRoundTripInfo: true)];
 
   test('Basic extraction of a simple object', () {
     // TODO(alanknight): Switch these to use literal types. Issue
@@ -347,7 +347,7 @@ main() {
 
   test("Straight JSON format", () {
     var s = new Serialization();
-    var writer = s.newWriter(new SimpleJsonFormat());
+    var writer = s.newWriter(const SimpleJsonFormat());
     var out = json.stringify(writer.write(a1));
     var reconstituted = json.parse(out);
     expect(reconstituted.length, 4);
@@ -359,7 +359,7 @@ main() {
     var s = new Serialization()..selfDescribing = false;
     var addressRule = s.addRuleFor(a1)..configureForMaps();
     var personRule = s.addRuleFor(p1)..configureForMaps();
-    var writer = s.newWriter(new SimpleJsonFormat(storeRoundTripInfo: true));
+    var writer = s.newWriter(const SimpleJsonFormat(storeRoundTripInfo: true));
     var out = json.stringify(writer.write(p1));
     var reconstituted = json.parse(out);
     var expected = {
@@ -386,7 +386,7 @@ main() {
       ..addRuleFor(a1)
       ..addRuleFor(p1).configureForMaps();
     var p2 = writeAndReadBack(s,
-        new SimpleJsonFormat(storeRoundTripInfo: true), p1);
+        const SimpleJsonFormat(storeRoundTripInfo: true), p1);
     expect(p2.name, "Alice");
     var a2 = p2.address;
     expect(a2.street, "N 34th");
@@ -402,7 +402,7 @@ main() {
     var s = new Serialization()
         ..addRule(new PersonRuleReturningMapWithNonStringKey());
     var p2 = writeAndReadBack(s,
-        new SimpleJsonFormat(storeRoundTripInfo: true), p1);
+        const SimpleJsonFormat(storeRoundTripInfo: true), p1);
     expect(p2.name, "Alice");
     expect(p2.address.street, "N 34th");
   });
@@ -462,9 +462,9 @@ main() {
       ..addRuleFor(a1)
       ..addRuleFor(p1).configureForMaps()
       ..namedObjects["foo"] = a1;
-    var writer = s.newWriter(new SimpleJsonFormat(storeRoundTripInfo: true));
+    var writer = s.newWriter(const SimpleJsonFormat(storeRoundTripInfo: true));
     var out = writer.write(p1);
-    var reader = s.newReader(new SimpleJsonFormat(storeRoundTripInfo: true));
+    var reader = s.newReader(const SimpleJsonFormat(storeRoundTripInfo: true));
     var p2 = reader.read(out, {"foo" : 12});
     expect(p2.name, "Alice");
     var a2 = p2.address;
@@ -508,7 +508,7 @@ main() {
     var s = new Serialization()..addRuleFor(new Person());
     var data = {"abc" : 1, "def" : "ghi"};
     data["person"] = new Person()..name = "Foo";
-    var output = s.write(data, new SimpleMapFormat());
+    var output = s.write(data, const SimpleMapFormat());
     var mapRule = s.rules.firstWhere((x) => x is MapRule);
     var map = output["data"][mapRule.number][0];
     expect(map is Map, isTrue);
@@ -701,10 +701,10 @@ runRoundTripTestFlat(serializerSetUp) {
   n2.parent = n1;
   n3.parent = n1;
   var s = serializerSetUp(n1);
-  var output = s.write(n2, new SimpleFlatFormat());
+  var output = s.write(n2, const SimpleFlatFormat());
   expect(output is List, isTrue);
   var s2 = serializerSetUp(n1);
-  var reader = new Reader(s2, new SimpleFlatFormat());
+  var reader = new Reader(s2, const SimpleFlatFormat());
   var m2 = reader.read(output);
   var m1 = m2.parent;
   expect(m1 is Node, isTrue);

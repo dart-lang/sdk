@@ -236,7 +236,7 @@ class HtmlEventGenerator(object):
         continue
 
       annotations = self._metadata.FormatMetadata(
-          self._metadata.GetMetadata(library_name, interface.id,
+          self._metadata.GetMetadata(library_name, interface,
               annotation_name, 'on' + dom_name), '  ')
 
       members_emitter.Emit(
@@ -267,7 +267,7 @@ class HtmlEventGenerator(object):
         provider = html_name + 'Event'
 
       annotations = self._metadata.GetFormattedMetadata(
-          library_name, interface.id, annotation_name, '  ')
+          library_name, interface, annotation_name, '  ')
 
       members_emitter.Emit(
           "\n"

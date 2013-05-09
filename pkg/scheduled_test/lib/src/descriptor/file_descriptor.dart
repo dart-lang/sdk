@@ -17,23 +17,34 @@ import '../utils.dart';
 
 /// A descriptor describing a single file.
 class FileDescriptor extends Descriptor {
-  /// Whether this descriptor describes a binary file. This is only used when
-  /// displaying error messages.
-  final bool isBinary;
-
   /// The contents of the file, in bytes.
   final List<int> contents;
 
   /// The contents of the file as a String. Assumes UTF-8 encoding.
   String get textContents => new String.fromCharCodes(contents);
 
-  FileDescriptor.binary(String name, List<int> contents)
-      : this._(name, contents, true);
+  /// Creates a new text [FileDescriptor] with [name] that matches its String
+  /// contents against [matcher]. If the file is created, it's considered to be
+  /// empty.
+  factory FileDescriptor.matcher(String name, Matcher matcher) =>
+    new _MatcherFileDescriptor(name, matcher, isBinary: false);
 
-  FileDescriptor(String name, String contents)
-      : this._(name, encodeUtf8(contents), false);
+  /// Creates a new binary [FileDescriptor] with [name] that matches its binary
+  /// contents against [matcher]. If the file is created, it's considered to be
+  /// empty.
+  factory FileDescriptor.binaryMatcher(String name, Matcher matcher) =>
+    new _MatcherFileDescriptor(name, matcher, isBinary: true);
 
-  FileDescriptor._(String name, this.contents, this.isBinary)
+  /// Creates a new binary [FileDescriptor] descriptor with [name] and
+  /// [contents].
+  factory FileDescriptor.binary(String name, List<int> contents) =>
+    new _BinaryFileDescriptor(name, contents);
+
+  /// Creates a new text [FileDescriptor] with [name] and [contents].
+  factory FileDescriptor(String name, String contents) =>
+    new _StringFileDescriptor(name, contents);
+
+  FileDescriptor._(String name, this.contents)
       : super(name);
 
   Future create([String parent]) => schedule(() {
@@ -51,21 +62,41 @@ class FileDescriptor extends Descriptor {
       throw "File not found: '$fullPath'.";
     }
 
-    return new File(fullPath).readAsBytes()
-        .then((actualContents) {
-      if (orderedIterableEquals(contents, actualContents)) return;
-      if (isBinary) {
-        // TODO(nweiz): show a hex dump here if the data is small enough.
-        throw "File '$name' didn't contain the expected binary data.";
-      }
-      throw _textMismatchMessage(textContents,
-          new String.fromCharCodes(actualContents));
-    });
+    return new File(fullPath).readAsBytes().then(_validateNow);
   }
+  
+  // TODO(nweiz): rather than setting up an inheritance chain, just store a
+  // Matcher for validation. This would require better error messages from the
+  // matcher library, though.
+  /// A function that throws an error if [binaryContents] doesn't match the
+  /// expected contents of the descriptor.
+  void _validateNow(List<int> binaryContents);
 
   Stream<List<int>> read() => new Future.value(contents).asStream();
 
   String describe() => name;
+}
+
+class _BinaryFileDescriptor extends FileDescriptor {
+  _BinaryFileDescriptor(String name, List<int> contents)
+      : super._(name, contents);
+
+  Future _validateNow(List<int> actualContents) {
+    if (orderedIterableEquals(contents, actualContents)) return;
+    // TODO(nweiz): show a hex dump here if the data is small enough.
+    throw "File '$name' didn't contain the expected binary data.";
+  }
+}
+
+class _StringFileDescriptor extends FileDescriptor {
+  _StringFileDescriptor(String name, String contents)
+      : super._(name, encodeUtf8(contents));
+
+  Future _validateNow(List<int> actualContents) {
+    if (orderedIterableEquals(contents, actualContents)) return;
+    throw _textMismatchMessage(textContents,
+        new String.fromCharCodes(actualContents));
+  }
 
   String _textMismatchMessage(String expected, String actual) {
     final expectedLines = expected.split('\n');
@@ -101,4 +132,18 @@ class FileDescriptor extends Descriptor {
         "but actually contained:\n"
         "${results.join('\n')}";
   }
+}
+
+class _MatcherFileDescriptor extends FileDescriptor {
+  final Matcher _matcher;
+  final bool _isBinary;
+
+  _MatcherFileDescriptor(String name, this._matcher, {bool isBinary})
+      : _isBinary = isBinary == true ? true : false,
+        super._(name, <int>[]);
+
+  void _validateNow(List<int> actualContents) =>
+      expect(
+          _isBinary ? actualContents : new String.fromCharCodes(actualContents),
+          _matcher);
 }

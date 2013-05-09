@@ -21,14 +21,9 @@
  */
 library extract_messages;
 
-import 'package:analyzer_experimental/src/generated/ast.dart';
-import 'package:analyzer_experimental/src/generated/error.dart';
-import 'package:analyzer_experimental/src/generated/java_core.dart';
-import 'package:analyzer_experimental/src/generated/parser.dart';
-import 'package:analyzer_experimental/src/generated/scanner.dart';
-import 'package:analyzer_experimental/src/generated/source.dart';
-import 'package:analyzer_experimental/src/generated/utilities_dart.dart';
 import 'dart:io';
+
+import 'package:analyzer_experimental/analyzer.dart';
 import 'package:intl/src/intl_message.dart';
 
 /**
@@ -38,42 +33,14 @@ import 'package:intl/src/intl_message.dart';
 bool suppressWarnings = false;
 
 /**
- * Parse the dart program represented in [sourceCode] and return a Map from
- * message names to [IntlMessage] instances. The [origin] is a string
- * describing where the source came from, and is used in error messages.
- */
-Map<String, IntlMessage> parseString(String sourceCode, [String origin]) {
-  var errorListener = new _ErrorCollector();
-  var scanner = new StringScanner(null, sourceCode, errorListener);
-  var token = scanner.tokenize();
-  var parser = new Parser(null, errorListener);
-  var unit = parser.parseCompilationUnit(token);
-  unit.lineInfo = new LineInfo(scanner.lineStarts);
-
-  var visitor = new MessageFindingVisitor(unit, origin);
-  unit.accept(visitor);
-  for (var error in errorListener.errors) {
-    print(error);
-  }
-  return visitor.messages;
-}
-
-/**
  * Parse the source of the Dart program file [file] and return a Map from
  * message names to [IntlMessage] instances.
  */
 Map<String, IntlMessage> parseFile(File file) {
-  var sourceCode = file.readAsStringSync();
-  return parseString(sourceCode, file.path);
-}
-
-/**
- * An error handler for parsing. Error handling is currently very primitive.
- */
-class _ErrorCollector extends AnalysisErrorListener {
-  List<AnalysisError> errors;
-  _ErrorCollector() : errors = new List<AnalysisError>();
-  onError(error) => errors.add(error);
+  var unit = parseDartFile(file.path);
+  var visitor = new MessageFindingVisitor(unit, file.path);
+  unit.accept(visitor);
+  return visitor.messages;
 }
 
 /**

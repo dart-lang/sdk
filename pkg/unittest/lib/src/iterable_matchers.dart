@@ -184,3 +184,62 @@ abstract class _IterableMatcher extends BaseMatcher {
     }
   }
 }
+
+/**
+ * A pairwise matcher for iterable. You can pass an arbitrary [comparator]
+ * function that takes an expected and actual argument which will be applied
+ * to each pair in order. [description]  should be a meaningful name for
+ * the comparator.
+ */
+Matcher pairwiseCompare(Iterable expected, Function comparator,
+    String description) =>
+        new _PairwiseCompare(expected, comparator, description);
+
+class _PairwiseCompare extends _IterableMatcher {
+  Iterable _expected;
+  Function _comparator;
+  String _description;
+
+  _PairwiseCompare(this._expected, this._comparator, this._description);
+
+  bool matches(item, MatchState matchState) {
+    if (item is! Iterable) return false;
+    if (item.length != _expected.length) return false;
+    var iterator = item.iterator;
+    var i = 0;
+    for (var e in _expected) {
+      iterator.moveNext();
+      if (!_comparator(e, iterator.current)) {
+        matchState.state = {
+            'index': i,
+            'expected': e,
+            'actual' : iterator.current,
+            'state': matchState.state
+        };
+        return false;
+      }
+      i++;
+    }
+    return true;
+  }
+    
+  Description describe(Description description) =>
+      description.add('pairwise $_description ').addDescriptionOf(_expected);
+
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    if (item is !Iterable) {
+      return mismatchDescription.add('not an Iterable');
+    } else if (item.length != _expected.length) {
+      return mismatchDescription.
+          add('length was ${item.length} instead of ${_expected.length}');
+    } else {
+      return mismatchDescription.
+          addDescriptionOf(matchState.state["actual"]).
+          add(' not $_description ').
+          addDescriptionOf(matchState.state["expected"]).
+          add(' at position ${matchState.state["index"]}');
+    }
+  }
+}
+

@@ -39,7 +39,21 @@ void main() {
   bool generateAppCache = false;
 
   List<String> excludedLibraries = <String>[];
+
+  // For libraries that have names matching the package name,
+  // such as library unittest in package unittest, we just give
+  // the package name with a --include-lib argument, such as:
+  // --include-lib=unittest. These arguments are collected in
+  // includedLibraries.
   List<String> includedLibraries = <String>[];
+
+  // For libraries that lie within packages but have a different name,
+  // such as the matcher library in package unittest, we can use 
+  // --extra-lib with a full relative path under pkg, such as
+  // --extra-lib=unittest/lib/matcher.dart. These arguments are
+  // collected in extraLibraries.
+  List<String> extraLibraries = <String>[];
+
   String packageRoot;
   String version;
 
@@ -65,6 +79,8 @@ void main() {
           excludedLibraries.add(arg.substring('--exclude-lib='.length));
         } else if (arg.startsWith('--include-lib=')) {
           includedLibraries.add(arg.substring('--include-lib='.length));
+        } else if (arg.startsWith('--extra-lib=')) {
+          extraLibraries.add(arg.substring('--extra-lib='.length));
         } else if (arg.startsWith('--out=')) {
           outputDir = new Path(arg.substring('--out='.length));
         } else if (arg.startsWith('--package-root=')) {
@@ -140,6 +156,19 @@ void main() {
       }
     }
   }, onDone: () {
+    // Add any --extra libraries that had full pkg paths.
+    // TODO(gram): if the handling of --include-lib libraries in the
+    // listen() block above is cleaned up, then this will need to be
+    // too, as it is a special case of the above.
+    for (var lib in extraLibraries) {
+      var libPath = new Path('../../$lib');
+      if (new File.fromPath(libPath).existsSync()) {
+        apidocLibraries.add(_pathToFileUri(libPath.toNativePath()));
+        var libName = libPath.filename.replaceAll('.dart', '');
+        includedLibraries.add(libName);
+      }
+    }
+
     final apidoc = new Apidoc(mdn, outputDir, mode, generateAppCache,
                               excludedLibraries, version);
     apidoc.dartdocPath =

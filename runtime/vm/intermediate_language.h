@@ -62,6 +62,7 @@ class Range;
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1026765313)                   \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 984449525)                  \
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
+  V(_OneByteString, _setAt, OneByteStringSetAt, 342452817)                     \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 1267108971)             \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
   V(_Double, truncateToDouble, DoubleTruncate, 620870996)                      \

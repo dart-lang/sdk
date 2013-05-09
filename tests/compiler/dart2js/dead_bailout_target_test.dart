@@ -60,8 +60,7 @@ main() {
 
   // Check that the bailout method has a case 2 for the state, which
   // is the second bailout in foo.
-  RegExp state = new RegExp('case 2:');
-  checkNumberOfMatches(state.allMatches(generated).iterator, 1);
+  Expect.isTrue(generated.contains('case 2:'));
 
   // Finally, make sure that the reason foo does not contain
   // 'getInterceptor' is not because the compiler renamed it.

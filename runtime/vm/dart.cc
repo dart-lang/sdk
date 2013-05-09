@@ -27,7 +27,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, heap_profile_initialize, false,
             "Writes a heap profile on isolate initialization.");
-DECLARE_FLAG(bool, print_bootstrap);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 
@@ -146,32 +145,6 @@ Isolate* Dart::CreateIsolate(const char* name_prefix) {
 }
 
 
-static void PrintLibrarySources(Isolate* isolate) {
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate->object_store()->libraries());
-  intptr_t lib_count = libs.Length();
-  Library& lib = Library::Handle();
-  Array& scripts = Array::Handle();
-  Script& script = Script::Handle();
-  String& url = String::Handle();
-  String& source = String::Handle();
-  for (int i = 0; i < lib_count; i++) {
-    lib ^= libs.At(i);
-    url = lib.url();
-    OS::Print("Library %s:\n", url.ToCString());
-    scripts = lib.LoadedScripts();
-    intptr_t script_count = scripts.Length();
-    for (intptr_t i = 0; i < script_count; i++) {
-      script ^= scripts.At(i);
-      url = script.url();
-      source = script.Source();
-      OS::Print("Source for %s:\n", url.ToCString());
-      OS::Print("%s\n", source.ToCString());
-    }
-  }
-}
-
-
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   TIMERSCOPE(time_isolate_initialization);
@@ -204,9 +177,6 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     if (FLAG_trace_isolates) {
       isolate->heap()->PrintSizes();
       isolate->megamorphic_cache_table()->PrintSizes();
-    }
-    if (FLAG_print_bootstrap) {
-      PrintLibrarySources(isolate);
     }
   }
 

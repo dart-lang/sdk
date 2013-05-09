@@ -184,6 +184,7 @@ _html_element_constructors = monitored.Dict(
   'HTMLTableElement': 'table',
   'HTMLTableRowElement': 'tr',
   #'HTMLTableSectionElement'  <thead> <tbody> <tfoot>
+  'HTMLTemplateElement': 'template',
   'HTMLTextAreaElement': 'textarea',
   'HTMLTitleElement': 'title',
   'HTMLTrackElement': 'track',
@@ -332,6 +333,7 @@ _js_support_checks_basic_element_with_constructors = [
   'HTMLObjectElement',
   'HTMLOutputElement',
   'HTMLProgressElement',
+  'HTMLTemplateElement',
   'HTMLTrackElement',
 ]
 
@@ -382,6 +384,7 @@ js_support_checks = dict({
     'FormData': "JS('bool', '!!(window.FormData)')",
     'HashChangeEvent': "Device.isEventTypeSupported('HashChangeEvent')",
     'HTMLShadowElement': ElemSupportStr('shadow'),
+    'HTMLTemplateElement': ElemSupportStr('template'),
     'MediaStreamEvent': "Device.isEventTypeSupported('MediaStreamEvent')",
     'MediaStreamTrackEvent': "Device.isEventTypeSupported('MediaStreamTrackEvent')",
     'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
@@ -520,8 +523,15 @@ class HtmlDartInterfaceGenerator(object):
     if implements:
       implements_str = ' implements ' + ', '.join(set(implements))
 
+    mixins = self._backend.Mixins()
+    mixins_str = ''
+    if mixins:
+      mixins_str = ' with ' + ', '.join(mixins)
+      if not base_class:
+        base_class = 'Object'
+
     annotations = self._metadata.GetFormattedMetadata(
-        self._library_name, self._interface.doc_js_name, '')
+        self._library_name, self._interface, None, '')
 
     class_modifiers = ''
     if self._renamer.ShouldSuppressInterface(self._interface):
@@ -535,6 +545,7 @@ class HtmlDartInterfaceGenerator(object):
         CLASSNAME=self._interface_type_info.implementation_name(),
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,
+        MIXINS=mixins_str,
         DOMNAME=self._interface.doc_js_name,
         NATIVESPEC=self._backend.NativeSpec())
     self._backend.StartInterface(self._implementation_members_emitter)
@@ -1036,7 +1047,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
   def _Metadata(self, idl_type, idl_member_name, indent='  '):
     anns = self._metadata.GetDart2JSMetadata(
-        idl_type, self._library_name, self._interface.id, idl_member_name)
+        idl_type, self._library_name, self._interface, idl_member_name)
 
     if not self._metadata.AnyConversionAnnotations(
         idl_type, self._interface.id, idl_member_name):

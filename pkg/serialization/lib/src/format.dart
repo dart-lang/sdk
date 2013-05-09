@@ -5,6 +5,9 @@ part of serialization;
  * is read or written to a particular output mechanism.
  */
 abstract class Format {
+
+  const Format();
+
   /**
    * Return true if this format stores primitives in their own area and uses
    * references to them (e.g. [SimpleFlatFormat]) and false if primitives
@@ -39,6 +42,8 @@ abstract class Format {
  * acyclic JSON look at [SimpleJsonFormat].
  */
 class SimpleMapFormat extends Format {
+
+  const SimpleMapFormat();
 
   /**
    * Generate output for this format from [w] and return it as a String which
@@ -98,12 +103,12 @@ class SimpleJsonFormat extends Format {
   /**
    * If we store the rule numbers, what key should we use to store them.
    */
-  static final String RULE = "_rule";
-  static final String RULES = "_rules";
-  static final String DATA = "_data";
-  static final String ROOTS = "_root";
+  static const String RULE = "_rule";
+  static const String RULES = "_rules";
+  static const String DATA = "_data";
+  static const String ROOTS = "_root";
 
-  SimpleJsonFormat({this.storeRoundTripInfo : false});
+  const SimpleJsonFormat({this.storeRoundTripInfo : false});
 
   /**
    * Generate output for this format from [w] and return it as
@@ -237,9 +242,11 @@ class SimpleFlatFormat extends Format {
    * For each rule we store data to indicate whether it will be reconstructed
    * as a primitive, a list or a map.
    */
-  static final int STORED_AS_LIST = 1;
-  static final int STORED_AS_MAP = 2;
-  static final int STORED_AS_PRIMITIVE = 3;
+  static const int STORED_AS_LIST = 1;
+  static const int STORED_AS_MAP = 2;
+  static const int STORED_AS_PRIMITIVE = 3;
+
+  const SimpleFlatFormat();
 
   /**
    * Generate output for this format from [w]. This will return a List with
@@ -290,7 +297,7 @@ class SimpleFlatFormat extends Format {
    * right length when we read it back. We expect everything in the list to be
    * a reference, which is stored as two numbers.
    */
-  writeLists(SerializationRule rule, List<List> entries, List target) {
+  void writeLists(SerializationRule rule, List<List> entries, List target) {
     target.add(STORED_AS_LIST);
     for (var eachEntry in entries) {
       if (rule.hasVariableLengthEntries) {
@@ -310,7 +317,7 @@ class SimpleFlatFormat extends Format {
    * values. We expect the values to be references, which we store as
    * two numbers.
    */
-  writeMaps(SerializationRule rule, List<Map> entries, List target) {
+  void writeMaps(SerializationRule rule, List<Map> entries, List target) {
     target.add(STORED_AS_MAP);
     for (var eachEntry in entries) {
       if (rule.hasVariableLengthEntries) {
@@ -327,7 +334,7 @@ class SimpleFlatFormat extends Format {
    * Write [entries], which contains simple objects which we can put directly
    * into [target].
    */
-  writeObjects(List entries, List target) {
+  void writeObjects(List entries, List target) {
     target.add(STORED_AS_PRIMITIVE);
     for (var each in entries) {
       if (!isPrimitive(each)) throw new SerializationException("Invalid data");
@@ -453,7 +460,7 @@ class SimpleFlatFormat extends Format {
   }
 
   /** Read the next Reference from the input. */
-  nextReferenceFrom(Iterator input, Reader r) {
+  Reference nextReferenceFrom(Iterator input, Reader r) {
     var a = _next(input);
     var b = _next(input);
     if (a == null) {

@@ -34,9 +34,9 @@ abstract class WebSocketStatus {
  *     HttpServer server;
  *     server.listen((request) {
  *       if (...) {
- *         WebSocketTransformer.upgrade(request).then(websocket) {
+ *         WebSocketTransformer.upgrade(request).then((websocket) {
  *           ...
- *         }
+ *         });
  *       } else {
  *         // Do normal HTTP request processing.
  *       }

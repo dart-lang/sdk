@@ -31,7 +31,7 @@ class Writer implements ReaderOrWriter {
    */
   bool selfDescribing;
 
-  Format format = new SimpleMapFormat();
+  final Format format;
 
   /**
    * Objects that cannot be represented in-place in the serialized form need
@@ -53,7 +53,7 @@ class Writer implements ReaderOrWriter {
   final List<List> states = new List<List>();
 
   /** Return the list of rules we use. */
-  List<SerializationRule> get rules => serialization._rules;
+  List<SerializationRule> get rules => serialization.rules;
 
   /**
    * Creates a new [Writer] that uses the rules from its parent
@@ -61,10 +61,10 @@ class Writer implements ReaderOrWriter {
    * related to a particular read/write, so the same one can be used
    * for multiple different Readers/Writers.
    */
-  Writer(this.serialization, [Format newFormat]) {
+  Writer(this.serialization, [Format newFormat]) :
+    format = (newFormat == null) ? const SimpleMapFormat() : newFormat {
     trace = new Trace(this);
     selfDescribing = serialization.selfDescribing;
-    if (newFormat != null) format = newFormat;
   }
 
   /**
@@ -145,7 +145,7 @@ class Writer implements ReaderOrWriter {
     var meta = serialization.ruleSerialization();
     var writer = new Writer(meta, format);
     writer.selfDescribing = false;
-    return writer.write(serialization._rules);
+    return writer.write(serialization.rules);
   }
 
   /** Record a [state] entry for a particular rule. */
@@ -197,7 +197,7 @@ class Writer implements ReaderOrWriter {
    * Return a list of [Reference] objects pointing to our roots. This will be
    * stored in the output under "roots" in the default format.
    */
-  _rootReferences() => trace.roots.map(_referenceFor).toList();
+  List _rootReferences() => trace.roots.map(_referenceFor).toList();
 
   /**
    * Given an object, return a reference for it if one exists. If there's
@@ -217,13 +217,13 @@ class Writer implements ReaderOrWriter {
   // TODO(alanknight): Should the writer also have its own namedObjects
   // collection specific to the particular write, or is that just adding
   // complexity for little value?
-  hasNameFor(object) => serialization._hasNameFor(object);
+  bool hasNameFor(object) => serialization._hasNameFor(object);
 
   /**
    * Return the name we have for this object in the [Serialization.namedObjects]
    * collection.
    */
-  nameFor(object) => serialization._nameFor(object);
+  String nameFor(object) => serialization._nameFor(object);
 
   // For debugging/testing purposes. Find what state a reference points to.
   stateForReference(Reference r) => states[r.ruleNumber][r.objectNumber];
@@ -285,7 +285,7 @@ class Reader implements ReaderOrWriter {
    */
   List<List> objects;
 
-  Format format = new SimpleMapFormat();
+  final Format format;
 
   /**
    * Creates a new [Reader] that uses the rules from its parent
@@ -293,9 +293,9 @@ class Reader implements ReaderOrWriter {
    * a particular read or write operation, so the same one can be used
    * for multiple different Writers/Readers.
    */
-  Reader(this.serialization, [Format newFormat]) {
+  Reader(this.serialization, [Format newFormat]) :
+    format = (newFormat == null) ? const SimpleMapFormat() : newFormat  {
     selfDescribing = serialization.selfDescribing;
-    if (newFormat != null) format = newFormat;
   }
 
   /**
@@ -329,7 +329,7 @@ class Reader implements ReaderOrWriter {
    * Return the list of rules to be used when writing. These come from the
    * [serialization].
    */
-  List<SerializationRule> get rules => serialization._rules;
+  List<SerializationRule> get rules => serialization.rules;
 
   /**
    * Internal use only, for testing purposes. Set the data for this reader
@@ -374,7 +374,7 @@ class Reader implements ReaderOrWriter {
    * non-essential state, because all the objects will have already been
    * created.
    */
-  inflateForRule(rule) {
+  void inflateForRule(rule) {
     var dataForThisRule = _data[rule.number];
     keysAndValues(dataForThisRule).forEach((position, state) {
       inflateOne(rule, position, state);
@@ -442,7 +442,7 @@ class Reader implements ReaderOrWriter {
 
   /** Given a reference, return the rule it references. */
   SerializationRule ruleFor(Reference reference) =>
-      serialization._rules[reference.ruleNumber];
+      serialization.rules[reference.ruleNumber];
 
   /**
    * Return the primitive rule we are using. This is an ugly mechanism to
@@ -505,7 +505,7 @@ class Trace {
   final Queue queue = new Queue();
 
   /** The root objects from which we will be tracing. */
-  List roots = [];
+  final List roots = [];
 
   Trace(this.writer);
 
@@ -585,19 +585,19 @@ class Reference {
    */
   // TODO(alanknight): This is a hack both in defining a toJson specific to a
   // particular representation, and the use of a bogus sentinel "__Ref"
-  toJson() => {
+  Map<String, dynamic> toJson() => {
     "__Ref" : true,
     "rule" : ruleNumber,
     "object" : objectNumber
   };
 
   /** Write our information to [list]. Useful in writing to flat formats.*/
-  writeToList(List list) {
+  void writeToList(List list) {
     list.add(ruleNumber);
     list.add(objectNumber);
   }
 
-  toString() => "Reference($ruleNumber, $objectNumber)";
+  String toString() => "Reference($ruleNumber, $objectNumber)";
 }
 
 /**
@@ -608,10 +608,10 @@ class Reference {
  * for an example. It knows how to return its object and how to filter.
  */
 class DesignatedRuleForObject {
-  Function rulePredicate;
+  final Function rulePredicate;
   final target;
 
   DesignatedRuleForObject(this.target, this.rulePredicate);
 
-  possibleRules(List rules) => rules.where(rulePredicate).toList();
+  List possibleRules(List rules) => rules.where(rulePredicate).toList();
 }

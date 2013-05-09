@@ -22,20 +22,19 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
 
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
-  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
-         kInvalidLibrary);
   return Dart_NewApiError("Unreachable code in Builtin::Source (%d).", id);
 }
 
-/**
- * Looks up native functions in both libdart_builtin and libdart_io.
- */
-Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
-                                          int argument_count) {
-  Dart_NativeFunction result = BuiltinNativeLookup(name, argument_count);
-  if (result != NULL) return result;
-  return IONativeLookup(name, argument_count);
+
+Dart_Handle Builtin::PartSource(BuiltinLibraryId id, const char* uri) {
+  return Dart_NewApiError("Unreachable code in Builtin::PartSource (%d).", id);
 }
+
+
+Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
+  return Dart_NewApiError("Unreachable code in Builtin::GetSource (%s).", uri);
+}
+
 
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
   ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
@@ -57,14 +56,6 @@ Dart_Handle Builtin::LoadAndCheckLibrary(BuiltinLibraryId id) {
   ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
   Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
   Dart_Handle library = Dart_LookupLibrary(url);
-  if (Dart_IsError(library)) {
-    ASSERT(id > kIOLibrary);
-    library = Dart_LoadLibrary(url, Source(id));
-    if (!Dart_IsError(library) && (builtin_libraries_[id].has_natives_)) {
-      // Setup the native resolver for built in library functions.
-      DART_CHECK_VALID(Dart_SetNativeResolver(library, NativeLookup));
-    }
-  }
   DART_CHECK_VALID(library);
   return library;
 }

@@ -22,7 +22,7 @@ namespace dart {
 namespace bin {
 
 int DebuggerConnectionHandler::listener_fd_ = -1;
-dart::Monitor DebuggerConnectionHandler::handler_lock_;
+dart::Monitor* DebuggerConnectionHandler::handler_lock_ = new dart::Monitor();
 
 // TODO(asiva): Remove this once we have support for multiple debugger
 // connections. For now we just store the single debugger connection
@@ -280,7 +280,8 @@ void DebuggerConnectionHandler::CloseDbgConnection() {
 
 void DebuggerConnectionHandler::StartHandler(const char* address,
                                              int port_number) {
-  MonitorLocker ml(&handler_lock_);
+  ASSERT(handler_lock_ != NULL);
+  MonitorLocker ml(handler_lock_);
   if (listener_fd_ != -1) {
     return;  // The debugger connection handler was already started.
   }
@@ -307,7 +308,8 @@ void DebuggerConnectionHandler::StartHandler(const char* address,
 
 
 void DebuggerConnectionHandler::WaitForConnection() {
-  MonitorLocker ml(&handler_lock_);
+  ASSERT(handler_lock_ != NULL);
+  MonitorLocker ml(handler_lock_);
   while (!IsConnected()) {
     dart::Monitor::WaitResult res = ml.Wait();
     ASSERT(res == dart::Monitor::kNotified);
@@ -316,13 +318,15 @@ void DebuggerConnectionHandler::WaitForConnection() {
 
 
 void DebuggerConnectionHandler::SendMsg(int debug_fd, dart::TextBuffer* msg) {
-  MonitorLocker ml(&handler_lock_);
+  ASSERT(handler_lock_ != NULL);
+  MonitorLocker ml(handler_lock_);
   SendMsgHelper(debug_fd, msg);
 }
 
 
 void DebuggerConnectionHandler::BroadcastMsg(dart::TextBuffer* msg) {
-  MonitorLocker ml(&handler_lock_);
+  ASSERT(handler_lock_ != NULL);
+  MonitorLocker ml(handler_lock_);
   // TODO(asiva): Once we support connection to multiple debuggers
   // we need to send the message to all of them.
   ASSERT(singleton_handler != NULL);
@@ -371,7 +375,8 @@ void DebuggerConnectionHandler::SendMsgHelper(int debug_fd,
 void DebuggerConnectionHandler::AcceptDbgConnection(int debug_fd) {
   AddNewDebuggerConnection(debug_fd);
   {
-    MonitorLocker ml(&handler_lock_);
+    ASSERT(handler_lock_ != NULL);
+    MonitorLocker ml(handler_lock_);
     ml.NotifyAll();
   }
   // TODO(asiva): Once we implement support for multiple connections

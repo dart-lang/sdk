@@ -7,6 +7,7 @@
 
 #include "bin/directory.h"
 #include "bin/file.h"
+#include "bin/utils.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT

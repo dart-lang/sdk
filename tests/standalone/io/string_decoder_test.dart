@@ -26,7 +26,7 @@ void test() {
       })
       .then((b) => b.toString())
       .then((decoded) {
-        Expect.equals(7, decoded.length);
+        Expect.equals(8, decoded.length);
 
         var replacementChar = '?'.codeUnitAt(0);
         Expect.equals(0xd800, decoded.codeUnitAt(0));
@@ -36,6 +36,7 @@ void test() {
         Expect.equals(replacementChar, decoded.codeUnitAt(4));
         Expect.equals(replacementChar, decoded.codeUnitAt(5));
         Expect.equals(replacementChar, decoded.codeUnitAt(6));
+        Expect.equals(replacementChar, decoded.codeUnitAt(7));
       });
 }
 

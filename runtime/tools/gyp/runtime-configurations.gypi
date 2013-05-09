@@ -20,6 +20,14 @@
     ],
   },
 
+  'conditions': [
+    ['OS=="android"', {
+      'includes': [
+        'runtime_configurations_android.gypi',
+      ],
+    }],
+  ],
+
   'target_defaults': {
     'configurations': {
 

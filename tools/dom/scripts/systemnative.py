@@ -826,7 +826,7 @@ class DartiumBackend(HtmlDartGenerator):
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
           self._renamer.GetLibraryName(self._interface),
-          self._interface.id, idl_name, '  ')
+          self._interface, idl_name, '  ')
 
     native_binding = '%s_%s_%s' % (self._interface.id, idl_name, native_suffix)
     self._members_emitter.Emit(

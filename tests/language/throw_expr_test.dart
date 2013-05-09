@@ -48,6 +48,7 @@ bar(x, y) => throw "foo" "${throw x}";
 class Q {
   var qqq;
   f(x) { qqq = x; }
+  Q get nono => throw "nono";
 }
 
 void test3() {
@@ -91,8 +92,14 @@ void test3() {
   }
 }
 
+void test4() {
+  var q = new Q();
+  Expect.throws(() => q.nono, (e) => e == "nono");
+}
+
 main() {
   test1();
   test2();
   test3();
+  test4();
 }

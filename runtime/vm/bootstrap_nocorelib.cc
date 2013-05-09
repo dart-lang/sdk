@@ -6,13 +6,9 @@
 
 #include "include/dart_api.h"
 
-#include "vm/dart_api_impl.h"
 #include "vm/object.h"
-#include "vm/object_store.h"
 
 namespace dart {
-
-DEFINE_FLAG(bool, print_bootstrap, false, "Print the bootstrap source.");
 
 
 RawError* Bootstrap::LoadandCompileScripts() {

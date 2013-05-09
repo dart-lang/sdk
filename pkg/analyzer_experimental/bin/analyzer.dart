@@ -20,8 +20,8 @@ import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/options.dart';
 
-part 'package:analyzer_experimental/analyzer.dart';
-part 'package:analyzer_experimental/error_formatter.dart';
+import 'package:analyzer_experimental/src/analyzer_impl.dart';
+import 'package:analyzer_experimental/src/error_formatter.dart';
 
 void main() {
   var args = new Options().arguments;
@@ -51,10 +51,10 @@ ErrorSeverity _runAnalyzer(CommandLineOptions options) {
       return ErrorSeverity.ERROR;
     }
     // start analysis
-    _ErrorFormatter formatter = new _ErrorFormatter(options.machineFormat ? stderr : stdout, options);
+    ErrorFormatter formatter = new ErrorFormatter(options.machineFormat ? stderr : stdout, options);
     formatter.startAnalysis();
     // do analyze
-    _AnalyzerImpl analyzer = new _AnalyzerImpl(options);
+    AnalyzerImpl analyzer = new AnalyzerImpl(options);
     analyzer.analyze(sourcePath);
     // pring errors
     formatter.formatErrors(analyzer.errorInfos);

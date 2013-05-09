@@ -3,13 +3,14 @@ library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_collection-dev';
+import 'dart:_collection-dev' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
 import 'dart:nativewrappers';
+import 'dart:mdv_observe_impl';
 import 'dart:typed_data';
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
@@ -268,11 +269,11 @@ class AnchorElement extends _Element_Merged {
 class AnimationEvent extends Event {
   AnimationEvent.internal() : super.internal();
 
-  @DomName('AnimationEvent.animationName')
+  @DomName('WebKitAnimationEvent.animationName')
   @DocsEditable
   String get animationName native "AnimationEvent_animationName_Getter";
 
-  @DomName('AnimationEvent.elapsedTime')
+  @DomName('WebKitAnimationEvent.elapsedTime')
   @DocsEditable
   num get elapsedTime native "AnimationEvent_elapsedTime_Getter";
 
@@ -2541,10 +2542,6 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DocsEditable
   CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
 
-  @DomName('CSSStyleDeclaration._getPropertyValue')
-  @DocsEditable
-  String _getPropertyValue(String propertyName) native "CSSStyleDeclaration__getPropertyValue_Callback";
-
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable
   String getPropertyPriority(String propertyName) native "CSSStyleDeclaration_getPropertyPriority_Callback";
@@ -2552,6 +2549,10 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
   @DocsEditable
   String getPropertyShorthand(String propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
+
+  @DomName('CSSStyleDeclaration.getPropertyValue')
+  @DocsEditable
+  String _getPropertyValue(String propertyName) native "CSSStyleDeclaration_getPropertyValue_Callback";
 
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
   @DocsEditable
@@ -2567,7 +2568,7 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   @DomName('CSSStyleDeclaration.setProperty')
   @DocsEditable
-  void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
+  void setProperty(String propertyName, String value, String priority) native "CSSStyleDeclaration_setProperty_Callback";
 
 
   String getPropertyValue(String propertyName) {
@@ -7043,7 +7044,7 @@ class DocumentFragment extends Node {
     e.innerHtml = value;
 
     // Copy list first since we don't want liveness during iteration.
-    List nodes = new List.from(e.nodes);
+    List nodes = new List.from(e.nodes, growable: false);
     this.nodes.addAll(nodes);
   }
 
@@ -7137,15 +7138,15 @@ class DomException extends NativeFieldWrapperClass1 {
 
   DomException.internal();
 
-  @DomName('DOMCoreException.message')
+  @DomName('DOMException.message')
   @DocsEditable
   String get message native "DOMCoreException_message_Getter";
 
-  @DomName('DOMCoreException.name')
+  @DomName('DOMException.name')
   @DocsEditable
   String get name native "DOMCoreException_name_Getter";
 
-  @DomName('DOMCoreException.toString')
+  @DomName('DOMException.toString')
   @DocsEditable
   String toString() native "DOMCoreException_toString_Callback";
 
@@ -7239,7 +7240,7 @@ class DomSettableTokenList extends DomTokenList {
 
 @DocsEditable
 @DomName('DOMStringList')
-class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
+class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   DomStringList.internal();
 
   @DomName('DOMStringList.length')
@@ -7254,194 +7255,9 @@ class DomStringList extends NativeFieldWrapperClass1 implements List<String> {
   // -- start List<String> mixins.
   // String is the element type.
 
-  // From Iterable<String>:
 
-  Iterator<String> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<String>(this);
-  }
-
-  String reduce(String combine(String value, String element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, String element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  // contains() defined by IDL.
-
-  void forEach(void f(String element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(String element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<String> where(bool f(String element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(String element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(String element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(String element)) => IterableMixinWorkaround.any(this, f);
-
-  List<String> toList({ bool growable: true }) =>
-      new List<String>.from(this, growable: growable);
-
-  Set<String> toSet() => new Set<String>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<String> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<String> takeWhile(bool test(String value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<String> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<String> skipWhile(bool test(String value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  String firstWhere(bool test(String value), { String orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  String lastWhere(bool test(String value), {String orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  String singleWhere(bool test(String value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  String elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<String>:
-
-  void add(String value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<String> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<String>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<String> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(String a, String b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(String element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(String element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  String get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  String get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  String get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, String element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<String> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<String> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  String removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  String removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(String element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(String element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<String> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<String> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [String fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<String> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<String> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <String>[]);
-  }
-
-  Map<int, String> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<String> mixins.
@@ -7646,7 +7462,7 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 }
 
-/** 
+/**
  * An immutable list containing HTML elements. This list contains some
  * additional methods for ease of CSS manipulation on a group of elements.
  */
@@ -7980,6 +7796,251 @@ abstract class Element extends Node implements ElementTraversal {
     }
   }
 
+
+  @Creates('Null')
+  Map<String, StreamSubscription> _attributeBindings;
+
+  // TODO(jmesserly): I'm concerned about adding these to every element.
+  // Conceptually all of these belong on TemplateElement. They are here to
+  // support browsers that don't have <template> yet.
+  // However even in the polyfill they're restricted to certain tags
+  // (see [isTemplate]). So we can probably convert it to a (public) mixin, and
+  // only mix it in to the elements that need it.
+  var _model;
+
+  _TemplateIterator _templateIterator;
+
+  Element _templateInstanceRef;
+
+  // Note: only used if `this is! TemplateElement`
+  DocumentFragment _templateContent;
+
+  bool _templateIsDecorated;
+
+  // TODO(jmesserly): should path be optional, and default to empty path?
+  // It is used that way in at least one path in JS TemplateElement tests
+  // (see "BindImperative" test in original JS code).
+  @Experimental
+  void bind(String name, model, String path) {
+    _bindElement(this, name, model, path);
+  }
+
+  // TODO(jmesserly): this is static to work around http://dartbug.com/10166
+  // Similar issue for unbind/unbindAll below.
+  static void _bindElement(Element self, String name, model, String path) {
+    if (self._bindTemplate(name, model, path)) return;
+
+    if (self._attributeBindings == null) {
+      self._attributeBindings = new Map<String, StreamSubscription>();
+    }
+
+    self.attributes.remove(name);
+
+    var changed;
+    if (name.endsWith('?')) {
+      name = name.substring(0, name.length - 1);
+
+      changed = (value) {
+        if (_templateBooleanConversion(value)) {
+          self.attributes[name] = '';
+        } else {
+          self.attributes.remove(name);
+        }
+      };
+    } else {
+      changed = (value) {
+        // TODO(jmesserly): escape value if needed to protect against XSS.
+        // See https://github.com/toolkitchen/mdv/issues/58
+        self.attributes[name] = value == null ? '' : '$value';
+      };
+    }
+
+    self.unbind(name);
+
+    self._attributeBindings[name] =
+        new PathObserver(model, path).bindSync(changed);
+  }
+
+  @Experimental
+  void unbind(String name) {
+    _unbindElement(this, name);
+  }
+
+  static _unbindElement(Element self, String name) {
+    if (self._unbindTemplate(name)) return;
+    if (self._attributeBindings != null) {
+      var binding = self._attributeBindings.remove(name);
+      if (binding != null) binding.cancel();
+    }
+  }
+
+  @Experimental
+  void unbindAll() {
+    _unbindAllElement(this);
+  }
+
+  static void _unbindAllElement(Element self) {
+    self._unbindAllTemplate();
+
+    if (self._attributeBindings != null) {
+      for (var binding in self._attributeBindings.values) {
+        binding.cancel();
+      }
+      self._attributeBindings = null;
+    }
+  }
+
+  // TODO(jmesserly): unlike the JS polyfill, we can't mixin
+  // HTMLTemplateElement at runtime into things that are semantically template
+  // elements. So instead we implement it here with a runtime check.
+  // If the bind succeeds, we return true, otherwise we return false and let
+  // the normal Element.bind logic kick in.
+  bool _bindTemplate(String name, model, String path) {
+    if (isTemplate) {
+      switch (name) {
+        case 'bind':
+        case 'repeat':
+        case 'if':
+          _ensureTemplate();
+          if (_templateIterator == null) {
+            _templateIterator = new _TemplateIterator(this);
+          }
+          _templateIterator.inputs.bind(name, model, path);
+          return true;
+      }
+    }
+    return false;
+  }
+
+  bool _unbindTemplate(String name) {
+    if (isTemplate) {
+      switch (name) {
+        case 'bind':
+        case 'repeat':
+        case 'if':
+          _ensureTemplate();
+          if (_templateIterator != null) {
+            _templateIterator.inputs.unbind(name);
+          }
+          return true;
+      }
+    }
+    return false;
+  }
+
+  void _unbindAllTemplate() {
+    if (isTemplate) {
+      unbind('bind');
+      unbind('repeat');
+      unbind('if');
+    }
+  }
+
+  /**
+   * Gets the template this node refers to.
+   * This is only supported if [isTemplate] is true.
+   */
+  @Experimental
+  Element get ref {
+    _ensureTemplate();
+
+    Element ref = null;
+    var refId = attributes['ref'];
+    if (refId != null) {
+      ref = document.getElementById(refId);
+    }
+
+    return ref != null ? ref : _templateInstanceRef;
+  }
+
+  /**
+   * Gets the content of this template.
+   * This is only supported if [isTemplate] is true.
+   */
+  @Experimental
+  DocumentFragment get content {
+    _ensureTemplate();
+    return _templateContent;
+  }
+
+  /**
+   * Creates an instance of the template.
+   * This is only supported if [isTemplate] is true.
+   */
+  @Experimental
+  DocumentFragment createInstance() {
+    _ensureTemplate();
+
+    var template = ref;
+    if (template == null) template = this;
+
+    var instance = _createDeepCloneAndDecorateTemplates(template.content,
+        attributes['syntax']);
+
+    if (TemplateElement._instanceCreated != null) {
+      TemplateElement._instanceCreated.add(instance);
+    }
+    return instance;
+  }
+
+  /**
+   * The data model which is inherited through the tree.
+   * This is only supported if [isTemplate] is true.
+   *
+   * Setting this will destructive propagate the value to all descendant nodes,
+   * and reinstantiate all of the nodes expanded by this template.
+   *
+   * Currently this does not support propagation through Shadow DOMs.
+   */
+  @Experimental
+  get model => _model;
+
+  @Experimental
+  void set model(value) {
+    _ensureTemplate();
+
+    _model = value;
+    _addBindings(this, model);
+  }
+
+  // TODO(jmesserly): const set would be better
+  static const _TABLE_TAGS = const {
+    'caption': null,
+    'col': null,
+    'colgroup': null,
+    'tbody': null,
+    'td': null,
+    'tfoot': null,
+    'th': null,
+    'thead': null,
+    'tr': null,
+  };
+
+  bool get _isAttributeTemplate => attributes.containsKey('template') &&
+      (localName == 'option' || _TABLE_TAGS.containsKey(localName));
+
+  /**
+   * Returns true if this node is a template.
+   *
+   * A node is a template if [tagName] is TEMPLATE, or the node has the
+   * 'template' attribute and this tag supports attribute form for backwards
+   * compatibility with existing HTML parsers. The nodes that can use attribute
+   * form are table elments (THEAD, TBODY, TFOOT, TH, TR, TD, CAPTION, COLGROUP
+   * and COL) and OPTION.
+   */
+  // TODO(jmesserly): this is not a public MDV API, but it seems like a useful
+  // place to document which tags our polyfill considers to be templates.
+  // Otherwise I'd be repeating it in several other places.
+  // See if we can replace this with a TemplateMixin.
+  @Experimental
+  bool get isTemplate => tagName == 'TEMPLATE' || _isAttributeTemplate;
+
+  void _ensureTemplate() {
+    if (!isTemplate) {
+      throw new UnsupportedError('$this is not a template.');
+    }
+    TemplateElement.decorate(this);
+  }
 
   Element.internal() : super.internal();
 
@@ -8715,6 +8776,7 @@ abstract class Element extends Node implements ElementTraversal {
 
 }
 
+
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
   static const _CUSTOM_PARENT_TAG_MAP = const {
@@ -8732,19 +8794,6 @@ class _ElementFactoryProvider {
     'track' : 'audio',
   };
 
-  // TODO(jmesserly): const set would be better
-  static const _TABLE_TAGS = const {
-    'caption': null,
-    'col': null,
-    'colgroup': null,
-    'tbody': null,
-    'td': null,
-    'tfoot': null,
-    'th': null,
-    'thead': null,
-    'tr': null,
-  };
-
   @DomName('Document.createElement')
   static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
@@ -8758,7 +8807,7 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+      if (Device.isIE && Element._TABLE_TAGS.containsKey(tag)) {
         return _createTableForIE(html, tag);
       }
       parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
@@ -9711,7 +9760,7 @@ class FileException extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('FileList')
-class FileList extends NativeFieldWrapperClass1 implements List<File> {
+class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
   FileList.internal();
 
   @DomName('FileList.length')
@@ -9726,194 +9775,9 @@ class FileList extends NativeFieldWrapperClass1 implements List<File> {
   // -- start List<File> mixins.
   // File is the element type.
 
-  // From Iterable<File>:
 
-  Iterator<File> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<File>(this);
-  }
-
-  File reduce(File combine(File value, File element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, File element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(File element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(File element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(File element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<File> where(bool f(File element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(File element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(File element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(File element)) => IterableMixinWorkaround.any(this, f);
-
-  List<File> toList({ bool growable: true }) =>
-      new List<File>.from(this, growable: growable);
-
-  Set<File> toSet() => new Set<File>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<File> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<File> takeWhile(bool test(File value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<File> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<File> skipWhile(bool test(File value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  File firstWhere(bool test(File value), { File orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  File lastWhere(bool test(File value), {File orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  File singleWhere(bool test(File value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  File elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<File>:
-
-  void add(File value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<File> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<File>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<File> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(File a, File b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(File element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(File element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  File get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  File get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  File get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, File element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<File> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<File> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  File removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  File removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(File element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(File element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<File> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<File> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [File fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<File> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<File> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <File>[]);
-  }
-
-  Map<int, File> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<File> mixins.
@@ -10302,7 +10166,7 @@ class FormData extends NativeFieldWrapperClass1 {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DomName('DOMFormData.append')
+  @DomName('FormData.append')
   @DocsEditable
   void append(String name, value, [String filename]) native "DOMFormData_append_Callback";
 
@@ -10742,7 +10606,7 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
 
 @DocsEditable
 @DomName('HTMLAllCollection')
-class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
+class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   HtmlAllCollection.internal();
 
   @DomName('HTMLAllCollection.length')
@@ -10757,194 +10621,9 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
   // -- start List<Node> mixins.
   // Node is the element type.
 
-  // From Iterable<Node>:
 
-  Iterator<Node> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  Node reduce(Node combine(Node value, Node element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Node element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Node> where(bool f(Node element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Node element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Node> toList({ bool growable: true }) =>
-      new List<Node>.from(this, growable: growable);
-
-  Set<Node> toSet() => new Set<Node>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Node> takeWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Node> skipWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Node firstWhere(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Node lastWhere(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Node singleWhere(bool test(Node value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Node elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Node>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Node> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Node a, Node b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Node element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Node fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Node> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Node> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Node>[]);
-  }
-
-  Map<int, Node> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<Node> mixins.
@@ -10971,7 +10650,7 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 implements List<Node> {
 
 @DocsEditable
 @DomName('HTMLCollection')
-class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
+class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   HtmlCollection.internal();
 
   @DomName('HTMLCollection.length')
@@ -10986,194 +10665,9 @@ class HtmlCollection extends NativeFieldWrapperClass1 implements List<Node> {
   // -- start List<Node> mixins.
   // Node is the element type.
 
-  // From Iterable<Node>:
 
-  Iterator<Node> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  Node reduce(Node combine(Node value, Node element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Node element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Node> where(bool f(Node element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Node element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Node> toList({ bool growable: true }) =>
-      new List<Node>.from(this, growable: growable);
-
-  Set<Node> toSet() => new Set<Node>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Node> takeWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Node> skipWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Node firstWhere(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Node lastWhere(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Node singleWhere(bool test(Node value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Node elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Node>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Node> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Node a, Node b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Node element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Node fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Node> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Node> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Node>[]);
-  }
-
-  Map<int, Node> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<Node> mixins.
@@ -11349,6 +10843,10 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   String get visibilityState => $dom_webkitVisibilityState;
+
+
+  // Note: used to polyfill <template>
+  Document _templateContentsOwner;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12289,6 +11787,60 @@ class InputElement extends _Element_Merged implements
     }
     return e;
   }
+
+  _ValueBinding _valueBinding;
+
+  _CheckedBinding _checkedBinding;
+
+  @Experimental
+  void bind(String name, model, String path) {
+    switch (name) {
+      case 'value':
+        unbind('value');
+        attributes.remove('value');
+        _valueBinding = new _ValueBinding(this, model, path);
+        break;
+      case 'checked':
+        unbind('checked');
+        attributes.remove('checked');
+        _checkedBinding = new _CheckedBinding(this, model, path);
+        break;
+      default:
+        // TODO(jmesserly): this should be "super" (http://dartbug.com/10166).
+        // Similar issue for unbind/unbindAll below.
+        Element._bindElement(this, name, model, path);
+        break;
+    }
+  }
+
+  @Experimental
+  void unbind(String name) {
+    switch (name) {
+      case 'value':
+        if (_valueBinding != null) {
+          _valueBinding.unbind();
+          _valueBinding = null;
+        }
+        break;
+      case 'checked':
+        if (_checkedBinding != null) {
+          _checkedBinding.unbind();
+          _checkedBinding = null;
+        }
+        break;
+      default:
+        Element._unbindElement(this, name);
+        break;
+    }
+  }
+
+  @Experimental
+  void unbindAll() {
+    unbind('value');
+    unbind('checked');
+    Element._unbindAllElement(this);
+  }
+
   InputElement.internal() : super.internal();
 
   @DomName('HTMLInputElement.webkitSpeechChangeEvent')
@@ -12749,8 +12301,8 @@ class InputElement extends _Element_Merged implements
 
 
 // Interfaces representing the InputElement APIs which are supported
-// for the various types of InputElement.
-// From http://dev.w3.org/html5/spec/the-input-element.html#the-input-element.
+// for the various types of InputElement. From:
+// http://www.w3.org/html/wg/drafts/html/master/forms.html#the-input-element.
 
 /**
  * Exposes the functionality common between all InputElement types.
@@ -12796,7 +12348,7 @@ abstract class InputElementBase implements Element {
 /**
  * Hidden input which is not intended to be seen or edited by the user.
  */
-abstract class HiddenInputElement implements Element {
+abstract class HiddenInputElement implements InputElementBase {
   factory HiddenInputElement() => new InputElement(type: 'hidden');
 }
 
@@ -14268,7 +13820,7 @@ class MediaElement extends _Element_Merged {
   @DocsEditable
   void play() native "HTMLMediaElement_play_Callback";
 
-  void addKey(String keySystem, List<int> key, [List<int> initData, String sessionId]) {
+  void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
     if (?initData) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
@@ -14288,7 +13840,7 @@ class MediaElement extends _Element_Merged {
   @Experimental
   void cancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
-  void generateKeyRequest(String keySystem, [List<int> initData]) {
+  void generateKeyRequest(String keySystem, [Uint8List initData]) {
     if (?initData) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
@@ -14480,7 +14032,7 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.initData')
   @DocsEditable
-  List<int> get initData native "MediaKeyEvent_initData_Getter";
+  Uint8List get initData native "MediaKeyEvent_initData_Getter";
 
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable
@@ -14488,7 +14040,7 @@ class MediaKeyEvent extends Event {
 
   @DomName('MediaKeyEvent.message')
   @DocsEditable
-  List<int> get message native "MediaKeyEvent_message_Getter";
+  Uint8List get message native "MediaKeyEvent_message_Getter";
 
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable
@@ -15207,19 +14759,19 @@ class MeterElement extends _Element_Merged {
 class MimeType extends NativeFieldWrapperClass1 {
   MimeType.internal();
 
-  @DomName('DOMMimeType.description')
+  @DomName('MimeType.description')
   @DocsEditable
   String get description native "DOMMimeType_description_Getter";
 
-  @DomName('DOMMimeType.enabledPlugin')
+  @DomName('MimeType.enabledPlugin')
   @DocsEditable
   Plugin get enabledPlugin native "DOMMimeType_enabledPlugin_Getter";
 
-  @DomName('DOMMimeType.suffixes')
+  @DomName('MimeType.suffixes')
   @DocsEditable
   String get suffixes native "DOMMimeType_suffixes_Getter";
 
-  @DomName('DOMMimeType.type')
+  @DomName('MimeType.type')
   @DocsEditable
   String get type native "DOMMimeType_type_Getter";
 
@@ -15233,10 +14785,10 @@ class MimeType extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('MimeTypeArray')
-class MimeTypeArray extends NativeFieldWrapperClass1 implements List<MimeType> {
+class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
   MimeTypeArray.internal();
 
-  @DomName('DOMMimeTypeArray.length')
+  @DomName('MimeTypeArray.length')
   @DocsEditable
   int get length native "DOMMimeTypeArray_length_Getter";
 
@@ -15248,203 +14800,18 @@ class MimeTypeArray extends NativeFieldWrapperClass1 implements List<MimeType> {
   // -- start List<MimeType> mixins.
   // MimeType is the element type.
 
-  // From Iterable<MimeType>:
 
-  Iterator<MimeType> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<MimeType>(this);
-  }
-
-  MimeType reduce(MimeType combine(MimeType value, MimeType element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, MimeType element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(MimeType element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(MimeType element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(MimeType element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<MimeType> where(bool f(MimeType element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(MimeType element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(MimeType element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(MimeType element)) => IterableMixinWorkaround.any(this, f);
-
-  List<MimeType> toList({ bool growable: true }) =>
-      new List<MimeType>.from(this, growable: growable);
-
-  Set<MimeType> toSet() => new Set<MimeType>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<MimeType> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<MimeType> takeWhile(bool test(MimeType value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<MimeType> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<MimeType> skipWhile(bool test(MimeType value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  MimeType firstWhere(bool test(MimeType value), { MimeType orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  MimeType lastWhere(bool test(MimeType value), {MimeType orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  MimeType singleWhere(bool test(MimeType value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  MimeType elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<MimeType>:
-
-  void add(MimeType value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<MimeType> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<MimeType>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<MimeType> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(MimeType a, MimeType b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(MimeType element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(MimeType element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  MimeType get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  MimeType get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  MimeType get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, MimeType element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<MimeType> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<MimeType> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  MimeType removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  MimeType removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(MimeType element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(MimeType element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<MimeType> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<MimeType> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [MimeType fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<MimeType> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<MimeType> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <MimeType>[]);
-  }
-
-  Map<int, MimeType> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
   // -- end List<MimeType> mixins.
 
-  @DomName('DOMMimeTypeArray.item')
+  @DomName('MimeTypeArray.item')
   @DocsEditable
   MimeType item(int index) native "DOMMimeTypeArray_item_Callback";
 
-  @DomName('DOMMimeTypeArray.namedItem')
+  @DomName('MimeTypeArray.namedItem')
   @DocsEditable
   MimeType namedItem(String name) native "DOMMimeTypeArray_namedItem_Callback";
 
@@ -15701,13 +15068,13 @@ class MutationObserver extends NativeFieldWrapperClass1 {
   @DocsEditable
   static MutationObserver _create(callback) native "MutationObserver_constructorCallback";
 
-  @DomName('MutationObserver._observe')
-  @DocsEditable
-  void _observe(Node target, Map options) native "MutationObserver__observe_Callback";
-
   @DomName('MutationObserver.disconnect')
   @DocsEditable
   void disconnect() native "MutationObserver_disconnect_Callback";
+
+  @DomName('MutationObserver.observe')
+  @DocsEditable
+  void _observe(Node target, Map options) native "MutationObserver_observe_Callback";
 
   @DomName('MutationObserver.takeRecords')
   @DocsEditable
@@ -15833,39 +15200,39 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 class NamedFlow extends EventTarget {
   NamedFlow.internal() : super.internal();
 
-  @DomName('NamedFlow.firstEmptyRegionIndex')
+  @DomName('WebKitNamedFlow.firstEmptyRegionIndex')
   @DocsEditable
   int get firstEmptyRegionIndex native "NamedFlow_firstEmptyRegionIndex_Getter";
 
-  @DomName('NamedFlow.name')
+  @DomName('WebKitNamedFlow.name')
   @DocsEditable
   String get name native "NamedFlow_name_Getter";
 
-  @DomName('NamedFlow.overset')
+  @DomName('WebKitNamedFlow.overset')
   @DocsEditable
   bool get overset native "NamedFlow_overset_Getter";
 
-  @DomName('NamedFlow.addEventListener')
+  @DomName('WebKitNamedFlow.addEventListener')
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "NamedFlow_addEventListener_Callback";
 
-  @DomName('NamedFlow.dispatchEvent')
+  @DomName('WebKitNamedFlow.dispatchEvent')
   @DocsEditable
   bool dispatchEvent(Event event) native "NamedFlow_dispatchEvent_Callback";
 
-  @DomName('NamedFlow.getContent')
+  @DomName('WebKitNamedFlow.getContent')
   @DocsEditable
   List<Node> getContent() native "NamedFlow_getContent_Callback";
 
-  @DomName('NamedFlow.getRegions')
+  @DomName('WebKitNamedFlow.getRegions')
   @DocsEditable
   List<Node> getRegions() native "NamedFlow_getRegions_Callback";
 
-  @DomName('NamedFlow.getRegionsByContent')
+  @DomName('WebKitNamedFlow.getRegionsByContent')
   @DocsEditable
   List<Node> getRegionsByContent(Node contentNode) native "NamedFlow_getRegionsByContent_Callback";
 
-  @DomName('NamedFlow.removeEventListener')
+  @DomName('WebKitNamedFlow.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "NamedFlow_removeEventListener_Callback";
 
@@ -15885,15 +15252,15 @@ class NamedFlow extends EventTarget {
 class NamedFlowCollection extends NativeFieldWrapperClass1 {
   NamedFlowCollection.internal();
 
-  @DomName('DOMNamedFlowCollection.length')
+  @DomName('WebKitNamedFlowCollection.length')
   @DocsEditable
   int get length native "DOMNamedFlowCollection_length_Getter";
 
-  @DomName('DOMNamedFlowCollection.item')
+  @DomName('WebKitNamedFlowCollection.item')
   @DocsEditable
   NamedFlow item(int index) native "DOMNamedFlowCollection_item_Callback";
 
-  @DomName('DOMNamedFlowCollection.namedItem')
+  @DomName('WebKitNamedFlowCollection.namedItem')
   @DocsEditable
   NamedFlow namedItem(String name) native "DOMNamedFlowCollection_namedItem_Callback";
 
@@ -16204,7 +15571,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     // time.
     Node child = _this.$dom_firstChild;
     while (child != null) {
-      Node nextChild = child.nextSibling;
+      Node nextChild = child.nextNode;
       if (test(child) == removeMatching) {
         _this.$dom_removeChild(child);
       }
@@ -16329,93 +15696,49 @@ class Node extends EventTarget {
     }
   }
 
-  // Note that this may either be the locally set model or a cached value
-  // of the inherited model. This is cached to minimize model change
-  // notifications.
-  var _model;
-  bool _hasLocalModel;
-  Set<StreamController<Node>> _modelChangedStreams;
-
-  /**
-   * The data model which is inherited through the tree.
-   *
-   * Setting this will propagate the value to all descendant nodes. If the
-   * model is not set on this node then it will be inherited from ancestor
-   * nodes.
-   *
-   * Currently this does not support propagation through Shadow DOMs.
-   *
-   * [clearModel] must be used to remove the model property from this node
-   * and have the model inherit from ancestor nodes.
-   */
-  @Experimental
-  get model {
-    // If we have a change handler then we've cached the model locally.
-    if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
-      return _model;
-    }
-    // Otherwise start looking up the tree.
-    for (var node = this; node != null; node = node.parentNode) {
-      if (node._hasLocalModel == true) {
-        return node._model;
-      }
-    }
-    return null;
-  }
-
-  @Experimental
-  void set model(value) {
-    var changed = model != value;
-    _model = value;
-    _hasLocalModel = true;
-    _ModelTreeObserver.initialize();
-
-    if (changed) {
-      if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
-        _modelChangedStreams.toList().forEach((stream) => stream.add(this));
-      }
-      // Propagate new model to all descendants.
-      _ModelTreeObserver.propagateModel(this, value, false);
-    }
-  }
-
-  /**
-   * Clears the locally set model and makes this model be inherited from parent
-   * nodes.
-   */
-  @Experimental
-  void clearModel() {
-    if (_hasLocalModel == true) {
-      _hasLocalModel = false;
-
-      // Propagate new model to all descendants.
-      if (parentNode != null) {
-        _ModelTreeObserver.propagateModel(this, parentNode.model, false);
-      } else {
-        _ModelTreeObserver.propagateModel(this, null, false);
-      }
-    }
-  }
-
-  /**
-   * Get a stream of models, whenever the model changes.
-   */
-  Stream<Node> get onModelChanged {
-    if (_modelChangedStreams == null) {
-      _modelChangedStreams = new Set<StreamController<Node>>();
-    }
-    var controller;
-    controller = new StreamController(
-        onListen: () { _modelChangedStreams.add(controller); },
-        onCancel: () { _modelChangedStreams.remove(controller); });
-    return controller.stream;
-  }
-
   /**
    * Print out a String representation of this Node.
    */
   String toString() => localName == null ?
       (nodeValue == null ? super.toString() : nodeValue) : localName;
+
+  /**
+   * Binds the attribute [name] to the [path] of the [model].
+   * Path is a String of accessors such as `foo.bar.baz`.
+   */
+  @Experimental
+  void bind(String name, model, String path) {
+    // TODO(jmesserly): should we throw instead?
+    window.console.error('Unhandled binding to Node: '
+        '$this $name $model $path');
+  }
+
+  /** Unbinds the attribute [name]. */
+  @Experimental
+  void unbind(String name) {}
+
+  /** Unbinds all bound attributes. */
+  @Experimental
+  void unbindAll() {}
+
+  TemplateInstance _templateInstance;
+
+  // TODO(arv): Consider storing all "NodeRareData" on a single object?
+  int __instanceTerminatorCount;
+  int get _instanceTerminatorCount {
+    if (__instanceTerminatorCount == null) return 0;
+    return __instanceTerminatorCount;
+  }
+  set _instanceTerminatorCount(int value) {
+    if (value == 0) value = null;
+    __instanceTerminatorCount = value;
+  }
+
+  /** Gets the template instance that instantiated this node, if any. */
+  @Experimental
+  TemplateInstance get templateInstance =>
+      _templateInstance != null ? _templateInstance :
+      (parent != null ? parent.templateInstance : null);
 
   Node.internal() : super.internal();
 
@@ -16635,7 +15958,7 @@ class NodeIterator extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('NodeList')
-class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
+class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   NodeList.internal();
 
   @DomName('NodeList.length')
@@ -16650,194 +15973,9 @@ class NodeList extends NativeFieldWrapperClass1 implements List<Node> {
   // -- start List<Node> mixins.
   // Node is the element type.
 
-  // From Iterable<Node>:
 
-  Iterator<Node> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  Node reduce(Node combine(Node value, Node element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Node element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Node> where(bool f(Node element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Node element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Node> toList({ bool growable: true }) =>
-      new List<Node>.from(this, growable: growable);
-
-  Set<Node> toSet() => new Set<Node>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Node> takeWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Node> skipWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Node firstWhere(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Node lastWhere(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Node singleWhere(bool test(Node value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Node elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Node>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Node> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Node a, Node b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Node element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Node fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Node> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Node> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Node>[]);
-  }
-
-  Map<int, Node> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<Node> mixins.
@@ -17493,7 +16631,7 @@ class ParamElement extends _Element_Merged {
 class Path extends NativeFieldWrapperClass1 {
   Path.internal();
 
-  @DomName('DOMPath.DOMPath')
+  @DomName('Path.DOMPath')
   @DocsEditable
   factory Path([path_OR_text]) {
     if (!?path_OR_text) {
@@ -17517,35 +16655,35 @@ class Path extends NativeFieldWrapperClass1 {
   @DocsEditable
   static Path _create_3(path_OR_text) native "DOMPath__create_3constructorCallback";
 
-  @DomName('DOMPath.arc')
+  @DomName('Path.arc')
   @DocsEditable
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "DOMPath_arc_Callback";
 
-  @DomName('DOMPath.arcTo')
+  @DomName('Path.arcTo')
   @DocsEditable
   void arcTo(num x1, num y1, num x2, num y2, num radius) native "DOMPath_arcTo_Callback";
 
-  @DomName('DOMPath.bezierCurveTo')
+  @DomName('Path.bezierCurveTo')
   @DocsEditable
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "DOMPath_bezierCurveTo_Callback";
 
-  @DomName('DOMPath.closePath')
+  @DomName('Path.closePath')
   @DocsEditable
   void closePath() native "DOMPath_closePath_Callback";
 
-  @DomName('DOMPath.lineTo')
+  @DomName('Path.lineTo')
   @DocsEditable
   void lineTo(num x, num y) native "DOMPath_lineTo_Callback";
 
-  @DomName('DOMPath.moveTo')
+  @DomName('Path.moveTo')
   @DocsEditable
   void moveTo(num x, num y) native "DOMPath_moveTo_Callback";
 
-  @DomName('DOMPath.quadraticCurveTo')
+  @DomName('Path.quadraticCurveTo')
   @DocsEditable
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native "DOMPath_quadraticCurveTo_Callback";
 
-  @DomName('DOMPath.rect')
+  @DomName('Path.rect')
   @DocsEditable
   void rect(num x, num y, num width, num height) native "DOMPath_rect_Callback";
 
@@ -17923,27 +17061,27 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 class Plugin extends NativeFieldWrapperClass1 {
   Plugin.internal();
 
-  @DomName('DOMPlugin.description')
+  @DomName('Plugin.description')
   @DocsEditable
   String get description native "DOMPlugin_description_Getter";
 
-  @DomName('DOMPlugin.filename')
+  @DomName('Plugin.filename')
   @DocsEditable
   String get filename native "DOMPlugin_filename_Getter";
 
-  @DomName('DOMPlugin.length')
+  @DomName('Plugin.length')
   @DocsEditable
   int get length native "DOMPlugin_length_Getter";
 
-  @DomName('DOMPlugin.name')
+  @DomName('Plugin.name')
   @DocsEditable
   String get name native "DOMPlugin_name_Getter";
 
-  @DomName('DOMPlugin.item')
+  @DomName('Plugin.item')
   @DocsEditable
   MimeType item(int index) native "DOMPlugin_item_Callback";
 
-  @DomName('DOMPlugin.namedItem')
+  @DomName('Plugin.namedItem')
   @DocsEditable
   MimeType namedItem(String name) native "DOMPlugin_namedItem_Callback";
 
@@ -17957,10 +17095,10 @@ class Plugin extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('PluginArray')
-class PluginArray extends NativeFieldWrapperClass1 implements List<Plugin> {
+class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
   PluginArray.internal();
 
-  @DomName('DOMPluginArray.length')
+  @DomName('PluginArray.length')
   @DocsEditable
   int get length native "DOMPluginArray_length_Getter";
 
@@ -17972,207 +17110,22 @@ class PluginArray extends NativeFieldWrapperClass1 implements List<Plugin> {
   // -- start List<Plugin> mixins.
   // Plugin is the element type.
 
-  // From Iterable<Plugin>:
 
-  Iterator<Plugin> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Plugin>(this);
-  }
-
-  Plugin reduce(Plugin combine(Plugin value, Plugin element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Plugin element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Plugin element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Plugin element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Plugin element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Plugin> where(bool f(Plugin element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Plugin element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Plugin element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Plugin element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Plugin> toList({ bool growable: true }) =>
-      new List<Plugin>.from(this, growable: growable);
-
-  Set<Plugin> toSet() => new Set<Plugin>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Plugin> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Plugin> takeWhile(bool test(Plugin value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Plugin> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Plugin> skipWhile(bool test(Plugin value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Plugin firstWhere(bool test(Plugin value), { Plugin orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Plugin lastWhere(bool test(Plugin value), {Plugin orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Plugin singleWhere(bool test(Plugin value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Plugin elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Plugin>:
-
-  void add(Plugin value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Plugin> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Plugin>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Plugin> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Plugin a, Plugin b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Plugin element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Plugin element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Plugin get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Plugin get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Plugin get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Plugin element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Plugin> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Plugin> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Plugin removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Plugin removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Plugin element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Plugin element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Plugin> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Plugin> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Plugin fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Plugin> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Plugin> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Plugin>[]);
-  }
-
-  Map<int, Plugin> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
-  }
-
   // -- end List<Plugin> mixins.
 
-  @DomName('DOMPluginArray.item')
+  @DomName('PluginArray.item')
   @DocsEditable
   Plugin item(int index) native "DOMPluginArray_item_Callback";
 
-  @DomName('DOMPluginArray.namedItem')
+  @DomName('PluginArray.namedItem')
   @DocsEditable
   Plugin namedItem(String name) native "DOMPluginArray_namedItem_Callback";
 
-  @DomName('DOMPluginArray.refresh')
+  @DomName('PluginArray.refresh')
   @DocsEditable
   void refresh(bool reload) native "DOMPluginArray_refresh_Callback";
 
@@ -19427,63 +18380,63 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 class SecurityPolicy extends NativeFieldWrapperClass1 {
   SecurityPolicy.internal();
 
-  @DomName('DOMSecurityPolicy.allowsEval')
+  @DomName('SecurityPolicy.allowsEval')
   @DocsEditable
   bool get allowsEval native "DOMSecurityPolicy_allowsEval_Getter";
 
-  @DomName('DOMSecurityPolicy.allowsInlineScript')
+  @DomName('SecurityPolicy.allowsInlineScript')
   @DocsEditable
   bool get allowsInlineScript native "DOMSecurityPolicy_allowsInlineScript_Getter";
 
-  @DomName('DOMSecurityPolicy.allowsInlineStyle')
+  @DomName('SecurityPolicy.allowsInlineStyle')
   @DocsEditable
   bool get allowsInlineStyle native "DOMSecurityPolicy_allowsInlineStyle_Getter";
 
-  @DomName('DOMSecurityPolicy.isActive')
+  @DomName('SecurityPolicy.isActive')
   @DocsEditable
   bool get isActive native "DOMSecurityPolicy_isActive_Getter";
 
-  @DomName('DOMSecurityPolicy.reportURIs')
+  @DomName('SecurityPolicy.reportURIs')
   @DocsEditable
   List<String> get reportURIs native "DOMSecurityPolicy_reportURIs_Getter";
 
-  @DomName('DOMSecurityPolicy.allowsConnectionTo')
+  @DomName('SecurityPolicy.allowsConnectionTo')
   @DocsEditable
   bool allowsConnectionTo(String url) native "DOMSecurityPolicy_allowsConnectionTo_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsFontFrom')
+  @DomName('SecurityPolicy.allowsFontFrom')
   @DocsEditable
   bool allowsFontFrom(String url) native "DOMSecurityPolicy_allowsFontFrom_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsFormAction')
+  @DomName('SecurityPolicy.allowsFormAction')
   @DocsEditable
   bool allowsFormAction(String url) native "DOMSecurityPolicy_allowsFormAction_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsFrameFrom')
+  @DomName('SecurityPolicy.allowsFrameFrom')
   @DocsEditable
   bool allowsFrameFrom(String url) native "DOMSecurityPolicy_allowsFrameFrom_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsImageFrom')
+  @DomName('SecurityPolicy.allowsImageFrom')
   @DocsEditable
   bool allowsImageFrom(String url) native "DOMSecurityPolicy_allowsImageFrom_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsMediaFrom')
+  @DomName('SecurityPolicy.allowsMediaFrom')
   @DocsEditable
   bool allowsMediaFrom(String url) native "DOMSecurityPolicy_allowsMediaFrom_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsObjectFrom')
+  @DomName('SecurityPolicy.allowsObjectFrom')
   @DocsEditable
   bool allowsObjectFrom(String url) native "DOMSecurityPolicy_allowsObjectFrom_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsPluginType')
+  @DomName('SecurityPolicy.allowsPluginType')
   @DocsEditable
   bool allowsPluginType(String type) native "DOMSecurityPolicy_allowsPluginType_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsScriptFrom')
+  @DomName('SecurityPolicy.allowsScriptFrom')
   @DocsEditable
   bool allowsScriptFrom(String url) native "DOMSecurityPolicy_allowsScriptFrom_Callback";
 
-  @DomName('DOMSecurityPolicy.allowsStyleFrom')
+  @DomName('SecurityPolicy.allowsStyleFrom')
   @DocsEditable
   bool allowsStyleFrom(String url) native "DOMSecurityPolicy_allowsStyleFrom_Callback";
 
@@ -19688,107 +18641,107 @@ class SelectElement extends _Element_Merged {
 class Selection extends NativeFieldWrapperClass1 {
   Selection.internal();
 
-  @DomName('DOMSelection.anchorNode')
+  @DomName('Selection.anchorNode')
   @DocsEditable
   Node get anchorNode native "DOMSelection_anchorNode_Getter";
 
-  @DomName('DOMSelection.anchorOffset')
+  @DomName('Selection.anchorOffset')
   @DocsEditable
   int get anchorOffset native "DOMSelection_anchorOffset_Getter";
 
-  @DomName('DOMSelection.baseNode')
+  @DomName('Selection.baseNode')
   @DocsEditable
   Node get baseNode native "DOMSelection_baseNode_Getter";
 
-  @DomName('DOMSelection.baseOffset')
+  @DomName('Selection.baseOffset')
   @DocsEditable
   int get baseOffset native "DOMSelection_baseOffset_Getter";
 
-  @DomName('DOMSelection.extentNode')
+  @DomName('Selection.extentNode')
   @DocsEditable
   Node get extentNode native "DOMSelection_extentNode_Getter";
 
-  @DomName('DOMSelection.extentOffset')
+  @DomName('Selection.extentOffset')
   @DocsEditable
   int get extentOffset native "DOMSelection_extentOffset_Getter";
 
-  @DomName('DOMSelection.focusNode')
+  @DomName('Selection.focusNode')
   @DocsEditable
   Node get focusNode native "DOMSelection_focusNode_Getter";
 
-  @DomName('DOMSelection.focusOffset')
+  @DomName('Selection.focusOffset')
   @DocsEditable
   int get focusOffset native "DOMSelection_focusOffset_Getter";
 
-  @DomName('DOMSelection.isCollapsed')
+  @DomName('Selection.isCollapsed')
   @DocsEditable
   bool get isCollapsed native "DOMSelection_isCollapsed_Getter";
 
-  @DomName('DOMSelection.rangeCount')
+  @DomName('Selection.rangeCount')
   @DocsEditable
   int get rangeCount native "DOMSelection_rangeCount_Getter";
 
-  @DomName('DOMSelection.type')
+  @DomName('Selection.type')
   @DocsEditable
   String get type native "DOMSelection_type_Getter";
 
-  @DomName('DOMSelection.addRange')
+  @DomName('Selection.addRange')
   @DocsEditable
   void addRange(Range range) native "DOMSelection_addRange_Callback";
 
-  @DomName('DOMSelection.collapse')
+  @DomName('Selection.collapse')
   @DocsEditable
   void collapse(Node node, int index) native "DOMSelection_collapse_Callback";
 
-  @DomName('DOMSelection.collapseToEnd')
+  @DomName('Selection.collapseToEnd')
   @DocsEditable
   void collapseToEnd() native "DOMSelection_collapseToEnd_Callback";
 
-  @DomName('DOMSelection.collapseToStart')
+  @DomName('Selection.collapseToStart')
   @DocsEditable
   void collapseToStart() native "DOMSelection_collapseToStart_Callback";
 
-  @DomName('DOMSelection.containsNode')
+  @DomName('Selection.containsNode')
   @DocsEditable
   bool containsNode(Node node, bool allowPartial) native "DOMSelection_containsNode_Callback";
 
-  @DomName('DOMSelection.deleteFromDocument')
+  @DomName('Selection.deleteFromDocument')
   @DocsEditable
   void deleteFromDocument() native "DOMSelection_deleteFromDocument_Callback";
 
-  @DomName('DOMSelection.empty')
+  @DomName('Selection.empty')
   @DocsEditable
   void empty() native "DOMSelection_empty_Callback";
 
-  @DomName('DOMSelection.extend')
+  @DomName('Selection.extend')
   @DocsEditable
   void extend(Node node, int offset) native "DOMSelection_extend_Callback";
 
-  @DomName('DOMSelection.getRangeAt')
+  @DomName('Selection.getRangeAt')
   @DocsEditable
   Range getRangeAt(int index) native "DOMSelection_getRangeAt_Callback";
 
-  @DomName('DOMSelection.modify')
+  @DomName('Selection.modify')
   @DocsEditable
   void modify(String alter, String direction, String granularity) native "DOMSelection_modify_Callback";
 
-  @DomName('DOMSelection.removeAllRanges')
+  @DomName('Selection.removeAllRanges')
   @DocsEditable
   void removeAllRanges() native "DOMSelection_removeAllRanges_Callback";
 
-  @DomName('DOMSelection.selectAllChildren')
+  @DomName('Selection.selectAllChildren')
   @DocsEditable
   void selectAllChildren(Node node) native "DOMSelection_selectAllChildren_Callback";
 
-  @DomName('DOMSelection.setBaseAndExtent')
+  @DomName('Selection.setBaseAndExtent')
   @DocsEditable
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
 
-  @DomName('DOMSelection.setPosition')
+  @DomName('Selection.setPosition')
   @DocsEditable
   void setPosition(Node node, int offset) native "DOMSelection_setPosition_Callback";
 
-  @DomName('DOMSelection.toString')
+  @DomName('Selection.toString')
   @DocsEditable
   String toString() native "DOMSelection_toString_Callback";
 
@@ -19920,7 +18873,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('SourceBuffer.append')
   @DocsEditable
-  void append(List<int> data) native "SourceBuffer_append_Callback";
+  void append(Uint8List data) native "SourceBuffer_append_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19932,7 +18885,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SourceBufferList')
-class SourceBufferList extends EventTarget implements List<SourceBuffer> {
+class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements List<SourceBuffer> {
   SourceBufferList.internal() : super.internal();
 
   @DomName('SourceBufferList.length')
@@ -19947,194 +18900,9 @@ class SourceBufferList extends EventTarget implements List<SourceBuffer> {
   // -- start List<SourceBuffer> mixins.
   // SourceBuffer is the element type.
 
-  // From Iterable<SourceBuffer>:
 
-  Iterator<SourceBuffer> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<SourceBuffer>(this);
-  }
-
-  SourceBuffer reduce(SourceBuffer combine(SourceBuffer value, SourceBuffer element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, SourceBuffer element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(SourceBuffer element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(SourceBuffer element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(SourceBuffer element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<SourceBuffer> where(bool f(SourceBuffer element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(SourceBuffer element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(SourceBuffer element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(SourceBuffer element)) => IterableMixinWorkaround.any(this, f);
-
-  List<SourceBuffer> toList({ bool growable: true }) =>
-      new List<SourceBuffer>.from(this, growable: growable);
-
-  Set<SourceBuffer> toSet() => new Set<SourceBuffer>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<SourceBuffer> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<SourceBuffer> takeWhile(bool test(SourceBuffer value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<SourceBuffer> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<SourceBuffer> skipWhile(bool test(SourceBuffer value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  SourceBuffer firstWhere(bool test(SourceBuffer value), { SourceBuffer orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  SourceBuffer lastWhere(bool test(SourceBuffer value), {SourceBuffer orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  SourceBuffer singleWhere(bool test(SourceBuffer value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  SourceBuffer elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<SourceBuffer>:
-
-  void add(SourceBuffer value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<SourceBuffer> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<SourceBuffer>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<SourceBuffer> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(SourceBuffer a, SourceBuffer b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SourceBuffer element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SourceBuffer element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  SourceBuffer get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  SourceBuffer get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  SourceBuffer get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, SourceBuffer element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<SourceBuffer> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<SourceBuffer> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  SourceBuffer removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  SourceBuffer removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(SourceBuffer element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(SourceBuffer element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<SourceBuffer> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<SourceBuffer> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [SourceBuffer fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<SourceBuffer> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<SourceBuffer> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <SourceBuffer>[]);
-  }
-
-  Map<int, SourceBuffer> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<SourceBuffer> mixins.
@@ -20261,7 +19029,7 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SpeechGrammarList')
-class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechGrammar> {
+class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
   SpeechGrammarList.internal();
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
@@ -20285,194 +19053,9 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 implements List<SpeechG
   // -- start List<SpeechGrammar> mixins.
   // SpeechGrammar is the element type.
 
-  // From Iterable<SpeechGrammar>:
 
-  Iterator<SpeechGrammar> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<SpeechGrammar>(this);
-  }
-
-  SpeechGrammar reduce(SpeechGrammar combine(SpeechGrammar value, SpeechGrammar element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, SpeechGrammar element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(SpeechGrammar element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(SpeechGrammar element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(SpeechGrammar element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<SpeechGrammar> where(bool f(SpeechGrammar element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(SpeechGrammar element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(SpeechGrammar element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(SpeechGrammar element)) => IterableMixinWorkaround.any(this, f);
-
-  List<SpeechGrammar> toList({ bool growable: true }) =>
-      new List<SpeechGrammar>.from(this, growable: growable);
-
-  Set<SpeechGrammar> toSet() => new Set<SpeechGrammar>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<SpeechGrammar> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<SpeechGrammar> takeWhile(bool test(SpeechGrammar value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<SpeechGrammar> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<SpeechGrammar> skipWhile(bool test(SpeechGrammar value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  SpeechGrammar firstWhere(bool test(SpeechGrammar value), { SpeechGrammar orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  SpeechGrammar lastWhere(bool test(SpeechGrammar value), {SpeechGrammar orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  SpeechGrammar singleWhere(bool test(SpeechGrammar value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  SpeechGrammar elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<SpeechGrammar>:
-
-  void add(SpeechGrammar value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<SpeechGrammar> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<SpeechGrammar>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<SpeechGrammar> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(SpeechGrammar a, SpeechGrammar b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SpeechGrammar element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SpeechGrammar element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  SpeechGrammar get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  SpeechGrammar get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  SpeechGrammar get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, SpeechGrammar element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<SpeechGrammar> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<SpeechGrammar> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  SpeechGrammar removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  SpeechGrammar removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(SpeechGrammar element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(SpeechGrammar element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<SpeechGrammar> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<SpeechGrammar> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [SpeechGrammar fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<SpeechGrammar> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<SpeechGrammar> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <SpeechGrammar>[]);
-  }
-
-  Map<int, SpeechGrammar> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<SpeechGrammar> mixins.
@@ -21485,15 +20068,131 @@ class TableSectionElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
+@Experimental
 @DomName('HTMLTemplateElement')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@Experimental
 class TemplateElement extends _Element_Merged {
   TemplateElement.internal() : super.internal();
 
+  @DomName('HTMLTemplateElement.HTMLTemplateElement')
+  @DocsEditable
+  factory TemplateElement() => document.$dom_createElement("template");
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
   @DomName('HTMLTemplateElement.content')
   @DocsEditable
-  DocumentFragment get content native "HTMLTemplateElement_content_Getter";
+  DocumentFragment get $dom_content native "HTMLTemplateElement_content_Getter";
 
+
+  // For real TemplateElement use the actual DOM .content field instead of
+  // our polyfilled expando.
+  @Experimental
+  DocumentFragment get content => $dom_content;
+
+  static StreamController<DocumentFragment> _instanceCreated;
+
+  /**
+   * *Warning*: This is an implementation helper for Model-Driven Views and
+   * should not be used in your code.
+   *
+   * This event is fired whenever a template is instantiated via
+   * [createInstance].
+   */
+  // TODO(rafaelw): This is a hack, and is neccesary for the polyfill
+  // because custom elements are not upgraded during clone()
+  @Experimental
+  static Stream<DocumentFragment> get instanceCreated {
+    if (_instanceCreated == null) {
+      _instanceCreated = new StreamController<DocumentFragment>();
+    }
+    return _instanceCreated.stream;
+  }
+
+  /**
+   * Ensures proper API and content model for template elements.
+   *
+   * [instanceRef] can be used to set the [Element.ref] property of [template],
+   * and use the ref's content will be used as source when createInstance() is
+   * invoked.
+   *
+   * Returns true if this template was just decorated, or false if it was
+   * already decorated.
+   */
+  @Experimental
+  static bool decorate(Element template, [Element instanceRef]) {
+    // == true check because it starts as a null field.
+    if (template._templateIsDecorated == true) return false;
+
+    template._templateIsDecorated = true;
+
+    _injectStylesheet();
+
+    // Create content
+    if (template is! TemplateElement) {
+      var doc = _getTemplateContentsOwner(template.document);
+      template._templateContent = doc.createDocumentFragment();
+    }
+
+    if (instanceRef != null) {
+      template._templateInstanceRef = instanceRef;
+      return true; // content is empty.
+    }
+
+    if (template is TemplateElement) {
+      _bootstrapTemplatesRecursivelyFrom(template.content);
+    } else {
+      _liftNonNativeTemplateChildrenIntoContent(template);
+    }
+
+    return true;
+  }
+
+  /**
+   * This used to decorate recursively all templates from a given node.
+   *
+   * By default [decorate] will be called on templates lazily when certain
+   * properties such as [model] are accessed, but it can be run eagerly to
+   * decorate an entire tree recursively.
+   */
+  // TODO(rafaelw): Review whether this is the right public API.
+  @Experimental
+  static void bootstrap(Node content) {
+    _bootstrapTemplatesRecursivelyFrom(content);
+  }
+
+  static bool _initStyles;
+
+  static void _injectStylesheet() {
+    if (_initStyles == true) return;
+    _initStyles = true;
+
+    var style = new StyleElement();
+    style.text = r'''
+template,
+thead[template],
+tbody[template],
+tfoot[template],
+th[template],
+tr[template],
+td[template],
+caption[template],
+colgroup[template],
+col[template],
+option[template] {
+  display: none;
+}''';
+    document.head.append(style);
+  }
+
+  /**
+   * A mapping of names to Custom Syntax objects. See [CustomBindingSyntax] for
+   * more information.
+   */
+  @Experimental
+  static Map<String, CustomBindingSyntax> syntax = {};
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21526,6 +20225,41 @@ class Text extends CharacterData {
   @DocsEditable
   Text splitText(int offset) native "Text_splitText_Callback";
 
+
+  StreamSubscription _textBinding;
+
+  @Experimental
+  void bind(String name, model, String path) {
+    if (name != 'text') {
+      super.bind(name, model, path);
+      return;
+    }
+
+    unbind('text');
+
+    _textBinding = new PathObserver(model, path).bindSync((value) {
+      text = value == null ? '' : '$value';
+    });
+  }
+
+  @Experimental
+  void unbind(String name) {
+    if (name != 'text') {
+      super.unbind(name);
+      return;
+    }
+
+    if (_textBinding == null) return;
+
+    _textBinding.cancel();
+    _textBinding = null;
+  }
+
+  @Experimental
+  void unbindAll() {
+    unbind('text');
+    super.unbindAll();
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22011,7 +20745,7 @@ class TextTrackCue extends EventTarget {
 
 @DocsEditable
 @DomName('TextTrackCueList')
-class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrackCue> {
+class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
   TextTrackCueList.internal();
 
   @DomName('TextTrackCueList.length')
@@ -22026,194 +20760,9 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
   // -- start List<TextTrackCue> mixins.
   // TextTrackCue is the element type.
 
-  // From Iterable<TextTrackCue>:
 
-  Iterator<TextTrackCue> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<TextTrackCue>(this);
-  }
-
-  TextTrackCue reduce(TextTrackCue combine(TextTrackCue value, TextTrackCue element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, TextTrackCue element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(TextTrackCue element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(TextTrackCue element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(TextTrackCue element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<TextTrackCue> where(bool f(TextTrackCue element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(TextTrackCue element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(TextTrackCue element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(TextTrackCue element)) => IterableMixinWorkaround.any(this, f);
-
-  List<TextTrackCue> toList({ bool growable: true }) =>
-      new List<TextTrackCue>.from(this, growable: growable);
-
-  Set<TextTrackCue> toSet() => new Set<TextTrackCue>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<TextTrackCue> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<TextTrackCue> takeWhile(bool test(TextTrackCue value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<TextTrackCue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<TextTrackCue> skipWhile(bool test(TextTrackCue value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  TextTrackCue firstWhere(bool test(TextTrackCue value), { TextTrackCue orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  TextTrackCue lastWhere(bool test(TextTrackCue value), {TextTrackCue orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  TextTrackCue singleWhere(bool test(TextTrackCue value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  TextTrackCue elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<TextTrackCue>:
-
-  void add(TextTrackCue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<TextTrackCue> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<TextTrackCue>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<TextTrackCue> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(TextTrackCue a, TextTrackCue b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(TextTrackCue element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(TextTrackCue element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  TextTrackCue get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  TextTrackCue get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  TextTrackCue get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, TextTrackCue element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<TextTrackCue> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<TextTrackCue> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  TextTrackCue removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  TextTrackCue removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(TextTrackCue element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(TextTrackCue element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<TextTrackCue> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<TextTrackCue> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [TextTrackCue fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<TextTrackCue> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<TextTrackCue> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <TextTrackCue>[]);
-  }
-
-  Map<int, TextTrackCue> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<TextTrackCue> mixins.
@@ -22236,7 +20785,7 @@ class TextTrackCueList extends NativeFieldWrapperClass1 implements List<TextTrac
 
 @DocsEditable
 @DomName('TextTrackList')
-class TextTrackList extends EventTarget implements List<TextTrack> {
+class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements List<TextTrack> {
   TextTrackList.internal() : super.internal();
 
   @DomName('TextTrackList.addtrackEvent')
@@ -22255,194 +20804,9 @@ class TextTrackList extends EventTarget implements List<TextTrack> {
   // -- start List<TextTrack> mixins.
   // TextTrack is the element type.
 
-  // From Iterable<TextTrack>:
 
-  Iterator<TextTrack> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<TextTrack>(this);
-  }
-
-  TextTrack reduce(TextTrack combine(TextTrack value, TextTrack element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, TextTrack element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(TextTrack element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(TextTrack element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(TextTrack element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<TextTrack> where(bool f(TextTrack element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(TextTrack element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(TextTrack element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(TextTrack element)) => IterableMixinWorkaround.any(this, f);
-
-  List<TextTrack> toList({ bool growable: true }) =>
-      new List<TextTrack>.from(this, growable: growable);
-
-  Set<TextTrack> toSet() => new Set<TextTrack>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<TextTrack> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<TextTrack> takeWhile(bool test(TextTrack value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<TextTrack> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<TextTrack> skipWhile(bool test(TextTrack value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  TextTrack firstWhere(bool test(TextTrack value), { TextTrack orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  TextTrack lastWhere(bool test(TextTrack value), {TextTrack orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  TextTrack singleWhere(bool test(TextTrack value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  TextTrack elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<TextTrack>:
-
-  void add(TextTrack value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<TextTrack> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<TextTrack>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<TextTrack> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(TextTrack a, TextTrack b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(TextTrack element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(TextTrack element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  TextTrack get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  TextTrack get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  TextTrack get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, TextTrack element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<TextTrack> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<TextTrack> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  TextTrack removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  TextTrack removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(TextTrack element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(TextTrack element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<TextTrack> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<TextTrack> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [TextTrack fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<TextTrack> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<TextTrack> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <TextTrack>[]);
-  }
-
-  Map<int, TextTrack> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<TextTrack> mixins.
@@ -22679,7 +21043,7 @@ class TouchEvent extends UIEvent {
 
 
 @DomName('TouchList')
-class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
+class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -22701,194 +21065,9 @@ class TouchList extends NativeFieldWrapperClass1 implements List<Touch> {
   // -- start List<Touch> mixins.
   // Touch is the element type.
 
-  // From Iterable<Touch>:
 
-  Iterator<Touch> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Touch>(this);
-  }
-
-  Touch reduce(Touch combine(Touch value, Touch element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Touch element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Touch element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Touch element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Touch element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Touch> where(bool f(Touch element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Touch element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Touch element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Touch element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Touch> toList({ bool growable: true }) =>
-      new List<Touch>.from(this, growable: growable);
-
-  Set<Touch> toSet() => new Set<Touch>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Touch> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Touch> takeWhile(bool test(Touch value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Touch> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Touch> skipWhile(bool test(Touch value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Touch firstWhere(bool test(Touch value), { Touch orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Touch lastWhere(bool test(Touch value), {Touch orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Touch singleWhere(bool test(Touch value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Touch elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Touch>:
-
-  void add(Touch value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Touch> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Touch>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Touch> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Touch a, Touch b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Touch element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Touch element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Touch get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Touch get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Touch get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Touch element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Touch> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Touch> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Touch removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Touch removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Touch element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Touch element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Touch> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Touch> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Touch fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Touch> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Touch> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Touch>[]);
-  }
-
-  Map<int, Touch> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<Touch> mixins.
@@ -23231,7 +21410,7 @@ class Url extends NativeFieldWrapperClass1 {
 
   static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL__createObjectURL_3_Callback";
 
-  @DomName('DOMURL.revokeObjectURL')
+  @DomName('URL.revokeObjectURL')
   @DocsEditable
   static void revokeObjectUrl(String url) native "DOMURL_revokeObjectURL_Callback";
 
@@ -23787,73 +21966,73 @@ class Window extends EventTarget implements WindowBase {
   static bool get supportsPointConversions => _DomPoint.supported;
   Window.internal() : super.internal();
 
-  @DomName('DOMWindow.DOMContentLoadedEvent')
+  @DomName('Window.DOMContentLoadedEvent')
   @DocsEditable
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
-  @DomName('DOMWindow.devicemotionEvent')
+  @DomName('Window.devicemotionEvent')
   @DocsEditable
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
-  @DomName('DOMWindow.deviceorientationEvent')
+  @DomName('Window.deviceorientationEvent')
   @DocsEditable
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
-  @DomName('DOMWindow.hashchangeEvent')
+  @DomName('Window.hashchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> hashChangeEvent = const EventStreamProvider<Event>('hashchange');
 
-  @DomName('DOMWindow.messageEvent')
+  @DomName('Window.messageEvent')
   @DocsEditable
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('DOMWindow.offlineEvent')
+  @DomName('Window.offlineEvent')
   @DocsEditable
   static const EventStreamProvider<Event> offlineEvent = const EventStreamProvider<Event>('offline');
 
-  @DomName('DOMWindow.onlineEvent')
+  @DomName('Window.onlineEvent')
   @DocsEditable
   static const EventStreamProvider<Event> onlineEvent = const EventStreamProvider<Event>('online');
 
-  @DomName('DOMWindow.pagehideEvent')
+  @DomName('Window.pagehideEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pageHideEvent = const EventStreamProvider<Event>('pagehide');
 
-  @DomName('DOMWindow.pageshowEvent')
+  @DomName('Window.pageshowEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pageShowEvent = const EventStreamProvider<Event>('pageshow');
 
-  @DomName('DOMWindow.popstateEvent')
+  @DomName('Window.popstateEvent')
   @DocsEditable
   static const EventStreamProvider<PopStateEvent> popStateEvent = const EventStreamProvider<PopStateEvent>('popstate');
 
-  @DomName('DOMWindow.resizeEvent')
+  @DomName('Window.resizeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> resizeEvent = const EventStreamProvider<Event>('resize');
 
-  @DomName('DOMWindow.storageEvent')
+  @DomName('Window.storageEvent')
   @DocsEditable
   static const EventStreamProvider<StorageEvent> storageEvent = const EventStreamProvider<StorageEvent>('storage');
 
-  @DomName('DOMWindow.unloadEvent')
+  @DomName('Window.unloadEvent')
   @DocsEditable
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
 
-  @DomName('DOMWindow.webkitAnimationEndEvent')
+  @DomName('Window.webkitAnimationEndEvent')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
-  @DomName('DOMWindow.webkitAnimationIterationEvent')
+  @DomName('Window.webkitAnimationIterationEvent')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
-  @DomName('DOMWindow.webkitAnimationStartEvent')
+  @DomName('Window.webkitAnimationStartEvent')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -23864,55 +22043,55 @@ class Window extends EventTarget implements WindowBase {
 
   static const int TEMPORARY = 0;
 
-  @DomName('DOMWindow.applicationCache')
+  @DomName('Window.applicationCache')
   @DocsEditable
   ApplicationCache get applicationCache native "DOMWindow_applicationCache_Getter";
 
-  @DomName('DOMWindow.closed')
+  @DomName('Window.closed')
   @DocsEditable
   bool get closed native "DOMWindow_closed_Getter";
 
-  @DomName('DOMWindow.console')
+  @DomName('Window.console')
   @DocsEditable
   Console get console native "DOMWindow_console_Getter";
 
-  @DomName('DOMWindow.crypto')
+  @DomName('Window.crypto')
   @DocsEditable
   Crypto get crypto native "DOMWindow_crypto_Getter";
 
-  @DomName('DOMWindow.defaultStatus')
+  @DomName('Window.defaultStatus')
   @DocsEditable
   String get defaultStatus native "DOMWindow_defaultStatus_Getter";
 
-  @DomName('DOMWindow.defaultStatus')
+  @DomName('Window.defaultStatus')
   @DocsEditable
   void set defaultStatus(String value) native "DOMWindow_defaultStatus_Setter";
 
-  @DomName('DOMWindow.defaultstatus')
+  @DomName('Window.defaultstatus')
   @DocsEditable
   String get defaultstatus native "DOMWindow_defaultstatus_Getter";
 
-  @DomName('DOMWindow.defaultstatus')
+  @DomName('Window.defaultstatus')
   @DocsEditable
   void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
 
-  @DomName('DOMWindow.devicePixelRatio')
+  @DomName('Window.devicePixelRatio')
   @DocsEditable
   num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
 
-  @DomName('DOMWindow.document')
+  @DomName('Window.document')
   @DocsEditable
   Document get document native "DOMWindow_document_Getter";
 
-  @DomName('DOMWindow.event')
+  @DomName('Window.event')
   @DocsEditable
   Event get event native "DOMWindow_event_Getter";
 
-  @DomName('DOMWindow.history')
+  @DomName('Window.history')
   @DocsEditable
   History get history native "DOMWindow_history_Getter";
 
-  @DomName('DOMWindow.indexedDB')
+  @DomName('Window.indexedDB')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
@@ -23920,325 +22099,325 @@ class Window extends EventTarget implements WindowBase {
   @Experimental
   IdbFactory get indexedDB native "DOMWindow_indexedDB_Getter";
 
-  @DomName('DOMWindow.innerHeight')
+  @DomName('Window.innerHeight')
   @DocsEditable
   int get innerHeight native "DOMWindow_innerHeight_Getter";
 
-  @DomName('DOMWindow.innerWidth')
+  @DomName('Window.innerWidth')
   @DocsEditable
   int get innerWidth native "DOMWindow_innerWidth_Getter";
 
-  @DomName('DOMWindow.localStorage')
+  @DomName('Window.localStorage')
   @DocsEditable
   Storage get localStorage native "DOMWindow_localStorage_Getter";
 
-  @DomName('DOMWindow.location')
+  @DomName('Window.location')
   @DocsEditable
   Location get location native "DOMWindow_location_Getter";
 
-  @DomName('DOMWindow.location')
+  @DomName('Window.location')
   @DocsEditable
   void set location(Location value) native "DOMWindow_location_Setter";
 
-  @DomName('DOMWindow.locationbar')
+  @DomName('Window.locationbar')
   @DocsEditable
   BarInfo get locationbar native "DOMWindow_locationbar_Getter";
 
-  @DomName('DOMWindow.menubar')
+  @DomName('Window.menubar')
   @DocsEditable
   BarInfo get menubar native "DOMWindow_menubar_Getter";
 
-  @DomName('DOMWindow.name')
+  @DomName('Window.name')
   @DocsEditable
   String get name native "DOMWindow_name_Getter";
 
-  @DomName('DOMWindow.name')
+  @DomName('Window.name')
   @DocsEditable
   void set name(String value) native "DOMWindow_name_Setter";
 
-  @DomName('DOMWindow.navigator')
+  @DomName('Window.navigator')
   @DocsEditable
   Navigator get navigator native "DOMWindow_navigator_Getter";
 
-  @DomName('DOMWindow.offscreenBuffering')
+  @DomName('Window.offscreenBuffering')
   @DocsEditable
   bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
 
-  @DomName('DOMWindow.opener')
+  @DomName('Window.opener')
   @DocsEditable
   WindowBase get opener native "DOMWindow_opener_Getter";
 
-  @DomName('DOMWindow.outerHeight')
+  @DomName('Window.outerHeight')
   @DocsEditable
   int get outerHeight native "DOMWindow_outerHeight_Getter";
 
-  @DomName('DOMWindow.outerWidth')
+  @DomName('Window.outerWidth')
   @DocsEditable
   int get outerWidth native "DOMWindow_outerWidth_Getter";
 
-  @DomName('DOMWindow.pageXOffset')
+  @DomName('Window.pageXOffset')
   @DocsEditable
   int get pageXOffset native "DOMWindow_pageXOffset_Getter";
 
-  @DomName('DOMWindow.pageYOffset')
+  @DomName('Window.pageYOffset')
   @DocsEditable
   int get pageYOffset native "DOMWindow_pageYOffset_Getter";
 
-  @DomName('DOMWindow.parent')
+  @DomName('Window.parent')
   @DocsEditable
   WindowBase get parent native "DOMWindow_parent_Getter";
 
-  @DomName('DOMWindow.performance')
+  @DomName('Window.performance')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE)
   Performance get performance native "DOMWindow_performance_Getter";
 
-  @DomName('DOMWindow.personalbar')
+  @DomName('Window.personalbar')
   @DocsEditable
   BarInfo get personalbar native "DOMWindow_personalbar_Getter";
 
-  @DomName('DOMWindow.screen')
+  @DomName('Window.screen')
   @DocsEditable
   Screen get screen native "DOMWindow_screen_Getter";
 
-  @DomName('DOMWindow.screenLeft')
+  @DomName('Window.screenLeft')
   @DocsEditable
   int get screenLeft native "DOMWindow_screenLeft_Getter";
 
-  @DomName('DOMWindow.screenTop')
+  @DomName('Window.screenTop')
   @DocsEditable
   int get screenTop native "DOMWindow_screenTop_Getter";
 
-  @DomName('DOMWindow.screenX')
+  @DomName('Window.screenX')
   @DocsEditable
   int get screenX native "DOMWindow_screenX_Getter";
 
-  @DomName('DOMWindow.screenY')
+  @DomName('Window.screenY')
   @DocsEditable
   int get screenY native "DOMWindow_screenY_Getter";
 
-  @DomName('DOMWindow.scrollX')
+  @DomName('Window.scrollX')
   @DocsEditable
   int get scrollX native "DOMWindow_scrollX_Getter";
 
-  @DomName('DOMWindow.scrollY')
+  @DomName('Window.scrollY')
   @DocsEditable
   int get scrollY native "DOMWindow_scrollY_Getter";
 
-  @DomName('DOMWindow.scrollbars')
+  @DomName('Window.scrollbars')
   @DocsEditable
   BarInfo get scrollbars native "DOMWindow_scrollbars_Getter";
 
-  @DomName('DOMWindow.self')
+  @DomName('Window.self')
   @DocsEditable
   WindowBase get self native "DOMWindow_self_Getter";
 
-  @DomName('DOMWindow.sessionStorage')
+  @DomName('Window.sessionStorage')
   @DocsEditable
   Storage get sessionStorage native "DOMWindow_sessionStorage_Getter";
 
-  @DomName('DOMWindow.status')
+  @DomName('Window.status')
   @DocsEditable
   String get status native "DOMWindow_status_Getter";
 
-  @DomName('DOMWindow.status')
+  @DomName('Window.status')
   @DocsEditable
   void set status(String value) native "DOMWindow_status_Setter";
 
-  @DomName('DOMWindow.statusbar')
+  @DomName('Window.statusbar')
   @DocsEditable
   BarInfo get statusbar native "DOMWindow_statusbar_Getter";
 
-  @DomName('DOMWindow.styleMedia')
+  @DomName('Window.styleMedia')
   @DocsEditable
   StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
 
-  @DomName('DOMWindow.toolbar')
+  @DomName('Window.toolbar')
   @DocsEditable
   BarInfo get toolbar native "DOMWindow_toolbar_Getter";
 
-  @DomName('DOMWindow.top')
+  @DomName('Window.top')
   @DocsEditable
   WindowBase get top native "DOMWindow_top_Getter";
 
-  @DomName('DOMWindow.webkitNotifications')
+  @DomName('Window.webkitNotifications')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   NotificationCenter get notifications native "DOMWindow_webkitNotifications_Getter";
 
-  @DomName('DOMWindow.webkitStorageInfo')
+  @DomName('Window.webkitStorageInfo')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   StorageInfo get storageInfo native "DOMWindow_webkitStorageInfo_Getter";
 
-  @DomName('DOMWindow.window')
+  @DomName('Window.window')
   @DocsEditable
   WindowBase get window native "DOMWindow_window_Getter";
 
-  @DomName('DOMWindow.addEventListener')
+  @DomName('Window.addEventListener')
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
 
-  @DomName('DOMWindow.alert')
+  @DomName('Window.alert')
   @DocsEditable
   void alert(String message) native "DOMWindow_alert_Callback";
 
-  @DomName('DOMWindow.atob')
+  @DomName('Window.atob')
   @DocsEditable
   String atob(String string) native "DOMWindow_atob_Callback";
 
-  @DomName('DOMWindow.btoa')
+  @DomName('Window.btoa')
   @DocsEditable
   String btoa(String string) native "DOMWindow_btoa_Callback";
 
-  @DomName('DOMWindow.cancelAnimationFrame')
+  @DomName('Window.cancelAnimationFrame')
   @DocsEditable
   void cancelAnimationFrame(int id) native "DOMWindow_cancelAnimationFrame_Callback";
 
-  @DomName('DOMWindow.captureEvents')
+  @DomName('Window.captureEvents')
   @DocsEditable
   void captureEvents() native "DOMWindow_captureEvents_Callback";
 
-  @DomName('DOMWindow.clearInterval')
+  @DomName('Window.clearInterval')
   @DocsEditable
   void _clearInterval(int handle) native "DOMWindow_clearInterval_Callback";
 
-  @DomName('DOMWindow.clearTimeout')
+  @DomName('Window.clearTimeout')
   @DocsEditable
   void _clearTimeout(int handle) native "DOMWindow_clearTimeout_Callback";
 
-  @DomName('DOMWindow.close')
+  @DomName('Window.close')
   @DocsEditable
   void close() native "DOMWindow_close_Callback";
 
-  @DomName('DOMWindow.confirm')
+  @DomName('Window.confirm')
   @DocsEditable
   bool confirm(String message) native "DOMWindow_confirm_Callback";
 
-  @DomName('DOMWindow.dispatchEvent')
+  @DomName('Window.dispatchEvent')
   @DocsEditable
   bool dispatchEvent(Event evt) native "DOMWindow_dispatchEvent_Callback";
 
-  @DomName('DOMWindow.find')
+  @DomName('Window.find')
   @DocsEditable
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
 
-  @DomName('DOMWindow.getComputedStyle')
+  @DomName('Window.getComputedStyle')
   @DocsEditable
   CssStyleDeclaration $dom_getComputedStyle(Element element, String pseudoElement) native "DOMWindow_getComputedStyle_Callback";
 
-  @DomName('DOMWindow.getMatchedCSSRules')
+  @DomName('Window.getMatchedCSSRules')
   @DocsEditable
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
 
-  @DomName('DOMWindow.getSelection')
+  @DomName('Window.getSelection')
   @DocsEditable
   Selection getSelection() native "DOMWindow_getSelection_Callback";
 
-  @DomName('DOMWindow.matchMedia')
+  @DomName('Window.matchMedia')
   @DocsEditable
   MediaQueryList matchMedia(String query) native "DOMWindow_matchMedia_Callback";
 
-  @DomName('DOMWindow.moveBy')
+  @DomName('Window.moveBy')
   @DocsEditable
   void moveBy(num x, num y) native "DOMWindow_moveBy_Callback";
 
-  @DomName('DOMWindow.moveTo')
+  @DomName('Window.moveTo')
   @DocsEditable
   void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
 
-  @DomName('DOMWindow.open')
+  @DomName('Window.open')
   @DocsEditable
   WindowBase open(String url, String name, [String options]) native "DOMWindow_open_Callback";
 
-  @DomName('DOMWindow.openDatabase')
+  @DomName('Window.openDatabase')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
-  @DomName('DOMWindow.postMessage')
+  @DomName('Window.postMessage')
   @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
-  @DomName('DOMWindow.print')
+  @DomName('Window.print')
   @DocsEditable
   void print() native "DOMWindow_print_Callback";
 
-  @DomName('DOMWindow.releaseEvents')
+  @DomName('Window.releaseEvents')
   @DocsEditable
   void releaseEvents() native "DOMWindow_releaseEvents_Callback";
 
-  @DomName('DOMWindow.removeEventListener')
+  @DomName('Window.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
 
-  @DomName('DOMWindow.requestAnimationFrame')
+  @DomName('Window.requestAnimationFrame')
   @DocsEditable
   int requestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_requestAnimationFrame_Callback";
 
-  @DomName('DOMWindow.resizeBy')
+  @DomName('Window.resizeBy')
   @DocsEditable
   void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
 
-  @DomName('DOMWindow.resizeTo')
+  @DomName('Window.resizeTo')
   @DocsEditable
   void resizeTo(num width, num height) native "DOMWindow_resizeTo_Callback";
 
-  @DomName('DOMWindow.scroll')
+  @DomName('Window.scroll')
   @DocsEditable
   void scroll(int x, int y) native "DOMWindow_scroll_Callback";
 
-  @DomName('DOMWindow.scrollBy')
+  @DomName('Window.scrollBy')
   @DocsEditable
   void scrollBy(int x, int y) native "DOMWindow_scrollBy_Callback";
 
-  @DomName('DOMWindow.scrollTo')
+  @DomName('Window.scrollTo')
   @DocsEditable
   void scrollTo(int x, int y) native "DOMWindow_scrollTo_Callback";
 
-  @DomName('DOMWindow.setInterval')
+  @DomName('Window.setInterval')
   @DocsEditable
   int _setInterval(Object handler, int timeout) native "DOMWindow_setInterval_Callback";
 
-  @DomName('DOMWindow.setTimeout')
+  @DomName('Window.setTimeout')
   @DocsEditable
   int _setTimeout(Object handler, int timeout) native "DOMWindow_setTimeout_Callback";
 
-  @DomName('DOMWindow.showModalDialog')
+  @DomName('Window.showModalDialog')
   @DocsEditable
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
 
-  @DomName('DOMWindow.stop')
+  @DomName('Window.stop')
   @DocsEditable
   void stop() native "DOMWindow_stop_Callback";
 
-  @DomName('DOMWindow.toString')
+  @DomName('Window.toString')
   @DocsEditable
   String toString() native "DOMWindow_toString_Callback";
 
-  @DomName('DOMWindow.webkitConvertPointFromNodeToPage')
+  @DomName('Window.webkitConvertPointFromNodeToPage')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   _DomPoint _convertPointFromNodeToPage(Node node, _DomPoint p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
-  @DomName('DOMWindow.webkitConvertPointFromPageToNode')
+  @DomName('Window.webkitConvertPointFromPageToNode')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   _DomPoint _convertPointFromPageToNode(Node node, _DomPoint p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
-  @DomName('DOMWindow.webkitRequestFileSystem')
+  @DomName('Window.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
@@ -24252,7 +22431,7 @@ class Window extends EventTarget implements WindowBase {
     return completer.future;
   }
 
-  @DomName('DOMWindow.webkitResolveLocalFileSystemURL')
+  @DomName('Window.webkitResolveLocalFileSystemURL')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
@@ -24266,215 +22445,215 @@ class Window extends EventTarget implements WindowBase {
     return completer.future;
   }
 
-  @DomName('DOMWindow.onDOMContentLoaded')
+  @DomName('Window.onDOMContentLoaded')
   @DocsEditable
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
-  @DomName('DOMWindow.onabort')
+  @DomName('Window.onabort')
   @DocsEditable
   Stream<Event> get onAbort => Element.abortEvent.forTarget(this);
 
-  @DomName('DOMWindow.onblur')
+  @DomName('Window.onblur')
   @DocsEditable
   Stream<Event> get onBlur => Element.blurEvent.forTarget(this);
 
-  @DomName('DOMWindow.onchange')
+  @DomName('Window.onchange')
   @DocsEditable
   Stream<Event> get onChange => Element.changeEvent.forTarget(this);
 
-  @DomName('DOMWindow.onclick')
+  @DomName('Window.onclick')
   @DocsEditable
   Stream<MouseEvent> get onClick => Element.clickEvent.forTarget(this);
 
-  @DomName('DOMWindow.oncontextmenu')
+  @DomName('Window.oncontextmenu')
   @DocsEditable
   Stream<MouseEvent> get onContextMenu => Element.contextMenuEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondblclick')
+  @DomName('Window.ondblclick')
   @DocsEditable
   Stream<Event> get onDoubleClick => Element.doubleClickEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondevicemotion')
+  @DomName('Window.ondevicemotion')
   @DocsEditable
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondeviceorientation')
+  @DomName('Window.ondeviceorientation')
   @DocsEditable
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondrag')
+  @DomName('Window.ondrag')
   @DocsEditable
   Stream<MouseEvent> get onDrag => Element.dragEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragend')
+  @DomName('Window.ondragend')
   @DocsEditable
   Stream<MouseEvent> get onDragEnd => Element.dragEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragenter')
+  @DomName('Window.ondragenter')
   @DocsEditable
   Stream<MouseEvent> get onDragEnter => Element.dragEnterEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragleave')
+  @DomName('Window.ondragleave')
   @DocsEditable
   Stream<MouseEvent> get onDragLeave => Element.dragLeaveEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragover')
+  @DomName('Window.ondragover')
   @DocsEditable
   Stream<MouseEvent> get onDragOver => Element.dragOverEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondragstart')
+  @DomName('Window.ondragstart')
   @DocsEditable
   Stream<MouseEvent> get onDragStart => Element.dragStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.ondrop')
+  @DomName('Window.ondrop')
   @DocsEditable
   Stream<MouseEvent> get onDrop => Element.dropEvent.forTarget(this);
 
-  @DomName('DOMWindow.onerror')
+  @DomName('Window.onerror')
   @DocsEditable
   Stream<Event> get onError => Element.errorEvent.forTarget(this);
 
-  @DomName('DOMWindow.onfocus')
+  @DomName('Window.onfocus')
   @DocsEditable
   Stream<Event> get onFocus => Element.focusEvent.forTarget(this);
 
-  @DomName('DOMWindow.onhashchange')
+  @DomName('Window.onhashchange')
   @DocsEditable
   Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
 
-  @DomName('DOMWindow.oninput')
+  @DomName('Window.oninput')
   @DocsEditable
   Stream<Event> get onInput => Element.inputEvent.forTarget(this);
 
-  @DomName('DOMWindow.oninvalid')
+  @DomName('Window.oninvalid')
   @DocsEditable
   Stream<Event> get onInvalid => Element.invalidEvent.forTarget(this);
 
-  @DomName('DOMWindow.onkeydown')
+  @DomName('Window.onkeydown')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyDown => Element.keyDownEvent.forTarget(this);
 
-  @DomName('DOMWindow.onkeypress')
+  @DomName('Window.onkeypress')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyPress => Element.keyPressEvent.forTarget(this);
 
-  @DomName('DOMWindow.onkeyup')
+  @DomName('Window.onkeyup')
   @DocsEditable
   Stream<KeyboardEvent> get onKeyUp => Element.keyUpEvent.forTarget(this);
 
-  @DomName('DOMWindow.onload')
+  @DomName('Window.onload')
   @DocsEditable
   Stream<Event> get onLoad => Element.loadEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmessage')
+  @DomName('Window.onmessage')
   @DocsEditable
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmousedown')
+  @DomName('Window.onmousedown')
   @DocsEditable
   Stream<MouseEvent> get onMouseDown => Element.mouseDownEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmousemove')
+  @DomName('Window.onmousemove')
   @DocsEditable
   Stream<MouseEvent> get onMouseMove => Element.mouseMoveEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmouseout')
+  @DomName('Window.onmouseout')
   @DocsEditable
   Stream<MouseEvent> get onMouseOut => Element.mouseOutEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmouseover')
+  @DomName('Window.onmouseover')
   @DocsEditable
   Stream<MouseEvent> get onMouseOver => Element.mouseOverEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmouseup')
+  @DomName('Window.onmouseup')
   @DocsEditable
   Stream<MouseEvent> get onMouseUp => Element.mouseUpEvent.forTarget(this);
 
-  @DomName('DOMWindow.onmousewheel')
+  @DomName('Window.onmousewheel')
   @DocsEditable
   Stream<WheelEvent> get onMouseWheel => Element.mouseWheelEvent.forTarget(this);
 
-  @DomName('DOMWindow.onoffline')
+  @DomName('Window.onoffline')
   @DocsEditable
   Stream<Event> get onOffline => offlineEvent.forTarget(this);
 
-  @DomName('DOMWindow.ononline')
+  @DomName('Window.ononline')
   @DocsEditable
   Stream<Event> get onOnline => onlineEvent.forTarget(this);
 
-  @DomName('DOMWindow.onpagehide')
+  @DomName('Window.onpagehide')
   @DocsEditable
   Stream<Event> get onPageHide => pageHideEvent.forTarget(this);
 
-  @DomName('DOMWindow.onpageshow')
+  @DomName('Window.onpageshow')
   @DocsEditable
   Stream<Event> get onPageShow => pageShowEvent.forTarget(this);
 
-  @DomName('DOMWindow.onpopstate')
+  @DomName('Window.onpopstate')
   @DocsEditable
   Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
 
-  @DomName('DOMWindow.onreset')
+  @DomName('Window.onreset')
   @DocsEditable
   Stream<Event> get onReset => Element.resetEvent.forTarget(this);
 
-  @DomName('DOMWindow.onresize')
+  @DomName('Window.onresize')
   @DocsEditable
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
-  @DomName('DOMWindow.onscroll')
+  @DomName('Window.onscroll')
   @DocsEditable
   Stream<Event> get onScroll => Element.scrollEvent.forTarget(this);
 
-  @DomName('DOMWindow.onsearch')
+  @DomName('Window.onsearch')
   @DocsEditable
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
-  @DomName('DOMWindow.onselect')
+  @DomName('Window.onselect')
   @DocsEditable
   Stream<Event> get onSelect => Element.selectEvent.forTarget(this);
 
-  @DomName('DOMWindow.onstorage')
+  @DomName('Window.onstorage')
   @DocsEditable
   Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
 
-  @DomName('DOMWindow.onsubmit')
+  @DomName('Window.onsubmit')
   @DocsEditable
   Stream<Event> get onSubmit => Element.submitEvent.forTarget(this);
 
-  @DomName('DOMWindow.ontouchcancel')
+  @DomName('Window.ontouchcancel')
   @DocsEditable
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
-  @DomName('DOMWindow.ontouchend')
+  @DomName('Window.ontouchend')
   @DocsEditable
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.ontouchmove')
+  @DomName('Window.ontouchmove')
   @DocsEditable
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
-  @DomName('DOMWindow.ontouchstart')
+  @DomName('Window.ontouchstart')
   @DocsEditable
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.onunload')
+  @DomName('Window.onunload')
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
 
-  @DomName('DOMWindow.onwebkitAnimationEnd')
+  @DomName('Window.onwebkitAnimationEnd')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
-  @DomName('DOMWindow.onwebkitAnimationIteration')
+  @DomName('Window.onwebkitAnimationIteration')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
-  @DomName('DOMWindow.onwebkitAnimationStart')
+  @DomName('Window.onwebkitAnimationStart')
   @DocsEditable
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
-  @DomName('DOMWindow.onwebkitTransitionEnd')
+  @DomName('Window.onwebkitTransitionEnd')
   @DocsEditable
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
@@ -25000,7 +23179,7 @@ class _ClientRect extends NativeFieldWrapperClass1 implements Rect {
 
 @DocsEditable
 @DomName('ClientRectList')
-class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
+class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, ImmutableListMixin<Rect> implements List<Rect> {
   _ClientRectList.internal();
 
   @DomName('ClientRectList.length')
@@ -25015,194 +23194,9 @@ class _ClientRectList extends NativeFieldWrapperClass1 implements List<Rect> {
   // -- start List<Rect> mixins.
   // Rect is the element type.
 
-  // From Iterable<Rect>:
 
-  Iterator<Rect> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Rect>(this);
-  }
-
-  Rect reduce(Rect combine(Rect value, Rect element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Rect element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Rect element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Rect element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Rect element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Rect> where(bool f(Rect element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Rect element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Rect element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Rect element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Rect> toList({ bool growable: true }) =>
-      new List<Rect>.from(this, growable: growable);
-
-  Set<Rect> toSet() => new Set<Rect>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Rect> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Rect> takeWhile(bool test(Rect value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Rect> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Rect> skipWhile(bool test(Rect value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Rect firstWhere(bool test(Rect value), { Rect orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Rect lastWhere(bool test(Rect value), {Rect orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Rect singleWhere(bool test(Rect value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Rect elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Rect>:
-
-  void add(Rect value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Rect> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Rect>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Rect> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Rect a, Rect b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Rect element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Rect element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Rect get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Rect get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Rect get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Rect element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Rect> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Rect> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Rect removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Rect removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Rect element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Rect element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Rect> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Rect> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Rect fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Rect> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Rect> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Rect>[]);
-  }
-
-  Map<int, Rect> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<Rect> mixins.
@@ -25234,7 +23228,7 @@ abstract class _Counter extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('CSSRuleList')
-class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
+class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
   _CssRuleList.internal();
 
   @DomName('CSSRuleList.length')
@@ -25249,194 +23243,9 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
   // -- start List<CssRule> mixins.
   // CssRule is the element type.
 
-  // From Iterable<CssRule>:
 
-  Iterator<CssRule> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<CssRule>(this);
-  }
-
-  CssRule reduce(CssRule combine(CssRule value, CssRule element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, CssRule element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(CssRule element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(CssRule element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(CssRule element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<CssRule> where(bool f(CssRule element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(CssRule element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(CssRule element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(CssRule element)) => IterableMixinWorkaround.any(this, f);
-
-  List<CssRule> toList({ bool growable: true }) =>
-      new List<CssRule>.from(this, growable: growable);
-
-  Set<CssRule> toSet() => new Set<CssRule>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<CssRule> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<CssRule> takeWhile(bool test(CssRule value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<CssRule> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<CssRule> skipWhile(bool test(CssRule value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  CssRule firstWhere(bool test(CssRule value), { CssRule orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  CssRule lastWhere(bool test(CssRule value), {CssRule orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  CssRule singleWhere(bool test(CssRule value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  CssRule elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<CssRule>:
-
-  void add(CssRule value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<CssRule> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<CssRule>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<CssRule> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(CssRule a, CssRule b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(CssRule element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(CssRule element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  CssRule get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  CssRule get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  CssRule get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, CssRule element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<CssRule> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<CssRule> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  CssRule removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  CssRule removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(CssRule element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(CssRule element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<CssRule> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<CssRule> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [CssRule fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<CssRule> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<CssRule> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <CssRule>[]);
-  }
-
-  Map<int, CssRule> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<CssRule> mixins.
@@ -25455,7 +23264,7 @@ class _CssRuleList extends NativeFieldWrapperClass1 implements List<CssRule> {
 
 @DocsEditable
 @DomName('CSSValueList')
-class _CssValueList extends _CSSValue implements List<_CSSValue> {
+class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
   _CssValueList.internal() : super.internal();
 
   @DomName('CSSValueList.length')
@@ -25470,194 +23279,9 @@ class _CssValueList extends _CSSValue implements List<_CSSValue> {
   // -- start List<_CSSValue> mixins.
   // _CSSValue is the element type.
 
-  // From Iterable<_CSSValue>:
 
-  Iterator<_CSSValue> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<_CSSValue>(this);
-  }
-
-  _CSSValue reduce(_CSSValue combine(_CSSValue value, _CSSValue element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, _CSSValue element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(_CSSValue element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(_CSSValue element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(_CSSValue element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<_CSSValue> where(bool f(_CSSValue element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(_CSSValue element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(_CSSValue element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(_CSSValue element)) => IterableMixinWorkaround.any(this, f);
-
-  List<_CSSValue> toList({ bool growable: true }) =>
-      new List<_CSSValue>.from(this, growable: growable);
-
-  Set<_CSSValue> toSet() => new Set<_CSSValue>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<_CSSValue> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<_CSSValue> takeWhile(bool test(_CSSValue value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<_CSSValue> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<_CSSValue> skipWhile(bool test(_CSSValue value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  _CSSValue firstWhere(bool test(_CSSValue value), { _CSSValue orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  _CSSValue lastWhere(bool test(_CSSValue value), {_CSSValue orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  _CSSValue singleWhere(bool test(_CSSValue value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  _CSSValue elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<_CSSValue>:
-
-  void add(_CSSValue value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<_CSSValue> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<_CSSValue>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<_CSSValue> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(_CSSValue a, _CSSValue b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(_CSSValue element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(_CSSValue element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  _CSSValue get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  _CSSValue get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  _CSSValue get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, _CSSValue element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<_CSSValue> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<_CSSValue> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  _CSSValue removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  _CSSValue removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(_CSSValue element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(_CSSValue element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<_CSSValue> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<_CSSValue> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [_CSSValue fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<_CSSValue> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<_CSSValue> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <_CSSValue>[]);
-  }
-
-  Map<int, _CSSValue> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<_CSSValue> mixins.
@@ -25749,9 +23373,6 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
 class _DomPoint extends NativeFieldWrapperClass1 {
   _DomPoint.internal();
   factory _DomPoint(num x, num y) => _create(x, y);
@@ -25762,19 +23383,19 @@ class _DomPoint extends NativeFieldWrapperClass1 {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DomName('DOMPoint.x')
+  @DomName('WebKitPoint.x')
   @DocsEditable
   num get x native "DOMPoint_x_Getter";
 
-  @DomName('DOMPoint.x')
+  @DomName('WebKitPoint.x')
   @DocsEditable
   void set x(num value) native "DOMPoint_x_Setter";
 
-  @DomName('DOMPoint.y')
+  @DomName('WebKitPoint.y')
   @DocsEditable
   num get y native "DOMPoint_y_Getter";
 
-  @DomName('DOMPoint.y')
+  @DomName('WebKitPoint.y')
   @DocsEditable
   void set y(num value) native "DOMPoint_y_Setter";
 
@@ -25944,7 +23565,7 @@ abstract class _EntityReference extends Node {
 
 @DocsEditable
 @DomName('EntryArray')
-class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
+class _EntryArray extends NativeFieldWrapperClass1 with ListMixin<Entry>, ImmutableListMixin<Entry> implements List<Entry> {
   _EntryArray.internal();
 
   @DomName('EntryArray.length')
@@ -25959,194 +23580,9 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
   // -- start List<Entry> mixins.
   // Entry is the element type.
 
-  // From Iterable<Entry>:
 
-  Iterator<Entry> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Entry>(this);
-  }
-
-  Entry reduce(Entry combine(Entry value, Entry element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Entry element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Entry element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Entry element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Entry element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Entry> where(bool f(Entry element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Entry element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Entry element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Entry element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Entry> toList({ bool growable: true }) =>
-      new List<Entry>.from(this, growable: growable);
-
-  Set<Entry> toSet() => new Set<Entry>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Entry> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Entry> takeWhile(bool test(Entry value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Entry> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Entry> skipWhile(bool test(Entry value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Entry firstWhere(bool test(Entry value), { Entry orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Entry lastWhere(bool test(Entry value), {Entry orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Entry singleWhere(bool test(Entry value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Entry elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Entry>:
-
-  void add(Entry value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Entry> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Entry>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Entry> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Entry a, Entry b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Entry element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Entry element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Entry get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Entry get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Entry get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Entry element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Entry> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Entry> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Entry removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Entry removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Entry element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Entry element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Entry> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Entry> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Entry fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Entry> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Entry> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Entry>[]);
-  }
-
-  Map<int, Entry> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<Entry> mixins.
@@ -26165,7 +23601,7 @@ class _EntryArray extends NativeFieldWrapperClass1 implements List<Entry> {
 
 @DocsEditable
 @DomName('EntryArraySync')
-class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySync> {
+class _EntryArraySync extends NativeFieldWrapperClass1 with ListMixin<_EntrySync>, ImmutableListMixin<_EntrySync> implements List<_EntrySync> {
   _EntryArraySync.internal();
 
   @DomName('EntryArraySync.length')
@@ -26180,194 +23616,9 @@ class _EntryArraySync extends NativeFieldWrapperClass1 implements List<_EntrySyn
   // -- start List<_EntrySync> mixins.
   // _EntrySync is the element type.
 
-  // From Iterable<_EntrySync>:
 
-  Iterator<_EntrySync> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<_EntrySync>(this);
-  }
-
-  _EntrySync reduce(_EntrySync combine(_EntrySync value, _EntrySync element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, _EntrySync element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(_EntrySync element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(_EntrySync element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(_EntrySync element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<_EntrySync> where(bool f(_EntrySync element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(_EntrySync element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(_EntrySync element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(_EntrySync element)) => IterableMixinWorkaround.any(this, f);
-
-  List<_EntrySync> toList({ bool growable: true }) =>
-      new List<_EntrySync>.from(this, growable: growable);
-
-  Set<_EntrySync> toSet() => new Set<_EntrySync>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<_EntrySync> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<_EntrySync> takeWhile(bool test(_EntrySync value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<_EntrySync> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<_EntrySync> skipWhile(bool test(_EntrySync value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  _EntrySync firstWhere(bool test(_EntrySync value), { _EntrySync orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  _EntrySync lastWhere(bool test(_EntrySync value), {_EntrySync orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  _EntrySync singleWhere(bool test(_EntrySync value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  _EntrySync elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<_EntrySync>:
-
-  void add(_EntrySync value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<_EntrySync> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<_EntrySync>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<_EntrySync> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(_EntrySync a, _EntrySync b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(_EntrySync element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(_EntrySync element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  _EntrySync get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  _EntrySync get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  _EntrySync get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, _EntrySync element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<_EntrySync> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<_EntrySync> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  _EntrySync removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  _EntrySync removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(_EntrySync element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(_EntrySync element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<_EntrySync> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<_EntrySync> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [_EntrySync fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<_EntrySync> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<_EntrySync> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <_EntrySync>[]);
-  }
-
-  Map<int, _EntrySync> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<_EntrySync> mixins.
@@ -26447,7 +23698,7 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('GamepadList')
-class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
+class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
   _GamepadList.internal();
 
   @DomName('GamepadList.length')
@@ -26462,194 +23713,9 @@ class _GamepadList extends NativeFieldWrapperClass1 implements List<Gamepad> {
   // -- start List<Gamepad> mixins.
   // Gamepad is the element type.
 
-  // From Iterable<Gamepad>:
 
-  Iterator<Gamepad> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Gamepad>(this);
-  }
-
-  Gamepad reduce(Gamepad combine(Gamepad value, Gamepad element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Gamepad element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Gamepad element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Gamepad element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Gamepad element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Gamepad> where(bool f(Gamepad element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Gamepad element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Gamepad element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Gamepad element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Gamepad> toList({ bool growable: true }) =>
-      new List<Gamepad>.from(this, growable: growable);
-
-  Set<Gamepad> toSet() => new Set<Gamepad>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Gamepad> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Gamepad> takeWhile(bool test(Gamepad value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Gamepad> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Gamepad> skipWhile(bool test(Gamepad value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Gamepad firstWhere(bool test(Gamepad value), { Gamepad orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Gamepad lastWhere(bool test(Gamepad value), {Gamepad orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Gamepad singleWhere(bool test(Gamepad value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Gamepad elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Gamepad>:
-
-  void add(Gamepad value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Gamepad> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Gamepad>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Gamepad> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Gamepad a, Gamepad b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Gamepad element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Gamepad element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Gamepad get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Gamepad get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Gamepad get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Gamepad element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Gamepad> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Gamepad> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Gamepad removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Gamepad removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Gamepad element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Gamepad element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Gamepad> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Gamepad> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Gamepad fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Gamepad> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Gamepad> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Gamepad>[]);
-  }
-
-  Map<int, Gamepad> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<Gamepad> mixins.
@@ -26759,7 +23825,7 @@ abstract class _HTMLMarqueeElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('NamedNodeMap')
-class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
+class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   _NamedNodeMap.internal();
 
   @DomName('NamedNodeMap.length')
@@ -26774,194 +23840,9 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 implements List<Node> {
   // -- start List<Node> mixins.
   // Node is the element type.
 
-  // From Iterable<Node>:
 
-  Iterator<Node> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<Node>(this);
-  }
-
-  Node reduce(Node combine(Node value, Node element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, Node element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(Node element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(Node element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(Node element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<Node> where(bool f(Node element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(Node element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(Node element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(Node element)) => IterableMixinWorkaround.any(this, f);
-
-  List<Node> toList({ bool growable: true }) =>
-      new List<Node>.from(this, growable: growable);
-
-  Set<Node> toSet() => new Set<Node>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<Node> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<Node> takeWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<Node> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<Node> skipWhile(bool test(Node value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  Node firstWhere(bool test(Node value), { Node orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  Node lastWhere(bool test(Node value), {Node orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  Node singleWhere(bool test(Node value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  Node elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<Node>:
-
-  void add(Node value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<Node>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<Node> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(Node a, Node b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(Node element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(Node element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  Node get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  Node get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  Node get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, Node element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Node removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  Node removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(Node element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<Node> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<Node> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [Node fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<Node> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<Node> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <Node>[]);
-  }
-
-  Map<int, Node> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<Node> mixins.
@@ -27088,7 +23969,7 @@ abstract class _SharedWorkerContext extends _WorkerContext {
 
 @DocsEditable
 @DomName('SpeechInputResultList')
-class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<SpeechInputResult> {
+class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements List<SpeechInputResult> {
   _SpeechInputResultList.internal();
 
   @DomName('SpeechInputResultList.length')
@@ -27103,194 +23984,9 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
   // -- start List<SpeechInputResult> mixins.
   // SpeechInputResult is the element type.
 
-  // From Iterable<SpeechInputResult>:
 
-  Iterator<SpeechInputResult> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<SpeechInputResult>(this);
-  }
-
-  SpeechInputResult reduce(SpeechInputResult combine(SpeechInputResult value, SpeechInputResult element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, SpeechInputResult element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(SpeechInputResult element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(SpeechInputResult element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(SpeechInputResult element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<SpeechInputResult> where(bool f(SpeechInputResult element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(SpeechInputResult element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(SpeechInputResult element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(SpeechInputResult element)) => IterableMixinWorkaround.any(this, f);
-
-  List<SpeechInputResult> toList({ bool growable: true }) =>
-      new List<SpeechInputResult>.from(this, growable: growable);
-
-  Set<SpeechInputResult> toSet() => new Set<SpeechInputResult>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<SpeechInputResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<SpeechInputResult> takeWhile(bool test(SpeechInputResult value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<SpeechInputResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<SpeechInputResult> skipWhile(bool test(SpeechInputResult value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  SpeechInputResult firstWhere(bool test(SpeechInputResult value), { SpeechInputResult orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  SpeechInputResult lastWhere(bool test(SpeechInputResult value), {SpeechInputResult orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  SpeechInputResult singleWhere(bool test(SpeechInputResult value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  SpeechInputResult elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<SpeechInputResult>:
-
-  void add(SpeechInputResult value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<SpeechInputResult> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<SpeechInputResult>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<SpeechInputResult> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(SpeechInputResult a, SpeechInputResult b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SpeechInputResult element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SpeechInputResult element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  SpeechInputResult get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  SpeechInputResult get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  SpeechInputResult get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, SpeechInputResult element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<SpeechInputResult> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<SpeechInputResult> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  SpeechInputResult removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  SpeechInputResult removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(SpeechInputResult element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(SpeechInputResult element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<SpeechInputResult> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<SpeechInputResult> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [SpeechInputResult fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<SpeechInputResult> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<SpeechInputResult> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <SpeechInputResult>[]);
-  }
-
-  Map<int, SpeechInputResult> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<SpeechInputResult> mixins.
@@ -27309,7 +24005,7 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 implements List<Sp
 
 @DocsEditable
 @DomName('SpeechRecognitionResultList')
-class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements List<SpeechRecognitionResult> {
+class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
   _SpeechRecognitionResultList.internal();
 
   @DomName('SpeechRecognitionResultList.length')
@@ -27324,194 +24020,9 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
   // -- start List<SpeechRecognitionResult> mixins.
   // SpeechRecognitionResult is the element type.
 
-  // From Iterable<SpeechRecognitionResult>:
 
-  Iterator<SpeechRecognitionResult> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<SpeechRecognitionResult>(this);
-  }
-
-  SpeechRecognitionResult reduce(SpeechRecognitionResult combine(SpeechRecognitionResult value, SpeechRecognitionResult element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, SpeechRecognitionResult element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(SpeechRecognitionResult element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(SpeechRecognitionResult element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(SpeechRecognitionResult element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<SpeechRecognitionResult> where(bool f(SpeechRecognitionResult element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(SpeechRecognitionResult element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(SpeechRecognitionResult element)) => IterableMixinWorkaround.any(this, f);
-
-  List<SpeechRecognitionResult> toList({ bool growable: true }) =>
-      new List<SpeechRecognitionResult>.from(this, growable: growable);
-
-  Set<SpeechRecognitionResult> toSet() => new Set<SpeechRecognitionResult>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<SpeechRecognitionResult> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<SpeechRecognitionResult> takeWhile(bool test(SpeechRecognitionResult value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<SpeechRecognitionResult> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<SpeechRecognitionResult> skipWhile(bool test(SpeechRecognitionResult value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  SpeechRecognitionResult firstWhere(bool test(SpeechRecognitionResult value), { SpeechRecognitionResult orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  SpeechRecognitionResult lastWhere(bool test(SpeechRecognitionResult value), {SpeechRecognitionResult orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  SpeechRecognitionResult singleWhere(bool test(SpeechRecognitionResult value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  SpeechRecognitionResult elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<SpeechRecognitionResult>:
-
-  void add(SpeechRecognitionResult value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<SpeechRecognitionResult> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<SpeechRecognitionResult>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<SpeechRecognitionResult> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(SpeechRecognitionResult a, SpeechRecognitionResult b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(SpeechRecognitionResult element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(SpeechRecognitionResult element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  SpeechRecognitionResult get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  SpeechRecognitionResult get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  SpeechRecognitionResult get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, SpeechRecognitionResult element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<SpeechRecognitionResult> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<SpeechRecognitionResult> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  SpeechRecognitionResult removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  SpeechRecognitionResult removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(SpeechRecognitionResult element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(SpeechRecognitionResult element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<SpeechRecognitionResult> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<SpeechRecognitionResult> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [SpeechRecognitionResult fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<SpeechRecognitionResult> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<SpeechRecognitionResult> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <SpeechRecognitionResult>[]);
-  }
-
-  Map<int, SpeechRecognitionResult> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<SpeechRecognitionResult> mixins.
@@ -27530,7 +24041,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 implements L
 
 @DocsEditable
 @DomName('StyleSheetList')
-class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleSheet> {
+class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
   _StyleSheetList.internal();
 
   @DomName('StyleSheetList.length')
@@ -27545,194 +24056,9 @@ class _StyleSheetList extends NativeFieldWrapperClass1 implements List<StyleShee
   // -- start List<StyleSheet> mixins.
   // StyleSheet is the element type.
 
-  // From Iterable<StyleSheet>:
 
-  Iterator<StyleSheet> get iterator {
-    // Note: NodeLists are not fixed size. And most probably length shouldn't
-    // be cached in both iterator _and_ forEach method. For now caching it
-    // for consistency.
-    return new FixedSizeListIterator<StyleSheet>(this);
-  }
-
-  StyleSheet reduce(StyleSheet combine(StyleSheet value, StyleSheet element)) {
-    return IterableMixinWorkaround.reduce(this, combine);
-  }
-
-  dynamic fold(dynamic initialValue,
-               dynamic combine(dynamic previousValue, StyleSheet element)) {
-    return IterableMixinWorkaround.fold(this, initialValue, combine);
-  }
-
-  bool contains(StyleSheet element) => IterableMixinWorkaround.contains(this, element);
-
-  void forEach(void f(StyleSheet element)) => IterableMixinWorkaround.forEach(this, f);
-
-  String join([String separator = ""]) =>
-      IterableMixinWorkaround.joinList(this, separator);
-
-  Iterable map(f(StyleSheet element)) =>
-      IterableMixinWorkaround.mapList(this, f);
-
-  Iterable<StyleSheet> where(bool f(StyleSheet element)) =>
-      IterableMixinWorkaround.where(this, f);
-
-  Iterable expand(Iterable f(StyleSheet element)) =>
-      IterableMixinWorkaround.expand(this, f);
-
-  bool every(bool f(StyleSheet element)) => IterableMixinWorkaround.every(this, f);
-
-  bool any(bool f(StyleSheet element)) => IterableMixinWorkaround.any(this, f);
-
-  List<StyleSheet> toList({ bool growable: true }) =>
-      new List<StyleSheet>.from(this, growable: growable);
-
-  Set<StyleSheet> toSet() => new Set<StyleSheet>.from(this);
-
-  bool get isEmpty => this.length == 0;
-
-  Iterable<StyleSheet> take(int n) => IterableMixinWorkaround.takeList(this, n);
-
-  Iterable<StyleSheet> takeWhile(bool test(StyleSheet value)) {
-    return IterableMixinWorkaround.takeWhile(this, test);
-  }
-
-  Iterable<StyleSheet> skip(int n) => IterableMixinWorkaround.skipList(this, n);
-
-  Iterable<StyleSheet> skipWhile(bool test(StyleSheet value)) {
-    return IterableMixinWorkaround.skipWhile(this, test);
-  }
-
-  StyleSheet firstWhere(bool test(StyleSheet value), { StyleSheet orElse() }) {
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-  }
-
-  StyleSheet lastWhere(bool test(StyleSheet value), {StyleSheet orElse()}) {
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-  }
-
-  StyleSheet singleWhere(bool test(StyleSheet value)) {
-    return IterableMixinWorkaround.singleWhere(this, test);
-  }
-
-  StyleSheet elementAt(int index) {
-    return this[index];
-  }
-
-  // From Collection<StyleSheet>:
-
-  void add(StyleSheet value) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void addAll(Iterable<StyleSheet> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  // From List<StyleSheet>:
   void set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  void clear() {
-    throw new UnsupportedError("Cannot clear immutable List.");
-  }
-
-  Iterable<StyleSheet> get reversed {
-    return IterableMixinWorkaround.reversedList(this);
-  }
-
-  void sort([int compare(StyleSheet a, StyleSheet b)]) {
-    throw new UnsupportedError("Cannot sort immutable List.");
-  }
-
-  int indexOf(StyleSheet element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
-
-  int lastIndexOf(StyleSheet element, [int start]) {
-    if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
-  }
-
-  StyleSheet get first {
-    if (this.length > 0) return this[0];
-    throw new StateError("No elements");
-  }
-
-  StyleSheet get last {
-    if (this.length > 0) return this[this.length - 1];
-    throw new StateError("No elements");
-  }
-
-  StyleSheet get single {
-    if (length == 1) return this[0];
-    if (length == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  void insert(int index, StyleSheet element) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void insertAll(int index, Iterable<StyleSheet> iterable) {
-    throw new UnsupportedError("Cannot add to immutable List.");
-  }
-
-  void setAll(int index, Iterable<StyleSheet> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  StyleSheet removeAt(int pos) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  StyleSheet removeLast() {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  bool remove(Object object) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void removeWhere(bool test(StyleSheet element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void retainWhere(bool test(StyleSheet element)) {
-    throw new UnsupportedError("Cannot remove from immutable List.");
-  }
-
-  void setRange(int start, int end, Iterable<StyleSheet> iterable, [int skipCount=0]) {
-    throw new UnsupportedError("Cannot setRange on immutable List.");
-  }
-
-  void removeRange(int start, int end) {
-    throw new UnsupportedError("Cannot removeRange on immutable List.");
-  }
-
-  void replaceRange(int start, int end, Iterable<StyleSheet> iterable) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  void fillRange(int start, int end, [StyleSheet fillValue]) {
-    throw new UnsupportedError("Cannot modify an immutable List.");
-  }
-
-  Iterable<StyleSheet> getRange(int start, int end) =>
-    IterableMixinWorkaround.getRangeList(this, start, end);
-
-  List<StyleSheet> sublist(int start, [int end]) {
-    if (end == null) end = length;
-    return Lists.getRange(this, start, end, <StyleSheet>[]);
-  }
-
-  Map<int, StyleSheet> asMap() =>
-    IterableMixinWorkaround.asMapList(this);
-
-  String toString() {
-    StringBuffer buffer = new StringBuffer('[');
-    buffer.writeAll(this, ', ');
-    buffer.write(']');
-    return buffer.toString();
   }
 
   // -- end List<StyleSheet> mixins.
@@ -28551,6 +24877,82 @@ class _CustomEventStreamProvider<T extends Event>
 
   String getEventType(EventTarget target) {
     return _eventTypeGetter(target);
+  }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+abstract class ImmutableListMixin<E> implements List<E> {
+  // From Iterable<$E>:
+  Iterator<E> get iterator {
+    // Note: NodeLists are not fixed size. And most probably length shouldn't
+    // be cached in both iterator _and_ forEach method. For now caching it
+    // for consistency.
+    return new FixedSizeListIterator<E>(this);
+  }
+
+  // From Collection<E>:
+  void add(E value) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void addAll(Iterable<E> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  // From List<E>:
+  void sort([int compare(E a, E b)]) {
+    throw new UnsupportedError("Cannot sort immutable List.");
+  }
+
+  void insert(int index, E element) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void insertAll(int index, Iterable<E> iterable) {
+    throw new UnsupportedError("Cannot add to immutable List.");
+  }
+
+  void setAll(int index, Iterable<E> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  E removeAt(int pos) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  E removeLast() {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void remove(Object object) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void removeWhere(bool test(E element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void retainWhere(bool test(E element)) {
+    throw new UnsupportedError("Cannot remove from immutable List.");
+  }
+
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount]) {
+    throw new UnsupportedError("Cannot setRange on immutable List.");
+  }
+
+  void removeRange(int start, int end) {
+    throw new UnsupportedError("Cannot removeRange on immutable List.");
+  }
+
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    throw new UnsupportedError("Cannot modify an immutable List.");
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29728,99 +26130,285 @@ abstract class KeyName {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _ModelTreeObserver {
-  static bool _initialized = false;
+// This code is inspired by ChangeSummary:
+// https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
+// ...which underlies MDV. Since we don't need the functionality of
+// ChangeSummary, we just implement what we need for data bindings.
+// This allows our implementation to be much simpler.
+
+// TODO(jmesserly): should we make these types stronger, and require
+// Observable objects? Currently, it is fine to say something like:
+//     var path = new PathObserver(123, '');
+//     print(path.value); // "123"
+//
+// Furthermore this degenerate case is allowed:
+//     var path = new PathObserver(123, 'foo.bar.baz.qux');
+//     print(path.value); // "null"
+//
+// Here we see that any invalid (i.e. not Observable) value will break the
+// path chain without producing an error or exception.
+//
+// Now the real question: should we do this? For the former case, the behavior
+// is correct but we could chose to handle it in the dart:html bindings layer.
+// For the latter case, it might be better to throw an error so users can find
+// the problem.
+
+
+/**
+ * A data-bound path starting from a view-model or model object, for example
+ * `foo.bar.baz`.
+ *
+ * When the [values] stream is being listened to, this will observe changes to
+ * the object and any intermediate object along the path, and send [values]
+ * accordingly. When all listeners are unregistered it will stop observing
+ * the objects.
+ *
+ * This class is used to implement [Node.bind] and similar functionality.
+ */
+// TODO(jmesserly): find a better home for this type.
+@Experimental
+class PathObserver {
+  /** The object being observed. */
+  final object;
+
+  /** The path string. */
+  final String path;
+
+  /** True if the path is valid, otherwise false. */
+  final bool _isValid;
+
+  // TODO(jmesserly): same issue here as ObservableMixin: is there an easier
+  // way to get a broadcast stream?
+  StreamController _values;
+  Stream _valueStream;
+
+  _PropertyObserver _observer, _lastObserver;
+
+  Object _lastValue;
+  bool _scheduled = false;
 
   /**
-   * Start an observer watching the document for tree changes to automatically
-   * propagate model changes.
-   *
-   * Currently this does not support propagation through Shadow DOMs.
+   * Observes [path] on [object] for changes. This returns an object that can be
+   * used to get the changes and get/set the value at this path.
+   * See [PathObserver.values] and [PathObserver.value].
    */
-  static void initialize() {
-    if (!_initialized) {
-      _initialized = true;
+  PathObserver(this.object, String path)
+    : path = path, _isValid = _isPathValid(path) {
 
-      if (MutationObserver.supported) {
-        var observer = new MutationObserver(_processTreeChange);
-        observer.observe(document, childList: true, subtree: true);
-      } else {
-        document.on['DOMNodeInserted'].listen(_handleNodeInserted);
-        document.on['DOMNodeRemoved'].listen(_handleNodeRemoved);
+    // TODO(jmesserly): if the path is empty, or the object is! Observable, we
+    // can optimize the PathObserver to be more lightweight.
+
+    _values = new StreamController(onListen: _observe, onCancel: _unobserve);
+
+    if (_isValid) {
+      var segments = [];
+      for (var segment in path.trim().split('.')) {
+        if (segment == '') continue;
+        var index = int.parse(segment, onError: (_) {});
+        segments.add(index != null ? index : new Symbol(segment));
+      }
+
+      // Create the property observer linked list.
+      // Note that the structure of a path can't change after it is initially
+      // constructed, even though the objects along the path can change.
+      for (int i = segments.length - 1; i >= 0; i--) {
+        _observer = new _PropertyObserver(this, segments[i], _observer);
+        if (_lastObserver == null) _lastObserver = _observer;
       }
     }
   }
 
-  static void _processTreeChange(List<MutationRecord> mutations,
-      MutationObserver observer) {
-    for (var record in mutations) {
-      for (var node in record.addedNodes) {
-        // When nodes enter the document we need to make sure that all of the
-        // models are properly propagated through the entire sub-tree.
-        propagateModel(node, _calculatedModel(node), true);
-      }
-      for (var node in record.removedNodes) {
-        propagateModel(node, _calculatedModel(node), false);
-      }
-    }
-  }
-
-  static void _handleNodeInserted(MutationEvent e) {
-    var node = e.target;
-    window.setImmediate(() {
-      propagateModel(node, _calculatedModel(node), true);
-    });
-  }
-
-  static void _handleNodeRemoved(MutationEvent e) {
-    var node = e.target;
-    window.setImmediate(() {
-      propagateModel(node, _calculatedModel(node), false);
-    });
-  }
-
+  // TODO(jmesserly): we could try adding the first value to the stream, but
+  // that delivers the first record async.
   /**
-   * Figures out what the model should be for a node, avoiding any cached
-   * model values.
+   * Listens to the stream, and invokes the [callback] immediately with the
+   * current [value]. This is useful for bindings, which want to be up-to-date
+   * immediately.
    */
-  static _calculatedModel(node) {
-    if (node._hasLocalModel == true) {
-      return node._model;
-    } else if (node.parentNode != null) {
-      return node.parentNode._model;
-    }
-    return null;
+  StreamSubscription bindSync(void callback(value)) {
+    var result = values.listen(callback);
+    callback(value);
+    return result;
   }
 
+  // TODO(jmesserly): should this be a change record with the old value?
+  // TODO(jmesserly): should this be a broadcast stream? We only need
+  // single-subscription in the bindings system, so single sub saves overhead.
   /**
-   * Pushes model changes down through the tree.
-   *
-   * Set fullTree to true if the state of the tree is unknown and model changes
-   * should be propagated through the entire tree.
+   * Gets the stream of values that were observed at this path.
+   * This returns a single-subscription stream.
    */
-  static void propagateModel(Node node, model, bool fullTree) {
-    // Calling into user code with the != call could generate exceptions.
-    // Catch and report them a global exceptions.
-    try {
-      if (node._hasLocalModel != true && node._model != model &&
-          node._modelChangedStreams != null &&
-          !node._modelChangedStreams.isEmpty) {
-        node._model = model;
-        node._modelChangedStreams.toList()
-          .forEach((controller) => controller.add(node));
-      }
-    } catch (e, s) {
-      new Future.error(e, s);
+  Stream get values => _values.stream;
+
+  /** Force synchronous delivery of [values]. */
+  void _deliverValues() {
+    _scheduled = false;
+
+    var newValue = value;
+    if (!identical(_lastValue, newValue)) {
+      _values.add(newValue);
+      _lastValue = newValue;
     }
-    for (var child = node.$dom_firstChild; child != null;
-        child = child.nextNode) {
-      if (child._hasLocalModel != true) {
-        propagateModel(child, model, fullTree);
-      } else if (fullTree) {
-        propagateModel(child, child._model, true);
+  }
+
+  void _observe() {
+    if (_observer != null) {
+      _lastValue = value;
+      _observer.observe();
+    }
+  }
+
+  void _unobserve() {
+    if (_observer != null) _observer.unobserve();
+  }
+
+  void _notifyChange() {
+    if (_scheduled) return;
+    _scheduled = true;
+
+    // TODO(jmesserly): should we have a guarenteed order with respect to other
+    // paths? If so, we could implement this fairly easily by sorting instances
+    // of this class by birth order before delivery.
+    queueChangeRecords(_deliverValues);
+  }
+
+  /** Gets the last reported value at this path. */
+  get value {
+    if (!_isValid) return null;
+    if (_observer == null) return object;
+    _observer.ensureValue(object);
+    return _lastObserver.value;
+  }
+
+  /** Sets the value at this path. */
+  void set value(Object value) {
+    // TODO(jmesserly): throw if property cannot be set?
+    // MDV seems tolerant of these error.
+    if (_observer == null || !_isValid) return;
+    _observer.ensureValue(object);
+    var last = _lastObserver;
+    if (_setObjectProperty(last._object, last._property, value)) {
+      // Technically, this would get updated asynchronously via a change record.
+      // However, it is nice if calling the getter will yield the same value
+      // that was just set. So we use this opportunity to update our cache.
+      last.value = value;
+    }
+  }
+}
+
+// TODO(jmesserly): these should go away in favor of mirrors!
+_getObjectProperty(object, property) {
+  if (object is List && property is int) {
+    if (property >= 0 && property < object.length) {
+      return object[property];
+    } else {
+      return null;
+    }
+  }
+
+  // TODO(jmesserly): what about length?
+  if (object is Map) return object[property];
+
+  if (object is Observable) return object.getValueWorkaround(property);
+
+  return null;
+}
+
+bool _setObjectProperty(object, property, value) {
+  if (object is List && property is int) {
+    object[property] = value;
+  } else if (object is Map) {
+    object[property] = value;
+  } else if (object is Observable) {
+    (object as Observable).setValueWorkaround(property, value);
+  } else {
+    return false;
+  }
+  return true;
+}
+
+
+class _PropertyObserver {
+  final PathObserver _path;
+  final _property;
+  final _PropertyObserver _next;
+
+  // TODO(jmesserly): would be nice not to store both of these.
+  Object _object;
+  Object _value;
+  StreamSubscription _sub;
+
+  _PropertyObserver(this._path, this._property, this._next);
+
+  get value => _value;
+
+  void set value(Object newValue) {
+    _value = newValue;
+    if (_next != null) {
+      if (_sub != null) _next.unobserve();
+      _next.ensureValue(_value);
+      if (_sub != null) _next.observe();
+    }
+  }
+
+  void ensureValue(object) {
+    // If we're observing, values should be up to date already.
+    if (_sub != null) return;
+
+    _object = object;
+    value = _getObjectProperty(object, _property);
+  }
+
+  void observe() {
+    if (_object is Observable) {
+      assert(_sub == null);
+      _sub = (_object as Observable).changes.listen(_onChange);
+    }
+    if (_next != null) _next.observe();
+  }
+
+  void unobserve() {
+    if (_sub == null) return;
+
+    _sub.cancel();
+    _sub = null;
+    if (_next != null) _next.unobserve();
+  }
+
+  void _onChange(List<ChangeRecord> changes) {
+    for (var change in changes) {
+      // TODO(jmesserly): what to do about "new Symbol" here?
+      // Ideally this would only preserve names if the user has opted in to
+      // them being preserved.
+      // TODO(jmesserly): should we drop observable maps with String keys?
+      // If so then we only need one check here.
+      if (change.changes(_property)) {
+        value = _getObjectProperty(_object, _property);
+        _path._notifyChange();
+        return;
       }
     }
   }
+}
+
+// From: https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
+
+const _pathIndentPart = r'[$a-z0-9_]+[$a-z0-9_\d]*';
+final _pathRegExp = new RegExp('^'
+    '(?:#?' + _pathIndentPart + ')?'
+    '(?:'
+      '(?:\\.' + _pathIndentPart + ')'
+    ')*'
+    r'$', caseSensitive: false);
+
+final _spacesRegExp = new RegExp(r'\s');
+
+bool _isPathValid(String s) {
+  s = s.replaceAll(_spacesRegExp, '');
+
+  if (s == '') return true;
+  if (s[0] == '.') return false;
+  return _pathRegExp.hasMatch(s);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30043,6 +26631,781 @@ class Rect {
   Point get topLeft => new Point(this.left, this.top);
   Point get bottomRight => new Point(this.left + this.width,
       this.top + this.height);
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// This code is a port of Model-Driven-Views:
+// https://github.com/toolkitchen/mdv
+// The code mostly comes from src/template_element.js
+
+typedef void _ChangeHandler(value);
+
+/**
+ * Model-Driven Views (MDV)'s native features enables a wide-range of use cases,
+ * but (by design) don't attempt to implement a wide array of specialized
+ * behaviors.
+ *
+ * Enabling these features in MDV is a matter of implementing and registering an
+ * MDV Custom Syntax. A Custom Syntax is an object which contains one or more
+ * delegation functions which implement specialized behavior. This object is
+ * registered with MDV via [TemplateElement.syntax]:
+ *
+ *
+ * HTML:
+ *     <template bind syntax="MySyntax">
+ *       {{ What!Ever('crazy')->thing^^^I+Want(data) }}
+ *     </template>
+ *
+ * Dart:
+ *     class MySyntax extends CustomBindingSyntax {
+ *       getBinding(model, path, name, node) {
+ *         // The magic happens here!
+ *       }
+ *     }
+ *
+ *     ...
+ *
+ *     TemplateElement.syntax['MySyntax'] = new MySyntax();
+ *
+ * See <https://github.com/toolkitchen/mdv/blob/master/docs/syntax.md> for more
+ * information about Custom Syntax.
+ */
+// TODO(jmesserly): if this is just one method, a function type would make it
+// more Dart-friendly.
+@Experimental
+abstract class CustomBindingSyntax {
+  // TODO(jmesserly): I had to remove type annotations from "name" and "node"
+  // Normally they are String and Node respectively. But sometimes it will pass
+  // (int name, CompoundBinding node). That seems very confusing; we may want
+  // to change this API.
+  getBinding(model, String path, name, node);
+}
+
+/** The callback used in the [CompoundBinding.combinator] field. */
+@Experimental
+typedef Object CompoundBindingCombinator(Map objects);
+
+/** Information about the instantiated template. */
+@Experimental
+class TemplateInstance {
+  // TODO(rafaelw): firstNode & lastNode should be read-synchronous
+  // in cases where script has modified the template instance boundary.
+
+  /** The first node of this template instantiation. */
+  final Node firstNode;
+
+  /**
+   * The last node of this template instantiation.
+   * This could be identical to [firstNode] if the template only expanded to a
+   * single node.
+   */
+  final Node lastNode;
+
+  /** The model used to instantiate the template. */
+  final model;
+
+  TemplateInstance(this.firstNode, this.lastNode, this.model);
+}
+
+/**
+ * Model-Driven Views contains a helper object which is useful for the
+ * implementation of a Custom Syntax.
+ *
+ *     var binding = new CompoundBinding((values) {
+ *       var combinedValue;
+ *       // compute combinedValue based on the current values which are provided
+ *       return combinedValue;
+ *     });
+ *     binding.bind('name1', obj1, path1);
+ *     binding.bind('name2', obj2, path2);
+ *     //...
+ *     binding.bind('nameN', objN, pathN);
+ *
+ * CompoundBinding is an object which knows how to listen to multiple path
+ * values (registered via [bind]) and invoke its [combinator] when one or more
+ * of the values have changed and set its [value] property to the return value
+ * of the function. When any value has changed, all current values are provided
+ * to the [combinator] in the single `values` argument.
+ *
+ * See [CustomBindingSyntax] for more information.
+ */
+// TODO(jmesserly): what is the public API surface here? I just guessed;
+// most of it seemed non-public.
+@Experimental
+class CompoundBinding extends ObservableBase {
+  CompoundBindingCombinator _combinator;
+
+  // TODO(jmesserly): ideally these would be String keys, but sometimes we
+  // use integers.
+  Map<dynamic, StreamSubscription> _bindings = new Map();
+  Map _values = new Map();
+  bool _scheduled = false;
+  bool _disposed = false;
+  Object _value;
+
+  CompoundBinding([CompoundBindingCombinator combinator]) {
+    // TODO(jmesserly): this is a tweak to the original code, it seemed to me
+    // that passing the combinator to the constructor should be equivalent to
+    // setting it via the property.
+    // I also added a null check to the combinator setter.
+    this.combinator = combinator;
+  }
+
+  CompoundBindingCombinator get combinator => _combinator;
+
+  set combinator(CompoundBindingCombinator combinator) {
+    _combinator = combinator;
+    if (combinator != null) _scheduleResolve();
+  }
+
+  static const _VALUE = const Symbol('value');
+
+  get value => _value;
+
+  void set value(newValue) {
+    _value = notifyPropertyChange(_VALUE, _value, newValue);
+  }
+
+  // TODO(jmesserly): remove these workarounds when dart2js supports mirrors!
+  getValueWorkaround(key) {
+    if (key == _VALUE) return value;
+    return null;
+  }
+  setValueWorkaround(key, val) {
+    if (key == _VALUE) value = val;
+  }
+
+  void bind(name, model, String path) {
+    unbind(name);
+
+    _bindings[name] = new PathObserver(model, path).bindSync((value) {
+      _values[name] = value;
+      _scheduleResolve();
+    });
+  }
+
+  void unbind(name, {bool suppressResolve: false}) {
+    var binding = _bindings.remove(name);
+    if (binding == null) return;
+
+    binding.cancel();
+    _values.remove(name);
+    if (!suppressResolve) _scheduleResolve();
+  }
+
+  // TODO(rafaelw): Is this the right processing model?
+  // TODO(rafaelw): Consider having a seperate ChangeSummary for
+  // CompoundBindings so to excess dirtyChecks.
+  void _scheduleResolve() {
+    if (_scheduled) return;
+    _scheduled = true;
+    queueChangeRecords(resolve);
+  }
+
+  void resolve() {
+    if (_disposed) return;
+    _scheduled = false;
+
+    if (_combinator == null) {
+      throw new StateError(
+          'CompoundBinding attempted to resolve without a combinator');
+    }
+
+    value = _combinator(_values);
+  }
+
+  void dispose() {
+    for (var binding in _bindings.values) {
+      binding.cancel();
+    }
+    _bindings.clear();
+    _values.clear();
+
+    _disposed = true;
+    value = null;
+  }
+}
+
+Stream<Event> _getStreamForInputType(InputElement element) {
+  switch (element.type) {
+    case 'checkbox':
+      return element.onClick;
+    case 'radio':
+    case 'select-multiple':
+    case 'select-one':
+      return element.onChange;
+    default:
+      return element.onInput;
+  }
+}
+
+abstract class _InputBinding {
+  final InputElement element;
+  PathObserver binding;
+  StreamSubscription _pathSub;
+  StreamSubscription _eventSub;
+
+  _InputBinding(this.element, model, String path) {
+    binding = new PathObserver(model, path);
+    _pathSub = binding.bindSync(valueChanged);
+    _eventSub = _getStreamForInputType(element).listen(updateBinding);
+  }
+
+  void valueChanged(newValue);
+
+  void updateBinding(e);
+
+  void unbind() {
+    binding = null;
+    _pathSub.cancel();
+    _eventSub.cancel();
+  }
+}
+
+class _ValueBinding extends _InputBinding {
+  _ValueBinding(element, model, path) : super(element, model, path);
+
+  void valueChanged(value) {
+    element.value = value == null ? '' : '$value';
+  }
+
+  void updateBinding(e) {
+    binding.value = element.value;
+  }
+}
+
+// TODO(jmesserly): not sure what kind of boolean conversion rules to
+// apply for template data-binding. HTML attributes are true if they're present.
+// However Dart only treats "true" as true. Since this is HTML we'll use
+// something closer to the HTML rules: null (missing) and false are false,
+// everything else is true. See: https://github.com/toolkitchen/mdv/issues/59
+bool _templateBooleanConversion(value) => null != value && false != value;
+
+class _CheckedBinding extends _InputBinding {
+  _CheckedBinding(element, model, path) : super(element, model, path);
+
+  void valueChanged(value) {
+    element.checked = _templateBooleanConversion(value);
+  }
+
+  void updateBinding(e) {
+    binding.value = element.checked;
+
+    // Only the radio button that is getting checked gets an event. We
+    // therefore find all the associated radio buttons and update their
+    // CheckedBinding manually.
+    if (element is InputElement && element.type == 'radio') {
+      for (var r in _getAssociatedRadioButtons(element)) {
+        var checkedBinding = r._checkedBinding;
+        if (checkedBinding != null) {
+          // Set the value directly to avoid an infinite call stack.
+          checkedBinding.binding.value = false;
+        }
+      }
+    }
+  }
+}
+
+// TODO(jmesserly): polyfill document.contains API instead of doing it here
+bool _isNodeInDocument(Node node) {
+  // On non-IE this works:
+  // return node.document.contains(node);
+  var document = node.document;
+  if (node == document || node.parentNode == document) return true;
+  return document.documentElement.contains(node);
+}
+
+// |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
+// Returns an array containing all radio buttons other than |element| that
+// have the same |name|, either in the form that |element| belongs to or,
+// if no form, in the document tree to which |element| belongs.
+//
+// This implementation is based upon the HTML spec definition of a
+// "radio button group":
+//   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
+//
+Iterable _getAssociatedRadioButtons(element) {
+  if (!_isNodeInDocument(element)) return [];
+  if (element.form != null) {
+    return element.form.nodes.where((el) {
+      return el != element &&
+          el is InputElement &&
+          el.type == 'radio' &&
+          el.name == element.name;
+    });
+  } else {
+    var radios = element.document.queryAll(
+        'input[type="radio"][name="${element.name}"]');
+    return radios.where((el) => el != element && el.form == null);
+  }
+}
+
+Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
+  var clone = node.clone(false); // Shallow clone.
+  if (clone is Element && clone.isTemplate) {
+    TemplateElement.decorate(clone, node);
+    if (syntax != null) {
+      clone.attributes.putIfAbsent('syntax', () => syntax);
+    }
+  }
+
+  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
+  }
+  return clone;
+}
+
+// http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
+Document _getTemplateContentsOwner(Document doc) {
+  if (doc.window == null) {
+    return doc;
+  }
+  var d = doc._templateContentsOwner;
+  if (d == null) {
+    // TODO(arv): This should either be a Document or HTMLDocument depending
+    // on doc.
+    d = doc.implementation.createHtmlDocument('');
+    while (d.$dom_lastChild != null) {
+      d.$dom_lastChild.remove();
+    }
+    doc._templateContentsOwner = d;
+  }
+  return d;
+}
+
+Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
+  var clone = templateElement.clone(false);
+  var attributes = templateElement.attributes;
+  for (var name in attributes.keys.toList()) {
+    switch (name) {
+      case 'template':
+      case 'repeat':
+      case 'bind':
+      case 'ref':
+        clone.attributes.remove(name);
+        break;
+      default:
+        attributes.remove(name);
+        break;
+    }
+  }
+
+  return clone;
+}
+
+void _liftNonNativeTemplateChildrenIntoContent(Element templateElement) {
+  var content = templateElement.content;
+
+  if (!templateElement._isAttributeTemplate) {
+    var child;
+    while ((child = templateElement.$dom_firstChild) != null) {
+      content.append(child);
+    }
+    return;
+  }
+
+  // For attribute templates we copy the whole thing into the content and
+  // we move the non template attributes into the content.
+  //
+  //   <tr foo template>
+  //
+  // becomes
+  //
+  //   <tr template>
+  //   + #document-fragment
+  //     + <tr foo>
+  //
+  var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
+  var child;
+  while ((child = templateElement.$dom_firstChild) != null) {
+    newRoot.append(child);
+  }
+  content.append(newRoot);
+}
+
+void _bootstrapTemplatesRecursivelyFrom(Node node) {
+  void bootstrap(template) {
+    if (!TemplateElement.decorate(template)) {
+      _bootstrapTemplatesRecursivelyFrom(template.content);
+    }
+  }
+
+  // Need to do this first as the contents may get lifted if |node| is
+  // template.
+  // TODO(jmesserly): node is DocumentFragment or Element
+  var templateDescendents = (node as dynamic).queryAll(_allTemplatesSelectors);
+  if (node is Element && node.isTemplate) bootstrap(node);
+
+  templateDescendents.forEach(bootstrap);
+}
+
+final String _allTemplatesSelectors = 'template, option[template], ' +
+    Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
+
+void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
+  if (node is Element) {
+    _addAttributeBindings(node, model, syntax);
+  } else if (node is Text) {
+    _parseAndBind(node, node.text, 'text', model, syntax);
+  }
+
+  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    _addBindings(c, model, syntax);
+  }
+}
+
+
+void _addAttributeBindings(Element element, model, syntax) {
+  element.attributes.forEach((name, value) {
+    if (value == '' && (name == 'bind' || name == 'repeat')) {
+      value = '{{}}';
+    }
+    _parseAndBind(element, value, name, model, syntax);
+  });
+}
+
+void _parseAndBind(Node node, String text, String name, model,
+    CustomBindingSyntax syntax) {
+
+  var tokens = _parseMustacheTokens(text);
+  if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
+    return;
+  }
+
+  if (tokens.length == 1 && tokens[0].isBinding) {
+    _bindOrDelegate(node, name, model, tokens[0].value, syntax);
+    return;
+  }
+
+  var replacementBinding = new CompoundBinding();
+  for (var i = 0; i < tokens.length; i++) {
+    var token = tokens[i];
+    if (token.isBinding) {
+      _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
+    }
+  }
+
+  replacementBinding.combinator = (values) {
+    var newValue = new StringBuffer();
+
+    for (var i = 0; i < tokens.length; i++) {
+      var token = tokens[i];
+      if (token.isText) {
+        newValue.write(token.value);
+      } else {
+        var value = values[i];
+        if (value != null) {
+          newValue.write(value);
+        }
+      }
+    }
+
+    return newValue.toString();
+  };
+
+  node.bind(name, replacementBinding, 'value');
+}
+
+void _bindOrDelegate(node, name, model, String path,
+    CustomBindingSyntax syntax) {
+
+  if (syntax != null) {
+    var delegateBinding = syntax.getBinding(model, path, name, node);
+    if (delegateBinding != null) {
+      model = delegateBinding;
+      path = 'value';
+    }
+  }
+
+  node.bind(name, model, path);
+}
+
+class _BindingToken {
+  final String value;
+  final bool isBinding;
+
+  _BindingToken(this.value, {this.isBinding: false});
+
+  bool get isText => !isBinding;
+}
+
+List<_BindingToken> _parseMustacheTokens(String s) {
+  var result = [];
+  var length = s.length;
+  var index = 0, lastIndex = 0;
+  while (lastIndex < length) {
+    index = s.indexOf('{{', lastIndex);
+    if (index < 0) {
+      result.add(new _BindingToken(s.substring(lastIndex)));
+      break;
+    } else {
+      // There is a non-empty text run before the next path token.
+      if (index > 0 && lastIndex < index) {
+        result.add(new _BindingToken(s.substring(lastIndex, index)));
+      }
+      lastIndex = index + 2;
+      index = s.indexOf('}}', lastIndex);
+      if (index < 0) {
+        var text = s.substring(lastIndex - 2);
+        if (result.length > 0 && result.last.isText) {
+          result.last.value += text;
+        } else {
+          result.add(new _BindingToken(text));
+        }
+        break;
+      }
+
+      var value = s.substring(lastIndex, index).trim();
+      result.add(new _BindingToken(value, isBinding: true));
+      lastIndex = index + 2;
+    }
+  }
+  return result;
+}
+
+void _addTemplateInstanceRecord(fragment, model) {
+  if (fragment.$dom_firstChild == null) {
+    return;
+  }
+
+  var instanceRecord = new TemplateInstance(
+      fragment.$dom_firstChild, fragment.$dom_lastChild, model);
+
+  var node = instanceRecord.firstNode;
+  while (node != null) {
+    node._templateInstance = instanceRecord;
+    node = node.nextNode;
+  }
+}
+
+void _removeAllBindingsRecursively(Node node) {
+  node.unbindAll();
+  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    _removeAllBindingsRecursively(c);
+  }
+}
+
+void _removeTemplateChild(Node parent, Node child) {
+  child._templateInstance = null;
+  if (child is Element && child.isTemplate) {
+    // Make sure we stop observing when we remove an element.
+    var templateIterator = child._templateIterator;
+    if (templateIterator != null) {
+      templateIterator.abandon();
+      child._templateIterator = null;
+    }
+  }
+  child.remove();
+  _removeAllBindingsRecursively(child);
+}
+
+class _InstanceCursor {
+  final Element _template;
+  Node _terminator;
+  Node _previousTerminator;
+  int _previousIndex = -1;
+  int _index = 0;
+
+  _InstanceCursor(this._template, [index]) {
+    _terminator = _template;
+    if (index != null) {
+      while (index-- > 0) {
+        next();
+      }
+    }
+  }
+
+  void next() {
+    _previousTerminator = _terminator;
+    _previousIndex = _index;
+    _index++;
+
+    while (_index > _terminator._instanceTerminatorCount) {
+      _index -= _terminator._instanceTerminatorCount;
+      _terminator = _terminator.nextNode;
+      if (_terminator is Element && _terminator.tagName == 'TEMPLATE') {
+        _index += _instanceCount(_terminator);
+      }
+    }
+  }
+
+  void abandon() {
+    assert(_instanceCount(_template) > 0);
+    assert(_terminator._instanceTerminatorCount > 0);
+    assert(_index > 0);
+
+    _terminator._instanceTerminatorCount--;
+    _index--;
+  }
+
+  void insert(fragment) {
+    assert(_template.parentNode != null);
+
+    _previousTerminator = _terminator;
+    _previousIndex = _index;
+    _index++;
+
+    _terminator = fragment.$dom_lastChild;
+    if (_terminator == null) _terminator = _previousTerminator;
+    _template.parentNode.insertBefore(fragment, _previousTerminator.nextNode);
+
+    _terminator._instanceTerminatorCount++;
+    if (_terminator != _previousTerminator) {
+      while (_previousTerminator._instanceTerminatorCount >
+              _previousIndex) {
+        _previousTerminator._instanceTerminatorCount--;
+        _terminator._instanceTerminatorCount++;
+      }
+    }
+  }
+
+  void remove() {
+    assert(_previousIndex != -1);
+    assert(_previousTerminator != null &&
+           (_previousIndex > 0 || _previousTerminator == _template));
+    assert(_terminator != null && _index > 0);
+    assert(_template.parentNode != null);
+    assert(_instanceCount(_template) > 0);
+
+    if (_previousTerminator == _terminator) {
+      assert(_index == _previousIndex + 1);
+      _terminator._instanceTerminatorCount--;
+      _terminator = _template;
+      _previousTerminator = null;
+      _previousIndex = -1;
+      return;
+    }
+
+    _terminator._instanceTerminatorCount--;
+
+    var parent = _template.parentNode;
+    while (_previousTerminator.nextNode != _terminator) {
+      _removeTemplateChild(parent, _previousTerminator.nextNode);
+    }
+    _removeTemplateChild(parent, _terminator);
+
+    _terminator = _previousTerminator;
+    _index = _previousIndex;
+    _previousTerminator = null;
+    _previousIndex = -1;  // 0?
+  }
+}
+
+
+class _TemplateIterator {
+  final Element _templateElement;
+  int instanceCount = 0;
+  List iteratedValue;
+  bool observing = false;
+  final CompoundBinding inputs;
+
+  StreamSubscription _sub;
+  StreamSubscription _valueBinding;
+
+  _TemplateIterator(this._templateElement)
+    : inputs = new CompoundBinding(resolveInputs) {
+
+    _valueBinding = new PathObserver(inputs, 'value').bindSync(valueChanged);
+  }
+
+  static Object resolveInputs(Map values) {
+    if (values.containsKey('if') && !_templateBooleanConversion(values['if'])) {
+      return null;
+    }
+
+    if (values.containsKey('repeat')) {
+      return values['repeat'];
+    }
+
+    if (values.containsKey('bind')) {
+      return [values['bind']];
+    }
+
+    return null;
+  }
+
+  void valueChanged(value) {
+    clear();
+    if (value is! List) return;
+
+    iteratedValue = value;
+
+    if (value is Observable) {
+      _sub = value.changes.listen(_handleChanges);
+    }
+
+    int len = iteratedValue.length;
+    if (len > 0) {
+      _handleChanges([new ListChangeRecord(0, addedCount: len)]);
+    }
+  }
+
+  // TODO(jmesserly): port MDV v3.
+  getInstanceModel(model, syntax) => model;
+  getInstanceFragment(syntax) => _templateElement.createInstance();
+
+  void _handleChanges(List<ListChangeRecord> splices) {
+    var syntax = TemplateElement.syntax[_templateElement.attributes['syntax']];
+
+    for (var splice in splices) {
+      if (splice is! ListChangeRecord) continue;
+
+      for (int i = 0; i < splice.removedCount; i++) {
+        var cursor = new _InstanceCursor(_templateElement, splice.index + 1);
+        cursor.remove();
+        instanceCount--;
+      }
+
+      for (var addIndex = splice.index;
+          addIndex < splice.index + splice.addedCount;
+          addIndex++) {
+
+        var model = getInstanceModel(iteratedValue[addIndex], syntax);
+        var fragment = getInstanceFragment(syntax);
+
+        _addBindings(fragment, model, syntax);
+        _addTemplateInstanceRecord(fragment, model);
+
+        var cursor = new _InstanceCursor(_templateElement, addIndex);
+        cursor.insert(fragment);
+        instanceCount++;
+      }
+    }
+  }
+
+  void unobserve() {
+    if (_sub == null) return;
+    _sub.cancel();
+    _sub = null;
+  }
+
+  void clear() {
+    unobserve();
+
+    iteratedValue = null;
+    if (instanceCount == 0) return;
+
+    for (var i = 0; i < instanceCount; i++) {
+      var cursor = new _InstanceCursor(_templateElement, 1);
+      cursor.remove();
+    }
+
+    instanceCount = 0;
+  }
+
+  void abandon() {
+    unobserve();
+    _valueBinding.cancel();
+    inputs.dispose();
+  }
+}
+
+int _instanceCount(Element element) {
+  var templateIterator = element._templateIterator;
+  return templateIterator != null ? templateIterator.instanceCount : 0;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30997,7 +28360,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 
 
 _makeSendPortFuture(spawnRequest) {
-  final completer = new Completer<SendPort>();
+  final completer = new Completer<SendPort>.sync();
   final port = new ReceivePort();
   port.receive((result, _) {
     completer.complete(result);

@@ -159,11 +159,6 @@ interface WebGLRenderingContext {
   [Custom] any getVertexAttrib(unsigned long index, unsigned long pname);
   [Suppressed, StrictTypeChecking, Custom] void getVertexAttrib();
 };
-[Supplemental]
-interface CSSStyleDeclaration {
-  void setProperty(DOMString propertyName, DOMString value, [ForceOptional] optional DOMString priority);
-  [DartName=_getPropertyValue] DOMString getPropertyValue(DOMString propertyName);
-};
 
 // TODO(vsm): Define new names for these (see b/4436830).
 [Supplemental]
@@ -180,14 +175,6 @@ interface IDBIndex {
 
     [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count([ForceOptional] optional IDBKeyRange? range);
     [CallWith=ScriptExecutionContext, RaisesException] IDBRequest count(any key);
-};
-[Supplemental]
-interface IDBDatabase {
-  // These variants are slated for removal from WebKit.  Suppress to bring our
-  // API in line with the most recent spec.
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(DOMStringList storeNames, unsigned short mode);
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(DOMString[] storeNames, unsigned short mode);
-  [Suppressed, CallWith=ScriptExecutionContext] IDBTransaction transaction(DOMString storeName, unsigned short mode);
 };
 
 [Supplemental]
@@ -247,20 +234,17 @@ interface SVGNumber {
   // Provide missing constructor signature.
   Constructor(MutationCallback callback)]
 interface MutationObserver {
-  // Rename 'observe' so we can define a new 'observe' API that calls the
-  // original.
-  [DartName=_observe] void observe(Node target, Dictionary options);
 };
 
-  [Supplemental,
-    CustomConstructor,
-    // Provide missing constructor signature.
-    Constructor(optional HTMLFormElement form)]
-  interface DOMFormData {
-    [Suppressed] void append(DOMString name, DOMString value, DOMString filename);
-    [Custom] void append(DOMString name, DOMString value);
-    [Custom] void append(DOMString name, Blob value, optional DOMString filename);
-  };
+[Supplemental,
+  CustomConstructor,
+  // Provide missing constructor signature.
+  Constructor(optional HTMLFormElement form)]
+interface DOMFormData {
+  [Suppressed] void append(DOMString name, DOMString value, DOMString filename);
+  [Custom] void append(DOMString name, DOMString value);
+  [Custom] void append(DOMString name, Blob value, optional DOMString filename);
+};
 
 [Supplemental]
 interface SQLResultSetRowList {

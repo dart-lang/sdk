@@ -1593,18 +1593,36 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
     ReplaceCall(call, instr);
     return true;
   }
-  if ((recognized_kind == MethodRecognizer::kStringBaseCharAt) &&
-      (ic_data.NumberOfChecks() == 1) &&
-      (class_ids[0] == kOneByteStringCid)) {
-    // TODO(fschneider): Handle TwoByteString.
-    LoadIndexedInstr* load_char_code =
-        BuildStringCodeUnitAt(call, class_ids[0]);
-    InsertBefore(call, load_char_code, NULL, Definition::kValue);
-    StringFromCharCodeInstr* char_at =
-        new StringFromCharCodeInstr(new Value(load_char_code),
-                                    kOneByteStringCid);
-    ReplaceCall(call, char_at);
-    return true;
+  if ((class_ids[0] == kOneByteStringCid) && (ic_data.NumberOfChecks() == 1)) {
+    if (recognized_kind == MethodRecognizer::kStringBaseCharAt) {
+      // TODO(fschneider): Handle TwoByteString.
+      LoadIndexedInstr* load_char_code =
+          BuildStringCodeUnitAt(call, class_ids[0]);
+      InsertBefore(call, load_char_code, NULL, Definition::kValue);
+      StringFromCharCodeInstr* char_at =
+          new StringFromCharCodeInstr(new Value(load_char_code),
+                                      kOneByteStringCid);
+      ReplaceCall(call, char_at);
+      return true;
+    }
+    if (recognized_kind == MethodRecognizer::kOneByteStringSetAt) {
+      // This is an internal method, no need to check argument types nor
+      // range.
+      Definition* str = call->ArgumentAt(0);
+      Definition* index = call->ArgumentAt(1);
+      Definition* value = call->ArgumentAt(2);
+      StoreIndexedInstr* store_op = new StoreIndexedInstr(
+          new Value(str),
+          new Value(index),
+          new Value(value),
+          kNoStoreBarrier,
+          1,  // Index scale
+          kOneByteStringCid,
+          call->deopt_id());
+      ReplaceCall(call, store_op);
+      return true;
+    }
+    return false;
   }
 
   if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&

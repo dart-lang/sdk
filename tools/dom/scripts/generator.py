@@ -899,10 +899,7 @@ class TypeData(object):
 
 
 def TypedListTypeData(item_type):
-  return TypeData(
-      clazz='TypedList',
-      dart_type='List<%s>' % item_type, # TODO(antonm): proper typed_data interfaces.
-      item_type=item_type)
+  return TypeData(clazz='TypedList', item_type=item_type)
 
 
 _idl_type_registry = monitored.Dict('generator._idl_type_registry', {

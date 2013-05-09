@@ -4663,6 +4663,7 @@
   "HTMLTemplateElement": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#template-element",
     "members": {
+      "HTMLTemplateElement": {},
       "content": {}
     },
     "support_level": "experimental"

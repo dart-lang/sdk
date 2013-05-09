@@ -15,8 +15,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_bootstrap, false, "Print the bootstrap source.");
-
 #define INIT_LIBRARY(index, name, source, patch)                               \
   { index,                                                                     \
     "dart:"#name, source,                                                      \
@@ -148,11 +146,6 @@ static RawString* GetLibrarySource(const Library& lib,
 
 
 static RawError* Compile(const Library& library, const Script& script) {
-  if (FLAG_print_bootstrap) {
-    OS::Print("Bootstrap source '%s':\n%s\n",
-              String::Handle(script.url()).ToCString(),
-              String::Handle(script.Source()).ToCString());
-  }
   bool update_lib_status = (script.kind() == RawScript::kScriptTag ||
                             script.kind() == RawScript::kLibraryTag);
   if (update_lib_status) {
