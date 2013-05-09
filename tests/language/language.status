@@ -759,17 +759,6 @@ mixin_illegal_cycles_test/02: fail
 mixin_illegal_cycles_test/03: fail
 mixin_illegal_cycles_test/04: fail
 mixin_illegal_cycles_test/06: fail
-mixin_illegal_super_use_test/01: fail
-mixin_illegal_super_use_test/02: fail
-mixin_illegal_super_use_test/03: fail
-mixin_illegal_super_use_test/04: fail
-mixin_illegal_super_use_test/05: fail
-mixin_illegal_super_use_test/06: fail
-mixin_illegal_super_use_test/07: fail
-mixin_illegal_super_use_test/08: fail
-mixin_illegal_super_use_test/09: fail
-mixin_illegal_super_use_test/10: fail
-mixin_illegal_super_use_test/11: fail
 mixin_illegal_syntax_test/13: fail
 mixin_type_parameters_errors_test/01: fail
 mixin_type_parameters_errors_test/02: fail
