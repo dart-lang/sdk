@@ -173,10 +173,6 @@ import 'dart:math' show max;
 import 'matcher.dart';
 export 'matcher.dart';
 
-// TODO(amouravski): We should not need to import mock here, but it's necessary
-// to enable dartdoc on the mock library, as it's not picked up normally.
-import 'mock.dart';
-
 part 'src/config.dart';
 part 'src/test_case.dart';
 
