@@ -3,12 +3,13 @@ library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_collection-dev';
+import 'dart:_collection-dev' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:math';
+import 'dart:mdv_observe_impl';
 import 'dart:typed_data';
 import 'dart:svg' as svg;
 import 'dart:web_audio' as web_audio;
@@ -6037,6 +6038,8 @@ class Document extends Node  native "Document"
   @DocsEditable
   @Creates('Window|=Object')
   @Returns('Window|=Object')
+  @Creates('Window|=Object|Null')
+  @Returns('Window|=Object|Null')
   final dynamic _get_window;
 
   @DomName('Document.documentElement')
@@ -6643,8 +6646,8 @@ class DocumentFragment extends Node native "DocumentFragment" {
     e.innerHtml = value;
 
     // Copy list first since we don't want liveness during iteration.
-    List nodes = new List.from(e.nodes);
-    this.nodes.addAll(nodes);
+    List nodes = new List.from(e.nodes, growable: false);
+    this.append(nodes);
   }
 
   /**
@@ -7025,7 +7028,7 @@ class _ChildrenElementList extends ListBase<Element> {
   }
 }
 
-/** 
+/**
  * An immutable list containing HTML elements. This list contains some
  * additional methods for ease of CSS manipulation on a group of elements.
  */
@@ -7505,6 +7508,255 @@ abstract class Element extends Node implements ElementTraversal native "Element"
       return JS('bool', '#.msMatchesSelector(#)', this, selectors);
     }
     throw new UnsupportedError("Not supported on this platform");
+  }
+
+  @Creates('Null')
+  Map<String, StreamSubscription> _attributeBindings;
+
+  // TODO(jmesserly): I'm concerned about adding these to every element.
+  // Conceptually all of these belong on TemplateElement. They are here to
+  // support browsers that don't have <template> yet.
+  // However even in the polyfill they're restricted to certain tags
+  // (see [isTemplate]). So we can probably convert it to a (public) mixin, and
+  // only mix it in to the elements that need it.
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  var _model;
+
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  _TemplateIterator _templateIterator;
+
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  Element _templateInstanceRef;
+
+  // Note: only used if `this is! TemplateElement`
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  DocumentFragment _templateContent;
+
+  bool _templateIsDecorated;
+
+  // TODO(jmesserly): should path be optional, and default to empty path?
+  // It is used that way in at least one path in JS TemplateElement tests
+  // (see "BindImperative" test in original JS code).
+  @Experimental
+  void bind(String name, model, String path) {
+    _bindElement(this, name, model, path);
+  }
+
+  // TODO(jmesserly): this is static to work around http://dartbug.com/10166
+  // Similar issue for unbind/unbindAll below.
+  static void _bindElement(Element self, String name, model, String path) {
+    if (self._bindTemplate(name, model, path)) return;
+
+    if (self._attributeBindings == null) {
+      self._attributeBindings = new Map<String, StreamSubscription>();
+    }
+
+    self.attributes.remove(name);
+
+    var changed;
+    if (name.endsWith('?')) {
+      name = name.substring(0, name.length - 1);
+
+      changed = (value) {
+        if (_templateBooleanConversion(value)) {
+          self.attributes[name] = '';
+        } else {
+          self.attributes.remove(name);
+        }
+      };
+    } else {
+      changed = (value) {
+        // TODO(jmesserly): escape value if needed to protect against XSS.
+        // See https://github.com/toolkitchen/mdv/issues/58
+        self.attributes[name] = value == null ? '' : '$value';
+      };
+    }
+
+    self.unbind(name);
+
+    self._attributeBindings[name] =
+        new PathObserver(model, path).bindSync(changed);
+  }
+
+  @Experimental
+  void unbind(String name) {
+    _unbindElement(this, name);
+  }
+
+  static _unbindElement(Element self, String name) {
+    if (self._unbindTemplate(name)) return;
+    if (self._attributeBindings != null) {
+      var binding = self._attributeBindings.remove(name);
+      if (binding != null) binding.cancel();
+    }
+  }
+
+  @Experimental
+  void unbindAll() {
+    _unbindAllElement(this);
+  }
+
+  static void _unbindAllElement(Element self) {
+    self._unbindAllTemplate();
+
+    if (self._attributeBindings != null) {
+      for (var binding in self._attributeBindings.values) {
+        binding.cancel();
+      }
+      self._attributeBindings = null;
+    }
+  }
+
+  // TODO(jmesserly): unlike the JS polyfill, we can't mixin
+  // HTMLTemplateElement at runtime into things that are semantically template
+  // elements. So instead we implement it here with a runtime check.
+  // If the bind succeeds, we return true, otherwise we return false and let
+  // the normal Element.bind logic kick in.
+  bool _bindTemplate(String name, model, String path) {
+    if (isTemplate) {
+      switch (name) {
+        case 'bind':
+        case 'repeat':
+        case 'if':
+          _ensureTemplate();
+          if (_templateIterator == null) {
+            _templateIterator = new _TemplateIterator(this);
+          }
+          _templateIterator.inputs.bind(name, model, path);
+          return true;
+      }
+    }
+    return false;
+  }
+
+  bool _unbindTemplate(String name) {
+    if (isTemplate) {
+      switch (name) {
+        case 'bind':
+        case 'repeat':
+        case 'if':
+          _ensureTemplate();
+          if (_templateIterator != null) {
+            _templateIterator.inputs.unbind(name);
+          }
+          return true;
+      }
+    }
+    return false;
+  }
+
+  void _unbindAllTemplate() {
+    if (isTemplate) {
+      unbind('bind');
+      unbind('repeat');
+      unbind('if');
+    }
+  }
+
+  /**
+   * Gets the template this node refers to.
+   * This is only supported if [isTemplate] is true.
+   */
+  @Experimental
+  Element get ref {
+    _ensureTemplate();
+
+    Element ref = null;
+    var refId = attributes['ref'];
+    if (refId != null) {
+      ref = document.getElementById(refId);
+    }
+
+    return ref != null ? ref : _templateInstanceRef;
+  }
+
+  /**
+   * Gets the content of this template.
+   * This is only supported if [isTemplate] is true.
+   */
+  @Experimental
+  DocumentFragment get content {
+    _ensureTemplate();
+    return _templateContent;
+  }
+
+  /**
+   * Creates an instance of the template.
+   * This is only supported if [isTemplate] is true.
+   */
+  @Experimental
+  DocumentFragment createInstance() {
+    _ensureTemplate();
+
+    var template = ref;
+    if (template == null) template = this;
+
+    var instance = _createDeepCloneAndDecorateTemplates(template.content,
+        attributes['syntax']);
+
+    if (TemplateElement._instanceCreated != null) {
+      TemplateElement._instanceCreated.add(instance);
+    }
+    return instance;
+  }
+
+  /**
+   * The data model which is inherited through the tree.
+   * This is only supported if [isTemplate] is true.
+   *
+   * Setting this will destructive propagate the value to all descendant nodes,
+   * and reinstantiate all of the nodes expanded by this template.
+   *
+   * Currently this does not support propagation through Shadow DOMs.
+   */
+  @Experimental
+  get model => _model;
+
+  @Experimental
+  void set model(value) {
+    _ensureTemplate();
+
+    _model = value;
+    _addBindings(this, model);
+  }
+
+  // TODO(jmesserly): const set would be better
+  static const _TABLE_TAGS = const {
+    'caption': null,
+    'col': null,
+    'colgroup': null,
+    'tbody': null,
+    'td': null,
+    'tfoot': null,
+    'th': null,
+    'thead': null,
+    'tr': null,
+  };
+
+  bool get _isAttributeTemplate => attributes.containsKey('template') &&
+      (localName == 'option' || _TABLE_TAGS.containsKey(localName));
+
+  /**
+   * Returns true if this node is a template.
+   *
+   * A node is a template if [tagName] is TEMPLATE, or the node has the
+   * 'template' attribute and this tag supports attribute form for backwards
+   * compatibility with existing HTML parsers. The nodes that can use attribute
+   * form are table elments (THEAD, TBODY, TFOOT, TH, TR, TD, CAPTION, COLGROUP
+   * and COL) and OPTION.
+   */
+  // TODO(jmesserly): this is not a public MDV API, but it seems like a useful
+  // place to document which tags our polyfill considers to be templates.
+  // Otherwise I'd be repeating it in several other places.
+  // See if we can replace this with a TemplateMixin.
+  @Experimental
+  bool get isTemplate => tagName == 'TEMPLATE' || _isAttributeTemplate;
+
+  void _ensureTemplate() {
+    if (!isTemplate) {
+      throw new UnsupportedError('$this is not a template.');
+    }
+    TemplateElement.decorate(this);
   }
 
 
@@ -8251,6 +8503,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
 
 }
 
+
 final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 class _ElementFactoryProvider {
   static const _CUSTOM_PARENT_TAG_MAP = const {
@@ -8268,19 +8521,6 @@ class _ElementFactoryProvider {
     'track' : 'audio',
   };
 
-  // TODO(jmesserly): const set would be better
-  static const _TABLE_TAGS = const {
-    'caption': null,
-    'col': null,
-    'colgroup': null,
-    'tbody': null,
-    'td': null,
-    'tfoot': null,
-    'th': null,
-    'thead': null,
-    'tr': null,
-  };
-
   @DomName('Document.createElement')
   static Element createElement_html(String html) {
     // TODO(jacobr): this method can be made more robust and performant.
@@ -8294,7 +8534,7 @@ class _ElementFactoryProvider {
     final match = _START_TAG_REGEXP.firstMatch(html);
     if (match != null) {
       tag = match.group(1).toLowerCase();
-      if (Device.isIE && _TABLE_TAGS.containsKey(tag)) {
+      if (Device.isIE && Element._TABLE_TAGS.containsKey(tag)) {
         return _createTableForIE(html, tag);
       }
       parentTag = _CUSTOM_PARENT_TAG_MAP[tag];
@@ -10212,6 +10452,11 @@ class HtmlDocument extends Document native "HTMLDocument" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   String get visibilityState => $dom_webkitVisibilityState;
+
+
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  // Note: used to polyfill <template>
+  Document _templateContentsOwner;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11047,6 +11292,62 @@ class InputElement extends Element implements
     }
     return e;
   }
+
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  _ValueBinding _valueBinding;
+
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  _CheckedBinding _checkedBinding;
+
+  @Experimental
+  void bind(String name, model, String path) {
+    switch (name) {
+      case 'value':
+        unbind('value');
+        attributes.remove('value');
+        _valueBinding = new _ValueBinding(this, model, path);
+        break;
+      case 'checked':
+        unbind('checked');
+        attributes.remove('checked');
+        _checkedBinding = new _CheckedBinding(this, model, path);
+        break;
+      default:
+        // TODO(jmesserly): this should be "super" (http://dartbug.com/10166).
+        // Similar issue for unbind/unbindAll below.
+        Element._bindElement(this, name, model, path);
+        break;
+    }
+  }
+
+  @Experimental
+  void unbind(String name) {
+    switch (name) {
+      case 'value':
+        if (_valueBinding != null) {
+          _valueBinding.unbind();
+          _valueBinding = null;
+        }
+        break;
+      case 'checked':
+        if (_checkedBinding != null) {
+          _checkedBinding.unbind();
+          _checkedBinding = null;
+        }
+        break;
+      default:
+        Element._unbindElement(this, name);
+        break;
+    }
+  }
+
+  @Experimental
+  void unbindAll() {
+    unbind('value');
+    unbind('checked');
+    Element._unbindAllElement(this);
+  }
+
 
   @DomName('HTMLInputElement.webkitSpeechChangeEvent')
   @DocsEditable
@@ -14319,7 +14620,7 @@ class _ChildNodeListLazy extends ListBase<Node> {
     // time.
     Node child = _this.$dom_firstChild;
     while (child != null) {
-      Node nextChild = child.nextSibling;
+      Node nextChild = child.nextNode;
       if (test(child) == removeMatching) {
         _this.$dom_removeChild(child);
       }
@@ -14444,94 +14745,49 @@ class Node extends EventTarget native "Node" {
     }
   }
 
-  // Note that this may either be the locally set model or a cached value
-  // of the inherited model. This is cached to minimize model change
-  // notifications.
-  @Creates('Null')
-  var _model;
-  bool _hasLocalModel;
-  Set<StreamController<Node>> _modelChangedStreams;
-
-  /**
-   * The data model which is inherited through the tree.
-   *
-   * Setting this will propagate the value to all descendant nodes. If the
-   * model is not set on this node then it will be inherited from ancestor
-   * nodes.
-   *
-   * Currently this does not support propagation through Shadow DOMs.
-   *
-   * [clearModel] must be used to remove the model property from this node
-   * and have the model inherit from ancestor nodes.
-   */
-  @Experimental
-  get model {
-    // If we have a change handler then we've cached the model locally.
-    if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
-      return _model;
-    }
-    // Otherwise start looking up the tree.
-    for (var node = this; node != null; node = node.parentNode) {
-      if (node._hasLocalModel == true) {
-        return node._model;
-      }
-    }
-    return null;
-  }
-
-  @Experimental
-  void set model(value) {
-    var changed = model != value;
-    _model = value;
-    _hasLocalModel = true;
-    _ModelTreeObserver.initialize();
-
-    if (changed) {
-      if (_modelChangedStreams != null && !_modelChangedStreams.isEmpty) {
-        _modelChangedStreams.toList().forEach((stream) => stream.add(this));
-      }
-      // Propagate new model to all descendants.
-      _ModelTreeObserver.propagateModel(this, value, false);
-    }
-  }
-
-  /**
-   * Clears the locally set model and makes this model be inherited from parent
-   * nodes.
-   */
-  @Experimental
-  void clearModel() {
-    if (_hasLocalModel == true) {
-      _hasLocalModel = false;
-
-      // Propagate new model to all descendants.
-      if (parentNode != null) {
-        _ModelTreeObserver.propagateModel(this, parentNode.model, false);
-      } else {
-        _ModelTreeObserver.propagateModel(this, null, false);
-      }
-    }
-  }
-
-  /**
-   * Get a stream of models, whenever the model changes.
-   */
-  Stream<Node> get onModelChanged {
-    if (_modelChangedStreams == null) {
-      _modelChangedStreams = new Set<StreamController<Node>>();
-    }
-    var controller;
-    controller = new StreamController(
-        onListen: () { _modelChangedStreams.add(controller); },
-        onCancel: () { _modelChangedStreams.remove(controller); });
-    return controller.stream;
-  }
-
   /**
    * Print out a String representation of this Node.
    */
   String toString() => localName == null ?
       (nodeValue == null ? super.toString() : nodeValue) : localName;
+
+  /**
+   * Binds the attribute [name] to the [path] of the [model].
+   * Path is a String of accessors such as `foo.bar.baz`.
+   */
+  @Experimental
+  void bind(String name, model, String path) {
+    // TODO(jmesserly): should we throw instead?
+    window.console.error('Unhandled binding to Node: '
+        '$this $name $model $path');
+  }
+
+  /** Unbinds the attribute [name]. */
+  @Experimental
+  void unbind(String name) {}
+
+  /** Unbinds all bound attributes. */
+  @Experimental
+  void unbindAll() {}
+
+  TemplateInstance _templateInstance;
+
+  // TODO(arv): Consider storing all "NodeRareData" on a single object?
+  int __instanceTerminatorCount;
+  int get _instanceTerminatorCount {
+    if (__instanceTerminatorCount == null) return 0;
+    return __instanceTerminatorCount;
+  }
+  set _instanceTerminatorCount(int value) {
+    if (value == 0) value = null;
+    __instanceTerminatorCount = value;
+  }
+
+  /** Gets the template instance that instantiated this node, if any. */
+  @Experimental
+  TemplateInstance get templateInstance =>
+      _templateInstance != null ? _templateInstance :
+      (parent != null ? parent.templateInstance : null);
 
 
   static const int ATTRIBUTE_NODE = 2;
@@ -18410,8 +18666,10 @@ class TableSectionElement extends Element native "HTMLTableSectionElement" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
-@DocsEditable
+
+@Experimental
 @DomName('HTMLTemplateElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
@@ -18424,9 +18682,118 @@ class TemplateElement extends Element native "HTMLTemplateElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('template');
 
+  @JSName('content')
   @DomName('HTMLTemplateElement.content')
   @DocsEditable
-  final DocumentFragment content;
+  final DocumentFragment $dom_content;
+
+
+  // For real TemplateElement use the actual DOM .content field instead of
+  // our polyfilled expando.
+  @Experimental
+  DocumentFragment get content => $dom_content;
+
+  static StreamController<DocumentFragment> _instanceCreated;
+
+  /**
+   * *Warning*: This is an implementation helper for Model-Driven Views and
+   * should not be used in your code.
+   *
+   * This event is fired whenever a template is instantiated via
+   * [createInstance].
+   */
+  // TODO(rafaelw): This is a hack, and is neccesary for the polyfill
+  // because custom elements are not upgraded during clone()
+  @Experimental
+  static Stream<DocumentFragment> get instanceCreated {
+    if (_instanceCreated == null) {
+      _instanceCreated = new StreamController<DocumentFragment>();
+    }
+    return _instanceCreated.stream;
+  }
+
+  /**
+   * Ensures proper API and content model for template elements.
+   *
+   * [instanceRef] can be used to set the [Element.ref] property of [template],
+   * and use the ref's content will be used as source when createInstance() is
+   * invoked.
+   *
+   * Returns true if this template was just decorated, or false if it was
+   * already decorated.
+   */
+  @Experimental
+  static bool decorate(Element template, [Element instanceRef]) {
+    // == true check because it starts as a null field.
+    if (template._templateIsDecorated == true) return false;
+
+    template._templateIsDecorated = true;
+
+    _injectStylesheet();
+
+    // Create content
+    if (template is! TemplateElement) {
+      var doc = _getTemplateContentsOwner(template.document);
+      template._templateContent = doc.createDocumentFragment();
+    }
+
+    if (instanceRef != null) {
+      template._templateInstanceRef = instanceRef;
+      return true; // content is empty.
+    }
+
+    if (template is TemplateElement) {
+      _bootstrapTemplatesRecursivelyFrom(template.content);
+    } else {
+      _liftNonNativeTemplateChildrenIntoContent(template);
+    }
+
+    return true;
+  }
+
+  /**
+   * This used to decorate recursively all templates from a given node.
+   *
+   * By default [decorate] will be called on templates lazily when certain
+   * properties such as [model] are accessed, but it can be run eagerly to
+   * decorate an entire tree recursively.
+   */
+  // TODO(rafaelw): Review whether this is the right public API.
+  @Experimental
+  static void bootstrap(Node content) {
+    _bootstrapTemplatesRecursivelyFrom(content);
+  }
+
+  static bool _initStyles;
+
+  static void _injectStylesheet() {
+    if (_initStyles == true) return;
+    _initStyles = true;
+
+    var style = new StyleElement();
+    style.text = r'''
+template,
+thead[template],
+tbody[template],
+tfoot[template],
+th[template],
+tr[template],
+td[template],
+caption[template],
+colgroup[template],
+col[template],
+option[template] {
+  display: none;
+}''';
+    document.head.append(style);
+  }
+
+  /**
+   * A mapping of names to Custom Syntax objects. See [CustomBindingSyntax] for
+   * more information.
+   */
+  @Experimental
+  static Map<String, CustomBindingSyntax> syntax = {};
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18459,6 +18826,42 @@ class Text extends CharacterData native "Text" {
   @DocsEditable
   Text splitText(int offset) native;
 
+
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  StreamSubscription _textBinding;
+
+  @Experimental
+  void bind(String name, model, String path) {
+    if (name != 'text') {
+      super.bind(name, model, path);
+      return;
+    }
+
+    unbind('text');
+
+    _textBinding = new PathObserver(model, path).bindSync((value) {
+      text = value == null ? '' : '$value';
+    });
+  }
+
+  @Experimental
+  void unbind(String name) {
+    if (name != 'text') {
+      super.unbind(name);
+      return;
+    }
+
+    if (_textBinding == null) return;
+
+    _textBinding.cancel();
+    _textBinding = null;
+  }
+
+  @Experimental
+  void unbindAll() {
+    unbind('text');
+    super.unbindAll();
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24034,99 +24437,289 @@ abstract class KeyName {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _ModelTreeObserver {
-  static bool _initialized = false;
+// This code is inspired by ChangeSummary:
+// https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
+// ...which underlies MDV. Since we don't need the functionality of
+// ChangeSummary, we just implement what we need for data bindings.
+// This allows our implementation to be much simpler.
+
+// TODO(jmesserly): should we make these types stronger, and require
+// Observable objects? Currently, it is fine to say something like:
+//     var path = new PathObserver(123, '');
+//     print(path.value); // "123"
+//
+// Furthermore this degenerate case is allowed:
+//     var path = new PathObserver(123, 'foo.bar.baz.qux');
+//     print(path.value); // "null"
+//
+// Here we see that any invalid (i.e. not Observable) value will break the
+// path chain without producing an error or exception.
+//
+// Now the real question: should we do this? For the former case, the behavior
+// is correct but we could chose to handle it in the dart:html bindings layer.
+// For the latter case, it might be better to throw an error so users can find
+// the problem.
+
+
+// TODO(jmesserly): the primary reason to have this object exposed is because
+// we have get/set for value. Ideally "observePath" could just return the
+// stream.
+/**
+ * A data-bound path starting from a view-model or model object, for example
+ * `foo.bar.baz`.
+ *
+ * When the [values] stream is being listened to, this will observe changes to
+ * the object and any intermediate object along the path, and send [values]
+ * accordingly. When all listeners are unregistered it will stop observing
+ * the objects.
+ *
+ * This class is used to implement [Node.bind] and similar functionality.
+ */
+@Experimental
+class PathObserver {
+  /** The object being observed. */
+  final object;
+
+  /** The path string. */
+  final String path;
+
+  /** True if the path is valid, otherwise false. */
+  final bool _isValid;
+
+  // TODO(jmesserly): same issue here as ObservableMixin: is there an easier
+  // way to get a broadcast stream?
+  StreamController _values;
+  Stream _valueStream;
+
+  _PropertyObserver _observer, _lastObserver;
+
+  Object _lastValue;
+  bool _scheduled = false;
 
   /**
-   * Start an observer watching the document for tree changes to automatically
-   * propagate model changes.
-   *
-   * Currently this does not support propagation through Shadow DOMs.
+   * Observes [path] on [object] for changes. This returns an object that can be
+   * used to get the changes and get/set the value at this path.
+   * See [PathObserver.values] and [PathObserver.value].
    */
-  static void initialize() {
-    if (!_initialized) {
-      _initialized = true;
+  PathObserver(this.object, String path)
+    : path = path,
+      _isValid = _isPathValid(path) {
 
-      if (MutationObserver.supported) {
-        var observer = new MutationObserver(_processTreeChange);
-        observer.observe(document, childList: true, subtree: true);
-      } else {
-        document.on['DOMNodeInserted'].listen(_handleNodeInserted);
-        document.on['DOMNodeRemoved'].listen(_handleNodeRemoved);
+    // TODO(jmesserly): if the path is empty, or the object is! Observable, we
+    // can optimize the PathObserver to be more lightweight.
+
+    _values = new StreamController(onListen: _observe, onCancel: _unobserve);
+
+    if (_isValid) {
+      var segments = [];
+      for (var segment in path.trim().split('.')) {
+        if (segment == '') continue;
+        var index = int.parse(segment, onError: (_) {});
+        segments.add(index != null ? index : new Symbol(segment));
+      }
+
+      // Create the property observer linked list.
+      // Note that the structure of a path can't change after it is initially
+      // constructed, even though the objects along the path can change.
+      for (int i = segments.length - 1; i >= 0; i--) {
+        _observer = new _PropertyObserver(this, segments[i], _observer);
+        if (_lastObserver == null) _lastObserver = _observer;
       }
     }
   }
 
-  static void _processTreeChange(List<MutationRecord> mutations,
-      MutationObserver observer) {
-    for (var record in mutations) {
-      for (var node in record.addedNodes) {
-        // When nodes enter the document we need to make sure that all of the
-        // models are properly propagated through the entire sub-tree.
-        propagateModel(node, _calculatedModel(node), true);
-      }
-      for (var node in record.removedNodes) {
-        propagateModel(node, _calculatedModel(node), false);
-      }
-    }
-  }
-
-  static void _handleNodeInserted(MutationEvent e) {
-    var node = e.target;
-    window.setImmediate(() {
-      propagateModel(node, _calculatedModel(node), true);
-    });
-  }
-
-  static void _handleNodeRemoved(MutationEvent e) {
-    var node = e.target;
-    window.setImmediate(() {
-      propagateModel(node, _calculatedModel(node), false);
-    });
-  }
-
+  // TODO(jmesserly): we could try adding the first value to the stream, but
+  // that delivers the first record async.
   /**
-   * Figures out what the model should be for a node, avoiding any cached
-   * model values.
+   * Listens to the stream, and invokes the [callback] immediately with the
+   * current [value]. This is useful for bindings, which want to be up-to-date
+   * immediately.
    */
-  static _calculatedModel(node) {
-    if (node._hasLocalModel == true) {
-      return node._model;
-    } else if (node.parentNode != null) {
-      return node.parentNode._model;
-    }
-    return null;
+  StreamSubscription bindSync(void callback(value)) {
+    var result = values.listen(callback);
+    callback(value);
+    return result;
   }
 
+  // TODO(jmesserly): should this be a change record with the old value?
+  // TODO(jmesserly): should this be a broadcast stream? We only need
+  // single-subscription in the bindings system, so single sub saves overhead.
   /**
-   * Pushes model changes down through the tree.
-   *
-   * Set fullTree to true if the state of the tree is unknown and model changes
-   * should be propagated through the entire tree.
+   * Gets the stream of values that were observed at this path.
+   * This returns a single-subscription stream.
    */
-  static void propagateModel(Node node, model, bool fullTree) {
-    // Calling into user code with the != call could generate exceptions.
-    // Catch and report them a global exceptions.
-    try {
-      if (node._hasLocalModel != true && node._model != model &&
-          node._modelChangedStreams != null &&
-          !node._modelChangedStreams.isEmpty) {
-        node._model = model;
-        node._modelChangedStreams.toList()
-          .forEach((controller) => controller.add(node));
-      }
-    } catch (e, s) {
-      new Future.error(e, s);
+  Stream get values => _values.stream;
+
+  /** Force synchronous delivery of [values]. */
+  void _deliverValues() {
+    _scheduled = false;
+
+    var newValue = value;
+    if (!identical(_lastValue, newValue)) {
+      _values.add(newValue);
+      _lastValue = newValue;
     }
-    for (var child = node.$dom_firstChild; child != null;
-        child = child.nextNode) {
-      if (child._hasLocalModel != true) {
-        propagateModel(child, model, fullTree);
-      } else if (fullTree) {
-        propagateModel(child, child._model, true);
+  }
+
+  void _observe() {
+    if (_observer != null) {
+      _lastValue = value;
+      _observer.observe();
+    }
+  }
+
+  void _unobserve() {
+    if (_observer != null) _observer.unobserve();
+  }
+
+  void _notifyChange() {
+    if (_scheduled) return;
+    _scheduled = true;
+
+    // TODO(jmesserly): should we have a guarenteed order with respect to other
+    // paths? If so, we could implement this fairly easily by sorting instances
+    // of this class by birth order before delivery.
+    queueChangeRecords(_deliverValues);
+  }
+
+  /** Gets the last reported value at this path. */
+  get value {
+    if (!_isValid) return null;
+    if (_observer == null) return object;
+    _observer.ensureValue(object);
+    return _lastObserver.value;
+  }
+
+  /** Sets the value at this path. */
+  void set value(Object value) {
+    // TODO(jmesserly): throw if property cannot be set?
+    // MDV seems tolerant of these error.
+    if (_observer == null || !_isValid) return;
+    _observer.ensureValue(object);
+    var last = _lastObserver;
+    if (_setObjectProperty(last._object, last._property, value)) {
+      // Technically, this would get updated asynchronously via a change record.
+      // However, it is nice if calling the getter will yield the same value
+      // that was just set. So we use this opportunity to update our cache.
+      last.value = value;
+    }
+  }
+}
+
+// TODO(jmesserly): these should go away in favor of mirrors!
+_getObjectProperty(object, property) {
+  if (object is List && property is int) {
+    if (property >= 0 && property < object.length) {
+      return object[property];
+    } else {
+      return null;
+    }
+  }
+
+  // TODO(jmesserly): what about length?
+  if (object is Map) return object[property];
+
+  if (object is Observable) return object.getValueWorkaround(property);
+
+  return null;
+}
+
+bool _setObjectProperty(object, property, value) {
+  if (object is List && property is int) {
+    object[property] = value;
+  } else if (object is Map) {
+    object[property] = value;
+  } else if (object is Observable) {
+    (object as Observable).setValueWorkaround(property, value);
+  } else {
+    return false;
+  }
+  return true;
+}
+
+
+class _PropertyObserver {
+  final PathObserver _path;
+  final _property;
+  final Symbol _symbol;
+  final _PropertyObserver _next;
+
+  // TODO(jmesserly): would be nice not to store both of these.
+  Object _object;
+  Object _value;
+  StreamSubscription _sub;
+
+  _PropertyObserver(this._path, this._property, this._next);
+
+  get value => _value;
+
+  void set value(Object newValue) {
+    _value = newValue;
+    if (_next != null) {
+      if (_sub != null) _next.unobserve();
+      _next.ensureValue(_value);
+      if (_sub != null) _next.observe();
+    }
+  }
+
+  void ensureValue(object) {
+    // If we're observing, values should be up to date already.
+    if (_sub != null) return;
+
+    _object = object;
+    value = _getObjectProperty(object, _property);
+  }
+
+  void observe() {
+    if (_object is Observable) {
+      assert(_sub == null);
+      _sub = (_object as Observable).changes.listen(_onChange);
+    }
+    if (_next != null) _next.observe();
+  }
+
+  void unobserve() {
+    if (_sub == null) return;
+
+    _sub.cancel();
+    _sub = null;
+    if (_next != null) _next.unobserve();
+  }
+
+  void _onChange(List<ChangeRecord> changes) {
+    for (var change in changes) {
+      // TODO(jmesserly): what to do about "new Symbol" here?
+      // Ideally this would only preserve names if the user has opted in to
+      // them being preserved.
+      // TODO(jmesserly): should we drop observable maps with String keys?
+      // If so then we only need one check here.
+      if (change.changes(_property)) {
+        value = _getObjectProperty(_object, _property);
+        _path._notifyChange();
+        return;
       }
     }
   }
+}
+
+// From: https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
+
+const _pathIndentPart = r'[$a-z0-9_]+[$a-z0-9_\d]*';
+final _pathRegExp = new RegExp('^'
+    '(?:#?' + _pathIndentPart + ')?'
+    '(?:'
+      '(?:\\.' + _pathIndentPart + ')'
+    ')*'
+    r'$', caseSensitive: false);
+
+final _spacesRegExp = new RegExp(r'\s');
+
+bool _isPathValid(String s) {
+  s = s.replaceAll(_spacesRegExp, '');
+
+  if (s == '') return true;
+  if (s[0] == '.') return false;
+  return _pathRegExp.hasMatch(s);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24349,6 +24942,781 @@ class Rect {
   Point get topLeft => new Point(this.left, this.top);
   Point get bottomRight => new Point(this.left + this.width,
       this.top + this.height);
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+// This code is a port of Model-Driven-Views:
+// https://github.com/toolkitchen/mdv
+// The code mostly comes from src/template_element.js
+
+typedef void _ChangeHandler(value);
+
+/**
+ * Model-Driven Views (MDV)'s native features enables a wide-range of use cases,
+ * but (by design) don't attempt to implement a wide array of specialized
+ * behaviors.
+ *
+ * Enabling these features in MDV is a matter of implementing and registering an
+ * MDV Custom Syntax. A Custom Syntax is an object which contains one or more
+ * delegation functions which implement specialized behavior. This object is
+ * registered with MDV via [TemplateElement.syntax]:
+ *
+ *
+ * HTML:
+ *     <template bind syntax="MySyntax">
+ *       {{ What!Ever('crazy')->thing^^^I+Want(data) }}
+ *     </template>
+ *
+ * Dart:
+ *     class MySyntax extends CustomBindingSyntax {
+ *       getBinding(model, path, name, node) {
+ *         // The magic happens here!
+ *       }
+ *     }
+ *
+ *     ...
+ *
+ *     TemplateElement.syntax['MySyntax'] = new MySyntax();
+ *
+ * See <https://github.com/toolkitchen/mdv/blob/master/docs/syntax.md> for more
+ * information about Custom Syntax.
+ */
+// TODO(jmesserly): if this is just one method, a function type would make it
+// more Dart-friendly.
+@Experimental
+abstract class CustomBindingSyntax {
+  // TODO(jmesserly): I had to remove type annotations from "name" and "node"
+  // Normally they are String and Node respectively. But sometimes it will pass
+  // (int name, CompoundBinding node). That seems very confusing; we may want
+  // to change this API.
+  getBinding(model, String path, name, node);
+}
+
+/** The callback used in the [CompoundBinding.combinator] field. */
+@Experimental
+typedef Object CompoundBindingCombinator(Map objects);
+
+/** Information about the instantiated template. */
+@Experimental
+class TemplateInstance {
+  // TODO(rafaelw): firstNode & lastNode should be read-synchronous
+  // in cases where script has modified the template instance boundary.
+
+  /** The first node of this template instantiation. */
+  final Node firstNode;
+
+  /**
+   * The last node of this template instantiation.
+   * This could be identical to [firstNode] if the template only expanded to a
+   * single node.
+   */
+  final Node lastNode;
+
+  /** The model used to instantiate the template. */
+  final model;
+
+  TemplateInstance(this.firstNode, this.lastNode, this.model);
+}
+
+/**
+ * Model-Driven Views contains a helper object which is useful for the
+ * implementation of a Custom Syntax.
+ *
+ *     var binding = new CompoundBinding((values) {
+ *       var combinedValue;
+ *       // compute combinedValue based on the current values which are provided
+ *       return combinedValue;
+ *     });
+ *     binding.bind('name1', obj1, path1);
+ *     binding.bind('name2', obj2, path2);
+ *     //...
+ *     binding.bind('nameN', objN, pathN);
+ *
+ * CompoundBinding is an object which knows how to listen to multiple path
+ * values (registered via [bind]) and invoke its [combinator] when one or more
+ * of the values have changed and set its [value] property to the return value
+ * of the function. When any value has changed, all current values are provided
+ * to the [combinator] in the single `values` argument.
+ *
+ * See [CustomBindingSyntax] for more information.
+ */
+// TODO(jmesserly): what is the public API surface here? I just guessed;
+// most of it seemed non-public.
+@Experimental
+class CompoundBinding extends ObservableBase {
+  CompoundBindingCombinator _combinator;
+
+  // TODO(jmesserly): ideally these would be String keys, but sometimes we
+  // use integers.
+  Map<dynamic, StreamSubscription> _bindings = new Map();
+  Map _values = new Map();
+  bool _scheduled = false;
+  bool _disposed = false;
+  Object _value;
+
+  CompoundBinding([CompoundBindingCombinator combinator]) {
+    // TODO(jmesserly): this is a tweak to the original code, it seemed to me
+    // that passing the combinator to the constructor should be equivalent to
+    // setting it via the property.
+    // I also added a null check to the combinator setter.
+    this.combinator = combinator;
+  }
+
+  CompoundBindingCombinator get combinator => _combinator;
+
+  set combinator(CompoundBindingCombinator combinator) {
+    _combinator = combinator;
+    if (combinator != null) _scheduleResolve();
+  }
+
+  static const _VALUE = const Symbol('value');
+
+  get value => _value;
+
+  void set value(newValue) {
+    _value = notifyPropertyChange(_VALUE, _value, newValue);
+  }
+
+  // TODO(jmesserly): remove these workarounds when dart2js supports mirrors!
+  getValueWorkaround(key) {
+    if (key == _VALUE) return value;
+    return null;
+  }
+  setValueWorkaround(key, val) {
+    if (key == _VALUE) value = val;
+  }
+
+  void bind(name, model, String path) {
+    unbind(name);
+
+    _bindings[name] = new PathObserver(model, path).bindSync((value) {
+      _values[name] = value;
+      _scheduleResolve();
+    });
+  }
+
+  void unbind(name, {bool suppressResolve: false}) {
+    var binding = _bindings.remove(name);
+    if (binding == null) return;
+
+    binding.cancel();
+    _values.remove(name);
+    if (!suppressResolve) _scheduleResolve();
+  }
+
+  // TODO(rafaelw): Is this the right processing model?
+  // TODO(rafaelw): Consider having a seperate ChangeSummary for
+  // CompoundBindings so to excess dirtyChecks.
+  void _scheduleResolve() {
+    if (_scheduled) return;
+    _scheduled = true;
+    queueChangeRecords(resolve);
+  }
+
+  void resolve() {
+    if (_disposed) return;
+    _scheduled = false;
+
+    if (_combinator == null) {
+      throw new StateError(
+          'CompoundBinding attempted to resolve without a combinator');
+    }
+
+    value = _combinator(_values);
+  }
+
+  void dispose() {
+    for (var binding in _bindings.values) {
+      binding.cancel();
+    }
+    _bindings.clear();
+    _values.clear();
+
+    _disposed = true;
+    value = null;
+  }
+}
+
+Stream<Event> _getStreamForInputType(InputElement element) {
+  switch (element.type) {
+    case 'checkbox':
+      return element.onClick;
+    case 'radio':
+    case 'select-multiple':
+    case 'select-one':
+      return element.onChange;
+    default:
+      return element.onInput;
+  }
+}
+
+abstract class _InputBinding {
+  final InputElement element;
+  PathObserver binding;
+  StreamSubscription _pathSub;
+  StreamSubscription _eventSub;
+
+  _InputBinding(this.element, model, String path) {
+    binding = new PathObserver(model, path);
+    _pathSub = binding.bindSync(valueChanged);
+    _eventSub = _getStreamForInputType(element).listen(updateBinding);
+  }
+
+  void valueChanged(newValue);
+
+  void updateBinding(e);
+
+  void unbind() {
+    binding = null;
+    _pathSub.cancel();
+    _eventSub.cancel();
+  }
+}
+
+class _ValueBinding extends _InputBinding {
+  _ValueBinding(element, model, path) : super(element, model, path);
+
+  void valueChanged(value) {
+    element.value = value == null ? '' : '$value';
+  }
+
+  void updateBinding(e) {
+    binding.value = element.value;
+  }
+}
+
+// TODO(jmesserly): not sure what kind of boolean conversion rules to
+// apply for template data-binding. HTML attributes are true if they're present.
+// However Dart only treats "true" as true. Since this is HTML we'll use
+// something closer to the HTML rules: null (missing) and false are false,
+// everything else is true. See: https://github.com/toolkitchen/mdv/issues/59
+bool _templateBooleanConversion(value) => null != value && false != value;
+
+class _CheckedBinding extends _InputBinding {
+  _CheckedBinding(element, model, path) : super(element, model, path);
+
+  void valueChanged(value) {
+    element.checked = _templateBooleanConversion(value);
+  }
+
+  void updateBinding(e) {
+    binding.value = element.checked;
+
+    // Only the radio button that is getting checked gets an event. We
+    // therefore find all the associated radio buttons and update their
+    // CheckedBinding manually.
+    if (element is InputElement && element.type == 'radio') {
+      for (var r in _getAssociatedRadioButtons(element)) {
+        var checkedBinding = r._checkedBinding;
+        if (checkedBinding != null) {
+          // Set the value directly to avoid an infinite call stack.
+          checkedBinding.binding.value = false;
+        }
+      }
+    }
+  }
+}
+
+// TODO(jmesserly): polyfill document.contains API instead of doing it here
+bool _isNodeInDocument(Node node) {
+  // On non-IE this works:
+  // return node.document.contains(node);
+  var document = node.document;
+  if (node == document || node.parentNode == document) return true;
+  return document.documentElement.contains(node);
+}
+
+// |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
+// Returns an array containing all radio buttons other than |element| that
+// have the same |name|, either in the form that |element| belongs to or,
+// if no form, in the document tree to which |element| belongs.
+//
+// This implementation is based upon the HTML spec definition of a
+// "radio button group":
+//   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
+//
+Iterable _getAssociatedRadioButtons(element) {
+  if (!_isNodeInDocument(element)) return [];
+  if (element.form != null) {
+    return element.form.nodes.where((el) {
+      return el != element &&
+          el is InputElement &&
+          el.type == 'radio' &&
+          el.name == element.name;
+    });
+  } else {
+    var radios = element.document.queryAll(
+        'input[type="radio"][name="${element.name}"]');
+    return radios.where((el) => el != element && el.form == null);
+  }
+}
+
+Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
+  var clone = node.clone(false); // Shallow clone.
+  if (clone is Element && clone.isTemplate) {
+    TemplateElement.decorate(clone, node);
+    if (syntax != null) {
+      clone.attributes.putIfAbsent('syntax', () => syntax);
+    }
+  }
+
+  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
+  }
+  return clone;
+}
+
+// http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
+Document _getTemplateContentsOwner(Document doc) {
+  if (doc.window == null) {
+    return doc;
+  }
+  var d = doc._templateContentsOwner;
+  if (d == null) {
+    // TODO(arv): This should either be a Document or HTMLDocument depending
+    // on doc.
+    d = doc.implementation.createHtmlDocument('');
+    while (d.$dom_lastChild != null) {
+      d.$dom_lastChild.remove();
+    }
+    doc._templateContentsOwner = d;
+  }
+  return d;
+}
+
+Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
+  var clone = templateElement.clone(false);
+  var attributes = templateElement.attributes;
+  for (var name in attributes.keys.toList()) {
+    switch (name) {
+      case 'template':
+      case 'repeat':
+      case 'bind':
+      case 'ref':
+        clone.attributes.remove(name);
+        break;
+      default:
+        attributes.remove(name);
+        break;
+    }
+  }
+
+  return clone;
+}
+
+void _liftNonNativeTemplateChildrenIntoContent(Element templateElement) {
+  var content = templateElement.content;
+
+  if (!templateElement._isAttributeTemplate) {
+    var child;
+    while ((child = templateElement.$dom_firstChild) != null) {
+      content.append(child);
+    }
+    return;
+  }
+
+  // For attribute templates we copy the whole thing into the content and
+  // we move the non template attributes into the content.
+  //
+  //   <tr foo template>
+  //
+  // becomes
+  //
+  //   <tr template>
+  //   + #document-fragment
+  //     + <tr foo>
+  //
+  var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
+  var child;
+  while ((child = templateElement.$dom_firstChild) != null) {
+    newRoot.append(child);
+  }
+  content.append(newRoot);
+}
+
+void _bootstrapTemplatesRecursivelyFrom(Node node) {
+  void bootstrap(template) {
+    if (!TemplateElement.decorate(template)) {
+      _bootstrapTemplatesRecursivelyFrom(template.content);
+    }
+  }
+
+  // Need to do this first as the contents may get lifted if |node| is
+  // template.
+  // TODO(jmesserly): node is DocumentFragment or Element
+  var templateDescendents = (node as dynamic).queryAll(_allTemplatesSelectors);
+  if (node is Element && node.isTemplate) bootstrap(node);
+
+  templateDescendents.forEach(bootstrap);
+}
+
+final String _allTemplatesSelectors = 'template, option[template], ' +
+    Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
+
+void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
+  if (node is Element) {
+    _addAttributeBindings(node, model, syntax);
+  } else if (node is Text) {
+    _parseAndBind(node, node.text, 'text', model, syntax);
+  }
+
+  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    _addBindings(c, model, syntax);
+  }
+}
+
+
+void _addAttributeBindings(Element element, model, syntax) {
+  element.attributes.forEach((name, value) {
+    if (value == '' && (name == 'bind' || name == 'repeat')) {
+      value = '{{}}';
+    }
+    _parseAndBind(element, value, name, model, syntax);
+  });
+}
+
+void _parseAndBind(Node node, String text, String name, model,
+    CustomBindingSyntax syntax) {
+
+  var tokens = _parseMustacheTokens(text);
+  if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
+    return;
+  }
+
+  if (tokens.length == 1 && tokens[0].isBinding) {
+    _bindOrDelegate(node, name, model, tokens[0].value, syntax);
+    return;
+  }
+
+  var replacementBinding = new CompoundBinding();
+  for (var i = 0; i < tokens.length; i++) {
+    var token = tokens[i];
+    if (token.isBinding) {
+      _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
+    }
+  }
+
+  replacementBinding.combinator = (values) {
+    var newValue = new StringBuffer();
+
+    for (var i = 0; i < tokens.length; i++) {
+      var token = tokens[i];
+      if (token.isText) {
+        newValue.write(token.value);
+      } else {
+        var value = values[i];
+        if (value != null) {
+          newValue.write(value);
+        }
+      }
+    }
+
+    return newValue.toString();
+  };
+
+  node.bind(name, replacementBinding, 'value');
+}
+
+void _bindOrDelegate(node, name, model, String path,
+    CustomBindingSyntax syntax) {
+
+  if (syntax != null) {
+    var delegateBinding = syntax.getBinding(model, path, name, node);
+    if (delegateBinding != null) {
+      model = delegateBinding;
+      path = 'value';
+    }
+  }
+
+  node.bind(name, model, path);
+}
+
+class _BindingToken {
+  final String value;
+  final bool isBinding;
+
+  _BindingToken(this.value, {this.isBinding: false});
+
+  bool get isText => !isBinding;
+}
+
+List<_BindingToken> _parseMustacheTokens(String s) {
+  var result = [];
+  var length = s.length;
+  var index = 0, lastIndex = 0;
+  while (lastIndex < length) {
+    index = s.indexOf('{{', lastIndex);
+    if (index < 0) {
+      result.add(new _BindingToken(s.substring(lastIndex)));
+      break;
+    } else {
+      // There is a non-empty text run before the next path token.
+      if (index > 0 && lastIndex < index) {
+        result.add(new _BindingToken(s.substring(lastIndex, index)));
+      }
+      lastIndex = index + 2;
+      index = s.indexOf('}}', lastIndex);
+      if (index < 0) {
+        var text = s.substring(lastIndex - 2);
+        if (result.length > 0 && result.last.isText) {
+          result.last.value += text;
+        } else {
+          result.add(new _BindingToken(text));
+        }
+        break;
+      }
+
+      var value = s.substring(lastIndex, index).trim();
+      result.add(new _BindingToken(value, isBinding: true));
+      lastIndex = index + 2;
+    }
+  }
+  return result;
+}
+
+void _addTemplateInstanceRecord(fragment, model) {
+  if (fragment.$dom_firstChild == null) {
+    return;
+  }
+
+  var instanceRecord = new TemplateInstance(
+      fragment.$dom_firstChild, fragment.$dom_lastChild, model);
+
+  var node = instanceRecord.firstNode;
+  while (node != null) {
+    node._templateInstance = instanceRecord;
+    node = node.nextNode;
+  }
+}
+
+void _removeAllBindingsRecursively(Node node) {
+  node.unbindAll();
+  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+    _removeAllBindingsRecursively(c);
+  }
+}
+
+void _removeTemplateChild(Node parent, Node child) {
+  child._templateInstance = null;
+  if (child is Element && child.isTemplate) {
+    // Make sure we stop observing when we remove an element.
+    var templateIterator = child._templateIterator;
+    if (templateIterator != null) {
+      templateIterator.abandon();
+      child._templateIterator = null;
+    }
+  }
+  child.remove();
+  _removeAllBindingsRecursively(child);
+}
+
+class _InstanceCursor {
+  final Element _template;
+  Node _terminator;
+  Node _previousTerminator;
+  int _previousIndex = -1;
+  int _index = 0;
+
+  _InstanceCursor(this._template, [index]) {
+    _terminator = _template;
+    if (index != null) {
+      while (index-- > 0) {
+        next();
+      }
+    }
+  }
+
+  void next() {
+    _previousTerminator = _terminator;
+    _previousIndex = _index;
+    _index++;
+
+    while (_index > _terminator._instanceTerminatorCount) {
+      _index -= _terminator._instanceTerminatorCount;
+      _terminator = _terminator.nextNode;
+      if (_terminator is Element && _terminator.tagName == 'TEMPLATE') {
+        _index += _instanceCount(_terminator);
+      }
+    }
+  }
+
+  void abandon() {
+    assert(_instanceCount(_template) > 0);
+    assert(_terminator._instanceTerminatorCount > 0);
+    assert(_index > 0);
+
+    _terminator._instanceTerminatorCount--;
+    _index--;
+  }
+
+  void insert(fragment) {
+    assert(_template.parentNode != null);
+
+    _previousTerminator = _terminator;
+    _previousIndex = _index;
+    _index++;
+
+    _terminator = fragment.$dom_lastChild;
+    if (_terminator == null) _terminator = _previousTerminator;
+    _template.parentNode.insertBefore(fragment, _previousTerminator.nextNode);
+
+    _terminator._instanceTerminatorCount++;
+    if (_terminator != _previousTerminator) {
+      while (_previousTerminator._instanceTerminatorCount >
+              _previousIndex) {
+        _previousTerminator._instanceTerminatorCount--;
+        _terminator._instanceTerminatorCount++;
+      }
+    }
+  }
+
+  void remove() {
+    assert(_previousIndex != -1);
+    assert(_previousTerminator != null &&
+           (_previousIndex > 0 || _previousTerminator == _template));
+    assert(_terminator != null && _index > 0);
+    assert(_template.parentNode != null);
+    assert(_instanceCount(_template) > 0);
+
+    if (_previousTerminator == _terminator) {
+      assert(_index == _previousIndex + 1);
+      _terminator._instanceTerminatorCount--;
+      _terminator = _template;
+      _previousTerminator = null;
+      _previousIndex = -1;
+      return;
+    }
+
+    _terminator._instanceTerminatorCount--;
+
+    var parent = _template.parentNode;
+    while (_previousTerminator.nextNode != _terminator) {
+      _removeTemplateChild(parent, _previousTerminator.nextNode);
+    }
+    _removeTemplateChild(parent, _terminator);
+
+    _terminator = _previousTerminator;
+    _index = _previousIndex;
+    _previousTerminator = null;
+    _previousIndex = -1;  // 0?
+  }
+}
+
+
+class _TemplateIterator {
+  final Element _templateElement;
+  int instanceCount = 0;
+  List iteratedValue;
+  bool observing = false;
+  final CompoundBinding inputs;
+
+  StreamSubscription _sub;
+  StreamSubscription _valueBinding;
+
+  _TemplateIterator(this._templateElement)
+    : inputs = new CompoundBinding(resolveInputs) {
+
+    _valueBinding = new PathObserver(inputs, 'value').bindSync(valueChanged);
+  }
+
+  static Object resolveInputs(Map values) {
+    if (values.containsKey('if') && !_templateBooleanConversion(values['if'])) {
+      return null;
+    }
+
+    if (values.containsKey('repeat')) {
+      return values['repeat'];
+    }
+
+    if (values.containsKey('bind')) {
+      return [values['bind']];
+    }
+
+    return null;
+  }
+
+  void valueChanged(value) {
+    clear();
+    if (value is! List) return;
+
+    iteratedValue = value;
+
+    if (value is Observable) {
+      _sub = value.changes.listen(_handleChanges);
+    }
+
+    int len = iteratedValue.length;
+    if (len > 0) {
+      _handleChanges([new ListChangeRecord(0, addedCount: len)]);
+    }
+  }
+
+  // TODO(jmesserly): port MDV v3.
+  getInstanceModel(model, syntax) => model;
+  getInstanceFragment(syntax) => _templateElement.createInstance();
+
+  void _handleChanges(List<ListChangeRecord> splices) {
+    var syntax = TemplateElement.syntax[_templateElement.attributes['syntax']];
+
+    for (var splice in splices) {
+      if (splice is! ListChangeRecord) continue;
+
+      for (int i = 0; i < splice.removedCount; i++) {
+        var cursor = new _InstanceCursor(_templateElement, splice.index + 1);
+        cursor.remove();
+        instanceCount--;
+      }
+
+      for (var addIndex = splice.index;
+          addIndex < splice.index + splice.addedCount;
+          addIndex++) {
+
+        var model = getInstanceModel(iteratedValue[addIndex], syntax);
+        var fragment = getInstanceFragment(syntax);
+
+        _addBindings(fragment, model, syntax);
+        _addTemplateInstanceRecord(fragment, model);
+
+        var cursor = new _InstanceCursor(_templateElement, addIndex);
+        cursor.insert(fragment);
+        instanceCount++;
+      }
+    }
+  }
+
+  void unobserve() {
+    if (_sub == null) return;
+    _sub.cancel();
+    _sub = null;
+  }
+
+  void clear() {
+    unobserve();
+
+    iteratedValue = null;
+    if (instanceCount == 0) return;
+
+    for (var i = 0; i < instanceCount; i++) {
+      var cursor = new _InstanceCursor(_templateElement, 1);
+      cursor.remove();
+    }
+
+    instanceCount = 0;
+  }
+
+  void abandon() {
+    unobserve();
+    _valueBinding.cancel();
+    inputs.dispose();
+  }
+}
+
+int _instanceCount(Element element) {
+  var templateIterator = element._templateIterator;
+  return templateIterator != null ? templateIterator.instanceCount : 0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25133,6 +26501,7 @@ _convertDartToNative_DateTime(DateTime date) {
 }
 
 WindowBase _convertNativeToDart_Window(win) {
+  if (win == null) return null;
   return _DOMWindowCrossFrame._createSafe(win);
 }
 

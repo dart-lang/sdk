@@ -384,6 +384,7 @@ js_support_checks = dict({
     'FormData': "JS('bool', '!!(window.FormData)')",
     'HashChangeEvent': "Device.isEventTypeSupported('HashChangeEvent')",
     'HTMLShadowElement': ElemSupportStr('shadow'),
+    'HTMLTemplateElement': ElemSupportStr('template'),
     'MediaStreamEvent': "Device.isEventTypeSupported('MediaStreamEvent')",
     'MediaStreamTrackEvent': "Device.isEventTypeSupported('MediaStreamTrackEvent')",
     'NotificationCenter': "JS('bool', '!!(window.webkitNotifications)')",
