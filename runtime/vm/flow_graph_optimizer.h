@@ -236,7 +236,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   static void OptimizeBranches(FlowGraph* graph);
 
   // Used to initialize the abstract value of definitions.
-  static RawObject* Unknown() { return Object::transition_sentinel().raw(); }
+  static RawObject* Unknown() { return Object::unknown_constant().raw(); }
 
  private:
   void Analyze();

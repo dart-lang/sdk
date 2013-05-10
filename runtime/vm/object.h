@@ -321,6 +321,16 @@ class Object {
     return *transition_sentinel_;
   }
 
+  // Compiler's constant propagation constants.
+  static const Instance& unknown_constant() {
+    ASSERT(unknown_constant_ != NULL);
+    return *unknown_constant_;
+  }
+  static const Instance& non_constant() {
+    ASSERT(non_constant_ != NULL);
+    return *non_constant_;
+  }
+
   static const Bool& bool_true() {
     ASSERT(bool_true_ != NULL);
     return *bool_true_;
@@ -523,6 +533,8 @@ class Object {
   static Array* empty_array_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
+  static Instance* unknown_constant_;
+  static Instance* non_constant_;
   static Bool* bool_true_;
   static Bool* bool_false_;
   static LanguageError* snapshot_writer_error_;

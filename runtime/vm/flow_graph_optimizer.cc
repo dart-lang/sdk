@@ -4444,8 +4444,8 @@ ConstantPropagator::ConstantPropagator(
     const GrowableArray<BlockEntryInstr*>& ignored)
     : FlowGraphVisitor(ignored),
       graph_(graph),
-      unknown_(Object::transition_sentinel()),
-      non_constant_(Object::sentinel()),
+      unknown_(Object::unknown_constant()),
+      non_constant_(Object::non_constant()),
       reachable_(new BitVector(graph->preorder().length())),
       definition_marks_(new BitVector(graph->max_virtual_register_number())),
       block_worklist_(),
@@ -4882,6 +4882,15 @@ void ConstantPropagator::VisitStoreInstanceField(
 
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
+  const Field& field = instr->field();
+  ASSERT(field.is_static());
+  if (field.is_final()) {
+    Instance& obj = Instance::Handle(field.value());
+    if (obj.IsSmi() || obj.IsOld()) {
+      SetValue(instr, obj);
+      return;
+    }
+  }
   SetValue(instr, non_constant_);
 }
 
