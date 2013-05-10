@@ -384,46 +384,23 @@ class HtmlDartGenerator(object):
             CTOR_FACTORY_NAME=factory_constructor_name,
             FACTORY_PARAMS=factory_parameters)
       else:
-        if has_factory_provider:
-          dispatcher_emitter = self._members_emitter.Emit(
-              '\n  $(METADATA)'
-              'factory $CTOR($PARAMS) {\n'
-              '$!DISPATCHER'
-              '    return $FACTORY._create($FACTORY_PARAMS);\n'
-              '  }\n',
-              CTOR=constructor_info._ConstructorFullName(self._DartType),
-              PARAMS=constructor_info.ParametersDeclaration(self._DartType),
-              FACTORY=factory_name,
-              METADATA=metadata,
-              FACTORY_PARAMS=constructor_info.ParametersAsArgumentList())
+        inits = self._members_emitter.Emit(
+            '\n  $(METADATA)'
+            'factory $CONSTRUCTOR($PARAMS) {\n'
+            '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+            '$!INITS'
+            '    return e;\n'
+            '  }\n',
+            CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
+            METADATA=metadata,
+            FACTORY=factory_name,
+            CTOR_FACTORY_NAME=factory_constructor_name,
+            PARAMS=constructor_info.ParametersDeclaration(self._DartType),
+            FACTORY_PARAMS=factory_parameters)
 
-          for index, param_info in enumerate(constructor_info.param_infos):
-            if param_info.is_optional:
-              dispatcher_emitter.Emit(
-                '    if ($OPT_PARAM_NAME == null) {\n'
-                '      return $FACTORY._create($FACTORY_PARAMS);\n'
-                '    }\n',
-                OPT_PARAM_NAME=param_info.name,
-                FACTORY=factory_name,
-                FACTORY_PARAMS=constructor_info.ParametersAsArgumentList(index))
-        else:
-          inits = self._members_emitter.Emit(
-              '\n  $(METADATA)'
-              'factory $CONSTRUCTOR($PARAMS) {\n'
-              '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
-              '$!INITS'
-              '    return e;\n'
-              '  }\n',
-              CONSTRUCTOR=constructor_info._ConstructorFullName(self._DartType),
-              METADATA=metadata,
-              FACTORY=factory_name,
-              CTOR_FACTORY_NAME=factory_constructor_name,
-              PARAMS=constructor_info.ParametersDeclaration(self._DartType),
-              FACTORY_PARAMS=factory_parameters)
-
-          for index, param_info in enumerate(constructor_info.param_infos):
-            if param_info.is_optional:
-              inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
+        for index, param_info in enumerate(constructor_info.param_infos):
+          if param_info.is_optional:
+            inits.Emit('    if ($E != null) e.$E = $E;\n', E=param_info.name)
     else:
       def GenerateCall(
           stmts_emitter, call_emitter,
