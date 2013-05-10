@@ -145,7 +145,9 @@ main() {
 
     test('XHR.request responseType arraybuffer', () {
       if (Platform.supportsTypedData) {
-        HttpRequest.request(url, responseType: 'arraybuffer').then(
+        HttpRequest.request(url, responseType: 'arraybuffer',
+          mimeType: 'application/binary',
+          requestHeaders: {'Content-Type': 'text/xml'}).then(
           expectAsync1((xhr) {
             expect(xhr.status, equals(200));
             var byteBuffer = xhr.response;

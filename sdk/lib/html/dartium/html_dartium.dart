@@ -11103,7 +11103,8 @@ class HttpRequest extends EventTarget {
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
-      {String method, bool withCredentials, String responseType, sendData,
+      {String method, bool withCredentials, String responseType,
+      String mimeType, Map<String, String> requestHeaders, sendData,
       void onProgress(ProgressEvent e)}) {
     var completer = new Completer<HttpRequest>();
 
@@ -11119,6 +11120,16 @@ class HttpRequest extends EventTarget {
 
     if (responseType != null) {
       xhr.responseType = responseType;
+    }
+
+    if (mimeType != null) {
+      xhr.overrideMimeType(mimeType);
+    }
+
+    if (requestHeaders != null) {
+      requestHeaders.forEach((header, value) {
+        xhr.setRequestHeader(header, value);
+      });
     }
 
     if (onProgress != null) {
