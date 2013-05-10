@@ -235,6 +235,25 @@ main() {
     runRoundTripTest(nodeSerializerReflective);
   });
 
+  test('round-trip with explicit self-description', () {
+    // We provide a setup function which, when run the second time,
+    // returns a blank serialization, to make sure it will fail
+    // the second time.
+    var s;
+    oneShotSetup(node) {
+      if (s == null) {
+        s = nodeSerializerReflective(node)..selfDescribing = true;
+        return s;
+      } else {
+        s = null;
+        return new Serialization.blank()
+            ..namedObjects['Node'] = reflect(new Node('')).type;;
+      }
+    }
+
+    runRoundTripTest(oneShotSetup);
+  });
+
   test('round-trip ClosureRule', () {
     runRoundTripTest(nodeSerializerNonReflective);
   });

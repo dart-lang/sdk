@@ -400,12 +400,25 @@ class MirrorRule extends NamedObjectRule {
     var lookupFull = r.objectNamed(qualifiedName, (x) => null);
     if (lookupFull != null) return lookupFull;
     var separatorIndex = qualifiedName.lastIndexOf(".");
-    var lib = new Symbol(qualifiedName.substring(0, separatorIndex));
     var type = qualifiedName.substring(separatorIndex + 1);
     var lookup = r.objectNamed(type, (x) => null);
     if (lookup != null) return lookup;
-    var libMirror = currentMirrorSystem().findLibrary(lib).first;
-    return libMirror.classes[new Symbol(type)];
+    var name = qualifiedName.substring(0, separatorIndex);
+    // This is very ugly. The library name for an unnamed library is its URI.
+    // That can't be constructed as a Symbol, so we can't use findLibrary.
+    // So follow one or the other path depending if it has a colon, which we
+    // assume is in any URI and can't be in a Symbol.
+    if (name.contains(":")) {
+      var uri = new Uri(name);
+      var libMirror = currentMirrorSystem().libraries[uri];
+      return libMirror.classes[new Symbol(type)];
+    } else {
+      var symbol = new Symbol(name);
+      var typeSymbol = new Symbol(type);
+      var libMirror = currentMirrorSystem().findLibrary(symbol).firstWhere(
+        (lib) => lib.classes[typeSymbol] != null);
+      return libMirror.classes[typeSymbol];
+    }
   }
 }
 
