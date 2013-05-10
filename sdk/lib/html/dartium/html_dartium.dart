@@ -330,16 +330,28 @@ class ApplicationCache extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('DOMApplicationCache.CHECKING')
+  @DocsEditable
   static const int CHECKING = 2;
 
+  @DomName('DOMApplicationCache.DOWNLOADING')
+  @DocsEditable
   static const int DOWNLOADING = 3;
 
+  @DomName('DOMApplicationCache.IDLE')
+  @DocsEditable
   static const int IDLE = 1;
 
+  @DomName('DOMApplicationCache.OBSOLETE')
+  @DocsEditable
   static const int OBSOLETE = 5;
 
+  @DomName('DOMApplicationCache.UNCACHED')
+  @DocsEditable
   static const int UNCACHED = 0;
 
+  @DomName('DOMApplicationCache.UPDATEREADY')
+  @DocsEditable
   static const int UPDATEREADY = 4;
 
   @DomName('DOMApplicationCache.status')
@@ -2468,28 +2480,52 @@ class CssRegionRule extends CssRule {
 class CssRule extends NativeFieldWrapperClass1 {
   CssRule.internal();
 
+  @DomName('CSSRule.CHARSET_RULE')
+  @DocsEditable
   static const int CHARSET_RULE = 2;
 
+  @DomName('CSSRule.FONT_FACE_RULE')
+  @DocsEditable
   static const int FONT_FACE_RULE = 5;
 
+  @DomName('CSSRule.HOST_RULE')
+  @DocsEditable
   static const int HOST_RULE = 1001;
 
+  @DomName('CSSRule.IMPORT_RULE')
+  @DocsEditable
   static const int IMPORT_RULE = 3;
 
+  @DomName('CSSRule.MEDIA_RULE')
+  @DocsEditable
   static const int MEDIA_RULE = 4;
 
+  @DomName('CSSRule.PAGE_RULE')
+  @DocsEditable
   static const int PAGE_RULE = 6;
 
+  @DomName('CSSRule.STYLE_RULE')
+  @DocsEditable
   static const int STYLE_RULE = 1;
 
+  @DomName('CSSRule.UNKNOWN_RULE')
+  @DocsEditable
   static const int UNKNOWN_RULE = 0;
 
+  @DomName('CSSRule.WEBKIT_FILTER_RULE')
+  @DocsEditable
   static const int WEBKIT_FILTER_RULE = 17;
 
+  @DomName('CSSRule.WEBKIT_KEYFRAMES_RULE')
+  @DocsEditable
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
+  @DomName('CSSRule.WEBKIT_KEYFRAME_RULE')
+  @DocsEditable
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
+  @DomName('CSSRule.WEBKIT_REGION_RULE')
+  @DocsEditable
   static const int WEBKIT_REGION_RULE = 16;
 
   @DomName('CSSRule.cssText')
@@ -8313,6 +8349,8 @@ abstract class Element extends Node implements ElementTraversal {
 
   void insertAdjacentText(String where, String text);
 
+  @DomName('Element.ALLOW_KEYBOARD_INPUT')
+  @DocsEditable
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   @DomName('Element.attributes')
@@ -9247,44 +9285,84 @@ class Event extends NativeFieldWrapperClass1 {
   }
   Event.internal();
 
+  @DomName('Event.AT_TARGET')
+  @DocsEditable
   static const int AT_TARGET = 2;
 
+  @DomName('Event.BLUR')
+  @DocsEditable
   static const int BLUR = 8192;
 
+  @DomName('Event.BUBBLING_PHASE')
+  @DocsEditable
   static const int BUBBLING_PHASE = 3;
 
+  @DomName('Event.CAPTURING_PHASE')
+  @DocsEditable
   static const int CAPTURING_PHASE = 1;
 
+  @DomName('Event.CHANGE')
+  @DocsEditable
   static const int CHANGE = 32768;
 
+  @DomName('Event.CLICK')
+  @DocsEditable
   static const int CLICK = 64;
 
+  @DomName('Event.DBLCLICK')
+  @DocsEditable
   static const int DBLCLICK = 128;
 
+  @DomName('Event.DRAGDROP')
+  @DocsEditable
   static const int DRAGDROP = 2048;
 
+  @DomName('Event.FOCUS')
+  @DocsEditable
   static const int FOCUS = 4096;
 
+  @DomName('Event.KEYDOWN')
+  @DocsEditable
   static const int KEYDOWN = 256;
 
+  @DomName('Event.KEYPRESS')
+  @DocsEditable
   static const int KEYPRESS = 1024;
 
+  @DomName('Event.KEYUP')
+  @DocsEditable
   static const int KEYUP = 512;
 
+  @DomName('Event.MOUSEDOWN')
+  @DocsEditable
   static const int MOUSEDOWN = 1;
 
+  @DomName('Event.MOUSEDRAG')
+  @DocsEditable
   static const int MOUSEDRAG = 32;
 
+  @DomName('Event.MOUSEMOVE')
+  @DocsEditable
   static const int MOUSEMOVE = 16;
 
+  @DomName('Event.MOUSEOUT')
+  @DocsEditable
   static const int MOUSEOUT = 8;
 
+  @DomName('Event.MOUSEOVER')
+  @DocsEditable
   static const int MOUSEOVER = 4;
 
+  @DomName('Event.MOUSEUP')
+  @DocsEditable
   static const int MOUSEUP = 2;
 
+  @DomName('Event.NONE')
+  @DocsEditable
   static const int NONE = 0;
 
+  @DomName('Event.SELECT')
+  @DocsEditable
   static const int SELECT = 16384;
 
   @DomName('Event.bubbles')
@@ -9363,8 +9441,12 @@ class Event extends NativeFieldWrapperClass1 {
 class EventException extends NativeFieldWrapperClass1 {
   EventException.internal();
 
+  @DomName('EventException.DISPATCH_REQUEST_ERR')
+  @DocsEditable
   static const int DISPATCH_REQUEST_ERR = 1;
 
+  @DomName('EventException.UNSPECIFIED_EVENT_TYPE_ERR')
+  @DocsEditable
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
   @DomName('EventException.code')
@@ -9420,10 +9502,16 @@ class EventSource extends EventTarget {
   @DocsEditable
   static EventSource _create_1(url, eventSourceInit) native "EventSource__create_1constructorCallback";
 
+  @DomName('EventSource.CLOSED')
+  @DocsEditable
   static const int CLOSED = 2;
 
+  @DomName('EventSource.CONNECTING')
+  @DocsEditable
   static const int CONNECTING = 0;
 
+  @DomName('EventSource.OPEN')
+  @DocsEditable
   static const int OPEN = 1;
 
   @DomName('EventSource.readyState')
@@ -9699,28 +9787,52 @@ class FileEntry extends Entry {
 class FileError extends NativeFieldWrapperClass1 {
   FileError.internal();
 
+  @DomName('FileError.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 3;
 
+  @DomName('FileError.ENCODING_ERR')
+  @DocsEditable
   static const int ENCODING_ERR = 5;
 
+  @DomName('FileError.INVALID_MODIFICATION_ERR')
+  @DocsEditable
   static const int INVALID_MODIFICATION_ERR = 9;
 
+  @DomName('FileError.INVALID_STATE_ERR')
+  @DocsEditable
   static const int INVALID_STATE_ERR = 7;
 
+  @DomName('FileError.NOT_FOUND_ERR')
+  @DocsEditable
   static const int NOT_FOUND_ERR = 1;
 
+  @DomName('FileError.NOT_READABLE_ERR')
+  @DocsEditable
   static const int NOT_READABLE_ERR = 4;
 
+  @DomName('FileError.NO_MODIFICATION_ALLOWED_ERR')
+  @DocsEditable
   static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
+  @DomName('FileError.PATH_EXISTS_ERR')
+  @DocsEditable
   static const int PATH_EXISTS_ERR = 12;
 
+  @DomName('FileError.QUOTA_EXCEEDED_ERR')
+  @DocsEditable
   static const int QUOTA_EXCEEDED_ERR = 10;
 
+  @DomName('FileError.SECURITY_ERR')
+  @DocsEditable
   static const int SECURITY_ERR = 2;
 
+  @DomName('FileError.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 8;
 
+  @DomName('FileError.TYPE_MISMATCH_ERR')
+  @DocsEditable
   static const int TYPE_MISMATCH_ERR = 11;
 
   @DomName('FileError.code')
@@ -9740,28 +9852,52 @@ class FileError extends NativeFieldWrapperClass1 {
 class FileException extends NativeFieldWrapperClass1 {
   FileException.internal();
 
+  @DomName('FileException.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 3;
 
+  @DomName('FileException.ENCODING_ERR')
+  @DocsEditable
   static const int ENCODING_ERR = 5;
 
+  @DomName('FileException.INVALID_MODIFICATION_ERR')
+  @DocsEditable
   static const int INVALID_MODIFICATION_ERR = 9;
 
+  @DomName('FileException.INVALID_STATE_ERR')
+  @DocsEditable
   static const int INVALID_STATE_ERR = 7;
 
+  @DomName('FileException.NOT_FOUND_ERR')
+  @DocsEditable
   static const int NOT_FOUND_ERR = 1;
 
+  @DomName('FileException.NOT_READABLE_ERR')
+  @DocsEditable
   static const int NOT_READABLE_ERR = 4;
 
+  @DomName('FileException.NO_MODIFICATION_ALLOWED_ERR')
+  @DocsEditable
   static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
+  @DomName('FileException.PATH_EXISTS_ERR')
+  @DocsEditable
   static const int PATH_EXISTS_ERR = 12;
 
+  @DomName('FileException.QUOTA_EXCEEDED_ERR')
+  @DocsEditable
   static const int QUOTA_EXCEEDED_ERR = 10;
 
+  @DomName('FileException.SECURITY_ERR')
+  @DocsEditable
   static const int SECURITY_ERR = 2;
 
+  @DomName('FileException.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 8;
 
+  @DomName('FileException.TYPE_MISMATCH_ERR')
+  @DocsEditable
   static const int TYPE_MISMATCH_ERR = 11;
 
   @DomName('FileException.code')
@@ -9892,10 +10028,16 @@ class FileReader extends EventTarget {
   @DocsEditable
   static FileReader _create_1() native "FileReader__create_1constructorCallback";
 
+  @DomName('FileReader.DONE')
+  @DocsEditable
   static const int DONE = 2;
 
+  @DomName('FileReader.EMPTY')
+  @DocsEditable
   static const int EMPTY = 0;
 
+  @DomName('FileReader.LOADING')
+  @DocsEditable
   static const int LOADING = 1;
 
   @DomName('FileReader.error')
@@ -10046,10 +10188,16 @@ class FileWriter extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
+  @DomName('FileWriter.DONE')
+  @DocsEditable
   static const int DONE = 2;
 
+  @DomName('FileWriter.INIT')
+  @DocsEditable
   static const int INIT = 0;
 
+  @DomName('FileWriter.WRITING')
+  @DocsEditable
   static const int WRITING = 1;
 
   @DomName('FileWriter.error')
@@ -11218,14 +11366,24 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   static HttpRequest _create() native "XMLHttpRequest_constructorCallback";
 
+  @DomName('XMLHttpRequest.DONE')
+  @DocsEditable
   static const int DONE = 4;
 
+  @DomName('XMLHttpRequest.HEADERS_RECEIVED')
+  @DocsEditable
   static const int HEADERS_RECEIVED = 2;
 
+  @DomName('XMLHttpRequest.LOADING')
+  @DocsEditable
   static const int LOADING = 3;
 
+  @DomName('XMLHttpRequest.OPENED')
+  @DocsEditable
   static const int OPENED = 1;
 
+  @DomName('XMLHttpRequest.UNSENT')
+  @DocsEditable
   static const int UNSENT = 0;
 
   /**
@@ -11537,8 +11695,12 @@ class HttpRequest extends EventTarget {
 class HttpRequestException extends NativeFieldWrapperClass1 {
   HttpRequestException.internal();
 
+  @DomName('XMLHttpRequestException.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 102;
 
+  @DomName('XMLHttpRequestException.NETWORK_ERR')
+  @DocsEditable
   static const int NETWORK_ERR = 101;
 
   @DomName('XMLHttpRequestException.code')
@@ -13692,22 +13854,40 @@ class MediaElement extends _Element_Merged {
   @Experimental
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
+  @DomName('HTMLMediaElement.HAVE_CURRENT_DATA')
+  @DocsEditable
   static const int HAVE_CURRENT_DATA = 2;
 
+  @DomName('HTMLMediaElement.HAVE_ENOUGH_DATA')
+  @DocsEditable
   static const int HAVE_ENOUGH_DATA = 4;
 
+  @DomName('HTMLMediaElement.HAVE_FUTURE_DATA')
+  @DocsEditable
   static const int HAVE_FUTURE_DATA = 3;
 
+  @DomName('HTMLMediaElement.HAVE_METADATA')
+  @DocsEditable
   static const int HAVE_METADATA = 1;
 
+  @DomName('HTMLMediaElement.HAVE_NOTHING')
+  @DocsEditable
   static const int HAVE_NOTHING = 0;
 
+  @DomName('HTMLMediaElement.NETWORK_EMPTY')
+  @DocsEditable
   static const int NETWORK_EMPTY = 0;
 
+  @DomName('HTMLMediaElement.NETWORK_IDLE')
+  @DocsEditable
   static const int NETWORK_IDLE = 1;
 
+  @DomName('HTMLMediaElement.NETWORK_LOADING')
+  @DocsEditable
   static const int NETWORK_LOADING = 2;
 
+  @DomName('HTMLMediaElement.NETWORK_NO_SOURCE')
+  @DocsEditable
   static const int NETWORK_NO_SOURCE = 3;
 
   @DomName('HTMLMediaElement.autoplay')
@@ -14097,14 +14277,24 @@ class MediaElement extends _Element_Merged {
 class MediaError extends NativeFieldWrapperClass1 {
   MediaError.internal();
 
+  @DomName('MediaError.MEDIA_ERR_ABORTED')
+  @DocsEditable
   static const int MEDIA_ERR_ABORTED = 1;
 
+  @DomName('MediaError.MEDIA_ERR_DECODE')
+  @DocsEditable
   static const int MEDIA_ERR_DECODE = 3;
 
+  @DomName('MediaError.MEDIA_ERR_ENCRYPTED')
+  @DocsEditable
   static const int MEDIA_ERR_ENCRYPTED = 5;
 
+  @DomName('MediaError.MEDIA_ERR_NETWORK')
+  @DocsEditable
   static const int MEDIA_ERR_NETWORK = 2;
 
+  @DomName('MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED')
+  @DocsEditable
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   @DomName('MediaError.code')
@@ -14124,16 +14314,28 @@ class MediaError extends NativeFieldWrapperClass1 {
 class MediaKeyError extends NativeFieldWrapperClass1 {
   MediaKeyError.internal();
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_CLIENT')
+  @DocsEditable
   static const int MEDIA_KEYERR_CLIENT = 2;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_DOMAIN')
+  @DocsEditable
   static const int MEDIA_KEYERR_DOMAIN = 6;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_HARDWARECHANGE')
+  @DocsEditable
   static const int MEDIA_KEYERR_HARDWARECHANGE = 5;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_OUTPUT')
+  @DocsEditable
   static const int MEDIA_KEYERR_OUTPUT = 4;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_SERVICE')
+  @DocsEditable
   static const int MEDIA_KEYERR_SERVICE = 3;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_UNKNOWN')
+  @DocsEditable
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   @DomName('MediaKeyError.code')
@@ -15178,10 +15380,16 @@ class MutationEvent extends Event {
   }
   MutationEvent.internal() : super.internal();
 
+  @DomName('MutationEvent.ADDITION')
+  @DocsEditable
   static const int ADDITION = 2;
 
+  @DomName('MutationEvent.MODIFICATION')
+  @DocsEditable
   static const int MODIFICATION = 1;
 
+  @DomName('MutationEvent.REMOVAL')
+  @DocsEditable
   static const int REMOVAL = 3;
 
   @DomName('MutationEvent.attrChange')
@@ -15606,6 +15814,8 @@ class Navigator extends NativeFieldWrapperClass1 {
 class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
   NavigatorUserMediaError.internal();
 
+  @DomName('NavigatorUserMediaError.PERMISSION_DENIED')
+  @DocsEditable
   static const int PERMISSION_DENIED = 1;
 
   @DomName('NavigatorUserMediaError.code')
@@ -15903,28 +16113,52 @@ class Node extends EventTarget {
 
   Node.internal() : super.internal();
 
+  @DomName('Node.ATTRIBUTE_NODE')
+  @DocsEditable
   static const int ATTRIBUTE_NODE = 2;
 
+  @DomName('Node.CDATA_SECTION_NODE')
+  @DocsEditable
   static const int CDATA_SECTION_NODE = 4;
 
+  @DomName('Node.COMMENT_NODE')
+  @DocsEditable
   static const int COMMENT_NODE = 8;
 
+  @DomName('Node.DOCUMENT_FRAGMENT_NODE')
+  @DocsEditable
   static const int DOCUMENT_FRAGMENT_NODE = 11;
 
+  @DomName('Node.DOCUMENT_NODE')
+  @DocsEditable
   static const int DOCUMENT_NODE = 9;
 
+  @DomName('Node.DOCUMENT_TYPE_NODE')
+  @DocsEditable
   static const int DOCUMENT_TYPE_NODE = 10;
 
+  @DomName('Node.ELEMENT_NODE')
+  @DocsEditable
   static const int ELEMENT_NODE = 1;
 
+  @DomName('Node.ENTITY_NODE')
+  @DocsEditable
   static const int ENTITY_NODE = 6;
 
+  @DomName('Node.ENTITY_REFERENCE_NODE')
+  @DocsEditable
   static const int ENTITY_REFERENCE_NODE = 5;
 
+  @DomName('Node.NOTATION_NODE')
+  @DocsEditable
   static const int NOTATION_NODE = 12;
 
+  @DomName('Node.PROCESSING_INSTRUCTION_NODE')
+  @DocsEditable
   static const int PROCESSING_INSTRUCTION_NODE = 7;
 
+  @DomName('Node.TEXT_NODE')
+  @DocsEditable
   static const int TEXT_NODE = 3;
 
   @DomName('Node.childNodes')
@@ -16036,36 +16270,68 @@ class Node extends EventTarget {
 class NodeFilter extends NativeFieldWrapperClass1 {
   NodeFilter.internal();
 
+  @DomName('NodeFilter.FILTER_ACCEPT')
+  @DocsEditable
   static const int FILTER_ACCEPT = 1;
 
+  @DomName('NodeFilter.FILTER_REJECT')
+  @DocsEditable
   static const int FILTER_REJECT = 2;
 
+  @DomName('NodeFilter.FILTER_SKIP')
+  @DocsEditable
   static const int FILTER_SKIP = 3;
 
+  @DomName('NodeFilter.SHOW_ALL')
+  @DocsEditable
   static const int SHOW_ALL = 0xFFFFFFFF;
 
+  @DomName('NodeFilter.SHOW_ATTRIBUTE')
+  @DocsEditable
   static const int SHOW_ATTRIBUTE = 0x00000002;
 
+  @DomName('NodeFilter.SHOW_CDATA_SECTION')
+  @DocsEditable
   static const int SHOW_CDATA_SECTION = 0x00000008;
 
+  @DomName('NodeFilter.SHOW_COMMENT')
+  @DocsEditable
   static const int SHOW_COMMENT = 0x00000080;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT')
+  @DocsEditable
   static const int SHOW_DOCUMENT = 0x00000100;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT_FRAGMENT')
+  @DocsEditable
   static const int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT_TYPE')
+  @DocsEditable
   static const int SHOW_DOCUMENT_TYPE = 0x00000200;
 
+  @DomName('NodeFilter.SHOW_ELEMENT')
+  @DocsEditable
   static const int SHOW_ELEMENT = 0x00000001;
 
+  @DomName('NodeFilter.SHOW_ENTITY')
+  @DocsEditable
   static const int SHOW_ENTITY = 0x00000020;
 
+  @DomName('NodeFilter.SHOW_ENTITY_REFERENCE')
+  @DocsEditable
   static const int SHOW_ENTITY_REFERENCE = 0x00000010;
 
+  @DomName('NodeFilter.SHOW_NOTATION')
+  @DocsEditable
   static const int SHOW_NOTATION = 0x00000800;
 
+  @DomName('NodeFilter.SHOW_PROCESSING_INSTRUCTION')
+  @DocsEditable
   static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
 
+  @DomName('NodeFilter.SHOW_TEXT')
+  @DocsEditable
   static const int SHOW_TEXT = 0x00000004;
 
 }
@@ -16724,10 +16990,16 @@ class OutputElement extends _Element_Merged {
 class OverflowEvent extends Event {
   OverflowEvent.internal() : super.internal();
 
+  @DomName('OverflowEvent.BOTH')
+  @DocsEditable
   static const int BOTH = 2;
 
+  @DomName('OverflowEvent.HORIZONTAL')
+  @DocsEditable
   static const int HORIZONTAL = 0;
 
+  @DomName('OverflowEvent.VERTICAL')
+  @DocsEditable
   static const int VERTICAL = 1;
 
   @DomName('OverflowEvent.horizontalOverflow')
@@ -17065,12 +17337,20 @@ class PerformanceMeasure extends PerformanceEntry {
 class PerformanceNavigation extends NativeFieldWrapperClass1 {
   PerformanceNavigation.internal();
 
+  @DomName('PerformanceNavigation.TYPE_BACK_FORWARD')
+  @DocsEditable
   static const int TYPE_BACK_FORWARD = 2;
 
+  @DomName('PerformanceNavigation.TYPE_NAVIGATE')
+  @DocsEditable
   static const int TYPE_NAVIGATE = 0;
 
+  @DomName('PerformanceNavigation.TYPE_RELOAD')
+  @DocsEditable
   static const int TYPE_RELOAD = 1;
 
+  @DomName('PerformanceNavigation.TYPE_RESERVED')
+  @DocsEditable
   static const int TYPE_RESERVED = 255;
 
   @DomName('PerformanceNavigation.redirectCount')
@@ -17392,10 +17672,16 @@ typedef void _PositionCallback(Geoposition position);
 class PositionError extends NativeFieldWrapperClass1 {
   PositionError.internal();
 
+  @DomName('PositionError.PERMISSION_DENIED')
+  @DocsEditable
   static const int PERMISSION_DENIED = 1;
 
+  @DomName('PositionError.POSITION_UNAVAILABLE')
+  @DocsEditable
   static const int POSITION_UNAVAILABLE = 2;
 
+  @DomName('PositionError.TIMEOUT')
+  @DocsEditable
   static const int TIMEOUT = 3;
 
   @DomName('PositionError.code')
@@ -17600,20 +17886,36 @@ class Range extends NativeFieldWrapperClass1 {
 
   Range.internal();
 
+  @DomName('Range.END_TO_END')
+  @DocsEditable
   static const int END_TO_END = 2;
 
+  @DomName('Range.END_TO_START')
+  @DocsEditable
   static const int END_TO_START = 3;
 
+  @DomName('Range.NODE_AFTER')
+  @DocsEditable
   static const int NODE_AFTER = 1;
 
+  @DomName('Range.NODE_BEFORE')
+  @DocsEditable
   static const int NODE_BEFORE = 0;
 
+  @DomName('Range.NODE_BEFORE_AND_AFTER')
+  @DocsEditable
   static const int NODE_BEFORE_AND_AFTER = 2;
 
+  @DomName('Range.NODE_INSIDE')
+  @DocsEditable
   static const int NODE_INSIDE = 3;
 
+  @DomName('Range.START_TO_END')
+  @DocsEditable
   static const int START_TO_END = 1;
 
+  @DomName('Range.START_TO_START')
+  @DocsEditable
   static const int START_TO_START = 0;
 
   @DomName('Range.collapsed')
@@ -17762,8 +18064,12 @@ class Range extends NativeFieldWrapperClass1 {
 class RangeException extends NativeFieldWrapperClass1 {
   RangeException.internal();
 
+  @DomName('RangeException.BAD_BOUNDARYPOINTS_ERR')
+  @DocsEditable
   static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
+  @DomName('RangeException.INVALID_NODE_TYPE_ERR')
+  @DocsEditable
   static const int INVALID_NODE_TYPE_ERR = 2;
 
   @DomName('RangeException.code')
@@ -19862,8 +20168,12 @@ class StorageEvent extends Event {
 class StorageInfo extends NativeFieldWrapperClass1 {
   StorageInfo.internal();
 
+  @DomName('StorageInfo.PERSISTENT')
+  @DocsEditable
   static const int PERSISTENT = 1;
 
+  @DomName('StorageInfo.TEMPORARY')
+  @DocsEditable
   static const int TEMPORARY = 0;
 
   @DomName('StorageInfo.queryUsageAndQuota')
@@ -21470,12 +21780,20 @@ class TrackElement extends _Element_Merged {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('HTMLTrackElement.ERROR')
+  @DocsEditable
   static const int ERROR = 3;
 
+  @DomName('HTMLTrackElement.LOADED')
+  @DocsEditable
   static const int LOADED = 2;
 
+  @DomName('HTMLTrackElement.LOADING')
+  @DocsEditable
   static const int LOADING = 1;
 
+  @DomName('HTMLTrackElement.NONE')
+  @DocsEditable
   static const int NONE = 0;
 
   @DomName('HTMLTrackElement.default')
@@ -22042,12 +22360,20 @@ class WebSocket extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('WebSocket.CLOSED')
+  @DocsEditable
   static const int CLOSED = 3;
 
+  @DomName('WebSocket.CLOSING')
+  @DocsEditable
   static const int CLOSING = 2;
 
+  @DomName('WebSocket.CONNECTING')
+  @DocsEditable
   static const int CONNECTING = 0;
 
+  @DomName('WebSocket.OPEN')
+  @DocsEditable
   static const int OPEN = 1;
 
   @DomName('WebSocket.URL')
@@ -22175,10 +22501,16 @@ class WheelEvent extends MouseEvent {
 
   WheelEvent.internal() : super.internal();
 
+  @DomName('WheelEvent.DOM_DELTA_LINE')
+  @DocsEditable
   static const int DOM_DELTA_LINE = 0x01;
 
+  @DomName('WheelEvent.DOM_DELTA_PAGE')
+  @DocsEditable
   static const int DOM_DELTA_PAGE = 0x02;
 
+  @DomName('WheelEvent.DOM_DELTA_PIXEL')
+  @DocsEditable
   static const int DOM_DELTA_PIXEL = 0x00;
 
   @DomName('WheelEvent.deltaMode')
@@ -22410,8 +22742,12 @@ class Window extends EventTarget implements WindowBase {
   @Experimental
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
+  @DomName('Window.PERSISTENT')
+  @DocsEditable
   static const int PERSISTENT = 1;
 
+  @DomName('Window.TEMPORARY')
+  @DocsEditable
   static const int TEMPORARY = 0;
 
   @DomName('Window.applicationCache')
@@ -23179,8 +23515,12 @@ class XPathEvaluator extends NativeFieldWrapperClass1 {
 class XPathException extends NativeFieldWrapperClass1 {
   XPathException.internal();
 
+  @DomName('XPathException.INVALID_EXPRESSION_ERR')
+  @DocsEditable
   static const int INVALID_EXPRESSION_ERR = 51;
 
+  @DomName('XPathException.TYPE_ERR')
+  @DocsEditable
   static const int TYPE_ERR = 52;
 
   @DomName('XPathException.code')
@@ -23246,24 +23586,44 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 class XPathResult extends NativeFieldWrapperClass1 {
   XPathResult.internal();
 
+  @DomName('XPathResult.ANY_TYPE')
+  @DocsEditable
   static const int ANY_TYPE = 0;
 
+  @DomName('XPathResult.ANY_UNORDERED_NODE_TYPE')
+  @DocsEditable
   static const int ANY_UNORDERED_NODE_TYPE = 8;
 
+  @DomName('XPathResult.BOOLEAN_TYPE')
+  @DocsEditable
   static const int BOOLEAN_TYPE = 3;
 
+  @DomName('XPathResult.FIRST_ORDERED_NODE_TYPE')
+  @DocsEditable
   static const int FIRST_ORDERED_NODE_TYPE = 9;
 
+  @DomName('XPathResult.NUMBER_TYPE')
+  @DocsEditable
   static const int NUMBER_TYPE = 1;
 
+  @DomName('XPathResult.ORDERED_NODE_ITERATOR_TYPE')
+  @DocsEditable
   static const int ORDERED_NODE_ITERATOR_TYPE = 5;
 
+  @DomName('XPathResult.ORDERED_NODE_SNAPSHOT_TYPE')
+  @DocsEditable
   static const int ORDERED_NODE_SNAPSHOT_TYPE = 7;
 
+  @DomName('XPathResult.STRING_TYPE')
+  @DocsEditable
   static const int STRING_TYPE = 2;
 
+  @DomName('XPathResult.UNORDERED_NODE_ITERATOR_TYPE')
+  @DocsEditable
   static const int UNORDERED_NODE_ITERATOR_TYPE = 4;
 
+  @DomName('XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE')
+  @DocsEditable
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   @DomName('XPathResult.booleanValue')

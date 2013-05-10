@@ -135,12 +135,20 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 class AudioBufferSourceNode extends AudioSourceNode {
   AudioBufferSourceNode.internal() : super.internal();
 
+  @DomName('AudioBufferSourceNode.FINISHED_STATE')
+  @DocsEditable
   static const int FINISHED_STATE = 3;
 
+  @DomName('AudioBufferSourceNode.PLAYING_STATE')
+  @DocsEditable
   static const int PLAYING_STATE = 2;
 
+  @DomName('AudioBufferSourceNode.SCHEDULED_STATE')
+  @DocsEditable
   static const int SCHEDULED_STATE = 1;
 
+  @DomName('AudioBufferSourceNode.UNSCHEDULED_STATE')
+  @DocsEditable
   static const int UNSCHEDULED_STATE = 0;
 
   @DomName('AudioBufferSourceNode.buffer')
@@ -620,20 +628,36 @@ class AudioSourceNode extends AudioNode {
 class BiquadFilterNode extends AudioNode {
   BiquadFilterNode.internal() : super.internal();
 
+  @DomName('BiquadFilterNode.ALLPASS')
+  @DocsEditable
   static const int ALLPASS = 7;
 
+  @DomName('BiquadFilterNode.BANDPASS')
+  @DocsEditable
   static const int BANDPASS = 2;
 
+  @DomName('BiquadFilterNode.HIGHPASS')
+  @DocsEditable
   static const int HIGHPASS = 1;
 
+  @DomName('BiquadFilterNode.HIGHSHELF')
+  @DocsEditable
   static const int HIGHSHELF = 4;
 
+  @DomName('BiquadFilterNode.LOWPASS')
+  @DocsEditable
   static const int LOWPASS = 0;
 
+  @DomName('BiquadFilterNode.LOWSHELF')
+  @DocsEditable
   static const int LOWSHELF = 3;
 
+  @DomName('BiquadFilterNode.NOTCH')
+  @DocsEditable
   static const int NOTCH = 6;
 
+  @DomName('BiquadFilterNode.PEAKING')
+  @DocsEditable
   static const int PEAKING = 5;
 
   @DomName('BiquadFilterNode.Q')
@@ -893,22 +917,40 @@ class OfflineAudioContext extends AudioContext implements EventTarget {
 class OscillatorNode extends AudioSourceNode {
   OscillatorNode.internal() : super.internal();
 
+  @DomName('OscillatorNode.CUSTOM')
+  @DocsEditable
   static const int CUSTOM = 4;
 
+  @DomName('OscillatorNode.FINISHED_STATE')
+  @DocsEditable
   static const int FINISHED_STATE = 3;
 
+  @DomName('OscillatorNode.PLAYING_STATE')
+  @DocsEditable
   static const int PLAYING_STATE = 2;
 
+  @DomName('OscillatorNode.SAWTOOTH')
+  @DocsEditable
   static const int SAWTOOTH = 2;
 
+  @DomName('OscillatorNode.SCHEDULED_STATE')
+  @DocsEditable
   static const int SCHEDULED_STATE = 1;
 
+  @DomName('OscillatorNode.SINE')
+  @DocsEditable
   static const int SINE = 0;
 
+  @DomName('OscillatorNode.SQUARE')
+  @DocsEditable
   static const int SQUARE = 1;
 
+  @DomName('OscillatorNode.TRIANGLE')
+  @DocsEditable
   static const int TRIANGLE = 3;
 
+  @DomName('OscillatorNode.UNSCHEDULED_STATE')
+  @DocsEditable
   static const int UNSCHEDULED_STATE = 0;
 
   @DomName('OscillatorNode.detune')
@@ -956,16 +998,28 @@ class OscillatorNode extends AudioSourceNode {
 class PannerNode extends AudioNode {
   PannerNode.internal() : super.internal();
 
+  @DomName('PannerNode.EQUALPOWER')
+  @DocsEditable
   static const int EQUALPOWER = 0;
 
+  @DomName('PannerNode.EXPONENTIAL_DISTANCE')
+  @DocsEditable
   static const int EXPONENTIAL_DISTANCE = 2;
 
+  @DomName('PannerNode.HRTF')
+  @DocsEditable
   static const int HRTF = 1;
 
+  @DomName('PannerNode.INVERSE_DISTANCE')
+  @DocsEditable
   static const int INVERSE_DISTANCE = 1;
 
+  @DomName('PannerNode.LINEAR_DISTANCE')
+  @DocsEditable
   static const int LINEAR_DISTANCE = 0;
 
+  @DomName('PannerNode.SOUNDFIELD')
+  @DocsEditable
   static const int SOUNDFIELD = 2;
 
   @DomName('PannerNode.coneInnerAngle')

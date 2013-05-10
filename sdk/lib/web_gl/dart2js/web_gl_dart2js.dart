@@ -355,10 +355,16 @@ class Buffer native "WebGLBuffer" {
 @DomName('WebGLCompressedTextureATC')
 class CompressedTextureAtc native "WebGLCompressedTextureATC" {
 
+  @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL')
+  @DocsEditable
   static const int COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL = 0x8C93;
 
+  @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL')
+  @DocsEditable
   static const int COMPRESSED_RGBA_ATC_INTERPOLATED_ALPHA_WEBGL = 0x87EE;
 
+  @DomName('WebGLCompressedTextureATC.COMPRESSED_RGB_ATC_WEBGL')
+  @DocsEditable
   static const int COMPRESSED_RGB_ATC_WEBGL = 0x8C92;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -370,12 +376,20 @@ class CompressedTextureAtc native "WebGLCompressedTextureATC" {
 @DomName('WebGLCompressedTexturePVRTC')
 class CompressedTexturePvrtc native "WebGLCompressedTexturePVRTC" {
 
+  @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG')
+  @DocsEditable
   static const int COMPRESSED_RGBA_PVRTC_2BPPV1_IMG = 0x8C03;
 
+  @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_4BPPV1_IMG')
+  @DocsEditable
   static const int COMPRESSED_RGBA_PVRTC_4BPPV1_IMG = 0x8C02;
 
+  @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGB_PVRTC_2BPPV1_IMG')
+  @DocsEditable
   static const int COMPRESSED_RGB_PVRTC_2BPPV1_IMG = 0x8C01;
 
+  @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGB_PVRTC_4BPPV1_IMG')
+  @DocsEditable
   static const int COMPRESSED_RGB_PVRTC_4BPPV1_IMG = 0x8C00;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -387,12 +401,20 @@ class CompressedTexturePvrtc native "WebGLCompressedTexturePVRTC" {
 @DomName('WebGLCompressedTextureS3TC')
 class CompressedTextureS3TC native "WebGLCompressedTextureS3TC" {
 
+  @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT')
+  @DocsEditable
   static const int COMPRESSED_RGBA_S3TC_DXT1_EXT = 0x83F1;
 
+  @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT3_EXT')
+  @DocsEditable
   static const int COMPRESSED_RGBA_S3TC_DXT3_EXT = 0x83F2;
 
+  @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT5_EXT')
+  @DocsEditable
   static const int COMPRESSED_RGBA_S3TC_DXT5_EXT = 0x83F3;
 
+  @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGB_S3TC_DXT1_EXT')
+  @DocsEditable
   static const int COMPRESSED_RGB_S3TC_DXT1_EXT = 0x83F0;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -450,8 +472,12 @@ class ContextEvent extends Event native "WebGLContextEvent" {
 @DomName('WebGLDebugRendererInfo')
 class DebugRendererInfo native "WebGLDebugRendererInfo" {
 
+  @DomName('WebGLDebugRendererInfo.UNMASKED_RENDERER_WEBGL')
+  @DocsEditable
   static const int UNMASKED_RENDERER_WEBGL = 0x9246;
 
+  @DomName('WebGLDebugRendererInfo.UNMASKED_VENDOR_WEBGL')
+  @DocsEditable
   static const int UNMASKED_VENDOR_WEBGL = 0x9245;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -476,6 +502,8 @@ class DebugShaders native "WebGLDebugShaders" {
 @DomName('WebGLDepthTexture')
 class DepthTexture native "WebGLDepthTexture" {
 
+  @DomName('WebGLDepthTexture.UNSIGNED_INT_24_8_WEBGL')
+  @DocsEditable
   static const int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -487,72 +515,140 @@ class DepthTexture native "WebGLDepthTexture" {
 @DomName('EXTDrawBuffers')
 class ExtDrawBuffers native "EXTDrawBuffers" {
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT0_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT0_EXT = 0x8CE0;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT10_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT10_EXT = 0x8CEA;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT11_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT11_EXT = 0x8CEB;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT12_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT12_EXT = 0x8CEC;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT13_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT13_EXT = 0x8CED;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT14_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT14_EXT = 0x8CEE;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT15_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT15_EXT = 0x8CEF;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT1_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT1_EXT = 0x8CE1;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT2_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT2_EXT = 0x8CE2;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT3_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT3_EXT = 0x8CE3;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT4_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT4_EXT = 0x8CE4;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT5_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT5_EXT = 0x8CE5;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT6_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT6_EXT = 0x8CE6;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT7_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT7_EXT = 0x8CE7;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT8_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT8_EXT = 0x8CE8;
 
+  @DomName('EXTDrawBuffers.COLOR_ATTACHMENT9_EXT')
+  @DocsEditable
   static const int COLOR_ATTACHMENT9_EXT = 0x8CE9;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER0_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER0_EXT = 0x8825;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER10_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER10_EXT = 0x882F;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER11_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER11_EXT = 0x8830;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER12_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER12_EXT = 0x8831;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER13_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER13_EXT = 0x8832;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER14_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER14_EXT = 0x8833;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER15_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER15_EXT = 0x8834;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER1_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER1_EXT = 0x8826;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER2_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER2_EXT = 0x8827;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER3_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER3_EXT = 0x8828;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER4_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER4_EXT = 0x8829;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER5_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER5_EXT = 0x882A;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER6_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER6_EXT = 0x882B;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER7_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER7_EXT = 0x882C;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER8_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER8_EXT = 0x882D;
 
+  @DomName('EXTDrawBuffers.DRAW_BUFFER9_EXT')
+  @DocsEditable
   static const int DRAW_BUFFER9_EXT = 0x882E;
 
+  @DomName('EXTDrawBuffers.MAX_COLOR_ATTACHMENTS_EXT')
+  @DocsEditable
   static const int MAX_COLOR_ATTACHMENTS_EXT = 0x8CDF;
 
+  @DomName('EXTDrawBuffers.MAX_DRAW_BUFFERS_EXT')
+  @DocsEditable
   static const int MAX_DRAW_BUFFERS_EXT = 0x8824;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -564,8 +660,12 @@ class ExtDrawBuffers native "EXTDrawBuffers" {
 @DomName('EXTTextureFilterAnisotropic')
 class ExtTextureFilterAnisotropic native "EXTTextureFilterAnisotropic" {
 
+  @DomName('EXTTextureFilterAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT')
+  @DocsEditable
   static const int MAX_TEXTURE_MAX_ANISOTROPY_EXT = 0x84FF;
 
+  @DomName('EXTTextureFilterAnisotropic.TEXTURE_MAX_ANISOTROPY_EXT')
+  @DocsEditable
   static const int TEXTURE_MAX_ANISOTROPY_EXT = 0x84FE;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -612,6 +712,8 @@ class OesElementIndexUint native "OESElementIndexUint" {
 @DomName('OESStandardDerivatives')
 class OesStandardDerivatives native "OESStandardDerivatives" {
 
+  @DomName('OESStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES')
+  @DocsEditable
   static const int FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -641,6 +743,8 @@ class OesTextureHalfFloat native "OESTextureHalfFloat" {
 @DomName('OESVertexArrayObject')
 class OesVertexArrayObject native "OESVertexArrayObject" {
 
+  @DomName('OESVertexArrayObject.VERTEX_ARRAY_BINDING_OES')
+  @DocsEditable
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   @JSName('bindVertexArrayOES')
@@ -696,596 +800,1188 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebGLRenderingContext)');
 
+  @DomName('WebGLRenderingContext.ACTIVE_ATTRIBUTES')
+  @DocsEditable
   static const int ACTIVE_ATTRIBUTES = 0x8B89;
 
+  @DomName('WebGLRenderingContext.ACTIVE_TEXTURE')
+  @DocsEditable
   static const int ACTIVE_TEXTURE = 0x84E0;
 
+  @DomName('WebGLRenderingContext.ACTIVE_UNIFORMS')
+  @DocsEditable
   static const int ACTIVE_UNIFORMS = 0x8B86;
 
+  @DomName('WebGLRenderingContext.ALIASED_LINE_WIDTH_RANGE')
+  @DocsEditable
   static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
 
+  @DomName('WebGLRenderingContext.ALIASED_POINT_SIZE_RANGE')
+  @DocsEditable
   static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
 
+  @DomName('WebGLRenderingContext.ALPHA')
+  @DocsEditable
   static const int ALPHA = 0x1906;
 
+  @DomName('WebGLRenderingContext.ALPHA_BITS')
+  @DocsEditable
   static const int ALPHA_BITS = 0x0D55;
 
+  @DomName('WebGLRenderingContext.ALWAYS')
+  @DocsEditable
   static const int ALWAYS = 0x0207;
 
+  @DomName('WebGLRenderingContext.ARRAY_BUFFER')
+  @DocsEditable
   static const int ARRAY_BUFFER = 0x8892;
 
+  @DomName('WebGLRenderingContext.ARRAY_BUFFER_BINDING')
+  @DocsEditable
   static const int ARRAY_BUFFER_BINDING = 0x8894;
 
+  @DomName('WebGLRenderingContext.ATTACHED_SHADERS')
+  @DocsEditable
   static const int ATTACHED_SHADERS = 0x8B85;
 
+  @DomName('WebGLRenderingContext.BACK')
+  @DocsEditable
   static const int BACK = 0x0405;
 
+  @DomName('WebGLRenderingContext.BLEND')
+  @DocsEditable
   static const int BLEND = 0x0BE2;
 
+  @DomName('WebGLRenderingContext.BLEND_COLOR')
+  @DocsEditable
   static const int BLEND_COLOR = 0x8005;
 
+  @DomName('WebGLRenderingContext.BLEND_DST_ALPHA')
+  @DocsEditable
   static const int BLEND_DST_ALPHA = 0x80CA;
 
+  @DomName('WebGLRenderingContext.BLEND_DST_RGB')
+  @DocsEditable
   static const int BLEND_DST_RGB = 0x80C8;
 
+  @DomName('WebGLRenderingContext.BLEND_EQUATION')
+  @DocsEditable
   static const int BLEND_EQUATION = 0x8009;
 
+  @DomName('WebGLRenderingContext.BLEND_EQUATION_ALPHA')
+  @DocsEditable
   static const int BLEND_EQUATION_ALPHA = 0x883D;
 
+  @DomName('WebGLRenderingContext.BLEND_EQUATION_RGB')
+  @DocsEditable
   static const int BLEND_EQUATION_RGB = 0x8009;
 
+  @DomName('WebGLRenderingContext.BLEND_SRC_ALPHA')
+  @DocsEditable
   static const int BLEND_SRC_ALPHA = 0x80CB;
 
+  @DomName('WebGLRenderingContext.BLEND_SRC_RGB')
+  @DocsEditable
   static const int BLEND_SRC_RGB = 0x80C9;
 
+  @DomName('WebGLRenderingContext.BLUE_BITS')
+  @DocsEditable
   static const int BLUE_BITS = 0x0D54;
 
+  @DomName('WebGLRenderingContext.BOOL')
+  @DocsEditable
   static const int BOOL = 0x8B56;
 
+  @DomName('WebGLRenderingContext.BOOL_VEC2')
+  @DocsEditable
   static const int BOOL_VEC2 = 0x8B57;
 
+  @DomName('WebGLRenderingContext.BOOL_VEC3')
+  @DocsEditable
   static const int BOOL_VEC3 = 0x8B58;
 
+  @DomName('WebGLRenderingContext.BOOL_VEC4')
+  @DocsEditable
   static const int BOOL_VEC4 = 0x8B59;
 
+  @DomName('WebGLRenderingContext.BROWSER_DEFAULT_WEBGL')
+  @DocsEditable
   static const int BROWSER_DEFAULT_WEBGL = 0x9244;
 
+  @DomName('WebGLRenderingContext.BUFFER_SIZE')
+  @DocsEditable
   static const int BUFFER_SIZE = 0x8764;
 
+  @DomName('WebGLRenderingContext.BUFFER_USAGE')
+  @DocsEditable
   static const int BUFFER_USAGE = 0x8765;
 
+  @DomName('WebGLRenderingContext.BYTE')
+  @DocsEditable
   static const int BYTE = 0x1400;
 
+  @DomName('WebGLRenderingContext.CCW')
+  @DocsEditable
   static const int CCW = 0x0901;
 
+  @DomName('WebGLRenderingContext.CLAMP_TO_EDGE')
+  @DocsEditable
   static const int CLAMP_TO_EDGE = 0x812F;
 
+  @DomName('WebGLRenderingContext.COLOR_ATTACHMENT0')
+  @DocsEditable
   static const int COLOR_ATTACHMENT0 = 0x8CE0;
 
+  @DomName('WebGLRenderingContext.COLOR_BUFFER_BIT')
+  @DocsEditable
   static const int COLOR_BUFFER_BIT = 0x00004000;
 
+  @DomName('WebGLRenderingContext.COLOR_CLEAR_VALUE')
+  @DocsEditable
   static const int COLOR_CLEAR_VALUE = 0x0C22;
 
+  @DomName('WebGLRenderingContext.COLOR_WRITEMASK')
+  @DocsEditable
   static const int COLOR_WRITEMASK = 0x0C23;
 
+  @DomName('WebGLRenderingContext.COMPILE_STATUS')
+  @DocsEditable
   static const int COMPILE_STATUS = 0x8B81;
 
+  @DomName('WebGLRenderingContext.COMPRESSED_TEXTURE_FORMATS')
+  @DocsEditable
   static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
 
+  @DomName('WebGLRenderingContext.CONSTANT_ALPHA')
+  @DocsEditable
   static const int CONSTANT_ALPHA = 0x8003;
 
+  @DomName('WebGLRenderingContext.CONSTANT_COLOR')
+  @DocsEditable
   static const int CONSTANT_COLOR = 0x8001;
 
+  @DomName('WebGLRenderingContext.CONTEXT_LOST_WEBGL')
+  @DocsEditable
   static const int CONTEXT_LOST_WEBGL = 0x9242;
 
+  @DomName('WebGLRenderingContext.CULL_FACE')
+  @DocsEditable
   static const int CULL_FACE = 0x0B44;
 
+  @DomName('WebGLRenderingContext.CULL_FACE_MODE')
+  @DocsEditable
   static const int CULL_FACE_MODE = 0x0B45;
 
+  @DomName('WebGLRenderingContext.CURRENT_PROGRAM')
+  @DocsEditable
   static const int CURRENT_PROGRAM = 0x8B8D;
 
+  @DomName('WebGLRenderingContext.CURRENT_VERTEX_ATTRIB')
+  @DocsEditable
   static const int CURRENT_VERTEX_ATTRIB = 0x8626;
 
+  @DomName('WebGLRenderingContext.CW')
+  @DocsEditable
   static const int CW = 0x0900;
 
+  @DomName('WebGLRenderingContext.DECR')
+  @DocsEditable
   static const int DECR = 0x1E03;
 
+  @DomName('WebGLRenderingContext.DECR_WRAP')
+  @DocsEditable
   static const int DECR_WRAP = 0x8508;
 
+  @DomName('WebGLRenderingContext.DELETE_STATUS')
+  @DocsEditable
   static const int DELETE_STATUS = 0x8B80;
 
+  @DomName('WebGLRenderingContext.DEPTH_ATTACHMENT')
+  @DocsEditable
   static const int DEPTH_ATTACHMENT = 0x8D00;
 
+  @DomName('WebGLRenderingContext.DEPTH_BITS')
+  @DocsEditable
   static const int DEPTH_BITS = 0x0D56;
 
+  @DomName('WebGLRenderingContext.DEPTH_BUFFER_BIT')
+  @DocsEditable
   static const int DEPTH_BUFFER_BIT = 0x00000100;
 
+  @DomName('WebGLRenderingContext.DEPTH_CLEAR_VALUE')
+  @DocsEditable
   static const int DEPTH_CLEAR_VALUE = 0x0B73;
 
+  @DomName('WebGLRenderingContext.DEPTH_COMPONENT')
+  @DocsEditable
   static const int DEPTH_COMPONENT = 0x1902;
 
+  @DomName('WebGLRenderingContext.DEPTH_COMPONENT16')
+  @DocsEditable
   static const int DEPTH_COMPONENT16 = 0x81A5;
 
+  @DomName('WebGLRenderingContext.DEPTH_FUNC')
+  @DocsEditable
   static const int DEPTH_FUNC = 0x0B74;
 
+  @DomName('WebGLRenderingContext.DEPTH_RANGE')
+  @DocsEditable
   static const int DEPTH_RANGE = 0x0B70;
 
+  @DomName('WebGLRenderingContext.DEPTH_STENCIL')
+  @DocsEditable
   static const int DEPTH_STENCIL = 0x84F9;
 
+  @DomName('WebGLRenderingContext.DEPTH_STENCIL_ATTACHMENT')
+  @DocsEditable
   static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
 
+  @DomName('WebGLRenderingContext.DEPTH_TEST')
+  @DocsEditable
   static const int DEPTH_TEST = 0x0B71;
 
+  @DomName('WebGLRenderingContext.DEPTH_WRITEMASK')
+  @DocsEditable
   static const int DEPTH_WRITEMASK = 0x0B72;
 
+  @DomName('WebGLRenderingContext.DITHER')
+  @DocsEditable
   static const int DITHER = 0x0BD0;
 
+  @DomName('WebGLRenderingContext.DONT_CARE')
+  @DocsEditable
   static const int DONT_CARE = 0x1100;
 
+  @DomName('WebGLRenderingContext.DST_ALPHA')
+  @DocsEditable
   static const int DST_ALPHA = 0x0304;
 
+  @DomName('WebGLRenderingContext.DST_COLOR')
+  @DocsEditable
   static const int DST_COLOR = 0x0306;
 
+  @DomName('WebGLRenderingContext.DYNAMIC_DRAW')
+  @DocsEditable
   static const int DYNAMIC_DRAW = 0x88E8;
 
+  @DomName('WebGLRenderingContext.ELEMENT_ARRAY_BUFFER')
+  @DocsEditable
   static const int ELEMENT_ARRAY_BUFFER = 0x8893;
 
+  @DomName('WebGLRenderingContext.ELEMENT_ARRAY_BUFFER_BINDING')
+  @DocsEditable
   static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
 
+  @DomName('WebGLRenderingContext.EQUAL')
+  @DocsEditable
   static const int EQUAL = 0x0202;
 
+  @DomName('WebGLRenderingContext.FASTEST')
+  @DocsEditable
   static const int FASTEST = 0x1101;
 
+  @DomName('WebGLRenderingContext.FLOAT')
+  @DocsEditable
   static const int FLOAT = 0x1406;
 
+  @DomName('WebGLRenderingContext.FLOAT_MAT2')
+  @DocsEditable
   static const int FLOAT_MAT2 = 0x8B5A;
 
+  @DomName('WebGLRenderingContext.FLOAT_MAT3')
+  @DocsEditable
   static const int FLOAT_MAT3 = 0x8B5B;
 
+  @DomName('WebGLRenderingContext.FLOAT_MAT4')
+  @DocsEditable
   static const int FLOAT_MAT4 = 0x8B5C;
 
+  @DomName('WebGLRenderingContext.FLOAT_VEC2')
+  @DocsEditable
   static const int FLOAT_VEC2 = 0x8B50;
 
+  @DomName('WebGLRenderingContext.FLOAT_VEC3')
+  @DocsEditable
   static const int FLOAT_VEC3 = 0x8B51;
 
+  @DomName('WebGLRenderingContext.FLOAT_VEC4')
+  @DocsEditable
   static const int FLOAT_VEC4 = 0x8B52;
 
+  @DomName('WebGLRenderingContext.FRAGMENT_SHADER')
+  @DocsEditable
   static const int FRAGMENT_SHADER = 0x8B30;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER')
+  @DocsEditable
   static const int FRAMEBUFFER = 0x8D40;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME')
+  @DocsEditable
   static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE')
+  @DocsEditable
   static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE')
+  @DocsEditable
   static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL')
+  @DocsEditable
   static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_BINDING')
+  @DocsEditable
   static const int FRAMEBUFFER_BINDING = 0x8CA6;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_COMPLETE')
+  @DocsEditable
   static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT')
+  @DocsEditable
   static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS')
+  @DocsEditable
   static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT')
+  @DocsEditable
   static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
 
+  @DomName('WebGLRenderingContext.FRAMEBUFFER_UNSUPPORTED')
+  @DocsEditable
   static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
 
+  @DomName('WebGLRenderingContext.FRONT')
+  @DocsEditable
   static const int FRONT = 0x0404;
 
+  @DomName('WebGLRenderingContext.FRONT_AND_BACK')
+  @DocsEditable
   static const int FRONT_AND_BACK = 0x0408;
 
+  @DomName('WebGLRenderingContext.FRONT_FACE')
+  @DocsEditable
   static const int FRONT_FACE = 0x0B46;
 
+  @DomName('WebGLRenderingContext.FUNC_ADD')
+  @DocsEditable
   static const int FUNC_ADD = 0x8006;
 
+  @DomName('WebGLRenderingContext.FUNC_REVERSE_SUBTRACT')
+  @DocsEditable
   static const int FUNC_REVERSE_SUBTRACT = 0x800B;
 
+  @DomName('WebGLRenderingContext.FUNC_SUBTRACT')
+  @DocsEditable
   static const int FUNC_SUBTRACT = 0x800A;
 
+  @DomName('WebGLRenderingContext.GENERATE_MIPMAP_HINT')
+  @DocsEditable
   static const int GENERATE_MIPMAP_HINT = 0x8192;
 
+  @DomName('WebGLRenderingContext.GEQUAL')
+  @DocsEditable
   static const int GEQUAL = 0x0206;
 
+  @DomName('WebGLRenderingContext.GREATER')
+  @DocsEditable
   static const int GREATER = 0x0204;
 
+  @DomName('WebGLRenderingContext.GREEN_BITS')
+  @DocsEditable
   static const int GREEN_BITS = 0x0D53;
 
+  @DomName('WebGLRenderingContext.HALF_FLOAT_OES')
+  @DocsEditable
   static const int HALF_FLOAT_OES = 0x8D61;
 
+  @DomName('WebGLRenderingContext.HIGH_FLOAT')
+  @DocsEditable
   static const int HIGH_FLOAT = 0x8DF2;
 
+  @DomName('WebGLRenderingContext.HIGH_INT')
+  @DocsEditable
   static const int HIGH_INT = 0x8DF5;
 
+  @DomName('WebGLRenderingContext.INCR')
+  @DocsEditable
   static const int INCR = 0x1E02;
 
+  @DomName('WebGLRenderingContext.INCR_WRAP')
+  @DocsEditable
   static const int INCR_WRAP = 0x8507;
 
+  @DomName('WebGLRenderingContext.INT')
+  @DocsEditable
   static const int INT = 0x1404;
 
+  @DomName('WebGLRenderingContext.INT_VEC2')
+  @DocsEditable
   static const int INT_VEC2 = 0x8B53;
 
+  @DomName('WebGLRenderingContext.INT_VEC3')
+  @DocsEditable
   static const int INT_VEC3 = 0x8B54;
 
+  @DomName('WebGLRenderingContext.INT_VEC4')
+  @DocsEditable
   static const int INT_VEC4 = 0x8B55;
 
+  @DomName('WebGLRenderingContext.INVALID_ENUM')
+  @DocsEditable
   static const int INVALID_ENUM = 0x0500;
 
+  @DomName('WebGLRenderingContext.INVALID_FRAMEBUFFER_OPERATION')
+  @DocsEditable
   static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
 
+  @DomName('WebGLRenderingContext.INVALID_OPERATION')
+  @DocsEditable
   static const int INVALID_OPERATION = 0x0502;
 
+  @DomName('WebGLRenderingContext.INVALID_VALUE')
+  @DocsEditable
   static const int INVALID_VALUE = 0x0501;
 
+  @DomName('WebGLRenderingContext.INVERT')
+  @DocsEditable
   static const int INVERT = 0x150A;
 
+  @DomName('WebGLRenderingContext.KEEP')
+  @DocsEditable
   static const int KEEP = 0x1E00;
 
+  @DomName('WebGLRenderingContext.LEQUAL')
+  @DocsEditable
   static const int LEQUAL = 0x0203;
 
+  @DomName('WebGLRenderingContext.LESS')
+  @DocsEditable
   static const int LESS = 0x0201;
 
+  @DomName('WebGLRenderingContext.LINEAR')
+  @DocsEditable
   static const int LINEAR = 0x2601;
 
+  @DomName('WebGLRenderingContext.LINEAR_MIPMAP_LINEAR')
+  @DocsEditable
   static const int LINEAR_MIPMAP_LINEAR = 0x2703;
 
+  @DomName('WebGLRenderingContext.LINEAR_MIPMAP_NEAREST')
+  @DocsEditable
   static const int LINEAR_MIPMAP_NEAREST = 0x2701;
 
+  @DomName('WebGLRenderingContext.LINES')
+  @DocsEditable
   static const int LINES = 0x0001;
 
+  @DomName('WebGLRenderingContext.LINE_LOOP')
+  @DocsEditable
   static const int LINE_LOOP = 0x0002;
 
+  @DomName('WebGLRenderingContext.LINE_STRIP')
+  @DocsEditable
   static const int LINE_STRIP = 0x0003;
 
+  @DomName('WebGLRenderingContext.LINE_WIDTH')
+  @DocsEditable
   static const int LINE_WIDTH = 0x0B21;
 
+  @DomName('WebGLRenderingContext.LINK_STATUS')
+  @DocsEditable
   static const int LINK_STATUS = 0x8B82;
 
+  @DomName('WebGLRenderingContext.LOW_FLOAT')
+  @DocsEditable
   static const int LOW_FLOAT = 0x8DF0;
 
+  @DomName('WebGLRenderingContext.LOW_INT')
+  @DocsEditable
   static const int LOW_INT = 0x8DF3;
 
+  @DomName('WebGLRenderingContext.LUMINANCE')
+  @DocsEditable
   static const int LUMINANCE = 0x1909;
 
+  @DomName('WebGLRenderingContext.LUMINANCE_ALPHA')
+  @DocsEditable
   static const int LUMINANCE_ALPHA = 0x190A;
 
+  @DomName('WebGLRenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS')
+  @DocsEditable
   static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
 
+  @DomName('WebGLRenderingContext.MAX_CUBE_MAP_TEXTURE_SIZE')
+  @DocsEditable
   static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
 
+  @DomName('WebGLRenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS')
+  @DocsEditable
   static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
 
+  @DomName('WebGLRenderingContext.MAX_RENDERBUFFER_SIZE')
+  @DocsEditable
   static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
 
+  @DomName('WebGLRenderingContext.MAX_TEXTURE_IMAGE_UNITS')
+  @DocsEditable
   static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
 
+  @DomName('WebGLRenderingContext.MAX_TEXTURE_SIZE')
+  @DocsEditable
   static const int MAX_TEXTURE_SIZE = 0x0D33;
 
+  @DomName('WebGLRenderingContext.MAX_VARYING_VECTORS')
+  @DocsEditable
   static const int MAX_VARYING_VECTORS = 0x8DFC;
 
+  @DomName('WebGLRenderingContext.MAX_VERTEX_ATTRIBS')
+  @DocsEditable
   static const int MAX_VERTEX_ATTRIBS = 0x8869;
 
+  @DomName('WebGLRenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS')
+  @DocsEditable
   static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
 
+  @DomName('WebGLRenderingContext.MAX_VERTEX_UNIFORM_VECTORS')
+  @DocsEditable
   static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
 
+  @DomName('WebGLRenderingContext.MAX_VIEWPORT_DIMS')
+  @DocsEditable
   static const int MAX_VIEWPORT_DIMS = 0x0D3A;
 
+  @DomName('WebGLRenderingContext.MEDIUM_FLOAT')
+  @DocsEditable
   static const int MEDIUM_FLOAT = 0x8DF1;
 
+  @DomName('WebGLRenderingContext.MEDIUM_INT')
+  @DocsEditable
   static const int MEDIUM_INT = 0x8DF4;
 
+  @DomName('WebGLRenderingContext.MIRRORED_REPEAT')
+  @DocsEditable
   static const int MIRRORED_REPEAT = 0x8370;
 
+  @DomName('WebGLRenderingContext.NEAREST')
+  @DocsEditable
   static const int NEAREST = 0x2600;
 
+  @DomName('WebGLRenderingContext.NEAREST_MIPMAP_LINEAR')
+  @DocsEditable
   static const int NEAREST_MIPMAP_LINEAR = 0x2702;
 
+  @DomName('WebGLRenderingContext.NEAREST_MIPMAP_NEAREST')
+  @DocsEditable
   static const int NEAREST_MIPMAP_NEAREST = 0x2700;
 
+  @DomName('WebGLRenderingContext.NEVER')
+  @DocsEditable
   static const int NEVER = 0x0200;
 
+  @DomName('WebGLRenderingContext.NICEST')
+  @DocsEditable
   static const int NICEST = 0x1102;
 
+  @DomName('WebGLRenderingContext.NONE')
+  @DocsEditable
   static const int NONE = 0;
 
+  @DomName('WebGLRenderingContext.NOTEQUAL')
+  @DocsEditable
   static const int NOTEQUAL = 0x0205;
 
+  @DomName('WebGLRenderingContext.NO_ERROR')
+  @DocsEditable
   static const int NO_ERROR = 0;
 
+  @DomName('WebGLRenderingContext.ONE')
+  @DocsEditable
   static const int ONE = 1;
 
+  @DomName('WebGLRenderingContext.ONE_MINUS_CONSTANT_ALPHA')
+  @DocsEditable
   static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
 
+  @DomName('WebGLRenderingContext.ONE_MINUS_CONSTANT_COLOR')
+  @DocsEditable
   static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
 
+  @DomName('WebGLRenderingContext.ONE_MINUS_DST_ALPHA')
+  @DocsEditable
   static const int ONE_MINUS_DST_ALPHA = 0x0305;
 
+  @DomName('WebGLRenderingContext.ONE_MINUS_DST_COLOR')
+  @DocsEditable
   static const int ONE_MINUS_DST_COLOR = 0x0307;
 
+  @DomName('WebGLRenderingContext.ONE_MINUS_SRC_ALPHA')
+  @DocsEditable
   static const int ONE_MINUS_SRC_ALPHA = 0x0303;
 
+  @DomName('WebGLRenderingContext.ONE_MINUS_SRC_COLOR')
+  @DocsEditable
   static const int ONE_MINUS_SRC_COLOR = 0x0301;
 
+  @DomName('WebGLRenderingContext.OUT_OF_MEMORY')
+  @DocsEditable
   static const int OUT_OF_MEMORY = 0x0505;
 
+  @DomName('WebGLRenderingContext.PACK_ALIGNMENT')
+  @DocsEditable
   static const int PACK_ALIGNMENT = 0x0D05;
 
+  @DomName('WebGLRenderingContext.POINTS')
+  @DocsEditable
   static const int POINTS = 0x0000;
 
+  @DomName('WebGLRenderingContext.POLYGON_OFFSET_FACTOR')
+  @DocsEditable
   static const int POLYGON_OFFSET_FACTOR = 0x8038;
 
+  @DomName('WebGLRenderingContext.POLYGON_OFFSET_FILL')
+  @DocsEditable
   static const int POLYGON_OFFSET_FILL = 0x8037;
 
+  @DomName('WebGLRenderingContext.POLYGON_OFFSET_UNITS')
+  @DocsEditable
   static const int POLYGON_OFFSET_UNITS = 0x2A00;
 
+  @DomName('WebGLRenderingContext.RED_BITS')
+  @DocsEditable
   static const int RED_BITS = 0x0D52;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER')
+  @DocsEditable
   static const int RENDERBUFFER = 0x8D41;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_ALPHA_SIZE')
+  @DocsEditable
   static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_BINDING')
+  @DocsEditable
   static const int RENDERBUFFER_BINDING = 0x8CA7;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_BLUE_SIZE')
+  @DocsEditable
   static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_DEPTH_SIZE')
+  @DocsEditable
   static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_GREEN_SIZE')
+  @DocsEditable
   static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_HEIGHT')
+  @DocsEditable
   static const int RENDERBUFFER_HEIGHT = 0x8D43;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_INTERNAL_FORMAT')
+  @DocsEditable
   static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_RED_SIZE')
+  @DocsEditable
   static const int RENDERBUFFER_RED_SIZE = 0x8D50;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_STENCIL_SIZE')
+  @DocsEditable
   static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
 
+  @DomName('WebGLRenderingContext.RENDERBUFFER_WIDTH')
+  @DocsEditable
   static const int RENDERBUFFER_WIDTH = 0x8D42;
 
+  @DomName('WebGLRenderingContext.RENDERER')
+  @DocsEditable
   static const int RENDERER = 0x1F01;
 
+  @DomName('WebGLRenderingContext.REPEAT')
+  @DocsEditable
   static const int REPEAT = 0x2901;
 
+  @DomName('WebGLRenderingContext.REPLACE')
+  @DocsEditable
   static const int REPLACE = 0x1E01;
 
+  @DomName('WebGLRenderingContext.RGB')
+  @DocsEditable
   static const int RGB = 0x1907;
 
+  @DomName('WebGLRenderingContext.RGB565')
+  @DocsEditable
   static const int RGB565 = 0x8D62;
 
+  @DomName('WebGLRenderingContext.RGB5_A1')
+  @DocsEditable
   static const int RGB5_A1 = 0x8057;
 
+  @DomName('WebGLRenderingContext.RGBA')
+  @DocsEditable
   static const int RGBA = 0x1908;
 
+  @DomName('WebGLRenderingContext.RGBA4')
+  @DocsEditable
   static const int RGBA4 = 0x8056;
 
+  @DomName('WebGLRenderingContext.SAMPLER_2D')
+  @DocsEditable
   static const int SAMPLER_2D = 0x8B5E;
 
+  @DomName('WebGLRenderingContext.SAMPLER_CUBE')
+  @DocsEditable
   static const int SAMPLER_CUBE = 0x8B60;
 
+  @DomName('WebGLRenderingContext.SAMPLES')
+  @DocsEditable
   static const int SAMPLES = 0x80A9;
 
+  @DomName('WebGLRenderingContext.SAMPLE_ALPHA_TO_COVERAGE')
+  @DocsEditable
   static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
 
+  @DomName('WebGLRenderingContext.SAMPLE_BUFFERS')
+  @DocsEditable
   static const int SAMPLE_BUFFERS = 0x80A8;
 
+  @DomName('WebGLRenderingContext.SAMPLE_COVERAGE')
+  @DocsEditable
   static const int SAMPLE_COVERAGE = 0x80A0;
 
+  @DomName('WebGLRenderingContext.SAMPLE_COVERAGE_INVERT')
+  @DocsEditable
   static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
 
+  @DomName('WebGLRenderingContext.SAMPLE_COVERAGE_VALUE')
+  @DocsEditable
   static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
 
+  @DomName('WebGLRenderingContext.SCISSOR_BOX')
+  @DocsEditable
   static const int SCISSOR_BOX = 0x0C10;
 
+  @DomName('WebGLRenderingContext.SCISSOR_TEST')
+  @DocsEditable
   static const int SCISSOR_TEST = 0x0C11;
 
+  @DomName('WebGLRenderingContext.SHADER_TYPE')
+  @DocsEditable
   static const int SHADER_TYPE = 0x8B4F;
 
+  @DomName('WebGLRenderingContext.SHADING_LANGUAGE_VERSION')
+  @DocsEditable
   static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
 
+  @DomName('WebGLRenderingContext.SHORT')
+  @DocsEditable
   static const int SHORT = 0x1402;
 
+  @DomName('WebGLRenderingContext.SRC_ALPHA')
+  @DocsEditable
   static const int SRC_ALPHA = 0x0302;
 
+  @DomName('WebGLRenderingContext.SRC_ALPHA_SATURATE')
+  @DocsEditable
   static const int SRC_ALPHA_SATURATE = 0x0308;
 
+  @DomName('WebGLRenderingContext.SRC_COLOR')
+  @DocsEditable
   static const int SRC_COLOR = 0x0300;
 
+  @DomName('WebGLRenderingContext.STATIC_DRAW')
+  @DocsEditable
   static const int STATIC_DRAW = 0x88E4;
 
+  @DomName('WebGLRenderingContext.STENCIL_ATTACHMENT')
+  @DocsEditable
   static const int STENCIL_ATTACHMENT = 0x8D20;
 
+  @DomName('WebGLRenderingContext.STENCIL_BACK_FAIL')
+  @DocsEditable
   static const int STENCIL_BACK_FAIL = 0x8801;
 
+  @DomName('WebGLRenderingContext.STENCIL_BACK_FUNC')
+  @DocsEditable
   static const int STENCIL_BACK_FUNC = 0x8800;
 
+  @DomName('WebGLRenderingContext.STENCIL_BACK_PASS_DEPTH_FAIL')
+  @DocsEditable
   static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
 
+  @DomName('WebGLRenderingContext.STENCIL_BACK_PASS_DEPTH_PASS')
+  @DocsEditable
   static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
 
+  @DomName('WebGLRenderingContext.STENCIL_BACK_REF')
+  @DocsEditable
   static const int STENCIL_BACK_REF = 0x8CA3;
 
+  @DomName('WebGLRenderingContext.STENCIL_BACK_VALUE_MASK')
+  @DocsEditable
   static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
 
+  @DomName('WebGLRenderingContext.STENCIL_BACK_WRITEMASK')
+  @DocsEditable
   static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
 
+  @DomName('WebGLRenderingContext.STENCIL_BITS')
+  @DocsEditable
   static const int STENCIL_BITS = 0x0D57;
 
+  @DomName('WebGLRenderingContext.STENCIL_BUFFER_BIT')
+  @DocsEditable
   static const int STENCIL_BUFFER_BIT = 0x00000400;
 
+  @DomName('WebGLRenderingContext.STENCIL_CLEAR_VALUE')
+  @DocsEditable
   static const int STENCIL_CLEAR_VALUE = 0x0B91;
 
+  @DomName('WebGLRenderingContext.STENCIL_FAIL')
+  @DocsEditable
   static const int STENCIL_FAIL = 0x0B94;
 
+  @DomName('WebGLRenderingContext.STENCIL_FUNC')
+  @DocsEditable
   static const int STENCIL_FUNC = 0x0B92;
 
+  @DomName('WebGLRenderingContext.STENCIL_INDEX')
+  @DocsEditable
   static const int STENCIL_INDEX = 0x1901;
 
+  @DomName('WebGLRenderingContext.STENCIL_INDEX8')
+  @DocsEditable
   static const int STENCIL_INDEX8 = 0x8D48;
 
+  @DomName('WebGLRenderingContext.STENCIL_PASS_DEPTH_FAIL')
+  @DocsEditable
   static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
 
+  @DomName('WebGLRenderingContext.STENCIL_PASS_DEPTH_PASS')
+  @DocsEditable
   static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
 
+  @DomName('WebGLRenderingContext.STENCIL_REF')
+  @DocsEditable
   static const int STENCIL_REF = 0x0B97;
 
+  @DomName('WebGLRenderingContext.STENCIL_TEST')
+  @DocsEditable
   static const int STENCIL_TEST = 0x0B90;
 
+  @DomName('WebGLRenderingContext.STENCIL_VALUE_MASK')
+  @DocsEditable
   static const int STENCIL_VALUE_MASK = 0x0B93;
 
+  @DomName('WebGLRenderingContext.STENCIL_WRITEMASK')
+  @DocsEditable
   static const int STENCIL_WRITEMASK = 0x0B98;
 
+  @DomName('WebGLRenderingContext.STREAM_DRAW')
+  @DocsEditable
   static const int STREAM_DRAW = 0x88E0;
 
+  @DomName('WebGLRenderingContext.SUBPIXEL_BITS')
+  @DocsEditable
   static const int SUBPIXEL_BITS = 0x0D50;
 
+  @DomName('WebGLRenderingContext.TEXTURE')
+  @DocsEditable
   static const int TEXTURE = 0x1702;
 
+  @DomName('WebGLRenderingContext.TEXTURE0')
+  @DocsEditable
   static const int TEXTURE0 = 0x84C0;
 
+  @DomName('WebGLRenderingContext.TEXTURE1')
+  @DocsEditable
   static const int TEXTURE1 = 0x84C1;
 
+  @DomName('WebGLRenderingContext.TEXTURE10')
+  @DocsEditable
   static const int TEXTURE10 = 0x84CA;
 
+  @DomName('WebGLRenderingContext.TEXTURE11')
+  @DocsEditable
   static const int TEXTURE11 = 0x84CB;
 
+  @DomName('WebGLRenderingContext.TEXTURE12')
+  @DocsEditable
   static const int TEXTURE12 = 0x84CC;
 
+  @DomName('WebGLRenderingContext.TEXTURE13')
+  @DocsEditable
   static const int TEXTURE13 = 0x84CD;
 
+  @DomName('WebGLRenderingContext.TEXTURE14')
+  @DocsEditable
   static const int TEXTURE14 = 0x84CE;
 
+  @DomName('WebGLRenderingContext.TEXTURE15')
+  @DocsEditable
   static const int TEXTURE15 = 0x84CF;
 
+  @DomName('WebGLRenderingContext.TEXTURE16')
+  @DocsEditable
   static const int TEXTURE16 = 0x84D0;
 
+  @DomName('WebGLRenderingContext.TEXTURE17')
+  @DocsEditable
   static const int TEXTURE17 = 0x84D1;
 
+  @DomName('WebGLRenderingContext.TEXTURE18')
+  @DocsEditable
   static const int TEXTURE18 = 0x84D2;
 
+  @DomName('WebGLRenderingContext.TEXTURE19')
+  @DocsEditable
   static const int TEXTURE19 = 0x84D3;
 
+  @DomName('WebGLRenderingContext.TEXTURE2')
+  @DocsEditable
   static const int TEXTURE2 = 0x84C2;
 
+  @DomName('WebGLRenderingContext.TEXTURE20')
+  @DocsEditable
   static const int TEXTURE20 = 0x84D4;
 
+  @DomName('WebGLRenderingContext.TEXTURE21')
+  @DocsEditable
   static const int TEXTURE21 = 0x84D5;
 
+  @DomName('WebGLRenderingContext.TEXTURE22')
+  @DocsEditable
   static const int TEXTURE22 = 0x84D6;
 
+  @DomName('WebGLRenderingContext.TEXTURE23')
+  @DocsEditable
   static const int TEXTURE23 = 0x84D7;
 
+  @DomName('WebGLRenderingContext.TEXTURE24')
+  @DocsEditable
   static const int TEXTURE24 = 0x84D8;
 
+  @DomName('WebGLRenderingContext.TEXTURE25')
+  @DocsEditable
   static const int TEXTURE25 = 0x84D9;
 
+  @DomName('WebGLRenderingContext.TEXTURE26')
+  @DocsEditable
   static const int TEXTURE26 = 0x84DA;
 
+  @DomName('WebGLRenderingContext.TEXTURE27')
+  @DocsEditable
   static const int TEXTURE27 = 0x84DB;
 
+  @DomName('WebGLRenderingContext.TEXTURE28')
+  @DocsEditable
   static const int TEXTURE28 = 0x84DC;
 
+  @DomName('WebGLRenderingContext.TEXTURE29')
+  @DocsEditable
   static const int TEXTURE29 = 0x84DD;
 
+  @DomName('WebGLRenderingContext.TEXTURE3')
+  @DocsEditable
   static const int TEXTURE3 = 0x84C3;
 
+  @DomName('WebGLRenderingContext.TEXTURE30')
+  @DocsEditable
   static const int TEXTURE30 = 0x84DE;
 
+  @DomName('WebGLRenderingContext.TEXTURE31')
+  @DocsEditable
   static const int TEXTURE31 = 0x84DF;
 
+  @DomName('WebGLRenderingContext.TEXTURE4')
+  @DocsEditable
   static const int TEXTURE4 = 0x84C4;
 
+  @DomName('WebGLRenderingContext.TEXTURE5')
+  @DocsEditable
   static const int TEXTURE5 = 0x84C5;
 
+  @DomName('WebGLRenderingContext.TEXTURE6')
+  @DocsEditable
   static const int TEXTURE6 = 0x84C6;
 
+  @DomName('WebGLRenderingContext.TEXTURE7')
+  @DocsEditable
   static const int TEXTURE7 = 0x84C7;
 
+  @DomName('WebGLRenderingContext.TEXTURE8')
+  @DocsEditable
   static const int TEXTURE8 = 0x84C8;
 
+  @DomName('WebGLRenderingContext.TEXTURE9')
+  @DocsEditable
   static const int TEXTURE9 = 0x84C9;
 
+  @DomName('WebGLRenderingContext.TEXTURE_2D')
+  @DocsEditable
   static const int TEXTURE_2D = 0x0DE1;
 
+  @DomName('WebGLRenderingContext.TEXTURE_BINDING_2D')
+  @DocsEditable
   static const int TEXTURE_BINDING_2D = 0x8069;
 
+  @DomName('WebGLRenderingContext.TEXTURE_BINDING_CUBE_MAP')
+  @DocsEditable
   static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
 
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP')
+  @DocsEditable
   static const int TEXTURE_CUBE_MAP = 0x8513;
 
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_X')
+  @DocsEditable
   static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
 
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Y')
+  @DocsEditable
   static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
 
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Z')
+  @DocsEditable
   static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
 
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_X')
+  @DocsEditable
   static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
 
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Y')
+  @DocsEditable
   static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
 
+  @DomName('WebGLRenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Z')
+  @DocsEditable
   static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
 
+  @DomName('WebGLRenderingContext.TEXTURE_MAG_FILTER')
+  @DocsEditable
   static const int TEXTURE_MAG_FILTER = 0x2800;
 
+  @DomName('WebGLRenderingContext.TEXTURE_MIN_FILTER')
+  @DocsEditable
   static const int TEXTURE_MIN_FILTER = 0x2801;
 
+  @DomName('WebGLRenderingContext.TEXTURE_WRAP_S')
+  @DocsEditable
   static const int TEXTURE_WRAP_S = 0x2802;
 
+  @DomName('WebGLRenderingContext.TEXTURE_WRAP_T')
+  @DocsEditable
   static const int TEXTURE_WRAP_T = 0x2803;
 
+  @DomName('WebGLRenderingContext.TRIANGLES')
+  @DocsEditable
   static const int TRIANGLES = 0x0004;
 
+  @DomName('WebGLRenderingContext.TRIANGLE_FAN')
+  @DocsEditable
   static const int TRIANGLE_FAN = 0x0006;
 
+  @DomName('WebGLRenderingContext.TRIANGLE_STRIP')
+  @DocsEditable
   static const int TRIANGLE_STRIP = 0x0005;
 
+  @DomName('WebGLRenderingContext.UNPACK_ALIGNMENT')
+  @DocsEditable
   static const int UNPACK_ALIGNMENT = 0x0CF5;
 
+  @DomName('WebGLRenderingContext.UNPACK_COLORSPACE_CONVERSION_WEBGL')
+  @DocsEditable
   static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
 
+  @DomName('WebGLRenderingContext.UNPACK_FLIP_Y_WEBGL')
+  @DocsEditable
   static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
 
+  @DomName('WebGLRenderingContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL')
+  @DocsEditable
   static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
 
+  @DomName('WebGLRenderingContext.UNSIGNED_BYTE')
+  @DocsEditable
   static const int UNSIGNED_BYTE = 0x1401;
 
+  @DomName('WebGLRenderingContext.UNSIGNED_INT')
+  @DocsEditable
   static const int UNSIGNED_INT = 0x1405;
 
+  @DomName('WebGLRenderingContext.UNSIGNED_SHORT')
+  @DocsEditable
   static const int UNSIGNED_SHORT = 0x1403;
 
+  @DomName('WebGLRenderingContext.UNSIGNED_SHORT_4_4_4_4')
+  @DocsEditable
   static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
 
+  @DomName('WebGLRenderingContext.UNSIGNED_SHORT_5_5_5_1')
+  @DocsEditable
   static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
 
+  @DomName('WebGLRenderingContext.UNSIGNED_SHORT_5_6_5')
+  @DocsEditable
   static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
 
+  @DomName('WebGLRenderingContext.VALIDATE_STATUS')
+  @DocsEditable
   static const int VALIDATE_STATUS = 0x8B83;
 
+  @DomName('WebGLRenderingContext.VENDOR')
+  @DocsEditable
   static const int VENDOR = 0x1F00;
 
+  @DomName('WebGLRenderingContext.VERSION')
+  @DocsEditable
   static const int VERSION = 0x1F02;
 
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING')
+  @DocsEditable
   static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
 
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_ENABLED')
+  @DocsEditable
   static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
 
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_NORMALIZED')
+  @DocsEditable
   static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
 
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_POINTER')
+  @DocsEditable
   static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
 
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_SIZE')
+  @DocsEditable
   static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
 
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_STRIDE')
+  @DocsEditable
   static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
 
+  @DomName('WebGLRenderingContext.VERTEX_ATTRIB_ARRAY_TYPE')
+  @DocsEditable
   static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
 
+  @DomName('WebGLRenderingContext.VERTEX_SHADER')
+  @DocsEditable
   static const int VERTEX_SHADER = 0x8B31;
 
+  @DomName('WebGLRenderingContext.VIEWPORT')
+  @DocsEditable
   static const int VIEWPORT = 0x0BA2;
 
+  @DomName('WebGLRenderingContext.ZERO')
+  @DocsEditable
   static const int ZERO = 0;
 
   @DomName('WebGLRenderingContext.drawingBufferHeight')

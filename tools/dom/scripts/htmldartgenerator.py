@@ -131,8 +131,14 @@ class HtmlDartGenerator(object):
         self._interface.id, constant, constant.id, 'get:', dartify_name=False)
     if not const_name:
       return
+
+    annotations = self._metadata.GetFormattedMetadata(
+        self._library_name, self._interface, constant.id, '  ')
+
     type = TypeOrNothing(self._DartType(constant.type.id), constant.type.id)
-    self._members_emitter.Emit('\n  static const $TYPE$NAME = $VALUE;\n',
+    self._members_emitter.Emit(
+        '\n  $(ANNOTATIONS)static const $TYPE$NAME = $VALUE;\n',
+        ANNOTATIONS=annotations,
         NAME=const_name,
         TYPE=type,
         VALUE=constant.value)

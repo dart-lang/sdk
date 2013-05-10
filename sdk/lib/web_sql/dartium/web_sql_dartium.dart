@@ -114,20 +114,36 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
 class SqlError extends NativeFieldWrapperClass1 {
   SqlError.internal();
 
+  @DomName('SQLError.CONSTRAINT_ERR')
+  @DocsEditable
   static const int CONSTRAINT_ERR = 6;
 
+  @DomName('SQLError.DATABASE_ERR')
+  @DocsEditable
   static const int DATABASE_ERR = 1;
 
+  @DomName('SQLError.QUOTA_ERR')
+  @DocsEditable
   static const int QUOTA_ERR = 4;
 
+  @DomName('SQLError.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 5;
 
+  @DomName('SQLError.TIMEOUT_ERR')
+  @DocsEditable
   static const int TIMEOUT_ERR = 7;
 
+  @DomName('SQLError.TOO_LARGE_ERR')
+  @DocsEditable
   static const int TOO_LARGE_ERR = 3;
 
+  @DomName('SQLError.UNKNOWN_ERR')
+  @DocsEditable
   static const int UNKNOWN_ERR = 0;
 
+  @DomName('SQLError.VERSION_ERR')
+  @DocsEditable
   static const int VERSION_ERR = 2;
 
   @DomName('SQLError.code')
@@ -151,20 +167,36 @@ class SqlError extends NativeFieldWrapperClass1 {
 class SqlException extends NativeFieldWrapperClass1 {
   SqlException.internal();
 
+  @DomName('SQLException.CONSTRAINT_ERR')
+  @DocsEditable
   static const int CONSTRAINT_ERR = 6;
 
+  @DomName('SQLException.DATABASE_ERR')
+  @DocsEditable
   static const int DATABASE_ERR = 1;
 
+  @DomName('SQLException.QUOTA_ERR')
+  @DocsEditable
   static const int QUOTA_ERR = 4;
 
+  @DomName('SQLException.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 5;
 
+  @DomName('SQLException.TIMEOUT_ERR')
+  @DocsEditable
   static const int TIMEOUT_ERR = 7;
 
+  @DomName('SQLException.TOO_LARGE_ERR')
+  @DocsEditable
   static const int TOO_LARGE_ERR = 3;
 
+  @DomName('SQLException.UNKNOWN_ERR')
+  @DocsEditable
   static const int UNKNOWN_ERR = 0;
 
+  @DomName('SQLException.VERSION_ERR')
+  @DocsEditable
   static const int VERSION_ERR = 2;
 
   @DomName('SQLException.code')
