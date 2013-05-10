@@ -272,17 +272,6 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   TemplateInstance _templateInstance;
 
-  // TODO(arv): Consider storing all "NodeRareData" on a single object?
-  int __instanceTerminatorCount;
-  int get _instanceTerminatorCount {
-    if (__instanceTerminatorCount == null) return 0;
-    return __instanceTerminatorCount;
-  }
-  set _instanceTerminatorCount(int value) {
-    if (value == 0) value = null;
-    __instanceTerminatorCount = value;
-  }
-
   /** Gets the template instance that instantiated this node, if any. */
   @Experimental
   TemplateInstance get templateInstance =>
