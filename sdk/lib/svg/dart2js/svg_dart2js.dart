@@ -7,10 +7,10 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show Creates, Returns, JavaScriptIndexingBehavior, JSName;
 import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:svg library.
-
 
 
 
@@ -3110,7 +3110,7 @@ class Length native "SVGLength" {
 
 @DocsEditable
 @DomName('SVGLengthList')
-class LengthList extends Object with ListMixin<Length>, ImmutableListMixin<Length> implements JavaScriptIndexingBehavior, List<Length> native "SVGLengthList" {
+class LengthList extends Interceptor with ListMixin<Length>, ImmutableListMixin<Length> implements JavaScriptIndexingBehavior, List<Length> native "SVGLengthList" {
 
   @DomName('SVGLengthList.numberOfItems')
   @DocsEditable
@@ -3612,7 +3612,7 @@ class Number native "SVGNumber" {
 
 @DocsEditable
 @DomName('SVGNumberList')
-class NumberList extends Object with ListMixin<Number>, ImmutableListMixin<Number> implements JavaScriptIndexingBehavior, List<Number> native "SVGNumberList" {
+class NumberList extends Interceptor with ListMixin<Number>, ImmutableListMixin<Number> implements JavaScriptIndexingBehavior, List<Number> native "SVGNumberList" {
 
   @DomName('SVGNumberList.numberOfItems')
   @DocsEditable
@@ -4373,7 +4373,7 @@ class PathSegLinetoVerticalRel extends PathSeg native "SVGPathSegLinetoVerticalR
 
 @DocsEditable
 @DomName('SVGPathSegList')
-class PathSegList extends Object with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements JavaScriptIndexingBehavior, List<PathSeg> native "SVGPathSegList" {
+class PathSegList extends Interceptor with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements JavaScriptIndexingBehavior, List<PathSeg> native "SVGPathSegList" {
 
   @DomName('SVGPathSegList.numberOfItems')
   @DocsEditable
@@ -5164,7 +5164,7 @@ class StopElement extends StyledElement native "SVGStopElement" {
 
 @DocsEditable
 @DomName('SVGStringList')
-class StringList extends Object with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "SVGStringList" {
+class StringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "SVGStringList" {
 
   @DomName('SVGStringList.numberOfItems')
   @DocsEditable
@@ -6226,7 +6226,7 @@ class Transform native "SVGTransform" {
 
 @DocsEditable
 @DomName('SVGTransformList')
-class TransformList extends Object with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform>, JavaScriptIndexingBehavior native "SVGTransformList" {
+class TransformList extends Interceptor with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform>, JavaScriptIndexingBehavior native "SVGTransformList" {
 
   @DomName('SVGTransformList.numberOfItems')
   @DocsEditable
@@ -6623,7 +6623,7 @@ class ZoomEvent extends UIEvent native "SVGZoomEvent" {
 
 @DocsEditable
 @DomName('SVGElementInstanceList')
-class _ElementInstanceList extends Object with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements JavaScriptIndexingBehavior, List<ElementInstance> native "SVGElementInstanceList" {
+class _ElementInstanceList extends Interceptor with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements JavaScriptIndexingBehavior, List<ElementInstance> native "SVGElementInstanceList" {
 
   @DomName('SVGElementInstanceList.length')
   @DocsEditable

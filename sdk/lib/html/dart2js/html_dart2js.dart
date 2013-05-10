@@ -16,6 +16,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
+import 'dart:_interceptors' show Interceptor;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6860,7 +6861,7 @@ class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
 
 @DocsEditable
 @DomName('DOMStringList')
-class DomStringList extends Object with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "DOMStringList" {
+class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "DOMStringList" {
 
   @DomName('DOMStringList.length')
   @DocsEditable
@@ -9593,7 +9594,7 @@ class FileException native "FileException" {
 
 @DocsEditable
 @DomName('FileList')
-class FileList extends Object with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> native "FileList" {
+class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> native "FileList" {
 
   @DomName('FileList.length')
   @DocsEditable
@@ -10431,7 +10432,7 @@ class History implements HistoryBase native "History" {
 
 @DocsEditable
 @DomName('HTMLAllCollection')
-class HtmlAllCollection extends Object with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLAllCollection" {
+class HtmlAllCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLAllCollection" {
 
   @DomName('HTMLAllCollection.length')
   @DocsEditable
@@ -10502,7 +10503,7 @@ class HtmlAllCollection extends Object with ListMixin<Node>, ImmutableListMixin<
 
 @DocsEditable
 @DomName('HTMLCollection')
-class HtmlCollection extends Object with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLCollection" {
+class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLCollection" {
 
   @DomName('HTMLCollection.length')
   @DocsEditable
@@ -14135,7 +14136,7 @@ class MimeType native "MimeType" {
 
 @DocsEditable
 @DomName('MimeTypeArray')
-class MimeTypeArray extends Object with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
+class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
 
   @DomName('MimeTypeArray.length')
   @DocsEditable
@@ -15424,7 +15425,7 @@ class NodeIterator native "NodeIterator" {
 
 @DocsEditable
 @DomName('NodeList')
-class NodeList extends Object with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NodeList,RadioNodeList" {
+class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NodeList,RadioNodeList" {
 
   @DomName('NodeList.length')
   @DocsEditable
@@ -16448,7 +16449,7 @@ class Plugin native "Plugin" {
 
 @DocsEditable
 @DomName('PluginArray')
-class PluginArray extends Object with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
+class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
 
   @DomName('PluginArray.length')
   @DocsEditable
@@ -18295,7 +18296,7 @@ class SpeechGrammar native "SpeechGrammar" {
 
 @DocsEditable
 @DomName('SpeechGrammarList')
-class SpeechGrammarList extends Object with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "SpeechGrammarList" {
+class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "SpeechGrammarList" {
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable
@@ -19773,7 +19774,7 @@ class TextTrackCue extends EventTarget native "TextTrackCue" {
 
 @DocsEditable
 @DomName('TextTrackCueList')
-class TextTrackCueList extends Object with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior native "TextTrackCueList" {
+class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior native "TextTrackCueList" {
 
   @DomName('TextTrackCueList.length')
   @DocsEditable
@@ -20130,7 +20131,7 @@ class TouchEvent extends UIEvent native "TouchEvent" {
 
 
 @DomName('TouchList')
-class TouchList extends Object with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> native "TouchList" {
+class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> native "TouchList" {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -22504,7 +22505,7 @@ class _ClientRect implements Rect native "ClientRect" {
 
 @DocsEditable
 @DomName('ClientRectList')
-class _ClientRectList extends Object with ListMixin<Rect>, ImmutableListMixin<Rect> implements JavaScriptIndexingBehavior, List<Rect> native "ClientRectList" {
+class _ClientRectList extends Interceptor with ListMixin<Rect>, ImmutableListMixin<Rect> implements JavaScriptIndexingBehavior, List<Rect> native "ClientRectList" {
 
   @DomName('ClientRectList.length')
   @DocsEditable
@@ -22574,7 +22575,7 @@ abstract class _Counter native "Counter" {
 
 @DocsEditable
 @DomName('CSSRuleList')
-class _CssRuleList extends Object with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> native "CSSRuleList" {
+class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> native "CSSRuleList" {
 
   @DomName('CSSRuleList.length')
   @DocsEditable
@@ -22785,7 +22786,7 @@ abstract class _EntityReference extends Node native "EntityReference" {
 
 @DocsEditable
 @DomName('EntryArray')
-class _EntryArray extends Object with ListMixin<Entry>, ImmutableListMixin<Entry> implements JavaScriptIndexingBehavior, List<Entry> native "EntryArray" {
+class _EntryArray extends Interceptor with ListMixin<Entry>, ImmutableListMixin<Entry> implements JavaScriptIndexingBehavior, List<Entry> native "EntryArray" {
 
   @DomName('EntryArray.length')
   @DocsEditable
@@ -22846,7 +22847,7 @@ class _EntryArray extends Object with ListMixin<Entry>, ImmutableListMixin<Entry
 
 @DocsEditable
 @DomName('EntryArraySync')
-class _EntryArraySync extends Object with ListMixin<_EntrySync>, ImmutableListMixin<_EntrySync> implements JavaScriptIndexingBehavior, List<_EntrySync> native "EntryArraySync" {
+class _EntryArraySync extends Interceptor with ListMixin<_EntrySync>, ImmutableListMixin<_EntrySync> implements JavaScriptIndexingBehavior, List<_EntrySync> native "EntryArraySync" {
 
   @DomName('EntryArraySync.length')
   @DocsEditable
@@ -22950,7 +22951,7 @@ abstract class _FileWriterSync native "FileWriterSync" {
 
 @DocsEditable
 @DomName('GamepadList')
-class _GamepadList extends Object with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> native "GamepadList" {
+class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> native "GamepadList" {
 
   @DomName('GamepadList.length')
   @DocsEditable
@@ -23074,7 +23075,7 @@ abstract class _HTMLMarqueeElement extends Element native "HTMLMarqueeElement" {
 
 @DocsEditable
 @DomName('NamedNodeMap')
-class _NamedNodeMap extends Object with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap" {
+class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap" {
 
   @DomName('NamedNodeMap.length')
   @DocsEditable
@@ -23224,7 +23225,7 @@ abstract class _SharedWorkerContext extends _WorkerContext native "SharedWorkerC
 
 @DocsEditable
 @DomName('SpeechInputResultList')
-class _SpeechInputResultList extends Object with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
+class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
 
   @DomName('SpeechInputResultList.length')
   @DocsEditable
@@ -23285,7 +23286,7 @@ class _SpeechInputResultList extends Object with ListMixin<SpeechInputResult>, I
 
 @DocsEditable
 @DomName('SpeechRecognitionResultList')
-class _SpeechRecognitionResultList extends Object with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "SpeechRecognitionResultList" {
+class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "SpeechRecognitionResultList" {
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable
@@ -23346,7 +23347,7 @@ class _SpeechRecognitionResultList extends Object with ListMixin<SpeechRecogniti
 
 @DocsEditable
 @DomName('StyleSheetList')
-class _StyleSheetList extends Object with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> native "StyleSheetList" {
+class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> native "StyleSheetList" {
 
   @DomName('StyleSheetList.length')
   @DocsEditable

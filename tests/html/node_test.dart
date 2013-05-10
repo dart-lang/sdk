@@ -335,28 +335,81 @@ main() {
     });
   });
 
-  group('_NodeList', () {
+  group('NodeList', () {
+    // Tests for methods on the DOM class 'NodeList'.
+    //
+    // There are two interesting things that are checked here from the viewpoint
+    // of the dart2js implementation of a 'native' class:
+    //
+    //   1. Some methods are implementated from by 'Object' or 'Interceptor';
+    //      some of these tests simply check that a method can be called.
+    //   2. Some methods are implemented by mixins.
+
     List<Node> makeNodeList() =>
-      makeNodeWithChildren().nodes.where((_) => true).toList();
+        (new Element.html("<div>Foo<br/><!--baz--><br/><br/></div>"))
+        .$dom_getElementsByTagName('br');
+
+    test('trueNodeList', () {
+      var nodes = makeNodeList();
+      expect(nodes is NodeList, true);
+    });
+
+    test('hashCode', () {
+      var nodes = makeNodeList();
+      var hash = nodes.hashCode;
+      final int N = 1000;
+      int matchCount = 0;
+      for (int i = 0; i < N; i++) {
+        if (makeNodeList().hashCode == hash) matchCount++;
+      }
+      expect(matchCount, lessThan(N));
+    });
+
+    test('operator==', () {
+      var a = [makeNodeList(), makeNodeList(), null];
+      for (int i = 0; i < a.length; i++) {
+        for (int j = 0; j < a.length; j++) {
+          expect(i == j,  a[i] == a[j]);
+        }
+      }
+    });
+
+    test('runtimeType', () {
+      var nodes1 = makeNodeList();
+      var nodes2 = makeNodeList();
+      var type1 = nodes1.runtimeType;
+      var type2 = nodes2.runtimeType;
+      expect(type1 == type2, true);
+      String name = '$type1';
+      if (name.length > 3) {
+        expect(name.contains('NodeList'), true);
+      }
+    });
 
     test('first', () {
       var nodes = makeNodeList();
-      expect(nodes.first, isText);
+      expect(nodes.first, isBRElement);
+    });
+
+    test('last', () {
+      var nodes = makeNodeList();
+      expect(nodes.last, isBRElement);
     });
 
     test('where', () {
       var filtered = makeNodeList().where((n) => n is BRElement).toList();
-      expect(filtered.length, 1);
+      expect(filtered.length, 3);
       expect(filtered[0], isBRElement);
       expect(filtered, isNodeList);
     });
 
     test('sublist', () {
       var range = makeNodeList().sublist(1, 3);
-      expect(range, isNodeList);
+      expect(range.length, 2);
       expect(range[0], isBRElement);
-      expect(range[1], isComment);
+      expect(range[1], isBRElement);
     });
+
   });
 
   group('iterating', () {
