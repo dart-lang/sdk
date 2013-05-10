@@ -272,7 +272,7 @@ Language/13_Libraries_and_Scripts/1_Imports_A01_t46: fail
 Language/13_Libraries_and_Scripts/1_Imports_A02_t12: fail
 Language/13_Libraries_and_Scripts/1_Imports_A02_t15: fail
 Language/13_Libraries_and_Scripts/1_Imports_A04_t03: fail
-Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail
+Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail # co19 issue 411
 Language/13_Libraries_and_Scripts/2_Exports_A05_t01: fail
 Language/13_Libraries_and_Scripts/5_URIs_A01_t24: fail
 Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail
