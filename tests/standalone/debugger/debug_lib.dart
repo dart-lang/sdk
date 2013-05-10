@@ -241,6 +241,12 @@ class RunCommand extends Command {
   RunCommand.step() {
     template = {"id": 0, "command": "stepOver", "params": {"isolateId": 0}};
   }
+  RunCommand.stepInto() {
+    template = {"id": 0, "command": "stepInto", "params": {"isolateId": 0}};
+  }
+  RunCommand.stepOut() {
+    template = {"id": 0, "command": "stepOut", "params": {"isolateId": 0}};
+  }
   void send(Debugger debugger) {
     debugger.sendMessage(template);
     debugger.isPaused = false;
@@ -250,7 +256,8 @@ class RunCommand extends Command {
 
 Resume() => new RunCommand.resume();
 Step() => new RunCommand.step();
-
+StepInto() => new RunCommand.stepInto();
+StepOut() => new RunCommand.stepOut();
 
 class SetBreakpointCommand extends Command {
   int line;
