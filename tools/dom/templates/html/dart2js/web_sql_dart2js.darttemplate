@@ -21,6 +21,5 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor;
 
 $!GENERATED_DART_FILES

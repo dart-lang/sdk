@@ -8,7 +8,6 @@ import 'dart:html_common';
 import 'dart:typed_data';
 import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
-import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
