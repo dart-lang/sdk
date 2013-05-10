@@ -7081,6 +7081,7 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
     case PcDescriptors::kIcCall:        return "ic-call      ";
     case PcDescriptors::kFuncCall:      return "fn-call      ";
+    case PcDescriptors::kClosureCall:   return "closure-call ";
     case PcDescriptors::kReturn:        return "return       ";
     case PcDescriptors::kOther:         return "other        ";
   }

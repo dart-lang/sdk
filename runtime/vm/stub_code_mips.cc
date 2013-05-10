@@ -1703,6 +1703,12 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
+  // TODO(hausner): implement this stub.
+  __ Branch(&StubCode::CallClosureFunctionLabel());
+}
+
+
 //  RA: return address (Dart code).
 //  S4: Arguments descriptor array.
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {

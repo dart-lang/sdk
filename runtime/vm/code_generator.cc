@@ -805,6 +805,16 @@ static void CheckResultError(const Object& result) {
 }
 
 
+// Gets called from debug stub when code reaches a breakpoint before
+// calling a closure.
+DEFINE_RUNTIME_ENTRY(BreakpointClosureHandler, 0) {
+  ASSERT(arguments.ArgCount() ==
+         kBreakpointClosureHandlerRuntimeEntry.argument_count());
+  ASSERT(isolate->debugger() != NULL);
+  isolate->debugger()->SignalBpReached();
+}
+
+
 // Gets called from debug stub when code reaches a breakpoint.
 DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
   ASSERT(arguments.ArgCount() ==

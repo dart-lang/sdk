@@ -1708,6 +1708,17 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 
 
 //  EDX: Arguments descriptor array.
+void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ pushl(EDX);  // Push arguments descriptor.
+  __ CallRuntime(kBreakpointClosureHandlerRuntimeEntry);
+  __ popl(EDX);  // Restore arguments descriptor.
+  __ LeaveFrame();
+  __ jmp(&StubCode::CallClosureFunctionLabel());
+}
+
+
+//  EDX: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before

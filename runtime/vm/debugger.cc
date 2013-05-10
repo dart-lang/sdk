@@ -603,6 +603,7 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
   ASSERT((breakpoint_kind_ == PcDescriptors::kIcCall) ||
          (breakpoint_kind_ == PcDescriptors::kFuncCall) ||
+         (breakpoint_kind_ == PcDescriptors::kClosureCall) ||
          (breakpoint_kind_ == PcDescriptors::kReturn));
 }
 
@@ -665,6 +666,15 @@ void CodeBreakpoint::PatchCode() {
                                      StubCode::BreakpointStaticEntryPoint());
       break;
     }
+    case PcDescriptors::kClosureCall: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      saved_bytes_.target_address_ =
+          CodePatcher::GetStaticCallTargetAt(pc_, code);
+      CodePatcher::PatchStaticCallAt(pc_, code,
+                                     StubCode::BreakpointClosureEntryPoint());
+      break;
+    }
     case PcDescriptors::kReturn:
       PatchFunctionReturn();
       break;
@@ -685,7 +695,8 @@ void CodeBreakpoint::RestoreCode() {
                                        saved_bytes_.target_address_);
       break;
     }
-    case PcDescriptors::kFuncCall: {
+    case PcDescriptors::kFuncCall:
+    case PcDescriptors::kClosureCall: {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       CodePatcher::PatchStaticCallAt(pc_, code,
@@ -874,6 +885,7 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
     PcDescriptors::Kind kind = desc.DescriptorKind(i);
     if ((kind == PcDescriptors::kIcCall) ||
         (kind == PcDescriptors::kFuncCall) ||
+        (kind == PcDescriptors::kClosureCall) ||
         (kind == PcDescriptors::kReturn)) {
       bpt = new CodeBreakpoint(target_function, i);
       RegisterCodeBreakpoint(bpt);
@@ -1041,6 +1053,7 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
     PcDescriptors::Kind kind = desc.DescriptorKind(i);
     if ((kind == PcDescriptors::kIcCall) ||
         (kind == PcDescriptors::kFuncCall) ||
+        (kind == PcDescriptors::kClosureCall) ||
         (kind == PcDescriptors::kReturn)) {
       if ((desc_token_pos - first_token_pos) < best_fit) {
         best_fit = desc_token_pos - first_token_pos;
@@ -1572,6 +1585,25 @@ void Debugger::SignalBpReached() {
       ASSERT(!callee.IsNull());
       if (IsDebuggable(callee)) {
         func_to_instrument = callee.raw();
+      }
+    } else if (bpt->breakpoint_kind_ == PcDescriptors::kClosureCall) {
+      func_to_instrument = bpt->function();
+      const Code& code = Code::Handle(func_to_instrument.CurrentCode());
+      ArgumentsDescriptor args_desc(Array::Handle(
+          CodePatcher::GetClosureArgDescAt(bpt->pc_, code)));
+      ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
+      const Object& receiver =
+          Object::Handle(top_frame->GetClosureObject(args_desc.Count()));
+      if (!receiver.IsNull()) {
+        // Verify that the class of receiver is a closure class
+        // by checking that signature_function() is not null.
+        const Class& receiver_class = Class::Handle(receiver.clazz());
+        if (receiver_class.IsSignatureClass()) {
+          func_to_instrument = Closure::function(Instance::Cast(receiver));
+        }
+        // If the receiver is not a closure, then the runtime will attempt
+        // to invoke the "call" method on the object if one exists.
+        // TODO(hausner): find call method and intrument it for stepping.
       }
     } else {
       ASSERT(bpt->breakpoint_kind_ == PcDescriptors::kReturn);

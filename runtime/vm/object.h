@@ -2421,7 +2421,8 @@ class PcDescriptors : public Object {
     kPatchCode,        // Buffer for patching code entry.
     kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.
-    kFuncCall,         // Call to known target, e.g. static call, closure call.
+    kFuncCall,         // Call to known target, e.g. static call.
+    kClosureCall,      // Closure call.
     kReturn,           // Return from function.
     kOther
   };

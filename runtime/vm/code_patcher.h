@@ -56,6 +56,11 @@ class CodePatcher : public AllStatic {
                                  ICData* ic_data,
                                  Array* arguments_descriptor);
 
+  // Return the arguments descriptor array of the closure call
+  // before the given return address.
+  static RawArray* GetClosureArgDescAt(uword return_address,
+                                       const Code& code);
+
   static intptr_t InstanceCallSizeInBytes();
 
   static void InsertCallAt(uword start, uword target);

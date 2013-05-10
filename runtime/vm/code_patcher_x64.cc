@@ -125,6 +125,46 @@ class StaticCall : public ValueObject {
 };
 
 
+// The expected code pattern of a dart closure call:
+//  00: 49 ba imm64  mov R10, immediate 2      ; 10 bytes
+//  10: 49 bb imm64  mov R11, target_address   ; 10 bytes
+//  20: 41 ff d3     call R11                  ; 3 bytes
+//  23: <- return_address
+class ClosureCall : public ValueObject {
+ public:
+  explicit ClosureCall(uword return_address)
+      : start_(return_address - kCallPatternSize) {
+    ASSERT(IsValid(return_address));
+  }
+
+  static bool IsValid(uword return_address) {
+    uint8_t* code_bytes =
+        reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
+    return (code_bytes[00] == 0x49) && (code_bytes[01] == 0xBA) &&
+           (code_bytes[10] == 0x49) && (code_bytes[11] == 0xBB) &&
+           (code_bytes[20] == 0x41) && (code_bytes[21] == 0xFF) &&
+           (code_bytes[22] == 0xD3);
+  }
+
+  RawArray* arguments_descriptor() const {
+    return *reinterpret_cast<RawArray**>(start_ + 2);
+  }
+
+ private:
+  static const int kCallPatternSize = 10 + 10 + 3;
+  uword start_;
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ClosureCall);
+};
+
+
+RawArray* CodePatcher::GetClosureArgDescAt(uword return_address,
+                                           const Code& code) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  ClosureCall call(return_address);
+  return call.arguments_descriptor();
+}
+
+
 uword CodePatcher::GetStaticCallTargetAt(uword return_address,
                                          const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));

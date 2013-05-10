@@ -3948,7 +3948,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
                              &StubCode::CallClosureFunctionLabel(),
-                             PcDescriptors::kOther,
+                             PcDescriptors::kClosureCall,
                              locs());
   __ Drop(argument_count);
 }

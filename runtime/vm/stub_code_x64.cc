@@ -1682,6 +1682,19 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
+
+//  R10: Arguments descriptor array.
+//  TOS(0): return address (Dart code).
+void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ pushq(R10);       // Preserve arguments descriptor.
+  __ CallRuntime(kBreakpointClosureHandlerRuntimeEntry);
+  __ popq(R10);  // Restore arguments descriptor.
+  __ LeaveFrame();
+  __ jmp(&StubCode::CallClosureFunctionLabel());
+}
+
+
 //  R10: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
