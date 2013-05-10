@@ -67,7 +67,6 @@
   },
   "AudioBuffer": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section",
-    "dart_action": "default",
     "members": {
       "duration": {},
       "gain": {},
@@ -274,7 +273,6 @@
   },
   "CSSCharsetRule": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface",
-    "dart_action": "default",
     "members": {
       "encoding": {}
     },
@@ -428,7 +426,6 @@
   "CSSStyleDeclaration": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
     "members": {
-      "_getPropertyValue": {},
       "cssText": {},
       "getPropertyCSSValue": {
         "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
@@ -440,9 +437,7 @@
         "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
         "support_level": "nonstandard"
       },
-      "getPropertyValue": {
-        "support_level": "untriaged"
-      },
+      "getPropertyValue": {},
       "isPropertyImplicit": {
         "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
         "support_level": "nonstandard"
@@ -984,10 +979,6 @@
     },
     "support_level": "stable"
   },
-  "DOMException": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "DOMFileSystem": {
     "comment": "http://www.w3.org/TR/file-system-api/",
     "members": {
@@ -1407,7 +1398,7 @@
         "support_level": "untriaged"
       },
       "onwebkitTransitionEnd": {
-        "support_level": "untriaged"
+        "support_level": "deprecated"
       },
       "onwebkitanimationend": {
         "support_level": "experimental"
@@ -1419,7 +1410,7 @@
         "support_level": "experimental"
       },
       "onwebkittransitionend": {
-        "support_level": "experimental"
+        "support_level": "deprecated"
       },
       "open": {},
       "openDatabase": {
@@ -2102,6 +2093,7 @@
     "support_level": "experimental"
   },
   "Element": {
+    "comment": "http://dom.spec.whatwg.org/#interface-element",
     "members": {
       "ALLOW_KEYBOARD_INPUT": {
         "comment": "https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen",
@@ -2112,30 +2104,40 @@
       "blur": {},
       "childElementCount": {},
       "children": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "classList": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#dom-classlist"
       },
       "className": {},
       "click": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "clientHeight": {},
       "clientLeft": {},
       "clientTop": {},
       "clientWidth": {},
       "contentEditable": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "dataset": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#dom-dataset"
       },
       "dir": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "draggable": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "firstElementChild": {},
       "focus": {},
@@ -2162,19 +2164,29 @@
       "hasAttributeNS": {},
       "hasAttributes": {},
       "hidden": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "id": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "innerHTML": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "isContentEditable": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "lang": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "lastElementChild": {},
       "nextElementSibling": {},
@@ -2242,10 +2254,12 @@
         "support_level": "experimental"
       },
       "ontouchenter": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/touch-events/",
+        "support_level": "experimental"
       },
       "ontouchleave": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/touch-events/",
+        "support_level": "experimental"
       },
       "ontouchmove": {
         "comment": "http://www.w3.org/TR/touch-events/",
@@ -2256,7 +2270,7 @@
         "support_level": "experimental"
       },
       "onwebkitTransitionEnd": {
-        "support_level": "untriaged"
+        "support_level": "deprecated"
       },
       "onwebkitfullscreenchange": {
         "comment": "https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html",
@@ -2267,7 +2281,9 @@
         "support_level": "experimental"
       },
       "outerHTML": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "previousElementSibling": {},
       "querySelector": {},
@@ -2305,18 +2321,25 @@
       },
       "setAttributeNodeNS": {},
       "spellcheck": {
-        "support_level": "untriaged"
+        "comment": "http://blog.whatwg.org/the-road-to-html-5-spellchecking",
+        "dart_action": "experimental",
+        "support_level": "nonstandard"
       },
       "style": {},
       "tabIndex": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "tagName": {},
       "title": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/2007-10-26/multipage/section-elements.html#htmlelement",
+        "dart_action": "stable",
+        "support_level": "nonstandard"
       },
       "translate": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute",
+        "support_level": "experimental"
       },
       "webkitCreateShadowRoot": {
         "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root",
@@ -2360,7 +2383,8 @@
         "support_level": "experimental"
       },
       "webkitdropzone": {
-        "support_level": "untriaged"
+        "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute",
+        "support_level": "experimental"
       }
     },
     "support_level": "stable"
@@ -2931,7 +2955,6 @@
   },
   "HTMLAnchorElement": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/text-level-semantics.html#the-a-element",
-    "dart_action": "unstable",
     "members": {
       "HTMLAnchorElement": {},
       "charset": {
@@ -3350,7 +3373,11 @@
         "dart_action": "suppress",
         "support_level": "nonstandard"
       },
-      "spellcheck": {},
+      "spellcheck": {
+        "comment": "http://blog.whatwg.org/the-road-to-html-5-spellchecking",
+        "dart_action": "experimental",
+        "support_level": "nonstandard"
+      },
       "tabIndex": {},
       "title": {},
       "translate": {},
@@ -3708,7 +3735,8 @@
       "multiple": {},
       "name": {},
       "onwebkitSpeechChange": {
-        "support_level": "untriaged"
+        "comment": "http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements",
+        "support_level": "experimental"
       },
       "onwebkitspeechchange": {
         "comment": "http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements",
@@ -4838,9 +4866,7 @@
     "dart_action": "unstable",
     "members": {
       "advance": {},
-      "continue": {
-        "support_level": "untriaged"
-      },
+      "continue": {},
       "delete": {},
       "direction": {},
       "key": {},
@@ -4915,30 +4941,22 @@
     "comment": "http://www.w3.org/TR/IndexedDB/#idl-def-IDBKeyRange",
     "dart_action": "unstable",
     "members": {
-      "bound": {
-        "support_level": "untriaged"
-      },
+      "bound": {},
       "bound_": {
         "support_level": "nonstandard"
       },
       "lower": {},
-      "lowerBound": {
-        "support_level": "untriaged"
-      },
+      "lowerBound": {},
       "lowerBound_": {
         "support_level": "nonstandard"
       },
       "lowerOpen": {},
-      "only": {
-        "support_level": "untriaged"
-      },
+      "only": {},
       "only_": {
         "support_level": "nonstandard"
       },
       "upper": {},
-      "upperBound": {
-        "support_level": "untriaged"
-      },
+      "upperBound": {},
       "upperBound_": {
         "support_level": "nonstandard"
       },
@@ -5337,12 +5355,8 @@
   "MediaStreamTrack": {
     "comment": "http://dev.w3.org/2011/webrtc/editor/getusermedia.html#mediastreamtrack",
     "members": {
-      "addEventListener": {
-        "dart_action": "default"
-      },
-      "dispatchEvent": {
-        "dart_action": "default"
-      },
+      "addEventListener": {},
+      "dispatchEvent": {},
       "enabled": {},
       "id": {},
       "kind": {},
@@ -5430,14 +5444,6 @@
     },
     "support_level": "experimental"
   },
-  "MimeType": {
-    "members": {},
-    "support_level": "untriaged"
-  },
-  "MimeTypeArray": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "MouseEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#events-mouseevents",
     "members": {
@@ -5514,13 +5520,10 @@
   },
   "MutationObserver": {
     "comment": "http://www.w3.org/TR/domcore/#interface-mutationobserver",
-    "dart_action": "default",
     "members": {
       "_observe": {},
       "disconnect": {},
-      "observe": {
-        "support_level": "untriaged"
-      },
+      "observe": {},
       "takeRecords": {}
     },
     "support_level": "stable"
@@ -5574,7 +5577,6 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigator",
     "members": {
       "appCodeName": {
-        "dart_action": "default",
         "support_level": "nonstandard"
       },
       "appName": {
@@ -5703,9 +5705,7 @@
     "comment": "http://dom.spec.whatwg.org/#interface-node",
     "members": {
       "ATTRIBUTE_NODE": {},
-      "CDATA_SECTION_NODE": {
-        "dart_action": "default"
-      },
+      "CDATA_SECTION_NODE": {},
       "COMMENT_NODE": {},
       "DOCUMENT_FRAGMENT_NODE": {},
       "DOCUMENT_NODE": {},
@@ -5724,9 +5724,7 @@
       "TEXT_NODE": {},
       "addEventListener": {},
       "appendChild": {},
-      "baseURI": {
-        "dart_action": "default"
-      },
+      "baseURI": {},
       "childNodes": {},
       "cloneNode": {},
       "compareDocumentPosition": {},
@@ -6090,10 +6088,6 @@
     },
     "support_level": "experimental"
   },
-  "Path": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "Performance": {
     "comment": "http://www.w3.org/TR/navigation-timing/#performance",
     "members": {
@@ -6244,14 +6238,6 @@
       "unloadEventStart": {}
     },
     "support_level": "stable"
-  },
-  "Plugin": {
-    "members": {},
-    "support_level": "untriaged"
-  },
-  "PluginArray": {
-    "members": {},
-    "support_level": "untriaged"
   },
   "PopStateEvent": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#popstateevent",
@@ -6701,50 +6687,50 @@
     "members": {
       "SVGAElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "target": {},
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -6763,7 +6749,7 @@
       "format": {},
       "glyphRef": {},
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       }
     },
     "support_level": "stable"
@@ -6936,34 +6922,34 @@
     "members": {
       "SVGAnimationElement": {},
       "beginElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/animate.html#InterfaceElementTimeControl"
       },
       "beginElementAt": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/animate.html#InterfaceElementTimeControl"
       },
       "endElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/animate.html#InterfaceElementTimeControl"
       },
       "endElementAt": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/animate.html#InterfaceElementTimeControl"
       },
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "getCurrentTime": {},
       "getSimpleDuration": {},
       "getStartTime": {},
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "targetElement": {}
     },
@@ -6977,47 +6963,47 @@
       "cx": {},
       "cy": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "r": {},
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -7029,46 +7015,46 @@
       "SVGClipPathElement": {},
       "clipPathUnits": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -7125,46 +7111,46 @@
     "members": {
       "SVGDefsElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -7175,10 +7161,10 @@
     "members": {
       "SVGDescElement": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -7278,48 +7264,48 @@
       "cx": {},
       "cy": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "rx": {},
       "ry": {},
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -7364,22 +7350,22 @@
       "SVG_FEBLEND_MODE_SCREEN": {},
       "SVG_FEBLEND_MODE_UNKNOWN": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "in2": {},
       "mode": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7395,22 +7381,22 @@
       "SVG_FECOLORMATRIX_TYPE_SATURATE": {},
       "SVG_FECOLORMATRIX_TYPE_UNKNOWN": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "type": {},
       "values": {},
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7421,20 +7407,20 @@
     "members": {
       "SVGFEComponentTransferElement": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7451,7 +7437,7 @@
       "SVG_FECOMPOSITE_OPERATOR_UNKNOWN": {},
       "SVG_FECOMPOSITE_OPERATOR_XOR": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "in2": {},
@@ -7461,16 +7447,16 @@
       "k4": {},
       "operator": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7488,7 +7474,7 @@
       "divisor": {},
       "edgeMode": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "kernelMatrix": {},
@@ -7498,18 +7484,18 @@
       "orderY": {},
       "preserveAlpha": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "targetX": {},
       "targetY": {},
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7521,23 +7507,23 @@
       "SVGFEDiffuseLightingElement": {},
       "diffuseConstant": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "kernelUnitLengthX": {},
       "kernelUnitLengthY": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "surfaceScale": {},
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7553,23 +7539,23 @@
       "SVG_CHANNEL_R": {},
       "SVG_CHANNEL_UNKNOWN": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "in2": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "scale": {},
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "xChannelSelector": {},
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "yChannelSelector": {}
     },
@@ -7603,19 +7589,19 @@
     "members": {
       "SVGFEFloodElement": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7658,23 +7644,23 @@
     "members": {
       "SVGFEGaussianBlurElement": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "setStdDeviation": {},
       "stdDeviationX": {},
       "stdDeviationY": {},
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7685,32 +7671,32 @@
     "members": {
       "SVGFEImageElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "preserveAspectRatio": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7721,19 +7707,19 @@
     "members": {
       "SVGFEMergeElement": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7755,24 +7741,24 @@
       "SVG_MORPHOLOGY_OPERATOR_ERODE": {},
       "SVG_MORPHOLOGY_OPERATOR_UNKNOWN": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "operator": {},
       "radiusX": {},
       "radiusY": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "setRadius": {},
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7785,20 +7771,20 @@
       "dx": {},
       "dy": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7820,23 +7806,23 @@
     "members": {
       "SVGFESpecularLightingElement": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "specularConstant": {},
       "specularExponent": {},
       "surfaceScale": {},
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7863,20 +7849,20 @@
     "members": {
       "SVGFETileElement": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "in1": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7895,23 +7881,23 @@
       "baseFrequencyX": {},
       "baseFrequencyY": {},
       "height": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "numOctaves": {},
       "result": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "seed": {},
       "stitchTiles": {},
       "type": {},
       "width": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "x": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       },
       "y": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/filters.html#InterfaceSVGFilterPrimitiveStandardAttributes"
       }
     },
     "support_level": "stable"
@@ -7922,24 +7908,24 @@
     "members": {
       "SVGFilterElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "filterResX": {},
       "filterResY": {},
       "filterUnits": {},
       "height": {},
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "primitiveUnits": {},
       "setFilterRes": {},
       "width": {},
       "x": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {}
     },
@@ -8008,49 +7994,49 @@
     "members": {
       "SVGForeignObjectElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "height": {},
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "width": {},
       "x": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {}
     },
@@ -8062,46 +8048,46 @@
     "members": {
       "SVGGElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -8136,12 +8122,12 @@
       "SVG_SPREADMETHOD_REPEAT": {},
       "SVG_SPREADMETHOD_UNKNOWN": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "gradientTransform": {},
       "gradientUnits": {},
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "spreadMethod": {}
     },
@@ -8161,53 +8147,53 @@
     "members": {
       "SVGImageElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "height": {},
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "preserveAspectRatio": {},
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "width": {},
       "x": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {}
     },
@@ -8267,48 +8253,48 @@
     "members": {
       "SVGLineElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "x1": {},
       "x2": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y1": {},
       "y2": {}
@@ -8359,7 +8345,7 @@
       "SVG_MARKER_ORIENT_AUTO": {},
       "SVG_MARKER_ORIENT_UNKNOWN": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "markerHeight": {},
       "markerUnits": {},
@@ -8367,20 +8353,20 @@
       "orientAngle": {},
       "orientType": {},
       "preserveAspectRatio": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "refX": {},
       "refY": {},
       "setOrientToAngle": {},
       "setOrientToAuto": {},
       "viewBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -8391,30 +8377,30 @@
     "members": {
       "SVGMaskElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "height": {},
       "maskContentUnits": {},
       "maskUnits": {},
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "width": {},
       "x": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {}
     },
@@ -8527,52 +8513,52 @@
       "createSVGPathSegMovetoAbs": {},
       "createSVGPathSegMovetoRel": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getPathSegAtLength": {},
       "getPointAtLength": {},
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTotalLength": {},
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "normalizedPathSegList": {},
       "pathLength": {},
       "pathSegList": {},
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -8817,40 +8803,40 @@
     "members": {
       "SVGPatternElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "height": {},
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "patternContentUnits": {},
       "patternTransform": {},
       "patternUnits": {},
       "preserveAspectRatio": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "viewBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "width": {},
       "x": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {}
     },
@@ -8888,47 +8874,47 @@
       "SVGPolygonElement": {},
       "animatedPoints": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "points": {},
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -8940,47 +8926,47 @@
       "SVGPolylineElement": {},
       "animatedPoints": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "points": {},
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -9039,51 +9025,51 @@
     "members": {
       "SVGRectElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "height": {},
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "rx": {},
       "ry": {},
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "width": {},
       "x": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {}
     },
@@ -9124,76 +9110,76 @@
       "currentView": {},
       "deselectAll": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "forceRedraw": {},
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCurrentTime": {},
       "getElementById": {},
       "getEnclosureList": {},
       "getIntersectionList": {},
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "height": {},
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "pauseAnimations": {},
       "pixelUnitToMillimeterX": {},
       "pixelUnitToMillimeterY": {},
       "preserveAspectRatio": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "screenPixelToMillimeterX": {},
       "screenPixelToMillimeterY": {},
       "setCurrentTime": {},
       "suspendRedraw": {},
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "unpauseAnimations": {},
       "unsuspendRedraw": {},
       "unsuspendRedrawAll": {},
       "useCurrentView": {},
       "viewBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "viewport": {},
       "width": {},
       "x": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {},
       "zoomAndPan": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGZoomAndPan"
       }
     },
     "support_level": "stable"
@@ -9204,10 +9190,10 @@
     "members": {
       "SVGScriptElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "type": {}
     },
@@ -9255,10 +9241,10 @@
       "title": {},
       "type": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "nonstandard"
@@ -9279,46 +9265,46 @@
     "members": {
       "SVGSwitchElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -9329,19 +9315,19 @@
     "members": {
       "SVGSymbolElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "preserveAspectRatio": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "viewBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -9381,7 +9367,7 @@
       "LENGTHADJUST_SPACINGANDGLYPHS": {},
       "LENGTHADJUST_UNKNOWN": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "getCharNumAtPosition": {},
       "getComputedTextLength": {},
@@ -9392,25 +9378,25 @@
       "getStartPositionOfChar": {},
       "getSubStringLength": {},
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "lengthAdjust": {},
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "selectSubString": {},
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "textLength": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -9421,25 +9407,25 @@
     "members": {
       "SVGTextElement": {},
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       }
     },
     "support_level": "stable"
@@ -9455,7 +9441,7 @@
       "TEXTPATH_SPACINGTYPE_EXACT": {},
       "TEXTPATH_SPACINGTYPE_UNKNOWN": {},
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "method": {},
       "spacing": {},
@@ -9481,10 +9467,10 @@
     "members": {
       "SVGTitleElement": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       }
     },
     "support_level": "stable"
@@ -9534,22 +9520,22 @@
     "dart_action": "unstable",
     "members": {
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "transform": {}
     },
@@ -9580,53 +9566,53 @@
       "SVGUseElement": {},
       "animatedInstanceRoot": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "farthestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getBBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getScreenCTM": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "getTransformToElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "hasExtension": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "height": {},
       "href": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGURIReference"
       },
       "instanceRoot": {},
       "nearestViewportElement": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLocatable"
       },
       "requiredExtensions": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "requiredFeatures": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "systemLanguage": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTests"
       },
       "transform": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGTransformable"
       },
       "width": {},
       "x": {},
       "xmllang": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "xmlspace": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGLangSpace"
       },
       "y": {}
     },
@@ -9646,17 +9632,17 @@
     "members": {
       "SVGViewElement": {},
       "externalResourcesRequired": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGExternalResourcesRequired"
       },
       "preserveAspectRatio": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "viewBox": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGFitToViewBox"
       },
       "viewTarget": {},
       "zoomAndPan": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/SVG/types.html#InterfaceSVGZoomAndPan"
       }
     },
     "support_level": "stable"
@@ -9764,10 +9750,6 @@
     },
     "support_level": "nonstandard"
   },
-  "SecurityPolicy": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "SecurityPolicyViolationEvent": {
     "comment": "https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicyviolationevent-events",
     "members": {
@@ -9781,10 +9763,6 @@
       "violatedDirective": {}
     },
     "support_level": "experimental"
-  },
-  "Selection": {
-    "members": {},
-    "support_level": "untriaged"
   },
   "ShadowRoot": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-root",
@@ -10329,10 +10307,6 @@
       }
     },
     "support_level": "stable"
-  },
-  "URL": {
-    "members": {},
-    "support_level": "untriaged"
   },
   "Uint16Array": {
     "comment": "http://www.khronos.org/registry/typedarray/specs/latest/",
@@ -11005,15 +10979,6 @@
     "members": {},
     "support_level": "experimental"
   },
-  "WebKitAnimationEvent": {
-    "comment": "http://www.w3.org/TR/css3-animations/#AnimationEvent-interface",
-    "dart_action": "suppress",
-    "members": {
-      "animationName": {},
-      "elapsedTime": {}
-    },
-    "support_level": "deprecated"
-  },
   "WebKitCSSFilterRule": {
     "comment": "http://www.w3.org/TR/filter-effects/",
     "members": {
@@ -11142,45 +11107,6 @@
     },
     "support_level": "deprecated"
   },
-  "WebKitNamedFlow": {
-    "comment": "http://www.w3.org/TR/css3-regions/#dom-named-flow-collection",
-    "dart_action": "suppress",
-    "members": {
-      "addEventListener": {},
-      "dispatchEvent": {},
-      "firstEmptyRegionIndex": {},
-      "getContent": {},
-      "getRegions": {},
-      "getRegionsByContent": {},
-      "name": {},
-      "overset": {},
-      "removeEventListener": {}
-    },
-    "support_level": "experimental"
-  },
-  "WebKitNamedFlowCollection": {
-    "members": {},
-    "support_level": "untriaged"
-  },
-  "WebKitPoint": {
-    "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
-    "dart_action": "private",
-    "members": {
-      "x": {},
-      "y": {}
-    },
-    "support_level": "nonstandard"
-  },
-  "WebKitTransitionEvent": {
-    "comment": "http://dev.w3.org/csswg/css-transitions/#Events-TransitionEvent",
-    "dart_action": "suppress",
-    "members": {
-      "elapsedTime": {},
-      "propertyName": {},
-      "pseudoElement": {}
-    },
-    "support_level": "deprecated"
-  },
   "WebSocket": {
     "comment": "http://www.w3.org/TR/websockets/#the-websocket-interface",
     "dart_action": "unstable",
@@ -11220,7 +11146,6 @@
       "DOM_DELTA_PIXEL": {},
       "deltaMode": {},
       "initWebKitWheelEvent": {
-        "dart_action": "default",
         "support_level": "experimental"
       },
       "webkitDirectionInvertedFromDevice": {
@@ -11237,10 +11162,6 @@
       }
     },
     "support_level": "stable"
-  },
-  "Window": {
-    "members": {},
-    "support_level": "untriaged"
   },
   "Worker": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#worker",
@@ -11334,7 +11255,6 @@
   },
   "WorkerLocation": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation",
-    "dart_action": "default",
     "members": {
       "hash": {
         "comment": "http://url.spec.whatwg.org/#urlutils"
