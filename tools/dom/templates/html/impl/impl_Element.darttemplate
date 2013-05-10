@@ -839,8 +839,9 @@ $endif
   void set model(value) {
     _ensureTemplate();
 
+    var syntax = TemplateElement.syntax[attributes['syntax']];
     _model = value;
-    _addBindings(this, model);
+    _addBindings(this, model, syntax);
   }
 
   // TODO(jmesserly): const set would be better

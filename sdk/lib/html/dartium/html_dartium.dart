@@ -8065,8 +8065,9 @@ abstract class Element extends Node implements ElementTraversal {
   void set model(value) {
     _ensureTemplate();
 
+    var syntax = TemplateElement.syntax[attributes['syntax']];
     _model = value;
-    _addBindings(this, model);
+    _addBindings(this, model, syntax);
   }
 
   // TODO(jmesserly): const set would be better
@@ -16093,17 +16094,6 @@ class Node extends EventTarget {
   void unbindAll() {}
 
   TemplateInstance _templateInstance;
-
-  // TODO(arv): Consider storing all "NodeRareData" on a single object?
-  int __instanceTerminatorCount;
-  int get _instanceTerminatorCount {
-    if (__instanceTerminatorCount == null) return 0;
-    return __instanceTerminatorCount;
-  }
-  set _instanceTerminatorCount(int value) {
-    if (value == 0) value = null;
-    __instanceTerminatorCount = value;
-  }
 
   /** Gets the template instance that instantiated this node, if any. */
   @Experimental
@@ -27708,11 +27698,61 @@ typedef void _ChangeHandler(value);
 // more Dart-friendly.
 @Experimental
 abstract class CustomBindingSyntax {
+  /**
+   * This syntax method allows for a custom interpretation of the contents of
+   * mustaches (`{{` ... `}}`).
+   *
+   * When a template is inserting an instance, it will invoke this method for
+   * each mustache which is encountered. The function is invoked with four
+   * arguments:
+   *
+   * - [model]: The data context for which this instance is being created.
+   * - [path]: The text contents (trimmed of outer whitespace) of the mustache.
+   * - [name]: The context in which the mustache occurs. Within element
+   *   attributes, this will be the name of the attribute. Within text,
+   *   this will be 'text'.
+   * - [node]: A reference to the node to which this binding will be created.
+   *
+   * If the method wishes to handle binding, it is required to return an object
+   * which has at least a `value` property that can be observed. If it does,
+   * then MDV will call [Node.bind on the node:
+   *
+   *     node.bind(name, retval, 'value');
+   *
+   * If the 'getBinding' does not wish to override the binding, it should return
+   * null.
+   */
   // TODO(jmesserly): I had to remove type annotations from "name" and "node"
   // Normally they are String and Node respectively. But sometimes it will pass
   // (int name, CompoundBinding node). That seems very confusing; we may want
   // to change this API.
-  getBinding(model, String path, name, node);
+  getBinding(model, String path, name, node) => null;
+
+  /**
+   * This syntax method allows a syntax to provide an alterate model than the
+   * one the template would otherwise use when producing an instance.
+   *
+   * When a template is about to create an instance, it will invoke this method
+   * The function is invoked with two arguments:
+   *
+   * - [template]: The template element which is about to create and insert an
+   *   instance.
+   * - [model]: The data context for which this instance is being created.
+   *
+   * The template element will always use the return value of `getInstanceModel`
+   * as the model for the new instance. If the syntax does not wish to override
+   * the value, it should simply return the `model` value it was passed.
+   */
+  getInstanceModel(Element template, model) => model;
+
+  /**
+   * This syntax method allows a syntax to provide an alterate expansion of
+   * the [template] contents. When the template wants to create an instance,
+   * it will call this method with the template element.
+   *
+   * By default this will call `template.createInstance()`.
+   */
+  getInstanceFragment(Element template) => template.createInstance();
 }
 
 /** The callback used in the [CompoundBinding.combinator] field. */
@@ -28080,7 +28120,7 @@ void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
   if (node is Element) {
     _addAttributeBindings(node, model, syntax);
   } else if (node is Text) {
-    _parseAndBind(node, node.text, 'text', model, syntax);
+    _parseAndBind(node, 'text', node.text, model, syntax);
   }
 
   for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
@@ -28094,11 +28134,11 @@ void _addAttributeBindings(Element element, model, syntax) {
     if (value == '' && (name == 'bind' || name == 'repeat')) {
       value = '{{}}';
     }
-    _parseAndBind(element, value, name, model, syntax);
+    _parseAndBind(element, name, value, model, syntax);
   });
 }
 
-void _parseAndBind(Node node, String text, String name, model,
+void _parseAndBind(Node node, String name, String text, model,
     CustomBindingSyntax syntax) {
 
   var tokens = _parseMustacheTokens(text);
@@ -28233,105 +28273,12 @@ void _removeTemplateChild(Node parent, Node child) {
   _removeAllBindingsRecursively(child);
 }
 
-class _InstanceCursor {
-  final Element _template;
-  Node _terminator;
-  Node _previousTerminator;
-  int _previousIndex = -1;
-  int _index = 0;
-
-  _InstanceCursor(this._template, [index]) {
-    _terminator = _template;
-    if (index != null) {
-      while (index-- > 0) {
-        next();
-      }
-    }
-  }
-
-  void next() {
-    _previousTerminator = _terminator;
-    _previousIndex = _index;
-    _index++;
-
-    while (_index > _terminator._instanceTerminatorCount) {
-      _index -= _terminator._instanceTerminatorCount;
-      _terminator = _terminator.nextNode;
-      if (_terminator is Element && _terminator.tagName == 'TEMPLATE') {
-        _index += _instanceCount(_terminator);
-      }
-    }
-  }
-
-  void abandon() {
-    assert(_instanceCount(_template) > 0);
-    assert(_terminator._instanceTerminatorCount > 0);
-    assert(_index > 0);
-
-    _terminator._instanceTerminatorCount--;
-    _index--;
-  }
-
-  void insert(fragment) {
-    assert(_template.parentNode != null);
-
-    _previousTerminator = _terminator;
-    _previousIndex = _index;
-    _index++;
-
-    _terminator = fragment.$dom_lastChild;
-    if (_terminator == null) _terminator = _previousTerminator;
-    _template.parentNode.insertBefore(fragment, _previousTerminator.nextNode);
-
-    _terminator._instanceTerminatorCount++;
-    if (_terminator != _previousTerminator) {
-      while (_previousTerminator._instanceTerminatorCount >
-              _previousIndex) {
-        _previousTerminator._instanceTerminatorCount--;
-        _terminator._instanceTerminatorCount++;
-      }
-    }
-  }
-
-  void remove() {
-    assert(_previousIndex != -1);
-    assert(_previousTerminator != null &&
-           (_previousIndex > 0 || _previousTerminator == _template));
-    assert(_terminator != null && _index > 0);
-    assert(_template.parentNode != null);
-    assert(_instanceCount(_template) > 0);
-
-    if (_previousTerminator == _terminator) {
-      assert(_index == _previousIndex + 1);
-      _terminator._instanceTerminatorCount--;
-      _terminator = _template;
-      _previousTerminator = null;
-      _previousIndex = -1;
-      return;
-    }
-
-    _terminator._instanceTerminatorCount--;
-
-    var parent = _template.parentNode;
-    while (_previousTerminator.nextNode != _terminator) {
-      _removeTemplateChild(parent, _previousTerminator.nextNode);
-    }
-    _removeTemplateChild(parent, _terminator);
-
-    _terminator = _previousTerminator;
-    _index = _previousIndex;
-    _previousTerminator = null;
-    _previousIndex = -1;  // 0?
-  }
-}
-
 
 class _TemplateIterator {
   final Element _templateElement;
-  int instanceCount = 0;
-  List iteratedValue;
-  bool observing = false;
+  final List<Node> terminators = [];
   final CompoundBinding inputs;
+  List iteratedValue;
 
   StreamSubscription _sub;
   StreamSubscription _valueBinding;
@@ -28374,9 +28321,74 @@ class _TemplateIterator {
     }
   }
 
-  // TODO(jmesserly): port MDV v3.
-  getInstanceModel(model, syntax) => model;
-  getInstanceFragment(syntax) => _templateElement.createInstance();
+  Node getTerminatorAt(int index) {
+    if (index == -1) return _templateElement;
+    var terminator = terminators[index];
+    if (terminator is! Element) return terminator;
+
+    var subIterator = terminator._templateIterator;
+    if (subIterator == null) return terminator;
+
+    return subIterator.getTerminatorAt(subIterator.terminators.length - 1);
+  }
+
+  void insertInstanceAt(int index, Node fragment) {
+    var previousTerminator = getTerminatorAt(index - 1);
+    var terminator = fragment.$dom_lastChild;
+    if (terminator == null) terminator = previousTerminator;
+
+    terminators.insert(index, terminator);
+    var parent = _templateElement.parentNode;
+    parent.insertBefore(fragment, previousTerminator.nextNode);
+  }
+
+  void removeInstanceAt(int index) {
+    var previousTerminator = getTerminatorAt(index - 1);
+    var terminator = getTerminatorAt(index);
+    terminators.removeAt(index);
+
+    var parent = _templateElement.parentNode;
+    while (terminator != previousTerminator) {
+      var node = terminator;
+      terminator = node.previousNode;
+      _removeTemplateChild(parent, node);
+    }
+  }
+
+  void removeAllInstances() {
+    if (terminators.length == 0) return;
+
+    var previousTerminator = _templateElement;
+    var terminator = getTerminatorAt(terminators.length - 1);
+    terminators.length = 0;
+
+    var parent = _templateElement.parentNode;
+    while (terminator != previousTerminator) {
+      var node = terminator;
+      terminator = node.previousNode;
+      _removeTemplateChild(parent, node);
+    }
+  }
+
+  void clear() {
+    unobserve();
+    removeAllInstances();
+    iteratedValue = null;
+  }
+
+  getInstanceModel(model, syntax) {
+    if (syntax != null) {
+      return syntax.getInstanceModel(_templateElement, model);
+    }
+    return model;
+  }
+
+  getInstanceFragment(syntax) {
+    if (syntax != null) {
+      return syntax.getInstanceFragment(_templateElement);
+    }
+    return _templateElement.createInstance();
+  }
 
   void _handleChanges(List<ListChangeRecord> splices) {
     var syntax = TemplateElement.syntax[_templateElement.attributes['syntax']];
@@ -28385,9 +28397,7 @@ class _TemplateIterator {
       if (splice is! ListChangeRecord) continue;
 
       for (int i = 0; i < splice.removedCount; i++) {
-        var cursor = new _InstanceCursor(_templateElement, splice.index + 1);
-        cursor.remove();
-        instanceCount--;
+        removeInstanceAt(splice.index);
       }
 
       for (var addIndex = splice.index;
@@ -28395,14 +28405,13 @@ class _TemplateIterator {
           addIndex++) {
 
         var model = getInstanceModel(iteratedValue[addIndex], syntax);
+
         var fragment = getInstanceFragment(syntax);
 
         _addBindings(fragment, model, syntax);
         _addTemplateInstanceRecord(fragment, model);
 
-        var cursor = new _InstanceCursor(_templateElement, addIndex);
-        cursor.insert(fragment);
-        instanceCount++;
+        insertInstanceAt(addIndex, fragment);
       }
     }
   }
@@ -28413,30 +28422,11 @@ class _TemplateIterator {
     _sub = null;
   }
 
-  void clear() {
-    unobserve();
-
-    iteratedValue = null;
-    if (instanceCount == 0) return;
-
-    for (var i = 0; i < instanceCount; i++) {
-      var cursor = new _InstanceCursor(_templateElement, 1);
-      cursor.remove();
-    }
-
-    instanceCount = 0;
-  }
-
   void abandon() {
     unobserve();
     _valueBinding.cancel();
     inputs.dispose();
   }
-}
-
-int _instanceCount(Element element) {
-  var templateIterator = element._templateIterator;
-  return templateIterator != null ? templateIterator.instanceCount : 0;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

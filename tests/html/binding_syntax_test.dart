@@ -5,6 +5,7 @@
 library binding_syntax_test;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:html';
 import 'package:mdv_observe/mdv_observe.dart';
 import 'package:unittest/html_config.dart';
@@ -54,24 +55,93 @@ syntaxTests() {
 
     var testSyntax = new TestBindingSyntax();
     TemplateElement.syntax['Test'] = testSyntax;
+    try {
+      var div = createTestHtml(
+          '<template bind syntax="Test">{{ foo }}' +
+          '<template bind>{{ foo }}</template></template>');
+      recursivelySetTemplateModel(div, model);
+      deliverChangeRecords();
+      expect(div.nodes.length, 4);
+      expect(div.nodes.last.text, 'bar');
+      expect(div.nodes[2].tagName, 'TEMPLATE');
+      expect(div.nodes[2].attributes['syntax'], 'Test');
 
-    var div = createTestHtml(
-        '<template bind syntax="Test">{{ foo }}' +
-        '<template bind>{{ foo }}</template></template>');
-    recursivelySetTemplateModel(div, model);
-    deliverChangeRecords();
-    expect(div.nodes.length, 4);
-    expect(div.nodes.last.text, 'bar');
-    expect(div.nodes[2].tagName, 'TEMPLATE');
-    expect(div.nodes[2].attributes['syntax'], 'Test');
+      expect(testSyntax.log, [
+        [model, '', 'bind', 'TEMPLATE'],
+        [model, 'foo', 'text', null],
+        [model, '', 'bind', 'TEMPLATE'],
+        [model, 'foo', 'text', null],
+      ]);
+    } finally {
+      TemplateElement.syntax.remove('Test');
+    }
+  });
 
-    expect(testSyntax.log, [
-      [model, 'foo', 'text', null],
-      [model, '', 'bind', 'TEMPLATE'],
-      [model, 'foo', 'text', null],
-    ]);
+  test('getInstanceModel', () {
+    var model = toObservable([{'foo': 1}, {'foo': 2}, {'foo': 3}]
+        .map(toSymbolMap));
 
-    TemplateElement.syntax.remove('Test');
+    var testSyntax = new TestModelSyntax();
+    testSyntax.altModels.addAll([{'foo': 'a'}, {'foo': 'b'}, {'foo': 'c'}]
+        .map(toSymbolMap));
+
+    TemplateElement.syntax['Test'] = testSyntax;
+    try {
+
+      var div = createTestHtml(
+          '<template repeat syntax="Test">' +
+          '{{ foo }}</template>');
+
+      var template = div.nodes[0];
+      recursivelySetTemplateModel(div, model);
+      deliverChangeRecords();
+
+      expect(div.nodes.length, 4);
+      expect(div.nodes[0].tagName, 'TEMPLATE');
+      expect(div.nodes[1].text, 'a');
+      expect(div.nodes[2].text, 'b');
+      expect(div.nodes[3].text, 'c');
+
+      expect(testSyntax.log, [
+        [template, model[0]],
+        [template, model[1]],
+        [template, model[2]],
+      ]);
+
+    } finally {
+      TemplateElement.syntax.remove('Test');
+    }
+  });
+
+  // Note: this test was original, not a port of an existing test.
+  test('getInstanceFragment', () {
+    var model = toSymbolMap({'foo': 'bar'});
+
+    var testSyntax = new WhitespaceRemover();
+    TemplateElement.syntax['Test'] = testSyntax;
+    try {
+      var div = createTestHtml(
+          '''<template bind syntax="Test">
+            {{ foo }}
+            <template bind>
+              {{ foo }}
+            </template>
+          </template>''');
+
+      recursivelySetTemplateModel(div, model);
+      deliverChangeRecords();
+
+      expect(testSyntax.trimmed, 2);
+      expect(testSyntax.removed, 1);
+
+      expect(div.nodes.length, 4);
+      expect(div.nodes.last.text, 'bar');
+      expect(div.nodes[2].tagName, 'TEMPLATE');
+      expect(div.nodes[2].attributes['syntax'], 'Test');
+
+    } finally {
+      TemplateElement.syntax.remove('Test');
+    }
   });
 
   test('Basic', () {
@@ -115,6 +185,7 @@ syntaxTests() {
     var test2Log = TemplateElement.syntax['Test2'].log;
 
     expect(testLog, [
+      [model, '', 'bind', 'TEMPLATE'],
       [model, 'foo', 'text', null],
       [model, '', 'bind', 'TEMPLATE']
     ]);
@@ -126,6 +197,8 @@ syntaxTests() {
   });
 }
 
+// TODO(jmesserly): mocks would be cleaner here.
+
 class TestBindingSyntax extends CustomBindingSyntax {
   var log = [];
 
@@ -133,6 +206,49 @@ class TestBindingSyntax extends CustomBindingSyntax {
     log.add([model, path, name, node is Element ? node.tagName : null]);
   }
 }
+
+class TestModelSyntax extends CustomBindingSyntax {
+  var log = [];
+  var altModels = new ListQueue();
+
+  getInstanceModel(template, model) {
+    log.add([template, model]);
+    return altModels.removeFirst();
+  }
+}
+
+// Note: this isn't a very smart whitespace handler. A smarter one would only
+// trim indentation, not all whitespace.
+// See "trimOrCompact" in the web_ui Pub package.
+class WhitespaceRemover extends CustomBindingSyntax {
+  int trimmed = 0;
+  int removed = 0;
+
+  DocumentFragment getInstanceFragment(Element template) {
+    var instance = template.createInstance();
+    var walker = new TreeWalker(instance, NodeFilter.SHOW_TEXT);
+
+    var toRemove = [];
+    while (walker.nextNode() != null) {
+      var node = walker.currentNode;
+      var text = node.text.replaceAll('\n', '').trim();
+      if (text.length != node.text.length) {
+        if (text.length == 0) {
+          toRemove.add(node);
+        } else {
+          trimmed++;
+          node.text = text;
+        }
+      }
+    }
+
+    for (var node in toRemove) node.remove();
+    removed += toRemove.length;
+
+    return instance;
+  }
+}
+
 
 class TimesTwoSyntax extends CustomBindingSyntax {
   getBinding(model, path, name, node) {
