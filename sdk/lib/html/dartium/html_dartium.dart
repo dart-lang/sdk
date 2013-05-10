@@ -2604,7 +2604,7 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   @DomName('CSSStyleDeclaration.setProperty')
   @DocsEditable
-  void setProperty(String propertyName, String value, String priority) native "CSSStyleDeclaration_setProperty_Callback";
+  void _setProperty(String propertyName, String value, String priority) native "CSSStyleDeclaration_setProperty_Callback";
 
 
   String getPropertyValue(String propertyName) {
@@ -2616,6 +2616,14 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions => true;
+
+  @DomName('CSSStyleDeclaration.setProperty')
+  void setProperty(String propertyName, String value, [String priority]) {
+    if (priority == null) {
+      priority = '';
+    }
+    _setProperty(propertyName, value, priority);
+  }
 
   // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
