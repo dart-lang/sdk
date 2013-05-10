@@ -143,15 +143,8 @@ Language/11_Expressions/08_Throw_A06_t04: fail
 Language/11_Expressions/08_Throw_A06_t05: fail
 Language/11_Expressions/08_Throw_A06_t06: fail
 Language/11_Expressions/11_Instance_Creation/1_New_A01_t04: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A02_t01: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A02_t02: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A02_t03: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A02_t04: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A02_t05: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A02_t06: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A02_t07: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A03_t01: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A03_t02: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A04_t01: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A04_t03: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A04_t04: fail
