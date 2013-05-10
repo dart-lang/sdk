@@ -174,5 +174,18 @@ $else
 $endif
   }
 
+  /**
+   * Checks to see if the overrideMimeType method is supported on the current
+   * platform.
+   */
+  static bool get supportsOverrideMimeType {
+$if DART2JS
+    var xhr = new HttpRequest();
+    return JS('bool', '("overrideMimeType" in #)', xhr);
+$else
+    return true;
+$endif
+  }
+
 $!MEMBERS
 }

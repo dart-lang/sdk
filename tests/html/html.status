@@ -113,6 +113,7 @@ touchevent_test/supported: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
+xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 ]
@@ -219,6 +220,7 @@ xhr_cross_origin_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_test/supported_onLoadEnd: Fail
 xhr_test/supported_onProgress: Fail
+xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]

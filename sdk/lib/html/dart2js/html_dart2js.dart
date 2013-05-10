@@ -10926,6 +10926,15 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
     return JS('bool', '("onloadend" in #)', xhr);
   }
 
+  /**
+   * Checks to see if the overrideMimeType method is supported on the current
+   * platform.
+   */
+  static bool get supportsOverrideMimeType {
+    var xhr = new HttpRequest();
+    return JS('bool', '("overrideMimeType" in #)', xhr);
+  }
+
 
   @DomName('XMLHttpRequest.abortEvent')
   @DocsEditable
@@ -11182,6 +11191,9 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.overrideMimeType')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void overrideMimeType(String override) native;
 
   @JSName('removeEventListener')

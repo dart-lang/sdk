@@ -51,6 +51,12 @@ main() {
     });
   });
 
+  group('supported_overrideMimeType', () {
+    test('supported', () {
+      expect(HttpRequest.supportsOverrideMimeType, isTrue);
+    });
+  });
+
   group('xhr', () {
     test('XHR No file', () {
       HttpRequest xhr = new HttpRequest();
@@ -162,6 +168,15 @@ main() {
       expect(() {
         var event = new Event.eventType('XMLHttpRequestProgressEvent', '');
         expect(event is HttpRequestProgressEvent, isTrue);
+      }, expectation);
+    });
+
+    test('overrideMimeType', () {
+      var expectation =
+          HttpRequest.supportsOverrideMimeType ? returnsNormally : throws;
+
+      expect(() {
+        HttpRequest.request(url, mimeType: 'application/binary');
       }, expectation);
     });
   });
