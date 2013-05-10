@@ -146,7 +146,6 @@ main() {
     test('XHR.request responseType arraybuffer', () {
       if (Platform.supportsTypedData) {
         HttpRequest.request(url, responseType: 'arraybuffer',
-          mimeType: 'application/binary',
           requestHeaders: {'Content-Type': 'text/xml'}).then(
           expectAsync1((xhr) {
             expect(xhr.status, equals(200));
@@ -170,7 +169,8 @@ main() {
   group('xhr_requestBlob', () {
     test('XHR.request responseType blob', () {
       if (Platform.supportsTypedData) {
-        return HttpRequest.request(url, responseType: 'blob').then(
+        return HttpRequest.request(url, responseType: 'blob',
+          mimeType: 'application/binary').then(
           (xhr) {
             expect(xhr.status, equals(200));
             var blob = xhr.response;
