@@ -15,6 +15,7 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               checkNull,
                               checkNum,
                               checkString,
+                              defineProperty,
                               getRuntimeType,
                               regExpGetNative,
                               stringContainsUnchecked,
@@ -43,34 +44,27 @@ getInterceptor(object) {
 /**
  * The name of the property used on native classes and `Object.prototype` to get
  * the interceptor for a native class instance.  The value is initialized on
- * isolate startup.
+ * isolate startup to ensure no two Dart programs in the same page use the same
+ * property.
  */
 var dispatchPropertyName = null;
 
 getDispatchProperty(object) {
-  // TODO(sra): Implement the magic.
   // This is a magic method: the compiler replaces it with a runtime generated
   // function
   //
   //     function(object){return object._zzyzx;}
   //
-  // where _zzyzx is replaced with the actual [dispatchPropertyName].
+  // where `_zzyzx` is replaced with the actual [dispatchPropertyName].
   //
-  // The body is the CSP compliant version.
+  // The CSP compliant version replaces this function with one of a few
+  // pre-compiled accessors, unless the pre-compiled versions are all in use,
+  // when it falls back on this code.
   return JS('', '#[#]', object, dispatchPropertyName);
 }
 
 setDispatchProperty(object, value) {
-  // TODO(sra): Implement the magic.
-  // This is a magic method: the compiler replaces it with a runtime generated
-  // function
-  //
-  //     function(object, value){object._zzyzx = value;}
-  //
-  // where _zzyzx is replaced with the actual [dispatchPropertyName].
-  //
-  // The body is the CSP compliant version.
-  JS('void', '#[#] = #', object, dispatchPropertyName, value);
+  defineProperty(object, dispatchPropertyName, value);
 }
 
 makeDispatchRecord(interceptor, proto, extension) {
