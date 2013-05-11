@@ -184,8 +184,7 @@ main() {
   group('xhr_requestBlob', () {
     test('XHR.request responseType blob', () {
       if (Platform.supportsTypedData) {
-        return HttpRequest.request(url, responseType: 'blob',
-          mimeType: 'application/binary').then(
+        return HttpRequest.request(url, responseType: 'blob').then(
           (xhr) {
             expect(xhr.status, equals(200));
             var blob = xhr.response;
