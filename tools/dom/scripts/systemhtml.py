@@ -528,7 +528,7 @@ class HtmlDartInterfaceGenerator(object):
     if mixins:
       mixins_str = ' with ' + ', '.join(mixins)
       if not base_class:
-        base_class = 'Object'
+        base_class = 'Interceptor'
 
     annotations = self._metadata.GetFormattedMetadata(
         self._library_name, self._interface, None, '')

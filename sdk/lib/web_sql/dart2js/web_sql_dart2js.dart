@@ -17,6 +17,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName;
 import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
@@ -225,7 +226,7 @@ class SqlResultSet native "SQLResultSet" {
 
 @DocsEditable
 @DomName('SQLResultSetRowList')
-class SqlResultSetRowList extends Object with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
+class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable
