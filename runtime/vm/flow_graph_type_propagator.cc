@@ -668,8 +668,12 @@ CompileType ParameterInstr::ComputeType() const {
   // always be wrongly eliminated.
   // However there are parameters that are known to match their declared type:
   // for example receiver and construction phase.
-  const Function& function = block_->parsed_function().function();
-  LocalScope* scope = block_->parsed_function().node_sequence()->scope();
+  GraphEntryInstr* graph_entry = block_->AsGraphEntry();
+  // Parameters at catch-blocks have type dynamic.
+  if (graph_entry == NULL) return CompileType::Dynamic();
+
+  const Function& function = graph_entry->parsed_function().function();
+  LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
   const AbstractType& type = scope->VariableAt(index())->type();
 
   // Parameter is the constructor phase.

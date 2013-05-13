@@ -295,6 +295,9 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
+      // Optimize try-blocks.
+      TryCatchAnalyzer::Optimize(flow_graph);
+
       // Detach environments from the instructions that can't deoptimize.
       // Do it before we attempt to perform allocation sinking to minimize
       // amount of materializations it has to perform.

@@ -824,6 +824,17 @@ void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" ");
     parallel_move()->PrintTo(f);
   }
+
+  const GrowableArray<Definition*>& defns = initial_definitions_;
+  if (defns.length() > 0) {
+    f->Print(" {");
+    for (intptr_t i = 0; i < defns.length(); ++i) {
+      Definition* def = defns[i];
+      f->Print("\n      ");
+      def->PrintTo(f);
+    }
+    f->Print("\n}");
+  }
 }
 
 

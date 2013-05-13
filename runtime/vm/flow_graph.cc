@@ -15,6 +15,12 @@ namespace dart {
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
 
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
+DEFINE_FLAG(bool, optimize_try_catch, false, "Optimization of try-catch");
+#else
+DEFINE_FLAG(bool, optimize_try_catch, true, "Optimization of try-catch");
+#endif
+
 FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
                      GraphEntryInstr* graph_entry,
                      intptr_t max_block_id)
@@ -328,8 +334,20 @@ class VariableLivenessAnalysis : public LivenessAnalysis {
     const intptr_t block_count = flow_graph_->preorder().length();
     for (intptr_t i = 0; i < block_count; i++) {
       BlockEntryInstr* block = flow_graph_->preorder()[i];
+      // All locals are assigned inside a try{} block.
+      // This is a safe approximation and workaround to force insertion of
+      // phis for stores that appear non-live because of the way catch-blocks
+      // are connected to the graph: They normally are dominated by the
+      // try-entry, but are direct successors of the graph entry in our flow
+      // graph.
+      // TODO(fschneider): Improve this approximation by better modeling the
+      // actual data flow to reduce the number of redundant phis.
       BitVector* kill = GetKillSet(block);
-      kill->Intersect(GetLiveOutSet(block));
+      if (block->InsideTryBlock()) {
+        kill->SetAll();
+      } else {
+        kill->Intersect(GetLiveOutSet(block));
+      }
       assigned_vars_.Add(kill);
     }
 
@@ -377,6 +395,17 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
     BitVector* kill = kill_[i];
     BitVector* live_in = live_in_[i];
     last_loads->Clear();
+
+    // There is an implicit use (load-local) of every local variable at each
+    // call inside a try{} block and every call has an implicit control-flow
+    // to the catch entry. As an approximation we mark all locals as live
+    // inside try{}.
+    // TODO(fschneider): Improve this approximation, since not all local
+    // variable stores actually reach a call.
+    if (block->InsideTryBlock()) {
+      live_in->SetAll();
+      continue;
+    }
 
     // Iterate backwards starting at the last instruction.
     for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
@@ -617,8 +646,7 @@ void FlowGraph::InsertPhis(
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters) {
-  // TODO(fschneider): Support catch-entry.
-  if (graph_entry_->SuccessorCount() > 1) {
+  if (!FLAG_optimize_try_catch && (graph_entry_->SuccessorCount() > 1)) {
     Bailout("Catch-entry support in SSA.");
   }
 
@@ -653,9 +681,14 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
     env.Add(constant_null());
   }
 
-  BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
-  ASSERT(normal_entry != NULL);  // Must have entry.
-  RenameRecursive(normal_entry, &env, live_phis, variable_liveness);
+  if (graph_entry_->SuccessorCount() > 1) {
+    // Functions with try-catch have a fixed area of stack slots reserved
+    // so that all local variables are stored at a known location when
+    // on entry to the catch.
+    graph_entry_->set_fixed_slot_count(
+        num_stack_locals() + num_copied_params());
+  }
+  RenameRecursive(graph_entry_, &env, live_phis, variable_liveness);
 }
 
 
@@ -689,8 +722,25 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         if (phi != NULL) {
           (*env)[i] = phi;
           phi->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+          if (block_entry->InsideTryBlock()) {
+            // This is a safe approximation.  Inside try{} all locals are
+            // used at every call implicitly, so we mark all phis as live
+            // from the start.
+            // TODO(fschneider): Improve this approximation to eliminate
+            // more redundant phis.
+            phi->mark_alive();
+            live_phis->Add(phi);
+          }
         }
       }
+    }
+  } else if (block_entry->IsCatchBlockEntry()) {
+    // Add real definitions for all locals and parameters.
+    for (intptr_t i = 0; i < env->length(); ++i) {
+      ParameterInstr* param = new ParameterInstr(i, block_entry);
+      param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+      (*env)[i] = param;
+      block_entry->AsCatchBlockEntry()->initial_definitions()->Add(param);
     }
   }
 

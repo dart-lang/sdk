@@ -228,7 +228,8 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
       normal_entry_(normal_entry),
       catch_entries_(),
       initial_definitions_(),
-      spill_slot_count_(0) {
+      spill_slot_count_(0),
+      fixed_slot_count_(0) {
 }
 
 
@@ -239,6 +240,16 @@ ConstantInstr* GraphEntryInstr::constant_null() {
     if (defn != NULL && defn->value().IsNull()) return defn;
   }
   UNREACHABLE();
+  return NULL;
+}
+
+
+CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
+  // TODO(fschneider): Sort the catch entries by catch_try_index to avoid
+  // searching.
+  for (intptr_t i = 0; i < catch_entries_.length(); ++i) {
+    if (catch_entries_[i]->catch_try_index() == index) return catch_entries_[i];
+  }
   return NULL;
 }
 

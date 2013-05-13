@@ -44,6 +44,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void InferSmiRanges();
 
+  void AnalyzeTryCatch();
+
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
 
@@ -343,6 +345,14 @@ class AllocationSinking : public ZoneAllocated {
   FlowGraph* flow_graph_;
 
   GrowableArray<MaterializeObjectInstr*> materializations_;
+};
+
+
+// Optimize spill stores inside try-blocks by identifying values that always
+// contain a single known constant at catch block entry.
+class TryCatchAnalyzer : public AllStatic {
+ public:
+  static void Optimize(FlowGraph* flow_graph);
 };
 
 }  // namespace dart

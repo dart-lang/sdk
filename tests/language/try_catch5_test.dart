@@ -30,6 +30,8 @@ foo1() {
 }
 
 main() {
-  a = 0;
-  Expect.isTrue(foo1());
+  for (var i = 0; i < 2000; i++) {
+    a = 0;
+    Expect.isTrue(foo1());
+  }
 }

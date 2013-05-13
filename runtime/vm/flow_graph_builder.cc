@@ -293,9 +293,12 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
     }
   }
 
-  // Neither call nor callee entry are in the graph at this point. Remove them
-  // from use lists.
+  // Neither call nor callee entry nor the graph entry (if present) are in the
+  // graph at this point. Remove them from use lists.
   callee_entry->UnuseAllInputs();
+  if (callee_entry->PredecessorCount() > 0) {
+    callee_entry->PredecessorAt(0)->AsGraphEntry()->UnuseAllInputs();
+  }
   call_->UnuseAllInputs();
 }
 

@@ -178,6 +178,17 @@ void SSALivenessAnalysis::ComputeInitialSets() {
           }
         }
       }
+    } else if (block->IsCatchBlockEntry()) {
+      // Process initial definitions.
+      CatchBlockEntryInstr* catch_entry = block->AsCatchBlockEntry();
+      for (intptr_t i = 0;
+           i < catch_entry->initial_definitions()->length();
+           i++) {
+        intptr_t vreg =
+            (*catch_entry->initial_definitions())[i]->ssa_temp_index();
+        kill_[catch_entry->postorder_number()]->Add(vreg);
+        live_in_[catch_entry->postorder_number()]->Remove(vreg);
+      }
     }
   }
 
@@ -241,7 +252,7 @@ void LiveRange::AddUseInterval(intptr_t start, intptr_t end) {
   ASSERT(start < end);
 
   // Live ranges are being build by visiting instructions in post-order.
-  // This implies that use intervals will be perpended in a monotonically
+  // This implies that use intervals will be prepended in a monotonically
   // decreasing order.
   if (first_use_interval() != NULL) {
     // If the first use interval and the use interval we are adding
@@ -488,7 +499,29 @@ void FlowGraphAllocator::BuildLiveRanges() {
       }
     }
 
-    ConnectIncomingPhiMoves(block);
+    if (block->IsJoinEntry()) {
+      ConnectIncomingPhiMoves(block->AsJoinEntry());
+    } else if (block->IsCatchBlockEntry()) {
+      // Process initial definitions.
+      CatchBlockEntryInstr* catch_entry = block->AsCatchBlockEntry();
+      for (intptr_t i = 0;
+           i < catch_entry->initial_definitions()->length();
+           i++) {
+        Definition* defn = (*catch_entry->initial_definitions())[i];
+        LiveRange* range = GetLiveRange(defn->ssa_temp_index());
+        range->DefineAt(catch_entry->start_pos());  // Defined at block entry.
+
+        // Save range->End() because it may change in ProcessInitialDefinition.
+        intptr_t range_end = range->End();
+        ProcessInitialDefinition(defn, range, catch_entry);
+        spill_slots_.Add(range_end);
+        quad_spill_slots_.Add(false);
+
+        if (defn->IsParameter() && range->spill_slot().stack_index() >= 0) {
+          MarkAsObjectAtSafepoints(range);
+        }
+      }
+    }
   }
 
   // Process incoming parameters and constants.  Do this after all other
@@ -499,46 +532,53 @@ void FlowGraphAllocator::BuildLiveRanges() {
     LiveRange* range = GetLiveRange(defn->ssa_temp_index());
     range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
     range->DefineAt(graph_entry->start_pos());
-    if (defn->IsParameter()) {
-      ParameterInstr* param = defn->AsParameter();
-      // Assert that copied and non-copied parameters are mutually exclusive.
-      // This might change in the future and, if so, the index will be wrong.
-      ASSERT((flow_graph_.num_copied_params() == 0) ||
-             (flow_graph_.num_non_copied_params() == 0));
-      // Slot index for the leftmost copied parameter is 0.
-      intptr_t slot_index = param->index();
-      // Slot index for the rightmost fixed parameter is -1.
-      slot_index -= flow_graph_.num_non_copied_params();
 
-      range->set_assigned_location(Location::StackSlot(slot_index));
-      range->set_spill_slot(Location::StackSlot(slot_index));
-      if (flow_graph_.num_copied_params() > 0) {
-        ASSERT(spill_slots_.length() == slot_index);
-        spill_slots_.Add(range->End());
-        quad_spill_slots_.Add(false);
-      }
-    } else {
-      ConstantInstr* constant = defn->AsConstant();
-      ASSERT(constant != NULL);
-      range->set_assigned_location(Location::Constant(constant->value()));
-      range->set_spill_slot(Location::Constant(constant->value()));
-    }
-    AssignSafepoints(range);
-    range->finger()->Initialize(range);
-    UsePosition* use =
-        range->finger()->FirstRegisterBeneficialUse(graph_entry->start_pos());
-    if (use != NULL) {
-      LiveRange* tail =
-          SplitBetween(range, graph_entry->start_pos(), use->pos());
-      // Parameters and constants are tagged, so allocated to CPU registers.
-      CompleteRange(tail, Location::kRegister);
-    }
-    ConvertAllUses(range);
-
+    // Save range->End() because it may change in ProcessInitialDefinition.
+    intptr_t range_end = range->End();
+    ProcessInitialDefinition(defn, range, graph_entry);
     if (defn->IsParameter() && flow_graph_.num_copied_params() > 0) {
+      spill_slots_.Add(range_end);
+      quad_spill_slots_.Add(false);
+
       MarkAsObjectAtSafepoints(range);
     }
   }
+}
+
+
+void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
+                                                  LiveRange* range,
+                                                  BlockEntryInstr* block) {
+  if (defn->IsParameter()) {
+    ParameterInstr* param = defn->AsParameter();
+    // Assert that copied and non-copied parameters are mutually exclusive.
+    // This might change in the future and, if so, the index will be wrong.
+    ASSERT((flow_graph_.num_copied_params() == 0) ||
+           (flow_graph_.num_non_copied_params() == 0));
+    // Slot index for the leftmost copied parameter is 0.
+    intptr_t slot_index = param->index();
+    // Slot index for the rightmost fixed parameter is -1.
+    slot_index -= flow_graph_.num_non_copied_params();
+
+    range->set_assigned_location(Location::StackSlot(slot_index));
+    range->set_spill_slot(Location::StackSlot(slot_index));
+  } else {
+    ConstantInstr* constant = defn->AsConstant();
+    ASSERT(constant != NULL);
+    range->set_assigned_location(Location::Constant(constant->value()));
+    range->set_spill_slot(Location::Constant(constant->value()));
+  }
+  AssignSafepoints(range);
+  range->finger()->Initialize(range);
+  UsePosition* use =
+      range->finger()->FirstRegisterBeneficialUse(block->start_pos());
+  if (use != NULL) {
+    LiveRange* tail =
+        SplitBetween(range, block->start_pos(), use->pos());
+    // Parameters and constants are tagged, so allocated to CPU registers.
+    CompleteRange(tail, Location::kRegister);
+  }
+  ConvertAllUses(range);
 }
 
 
@@ -648,12 +688,9 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
 }
 
 
-void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
-  // If this block is a join we need to add destinations of phi
-  // resolution moves to phi's live range so that register allocator will
-  // fill them with moves.
-  JoinEntryInstr* join = block->AsJoinEntry();
-  if (join == NULL) return;
+void FlowGraphAllocator::ConnectIncomingPhiMoves(JoinEntryInstr* join) {
+  // For join blocks we need to add destinations of phi resolution moves
+  // to phi's live range so that register allocator will fill them with moves.
 
   // All uses are recorded at the start position in the block.
   const intptr_t pos = join->start_pos();
@@ -676,7 +713,7 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
     if (is_loop_header) range->mark_loop_phi();
 
     for (intptr_t pred_idx = 0; pred_idx < phi->InputCount(); pred_idx++) {
-      BlockEntryInstr* pred = block->PredecessorAt(pred_idx);
+      BlockEntryInstr* pred = join->PredecessorAt(pred_idx);
       GotoInstr* goto_instr = pred->last_instruction()->AsGoto();
       ASSERT((goto_instr != NULL) && (goto_instr->HasParallelMove()));
       MoveOperands* move =
@@ -1558,7 +1595,11 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   // Search for a free spill slot among allocated: the value in it should be
   // dead and its type should match (e.g. it should not be a part of the quad if
   // we are allocating normal double slot).
-  intptr_t idx = 0;
+  // For CPU registers we need to take reserved slots for try-catch into
+  // account.
+  intptr_t idx = register_kind_ == Location::kRegister
+      ? flow_graph_.graph_entry()->fixed_slot_count()
+      : 0;
   for (; idx < spill_slots_.length(); idx++) {
     if ((need_quad == quad_spill_slots_[idx]) &&
         (spill_slots_[idx] <= start)) {
@@ -2450,6 +2491,17 @@ void FlowGraphAllocator::CollectRepresentations() {
        !it.Done();
        it.Advance()) {
     BlockEntryInstr* block = it.Current();
+
+    // Catch entry.
+    if (block->IsCatchBlockEntry()) {
+      CatchBlockEntryInstr* catch_entry = block->AsCatchBlockEntry();
+      for (intptr_t i = 0;
+           i < catch_entry->initial_definitions()->length();
+           ++i) {
+        Definition* def = (*catch_entry->initial_definitions())[i];
+        value_representations_[def->ssa_temp_index()] = def->representation();
+      }
+    }
     // Phis.
     if (block->IsJoinEntry()) {
       JoinEntryInstr* join = block->AsJoinEntry();

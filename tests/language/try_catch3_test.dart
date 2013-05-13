@@ -113,5 +113,7 @@ class TryCatchTest {
 }
 
 main() {
-  TryCatchTest.testMain();
+  for (var i = 0; i < 2000; i++) {
+    TryCatchTest.testMain();
+  }
 }

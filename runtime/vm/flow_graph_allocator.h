@@ -101,6 +101,7 @@ class FlowGraphAllocator : public ValueObject {
   // Visit instructions in the postorder and build live ranges for
   // all SSA values.
   void BuildLiveRanges();
+
   Instruction* ConnectOutgoingPhiMoves(BlockEntryInstr* block,
                                        BitVector* interference_set);
   void ProcessEnvironmentUses(BlockEntryInstr* block, Instruction* current);
@@ -111,7 +112,10 @@ class FlowGraphAllocator : public ValueObject {
   void ProcessOneInstruction(BlockEntryInstr* block,
                              Instruction* instr,
                              BitVector* interference_set);
-  void ConnectIncomingPhiMoves(BlockEntryInstr* block);
+  void ProcessInitialDefinition(Definition* defn,
+                                LiveRange* range,
+                                BlockEntryInstr* block);
+  void ConnectIncomingPhiMoves(JoinEntryInstr* join);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
   void BlockRegisterLocation(Location loc,
                              intptr_t from,

@@ -827,6 +827,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   void InheritDeoptTargetAfter(Instruction* other);
 
+  virtual bool MayThrow() const = 0;
+
  protected:
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
@@ -1017,6 +1019,8 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
 
@@ -1122,7 +1126,14 @@ class BlockEntryInstr : public Instruction {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
   intptr_t try_index() const { return try_index_; }
+
+  // True for blocks inside a try { } region.
+  bool InsideTryBlock() const {
+    return try_index_ != CatchClauseNode::kInvalidTryIndex;
+  }
 
   BitVector* loop_info() const { return loop_info_; }
   void set_loop_info(BitVector* loop_info) {
@@ -1248,6 +1259,8 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   void AddCatchEntry(CatchBlockEntryInstr* entry) { catch_entries_.Add(entry); }
 
+  CatchBlockEntryInstr* GetCatchEntry(intptr_t index);
+
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   GrowableArray<Definition*>* initial_definitions() {
@@ -1261,10 +1274,22 @@ class GraphEntryInstr : public BlockEntryInstr {
     spill_slot_count_ = count;
   }
 
+  // Number of stack slots reserved for compiling try-catch. For functions
+  // without try-catch, this is 0. Otherwise, it is the number of local
+  // variables.
+  intptr_t fixed_slot_count() const { return fixed_slot_count_; }
+  void set_fixed_slot_count(intptr_t count) {
+    ASSERT(count >= 0);
+    fixed_slot_count_ = count;
+  }
   TargetEntryInstr* normal_entry() const { return normal_entry_; }
 
   const ParsedFunction& parsed_function() const {
     return parsed_function_;
+  }
+
+  const GrowableArray<CatchBlockEntryInstr*>& catch_entries() const {
+    return catch_entries_;
   }
 
   virtual void PrintTo(BufferFormatter* f) const;
@@ -1278,6 +1303,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   GrowableArray<Definition*> initial_definitions_;
   intptr_t spill_slot_count_;
+  intptr_t fixed_slot_count_;  // For try-catch in optimized code.
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -1417,6 +1443,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   intptr_t catch_try_index() const {
     return catch_try_index_;
   }
+  GrowableArray<Definition*>* initial_definitions() {
+    return &initial_definitions_;
+  }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
@@ -1434,6 +1463,7 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   BlockEntryInstr* predecessor_;
   const Array& catch_handler_types_;
   const intptr_t catch_try_index_;
+  GrowableArray<Definition*> initial_definitions_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
@@ -1662,6 +1692,8 @@ class PhiInstr : public Definition {
     reaching_defs_ = reaching_defs;
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   // Direct access to inputs_ in order to resize it due to unreachable
   // predecessors.
@@ -1682,7 +1714,7 @@ class PhiInstr : public Definition {
 
 class ParameterInstr : public Definition {
  public:
-  ParameterInstr(intptr_t index, GraphEntryInstr* block)
+  ParameterInstr(intptr_t index, BlockEntryInstr* block)
       : index_(index), block_(block) { }
 
   DECLARE_INSTRUCTION(Parameter)
@@ -1714,11 +1746,13 @@ class ParameterInstr : public Definition {
 
   virtual CompileType ComputeType() const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   const intptr_t index_;
-  GraphEntryInstr* block_;
+  BlockEntryInstr* block_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
@@ -1763,6 +1797,8 @@ class PushArgumentInstr : public Definition {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     ASSERT(i == 0);
@@ -1805,6 +1841,8 @@ class ReturnInstr : public TemplateInstruction<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const intptr_t token_pos_;
 
@@ -1826,6 +1864,8 @@ class ThrowInstr : public TemplateInstruction<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return true; }
+
  private:
   const intptr_t token_pos_;
 
@@ -1846,6 +1886,8 @@ class ReThrowInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -1895,6 +1937,8 @@ class GotoInstr : public TemplateInstruction<0> {
   }
 
   virtual void PrintTo(BufferFormatter* f) const;
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   JoinEntryInstr* successor_;
@@ -1990,6 +2034,8 @@ class BranchInstr : public ControlInstruction {
 
   virtual void InheritDeoptTarget(Instruction* other);
 
+  virtual bool MayThrow() const;
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value);
 
@@ -2019,6 +2065,8 @@ class StoreContextInstr : public TemplateInstruction<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextInstr);
@@ -2072,6 +2120,8 @@ class RedefinitionInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(RedefinitionInstr);
@@ -2264,6 +2314,8 @@ class ConstraintInstr : public TemplateDefinition<2> {
     return false;
   }
 
+  virtual bool MayThrow() const { return false; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   Value* value() const { return inputs_[0]; }
@@ -2322,6 +2374,8 @@ class ConstantInstr : public TemplateDefinition<0> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Object& value_;
 
@@ -2373,6 +2427,8 @@ class AssertAssignableInstr : public TemplateDefinition<3> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual bool MayThrow() const { return true; }
+
  private:
   const intptr_t token_pos_;
   AbstractType& dst_type_;
@@ -2405,6 +2461,8 @@ class AssertBooleanInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -2440,6 +2498,8 @@ class ArgumentDefinitionTestInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return true; }
+
  private:
   const ArgumentDefinitionTestNode& ast_node_;
 
@@ -2461,6 +2521,8 @@ class CurrentContextInstr : public TemplateDefinition<0> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextInstr);
@@ -2489,6 +2551,8 @@ class ClosureCallInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
+
+  virtual bool MayThrow() const { return true; }
 
  private:
   const ClosureCallNode& ast_node_;
@@ -2552,6 +2616,8 @@ class InstanceCallInstr : public TemplateDefinition<0> {
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
+  virtual bool MayThrow() const { return true; }
+
  protected:
   friend class FlowGraphOptimizer;
   void set_ic_data(ICData* value) { ic_data_ = value; }
@@ -2600,6 +2666,8 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool MayThrow() const { return true; }
 
  private:
   InstanceCallInstr* instance_call_;
@@ -2692,6 +2760,11 @@ inline Representation BranchInstr::RequiredInputRepresentation(
 }
 
 
+inline bool BranchInstr::MayThrow() const {
+  return comparison()->MayThrow();
+}
+
+
 class StrictCompareInstr : public ComparisonInstr {
  public:
   StrictCompareInstr(Token::Kind kind, Value* left, Value* right);
@@ -2721,6 +2794,8 @@ class StrictCompareInstr : public ComparisonInstr {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   // True if the comparison must check for double, Mint or Bigint and
@@ -2767,6 +2842,10 @@ class EqualityCompareInstr : public ComparisonInstr {
         || (receiver_class_id() == kSmiCid);
   }
 
+  bool is_checked_strict_equal() const {
+    return HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const {
@@ -2791,6 +2870,10 @@ class EqualityCompareInstr : public ComparisonInstr {
 
   virtual EffectSet Effects() const {
     return IsInlinedNumericComparison() ? EffectSet::None() : EffectSet::All();
+  }
+
+  virtual bool MayThrow() const {
+    return !IsInlinedNumericComparison() && !is_checked_strict_equal();
   }
 
  private:
@@ -2867,6 +2950,8 @@ class RelationalOpInstr : public ComparisonInstr {
     return IsInlinedNumericComparison() ? EffectSet::None() : EffectSet::All();
   }
 
+  virtual bool MayThrow() const { return !IsInlinedNumericComparison(); }
+
  private:
   const ICData* ic_data_;
   const intptr_t token_pos_;
@@ -2927,6 +3012,8 @@ class IfThenElseInstr : public TemplateDefinition<2> {
            (if_false_ == other_if_then_else->if_false_);
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Token::Kind kind_;
   const intptr_t if_true_;
@@ -2978,6 +3065,8 @@ class StaticCallInstr : public TemplateDefinition<0> {
     is_known_list_constructor_ = value;
   }
 
+  virtual bool MayThrow() const { return true; }
+
  private:
   const intptr_t token_pos_;
   const Function& function_;
@@ -3013,6 +3102,11 @@ class LoadLocalInstr : public TemplateDefinition<0> {
 
   void mark_last() { is_last_ = true; }
   bool is_last() const { return is_last_; }
+
+  virtual bool MayThrow() const {
+    UNREACHABLE();
+    return false;
+  }
 
  private:
   const LocalVariable& local_;
@@ -3050,6 +3144,11 @@ class StoreLocalInstr : public TemplateDefinition<1> {
     return EffectSet::None();
   }
 
+  virtual bool MayThrow() const {
+    UNREACHABLE();
+    return false;
+  }
+
  private:
   const LocalVariable& local_;
   bool is_dead_;
@@ -3083,6 +3182,11 @@ class NativeCallInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
+
+  virtual bool MayThrow() const {
+    UNREACHABLE();
+    return true;
+  }
 
  private:
   const NativeBodyNode& ast_node_;
@@ -3130,6 +3234,8 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2> {
   // are marked as having no side-effects.
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
@@ -3174,6 +3280,8 @@ class GuardFieldInstr : public TemplateInstruction<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Field& field_;
 
@@ -3199,6 +3307,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<0> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual bool MayThrow() const { return false; }
  private:
   const Field& field_;
 
@@ -3228,6 +3337,8 @@ class StoreStaticFieldInstr : public TemplateDefinition<1> {
   // by stores/loads. LoadOptimizer handles loads separately. Hence stores
   // are marked as having no side-effects.
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   bool CanValueBeSmi() const {
@@ -3288,6 +3399,8 @@ class LoadIndexedInstr : public TemplateDefinition<2> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const intptr_t index_scale_;
   const intptr_t class_id_;
@@ -3319,6 +3432,8 @@ class StringFromCharCodeInstr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsStringFromCharCode()->cid_ == cid_;
   }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const intptr_t cid_;
@@ -3374,6 +3489,8 @@ class StoreIndexedInstr : public TemplateDefinition<3> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const StoreBarrierType emit_store_barrier_;
   const intptr_t index_scale_;
@@ -3398,6 +3515,8 @@ class BooleanNegateInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateInstr);
@@ -3440,6 +3559,8 @@ class InstanceOfInstr : public TemplateDefinition<3> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return true; }
+
  private:
   const intptr_t token_pos_;
   Value* value_;
@@ -3480,6 +3601,8 @@ class AllocateObjectInstr : public TemplateDefinition<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
   // If the result of the allocation is not stored into any field, passed
   // as an argument or used in a phi then it can't alias with any other
@@ -3549,6 +3672,8 @@ class MaterializeObjectInstr : public Definition {
   Location* locations() { return locations_; }
   void set_locations(Location* locations) { locations_ = locations; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*values_)[i] = value;
@@ -3583,6 +3708,8 @@ class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -3621,6 +3748,8 @@ class CreateArrayInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t num_elements_;
@@ -3656,6 +3785,8 @@ class CreateClosureInstr : public TemplateDefinition<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Function& function_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
@@ -3690,6 +3821,8 @@ class LoadUntaggedInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   intptr_t offset_;
 
@@ -3719,6 +3852,8 @@ class LoadClassIdInstr : public TemplateDefinition<1> {
     return EffectSet::Externalization();
   }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
@@ -3784,6 +3919,8 @@ class LoadFieldInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
@@ -3825,6 +3962,8 @@ class StoreVMFieldInstr : public TemplateDefinition<2> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
@@ -3860,6 +3999,8 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -3898,6 +4039,8 @@ class ExtractConstructorTypeArgumentsInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const AbstractTypeArguments& type_arguments_;
@@ -3930,6 +4073,8 @@ class ExtractConstructorInstantiatorInstr : public TemplateDefinition<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const ConstructorCallNode& ast_node_;
   const Class& instantiator_class_;
@@ -3957,6 +4102,8 @@ class AllocateContextInstr : public TemplateDefinition<0> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t num_context_variables_;
@@ -3981,6 +4128,8 @@ class ChainContextInstr : public TemplateInstruction<1> {
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(ChainContextInstr);
 };
@@ -4002,6 +4151,8 @@ class CloneContextInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const intptr_t token_pos_;
@@ -4028,6 +4179,8 @@ class CatchEntryInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const LocalVariable& exception_var_;
@@ -4063,6 +4216,8 @@ class CheckEitherNonSmiInstr : public TemplateInstruction<2> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckEitherNonSmiInstr);
 };
@@ -4090,6 +4245,8 @@ class BoxDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4121,6 +4278,8 @@ class BoxFloat32x4Instr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxFloat32x4Instr);
 };
@@ -4149,6 +4308,8 @@ class BoxUint32x4Instr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxUint32x4Instr);
 };
@@ -4176,6 +4337,8 @@ class BoxIntegerInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BoxIntegerInstr);
@@ -4207,6 +4370,8 @@ class UnboxDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
 
@@ -4240,6 +4405,8 @@ class UnboxFloat32x4Instr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxFloat32x4Instr);
 };
@@ -4269,6 +4436,8 @@ class UnboxUint32x4Instr : public TemplateDefinition<1> {
 
   DECLARE_INSTRUCTION(UnboxUint32x4)
   virtual CompileType ComputeType() const;
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxUint32x4Instr);
@@ -4301,6 +4470,8 @@ class UnboxIntegerInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnboxIntegerInstr);
@@ -4340,6 +4511,8 @@ class MathSqrtInstr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MathSqrtInstr);
@@ -4394,6 +4567,8 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsBinaryDoubleOp()->op_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Token::Kind op_kind_;
 
@@ -4446,6 +4621,8 @@ class BinaryFloat32x4OpInstr : public TemplateDefinition<2> {
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsBinaryFloat32x4Op()->op_kind();
   }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const Token::Kind op_kind_;
@@ -4502,6 +4679,8 @@ class Float32x4ShuffleInstr : public TemplateDefinition<1> {
     return op_kind() == other->AsFloat32x4Shuffle()->op_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const MethodRecognizer::Kind op_kind_;
 
@@ -4552,6 +4731,8 @@ class Float32x4ConstructorInstr : public TemplateDefinition<4> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ConstructorInstr);
 };
@@ -4593,6 +4774,8 @@ class Float32x4SplatInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4SplatInstr);
 };
@@ -4632,6 +4815,8 @@ class Float32x4ZeroInstr : public TemplateDefinition<0> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ZeroInstr);
@@ -4681,6 +4866,8 @@ class Float32x4ComparisonInstr : public TemplateDefinition<2> {
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4Comparison()->op_kind();
   }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -4732,6 +4919,8 @@ class Float32x4MinMaxInstr : public TemplateDefinition<2> {
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4MinMax()->op_kind();
   }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -4787,6 +4976,8 @@ class Float32x4ScaleInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsFloat32x4Scale()->op_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const MethodRecognizer::Kind op_kind_;
 
@@ -4834,6 +5025,8 @@ class Float32x4SqrtInstr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsFloat32x4Sqrt()->op_kind();
   }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind op_kind_;
@@ -4883,6 +5076,8 @@ class Float32x4ZeroArgInstr : public TemplateDefinition<1> {
     return op_kind() == other->AsFloat32x4ZeroArg()->op_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const MethodRecognizer::Kind op_kind_;
 
@@ -4930,6 +5125,8 @@ class Float32x4ClampInstr : public TemplateDefinition<3> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ClampInstr);
@@ -4983,6 +5180,8 @@ class Float32x4WithInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsFloat32x4With()->op_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const MethodRecognizer::Kind op_kind_;
 
@@ -5025,6 +5224,8 @@ class Float32x4ToUint32x4Instr : public TemplateDefinition<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Float32x4ToUint32x4Instr);
@@ -5085,6 +5286,8 @@ class BinaryMintOpInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsBinaryMintOp()->op_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Token::Kind op_kind_;
   InstanceCallInstr* instance_call_;
@@ -5141,6 +5344,8 @@ class ShiftMintOpInstr : public TemplateDefinition<2> {
     return op_kind() == other->AsShiftMintOp()->op_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Token::Kind op_kind_;
 
@@ -5191,6 +5396,8 @@ class UnaryMintOpInstr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const {
     return op_kind() == other->AsUnaryMintOp()->op_kind();
   }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const Token::Kind op_kind_;
@@ -5250,6 +5457,8 @@ class BinarySmiOpInstr : public TemplateDefinition<2> {
   // a power of two.
   bool RightIsPowerOfTwoConstant() const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Token::Kind op_kind_;
   InstanceCallInstr* instance_call_;
@@ -5289,6 +5498,8 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
     return other->AsUnarySmiOp()->op_kind() == op_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const Token::Kind op_kind_;
 
@@ -5310,6 +5521,8 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const intptr_t token_pos_;
@@ -5342,6 +5555,8 @@ class SmiToDoubleInstr : public TemplateDefinition<1> {
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
 };
@@ -5366,6 +5581,8 @@ class DoubleToIntegerInstr : public TemplateDefinition<1> {
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return true; }
 
  private:
   InstanceCallInstr* instance_call_;
@@ -5398,6 +5615,8 @@ class DoubleToSmiInstr : public TemplateDefinition<1> {
   virtual intptr_t DeoptimizationTarget() const { return deopt_id_; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleToSmiInstr);
@@ -5440,6 +5659,8 @@ class DoubleToDoubleInstr : public TemplateDefinition<1> {
   virtual bool AttributesEqual(Instruction* other) const {
     return other->AsDoubleToDouble()->recognized_kind() == recognized_kind();
   }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   const MethodRecognizer::Kind recognized_kind_;
@@ -5502,6 +5723,8 @@ class InvokeMathCFunctionInstr : public Definition {
     return other_invoke->recognized_kind() == recognized_kind();
   }
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     (*inputs_)[i] = value;
@@ -5546,6 +5769,8 @@ class CheckClassInstr : public TemplateInstruction<1> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual bool MayThrow() const { return false; }
+
  private:
   const ICData& unary_checks_;
 
@@ -5577,6 +5802,8 @@ class CheckSmiInstr : public TemplateInstruction<1> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const { return true; }
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);
@@ -5617,6 +5844,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
   virtual bool AttributesEqual(Instruction* other) const;
+
+  virtual bool MayThrow() const { return false; }
 
  private:
   intptr_t array_type_;

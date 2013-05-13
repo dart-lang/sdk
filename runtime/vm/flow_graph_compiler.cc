@@ -341,7 +341,8 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 intptr_t FlowGraphCompiler::StackSize() const {
   if (is_optimizing_) {
-    return block_order_[0]->AsGraphEntry()->spill_slot_count();
+    GraphEntryInstr* entry = flow_graph_.graph_entry();
+    return entry->fixed_slot_count() + entry->spill_slot_count();
   } else {
     return parsed_function_.num_stack_locals() +
         parsed_function_.num_copied_params();

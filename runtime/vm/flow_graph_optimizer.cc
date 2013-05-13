@@ -15,6 +15,7 @@
 #include "vm/parser.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
+#include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -453,6 +454,14 @@ void FlowGraphOptimizer::SelectRepresentations() {
         ASSERT(phi != NULL);
         ASSERT(phi->is_alive());
         InsertConversionsFor(phi);
+      }
+    }
+    CatchBlockEntryInstr* catch_entry = entry->AsCatchBlockEntry();
+    if (catch_entry != NULL) {
+      for (intptr_t i = 0;
+           i < catch_entry->initial_definitions()->length();
+           i++) {
+        InsertConversionsFor((*catch_entry->initial_definitions())[i]);
       }
     }
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
@@ -2710,6 +2719,30 @@ void RangeAnalysis::CollectSmiValues() {
        !block_it.Done();
        block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
+
+
+    if (block->IsGraphEntry() || block->IsCatchBlockEntry()) {
+      const GrowableArray<Definition*>& initial = block->IsGraphEntry()
+          ? *block->AsGraphEntry()->initial_definitions()
+          : *block->AsCatchBlockEntry()->initial_definitions();
+      for (intptr_t i = 0; i < initial.length(); ++i) {
+        Definition* current = initial[i];
+        if (current->Type()->ToCid() == kSmiCid) {
+          smi_values_.Add(current);
+        }
+      }
+    }
+
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if (join != NULL) {
+      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
+        PhiInstr* current = phi_it.Current();
+        if (current->Type()->ToCid() == kSmiCid) {
+          smi_values_.Add(current);
+        }
+      }
+    }
+
     for (ForwardInstructionIterator instr_it(block);
          !instr_it.Done();
          instr_it.Advance()) {
@@ -2722,16 +2755,6 @@ void RangeAnalysis::CollectSmiValues() {
         }
       } else if (current->IsCheckSmi()) {
         smi_checks_.Add(current->AsCheckSmi());
-      }
-    }
-
-    JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL) {
-      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
-        PhiInstr* current = phi_it.Current();
-        if (current->Type()->ToCid() == kSmiCid) {
-          smi_values_.Add(current);
-        }
       }
     }
   }
@@ -3168,6 +3191,73 @@ void RangeAnalysis::RemoveConstraints() {
 void FlowGraphOptimizer::InferSmiRanges() {
   RangeAnalysis range_analysis(flow_graph_);
   range_analysis.Analyze();
+}
+
+
+void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
+  // For every catch-block: Iterate over all call instructions inside the
+  // corresponding try-block and figure out for each environment value if it
+  // is the same constant at all calls. If yes, replace the initial definition
+  // at the catch-entry with this constant.
+  const GrowableArray<CatchBlockEntryInstr*>& catch_entries =
+      flow_graph->graph_entry()->catch_entries();
+  intptr_t base = kFirstLocalSlotFromFp + flow_graph->num_non_copied_params();
+  for (intptr_t catch_idx = 0;
+       catch_idx < catch_entries.length();
+       ++catch_idx) {
+    CatchBlockEntryInstr* cb = catch_entries[catch_idx];
+    CatchEntryInstr* catch_entry = cb->next()->AsCatchEntry();
+
+    // Initialize cdefs with the original initial definitions (ParameterInstr).
+    // The following representation is used:
+    // ParameterInstr => unknown
+    // ConstantInstr => known constant
+    // NULL => non-constant
+    GrowableArray<Definition*>* idefs = cb->initial_definitions();
+    GrowableArray<Definition*> cdefs(idefs->length());
+    cdefs.AddArray(*idefs);
+
+    // exception_var and stacktrace_var are never constant.
+    intptr_t ex_idx = base - catch_entry->exception_var().index();
+    intptr_t st_idx = base - catch_entry->stacktrace_var().index();
+    cdefs[ex_idx] = cdefs[st_idx] = NULL;
+
+    for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
+      if (block->try_index() == cb->catch_try_index()) {
+        for (ForwardInstructionIterator instr_it(block);
+             !instr_it.Done();
+             instr_it.Advance()) {
+          Instruction* current = instr_it.Current();
+          if (current->MayThrow()) {
+            Environment* env = current->env();
+            for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
+              if (cdefs[env_idx] != NULL &&
+                  env->ValueAt(env_idx)->BindsToConstant()) {
+                cdefs[env_idx] = env->ValueAt(env_idx)->definition();
+              }
+              if (cdefs[env_idx] != env->ValueAt(env_idx)->definition()) {
+                cdefs[env_idx] = NULL;
+              }
+            }
+          }
+        }
+      }
+    }
+    for (intptr_t j = 0; j < idefs->length(); ++j) {
+      if (cdefs[j] != NULL && cdefs[j]->IsConstant()) {
+        // TODO(fschneider): Use constants from the constant pool.
+        Definition* old = (*idefs)[j];
+        ConstantInstr* orig = cdefs[j]->AsConstant();
+        ConstantInstr* copy = new ConstantInstr(orig->value());
+        copy->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
+        old->ReplaceUsesWith(copy);
+        (*idefs)[j] = copy;
+      }
+    }
+  }
 }
 
 
@@ -4530,7 +4620,11 @@ void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
   }
   ASSERT(ForwardInstructionIterator(block).Done());
 
-  SetReachable(block->normal_entry());
+  // TODO(fschneider): Improve this approximation. The catch entry is only
+  // reachable if a call in the try-block is reachable.
+  for (intptr_t i = 0; i < block->SuccessorCount(); ++i) {
+    SetReachable(block->SuccessorAt(i));
+  }
 }
 
 
@@ -4550,6 +4644,10 @@ void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
 
 
 void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
+  const GrowableArray<Definition*>& defs = *block->initial_definitions();
+  for (intptr_t i = 0; i < defs.length(); ++i) {
+    defs[i]->Accept(this);
+  }
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     it.Current()->Accept(this);
   }
@@ -5371,12 +5469,18 @@ void ConstantPropagator::Analyze() {
 void ConstantPropagator::VisitBranches() {
   GraphEntryInstr* entry = graph_->graph_entry();
   reachable_->Add(entry->preorder_number());
-  // TODO(fschneider): Handle CatchEntry.
-  reachable_->Add(entry->normal_entry()->preorder_number());
-  block_worklist_.Add(entry->normal_entry());
+  block_worklist_.Add(entry);
 
   while (!block_worklist_.is_empty()) {
     BlockEntryInstr* block = block_worklist_.RemoveLast();
+    if (block->IsGraphEntry()) {
+      // TODO(fschneider): Improve this approximation. Catch entries are only
+      // reachable if a call in the corresponding try-block is reachable.
+      for (intptr_t i = 0; i < block->SuccessorCount(); ++i) {
+        SetReachable(block->SuccessorAt(i));
+      }
+      continue;
+    }
     Instruction* last = block->last_instruction();
     if (last->IsGoto()) {
       SetReachable(last->AsGoto()->successor());
