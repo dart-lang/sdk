@@ -56,10 +56,12 @@ import 'log.dart' as log;
 ///         |-- relative_test.dart
 ///         '-- split_test.dart
 ///
-String generateTree(List<String> files) {
+/// If [baseDir] is passed, it will be used as the root of the tree.
+String generateTree(List<String> files, {String baseDir}) {
   // Parse out the files into a tree of nested maps.
   var root = {};
   for (var file in files) {
+    if (baseDir != null) file = path.relative(file, from: baseDir);
     var parts = path.split(file);
     var directory = root;
     for (var part in path.split(file)) {

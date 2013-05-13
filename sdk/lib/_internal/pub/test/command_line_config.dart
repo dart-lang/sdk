@@ -11,23 +11,15 @@ import 'package:pathos/path.dart' as path;
 import 'package:unittest/unittest.dart';
 import '../lib/src/utils.dart';
 
-/// Gets a "special" string (ANSI escape or Unicode). On Windows, returns
-/// something else since those aren't supported.
-String _getSpecial(String color, [String onWindows = '']) {
-  // No ANSI escapes on windows.
-  if (Platform.operatingSystem == 'windows') return onWindows;
-  return color;
-}
-
 /// Pretty Unicode characters!
-final _checkbox = _getSpecial('\u2713', 'PASS');
-final _ballotX  = _getSpecial('\u2717', 'FAIL');
-final _lambda   = _getSpecial('\u03bb', '<fn>');
+final _checkbox = getSpecial('\u2713', 'PASS');
+final _ballotX  = getSpecial('\u2717', 'FAIL');
+final _lambda   = getSpecial('\u03bb', '<fn>');
 
-final _green = _getSpecial('\u001b[32m');
-final _red = _getSpecial('\u001b[31m');
-final _magenta = _getSpecial('\u001b[35m');
-final _none = _getSpecial('\u001b[0m');
+final _green = getSpecial('\u001b[32m');
+final _red = getSpecial('\u001b[31m');
+final _magenta = getSpecial('\u001b[35m');
+final _none = getSpecial('\u001b[0m');
 
 /// A custom unittest configuration for running the pub tests from the
 /// command-line and generating human-friendly output.

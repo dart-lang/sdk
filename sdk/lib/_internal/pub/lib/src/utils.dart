@@ -12,6 +12,8 @@ import 'dart:isolate';
 import 'dart:mirrors';
 import 'dart:uri';
 
+import 'package:pathos/path.dart' as path;
+
 /// A pair of values.
 class Pair<E, F> {
   E first;
@@ -384,6 +386,32 @@ String fileUriToPath(Uri uri) {
   }
 }
 
+/// Converts a local path string to a `file:` [Uri].
+Uri pathToFileUri(String pathString) {
+  pathString = path.absolute(pathString);
+  if (Platform.operatingSystem != 'windows') {
+    return Uri.parse('file://$pathString');
+  } else if (path.rootPrefix(pathString).startsWith('\\\\')) {
+    // Network paths become "file://hostname/path/to/file".
+    return Uri.parse('file:${pathString.replaceAll("\\", "/")}');
+  } else {
+    // Drive-letter paths become "file:///C:/path/to/file".
+    return Uri.parse('file:///${pathString.replaceAll("\\", "/")}');
+  }
+}
+
+/// Gets a "special" string (ANSI escape or Unicode). On Windows, returns
+/// something else since those aren't supported.
+String getSpecial(String color, [String onWindows = '']) {
+  // No ANSI escapes on windows or when running tests.
+  if (runningAsTest || Platform.operatingSystem == 'windows') return onWindows;
+  return color;
+}
+
+/// Whether pub is running as a subprocess in an integration test.
+bool get runningAsTest =>
+  Platform.environment.containsKey('_PUB_TESTING');
+
 /// Wraps [fn] to guard against several different kinds of stack overflow
 /// exceptions:
 ///
@@ -416,6 +444,8 @@ class ApplicationException implements Exception {
   final String message;
 
   ApplicationException(this.message);
+
+  String toString() => message;
 }
 
 /// Throw a [ApplicationException] with [message].

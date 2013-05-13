@@ -106,14 +106,14 @@ class LishCommand extends PubCommand {
       exit(exit_codes.USAGE);
     }
 
-    var packageBytesFuture = _filesToPublish.then((files) {
+    var packageBytesFuture = entrypoint.packageFiles().then((files) {
       log.fine('Archiving and publishing ${entrypoint.root}.');
 
       // Show the package contents so the user can verify they look OK.
       var package = entrypoint.root;
       log.message(
           'Publishing "${package.name}" ${package.version}:\n'
-          '${generateTree(files)}');
+          '${generateTree(files, baseDir: entrypoint.root.dir)}');
 
       return createTarGz(files, baseDir: entrypoint.root.dir);
     }).then((stream) => stream.toBytes());
@@ -123,39 +123,6 @@ class LishCommand extends PubCommand {
         .then((isValid) {
        if (isValid) return packageBytesFuture.then(_publish);
     });
-  }
-
-  /// The basenames of files that are automatically excluded from archives.
-  final _BLACKLISTED_FILES = const ['pubspec.lock'];
-
-  /// The basenames of directories that are automatically excluded from
-  /// archives.
-  final _BLACKLISTED_DIRS = const ['packages'];
-
-  /// Returns a list of files that should be included in the published package.
-  /// If this is a Git repository, this will respect .gitignore; otherwise, it
-  /// will return all non-hidden files.
-  Future<List<String>> get _filesToPublish {
-    var rootDir = entrypoint.root.dir;
-
-    return git.isInstalled.then((gitInstalled) {
-      if (dirExists(path.join(rootDir, '.git')) && gitInstalled) {
-        // List all files that aren't gitignored, including those not checked
-        // in to Git.
-        return git.run(["ls-files", "--cached", "--others",
-                        "--exclude-standard"]);
-      }
-
-      return listDir(rootDir, recursive: true)
-          .where(fileExists) // Skip directories and broken symlinks.
-          .map((entry) => path.relative(entry, from: rootDir));
-    }).then((files) => files.where(_shouldPublish).toList());
-  }
-
-  /// Returns `true` if [file] should be published.
-  bool _shouldPublish(String file) {
-    if (_BLACKLISTED_FILES.contains(path.basename(file))) return false;
-    return !path.split(file).any(_BLACKLISTED_DIRS.contains);
   }
 
   /// Returns the value associated with [key] in [map]. Throws a user-friendly

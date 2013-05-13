@@ -185,6 +185,22 @@ Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   });
 }
 
+/// Copy all files in [files] to the directory [destination]. Their locations in
+/// [destination] will be determined by their relative location to [baseDir].
+/// Any existing files at those paths will be overwritten.
+void copyFiles(Iterable<String> files, String baseDir, String destination) {
+  for (var file in files) {
+    var newPath = path.join(destination, path.relative(file, from: baseDir));
+    ensureDir(path.dirname(newPath));
+    copyFile(file, newPath);
+  }
+}
+
+/// Copy a file from [source] to [destination].
+void copyFile(String source, String destination) {
+  writeBinaryFile(destination, readBinaryFile(source));
+}
+
 /// Creates a directory [dir].
 String createDir(String dir) {
   new Directory(dir).createSync();

@@ -9,6 +9,7 @@ import 'package:args/args.dart';
 import 'package:pathos/path.dart' as path;
 
 import 'command_cache.dart';
+import 'command_deploy.dart';
 import 'command_help.dart';
 import 'command_install.dart';
 import 'command_lish.dart';
@@ -29,6 +30,7 @@ abstract class PubCommand {
   static Map<String, PubCommand> get commands {
     var commands = {
       'cache': new CacheCommand(),
+      'deploy': new DeployCommand(),
       'help': new HelpCommand(),
       'install': new InstallCommand(),
       'publish': new LishCommand(),
