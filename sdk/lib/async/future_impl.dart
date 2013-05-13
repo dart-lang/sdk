@@ -167,74 +167,18 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   Future then(f(T value), { onError(error) }) {
-    if (!_isComplete) {
-      if (onError == null) {
-        return new _ThenFuture(f).._subscribeTo(this);
-      }
-      return new _SubscribeFuture(f, onError).._subscribeTo(this);
+    if (onError == null) {
+      return new _ThenFuture(f).._subscribeTo(this);
     }
-    if (_hasError) {
-      if (onError != null) {
-        return _handleError(onError, null);
-      }
-      // The "f" funtion will never be called, so just return
-      // a future that delegates to this. We don't want to return
-      // this itself to give a signal that the future is complete.
-      return new _FutureWrapper(this);
-    } else {
-      assert(_hasValue);
-      return _handleValue(f);
-    }
+    return new _SubscribeFuture(f, onError).._subscribeTo(this);
   }
 
   Future catchError(f(error), { bool test(error) }) {
-    if (_hasValue) {
-      return new _FutureWrapper(this);
-    }
-    if (!_isComplete) {
-      return new _CatchErrorFuture(f, test).._subscribeTo(this);
-    } else {
-      return _handleError(f, test);
-    }
+    return new _CatchErrorFuture(f, test).._subscribeTo(this);
   }
 
   Future<T> whenComplete(action()) {
-    _WhenFuture<T> whenFuture = new _WhenFuture<T>(action);
-    if (!_isComplete) {
-      _addListener(whenFuture);
-    } else if (_hasValue) {
-      T value = _resultOrListeners;
-      Timer.run(() {
-        whenFuture._sendValue(value);
-      });
-    } else {
-      assert(_hasError);
-      _clearUnhandledError();
-      var error = _resultOrListeners;
-      Timer.run(() {
-        whenFuture._sendError(error);
-      });
-    }
-    return whenFuture;
-  }
-
-  /** Handle a late listener on a completed future with a value. */
-  Future _handleValue(onValue(var value)) {
-    assert(_hasValue);
-    _ThenFuture thenFuture = new _ThenFuture(onValue);
-    T value = _resultOrListeners;
-    Timer.run(() { thenFuture._sendValue(value); });
-    return thenFuture;
-  }
-
-  /** Handle a late listener on a completed future with an error. */
-  Future _handleError(onError(error), bool test(error)) {
-    assert(_hasError);
-    _clearUnhandledError();
-    var error = _resultOrListeners;
-    _CatchErrorFuture errorFuture = new _CatchErrorFuture(onError, test);
-    Timer.run(() { errorFuture._sendError(error); });
-    return errorFuture;
+    return new _WhenFuture<T>(action).._subscribeTo(this);
   }
 
   Stream<T> asStream() => new Stream.fromFuture(this);
@@ -289,10 +233,24 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   void _addListener(_FutureListener listener) {
-    assert(!_isComplete);
-    assert(listener._nextListener == null);
-    listener._nextListener = _resultOrListeners;
-    _resultOrListeners = listener;
+    if (_isComplete) {
+      _clearUnhandledError();
+      // Handle late listeners asynchronously.
+      Timer.run(() {
+        if (_hasValue) {
+          T value = _resultOrListeners;
+          listener._sendValue(value);
+        } else {
+          assert(_hasError);
+          listener._sendError(_resultOrListeners);
+        }
+      });
+    } else {
+      assert(!_isComplete);
+      assert(listener._nextListener == null);
+      listener._nextListener = _resultOrListeners;
+      _resultOrListeners = listener;
+    }
   }
 
   _FutureListener _removeListeners() {
@@ -512,31 +470,4 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
     }
     _setError(error);
   }
-}
-
-/**
- * Thin wrapper around a [Future].
- *
- * This is used to return a "new" [Future] that effectively work just
- * as an existing [Future], without making this discoverable by comparing
- * identities.
- */
-class _FutureWrapper<T> implements Future<T> {
-  final Future<T> _future;
-
-  _FutureWrapper(this._future);
-
-  Future then(function(T value), { onError(error) }) {
-    return _future.then(function, onError: onError);
-  }
-
-  Future catchError(function(error), {bool test(var error)}) {
-    return _future.catchError(function, test: test);
-  }
-
-  Future<T> whenComplete(action()) {
-    return _future.whenComplete(action);
-  }
-
-  Stream<T> asStream() => new Stream.fromFuture(_future);
 }
