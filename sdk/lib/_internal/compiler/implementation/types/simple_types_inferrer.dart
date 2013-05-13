@@ -831,12 +831,18 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
           sideEffects.setChangesInstanceProperty();
         } else if (selector.isGetter()) {
           sideEffects.setDependsOnInstancePropertyStore();
+        } else {
+          sideEffects.setAllSideEffects();
+          sideEffects.setDependsOnSomething();
         }
       } else {
         if (selector.isSetter()) {
           sideEffects.setChangesStaticProperty();
         } else if (selector.isGetter()) {
           sideEffects.setDependsOnStaticPropertyStore();
+        } else {
+          sideEffects.setAllSideEffects();
+          sideEffects.setDependsOnSomething();
         }
       }
     } else if (callee.isGetter() && !selector.isGetter()) {
@@ -860,6 +866,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                              Selector constraint,
                              SideEffects sideEffects,
                              bool inLoop) {
+    updateSideEffects(sideEffects, selector, callee);
+
     // Bailout for closure calls. We're not tracking types of
     // arguments for closures.
     if (callee.isInstanceMember() && selector.isClosureCall()) {
@@ -878,7 +886,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       }
     }
 
-    updateSideEffects(sideEffects, selector, callee);
     assert(isNotClosure(caller));
     callee = callee.implementation;
     if (!analyzeCount.containsKey(caller)) {
@@ -1948,16 +1955,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     }
     Selector selector = elements.getSelector(node);
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
-    if (Elements.isUnresolved(element)
-        || element.isGetter()
-        || element.isField()) {
-      if (element.isGetter()) {
-        handleStaticSend(node, new Selector.getterFrom(selector),
-                         element, null);
-      }
-      return inferrer.dynamicType;
-    }
-
     if (!selector.applies(element, compiler)) return inferrer.dynamicType;
 
     handleStaticSend(node, selector, element, arguments);
@@ -1965,8 +1962,12 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       return inferrer.growableListType;
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
       return inferrer.fixedListType;
-    } else {
+    } else if (element.isFunction() || element.isConstructor()) {
       return inferrer.returnTypeOfElement(element);
+    } else {
+      assert(element.isField() || element.isGetter());
+      // Closure call.
+      return inferrer.dynamicType;
     }
   }
 
@@ -2074,13 +2075,17 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitClosureSend(Send node) {
     node.visitChildren(this);
     Element element = elements[node];
+    Selector selector = elements.getSelector(node);
     if (element != null && element.isFunction()) {
       assert(Elements.isLocal(element));
       // This only works for function statements. We need a
       // more sophisticated type system with function types to support
       // more.
+      inferrer.updateSideEffects(sideEffects, selector, element);
       return inferrer.returnTypeOfElement(element);
     }
+    sideEffects.setDependsOnSomething();
+    sideEffects.setAllSideEffects();
     return inferrer.dynamicType;
   }
 
