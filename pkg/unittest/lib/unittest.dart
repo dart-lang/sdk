@@ -28,10 +28,10 @@
  *  * __Checks__: Test expectations can be specified via [expect]
  *  * __Matchers__: [expect] assertions are written declaratively using the
  *    [Matcher] class.
- *  * __Configuration__: The framework can be adapted by calling [configure] with a
- *    [Configuration]. See the other libraries in the `unittest` package for
- *    alternative implementations of [Configuration] including
- *    `compact_vm_config.dart`, `html_config.dart` and
+ *  * __Configuration__: The framework can be adapted by setting
+ *    [unittestConfiguration] with a [Configuration]. See the other libraries
+ *    in the `unittest` package for alternative implementations of
+ *    [Configuration] including `compact_vm_config.dart`, `html_config.dart` and
  *    `html_enhanced_config.dart`.
  *
  * ##Examples##
@@ -179,7 +179,7 @@ part 'src/test_case.dart';
 Configuration _config;
 
 /**
- * [Configuration] used by the unittest library. Note that if a 
+ * [Configuration] used by the unittest library. Note that if a
  * configuration has not been set, calling this getter will create
  * a default configuration.
  */
@@ -865,7 +865,7 @@ typedef dynamic TestFunction();
 
 // Stack formatting utility. Strips extraneous content from a stack trace.
 // Stack frame lines are parsed with a regexp, which has been tested
-// in Chrome, Firefox and the VM. If a line fails to be parsed it is 
+// in Chrome, Firefox and the VM. If a line fails to be parsed it is
 // included in the output to be conservative.
 //
 // The output stack consists of everything after the call to TestCase._run.
@@ -894,8 +894,8 @@ String _formatStack(stack) {
   } else {
     return stack.toString();
   }
- 
-  // Calculate the max width of first column so we can 
+
+  // Calculate the max width of first column so we can
   // pad to align the second columns.
   int padding = lines.fold(0, (n, line) {
     var match = _frameRegExp.firstMatch(line);
