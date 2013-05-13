@@ -1050,6 +1050,35 @@ CompileType Float32x4ToUint32x4Instr::ComputeType() const {
 }
 
 
+CompileType Uint32x4BoolConstructorInstr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+CompileType Uint32x4GetFlagInstr::ComputeType() const {
+  return CompileType::FromCid(kBoolCid);
+}
+
+
+CompileType Uint32x4SelectInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Uint32x4SetFlagInstr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
+CompileType Uint32x4ToFloat32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType BinaryUint32x4OpInstr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
 CompileType MathSqrtInstr::ComputeType() const {
   return CompileType::FromCid(kDoubleCid);
 }

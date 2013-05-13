@@ -89,6 +89,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   bool TryInlineFloat32x4Method(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
+  bool TryInlineUint32x4Method(InstanceCallInstr* call,
+                               MethodRecognizer::Kind recognized_kind);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
@@ -142,6 +144,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool InlineFloat32x4Getter(InstanceCallInstr* call,
                              MethodRecognizer::Kind getter);
+  bool InlineUint32x4Getter(InstanceCallInstr* call,
+                            MethodRecognizer::Kind getter);
 
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
   void InlineArrayLengthGetter(InstanceCallInstr* call,

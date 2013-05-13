@@ -700,6 +700,57 @@ void Float32x4ToUint32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void Uint32x4BoolConstructorInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Uint32x4.bool(");
+  value0()->PrintTo(f);
+  f->Print(", ");
+  value1()->PrintTo(f);
+  f->Print(", ");
+  value2()->PrintTo(f);
+  f->Print(", ");
+  value3()->PrintTo(f);
+  f->Print(")");
+}
+
+
+void Uint32x4GetFlagInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Uint32x4.%s ", MethodRecognizer::KindToCString(op_kind()));
+  value()->PrintTo(f);
+}
+
+
+void Uint32x4SetFlagInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Uint32x4.%s ", MethodRecognizer::KindToCString(op_kind()));
+  value()->PrintTo(f);
+  f->Print(", ");
+  flagValue()->PrintTo(f);
+}
+
+
+void Uint32x4SelectInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Uint32x4.select ");
+  mask()->PrintTo(f);
+  f->Print(", ");
+  trueValue()->PrintTo(f);
+  f->Print(", ");
+  falseValue()->PrintTo(f);
+}
+
+
+void Uint32x4ToFloat32x4Instr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("Uint32x4.toFloat32x4 ");
+  left()->PrintTo(f);
+}
+
+
+void BinaryUint32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s, ", Token::Str(op_kind()));
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void BinaryMintOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);
