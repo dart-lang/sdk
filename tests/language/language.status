@@ -823,7 +823,6 @@ static_final_field2_negative_test: fail
 static_final_field_negative_test: fail
 string_interpolate1_negative_test: fail
 string_interpolate2_negative_test: fail
-string_interpolation1_negative_test: fail
 string_interpolation2_negative_test: fail
 string_interpolation3_negative_test: fail
 string_interpolation4_negative_test: fail
