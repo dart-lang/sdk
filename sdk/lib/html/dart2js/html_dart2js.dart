@@ -15289,6 +15289,15 @@ class Node extends EventTarget native "Node" {
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('appendChild')
+  /**
+   * Adds a node to the end of the child [nodes] list of this node.
+   *
+   * If the node already exists in this document, it will be removed from its
+   * current parent node, then added to this node.
+   *
+   * This method is more efficient than `nodes.add`, and is the preferred
+   * way of appending a child node.
+   */
   @DomName('Node.appendChild')
   @DocsEditable
   Node append(Node newChild) native;
