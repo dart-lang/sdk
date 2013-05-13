@@ -98,20 +98,23 @@ void main() {
     });
 
     test('.value is the result of the future', () {
-      future.then(expectAsync1((_) {
-        expect(future.value, equals(12));
-      }));
+      // The completer calls its listeners asynchronously. We have to wait
+      // before we can access the value of the ValueFuture.
+      expect(future.then((_) => future.value), completion(equals(12)));
     });
 
     test('.hasValue is true', () {
-      future.then(expectAsync1((_) {
-        expect(future.hasValue, isTrue);
-      }));
+      // The completer calls its listeners asynchronously. We have to wait
+      // before we can access the value of the ValueFuture.
+      expect(future.then((_) => future.hasValue), completion(isTrue));
     });
   });
 
   group('after an error completion', () {
     var future;
+    // Since the completer completes asynchronously we need to wait before the
+    // ValueFuture has a value. The safeFuture will execute its callback when
+    // this is the case.
     var safeFuture;
 
     setUp(() {
@@ -122,15 +125,11 @@ void main() {
     });
 
     test('.value is null', () {
-      safeFuture.then(expectAsync1((_) {
-        expect(future.value, isNull);
-      }));
+      expect(safeFuture.then((_) => future.value), completion(isNull));
     });
 
     test('.hasValue is false', () {
-      safeFuture.then(expectAsync1((_) {
-        expect(future.hasValue, isFalse);
-      }));
+      expect(safeFuture.then((_) => future.hasValue), completion(isFalse));
     });
   });
 }
