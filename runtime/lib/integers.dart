@@ -164,12 +164,17 @@ class _IntegerImplementation {
   double toDouble() { return new _Double.fromInteger(this); }
 
   int pow(int exponent) {
-    double res = this.toDouble().pow(exponent);
-    if (res.isInfinite) {
-      // Use Bigint instead.
-      throw "_IntegerImplementation.pow not implemented for large integers.";
+    // Exponentiation by squaring.
+    int base = this;
+    int result = 1;
+    while (exponent != 0) {
+      if ((exponent & 1) == 1) {
+        result *= base;
+      }
+      exponent >>= 1;
+      base *= base;
     }
-    return res.toInt();
+    return result;
   }
 
   String toStringAsFixed(int fractionDigits) {

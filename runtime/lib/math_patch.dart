@@ -5,8 +5,11 @@
 import "dart:typed_data";
 
 // A VM patch of the dart:math library.
+
+// If [x] is an [int] and [exponent] is a non-negative [int], the result is
+// an [int], otherwise the result is a [double].
 patch num pow(num x, num exponent) {
-  if (exponent is int) {
+  if ((x is int) && (exponent is int) && (exponent >= 0)) {
     return x.pow(exponent);
   }
   // Double.pow will call exponent.toDouble().

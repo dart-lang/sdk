@@ -85,14 +85,23 @@ var expectedResults =
 void main() {
   int exp = 0;
   for (int val in expectedResults) {
-    Expect.equals(val, pow(2, exp++));
+    Expect.equals(val, pow(2, exp));
+    Expect.equals(val.toDouble(), pow(2, exp.toDouble()));
+    exp++;
   }
+
   // Optimize it.
   for (int i = 0; i < 8888; i++) {
     pow(2, 3);
+    pow(2.0, 3.0);
   }
   exp = 0;
   for (int val in expectedResults) {
-    Expect.equals(val, pow(2, exp++));
+    Expect.equals(val, pow(2, exp));
+    Expect.equals(val.toDouble(), pow(2, exp.toDouble()));
+    exp++;
   }
+  // Test Bigints.
+  Expect.equals(5559917313492231481, pow(11, 18));
+  Expect.equals(672749994932560009201, pow(11, 20));
 }

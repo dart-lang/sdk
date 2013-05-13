@@ -102,6 +102,7 @@ io/process_exit_negative_test: Fail, OK # relies on a static error that is a war
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
+pow_test: Skip # Precision > 53 bits.
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
