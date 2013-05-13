@@ -138,7 +138,7 @@ abstract class SerializationRule {
  */
 class ListRule extends SerializationRule {
 
-  appliesTo(object, Writer w) => object is List;
+  bool appliesTo(object, Writer w) => object is List;
 
   bool get storesStateAsLists => true;
 
@@ -196,7 +196,7 @@ class ListRuleEssential extends ListRule {
  */
 class MapRule extends SerializationRule {
 
-  appliesTo(object, Writer w) => object is Map;
+  bool appliesTo(object, Writer w) => object is Map;
 
   bool get storesStateAsMaps => true;
 
@@ -272,9 +272,7 @@ class MapRule extends SerializationRule {
  * num, String, and bool.
  */
 class PrimitiveRule extends SerializationRule {
-  appliesTo(object, Writer w) {
-    return isPrimitive(object);
-  }
+  bool appliesTo(object, Writer w) => isPrimitive(object);
   extractState(object, Function f, Writer w) => object;
   flatten(object, Writer writer) {}
   inflateEssential(state, Reader r) => state;
@@ -334,7 +332,7 @@ class ClosureRule extends CustomRule {
 
   create(state) => construct(state);
 
-  setState(object, state) {
+  void setState(object, state) {
     if (setNonEssentialState == null) return;
     setNonEssentialState(object, state);
   }
@@ -379,7 +377,7 @@ class NamedObjectRule extends SerializationRule {
   inflateNonEssential(state, object, Reader r) {}
 
   /** Return the name for this object in the Writer. */
-  nameFor(object, Writer writer) => writer.nameFor(object);
+  String nameFor(object, Writer writer) => writer.nameFor(object);
 }
 
 /**
@@ -392,7 +390,8 @@ class NamedObjectRule extends SerializationRule {
  */
 class MirrorRule extends NamedObjectRule {
   bool appliesTo(object, Writer writer) => object is DeclarationMirror;
-  nameFor(DeclarationMirror object, Writer writer) =>
+
+  String nameFor(DeclarationMirror object, Writer writer) =>
       MirrorSystem.getName(object.qualifiedName);
 
   inflateEssential(state, Reader r) {
@@ -480,7 +479,7 @@ abstract class CustomRule extends SerializationRule {
   // We don't want to have to make the end user tell us how long the list is
   // separately, so write it out for each object, even though they're all
   // expected to be the same length.
-  get hasVariableLengthEntries => true;
+  bool get hasVariableLengthEntries => true;
 }
 
 /** A hard-coded rule for serializing Symbols. */
@@ -488,7 +487,7 @@ class SymbolRule extends CustomRule {
   bool appliesTo(instance, _) => instance is Symbol;
   getState(instance) => [MirrorSystem.getName(instance)];
   create(state) => new Symbol(state[0]);
-  setState(symbol, state) {}
+  void setState(symbol, state) {}
   int get dataLength => 1;
   bool get hasVariableLengthEntries => false;
 }

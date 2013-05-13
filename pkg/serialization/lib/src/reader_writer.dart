@@ -509,12 +509,12 @@ class Trace {
 
   Trace(this.writer);
 
-  addRoot(object) {
+  void addRoot(object) {
     roots.add(object);
   }
 
   /** A convenience method to add a single root and trace it in one step. */
-  trace(object) {
+  void trace(object) {
     addRoot(object);
     traceAll();
   }
@@ -523,7 +523,7 @@ class Trace {
    * Process all of the objects reachable from our roots via state that the
    * serialization rules access.
    */
-  traceAll() {
+  void traceAll() {
     queue.addAll(roots);
     while (!queue.isEmpty) {
       var next = queue.removeFirst();

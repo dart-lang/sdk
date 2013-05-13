@@ -748,7 +748,7 @@ class NodeRule extends CustomRule {
   bool appliesTo(instance, _) => instance.runtimeType == Node;
   getState(instance) => [instance.parent, instance.name, instance.children];
   create(state) => new Node(state[1]);
-  setState(Node node, state) {
+  void setState(Node node, state) {
     node.parent = state[0];
     node.children = state[2];
   }
@@ -768,7 +768,7 @@ class PersonRuleReturningMapWithNonStringKey extends CustomRule {
       ..[instance.address] = "address";
   }
   create(state) => new Person();
-  setState(Person a, state) {
+  void setState(Person a, state) {
     a.name = findValue("name", state);
     a.address = findValue("address", state);
   }
