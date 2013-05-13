@@ -52,7 +52,11 @@ String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {
 /// any code to run, as long as it's not waiting on some external event.
 Future pumpEventQueue([int times=20]) {
   if (times == 0) return new Future.value();
-  return new Future.value().then((_) => pumpEventQueue(times - 1));
+  // We use a delayed future to allow runAsync events to finish. The
+  // Future.value or Future() constructors use runAsync themselves and would
+  // therefore not wait for runAsync callbacks that are scheduled after invoking
+  // this method.
+  return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
 }
 
 /// Returns whether [iterable1] has the same elements in the same order as

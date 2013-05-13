@@ -217,7 +217,7 @@ class _FutureImpl<T> implements Future<T> {
     _state |= _UNHANDLED_ERROR;
     // Wait for the rest of the current event's duration to see
     // if a subscriber is added to handle the error.
-    Timer.run(() {
+    runAsync(() {
       if (_hasUnhandledError) {
         // No error handler has been added since the error was set.
         _clearUnhandledError();
@@ -236,7 +236,7 @@ class _FutureImpl<T> implements Future<T> {
     if (_isComplete) {
       _clearUnhandledError();
       // Handle late listeners asynchronously.
-      Timer.run(() {
+      runAsync(() {
         if (_hasValue) {
           T value = _resultOrListeners;
           listener._sendValue(value);
