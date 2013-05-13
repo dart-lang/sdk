@@ -38,7 +38,6 @@ DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 
 
-
 // Optimize instance calls using ICData.
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();

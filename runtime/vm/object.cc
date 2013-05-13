@@ -6557,7 +6557,7 @@ bool Library::IsKeyUsed(intptr_t key) {
 }
 
 
-static bool IsPrivate(const String& name) {
+bool Library::IsPrivate(const String& name) {
   if (ShouldBePrivate(name)) return true;
   // Factory names: List._fromLiteral.
   for (intptr_t i = 1; i < name.Length() - 1; i++) {

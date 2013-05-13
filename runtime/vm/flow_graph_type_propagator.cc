@@ -473,6 +473,20 @@ intptr_t CompileType::ToCid() {
 }
 
 
+// Return true if the class is private to our internal libraries (not extendable
+// or implementable by users).
+// (TODO): Allow more libraries.
+static bool IsKnownPrivateClass(const Class& type_class) {
+  if (!Library::IsPrivate(String::Handle(type_class.Name()))) return false;
+  const Library& library = Library::Handle(type_class.library());
+  if (library.raw() == Library::CoreLibrary()) return true;
+  if (library.raw() == Library::CollectionLibrary()) return true;
+  if (library.raw() == Library::TypedDataLibrary()) return true;
+  if (library.raw() == Library::MathLibrary()) return true;
+  return false;
+}
+
+
 intptr_t CompileType::ToNullableCid() {
   if (cid_ == kIllegalCid) {
     ASSERT(type_ != NULL);
@@ -481,11 +495,16 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kDynamicCid;
     } else if (type_->IsVoidType()) {
       cid_ = kNullCid;
-    } else if (FLAG_use_cha && type_->HasResolvedTypeClass()) {
+    } else if (type_->HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type_->type_class());
-      if (!type_class.is_implemented() &&
-          !CHA::HasSubclasses(type_class.id())) {
-        cid_ = type_class.id();
+      if (FLAG_use_cha || IsKnownPrivateClass(type_class)) {
+        // A known private class cannot be subclassed or implemented.
+        if (!type_class.is_implemented() &&
+            !CHA::HasSubclasses(type_class.id())) {
+          cid_ = type_class.id();
+        } else {
+          cid_ = kDynamicCid;
+        }
       } else {
         cid_ = kDynamicCid;
       }

@@ -2223,6 +2223,8 @@ class Library : public Object {
   // mismatch found.
   static void CheckFunctionFingerprints();
 
+  static bool IsPrivate(const String& name);
+
  private:
   static const int kInitialImportsCapacity = 4;
   static const int kImportsCapacityIncrement = 8;
