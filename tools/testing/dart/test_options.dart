@@ -508,12 +508,12 @@ Note: currently only implemented for dart2js.''',
       configuration['progress'] = 'verbose';
     }
 
-    // Create the artificial 'unchecked' options that test status files
+    // Create the artificial negative options that test status files
     // expect.
     configuration['unchecked'] = !configuration['checked'];
     configuration['host_unchecked'] = !configuration['host_checked'];
-
     configuration['unminified'] = !configuration['minified'];
+    configuration['nocsp'] = !configuration['csp'];
 
     String runtime = configuration['runtime'];
     if (runtime == 'firefox') {
