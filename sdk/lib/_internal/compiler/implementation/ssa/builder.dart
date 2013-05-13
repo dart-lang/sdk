@@ -1193,6 +1193,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (canBeInlined == false) return false;
     if (!selector.applies(function, compiler)) return false;
 
+    // Don't inline operator== methods if the parameter can be null.
+    if (element.name == const SourceString('==')) {
+      if (element.getEnclosingClass() != compiler.objectClass
+          && providedArguments[1].canBeNull()) {
+        return false;
+      }
+    }
+
     FunctionExpression functionExpression = function.parseNode(compiler);
     TreeElements newElements =
         compiler.enqueuer.resolution.getCachedElements(function);
@@ -2434,9 +2442,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
-    HInvokeDynamicMethod result =
-        buildInvokeDynamic(node, elements.getSelector(node), [operand]);
-    pushWithPosition(result, node);
+    pushInvokeDynamic(node, elements.getSelector(node), [operand]);
   }
 
   void visitBinary(HInstruction left,
@@ -2455,9 +2461,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
     }
 
-    pushWithPosition(
-          buildInvokeDynamic(send, selector, [left, right]),
-          op);
+    pushInvokeDynamic(send, selector, [left, right], location: op);
     if (op.source.stringValue == '!=') {
       pushWithPosition(new HNot(popBoolified()), op);
     }
@@ -2489,8 +2493,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                   HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
     assert(selector.isGetter());
-    HInstruction res = buildInvokeDynamic(send, selector, [receiver]);
-    pushWithPosition(res, send);
+    pushInvokeDynamic(send, selector, [receiver]);
   }
 
   void generateGetter(Send send, Element element) {
@@ -2564,9 +2567,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       location = send;
     }
     assert(selector.isSetter());
-    HInstruction res = buildInvokeDynamic(
-        location, selector, [receiver, value]);
-    addWithPosition(res, location);
+    pushInvokeDynamic(location, selector, [receiver, value]);
+    pop();
     stack.add(value);
   }
 
@@ -2901,14 +2903,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  bool isThisSend(Send send) {
-    Node receiver = send.receiver;
-    if (receiver == null) return true;
-    Identifier identifier = receiver.asIdentifier();
-    return identifier != null && identifier.isThis();
-  }
-
-  visitDynamicSend(Send node, {bool inline: true}) {
+  visitDynamicSend(Send node) {
     Selector selector = elements.getSelector(node);
 
     List<HInstruction> inputs = <HInstruction>[];
@@ -2916,47 +2911,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inputs.add(receiver);
     addDynamicSendArgumentsToList(node, inputs);
 
-    // We prefer to not inline certain operations on indexables,
-    // because the constant folder will handle them better and turn
-    // them into simpler instructions that allow further
-    // optimizations.
-    bool isOptimizableOperationOnIndexable(Selector selector, Element element) {
-      bool isLength = selector.isGetter()
-          && selector.name == const SourceString("length");
-      if (isLength || selector.isIndex()) {
-        DartType classType = element.getEnclosingClass().computeType(compiler);
-        HType type = new HType.nonNullExact(classType, compiler);
-        return type.isIndexable(compiler);
-      } else if (selector.isIndexSet()) {
-        DartType classType = element.getEnclosingClass().computeType(compiler);
-        HType type = new HType.nonNullExact(classType, compiler);
-        return type.isMutableIndexable(compiler);
-      } else {
-        return false;
-      }
+    pushInvokeDynamic(node, selector, inputs);
+    if (selector.isSetter() || selector.isIndexSet()) {
+      pop();
+      stack.add(inputs.last);
     }
-
-    Element element = compiler.world.locateSingleElement(selector);
-    // TODO(ngeoffray): If [element] is a getter, then this send is
-    // a closure send. We should teach that to [ResolvedVisitor].
-    if (inline
-        && element != null
-        && !element.isGetter()
-        // This check is to ensure we don't regress compared to our
-        // previous limited inlining. We currently don't want to
-        // inline methods on intercepted classes because the
-        // optimizers apply their own optimizations on these methods.
-        && (!backend.interceptedClasses.contains(element.getEnclosingClass())
-            || isThisSend(node))
-        // Avoid inlining optimizable operations on indexables.
-        && !isOptimizableOperationOnIndexable(selector, element)) {
-      if (tryInlineMethod(element, selector, node.arguments, inputs, node)) {
-        return;
-      }
-    }
-
-    HInstruction invoke = buildInvokeDynamic(node, selector, inputs);
-    pushWithPosition(invoke, node);
   }
 
   visitClosureSend(Send node) {
@@ -3691,9 +3650,58 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInstruction buildInvokeDynamic(Node node,
-                                  Selector selector,
-                                  List<HInstruction> arguments) {
+  void pushInvokeDynamic(Node node,
+                         Selector selector,
+                         List<HInstruction> arguments,
+                         {Node location}) {
+    if (location == null) location = node;
+
+    // We prefer to not inline certain operations on indexables,
+    // because the constant folder will handle them better and turn
+    // them into simpler instructions that allow further
+    // optimizations.
+    bool isOptimizableOperationOnIndexable(Selector selector, Element element) {
+      bool isLength = selector.isGetter()
+          && selector.name == const SourceString("length");
+      if (isLength || selector.isIndex()) {
+        DartType classType = element.getEnclosingClass().computeType(compiler);
+        HType type = new HType.nonNullExact(classType, compiler);
+        return type.isIndexable(compiler);
+      } else if (selector.isIndexSet()) {
+        DartType classType = element.getEnclosingClass().computeType(compiler);
+        HType type = new HType.nonNullExact(classType, compiler);
+        return type.isMutableIndexable(compiler);
+      } else {
+        return false;
+      }
+    }
+
+    bool isThisSend(Send send) {
+      if (send.isPrefix || send.isPostfix) return false;
+      Node receiver = send.receiver;
+      if (receiver == null) return true;
+      Identifier identifier = receiver.asIdentifier();
+      return identifier != null && identifier.isThis();
+    }
+
+    Element element = compiler.world.locateSingleElement(selector);
+    if (element != null
+        && !(element.isGetter() && selector.isCall())
+        && !(selector.isGetter() && element.isFunction())
+        // This check is to ensure we don't regress compared to our
+        // previous limited inlining. We currently don't want to
+        // inline methods on intercepted classes because the
+        // optimizers apply their own optimizations on these methods.
+        && (!backend.interceptedClasses.contains(element.getEnclosingClass())
+            || isThisSend(node))
+        // Avoid inlining optimizable operations on indexables.
+        && !isOptimizableOperationOnIndexable(selector, element)) {
+      Link<Node> nodes = node.isPropertyAccess ? null : node.arguments;
+      if (tryInlineMethod(element, selector, nodes, arguments, node)) {
+        return;
+      }
+    }
+
     HInstruction receiver = arguments[0];
     Set<ClassElement> interceptedClasses =
         backend.getInterceptedClassesOn(selector.name);
@@ -3706,12 +3714,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     inputs.addAll(arguments);
     if (selector.isGetter()) {
       bool hasGetter = compiler.world.hasAnyUserDefinedGetter(selector);
-      return new HInvokeDynamicGetter(selector, null, inputs, !hasGetter);
+      pushWithPosition(
+          new HInvokeDynamicGetter(selector, null, inputs, !hasGetter),
+          location);
     } else if (selector.isSetter()) {
       bool hasSetter = compiler.world.hasAnyUserDefinedSetter(selector);
-      return new HInvokeDynamicSetter(selector, null, inputs, !hasSetter);
+      pushWithPosition(
+          new HInvokeDynamicSetter(selector, null, inputs, !hasSetter),
+          location);
     } else {
-      return new HInvokeDynamicMethod(selector, inputs, isIntercepted);
+      pushWithPosition(
+          new HInvokeDynamicMethod(selector, inputs, isIntercepted),
+          location);
     }
   }
 
@@ -3832,12 +3846,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack.add(result);
     } else if (node.isIndex) {
       if (const SourceString("=") == op.source) {
-        // TODO(kasperl): We temporarily disable inlining because the
-        // code here cannot deal with it yet.
-        visitDynamicSend(node, inline: false);
-        HInvokeDynamicMethod method = pop();
-        // Push the value.
-        stack.add(method.inputs.last);
+        visitDynamicSend(node);
       } else {
         visit(node.receiver);
         HInstruction receiver = pop();
@@ -3849,18 +3858,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           index = pop();
         }
 
-        HInvokeDynamicMethod getterInstruction = buildInvokeDynamic(
+        pushInvokeDynamic(
             node,
             elements.getGetterSelectorInComplexSendSet(node),
             [receiver, index]);
-        add(getterInstruction);
+        HInstruction getterInstruction = pop();
 
         handleComplexOperatorSend(node, getterInstruction, arguments);
         HInstruction value = pop();
 
-        HInvokeDynamicMethod assign = buildInvokeDynamic(
+        pushInvokeDynamic(
             node, elements.getSelector(node), [receiver, index, value]);
-        add(assign);
+        pop();
 
         if (node.isPostfix) {
           stack.add(getterInstruction);
@@ -4151,17 +4160,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Selector selector = compiler.iteratorSelector;
       visit(node.expression);
       HInstruction receiver = pop();
-      iterator = buildInvokeDynamic(node, selector, [receiver]);
-      add(iterator);
+      pushInvokeDynamic(node, selector, [receiver]);
+      iterator = pop();
     }
     HInstruction buildCondition() {
       Selector selector = compiler.moveNextSelector;
-      push(buildInvokeDynamic(node, selector, [iterator]));
+      pushInvokeDynamic(node, selector, [iterator]);
       return popBoolified();
     }
     void buildBody() {
       Selector call = compiler.currentSelector;
-      push(buildInvokeDynamic(node, call, [iterator]));
+      pushInvokeDynamic(node, call, [iterator]);
 
       Node identifier = node.declaredIdentifier;
       Element variable = elements[identifier];
