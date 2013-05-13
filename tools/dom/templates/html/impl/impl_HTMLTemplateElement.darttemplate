@@ -55,7 +55,7 @@ $!MEMBERS
 
     // Create content
     if (template is! TemplateElement) {
-      var doc = _getTemplateContentsOwner(template.document);
+      var doc = _Bindings._getTemplateContentsOwner(template.document);
       template._templateContent = doc.createDocumentFragment();
     }
 
@@ -65,9 +65,9 @@ $!MEMBERS
     }
 
     if (template is TemplateElement) {
-      _bootstrapTemplatesRecursivelyFrom(template.content);
+      bootstrap(template.content);
     } else {
-      _liftNonNativeTemplateChildrenIntoContent(template);
+      _Bindings._liftNonNativeChildrenIntoContent(template);
     }
 
     return true;
@@ -83,7 +83,7 @@ $!MEMBERS
   // TODO(rafaelw): Review whether this is the right public API.
   @Experimental
   static void bootstrap(Node content) {
-    _bootstrapTemplatesRecursivelyFrom(content);
+    _Bindings._bootstrapTemplatesRecursivelyFrom(content);
   }
 
   static bool _initStyles;

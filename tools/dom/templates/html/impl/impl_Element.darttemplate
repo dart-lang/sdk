@@ -690,7 +690,7 @@ $endif
       name = name.substring(0, name.length - 1);
 
       changed = (value) {
-        if (_templateBooleanConversion(value)) {
+        if (_Bindings._toBoolean(value)) {
           self.xtag.attributes[name] = '';
         } else {
           self.xtag.attributes.remove(name);
@@ -823,8 +823,8 @@ $endif
     var template = ref;
     if (template == null) template = this;
 
-    var instance = _createDeepCloneAndDecorateTemplates(template.content,
-        attributes['syntax']);
+    var instance = _Bindings._createDeepCloneAndDecorateTemplates(
+        template.content, attributes['syntax']);
 
     if (TemplateElement._instanceCreated != null) {
       TemplateElement._instanceCreated.add(instance);
@@ -850,7 +850,7 @@ $endif
 
     var syntax = TemplateElement.syntax[attributes['syntax']];
     _model = value;
-    _addBindings(this, model, syntax);
+    _Bindings._addBindings(this, model, syntax);
   }
 
   // TODO(jmesserly): const set would be better

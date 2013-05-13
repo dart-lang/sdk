@@ -7637,7 +7637,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
       name = name.substring(0, name.length - 1);
 
       changed = (value) {
-        if (_templateBooleanConversion(value)) {
+        if (_Bindings._toBoolean(value)) {
           self.xtag.attributes[name] = '';
         } else {
           self.xtag.attributes.remove(name);
@@ -7770,8 +7770,8 @@ abstract class Element extends Node implements ElementTraversal native "Element"
     var template = ref;
     if (template == null) template = this;
 
-    var instance = _createDeepCloneAndDecorateTemplates(template.content,
-        attributes['syntax']);
+    var instance = _Bindings._createDeepCloneAndDecorateTemplates(
+        template.content, attributes['syntax']);
 
     if (TemplateElement._instanceCreated != null) {
       TemplateElement._instanceCreated.add(instance);
@@ -7797,7 +7797,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
 
     var syntax = TemplateElement.syntax[attributes['syntax']];
     _model = value;
-    _addBindings(this, model, syntax);
+    _Bindings._addBindings(this, model, syntax);
   }
 
   // TODO(jmesserly): const set would be better
@@ -19331,7 +19331,7 @@ class TemplateElement extends Element native "HTMLTemplateElement" {
 
     // Create content
     if (template is! TemplateElement) {
-      var doc = _getTemplateContentsOwner(template.document);
+      var doc = _Bindings._getTemplateContentsOwner(template.document);
       template._templateContent = doc.createDocumentFragment();
     }
 
@@ -19341,9 +19341,9 @@ class TemplateElement extends Element native "HTMLTemplateElement" {
     }
 
     if (template is TemplateElement) {
-      _bootstrapTemplatesRecursivelyFrom(template.content);
+      bootstrap(template.content);
     } else {
-      _liftNonNativeTemplateChildrenIntoContent(template);
+      _Bindings._liftNonNativeChildrenIntoContent(template);
     }
 
     return true;
@@ -19359,7 +19359,7 @@ class TemplateElement extends Element native "HTMLTemplateElement" {
   // TODO(rafaelw): Review whether this is the right public API.
   @Experimental
   static void bootstrap(Node content) {
-    _bootstrapTemplatesRecursivelyFrom(content);
+    _Bindings._bootstrapTemplatesRecursivelyFrom(content);
   }
 
   static bool _initStyles;
@@ -26211,19 +26211,6 @@ class CompoundBinding extends ObservableBase {
   }
 }
 
-Stream<Event> _getStreamForInputType(InputElement element) {
-  switch (element.type) {
-    case 'checkbox':
-      return element.onClick;
-    case 'radio':
-    case 'select-multiple':
-    case 'select-one':
-      return element.onChange;
-    default:
-      return element.onInput;
-  }
-}
-
 abstract class _InputBinding {
   final InputElement element;
   PathObserver binding;
@@ -26245,6 +26232,20 @@ abstract class _InputBinding {
     _pathSub.cancel();
     _eventSub.cancel();
   }
+
+
+  static Stream<Event> _getStreamForInputType(InputElement element) {
+    switch (element.type) {
+      case 'checkbox':
+        return element.onClick;
+      case 'radio':
+      case 'select-multiple':
+      case 'select-one':
+        return element.onChange;
+      default:
+        return element.onInput;
+    }
+  }
 }
 
 class _ValueBinding extends _InputBinding {
@@ -26259,18 +26260,11 @@ class _ValueBinding extends _InputBinding {
   }
 }
 
-// TODO(jmesserly): not sure what kind of boolean conversion rules to
-// apply for template data-binding. HTML attributes are true if they're present.
-// However Dart only treats "true" as true. Since this is HTML we'll use
-// something closer to the HTML rules: null (missing) and false are false,
-// everything else is true. See: https://github.com/toolkitchen/mdv/issues/59
-bool _templateBooleanConversion(value) => null != value && false != value;
-
 class _CheckedBinding extends _InputBinding {
   _CheckedBinding(element, model, path) : super(element, model, path);
 
   void valueChanged(value) {
-    element.checked = _templateBooleanConversion(value);
+    element.checked = _Bindings._toBoolean(value);
   }
 
   void updateBinding(e) {
@@ -26289,229 +26283,307 @@ class _CheckedBinding extends _InputBinding {
       }
     }
   }
-}
 
-// TODO(jmesserly): polyfill document.contains API instead of doing it here
-bool _isNodeInDocument(Node node) {
-  // On non-IE this works:
-  // return node.document.contains(node);
-  var document = node.document;
-  if (node == document || node.parentNode == document) return true;
-  return document.documentElement.contains(node);
-}
-
-// |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
-// Returns an array containing all radio buttons other than |element| that
-// have the same |name|, either in the form that |element| belongs to or,
-// if no form, in the document tree to which |element| belongs.
-//
-// This implementation is based upon the HTML spec definition of a
-// "radio button group":
-//   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
-//
-Iterable _getAssociatedRadioButtons(element) {
-  if (!_isNodeInDocument(element)) return [];
-  if (element.form != null) {
-    return element.form.nodes.where((el) {
-      return el != element &&
-          el is InputElement &&
-          el.type == 'radio' &&
-          el.name == element.name;
-    });
-  } else {
-    var radios = element.document.queryAll(
-        'input[type="radio"][name="${element.name}"]');
-    return radios.where((el) => el != element && el.form == null);
-  }
-}
-
-Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
-  var clone = node.clone(false); // Shallow clone.
-  if (clone is Element && clone.isTemplate) {
-    TemplateElement.decorate(clone, node);
-    if (syntax != null) {
-      clone.attributes.putIfAbsent('syntax', () => syntax);
-    }
-  }
-
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
-  }
-  return clone;
-}
-
-// http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-Document _getTemplateContentsOwner(Document doc) {
-  if (doc.window == null) {
-    return doc;
-  }
-  var d = doc._templateContentsOwner;
-  if (d == null) {
-    // TODO(arv): This should either be a Document or HTMLDocument depending
-    // on doc.
-    d = doc.implementation.createHtmlDocument('');
-    while (d.$dom_lastChild != null) {
-      d.$dom_lastChild.remove();
-    }
-    doc._templateContentsOwner = d;
-  }
-  return d;
-}
-
-Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
-  var clone = templateElement.clone(false);
-  var attributes = templateElement.attributes;
-  for (var name in attributes.keys.toList()) {
-    switch (name) {
-      case 'template':
-      case 'repeat':
-      case 'bind':
-      case 'ref':
-        clone.attributes.remove(name);
-        break;
-      default:
-        attributes.remove(name);
-        break;
-    }
-  }
-
-  return clone;
-}
-
-void _liftNonNativeTemplateChildrenIntoContent(Element templateElement) {
-  var content = templateElement.content;
-
-  if (!templateElement._isAttributeTemplate) {
-    var child;
-    while ((child = templateElement.$dom_firstChild) != null) {
-      content.append(child);
-    }
-    return;
-  }
-
-  // For attribute templates we copy the whole thing into the content and
-  // we move the non template attributes into the content.
+  // |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
+  // Returns an array containing all radio buttons other than |element| that
+  // have the same |name|, either in the form that |element| belongs to or,
+  // if no form, in the document tree to which |element| belongs.
   //
-  //   <tr foo template>
+  // This implementation is based upon the HTML spec definition of a
+  // "radio button group":
+  //   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
   //
-  // becomes
-  //
-  //   <tr template>
-  //   + #document-fragment
-  //     + <tr foo>
-  //
-  var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
-  var child;
-  while ((child = templateElement.$dom_firstChild) != null) {
-    newRoot.append(child);
-  }
-  content.append(newRoot);
-}
-
-void _bootstrapTemplatesRecursivelyFrom(Node node) {
-  void bootstrap(template) {
-    if (!TemplateElement.decorate(template)) {
-      _bootstrapTemplatesRecursivelyFrom(template.content);
+  static Iterable _getAssociatedRadioButtons(element) {
+    if (!_isNodeInDocument(element)) return [];
+    if (element.form != null) {
+      return element.form.nodes.where((el) {
+        return el != element &&
+            el is InputElement &&
+            el.type == 'radio' &&
+            el.name == element.name;
+      });
+    } else {
+      var radios = element.document.queryAll(
+          'input[type="radio"][name="${element.name}"]');
+      return radios.where((el) => el != element && el.form == null);
     }
   }
 
-  // Need to do this first as the contents may get lifted if |node| is
-  // template.
-  // TODO(jmesserly): node is DocumentFragment or Element
-  var templateDescendents = (node as dynamic).queryAll(_allTemplatesSelectors);
-  if (node is Element && node.isTemplate) bootstrap(node);
-
-  templateDescendents.forEach(bootstrap);
-}
-
-final String _allTemplatesSelectors = 'template, option[template], ' +
-    Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
-
-void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
-  if (node is Element) {
-    _addAttributeBindings(node, model, syntax);
-  } else if (node is Text) {
-    _parseAndBind(node, 'text', node.text, model, syntax);
-  }
-
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    _addBindings(c, model, syntax);
+  // TODO(jmesserly): polyfill document.contains API instead of doing it here
+  static bool _isNodeInDocument(Node node) {
+    // On non-IE this works:
+    // return node.document.contains(node);
+    var document = node.document;
+    if (node == document || node.parentNode == document) return true;
+    return document.documentElement.contains(node);
   }
 }
 
+class _Bindings {
+  // TODO(jmesserly): not sure what kind of boolean conversion rules to
+  // apply for template data-binding. HTML attributes are true if they're
+  // present. However Dart only treats "true" as true. Since this is HTML we'll
+  // use something closer to the HTML rules: null (missing) and false are false,
+  // everything else is true. See: https://github.com/toolkitchen/mdv/issues/59
+  static bool _toBoolean(value) => null != value && false != value;
 
-void _addAttributeBindings(Element element, model, syntax) {
-  element.attributes.forEach((name, value) {
-    if (value == '' && (name == 'bind' || name == 'repeat')) {
-      value = '{{}}';
-    }
-    _parseAndBind(element, name, value, model, syntax);
-  });
-}
-
-void _parseAndBind(Node node, String name, String text, model,
-    CustomBindingSyntax syntax) {
-
-  var tokens = _parseMustacheTokens(text);
-  if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
-    return;
-  }
-
-  if (tokens.length == 1 && tokens[0].isBinding) {
-    _bindOrDelegate(node, name, model, tokens[0].value, syntax);
-    return;
-  }
-
-  var replacementBinding = new CompoundBinding();
-  for (var i = 0; i < tokens.length; i++) {
-    var token = tokens[i];
-    if (token.isBinding) {
-      _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
-    }
-  }
-
-  replacementBinding.combinator = (values) {
-    var newValue = new StringBuffer();
-
-    for (var i = 0; i < tokens.length; i++) {
-      var token = tokens[i];
-      if (token.isText) {
-        newValue.write(token.value);
-      } else {
-        var value = values[i];
-        if (value != null) {
-          newValue.write(value);
-        }
+  static Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
+    var clone = node.clone(false); // Shallow clone.
+    if (clone is Element && clone.isTemplate) {
+      TemplateElement.decorate(clone, node);
+      if (syntax != null) {
+        clone.attributes.putIfAbsent('syntax', () => syntax);
       }
     }
 
-    return newValue.toString();
-  };
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
+    }
+    return clone;
+  }
 
-  _nodeOrCustom(node).bind(name, replacementBinding, 'value');
-}
+  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
+  static Document _getTemplateContentsOwner(Document doc) {
+    if (doc.window == null) {
+      return doc;
+    }
+    var d = doc._templateContentsOwner;
+    if (d == null) {
+      // TODO(arv): This should either be a Document or HTMLDocument depending
+      // on doc.
+      d = doc.implementation.createHtmlDocument('');
+      while (d.$dom_lastChild != null) {
+        d.$dom_lastChild.remove();
+      }
+      doc._templateContentsOwner = d;
+    }
+    return d;
+  }
 
-void _bindOrDelegate(node, name, model, String path,
-    CustomBindingSyntax syntax) {
+  static Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
+    var clone = templateElement.clone(false);
+    var attributes = templateElement.attributes;
+    for (var name in attributes.keys.toList()) {
+      switch (name) {
+        case 'template':
+        case 'repeat':
+        case 'bind':
+        case 'ref':
+          clone.attributes.remove(name);
+          break;
+        default:
+          attributes.remove(name);
+          break;
+      }
+    }
 
-  if (syntax != null) {
-    var delegateBinding = syntax.getBinding(model, path, name, node);
-    if (delegateBinding != null) {
-      model = delegateBinding;
-      path = 'value';
+    return clone;
+  }
+
+  static void _liftNonNativeChildrenIntoContent(Element templateElement) {
+    var content = templateElement.content;
+
+    if (!templateElement._isAttributeTemplate) {
+      var child;
+      while ((child = templateElement.$dom_firstChild) != null) {
+        content.append(child);
+      }
+      return;
+    }
+
+    // For attribute templates we copy the whole thing into the content and
+    // we move the non template attributes into the content.
+    //
+    //   <tr foo template>
+    //
+    // becomes
+    //
+    //   <tr template>
+    //   + #document-fragment
+    //     + <tr foo>
+    //
+    var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
+    var child;
+    while ((child = templateElement.$dom_firstChild) != null) {
+      newRoot.append(child);
+    }
+    content.append(newRoot);
+  }
+
+  static void _bootstrapTemplatesRecursivelyFrom(Node node) {
+    void bootstrap(template) {
+      if (!TemplateElement.decorate(template)) {
+        _bootstrapTemplatesRecursivelyFrom(template.content);
+      }
+    }
+
+    // Need to do this first as the contents may get lifted if |node| is
+    // template.
+    // TODO(jmesserly): node is DocumentFragment or Element
+    var descendents = (node as dynamic).queryAll(_allTemplatesSelectors);
+    if (node is Element && node.isTemplate) bootstrap(node);
+
+    descendents.forEach(bootstrap);
+  }
+
+  static final String _allTemplatesSelectors = 'template, option[template], ' +
+      Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
+
+  static void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
+    if (node is Element) {
+      _addAttributeBindings(node, model, syntax);
+    } else if (node is Text) {
+      _parseAndBind(node, 'text', node.text, model, syntax);
+    }
+
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      _addBindings(c, model, syntax);
     }
   }
 
-  _nodeOrCustom(node).bind(name, model, path);
-}
+  static void _addAttributeBindings(Element element, model, syntax) {
+    element.attributes.forEach((name, value) {
+      if (value == '' && (name == 'bind' || name == 'repeat')) {
+        value = '{{}}';
+      }
+      _parseAndBind(element, name, value, model, syntax);
+    });
+  }
 
-/**
- * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
- * the node. This is used so nodes can override [Node.bind], [Node.unbind],
- * and [Node.unbindAll] like InputElement does.
- */
-// TODO(jmesserly): remove this when we can extend Element for real.
-_nodeOrCustom(node) => node is Element ? node.xtag : node;
+  static void _parseAndBind(Node node, String name, String text, model,
+      CustomBindingSyntax syntax) {
+
+    var tokens = _parseMustacheTokens(text);
+    if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
+      return;
+    }
+
+    if (tokens.length == 1 && tokens[0].isBinding) {
+      _bindOrDelegate(node, name, model, tokens[0].value, syntax);
+      return;
+    }
+
+    var replacementBinding = new CompoundBinding();
+    for (var i = 0; i < tokens.length; i++) {
+      var token = tokens[i];
+      if (token.isBinding) {
+        _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
+      }
+    }
+
+    replacementBinding.combinator = (values) {
+      var newValue = new StringBuffer();
+
+      for (var i = 0; i < tokens.length; i++) {
+        var token = tokens[i];
+        if (token.isText) {
+          newValue.write(token.value);
+        } else {
+          var value = values[i];
+          if (value != null) {
+            newValue.write(value);
+          }
+        }
+      }
+
+      return newValue.toString();
+    };
+
+    _nodeOrCustom(node).bind(name, replacementBinding, 'value');
+  }
+
+  static void _bindOrDelegate(node, name, model, String path,
+      CustomBindingSyntax syntax) {
+
+    if (syntax != null) {
+      var delegateBinding = syntax.getBinding(model, path, name, node);
+      if (delegateBinding != null) {
+        model = delegateBinding;
+        path = 'value';
+      }
+    }
+
+    _nodeOrCustom(node).bind(name, model, path);
+  }
+
+  /**
+   * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
+   * the node. This is used so nodes can override [Node.bind], [Node.unbind],
+   * and [Node.unbindAll] like InputElement does.
+   */
+  // TODO(jmesserly): remove this when we can extend Element for real.
+  static _nodeOrCustom(node) => node is Element ? node.xtag : node;
+
+  static List<_BindingToken> _parseMustacheTokens(String s) {
+    var result = [];
+    var length = s.length;
+    var index = 0, lastIndex = 0;
+    while (lastIndex < length) {
+      index = s.indexOf('{{', lastIndex);
+      if (index < 0) {
+        result.add(new _BindingToken(s.substring(lastIndex)));
+        break;
+      } else {
+        // There is a non-empty text run before the next path token.
+        if (index > 0 && lastIndex < index) {
+          result.add(new _BindingToken(s.substring(lastIndex, index)));
+        }
+        lastIndex = index + 2;
+        index = s.indexOf('}}', lastIndex);
+        if (index < 0) {
+          var text = s.substring(lastIndex - 2);
+          if (result.length > 0 && result.last.isText) {
+            result.last.value += text;
+          } else {
+            result.add(new _BindingToken(text));
+          }
+          break;
+        }
+
+        var value = s.substring(lastIndex, index).trim();
+        result.add(new _BindingToken(value, isBinding: true));
+        lastIndex = index + 2;
+      }
+    }
+    return result;
+  }
+
+  static void _addTemplateInstanceRecord(fragment, model) {
+    if (fragment.$dom_firstChild == null) {
+      return;
+    }
+
+    var instanceRecord = new TemplateInstance(
+        fragment.$dom_firstChild, fragment.$dom_lastChild, model);
+
+    var node = instanceRecord.firstNode;
+    while (node != null) {
+      node._templateInstance = instanceRecord;
+      node = node.nextNode;
+    }
+  }
+
+  static void _removeAllBindingsRecursively(Node node) {
+    _nodeOrCustom(node).unbindAll();
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      _removeAllBindingsRecursively(c);
+    }
+  }
+
+  static void _removeChild(Node parent, Node child) {
+    child._templateInstance = null;
+    if (child is Element && child.isTemplate) {
+      // Make sure we stop observing when we remove an element.
+      var templateIterator = child._templateIterator;
+      if (templateIterator != null) {
+        templateIterator.abandon();
+        child._templateIterator = null;
+      }
+    }
+    child.remove();
+    _removeAllBindingsRecursively(child);
+  }
+}
 
 class _BindingToken {
   final String value;
@@ -26521,77 +26593,6 @@ class _BindingToken {
 
   bool get isText => !isBinding;
 }
-
-List<_BindingToken> _parseMustacheTokens(String s) {
-  var result = [];
-  var length = s.length;
-  var index = 0, lastIndex = 0;
-  while (lastIndex < length) {
-    index = s.indexOf('{{', lastIndex);
-    if (index < 0) {
-      result.add(new _BindingToken(s.substring(lastIndex)));
-      break;
-    } else {
-      // There is a non-empty text run before the next path token.
-      if (index > 0 && lastIndex < index) {
-        result.add(new _BindingToken(s.substring(lastIndex, index)));
-      }
-      lastIndex = index + 2;
-      index = s.indexOf('}}', lastIndex);
-      if (index < 0) {
-        var text = s.substring(lastIndex - 2);
-        if (result.length > 0 && result.last.isText) {
-          result.last.value += text;
-        } else {
-          result.add(new _BindingToken(text));
-        }
-        break;
-      }
-
-      var value = s.substring(lastIndex, index).trim();
-      result.add(new _BindingToken(value, isBinding: true));
-      lastIndex = index + 2;
-    }
-  }
-  return result;
-}
-
-void _addTemplateInstanceRecord(fragment, model) {
-  if (fragment.$dom_firstChild == null) {
-    return;
-  }
-
-  var instanceRecord = new TemplateInstance(
-      fragment.$dom_firstChild, fragment.$dom_lastChild, model);
-
-  var node = instanceRecord.firstNode;
-  while (node != null) {
-    node._templateInstance = instanceRecord;
-    node = node.nextNode;
-  }
-}
-
-void _removeAllBindingsRecursively(Node node) {
-  _nodeOrCustom(node).unbindAll();
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    _removeAllBindingsRecursively(c);
-  }
-}
-
-void _removeTemplateChild(Node parent, Node child) {
-  child._templateInstance = null;
-  if (child is Element && child.isTemplate) {
-    // Make sure we stop observing when we remove an element.
-    var templateIterator = child._templateIterator;
-    if (templateIterator != null) {
-      templateIterator.abandon();
-      child._templateIterator = null;
-    }
-  }
-  child.remove();
-  _removeAllBindingsRecursively(child);
-}
-
 
 class _TemplateIterator {
   final Element _templateElement;
@@ -26609,7 +26610,7 @@ class _TemplateIterator {
   }
 
   static Object resolveInputs(Map values) {
-    if (values.containsKey('if') && !_templateBooleanConversion(values['if'])) {
+    if (values.containsKey('if') && !_Bindings._toBoolean(values['if'])) {
       return null;
     }
 
@@ -26670,7 +26671,7 @@ class _TemplateIterator {
     while (terminator != previousTerminator) {
       var node = terminator;
       terminator = node.previousNode;
-      _removeTemplateChild(parent, node);
+      _Bindings._removeChild(parent, node);
     }
   }
 
@@ -26685,7 +26686,7 @@ class _TemplateIterator {
     while (terminator != previousTerminator) {
       var node = terminator;
       terminator = node.previousNode;
-      _removeTemplateChild(parent, node);
+      _Bindings._removeChild(parent, node);
     }
   }
 
@@ -26727,8 +26728,8 @@ class _TemplateIterator {
 
         var fragment = getInstanceFragment(syntax);
 
-        _addBindings(fragment, model, syntax);
-        _addTemplateInstanceRecord(fragment, model);
+        _Bindings._addBindings(fragment, model, syntax);
+        _Bindings._addTemplateInstanceRecord(fragment, model);
 
         insertInstanceAt(addIndex, fragment);
       }
