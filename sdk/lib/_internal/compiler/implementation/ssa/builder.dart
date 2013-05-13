@@ -3686,8 +3686,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Element element = compiler.world.locateSingleElement(selector);
     if (element != null
+        // TODO(ngeoffray): Handle non-send nodes.
+        && (node.asSend() != null)
         && !(element.isGetter() && selector.isCall())
-        && !(selector.isGetter() && element.isFunction())
+        && !(element.isFunction() && selector.isGetter())
         // This check is to ensure we don't regress compared to our
         // previous limited inlining. We currently don't want to
         // inline methods on intercepted classes because the
@@ -3696,7 +3698,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             || isThisSend(node))
         // Avoid inlining optimizable operations on indexables.
         && !isOptimizableOperationOnIndexable(selector, element)) {
-      Link<Node> nodes = node.isPropertyAccess ? null : node.arguments;
+      Send send = node.asSend();
+      Link<Node> nodes = send.isPropertyAccess ? null : send.arguments;
       if (tryInlineMethod(element, selector, nodes, arguments, node)) {
         return;
       }
