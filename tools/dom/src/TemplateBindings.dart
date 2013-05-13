@@ -523,7 +523,7 @@ void _parseAndBind(Node node, String name, String text, model,
     return newValue.toString();
   };
 
-  node.bind(name, replacementBinding, 'value');
+  _nodeOrCustom(node).bind(name, replacementBinding, 'value');
 }
 
 void _bindOrDelegate(node, name, model, String path,
@@ -537,8 +537,16 @@ void _bindOrDelegate(node, name, model, String path,
     }
   }
 
-  node.bind(name, model, path);
+  _nodeOrCustom(node).bind(name, model, path);
 }
+
+/**
+ * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
+ * the node. This is used so nodes can override [Node.bind], [Node.unbind],
+ * and [Node.unbindAll] like InputElement does.
+ */
+// TODO(jmesserly): remove this when we can extend Element for real.
+_nodeOrCustom(node) => node is Element ? node.xtag : node;
 
 class _BindingToken {
   final String value;
@@ -599,7 +607,7 @@ void _addTemplateInstanceRecord(fragment, model) {
 }
 
 void _removeAllBindingsRecursively(Node node) {
-  node.unbindAll();
+  _nodeOrCustom(node).unbindAll();
   for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
     _removeAllBindingsRecursively(c);
   }

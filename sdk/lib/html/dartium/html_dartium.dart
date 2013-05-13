@@ -7824,17 +7824,26 @@ abstract class Element extends Node implements ElementTraversal {
   void onCreated() {}
 
   // Hooks to support custom WebComponents.
+
+  Element _xtag;
+
   /**
    * Experimental support for [web components][wc]. This field stores a
    * reference to the component implementation. It was inspired by Mozilla's
    * [x-tags][] project. Please note: in the future it may be possible to
    * `extend Element` from your class, in which case this field will be
-   * deprecated and will simply return this [Element] object.
+   * deprecated.
+   *
+   * If xtag has not been set, it will simply return `this` [Element].
    *
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
-  var xtag;
+  Element get xtag => _xtag != null ? _xtag : this;
+
+  void set xtag(Element value) {
+    _xtag = value;
+  }
 
   /**
    * Scrolls this element into view.
@@ -7908,7 +7917,7 @@ abstract class Element extends Node implements ElementTraversal {
       self._attributeBindings = new Map<String, StreamSubscription>();
     }
 
-    self.attributes.remove(name);
+    self.xtag.attributes.remove(name);
 
     var changed;
     if (name.endsWith('?')) {
@@ -7916,16 +7925,16 @@ abstract class Element extends Node implements ElementTraversal {
 
       changed = (value) {
         if (_templateBooleanConversion(value)) {
-          self.attributes[name] = '';
+          self.xtag.attributes[name] = '';
         } else {
-          self.attributes.remove(name);
+          self.xtag.attributes.remove(name);
         }
       };
     } else {
       changed = (value) {
         // TODO(jmesserly): escape value if needed to protect against XSS.
         // See https://github.com/toolkitchen/mdv/issues/58
-        self.attributes[name] = value == null ? '' : '$value';
+        self.xtag.attributes[name] = value == null ? '' : '$value';
       };
     }
 
@@ -28196,7 +28205,7 @@ void _parseAndBind(Node node, String name, String text, model,
     return newValue.toString();
   };
 
-  node.bind(name, replacementBinding, 'value');
+  _nodeOrCustom(node).bind(name, replacementBinding, 'value');
 }
 
 void _bindOrDelegate(node, name, model, String path,
@@ -28210,8 +28219,16 @@ void _bindOrDelegate(node, name, model, String path,
     }
   }
 
-  node.bind(name, model, path);
+  _nodeOrCustom(node).bind(name, model, path);
 }
+
+/**
+ * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
+ * the node. This is used so nodes can override [Node.bind], [Node.unbind],
+ * and [Node.unbindAll] like InputElement does.
+ */
+// TODO(jmesserly): remove this when we can extend Element for real.
+_nodeOrCustom(node) => node is Element ? node.xtag : node;
 
 class _BindingToken {
   final String value;
@@ -28272,7 +28289,7 @@ void _addTemplateInstanceRecord(fragment, model) {
 }
 
 void _removeAllBindingsRecursively(Node node) {
-  node.unbindAll();
+  _nodeOrCustom(node).unbindAll();
   for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
     _removeAllBindingsRecursively(c);
   }
