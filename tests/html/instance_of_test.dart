@@ -9,7 +9,7 @@ main() {
   canvas = new Element.tag('canvas');
   canvas.attributes['width'] = '100';
   canvas.attributes['height'] = '100';
-  document.body.nodes.add(canvas);
+  document.body.append(canvas);
 
   var isCanvasRenderingContext = predicate((x) => x is CanvasRenderingContext,
       'is a CanvasRenderingContext');

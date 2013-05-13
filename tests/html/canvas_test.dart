@@ -10,7 +10,7 @@ main() {
   int height = 100;
 
   canvas = new CanvasElement(width:width, height:height);
-  document.body.nodes.add(canvas);
+  document.body.append(canvas);
 
   context = canvas.context2D;
 

@@ -28,7 +28,7 @@ templateElementTests() {
   var testDiv;
 
   setUp(() {
-    document.body.nodes.add(testDiv = new DivElement());
+    document.body.append(testDiv = new DivElement());
   });
 
   tearDown(() {
@@ -39,7 +39,7 @@ templateElementTests() {
   createTestHtml(s) {
     var div = new DivElement();
     div.innerHtml = s;
-    testDiv.nodes.add(div);
+    testDiv.append(div);
 
     for (var node in div.queryAll('*')) {
       if (node.isTemplate) TemplateElement.decorate(node);
@@ -52,7 +52,7 @@ templateElementTests() {
     var div = new DivElement();
     var root = div.createShadowRoot();
     root.innerHtml = s;
-    testDiv.nodes.add(div);
+    testDiv.append(div);
 
     for (var node in root.queryAll('*')) {
       if (node.isTemplate) TemplateElement.decorate(node);
@@ -434,7 +434,7 @@ templateElementTests() {
     var t = new Element.tag('template');
     TemplateElement.decorate(t);
 
-    document.body.nodes.add(t);
+    document.body.append(t);
     expect(t.getComputedStyle().display, 'none');
 
     t.remove();

@@ -144,7 +144,7 @@ main() {
   test('DOMMutationEvent', () {
     var div = new DivElement();
     div.on['DOMSubtreeModified'].add(expectAsync1((DOMMutationEvent e) {}));
-    div.nodes.add(new SpanElement());
+    div.append(new SpanElement());
   });
 
   // Issue 1005.

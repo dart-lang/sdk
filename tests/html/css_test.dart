@@ -28,7 +28,7 @@ main() {
           background-color: red;
           -webkit-transform: translate3d(250px, 100px, 0px);
           ''';
-        document.body.nodes.add(element);
+        document.body.append(element);
 
         Point point = new Point(5, 2);
         checkPoint(5, 2, point);

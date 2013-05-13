@@ -16,7 +16,7 @@ main() {
   Storage sessionStorage = window.sessionStorage;
   var element = new Element.tag('canvas');
   element.id = 'test';
-  body.nodes.add(element);
+  body.append(element);
 
   test('body', () {
       expect(body, equals(document.body));

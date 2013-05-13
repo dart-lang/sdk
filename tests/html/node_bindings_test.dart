@@ -25,7 +25,7 @@ nodeBindingTests() {
   var testDiv;
 
   setUp(() {
-    document.body.nodes.add(testDiv = new DivElement());
+    document.body.append(testDiv = new DivElement());
   });
 
   tearDown(() {
@@ -135,7 +135,7 @@ nodeBindingTests() {
 
   test('Checkbox Input', () {
     var input = new InputElement();
-    testDiv.nodes.add(input);
+    testDiv.append(input);
     input.type = 'checkbox';
     var model = toSymbolMap({'x': true});
     input.bind('checked', model, 'x');

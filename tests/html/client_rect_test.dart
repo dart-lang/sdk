@@ -15,7 +15,7 @@ main() {
     block of text multiple times to see each line
     highlight with every click of the mouse button.
     ''';
-    document.body.nodes.add(element);
+    document.body.append(element);
     return element;
   }
 

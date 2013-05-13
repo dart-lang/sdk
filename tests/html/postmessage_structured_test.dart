@@ -14,7 +14,7 @@ injectSource(code) {
   final script = new ScriptElement();
   script.type = 'text/javascript';
   script.innerHtml = code;
-  document.body.nodes.add(script);
+  document.body.append(script);
 }
 
 main() {

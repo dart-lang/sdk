@@ -161,7 +161,7 @@ main() {
 
   test('setting innerHtml works', () {
     var fragment = new DocumentFragment();
-    fragment.nodes.add(new Text("foo"));
+    fragment.append(new Text("foo"));
     fragment.innerHtml = "<a>bar</a>baz";
     expect(_nodeStrings(fragment.nodes), equals(["A", "baz"]));
   });

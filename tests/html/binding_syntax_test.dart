@@ -24,7 +24,7 @@ syntaxTests() {
   var testDiv;
 
   setUp(() {
-    document.body.nodes.add(testDiv = new DivElement());
+    document.body.append(testDiv = new DivElement());
   });
 
   tearDown(() {
@@ -35,7 +35,7 @@ syntaxTests() {
   createTestHtml(s) {
     var div = new DivElement();
     div.innerHtml = s;
-    testDiv.nodes.add(div);
+    testDiv.append(div);
 
     for (var node in div.queryAll('*')) {
       if (node.isTemplate) TemplateElement.decorate(node);
