@@ -158,8 +158,6 @@ class CodeEmitterTask extends CompilerTask {
         checkedTypedefs.add(t.element);
       }
     });
-    print(compiler.resolverWorld.isChecks);
-    print(compiler.codegenWorld.isChecks);
   }
 
   ClassElement computeMixinClass(MixinApplicationElement mixinApplication) {

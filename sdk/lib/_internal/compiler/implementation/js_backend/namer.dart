@@ -545,7 +545,6 @@ class Namer implements ClosureNamer {
       if (cls == backend.jsIntClass) return "i";
       if (cls == backend.jsNumberClass) return "n";
       if (cls == backend.jsNullClass) return "u";
-      if (cls == backend.jsFunctionClass) return "f";
       if (cls == backend.jsBoolClass) return "b";
       if (cls == backend.jsInterceptorClass) return "I";
       return cls.name.slowToString();
