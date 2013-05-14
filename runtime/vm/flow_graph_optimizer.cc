@@ -422,7 +422,8 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
 
 
 void FlowGraphOptimizer::SelectRepresentations() {
-  // Convervatively unbox all phis that were proven to be of type Double.
+  // Convervatively unbox all phis that were proven to be of Double,
+  // Float32x4, or Uint32x4.
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
     if (join_entry != NULL) {
@@ -431,6 +432,10 @@ void FlowGraphOptimizer::SelectRepresentations() {
         ASSERT(phi != NULL);
         if (phi->Type()->ToCid() == kDoubleCid) {
           phi->set_representation(kUnboxedDouble);
+        } else if (phi->Type()->ToCid() == kFloat32x4Cid) {
+          phi->set_representation(kUnboxedFloat32x4);
+        } else if (phi->Type()->ToCid() == kUint32x4Cid) {
+          phi->set_representation(kUnboxedUint32x4);
         }
       }
     }
