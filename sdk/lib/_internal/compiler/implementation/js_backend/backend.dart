@@ -1148,8 +1148,7 @@ class JavaScriptBackend extends Backend {
 
   void registerUseInterceptor(Enqueuer enqueuer) {
     assert(!enqueuer.isResolutionQueue);
-    // TODO(9577): Make it so that these are not needed when there are no native
-    // classes.
+    if (!enqueuer.nativeEnqueuer.hasNativeClasses()) return;
     enqueuer.registerStaticUse(getNativeInterceptorMethod);
     enqueuer.registerStaticUse(defineNativeMethodsFinishMethod);
     enqueuer.registerStaticUse(initializeDispatchPropertyMethod);

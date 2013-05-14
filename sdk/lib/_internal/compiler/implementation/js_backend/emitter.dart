@@ -2399,8 +2399,8 @@ class CodeEmitterTask extends CompilerTask {
       buffer.write(
           jsAst.prettyPrint(generateDispatchPropertyInitialization(),
                             compiler));
+      buffer.write(N);
     }
-    buffer.write(N);
     addComment('BEGIN invoke [main].', buffer);
     buffer.write("""
 if (typeof document !== "undefined" && document.readyState !== "complete") {
