@@ -7839,7 +7839,9 @@ abstract class Element extends Node implements ElementTraversal {
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
-  Element get xtag => _xtag != null ? _xtag : this;
+  // Note: return type is `dynamic` for convenience to suppress warnings when
+  // members of the component are used. The actual type is a subtype of Element.
+  get xtag => _xtag != null ? _xtag : this;
 
   void set xtag(Element value) {
     _xtag = value;
