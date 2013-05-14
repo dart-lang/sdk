@@ -158,6 +158,8 @@ class CodeEmitterTask extends CompilerTask {
         checkedTypedefs.add(t.element);
       }
     });
+    print(compiler.resolverWorld.isChecks);
+    print(compiler.codegenWorld.isChecks);
   }
 
   ClassElement computeMixinClass(MixinApplicationElement mixinApplication) {
@@ -1759,6 +1761,10 @@ class CodeEmitterTask extends CompilerTask {
     // of stubs.
     ClassElement closureClass = compiler.closureClass;
     if (needsClosureClass && !instantiatedClasses.contains(closureClass)) {
+      ClassElement objectClass = compiler.objectClass;
+      if (!instantiatedClasses.contains(objectClass)) {
+        generateClass(objectClass, bufferForElement(objectClass, buffer));
+      }
       generateClass(closureClass, bufferForElement(closureClass, buffer));
     }
   }
@@ -1814,42 +1820,74 @@ class CodeEmitterTask extends CompilerTask {
     }
   }
 
+  final Map<Element, Element> staticGetters = new Map<Element, Element>();
+
   void emitStaticFunctionGetters(CodeBuffer eagerBuffer) {
+    for (FunctionElement element in
+             Elements.sortedByPosition(staticGetters.keys)) {
+      Element closure = staticGetters[element];
+      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      String closureClass = namer.isolateAccess(closure);
+      String name = namer.getStaticClosureName(element);
+      String staticName = namer.getName(element);
+
+      String closureName = namer.getStaticClosureName(element);
+      jsAst.Node assignment = js('$isolateProperties.$name = '
+          'new $closureClass($isolateProperties.$staticName, "$closureName")');
+      buffer.write(jsAst.prettyPrint(assignment, compiler));
+      buffer.write('$N');
+    }
+  }
+
+  void emitStaticFunctionClosures() {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in
              Elements.sortedByPosition(functionsNeedingGetter)) {
-      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      String staticName = namer.getName(element);
+      String superName = namer.getName(compiler.closureClass);
+      String name = 'Closure\$${element.name.slowToString()}';
+      needsClosureClass = true;
 
-      // The static function does not have the correct name. Since
-      // [addParameterStubs] use the name to create its stubs we simply
-      // create a fake element with the correct name.
+      ClassElement closureClassElement = new ClosureClassElement(
+          null, new SourceString(name), compiler, element,
+          element.getCompilationUnit());
+      // Now add the methods on the closure class. The instance method does not
+      // have the correct name. Since [addParameterStubs] use the name to create
+      // its stubs we simply create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
           new ClosureInvocationElement(namer.closureInvocationSelectorName,
                                        element);
-      String staticName = namer.getName(element);
+
       String invocationName = namer.instanceMethodName(callElement);
-      String fieldAccess = '$isolateProperties.$staticName';
-      buffer.write("$fieldAccess.$invocationName$_=$_$fieldAccess$N");
+      String mangledName = namer.getName(closureClassElement);
 
-      addParameterStubs(callElement, (String name, jsAst.Expression value) {
-        jsAst.Expression assignment =
-            js('$isolateProperties.$staticName.$name = #', value);
-        buffer.write(jsAst.prettyPrint(assignment.toStatement(), compiler));
-        buffer.write('$N');
-      });
-
+      // Define the constructor with a name so that Object.toString can
+      // find the class name of the closure class.
+      ClassBuilder closureBuilder = new ClassBuilder();
       // If a static function is used as a closure we need to add its name
       // in case it is used in spawnFunction.
-      String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
-      buffer.write('$fieldAccess.$fieldName$_=$_"$staticName"$N');
-      getTypedefChecksOn(element.computeType(compiler)).forEach(
-        (Element typedef) {
-          String operator = namer.operatorIs(typedef);
-          buffer.write('$fieldAccess.$operator$_=${_}true$N');
-        }
-      );
+      String methodName = namer.STATIC_CLOSURE_NAME_NAME;
+      emitBoundClosureClassHeader(
+          mangledName, superName, <String>[invocationName, methodName],
+          closureBuilder);
+
+      addParameterStubs(callElement, closureBuilder.addProperty);
+
+      DartType type = element.computeType(compiler);
+      getTypedefChecksOn(type).forEach((Element typedef) {
+        String operator = namer.operatorIs(typedef);
+        closureBuilder.addProperty(operator, js('true'));
+      });
+
+      // TODO(ngeoffray): Cache common base classes for clsures, bound
+      // closures, and static closures that have common type checks.
+      boundClosures.add(
+          js('$classesCollector.$mangledName = #',
+              closureBuilder.toObjectInitializer()));
+
+      staticGetters[element] = closureClassElement;
     }
   }
 
@@ -2353,15 +2391,10 @@ class CodeEmitterTask extends CompilerTask {
   String buildIsolateSetup(CodeBuffer buffer,
                            Element appMain,
                            Element isolateMain) {
-    String mainAccess = "${namer.isolateAccess(appMain)}";
+    String mainAccess = "${namer.isolateStaticClosureAccess(appMain)}";
     String currentIsolate = "${namer.CURRENT_ISOLATE}";
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
-    if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
-      Selector selector = new Selector.callClosure(0);
-      String invocationName = namer.invocationName(selector);
-      buffer.write("$mainAccess.$invocationName = $mainAccess$N");
-    }
     return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
@@ -2453,8 +2486,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         condition = js('(typeof receiver) == "string"');
       } else if (cls == backend.jsNullClass) {
         condition = js('receiver == null');
-      } else if (cls == backend.jsFunctionClass) {
-        condition = js('(typeof receiver) == "function"');
       } else {
         throw 'internal error';
       }
@@ -2464,7 +2495,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     bool hasArray = false;
     bool hasBool = false;
     bool hasDouble = false;
-    bool hasFunction = false;
     bool hasInt = false;
     bool hasNull = false;
     bool hasNumber = false;
@@ -2477,7 +2507,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
           cls == backend.jsExtendableArrayClass) hasArray = true;
       else if (cls == backend.jsBoolClass) hasBool = true;
       else if (cls == backend.jsDoubleClass) hasDouble = true;
-      else if (cls == backend.jsFunctionClass) hasFunction = true;
       else if (cls == backend.jsIntClass) hasInt = true;
       else if (cls == backend.jsNullClass) hasNull = true;
       else if (cls == backend.jsNumberClass) hasNumber = true;
@@ -2537,9 +2566,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // [unwrapException] in js_helper.dart.
       block.statements.add(js.if_('receiver == null',
                                   js.return_(js('receiver'))));
-    }
-    if (hasFunction) {
-      block.statements.add(buildInterceptorCheck(backend.jsFunctionClass));
     }
     if (hasBool) {
       block.statements.add(buildInterceptorCheck(backend.jsBoolClass));
@@ -2920,7 +2946,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
       if (!regularClasses.isEmpty ||
           !deferredClasses.isEmpty ||
-          !nativeClasses.isEmpty) {
+          !nativeClasses.isEmpty ||
+          !compiler.codegenWorld.staticFunctionsNeedingGetter.isEmpty) {
         // Shorten the code by using "$$" as temporary.
         classesCollector = r"$$";
         mainBuffer.add('var $classesCollector$_=$_{}$N$n');
@@ -2966,6 +2993,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         deferredBuffer.add("\$\$$_=${_}null$N$n");
       }
 
+      emitStaticFunctionClosures();
       emitClosureClassIfNeeded(mainBuffer);
 
       addComment('Bound closures', mainBuffer);

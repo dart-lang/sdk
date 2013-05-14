@@ -79,7 +79,7 @@ class HTypeList {
 
   factory HTypeList.fromStaticInvocation(HInvokeStatic node) {
     bool allUnknown = true;
-    for (int i = 1; i < node.inputs.length; i++) {
+    for (int i = 0; i < node.inputs.length; i++) {
       if (node.inputs[i].instructionType != HType.UNKNOWN) {
         allUnknown = false;
         break;
@@ -87,9 +87,9 @@ class HTypeList {
     }
     if (allUnknown) return HTypeList.ALL_UNKNOWN;
 
-    HTypeList result = new HTypeList(node.inputs.length - 1);
+    HTypeList result = new HTypeList(node.inputs.length);
     for (int i = 0; i < result.types.length; i++) {
-      result.types[i] = node.inputs[i + 1].instructionType;
+      result.types[i] = node.inputs[i].instructionType;
       assert(!result.types[i].isConflicting());
     }
     return result;
@@ -647,7 +647,6 @@ class JavaScriptBackend extends Backend {
   ClassElement jsNumberClass;
   ClassElement jsIntClass;
   ClassElement jsDoubleClass;
-  ClassElement jsFunctionClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
 
@@ -919,8 +918,6 @@ class JavaScriptBackend extends Backend {
       jsDoubleClass = compiler.findInterceptor(const SourceString('JSDouble')),
       jsNumberClass = compiler.findInterceptor(const SourceString('JSNumber')),
       jsNullClass = compiler.findInterceptor(const SourceString('JSNull')),
-      jsFunctionClass =
-          compiler.findInterceptor(const SourceString('JSFunction')),
       jsBoolClass = compiler.findInterceptor(const SourceString('JSBool')),
       jsMutableArrayClass =
           compiler.findInterceptor(const SourceString('JSMutableArray')),
@@ -1122,8 +1119,6 @@ class JavaScriptBackend extends Backend {
     } else if (cls == compiler.doubleClass || cls == jsDoubleClass) {
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
-    } else if (cls == compiler.functionClass || cls == jsFunctionClass) {
-      addInterceptors(jsFunctionClass, enqueuer, elements);
     } else if (cls == compiler.boolClass || cls == jsBoolClass) {
       addInterceptors(jsBoolClass, enqueuer, elements);
     } else if (cls == compiler.nullClass || cls == jsNullClass) {
@@ -1655,12 +1650,6 @@ class JavaScriptBackend extends Backend {
       return typeCast
           ? const SourceString("boolTypeCast")
           : const SourceString('boolTypeCheck');
-    } else if (element == jsFunctionClass ||
-               element == compiler.functionClass) {
-      if (nativeCheckOnly) return null;
-      return typeCast
-          ? const SourceString("functionTypeCast")
-          : const SourceString('functionTypeCheck');
     } else if (element == jsIntClass || element == compiler.intClass) {
       if (nativeCheckOnly) return null;
       return typeCast ?
@@ -1844,7 +1833,6 @@ class JavaScriptBackend extends Backend {
   ClassElement get growableListImplementation => jsExtendableArrayClass;
   ClassElement get mapImplementation => mapLiteralClass;
   ClassElement get constMapImplementation => constMapLiteralClass;
-  ClassElement get functionImplementation => jsFunctionClass;
   ClassElement get typeImplementation => typeLiteralClass;
   ClassElement get boolImplementation => jsBoolClass;
   ClassElement get nullImplementation => jsNullClass;

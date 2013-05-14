@@ -66,7 +66,8 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitFunction(FunctionConstant constant) {
-    return new jsAst.VariableUse(namer.isolateAccess(constant.element));
+    return new jsAst.VariableUse(
+        namer.isolateStaticClosureAccess(constant.element));
   }
 
   jsAst.Expression visitNull(NullConstant constant) {

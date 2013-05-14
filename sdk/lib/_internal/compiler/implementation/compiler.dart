@@ -848,6 +848,7 @@ abstract class Compiler implements DiagnosticListener {
     if (hasIsolateSupport()) {
       enqueuer.codegen.addToWorkList(
           isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
+      enqueuer.codegen.registerGetOfStaticFunction(mainApp.find(MAIN));
     }
     if (enabledNoSuchMethod) {
       enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, noSuchMethodSelector);

@@ -735,6 +735,11 @@ class Namer implements ClosureNamer {
     return getMappedGlobalName("$getterPrefix${getName(element)}");
   }
 
+  String getStaticClosureName(Element element) {
+    assert(Elements.isStaticOrTopLevelFunction(element));
+    return getMappedGlobalName("${getName(element)}\$closure");
+  }
+
   String isolatePropertiesAccess(Element element) {
     return "$isolateName.$isolatePropertiesName.${getName(element)}";
   }
@@ -750,6 +755,10 @@ class Namer implements ClosureNamer {
 
   String isolateLazyInitializerAccess(Element element) {
     return "$CURRENT_ISOLATE.${getLazyInitializerName(element)}";
+  }
+
+  String isolateStaticClosureAccess(Element element) {
+    return "$CURRENT_ISOLATE.${getStaticClosureName(element)}";
   }
 
   String operatorIsPrefix() => r'$is';

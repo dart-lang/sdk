@@ -9,6 +9,7 @@ int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 main() {
   var x = 1;
   if (inscrutable(x) == 0) {
+    main();
     x = 2;
   }
   print(!(1 < x));
