@@ -391,6 +391,31 @@ char* File::LinkTarget(const char* pathname) {
 }
 
 
+void File::Stat(const char* name, int64_t* data) {
+  File::Type type = GetType(name, false);
+  data[kType] = type;
+  data[kCreatedTime] = 0;
+  data[kModifiedTime] = 0;
+  data[kAccessedTime] = 0;
+  data[kMode] = 0;
+  data[kSize] = 0;
+  if (type != kDoesNotExist) {
+    struct _stat64 st;
+    const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+    int stat_status = _wstat64(system_name, &st);
+    if (stat_status == 0) {
+      data[kCreatedTime] = st.st_ctime;
+      data[kModifiedTime] = st.st_mtime;
+      data[kAccessedTime] = st.st_atime;
+      data[kMode] = st.st_mode;
+      data[kSize] = st.st_size;
+    } else {
+      data[kType] = File::kDoesNotExist;
+    }
+  }
+}
+
+
 time_t File::LastModified(const char* name) {
   struct _stat st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);

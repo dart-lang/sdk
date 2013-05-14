@@ -44,6 +44,7 @@ namespace bin {
   V(File_Truncate, 2)                                                          \
   V(File_Length, 1)                                                            \
   V(File_LengthFromPath, 1)                                                    \
+  V(File_Stat, 1)                                                              \
   V(File_LastModified, 1)                                                      \
   V(File_Flush, 1)                                                             \
   V(File_Create, 1)                                                            \

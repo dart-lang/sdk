@@ -5,6 +5,7 @@
 part of dart.io;
 
 // Constants used when working with native ports.
+// These must match the constants in runtime/bin/dartutils.h class CObject.
 const int _SUCCESS_RESPONSE = 0;
 const int _ILLEGAL_ARGUMENT_RESPONSE = 1;
 const int _OSERROR_RESPONSE = 2;

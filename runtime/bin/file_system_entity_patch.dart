@@ -2,6 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+patch class FileStat {
+  /* patch */ static List<int> _statSync(String path) native "File_Stat";
+}
+
+
 patch class FileSystemEntity {
   /* patch */ static _getType(String path, bool followLinks)
       native "File_GetType";
