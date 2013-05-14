@@ -33,6 +33,7 @@ import '../lib/src/git_source.dart';
 import '../lib/src/hosted_source.dart';
 import '../lib/src/http.dart';
 import '../lib/src/io.dart';
+import '../lib/src/log.dart' as log;
 import '../lib/src/path_source.dart';
 import '../lib/src/safe_http_server.dart';
 import '../lib/src/system_cache.dart';
@@ -333,6 +334,8 @@ void confirmPublish(ScheduledProcess pub) {
   expect(pub.nextLine(), completion(equals("|   '-- test_pkg.dart")));
   expect(pub.nextLine(), completion(equals("'-- pubspec.yaml")));
   expect(pub.nextLine(), completion(equals("")));
+  expect(pub.nextLine(), completion(equals('Looks great! Are you ready to '
+      'upload your package (y/n)?')));
 
   pub.writeLine("y");
 }
@@ -362,7 +365,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   var pubPath = path.join(testDirectory, '..', 'bin', 'pub.dart');
 
   var dartArgs = ['--package-root=$_packageRoot/', '--checked', pubPath,
-      '--trace'];
+      '--verbose'];
   dartArgs.addAll(args);
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
@@ -381,8 +384,87 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
     return options;
   });
 
-  return new ScheduledProcess.start(dartBin, dartArgs, options: optionsFuture,
+  return new PubProcess.start(dartBin, dartArgs, options: optionsFuture,
       description: args.isEmpty ? 'pub' : 'pub ${args.first}');
+}
+
+/// A subclass of [ScheduledProcess] that parses pub's verbose logging output
+/// and makes [nextLine], [nextErrLine], [remainingStdout], and
+/// [remainingStderr] work as though pub weren't running in verbose mode.
+class PubProcess extends ScheduledProcess {
+  Stream<Pair<log.Level, String>> _log;
+  Stream<String> _stdout;
+  Stream<String> _stderr;
+
+  PubProcess.start(executable, arguments,
+      {options, String description, Encoding encoding: Encoding.UTF_8})
+    : super.start(executable, arguments,
+        options: options,
+        description: description,
+        encoding: encoding);
+
+  Stream<Pair<log.Level, String>> _logStream() {
+    if (_log == null) {
+      _log = mergeStreams(
+        _outputToLog(super.stdoutStream(), log.Level.MESSAGE),
+        _outputToLog(super.stderrStream(), log.Level.ERROR));
+    }
+
+    var pair = tee(_log);
+    _log = pair.first;
+    return pair.last;
+  }
+
+  final _logLineRegExp = new RegExp(r"^([A-Z ]{4})[:|] (.*)$");
+  final _logLevels = [
+    log.Level.ERROR, log.Level.WARNING, log.Level.MESSAGE, log.Level.IO,
+    log.Level.SOLVER, log.Level.FINE
+  ].fold(<String, log.Level>{}, (levels, level) {
+    levels[level.name] = level;
+    return levels;
+  });
+
+  Stream<Pair<log.Level, String>> _outputToLog(Stream<String> stream,
+      log.Level defaultLevel) {
+    var lastLevel;
+    return stream.map((line) {
+      var match = _logLineRegExp.firstMatch(line);
+      if (match == null) return new Pair<log.Level, String>(defaultLevel, line);
+
+      var level = _logLevels[match[1]];
+      if (level == null) level = lastLevel;
+      lastLevel = level;
+      return new Pair<log.Level, String>(level, match[2]);
+    });
+  }
+
+  Stream<String> stdoutStream() {
+    if (_stdout == null) {
+      _stdout = _logStream().expand((entry) {
+        if (entry.first != log.Level.MESSAGE) return [];
+        return [entry.last];
+      });
+    }
+
+    var pair = tee(_stdout);
+    _stdout = pair.first;
+    return pair.last;
+  }
+
+  Stream<String> stderrStream() {
+    if (_stderr == null) {
+      _stderr = _logStream().expand((entry) {
+        if (entry.first != log.Level.ERROR && entry.first != log.Level.WARNING) {
+          return [];
+        }
+        return [entry.last];
+      });
+    }
+
+    var pair = tee(_stderr);
+    _stderr = pair.first;
+    return pair.last;
+  }
 }
 
 // TODO(nweiz): use the built-in mechanism for accessing this once it exists

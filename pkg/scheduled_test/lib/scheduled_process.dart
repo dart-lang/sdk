@@ -95,16 +95,15 @@ class ScheduledProcess {
     var stdoutWithCanceller = _lineStreamWithCanceller(
         _process.then((p) => p.stdout));
     _stdoutCanceller = stdoutWithCanceller.last;
-    var stdoutTee = tee(stdoutWithCanceller.first);
-    _stdout = stdoutTee.first;
-    _stdoutLog = stdoutTee.last;
+    _stdoutLog = stdoutWithCanceller.first;
 
     var stderrWithCanceller = _lineStreamWithCanceller(
         _process.then((p) => p.stderr));
     _stderrCanceller = stderrWithCanceller.last;
-    var stderrTee = tee(stderrWithCanceller.first);
-    _stderr = stderrTee.first;
-    _stderrLog = stderrTee.last;
+    _stderrLog = stderrWithCanceller.first;
+
+    _stdout = stdoutStream();
+    _stderr = stderrStream();
   }
 
   /// Updates [_description] to reflect [executable] and [arguments], which are
@@ -186,7 +185,7 @@ class ScheduledProcess {
   /// Converts a stream of bytes to a stream of lines and returns that along
   /// with a [StreamCanceller] controlling it.
   Pair<Stream<String>, StreamCanceller> _lineStreamWithCanceller(
-      Future<Stream<int>> streamFuture) {
+      Future<Stream<List<int>>> streamFuture) {
     return streamWithCanceller(futureStream(streamFuture)
         .handleError((e) => currentSchedule.signalError(e))
         .transform(new StringDecoder(_encoding))
@@ -264,6 +263,32 @@ class ScheduledProcess {
 
     return schedule(() => _stderr.toList().then((lines) => lines.join("\n")),
         "reading the remaining stderr from process '$description'");
+  }
+
+  /// Returns a stream that will emit anything the process emits via the
+  /// process's standard output from now on.
+  ///
+  /// This stream will be independent from any other methods that deal with
+  /// standard output, including other calls to [stdoutStream].
+  ///
+  /// This can be overridden by subclasses to return a derived standard output
+  /// stream. This stream will then be used for [nextLine], [nextErrLine],
+  /// [remainingStdout], and [remainingStderr].
+  Stream<String> stdoutStream() {
+    var pair = tee(_stdoutLog);
+    _stdoutLog = pair.first;
+    return pair.last;
+  }
+
+  /// Returns a stream that will emit anything the process emits via the
+  /// process's standard error from now on.
+  ///
+  /// This stream will be independent from any other methods that deal with
+  /// standard error, including other calls to [stderrStream].
+  Stream<String> stderrStream() {
+    var pair = tee(_stderrLog);
+    _stderrLog = pair.first;
+    return pair.last;
   }
 
   /// Writes [line] to the process as stdin.

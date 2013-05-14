@@ -213,6 +213,26 @@ Pair<Stream, Stream> tee(Stream stream) {
   return new Pair<Stream, Stream>(controller1.stream, controller2.stream);
 }
 
+/// Merges [stream1] and [stream2] into a single stream that emits events from
+/// both sources.
+Stream mergeStreams(Stream stream1, Stream stream2) {
+  var doneCount = 0;
+  var controller = new StreamController();
+
+  for (var stream in [stream1, stream2]) {
+    stream.listen((value) {
+      controller.add(value);
+    }, onError: (error) {
+      controller.addError(error);
+    }, onDone: () {
+      doneCount++;
+      if (doneCount == 2) controller.close();
+    });
+  }
+
+  return controller.stream;
+}
+
 /// A regular expression matching a trailing CR character.
 final _trailingCR = new RegExp(r"\r$");
 

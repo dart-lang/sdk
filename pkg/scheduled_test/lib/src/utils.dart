@@ -133,7 +133,7 @@ Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
   var subscription = stream.listen((value) {
     if (!controller.isClosed) controller.add(value);
   }, onError: (error) {
-    if (!controller.isClosed) controller.signalError(error);
+    if (!controller.isClosed) controller.addError(error);
   }, onDone: controller.close);
   return new Pair<Stream, StreamCanceller>(controllerStream, controller.close);
 }
@@ -149,8 +149,8 @@ Pair<Stream, Stream> tee(Stream stream) {
     controller1.add(value);
     controller2.add(value);
   }, onError: (error) {
-    controller1.signalError(error);
-    controller2.signalError(error);
+    controller1.addError(error);
+    controller2.addError(error);
   }, onDone: () {
     controller1.close();
     controller2.close();
