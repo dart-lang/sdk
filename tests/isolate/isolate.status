@@ -52,7 +52,7 @@ illegal_msg_stream_test: Fail # Issue 6750
 [ $compiler == dart2js && $browser ]
 illegal_msg_stream_test: Fail, Pass # Issue 6750
 
-[ $compiler == dart2js && $csp]
+[ $compiler == dart2js && $runtime == drt ]
 unresolved_ports_negative_test: Pass, Crash # Issue 10613
 
 [ $compiler == dart2js ]
