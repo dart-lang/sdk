@@ -636,7 +636,7 @@ class Instruction : public ZoneAllocated {
         previous_(NULL),
         next_(NULL),
         env_(NULL),
-        expr_id_(-1) { }
+        expr_id_(kNoExprId) { }
 
   virtual Tag tag() const = 0;
 
@@ -812,9 +812,11 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Get the block entry for this instruction.
   virtual BlockEntryInstr* GetBlock() const;
 
-  // Id for instructions used in CSE.
+  // Id for load instructions used during load forwarding pass and later in
+  // LICM.
   intptr_t expr_id() const { return expr_id_; }
   void set_expr_id(intptr_t expr_id) { expr_id_ = expr_id; }
+  bool HasExprId() const { return expr_id_ != kNoExprId; }
 
   // Returns a hash code for use with hash maps.
   virtual intptr_t Hashcode() const;
@@ -911,6 +913,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class BranchSimplifier;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
+
+  enum {
+    kNoExprId = -1
+  };
 
   intptr_t deopt_id_;
   intptr_t lifetime_position_;  // Position used by register allocator.

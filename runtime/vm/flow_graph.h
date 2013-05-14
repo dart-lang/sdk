@@ -128,10 +128,6 @@ class FlowGraph : public ZoneAllocated {
   void ComputeSSA(intptr_t next_virtual_register_number,
                   ZoneGrowableArray<Definition*>* inlining_parameters);
 
-  // Finds natural loops in the flow graph and attaches a list of loop
-  // body blocks for each loop header.
-  void ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers);
-
   // TODO(zerny): Once the SSA is feature complete this should be removed.
   void Bailout(const char* reason) const;
 
@@ -166,6 +162,24 @@ class FlowGraph : public ZoneAllocated {
   // Stop preserving environments on Goto instructions. LICM is not allowed
   // after this point.
   void disallow_licm() { licm_allowed_ = false; }
+
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers() {
+    if (loop_headers_ == NULL) {
+      loop_headers_ = ComputeLoops();
+    }
+    return *loop_headers_;
+  }
+
+  // Per loop header invariant loads sets. Each set contains load id for
+  // those loads that are not affected by anything in the loop and can be
+  // hoisted out. Sets are computed by LoadOptimizer.
+  ZoneGrowableArray<BitVector*>* loop_invariant_loads() const {
+    return loop_invariant_loads_;
+  }
+  void set_loop_invariant_loads(
+      ZoneGrowableArray<BitVector*>* loop_invariant_loads) {
+    loop_invariant_loads_ = loop_invariant_loads;
+  }
 
  private:
   friend class IfConverter;
@@ -202,6 +216,10 @@ class FlowGraph : public ZoneAllocated {
   void ReplacePredecessor(BlockEntryInstr* old_block,
                           BlockEntryInstr* new_block);
 
+  // Finds natural loops in the flow graph and attaches a list of loop
+  // body blocks for each loop header.
+  ZoneGrowableArray<BlockEntryInstr*>* ComputeLoops();
+
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
   // if/when computing SSA.
   GrowableArray<intptr_t> parent_;
@@ -223,6 +241,9 @@ class FlowGraph : public ZoneAllocated {
 
   BlockEffects* block_effects_;
   bool licm_allowed_;
+
+  ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
+  ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
 };
 
 

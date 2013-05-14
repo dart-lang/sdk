@@ -36,7 +36,9 @@ FlowGraph::FlowGraph(const FlowGraphBuilder& builder,
     postorder_(),
     reverse_postorder_(),
     block_effects_(NULL),
-    licm_allowed_(true) {
+    licm_allowed_(true),
+    loop_headers_(NULL),
+    loop_invariant_loads_(NULL) {
   DiscoverBlocks();
 }
 
@@ -110,6 +112,8 @@ void FlowGraph::DiscoverBlocks() {
 
   // Block effects are using postorder numbering. Discard computed information.
   block_effects_ = NULL;
+  loop_headers_ = NULL;
+  loop_invariant_loads_ = NULL;
 }
 
 
@@ -957,8 +961,10 @@ static void FindLoop(BlockEntryInstr* m,
 }
 
 
-void FlowGraph::ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers) {
-  ASSERT(loop_headers->is_empty());
+ZoneGrowableArray<BlockEntryInstr*>* FlowGraph::ComputeLoops() {
+  ZoneGrowableArray<BlockEntryInstr*>* loop_headers =
+      new ZoneGrowableArray<BlockEntryInstr*>();
+
   for (BlockIterator it = postorder_iterator();
        !it.Done();
        it.Advance()) {
@@ -975,6 +981,8 @@ void FlowGraph::ComputeLoops(GrowableArray<BlockEntryInstr*>* loop_headers) {
       }
     }
   }
+
+  return loop_headers;
 }
 
 

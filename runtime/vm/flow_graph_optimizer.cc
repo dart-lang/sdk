@@ -3478,9 +3478,24 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
 }
 
 
+static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
+                                intptr_t loop_header_index,
+                                Instruction* instr) {
+  return (sets != NULL) &&
+      instr->HasExprId() &&
+      ((*sets)[loop_header_index] != NULL) &&
+      (*sets)[loop_header_index]->Contains(instr->expr_id());
+}
+
+
 void LICM::Optimize() {
-  GrowableArray<BlockEntryInstr*> loop_headers;
-  flow_graph()->ComputeLoops(&loop_headers);
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
+      flow_graph()->loop_headers();
+
+  ZoneGrowableArray<BitVector*>* loop_invariant_loads =
+      flow_graph()->loop_invariant_loads();
+
+  BlockEffects* block_effects = flow_graph()->block_effects();
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
@@ -3496,8 +3511,9 @@ void LICM::Optimize() {
            !it.Done();
            it.Advance()) {
         Instruction* current = it.Current();
-        if (current->AllowsCSE() &&
-            flow_graph()->block_effects()->CanBeMovedTo(current, pre_header)) {
+        if ((current->AllowsCSE() &&
+             block_effects->CanBeMovedTo(current, pre_header)) ||
+             IsLoopInvariantLoad(loop_invariant_loads, i, current)) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -4023,6 +4039,12 @@ static AliasedSet* NumberLoadExpressions(
       } else {
         defn->set_expr_id(result->expr_id());
       }
+
+      if (FLAG_trace_optimization) {
+        OS::Print("load v%"Pd" is numbered as %"Pd"\n",
+                  defn->ssa_temp_index(),
+                  defn->expr_id());
+      }
     }
   }
 
@@ -4088,6 +4110,9 @@ class LoadOptimizer : public ValueObject {
   bool Optimize() {
     ComputeInitialSets();
     ComputeOutValues();
+    if (graph_->is_licm_allowed()) {
+      MarkLoopInvariantLoads();
+    }
     ForwardLoads();
     EmitPhis();
     return forwarded_;
@@ -4341,6 +4366,50 @@ class LoadOptimizer : public ValueObject {
         }
       }
     }
+  }
+
+  void MarkLoopInvariantLoads() {
+    const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
+        graph_->loop_headers();
+
+    ZoneGrowableArray<BitVector*>* invariant_loads =
+        new ZoneGrowableArray<BitVector*>(loop_headers.length());
+
+    for (intptr_t i = 0; i < loop_headers.length(); i++) {
+      BlockEntryInstr* header = loop_headers[i];
+      BlockEntryInstr* pre_header = FindPreHeader(header);
+      if (pre_header == NULL) {
+        invariant_loads->Add(NULL);
+        continue;
+      }
+
+      BitVector* loop_gen = new BitVector(aliased_set_->max_expr_id());
+      for (BitVector::Iterator loop_it(header->loop_info());
+           !loop_it.Done();
+           loop_it.Advance()) {
+        const intptr_t preorder_number = loop_it.Current();
+        loop_gen->AddAll(gen_[preorder_number]);
+      }
+
+      for (BitVector::Iterator loop_it(header->loop_info());
+           !loop_it.Done();
+           loop_it.Advance()) {
+        const intptr_t preorder_number = loop_it.Current();
+        loop_gen->RemoveAll(kill_[preorder_number]);
+      }
+
+      if (FLAG_trace_optimization) {
+        for (BitVector::Iterator it(loop_gen); !it.Done(); it.Advance()) {
+          OS::Print("load %"Pd" is loop invariant for B%"Pd"\n",
+                    it.Current(),
+                    header->block_id());
+        }
+      }
+
+      invariant_loads->Add(loop_gen);
+    }
+
+    graph_->set_loop_invariant_loads(invariant_loads);
   }
 
   // Compute incoming value for the given expression id.
