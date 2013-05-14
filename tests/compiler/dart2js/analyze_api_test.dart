@@ -27,7 +27,8 @@ import '../../../sdk/lib/_internal/libraries.dart';
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String,List<String>> WHITE_LIST = const {
-  'html_dart2js.dart': const ['Warning: Using "new Symbol"'], // Issue 10565.
+  'html_dart2js.dart': const ['Warning: Using "new Symbol"', // Issue 10565.
+                              'Warning: unreachable code'], // Issue 10617.
 };
 
 class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {

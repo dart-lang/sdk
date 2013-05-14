@@ -953,7 +953,7 @@ abstract class Compiler implements DiagnosticListener {
     Node tree = parser.parse(element);
     validator.validate(tree);
     elements = resolver.resolve(element);
-    if (elements != null) {
+    if (elements != null && !analyzeSignaturesOnly) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(tree, elements);
     }
