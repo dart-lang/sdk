@@ -412,21 +412,6 @@ class _MainManagerStub implements _ManagerStub {
   void terminate() {}  // Nothing useful to do here.
 }
 
-/**
- * A stub for interacting with a manager built on a web worker. This
- * definition uses a 'hidden' type (* prefix on the native name) to
- * enforce that the type is defined dynamically only when web workers
- * are actually available.
- */
-// @Native("*Worker");
-class _WorkerStub implements _ManagerStub {
-  get id => JS("", "#.id", this);
-  void set id(i) { JS("void", "#.id = #", this, i); }
-  void set onmessage(f) { JS("void", "#.onmessage = #", this, f); }
-  void postMessage(msg) { JS("void", "#.postMessage(#)", this, msg); }
-  void terminate() { JS("void", "#.terminate()", this); }
-}
-
 const String _SPAWNED_SIGNAL = "spawned";
 
 var globalThis = IsolateNatives.computeGlobalThis();
@@ -488,9 +473,6 @@ class IsolateNatives {
 
   static computeGlobalThis() => JS('', 'function() { return this; }()');
 
-  /** Starts a new worker with the given URL. */
-  static _WorkerStub _newWorker(url) => JS("_WorkerStub", r"new Worker(#)", url);
-
   /**
    * Assume that [e] is a browser message event and extract its message data.
    * We don't import the dom explicitly so, when workers are disabled, this
@@ -538,8 +520,8 @@ class IsolateNatives {
         break;
       case 'close':
         _log("Closing Worker");
-        _globalState.managers.remove(sender.id);
-        sender.terminate();
+        _globalState.managers.remove(getId(sender));
+        doTerminate(sender);
         _globalState.topEventLoop.run();
         break;
       case 'log':
@@ -556,6 +538,22 @@ class IsolateNatives {
       case 'error':
         throw msg['msg'];
     }
+  }
+
+
+  static getId(/* Worker or _ManagerStub */ worker) {
+    if (worker is _ManagerStub) return worker.id;
+    return JS('', '#.id', worker);
+  }
+
+  static doTerminate(/* Worker or _ManagerStub */ worker) {
+    if (worker is _ManagerStub) return worker.terminate();
+    return JS('', '#.terminate()', worker);
+  }
+
+  static doPostMessage(/* Worker or _ManagerStub */ worker, message) {
+    if (worker is _ManagerStub) return worker.postMessage(message);
+    return JS('', '#.postMessage(#)', worker, message);
   }
 
   /** Log a message, forwarding to the main [_Manager] if appropriate. */
@@ -675,24 +673,26 @@ class IsolateNatives {
    */
   static void _spawnWorker(functionName, uri, replyPort) {
     if (uri == null) uri = thisScript;
-    final worker = _newWorker(uri);
-    worker.onmessage = JS('',
-                          'function(e) { #(#, e); }',
-                          DART_CLOSURE_TO_JS(_processWorkerMessage),
-                          worker);
+    final worker = JS('var', 'new Worker(#)', uri);
+
+    var processWorkerMessageTrampoline =
+      JS('', 'function(e) { #(#, e); }',
+         DART_CLOSURE_TO_JS(_processWorkerMessage),
+         worker);
+    JS('void', '#.onmessage = #', worker, processWorkerMessageTrampoline);
     var workerId = _globalState.nextManagerId++;
     // We also store the id on the worker itself so that we can unregister it.
-    worker.id = workerId;
+    JS('void', '#.id = #', worker, workerId);
     _globalState.managers[workerId] = worker;
-    worker.postMessage(_serializeMessage({
-      'command': 'start',
-      'id': workerId,
-      // Note: we serialize replyPort twice because the child worker needs to
-      // first deserialize the worker id, before it can correctly deserialize
-      // the port (port deserialization is sensitive to what is the current
-      // workerId).
-      'replyTo': _serializeMessage(replyPort),
-      'functionName': functionName }));
+    JS('void', '#.postMessage(#)', worker, _serializeMessage({
+        'command': 'start',
+        'id': workerId,
+        // Note: we serialize replyPort twice because the child worker needs to
+        // first deserialize the worker id, before it can correctly deserialize
+        // the port (port deserialization is sensitive to what is the current
+        // workerId).
+        'replyTo': _serializeMessage(replyPort),
+        'functionName': functionName }));
   }
 }
 
@@ -809,7 +809,7 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
         // Deliver the message only if the worker is still alive.
         _ManagerStub manager = _globalState.managers[_workerId];
         if (manager != null) {
-          manager.postMessage(workerMessage);
+          IsolateNatives.doPostMessage(manager, workerMessage);
         }
       }
     });
