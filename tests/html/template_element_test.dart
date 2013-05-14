@@ -1320,6 +1320,24 @@ templateElementTests() {
     }
   });
 
+  test('BindShadowDOM bindModel', () {
+    if (ShadowRoot.supported) {
+      var root = createShadowTestHtml('Hi {{ name }}');
+      var model = toSymbolMap({'name': 'Leela'});
+      TemplateElement.bindModel(root, model);
+      deliverChangeRecords();
+      expect(root.text, 'Hi Leela');
+    }
+  });
+
+  test('bindModel to polyfilled shadow root', () {
+    var root = createTestHtml('Hi {{ name }}');
+    var model = toSymbolMap({'name': 'Leela'});
+    TemplateElement.bindModel(root, model);
+    deliverChangeRecords();
+    expect(root.text, 'Hi Leela');
+  });
+
   // https://github.com/toolkitchen/mdv/issues/8
   test('UnbindingInNestedBind', () {
     var div = createTestHtml(

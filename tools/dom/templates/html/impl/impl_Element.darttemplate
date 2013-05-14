@@ -699,7 +699,7 @@ $endif
     } else {
       changed = (value) {
         // TODO(jmesserly): escape value if needed to protect against XSS.
-        // See https://github.com/toolkitchen/mdv/issues/58
+        // See https://github.com/polymer-project/mdv/issues/58
         self.xtag.attributes[name] = value == null ? '' : '$value';
       };
     }

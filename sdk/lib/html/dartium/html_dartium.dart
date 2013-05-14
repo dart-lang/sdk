@@ -7933,7 +7933,7 @@ abstract class Element extends Node implements ElementTraversal {
     } else {
       changed = (value) {
         // TODO(jmesserly): escape value if needed to protect against XSS.
-        // See https://github.com/toolkitchen/mdv/issues/58
+        // See https://github.com/polymer-project/mdv/issues/58
         self.xtag.attributes[name] = value == null ? '' : '$value';
       };
     }
@@ -20781,6 +20781,22 @@ class TemplateElement extends _Element_Merged {
     _Bindings._bootstrapTemplatesRecursivelyFrom(content);
   }
 
+  /**
+   * Binds all mustaches recursively starting from the [root] node.
+   *
+   * Note: this is not an official Model-Driven-Views API; it is intended to
+   * support binding the [ShadowRoot]'s content to a model.
+   */
+  // TODO(jmesserly): this is needed to avoid two <template> nodes when using
+  // bindings in a custom element's template. See also:
+  // https://github.com/polymer-project/polymer/blob/master/src/bindMDV.js#L68
+  // Called from:
+  // https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
+  @Experimental
+  static void bindModel(Node root, model, [CustomBindingSyntax syntax]) {
+    _Bindings._addBindings(root, model, syntax);
+  }
+
   static bool _initStyles;
 
   static void _injectStylesheet() {
@@ -27696,7 +27712,7 @@ class Rect {
 
 
 // This code is a port of Model-Driven-Views:
-// https://github.com/toolkitchen/mdv
+// https://github.com/polymer-project/mdv
 // The code mostly comes from src/template_element.js
 
 typedef void _ChangeHandler(value);
@@ -27728,7 +27744,7 @@ typedef void _ChangeHandler(value);
  *
  *     TemplateElement.syntax['MySyntax'] = new MySyntax();
  *
- * See <https://github.com/toolkitchen/mdv/blob/master/docs/syntax.md> for more
+ * See <https://github.com/polymer-project/mdv/blob/master/docs/syntax.md> for more
  * information about Custom Syntax.
  */
 // TODO(jmesserly): if this is just one method, a function type would make it
@@ -28050,7 +28066,7 @@ class _Bindings {
   // apply for template data-binding. HTML attributes are true if they're
   // present. However Dart only treats "true" as true. Since this is HTML we'll
   // use something closer to the HTML rules: null (missing) and false are false,
-  // everything else is true. See: https://github.com/toolkitchen/mdv/issues/59
+  // everything else is true. See: https://github.com/polymer-project/mdv/issues/59
   static bool _toBoolean(value) => null != value && false != value;
 
   static Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
@@ -28184,6 +28200,9 @@ class _Bindings {
       return;
     }
 
+    // If this is a custom element, give the .xtag a change to bind.
+    node = _nodeOrCustom(node);
+
     if (tokens.length == 1 && tokens[0].isBinding) {
       _bindOrDelegate(node, name, model, tokens[0].value, syntax);
       return;
@@ -28215,7 +28234,7 @@ class _Bindings {
       return newValue.toString();
     };
 
-    _nodeOrCustom(node).bind(name, replacementBinding, 'value');
+    node.bind(name, replacementBinding, 'value');
   }
 
   static void _bindOrDelegate(node, name, model, String path,
@@ -28229,7 +28248,7 @@ class _Bindings {
       }
     }
 
-    _nodeOrCustom(node).bind(name, model, path);
+    node.bind(name, model, path);
   }
 
   /**
