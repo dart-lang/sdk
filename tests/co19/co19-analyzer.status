@@ -29,7 +29,6 @@ Language/07_Classes/07_Classes_A09_t01: fail
 Language/07_Classes/07_Classes_A09_t02: fail
 Language/07_Classes/07_Classes_A09_t03: fail
 Language/07_Classes/07_Classes_A09_t04: fail
-Language/07_Classes/1_Instance_Methods_A02_t05: fail
 Language/07_Classes/2_Getters_A04_t03: fail
 Language/07_Classes/2_Getters_A04_t04: fail
 Language/07_Classes/2_Getters_A04_t05: fail
@@ -38,7 +37,6 @@ Language/07_Classes/3_Setters_A03_t02: fail
 Language/07_Classes/3_Setters_A03_t04: fail
 Language/07_Classes/3_Setters_A03_t06: fail
 Language/07_Classes/3_Setters_A03_t08: fail
-Language/07_Classes/4_Abstract_Instance_Members_A04_t06: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A01_t04: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t03: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t04: fail
@@ -132,12 +130,6 @@ Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10:
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A01_t05: fail
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A01_t05: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t05: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t01: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t02: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t04: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t05: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t06: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A05_t07: fail
 Language/11_Expressions/19_Conditional_A01_t05: fail
 Language/11_Expressions/19_Conditional_A01_t06: fail
 Language/11_Expressions/20_Logical_Boolean_Expressions_A01_t04: fail
