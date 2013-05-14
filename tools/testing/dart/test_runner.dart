@@ -18,6 +18,7 @@ import "dart:collection" show Queue;
 import "dart:io" as io;
 import "dart:isolate";
 import "dart:uri";
+import "browser_controller.dart";
 import "http_server.dart" as http_server;
 import "status_file_parser.dart";
 import "test_progress.dart";
@@ -28,6 +29,8 @@ const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 const int CRASHING_BROWSER_EXITCODE = -10;
+
+const int NUMBER_OF_BROWSERCONTROLLER_BROWSERS = 4;
 
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
@@ -348,6 +351,8 @@ class TestCase {
 
   bool get usesWebDriver => TestUtils.usesWebDriver(configuration['runtime']);
 
+  bool get usesBrowserController => configuration['use_browser_controller'];
+
   void completed() { completedHandler(this); }
 
   bool get isFlaky {
@@ -526,7 +531,17 @@ class CommandOutputImpl implements CommandOutput {
                                      List<int> stderr,
                                      Duration time,
                                      bool compilationSkipped) {
-    if (testCase is BrowserTestCase) {
+    if (testCase.usesBrowserController) {
+      return new HTMLBrowserCommandOutputImpl(testCase,
+                                              command,
+                                              exitCode,
+                                              incomplete,
+                                              timedOut,
+                                              stdout,
+                                              stderr,
+                                              time,
+                                              compilationSkipped);
+    } else if (testCase is BrowserTestCase) {
       return new BrowserCommandOutputImpl(testCase,
                                           command,
                                           exitCode,
@@ -745,6 +760,36 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     return true;
   }
 }
+
+class HTMLBrowserCommandOutputImpl extends BrowserCommandOutputImpl {
+ HTMLBrowserCommandOutputImpl(
+      testCase,
+      command,
+      exitCode,
+      incomplete,
+      timedOut,
+      stdout,
+      stderr,
+      time,
+      compilationSkipped) :
+    super(testCase,
+          command,
+          exitCode,
+          incomplete,
+          timedOut,
+          stdout,
+          stderr,
+          time,
+          compilationSkipped);
+
+  bool get _browserTestFailure {
+    // We should not need to convert back and forward.
+    var output = decodeUtf8(super.stdout);
+    if (output.contains("FAIL")) return true;
+    return !output.contains("PASS");
+  }
+}
+
 
 // The static analyzer does not actually execute code, so
 // the criteria for success now depend on the text sent
@@ -1295,6 +1340,8 @@ class ProcessQueue {
   // system, generate tests, and search test files for options.
   Map<String, List<TestInformation>> _testCache;
 
+  Map<String, BrowserTestRunner> _browserTestRunners;
+
   /**
    * String indicating the browser used to run the tests. Empty if no browser
    * used.
@@ -1325,7 +1372,8 @@ class ProcessQueue {
         _listTests = listTests,
         _tests = new Queue<TestCase>(),
         _batchProcesses = new Map<String, List<BatchRunnerProcess>>(),
-        _testCache = new Map<String, List<TestInformation>>() {
+        _testCache = new Map<String, List<TestInformation>>(),
+        _browserTestRunners = new Map<String, BrowserTestRunner>() {
     _runTests(testSuites);
   }
 
@@ -1343,7 +1391,9 @@ class ProcessQueue {
 
   void _checkDone() {
     if (_allTestsWereEnqueued && _tests.isEmpty && _numProcesses == 0) {
-      _terminateBatchRunners().then((_) => _cleanupAndMarkDone());
+      _terminateBatchRunners().then((_) {
+        _terminateBrowserRunners().then((_) => _cleanupAndMarkDone());
+      });
     }
   }
 
@@ -1506,6 +1556,14 @@ class ProcessQueue {
     return Future.wait(futures);
   }
 
+  Future _terminateBrowserRunners() {
+    var futures = [];
+    for (BrowserTestRunner runner in _browserTestRunners.values) {
+      futures.add(runner.terminate());
+    }
+    return Future.wait(futures);
+  }
+
   BatchRunnerProcess _getBatchRunner(TestCase test) {
     // Start batch processes if needed
     var compiler = test.configuration['compiler'];
@@ -1524,8 +1582,53 @@ class ProcessQueue {
     throw new Exception('Unable to find inactive batch runner.');
   }
 
+  Future<BrowserTestRunner> _getBrowserTestRunner(TestCase test) {
+    var runtime = test.configuration['runtime'];
+    if (_browserTestRunners[runtime] == null) {
+      var testRunner =
+        new BrowserTestRunner(runtime, NUMBER_OF_BROWSERCONTROLLER_BROWSERS);
+      _browserTestRunners[runtime] = testRunner;
+      return testRunner.start().then((started) {
+        if (started) {
+          return testRunner;
+        }
+        print("Issue starting browser test runner");
+        exit(1);
+      });
+    }
+    return new Future.immediate(_browserTestRunners[runtime]);
+  }
+
+  void _startBrowserControllerTest(var test) {
+    // Get the url.
+    // TODO(ricow): This is not needed when we have eliminated selenium.
+    var nextCommandIndex = test.commandOutputs.keys.length;
+    var url = test.commands[nextCommandIndex].toString().split("--out=")[1];
+    // Remove trailing "
+    url = url.split('"')[0];
+    var callback = (var output) {
+      new CommandOutput.fromCase(test,
+                                 test.commands[nextCommandIndex],
+                                 0,
+                                 false,
+                                 output == "TIMEOUT",
+                                 encodeUtf8(output),
+                                 [],
+                                 const Duration(seconds: 1),
+                                 false);
+      test.completedHandler(test);
+    };
+    BrowserTest browserTest = new BrowserTest(url, callback, test.timeout);
+    _getBrowserTestRunner(test).then((testRunner) {
+      testRunner.queueTest(browserTest);
+    });
+  }
+
   void _tryRunTest() {
     _checkDone();
+    // TODO(ricow): remove most of the hacked selenium code below when
+    // we have eliminated the need.
+
     if (_numProcesses < _maxProcesses && !_tests.isEmpty) {
       TestCase test = _tests.removeFirst();
       if (_listTests) {
@@ -1536,8 +1639,8 @@ class ProcessQueue {
         print(fields.join('\t'));
         return;
       }
-      if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable || (test
-          is BrowserTestCase && test.waitingForOtherTest)) {
+      if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable ||
+          (test is BrowserTestCase && test.waitingForOtherTest)) {
         // The test is not yet ready to run. Put the test back in
         // the queue.  Avoid spin-polling by using a timeout.
         _tests.add(test);
@@ -1598,7 +1701,12 @@ class ProcessQueue {
           _tryRunTest();
         };
         test.completedHandler = testCompleted;
-        _getBatchRunner(test).startTest(test);
+
+        if (test.usesBrowserController) {
+          _startBrowserControllerTest(test);
+        } else {
+          _getBatchRunner(test).startTest(test);
+        }
       } else {
         // Once we've actually failed a test, technically, we wouldn't need to
         // bother retrying any subsequent tests since the bot is already red.

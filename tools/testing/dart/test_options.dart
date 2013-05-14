@@ -301,6 +301,14 @@ Note: currently only implemented for dart2js.''',
               [],
               false,
               'bool'
+              ),
+          new _TestOptionSpecification(
+              'use_browser_controller',
+              'Use the new selenium replacement browser-controller.',
+              ['--use_browser_controller'],
+              [],
+              false,
+              'bool'
               ),];
   }
 
