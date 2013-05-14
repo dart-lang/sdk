@@ -10,6 +10,7 @@
 #include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/dart_entry.h"
+#include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -42,6 +43,13 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
+RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+                                                 DeoptInfoBuilder* builder) {
+  UNIMPLEMENTED();  // TODO(regis): Copy ARM version.
+  return NULL;
+}
+
+
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
@@ -56,6 +64,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   __ BranchLink(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
+  __ break_(0);  // TODO(regis): Remove breakpoint to save space.
 #undef __
 }
 

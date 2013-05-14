@@ -10,6 +10,7 @@
 #include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/dart_entry.h"
+#include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -40,6 +41,98 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   return false;
+}
+
+
+RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+                                                 DeoptInfoBuilder* builder) {
+  if (deoptimization_env_ == NULL) return DeoptInfo::null();
+
+  intptr_t stack_height = compiler->StackSize();
+  AllocateIncomingParametersRecursive(deoptimization_env_, &stack_height);
+
+  intptr_t slot_ix = 0;
+  Environment* current = deoptimization_env_;
+
+  // Emit all kMaterializeObject instructions describing objects to be
+  // materialized on the deoptimization as a prefix to the deoptimization info.
+  EmitMaterializations(deoptimization_env_, builder);
+
+  // The real frame starts here.
+  builder->MarkFrameStart();
+
+  // Callee's PC marker is not used anymore. Pass Function::null() to set to 0.
+  builder->AddPcMarker(Function::Handle(), slot_ix++);
+
+  // Current FP and PC.
+  builder->AddCallerFp(slot_ix++);
+  builder->AddReturnAddress(current->function(),
+                            deopt_id(),
+                            slot_ix++);
+
+  // Emit all values that are needed for materialization as a part of the
+  // expression stack for the bottom-most frame. This guarantees that GC
+  // will be able to find them during materialization.
+  slot_ix = builder->EmitMaterializationArguments(slot_ix);
+
+  // For the innermost environment, set outgoing arguments and the locals.
+  for (intptr_t i = current->Length() - 1;
+       i >= current->fixed_parameter_count();
+       i--) {
+    builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
+  }
+
+  // Current PC marker and caller FP.
+  builder->AddPcMarker(current->function(), slot_ix++);
+  builder->AddCallerFp(slot_ix++);
+
+  Environment* previous = current;
+  current = current->outer();
+  while (current != NULL) {
+    // For any outer environment the deopt id is that of the call instruction
+    // which is recorded in the outer environment.
+    builder->AddReturnAddress(current->function(),
+                              Isolate::ToDeoptAfter(current->deopt_id()),
+                              slot_ix++);
+
+    // The values of outgoing arguments can be changed from the inlined call so
+    // we must read them from the previous environment.
+    for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+      builder->AddCopy(previous->ValueAt(i),
+                       previous->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // Set the locals, note that outgoing arguments are not in the environment.
+    for (intptr_t i = current->Length() - 1;
+         i >= current->fixed_parameter_count();
+         i--) {
+      builder->AddCopy(current->ValueAt(i),
+                       current->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // PC marker and caller FP.
+    builder->AddPcMarker(current->function(), slot_ix++);
+    builder->AddCallerFp(slot_ix++);
+
+    // Iterate on the outer environment.
+    previous = current;
+    current = current->outer();
+  }
+  // The previous pointer is now the outermost environment.
+  ASSERT(previous != NULL);
+
+  // For the outermost environment, set caller PC.
+  builder->AddCallerPc(slot_ix++);
+
+  // For the outermost environment, set the incoming arguments.
+  for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+    builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
+  }
+
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());
+  return deopt_info.raw();
 }
 
 

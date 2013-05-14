@@ -20,9 +20,9 @@ class MaterializeObjectInstr;
 // Holds all data relevant for execution of deoptimization instructions.
 class DeoptimizationContext : public ValueObject {
  public:
-  // 'to_frame_start' points to the return address just below the frame's
-  // stack pointer (kPcAddressOffsetFromSp). 'num_args' is 0 if there are no
-  // arguments or if there are optional arguments.
+  // 'to_frame_start' points to the fixed size portion of the frame under sp.
+  // 'num_args' is 0 if there are no arguments or if there are optional
+  // arguments.
   DeoptimizationContext(intptr_t* to_frame_start,
                         intptr_t to_frame_size,
                         const Array& object_table,
@@ -40,6 +40,7 @@ class DeoptimizationContext : public ValueObject {
   }
 
   intptr_t GetFromFp() const;
+  intptr_t GetFromPp() const;
   intptr_t GetFromPc() const;
 
   intptr_t GetCallerFp() const;
@@ -109,7 +110,9 @@ class DeoptInstr : public ZoneAllocated {
     kFloat32x4StackSlot,
     kUint32x4StackSlot,
     kPcMarker,
+    kPp,
     kCallerFp,
+    kCallerPp,
     kCallerPc,
     kSuffix,
     kMaterializedObjectRef,
@@ -180,7 +183,9 @@ class DeoptInfoBuilder : public ValueObject {
   // Copy from optimized frame to unoptimized.
   void AddCopy(Value* value, const Location& from_loc, intptr_t to_index);
   void AddPcMarker(const Function& function, intptr_t to_index);
+  void AddPp(const Function& function, intptr_t to_index);
   void AddCallerFp(intptr_t to_index);
+  void AddCallerPp(intptr_t to_index);
   void AddCallerPc(intptr_t to_index);
 
   // Add object to be materialized. Emit kMaterializeObject instruction.
@@ -189,13 +194,13 @@ class DeoptInfoBuilder : public ValueObject {
   // For every materialized object emit instructions describing data required
   // for materialization: class of the instance to allocate and field-value
   // pairs for initialization.
-  // Emitted instructions are expected to follow return-address slot emitted
-  // first. This way they become a part of the bottom-most deoptimized frame
-  // and are discoverable by GC.
+  // Emitted instructions are expected to follow fixed size section of frame
+  // emitted first. This way they become a part of the bottom-most deoptimized
+  // frame and are discoverable by GC.
   // At deoptimization they will be removed by the stub at the very end:
   // after they were used to materialize objects.
   // Returns the index of the next stack slot. Used for verification.
-  intptr_t EmitMaterializationArguments();
+  intptr_t EmitMaterializationArguments(intptr_t to_index);
 
   RawDeoptInfo* CreateDeoptInfo();
 

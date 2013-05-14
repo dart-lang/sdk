@@ -323,22 +323,25 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // - Fill the unoptimized frame.
 // - Materialize objects that require allocation (e.g. Double instances).
 // GC can occur only after frame is fully rewritten.
-// Stack after EnterFrame(0) below:
+// Stack after EnterDartFrame(0) below:
 //   +------------------+
-//   | Saved FP         | <- TOS
+//   | PC marker        | <- TOS
+//   +------------------+
+//   | Saved FP         | <- FP of stub
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
-//   | optimized frame  |
-//   |  ...             |
+//   | ...              | <- SP of optimized frame
 //
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
-                                           bool preserve_eax) {
-  __ EnterFrame(0);
+                                           bool preserve_result) {
+  // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
+  __ EnterDartFrame(0);
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
-  const intptr_t saved_eax_offset_from_ebp = -(kNumberOfCpuRegisters - EAX);
+  const intptr_t saved_result_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - EAX);
   // Result in EAX is preserved as part of pushing all registers below.
 
   // Push registers in their enumeration order: lowest register number at
@@ -358,41 +361,39 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), ECX);  // Start of register block.
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
-  // Result (EAX) is stack-size (FP - SP) in bytes, incl. the return address.
+  // Result (EAX) is stack-size (FP - SP) in bytes.
 
-  if (preserve_eax) {
+  if (preserve_result) {
     // Restore result into EBX temporarily.
-    __ movl(EBX, Address(EBP, saved_eax_offset_from_ebp * kWordSize));
+    __ movl(EBX, Address(EBP, saved_result_slot_from_fp * kWordSize));
   }
 
   __ LeaveFrame();
   __ popl(EDX);  // Preserve return address.
-  __ movl(ESP, EBP);
-  __ subl(ESP, EAX);
-  __ movl(Address(ESP, 0), EDX);
+  __ movl(ESP, EBP);  // Discard optimized frame.
+  __ subl(ESP, EAX);  // Reserve space for deoptimized frame.
+  __ pushl(EDX);  // Restore return address.
 
-  __ EnterFrame(0);
-  __ movl(ECX, ESP);  // Get last FP address.
-  if (preserve_eax) {
-    __ pushl(EBX);  // Preserve result.
+  // Leaf runtime function DeoptimizeFillFrame expects a Dart frame.
+  __ EnterDartFrame(0);
+  if (preserve_result) {
+    __ pushl(EBX);  // Preserve result as first local.
   }
   __ ReserveAlignedFrameSpace(1 * kWordSize);
-  __ movl(Address(ESP, 0), ECX);
+  __ movl(Address(ESP, 0), EBP);  // Pass last FP as parameter on stack.
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
-  // Result (EAX) is our FP.
-  if (preserve_eax) {
+  if (preserve_result) {
     // Restore result into EBX.
-    __ movl(EBX, Address(EBP, -1 * kWordSize));
+    __ movl(EBX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
-  __ movl(EBP, EAX);
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   __ EnterStubFrame();
-  if (preserve_eax) {
+  if (preserve_result) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
   }
   __ pushl(Immediate(Smi::RawValue(0)));  // Space for the result.
@@ -401,7 +402,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // of the bottom-most frame. They were used as materialization arguments.
   __ popl(EBX);
   __ SmiUntag(EBX);
-  if (preserve_eax) {
+  if (preserve_result) {
     __ popl(EAX);  // Restore result.
   }
   __ LeaveFrame();

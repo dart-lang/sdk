@@ -1489,19 +1489,20 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
   // are copied into local space at method entry).
   const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  // FP, PC-marker and return-address will be copied as well.
+  // The fixed size section of the (fake) Dart frame called via a stub by the
+  // optimized function contains FP, PP (ARM and MIPS only), PC-marker and
+  // return-address. This section is copied as well, so that its contained
+  // values can be updated before returning to the deoptimized function.
   const intptr_t frame_copy_size =
-      // Deoptimized function's return address: caller_frame->pc().
-      - kSavedPcSlotFromSp
-      + ((frame.fp() - frame.sp()) / kWordSize)
+      + kDartFrameFixedSize  // For saved values below sp.
+      + ((frame.fp() - frame.sp()) / kWordSize)  // For frame size incl. sp.
       + 1  // For fp.
-      + kParamEndSlotFromFp
-      + num_args;
+      + kParamEndSlotFromFp  // For saved values above fp.
+      + num_args;  // For arguments.
   intptr_t* frame_copy = new intptr_t[frame_copy_size];
   ASSERT(frame_copy != NULL);
-  // Include the return address of optimized code.
   intptr_t* start = reinterpret_cast<intptr_t*>(
-      frame.sp() + (kSavedPcSlotFromSp * kWordSize));
+      frame.sp() - (kDartFrameFixedSize * kWordSize));
   for (intptr_t i = 0; i < frame_copy_size; i++) {
     frame_copy[i] = *(start + i);
   }
@@ -1517,12 +1518,11 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
 
-  // All registers have been saved below last-fp.
-  // Note that the deopt stub is not allowed to save any other values (pc
-  // marker, pool pointer, alignment, etc...) below last-fp.
-  const uword last_fp = saved_registers_address +
-                        kNumberOfCpuRegisters * kWordSize +
-                        kNumberOfFpuRegisters * kFpuRegisterSize;
+  // All registers have been saved below last-fp as if they were locals.
+  const uword last_fp = saved_registers_address
+                        + (kNumberOfCpuRegisters * kWordSize)
+                        + (kNumberOfFpuRegisters * kFpuRegisterSize)
+                        - ((kFirstLocalSlotFromFp + 1) * kWordSize);
   CopySavedRegisters(saved_registers_address);
 
   // Get optimized code and frame that need to be deoptimized.
@@ -1555,20 +1555,21 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   const Function& function = Function::Handle(optimized_code.function());
   const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
-  intptr_t unoptimized_stack_size =
+  const intptr_t unoptimized_stack_size =
       + deopt_info.FrameSize()
+      - kDartFrameFixedSize
       - num_args
       - kParamEndSlotFromFp
       - 1;  // For fp.
-  return unoptimized_stack_size * kWordSize;
+  return unoptimized_stack_size * kWordSize;  // Stack size (FP - SP) in bytes.
 }
 END_LEAF_RUNTIME_ENTRY
 
 
-static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
-                                        const DeoptInfo& deopt_info,
-                                        const StackFrame& caller_frame,
-                                        intptr_t deopt_reason) {
+static void DeoptimizeWithDeoptInfo(const Code& code,
+                                    const DeoptInfo& deopt_info,
+                                    const StackFrame& caller_frame,
+                                    intptr_t deopt_reason) {
   const intptr_t len = deopt_info.TranslationLength();
   GrowableArray<DeoptInstr*> deopt_instructions(len);
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
@@ -1576,12 +1577,12 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
   deopt_info.ToInstructions(deopt_table, &deopt_instructions);
 
   intptr_t* start = reinterpret_cast<intptr_t*>(
-      caller_frame.sp() + (kSavedPcSlotFromSp * kWordSize));
+      caller_frame.sp() - (kDartFrameFixedSize * kWordSize));
   const Function& function = Function::Handle(code.function());
   const intptr_t num_args =
       function.HasOptionalParameters() ? 0 : function.num_fixed_parameters();
   const intptr_t to_frame_size =
-      - kSavedPcSlotFromSp  // Deoptimized function's return address.
+      + kDartFrameFixedSize  // For saved values below sp.
       + (caller_frame.fp() - caller_frame.sp()) / kWordSize
       + 1  // For fp.
       + kParamEndSlotFromFp
@@ -1603,7 +1604,7 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
   // right before control switches to the unoptimized code.
   const intptr_t num_materializations = len - frame_size;
   Isolate::Current()->PrepareForDeferredMaterialization(num_materializations);
-  for (intptr_t from_index = 0, to_index = 1;
+  for (intptr_t from_index = 0, to_index = kDartFrameFixedSize;
        from_index < num_materializations;
        from_index++) {
     const intptr_t field_count =
@@ -1631,13 +1632,12 @@ static intptr_t DeoptimizeWithDeoptInfo(const Code& code,
                    deopt_instructions[i + (len - frame_size)]->ToCString());
     }
   }
-  return deopt_context.GetCallerFp();
 }
 
 
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
-DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
+DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
@@ -1661,10 +1661,10 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
       optimized_code.GetDeoptInfoAtPc(caller_frame->pc(), &deopt_reason));
   ASSERT(!deopt_info.IsNull());
 
-  const intptr_t caller_fp = DeoptimizeWithDeoptInfo(optimized_code,
-                                                     deopt_info,
-                                                     *caller_frame,
-                                                     deopt_reason);
+  DeoptimizeWithDeoptInfo(optimized_code,
+                          deopt_info,
+                          *caller_frame,
+                          deopt_reason);
 
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_cpu_registers_copy(NULL);
@@ -1672,8 +1672,6 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeFillFrame, uword last_fp) {
   delete[] frame_copy;
   delete[] cpu_registers_copy;
   delete[] fpu_registers_copy;
-
-  return caller_fp;
 }
 END_LEAF_RUNTIME_ENTRY
 

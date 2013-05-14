@@ -307,6 +307,7 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 
 
+// Used by eager and lazy deoptimization. Preserve result in RAX if necessary.
 // This stub translates optimized frame into unoptimized frame. The optimized
 // frame can contain values in registers and on stack, the unoptimized
 // frame contains all values on stack.
@@ -317,23 +318,26 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // - Fill the unoptimized frame.
 // - Materialize objects that require allocation (e.g. Double instances).
 // GC can occur only after frame is fully rewritten.
-// Stack after EnterFrame(0) below:
+// Stack after EnterDartFrame(0) below:
 //   +------------------+
-//   | Saved FP         | <- TOS
+//   | PC marker        | <- TOS
+//   +------------------+
+//   | Saved FP         | <- FP of stub
 //   +------------------+
 //   | return-address   |  (deoptimization point)
 //   +------------------+
-//   | optimized frame  |
-//   |  ...             |
+//   | ...              | <- SP of optimized frame
 //
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
-                                           bool preserve_rax) {
-  __ EnterFrame(0);
+                                           bool preserve_result) {
+  // Leaf runtime function DeoptimizeCopyFrame expects a Dart frame.
+  __ EnterDartFrame(0);
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
-  const intptr_t saved_rax_offset_from_ebp = -(kNumberOfCpuRegisters - RAX);
-  // Result in EAX is preserved as part of pushing all registers below.
+  const intptr_t saved_result_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - RAX);
+  // Result in RAX is preserved as part of pushing all registers below.
 
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
@@ -351,41 +355,39 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ movq(RDI, RSP);  // Pass address of saved registers block.
   __ ReserveAlignedFrameSpace(0);
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
-  // Result (RAX) is stack-size (FP - SP) in bytes, incl. the return address.
+  // Result (RAX) is stack-size (FP - SP) in bytes.
 
-  if (preserve_rax) {
+  if (preserve_result) {
     // Restore result into RBX temporarily.
-    __ movq(RBX, Address(RBP, saved_rax_offset_from_ebp * kWordSize));
+    __ movq(RBX, Address(RBP, saved_result_slot_from_fp * kWordSize));
   }
 
   __ LeaveFrame();
   __ popq(RCX);   // Preserve return address.
-  __ movq(RSP, RBP);
-  __ subq(RSP, RAX);
-  __ movq(Address(RSP, 0), RCX);
+  __ movq(RSP, RBP);  // Discard optimized frame.
+  __ subq(RSP, RAX);  // Reserve space for deoptimized frame.
+  __ pushq(RCX);  // Restore return address.
 
-  __ EnterFrame(0);
-  __ movq(RCX, RSP);  // Get last FP address.
-  if (preserve_rax) {
-    __ pushq(RBX);  // Preserve result.
+  // Leaf runtime function DeoptimizeFillFrame expects a Dart frame.
+  __ EnterDartFrame(0);
+  if (preserve_result) {
+    __ pushq(RBX);  // Preserve result as first local.
   }
   __ ReserveAlignedFrameSpace(0);
-  __ movq(RDI, RCX);  // Set up argument 1 last_fp.
+  __ movq(RDI, RBP);  // Pass last FP as parameter in RDI.
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
-  // Result (RAX) is our FP.
-  if (preserve_rax) {
+  if (preserve_result) {
     // Restore result into RBX.
-    __ movq(RBX, Address(RBP, -1 * kWordSize));
+    __ movq(RBX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
-  __ movq(RBP, RAX);
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   __ EnterStubFrame();
-  if (preserve_rax) {
+  if (preserve_result) {
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
   }
   __ pushq(Immediate(Smi::RawValue(0)));  // Space for the result.
@@ -394,7 +396,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // of the bottom-most frame. They were used as materialization arguments.
   __ popq(RBX);
   __ SmiUntag(RBX);
-  if (preserve_rax) {
+  if (preserve_result) {
     __ popq(RAX);  // Restore result.
   }
   __ LeaveFrame();

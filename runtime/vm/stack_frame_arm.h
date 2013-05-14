@@ -11,7 +11,9 @@ namespace dart {
 
                |                    | <- TOS
 Callee frame   | ...                |
-               | current LR         |    (PC of current frame)
+               | saved PP           |    (PP of current frame)
+               | saved FP           |    (FP of current frame)
+               | saved LR           |    (PC of current frame)
                | callee's PC marker |
                +--------------------+
 Current frame  | ...                | <- SP of current frame
@@ -25,11 +27,14 @@ Caller frame   | last parameter     | <- SP of caller frame
                |  ...               |
 */
 
+static const int kDartFrameFixedSize = 4;  // PP, FP, LR, PC marker.
 static const int kSavedPcSlotFromSp = -2;
 static const int kFirstLocalSlotFromFp = -2;
+static const int kSavedCallerPpSlotFromFp = -1;
 static const int kSavedCallerFpSlotFromFp = 0;
+static const int kSavedCallerPcSlotFromFp = 1;
 static const int kPcMarkerSlotFromFp = 2;
-static const int kParamEndSlotFromFp = 2;  // Same slot as current pc marker.
+static const int kParamEndSlotFromFp = 2;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 3;
 
 // Entry and exit frame layout.

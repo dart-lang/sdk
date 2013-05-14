@@ -11,7 +11,8 @@ namespace dart {
 
                |                    | <- TOS
 Callee frame   | ...                |
-               | current ret addr   |    (PC of current frame)
+               | saved EBP          |    (EBP of current frame)
+               | saved PC           |    (PC of current frame)
                +--------------------+
 Current frame  | ...                | <- ESP of current frame
                | first local        |
@@ -23,12 +24,17 @@ Caller frame   | last parameter     | <- ESP of caller frame
                |  ...               |
 */
 
+static const int kDartFrameFixedSize = 3;  // PC marker, EBP, PC.
 static const int kSavedPcSlotFromSp = -1;
 static const int kFirstLocalSlotFromFp = -2;
 static const int kPcMarkerSlotFromFp = -1;
 static const int kSavedCallerFpSlotFromFp = 0;
-static const int kParamEndSlotFromFp = 1;  // Same slot as caller's ret addr.
+static const int kSavedCallerPcSlotFromFp = 1;
+static const int kParamEndSlotFromFp = 1;  // One slot past last parameter.
 static const int kCallerSpSlotFromFp = 2;
+
+// No pool pointer on IA32 (indicated by aliasing saved fp).
+static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
 
 // Entry and exit frame layout.
 static const int kSavedContextSlotFromEntryFp = -5;

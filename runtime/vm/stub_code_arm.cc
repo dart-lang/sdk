@@ -331,22 +331,26 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // GC can occur only after frame is fully rewritten.
 // Stack after EnterFrame(...) below:
 //   +------------------+
-//   | Saved FP         | <- TOS
+//   | Saved PP         | <- TOS
+//   +------------------+
+//   | Saved FP         | <- FP of stub
 //   +------------------+
 //   | Saved LR         |  (deoptimization point)
 //   +------------------+
-//   | stub pc marker   |  (necessary to keep constant offset SP - Saved LR.
+//   | PC marker        |
 //   +------------------+
-//   | optimized frame  | <- SP of optimized code
-//   |  ...             |
+//   | ...              | <- SP of optimized frame
 //
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
-  __ EnterStubFrame();  // Do not save pp (implicit saved regs to fp offset).
+  // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
+  // is no need to set the correct PC marker or load PP, since they get patched.
+  __ EnterFrame((1 << PP) | (1 << FP) | (1 << LR) | (1 << PC), 0);
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
-  const intptr_t saved_r0_offset_from_fp = -(kNumberOfCpuRegisters - R0);
+  const intptr_t saved_result_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - R0);
   // Result in R0 is preserved as part of pushing all registers below.
 
   // TODO(regis): Should we align the stack before pushing the fpu registers?
@@ -361,31 +365,31 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ mov(R0, ShifterOperand(SP));  // Pass address of saved registers block.
   __ ReserveAlignedFrameSpace(0);
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
-  // Result (R0) is stack-size (FP - SP) in bytes, incl. the return address.
+  // Result (R0) is stack-size (FP - SP) in bytes.
 
   if (preserve_result) {
     // Restore result into R1 temporarily.
-    __ ldr(R1, Address(FP, saved_r0_offset_from_fp * kWordSize));
+    __ ldr(R1, Address(FP, saved_result_slot_from_fp * kWordSize));
   }
 
-  __ LeaveStubFrame();  // Restores FP and LR from stack.
+  __ LeaveDartFrame();
   __ sub(SP, FP, ShifterOperand(R0));
 
-  __ EnterStubFrame();
-  __ mov(R0, ShifterOperand(SP));  // Get last FP address.
+  // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
+  // is no need to set the correct PC marker or load PP, since they get patched.
+  __ EnterFrame((1 << PP) | (1 << FP) | (1 << LR) | (1 << PC), 0);
+  __ mov(R0, ShifterOperand(FP));  // Get last FP address.
   if (preserve_result) {
-    __ Push(R1);  // Preserve result.
+    __ Push(R1);  // Preserve result as first local.
   }
   __ ReserveAlignedFrameSpace(0);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);  // Pass last FP in R0.
-  // Result (R0) is our FP.
   if (preserve_result) {
     // Restore result into R1.
-    __ ldr(R1, Address(FP, -1 * kWordSize));
+    __ ldr(R1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
-  __ LeaveStubFrame();
-  __ mov(FP, ShifterOperand(R0));
+  __ LeaveDartFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
