@@ -2311,15 +2311,21 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   Range* index_range = index()->definition()->range();
 
   // Range of the index is unknown can't decide if the check is redundant.
-  if (index_range == NULL) return false;
+  if (index_range == NULL) {
+    return false;
+  }
 
   // Range of the index is not positive. Check can't be redundant.
-  if (Range::ConstantMin(index_range).value() < 0) return false;
+  if (Range::ConstantMin(index_range).value() < 0) {
+    return false;
+  }
 
   RangeBoundary max = CanonicalizeBoundary(index_range->max(),
                                            RangeBoundary::OverflowedMaxSmi());
 
-  if (max.Overflowed()) return false;
+  if (max.Overflowed()) {
+    return false;
+  }
 
   // Try to compare constant boundaries.
   if (max.UpperBound().value() < length.LowerBound().value()) {
@@ -2327,7 +2333,9 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   }
 
   length = CanonicalizeBoundary(length, RangeBoundary::OverflowedMaxSmi());
-  if (length.Overflowed()) return false;
+  if (length.Overflowed()) {
+    return false;
+  }
 
   // Try symbolic comparison.
   do {

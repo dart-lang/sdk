@@ -3907,8 +3907,9 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (length_loc.IsConstant() && index_loc.IsConstant()) {
     // TODO(srdjan): remove this code once failures are fixed.
-    if (Smi::Cast(length_loc.constant()).Value() >
-        Smi::Cast(index_loc.constant()).Value()) {
+    if ((Smi::Cast(length_loc.constant()).Value() >
+         Smi::Cast(index_loc.constant()).Value()) &&
+        (Smi::Cast(index_loc.constant()).Value() >= 0)) {
       // This CheckArrayBoundInstr should have been eliminated.
       return;
     }
