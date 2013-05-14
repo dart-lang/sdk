@@ -241,6 +241,9 @@ abstract class ReaderOrWriter {
   /** Return the list of serialization rules we are using.*/
   List<SerializationRule> get rules;
 
+  /** Return the internal collection of object state and [Reference] objects. */
+  List<List> get states;
+
   /**
    * Return the object, or state, that ref points to, depending on which
    * we're generating.
@@ -277,6 +280,9 @@ class Reader implements ReaderOrWriter {
    * and Maps are common, but it is arbitrary. See [Writer.states].
    */
   List<List> _data;
+
+  /** Return the internal collection of object state and [Reference] objects. */
+  get states => _data;
 
   /**
    * The resulting objects, indexed according to the same scheme as
@@ -467,7 +473,7 @@ class Reader implements ReaderOrWriter {
   asReference(anObject, {Function ifReference: doNothing,
       Function ifNotReference : doNothing}) {
     if (anObject is Reference) return ifReference(anObject);
-    if (anObject is Map && anObject["__Ref"] == true) {
+    if (anObject is Map && anObject["__Ref"] != null) {
       var ref =
           new Reference(this, anObject["rule"], anObject["object"]);
       return ifReference(ref);
@@ -585,8 +591,8 @@ class Reference {
    */
   // TODO(alanknight): This is a hack both in defining a toJson specific to a
   // particular representation, and the use of a bogus sentinel "__Ref"
-  Map<String, dynamic> toJson() => {
-    "__Ref" : true,
+  Map<String, int> toJson() => {
+    "__Ref" : 0,
     "rule" : ruleNumber,
     "object" : objectNumber
   };

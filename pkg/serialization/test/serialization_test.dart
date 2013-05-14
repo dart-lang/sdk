@@ -9,6 +9,7 @@ import 'package:unittest/unittest.dart';
 import 'package:serialization/serialization.dart';
 import 'package:serialization/src/serialization_helpers.dart';
 import 'package:serialization/src/mirrors_helpers.dart';
+import 'dart:isolate';
 
 part 'test_models.dart';
 
@@ -18,7 +19,8 @@ main() {
   a1.street = 'N 34th';
   a1.city = 'Seattle';
 
-  var formats = [const SimpleFlatFormat(), const SimpleMapFormat(),
+  var formats = [const InternalMapFormat(),
+                 const SimpleFlatFormat(), const SimpleMapFormat(),
                  const SimpleJsonFormat(storeRoundTripInfo: true)];
 
   test('Basic extraction of a simple object', () {
@@ -46,7 +48,7 @@ main() {
         ..addRuleFor(a1).configureForMaps();
     // TODO(alanknight): Need a better API for getting to flat state without
     // actually writing.
-    var w = new Writer(s);
+    var w = new Writer(s, const InternalMapFormat());
     w.write(p1);
     var personRule = s.rules.firstWhere(
         (x) => x is BasicRule && x.type == reflect(p1).type);
@@ -215,7 +217,7 @@ main() {
 
   test('Flatten references in a cyclical structure', () {
     var s = new Serialization();
-    var w = new Writer(s);
+    var w = new Writer(s, const InternalMapFormat());
     w.trace = new Trace(w);
     w.write(n1);
     expect(w.states.length, 6); // prims, lists, essential lists, basic, symbol
@@ -527,13 +529,13 @@ main() {
     var s = new Serialization()..addRuleFor(new Person());
     var data = {"abc" : 1, "def" : "ghi"};
     data["person"] = new Person()..name = "Foo";
-    var output = s.write(data, const SimpleMapFormat());
+    var output = s.write(data, const InternalMapFormat());
     var mapRule = s.rules.firstWhere((x) => x is MapRule);
     var map = output["data"][mapRule.number][0];
     expect(map is Map, isTrue);
     expect(map["abc"], 1);
     expect(map["def"], "ghi");
-    expect(new Reader(s).asReference(map["person"]) is Reference, isTrue);
+    expect(map["person"] is Reference, isTrue);
   });
 
   test("MirrorRule with lookup by qualified name rather than named object", () {
@@ -545,6 +547,35 @@ main() {
     expect(MirrorSystem.getName(input.simpleName), "Address");
   });
 
+  test('round-trip, default format, pass to isolate', () {
+      Node n1 = new Node("1"), n2 = new Node("2"), n3 = new Node("3");
+      n1.children = [n2, n3];
+      n2.parent = n1;
+      n3.parent = n1;
+      var s = nodeSerializerReflective(n1);
+      var output = s.write(n2);
+      var port = spawnFunction(echo);
+      port.call(output).then(expectAsync1((input) => verify(input)));
+  });
+}
+
+/**
+ * Verify serialized output that we have passed to an isolate and back.
+ */
+verify(input) {
+  var s2 = nodeSerializerReflective(new Node("a"));
+  var reader = new Reader(s2);
+  var m2 = reader.read(input);
+  var m1 = m2.parent;
+  expect(m1 is Node, isTrue);
+  var children = m1.children;
+  expect(m1.name,"1");
+  var m3 = m1.children.last;
+  expect(m2.name, "2");
+  expect(m3.name, "3");
+  expect(m2.parent, m1);
+  expect(m3.parent, m1);
+  expect(m1.parent, isNull);
 }
 
 /******************************************************************************
@@ -780,4 +811,14 @@ class PersonRuleReturningMapWithNonStringKey extends CustomRule {
     }
     return null;
   }
+}
+
+/**
+ * Function used in an isolate to make sure that the output passes through
+ * isolate serialization properly.
+ */
+echo() {
+  port.receive((msg, reply) {
+    reply.send(msg);
+  });
 }
