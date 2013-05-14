@@ -155,6 +155,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InlineGrowableArrayCapacityGetter(InstanceCallInstr* call);
   void InlineStringLengthGetter(InstanceCallInstr* call);
   void InlineStringIsEmptyGetter(InstanceCallInstr* call);
+  void InlineObjectCid(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type) const;

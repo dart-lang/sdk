@@ -1416,6 +1416,12 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
 }
 
 
+void FlowGraphOptimizer::InlineObjectCid(InstanceCallInstr* call) {
+  LoadClassIdInstr* load = new LoadClassIdInstr(new Value(call->ArgumentAt(0)));
+  ReplaceCall(call, load);
+}
+
+
 static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
   switch (kind) {
     case MethodRecognizer::kObjectArrayLength:
@@ -1495,6 +1501,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 
   // VM objects length getter.
   switch (recognized_kind) {
+    case MethodRecognizer::kObjectCid: {
+      InlineObjectCid(call);
+      return true;
+    }
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
     case MethodRecognizer::kTypedDataLength:
