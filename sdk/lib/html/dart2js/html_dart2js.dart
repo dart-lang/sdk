@@ -20531,12 +20531,12 @@ class Url native "URL" {
 
   static String createObjectUrl(blob_OR_source_OR_stream) =>
       JS('String',
-         '(window.URL || window.webkitURL).createObjectURL(#)',
+         '(self.URL || self.webkitURL).createObjectURL(#)',
          blob_OR_source_OR_stream);
 
   static void revokeObjectUrl(String objectUrl) =>
       JS('void',
-         '(window.URL || window.webkitURL).revokeObjectURL(#)', objectUrl);
+         '(self.URL || self.webkitURL).revokeObjectURL(#)', objectUrl);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
