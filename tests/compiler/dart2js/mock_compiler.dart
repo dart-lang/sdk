@@ -49,6 +49,8 @@ const String DEFAULT_HELPERLIB = r'''
   setRuntimeTypeInfo(a, b) {}
   getRuntimeTypeInfo(a) {}
   stringTypeCheck(x) {}
+  stringTypeCast(x) {}
+  propertyTypeCast(x) {}
   boolConversionCheck(x) {}
   abstract class JavaScriptIndexingBehavior {}
   class JSInvocationMirror {}

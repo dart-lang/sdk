@@ -2027,7 +2027,12 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       return inferrer.boolType;
     } else if (const SourceString("as") == op.source) {
       node.visitChildren(this);
-      return inferrer.dynamicType;
+      DartType type = elements.getType(node.arguments.head);
+      if (type.isDynamic) return inferrer.dynamicType;
+      if (type.kind == TypeKind.TYPEDEF) {
+        return inferrer.functionType.nullable();
+      }
+      return new TypeMask.subtype(type);
     } else if (node.isParameterCheck) {
       node.visitChildren(this);
       return inferrer.boolType;
