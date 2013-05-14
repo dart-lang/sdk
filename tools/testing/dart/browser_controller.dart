@@ -44,7 +44,7 @@ class Browser {
   Function onClose;
 
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
-  bool debugPrint = false;
+  bool debugPrint = true;
 
   void _logEvent(String event) {
     String toLog = "$this ($id) - ${new DateTime.now()}: $event \n";
