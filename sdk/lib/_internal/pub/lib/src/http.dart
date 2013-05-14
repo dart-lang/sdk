@@ -134,7 +134,7 @@ class PubHttpClient extends http.BaseClient {
     var stopwatch = _requestStopwatches.remove(request)..stop();
     responseLog.writeln("HTTP response ${response.statusCode} "
         "${response.reasonPhrase} for ${request.method} ${request.url}");
-    responseLog.write("took ${stopwatch.elapsed}");
+    responseLog.writeln("took ${stopwatch.elapsed}");
     response.headers.forEach((name, value) =>
         responseLog.writeln(_logField(name, value)));
 

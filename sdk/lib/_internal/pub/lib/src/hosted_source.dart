@@ -36,13 +36,10 @@ class HostedSource extends Source {
 
     log.io("Get versions from $url.");
     return httpClient.read(url).then((body) {
-      log.io("Versions JSON from $url: $body.");
       var doc = json.parse(body);
-      var versions = doc['versions']
+      return doc['versions']
           .map((version) => new Version.parse(version))
           .toList();
-      log.io("Versions from $url: $versions.");
-      return versions;
     }).catchError((ex) {
       var parsed = _parseDescription(description);
       _throwFriendlyError(ex, parsed.first, parsed.last);

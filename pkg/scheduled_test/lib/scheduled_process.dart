@@ -188,6 +188,12 @@ class ScheduledProcess {
       Future<Stream<List<int>>> streamFuture) {
     return streamWithCanceller(futureStream(streamFuture)
         .handleError((e) => currentSchedule.signalError(e))
+        .map((chunk) {
+      // Whenever the process produces any sort of output, reset the schedule's
+      // timer.
+      currentSchedule.heartbeat();
+      return chunk;
+    })
         .transform(new StringDecoder(_encoding))
         .transform(new LineTransformer()));
   }
