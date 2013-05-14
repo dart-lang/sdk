@@ -2525,7 +2525,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // I.e. this is the general interceptor.
       // TODO(9556): Remove 'holders'.  The general interceptor is used on type
       // checks and needs to handle 'native' classes for 'holders'.
-      hasNative = compiler.enqueuer.codegen.nativeEnqueuer.hasNativeClasses();
+      hasNative = true;
     }
 
     jsAst.Block block = new jsAst.Block.empty();

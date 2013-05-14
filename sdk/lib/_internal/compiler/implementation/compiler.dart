@@ -725,6 +725,12 @@ abstract class Compiler implements DiagnosticListener {
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
     foreignLibrary = scanBuiltinLibrary('_foreign_helper');
     isolateHelperLibrary = scanBuiltinLibrary('_isolate_helper');
+    // The helper library does not use the native language extension,
+    // so we manually set the native classes this library defines.
+    // TODO(ngeoffray): Enable annotations on these classes.
+    ClassElement cls =
+        isolateHelperLibrary.find(const SourceString('_WorkerStub'));
+    cls.setNative('"Worker"');
 
     assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));
