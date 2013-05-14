@@ -31,6 +31,8 @@ bool _initializedSecureSocket = false;
 /// An HTTP client that transforms 40* errors and socket exceptions into more
 /// user-friendly error messages.
 class PubHttpClient extends http.BaseClient {
+  final _requestStopwatches = new Map<http.BaseRequest, Stopwatch>();
+
   http.Client inner;
 
   PubHttpClient([http.Client inner])
@@ -41,6 +43,7 @@ class PubHttpClient extends http.BaseClient {
   }
 
   Future<http.StreamedResponse> send(http.BaseRequest request) {
+    _requestStopwatches[request] = new Stopwatch()..start();
     _logRequest(request);
 
     // TODO(nweiz): remove this when issue 4061 is fixed.
@@ -128,8 +131,10 @@ class PubHttpClient extends http.BaseClient {
 
     var responseLog = new StringBuffer();
     var request = response.request;
+    var stopwatch = _requestStopwatches.remove(request)..stop();
     responseLog.writeln("HTTP response ${response.statusCode} "
         "${response.reasonPhrase} for ${request.method} ${request.url}");
+    responseLog.write("took ${stopwatch.elapsed}");
     response.headers.forEach((name, value) =>
         responseLog.writeln(_logField(name, value)));
 

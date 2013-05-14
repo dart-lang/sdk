@@ -103,6 +103,7 @@ void serve([List<d.Descriptor> contents]) {
           var response = request.response;
           try {
             var path = request.uri.path.replaceFirst("/", "");
+            currentSchedule.addDebugInfo("[$path] got request");
 
             if (_requestedPaths == null) _requestedPaths = <String>[];
             _requestedPaths.add(path);
@@ -111,16 +112,20 @@ void serve([List<d.Descriptor> contents]) {
             var stream = baseDir.load(path);
 
             new ByteStream(stream).toBytes().then((data) {
+              currentSchedule.addDebugInfo("[$path] sending response:\n"
+                  "${new String.fromCharCodes(data)}");
               response.statusCode = 200;
               response.contentLength = data.length;
               response.add(data);
               response.close();
             }).catchError((e) {
+              currentSchedule.addDebugInfo("[$path] got load error: $e");
               response.statusCode = 404;
               response.contentLength = 0;
               response.close();
             });
           } catch (e) {
+            currentSchedule.addDebugInfo("[$path] got error: $e");
             currentSchedule.signalError(e);
             response.statusCode = 500;
             response.close();
