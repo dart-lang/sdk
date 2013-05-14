@@ -120,7 +120,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
     user_test = os.environ.get('USER_TEST', 'no')
 
     # TODO(ricow): temporary hack to run on fyi with --use_browser_controller
-    if os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and runtime='drt':
+    if os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and runtime == 'drt':
       runtime = 'chrome'
 
     cmd.extend([sys.executable,
