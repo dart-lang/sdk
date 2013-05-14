@@ -16,7 +16,8 @@ io/raw_socket_test: Pass, Fail # Issue 8901
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
-io/raw_server_socket_cancel_test: Pass, Fail, Timeout # Issue 8675
+# The test is flaky, and is timing out, causing buildbot cycle times to rise.
+io/raw_server_socket_cancel_test: Skip # Issue 8675
 
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
