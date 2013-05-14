@@ -2339,6 +2339,12 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
 }
 
 
+Instruction* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+  return IsRedundant(RangeBoundary::FromDefinition(length()->definition())) ?
+      NULL : this;
+}
+
+
 intptr_t CheckArrayBoundInstr::LengthOffsetFor(intptr_t class_id) {
   if (RawObject::IsExternalTypedDataClassId(class_id)) {
     return ExternalTypedData::length_offset();

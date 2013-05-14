@@ -6153,13 +6153,13 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
                        intptr_t array_type,
                        InstanceCallInstr* instance_call)
       : array_type_(array_type) {
-    SetInputAt(0, length);
-    SetInputAt(1, index);
+    SetInputAt(kLengthPos, length);
+    SetInputAt(kIndexPos, index);
     deopt_id_ = instance_call->deopt_id();
   }
 
-  Value* length() const { return inputs_[0]; }
-  Value* index() const { return inputs_[1]; }
+  Value* length() const { return inputs_[kLengthPos]; }
+  Value* index() const { return inputs_[kIndexPos]; }
 
   intptr_t array_type() const { return array_type_; }
 
@@ -6170,6 +6170,8 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   virtual bool CanDeoptimize() const { return true; }
 
   bool IsRedundant(RangeBoundary length);
+
+  virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
   // Returns the length offset for array and string types.
   static intptr_t LengthOffsetFor(intptr_t class_id);
@@ -6184,6 +6186,11 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   virtual bool MayThrow() const { return false; }
 
  private:
+  // Give a name to the location/input indices.
+  enum {
+    kLengthPos = 0,
+    kIndexPos = 1
+  };
   intptr_t array_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);

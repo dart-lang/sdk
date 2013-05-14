@@ -3893,39 +3893,41 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterOrSmiConstant(length()));
-  locs->set_in(1, Location::RegisterOrSmiConstant(index()));
+  locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
+  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
   return locs;
 }
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptCheckArrayBound);
-  if (locs()->in(0).IsConstant() && locs()->in(1).IsConstant()) {
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptCheckArrayBound);
+
+  Location length_loc = locs()->in(kLengthPos);
+  Location index_loc = locs()->in(kIndexPos);
+
+  if (length_loc.IsConstant() && index_loc.IsConstant()) {
+    ASSERT((Smi::Cast(length_loc.constant()).Value() <=
+            Smi::Cast(index_loc.constant()).Value()) ||
+           (Smi::Cast(index_loc.constant()).Value() < 0));
     // Unconditionally deoptimize for constant bounds checks because they
     // only occur only when index is out-of-bounds.
     __ jmp(deopt);
     return;
   }
 
-  if (locs()->in(1).IsConstant()) {
-    Register length = locs()->in(0).reg();
-    const Object& constant = locs()->in(1).constant();
-    ASSERT(constant.IsSmi());
-    const int32_t imm =
-        reinterpret_cast<int32_t>(constant.raw());
-    __ cmpl(length, Immediate(imm));
+  if (index_loc.IsConstant()) {
+    Register length = length_loc.reg();
+    const Object& index = Smi::Cast(index_loc.constant());
+    __ cmpl(length, Immediate(reinterpret_cast<int32_t>(index.raw())));
     __ j(BELOW_EQUAL, deopt);
-  } else if (locs()->in(0).IsConstant()) {
-    ASSERT(locs()->in(0).constant().IsSmi());
-    const Smi& smi_const = Smi::Cast(locs()->in(0).constant());
-    Register index = locs()->in(1).reg();
-    __ cmpl(index, Immediate(reinterpret_cast<int32_t>(smi_const.raw())));
+  } else if (length_loc.IsConstant()) {
+    const Smi& length = Smi::Cast(length_loc.constant());
+    Register index = index_loc.reg();
+    __ cmpl(index, Immediate(reinterpret_cast<int32_t>(length.raw())));
     __ j(ABOVE_EQUAL, deopt);
   } else {
-    Register length = locs()->in(0).reg();
-    Register index = locs()->in(1).reg();
+    Register length = length_loc.reg();
+    Register index = index_loc.reg();
     __ cmpl(index, length);
     __ j(ABOVE_EQUAL, deopt);
   }
