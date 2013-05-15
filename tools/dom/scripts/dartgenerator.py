@@ -210,5 +210,6 @@ class DartGenerator(object):
     ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'object')), ('Id', 'arg')])
     for interface in database.GetInterfaces():
       for operation in interface.operations:
-        if operation.ext_attrs.get('CallWith') == 'ScriptArguments|ScriptState':
+        call_with = operation.ext_attrs.get('CallWith', '').split('|')
+        if 'ScriptArguments' in call_with:
           operation.arguments.append(ARG)

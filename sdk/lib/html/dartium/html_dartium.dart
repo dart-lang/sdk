@@ -2054,7 +2054,7 @@ class Console extends NativeFieldWrapperClass1 {
 
   @DomName('Console.markTimeline')
   @DocsEditable
-  void markTimeline() native "Console_markTimeline_Callback";
+  void markTimeline(Object arg) native "Console_markTimeline_Callback";
 
   @DomName('Console.profile')
   @DocsEditable
@@ -2078,7 +2078,7 @@ class Console extends NativeFieldWrapperClass1 {
 
   @DomName('Console.timeStamp')
   @DocsEditable
-  void timeStamp() native "Console_timeStamp_Callback";
+  void timeStamp(Object arg) native "Console_timeStamp_Callback";
 
   @DomName('Console.trace')
   @DocsEditable
