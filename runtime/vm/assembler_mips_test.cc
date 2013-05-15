@@ -1484,6 +1484,80 @@ ASSEMBLER_TEST_RUN(Cop1COLE_not_taken, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Cop1CvtDW, assembler) {
+  __ LoadImmediate(T0, 42);
+  __ mtc1(T0, F0);
+  __ cvtdw(F2, F0);
+  __ mfc1(V0, F2);
+  __ mfc1(V1, F3);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CvtDW, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(42.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CvtDW_neg, assembler) {
+  __ LoadImmediate(T0, -42);
+  __ mtc1(T0, F0);
+  __ cvtdw(F2, F0);
+  __ mfc1(V0, F2);
+  __ mfc1(V1, F3);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CvtDW_neg, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(-42.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CvtDL, assembler) {
+  __ LoadImmediate(T0, 0x1);
+  __ mtc1(ZR, F0);
+  __ mtc1(T0, F1);  // D0 <- 0x100000000 = 4294967296
+  __ cvtdl(F2, F0);
+  __ mfc1(V0, F2);
+  __ mfc1(V1, F3);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CvtDL, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(4294967296.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CvtDL_neg, assembler) {
+  __ LoadImmediate(T0, 0xffffffff);
+  __ mtc1(T0, F0);
+  __ mtc1(T0, F1);  // D0 <- 0xffffffffffffffff = -1
+  __ cvtdl(F2, F0);
+  __ mfc1(V0, F2);
+  __ mfc1(V1, F3);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CvtDL_neg, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(-1.0, res, 0.001);
+}
+
+
 // Called from assembler_test.cc.
 // RA: return address.
 // A0: context.

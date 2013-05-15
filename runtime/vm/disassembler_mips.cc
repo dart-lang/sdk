@@ -522,6 +522,10 @@ void MIPSDecoder::DecodeCop1(Instr* instr) {
         Format(instr, "c.ule.'fmt 'fd, 'fs");
         break;
       }
+      case COP1_CVT_D: {
+        Format(instr, "cvt.d.'fmt 'fd, 'fs");
+        break;
+      }
       default: {
         Unknown(instr);
         break;

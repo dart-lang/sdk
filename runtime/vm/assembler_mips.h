@@ -441,6 +441,19 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL2, rs, rd, rd, 0, CLZ);
   }
 
+  // Converts a 32-bit signed int in fs to a double in fd.
+  void cvtdw(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fd));
+    EmitFpuRType(COP1, FMT_W, F0, fs, fd, COP1_CVT_D);
+  }
+
+  // Converts a 64-bit signed int in fs to a double in fd.
+  void cvtdl(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(fd));
+    EmitFpuRType(COP1, FMT_L, F0, fs, fd, COP1_CVT_D);
+  }
+
   void div(Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, R0, 0, DIV);
   }

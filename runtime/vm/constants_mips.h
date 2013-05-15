@@ -380,6 +380,7 @@ enum RtRegImm {
 enum Cop1Function {
   COP1_ADD = 0,
   COP1_MOV = 6,
+  COP1_CVT_D = 0b100001,
   COP1_C_F = 0b110000,
   COP1_C_UN = 0b110001,
   COP1_C_EQ = 0b110010,
