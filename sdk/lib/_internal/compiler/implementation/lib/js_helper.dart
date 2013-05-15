@@ -525,7 +525,7 @@ class Primitives {
 
   static applyFunction(Function function,
                        List positionalArguments,
-                       Map<Symbol, dynamic> namedArguments) {
+                       Map<String, dynamic> namedArguments) {
     int argumentCount = 0;
     StringBuffer buffer = new StringBuffer();
     List arguments = [];
@@ -539,14 +539,14 @@ class Primitives {
     // arguments order.
     if (namedArguments != null && !namedArguments.isEmpty) {
       // Call new List.from to make sure we get a JavaScript array.
-      List<Symbol> listOfNamedArguments =
-          new List<Symbol>.from(namedArguments.keys);
+      List<String> listOfNamedArguments =
+          new List<String>.from(namedArguments.keys);
       argumentCount += namedArguments.length;
       // We're sorting on strings, and the behavior is the same between
       // Dart string sort and JS string sort. To avoid needing the Dart
       // sort implementation, we use the JavaScript one instead.
       JS('void', '#.sort()', listOfNamedArguments);
-      listOfNamedArguments.forEach((Symbol name) {
+      listOfNamedArguments.forEach((String name) {
         buffer.write('\$$name');
         arguments.add(namedArguments[name]);
       });
