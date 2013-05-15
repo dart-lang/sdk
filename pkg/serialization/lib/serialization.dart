@@ -258,8 +258,13 @@ class Serialization {
   bool get selfDescribing {
     // TODO(alanknight): Should this be moved to the format?
     // TODO(alanknight): Allow self-describing in the presence of CustomRule.
+    // TODO(alanknight): Don't do duplicate work creating a writer and
+    // serialization here and then re-creating when we actually serialize.
     if (_selfDescribing != null) return _selfDescribing;
-    _selfDescribing = !rules.any((x) => x is CustomRule && x is! SymbolRule);
+    var meta = ruleSerialization();
+    var w = meta.newWriter();
+    _selfDescribing = !rules.any((rule) =>
+        meta.rulesFor(rule, w, create: false).isEmpty);
     return _selfDescribing;
   }
 
@@ -338,6 +343,7 @@ class Serialization {
     addRule(new ListRuleEssential());
     addRule(new MapRule());
     addRule(new SymbolRule());
+    addRule(new DateTimeRule());
   }
 
   /**
@@ -394,7 +400,7 @@ class Serialization {
    * Return the list of SerializationRule that apply to [object]. For
    * internal use, but public because it's used in testing.
    */
-  Iterable<SerializationRule> rulesFor(object, Writer w) {
+  Iterable<SerializationRule> rulesFor(object, Writer w, {create : true}) {
     // This has a couple of edge cases.
     // 1) The owning object may have indicated we should use a different
     // rule than the default.
@@ -422,7 +428,7 @@ class Serialization {
         (each) => each.appliesTo(target, w));
 
     if (applicable.isEmpty) {
-      return [addRuleFor(target)];
+      return create ? [addRuleFor(target)] : applicable;
     }
 
     if (applicable.length == 1) return applicable;
@@ -466,7 +472,8 @@ class Serialization {
       ..addRule(new NamedObjectRule())
       ..addRule(new MirrorRule())
       ..addRuleFor(new MirrorRule())
-      ..addRuleFor(new SymbolRule());
+      ..addRuleFor(new SymbolRule())
+      ..addRuleFor(new DateTimeRule());
     meta.namedObjects = namedObjects;
     return meta;
   }
