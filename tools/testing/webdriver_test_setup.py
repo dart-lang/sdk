@@ -5,11 +5,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Run to install the necessary components to run webdriver on the buildbots or
-# on your local machine. 
-# Note: The setup steps can be done fairly easily by hand. This script is 
+# on your local machine.
+# Note: The setup steps can be done fairly easily by hand. This script is
 # intended to simply and reduce the time for setup since there are a fair number
 # of steps.
- 
+
 # TODO(efortuna): Rewrite this script in Dart when the Process module has a
 # better high level API.
 import HTMLParser
@@ -30,7 +30,7 @@ def run_cmd(cmd, stdin=None):
   the command.
   """
   print cmd
-  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
+  p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
       stdin=subprocess.PIPE, shell=True)
   output, stderr = p.communicate(input=stdin)
   if output:
@@ -49,7 +49,7 @@ def parse_args():
   parser.add_option('--iedriver', '-i', dest='iedriver',
       help="Don't install iedriver (only used on Windows).",
       action='store_true', default=False)
-  parser.add_option('--seleniumrc', '-s', dest='seleniumrc', 
+  parser.add_option('--seleniumrc', '-s', dest='seleniumrc',
       help="Don't install the Selenium RC server (used for Safari and Opera "
            "tests).", action='store_true', default=False)
   parser.add_option('--python', '-p', dest='python',
@@ -109,7 +109,7 @@ class GoogleCodeInstaller(object):
   def find_latest_version(self):
     """Find the latest version number of some code available for download on a
     Google code page. This was unfortunately done in an ad hoc manner because
-    Google Code does not seem to have an API for their list of current 
+    Google Code does not seem to have an API for their list of current
     downloads(!).
     """
     google_code_site = self.google_code_downloads_page()
