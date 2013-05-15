@@ -31,6 +31,7 @@ class RawCode;
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
+  V(BreakpointClosure)                                                         \
   V(BreakpointStatic)                                                          \
   V(BreakpointReturn)                                                          \
   V(Subtype1TestCache)                                                         \

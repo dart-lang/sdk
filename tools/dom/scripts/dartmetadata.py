@@ -16,7 +16,7 @@ import re
 from generator import ConstantOutputOrder
 from htmlrenamer import renamed_html_members, html_interface_renames
 
-_logger = logging.getLogger('DartMetadata')
+_logger = logging.getLogger('dartmetadata')
 
 # Annotations to be placed on native members.  The table is indexed by the IDL
 # interface and member name, and by IDL return or field type name.  Both are
@@ -383,6 +383,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'Worker': _all_but_ie9_annotations,
   'XMLHttpRequest.onloadend': _all_but_ie9_annotations,
   'XMLHttpRequest.onprogress': _all_but_ie9_annotations,
+  'XMLHttpRequest.overrideMimeType': _no_ie_annotations,
   'XMLHttpRequest.response': _all_but_ie9_annotations,
   'XMLHttpRequestProgressEvent': _webkit_experimental_annotations,
   'XSLTProcessor': [
@@ -581,7 +582,7 @@ class DartMetadata(object):
     elif support_level == 'deprecated':
       return '@Deprecated'
     else:
-      _logger.warn('Unknown support_level - %s:%s' % (interface.id, member_id))
+      _logger.warn('Unknown support_level - %s:%s' % (interface_id, member_id))
 
   def Flush(self):
     json_file = open(self._api_status_path, 'w+')

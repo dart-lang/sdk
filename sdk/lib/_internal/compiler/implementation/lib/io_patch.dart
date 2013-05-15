@@ -56,6 +56,12 @@ patch class _FileUtils {
   }
 }
 
+patch class FileStat {
+  patch static List<int> _statSync(String path) {
+    throw new UnsupportedError("FileStat.stat");
+  }
+}
+
 patch class FileSystemEntity {
   patch static _getType(String path, bool followLinks) {
     throw new UnsupportedError("FileSystemEntity._getType");

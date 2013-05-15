@@ -61,5 +61,7 @@ class TryCatch2Test {
 }
 
 main() {
-  TryCatch2Test.testMain();
+  for (var i = 0; i < 2000; i++) {
+    TryCatch2Test.testMain();
+  }
 }

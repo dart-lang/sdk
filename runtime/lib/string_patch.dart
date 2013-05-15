@@ -29,16 +29,17 @@ class _StringBase {
   static String createFromCharCodes(Iterable<int> charCodes) {
     if (charCodes != null) {
       // TODO(srdjan): Also skip copying of typed arrays.
-      if (charCodes is! _ObjectArray &&
-          charCodes is! _GrowableObjectArray &&
-          charCodes is! _ImmutableArray) {
+      final ccid = charCodes._cid;
+      if ((ccid != _ObjectArray._classId) &&
+          (ccid != _GrowableObjectArray._classId) &&
+          (ccid != _ImmutableArray._classId)) {
         charCodes = new List<int>.from(charCodes, growable: false);
       }
 
       bool isOneByteString = true;
       for (int i = 0; i < charCodes.length; i++) {
         int e = charCodes[i];
-        if (e is! int) throw new ArgumentError(e);
+        if (e is! _Smi) throw new ArgumentError(e);
         // Is e Latin1?
         if ((e < 0) || (e > 0xFF)) {
           isOneByteString = false;
@@ -342,7 +343,7 @@ class _StringBase {
     int totalLength = 0;
     for (int i = 0; i < numValues; i++) {
       var s = values[i].toString();
-      if (isOneByteString && (s is _OneByteString)) {
+      if (isOneByteString && (s._cid == _OneByteString._classId)) {
         totalLength += s.length;
       } else {
         isOneByteString = false;
@@ -448,11 +449,11 @@ class _StringBase {
     final len = strings.length;
     bool isOneByteString = true;
     int totalLength = 0;
-    if (strings is _ObjectArray) {
+    if (strings._cid == _ObjectArray._clCId) {
       stringsArray = strings;
       for (int i = 0; i < len; i++) {
         var string = strings[i];
-        if (string is _OneByteString) {
+        if (string._cid == _OneByteString._classId) {
           totalLength += string.length;
         } else {
           isOneByteString = false;
@@ -465,7 +466,7 @@ class _StringBase {
       int i = 0;
       for (int i = 0; i < len; i++) {
         var string = strings[i];
-        if (string is _OneByteString) {
+        if (string._cid == _OneByteString.clCid) {
           totalLength += s.length;
         } else {
           isOneByteString = false;
@@ -485,7 +486,7 @@ class _StringBase {
     final stringsLength = strings.length;
     for (int i = 0; i < stringsLength; i++) {
       var e = strings[i];
-      if (e is! _OneByteString) {
+      if (e._cid != _OneByteString._classId) {
         return _concatAllNative(strings);
       }
       totalLength += e.length;
@@ -500,6 +501,8 @@ class _StringBase {
 
 
 class _OneByteString extends _StringBase implements String {
+  static final int _classId = "A"._cid;
+
   factory _OneByteString._uninstantiable() {
     throw new UnsupportedError(
         "_OneByteString can only be allocated by the VM");
@@ -523,7 +526,7 @@ class _OneByteString extends _StringBase implements String {
       native "OneByteString_splitWithCharCode";
 
   List<String> split(Pattern pattern) {
-    if ((pattern is _OneByteString) && (pattern.length == 1)) {
+    if ((pattern._cid == _OneByteString._classId) && (pattern.length == 1)) {
       return _splitWithCharCode(pattern.codeUnitAt(0));
     }
     return super.split(pattern);
@@ -614,23 +617,6 @@ class _ExternalTwoByteString extends _StringBase implements String {
   factory _ExternalTwoByteString._uninstantiable() {
     throw new UnsupportedError(
         "_ExternalTwoByteString can only be allocated by the VM");
-  }
-
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces. Add checking for multi-byte whitespace codepoints.
-  bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
-  }
-}
-
-
-class _ExternalFourByteString extends _StringBase implements String {
-  factory _ExternalFourByteString._uninstantiable() {
-    throw new UnsupportedError(
-        "ExternalFourByteString can only be allocated by the VM");
   }
 
   // Checks for one-byte whitespaces only.

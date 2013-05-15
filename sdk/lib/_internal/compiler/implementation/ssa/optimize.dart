@@ -627,15 +627,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         // Try to recognize the length getter with input
         // [:new List(int):].
         HInvokeStatic call = node.receiver;
-        Element element = call.target.element;
+        Element element = call.element;
         // TODO(ngeoffray): checking if the second input is an integer
         // should not be necessary but it currently makes it easier for
         // other optimizations to reason about a fixed length constructor
         // that we know takes an int.
         if (element == compiler.unnamedListConstructor
-            && call.inputs.length == 2
-            && call.inputs[1].isInteger()) {
-          return call.inputs[1];
+            && call.inputs.length == 1
+            && call.inputs[0].isInteger()) {
+          return call.inputs[0];
         }
       } else if (node.receiver.isConstantList() ||
                  node.receiver.isConstantString()) {

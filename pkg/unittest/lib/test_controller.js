@@ -33,10 +33,17 @@ var testRunner = window.testRunner || window.layoutTestController;
 
 var waitForDone = false;
 
+function sendDomToTestDriver() {
+  if (window.opener) {
+    window.opener.postMessage(window.document.body.innerHTML, "*");
+  }
+}
+
 function processMessage(msg) {
   if (typeof msg != 'string') return;
   if (msg == 'unittest-suite-done') {
     if (testRunner) testRunner.notifyDone();
+    sendDomToTestDriver();
   } else if (msg == 'unittest-suite-wait-for-done') {
     waitForDone = true;
     if (testRunner) testRunner.startedDartTest = true;
@@ -49,6 +56,7 @@ function processMessage(msg) {
   } else if (msg == 'unittest-suite-success') {
     dartPrint('PASS');
     if (testRunner) testRunner.notifyDone();
+    sendDomToTestDriver();
   } else if (msg == 'unittest-suite-fail') {
     showErrorAndExit('Some tests failed.');
   }
@@ -72,6 +80,7 @@ function showErrorAndExit(message) {
   // FAIL and will continue polling until one of these words show up.
   dartPrint('FAIL');
   if (testRunner) testRunner.notifyDone();
+  sendDomToTestDriver();
 }
 
 function onLoad(e) {
@@ -107,6 +116,7 @@ document.addEventListener('readystatechange', function () {
     setTimeout(function() {
       if (testRunner && !testRunner.startedDartTest) {
         testRunner.notifyDone();
+        sendDomToTestDriver();
       }
     }, 0);
   }, 50);

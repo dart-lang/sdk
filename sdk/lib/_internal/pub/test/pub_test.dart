@@ -31,6 +31,7 @@ final USAGE_STRING = """
 
     Available commands:
       cache      Inspect the system cache.
+      deploy     Copy and compile all Dart entrypoints in the 'web' directory.
       help       Display help information for Pub.
       install    Install the current package's dependencies.
       publish    Publish the current package to pub.dartlang.org.

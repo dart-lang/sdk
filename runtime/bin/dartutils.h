@@ -207,6 +207,12 @@ class DartUtils {
 
 class CObject {
  public:
+  // These match the constants in sdk/lib/io/common.dart.
+  static const int kSuccess = 0;
+  static const int kArgumentError = 1;
+  static const int kOSError = 2;
+  static const int kFileClosedError = 3;
+
   explicit CObject(Dart_CObject *cobject) : cobject_(cobject) {}
   Dart_CObject::Type type() { return cobject_->type; }
   Dart_CObject::TypedDataType byte_array_type() {

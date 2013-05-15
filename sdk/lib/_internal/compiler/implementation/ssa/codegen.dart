@@ -527,10 +527,11 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /**
     * Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
     */
-  List<js.Expression> visitArguments(List<HInstruction> inputs) {
-    assert(inputs.length >= HInvoke.ARGUMENTS_OFFSET);
+  List<js.Expression> visitArguments(List<HInstruction> inputs,
+                                     {int start: HInvoke.ARGUMENTS_OFFSET}) {
+    assert(inputs.length >= start);
     List<js.Expression> result = <js.Expression>[];
-    for (int i = HInvoke.ARGUMENTS_OFFSET; i < inputs.length; i++) {
+    for (int i = start; i < inputs.length; i++) {
       use(inputs[i]);
       result.add(pop());
     }
@@ -1612,18 +1613,26 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // Register this invocation to collect the types used at all call sites.
       backend.registerStaticInvocation(node);
     }
-    use(node.target);
-    push(new js.Call(pop(), visitArguments(node.inputs)), node);
+    Element element = node.element;
+    world.registerStaticUse(element);
+    ClassElement cls = element.getEnclosingClass();
+    if (element.isGenerativeConstructor()
+        || (element.isFactoryConstructor() && cls == compiler.listClass)) {
+      world.registerInstantiatedClass(cls, work.resolutionTree);
+    }
+    push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
+    push(new js.Call(pop(), visitArguments(node.inputs, start: 0)), node);
   }
 
   visitInvokeSuper(HInvokeSuper node) {
     Element superMethod = node.element;
+    world.registerStaticUse(superMethod);
     Element superClass = superMethod.getEnclosingClass();
     if (superMethod.kind == ElementKind.FIELD) {
       String fieldName = node.caller.isShadowedByField(superMethod)
           ? backend.namer.shadowedFieldName(superMethod)
           : backend.namer.instanceFieldName(superMethod);
-      use(node.inputs[1]);
+      use(node.inputs[0]);
       js.PropertyAccess access =
           new js.PropertyAccess.field(pop(), fieldName);
       if (node.isSetter) {
@@ -1640,7 +1649,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.PropertyAccess.field(classReference, "prototype");
       js.PropertyAccess method =
           new js.PropertyAccess.field(prototype, methodName);
-      push(jsPropertyCall(method, "call", visitArguments(node.inputs)), node);
+      push(jsPropertyCall(
+          method, "call", visitArguments(node.inputs, start: 0)), node);
     }
     world.registerStaticUse(superMethod);
   }
@@ -1988,27 +1998,17 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitStatic(HStatic node) {
-    // Check whether this static is used for anything else than as a target in
-    // a static call.
-    node.usedBy.forEach((HInstruction instr) {
-      if (instr is !HInvokeStatic) {
-        backend.registerNonCallStaticUse(node);
-        if (node.element.isFunction()) {
-          world.registerInstantiatedClass(
-              compiler.functionClass, work.resolutionTree);
-        }
-      } else if (instr.target != node) {
-        backend.registerNonCallStaticUse(node);
-      }
-    });
     Element element = node.element;
-    world.registerStaticUse(element);
-    ClassElement cls = element.getEnclosingClass();
-    if (element.isGenerativeConstructor()
-        || (element.isFactoryConstructor() && cls == compiler.listClass)) {
-      world.registerInstantiatedClass(cls, work.resolutionTree);
+    if (element.isFunction()) {
+      backend.registerNonCallStaticUse(node);
+      world.registerInstantiatedClass(
+          compiler.functionClass, work.resolutionTree);
+      push(new js.VariableUse(
+          backend.namer.isolateStaticClosureAccess(node.element)));
+    } else {
+      push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
     }
-    push(new js.VariableUse(backend.namer.isolateAccess(node.element)));
+    world.registerStaticUse(element);
   }
 
   void visitLazyStatic(HLazyStatic node) {
@@ -2182,21 +2182,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Binary('!=', pop(), new js.LiteralNull()));
   }
 
-  void checkFunction(HInstruction input,
-                     DartType type,
-                     { bool negative: false}) {
-    String relation = negative ? '!==' : '===';
-    checkTypeOf(input, relation, 'function');
-    js.Expression functionTest = pop();
-    checkObject(input, relation);
-    js.Expression objectTest = pop();
-    checkType(input, type, negative: negative);
-    String combiner = negative ? '||' : '&&';
-    push(new js.Binary(negative ? '&&' : '||',
-                       functionTest,
-                       new js.Binary(combiner, objectTest, pop())));
-  }
-
   void checkType(HInstruction input, DartType type, {bool negative: false}) {
     assert(invariant(input, !type.isMalformed,
                      message: 'Attempt to check malformed type $type'));
@@ -2337,9 +2322,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         attachLocationToLast(node);
       } else if (element == compiler.boolClass) {
         checkBool(input, relation);
-        attachLocationToLast(node);
-      } else if (element == compiler.functionClass) {
-        checkFunction(input, type, negative: negative);
         attachLocationToLast(node);
       } else if (element == compiler.intClass) {
         // The is check in the code tells us that it might not be an
@@ -2488,6 +2470,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       assert(node.isCheckedModeCheck || node.isCastTypeCheck);
       DartType type = node.typeExpression;
+      if (type.kind == TypeKind.FUNCTION) {
+        // TODO(5022): We currently generate $isFunction checks for
+        // function types.
+        world.registerIsCheck(
+            compiler.functionClass.computeType(compiler), work.resolutionTree);
+      }
       world.registerIsCheck(type, work.resolutionTree);
 
       // TODO(kasperl): For now, we ignore type checks against type

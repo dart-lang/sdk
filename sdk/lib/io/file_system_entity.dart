@@ -22,6 +22,139 @@ class FileSystemEntityType {
 }
 
 /**
+ * A FileStat object represents the result of calling the POSIX stat() function
+ * on a file system object.  It is an immutable object, representing the
+ * snapshotted values returned by the stat() call.
+ */
+class FileStat {
+  // These must agree with enum FileStat in file.h.
+  static const _TYPE = 0;
+  static const _CHANGED_TIME = 1;
+  static const _MODIFIED_TIME = 2;
+  static const _ACCESSED_TIME = 3;
+  static const _MODE = 4;
+  static const _SIZE = 5;
+
+  FileStat._internal(this.changed,
+                     this.modified,
+                     this.accessed,
+                     this.type,
+                     this.mode,
+                     this.size);
+
+  external static List<int> _statSync(String path);
+
+
+  /**
+   * Call the operating system's stat() function on [path].
+   * Returns a [FileStat] object containing the data returned by stat().
+   * If the call fails, returns a [FileStat] object with .type set to
+   * FileSystemEntityType.NOT_FOUND and the other fields invalid.
+   */
+  static FileStat statSync(String path) {
+    var data = _statSync(path);
+    if (data is Error) throw data;
+    return new FileStat._internal(
+        new DateTime.fromMillisecondsSinceEpoch(data[_CHANGED_TIME] * 1000),
+        new DateTime.fromMillisecondsSinceEpoch(data[_MODIFIED_TIME] * 1000),
+        new DateTime.fromMillisecondsSinceEpoch(data[_ACCESSED_TIME] * 1000),
+        FileSystemEntityType._lookup(data[_TYPE]),
+        data[_MODE],
+        data[_SIZE]);
+  }
+
+  /**
+   * Asynchronously call the operating system's stat() function on [path].
+   * Returns a Future which completes with a [FileStat] object containing
+   * the data returned by stat().
+   * If the call fails, completes the future with a [FileStat] object with
+   * .type set to FileSystemEntityType.NOT_FOUND and the other fields invalid.
+   */
+  static Future<FileStat> stat(String path) {
+    // Get a new file service port for each request.  We could also cache one.
+    var service = _FileUtils._newServicePort();
+    List request = new List(2);
+    request[0] = _STAT_REQUEST;
+    request[1] = path;
+    return service.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(response,
+                                     "Error getting stat of '$path'");
+      }
+      // Unwrap the real list from the "I'm not an error" wrapper.
+      List data = response[1];
+      return new FileStat._internal(
+          new DateTime.fromMillisecondsSinceEpoch(data[_CHANGED_TIME] * 1000),
+          new DateTime.fromMillisecondsSinceEpoch(data[_MODIFIED_TIME] * 1000),
+          new DateTime.fromMillisecondsSinceEpoch(data[_ACCESSED_TIME] * 1000),
+          FileSystemEntityType._lookup(data[_TYPE]),
+          data[_MODE],
+          data[_SIZE]);
+    });
+  }
+
+  String toString() => """
+FileStat: type $type
+          changed $changed
+          modified $modified
+          accessed $accessed
+          mode ${modeString()}
+          size $size""";
+
+  /**
+   * Returns the mode value as a human-readable string, in the format
+   * "rwxrwxrwx", reflecting the user, group, and world permissions to
+   * read, write, and execute the file system object, with "-" replacing the
+   * letter for missing permissions.  Extra permission bits may be represented
+   * by prepending "(suid)", "(guid)", and/or "(sticky)" to the mode string.
+   */
+  String modeString() {
+    var permissions = mode & 0xFFF;
+    var codes = const ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
+    var result = [];
+    if ((permissions & 0x800) != 0) result.add("(suid) ");
+    if ((permissions & 0x400) != 0) result.add("(guid) ");
+    if ((permissions & 0x200) != 0) result.add("(sticky) ");
+    result.add(codes[(permissions >> 6) & 0x7]);
+    result.add(codes[(permissions >> 3) & 0x7]);
+    result.add(codes[permissions & 0x7]);
+    return result.join();
+  }
+
+  /**
+   * The time of the last change to the data or metadata of the file system
+   * object.  On Windows platforms, this is instead the file creation time.
+   */
+  final DateTime changed;
+  /**
+   * The time of the last change to the data of the file system
+   * object.
+   */
+  final DateTime modified;
+  /**
+   * The time of the last access to the data of the file system
+   * object.  On Windows platforms, this may have 1 day granularity, and be
+   * out of date by an hour.
+   */
+  final DateTime accessed;
+  /**
+   * The type of the object (file, directory, or link).  If the call to
+   * stat() fails, the type of the returned object is NOT_FOUND.
+   */
+  final FileSystemEntityType type;
+  /**
+   * The mode of the file system object.  Permissions are encoded in the lower
+   * 16 bits of this number, and can be decoded using the [modeString] getter.
+   */
+  final int mode;
+  /**
+   * The size of the file system object.
+   */
+  final int size;
+}
+
+
+/**
  * A [FileSystemEntity] is a common super class for [File] and
  * [Directory] objects.
  *

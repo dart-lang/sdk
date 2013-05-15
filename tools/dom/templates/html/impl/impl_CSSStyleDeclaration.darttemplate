@@ -17,9 +17,13 @@ $!MEMBERS
   }
 
 $if DART2JS
+  @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
     // try/catch for IE9 which throws on unsupported values.
     try {
+      if (priority == null) {
+        priority = '';
+      }
       JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
       // Bug #2772, IE9 requires a poke to actually apply the value.
       if (JS('bool', '!!#.setAttribute', this)) {
@@ -43,6 +47,14 @@ $else
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions => true;
+
+  @DomName('CSSStyleDeclaration.setProperty')
+  void setProperty(String propertyName, String value, [String priority]) {
+    if (priority == null) {
+      priority = '';
+    }
+    _setProperty(propertyName, value, priority);
+  }
 $endif
 
   // TODO(jacobr): generate this list of properties using the existing script.

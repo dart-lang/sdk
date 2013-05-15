@@ -15,7 +15,7 @@ main() {
   var isHistory = predicate((x) => x is History, 'is a History');
 
   final iframe = new Element.tag('iframe');
-  document.body.nodes.add(iframe);
+  document.body.append(iframe);
 
   test('window', () {
       expect(window, isWindow);

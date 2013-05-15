@@ -19,15 +19,25 @@ int testConstantStringAndIndexCodeUnitAt() {
 
 
 int testConstantArrayAndIndexAt() {
-  int test(b) {
+  int testPositive(b) {
     var a = const [1,2,3,4];
     if (b) return a[400];
     return a[2];
   }
 
-  Expect.throws(() => test(true));
-  for (int i = 0; i < 10000; i++) test(false);
-  Expect.throws(() => test(true));
+  int testNegative(b) {
+    var a = const [1,2,3,4];
+    if (b) return a[-1];
+    return a[2];
+  }
+
+  Expect.throws(() => testPositive(true));
+  for (int i = 0; i < 10000; i++) testPositive(false);
+  Expect.throws(() => testPositive(true));
+
+  Expect.throws(() => testNegative(true));
+  for (int i = 0; i < 10000; i++) testNegative(false);
+  Expect.throws(() => testNegative(true));
 }
 
 

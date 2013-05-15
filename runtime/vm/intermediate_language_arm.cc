@@ -155,7 +155,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
                              &StubCode::CallClosureFunctionLabel(),
-                             PcDescriptors::kOther,
+                             PcDescriptors::kClosureCall,
                              locs());
   __ Drop(argument_count);
 }
@@ -2230,6 +2230,71 @@ void Float32x4ToUint32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* Uint32x4BoolConstructorInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Uint32x4BoolConstructorInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Uint32x4GetFlagInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Uint32x4GetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+LocationSummary* Uint32x4SelectInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Uint32x4SelectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Uint32x4SetFlagInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Uint32x4SetFlagInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* Uint32x4ToFloat32x4Instr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void Uint32x4ToFloat32x4Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
+LocationSummary* BinaryUint32x4OpInstr::MakeLocationSummary() const {
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  UNIMPLEMENTED();
+}
+
+
 LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
   UNIMPLEMENTED();
   return NULL;
@@ -2438,37 +2503,48 @@ LocationSummary* CheckArrayBoundInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, Location::RegisterOrSmiConstant(length()));
-  locs->set_in(1, Location::RegisterOrSmiConstant(index()));
+  locs->set_in(kLengthPos, Location::RegisterOrSmiConstant(length()));
+  locs->set_in(kIndexPos, Location::RegisterOrSmiConstant(index()));
   return locs;
 }
 
 
 void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        kDeoptCheckArrayBound);
-  if (locs()->in(0).IsConstant() && locs()->in(1).IsConstant()) {
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptCheckArrayBound);
+
+  Location length_loc = locs()->in(kLengthPos);
+  Location index_loc = locs()->in(kIndexPos);
+
+  if (length_loc.IsConstant() && index_loc.IsConstant()) {
+    // TODO(srdjan): remove this code once failures are fixed.
+    if ((Smi::Cast(length_loc.constant()).Value() >
+         Smi::Cast(index_loc.constant()).Value()) &&
+        (Smi::Cast(index_loc.constant()).Value() >= 0)) {
+      // This CheckArrayBoundInstr should have been eliminated.
+      return;
+    }
+    ASSERT((Smi::Cast(length_loc.constant()).Value() <=
+            Smi::Cast(index_loc.constant()).Value()) ||
+           (Smi::Cast(index_loc.constant()).Value() < 0));
     // Unconditionally deoptimize for constant bounds checks because they
     // only occur only when index is out-of-bounds.
     __ b(deopt);
     return;
   }
 
-  if (locs()->in(1).IsConstant()) {
-    Register length = locs()->in(0).reg();
-    const Object& constant = locs()->in(1).constant();
-    ASSERT(constant.IsSmi());
-    __ CompareImmediate(length, reinterpret_cast<int32_t>(constant.raw()));
+  if (index_loc.IsConstant()) {
+    Register length = length_loc.reg();
+    const Smi& index = Smi::Cast(index_loc.constant());
+    __ CompareImmediate(length, reinterpret_cast<int32_t>(index.raw()));
     __ b(deopt, LS);
-  } else if (locs()->in(0).IsConstant()) {
-    ASSERT(locs()->in(0).constant().IsSmi());
-    const Smi& smi_const = Smi::Cast(locs()->in(0).constant());
-    Register index = locs()->in(1).reg();
-    __ CompareImmediate(index, reinterpret_cast<int32_t>(smi_const.raw()));
+  } else if (length_loc.IsConstant()) {
+    const Smi& length = Smi::Cast(length_loc.constant());
+    Register index = index_loc.reg();
+    __ CompareImmediate(index, reinterpret_cast<int32_t>(length.raw()));
     __ b(deopt, CS);
   } else {
-    Register length = locs()->in(0).reg();
-    Register index = locs()->in(1).reg();
+    Register length = length_loc.reg();
+    Register index = index_loc.reg();
     __ cmp(index, ShifterOperand(length));
     __ b(deopt, CS);
   }

@@ -175,7 +175,7 @@ foo9() {
   }
 }
 
-main() {
+main_test() {
   a = 0;
   Expect.isTrue(foo1());
   a = 0;
@@ -194,4 +194,10 @@ main() {
   Expect.isTrue(foo8());
   a = 0;
   Expect.isTrue(foo9());
+}
+
+main() {
+  for (var i = 0; i < 2000; i++) {
+    main_test();
+  }
 }

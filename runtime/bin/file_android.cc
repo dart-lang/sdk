@@ -201,6 +201,34 @@ off_t File::LengthFromPath(const char* name) {
 }
 
 
+void File::Stat(const char* name, int64_t* data) {
+  struct stat st;
+  if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
+    if (S_ISREG(st.st_mode)) {
+      data[kType] = kIsFile;
+    } else if (S_ISDIR(st.st_mode)) {
+      data[kType] = kIsDirectory;
+    } else if (S_ISLNK(st.st_mode)) {
+      data[kType] = kIsLink;
+    } else {
+      data[kType] = kDoesNotExist;
+    }
+    data[kCreatedTime] = st.st_ctime;
+    data[kModifiedTime] = st.st_mtime;
+    data[kAccessedTime] = st.st_atime;
+    data[kMode] = st.st_mode;
+    data[kSize] = st.st_size;
+  } else {
+    data[kType] = kDoesNotExist;
+    data[kCreatedTime] = 0;
+    data[kModifiedTime] = 0;
+    data[kAccessedTime] = 0;
+    data[kMode] = 0;
+    data[kSize] = 0;
+  }
+}
+
+
 time_t File::LastModified(const char* name) {
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {

@@ -1810,7 +1810,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
  * \return Success if the internal data address is released successfully.
  *   Otherwise, returns an error handle.
  */
-DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle array);
+DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object);
 
 
 // --- Closures ---

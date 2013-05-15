@@ -98,6 +98,8 @@ class BacktrackingSolver {
   Future<SolveResult> solve() {
     var stopwatch = new Stopwatch();
 
+    _logParameters();
+
     return new Future(() {
       stopwatch.start();
 
@@ -282,6 +284,23 @@ class BacktrackingSolver {
     }
 
     return walkDeps(depender, depender.name);
+  }
+
+  /// Logs the initial parameters to the solver.
+  void _logParameters() {
+    var buffer = new StringBuffer();
+    buffer.writeln("Solving dependencies:");
+    for (var package in root.dependencies) {
+      buffer.write("- $package");
+      if (_forceLatest.contains(package.name)) {
+        buffer.write(" (use latest)");
+      } else if (lockFile.packages.containsKey(package.name)) {
+        var version = lockFile.packages[package.name].version;
+        buffer.write(" (locked to $version)");
+      }
+      buffer.writeln();
+    }
+    log.solver(buffer.toString().trim());
   }
 
   /// Logs [message] in the context of the current selected packages. If

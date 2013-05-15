@@ -287,17 +287,6 @@ abstract class Interceptor {
 }
 
 /**
- * The interceptor class for tear-off static methods. Unlike
- * tear-off instance methods, tear-off static methods are just the JS
- * function, and methods inherited from Object must therefore be
- * intercepted.
- */
-class JSFunction extends Interceptor implements Function {
-  const JSFunction();
-  String toString() => 'Closure';
-}
-
-/**
  * The interceptor class for [bool].
  */
 class JSBool extends Interceptor implements bool {

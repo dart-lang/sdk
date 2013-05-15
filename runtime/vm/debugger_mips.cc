@@ -30,6 +30,16 @@ RawInstance* ActivationFrame::GetInstanceCallReceiver(
 }
 
 
+RawObject* ActivationFrame::GetClosureObject(intptr_t num_actual_args) {
+  // At a minimum we have the closure object on the stack.
+  ASSERT(num_actual_args > 0);
+  // Stack pointer points to last argument that was pushed on the stack.
+  uword closure_addr = sp() + ((num_actual_args - 1) * kWordSize);
+  return reinterpret_cast<RawObject*>(
+             *reinterpret_cast<uword*>(closure_addr));
+}
+
+
 void CodeBreakpoint::PatchFunctionReturn() {
   Instr* instr1 = Instr::At(pc_ - 5 * Instr::kInstrSize);
   Instr* instr2 = Instr::At(pc_ - 4 * Instr::kInstrSize);

@@ -80,6 +80,8 @@ void main() {
       break;
   }
 
+  log.fine('Pub ${sdk.version}');
+
   var cacheDir;
   if (Platform.environment.containsKey('PUB_CACHE')) {
     cacheDir = Platform.environment['PUB_CACHE'];

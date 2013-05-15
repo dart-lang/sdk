@@ -10,6 +10,7 @@
 #include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/dart_entry.h"
+#include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -42,6 +43,103 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
+RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+                                                 DeoptInfoBuilder* builder) {
+  if (deoptimization_env_ == NULL) return DeoptInfo::null();
+
+  intptr_t stack_height = compiler->StackSize();
+  AllocateIncomingParametersRecursive(deoptimization_env_, &stack_height);
+
+  intptr_t slot_ix = 0;
+  Environment* current = deoptimization_env_;
+
+  // Emit all kMaterializeObject instructions describing objects to be
+  // materialized on the deoptimization as a prefix to the deoptimization info.
+  EmitMaterializations(deoptimization_env_, builder);
+
+  // The real frame starts here.
+  builder->MarkFrameStart();
+
+  // Current PP, FP, and PC.
+  builder->AddPp(current->function(), slot_ix++);
+  builder->AddCallerFp(slot_ix++);
+  builder->AddReturnAddress(current->function(),
+                            deopt_id(),
+                            slot_ix++);
+
+  // Callee's PC marker is not used anymore. Pass Function::null() to set to 0.
+  builder->AddPcMarker(Function::Handle(), slot_ix++);
+
+  // Emit all values that are needed for materialization as a part of the
+  // expression stack for the bottom-most frame. This guarantees that GC
+  // will be able to find them during materialization.
+  slot_ix = builder->EmitMaterializationArguments(slot_ix);
+
+  // For the innermost environment, set outgoing arguments and the locals.
+  for (intptr_t i = current->Length() - 1;
+       i >= current->fixed_parameter_count();
+       i--) {
+    builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
+  }
+
+  Environment* previous = current;
+  current = current->outer();
+  while (current != NULL) {
+    // PP, FP, and PC.
+    builder->AddPp(current->function(), slot_ix++);
+    builder->AddCallerFp(slot_ix++);
+
+    // For any outer environment the deopt id is that of the call instruction
+    // which is recorded in the outer environment.
+    builder->AddReturnAddress(current->function(),
+                              Isolate::ToDeoptAfter(current->deopt_id()),
+                              slot_ix++);
+
+    // PC marker.
+    builder->AddPcMarker(previous->function(), slot_ix++);
+
+    // The values of outgoing arguments can be changed from the inlined call so
+    // we must read them from the previous environment.
+    for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+      builder->AddCopy(previous->ValueAt(i),
+                       previous->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // Set the locals, note that outgoing arguments are not in the environment.
+    for (intptr_t i = current->Length() - 1;
+         i >= current->fixed_parameter_count();
+         i--) {
+      builder->AddCopy(current->ValueAt(i),
+                       current->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // Iterate on the outer environment.
+    previous = current;
+    current = current->outer();
+  }
+  // The previous pointer is now the outermost environment.
+  ASSERT(previous != NULL);
+
+  // For the outermost environment, set caller PC, caller PP, and caller FP.
+  builder->AddCallerPp(slot_ix++);
+  builder->AddCallerFp(slot_ix++);
+  builder->AddCallerPc(slot_ix++);
+
+  // PC marker.
+  builder->AddPcMarker(previous->function(), slot_ix++);
+
+  // For the outermost environment, set the incoming arguments.
+  for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+    builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
+  }
+
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());
+  return deopt_info.raw();
+}
+
+
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
@@ -56,6 +154,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   __ BranchLink(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
+  __ bkpt(0);  // TODO(regis): Remove breakpoint to save space.
 #undef __
 }
 

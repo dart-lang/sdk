@@ -197,14 +197,24 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 class Angle extends NativeFieldWrapperClass1 {
   Angle.internal();
 
+  @DomName('SVGAngle.SVG_ANGLETYPE_DEG')
+  @DocsEditable
   static const int SVG_ANGLETYPE_DEG = 2;
 
+  @DomName('SVGAngle.SVG_ANGLETYPE_GRAD')
+  @DocsEditable
   static const int SVG_ANGLETYPE_GRAD = 4;
 
+  @DomName('SVGAngle.SVG_ANGLETYPE_RAD')
+  @DocsEditable
   static const int SVG_ANGLETYPE_RAD = 3;
 
+  @DomName('SVGAngle.SVG_ANGLETYPE_UNKNOWN')
+  @DocsEditable
   static const int SVG_ANGLETYPE_UNKNOWN = 0;
 
+  @DomName('SVGAngle.SVG_ANGLETYPE_UNSPECIFIED')
+  @DocsEditable
   static const int SVG_ANGLETYPE_UNSPECIFIED = 1;
 
   @DomName('SVGAngle.unitType')
@@ -1480,16 +1490,28 @@ class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAtt
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_DARKEN')
+  @DocsEditable
   static const int SVG_FEBLEND_MODE_DARKEN = 4;
 
+  @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_LIGHTEN')
+  @DocsEditable
   static const int SVG_FEBLEND_MODE_LIGHTEN = 5;
 
+  @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_MULTIPLY')
+  @DocsEditable
   static const int SVG_FEBLEND_MODE_MULTIPLY = 2;
 
+  @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_NORMAL')
+  @DocsEditable
   static const int SVG_FEBLEND_MODE_NORMAL = 1;
 
+  @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_SCREEN')
+  @DocsEditable
   static const int SVG_FEBLEND_MODE_SCREEN = 3;
 
+  @DomName('SVGFEBlendElement.SVG_FEBLEND_MODE_UNKNOWN')
+  @DocsEditable
   static const int SVG_FEBLEND_MODE_UNKNOWN = 0;
 
   @DomName('SVGFEBlendElement.in1')
@@ -1548,14 +1570,24 @@ class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStand
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_HUEROTATE')
+  @DocsEditable
   static const int SVG_FECOLORMATRIX_TYPE_HUEROTATE = 3;
 
+  @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA')
+  @DocsEditable
   static const int SVG_FECOLORMATRIX_TYPE_LUMINANCETOALPHA = 4;
 
+  @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_MATRIX')
+  @DocsEditable
   static const int SVG_FECOLORMATRIX_TYPE_MATRIX = 1;
 
+  @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_SATURATE')
+  @DocsEditable
   static const int SVG_FECOLORMATRIX_TYPE_SATURATE = 2;
 
+  @DomName('SVGFEColorMatrixElement.SVG_FECOLORMATRIX_TYPE_UNKNOWN')
+  @DocsEditable
   static const int SVG_FECOLORMATRIX_TYPE_UNKNOWN = 0;
 
   @DomName('SVGFEColorMatrixElement.in1')
@@ -1651,18 +1683,32 @@ class FEComponentTransferElement extends StyledElement implements FilterPrimitiv
 class FECompositeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FECompositeElement.internal() : super.internal();
 
+  @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_ARITHMETIC')
+  @DocsEditable
   static const int SVG_FECOMPOSITE_OPERATOR_ARITHMETIC = 6;
 
+  @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_ATOP')
+  @DocsEditable
   static const int SVG_FECOMPOSITE_OPERATOR_ATOP = 4;
 
+  @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_IN')
+  @DocsEditable
   static const int SVG_FECOMPOSITE_OPERATOR_IN = 2;
 
+  @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_OUT')
+  @DocsEditable
   static const int SVG_FECOMPOSITE_OPERATOR_OUT = 3;
 
+  @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_OVER')
+  @DocsEditable
   static const int SVG_FECOMPOSITE_OPERATOR_OVER = 1;
 
+  @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_UNKNOWN')
+  @DocsEditable
   static const int SVG_FECOMPOSITE_OPERATOR_UNKNOWN = 0;
 
+  @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_XOR')
+  @DocsEditable
   static const int SVG_FECOMPOSITE_OPERATOR_XOR = 5;
 
   @DomName('SVGFECompositeElement.in1')
@@ -1737,12 +1783,20 @@ class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveSt
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_DUPLICATE')
+  @DocsEditable
   static const int SVG_EDGEMODE_DUPLICATE = 1;
 
+  @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_NONE')
+  @DocsEditable
   static const int SVG_EDGEMODE_NONE = 3;
 
+  @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_UNKNOWN')
+  @DocsEditable
   static const int SVG_EDGEMODE_UNKNOWN = 0;
 
+  @DomName('SVGFEConvolveMatrixElement.SVG_EDGEMODE_WRAP')
+  @DocsEditable
   static const int SVG_EDGEMODE_WRAP = 2;
 
   @DomName('SVGFEConvolveMatrixElement.bias')
@@ -1901,14 +1955,24 @@ class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveS
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_A')
+  @DocsEditable
   static const int SVG_CHANNEL_A = 4;
 
+  @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_B')
+  @DocsEditable
   static const int SVG_CHANNEL_B = 3;
 
+  @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_G')
+  @DocsEditable
   static const int SVG_CHANNEL_G = 2;
 
+  @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_R')
+  @DocsEditable
   static const int SVG_CHANNEL_R = 1;
 
+  @DomName('SVGFEDisplacementMapElement.SVG_CHANNEL_UNKNOWN')
+  @DocsEditable
   static const int SVG_CHANNEL_UNKNOWN = 0;
 
   @DomName('SVGFEDisplacementMapElement.in1')
@@ -2344,10 +2408,16 @@ class FEMergeNodeElement extends SvgElement {
 class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEMorphologyElement.internal() : super.internal();
 
+  @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_DILATE')
+  @DocsEditable
   static const int SVG_MORPHOLOGY_OPERATOR_DILATE = 2;
 
+  @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_ERODE')
+  @DocsEditable
   static const int SVG_MORPHOLOGY_OPERATOR_ERODE = 1;
 
+  @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_UNKNOWN')
+  @DocsEditable
   static const int SVG_MORPHOLOGY_OPERATOR_UNKNOWN = 0;
 
   @DomName('SVGFEMorphologyElement.in1')
@@ -2670,16 +2740,28 @@ class FETurbulenceElement extends StyledElement implements FilterPrimitiveStanda
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_NOSTITCH')
+  @DocsEditable
   static const int SVG_STITCHTYPE_NOSTITCH = 2;
 
+  @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_STITCH')
+  @DocsEditable
   static const int SVG_STITCHTYPE_STITCH = 1;
 
+  @DomName('SVGFETurbulenceElement.SVG_STITCHTYPE_UNKNOWN')
+  @DocsEditable
   static const int SVG_STITCHTYPE_UNKNOWN = 0;
 
+  @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_FRACTALNOISE')
+  @DocsEditable
   static const int SVG_TURBULENCE_TYPE_FRACTALNOISE = 1;
 
+  @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_TURBULENCE')
+  @DocsEditable
   static const int SVG_TURBULENCE_TYPE_TURBULENCE = 2;
 
+  @DomName('SVGFETurbulenceElement.SVG_TURBULENCE_TYPE_UNKNOWN')
+  @DocsEditable
   static const int SVG_TURBULENCE_TYPE_UNKNOWN = 0;
 
   @DomName('SVGFETurbulenceElement.baseFrequencyX')
@@ -3198,26 +3280,48 @@ class LangSpace extends NativeFieldWrapperClass1 {
 class Length extends NativeFieldWrapperClass1 {
   Length.internal();
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_CM')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_CM = 6;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_EMS')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_EMS = 3;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_EXS')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_EXS = 4;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_IN')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_IN = 8;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_MM')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_MM = 7;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_NUMBER')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_NUMBER = 1;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_PC')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_PC = 10;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_PERCENTAGE')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_PERCENTAGE = 2;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_PT')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_PT = 9;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_PX')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_PX = 5;
 
+  @DomName('SVGLength.SVG_LENGTHTYPE_UNKNOWN')
+  @DocsEditable
   static const int SVG_LENGTHTYPE_UNKNOWN = 0;
 
   @DomName('SVGLength.unitType')
@@ -3273,7 +3377,12 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
   @DocsEditable
   int get numberOfItems native "SVGLengthList_numberOfItems_Getter";
 
-  Length operator[](int index) native "SVGLengthList_item_Callback";
+  Length operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Length _nativeIndexedGetter(int index) native "SVGLengthList_item_Callback";
 
   void operator[]=(int index, Length value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -3288,6 +3397,31 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Length get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Length get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Length get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Length elementAt(int index) => this[index];
   // -- end List<Length> mixins.
 
   @DomName('SVGLengthList.appendItem')
@@ -3502,16 +3636,28 @@ class MarkerElement extends StyledElement implements FitToViewBox, ExternalResou
   @DocsEditable
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
+  @DomName('SVGMarkerElement.SVG_MARKERUNITS_STROKEWIDTH')
+  @DocsEditable
   static const int SVG_MARKERUNITS_STROKEWIDTH = 2;
 
+  @DomName('SVGMarkerElement.SVG_MARKERUNITS_UNKNOWN')
+  @DocsEditable
   static const int SVG_MARKERUNITS_UNKNOWN = 0;
 
+  @DomName('SVGMarkerElement.SVG_MARKERUNITS_USERSPACEONUSE')
+  @DocsEditable
   static const int SVG_MARKERUNITS_USERSPACEONUSE = 1;
 
+  @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_ANGLE')
+  @DocsEditable
   static const int SVG_MARKER_ORIENT_ANGLE = 2;
 
+  @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_AUTO')
+  @DocsEditable
   static const int SVG_MARKER_ORIENT_AUTO = 1;
 
+  @DomName('SVGMarkerElement.SVG_MARKER_ORIENT_UNKNOWN')
+  @DocsEditable
   static const int SVG_MARKER_ORIENT_UNKNOWN = 0;
 
   @DomName('SVGMarkerElement.markerHeight')
@@ -3811,7 +3957,12 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
   @DocsEditable
   int get numberOfItems native "SVGNumberList_numberOfItems_Getter";
 
-  Number operator[](int index) native "SVGNumberList_item_Callback";
+  Number operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Number _nativeIndexedGetter(int index) native "SVGNumberList_item_Callback";
 
   void operator[]=(int index, Number value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -3826,6 +3977,31 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Number get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Number get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Number get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Number elementAt(int index) => this[index];
   // -- end List<Number> mixins.
 
   @DomName('SVGNumberList.appendItem')
@@ -4058,44 +4234,84 @@ class PathElement extends StyledElement implements Transformable, Tests, Externa
 class PathSeg extends NativeFieldWrapperClass1 {
   PathSeg.internal();
 
+  @DomName('SVGPathSeg.PATHSEG_ARC_ABS')
+  @DocsEditable
   static const int PATHSEG_ARC_ABS = 10;
 
+  @DomName('SVGPathSeg.PATHSEG_ARC_REL')
+  @DocsEditable
   static const int PATHSEG_ARC_REL = 11;
 
+  @DomName('SVGPathSeg.PATHSEG_CLOSEPATH')
+  @DocsEditable
   static const int PATHSEG_CLOSEPATH = 1;
 
+  @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_ABS')
+  @DocsEditable
   static const int PATHSEG_CURVETO_CUBIC_ABS = 6;
 
+  @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_REL')
+  @DocsEditable
   static const int PATHSEG_CURVETO_CUBIC_REL = 7;
 
+  @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_ABS')
+  @DocsEditable
   static const int PATHSEG_CURVETO_CUBIC_SMOOTH_ABS = 16;
 
+  @DomName('SVGPathSeg.PATHSEG_CURVETO_CUBIC_SMOOTH_REL')
+  @DocsEditable
   static const int PATHSEG_CURVETO_CUBIC_SMOOTH_REL = 17;
 
+  @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_ABS')
+  @DocsEditable
   static const int PATHSEG_CURVETO_QUADRATIC_ABS = 8;
 
+  @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_REL')
+  @DocsEditable
   static const int PATHSEG_CURVETO_QUADRATIC_REL = 9;
 
+  @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS')
+  @DocsEditable
   static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_ABS = 18;
 
+  @DomName('SVGPathSeg.PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL')
+  @DocsEditable
   static const int PATHSEG_CURVETO_QUADRATIC_SMOOTH_REL = 19;
 
+  @DomName('SVGPathSeg.PATHSEG_LINETO_ABS')
+  @DocsEditable
   static const int PATHSEG_LINETO_ABS = 4;
 
+  @DomName('SVGPathSeg.PATHSEG_LINETO_HORIZONTAL_ABS')
+  @DocsEditable
   static const int PATHSEG_LINETO_HORIZONTAL_ABS = 12;
 
+  @DomName('SVGPathSeg.PATHSEG_LINETO_HORIZONTAL_REL')
+  @DocsEditable
   static const int PATHSEG_LINETO_HORIZONTAL_REL = 13;
 
+  @DomName('SVGPathSeg.PATHSEG_LINETO_REL')
+  @DocsEditable
   static const int PATHSEG_LINETO_REL = 5;
 
+  @DomName('SVGPathSeg.PATHSEG_LINETO_VERTICAL_ABS')
+  @DocsEditable
   static const int PATHSEG_LINETO_VERTICAL_ABS = 14;
 
+  @DomName('SVGPathSeg.PATHSEG_LINETO_VERTICAL_REL')
+  @DocsEditable
   static const int PATHSEG_LINETO_VERTICAL_REL = 15;
 
+  @DomName('SVGPathSeg.PATHSEG_MOVETO_ABS')
+  @DocsEditable
   static const int PATHSEG_MOVETO_ABS = 2;
 
+  @DomName('SVGPathSeg.PATHSEG_MOVETO_REL')
+  @DocsEditable
   static const int PATHSEG_MOVETO_REL = 3;
 
+  @DomName('SVGPathSeg.PATHSEG_UNKNOWN')
+  @DocsEditable
   static const int PATHSEG_UNKNOWN = 0;
 
   @DomName('SVGPathSeg.pathSegType')
@@ -4776,7 +4992,12 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
   @DocsEditable
   int get numberOfItems native "SVGPathSegList_numberOfItems_Getter";
 
-  PathSeg operator[](int index) native "SVGPathSegList_item_Callback";
+  PathSeg operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  PathSeg _nativeIndexedGetter(int index) native "SVGPathSegList_item_Callback";
 
   void operator[]=(int index, PathSeg value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -4791,6 +5012,31 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  PathSeg get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  PathSeg get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  PathSeg get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  PathSeg elementAt(int index) => this[index];
   // -- end List<PathSeg> mixins.
 
   @DomName('SVGPathSegList.appendItem')
@@ -5241,32 +5487,60 @@ class PolylineElement extends StyledElement implements Transformable, Tests, Ext
 class PreserveAspectRatio extends NativeFieldWrapperClass1 {
   PreserveAspectRatio.internal();
 
+  @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_MEET')
+  @DocsEditable
   static const int SVG_MEETORSLICE_MEET = 1;
 
+  @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_SLICE')
+  @DocsEditable
   static const int SVG_MEETORSLICE_SLICE = 2;
 
+  @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_UNKNOWN')
+  @DocsEditable
   static const int SVG_MEETORSLICE_UNKNOWN = 0;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_NONE')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_NONE = 1;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_UNKNOWN')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_UNKNOWN = 0;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMAX')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMAX = 10;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMID')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMID = 7;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMAXYMIN')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMAXYMIN = 4;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMAX')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMAX = 9;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMID')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMID = 6;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMIDYMIN')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMIDYMIN = 3;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMAX')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMINYMAX = 8;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMID')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMINYMID = 5;
 
+  @DomName('SVGPreserveAspectRatio.SVG_PRESERVEASPECTRATIO_XMINYMIN')
+  @DocsEditable
   static const int SVG_PRESERVEASPECTRATIO_XMINYMIN = 2;
 
   @DomName('SVGPreserveAspectRatio.align')
@@ -5489,16 +5763,28 @@ class RectElement extends StyledElement implements Transformable, Tests, Externa
 class RenderingIntent extends NativeFieldWrapperClass1 {
   RenderingIntent.internal();
 
+  @DomName('SVGRenderingIntent.RENDERING_INTENT_ABSOLUTE_COLORIMETRIC')
+  @DocsEditable
   static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
 
+  @DomName('SVGRenderingIntent.RENDERING_INTENT_AUTO')
+  @DocsEditable
   static const int RENDERING_INTENT_AUTO = 1;
 
+  @DomName('SVGRenderingIntent.RENDERING_INTENT_PERCEPTUAL')
+  @DocsEditable
   static const int RENDERING_INTENT_PERCEPTUAL = 2;
 
+  @DomName('SVGRenderingIntent.RENDERING_INTENT_RELATIVE_COLORIMETRIC')
+  @DocsEditable
   static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
 
+  @DomName('SVGRenderingIntent.RENDERING_INTENT_SATURATION')
+  @DocsEditable
   static const int RENDERING_INTENT_SATURATION = 4;
 
+  @DomName('SVGRenderingIntent.RENDERING_INTENT_UNKNOWN')
+  @DocsEditable
   static const int RENDERING_INTENT_UNKNOWN = 0;
 
 }
@@ -5595,7 +5881,12 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
   @DocsEditable
   int get numberOfItems native "SVGStringList_numberOfItems_Getter";
 
-  String operator[](int index) native "SVGStringList_item_Callback";
+  String operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  String _nativeIndexedGetter(int index) native "SVGStringList_item_Callback";
 
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -5610,6 +5901,31 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  String get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  String get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
   @DomName('SVGStringList.appendItem')
@@ -5898,10 +6214,16 @@ class SvgElement extends Element {
 class SvgException extends NativeFieldWrapperClass1 {
   SvgException.internal();
 
+  @DomName('SVGException.SVG_INVALID_VALUE_ERR')
+  @DocsEditable
   static const int SVG_INVALID_VALUE_ERR = 1;
 
+  @DomName('SVGException.SVG_MATRIX_NOT_INVERTABLE')
+  @DocsEditable
   static const int SVG_MATRIX_NOT_INVERTABLE = 2;
 
+  @DomName('SVGException.SVG_WRONG_TYPE_ERR')
+  @DocsEditable
   static const int SVG_WRONG_TYPE_ERR = 0;
 
   @DomName('SVGException.code')
@@ -6361,10 +6683,16 @@ class Tests extends NativeFieldWrapperClass1 {
 class TextContentElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
   TextContentElement.internal() : super.internal();
 
+  @DomName('SVGTextContentElement.LENGTHADJUST_SPACING')
+  @DocsEditable
   static const int LENGTHADJUST_SPACING = 1;
 
+  @DomName('SVGTextContentElement.LENGTHADJUST_SPACINGANDGLYPHS')
+  @DocsEditable
   static const int LENGTHADJUST_SPACINGANDGLYPHS = 2;
 
+  @DomName('SVGTextContentElement.LENGTHADJUST_UNKNOWN')
+  @DocsEditable
   static const int LENGTHADJUST_UNKNOWN = 0;
 
   @DomName('SVGTextContentElement.lengthAdjust')
@@ -6505,16 +6833,28 @@ class TextElement extends TextPositioningElement implements Transformable {
 class TextPathElement extends TextContentElement implements UriReference {
   TextPathElement.internal() : super.internal();
 
+  @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_ALIGN')
+  @DocsEditable
   static const int TEXTPATH_METHODTYPE_ALIGN = 1;
 
+  @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_STRETCH')
+  @DocsEditable
   static const int TEXTPATH_METHODTYPE_STRETCH = 2;
 
+  @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_UNKNOWN')
+  @DocsEditable
   static const int TEXTPATH_METHODTYPE_UNKNOWN = 0;
 
+  @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_AUTO')
+  @DocsEditable
   static const int TEXTPATH_SPACINGTYPE_AUTO = 1;
 
+  @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_EXACT')
+  @DocsEditable
   static const int TEXTPATH_SPACINGTYPE_EXACT = 2;
 
+  @DomName('SVGTextPathElement.TEXTPATH_SPACINGTYPE_UNKNOWN')
+  @DocsEditable
   static const int TEXTPATH_SPACINGTYPE_UNKNOWN = 0;
 
   @DomName('SVGTextPathElement.method')
@@ -6612,18 +6952,32 @@ class TitleElement extends StyledElement implements LangSpace {
 class Transform extends NativeFieldWrapperClass1 {
   Transform.internal();
 
+  @DomName('SVGTransform.SVG_TRANSFORM_MATRIX')
+  @DocsEditable
   static const int SVG_TRANSFORM_MATRIX = 1;
 
+  @DomName('SVGTransform.SVG_TRANSFORM_ROTATE')
+  @DocsEditable
   static const int SVG_TRANSFORM_ROTATE = 4;
 
+  @DomName('SVGTransform.SVG_TRANSFORM_SCALE')
+  @DocsEditable
   static const int SVG_TRANSFORM_SCALE = 3;
 
+  @DomName('SVGTransform.SVG_TRANSFORM_SKEWX')
+  @DocsEditable
   static const int SVG_TRANSFORM_SKEWX = 5;
 
+  @DomName('SVGTransform.SVG_TRANSFORM_SKEWY')
+  @DocsEditable
   static const int SVG_TRANSFORM_SKEWY = 6;
 
+  @DomName('SVGTransform.SVG_TRANSFORM_TRANSLATE')
+  @DocsEditable
   static const int SVG_TRANSFORM_TRANSLATE = 2;
 
+  @DomName('SVGTransform.SVG_TRANSFORM_UNKNOWN')
+  @DocsEditable
   static const int SVG_TRANSFORM_UNKNOWN = 0;
 
   @DomName('SVGTransform.angle')
@@ -6679,7 +7033,12 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
   @DocsEditable
   int get numberOfItems native "SVGTransformList_numberOfItems_Getter";
 
-  Transform operator[](int index) native "SVGTransformList_item_Callback";
+  Transform operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Transform _nativeIndexedGetter(int index) native "SVGTransformList_item_Callback";
 
   void operator[]=(int index, Transform value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -6694,6 +7053,31 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Transform get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Transform get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Transform get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Transform elementAt(int index) => this[index];
   // -- end List<Transform> mixins.
 
   @DomName('SVGTransformList.appendItem')
@@ -6786,10 +7170,16 @@ class Transformable extends NativeFieldWrapperClass1 implements Locatable {
 class UnitTypes extends NativeFieldWrapperClass1 {
   UnitTypes.internal();
 
+  @DomName('SVGUnitTypes.SVG_UNIT_TYPE_OBJECTBOUNDINGBOX')
+  @DocsEditable
   static const int SVG_UNIT_TYPE_OBJECTBOUNDINGBOX = 2;
 
+  @DomName('SVGUnitTypes.SVG_UNIT_TYPE_UNKNOWN')
+  @DocsEditable
   static const int SVG_UNIT_TYPE_UNKNOWN = 0;
 
+  @DomName('SVGUnitTypes.SVG_UNIT_TYPE_USERSPACEONUSE')
+  @DocsEditable
   static const int SVG_UNIT_TYPE_USERSPACEONUSE = 1;
 
 }
@@ -7025,10 +7415,16 @@ class ViewSpec extends NativeFieldWrapperClass1 {
 class ZoomAndPan extends NativeFieldWrapperClass1 {
   ZoomAndPan.internal();
 
+  @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_DISABLE')
+  @DocsEditable
   static const int SVG_ZOOMANDPAN_DISABLE = 1;
 
+  @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_MAGNIFY')
+  @DocsEditable
   static const int SVG_ZOOMANDPAN_MAGNIFY = 2;
 
+  @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_UNKNOWN')
+  @DocsEditable
   static const int SVG_ZOOMANDPAN_UNKNOWN = 0;
 
   @DomName('SVGZoomAndPan.zoomAndPan')
@@ -7089,7 +7485,12 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
   @DocsEditable
   int get length native "SVGElementInstanceList_length_Getter";
 
-  ElementInstance operator[](int index) native "SVGElementInstanceList_item_Callback";
+  ElementInstance operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  ElementInstance _nativeIndexedGetter(int index) native "SVGElementInstanceList_item_Callback";
 
   void operator[]=(int index, ElementInstance value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -7102,6 +7503,31 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  ElementInstance get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  ElementInstance get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  ElementInstance get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  ElementInstance elementAt(int index) => this[index];
   // -- end List<ElementInstance> mixins.
 
   @DomName('SVGElementInstanceList.item')
@@ -7121,12 +7547,20 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
 class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
   _GradientElement.internal() : super.internal();
 
+  @DomName('SVGGradientElement.SVG_SPREADMETHOD_PAD')
+  @DocsEditable
   static const int SVG_SPREADMETHOD_PAD = 1;
 
+  @DomName('SVGGradientElement.SVG_SPREADMETHOD_REFLECT')
+  @DocsEditable
   static const int SVG_SPREADMETHOD_REFLECT = 2;
 
+  @DomName('SVGGradientElement.SVG_SPREADMETHOD_REPEAT')
+  @DocsEditable
   static const int SVG_SPREADMETHOD_REPEAT = 3;
 
+  @DomName('SVGGradientElement.SVG_SPREADMETHOD_UNKNOWN')
+  @DocsEditable
   static const int SVG_SPREADMETHOD_UNKNOWN = 0;
 
   @DomName('SVGGradientElement.gradientTransform')

@@ -9,7 +9,7 @@ main() {
   evaluateJavaScript(code) {
     final scriptTag = new Element.tag('script');
     scriptTag.innerHtml = code;
-    document.body.nodes.add(scriptTag);
+    document.body.append(scriptTag);
   }
   evaluateJavaScript('(testRunner || layoutTestController).setCanOpenWindows()');
 

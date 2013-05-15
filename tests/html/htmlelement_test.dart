@@ -9,7 +9,7 @@ main() {
     Element element = new Element.tag('div');
     element.id = 'test';
     element.innerHtml = 'Hello World';
-    document.body.nodes.add(element);
+    document.body.append(element);
 
     element = document.query('#test');
     expect(element.innerHtml, 'Hello World');
@@ -19,10 +19,10 @@ main() {
     Element table = new Element.tag('table');
 
     TableRowElement row = new Element.tag('tr');
-    table.nodes.add(row);
+    table.append(row);
 
-    row.nodes.add(new Element.tag('td'));
-    row.nodes.add(new Element.tag('td'));
+    row.append(new Element.tag('td'));
+    row.append(new Element.tag('td'));
 
     expect(row.cells.length, 2);
 

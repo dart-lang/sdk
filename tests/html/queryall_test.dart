@@ -17,7 +17,7 @@ main() {
 
   var div = new DivElement();
   div.id = 'test';
-  document.body.nodes.add(div);
+  document.body.append(div);
 
   div.nodes.addAll([
       new DivElement(),

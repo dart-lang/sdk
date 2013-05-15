@@ -28,7 +28,7 @@ main() {
 </div>
 <div id='emptyDiv'></div>
 """;
-    document.body.nodes.add(element);
+    document.body.append(element);
     return element;
   }
 

@@ -354,14 +354,14 @@ class HInstructionStringifier implements HVisitor<String> {
       => visitInvokeDynamic(node, "set");
 
   String visitInvokeStatic(HInvokeStatic invoke) {
-    String target = temporaryId(invoke.target);
+    String target = invoke.element.name.slowToString();
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
     return visitGenericInvoke("Invoke", target, arguments);
   }
 
   String visitInvokeSuper(HInvokeSuper invoke) {
-    String target = temporaryId(invoke.target);
+    String target = invoke.element.name.slowToString();
     int offset = HInvoke.ARGUMENTS_OFFSET + 1;
     List arguments = invoke.inputs.sublist(offset);
     return visitGenericInvoke("Invoke super", target, arguments);

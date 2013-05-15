@@ -24,6 +24,12 @@ indexeddb_3_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 indexeddb_4_test: Pass, Timeout, Slow # Issue: http://dartbug.com/9437
 async_test: Pass, Fail # timers test fails on ie10.
 
+[ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
+worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
+
+[ $compiler == dart2js && ( $runtime == ff ) ]
+worker_api_test: Fail # Requires Firefox 21.
+
 [ $compiler == dart2js && $runtime == safari ]
 url_test: Fail # Issue 10096
 
@@ -46,6 +52,7 @@ webgl_1_test: Pass, Fail # Issue 8219
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+worker_api_test: Fail # http://dartbug.com/10223
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
@@ -113,6 +120,7 @@ touchevent_test/supported: Fail
 webgl_1_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
+xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == ie9 ]
@@ -219,6 +227,7 @@ xhr_cross_origin_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail
 xhr_test/supported_onLoadEnd: Fail
 xhr_test/supported_onProgress: Fail
+xhr_test/supported_overrideMimeType: Fail
 xsltprocessor_test/supported: Fail
 
 [ $runtime == safari ]
@@ -370,3 +379,6 @@ js_interop_3_test: Skip            # Test cannot run under CSP restrictions (tim
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
 shadow_dom_layout_test: Fail, OK   # Test cannot run under CSP restrictions.
+
+[ $compiler == dartanalyzer ]
+path_observer_test: Fail

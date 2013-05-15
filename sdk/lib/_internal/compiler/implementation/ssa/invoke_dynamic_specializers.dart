@@ -21,7 +21,7 @@ class InvokeDynamicSpecializer {
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   Compiler compiler) {
-    return instruction.instructionType;
+    return HType.UNKNOWN;
   }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
@@ -164,7 +164,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     if (instruction.inputs[1].isPrimitive()) return HType.INTEGER;
-    return instruction.instructionType;
+    return HType.UNKNOWN;
   }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
@@ -200,7 +200,7 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
                                   Compiler compiler) {
     HType operandType = instruction.inputs[1].instructionType;
     if (operandType.isNumber()) return operandType;
-    return instruction.instructionType;
+    return HType.UNKNOWN;
   }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
@@ -223,7 +223,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
       return HType.NUMBER;
     }
-    return instruction.instructionType;
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
@@ -301,7 +301,7 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     if (left.isNumber()) return HType.DOUBLE;
-    return instruction.instructionType;
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredTypeForInput(HInstruction instruction,
@@ -381,7 +381,7 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     // integer or throw an error.
     HInstruction left = instruction.inputs[1];
     if (left.isPrimitive()) return HType.INTEGER;
-    return instruction.instructionType;
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
@@ -486,7 +486,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
     if (instruction.inputs[1].instructionType.isPrimitiveOrNull()) {
       return HType.BOOLEAN;
     }
-    return instruction.instructionType;
+    return HType.UNKNOWN;
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,

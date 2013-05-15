@@ -17,6 +17,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName;
 import 'dart:_foreign_helper' show JS;
+import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
 // https://code.google.com/p/dart/wiki/ContributingHTMLDocumentation
 // Auto-generated dart:audio library.
@@ -108,20 +109,36 @@ class SqlDatabase native "Database" {
 @DomName('SQLError')
 class SqlError native "SQLError" {
 
+  @DomName('SQLError.CONSTRAINT_ERR')
+  @DocsEditable
   static const int CONSTRAINT_ERR = 6;
 
+  @DomName('SQLError.DATABASE_ERR')
+  @DocsEditable
   static const int DATABASE_ERR = 1;
 
+  @DomName('SQLError.QUOTA_ERR')
+  @DocsEditable
   static const int QUOTA_ERR = 4;
 
+  @DomName('SQLError.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 5;
 
+  @DomName('SQLError.TIMEOUT_ERR')
+  @DocsEditable
   static const int TIMEOUT_ERR = 7;
 
+  @DomName('SQLError.TOO_LARGE_ERR')
+  @DocsEditable
   static const int TOO_LARGE_ERR = 3;
 
+  @DomName('SQLError.UNKNOWN_ERR')
+  @DocsEditable
   static const int UNKNOWN_ERR = 0;
 
+  @DomName('SQLError.VERSION_ERR')
+  @DocsEditable
   static const int VERSION_ERR = 2;
 
   @DomName('SQLError.code')
@@ -141,20 +158,36 @@ class SqlError native "SQLError" {
 @DomName('SQLException')
 class SqlException native "SQLException" {
 
+  @DomName('SQLException.CONSTRAINT_ERR')
+  @DocsEditable
   static const int CONSTRAINT_ERR = 6;
 
+  @DomName('SQLException.DATABASE_ERR')
+  @DocsEditable
   static const int DATABASE_ERR = 1;
 
+  @DomName('SQLException.QUOTA_ERR')
+  @DocsEditable
   static const int QUOTA_ERR = 4;
 
+  @DomName('SQLException.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 5;
 
+  @DomName('SQLException.TIMEOUT_ERR')
+  @DocsEditable
   static const int TIMEOUT_ERR = 7;
 
+  @DomName('SQLException.TOO_LARGE_ERR')
+  @DocsEditable
   static const int TOO_LARGE_ERR = 3;
 
+  @DomName('SQLException.UNKNOWN_ERR')
+  @DocsEditable
   static const int UNKNOWN_ERR = 0;
 
+  @DomName('SQLException.VERSION_ERR')
+  @DocsEditable
   static const int VERSION_ERR = 2;
 
   @DomName('SQLException.code')
@@ -193,14 +226,18 @@ class SqlResultSet native "SQLResultSet" {
 
 @DocsEditable
 @DomName('SQLResultSetRowList')
-class SqlResultSetRowList extends Object with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
+class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Map operator[](int index) => this.item(index);
-
+  Map operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return this.item(index);
+  }
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -212,6 +249,31 @@ class SqlResultSetRowList extends Object with ListMixin<Map>, ImmutableListMixin
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Map get first {
+    if (this.length > 0) {
+      return JS('Map', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Map get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Map', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Map get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Map', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Map elementAt(int index) => this[index];
   // -- end List<Map> mixins.
 
   @DomName('SQLResultSetRowList.item')

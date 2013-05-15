@@ -44,6 +44,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void InferSmiRanges();
 
+  void AnalyzeTryCatch();
+
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
 
@@ -87,6 +89,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
   bool TryInlineFloat32x4Method(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
+  bool TryInlineUint32x4Method(InstanceCallInstr* call,
+                               MethodRecognizer::Kind recognized_kind);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
 
@@ -140,6 +144,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool InlineFloat32x4Getter(InstanceCallInstr* call,
                              MethodRecognizer::Kind getter);
+  bool InlineUint32x4Getter(InstanceCallInstr* call,
+                            MethodRecognizer::Kind getter);
 
   void InlineImplicitInstanceGetter(InstanceCallInstr* call);
   void InlineArrayLengthGetter(InstanceCallInstr* call,
@@ -149,6 +155,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   void InlineGrowableArrayCapacityGetter(InstanceCallInstr* call);
   void InlineStringLengthGetter(InstanceCallInstr* call);
   void InlineStringIsEmptyGetter(InstanceCallInstr* call);
+  void InlineObjectCid(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type) const;
@@ -236,7 +243,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   static void OptimizeBranches(FlowGraph* graph);
 
   // Used to initialize the abstract value of definitions.
-  static RawObject* Unknown() { return Object::transition_sentinel().raw(); }
+  static RawObject* Unknown() { return Object::unknown_constant().raw(); }
 
  private:
   void Analyze();
@@ -343,6 +350,14 @@ class AllocationSinking : public ZoneAllocated {
   FlowGraph* flow_graph_;
 
   GrowableArray<MaterializeObjectInstr*> materializations_;
+};
+
+
+// Optimize spill stores inside try-blocks by identifying values that always
+// contain a single known constant at catch block entry.
+class TryCatchAnalyzer : public AllStatic {
+ public:
+  static void Optimize(FlowGraph* flow_graph);
 };
 
 }  // namespace dart

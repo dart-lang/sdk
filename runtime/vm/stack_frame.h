@@ -40,6 +40,15 @@ class StackFrame : public ValueObject {
     return *reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize));
   }
 
+  // The pool pointer is not implemented on all architectures.
+  static int SavedCallerPpSlotFromFp() {
+    if (kSavedCallerPpSlotFromFp != kSavedCallerFpSlotFromFp) {
+      return kSavedCallerPpSlotFromFp;
+    }
+    UNREACHABLE();
+    return 0;
+  }
+
   void set_pc(uword value) {
     *reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize)) = value;
   }

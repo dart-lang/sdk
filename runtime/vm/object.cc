@@ -71,6 +71,8 @@ cpp_vtable Smi::handle_vtable_ = 0;
 Array* Object::empty_array_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
+Instance* Object::unknown_constant_ = NULL;
+Instance* Object::non_constant_ = NULL;
 Bool* Object::bool_true_ = NULL;
 Bool* Object::bool_false_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
@@ -321,6 +323,8 @@ void Object::InitOnce() {
   empty_array_ = Array::ReadOnlyHandle(isolate);
   sentinel_ = Instance::ReadOnlyHandle(isolate);
   transition_sentinel_ = Instance::ReadOnlyHandle(isolate);
+  unknown_constant_ =  Instance::ReadOnlyHandle(isolate);
+  non_constant_ =  Instance::ReadOnlyHandle(isolate);
   bool_true_ = Bool::ReadOnlyHandle(isolate);
   bool_false_ = Bool::ReadOnlyHandle(isolate);
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle(isolate);
@@ -381,6 +385,14 @@ void Object::InitOnce() {
         Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
 
     *transition_sentinel_ ^=
+        Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
+  }
+
+  // Allocate and initialize optimizing compiler constants.
+  {
+    *unknown_constant_ ^=
+        Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
+    *non_constant_ ^=
         Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
   }
 
@@ -524,6 +536,10 @@ void Object::InitOnce() {
   ASSERT(sentinel_->IsInstance());
   ASSERT(!transition_sentinel_->IsSmi());
   ASSERT(transition_sentinel_->IsInstance());
+  ASSERT(!unknown_constant_->IsSmi());
+  ASSERT(unknown_constant_->IsInstance());
+  ASSERT(!non_constant_->IsSmi());
+  ASSERT(non_constant_->IsInstance());
   ASSERT(!bool_true_->IsSmi());
   ASSERT(bool_true_->IsBool());
   ASSERT(!bool_false_->IsSmi());
@@ -6541,7 +6557,7 @@ bool Library::IsKeyUsed(intptr_t key) {
 }
 
 
-static bool IsPrivate(const String& name) {
+bool Library::IsPrivate(const String& name) {
   if (ShouldBePrivate(name)) return true;
   // Factory names: List._fromLiteral.
   for (intptr_t i = 1; i < name.Length() - 1; i++) {
@@ -7081,6 +7097,7 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
     case PcDescriptors::kIcCall:        return "ic-call      ";
     case PcDescriptors::kFuncCall:      return "fn-call      ";
+    case PcDescriptors::kClosureCall:   return "closure-call ";
     case PcDescriptors::kReturn:        return "return       ";
     case PcDescriptors::kOther:         return "other        ";
   }
@@ -9177,6 +9194,10 @@ const char* Instance::ToCString() const {
     return "sentinel";
   } else if (raw() == Object::transition_sentinel().raw()) {
     return "transition_sentinel";
+  } else if (raw() == Object::unknown_constant().raw()) {
+    return "unknown_constant";
+  } else if (raw() == Object::non_constant().raw()) {
+    return "non_constant";
   } else if (Isolate::Current()->no_gc_scope_depth() > 0) {
     // Can occur when running disassembler.
     return "Instance";

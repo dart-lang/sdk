@@ -19,12 +19,8 @@ import '../test_pub.dart';
 
 void authorizePub(ScheduledProcess pub, ScheduledServer server,
     [String accessToken="access token"]) {
-  // TODO(rnystrom): The confirm line is run together with this one because
-  // in normal usage, the user will have entered a newline on stdin which
-  // gets echoed to the terminal. Do something better here?
-  expect(pub.nextLine(), completion(equals(
-      'Looks great! Are you ready to upload your package (y/n)? '
-      'Pub needs your authorization to upload packages on your behalf.')));
+  expect(pub.nextLine(), completion(equals('Pub needs your authorization to '
+      'upload packages on your behalf.')));
 
   expect(pub.nextLine().then((line) {
     var match = new RegExp(r'[?&]redirect_uri=([0-9a-zA-Z%+-]+)[$&]')

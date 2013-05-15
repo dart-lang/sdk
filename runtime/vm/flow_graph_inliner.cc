@@ -413,6 +413,13 @@ class CallSiteInliner : public ValueObject {
                              function.ToCString(),
                              function.deoptimization_counter()));
 
+    // TODO(fschneider): Enable inlining inside try-blocks.
+    if (call_data->call->GetBlock()->try_index() !=
+        CatchClauseNode::kInvalidTryIndex) {
+      TRACE_INLINING(OS::Print("     Bailout: inside try-block\n"));
+      return false;
+    }
+
     // Abort if the inlinable bit on the function is low.
     if (!function.IsInlineable()) {
       TRACE_INLINING(OS::Print("     Bailout: not inlinable\n"));

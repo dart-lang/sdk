@@ -848,6 +848,7 @@ abstract class Compiler implements DiagnosticListener {
     if (hasIsolateSupport()) {
       enqueuer.codegen.addToWorkList(
           isolateHelperLibrary.find(Compiler.START_ROOT_ISOLATE));
+      enqueuer.codegen.registerGetOfStaticFunction(mainApp.find(MAIN));
     }
     if (enabledNoSuchMethod) {
       enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, noSuchMethodSelector);
@@ -872,6 +873,8 @@ abstract class Compiler implements DiagnosticListener {
       ClassElement cls = element;
       cls.ensureResolved(this);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
+      enqueuer.resolution.registerInstantiatedClass(
+          element, globalDependencies);
     } else {
       enqueuer.resolution.addToWorkList(element);
     }
@@ -951,7 +954,7 @@ abstract class Compiler implements DiagnosticListener {
     Node tree = parser.parse(element);
     validator.validate(tree);
     elements = resolver.resolve(element);
-    if (elements != null) {
+    if (elements != null && !analyzeSignaturesOnly) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(tree, elements);
     }

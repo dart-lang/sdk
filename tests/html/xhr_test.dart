@@ -51,6 +51,12 @@ main() {
     });
   });
 
+  group('supported_overrideMimeType', () {
+    test('supported', () {
+      expect(HttpRequest.supportsOverrideMimeType, isTrue);
+    });
+  });
+
   group('xhr', () {
     test('XHR No file', () {
       HttpRequest xhr = new HttpRequest();
@@ -145,7 +151,8 @@ main() {
 
     test('XHR.request responseType arraybuffer', () {
       if (Platform.supportsTypedData) {
-        HttpRequest.request(url, responseType: 'arraybuffer').then(
+        HttpRequest.request(url, responseType: 'arraybuffer',
+          requestHeaders: {'Content-Type': 'text/xml'}).then(
           expectAsync1((xhr) {
             expect(xhr.status, equals(200));
             var byteBuffer = xhr.response;
@@ -161,6 +168,15 @@ main() {
       expect(() {
         var event = new Event.eventType('XMLHttpRequestProgressEvent', '');
         expect(event is HttpRequestProgressEvent, isTrue);
+      }, expectation);
+    });
+
+    test('overrideMimeType', () {
+      var expectation =
+          HttpRequest.supportsOverrideMimeType ? returnsNormally : throws;
+
+      expect(() {
+        HttpRequest.request(url, mimeType: 'application/binary');
       }, expectation);
     });
   });

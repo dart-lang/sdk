@@ -129,6 +129,37 @@ const char* VM_FLAGS[] = {
   // "--trace_compiler",
 };
 
+static void* openFileCallback(const char* name, bool write) {
+  return fopen(name, write ? "w" : "r");
+}
+
+static void readFileCallback(const uint8_t** data, intptr_t* fileLength,
+    void* stream) {
+  if (!stream) {
+    *data = 0;
+    *fileLength = 0;
+  } else {
+    FILE* file = reinterpret_cast<FILE*>(stream);
+
+    // Get the file size.
+    fseek(file, 0, SEEK_END);
+    *fileLength = ftell(file);
+    rewind(file);
+
+    // Allocate data buffer.
+    *data = new uint8_t[*fileLength];
+    *fileLength = fread(const_cast<uint8_t*>(*data), 1, *fileLength, file);
+  }
+}
+
+static void writeFileCallback(const void* data, intptr_t length, void* file) {
+  fwrite(data, 1, length, reinterpret_cast<FILE*>(file));
+}
+
+static void closeFileCallback(void* file) {
+  fclose(reinterpret_cast<FILE*>(file));
+}
+
 int VMGlue::InitializeVM() {
   // We need the next call to get Dart_Initialize not to bail early.
   LOGI("Setting VM Options");
@@ -138,13 +169,13 @@ int VMGlue::InitializeVM() {
   // creating and shutting down isolates.
   LOGI("Initializing Dart");
   if (!Dart_Initialize(CreateIsolateAndSetup,
-                       NULL,
-                       NULL,
-                       NULL,
-                       NULL,
-                       NULL,
-                       NULL,
-                       NULL)) {
+                       0,
+                       0,
+                       0,
+                       openFileCallback,
+                       readFileCallback,
+                       writeFileCallback,
+                       closeFileCallback)) {
     LOGE("VM initialization failed\n");
     return -1;
   }

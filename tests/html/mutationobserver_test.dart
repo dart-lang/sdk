@@ -67,8 +67,8 @@ main() {
             mutationCallback(2, orderedEquals([div1, div2])));
         mutationObserver.observe(container, childList: true);
 
-        container.nodes.add(div1);
-        container.nodes.add(div2);
+        container.append(div1);
+        container.append(div2);
       }, expectation);
     });
 
@@ -81,8 +81,8 @@ main() {
             new MutationObserver(mutationCallback(1, orderedEquals([div1])));
         mutationObserver.observe(container, childList: true);
 
-        container.nodes.add(div1);
-        div1.nodes.add(div2);
+        container.append(div1);
+        div1.append(div2);
       }, expectation);
     });
 
@@ -95,8 +95,8 @@ main() {
             mutationCallback(2, orderedEquals([div1, div2])));
         mutationObserver.observe(container, childList: true, subtree: true);
 
-        container.nodes.add(div1);
-        div1.nodes.add(div2);
+        container.append(div1);
+        div1.append(div2);
       }, expectation);
     });
 

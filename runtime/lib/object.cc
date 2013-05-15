@@ -15,6 +15,13 @@ namespace dart {
 DECLARE_FLAG(bool, enable_type_checks);
 
 
+DEFINE_NATIVE_ENTRY(Object_cid, 1) {
+  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Class& cls = Class::Handle(instance.clazz());
+  return Smi::New(cls.id());
+}
+
+
 DEFINE_NATIVE_ENTRY(Object_toString, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
   const char* c_str = instance.ToCString();

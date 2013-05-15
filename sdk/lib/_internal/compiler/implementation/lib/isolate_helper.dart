@@ -73,7 +73,7 @@ _IsolateContext _currentIsolate() => _globalState.currentContext;
  * call is not emitted.
  */
 void startRootIsolate(entry) {
-  _globalState = new _Manager();
+  _globalState = new _Manager(entry);
 
   // Don't start the main loop again, if we are in a worker.
   if (_globalState.isWorker) return;
@@ -188,7 +188,10 @@ class _Manager {
   /** Registry of active [_ManagerStub]s.  Only used in the main [_Manager]. */
   Map<int, _ManagerStub> managers;
 
-  _Manager() {
+  /** The entry point given by [startRootIsolate]. */
+  final Function entry;
+
+  _Manager(this.entry) {
     _nativeDetectEnvironment();
     topEventLoop = new _EventLoop();
     isolates = new Map<int, _IsolateContext>();
@@ -504,7 +507,10 @@ class IsolateNatives {
     switch (msg['command']) {
       case 'start':
         _globalState.currentManagerId = msg['id'];
-        Function entryPoint = _getJSFunctionFromName(msg['functionName']);
+        String functionName = msg['functionName'];
+        Function entryPoint = (functionName == null)
+            ? _globalState.entry
+            : _getJSFunctionFromName(functionName);
         var replyTo = _deserializeMessage(msg['replyTo']);
         var context = new _IsolateContext();
         _globalState.topEventLoop.enqueue(context, () {
@@ -668,7 +674,6 @@ class IsolateNatives {
    * name for the isolate entry point class.
    */
   static void _spawnWorker(functionName, uri, replyPort) {
-    if (functionName == null) functionName = 'main';
     if (uri == null) uri = thisScript;
     final worker = _newWorker(uri);
     worker.onmessage = JS('',

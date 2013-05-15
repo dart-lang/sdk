@@ -12,6 +12,8 @@ import 'dart:isolate';
 import 'dart:mirrors';
 import 'dart:uri';
 
+import 'package:pathos/path.dart' as path;
+
 /// A pair of values.
 class Pair<E, F> {
   E first;
@@ -211,6 +213,26 @@ Pair<Stream, Stream> tee(Stream stream) {
   return new Pair<Stream, Stream>(controller1.stream, controller2.stream);
 }
 
+/// Merges [stream1] and [stream2] into a single stream that emits events from
+/// both sources.
+Stream mergeStreams(Stream stream1, Stream stream2) {
+  var doneCount = 0;
+  var controller = new StreamController();
+
+  for (var stream in [stream1, stream2]) {
+    stream.listen((value) {
+      controller.add(value);
+    }, onError: (error) {
+      controller.addError(error);
+    }, onDone: () {
+      doneCount++;
+      if (doneCount == 2) controller.close();
+    });
+  }
+
+  return controller.stream;
+}
+
 /// A regular expression matching a trailing CR character.
 final _trailingCR = new RegExp(r"\r$");
 
@@ -384,6 +406,32 @@ String fileUriToPath(Uri uri) {
   }
 }
 
+/// Converts a local path string to a `file:` [Uri].
+Uri pathToFileUri(String pathString) {
+  pathString = path.absolute(pathString);
+  if (Platform.operatingSystem != 'windows') {
+    return Uri.parse('file://$pathString');
+  } else if (path.rootPrefix(pathString).startsWith('\\\\')) {
+    // Network paths become "file://hostname/path/to/file".
+    return Uri.parse('file:${pathString.replaceAll("\\", "/")}');
+  } else {
+    // Drive-letter paths become "file:///C:/path/to/file".
+    return Uri.parse('file:///${pathString.replaceAll("\\", "/")}');
+  }
+}
+
+/// Gets a "special" string (ANSI escape or Unicode). On Windows, returns
+/// something else since those aren't supported.
+String getSpecial(String color, [String onWindows = '']) {
+  // No ANSI escapes on windows or when running tests.
+  if (runningAsTest || Platform.operatingSystem == 'windows') return onWindows;
+  return color;
+}
+
+/// Whether pub is running as a subprocess in an integration test.
+bool get runningAsTest =>
+  Platform.environment.containsKey('_PUB_TESTING');
+
 /// Wraps [fn] to guard against several different kinds of stack overflow
 /// exceptions:
 ///
@@ -416,6 +464,8 @@ class ApplicationException implements Exception {
   final String message;
 
   ApplicationException(this.message);
+
+  String toString() => message;
 }
 
 /// Throw a [ApplicationException] with [message].

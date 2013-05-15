@@ -16,6 +16,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
+import 'dart:_interceptors' show Interceptor;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -250,16 +251,28 @@ class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicati
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.applicationCache)');
 
+  @DomName('DOMApplicationCache.CHECKING')
+  @DocsEditable
   static const int CHECKING = 2;
 
+  @DomName('DOMApplicationCache.DOWNLOADING')
+  @DocsEditable
   static const int DOWNLOADING = 3;
 
+  @DomName('DOMApplicationCache.IDLE')
+  @DocsEditable
   static const int IDLE = 1;
 
+  @DomName('DOMApplicationCache.OBSOLETE')
+  @DocsEditable
   static const int OBSOLETE = 5;
 
+  @DomName('DOMApplicationCache.UNCACHED')
+  @DocsEditable
   static const int UNCACHED = 0;
 
+  @DomName('DOMApplicationCache.UPDATEREADY')
+  @DocsEditable
   static const int UPDATEREADY = 4;
 
   @DomName('DOMApplicationCache.status')
@@ -2041,28 +2054,52 @@ class CssRegionRule extends CssRule native "WebKitCSSRegionRule" {
 @DomName('CSSRule')
 class CssRule native "CSSRule" {
 
+  @DomName('CSSRule.CHARSET_RULE')
+  @DocsEditable
   static const int CHARSET_RULE = 2;
 
+  @DomName('CSSRule.FONT_FACE_RULE')
+  @DocsEditable
   static const int FONT_FACE_RULE = 5;
 
+  @DomName('CSSRule.HOST_RULE')
+  @DocsEditable
   static const int HOST_RULE = 1001;
 
+  @DomName('CSSRule.IMPORT_RULE')
+  @DocsEditable
   static const int IMPORT_RULE = 3;
 
+  @DomName('CSSRule.MEDIA_RULE')
+  @DocsEditable
   static const int MEDIA_RULE = 4;
 
+  @DomName('CSSRule.PAGE_RULE')
+  @DocsEditable
   static const int PAGE_RULE = 6;
 
+  @DomName('CSSRule.STYLE_RULE')
+  @DocsEditable
   static const int STYLE_RULE = 1;
 
+  @DomName('CSSRule.UNKNOWN_RULE')
+  @DocsEditable
   static const int UNKNOWN_RULE = 0;
 
+  @DomName('CSSRule.WEBKIT_FILTER_RULE')
+  @DocsEditable
   static const int WEBKIT_FILTER_RULE = 17;
 
+  @DomName('CSSRule.WEBKIT_KEYFRAMES_RULE')
+  @DocsEditable
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
+  @DomName('CSSRule.WEBKIT_KEYFRAME_RULE')
+  @DocsEditable
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
+  @DomName('CSSRule.WEBKIT_REGION_RULE')
+  @DocsEditable
   static const int WEBKIT_REGION_RULE = 16;
 
   @DomName('CSSRule.cssText')
@@ -2136,9 +2173,13 @@ class CssStyleDeclaration native "CSSStyleDeclaration" {
     return propValue != null ? propValue : '';
   }
 
+  @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
     // try/catch for IE9 which throws on unsupported values.
     try {
+      if (priority == null) {
+        priority = '';
+      }
       JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
       // Bug #2772, IE9 requires a poke to actually apply the value.
       if (JS('bool', '!!#.setAttribute', this)) {
@@ -6824,14 +6865,18 @@ class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
 
 @DocsEditable
 @DomName('DOMStringList')
-class DomStringList extends Object with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "DOMStringList" {
+class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "DOMStringList" {
 
   @DomName('DOMStringList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  String operator[](int index) => JS("String", "#[#]", this, index);
-
+  String operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("String", "#[#]", this, index);
+  }
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -6843,6 +6888,31 @@ class DomStringList extends Object with ListMixin<String>, ImmutableListMixin<St
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  String get first {
+    if (this.length > 0) {
+      return JS('String', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  String get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('String', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('String', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
   @DomName('DOMStringList.contains')
@@ -7316,18 +7386,29 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   void onCreated() {}
 
   // Hooks to support custom WebComponents.
+
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+  Element _xtag;
+
   /**
    * Experimental support for [web components][wc]. This field stores a
    * reference to the component implementation. It was inspired by Mozilla's
    * [x-tags][] project. Please note: in the future it may be possible to
    * `extend Element` from your class, in which case this field will be
-   * deprecated and will simply return this [Element] object.
+   * deprecated.
+   *
+   * If xtag has not been set, it will simply return `this` [Element].
    *
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-  var xtag;
+  // Note: return type is `dynamic` for convenience to suppress warnings when
+  // members of the component are used. The actual type is a subtype of Element.
+  get xtag => _xtag != null ? _xtag : this;
+
+  void set xtag(Element value) {
+    _xtag = value;
+  }
 
   /**
    * Scrolls this element into view.
@@ -7551,24 +7632,24 @@ abstract class Element extends Node implements ElementTraversal native "Element"
       self._attributeBindings = new Map<String, StreamSubscription>();
     }
 
-    self.attributes.remove(name);
+    self.xtag.attributes.remove(name);
 
     var changed;
     if (name.endsWith('?')) {
       name = name.substring(0, name.length - 1);
 
       changed = (value) {
-        if (_templateBooleanConversion(value)) {
-          self.attributes[name] = '';
+        if (_Bindings._toBoolean(value)) {
+          self.xtag.attributes[name] = '';
         } else {
-          self.attributes.remove(name);
+          self.xtag.attributes.remove(name);
         }
       };
     } else {
       changed = (value) {
         // TODO(jmesserly): escape value if needed to protect against XSS.
-        // See https://github.com/toolkitchen/mdv/issues/58
-        self.attributes[name] = value == null ? '' : '$value';
+        // See https://github.com/polymer-project/mdv/issues/58
+        self.xtag.attributes[name] = value == null ? '' : '$value';
       };
     }
 
@@ -7691,8 +7772,8 @@ abstract class Element extends Node implements ElementTraversal native "Element"
     var template = ref;
     if (template == null) template = this;
 
-    var instance = _createDeepCloneAndDecorateTemplates(template.content,
-        attributes['syntax']);
+    var instance = _Bindings._createDeepCloneAndDecorateTemplates(
+        template.content, attributes['syntax']);
 
     if (TemplateElement._instanceCreated != null) {
       TemplateElement._instanceCreated.add(instance);
@@ -7718,7 +7799,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
 
     var syntax = TemplateElement.syntax[attributes['syntax']];
     _model = value;
-    _addBindings(this, model, syntax);
+    _Bindings._addBindings(this, model, syntax);
   }
 
   // TODO(jmesserly): const set would be better
@@ -8022,6 +8103,8 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   @DocsEditable
   void click() native;
 
+  @DomName('Element.ALLOW_KEYBOARD_INPUT')
+  @DocsEditable
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   @JSName('attributes')
@@ -8899,44 +8982,84 @@ class Event native "Event" {
     return e;
   }
 
+  @DomName('Event.AT_TARGET')
+  @DocsEditable
   static const int AT_TARGET = 2;
 
+  @DomName('Event.BLUR')
+  @DocsEditable
   static const int BLUR = 8192;
 
+  @DomName('Event.BUBBLING_PHASE')
+  @DocsEditable
   static const int BUBBLING_PHASE = 3;
 
+  @DomName('Event.CAPTURING_PHASE')
+  @DocsEditable
   static const int CAPTURING_PHASE = 1;
 
+  @DomName('Event.CHANGE')
+  @DocsEditable
   static const int CHANGE = 32768;
 
+  @DomName('Event.CLICK')
+  @DocsEditable
   static const int CLICK = 64;
 
+  @DomName('Event.DBLCLICK')
+  @DocsEditable
   static const int DBLCLICK = 128;
 
+  @DomName('Event.DRAGDROP')
+  @DocsEditable
   static const int DRAGDROP = 2048;
 
+  @DomName('Event.FOCUS')
+  @DocsEditable
   static const int FOCUS = 4096;
 
+  @DomName('Event.KEYDOWN')
+  @DocsEditable
   static const int KEYDOWN = 256;
 
+  @DomName('Event.KEYPRESS')
+  @DocsEditable
   static const int KEYPRESS = 1024;
 
+  @DomName('Event.KEYUP')
+  @DocsEditable
   static const int KEYUP = 512;
 
+  @DomName('Event.MOUSEDOWN')
+  @DocsEditable
   static const int MOUSEDOWN = 1;
 
+  @DomName('Event.MOUSEDRAG')
+  @DocsEditable
   static const int MOUSEDRAG = 32;
 
+  @DomName('Event.MOUSEMOVE')
+  @DocsEditable
   static const int MOUSEMOVE = 16;
 
+  @DomName('Event.MOUSEOUT')
+  @DocsEditable
   static const int MOUSEOUT = 8;
 
+  @DomName('Event.MOUSEOVER')
+  @DocsEditable
   static const int MOUSEOVER = 4;
 
+  @DomName('Event.MOUSEUP')
+  @DocsEditable
   static const int MOUSEUP = 2;
 
+  @DomName('Event.NONE')
+  @DocsEditable
   static const int NONE = 0;
 
+  @DomName('Event.SELECT')
+  @DocsEditable
   static const int SELECT = 16384;
 
   @DomName('Event.bubbles')
@@ -9017,8 +9140,12 @@ class Event native "Event" {
 @DomName('EventException')
 class EventException native "EventException" {
 
+  @DomName('EventException.DISPATCH_REQUEST_ERR')
+  @DocsEditable
   static const int DISPATCH_REQUEST_ERR = 1;
 
+  @DomName('EventException.UNSPECIFIED_EVENT_TYPE_ERR')
+  @DocsEditable
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
   @DomName('EventException.code')
@@ -9074,10 +9201,16 @@ class EventSource extends EventTarget native "EventSource" {
   static EventSource _create_1(url, eventSourceInit) => JS('EventSource', 'new EventSource(#,#)', url, eventSourceInit);
   static EventSource _create_2(url) => JS('EventSource', 'new EventSource(#)', url);
 
+  @DomName('EventSource.CLOSED')
+  @DocsEditable
   static const int CLOSED = 2;
 
+  @DomName('EventSource.CONNECTING')
+  @DocsEditable
   static const int CONNECTING = 0;
 
+  @DomName('EventSource.OPEN')
+  @DocsEditable
   static const int OPEN = 1;
 
   @DomName('EventSource.readyState')
@@ -9344,28 +9477,52 @@ class FileEntry extends Entry native "FileEntry" {
 @DomName('FileError')
 class FileError native "FileError" {
 
+  @DomName('FileError.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 3;
 
+  @DomName('FileError.ENCODING_ERR')
+  @DocsEditable
   static const int ENCODING_ERR = 5;
 
+  @DomName('FileError.INVALID_MODIFICATION_ERR')
+  @DocsEditable
   static const int INVALID_MODIFICATION_ERR = 9;
 
+  @DomName('FileError.INVALID_STATE_ERR')
+  @DocsEditable
   static const int INVALID_STATE_ERR = 7;
 
+  @DomName('FileError.NOT_FOUND_ERR')
+  @DocsEditable
   static const int NOT_FOUND_ERR = 1;
 
+  @DomName('FileError.NOT_READABLE_ERR')
+  @DocsEditable
   static const int NOT_READABLE_ERR = 4;
 
+  @DomName('FileError.NO_MODIFICATION_ALLOWED_ERR')
+  @DocsEditable
   static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
+  @DomName('FileError.PATH_EXISTS_ERR')
+  @DocsEditable
   static const int PATH_EXISTS_ERR = 12;
 
+  @DomName('FileError.QUOTA_EXCEEDED_ERR')
+  @DocsEditable
   static const int QUOTA_EXCEEDED_ERR = 10;
 
+  @DomName('FileError.SECURITY_ERR')
+  @DocsEditable
   static const int SECURITY_ERR = 2;
 
+  @DomName('FileError.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 8;
 
+  @DomName('FileError.TYPE_MISMATCH_ERR')
+  @DocsEditable
   static const int TYPE_MISMATCH_ERR = 11;
 
   @DomName('FileError.code')
@@ -9381,28 +9538,52 @@ class FileError native "FileError" {
 @DomName('FileException')
 class FileException native "FileException" {
 
+  @DomName('FileException.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 3;
 
+  @DomName('FileException.ENCODING_ERR')
+  @DocsEditable
   static const int ENCODING_ERR = 5;
 
+  @DomName('FileException.INVALID_MODIFICATION_ERR')
+  @DocsEditable
   static const int INVALID_MODIFICATION_ERR = 9;
 
+  @DomName('FileException.INVALID_STATE_ERR')
+  @DocsEditable
   static const int INVALID_STATE_ERR = 7;
 
+  @DomName('FileException.NOT_FOUND_ERR')
+  @DocsEditable
   static const int NOT_FOUND_ERR = 1;
 
+  @DomName('FileException.NOT_READABLE_ERR')
+  @DocsEditable
   static const int NOT_READABLE_ERR = 4;
 
+  @DomName('FileException.NO_MODIFICATION_ALLOWED_ERR')
+  @DocsEditable
   static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
+  @DomName('FileException.PATH_EXISTS_ERR')
+  @DocsEditable
   static const int PATH_EXISTS_ERR = 12;
 
+  @DomName('FileException.QUOTA_EXCEEDED_ERR')
+  @DocsEditable
   static const int QUOTA_EXCEEDED_ERR = 10;
 
+  @DomName('FileException.SECURITY_ERR')
+  @DocsEditable
   static const int SECURITY_ERR = 2;
 
+  @DomName('FileException.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 8;
 
+  @DomName('FileException.TYPE_MISMATCH_ERR')
+  @DocsEditable
   static const int TYPE_MISMATCH_ERR = 11;
 
   @DomName('FileException.code')
@@ -9428,14 +9609,18 @@ class FileException native "FileException" {
 
 @DocsEditable
 @DomName('FileList')
-class FileList extends Object with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> native "FileList" {
+class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> native "FileList" {
 
   @DomName('FileList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  File operator[](int index) => JS("File", "#[#]", this, index);
-
+  File operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("File", "#[#]", this, index);
+  }
   void operator[]=(int index, File value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -9447,6 +9632,31 @@ class FileList extends Object with ListMixin<File>, ImmutableListMixin<File> imp
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  File get first {
+    if (this.length > 0) {
+      return JS('File', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  File get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('File', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  File get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('File', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  File elementAt(int index) => this[index];
   // -- end List<File> mixins.
 
   @DomName('FileList.item')
@@ -9493,10 +9703,16 @@ class FileReader extends EventTarget native "FileReader" {
   }
   static FileReader _create_1() => JS('FileReader', 'new FileReader()');
 
+  @DomName('FileReader.DONE')
+  @DocsEditable
   static const int DONE = 2;
 
+  @DomName('FileReader.EMPTY')
+  @DocsEditable
   static const int EMPTY = 0;
 
+  @DomName('FileReader.LOADING')
+  @DocsEditable
   static const int LOADING = 1;
 
   @DomName('FileReader.error')
@@ -9634,10 +9850,16 @@ class FileWriter extends EventTarget native "FileWriter" {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
+  @DomName('FileWriter.DONE')
+  @DocsEditable
   static const int DONE = 2;
 
+  @DomName('FileWriter.INIT')
+  @DocsEditable
   static const int INIT = 0;
 
+  @DomName('FileWriter.WRITING')
+  @DocsEditable
   static const int WRITING = 1;
 
   @DomName('FileWriter.error')
@@ -10225,14 +10447,18 @@ class History implements HistoryBase native "History" {
 
 @DocsEditable
 @DomName('HTMLAllCollection')
-class HtmlAllCollection extends Object with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLAllCollection" {
+class HtmlAllCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLAllCollection" {
 
   @DomName('HTMLAllCollection.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
+  Node operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Node", "#[#]", this, index);
+  }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -10244,6 +10470,31 @@ class HtmlAllCollection extends Object with ListMixin<Node>, ImmutableListMixin<
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return JS('Node', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Node', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Node', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('HTMLAllCollection.item')
@@ -10267,14 +10518,18 @@ class HtmlAllCollection extends Object with ListMixin<Node>, ImmutableListMixin<
 
 @DocsEditable
 @DomName('HTMLCollection')
-class HtmlCollection extends Object with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLCollection" {
+class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLCollection" {
 
   @DomName('HTMLCollection.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
+  Node operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Node", "#[#]", this, index);
+  }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -10286,6 +10541,31 @@ class HtmlCollection extends Object with ListMixin<Node>, ImmutableListMixin<Nod
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return JS('Node', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Node', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Node', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('HTMLCollection.item')
@@ -10574,7 +10854,8 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
-      {String method, bool withCredentials, String responseType, sendData,
+      {String method, bool withCredentials, String responseType,
+      String mimeType, Map<String, String> requestHeaders, sendData,
       void onProgress(ProgressEvent e)}) {
     var completer = new Completer<HttpRequest>();
 
@@ -10590,6 +10871,16 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
 
     if (responseType != null) {
       xhr.responseType = responseType;
+    }
+
+    if (mimeType != null) {
+      xhr.overrideMimeType(mimeType);
+    }
+
+    if (requestHeaders != null) {
+      requestHeaders.forEach((header, value) {
+        xhr.setRequestHeader(header, value);
+      });
     }
 
     if (onProgress != null) {
@@ -10647,6 +10938,15 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
     return JS('bool', '("onloadend" in #)', xhr);
   }
 
+  /**
+   * Checks to see if the overrideMimeType method is supported on the current
+   * platform.
+   */
+  static bool get supportsOverrideMimeType {
+    var xhr = new HttpRequest();
+    return JS('bool', '("overrideMimeType" in #)', xhr);
+  }
+
 
   @DomName('XMLHttpRequest.abortEvent')
   @DocsEditable
@@ -10697,14 +10997,24 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
   }
   static HttpRequest _create_1() => JS('HttpRequest', 'new XMLHttpRequest()');
 
+  @DomName('XMLHttpRequest.DONE')
+  @DocsEditable
   static const int DONE = 4;
 
+  @DomName('XMLHttpRequest.HEADERS_RECEIVED')
+  @DocsEditable
   static const int HEADERS_RECEIVED = 2;
 
+  @DomName('XMLHttpRequest.LOADING')
+  @DocsEditable
   static const int LOADING = 3;
 
+  @DomName('XMLHttpRequest.OPENED')
+  @DocsEditable
   static const int OPENED = 1;
 
+  @DomName('XMLHttpRequest.UNSENT')
+  @DocsEditable
   static const int UNSENT = 0;
 
   /**
@@ -10893,6 +11203,9 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
    */
   @DomName('XMLHttpRequest.overrideMimeType')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void overrideMimeType(String override) native;
 
   @JSName('removeEventListener')
@@ -10993,8 +11306,12 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
 @DomName('XMLHttpRequestException')
 class HttpRequestException native "XMLHttpRequestException" {
 
+  @DomName('XMLHttpRequestException.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 102;
 
+  @DomName('XMLHttpRequestException.NETWORK_ERR')
+  @DocsEditable
   static const int NETWORK_ERR = 101;
 
   @DomName('XMLHttpRequestException.code')
@@ -12751,22 +13068,40 @@ class MediaElement extends Element native "HTMLMediaElement" {
   @Experimental
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
+  @DomName('HTMLMediaElement.HAVE_CURRENT_DATA')
+  @DocsEditable
   static const int HAVE_CURRENT_DATA = 2;
 
+  @DomName('HTMLMediaElement.HAVE_ENOUGH_DATA')
+  @DocsEditable
   static const int HAVE_ENOUGH_DATA = 4;
 
+  @DomName('HTMLMediaElement.HAVE_FUTURE_DATA')
+  @DocsEditable
   static const int HAVE_FUTURE_DATA = 3;
 
+  @DomName('HTMLMediaElement.HAVE_METADATA')
+  @DocsEditable
   static const int HAVE_METADATA = 1;
 
+  @DomName('HTMLMediaElement.HAVE_NOTHING')
+  @DocsEditable
   static const int HAVE_NOTHING = 0;
 
+  @DomName('HTMLMediaElement.NETWORK_EMPTY')
+  @DocsEditable
   static const int NETWORK_EMPTY = 0;
 
+  @DomName('HTMLMediaElement.NETWORK_IDLE')
+  @DocsEditable
   static const int NETWORK_IDLE = 1;
 
+  @DomName('HTMLMediaElement.NETWORK_LOADING')
+  @DocsEditable
   static const int NETWORK_LOADING = 2;
 
+  @DomName('HTMLMediaElement.NETWORK_NO_SOURCE')
+  @DocsEditable
   static const int NETWORK_NO_SOURCE = 3;
 
   @DomName('HTMLMediaElement.autoplay')
@@ -13070,14 +13405,24 @@ class MediaElement extends Element native "HTMLMediaElement" {
 @DomName('MediaError')
 class MediaError native "MediaError" {
 
+  @DomName('MediaError.MEDIA_ERR_ABORTED')
+  @DocsEditable
   static const int MEDIA_ERR_ABORTED = 1;
 
+  @DomName('MediaError.MEDIA_ERR_DECODE')
+  @DocsEditable
   static const int MEDIA_ERR_DECODE = 3;
 
+  @DomName('MediaError.MEDIA_ERR_ENCRYPTED')
+  @DocsEditable
   static const int MEDIA_ERR_ENCRYPTED = 5;
 
+  @DomName('MediaError.MEDIA_ERR_NETWORK')
+  @DocsEditable
   static const int MEDIA_ERR_NETWORK = 2;
 
+  @DomName('MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED')
+  @DocsEditable
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   @DomName('MediaError.code')
@@ -13093,16 +13438,28 @@ class MediaError native "MediaError" {
 @DomName('MediaKeyError')
 class MediaKeyError native "MediaKeyError" {
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_CLIENT')
+  @DocsEditable
   static const int MEDIA_KEYERR_CLIENT = 2;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_DOMAIN')
+  @DocsEditable
   static const int MEDIA_KEYERR_DOMAIN = 6;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_HARDWARECHANGE')
+  @DocsEditable
   static const int MEDIA_KEYERR_HARDWARECHANGE = 5;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_OUTPUT')
+  @DocsEditable
   static const int MEDIA_KEYERR_OUTPUT = 4;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_SERVICE')
+  @DocsEditable
   static const int MEDIA_KEYERR_SERVICE = 3;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_UNKNOWN')
+  @DocsEditable
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   @DomName('MediaKeyError.code')
@@ -13806,14 +14163,18 @@ class MimeType native "MimeType" {
 
 @DocsEditable
 @DomName('MimeTypeArray')
-class MimeTypeArray extends Object with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
+class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
 
   @DomName('MimeTypeArray.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  MimeType operator[](int index) => JS("MimeType", "#[#]", this, index);
-
+  MimeType operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("MimeType", "#[#]", this, index);
+  }
   void operator[]=(int index, MimeType value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -13825,6 +14186,31 @@ class MimeTypeArray extends Object with ListMixin<MimeType>, ImmutableListMixin<
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  MimeType get first {
+    if (this.length > 0) {
+      return JS('MimeType', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  MimeType get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('MimeType', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  MimeType get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('MimeType', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  MimeType elementAt(int index) => this[index];
   // -- end List<MimeType> mixins.
 
   @DomName('MimeTypeArray.item')
@@ -14045,10 +14431,16 @@ class MutationEvent extends Event native "MutationEvent" {
     return event;
   }
 
+  @DomName('MutationEvent.ADDITION')
+  @DocsEditable
   static const int ADDITION = 2;
 
+  @DomName('MutationEvent.MODIFICATION')
+  @DocsEditable
   static const int MODIFICATION = 1;
 
+  @DomName('MutationEvent.REMOVAL')
+  @DocsEditable
   static const int REMOVAL = 3;
 
   @DomName('MutationEvent.attrChange')
@@ -14496,6 +14888,8 @@ class Navigator native "Navigator" {
 @DomName('NavigatorUserMediaError')
 class NavigatorUserMediaError native "NavigatorUserMediaError" {
 
+  @DomName('NavigatorUserMediaError.PERMISSION_DENIED')
+  @DocsEditable
   static const int PERMISSION_DENIED = 1;
 
   @DomName('NavigatorUserMediaError.code')
@@ -14780,28 +15174,52 @@ class Node extends EventTarget native "Node" {
       (parent != null ? parent.templateInstance : null);
 
 
+  @DomName('Node.ATTRIBUTE_NODE')
+  @DocsEditable
   static const int ATTRIBUTE_NODE = 2;
 
+  @DomName('Node.CDATA_SECTION_NODE')
+  @DocsEditable
   static const int CDATA_SECTION_NODE = 4;
 
+  @DomName('Node.COMMENT_NODE')
+  @DocsEditable
   static const int COMMENT_NODE = 8;
 
+  @DomName('Node.DOCUMENT_FRAGMENT_NODE')
+  @DocsEditable
   static const int DOCUMENT_FRAGMENT_NODE = 11;
 
+  @DomName('Node.DOCUMENT_NODE')
+  @DocsEditable
   static const int DOCUMENT_NODE = 9;
 
+  @DomName('Node.DOCUMENT_TYPE_NODE')
+  @DocsEditable
   static const int DOCUMENT_TYPE_NODE = 10;
 
+  @DomName('Node.ELEMENT_NODE')
+  @DocsEditable
   static const int ELEMENT_NODE = 1;
 
+  @DomName('Node.ENTITY_NODE')
+  @DocsEditable
   static const int ENTITY_NODE = 6;
 
+  @DomName('Node.ENTITY_REFERENCE_NODE')
+  @DocsEditable
   static const int ENTITY_REFERENCE_NODE = 5;
 
+  @DomName('Node.NOTATION_NODE')
+  @DocsEditable
   static const int NOTATION_NODE = 12;
 
+  @DomName('Node.PROCESSING_INSTRUCTION_NODE')
+  @DocsEditable
   static const int PROCESSING_INSTRUCTION_NODE = 7;
 
+  @DomName('Node.TEXT_NODE')
+  @DocsEditable
   static const int TEXT_NODE = 3;
 
   @JSName('childNodes')
@@ -14873,6 +15291,15 @@ class Node extends EventTarget native "Node" {
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @JSName('appendChild')
+  /**
+   * Adds a node to the end of the child [nodes] list of this node.
+   *
+   * If the node already exists in this document, it will be removed from its
+   * current parent node, then added to this node.
+   *
+   * This method is more efficient than `nodes.add`, and is the preferred
+   * way of appending a child node.
+   */
   @DomName('Node.appendChild')
   @DocsEditable
   Node append(Node newChild) native;
@@ -14923,36 +15350,68 @@ class Node extends EventTarget native "Node" {
 @DomName('NodeFilter')
 class NodeFilter native "NodeFilter" {
 
+  @DomName('NodeFilter.FILTER_ACCEPT')
+  @DocsEditable
   static const int FILTER_ACCEPT = 1;
 
+  @DomName('NodeFilter.FILTER_REJECT')
+  @DocsEditable
   static const int FILTER_REJECT = 2;
 
+  @DomName('NodeFilter.FILTER_SKIP')
+  @DocsEditable
   static const int FILTER_SKIP = 3;
 
+  @DomName('NodeFilter.SHOW_ALL')
+  @DocsEditable
   static const int SHOW_ALL = 0xFFFFFFFF;
 
+  @DomName('NodeFilter.SHOW_ATTRIBUTE')
+  @DocsEditable
   static const int SHOW_ATTRIBUTE = 0x00000002;
 
+  @DomName('NodeFilter.SHOW_CDATA_SECTION')
+  @DocsEditable
   static const int SHOW_CDATA_SECTION = 0x00000008;
 
+  @DomName('NodeFilter.SHOW_COMMENT')
+  @DocsEditable
   static const int SHOW_COMMENT = 0x00000080;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT')
+  @DocsEditable
   static const int SHOW_DOCUMENT = 0x00000100;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT_FRAGMENT')
+  @DocsEditable
   static const int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT_TYPE')
+  @DocsEditable
   static const int SHOW_DOCUMENT_TYPE = 0x00000200;
 
+  @DomName('NodeFilter.SHOW_ELEMENT')
+  @DocsEditable
   static const int SHOW_ELEMENT = 0x00000001;
 
+  @DomName('NodeFilter.SHOW_ENTITY')
+  @DocsEditable
   static const int SHOW_ENTITY = 0x00000020;
 
+  @DomName('NodeFilter.SHOW_ENTITY_REFERENCE')
+  @DocsEditable
   static const int SHOW_ENTITY_REFERENCE = 0x00000010;
 
+  @DomName('NodeFilter.SHOW_NOTATION')
+  @DocsEditable
   static const int SHOW_NOTATION = 0x00000800;
 
+  @DomName('NodeFilter.SHOW_PROCESSING_INSTRUCTION')
+  @DocsEditable
   static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
 
+  @DomName('NodeFilter.SHOW_TEXT')
+  @DocsEditable
   static const int SHOW_TEXT = 0x00000004;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -15002,14 +15461,18 @@ class NodeIterator native "NodeIterator" {
 
 @DocsEditable
 @DomName('NodeList')
-class NodeList extends Object with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NodeList,RadioNodeList" {
+class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NodeList,RadioNodeList" {
 
   @DomName('NodeList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
+  Node operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Node", "#[#]", this, index);
+  }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -15021,6 +15484,31 @@ class NodeList extends Object with ListMixin<Node>, ImmutableListMixin<Node> imp
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return JS('Node', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Node', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Node', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @JSName('item')
@@ -15481,10 +15969,16 @@ class OutputElement extends Element native "HTMLOutputElement" {
 @DomName('OverflowEvent')
 class OverflowEvent extends Event native "OverflowEvent" {
 
+  @DomName('OverflowEvent.BOTH')
+  @DocsEditable
   static const int BOTH = 2;
 
+  @DomName('OverflowEvent.HORIZONTAL')
+  @DocsEditable
   static const int HORIZONTAL = 0;
 
+  @DomName('OverflowEvent.VERTICAL')
+  @DocsEditable
   static const int VERTICAL = 1;
 
   @DomName('OverflowEvent.horizontalOverflow')
@@ -15777,12 +16271,20 @@ class PerformanceMeasure extends PerformanceEntry native "PerformanceMeasure" {
 @DomName('PerformanceNavigation')
 class PerformanceNavigation native "PerformanceNavigation" {
 
+  @DomName('PerformanceNavigation.TYPE_BACK_FORWARD')
+  @DocsEditable
   static const int TYPE_BACK_FORWARD = 2;
 
+  @DomName('PerformanceNavigation.TYPE_NAVIGATE')
+  @DocsEditable
   static const int TYPE_NAVIGATE = 0;
 
+  @DomName('PerformanceNavigation.TYPE_RELOAD')
+  @DocsEditable
   static const int TYPE_RELOAD = 1;
 
+  @DomName('PerformanceNavigation.TYPE_RESERVED')
+  @DocsEditable
   static const int TYPE_RESERVED = 255;
 
   @DomName('PerformanceNavigation.redirectCount')
@@ -15983,14 +16485,18 @@ class Plugin native "Plugin" {
 
 @DocsEditable
 @DomName('PluginArray')
-class PluginArray extends Object with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
+class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
 
   @DomName('PluginArray.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Plugin operator[](int index) => JS("Plugin", "#[#]", this, index);
-
+  Plugin operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Plugin", "#[#]", this, index);
+  }
   void operator[]=(int index, Plugin value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -16002,6 +16508,31 @@ class PluginArray extends Object with ListMixin<Plugin>, ImmutableListMixin<Plug
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Plugin get first {
+    if (this.length > 0) {
+      return JS('Plugin', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Plugin get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Plugin', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Plugin get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Plugin', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Plugin elementAt(int index) => this[index];
   // -- end List<Plugin> mixins.
 
   @DomName('PluginArray.item')
@@ -16054,10 +16585,16 @@ typedef void _PositionCallback(Geoposition position);
 @DomName('PositionError')
 class PositionError native "PositionError" {
 
+  @DomName('PositionError.PERMISSION_DENIED')
+  @DocsEditable
   static const int PERMISSION_DENIED = 1;
 
+  @DomName('PositionError.POSITION_UNAVAILABLE')
+  @DocsEditable
   static const int POSITION_UNAVAILABLE = 2;
 
+  @DomName('PositionError.TIMEOUT')
+  @DocsEditable
   static const int TIMEOUT = 3;
 
   @DomName('PositionError.code')
@@ -16222,20 +16759,36 @@ class Range native "Range" {
   factory Range() => document.$dom_createRange();
 
 
+  @DomName('Range.END_TO_END')
+  @DocsEditable
   static const int END_TO_END = 2;
 
+  @DomName('Range.END_TO_START')
+  @DocsEditable
   static const int END_TO_START = 3;
 
+  @DomName('Range.NODE_AFTER')
+  @DocsEditable
   static const int NODE_AFTER = 1;
 
+  @DomName('Range.NODE_BEFORE')
+  @DocsEditable
   static const int NODE_BEFORE = 0;
 
+  @DomName('Range.NODE_BEFORE_AND_AFTER')
+  @DocsEditable
   static const int NODE_BEFORE_AND_AFTER = 2;
 
+  @DomName('Range.NODE_INSIDE')
+  @DocsEditable
   static const int NODE_INSIDE = 3;
 
+  @DomName('Range.START_TO_END')
+  @DocsEditable
   static const int START_TO_END = 1;
 
+  @DomName('Range.START_TO_START')
+  @DocsEditable
   static const int START_TO_START = 0;
 
   @DomName('Range.collapsed')
@@ -16384,8 +16937,12 @@ class Range native "Range" {
 @DomName('RangeException')
 class RangeException native "RangeException" {
 
+  @DomName('RangeException.BAD_BOUNDARYPOINTS_ERR')
+  @DocsEditable
   static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
+  @DomName('RangeException.INVALID_NODE_TYPE_ERR')
+  @DocsEditable
   static const int INVALID_NODE_TYPE_ERR = 2;
 
   @DomName('RangeException.code')
@@ -17644,8 +18201,12 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  SourceBuffer operator[](int index) => JS("SourceBuffer", "#[#]", this, index);
-
+  SourceBuffer operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("SourceBuffer", "#[#]", this, index);
+  }
   void operator[]=(int index, SourceBuffer value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -17657,6 +18218,31 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SourceBuffer get first {
+    if (this.length > 0) {
+      return JS('SourceBuffer', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('SourceBuffer', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('SourceBuffer', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SourceBuffer elementAt(int index) => this[index];
   // -- end List<SourceBuffer> mixins.
 
   @JSName('addEventListener')
@@ -17746,7 +18332,7 @@ class SpeechGrammar native "SpeechGrammar" {
 
 @DocsEditable
 @DomName('SpeechGrammarList')
-class SpeechGrammarList extends Object with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "SpeechGrammarList" {
+class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "SpeechGrammarList" {
 
   @DomName('SpeechGrammarList.SpeechGrammarList')
   @DocsEditable
@@ -17759,8 +18345,12 @@ class SpeechGrammarList extends Object with ListMixin<SpeechGrammar>, ImmutableL
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  SpeechGrammar operator[](int index) => JS("SpeechGrammar", "#[#]", this, index);
-
+  SpeechGrammar operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("SpeechGrammar", "#[#]", this, index);
+  }
   void operator[]=(int index, SpeechGrammar value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -17772,6 +18362,31 @@ class SpeechGrammarList extends Object with ListMixin<SpeechGrammar>, ImmutableL
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechGrammar get first {
+    if (this.length > 0) {
+      return JS('SpeechGrammar', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('SpeechGrammar', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('SpeechGrammar', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
   @DomName('SpeechGrammarList.addFromString')
@@ -18233,8 +18848,12 @@ class StorageEvent extends Event native "StorageEvent" {
 @DomName('StorageInfo')
 class StorageInfo native "StorageInfo" {
 
+  @DomName('StorageInfo.PERSISTENT')
+  @DocsEditable
   static const int PERSISTENT = 1;
 
+  @DomName('StorageInfo.TEMPORARY')
+  @DocsEditable
   static const int TEMPORARY = 0;
 
   @JSName('queryUsageAndQuota')
@@ -18723,7 +19342,7 @@ class TemplateElement extends Element native "HTMLTemplateElement" {
 
     // Create content
     if (template is! TemplateElement) {
-      var doc = _getTemplateContentsOwner(template.document);
+      var doc = _Bindings._getTemplateContentsOwner(template.document);
       template._templateContent = doc.createDocumentFragment();
     }
 
@@ -18733,9 +19352,9 @@ class TemplateElement extends Element native "HTMLTemplateElement" {
     }
 
     if (template is TemplateElement) {
-      _bootstrapTemplatesRecursivelyFrom(template.content);
+      bootstrap(template.content);
     } else {
-      _liftNonNativeTemplateChildrenIntoContent(template);
+      _Bindings._liftNonNativeChildrenIntoContent(template);
     }
 
     return true;
@@ -18751,7 +19370,23 @@ class TemplateElement extends Element native "HTMLTemplateElement" {
   // TODO(rafaelw): Review whether this is the right public API.
   @Experimental
   static void bootstrap(Node content) {
-    _bootstrapTemplatesRecursivelyFrom(content);
+    _Bindings._bootstrapTemplatesRecursivelyFrom(content);
+  }
+
+  /**
+   * Binds all mustaches recursively starting from the [root] node.
+   *
+   * Note: this is not an official Model-Driven-Views API; it is intended to
+   * support binding the [ShadowRoot]'s content to a model.
+   */
+  // TODO(jmesserly): this is needed to avoid two <template> nodes when using
+  // bindings in a custom element's template. See also:
+  // https://github.com/polymer-project/polymer/blob/master/src/bindMDV.js#L68
+  // Called from:
+  // https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
+  @Experimental
+  static void bindModel(Node root, model, [CustomBindingSyntax syntax]) {
+    _Bindings._addBindings(root, model, syntax);
   }
 
   static bool _initStyles;
@@ -19191,14 +19826,18 @@ class TextTrackCue extends EventTarget native "TextTrackCue" {
 
 @DocsEditable
 @DomName('TextTrackCueList')
-class TextTrackCueList extends Object with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior native "TextTrackCueList" {
+class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior native "TextTrackCueList" {
 
   @DomName('TextTrackCueList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  TextTrackCue operator[](int index) => JS("TextTrackCue", "#[#]", this, index);
-
+  TextTrackCue operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("TextTrackCue", "#[#]", this, index);
+  }
   void operator[]=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -19210,6 +19849,31 @@ class TextTrackCueList extends Object with ListMixin<TextTrackCue>, ImmutableLis
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  TextTrackCue get first {
+    if (this.length > 0) {
+      return JS('TextTrackCue', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('TextTrackCue', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('TextTrackCue', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrackCue elementAt(int index) => this[index];
   // -- end List<TextTrackCue> mixins.
 
   @DomName('TextTrackCueList.getCueById')
@@ -19237,8 +19901,12 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  TextTrack operator[](int index) => JS("TextTrack", "#[#]", this, index);
-
+  TextTrack operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("TextTrack", "#[#]", this, index);
+  }
   void operator[]=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -19250,6 +19918,31 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  TextTrack get first {
+    if (this.length > 0) {
+      return JS('TextTrack', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrack get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('TextTrack', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrack get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('TextTrack', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrack elementAt(int index) => this[index];
   // -- end List<TextTrack> mixins.
 
   @JSName('addEventListener')
@@ -19490,7 +20183,7 @@ class TouchEvent extends UIEvent native "TouchEvent" {
 
 
 @DomName('TouchList')
-class TouchList extends Object with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> native "TouchList" {
+class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> native "TouchList" {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -19503,8 +20196,12 @@ class TouchList extends Object with ListMixin<Touch>, ImmutableListMixin<Touch> 
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Touch operator[](int index) => JS("Touch", "#[#]", this, index);
-
+  Touch operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Touch", "#[#]", this, index);
+  }
   void operator[]=(int index, Touch value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -19516,6 +20213,31 @@ class TouchList extends Object with ListMixin<Touch>, ImmutableListMixin<Touch> 
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Touch get first {
+    if (this.length > 0) {
+      return JS('Touch', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Touch get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Touch', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Touch get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Touch', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Touch elementAt(int index) => this[index];
   // -- end List<Touch> mixins.
 
   @DomName('TouchList.item')
@@ -19542,12 +20264,20 @@ class TrackElement extends Element native "HTMLTrackElement" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('track');
 
+  @DomName('HTMLTrackElement.ERROR')
+  @DocsEditable
   static const int ERROR = 3;
 
+  @DomName('HTMLTrackElement.LOADED')
+  @DocsEditable
   static const int LOADED = 2;
 
+  @DomName('HTMLTrackElement.LOADING')
+  @DocsEditable
   static const int LOADING = 1;
 
+  @DomName('HTMLTrackElement.NONE')
+  @DocsEditable
   static const int NONE = 0;
 
   @JSName('default')
@@ -19801,12 +20531,12 @@ class Url native "URL" {
 
   static String createObjectUrl(blob_OR_source_OR_stream) =>
       JS('String',
-         '(window.URL || window.webkitURL).createObjectURL(#)',
+         '(self.URL || self.webkitURL).createObjectURL(#)',
          blob_OR_source_OR_stream);
 
   static void revokeObjectUrl(String objectUrl) =>
       JS('void',
-         '(window.URL || window.webkitURL).revokeObjectURL(#)', objectUrl);
+         '(self.URL || self.webkitURL).revokeObjectURL(#)', objectUrl);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20047,12 +20777,20 @@ class WebSocket extends EventTarget native "WebSocket" {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.WebSocket != "undefined"');
 
+  @DomName('WebSocket.CLOSED')
+  @DocsEditable
   static const int CLOSED = 3;
 
+  @DomName('WebSocket.CLOSING')
+  @DocsEditable
   static const int CLOSING = 2;
 
+  @DomName('WebSocket.CONNECTING')
+  @DocsEditable
   static const int CONNECTING = 0;
 
+  @DomName('WebSocket.OPEN')
+  @DocsEditable
   static const int OPEN = 1;
 
   @JSName('URL')
@@ -20201,10 +20939,16 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
   }
 
 
+  @DomName('WheelEvent.DOM_DELTA_LINE')
+  @DocsEditable
   static const int DOM_DELTA_LINE = 0x01;
 
+  @DomName('WheelEvent.DOM_DELTA_PAGE')
+  @DocsEditable
   static const int DOM_DELTA_PAGE = 0x02;
 
+  @DomName('WheelEvent.DOM_DELTA_PIXEL')
+  @DocsEditable
   static const int DOM_DELTA_PIXEL = 0x00;
 
   @JSName('webkitDirectionInvertedFromDevice')
@@ -20678,8 +21422,12 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @Experimental
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
+  @DomName('Window.PERSISTENT')
+  @DocsEditable
   static const int PERSISTENT = 1;
 
+  @DomName('Window.TEMPORARY')
+  @DocsEditable
   static const int TEMPORARY = 0;
 
   @DomName('Window.applicationCache')
@@ -21449,8 +22197,12 @@ class XPathEvaluator native "XPathEvaluator" {
 @DomName('XPathException')
 class XPathException native "XPathException" {
 
+  @DomName('XPathException.INVALID_EXPRESSION_ERR')
+  @DocsEditable
   static const int INVALID_EXPRESSION_ERR = 51;
 
+  @DomName('XPathException.TYPE_ERR')
+  @DocsEditable
   static const int TYPE_ERR = 52;
 
   @DomName('XPathException.code')
@@ -21505,24 +22257,44 @@ class XPathNSResolver native "XPathNSResolver" {
 @DomName('XPathResult')
 class XPathResult native "XPathResult" {
 
+  @DomName('XPathResult.ANY_TYPE')
+  @DocsEditable
   static const int ANY_TYPE = 0;
 
+  @DomName('XPathResult.ANY_UNORDERED_NODE_TYPE')
+  @DocsEditable
   static const int ANY_UNORDERED_NODE_TYPE = 8;
 
+  @DomName('XPathResult.BOOLEAN_TYPE')
+  @DocsEditable
   static const int BOOLEAN_TYPE = 3;
 
+  @DomName('XPathResult.FIRST_ORDERED_NODE_TYPE')
+  @DocsEditable
   static const int FIRST_ORDERED_NODE_TYPE = 9;
 
+  @DomName('XPathResult.NUMBER_TYPE')
+  @DocsEditable
   static const int NUMBER_TYPE = 1;
 
+  @DomName('XPathResult.ORDERED_NODE_ITERATOR_TYPE')
+  @DocsEditable
   static const int ORDERED_NODE_ITERATOR_TYPE = 5;
 
+  @DomName('XPathResult.ORDERED_NODE_SNAPSHOT_TYPE')
+  @DocsEditable
   static const int ORDERED_NODE_SNAPSHOT_TYPE = 7;
 
+  @DomName('XPathResult.STRING_TYPE')
+  @DocsEditable
   static const int STRING_TYPE = 2;
 
+  @DomName('XPathResult.UNORDERED_NODE_ITERATOR_TYPE')
+  @DocsEditable
   static const int UNORDERED_NODE_ITERATOR_TYPE = 4;
 
+  @DomName('XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE')
+  @DocsEditable
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   @DomName('XPathResult.booleanValue')
@@ -21785,14 +22557,18 @@ class _ClientRect implements Rect native "ClientRect" {
 
 @DocsEditable
 @DomName('ClientRectList')
-class _ClientRectList extends Object with ListMixin<Rect>, ImmutableListMixin<Rect> implements JavaScriptIndexingBehavior, List<Rect> native "ClientRectList" {
+class _ClientRectList extends Interceptor with ListMixin<Rect>, ImmutableListMixin<Rect> implements JavaScriptIndexingBehavior, List<Rect> native "ClientRectList" {
 
   @DomName('ClientRectList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Rect operator[](int index) => JS("Rect", "#[#]", this, index);
-
+  Rect operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Rect", "#[#]", this, index);
+  }
   void operator[]=(int index, Rect value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -21804,6 +22580,31 @@ class _ClientRectList extends Object with ListMixin<Rect>, ImmutableListMixin<Re
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Rect get first {
+    if (this.length > 0) {
+      return JS('Rect', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Rect get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Rect', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Rect get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Rect', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Rect elementAt(int index) => this[index];
   // -- end List<Rect> mixins.
 
   @DomName('ClientRectList.item')
@@ -21826,14 +22627,18 @@ abstract class _Counter native "Counter" {
 
 @DocsEditable
 @DomName('CSSRuleList')
-class _CssRuleList extends Object with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> native "CSSRuleList" {
+class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> native "CSSRuleList" {
 
   @DomName('CSSRuleList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  CssRule operator[](int index) => JS("CssRule", "#[#]", this, index);
-
+  CssRule operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("CssRule", "#[#]", this, index);
+  }
   void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -21845,6 +22650,31 @@ class _CssRuleList extends Object with ListMixin<CssRule>, ImmutableListMixin<Cs
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  CssRule get first {
+    if (this.length > 0) {
+      return JS('CssRule', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  CssRule get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('CssRule', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  CssRule get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('CssRule', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  CssRule elementAt(int index) => this[index];
   // -- end List<CssRule> mixins.
 
   @DomName('CSSRuleList.item')
@@ -21864,8 +22694,12 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  _CSSValue operator[](int index) => JS("_CSSValue", "#[#]", this, index);
-
+  _CSSValue operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("_CSSValue", "#[#]", this, index);
+  }
   void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -21877,6 +22711,31 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  _CSSValue get first {
+    if (this.length > 0) {
+      return JS('_CSSValue', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('_CSSValue', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('_CSSValue', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _CSSValue elementAt(int index) => this[index];
   // -- end List<_CSSValue> mixins.
 
   @DomName('CSSValueList.item')
@@ -21979,14 +22838,18 @@ abstract class _EntityReference extends Node native "EntityReference" {
 
 @DocsEditable
 @DomName('EntryArray')
-class _EntryArray extends Object with ListMixin<Entry>, ImmutableListMixin<Entry> implements JavaScriptIndexingBehavior, List<Entry> native "EntryArray" {
+class _EntryArray extends Interceptor with ListMixin<Entry>, ImmutableListMixin<Entry> implements JavaScriptIndexingBehavior, List<Entry> native "EntryArray" {
 
   @DomName('EntryArray.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Entry operator[](int index) => JS("Entry", "#[#]", this, index);
-
+  Entry operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Entry", "#[#]", this, index);
+  }
   void operator[]=(int index, Entry value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -21998,6 +22861,31 @@ class _EntryArray extends Object with ListMixin<Entry>, ImmutableListMixin<Entry
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Entry get first {
+    if (this.length > 0) {
+      return JS('Entry', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Entry', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Entry', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Entry elementAt(int index) => this[index];
   // -- end List<Entry> mixins.
 
   @DomName('EntryArray.item')
@@ -22011,14 +22899,18 @@ class _EntryArray extends Object with ListMixin<Entry>, ImmutableListMixin<Entry
 
 @DocsEditable
 @DomName('EntryArraySync')
-class _EntryArraySync extends Object with ListMixin<_EntrySync>, ImmutableListMixin<_EntrySync> implements JavaScriptIndexingBehavior, List<_EntrySync> native "EntryArraySync" {
+class _EntryArraySync extends Interceptor with ListMixin<_EntrySync>, ImmutableListMixin<_EntrySync> implements JavaScriptIndexingBehavior, List<_EntrySync> native "EntryArraySync" {
 
   @DomName('EntryArraySync.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  _EntrySync operator[](int index) => JS("_EntrySync", "#[#]", this, index);
-
+  _EntrySync operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("_EntrySync", "#[#]", this, index);
+  }
   void operator[]=(int index, _EntrySync value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22030,6 +22922,31 @@ class _EntryArraySync extends Object with ListMixin<_EntrySync>, ImmutableListMi
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  _EntrySync get first {
+    if (this.length > 0) {
+      return JS('_EntrySync', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('_EntrySync', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('_EntrySync', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _EntrySync elementAt(int index) => this[index];
   // -- end List<_EntrySync> mixins.
 
   @DomName('EntryArraySync.item')
@@ -22086,14 +23003,18 @@ abstract class _FileWriterSync native "FileWriterSync" {
 
 @DocsEditable
 @DomName('GamepadList')
-class _GamepadList extends Object with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> native "GamepadList" {
+class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> native "GamepadList" {
 
   @DomName('GamepadList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Gamepad operator[](int index) => JS("Gamepad", "#[#]", this, index);
-
+  Gamepad operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Gamepad", "#[#]", this, index);
+  }
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22105,6 +23026,31 @@ class _GamepadList extends Object with ListMixin<Gamepad>, ImmutableListMixin<Ga
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Gamepad get first {
+    if (this.length > 0) {
+      return JS('Gamepad', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Gamepad get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Gamepad', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Gamepad get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Gamepad', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Gamepad elementAt(int index) => this[index];
   // -- end List<Gamepad> mixins.
 
   @DomName('GamepadList.item')
@@ -22181,14 +23127,18 @@ abstract class _HTMLMarqueeElement extends Element native "HTMLMarqueeElement" {
 
 @DocsEditable
 @DomName('NamedNodeMap')
-class _NamedNodeMap extends Object with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap" {
+class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap" {
 
   @DomName('NamedNodeMap.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  Node operator[](int index) => JS("Node", "#[#]", this, index);
-
+  Node operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("Node", "#[#]", this, index);
+  }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22200,6 +23150,31 @@ class _NamedNodeMap extends Object with ListMixin<Node>, ImmutableListMixin<Node
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return JS('Node', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('Node', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('Node', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('NamedNodeMap.getNamedItem')
@@ -22302,14 +23277,18 @@ abstract class _SharedWorkerContext extends _WorkerContext native "SharedWorkerC
 
 @DocsEditable
 @DomName('SpeechInputResultList')
-class _SpeechInputResultList extends Object with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
+class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
 
   @DomName('SpeechInputResultList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  SpeechInputResult operator[](int index) => JS("SpeechInputResult", "#[#]", this, index);
-
+  SpeechInputResult operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("SpeechInputResult", "#[#]", this, index);
+  }
   void operator[]=(int index, SpeechInputResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22321,6 +23300,31 @@ class _SpeechInputResultList extends Object with ListMixin<SpeechInputResult>, I
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechInputResult get first {
+    if (this.length > 0) {
+      return JS('SpeechInputResult', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('SpeechInputResult', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('SpeechInputResult', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechInputResult elementAt(int index) => this[index];
   // -- end List<SpeechInputResult> mixins.
 
   @DomName('SpeechInputResultList.item')
@@ -22334,14 +23338,18 @@ class _SpeechInputResultList extends Object with ListMixin<SpeechInputResult>, I
 
 @DocsEditable
 @DomName('SpeechRecognitionResultList')
-class _SpeechRecognitionResultList extends Object with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "SpeechRecognitionResultList" {
+class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "SpeechRecognitionResultList" {
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  SpeechRecognitionResult operator[](int index) => JS("SpeechRecognitionResult", "#[#]", this, index);
-
+  SpeechRecognitionResult operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("SpeechRecognitionResult", "#[#]", this, index);
+  }
   void operator[]=(int index, SpeechRecognitionResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22353,6 +23361,31 @@ class _SpeechRecognitionResultList extends Object with ListMixin<SpeechRecogniti
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechRecognitionResult get first {
+    if (this.length > 0) {
+      return JS('SpeechRecognitionResult', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('SpeechRecognitionResult', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('SpeechRecognitionResult', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechRecognitionResult elementAt(int index) => this[index];
   // -- end List<SpeechRecognitionResult> mixins.
 
   @DomName('SpeechRecognitionResultList.item')
@@ -22366,14 +23399,18 @@ class _SpeechRecognitionResultList extends Object with ListMixin<SpeechRecogniti
 
 @DocsEditable
 @DomName('StyleSheetList')
-class _StyleSheetList extends Object with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> native "StyleSheetList" {
+class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> native "StyleSheetList" {
 
   @DomName('StyleSheetList.length')
   @DocsEditable
   int get length => JS("int", "#.length", this);
 
-  StyleSheet operator[](int index) => JS("StyleSheet", "#[#]", this, index);
-
+  StyleSheet operator[](int index) {
+    if (JS("bool", "# >>> 0 !== # || # >= #", index,
+        index, index, length))
+      throw new RangeError.range(index, 0, length);
+    return JS("StyleSheet", "#[#]", this, index);
+  }
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -22385,6 +23422,31 @@ class _StyleSheetList extends Object with ListMixin<StyleSheet>, ImmutableListMi
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  StyleSheet get first {
+    if (this.length > 0) {
+      return JS('StyleSheet', '#[0]', this);
+    }
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get last {
+    int len = this.length;
+    if (len > 0) {
+      return JS('StyleSheet', '#[#]', this, len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get single {
+    int len = this.length;
+    if (len == 1) {
+      return JS('StyleSheet', '#[0]', this);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  StyleSheet elementAt(int index) => this[index];
   // -- end List<StyleSheet> mixins.
 
   @DomName('StyleSheetList.item')
@@ -24935,7 +25997,7 @@ class Rect {
 
 
 // This code is a port of Model-Driven-Views:
-// https://github.com/toolkitchen/mdv
+// https://github.com/polymer-project/mdv
 // The code mostly comes from src/template_element.js
 
 typedef void _ChangeHandler(value);
@@ -24967,7 +26029,7 @@ typedef void _ChangeHandler(value);
  *
  *     TemplateElement.syntax['MySyntax'] = new MySyntax();
  *
- * See <https://github.com/toolkitchen/mdv/blob/master/docs/syntax.md> for more
+ * See <https://github.com/polymer-project/mdv/blob/master/docs/syntax.md> for more
  * information about Custom Syntax.
  */
 // TODO(jmesserly): if this is just one method, a function type would make it
@@ -25176,19 +26238,6 @@ class CompoundBinding extends ObservableBase {
   }
 }
 
-Stream<Event> _getStreamForInputType(InputElement element) {
-  switch (element.type) {
-    case 'checkbox':
-      return element.onClick;
-    case 'radio':
-    case 'select-multiple':
-    case 'select-one':
-      return element.onChange;
-    default:
-      return element.onInput;
-  }
-}
-
 abstract class _InputBinding {
   final InputElement element;
   PathObserver binding;
@@ -25210,6 +26259,20 @@ abstract class _InputBinding {
     _pathSub.cancel();
     _eventSub.cancel();
   }
+
+
+  static Stream<Event> _getStreamForInputType(InputElement element) {
+    switch (element.type) {
+      case 'checkbox':
+        return element.onClick;
+      case 'radio':
+      case 'select-multiple':
+      case 'select-one':
+        return element.onChange;
+      default:
+        return element.onInput;
+    }
+  }
 }
 
 class _ValueBinding extends _InputBinding {
@@ -25224,18 +26287,11 @@ class _ValueBinding extends _InputBinding {
   }
 }
 
-// TODO(jmesserly): not sure what kind of boolean conversion rules to
-// apply for template data-binding. HTML attributes are true if they're present.
-// However Dart only treats "true" as true. Since this is HTML we'll use
-// something closer to the HTML rules: null (missing) and false are false,
-// everything else is true. See: https://github.com/toolkitchen/mdv/issues/59
-bool _templateBooleanConversion(value) => null != value && false != value;
-
 class _CheckedBinding extends _InputBinding {
   _CheckedBinding(element, model, path) : super(element, model, path);
 
   void valueChanged(value) {
-    element.checked = _templateBooleanConversion(value);
+    element.checked = _Bindings._toBoolean(value);
   }
 
   void updateBinding(e) {
@@ -25254,220 +26310,309 @@ class _CheckedBinding extends _InputBinding {
       }
     }
   }
-}
 
-// TODO(jmesserly): polyfill document.contains API instead of doing it here
-bool _isNodeInDocument(Node node) {
-  // On non-IE this works:
-  // return node.document.contains(node);
-  var document = node.document;
-  if (node == document || node.parentNode == document) return true;
-  return document.documentElement.contains(node);
-}
-
-// |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
-// Returns an array containing all radio buttons other than |element| that
-// have the same |name|, either in the form that |element| belongs to or,
-// if no form, in the document tree to which |element| belongs.
-//
-// This implementation is based upon the HTML spec definition of a
-// "radio button group":
-//   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
-//
-Iterable _getAssociatedRadioButtons(element) {
-  if (!_isNodeInDocument(element)) return [];
-  if (element.form != null) {
-    return element.form.nodes.where((el) {
-      return el != element &&
-          el is InputElement &&
-          el.type == 'radio' &&
-          el.name == element.name;
-    });
-  } else {
-    var radios = element.document.queryAll(
-        'input[type="radio"][name="${element.name}"]');
-    return radios.where((el) => el != element && el.form == null);
-  }
-}
-
-Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
-  var clone = node.clone(false); // Shallow clone.
-  if (clone is Element && clone.isTemplate) {
-    TemplateElement.decorate(clone, node);
-    if (syntax != null) {
-      clone.attributes.putIfAbsent('syntax', () => syntax);
-    }
-  }
-
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
-  }
-  return clone;
-}
-
-// http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-Document _getTemplateContentsOwner(Document doc) {
-  if (doc.window == null) {
-    return doc;
-  }
-  var d = doc._templateContentsOwner;
-  if (d == null) {
-    // TODO(arv): This should either be a Document or HTMLDocument depending
-    // on doc.
-    d = doc.implementation.createHtmlDocument('');
-    while (d.$dom_lastChild != null) {
-      d.$dom_lastChild.remove();
-    }
-    doc._templateContentsOwner = d;
-  }
-  return d;
-}
-
-Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
-  var clone = templateElement.clone(false);
-  var attributes = templateElement.attributes;
-  for (var name in attributes.keys.toList()) {
-    switch (name) {
-      case 'template':
-      case 'repeat':
-      case 'bind':
-      case 'ref':
-        clone.attributes.remove(name);
-        break;
-      default:
-        attributes.remove(name);
-        break;
-    }
-  }
-
-  return clone;
-}
-
-void _liftNonNativeTemplateChildrenIntoContent(Element templateElement) {
-  var content = templateElement.content;
-
-  if (!templateElement._isAttributeTemplate) {
-    var child;
-    while ((child = templateElement.$dom_firstChild) != null) {
-      content.append(child);
-    }
-    return;
-  }
-
-  // For attribute templates we copy the whole thing into the content and
-  // we move the non template attributes into the content.
+  // |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
+  // Returns an array containing all radio buttons other than |element| that
+  // have the same |name|, either in the form that |element| belongs to or,
+  // if no form, in the document tree to which |element| belongs.
   //
-  //   <tr foo template>
+  // This implementation is based upon the HTML spec definition of a
+  // "radio button group":
+  //   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
   //
-  // becomes
-  //
-  //   <tr template>
-  //   + #document-fragment
-  //     + <tr foo>
-  //
-  var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
-  var child;
-  while ((child = templateElement.$dom_firstChild) != null) {
-    newRoot.append(child);
-  }
-  content.append(newRoot);
-}
-
-void _bootstrapTemplatesRecursivelyFrom(Node node) {
-  void bootstrap(template) {
-    if (!TemplateElement.decorate(template)) {
-      _bootstrapTemplatesRecursivelyFrom(template.content);
+  static Iterable _getAssociatedRadioButtons(element) {
+    if (!_isNodeInDocument(element)) return [];
+    if (element.form != null) {
+      return element.form.nodes.where((el) {
+        return el != element &&
+            el is InputElement &&
+            el.type == 'radio' &&
+            el.name == element.name;
+      });
+    } else {
+      var radios = element.document.queryAll(
+          'input[type="radio"][name="${element.name}"]');
+      return radios.where((el) => el != element && el.form == null);
     }
   }
 
-  // Need to do this first as the contents may get lifted if |node| is
-  // template.
-  // TODO(jmesserly): node is DocumentFragment or Element
-  var templateDescendents = (node as dynamic).queryAll(_allTemplatesSelectors);
-  if (node is Element && node.isTemplate) bootstrap(node);
-
-  templateDescendents.forEach(bootstrap);
-}
-
-final String _allTemplatesSelectors = 'template, option[template], ' +
-    Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
-
-void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
-  if (node is Element) {
-    _addAttributeBindings(node, model, syntax);
-  } else if (node is Text) {
-    _parseAndBind(node, 'text', node.text, model, syntax);
-  }
-
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    _addBindings(c, model, syntax);
+  // TODO(jmesserly): polyfill document.contains API instead of doing it here
+  static bool _isNodeInDocument(Node node) {
+    // On non-IE this works:
+    // return node.document.contains(node);
+    var document = node.document;
+    if (node == document || node.parentNode == document) return true;
+    return document.documentElement.contains(node);
   }
 }
 
+class _Bindings {
+  // TODO(jmesserly): not sure what kind of boolean conversion rules to
+  // apply for template data-binding. HTML attributes are true if they're
+  // present. However Dart only treats "true" as true. Since this is HTML we'll
+  // use something closer to the HTML rules: null (missing) and false are false,
+  // everything else is true. See: https://github.com/polymer-project/mdv/issues/59
+  static bool _toBoolean(value) => null != value && false != value;
 
-void _addAttributeBindings(Element element, model, syntax) {
-  element.attributes.forEach((name, value) {
-    if (value == '' && (name == 'bind' || name == 'repeat')) {
-      value = '{{}}';
-    }
-    _parseAndBind(element, name, value, model, syntax);
-  });
-}
-
-void _parseAndBind(Node node, String name, String text, model,
-    CustomBindingSyntax syntax) {
-
-  var tokens = _parseMustacheTokens(text);
-  if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
-    return;
-  }
-
-  if (tokens.length == 1 && tokens[0].isBinding) {
-    _bindOrDelegate(node, name, model, tokens[0].value, syntax);
-    return;
-  }
-
-  var replacementBinding = new CompoundBinding();
-  for (var i = 0; i < tokens.length; i++) {
-    var token = tokens[i];
-    if (token.isBinding) {
-      _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
-    }
-  }
-
-  replacementBinding.combinator = (values) {
-    var newValue = new StringBuffer();
-
-    for (var i = 0; i < tokens.length; i++) {
-      var token = tokens[i];
-      if (token.isText) {
-        newValue.write(token.value);
-      } else {
-        var value = values[i];
-        if (value != null) {
-          newValue.write(value);
-        }
+  static Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
+    var clone = node.clone(false); // Shallow clone.
+    if (clone is Element && clone.isTemplate) {
+      TemplateElement.decorate(clone, node);
+      if (syntax != null) {
+        clone.attributes.putIfAbsent('syntax', () => syntax);
       }
     }
 
-    return newValue.toString();
-  };
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
+    }
+    return clone;
+  }
 
-  node.bind(name, replacementBinding, 'value');
-}
+  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
+  static Document _getTemplateContentsOwner(Document doc) {
+    if (doc.window == null) {
+      return doc;
+    }
+    var d = doc._templateContentsOwner;
+    if (d == null) {
+      // TODO(arv): This should either be a Document or HTMLDocument depending
+      // on doc.
+      d = doc.implementation.createHtmlDocument('');
+      while (d.$dom_lastChild != null) {
+        d.$dom_lastChild.remove();
+      }
+      doc._templateContentsOwner = d;
+    }
+    return d;
+  }
 
-void _bindOrDelegate(node, name, model, String path,
-    CustomBindingSyntax syntax) {
+  static Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
+    var clone = templateElement.clone(false);
+    var attributes = templateElement.attributes;
+    for (var name in attributes.keys.toList()) {
+      switch (name) {
+        case 'template':
+        case 'repeat':
+        case 'bind':
+        case 'ref':
+          clone.attributes.remove(name);
+          break;
+        default:
+          attributes.remove(name);
+          break;
+      }
+    }
 
-  if (syntax != null) {
-    var delegateBinding = syntax.getBinding(model, path, name, node);
-    if (delegateBinding != null) {
-      model = delegateBinding;
-      path = 'value';
+    return clone;
+  }
+
+  static void _liftNonNativeChildrenIntoContent(Element templateElement) {
+    var content = templateElement.content;
+
+    if (!templateElement._isAttributeTemplate) {
+      var child;
+      while ((child = templateElement.$dom_firstChild) != null) {
+        content.append(child);
+      }
+      return;
+    }
+
+    // For attribute templates we copy the whole thing into the content and
+    // we move the non template attributes into the content.
+    //
+    //   <tr foo template>
+    //
+    // becomes
+    //
+    //   <tr template>
+    //   + #document-fragment
+    //     + <tr foo>
+    //
+    var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
+    var child;
+    while ((child = templateElement.$dom_firstChild) != null) {
+      newRoot.append(child);
+    }
+    content.append(newRoot);
+  }
+
+  static void _bootstrapTemplatesRecursivelyFrom(Node node) {
+    void bootstrap(template) {
+      if (!TemplateElement.decorate(template)) {
+        _bootstrapTemplatesRecursivelyFrom(template.content);
+      }
+    }
+
+    // Need to do this first as the contents may get lifted if |node| is
+    // template.
+    // TODO(jmesserly): node is DocumentFragment or Element
+    var descendents = (node as dynamic).queryAll(_allTemplatesSelectors);
+    if (node is Element && node.isTemplate) bootstrap(node);
+
+    descendents.forEach(bootstrap);
+  }
+
+  static final String _allTemplatesSelectors = 'template, option[template], ' +
+      Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
+
+  static void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
+    if (node is Element) {
+      _addAttributeBindings(node, model, syntax);
+    } else if (node is Text) {
+      _parseAndBind(node, 'text', node.text, model, syntax);
+    }
+
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      _addBindings(c, model, syntax);
     }
   }
 
-  node.bind(name, model, path);
+  static void _addAttributeBindings(Element element, model, syntax) {
+    element.attributes.forEach((name, value) {
+      if (value == '' && (name == 'bind' || name == 'repeat')) {
+        value = '{{}}';
+      }
+      _parseAndBind(element, name, value, model, syntax);
+    });
+  }
+
+  static void _parseAndBind(Node node, String name, String text, model,
+      CustomBindingSyntax syntax) {
+
+    var tokens = _parseMustacheTokens(text);
+    if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
+      return;
+    }
+
+    // If this is a custom element, give the .xtag a change to bind.
+    node = _nodeOrCustom(node);
+
+    if (tokens.length == 1 && tokens[0].isBinding) {
+      _bindOrDelegate(node, name, model, tokens[0].value, syntax);
+      return;
+    }
+
+    var replacementBinding = new CompoundBinding();
+    for (var i = 0; i < tokens.length; i++) {
+      var token = tokens[i];
+      if (token.isBinding) {
+        _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
+      }
+    }
+
+    replacementBinding.combinator = (values) {
+      var newValue = new StringBuffer();
+
+      for (var i = 0; i < tokens.length; i++) {
+        var token = tokens[i];
+        if (token.isText) {
+          newValue.write(token.value);
+        } else {
+          var value = values[i];
+          if (value != null) {
+            newValue.write(value);
+          }
+        }
+      }
+
+      return newValue.toString();
+    };
+
+    node.bind(name, replacementBinding, 'value');
+  }
+
+  static void _bindOrDelegate(node, name, model, String path,
+      CustomBindingSyntax syntax) {
+
+    if (syntax != null) {
+      var delegateBinding = syntax.getBinding(model, path, name, node);
+      if (delegateBinding != null) {
+        model = delegateBinding;
+        path = 'value';
+      }
+    }
+
+    node.bind(name, model, path);
+  }
+
+  /**
+   * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
+   * the node. This is used so nodes can override [Node.bind], [Node.unbind],
+   * and [Node.unbindAll] like InputElement does.
+   */
+  // TODO(jmesserly): remove this when we can extend Element for real.
+  static _nodeOrCustom(node) => node is Element ? node.xtag : node;
+
+  static List<_BindingToken> _parseMustacheTokens(String s) {
+    var result = [];
+    var length = s.length;
+    var index = 0, lastIndex = 0;
+    while (lastIndex < length) {
+      index = s.indexOf('{{', lastIndex);
+      if (index < 0) {
+        result.add(new _BindingToken(s.substring(lastIndex)));
+        break;
+      } else {
+        // There is a non-empty text run before the next path token.
+        if (index > 0 && lastIndex < index) {
+          result.add(new _BindingToken(s.substring(lastIndex, index)));
+        }
+        lastIndex = index + 2;
+        index = s.indexOf('}}', lastIndex);
+        if (index < 0) {
+          var text = s.substring(lastIndex - 2);
+          if (result.length > 0 && result.last.isText) {
+            result.last.value += text;
+          } else {
+            result.add(new _BindingToken(text));
+          }
+          break;
+        }
+
+        var value = s.substring(lastIndex, index).trim();
+        result.add(new _BindingToken(value, isBinding: true));
+        lastIndex = index + 2;
+      }
+    }
+    return result;
+  }
+
+  static void _addTemplateInstanceRecord(fragment, model) {
+    if (fragment.$dom_firstChild == null) {
+      return;
+    }
+
+    var instanceRecord = new TemplateInstance(
+        fragment.$dom_firstChild, fragment.$dom_lastChild, model);
+
+    var node = instanceRecord.firstNode;
+    while (node != null) {
+      node._templateInstance = instanceRecord;
+      node = node.nextNode;
+    }
+  }
+
+  static void _removeAllBindingsRecursively(Node node) {
+    _nodeOrCustom(node).unbindAll();
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      _removeAllBindingsRecursively(c);
+    }
+  }
+
+  static void _removeChild(Node parent, Node child) {
+    child._templateInstance = null;
+    if (child is Element && child.isTemplate) {
+      // Make sure we stop observing when we remove an element.
+      var templateIterator = child._templateIterator;
+      if (templateIterator != null) {
+        templateIterator.abandon();
+        child._templateIterator = null;
+      }
+    }
+    child.remove();
+    _removeAllBindingsRecursively(child);
+  }
 }
 
 class _BindingToken {
@@ -25478,77 +26623,6 @@ class _BindingToken {
 
   bool get isText => !isBinding;
 }
-
-List<_BindingToken> _parseMustacheTokens(String s) {
-  var result = [];
-  var length = s.length;
-  var index = 0, lastIndex = 0;
-  while (lastIndex < length) {
-    index = s.indexOf('{{', lastIndex);
-    if (index < 0) {
-      result.add(new _BindingToken(s.substring(lastIndex)));
-      break;
-    } else {
-      // There is a non-empty text run before the next path token.
-      if (index > 0 && lastIndex < index) {
-        result.add(new _BindingToken(s.substring(lastIndex, index)));
-      }
-      lastIndex = index + 2;
-      index = s.indexOf('}}', lastIndex);
-      if (index < 0) {
-        var text = s.substring(lastIndex - 2);
-        if (result.length > 0 && result.last.isText) {
-          result.last.value += text;
-        } else {
-          result.add(new _BindingToken(text));
-        }
-        break;
-      }
-
-      var value = s.substring(lastIndex, index).trim();
-      result.add(new _BindingToken(value, isBinding: true));
-      lastIndex = index + 2;
-    }
-  }
-  return result;
-}
-
-void _addTemplateInstanceRecord(fragment, model) {
-  if (fragment.$dom_firstChild == null) {
-    return;
-  }
-
-  var instanceRecord = new TemplateInstance(
-      fragment.$dom_firstChild, fragment.$dom_lastChild, model);
-
-  var node = instanceRecord.firstNode;
-  while (node != null) {
-    node._templateInstance = instanceRecord;
-    node = node.nextNode;
-  }
-}
-
-void _removeAllBindingsRecursively(Node node) {
-  node.unbindAll();
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    _removeAllBindingsRecursively(c);
-  }
-}
-
-void _removeTemplateChild(Node parent, Node child) {
-  child._templateInstance = null;
-  if (child is Element && child.isTemplate) {
-    // Make sure we stop observing when we remove an element.
-    var templateIterator = child._templateIterator;
-    if (templateIterator != null) {
-      templateIterator.abandon();
-      child._templateIterator = null;
-    }
-  }
-  child.remove();
-  _removeAllBindingsRecursively(child);
-}
-
 
 class _TemplateIterator {
   final Element _templateElement;
@@ -25566,7 +26640,7 @@ class _TemplateIterator {
   }
 
   static Object resolveInputs(Map values) {
-    if (values.containsKey('if') && !_templateBooleanConversion(values['if'])) {
+    if (values.containsKey('if') && !_Bindings._toBoolean(values['if'])) {
       return null;
     }
 
@@ -25627,7 +26701,7 @@ class _TemplateIterator {
     while (terminator != previousTerminator) {
       var node = terminator;
       terminator = node.previousNode;
-      _removeTemplateChild(parent, node);
+      _Bindings._removeChild(parent, node);
     }
   }
 
@@ -25642,7 +26716,7 @@ class _TemplateIterator {
     while (terminator != previousTerminator) {
       var node = terminator;
       terminator = node.previousNode;
-      _removeTemplateChild(parent, node);
+      _Bindings._removeChild(parent, node);
     }
   }
 
@@ -25684,8 +26758,8 @@ class _TemplateIterator {
 
         var fragment = getInstanceFragment(syntax);
 
-        _addBindings(fragment, model, syntax);
-        _addTemplateInstanceRecord(fragment, model);
+        _Bindings._addBindings(fragment, model, syntax);
+        _Bindings._addTemplateInstanceRecord(fragment, model);
 
         insertInstanceAt(addIndex, fragment);
       }

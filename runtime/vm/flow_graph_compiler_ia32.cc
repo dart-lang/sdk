@@ -10,6 +10,7 @@
 #include "lib/error.h"
 #include "vm/ast_printer.h"
 #include "vm/dart_entry.h"
+#include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -45,6 +46,98 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 }
 
 
+RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
+                                                 DeoptInfoBuilder* builder) {
+  if (deoptimization_env_ == NULL) return DeoptInfo::null();
+
+  intptr_t stack_height = compiler->StackSize();
+  AllocateIncomingParametersRecursive(deoptimization_env_, &stack_height);
+
+  intptr_t slot_ix = 0;
+  Environment* current = deoptimization_env_;
+
+  // Emit all kMaterializeObject instructions describing objects to be
+  // materialized on the deoptimization as a prefix to the deoptimization info.
+  EmitMaterializations(deoptimization_env_, builder);
+
+  // The real frame starts here.
+  builder->MarkFrameStart();
+
+  // Callee's PC marker is not used anymore. Pass Function::null() to set to 0.
+  builder->AddPcMarker(Function::Handle(), slot_ix++);
+
+  // Current FP and PC.
+  builder->AddCallerFp(slot_ix++);
+  builder->AddReturnAddress(current->function(),
+                            deopt_id(),
+                            slot_ix++);
+
+  // Emit all values that are needed for materialization as a part of the
+  // expression stack for the bottom-most frame. This guarantees that GC
+  // will be able to find them during materialization.
+  slot_ix = builder->EmitMaterializationArguments(slot_ix);
+
+  // For the innermost environment, set outgoing arguments and the locals.
+  for (intptr_t i = current->Length() - 1;
+       i >= current->fixed_parameter_count();
+       i--) {
+    builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
+  }
+
+  // Current PC marker and caller FP.
+  builder->AddPcMarker(current->function(), slot_ix++);
+  builder->AddCallerFp(slot_ix++);
+
+  Environment* previous = current;
+  current = current->outer();
+  while (current != NULL) {
+    // For any outer environment the deopt id is that of the call instruction
+    // which is recorded in the outer environment.
+    builder->AddReturnAddress(current->function(),
+                              Isolate::ToDeoptAfter(current->deopt_id()),
+                              slot_ix++);
+
+    // The values of outgoing arguments can be changed from the inlined call so
+    // we must read them from the previous environment.
+    for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+      builder->AddCopy(previous->ValueAt(i),
+                       previous->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // Set the locals, note that outgoing arguments are not in the environment.
+    for (intptr_t i = current->Length() - 1;
+         i >= current->fixed_parameter_count();
+         i--) {
+      builder->AddCopy(current->ValueAt(i),
+                       current->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // PC marker and caller FP.
+    builder->AddPcMarker(current->function(), slot_ix++);
+    builder->AddCallerFp(slot_ix++);
+
+    // Iterate on the outer environment.
+    previous = current;
+    current = current->outer();
+  }
+  // The previous pointer is now the outermost environment.
+  ASSERT(previous != NULL);
+
+  // For the outermost environment, set caller PC.
+  builder->AddCallerPc(slot_ix++);
+
+  // For the outermost environment, set the incoming arguments.
+  for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+    builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
+  }
+
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());
+  return deopt_info.raw();
+}
+
+
 void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
@@ -59,6 +152,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   __ call(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
+  __ int3();
 #undef __
 }
 
@@ -646,6 +740,81 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
                            Scanner::kDummyTokenIndex);
     }
     AllocateRegistersLocally(instr);
+  } else if (instr->MayThrow()  &&
+             (CurrentTryIndex() != CatchClauseNode::kInvalidTryIndex)) {
+    // Optimized try-block: Sync locals to fixed stack locations.
+    EmitTrySync(instr, CurrentTryIndex());
+  }
+}
+
+
+void FlowGraphCompiler::EmitTrySyncMove(Address dest,
+                                        Location loc,
+                                        bool* push_emitted) {
+  if (loc.IsConstant()) {
+    if (!*push_emitted) {
+      __ pushl(EAX);
+      *push_emitted = true;
+    }
+    __ LoadObject(EAX, loc.constant());
+    __ movl(dest, EAX);
+  } else if (loc.IsRegister()) {
+    if (*push_emitted && loc.reg() == EAX) {
+      __ movl(EAX, Address(ESP, 0));
+      __ movl(dest, EAX);
+    } else {
+      __ movl(dest, loc.reg());
+    }
+  } else {
+    Address src = loc.ToStackSlotAddress();
+    if (!src.Equals(dest)) {
+      if (!*push_emitted) {
+        __ pushl(EAX);
+        *push_emitted = true;
+      }
+      __ movl(EAX, src);
+      __ movl(dest, EAX);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
+  ASSERT(is_optimizing());
+  Environment* env = instr->env();
+  CatchBlockEntryInstr* catch_block =
+      flow_graph().graph_entry()->GetCatchEntry(try_index);
+  const GrowableArray<Definition*>* idefs = catch_block->initial_definitions();
+  // Parameters.
+  intptr_t i = 0;
+  bool push_emitted = false;
+  const intptr_t num_non_copied_params = flow_graph().num_non_copied_params();
+  const intptr_t param_base =
+      kParamEndSlotFromFp + num_non_copied_params;
+  for (; i < num_non_copied_params; ++i) {
+    if ((*idefs)[i]->IsConstant()) continue;  // Common constants
+    Location loc = env->LocationAt(i);
+    Address dest(EBP, (param_base - i) * kWordSize);
+    EmitTrySyncMove(dest, loc, &push_emitted);
+  }
+
+  // Process locals. Skip exception_var and stacktrace_var.
+  CatchEntryInstr* catch_entry = catch_block->next()->AsCatchEntry();
+  intptr_t local_base = kFirstLocalSlotFromFp + num_non_copied_params;
+  intptr_t ex_idx = local_base - catch_entry->exception_var().index();
+  intptr_t st_idx = local_base - catch_entry->stacktrace_var().index();
+  for (; i < flow_graph().variable_count(); ++i) {
+    if (i == ex_idx || i == st_idx) continue;
+    if ((*idefs)[i]->IsConstant()) continue;
+    Location loc = env->LocationAt(i);
+    Address dest(EBP, (local_base - i) * kWordSize);
+    EmitTrySyncMove(dest, loc, &push_emitted);
+    // Update safepoint bitmap to indicate that the target location
+    // now contains a pointer.
+    instr->locs()->stack_bitmap()->Set(i - num_non_copied_params, true);
+  }
+  if (push_emitted) {
+    __ popl(EAX);
   }
 }
 
@@ -939,7 +1108,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
                          0);  // No token position.
   }
   __ Comment("Enter frame");
-  __ EnterDartFrame((StackSize() * kWordSize));
+  __ EnterDartFrame(StackSize() * kWordSize);
 }
 
 
@@ -1070,6 +1239,7 @@ void FlowGraphCompiler::CompileGraph() {
     AstPrinter::PrintFunctionScope(parsed_function());
   }
 
+  ASSERT(!block_order().is_empty());
   VisitBlocks();
 
   __ int3();

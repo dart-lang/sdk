@@ -28,11 +28,11 @@ main() {
       div2 = new DivElement();
       div1.classes.add('foo');
       shadowRoot = div2.createShadowRoot();
-      shadowRoot.nodes.add(paragraph1);
-      shadowRoot.nodes.add(new ContentElement());
-      div2.nodes.add(paragraph2);
-      document.body.nodes.add(div1);
-      document.body.nodes.add(div2);
+      shadowRoot.append(paragraph1);
+      shadowRoot.append(new ContentElement());
+      div2.append(paragraph2);
+      document.body.append(div1);
+      document.body.append(div2);
     }
 
     var expectation = ShadowRoot.supported ? returnsNormally : throws;

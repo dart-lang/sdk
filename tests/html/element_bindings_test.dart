@@ -27,7 +27,7 @@ elementBindingTests() {
   var testDiv;
 
   setUp(() {
-    document.body.nodes.add(testDiv = new DivElement());
+    document.body.append(testDiv = new DivElement());
   });
 
   tearDown(() {
@@ -41,7 +41,7 @@ elementBindingTests() {
 
   test('Text', () {
     var template = new Element.html('<template bind>{{a}} and {{b}}');
-    testDiv.nodes.add(template);
+    testDiv.append(template);
     var model = toSymbolMap({'a': 1, 'b': 2});
     template.model = model;
     deliverChangeRecords();
@@ -112,8 +112,8 @@ elementBindingTests() {
     el.text = 'dummy';
     el.nodes.first.text = 'Hello {{ adj }} {{noun}}!';
     var template = new Element.html('<template bind>');
-    template.content.nodes.add(el);
-    testDiv.nodes.add(template);
+    template.content.append(el);
+    testDiv.append(template);
     template.model = model;
 
     deliverChangeRecords();
@@ -172,7 +172,7 @@ elementBindingTests() {
     var model = toSymbolMap({'val': true});
 
     var el = new InputElement();
-    testDiv.nodes.add(el);
+    testDiv.append(el);
     el.type = 'checkbox';
     el.bind('checked', model, 'val');
     deliverChangeRecords();
@@ -197,25 +197,25 @@ elementBindingTests() {
     var container = testDiv;
 
     var el1 = new InputElement();
-    testDiv.nodes.add(el1);
+    testDiv.append(el1);
     el1.type = 'radio';
     el1.name = RADIO_GROUP_NAME;
     el1.bind('checked', model, 'val1');
 
     var el2 = new InputElement();
-    testDiv.nodes.add(el2);
+    testDiv.append(el2);
     el2.type = 'radio';
     el2.name = RADIO_GROUP_NAME;
     el2.bind('checked', model, 'val2');
 
     var el3 = new InputElement();
-    testDiv.nodes.add(el3);
+    testDiv.append(el3);
     el3.type = 'radio';
     el3.name = RADIO_GROUP_NAME;
     el3.bind('checked', model, 'val3');
 
     var el4 = new InputElement();
-    testDiv.nodes.add(el4);
+    testDiv.append(el4);
     el4.type = 'radio';
     el4.name = 'othergroup';
     el4.bind('checked', model, 'val4');
@@ -255,30 +255,30 @@ elementBindingTests() {
     var RADIO_GROUP_NAME = 'test';
 
     var form1 = new FormElement();
-    testDiv.nodes.add(form1);
+    testDiv.append(form1);
     var form2 = new FormElement();
-    testDiv.nodes.add(form2);
+    testDiv.append(form2);
 
     var el1 = new InputElement();
-    form1.nodes.add(el1);
+    form1.append(el1);
     el1.type = 'radio';
     el1.name = RADIO_GROUP_NAME;
     el1.bind('checked', model, 'val1');
 
     var el2 = new InputElement();
-    form1.nodes.add(el2);
+    form1.append(el2);
     el2.type = 'radio';
     el2.name = RADIO_GROUP_NAME;
     el2.bind('checked', model, 'val2');
 
     var el3 = new InputElement();
-    form2.nodes.add(el3);
+    form2.append(el3);
     el3.type = 'radio';
     el3.name = RADIO_GROUP_NAME;
     el3.bind('checked', model, 'val3');
 
     var el4 = new InputElement();
-    form2.nodes.add(el4);
+    form2.append(el4);
     el4.type = 'radio';
     el4.name = RADIO_GROUP_NAME;
     el4.bind('checked', model, 'val4');
@@ -310,11 +310,11 @@ elementBindingTests() {
 
   test('BindToChecked', () {
     var div = new DivElement();
-    testDiv.nodes.add(div);
+    testDiv.append(div);
     var child = new DivElement();
-    div.nodes.add(child);
+    div.append(child);
     var input = new InputElement();
-    child.nodes.add(input);
+    child.append(input);
     input.type = 'checkbox';
 
     var model = toSymbolMap({'a': {'b': false}});
@@ -330,8 +330,8 @@ elementBindingTests() {
   test('MultipleReferences', () {
     var el = new DivElement();
     var template = new Element.html('<template bind>');
-    template.content.nodes.add(el);
-    testDiv.nodes.add(template);
+    template.content.append(el);
+    testDiv.append(template);
 
     var model = toSymbolMap({'foo': 'bar'});
     el.attributes['foo'] = '{{foo}} {{foo}}';

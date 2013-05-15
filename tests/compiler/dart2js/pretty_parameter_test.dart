@@ -21,6 +21,7 @@ void bar(var t0, var b) {
   {
     var t0 = 2;
     if (b) {
+      bar(1, 2);
       t0 = 4;
     } else {
       t0 = 3;
@@ -62,6 +63,7 @@ const String PARAMETER_INIT = r"""
 int foo(var start, bool test) {
   var result = start;
   if (test) {
+    foo(1, 2);
     result = 42;
   }
   print(result);
@@ -89,7 +91,6 @@ main() {
   Expect.isFalse(generated.contains('var'));
 
   generated = compile(PARAMETER_INIT, entry: 'foo');
-  Expect.isTrue(generated.contains('var result = test === true ? 42 : start'));
   // Check that there is only one var declaration.
   checkNumberOfMatches(new RegExp("var").allMatches(generated).iterator, 1);
 }

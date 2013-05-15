@@ -228,7 +228,8 @@ GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
       normal_entry_(normal_entry),
       catch_entries_(),
       initial_definitions_(),
-      spill_slot_count_(0) {
+      spill_slot_count_(0),
+      fixed_slot_count_(0) {
 }
 
 
@@ -239,6 +240,16 @@ ConstantInstr* GraphEntryInstr::constant_null() {
     if (defn != NULL && defn->value().IsNull()) return defn;
   }
   UNREACHABLE();
+  return NULL;
+}
+
+
+CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
+  // TODO(fschneider): Sort the catch entries by catch_try_index to avoid
+  // searching.
+  for (intptr_t i = 0; i < catch_entries_.length(); ++i) {
+    if (catch_entries_[i]->catch_try_index() == index) return catch_entries_[i];
+  }
   return NULL;
 }
 
@@ -2300,15 +2311,21 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   Range* index_range = index()->definition()->range();
 
   // Range of the index is unknown can't decide if the check is redundant.
-  if (index_range == NULL) return false;
+  if (index_range == NULL) {
+    return false;
+  }
 
   // Range of the index is not positive. Check can't be redundant.
-  if (Range::ConstantMin(index_range).value() < 0) return false;
+  if (Range::ConstantMin(index_range).value() < 0) {
+    return false;
+  }
 
   RangeBoundary max = CanonicalizeBoundary(index_range->max(),
                                            RangeBoundary::OverflowedMaxSmi());
 
-  if (max.Overflowed()) return false;
+  if (max.Overflowed()) {
+    return false;
+  }
 
   // Try to compare constant boundaries.
   if (max.UpperBound().value() < length.LowerBound().value()) {
@@ -2316,7 +2333,9 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
   }
 
   length = CanonicalizeBoundary(length, RangeBoundary::OverflowedMaxSmi());
-  if (length.Overflowed()) return false;
+  if (length.Overflowed()) {
+    return false;
+  }
 
   // Try symbolic comparison.
   do {
@@ -2325,6 +2344,12 @@ bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
 
   // Failed to prove that maximum is bounded with array length.
   return false;
+}
+
+
+Instruction* CheckArrayBoundInstr::Canonicalize(FlowGraph* flow_graph) {
+  return IsRedundant(RangeBoundary::FromDefinition(length()->definition())) ?
+      NULL : this;
 }
 
 

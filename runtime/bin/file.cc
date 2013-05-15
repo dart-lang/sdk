@@ -582,6 +582,38 @@ void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  if (Dart_IsString(Dart_GetNativeArgument(args, 0))) {
+    const char* path =
+        DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+
+    int64_t stat_data[File::kStatSize];
+    File::Stat(path, stat_data);
+    Dart_Handle returned_data = Dart_NewTypedData(kInt64, File::kStatSize);
+    if (Dart_IsError(returned_data)) Dart_PropagateError(returned_data);
+    Dart_TypedData_Type data_type_unused;
+    void* data_location;
+    intptr_t data_length_unused;
+    Dart_Handle status = Dart_TypedDataAcquireData(returned_data,
+                                                   &data_type_unused,
+                                                   &data_location,
+                                                   &data_length_unused);
+    if (Dart_IsError(status)) Dart_PropagateError(status);
+    memmove(data_location, stat_data, File::kStatSize * sizeof(int64_t));
+    status = Dart_TypedDataReleaseData(returned_data);
+    if (Dart_IsError(status)) Dart_PropagateError(status);
+    Dart_SetReturnValue(args, returned_data);
+  } else {
+    Dart_Handle err = DartUtils::NewDartArgumentError(
+        "Non-string argument to FileSystemEntity.stat");
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
   Dart_EnterScope();
   if (Dart_IsString(Dart_GetNativeArgument(args, 0)) &&
@@ -1122,6 +1154,26 @@ static CObject* FileIdenticalRequest(const CObjectArray& request) {
 }
 
 
+static CObject* FileStatRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[1]->IsString()) {
+    int64_t data[File::kStatSize];
+    CObjectString path(request[1]);
+    File::Stat(path.CString(), data);
+    CObjectArray* result =
+        new CObjectArray(CObject::NewArray(File::kStatSize));
+    for (int i = 0; i < File::kStatSize; ++i) {
+      result->SetAt(i, new CObjectInt64(CObject::NewInt64(data[i])));
+    }
+    CObjectArray* wrapper = new CObjectArray(CObject::NewArray(2));
+    wrapper->SetAt(0, new CObjectInt32(CObject::NewInt32(CObject::kSuccess)));
+    wrapper->SetAt(1, result);
+    return wrapper;
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
 static void FileService(Dart_Port dest_port_id,
                  Dart_Port reply_port_id,
                  Dart_CObject* message) {
@@ -1202,6 +1254,9 @@ static void FileService(Dart_Port dest_port_id,
           break;
         case File::kIdenticalRequest:
           response = FileIdenticalRequest(request);
+          break;
+        case File::kStatRequest:
+          response = FileStatRequest(request);
           break;
         default:
           UNREACHABLE();

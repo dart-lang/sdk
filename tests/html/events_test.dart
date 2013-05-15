@@ -29,7 +29,7 @@ main() {
   test('EventTarget', () {
     Element element = new Element.tag('test');
     element.id = 'eventtarget';
-    window.document.body.nodes.add(element);
+    window.document.body.append(element);
 
     int invocationCounter = 0;
     void handler(Event e) {

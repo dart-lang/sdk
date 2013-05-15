@@ -473,6 +473,20 @@ intptr_t CompileType::ToCid() {
 }
 
 
+// Return true if the class is private to our internal libraries (not extendable
+// or implementable by users).
+// (TODO): Allow more libraries.
+static bool IsKnownPrivateClass(const Class& type_class) {
+  if (!Library::IsPrivate(String::Handle(type_class.Name()))) return false;
+  const Library& library = Library::Handle(type_class.library());
+  if (library.raw() == Library::CoreLibrary()) return true;
+  if (library.raw() == Library::CollectionLibrary()) return true;
+  if (library.raw() == Library::TypedDataLibrary()) return true;
+  if (library.raw() == Library::MathLibrary()) return true;
+  return false;
+}
+
+
 intptr_t CompileType::ToNullableCid() {
   if (cid_ == kIllegalCid) {
     ASSERT(type_ != NULL);
@@ -481,11 +495,16 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kDynamicCid;
     } else if (type_->IsVoidType()) {
       cid_ = kNullCid;
-    } else if (FLAG_use_cha && type_->HasResolvedTypeClass()) {
+    } else if (type_->HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type_->type_class());
-      if (!type_class.is_implemented() &&
-          !CHA::HasSubclasses(type_class.id())) {
-        cid_ = type_class.id();
+      if (FLAG_use_cha || IsKnownPrivateClass(type_class)) {
+        // A known private class cannot be subclassed or implemented.
+        if (!type_class.is_implemented() &&
+            !CHA::HasSubclasses(type_class.id())) {
+          cid_ = type_class.id();
+        } else {
+          cid_ = kDynamicCid;
+        }
       } else {
         cid_ = kDynamicCid;
       }
@@ -668,8 +687,12 @@ CompileType ParameterInstr::ComputeType() const {
   // always be wrongly eliminated.
   // However there are parameters that are known to match their declared type:
   // for example receiver and construction phase.
-  const Function& function = block_->parsed_function().function();
-  LocalScope* scope = block_->parsed_function().node_sequence()->scope();
+  GraphEntryInstr* graph_entry = block_->AsGraphEntry();
+  // Parameters at catch-blocks have type dynamic.
+  if (graph_entry == NULL) return CompileType::Dynamic();
+
+  const Function& function = graph_entry->parsed_function().function();
+  LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
   const AbstractType& type = scope->VariableAt(index())->type();
 
   // Parameter is the constructor phase.
@@ -1042,6 +1065,35 @@ CompileType Float32x4WithInstr::ComputeType() const {
 
 
 CompileType Float32x4ToUint32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
+CompileType Uint32x4BoolConstructorInstr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+CompileType Uint32x4GetFlagInstr::ComputeType() const {
+  return CompileType::FromCid(kBoolCid);
+}
+
+
+CompileType Uint32x4SelectInstr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType Uint32x4SetFlagInstr::ComputeType() const {
+  return CompileType::FromCid(kUint32x4Cid);
+}
+
+
+CompileType Uint32x4ToFloat32x4Instr::ComputeType() const {
+  return CompileType::FromCid(kFloat32x4Cid);
+}
+
+
+CompileType BinaryUint32x4OpInstr::ComputeType() const {
   return CompileType::FromCid(kUint32x4Cid);
 }
 

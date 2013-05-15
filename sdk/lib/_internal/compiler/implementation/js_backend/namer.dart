@@ -545,7 +545,6 @@ class Namer implements ClosureNamer {
       if (cls == backend.jsIntClass) return "i";
       if (cls == backend.jsNumberClass) return "n";
       if (cls == backend.jsNullClass) return "u";
-      if (cls == backend.jsFunctionClass) return "f";
       if (cls == backend.jsBoolClass) return "b";
       if (cls == backend.jsInterceptorClass) return "I";
       return cls.name.slowToString();
@@ -735,6 +734,11 @@ class Namer implements ClosureNamer {
     return getMappedGlobalName("$getterPrefix${getName(element)}");
   }
 
+  String getStaticClosureName(Element element) {
+    assert(Elements.isStaticOrTopLevelFunction(element));
+    return getMappedGlobalName("${getName(element)}\$closure");
+  }
+
   String isolatePropertiesAccess(Element element) {
     return "$isolateName.$isolatePropertiesName.${getName(element)}";
   }
@@ -750,6 +754,10 @@ class Namer implements ClosureNamer {
 
   String isolateLazyInitializerAccess(Element element) {
     return "$CURRENT_ISOLATE.${getLazyInitializerName(element)}";
+  }
+
+  String isolateStaticClosureAccess(Element element) {
+    return "$CURRENT_ISOLATE.${getStaticClosureName(element)}";
   }
 
   String operatorIsPrefix() => r'$is';

@@ -148,9 +148,9 @@ void main() {
     var completer = new Completer();
     var future = new SubstituteFuture(completer.future);
     completer.complete('success');
-    future.then(expectAsync1((_) {
-      expect(() => future.substitute(new Future.value()),
-          throwsStateError);
-    }));
+    // The completer finishes asynchronously. So we have to wait for it to
+    // be completed before we can substitute.
+    expect(future.then((_) => future.substitute(new Future.value())),
+        throwsStateError);
   });
 }

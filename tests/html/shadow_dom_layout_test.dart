@@ -21,12 +21,12 @@ main() {
 
   // assemble DOM
   var sRoot = div.createShadowRoot();
-  sRoot.nodes.add(new Element.html('<content select=".foo"></content>'));
-  sRoot.nodes.add(redbox);
-  sRoot.nodes.add(new Element.tag('content'));
+  sRoot.append(new Element.html('<content select=".foo"></content>'));
+  sRoot.append(redbox);
+  sRoot.append(new Element.tag('content'));
 
-  div.nodes.add(bluebox);
-  div.nodes.add(greenbox);
+  div.append(bluebox);
+  div.append(greenbox);
 }
 
 DivElement _colorBox(String color, int width, int height) {

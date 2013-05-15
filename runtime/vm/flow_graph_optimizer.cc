@@ -15,6 +15,7 @@
 #include "vm/parser.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
+#include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
 namespace dart {
@@ -35,7 +36,6 @@ DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_check_elimination);
-
 
 
 // Optimize instance calls using ICData.
@@ -422,7 +422,8 @@ void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
 
 
 void FlowGraphOptimizer::SelectRepresentations() {
-  // Convervatively unbox all phis that were proven to be of type Double.
+  // Convervatively unbox all phis that were proven to be of Double,
+  // Float32x4, or Uint32x4.
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
     if (join_entry != NULL) {
@@ -431,6 +432,10 @@ void FlowGraphOptimizer::SelectRepresentations() {
         ASSERT(phi != NULL);
         if (phi->Type()->ToCid() == kDoubleCid) {
           phi->set_representation(kUnboxedDouble);
+        } else if (phi->Type()->ToCid() == kFloat32x4Cid) {
+          phi->set_representation(kUnboxedFloat32x4);
+        } else if (phi->Type()->ToCid() == kUint32x4Cid) {
+          phi->set_representation(kUnboxedUint32x4);
         }
       }
     }
@@ -453,6 +458,14 @@ void FlowGraphOptimizer::SelectRepresentations() {
         ASSERT(phi != NULL);
         ASSERT(phi->is_alive());
         InsertConversionsFor(phi);
+      }
+    }
+    CatchBlockEntryInstr* catch_entry = entry->AsCatchBlockEntry();
+    if (catch_entry != NULL) {
+      for (intptr_t i = 0;
+           i < catch_entry->initial_definitions()->length();
+           i++) {
+        InsertConversionsFor((*catch_entry->initial_definitions())[i]);
       }
     }
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
@@ -547,6 +560,10 @@ static bool HasOnlyTwoFloat32x4s(const ICData& ic_data) {
       ICDataHasReceiverArgumentClassIds(ic_data, kFloat32x4Cid, kFloat32x4Cid);
 }
 
+static bool HasOnlyTwoUint32x4s(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1) &&
+      ICDataHasReceiverArgumentClassIds(ic_data, kUint32x4Cid, kUint32x4Cid);
+}
 
 // Returns false if the ICData contains anything other than the 4 combinations
 // of Mint and Smi for the receiver and argument classes.
@@ -674,38 +691,26 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
                call->env(),
                Definition::kEffect);
 
-  // If both index and array are constants, then do a compile-time check.
-  // TODO(srdjan): Remove once constant propagation handles bounds checks.
-  bool skip_check = false;
-  if ((*array)->IsConstant() && (*index)->IsConstant()) {
-    const ImmutableArray& constant_array =
-        ImmutableArray::Cast((*array)->AsConstant()->value());
-    const Object& constant_index = (*index)->AsConstant()->value();
-      skip_check = constant_index.IsSmi() &&
-          (Smi::Cast(constant_index).Value() < constant_array.Length());
-  }
-  if (!skip_check) {
-    // Insert array length load and bounds check.
-    const bool is_immutable =
-        CheckArrayBoundInstr::IsFixedLengthArrayType(class_id);
-    LoadFieldInstr* length =
-        new LoadFieldInstr(new Value(*array),
-                           CheckArrayBoundInstr::LengthOffsetFor(class_id),
-                           Type::ZoneHandle(Type::SmiType()),
-                           is_immutable);
-    length->set_result_cid(kSmiCid);
-    length->set_recognized_kind(
-        LoadFieldInstr::RecognizedKindFromArrayCid(class_id));
-    InsertBefore(call, length, NULL, Definition::kValue);
+  // Insert array length load and bounds check.
+  const bool is_immutable =
+      CheckArrayBoundInstr::IsFixedLengthArrayType(class_id);
+  LoadFieldInstr* length =
+      new LoadFieldInstr(new Value(*array),
+                         CheckArrayBoundInstr::LengthOffsetFor(class_id),
+                         Type::ZoneHandle(Type::SmiType()),
+                         is_immutable);
+  length->set_result_cid(kSmiCid);
+  length->set_recognized_kind(
+      LoadFieldInstr::RecognizedKindFromArrayCid(class_id));
+  InsertBefore(call, length, NULL, Definition::kValue);
+  InsertBefore(call,
+               new CheckArrayBoundInstr(new Value(length),
+                                        new Value(*index),
+                                        class_id,
+                                        call),
+               call->env(),
+               Definition::kEffect);
 
-    InsertBefore(call,
-                 new CheckArrayBoundInstr(new Value(length),
-                                          new Value(*index),
-                                          class_id,
-                                          call),
-                 call->env(),
-                 Definition::kEffect);
-  }
   if (class_id == kGrowableObjectArrayCid) {
     // Insert data elements load.
     LoadFieldInstr* elements =
@@ -1025,6 +1030,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
         operands_type = kSmiCid;
       } else if (HasTwoMintOrSmi(ic_data)) {
         operands_type = kMintCid;
+      } else if (HasOnlyTwoUint32x4s(ic_data)) {
+        operands_type = kUint32x4Cid;
       } else {
         return false;
       }
@@ -1111,8 +1118,28 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
     // Replace call.
     BinaryFloat32x4OpInstr* float32x4_bin_op =
         new BinaryFloat32x4OpInstr(op_kind, new Value(left), new Value(right),
-                                   call);
+                                   call->deopt_id());
     ReplaceCall(call, float32x4_bin_op);
+  } else if (operands_type == kUint32x4Cid) {
+    // Type check left.
+    AddCheckClass(left,
+                  ICData::ZoneHandle(
+                      call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                  call->deopt_id(),
+                  call->env(),
+                  call);
+    // Type check right.
+    AddCheckClass(right,
+                  ICData::ZoneHandle(
+                      call->ic_data()->AsUnaryClassChecksForArgNr(1)),
+                  call->deopt_id(),
+                  call->env(),
+                  call);
+    // Replace call.
+    BinaryUint32x4OpInstr* uint32x4_bin_op =
+        new BinaryUint32x4OpInstr(op_kind, new Value(left), new Value(right),
+                                  call->deopt_id());
+    ReplaceCall(call, uint32x4_bin_op);
   } else if (op_kind == Token::kMOD) {
     // TODO(vegorov): implement fast path code for modulo.
     ASSERT(operands_type == kSmiCid);
@@ -1377,6 +1404,12 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
 }
 
 
+void FlowGraphOptimizer::InlineObjectCid(InstanceCallInstr* call) {
+  LoadClassIdInstr* load = new LoadClassIdInstr(new Value(call->ArgumentAt(0)));
+  ReplaceCall(call, load);
+}
+
+
 static intptr_t OffsetForLengthGetter(MethodRecognizer::Kind kind) {
   switch (kind) {
     case MethodRecognizer::kObjectArrayLength:
@@ -1407,7 +1440,24 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
   Float32x4ShuffleInstr* instr = new Float32x4ShuffleInstr(
       getter,
       new Value(call->ArgumentAt(0)),
-      call);
+      call->deopt_id());
+  ReplaceCall(call, instr);
+  return true;
+}
+
+
+bool FlowGraphOptimizer::InlineUint32x4Getter(InstanceCallInstr* call,
+                                              MethodRecognizer::Kind getter) {
+  AddCheckClass(call->ArgumentAt(0),
+                ICData::ZoneHandle(
+                    call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                call->deopt_id(),
+                call->env(),
+                call);
+  Uint32x4GetFlagInstr* instr = new Uint32x4GetFlagInstr(
+      getter,
+      new Value(call->ArgumentAt(0)),
+      call->deopt_id());
   ReplaceCall(call, instr);
   return true;
 }
@@ -1439,6 +1489,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
 
   // VM objects length getter.
   switch (recognized_kind) {
+    case MethodRecognizer::kObjectCid: {
+      InlineObjectCid(call);
+      return true;
+    }
     case MethodRecognizer::kObjectArrayLength:
     case MethodRecognizer::kImmutableArrayLength:
     case MethodRecognizer::kTypedDataLength:
@@ -1487,6 +1541,16 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
         return false;
       }
       return InlineFloat32x4Getter(call, recognized_kind);
+    case MethodRecognizer::kUint32x4GetFlagX:
+    case MethodRecognizer::kUint32x4GetFlagY:
+    case MethodRecognizer::kUint32x4GetFlagZ:
+    case MethodRecognizer::kUint32x4GetFlagW: {
+      if (!ic_data.HasReceiverClassId(kUint32x4Cid) ||
+          !ic_data.HasOneTarget()) {
+        return false;
+      }
+      return InlineUint32x4Getter(call, recognized_kind);
+    }
     default:
       ASSERT(recognized_kind == MethodRecognizer::kUnknown);
   }
@@ -1754,6 +1818,10 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
     return TryInlineFloat32x4Method(call, recognized_kind);
   }
+
+  if ((class_ids[0] == kUint32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
+    return TryInlineUint32x4Method(call, recognized_kind);
+  }
   return false;
 }
 
@@ -1781,7 +1849,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
       // Replace call.
       Float32x4ComparisonInstr* cmp =
           new Float32x4ComparisonInstr(recognized_kind, new Value(left),
-                                       new Value(right), call);
+                                       new Value(right), call->deopt_id());
       ReplaceCall(call, cmp);
       return true;
     }
@@ -1798,7 +1866,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
                     call);
       Float32x4MinMaxInstr* minmax =
           new Float32x4MinMaxInstr(recognized_kind, new Value(left),
-                                   new Value(right), call);
+                                   new Value(right), call->deopt_id());
       ReplaceCall(call, minmax);
       return true;
     }
@@ -1817,7 +1885,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
       // register and can be destroyed.
       Float32x4ScaleInstr* scale =
           new Float32x4ScaleInstr(recognized_kind, new Value(right),
-                                  new Value(left), call);
+                                  new Value(left), call->deopt_id());
       ReplaceCall(call, scale);
       return true;
     }
@@ -1832,7 +1900,8 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
                     call->env(),
                     call);
       Float32x4SqrtInstr* sqrt =
-          new Float32x4SqrtInstr(recognized_kind, new Value(left), call);
+          new Float32x4SqrtInstr(recognized_kind, new Value(left),
+                                 call->deopt_id());
       ReplaceCall(call, sqrt);
       return true;
     }
@@ -1852,7 +1921,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
       Float32x4WithInstr* with = new Float32x4WithInstr(recognized_kind,
                                                         new Value(left),
                                                         new Value(right),
-                                                        call);
+                                                        call->deopt_id());
       ReplaceCall(call, with);
       return true;
     }
@@ -1867,7 +1936,8 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
                     call->env(),
                     call);
       Float32x4ZeroArgInstr* zeroArg =
-          new Float32x4ZeroArgInstr(recognized_kind, new Value(left), call);
+          new Float32x4ZeroArgInstr(recognized_kind, new Value(left),
+                                    call->deopt_id());
       ReplaceCall(call, zeroArg);
       return true;
     }
@@ -1885,7 +1955,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
       Float32x4ClampInstr* clamp = new Float32x4ClampInstr(new Value(left),
                                                            new Value(lower),
                                                            new Value(upper),
-                                                           call);
+                                                           call->deopt_id());
       ReplaceCall(call, clamp);
       return true;
     }
@@ -1899,8 +1969,73 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
                     call->env(),
                     call);
       Float32x4ToUint32x4Instr* cast =
-          new Float32x4ToUint32x4Instr(new Value(left), call);
+          new Float32x4ToUint32x4Instr(new Value(left), call->deopt_id());
       ReplaceCall(call, cast);
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
+
+bool FlowGraphOptimizer::TryInlineUint32x4Method(
+    InstanceCallInstr* call,
+    MethodRecognizer::Kind recognized_kind) {
+  ASSERT(call->HasICData());
+  switch (recognized_kind) {
+    case MethodRecognizer::kUint32x4Select: {
+      Definition* mask = call->ArgumentAt(0);
+      Definition* trueValue = call->ArgumentAt(1);
+      Definition* falseValue = call->ArgumentAt(2);
+      // Type check left.
+      AddCheckClass(mask,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Uint32x4SelectInstr* select = new Uint32x4SelectInstr(
+          new Value(mask),
+          new Value(trueValue),
+          new Value(falseValue),
+          call->deopt_id());
+      ReplaceCall(call, select);
+      return true;
+    }
+    case MethodRecognizer::kUint32x4ToUint32x4: {
+      Definition* left = call->ArgumentAt(0);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Uint32x4ToFloat32x4Instr* cast =
+          new Uint32x4ToFloat32x4Instr(new Value(left), call->deopt_id());
+      ReplaceCall(call, cast);
+      return true;
+    }
+    case MethodRecognizer::kUint32x4WithFlagX:
+    case MethodRecognizer::kUint32x4WithFlagY:
+    case MethodRecognizer::kUint32x4WithFlagZ:
+    case MethodRecognizer::kUint32x4WithFlagW: {
+      Definition* left = call->ArgumentAt(0);
+      Definition* flag = call->ArgumentAt(1);
+      // Type check left.
+      AddCheckClass(left,
+                    ICData::ZoneHandle(
+                        call->ic_data()->AsUnaryClassChecksForArgNr(0)),
+                    call->deopt_id(),
+                    call->env(),
+                    call);
+      Uint32x4SetFlagInstr* setFlag = new Uint32x4SetFlagInstr(
+          recognized_kind,
+          new Value(left),
+          new Value(flag),
+          call->deopt_id());
+      ReplaceCall(call, setFlag);
       return true;
     }
     default:
@@ -2288,11 +2423,12 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
         new MathSqrtInstr(new Value(call->ArgumentAt(0)), call);
     ReplaceCall(call, sqrt);
   } else if (recognized_kind == MethodRecognizer::kFloat32x4Zero) {
-    Float32x4ZeroInstr* zero = new Float32x4ZeroInstr(call);
+    Float32x4ZeroInstr* zero = new Float32x4ZeroInstr(call->deopt_id());
     ReplaceCall(call, zero);
   } else if (recognized_kind == MethodRecognizer::kFloat32x4Splat) {
     Float32x4SplatInstr* splat =
-        new Float32x4SplatInstr(new Value(call->ArgumentAt(1)), call);
+        new Float32x4SplatInstr(new Value(call->ArgumentAt(1)),
+                                call->deopt_id());
     ReplaceCall(call, splat);
   } else if (recognized_kind == MethodRecognizer::kFloat32x4Constructor) {
     Float32x4ConstructorInstr* con =
@@ -2300,7 +2436,15 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
                                       new Value(call->ArgumentAt(2)),
                                       new Value(call->ArgumentAt(3)),
                                       new Value(call->ArgumentAt(4)),
-                                      call);
+                                      call->deopt_id());
+    ReplaceCall(call, con);
+  } else if (recognized_kind == MethodRecognizer::kUint32x4BoolConstructor) {
+    Uint32x4BoolConstructorInstr* con = new Uint32x4BoolConstructorInstr(
+        new Value(call->ArgumentAt(1)),
+        new Value(call->ArgumentAt(2)),
+        new Value(call->ArgumentAt(3)),
+        new Value(call->ArgumentAt(4)),
+        call->deopt_id());
     ReplaceCall(call, con);
   }
 }
@@ -2710,6 +2854,30 @@ void RangeAnalysis::CollectSmiValues() {
        !block_it.Done();
        block_it.Advance()) {
     BlockEntryInstr* block = block_it.Current();
+
+
+    if (block->IsGraphEntry() || block->IsCatchBlockEntry()) {
+      const GrowableArray<Definition*>& initial = block->IsGraphEntry()
+          ? *block->AsGraphEntry()->initial_definitions()
+          : *block->AsCatchBlockEntry()->initial_definitions();
+      for (intptr_t i = 0; i < initial.length(); ++i) {
+        Definition* current = initial[i];
+        if (current->Type()->ToCid() == kSmiCid) {
+          smi_values_.Add(current);
+        }
+      }
+    }
+
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if (join != NULL) {
+      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
+        PhiInstr* current = phi_it.Current();
+        if (current->Type()->ToCid() == kSmiCid) {
+          smi_values_.Add(current);
+        }
+      }
+    }
+
     for (ForwardInstructionIterator instr_it(block);
          !instr_it.Done();
          instr_it.Advance()) {
@@ -2722,16 +2890,6 @@ void RangeAnalysis::CollectSmiValues() {
         }
       } else if (current->IsCheckSmi()) {
         smi_checks_.Add(current->AsCheckSmi());
-      }
-    }
-
-    JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL) {
-      for (PhiIterator phi_it(join); !phi_it.Done(); phi_it.Advance()) {
-        PhiInstr* current = phi_it.Current();
-        if (current->Type()->ToCid() == kSmiCid) {
-          smi_values_.Add(current);
-        }
       }
     }
   }
@@ -3171,6 +3329,73 @@ void FlowGraphOptimizer::InferSmiRanges() {
 }
 
 
+void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
+  // For every catch-block: Iterate over all call instructions inside the
+  // corresponding try-block and figure out for each environment value if it
+  // is the same constant at all calls. If yes, replace the initial definition
+  // at the catch-entry with this constant.
+  const GrowableArray<CatchBlockEntryInstr*>& catch_entries =
+      flow_graph->graph_entry()->catch_entries();
+  intptr_t base = kFirstLocalSlotFromFp + flow_graph->num_non_copied_params();
+  for (intptr_t catch_idx = 0;
+       catch_idx < catch_entries.length();
+       ++catch_idx) {
+    CatchBlockEntryInstr* cb = catch_entries[catch_idx];
+    CatchEntryInstr* catch_entry = cb->next()->AsCatchEntry();
+
+    // Initialize cdefs with the original initial definitions (ParameterInstr).
+    // The following representation is used:
+    // ParameterInstr => unknown
+    // ConstantInstr => known constant
+    // NULL => non-constant
+    GrowableArray<Definition*>* idefs = cb->initial_definitions();
+    GrowableArray<Definition*> cdefs(idefs->length());
+    cdefs.AddArray(*idefs);
+
+    // exception_var and stacktrace_var are never constant.
+    intptr_t ex_idx = base - catch_entry->exception_var().index();
+    intptr_t st_idx = base - catch_entry->stacktrace_var().index();
+    cdefs[ex_idx] = cdefs[st_idx] = NULL;
+
+    for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
+      if (block->try_index() == cb->catch_try_index()) {
+        for (ForwardInstructionIterator instr_it(block);
+             !instr_it.Done();
+             instr_it.Advance()) {
+          Instruction* current = instr_it.Current();
+          if (current->MayThrow()) {
+            Environment* env = current->env();
+            for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
+              if (cdefs[env_idx] != NULL &&
+                  env->ValueAt(env_idx)->BindsToConstant()) {
+                cdefs[env_idx] = env->ValueAt(env_idx)->definition();
+              }
+              if (cdefs[env_idx] != env->ValueAt(env_idx)->definition()) {
+                cdefs[env_idx] = NULL;
+              }
+            }
+          }
+        }
+      }
+    }
+    for (intptr_t j = 0; j < idefs->length(); ++j) {
+      if (cdefs[j] != NULL && cdefs[j]->IsConstant()) {
+        // TODO(fschneider): Use constants from the constant pool.
+        Definition* old = (*idefs)[j];
+        ConstantInstr* orig = cdefs[j]->AsConstant();
+        ConstantInstr* copy = new ConstantInstr(orig->value());
+        copy->set_ssa_temp_index(flow_graph->alloc_ssa_temp_index());
+        old->ReplaceUsesWith(copy);
+        (*idefs)[j] = copy;
+      }
+    }
+  }
+}
+
+
 static BlockEntryInstr* FindPreHeader(BlockEntryInstr* header) {
   for (intptr_t j = 0; j < header->PredecessorCount(); ++j) {
     BlockEntryInstr* candidate = header->PredecessorAt(j);
@@ -3256,9 +3481,24 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
 }
 
 
+static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
+                                intptr_t loop_header_index,
+                                Instruction* instr) {
+  return (sets != NULL) &&
+      instr->HasExprId() &&
+      ((*sets)[loop_header_index] != NULL) &&
+      (*sets)[loop_header_index]->Contains(instr->expr_id());
+}
+
+
 void LICM::Optimize() {
-  GrowableArray<BlockEntryInstr*> loop_headers;
-  flow_graph()->ComputeLoops(&loop_headers);
+  const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
+      flow_graph()->loop_headers();
+
+  ZoneGrowableArray<BitVector*>* loop_invariant_loads =
+      flow_graph()->loop_invariant_loads();
+
+  BlockEffects* block_effects = flow_graph()->block_effects();
 
   for (intptr_t i = 0; i < loop_headers.length(); ++i) {
     BlockEntryInstr* header = loop_headers[i];
@@ -3274,8 +3514,9 @@ void LICM::Optimize() {
            !it.Done();
            it.Advance()) {
         Instruction* current = it.Current();
-        if (current->AllowsCSE() &&
-            flow_graph()->block_effects()->CanBeMovedTo(current, pre_header)) {
+        if ((current->AllowsCSE() &&
+             block_effects->CanBeMovedTo(current, pre_header)) ||
+             IsLoopInvariantLoad(loop_invariant_loads, i, current)) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -3801,6 +4042,12 @@ static AliasedSet* NumberLoadExpressions(
       } else {
         defn->set_expr_id(result->expr_id());
       }
+
+      if (FLAG_trace_optimization) {
+        OS::Print("load v%"Pd" is numbered as %"Pd"\n",
+                  defn->ssa_temp_index(),
+                  defn->expr_id());
+      }
     }
   }
 
@@ -3866,6 +4113,9 @@ class LoadOptimizer : public ValueObject {
   bool Optimize() {
     ComputeInitialSets();
     ComputeOutValues();
+    if (graph_->is_licm_allowed()) {
+      MarkLoopInvariantLoads();
+    }
     ForwardLoads();
     EmitPhis();
     return forwarded_;
@@ -4119,6 +4369,50 @@ class LoadOptimizer : public ValueObject {
         }
       }
     }
+  }
+
+  void MarkLoopInvariantLoads() {
+    const ZoneGrowableArray<BlockEntryInstr*>& loop_headers =
+        graph_->loop_headers();
+
+    ZoneGrowableArray<BitVector*>* invariant_loads =
+        new ZoneGrowableArray<BitVector*>(loop_headers.length());
+
+    for (intptr_t i = 0; i < loop_headers.length(); i++) {
+      BlockEntryInstr* header = loop_headers[i];
+      BlockEntryInstr* pre_header = FindPreHeader(header);
+      if (pre_header == NULL) {
+        invariant_loads->Add(NULL);
+        continue;
+      }
+
+      BitVector* loop_gen = new BitVector(aliased_set_->max_expr_id());
+      for (BitVector::Iterator loop_it(header->loop_info());
+           !loop_it.Done();
+           loop_it.Advance()) {
+        const intptr_t preorder_number = loop_it.Current();
+        loop_gen->AddAll(gen_[preorder_number]);
+      }
+
+      for (BitVector::Iterator loop_it(header->loop_info());
+           !loop_it.Done();
+           loop_it.Advance()) {
+        const intptr_t preorder_number = loop_it.Current();
+        loop_gen->RemoveAll(kill_[preorder_number]);
+      }
+
+      if (FLAG_trace_optimization) {
+        for (BitVector::Iterator it(loop_gen); !it.Done(); it.Advance()) {
+          OS::Print("load %"Pd" is loop invariant for B%"Pd"\n",
+                    it.Current(),
+                    header->block_id());
+        }
+      }
+
+      invariant_loads->Add(loop_gen);
+    }
+
+    graph_->set_loop_invariant_loads(invariant_loads);
   }
 
   // Compute incoming value for the given expression id.
@@ -4444,8 +4738,8 @@ ConstantPropagator::ConstantPropagator(
     const GrowableArray<BlockEntryInstr*>& ignored)
     : FlowGraphVisitor(ignored),
       graph_(graph),
-      unknown_(Object::transition_sentinel()),
-      non_constant_(Object::sentinel()),
+      unknown_(Object::unknown_constant()),
+      non_constant_(Object::non_constant()),
       reachable_(new BitVector(graph->preorder().length())),
       definition_marks_(new BitVector(graph->max_virtual_register_number())),
       block_worklist_(),
@@ -4530,7 +4824,11 @@ void ConstantPropagator::VisitGraphEntry(GraphEntryInstr* block) {
   }
   ASSERT(ForwardInstructionIterator(block).Done());
 
-  SetReachable(block->normal_entry());
+  // TODO(fschneider): Improve this approximation. The catch entry is only
+  // reachable if a call in the try-block is reachable.
+  for (intptr_t i = 0; i < block->SuccessorCount(); ++i) {
+    SetReachable(block->SuccessorAt(i));
+  }
 }
 
 
@@ -4550,6 +4848,10 @@ void ConstantPropagator::VisitTargetEntry(TargetEntryInstr* block) {
 
 
 void ConstantPropagator::VisitCatchBlockEntry(CatchBlockEntryInstr* block) {
+  const GrowableArray<Definition*>& defs = *block->initial_definitions();
+  for (intptr_t i = 0; i < defs.length(); ++i) {
+    defs[i]->Accept(this);
+  }
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     it.Current()->Accept(this);
   }
@@ -4882,6 +5184,15 @@ void ConstantPropagator::VisitStoreInstanceField(
 
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
+  const Field& field = instr->field();
+  ASSERT(field.is_static());
+  if (field.is_final()) {
+    Instance& obj = Instance::Handle(field.value());
+    if (obj.IsSmi() || obj.IsOld()) {
+      SetValue(instr, obj);
+      return;
+    }
+  }
   SetValue(instr, non_constant_);
 }
 
@@ -5259,6 +5570,38 @@ void ConstantPropagator::VisitFloat32x4ToUint32x4(
 }
 
 
+void ConstantPropagator::VisitUint32x4BoolConstructor(
+    Uint32x4BoolConstructorInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUint32x4GetFlag(Uint32x4GetFlagInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUint32x4SetFlag(Uint32x4SetFlagInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUint32x4Select(Uint32x4SelectInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitUint32x4ToFloat32x4(
+    Uint32x4ToFloat32x4Instr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
+void ConstantPropagator::VisitBinaryUint32x4Op(BinaryUint32x4OpInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitMathSqrt(MathSqrtInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsNonConstant(value)) {
@@ -5362,12 +5705,18 @@ void ConstantPropagator::Analyze() {
 void ConstantPropagator::VisitBranches() {
   GraphEntryInstr* entry = graph_->graph_entry();
   reachable_->Add(entry->preorder_number());
-  // TODO(fschneider): Handle CatchEntry.
-  reachable_->Add(entry->normal_entry()->preorder_number());
-  block_worklist_.Add(entry->normal_entry());
+  block_worklist_.Add(entry);
 
   while (!block_worklist_.is_empty()) {
     BlockEntryInstr* block = block_worklist_.RemoveLast();
+    if (block->IsGraphEntry()) {
+      // TODO(fschneider): Improve this approximation. Catch entries are only
+      // reachable if a call in the corresponding try-block is reachable.
+      for (intptr_t i = 0; i < block->SuccessorCount(); ++i) {
+        SetReachable(block->SuccessorAt(i));
+      }
+      continue;
+    }
     Instruction* last = block->last_instruction();
     if (last->IsGoto()) {
       SetReachable(last->AsGoto()->successor());

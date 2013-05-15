@@ -330,16 +330,28 @@ class ApplicationCache extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('DOMApplicationCache.CHECKING')
+  @DocsEditable
   static const int CHECKING = 2;
 
+  @DomName('DOMApplicationCache.DOWNLOADING')
+  @DocsEditable
   static const int DOWNLOADING = 3;
 
+  @DomName('DOMApplicationCache.IDLE')
+  @DocsEditable
   static const int IDLE = 1;
 
+  @DomName('DOMApplicationCache.OBSOLETE')
+  @DocsEditable
   static const int OBSOLETE = 5;
 
+  @DomName('DOMApplicationCache.UNCACHED')
+  @DocsEditable
   static const int UNCACHED = 0;
 
+  @DomName('DOMApplicationCache.UPDATEREADY')
+  @DocsEditable
   static const int UPDATEREADY = 4;
 
   @DomName('DOMApplicationCache.status')
@@ -2468,28 +2480,52 @@ class CssRegionRule extends CssRule {
 class CssRule extends NativeFieldWrapperClass1 {
   CssRule.internal();
 
+  @DomName('CSSRule.CHARSET_RULE')
+  @DocsEditable
   static const int CHARSET_RULE = 2;
 
+  @DomName('CSSRule.FONT_FACE_RULE')
+  @DocsEditable
   static const int FONT_FACE_RULE = 5;
 
+  @DomName('CSSRule.HOST_RULE')
+  @DocsEditable
   static const int HOST_RULE = 1001;
 
+  @DomName('CSSRule.IMPORT_RULE')
+  @DocsEditable
   static const int IMPORT_RULE = 3;
 
+  @DomName('CSSRule.MEDIA_RULE')
+  @DocsEditable
   static const int MEDIA_RULE = 4;
 
+  @DomName('CSSRule.PAGE_RULE')
+  @DocsEditable
   static const int PAGE_RULE = 6;
 
+  @DomName('CSSRule.STYLE_RULE')
+  @DocsEditable
   static const int STYLE_RULE = 1;
 
+  @DomName('CSSRule.UNKNOWN_RULE')
+  @DocsEditable
   static const int UNKNOWN_RULE = 0;
 
+  @DomName('CSSRule.WEBKIT_FILTER_RULE')
+  @DocsEditable
   static const int WEBKIT_FILTER_RULE = 17;
 
+  @DomName('CSSRule.WEBKIT_KEYFRAMES_RULE')
+  @DocsEditable
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
+  @DomName('CSSRule.WEBKIT_KEYFRAME_RULE')
+  @DocsEditable
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
+  @DomName('CSSRule.WEBKIT_REGION_RULE')
+  @DocsEditable
   static const int WEBKIT_REGION_RULE = 16;
 
   @DomName('CSSRule.cssText')
@@ -2568,7 +2604,7 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   @DomName('CSSStyleDeclaration.setProperty')
   @DocsEditable
-  void setProperty(String propertyName, String value, String priority) native "CSSStyleDeclaration_setProperty_Callback";
+  void _setProperty(String propertyName, String value, String priority) native "CSSStyleDeclaration_setProperty_Callback";
 
 
   String getPropertyValue(String propertyName) {
@@ -2580,6 +2616,14 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions => true;
+
+  @DomName('CSSStyleDeclaration.setProperty')
+  void setProperty(String propertyName, String value, [String priority]) {
+    if (priority == null) {
+      priority = '';
+    }
+    _setProperty(propertyName, value, priority);
+  }
 
   // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
@@ -7247,7 +7291,12 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
   @DocsEditable
   int get length native "DOMStringList_length_Getter";
 
-  String operator[](int index) native "DOMStringList_item_Callback";
+  String operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  String _nativeIndexedGetter(int index) native "DOMStringList_item_Callback";
 
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -7260,6 +7309,31 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  String get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  String get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  String get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
   @DomName('DOMStringList.contains')
@@ -7750,17 +7824,28 @@ abstract class Element extends Node implements ElementTraversal {
   void onCreated() {}
 
   // Hooks to support custom WebComponents.
+
+  Element _xtag;
+
   /**
    * Experimental support for [web components][wc]. This field stores a
    * reference to the component implementation. It was inspired by Mozilla's
    * [x-tags][] project. Please note: in the future it may be possible to
    * `extend Element` from your class, in which case this field will be
-   * deprecated and will simply return this [Element] object.
+   * deprecated.
+   *
+   * If xtag has not been set, it will simply return `this` [Element].
    *
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
-  var xtag;
+  // Note: return type is `dynamic` for convenience to suppress warnings when
+  // members of the component are used. The actual type is a subtype of Element.
+  get xtag => _xtag != null ? _xtag : this;
+
+  void set xtag(Element value) {
+    _xtag = value;
+  }
 
   /**
    * Scrolls this element into view.
@@ -7834,24 +7919,24 @@ abstract class Element extends Node implements ElementTraversal {
       self._attributeBindings = new Map<String, StreamSubscription>();
     }
 
-    self.attributes.remove(name);
+    self.xtag.attributes.remove(name);
 
     var changed;
     if (name.endsWith('?')) {
       name = name.substring(0, name.length - 1);
 
       changed = (value) {
-        if (_templateBooleanConversion(value)) {
-          self.attributes[name] = '';
+        if (_Bindings._toBoolean(value)) {
+          self.xtag.attributes[name] = '';
         } else {
-          self.attributes.remove(name);
+          self.xtag.attributes.remove(name);
         }
       };
     } else {
       changed = (value) {
         // TODO(jmesserly): escape value if needed to protect against XSS.
-        // See https://github.com/toolkitchen/mdv/issues/58
-        self.attributes[name] = value == null ? '' : '$value';
+        // See https://github.com/polymer-project/mdv/issues/58
+        self.xtag.attributes[name] = value == null ? '' : '$value';
       };
     }
 
@@ -7974,8 +8059,8 @@ abstract class Element extends Node implements ElementTraversal {
     var template = ref;
     if (template == null) template = this;
 
-    var instance = _createDeepCloneAndDecorateTemplates(template.content,
-        attributes['syntax']);
+    var instance = _Bindings._createDeepCloneAndDecorateTemplates(
+        template.content, attributes['syntax']);
 
     if (TemplateElement._instanceCreated != null) {
       TemplateElement._instanceCreated.add(instance);
@@ -8001,7 +8086,7 @@ abstract class Element extends Node implements ElementTraversal {
 
     var syntax = TemplateElement.syntax[attributes['syntax']];
     _model = value;
-    _addBindings(this, model, syntax);
+    _Bindings._addBindings(this, model, syntax);
   }
 
   // TODO(jmesserly): const set would be better
@@ -8284,6 +8369,8 @@ abstract class Element extends Node implements ElementTraversal {
 
   void insertAdjacentText(String where, String text);
 
+  @DomName('Element.ALLOW_KEYBOARD_INPUT')
+  @DocsEditable
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   @DomName('Element.attributes')
@@ -9218,44 +9305,84 @@ class Event extends NativeFieldWrapperClass1 {
   }
   Event.internal();
 
+  @DomName('Event.AT_TARGET')
+  @DocsEditable
   static const int AT_TARGET = 2;
 
+  @DomName('Event.BLUR')
+  @DocsEditable
   static const int BLUR = 8192;
 
+  @DomName('Event.BUBBLING_PHASE')
+  @DocsEditable
   static const int BUBBLING_PHASE = 3;
 
+  @DomName('Event.CAPTURING_PHASE')
+  @DocsEditable
   static const int CAPTURING_PHASE = 1;
 
+  @DomName('Event.CHANGE')
+  @DocsEditable
   static const int CHANGE = 32768;
 
+  @DomName('Event.CLICK')
+  @DocsEditable
   static const int CLICK = 64;
 
+  @DomName('Event.DBLCLICK')
+  @DocsEditable
   static const int DBLCLICK = 128;
 
+  @DomName('Event.DRAGDROP')
+  @DocsEditable
   static const int DRAGDROP = 2048;
 
+  @DomName('Event.FOCUS')
+  @DocsEditable
   static const int FOCUS = 4096;
 
+  @DomName('Event.KEYDOWN')
+  @DocsEditable
   static const int KEYDOWN = 256;
 
+  @DomName('Event.KEYPRESS')
+  @DocsEditable
   static const int KEYPRESS = 1024;
 
+  @DomName('Event.KEYUP')
+  @DocsEditable
   static const int KEYUP = 512;
 
+  @DomName('Event.MOUSEDOWN')
+  @DocsEditable
   static const int MOUSEDOWN = 1;
 
+  @DomName('Event.MOUSEDRAG')
+  @DocsEditable
   static const int MOUSEDRAG = 32;
 
+  @DomName('Event.MOUSEMOVE')
+  @DocsEditable
   static const int MOUSEMOVE = 16;
 
+  @DomName('Event.MOUSEOUT')
+  @DocsEditable
   static const int MOUSEOUT = 8;
 
+  @DomName('Event.MOUSEOVER')
+  @DocsEditable
   static const int MOUSEOVER = 4;
 
+  @DomName('Event.MOUSEUP')
+  @DocsEditable
   static const int MOUSEUP = 2;
 
+  @DomName('Event.NONE')
+  @DocsEditable
   static const int NONE = 0;
 
+  @DomName('Event.SELECT')
+  @DocsEditable
   static const int SELECT = 16384;
 
   @DomName('Event.bubbles')
@@ -9334,8 +9461,12 @@ class Event extends NativeFieldWrapperClass1 {
 class EventException extends NativeFieldWrapperClass1 {
   EventException.internal();
 
+  @DomName('EventException.DISPATCH_REQUEST_ERR')
+  @DocsEditable
   static const int DISPATCH_REQUEST_ERR = 1;
 
+  @DomName('EventException.UNSPECIFIED_EVENT_TYPE_ERR')
+  @DocsEditable
   static const int UNSPECIFIED_EVENT_TYPE_ERR = 0;
 
   @DomName('EventException.code')
@@ -9391,10 +9522,16 @@ class EventSource extends EventTarget {
   @DocsEditable
   static EventSource _create_1(url, eventSourceInit) native "EventSource__create_1constructorCallback";
 
+  @DomName('EventSource.CLOSED')
+  @DocsEditable
   static const int CLOSED = 2;
 
+  @DomName('EventSource.CONNECTING')
+  @DocsEditable
   static const int CONNECTING = 0;
 
+  @DomName('EventSource.OPEN')
+  @DocsEditable
   static const int OPEN = 1;
 
   @DomName('EventSource.readyState')
@@ -9670,28 +9807,52 @@ class FileEntry extends Entry {
 class FileError extends NativeFieldWrapperClass1 {
   FileError.internal();
 
+  @DomName('FileError.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 3;
 
+  @DomName('FileError.ENCODING_ERR')
+  @DocsEditable
   static const int ENCODING_ERR = 5;
 
+  @DomName('FileError.INVALID_MODIFICATION_ERR')
+  @DocsEditable
   static const int INVALID_MODIFICATION_ERR = 9;
 
+  @DomName('FileError.INVALID_STATE_ERR')
+  @DocsEditable
   static const int INVALID_STATE_ERR = 7;
 
+  @DomName('FileError.NOT_FOUND_ERR')
+  @DocsEditable
   static const int NOT_FOUND_ERR = 1;
 
+  @DomName('FileError.NOT_READABLE_ERR')
+  @DocsEditable
   static const int NOT_READABLE_ERR = 4;
 
+  @DomName('FileError.NO_MODIFICATION_ALLOWED_ERR')
+  @DocsEditable
   static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
+  @DomName('FileError.PATH_EXISTS_ERR')
+  @DocsEditable
   static const int PATH_EXISTS_ERR = 12;
 
+  @DomName('FileError.QUOTA_EXCEEDED_ERR')
+  @DocsEditable
   static const int QUOTA_EXCEEDED_ERR = 10;
 
+  @DomName('FileError.SECURITY_ERR')
+  @DocsEditable
   static const int SECURITY_ERR = 2;
 
+  @DomName('FileError.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 8;
 
+  @DomName('FileError.TYPE_MISMATCH_ERR')
+  @DocsEditable
   static const int TYPE_MISMATCH_ERR = 11;
 
   @DomName('FileError.code')
@@ -9711,28 +9872,52 @@ class FileError extends NativeFieldWrapperClass1 {
 class FileException extends NativeFieldWrapperClass1 {
   FileException.internal();
 
+  @DomName('FileException.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 3;
 
+  @DomName('FileException.ENCODING_ERR')
+  @DocsEditable
   static const int ENCODING_ERR = 5;
 
+  @DomName('FileException.INVALID_MODIFICATION_ERR')
+  @DocsEditable
   static const int INVALID_MODIFICATION_ERR = 9;
 
+  @DomName('FileException.INVALID_STATE_ERR')
+  @DocsEditable
   static const int INVALID_STATE_ERR = 7;
 
+  @DomName('FileException.NOT_FOUND_ERR')
+  @DocsEditable
   static const int NOT_FOUND_ERR = 1;
 
+  @DomName('FileException.NOT_READABLE_ERR')
+  @DocsEditable
   static const int NOT_READABLE_ERR = 4;
 
+  @DomName('FileException.NO_MODIFICATION_ALLOWED_ERR')
+  @DocsEditable
   static const int NO_MODIFICATION_ALLOWED_ERR = 6;
 
+  @DomName('FileException.PATH_EXISTS_ERR')
+  @DocsEditable
   static const int PATH_EXISTS_ERR = 12;
 
+  @DomName('FileException.QUOTA_EXCEEDED_ERR')
+  @DocsEditable
   static const int QUOTA_EXCEEDED_ERR = 10;
 
+  @DomName('FileException.SECURITY_ERR')
+  @DocsEditable
   static const int SECURITY_ERR = 2;
 
+  @DomName('FileException.SYNTAX_ERR')
+  @DocsEditable
   static const int SYNTAX_ERR = 8;
 
+  @DomName('FileException.TYPE_MISMATCH_ERR')
+  @DocsEditable
   static const int TYPE_MISMATCH_ERR = 11;
 
   @DomName('FileException.code')
@@ -9768,7 +9953,12 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
   @DocsEditable
   int get length native "FileList_length_Getter";
 
-  File operator[](int index) native "FileList_item_Callback";
+  File operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  File _nativeIndexedGetter(int index) native "FileList_item_Callback";
 
   void operator[]=(int index, File value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -9781,6 +9971,31 @@ class FileList extends NativeFieldWrapperClass1 with ListMixin<File>, ImmutableL
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  File get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  File get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  File get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  File elementAt(int index) => this[index];
   // -- end List<File> mixins.
 
   @DomName('FileList.item')
@@ -9833,10 +10048,16 @@ class FileReader extends EventTarget {
   @DocsEditable
   static FileReader _create_1() native "FileReader__create_1constructorCallback";
 
+  @DomName('FileReader.DONE')
+  @DocsEditable
   static const int DONE = 2;
 
+  @DomName('FileReader.EMPTY')
+  @DocsEditable
   static const int EMPTY = 0;
 
+  @DomName('FileReader.LOADING')
+  @DocsEditable
   static const int LOADING = 1;
 
   @DomName('FileReader.error')
@@ -9987,10 +10208,16 @@ class FileWriter extends EventTarget {
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
+  @DomName('FileWriter.DONE')
+  @DocsEditable
   static const int DONE = 2;
 
+  @DomName('FileWriter.INIT')
+  @DocsEditable
   static const int INIT = 0;
 
+  @DomName('FileWriter.WRITING')
+  @DocsEditable
   static const int WRITING = 1;
 
   @DomName('FileWriter.error')
@@ -10614,7 +10841,12 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
   @DocsEditable
   int get length native "HTMLAllCollection_length_Getter";
 
-  Node operator[](int index) native "HTMLAllCollection_item_Callback";
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "HTMLAllCollection_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -10627,6 +10859,31 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('HTMLAllCollection.item')
@@ -10658,7 +10915,12 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
   @DocsEditable
   int get length native "HTMLCollection_length_Getter";
 
-  Node operator[](int index) native "HTMLCollection_item_Callback";
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "HTMLCollection_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -10671,6 +10933,31 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('HTMLCollection.item')
@@ -10984,7 +11271,8 @@ class HttpRequest extends EventTarget {
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
-      {String method, bool withCredentials, String responseType, sendData,
+      {String method, bool withCredentials, String responseType,
+      String mimeType, Map<String, String> requestHeaders, sendData,
       void onProgress(ProgressEvent e)}) {
     var completer = new Completer<HttpRequest>();
 
@@ -11000,6 +11288,16 @@ class HttpRequest extends EventTarget {
 
     if (responseType != null) {
       xhr.responseType = responseType;
+    }
+
+    if (mimeType != null) {
+      xhr.overrideMimeType(mimeType);
+    }
+
+    if (requestHeaders != null) {
+      requestHeaders.forEach((header, value) {
+        xhr.setRequestHeader(header, value);
+      });
     }
 
     if (onProgress != null) {
@@ -11054,6 +11352,14 @@ class HttpRequest extends EventTarget {
     return true;
   }
 
+  /**
+   * Checks to see if the overrideMimeType method is supported on the current
+   * platform.
+   */
+  static bool get supportsOverrideMimeType {
+    return true;
+  }
+
   HttpRequest.internal() : super.internal();
 
   @DomName('XMLHttpRequest.abortEvent')
@@ -11088,14 +11394,24 @@ class HttpRequest extends EventTarget {
   @DocsEditable
   static HttpRequest _create() native "XMLHttpRequest_constructorCallback";
 
+  @DomName('XMLHttpRequest.DONE')
+  @DocsEditable
   static const int DONE = 4;
 
+  @DomName('XMLHttpRequest.HEADERS_RECEIVED')
+  @DocsEditable
   static const int HEADERS_RECEIVED = 2;
 
+  @DomName('XMLHttpRequest.LOADING')
+  @DocsEditable
   static const int LOADING = 3;
 
+  @DomName('XMLHttpRequest.OPENED')
+  @DocsEditable
   static const int OPENED = 1;
 
+  @DomName('XMLHttpRequest.UNSENT')
+  @DocsEditable
   static const int UNSENT = 0;
 
   /**
@@ -11305,6 +11621,9 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.overrideMimeType')
   @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
 
   @DomName('XMLHttpRequest.removeEventListener')
@@ -11407,8 +11726,12 @@ class HttpRequest extends EventTarget {
 class HttpRequestException extends NativeFieldWrapperClass1 {
   HttpRequestException.internal();
 
+  @DomName('XMLHttpRequestException.ABORT_ERR')
+  @DocsEditable
   static const int ABORT_ERR = 102;
 
+  @DomName('XMLHttpRequestException.NETWORK_ERR')
+  @DocsEditable
   static const int NETWORK_ERR = 101;
 
   @DomName('XMLHttpRequestException.code')
@@ -13562,22 +13885,40 @@ class MediaElement extends _Element_Merged {
   @Experimental
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
+  @DomName('HTMLMediaElement.HAVE_CURRENT_DATA')
+  @DocsEditable
   static const int HAVE_CURRENT_DATA = 2;
 
+  @DomName('HTMLMediaElement.HAVE_ENOUGH_DATA')
+  @DocsEditable
   static const int HAVE_ENOUGH_DATA = 4;
 
+  @DomName('HTMLMediaElement.HAVE_FUTURE_DATA')
+  @DocsEditable
   static const int HAVE_FUTURE_DATA = 3;
 
+  @DomName('HTMLMediaElement.HAVE_METADATA')
+  @DocsEditable
   static const int HAVE_METADATA = 1;
 
+  @DomName('HTMLMediaElement.HAVE_NOTHING')
+  @DocsEditable
   static const int HAVE_NOTHING = 0;
 
+  @DomName('HTMLMediaElement.NETWORK_EMPTY')
+  @DocsEditable
   static const int NETWORK_EMPTY = 0;
 
+  @DomName('HTMLMediaElement.NETWORK_IDLE')
+  @DocsEditable
   static const int NETWORK_IDLE = 1;
 
+  @DomName('HTMLMediaElement.NETWORK_LOADING')
+  @DocsEditable
   static const int NETWORK_LOADING = 2;
 
+  @DomName('HTMLMediaElement.NETWORK_NO_SOURCE')
+  @DocsEditable
   static const int NETWORK_NO_SOURCE = 3;
 
   @DomName('HTMLMediaElement.autoplay')
@@ -13967,14 +14308,24 @@ class MediaElement extends _Element_Merged {
 class MediaError extends NativeFieldWrapperClass1 {
   MediaError.internal();
 
+  @DomName('MediaError.MEDIA_ERR_ABORTED')
+  @DocsEditable
   static const int MEDIA_ERR_ABORTED = 1;
 
+  @DomName('MediaError.MEDIA_ERR_DECODE')
+  @DocsEditable
   static const int MEDIA_ERR_DECODE = 3;
 
+  @DomName('MediaError.MEDIA_ERR_ENCRYPTED')
+  @DocsEditable
   static const int MEDIA_ERR_ENCRYPTED = 5;
 
+  @DomName('MediaError.MEDIA_ERR_NETWORK')
+  @DocsEditable
   static const int MEDIA_ERR_NETWORK = 2;
 
+  @DomName('MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED')
+  @DocsEditable
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
   @DomName('MediaError.code')
@@ -13994,16 +14345,28 @@ class MediaError extends NativeFieldWrapperClass1 {
 class MediaKeyError extends NativeFieldWrapperClass1 {
   MediaKeyError.internal();
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_CLIENT')
+  @DocsEditable
   static const int MEDIA_KEYERR_CLIENT = 2;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_DOMAIN')
+  @DocsEditable
   static const int MEDIA_KEYERR_DOMAIN = 6;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_HARDWARECHANGE')
+  @DocsEditable
   static const int MEDIA_KEYERR_HARDWARECHANGE = 5;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_OUTPUT')
+  @DocsEditable
   static const int MEDIA_KEYERR_OUTPUT = 4;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_SERVICE')
+  @DocsEditable
   static const int MEDIA_KEYERR_SERVICE = 3;
 
+  @DomName('MediaKeyError.MEDIA_KEYERR_UNKNOWN')
+  @DocsEditable
   static const int MEDIA_KEYERR_UNKNOWN = 1;
 
   @DomName('MediaKeyError.code')
@@ -14793,7 +15156,12 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
   @DocsEditable
   int get length native "DOMMimeTypeArray_length_Getter";
 
-  MimeType operator[](int index) native "DOMMimeTypeArray_item_Callback";
+  MimeType operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  MimeType _nativeIndexedGetter(int index) native "DOMMimeTypeArray_item_Callback";
 
   void operator[]=(int index, MimeType value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -14806,6 +15174,31 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  MimeType get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  MimeType get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  MimeType get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  MimeType elementAt(int index) => this[index];
   // -- end List<MimeType> mixins.
 
   @DomName('MimeTypeArray.item')
@@ -15018,10 +15411,16 @@ class MutationEvent extends Event {
   }
   MutationEvent.internal() : super.internal();
 
+  @DomName('MutationEvent.ADDITION')
+  @DocsEditable
   static const int ADDITION = 2;
 
+  @DomName('MutationEvent.MODIFICATION')
+  @DocsEditable
   static const int MODIFICATION = 1;
 
+  @DomName('MutationEvent.REMOVAL')
+  @DocsEditable
   static const int REMOVAL = 3;
 
   @DomName('MutationEvent.attrChange')
@@ -15446,6 +15845,8 @@ class Navigator extends NativeFieldWrapperClass1 {
 class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
   NavigatorUserMediaError.internal();
 
+  @DomName('NavigatorUserMediaError.PERMISSION_DENIED')
+  @DocsEditable
   static const int PERMISSION_DENIED = 1;
 
   @DomName('NavigatorUserMediaError.code')
@@ -15732,28 +16133,52 @@ class Node extends EventTarget {
 
   Node.internal() : super.internal();
 
+  @DomName('Node.ATTRIBUTE_NODE')
+  @DocsEditable
   static const int ATTRIBUTE_NODE = 2;
 
+  @DomName('Node.CDATA_SECTION_NODE')
+  @DocsEditable
   static const int CDATA_SECTION_NODE = 4;
 
+  @DomName('Node.COMMENT_NODE')
+  @DocsEditable
   static const int COMMENT_NODE = 8;
 
+  @DomName('Node.DOCUMENT_FRAGMENT_NODE')
+  @DocsEditable
   static const int DOCUMENT_FRAGMENT_NODE = 11;
 
+  @DomName('Node.DOCUMENT_NODE')
+  @DocsEditable
   static const int DOCUMENT_NODE = 9;
 
+  @DomName('Node.DOCUMENT_TYPE_NODE')
+  @DocsEditable
   static const int DOCUMENT_TYPE_NODE = 10;
 
+  @DomName('Node.ELEMENT_NODE')
+  @DocsEditable
   static const int ELEMENT_NODE = 1;
 
+  @DomName('Node.ENTITY_NODE')
+  @DocsEditable
   static const int ENTITY_NODE = 6;
 
+  @DomName('Node.ENTITY_REFERENCE_NODE')
+  @DocsEditable
   static const int ENTITY_REFERENCE_NODE = 5;
 
+  @DomName('Node.NOTATION_NODE')
+  @DocsEditable
   static const int NOTATION_NODE = 12;
 
+  @DomName('Node.PROCESSING_INSTRUCTION_NODE')
+  @DocsEditable
   static const int PROCESSING_INSTRUCTION_NODE = 7;
 
+  @DomName('Node.TEXT_NODE')
+  @DocsEditable
   static const int TEXT_NODE = 3;
 
   @DomName('Node.childNodes')
@@ -15816,6 +16241,15 @@ class Node extends EventTarget {
   @DocsEditable
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
 
+  /**
+   * Adds a node to the end of the child [nodes] list of this node.
+   *
+   * If the node already exists in this document, it will be removed from its
+   * current parent node, then added to this node.
+   *
+   * This method is more efficient than `nodes.add`, and is the preferred
+   * way of appending a child node.
+   */
   @DomName('Node.appendChild')
   @DocsEditable
   Node append(Node newChild) native "Node_appendChild_Callback";
@@ -15865,36 +16299,68 @@ class Node extends EventTarget {
 class NodeFilter extends NativeFieldWrapperClass1 {
   NodeFilter.internal();
 
+  @DomName('NodeFilter.FILTER_ACCEPT')
+  @DocsEditable
   static const int FILTER_ACCEPT = 1;
 
+  @DomName('NodeFilter.FILTER_REJECT')
+  @DocsEditable
   static const int FILTER_REJECT = 2;
 
+  @DomName('NodeFilter.FILTER_SKIP')
+  @DocsEditable
   static const int FILTER_SKIP = 3;
 
+  @DomName('NodeFilter.SHOW_ALL')
+  @DocsEditable
   static const int SHOW_ALL = 0xFFFFFFFF;
 
+  @DomName('NodeFilter.SHOW_ATTRIBUTE')
+  @DocsEditable
   static const int SHOW_ATTRIBUTE = 0x00000002;
 
+  @DomName('NodeFilter.SHOW_CDATA_SECTION')
+  @DocsEditable
   static const int SHOW_CDATA_SECTION = 0x00000008;
 
+  @DomName('NodeFilter.SHOW_COMMENT')
+  @DocsEditable
   static const int SHOW_COMMENT = 0x00000080;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT')
+  @DocsEditable
   static const int SHOW_DOCUMENT = 0x00000100;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT_FRAGMENT')
+  @DocsEditable
   static const int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
 
+  @DomName('NodeFilter.SHOW_DOCUMENT_TYPE')
+  @DocsEditable
   static const int SHOW_DOCUMENT_TYPE = 0x00000200;
 
+  @DomName('NodeFilter.SHOW_ELEMENT')
+  @DocsEditable
   static const int SHOW_ELEMENT = 0x00000001;
 
+  @DomName('NodeFilter.SHOW_ENTITY')
+  @DocsEditable
   static const int SHOW_ENTITY = 0x00000020;
 
+  @DomName('NodeFilter.SHOW_ENTITY_REFERENCE')
+  @DocsEditable
   static const int SHOW_ENTITY_REFERENCE = 0x00000010;
 
+  @DomName('NodeFilter.SHOW_NOTATION')
+  @DocsEditable
   static const int SHOW_NOTATION = 0x00000800;
 
+  @DomName('NodeFilter.SHOW_PROCESSING_INSTRUCTION')
+  @DocsEditable
   static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
 
+  @DomName('NodeFilter.SHOW_TEXT')
+  @DocsEditable
   static const int SHOW_TEXT = 0x00000004;
 
 }
@@ -15955,7 +16421,12 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
   @DocsEditable
   int get length native "NodeList_length_Getter";
 
-  Node operator[](int index) native "NodeList_item_Callback";
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "NodeList_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -15968,6 +16439,31 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('NodeList.item')
@@ -16523,10 +17019,16 @@ class OutputElement extends _Element_Merged {
 class OverflowEvent extends Event {
   OverflowEvent.internal() : super.internal();
 
+  @DomName('OverflowEvent.BOTH')
+  @DocsEditable
   static const int BOTH = 2;
 
+  @DomName('OverflowEvent.HORIZONTAL')
+  @DocsEditable
   static const int HORIZONTAL = 0;
 
+  @DomName('OverflowEvent.VERTICAL')
+  @DocsEditable
   static const int VERTICAL = 1;
 
   @DomName('OverflowEvent.horizontalOverflow')
@@ -16864,12 +17366,20 @@ class PerformanceMeasure extends PerformanceEntry {
 class PerformanceNavigation extends NativeFieldWrapperClass1 {
   PerformanceNavigation.internal();
 
+  @DomName('PerformanceNavigation.TYPE_BACK_FORWARD')
+  @DocsEditable
   static const int TYPE_BACK_FORWARD = 2;
 
+  @DomName('PerformanceNavigation.TYPE_NAVIGATE')
+  @DocsEditable
   static const int TYPE_NAVIGATE = 0;
 
+  @DomName('PerformanceNavigation.TYPE_RELOAD')
+  @DocsEditable
   static const int TYPE_RELOAD = 1;
 
+  @DomName('PerformanceNavigation.TYPE_RESERVED')
+  @DocsEditable
   static const int TYPE_RESERVED = 255;
 
   @DomName('PerformanceNavigation.redirectCount')
@@ -17092,7 +17602,12 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
   @DocsEditable
   int get length native "DOMPluginArray_length_Getter";
 
-  Plugin operator[](int index) native "DOMPluginArray_item_Callback";
+  Plugin operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Plugin _nativeIndexedGetter(int index) native "DOMPluginArray_item_Callback";
 
   void operator[]=(int index, Plugin value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -17105,6 +17620,31 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Plugin get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Plugin get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Plugin get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Plugin elementAt(int index) => this[index];
   // -- end List<Plugin> mixins.
 
   @DomName('PluginArray.item')
@@ -17161,10 +17701,16 @@ typedef void _PositionCallback(Geoposition position);
 class PositionError extends NativeFieldWrapperClass1 {
   PositionError.internal();
 
+  @DomName('PositionError.PERMISSION_DENIED')
+  @DocsEditable
   static const int PERMISSION_DENIED = 1;
 
+  @DomName('PositionError.POSITION_UNAVAILABLE')
+  @DocsEditable
   static const int POSITION_UNAVAILABLE = 2;
 
+  @DomName('PositionError.TIMEOUT')
+  @DocsEditable
   static const int TIMEOUT = 3;
 
   @DomName('PositionError.code')
@@ -17369,20 +17915,36 @@ class Range extends NativeFieldWrapperClass1 {
 
   Range.internal();
 
+  @DomName('Range.END_TO_END')
+  @DocsEditable
   static const int END_TO_END = 2;
 
+  @DomName('Range.END_TO_START')
+  @DocsEditable
   static const int END_TO_START = 3;
 
+  @DomName('Range.NODE_AFTER')
+  @DocsEditable
   static const int NODE_AFTER = 1;
 
+  @DomName('Range.NODE_BEFORE')
+  @DocsEditable
   static const int NODE_BEFORE = 0;
 
+  @DomName('Range.NODE_BEFORE_AND_AFTER')
+  @DocsEditable
   static const int NODE_BEFORE_AND_AFTER = 2;
 
+  @DomName('Range.NODE_INSIDE')
+  @DocsEditable
   static const int NODE_INSIDE = 3;
 
+  @DomName('Range.START_TO_END')
+  @DocsEditable
   static const int START_TO_END = 1;
 
+  @DomName('Range.START_TO_START')
+  @DocsEditable
   static const int START_TO_START = 0;
 
   @DomName('Range.collapsed')
@@ -17531,8 +18093,12 @@ class Range extends NativeFieldWrapperClass1 {
 class RangeException extends NativeFieldWrapperClass1 {
   RangeException.internal();
 
+  @DomName('RangeException.BAD_BOUNDARYPOINTS_ERR')
+  @DocsEditable
   static const int BAD_BOUNDARYPOINTS_ERR = 1;
 
+  @DomName('RangeException.INVALID_NODE_TYPE_ERR')
+  @DocsEditable
   static const int INVALID_NODE_TYPE_ERR = 2;
 
   @DomName('RangeException.code')
@@ -18882,7 +19448,12 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   @DocsEditable
   int get length native "SourceBufferList_length_Getter";
 
-  SourceBuffer operator[](int index) native "SourceBufferList_item_Callback";
+  SourceBuffer operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  SourceBuffer _nativeIndexedGetter(int index) native "SourceBufferList_item_Callback";
 
   void operator[]=(int index, SourceBuffer value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -18895,6 +19466,31 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SourceBuffer get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  SourceBuffer get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SourceBuffer elementAt(int index) => this[index];
   // -- end List<SourceBuffer> mixins.
 
   @DomName('SourceBufferList.addEventListener')
@@ -19035,7 +19631,12 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
   @DocsEditable
   int get length native "SpeechGrammarList_length_Getter";
 
-  SpeechGrammar operator[](int index) native "SpeechGrammarList_item_Callback";
+  SpeechGrammar operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  SpeechGrammar _nativeIndexedGetter(int index) native "SpeechGrammarList_item_Callback";
 
   void operator[]=(int index, SpeechGrammar value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -19048,6 +19649,31 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechGrammar get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechGrammar get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
   void addFromString(String string, [num weight]) {
@@ -19571,8 +20197,12 @@ class StorageEvent extends Event {
 class StorageInfo extends NativeFieldWrapperClass1 {
   StorageInfo.internal();
 
+  @DomName('StorageInfo.PERSISTENT')
+  @DocsEditable
   static const int PERSISTENT = 1;
 
+  @DomName('StorageInfo.TEMPORARY')
+  @DocsEditable
   static const int TEMPORARY = 0;
 
   @DomName('StorageInfo.queryUsageAndQuota')
@@ -20122,7 +20752,7 @@ class TemplateElement extends _Element_Merged {
 
     // Create content
     if (template is! TemplateElement) {
-      var doc = _getTemplateContentsOwner(template.document);
+      var doc = _Bindings._getTemplateContentsOwner(template.document);
       template._templateContent = doc.createDocumentFragment();
     }
 
@@ -20132,9 +20762,9 @@ class TemplateElement extends _Element_Merged {
     }
 
     if (template is TemplateElement) {
-      _bootstrapTemplatesRecursivelyFrom(template.content);
+      bootstrap(template.content);
     } else {
-      _liftNonNativeTemplateChildrenIntoContent(template);
+      _Bindings._liftNonNativeChildrenIntoContent(template);
     }
 
     return true;
@@ -20150,7 +20780,23 @@ class TemplateElement extends _Element_Merged {
   // TODO(rafaelw): Review whether this is the right public API.
   @Experimental
   static void bootstrap(Node content) {
-    _bootstrapTemplatesRecursivelyFrom(content);
+    _Bindings._bootstrapTemplatesRecursivelyFrom(content);
+  }
+
+  /**
+   * Binds all mustaches recursively starting from the [root] node.
+   *
+   * Note: this is not an official Model-Driven-Views API; it is intended to
+   * support binding the [ShadowRoot]'s content to a model.
+   */
+  // TODO(jmesserly): this is needed to avoid two <template> nodes when using
+  // bindings in a custom element's template. See also:
+  // https://github.com/polymer-project/polymer/blob/master/src/bindMDV.js#L68
+  // Called from:
+  // https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
+  @Experimental
+  static void bindModel(Node root, model, [CustomBindingSyntax syntax]) {
+    _Bindings._addBindings(root, model, syntax);
   }
 
   static bool _initStyles;
@@ -20742,7 +21388,12 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
   @DocsEditable
   int get length native "TextTrackCueList_length_Getter";
 
-  TextTrackCue operator[](int index) native "TextTrackCueList_item_Callback";
+  TextTrackCue operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  TextTrackCue _nativeIndexedGetter(int index) native "TextTrackCueList_item_Callback";
 
   void operator[]=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -20755,6 +21406,31 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  TextTrackCue get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrackCue get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrackCue elementAt(int index) => this[index];
   // -- end List<TextTrackCue> mixins.
 
   @DomName('TextTrackCueList.getCueById')
@@ -20786,7 +21462,12 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   @DocsEditable
   int get length native "TextTrackList_length_Getter";
 
-  TextTrack operator[](int index) native "TextTrackList_item_Callback";
+  TextTrack operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  TextTrack _nativeIndexedGetter(int index) native "TextTrackList_item_Callback";
 
   void operator[]=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -20799,6 +21480,31 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  TextTrack get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrack get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  TextTrack get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  TextTrack elementAt(int index) => this[index];
   // -- end List<TextTrack> mixins.
 
   @DomName('TextTrackList.addEventListener')
@@ -21047,7 +21753,12 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
   @DocsEditable
   int get length native "TouchList_length_Getter";
 
-  Touch operator[](int index) native "TouchList_item_Callback";
+  Touch operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Touch _nativeIndexedGetter(int index) native "TouchList_item_Callback";
 
   void operator[]=(int index, Touch value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -21060,6 +21771,31 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Touch get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Touch get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Touch get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Touch elementAt(int index) => this[index];
   // -- end List<Touch> mixins.
 
   @DomName('TouchList.item')
@@ -21089,12 +21825,20 @@ class TrackElement extends _Element_Merged {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('HTMLTrackElement.ERROR')
+  @DocsEditable
   static const int ERROR = 3;
 
+  @DomName('HTMLTrackElement.LOADED')
+  @DocsEditable
   static const int LOADED = 2;
 
+  @DomName('HTMLTrackElement.LOADING')
+  @DocsEditable
   static const int LOADING = 1;
 
+  @DomName('HTMLTrackElement.NONE')
+  @DocsEditable
   static const int NONE = 0;
 
   @DomName('HTMLTrackElement.default')
@@ -21661,12 +22405,20 @@ class WebSocket extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  @DomName('WebSocket.CLOSED')
+  @DocsEditable
   static const int CLOSED = 3;
 
+  @DomName('WebSocket.CLOSING')
+  @DocsEditable
   static const int CLOSING = 2;
 
+  @DomName('WebSocket.CONNECTING')
+  @DocsEditable
   static const int CONNECTING = 0;
 
+  @DomName('WebSocket.OPEN')
+  @DocsEditable
   static const int OPEN = 1;
 
   @DomName('WebSocket.URL')
@@ -21794,10 +22546,16 @@ class WheelEvent extends MouseEvent {
 
   WheelEvent.internal() : super.internal();
 
+  @DomName('WheelEvent.DOM_DELTA_LINE')
+  @DocsEditable
   static const int DOM_DELTA_LINE = 0x01;
 
+  @DomName('WheelEvent.DOM_DELTA_PAGE')
+  @DocsEditable
   static const int DOM_DELTA_PAGE = 0x02;
 
+  @DomName('WheelEvent.DOM_DELTA_PIXEL')
+  @DocsEditable
   static const int DOM_DELTA_PIXEL = 0x00;
 
   @DomName('WheelEvent.deltaMode')
@@ -22029,8 +22787,12 @@ class Window extends EventTarget implements WindowBase {
   @Experimental
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
+  @DomName('Window.PERSISTENT')
+  @DocsEditable
   static const int PERSISTENT = 1;
 
+  @DomName('Window.TEMPORARY')
+  @DocsEditable
   static const int TEMPORARY = 0;
 
   @DomName('Window.applicationCache')
@@ -22798,8 +23560,12 @@ class XPathEvaluator extends NativeFieldWrapperClass1 {
 class XPathException extends NativeFieldWrapperClass1 {
   XPathException.internal();
 
+  @DomName('XPathException.INVALID_EXPRESSION_ERR')
+  @DocsEditable
   static const int INVALID_EXPRESSION_ERR = 51;
 
+  @DomName('XPathException.TYPE_ERR')
+  @DocsEditable
   static const int TYPE_ERR = 52;
 
   @DomName('XPathException.code')
@@ -22865,24 +23631,44 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 class XPathResult extends NativeFieldWrapperClass1 {
   XPathResult.internal();
 
+  @DomName('XPathResult.ANY_TYPE')
+  @DocsEditable
   static const int ANY_TYPE = 0;
 
+  @DomName('XPathResult.ANY_UNORDERED_NODE_TYPE')
+  @DocsEditable
   static const int ANY_UNORDERED_NODE_TYPE = 8;
 
+  @DomName('XPathResult.BOOLEAN_TYPE')
+  @DocsEditable
   static const int BOOLEAN_TYPE = 3;
 
+  @DomName('XPathResult.FIRST_ORDERED_NODE_TYPE')
+  @DocsEditable
   static const int FIRST_ORDERED_NODE_TYPE = 9;
 
+  @DomName('XPathResult.NUMBER_TYPE')
+  @DocsEditable
   static const int NUMBER_TYPE = 1;
 
+  @DomName('XPathResult.ORDERED_NODE_ITERATOR_TYPE')
+  @DocsEditable
   static const int ORDERED_NODE_ITERATOR_TYPE = 5;
 
+  @DomName('XPathResult.ORDERED_NODE_SNAPSHOT_TYPE')
+  @DocsEditable
   static const int ORDERED_NODE_SNAPSHOT_TYPE = 7;
 
+  @DomName('XPathResult.STRING_TYPE')
+  @DocsEditable
   static const int STRING_TYPE = 2;
 
+  @DomName('XPathResult.UNORDERED_NODE_ITERATOR_TYPE')
+  @DocsEditable
   static const int UNORDERED_NODE_ITERATOR_TYPE = 4;
 
+  @DomName('XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE')
+  @DocsEditable
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
   @DomName('XPathResult.booleanValue')
@@ -23176,7 +23962,12 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
   @DocsEditable
   int get length native "ClientRectList_length_Getter";
 
-  Rect operator[](int index) native "ClientRectList_item_Callback";
+  Rect operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Rect _nativeIndexedGetter(int index) native "ClientRectList_item_Callback";
 
   void operator[]=(int index, Rect value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23189,6 +23980,31 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Rect get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Rect get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Rect get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Rect elementAt(int index) => this[index];
   // -- end List<Rect> mixins.
 
   @DomName('ClientRectList.item')
@@ -23225,7 +24041,12 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
   @DocsEditable
   int get length native "CSSRuleList_length_Getter";
 
-  CssRule operator[](int index) native "CSSRuleList_item_Callback";
+  CssRule operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  CssRule _nativeIndexedGetter(int index) native "CSSRuleList_item_Callback";
 
   void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23238,6 +24059,31 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  CssRule get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  CssRule get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  CssRule get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  CssRule elementAt(int index) => this[index];
   // -- end List<CssRule> mixins.
 
   @DomName('CSSRuleList.item')
@@ -23261,7 +24107,12 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   @DocsEditable
   int get length native "CSSValueList_length_Getter";
 
-  _CSSValue operator[](int index) native "CSSValueList_item_Callback";
+  _CSSValue operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  _CSSValue _nativeIndexedGetter(int index) native "CSSValueList_item_Callback";
 
   void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23274,6 +24125,31 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  _CSSValue get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _CSSValue elementAt(int index) => this[index];
   // -- end List<_CSSValue> mixins.
 
   @DomName('CSSValueList.item')
@@ -23562,7 +24438,12 @@ class _EntryArray extends NativeFieldWrapperClass1 with ListMixin<Entry>, Immuta
   @DocsEditable
   int get length native "EntryArray_length_Getter";
 
-  Entry operator[](int index) native "EntryArray_item_Callback";
+  Entry operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Entry _nativeIndexedGetter(int index) native "EntryArray_item_Callback";
 
   void operator[]=(int index, Entry value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23575,6 +24456,31 @@ class _EntryArray extends NativeFieldWrapperClass1 with ListMixin<Entry>, Immuta
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Entry get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Entry get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Entry elementAt(int index) => this[index];
   // -- end List<Entry> mixins.
 
   @DomName('EntryArray.item')
@@ -23598,7 +24504,12 @@ class _EntryArraySync extends NativeFieldWrapperClass1 with ListMixin<_EntrySync
   @DocsEditable
   int get length native "EntryArraySync_length_Getter";
 
-  _EntrySync operator[](int index) native "EntryArraySync_item_Callback";
+  _EntrySync operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  _EntrySync _nativeIndexedGetter(int index) native "EntryArraySync_item_Callback";
 
   void operator[]=(int index, _EntrySync value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23611,6 +24522,31 @@ class _EntryArraySync extends NativeFieldWrapperClass1 with ListMixin<_EntrySync
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  _EntrySync get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  _EntrySync get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _EntrySync elementAt(int index) => this[index];
   // -- end List<_EntrySync> mixins.
 
   @DomName('EntryArraySync.item')
@@ -23695,7 +24631,12 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
   @DocsEditable
   int get length native "GamepadList_length_Getter";
 
-  Gamepad operator[](int index) native "GamepadList_item_Callback";
+  Gamepad operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Gamepad _nativeIndexedGetter(int index) native "GamepadList_item_Callback";
 
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23708,6 +24649,31 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Gamepad get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Gamepad get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Gamepad get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Gamepad elementAt(int index) => this[index];
   // -- end List<Gamepad> mixins.
 
   @DomName('GamepadList.item')
@@ -23822,7 +24788,12 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
   @DocsEditable
   int get length native "NamedNodeMap_length_Getter";
 
-  Node operator[](int index) native "NamedNodeMap_item_Callback";
+  Node operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  Node _nativeIndexedGetter(int index) native "NamedNodeMap_item_Callback";
 
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23835,6 +24806,31 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  Node get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  Node get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
   @DomName('NamedNodeMap.getNamedItem')
@@ -23966,7 +24962,12 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
   @DocsEditable
   int get length native "SpeechInputResultList_length_Getter";
 
-  SpeechInputResult operator[](int index) native "SpeechInputResultList_item_Callback";
+  SpeechInputResult operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  SpeechInputResult _nativeIndexedGetter(int index) native "SpeechInputResultList_item_Callback";
 
   void operator[]=(int index, SpeechInputResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23979,6 +24980,31 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechInputResult get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechInputResult get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechInputResult elementAt(int index) => this[index];
   // -- end List<SpeechInputResult> mixins.
 
   @DomName('SpeechInputResultList.item')
@@ -24002,7 +25028,12 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
   @DocsEditable
   int get length native "SpeechRecognitionResultList_length_Getter";
 
-  SpeechRecognitionResult operator[](int index) native "SpeechRecognitionResultList_item_Callback";
+  SpeechRecognitionResult operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  SpeechRecognitionResult _nativeIndexedGetter(int index) native "SpeechRecognitionResultList_item_Callback";
 
   void operator[]=(int index, SpeechRecognitionResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -24015,6 +25046,31 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMix
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  SpeechRecognitionResult get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  SpeechRecognitionResult get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  SpeechRecognitionResult elementAt(int index) => this[index];
   // -- end List<SpeechRecognitionResult> mixins.
 
   @DomName('SpeechRecognitionResultList.item')
@@ -24038,7 +25094,12 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
   @DocsEditable
   int get length native "StyleSheetList_length_Getter";
 
-  StyleSheet operator[](int index) native "StyleSheetList_item_Callback";
+  StyleSheet operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.range(index, 0, length);
+    return _nativeIndexedGetter(index);
+  }
+  StyleSheet _nativeIndexedGetter(int index) native "StyleSheetList_item_Callback";
 
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -24051,6 +25112,31 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
+  StyleSheet get first {
+    if (this.length > 0) {
+      return this[0];
+    }
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get last {
+    int len = this.length;
+    if (len > 0) {
+      return this[len - 1];
+    }
+    throw new StateError("No elements");
+  }
+
+  StyleSheet get single {
+    int len = this.length;
+    if (len == 1) {
+      return this[0];
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  StyleSheet elementAt(int index) => this[index];
   // -- end List<StyleSheet> mixins.
 
   @DomName('StyleSheetList.item')
@@ -26628,7 +27714,7 @@ class Rect {
 
 
 // This code is a port of Model-Driven-Views:
-// https://github.com/toolkitchen/mdv
+// https://github.com/polymer-project/mdv
 // The code mostly comes from src/template_element.js
 
 typedef void _ChangeHandler(value);
@@ -26660,7 +27746,7 @@ typedef void _ChangeHandler(value);
  *
  *     TemplateElement.syntax['MySyntax'] = new MySyntax();
  *
- * See <https://github.com/toolkitchen/mdv/blob/master/docs/syntax.md> for more
+ * See <https://github.com/polymer-project/mdv/blob/master/docs/syntax.md> for more
  * information about Custom Syntax.
  */
 // TODO(jmesserly): if this is just one method, a function type would make it
@@ -26869,19 +27955,6 @@ class CompoundBinding extends ObservableBase {
   }
 }
 
-Stream<Event> _getStreamForInputType(InputElement element) {
-  switch (element.type) {
-    case 'checkbox':
-      return element.onClick;
-    case 'radio':
-    case 'select-multiple':
-    case 'select-one':
-      return element.onChange;
-    default:
-      return element.onInput;
-  }
-}
-
 abstract class _InputBinding {
   final InputElement element;
   PathObserver binding;
@@ -26903,6 +27976,20 @@ abstract class _InputBinding {
     _pathSub.cancel();
     _eventSub.cancel();
   }
+
+
+  static Stream<Event> _getStreamForInputType(InputElement element) {
+    switch (element.type) {
+      case 'checkbox':
+        return element.onClick;
+      case 'radio':
+      case 'select-multiple':
+      case 'select-one':
+        return element.onChange;
+      default:
+        return element.onInput;
+    }
+  }
 }
 
 class _ValueBinding extends _InputBinding {
@@ -26917,18 +28004,11 @@ class _ValueBinding extends _InputBinding {
   }
 }
 
-// TODO(jmesserly): not sure what kind of boolean conversion rules to
-// apply for template data-binding. HTML attributes are true if they're present.
-// However Dart only treats "true" as true. Since this is HTML we'll use
-// something closer to the HTML rules: null (missing) and false are false,
-// everything else is true. See: https://github.com/toolkitchen/mdv/issues/59
-bool _templateBooleanConversion(value) => null != value && false != value;
-
 class _CheckedBinding extends _InputBinding {
   _CheckedBinding(element, model, path) : super(element, model, path);
 
   void valueChanged(value) {
-    element.checked = _templateBooleanConversion(value);
+    element.checked = _Bindings._toBoolean(value);
   }
 
   void updateBinding(e) {
@@ -26947,220 +28027,309 @@ class _CheckedBinding extends _InputBinding {
       }
     }
   }
-}
 
-// TODO(jmesserly): polyfill document.contains API instead of doing it here
-bool _isNodeInDocument(Node node) {
-  // On non-IE this works:
-  // return node.document.contains(node);
-  var document = node.document;
-  if (node == document || node.parentNode == document) return true;
-  return document.documentElement.contains(node);
-}
-
-// |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
-// Returns an array containing all radio buttons other than |element| that
-// have the same |name|, either in the form that |element| belongs to or,
-// if no form, in the document tree to which |element| belongs.
-//
-// This implementation is based upon the HTML spec definition of a
-// "radio button group":
-//   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
-//
-Iterable _getAssociatedRadioButtons(element) {
-  if (!_isNodeInDocument(element)) return [];
-  if (element.form != null) {
-    return element.form.nodes.where((el) {
-      return el != element &&
-          el is InputElement &&
-          el.type == 'radio' &&
-          el.name == element.name;
-    });
-  } else {
-    var radios = element.document.queryAll(
-        'input[type="radio"][name="${element.name}"]');
-    return radios.where((el) => el != element && el.form == null);
-  }
-}
-
-Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
-  var clone = node.clone(false); // Shallow clone.
-  if (clone is Element && clone.isTemplate) {
-    TemplateElement.decorate(clone, node);
-    if (syntax != null) {
-      clone.attributes.putIfAbsent('syntax', () => syntax);
-    }
-  }
-
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
-  }
-  return clone;
-}
-
-// http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-Document _getTemplateContentsOwner(Document doc) {
-  if (doc.window == null) {
-    return doc;
-  }
-  var d = doc._templateContentsOwner;
-  if (d == null) {
-    // TODO(arv): This should either be a Document or HTMLDocument depending
-    // on doc.
-    d = doc.implementation.createHtmlDocument('');
-    while (d.$dom_lastChild != null) {
-      d.$dom_lastChild.remove();
-    }
-    doc._templateContentsOwner = d;
-  }
-  return d;
-}
-
-Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
-  var clone = templateElement.clone(false);
-  var attributes = templateElement.attributes;
-  for (var name in attributes.keys.toList()) {
-    switch (name) {
-      case 'template':
-      case 'repeat':
-      case 'bind':
-      case 'ref':
-        clone.attributes.remove(name);
-        break;
-      default:
-        attributes.remove(name);
-        break;
-    }
-  }
-
-  return clone;
-}
-
-void _liftNonNativeTemplateChildrenIntoContent(Element templateElement) {
-  var content = templateElement.content;
-
-  if (!templateElement._isAttributeTemplate) {
-    var child;
-    while ((child = templateElement.$dom_firstChild) != null) {
-      content.append(child);
-    }
-    return;
-  }
-
-  // For attribute templates we copy the whole thing into the content and
-  // we move the non template attributes into the content.
+  // |element| is assumed to be an HTMLInputElement with |type| == 'radio'.
+  // Returns an array containing all radio buttons other than |element| that
+  // have the same |name|, either in the form that |element| belongs to or,
+  // if no form, in the document tree to which |element| belongs.
   //
-  //   <tr foo template>
+  // This implementation is based upon the HTML spec definition of a
+  // "radio button group":
+  //   http://www.whatwg.org/specs/web-apps/current-work/multipage/number-state.html#radio-button-group
   //
-  // becomes
-  //
-  //   <tr template>
-  //   + #document-fragment
-  //     + <tr foo>
-  //
-  var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
-  var child;
-  while ((child = templateElement.$dom_firstChild) != null) {
-    newRoot.append(child);
-  }
-  content.append(newRoot);
-}
-
-void _bootstrapTemplatesRecursivelyFrom(Node node) {
-  void bootstrap(template) {
-    if (!TemplateElement.decorate(template)) {
-      _bootstrapTemplatesRecursivelyFrom(template.content);
+  static Iterable _getAssociatedRadioButtons(element) {
+    if (!_isNodeInDocument(element)) return [];
+    if (element.form != null) {
+      return element.form.nodes.where((el) {
+        return el != element &&
+            el is InputElement &&
+            el.type == 'radio' &&
+            el.name == element.name;
+      });
+    } else {
+      var radios = element.document.queryAll(
+          'input[type="radio"][name="${element.name}"]');
+      return radios.where((el) => el != element && el.form == null);
     }
   }
 
-  // Need to do this first as the contents may get lifted if |node| is
-  // template.
-  // TODO(jmesserly): node is DocumentFragment or Element
-  var templateDescendents = (node as dynamic).queryAll(_allTemplatesSelectors);
-  if (node is Element && node.isTemplate) bootstrap(node);
-
-  templateDescendents.forEach(bootstrap);
-}
-
-final String _allTemplatesSelectors = 'template, option[template], ' +
-    Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
-
-void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
-  if (node is Element) {
-    _addAttributeBindings(node, model, syntax);
-  } else if (node is Text) {
-    _parseAndBind(node, 'text', node.text, model, syntax);
-  }
-
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    _addBindings(c, model, syntax);
+  // TODO(jmesserly): polyfill document.contains API instead of doing it here
+  static bool _isNodeInDocument(Node node) {
+    // On non-IE this works:
+    // return node.document.contains(node);
+    var document = node.document;
+    if (node == document || node.parentNode == document) return true;
+    return document.documentElement.contains(node);
   }
 }
 
+class _Bindings {
+  // TODO(jmesserly): not sure what kind of boolean conversion rules to
+  // apply for template data-binding. HTML attributes are true if they're
+  // present. However Dart only treats "true" as true. Since this is HTML we'll
+  // use something closer to the HTML rules: null (missing) and false are false,
+  // everything else is true. See: https://github.com/polymer-project/mdv/issues/59
+  static bool _toBoolean(value) => null != value && false != value;
 
-void _addAttributeBindings(Element element, model, syntax) {
-  element.attributes.forEach((name, value) {
-    if (value == '' && (name == 'bind' || name == 'repeat')) {
-      value = '{{}}';
-    }
-    _parseAndBind(element, name, value, model, syntax);
-  });
-}
-
-void _parseAndBind(Node node, String name, String text, model,
-    CustomBindingSyntax syntax) {
-
-  var tokens = _parseMustacheTokens(text);
-  if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
-    return;
-  }
-
-  if (tokens.length == 1 && tokens[0].isBinding) {
-    _bindOrDelegate(node, name, model, tokens[0].value, syntax);
-    return;
-  }
-
-  var replacementBinding = new CompoundBinding();
-  for (var i = 0; i < tokens.length; i++) {
-    var token = tokens[i];
-    if (token.isBinding) {
-      _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
-    }
-  }
-
-  replacementBinding.combinator = (values) {
-    var newValue = new StringBuffer();
-
-    for (var i = 0; i < tokens.length; i++) {
-      var token = tokens[i];
-      if (token.isText) {
-        newValue.write(token.value);
-      } else {
-        var value = values[i];
-        if (value != null) {
-          newValue.write(value);
-        }
+  static Node _createDeepCloneAndDecorateTemplates(Node node, String syntax) {
+    var clone = node.clone(false); // Shallow clone.
+    if (clone is Element && clone.isTemplate) {
+      TemplateElement.decorate(clone, node);
+      if (syntax != null) {
+        clone.attributes.putIfAbsent('syntax', () => syntax);
       }
     }
 
-    return newValue.toString();
-  };
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      clone.append(_createDeepCloneAndDecorateTemplates(c, syntax));
+    }
+    return clone;
+  }
 
-  node.bind(name, replacementBinding, 'value');
-}
+  // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
+  static Document _getTemplateContentsOwner(Document doc) {
+    if (doc.window == null) {
+      return doc;
+    }
+    var d = doc._templateContentsOwner;
+    if (d == null) {
+      // TODO(arv): This should either be a Document or HTMLDocument depending
+      // on doc.
+      d = doc.implementation.createHtmlDocument('');
+      while (d.$dom_lastChild != null) {
+        d.$dom_lastChild.remove();
+      }
+      doc._templateContentsOwner = d;
+    }
+    return d;
+  }
 
-void _bindOrDelegate(node, name, model, String path,
-    CustomBindingSyntax syntax) {
+  static Element _cloneAndSeperateAttributeTemplate(Element templateElement) {
+    var clone = templateElement.clone(false);
+    var attributes = templateElement.attributes;
+    for (var name in attributes.keys.toList()) {
+      switch (name) {
+        case 'template':
+        case 'repeat':
+        case 'bind':
+        case 'ref':
+          clone.attributes.remove(name);
+          break;
+        default:
+          attributes.remove(name);
+          break;
+      }
+    }
 
-  if (syntax != null) {
-    var delegateBinding = syntax.getBinding(model, path, name, node);
-    if (delegateBinding != null) {
-      model = delegateBinding;
-      path = 'value';
+    return clone;
+  }
+
+  static void _liftNonNativeChildrenIntoContent(Element templateElement) {
+    var content = templateElement.content;
+
+    if (!templateElement._isAttributeTemplate) {
+      var child;
+      while ((child = templateElement.$dom_firstChild) != null) {
+        content.append(child);
+      }
+      return;
+    }
+
+    // For attribute templates we copy the whole thing into the content and
+    // we move the non template attributes into the content.
+    //
+    //   <tr foo template>
+    //
+    // becomes
+    //
+    //   <tr template>
+    //   + #document-fragment
+    //     + <tr foo>
+    //
+    var newRoot = _cloneAndSeperateAttributeTemplate(templateElement);
+    var child;
+    while ((child = templateElement.$dom_firstChild) != null) {
+      newRoot.append(child);
+    }
+    content.append(newRoot);
+  }
+
+  static void _bootstrapTemplatesRecursivelyFrom(Node node) {
+    void bootstrap(template) {
+      if (!TemplateElement.decorate(template)) {
+        _bootstrapTemplatesRecursivelyFrom(template.content);
+      }
+    }
+
+    // Need to do this first as the contents may get lifted if |node| is
+    // template.
+    // TODO(jmesserly): node is DocumentFragment or Element
+    var descendents = (node as dynamic).queryAll(_allTemplatesSelectors);
+    if (node is Element && node.isTemplate) bootstrap(node);
+
+    descendents.forEach(bootstrap);
+  }
+
+  static final String _allTemplatesSelectors = 'template, option[template], ' +
+      Element._TABLE_TAGS.keys.map((k) => "$k[template]").join(", ");
+
+  static void _addBindings(Node node, model, [CustomBindingSyntax syntax]) {
+    if (node is Element) {
+      _addAttributeBindings(node, model, syntax);
+    } else if (node is Text) {
+      _parseAndBind(node, 'text', node.text, model, syntax);
+    }
+
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      _addBindings(c, model, syntax);
     }
   }
 
-  node.bind(name, model, path);
+  static void _addAttributeBindings(Element element, model, syntax) {
+    element.attributes.forEach((name, value) {
+      if (value == '' && (name == 'bind' || name == 'repeat')) {
+        value = '{{}}';
+      }
+      _parseAndBind(element, name, value, model, syntax);
+    });
+  }
+
+  static void _parseAndBind(Node node, String name, String text, model,
+      CustomBindingSyntax syntax) {
+
+    var tokens = _parseMustacheTokens(text);
+    if (tokens.length == 0 || (tokens.length == 1 && tokens[0].isText)) {
+      return;
+    }
+
+    // If this is a custom element, give the .xtag a change to bind.
+    node = _nodeOrCustom(node);
+
+    if (tokens.length == 1 && tokens[0].isBinding) {
+      _bindOrDelegate(node, name, model, tokens[0].value, syntax);
+      return;
+    }
+
+    var replacementBinding = new CompoundBinding();
+    for (var i = 0; i < tokens.length; i++) {
+      var token = tokens[i];
+      if (token.isBinding) {
+        _bindOrDelegate(replacementBinding, i, model, token.value, syntax);
+      }
+    }
+
+    replacementBinding.combinator = (values) {
+      var newValue = new StringBuffer();
+
+      for (var i = 0; i < tokens.length; i++) {
+        var token = tokens[i];
+        if (token.isText) {
+          newValue.write(token.value);
+        } else {
+          var value = values[i];
+          if (value != null) {
+            newValue.write(value);
+          }
+        }
+      }
+
+      return newValue.toString();
+    };
+
+    node.bind(name, replacementBinding, 'value');
+  }
+
+  static void _bindOrDelegate(node, name, model, String path,
+      CustomBindingSyntax syntax) {
+
+    if (syntax != null) {
+      var delegateBinding = syntax.getBinding(model, path, name, node);
+      if (delegateBinding != null) {
+        model = delegateBinding;
+        path = 'value';
+      }
+    }
+
+    node.bind(name, model, path);
+  }
+
+  /**
+   * Gets the [node]'s custom [Element.xtag] if present, otherwise returns
+   * the node. This is used so nodes can override [Node.bind], [Node.unbind],
+   * and [Node.unbindAll] like InputElement does.
+   */
+  // TODO(jmesserly): remove this when we can extend Element for real.
+  static _nodeOrCustom(node) => node is Element ? node.xtag : node;
+
+  static List<_BindingToken> _parseMustacheTokens(String s) {
+    var result = [];
+    var length = s.length;
+    var index = 0, lastIndex = 0;
+    while (lastIndex < length) {
+      index = s.indexOf('{{', lastIndex);
+      if (index < 0) {
+        result.add(new _BindingToken(s.substring(lastIndex)));
+        break;
+      } else {
+        // There is a non-empty text run before the next path token.
+        if (index > 0 && lastIndex < index) {
+          result.add(new _BindingToken(s.substring(lastIndex, index)));
+        }
+        lastIndex = index + 2;
+        index = s.indexOf('}}', lastIndex);
+        if (index < 0) {
+          var text = s.substring(lastIndex - 2);
+          if (result.length > 0 && result.last.isText) {
+            result.last.value += text;
+          } else {
+            result.add(new _BindingToken(text));
+          }
+          break;
+        }
+
+        var value = s.substring(lastIndex, index).trim();
+        result.add(new _BindingToken(value, isBinding: true));
+        lastIndex = index + 2;
+      }
+    }
+    return result;
+  }
+
+  static void _addTemplateInstanceRecord(fragment, model) {
+    if (fragment.$dom_firstChild == null) {
+      return;
+    }
+
+    var instanceRecord = new TemplateInstance(
+        fragment.$dom_firstChild, fragment.$dom_lastChild, model);
+
+    var node = instanceRecord.firstNode;
+    while (node != null) {
+      node._templateInstance = instanceRecord;
+      node = node.nextNode;
+    }
+  }
+
+  static void _removeAllBindingsRecursively(Node node) {
+    _nodeOrCustom(node).unbindAll();
+    for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
+      _removeAllBindingsRecursively(c);
+    }
+  }
+
+  static void _removeChild(Node parent, Node child) {
+    child._templateInstance = null;
+    if (child is Element && child.isTemplate) {
+      // Make sure we stop observing when we remove an element.
+      var templateIterator = child._templateIterator;
+      if (templateIterator != null) {
+        templateIterator.abandon();
+        child._templateIterator = null;
+      }
+    }
+    child.remove();
+    _removeAllBindingsRecursively(child);
+  }
 }
 
 class _BindingToken {
@@ -27171,77 +28340,6 @@ class _BindingToken {
 
   bool get isText => !isBinding;
 }
-
-List<_BindingToken> _parseMustacheTokens(String s) {
-  var result = [];
-  var length = s.length;
-  var index = 0, lastIndex = 0;
-  while (lastIndex < length) {
-    index = s.indexOf('{{', lastIndex);
-    if (index < 0) {
-      result.add(new _BindingToken(s.substring(lastIndex)));
-      break;
-    } else {
-      // There is a non-empty text run before the next path token.
-      if (index > 0 && lastIndex < index) {
-        result.add(new _BindingToken(s.substring(lastIndex, index)));
-      }
-      lastIndex = index + 2;
-      index = s.indexOf('}}', lastIndex);
-      if (index < 0) {
-        var text = s.substring(lastIndex - 2);
-        if (result.length > 0 && result.last.isText) {
-          result.last.value += text;
-        } else {
-          result.add(new _BindingToken(text));
-        }
-        break;
-      }
-
-      var value = s.substring(lastIndex, index).trim();
-      result.add(new _BindingToken(value, isBinding: true));
-      lastIndex = index + 2;
-    }
-  }
-  return result;
-}
-
-void _addTemplateInstanceRecord(fragment, model) {
-  if (fragment.$dom_firstChild == null) {
-    return;
-  }
-
-  var instanceRecord = new TemplateInstance(
-      fragment.$dom_firstChild, fragment.$dom_lastChild, model);
-
-  var node = instanceRecord.firstNode;
-  while (node != null) {
-    node._templateInstance = instanceRecord;
-    node = node.nextNode;
-  }
-}
-
-void _removeAllBindingsRecursively(Node node) {
-  node.unbindAll();
-  for (var c = node.$dom_firstChild; c != null; c = c.nextNode) {
-    _removeAllBindingsRecursively(c);
-  }
-}
-
-void _removeTemplateChild(Node parent, Node child) {
-  child._templateInstance = null;
-  if (child is Element && child.isTemplate) {
-    // Make sure we stop observing when we remove an element.
-    var templateIterator = child._templateIterator;
-    if (templateIterator != null) {
-      templateIterator.abandon();
-      child._templateIterator = null;
-    }
-  }
-  child.remove();
-  _removeAllBindingsRecursively(child);
-}
-
 
 class _TemplateIterator {
   final Element _templateElement;
@@ -27259,7 +28357,7 @@ class _TemplateIterator {
   }
 
   static Object resolveInputs(Map values) {
-    if (values.containsKey('if') && !_templateBooleanConversion(values['if'])) {
+    if (values.containsKey('if') && !_Bindings._toBoolean(values['if'])) {
       return null;
     }
 
@@ -27320,7 +28418,7 @@ class _TemplateIterator {
     while (terminator != previousTerminator) {
       var node = terminator;
       terminator = node.previousNode;
-      _removeTemplateChild(parent, node);
+      _Bindings._removeChild(parent, node);
     }
   }
 
@@ -27335,7 +28433,7 @@ class _TemplateIterator {
     while (terminator != previousTerminator) {
       var node = terminator;
       terminator = node.previousNode;
-      _removeTemplateChild(parent, node);
+      _Bindings._removeChild(parent, node);
     }
   }
 
@@ -27377,8 +28475,8 @@ class _TemplateIterator {
 
         var fragment = getInstanceFragment(syntax);
 
-        _addBindings(fragment, model, syntax);
-        _addTemplateInstanceRecord(fragment, model);
+        _Bindings._addBindings(fragment, model, syntax);
+        _Bindings._addTemplateInstanceRecord(fragment, model);
 
         insertInstanceAt(addIndex, fragment);
       }

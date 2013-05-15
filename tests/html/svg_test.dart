@@ -16,7 +16,7 @@ main() {
 
     test('simpleRect', () {
       var div = new Element.tag('div');
-      document.body.nodes.add(div);
+      document.body.append(div);
       div.innerHtml = r'''
 <svg id='svg1' width='200' height='100'>
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
@@ -58,7 +58,7 @@ main() {
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
 ''';
-      document.body.nodes.add(element);
+      document.body.append(element);
       return element;
     }
 
@@ -112,7 +112,7 @@ main() {
 <rect id='rect1' x='10' y='20' width='130' height='40' rx='5'fill='blue'></rect>
 </svg>
 ''';
-    document.body.nodes.add(element);
+    document.body.append(element);
     return element;
   }
 

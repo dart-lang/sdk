@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:pathos/path.dart' as path;
 
+import 'git.dart' as git;
 import 'io.dart';
 import 'lock_file.dart';
 import 'log.dart' as log;
@@ -214,5 +215,45 @@ class Entrypoint {
     var symlink = path.join(dir, 'packages');
     if (entryExists(symlink)) deleteEntry(symlink);
     createSymlink(packagesDir, symlink, relative: true);
+  }
+
+  /// The basenames of files that are automatically excluded from archives.
+  final _BLACKLISTED_FILES = const ['pubspec.lock'];
+
+  /// The basenames of directories that are automatically excluded from
+  /// archives.
+  final _BLACKLISTED_DIRS = const ['packages'];
+
+  // TODO(nweiz): unit test this function.
+  /// Returns a list of files that are considered to be part of this package.
+  ///
+  /// If this is a Git repository, this will respect .gitignore; otherwise, it
+  /// will return all non-hidden, non-blacklisted files.
+  ///
+  /// If [beneath] is passed, this will only return files beneath that path.
+  Future<List<String>> packageFiles({String beneath}) {
+    if (beneath == null) beneath = root.dir;
+
+    return git.isInstalled.then((gitInstalled) {
+      if (dirExists(path.join(root.dir, '.git')) && gitInstalled) {
+        // List all files that aren't gitignored, including those not checked
+        // in to Git.
+        return git.run(["ls-files", "--cached", "--others",
+                        "--exclude-standard", beneath]).then((files) {
+          // Git always prints files relative to the project root, but we want
+          // them relative to the working directory.
+          return files.map((file) => path.join(root.dir, file));
+        });
+      }
+
+      // Skip directories and broken symlinks.
+      return listDir(beneath, recursive: true).where(fileExists);
+    }).then((files) {
+      return files.where((file) {
+        var relative = path.relative(file, from: beneath);
+        if (_BLACKLISTED_FILES.contains(path.basename(relative))) return false;
+        return !path.split(relative).any(_BLACKLISTED_DIRS.contains);
+      }).toList();
+    });
   }
 }

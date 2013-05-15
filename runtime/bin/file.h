@@ -85,7 +85,19 @@ class File {
     kDeleteLinkRequest = 20,
     kLinkTargetRequest = 21,
     kTypeRequest = 22,
-    kIdenticalRequest = 23
+    kIdenticalRequest = 23,
+    kStatRequest = 24
+  };
+
+  enum FileStat {
+    // These match the constants in FileStat in file_system_entity.dart.
+    kType = 0,
+    kCreatedTime = 1,
+    kModifiedTime = 2,
+    kAccessedTime = 3,
+    kMode = 4,
+    kSize = 5,
+    kStatSize = 6
   };
 
   ~File();
@@ -142,6 +154,7 @@ class File {
   static bool Delete(const char* path);
   static bool DeleteLink(const char* path);
   static off_t LengthFromPath(const char* path);
+  static void Stat(const char* path, int64_t* data);
   static time_t LastModified(const char* path);
   static char* LinkTarget(const char* pathname);
   static bool IsAbsolutePath(const char* path);

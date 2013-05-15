@@ -81,6 +81,14 @@ class Operand : public ValueObject {
     return *this;
   }
 
+  bool Equals(const Operand& other) {
+    if (length_ != other.length_) return false;
+    for (uint8_t i = 0; i < length_; i++) {
+      if (encoding_[i] != other.encoding_[i]) return false;
+    }
+    return true;
+  }
+
  protected:
   Operand() : length_(0) { }  // Needed by subclass Address.
 

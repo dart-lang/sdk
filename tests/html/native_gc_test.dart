@@ -38,7 +38,7 @@ main() {
 
     Element testDiv = new DivElement();
     testDiv.id = '#TestDiv';
-    document.body.nodes.add(testDiv);
+    document.body.append(testDiv);
     window.onMessage.listen((e) {
       if (e.data == message) testDiv.click();
     });

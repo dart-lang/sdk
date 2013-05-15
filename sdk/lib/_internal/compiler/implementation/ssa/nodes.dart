@@ -1354,16 +1354,15 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
+  final Element element;
   /** The first input must be the target. */
-  HInvokeStatic(inputs, HType type) : super(inputs) {
+  HInvokeStatic(this.element, inputs, HType type) : super(inputs) {
     instructionType = type;
   }
 
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
   int typeCode() => HInstruction.INVOKE_STATIC_TYPECODE;
-  Element get element => target.element;
-  HStatic get target => inputs[0];
 }
 
 class HInvokeSuper extends HInvokeStatic {
@@ -1371,15 +1370,15 @@ class HInvokeSuper extends HInvokeStatic {
   final ClassElement caller;
   final bool isSetter;
 
-  HInvokeSuper(this.caller, inputs, {this.isSetter})
-      : super(inputs, HType.UNKNOWN);
+  HInvokeSuper(Element element, this.caller, inputs, {this.isSetter})
+      : super(element, inputs, HType.UNKNOWN);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 
   HInstruction get value {
     assert(isSetter);
-    // Index 0: the element, index 1: 'this'.
-    return inputs[2];
+    // Index 0: 'this'.
+    return inputs[1];
   }
 }
 

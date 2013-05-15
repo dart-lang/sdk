@@ -210,6 +210,7 @@ import 'src/serialization_helpers.dart';
 import 'dart:async';
 import 'dart:json' as json;
 import 'dart:collection';
+import 'dart:uri';
 
 part 'src/reader_writer.dart';
 part 'src/serialization_rule.dart';
@@ -258,7 +259,8 @@ class Serialization {
     // TODO(alanknight): Should this be moved to the format?
     // TODO(alanknight): Allow self-describing in the presence of CustomRule.
     if (_selfDescribing != null) return _selfDescribing;
-    return !rules.any((x) => x is CustomRule);
+    _selfDescribing = !rules.any((x) => x is CustomRule && x is! SymbolRule);
+    return _selfDescribing;
   }
 
   /**
@@ -319,8 +321,7 @@ class Serialization {
         List<String> fields,
         List<String> excludeFields}) {
 
-    var rule;
-    rule = new BasicRule(
+    var rule = new BasicRule(
         turnInstanceIntoSomethingWeCanUse(
             instanceOfType),
         constructor, constructorFields, fields, excludeFields);
@@ -464,7 +465,8 @@ class Serialization {
           fields: [])
       ..addRule(new NamedObjectRule())
       ..addRule(new MirrorRule())
-      ..addRule(new SymbolRule());
+      ..addRuleFor(new MirrorRule())
+      ..addRuleFor(new SymbolRule());
     meta.namedObjects = namedObjects;
     return meta;
   }

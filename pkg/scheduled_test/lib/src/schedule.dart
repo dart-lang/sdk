@@ -503,6 +503,7 @@ class TaskQueue {
 
       var stackString = prefixLines(terseTraceString(trace));
       fullDescription += "\n\nStack trace:\n$stackString";
+      return fullDescription;
     });
     _pendingCallbacks.add(pendingCallback);
 

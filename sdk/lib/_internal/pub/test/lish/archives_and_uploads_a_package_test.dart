@@ -31,12 +31,8 @@ main() {
       request.response.close();
     });
 
-    // TODO(rnystrom): The confirm line is run together with this one because
-    // in normal usage, the user will have entered a newline on stdin which
-    // gets echoed to the terminal. Do something better here?
-    expect(pub.nextLine(), completion(equals(
-        'Looks great! Are you ready to upload your package (y/n)?'
-        ' Package test_pkg 1.0.0 uploaded!')));
+    expect(pub.nextLine(),
+        completion(equals('Package test_pkg 1.0.0 uploaded!')));
     pub.shouldExit(0);
   });
 

@@ -244,6 +244,9 @@ class FlowGraphCompiler : public ValueObject {
   const GrowableArray<BlockEntryInstr*>& block_order() const {
     return block_order_;
   }
+
+  const FlowGraph& flow_graph() const { return flow_graph_; }
+
   DescriptorList* pc_descriptors_list() const {
     return pc_descriptors_list_;
   }
@@ -380,6 +383,8 @@ class FlowGraphCompiler : public ValueObject {
   // Fallthrough calls super equality.
   void EmitSuperEqualityCallPrologue(Register result, Label* skip_call);
 
+  void EmitTrySync(Instruction* instr, intptr_t try_index);
+
   intptr_t StackSize() const;
 
   // Returns assembler label associated with the given block entry.
@@ -463,6 +468,8 @@ class FlowGraphCompiler : public ValueObject {
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
   void EmitFrameEntry();
+
+  void EmitTrySyncMove(Address dest, Location loc, bool* push_emitted);
 
   void AddStaticCallTarget(const Function& function);
 

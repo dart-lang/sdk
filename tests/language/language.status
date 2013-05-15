@@ -670,18 +670,16 @@ cyclic_type_variable_test/04: fail
 default_factory2_test/01: fail
 default_implementation2_test: fail
 duplicate_constructor_test/01: fail
-duplicate_export_negative_test: fail
 dynamic2_test/00: fail
 dynamic_field_test: fail
+export_cyclic_test: fail
 f_bounded_quantification_test/01: fail
 f_bounded_quantification_test/02: fail
 factory1_test/00: skip
 factory1_test/01: skip
-factory2_negative_test: fail
 factory2_test: fail
 factory5_test/00: fail
 factory_implementation_test/00: skip
-factory_negative_test: fail
 factory_redirection2_test/01: fail
 factory_redirection_test/04: fail
 factory_redirection_test/07: fail
@@ -747,9 +745,6 @@ list_literal_syntax_test/03: fail
 list_literal_syntax_test/05: fail
 map_literal1_negative_test: fail
 map_literal3_test: fail
-method_override2_test/00: fail
-method_override2_test/01: fail
-method_override2_test/02: fail
 method_override2_test/03: fail
 mixin_illegal_constructor_test/13: fail
 mixin_illegal_constructor_test/14: fail
@@ -823,7 +818,6 @@ static_final_field2_negative_test: fail
 static_final_field_negative_test: fail
 string_interpolate1_negative_test: fail
 string_interpolate2_negative_test: fail
-string_interpolation1_negative_test: fail
 string_interpolation2_negative_test: fail
 string_interpolation3_negative_test: fail
 string_interpolation4_negative_test: fail

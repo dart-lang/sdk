@@ -19,7 +19,7 @@ main() {
   canvas = new Element.tag('canvas');
   canvas.width = width;
   canvas.height = height;
-  document.body.nodes.add(canvas);
+  document.body.append(canvas);
 
   context = canvas.getContext('2d');
 

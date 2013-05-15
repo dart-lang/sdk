@@ -8,29 +8,13 @@ class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);
   String get name => "Type checker";
 
-  static const bool LOG_FAILURES = false;
-
   void check(Node tree, TreeElements elements) {
     measure(() {
       Visitor visitor =
           new TypeCheckerVisitor(compiler, elements, compiler.types);
-      try {
-        tree.accept(visitor);
-      } on CancelTypeCheckException catch (e) {
-        if (LOG_FAILURES) {
-          // Do not warn about unimplemented features; log message instead.
-          compiler.log("'${e.node}': ${e.reason}");
-        }
-      }
+      tree.accept(visitor);
     });
   }
-}
-
-class CancelTypeCheckException {
-  final Node node;
-  final String reason;
-
-  CancelTypeCheckException(this.node, this.reason);
 }
 
 /**
@@ -134,14 +118,6 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     listType = compiler.listClass.computeType(compiler);
   }
 
-  DartType fail(node, [reason]) {
-    String message = 'cannot type-check';
-    if (reason != null) {
-      message = '$message: $reason';
-    }
-    throw new CancelTypeCheckException(node, message);
-  }
-
   reportTypeWarning(Node node, MessageKind kind, [Map arguments = const {}]) {
     compiler.reportWarning(node, new TypeWarning(kind, arguments));
   }
@@ -164,9 +140,9 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   DartType analyze(Node node) {
     if (node == null) {
-      final String error = 'internal error: unexpected node: null';
+      final String error = 'unexpected node: null';
       if (lastSeenNode != null) {
-        fail(null, error);
+        compiler.internalError(error, node: lastSeenNode);
       } else {
         compiler.cancel(error);
       }
@@ -174,9 +150,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       lastSeenNode = node;
     }
     DartType result = node.accept(this);
-    // TODO(karlklose): record type?
     if (result == null) {
-      fail(node, 'internal error: type is null');
+      compiler.internalError('type is null', node: node);
     }
     return result;
   }
@@ -212,6 +187,11 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   DartType visitCascade(Cascade node) {
     analyze(node.expression);
+    if (node.expression.asCascadeReceiver() == null) {
+      // TODO(karlklose): bug: expressions of the form e..x = y do not have
+      // a CascadeReceiver as expression currently.
+      return types.dynamicType;
+    }
     return popCascadeType();
   }
 
@@ -222,15 +202,15 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType visitClassNode(ClassNode node) {
-    fail(node);
+    compiler.internalError('unexpected node type', node: node);
   }
 
   DartType visitMixinApplication(MixinApplication node) {
-    fail(node);
+    compiler.internalError('unexpected node type', node: node);
   }
 
   DartType visitNamedMixinApplication(NamedMixinApplication node) {
-    fail(node);
+    compiler.internalError('unexpected node type', node: node);
   }
 
   DartType visitDoWhile(DoWhile node) {
@@ -250,7 +230,9 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   /** Dart Programming Language Specification: 11.5.1 For Loop */
   DartType visitFor(For node) {
     analyzeWithDefault(node.initializer, StatementType.NOT_RETURNING);
-    checkCondition(node.condition);
+    if (node.condition != null) {
+      checkCondition(node.condition);
+    }
     analyzeWithDefault(node.update, StatementType.NOT_RETURNING);
     StatementType bodyType = analyze(node.body);
     return bodyType.join(StatementType.NOT_RETURNING);
@@ -456,8 +438,9 @@ class TypeCheckerVisitor implements Visitor<DartType> {
           checkAssignable(secondArgument, boolType, secondArgumentType);
         }
         return boolType;
+      } else {
+        return unhandledExpression();
       }
-      fail(selector, 'unexpected operator ${name}');
 
     } else if (node.isPropertyAccess) {
       if (node.receiver != null) {
@@ -468,17 +451,17 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       return computeType(element);
 
     } else if (node.isFunctionObjectInvocation) {
-      fail(node.receiver, 'function object invocation unimplemented');
+      return unhandledExpression();
     } else {
       ElementAccess computeMethod() {
         if (node.receiver != null) {
           // e.foo() for some expression e.
           DartType receiverType = analyze(node.receiver);
-          if (receiverType.element == compiler.dynamicClass) {
+          if (receiverType.element == compiler.dynamicClass ||
+              receiverType == null ||
+              receiverType.isMalformed ||
+              receiverType.isVoid) {
             return const DynamicAccess();
-          }
-          if (receiverType == null) {
-            fail(node.receiver, 'receiverType is null');
           }
           TypeKind receiverKind = receiverType.kind;
           if (identical(receiverKind, TypeKind.TYPEDEF)) {
@@ -489,9 +472,13 @@ class TypeCheckerVisitor implements Visitor<DartType> {
             // TODO(karlklose): handle type variables.
             return const DynamicAccess();
           }
-          if (!identical(receiverKind, TypeKind.INTERFACE)) {
-            fail(node.receiver, 'unexpected receiver kind: ${receiverKind}');
+          if (identical(receiverKind, TypeKind.FUNCTION)) {
+            // TODO(karlklose): handle getters.
+            return const DynamicAccess();
           }
+          assert(invariant(node.receiver,
+              identical(receiverKind, TypeKind.INTERFACE),
+              message: "interface type expected, got ${receiverKind}"));
           return lookupMethod(selector, receiverType, selector.source);
         } else {
           if (Elements.isUnresolved(element)) {
@@ -503,8 +490,15 @@ class TypeCheckerVisitor implements Visitor<DartType> {
           } else if (element.isVariable() || element.isField()) {
             // foo() where foo is a field in the same class.
             return new ResolvedAccess(element);
+          } else if (element.isGetter()) {
+            // TODO(karlklose): handle getters.
+            return const DynamicAccess();
+          } else if (element.isClass()) {
+            // TODO(karlklose): handle type literals.
+            return const DynamicAccess();
           } else {
-            fail(node, 'unexpected element kind ${element.kind}');
+            compiler.internalErrorOnElement(
+                element, 'unexpected element kind ${element.kind}');
           }
         }
       }
@@ -586,7 +580,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType visitOperator(Operator node) {
-    fail(node, 'internal error');
+    compiler.internalError('unexpected node type', node: node);
   }
 
   DartType visitRethrow(Rethrow node) {

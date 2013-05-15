@@ -28,7 +28,7 @@ templateElementTests() {
   var testDiv;
 
   setUp(() {
-    document.body.nodes.add(testDiv = new DivElement());
+    document.body.append(testDiv = new DivElement());
   });
 
   tearDown(() {
@@ -39,7 +39,7 @@ templateElementTests() {
   createTestHtml(s) {
     var div = new DivElement();
     div.innerHtml = s;
-    testDiv.nodes.add(div);
+    testDiv.append(div);
 
     for (var node in div.queryAll('*')) {
       if (node.isTemplate) TemplateElement.decorate(node);
@@ -52,7 +52,7 @@ templateElementTests() {
     var div = new DivElement();
     var root = div.createShadowRoot();
     root.innerHtml = s;
-    testDiv.nodes.add(div);
+    testDiv.append(div);
 
     for (var node in root.queryAll('*')) {
       if (node.isTemplate) TemplateElement.decorate(node);
@@ -434,7 +434,7 @@ templateElementTests() {
     var t = new Element.tag('template');
     TemplateElement.decorate(t);
 
-    document.body.nodes.add(t);
+    document.body.append(t);
     expect(t.getComputedStyle().display, 'none');
 
     t.remove();
@@ -1318,6 +1318,24 @@ templateElementTests() {
       deliverChanges(model);
       expect(root.nodes[1].text, 'Hi Leela');
     }
+  });
+
+  test('BindShadowDOM bindModel', () {
+    if (ShadowRoot.supported) {
+      var root = createShadowTestHtml('Hi {{ name }}');
+      var model = toSymbolMap({'name': 'Leela'});
+      TemplateElement.bindModel(root, model);
+      deliverChangeRecords();
+      expect(root.text, 'Hi Leela');
+    }
+  });
+
+  test('bindModel to polyfilled shadow root', () {
+    var root = createTestHtml('Hi {{ name }}');
+    var model = toSymbolMap({'name': 'Leela'});
+    TemplateElement.bindModel(root, model);
+    deliverChangeRecords();
+    expect(root.text, 'Hi Leela');
   });
 
   // https://github.com/toolkitchen/mdv/issues/8

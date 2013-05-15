@@ -1,7 +1,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
 
-library engine.sdk;
+library engine.sdk.io;
 
 import 'dart:io';
 import 'dart:uri';

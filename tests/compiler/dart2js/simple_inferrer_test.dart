@@ -83,6 +83,16 @@ returnDynamic2() {
   return 42.abs(42);
 }
 
+returnAsString() {
+  return topLevelGetter() as String;
+}
+
+typedef int Foo();
+
+returnAsTypedef() {
+  return topLevelGetter() as Foo;
+}
+
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
 
@@ -132,6 +142,8 @@ main() {
   returnDynamic();
   returnDynamic1();
   returnDynamic2();
+  returnAsString();
+  returnAsTypedef();
   new A() == null;
   new A()..returnInt1()
          ..returnInt2()
@@ -180,6 +192,9 @@ void main() {
   checkReturn('returnInt8', typesInferrer.intType);
   checkReturn('returnDynamic1', typesInferrer.dynamicType);
   checkReturn('returnDynamic2', typesInferrer.dynamicType);
+  checkReturn('returnAsString',
+      new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
+  checkReturn('returnAsTypedef', typesInferrer.functionType.nullable());
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);

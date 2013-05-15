@@ -24,37 +24,24 @@ class Conversation {
     print('Request for ${request.uri} ${response.statusCode}');
   }
 
-  setUpErrorHandler() {
-    // TODO(ahe): When https://codereview.chromium.org/13467004/ lands
-    // apply the following changes:
-    // 1. Inline this method in [handle].
-    // 2. Delete this method.
-    // 3. Call response.close() instead of calling [done].
-    // 4. Delete this [done].
-    response.done
-      ..then(onClosed)
-      ..catchError(onError);
-  }
-
-  done() {
-    setUpErrorHandler();
-    response.close();
-  }
-
   notFound(path) {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.write(htmlInfo('Not Found',
                             'The file "$path" could not be found.'));
-    done();
+    response.close();
   }
 
   redirect(String location) {
     response.statusCode = HttpStatus.FOUND;
     response.headers.add(HttpHeaders.LOCATION, location);
-    done();
+    response.close();
   }
 
   handle() {
+    response.done
+      ..then(onClosed)
+      ..catchError(onError);
+
     String path = request.uri.path;
     if (path == '/') return redirect('/$landingPage');
     if (path == '/favicon.ico') {
@@ -72,8 +59,9 @@ class Conversation {
         response.headers.set(CONTENT_TYPE, 'application/javascript');
       } else if (path.endsWith('.ico')) {
         response.headers.set(CONTENT_TYPE, 'image/x-icon');
+      } else if (path.endsWith('.appcache')) {
+        response.headers.set(CONTENT_TYPE, 'text/cache-manifest');
       }
-      setUpErrorHandler();
       f.openRead().pipe(response);
     });
   }
@@ -112,7 +100,14 @@ main() {
     Conversation.landingPage = arguments[0];
   }
   var host = '127.0.0.1';
-  HttpServer.bind(host, 0).then((HttpServer server) {
+  if (arguments.length > 1) {
+    host = arguments[1];
+  }
+  int port = 0;
+  if (arguments.length > 2) {
+    port = int.parse(arguments[2]);
+  }
+  HttpServer.bind(host, port).then((HttpServer server) {
     print('HTTP server started on http://$host:${server.port}/');
     server.listen(Conversation.onRequest, onError: Conversation.onError);
   }).catchError((e) {

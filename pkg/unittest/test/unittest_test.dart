@@ -251,10 +251,10 @@ runTest() {
       });
       test('foo5', () {
       });
-    } else if (testName == 'test returning future using Timer') {
+    } else if (testName == 'test returning future using runAsync') {
       test("successful", () {
         return _defer(() {
-          Timer.run(() {
+          runAsync(() {
             guardAsync(() {
               expect(true, true);
             });
@@ -264,7 +264,7 @@ runTest() {
       test("fail1", () {
         var callback = expectAsync0((){});
         return _defer(() {
-          Timer.run(() {
+          runAsync(() {
             guardAsync(() {
               expect(true, false);
               callback();
@@ -276,7 +276,7 @@ runTest() {
         var callback = expectAsync0((){});
         var excesscallback = expectAsync0((){});
         return _defer(() {
-          Timer.run(() {
+          runAsync(() {
             guardAsync(() {
               excesscallback();
               excesscallback();
@@ -288,7 +288,7 @@ runTest() {
       test("fail2", () {
         var callback = expectAsync0((){});
         return _defer(() {
-          Timer.run(() {
+          runAsync(() {
             guardAsync(() {
               fail('failure');
               callback();
@@ -300,7 +300,7 @@ runTest() {
         var callback = expectAsync0((){});
         var excesscallback = expectAsync0((){});
         return _defer(() {
-          Timer.run(() {
+          runAsync(() {
             guardAsync(() {
               excesscallback();
               excesscallback();
@@ -444,7 +444,7 @@ main() {
         'error2:Callback called more times than expected (1).:'
         'fail2:failure:'
         'foo5'),
-    'test returning future using Timer': buildStatusString(2, 4, 0,
+    'test returning future using runAsync': buildStatusString(2, 4, 0,
         'successful::'
         'fail1:Expected: <false> but: was <true>.:'
         'error1:Callback called more times than expected (1).:'

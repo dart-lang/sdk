@@ -424,20 +424,31 @@ $(ANNOTATIONS)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   void onCreated() {}
 
   // Hooks to support custom WebComponents.
+
+$if DART2JS
+  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
+$endif
+  Element _xtag;
+
   /**
    * Experimental support for [web components][wc]. This field stores a
    * reference to the component implementation. It was inspired by Mozilla's
    * [x-tags][] project. Please note: in the future it may be possible to
    * `extend Element` from your class, in which case this field will be
-   * deprecated and will simply return this [Element] object.
+   * deprecated.
+   *
+   * If xtag has not been set, it will simply return `this` [Element].
    *
    * [wc]: http://dvcs.w3.org/hg/webcomponents/raw-file/tip/explainer/index.html
    * [x-tags]: http://x-tags.org/
    */
-$if DART2JS
-  @Creates('Null')  // Set from Dart code; does not instantiate a native type.
-$endif
-  var xtag;
+  // Note: return type is `dynamic` for convenience to suppress warnings when
+  // members of the component are used. The actual type is a subtype of Element.
+  get xtag => _xtag != null ? _xtag : this;
+
+  void set xtag(Element value) {
+    _xtag = value;
+  }
 
   /**
    * Scrolls this element into view.
@@ -674,24 +685,24 @@ $endif
       self._attributeBindings = new Map<String, StreamSubscription>();
     }
 
-    self.attributes.remove(name);
+    self.xtag.attributes.remove(name);
 
     var changed;
     if (name.endsWith('?')) {
       name = name.substring(0, name.length - 1);
 
       changed = (value) {
-        if (_templateBooleanConversion(value)) {
-          self.attributes[name] = '';
+        if (_Bindings._toBoolean(value)) {
+          self.xtag.attributes[name] = '';
         } else {
-          self.attributes.remove(name);
+          self.xtag.attributes.remove(name);
         }
       };
     } else {
       changed = (value) {
         // TODO(jmesserly): escape value if needed to protect against XSS.
-        // See https://github.com/toolkitchen/mdv/issues/58
-        self.attributes[name] = value == null ? '' : '$value';
+        // See https://github.com/polymer-project/mdv/issues/58
+        self.xtag.attributes[name] = value == null ? '' : '$value';
       };
     }
 
@@ -814,8 +825,8 @@ $endif
     var template = ref;
     if (template == null) template = this;
 
-    var instance = _createDeepCloneAndDecorateTemplates(template.content,
-        attributes['syntax']);
+    var instance = _Bindings._createDeepCloneAndDecorateTemplates(
+        template.content, attributes['syntax']);
 
     if (TemplateElement._instanceCreated != null) {
       TemplateElement._instanceCreated.add(instance);
@@ -841,7 +852,7 @@ $endif
 
     var syntax = TemplateElement.syntax[attributes['syntax']];
     _model = value;
-    _addBindings(this, model, syntax);
+    _Bindings._addBindings(this, model, syntax);
   }
 
   // TODO(jmesserly): const set would be better

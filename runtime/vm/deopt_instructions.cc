@@ -36,12 +36,21 @@ DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
   from_frame_size_ = isolate_->deopt_frame_copy_size();
   registers_copy_ = isolate_->deopt_cpu_registers_copy();
   fpu_registers_copy_ = isolate_->deopt_fpu_registers_copy();
+  // The deoptimized frame is filled starting just below the sp of its caller
+  // down to kDartFrameFixedSize words below its own sp.
+  // The chain of frame pointers is recreated from the fp of the caller.
   caller_fp_ = GetFromFp();
 }
 
 
 intptr_t DeoptimizationContext::GetFromFp() const {
-  return from_frame_[from_frame_size_ - num_args_ - 1 - kParamEndSlotFromFp];
+  return from_frame_[from_frame_size_ - 1 - num_args_ - kParamEndSlotFromFp];
+}
+
+
+intptr_t DeoptimizationContext::GetFromPp() const {
+  return from_frame_[from_frame_size_ - 1 - num_args_ - kParamEndSlotFromFp +
+      StackFrame::SavedCallerPpSlotFromFp()];
 }
 
 
@@ -49,13 +58,16 @@ intptr_t DeoptimizationContext::GetFromPc() const {
   return from_frame_[from_frame_size_ - num_args_ + kSavedPcSlotFromSp];
 }
 
+
 intptr_t DeoptimizationContext::GetCallerFp() const {
   return caller_fp_;
 }
 
+
 void DeoptimizationContext::SetCallerFp(intptr_t caller_fp) {
   caller_fp_ = caller_fp;
 }
+
 
 // Deoptimization instruction moving value from optimized frame at
 // 'from_index' to specified slots in the unoptimized frame.
@@ -476,6 +488,11 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
     Function& function = Function::Handle(deopt_context->isolate());
     function ^= deopt_context->ObjectAt(object_table_index_);
+    if (function.IsNull()) {
+      // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
+      *to_addr = 0;
+      return;
+    }
     const Code& code =
         Code::Handle(deopt_context->isolate(), function.unoptimized_code());
     ASSERT(!code.IsNull());
@@ -503,6 +520,40 @@ class DeoptPcMarkerInstr : public DeoptInstr {
 };
 
 
+// Deoptimization instruction creating a pool pointer for the code of
+// function at 'object_table_index'.
+class DeoptPpInstr : public DeoptInstr {
+ public:
+  explicit DeoptPpInstr(intptr_t object_table_index)
+      : object_table_index_(object_table_index) {
+    ASSERT(object_table_index >= 0);
+  }
+
+  virtual intptr_t from_index() const { return object_table_index_; }
+  virtual DeoptInstr::Kind kind() const { return kPp; }
+
+  virtual const char* ToCString() const {
+    return Isolate::Current()->current_zone()->PrintToString(
+        "pp oti:%"Pd"", object_table_index_);
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+    Function& function = Function::Handle(deopt_context->isolate());
+    function ^= deopt_context->ObjectAt(object_table_index_);
+    const Code& code =
+        Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    ASSERT(!code.IsNull());
+    const intptr_t pp = reinterpret_cast<intptr_t>(code.ObjectPool());
+    *to_addr = pp;
+  }
+
+ private:
+  intptr_t object_table_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptPpInstr);
+};
+
+
 // Deoptimization instruction copying the caller saved FP from optimized frame.
 class DeoptCallerFpInstr : public DeoptInstr {
  public:
@@ -517,11 +568,33 @@ class DeoptCallerFpInstr : public DeoptInstr {
 
   void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
     *to_addr = deopt_context->GetCallerFp();
-    deopt_context->SetCallerFp(reinterpret_cast<intptr_t>(to_addr));
+    deopt_context->SetCallerFp(reinterpret_cast<intptr_t>(
+        to_addr - (kSavedCallerFpSlotFromFp * kWordSize)));
   }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptCallerFpInstr);
+};
+
+
+// Deoptimization instruction copying the caller saved PP from optimized frame.
+class DeoptCallerPpInstr : public DeoptInstr {
+ public:
+  DeoptCallerPpInstr() {}
+
+  virtual intptr_t from_index() const { return 0; }
+  virtual DeoptInstr::Kind kind() const { return kCallerPp; }
+
+  virtual const char* ToCString() const {
+    return "callerpp";
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t* to_addr) {
+    *to_addr = deopt_context->GetFromPp();
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DeoptCallerPpInstr);
 };
 
 
@@ -702,7 +775,9 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t from_index) {
     case kUint32x4FpuRegister:
         return new DeoptUint32x4FpuRegisterInstr(from_index);
     case kPcMarker: return new DeoptPcMarkerInstr(from_index);
+    case kPp: return new DeoptPpInstr(from_index);
     case kCallerFp: return new DeoptCallerFpInstr();
+    case kCallerPp: return new DeoptCallerPpInstr();
     case kCallerPc: return new DeoptCallerPcInstr();
     case kSuffix: return new DeoptSuffixInstr(from_index);
     case kMaterializedObjectRef:
@@ -795,10 +870,16 @@ void DeoptInfoBuilder::AddReturnAddress(const Function& function,
 
 void DeoptInfoBuilder::AddPcMarker(const Function& function,
                                    intptr_t to_index) {
-  // Function object was already added by AddReturnAddress, find it.
-  intptr_t from_index = FindOrAddObjectInTable(function);
+  intptr_t object_table_index = FindOrAddObjectInTable(function);
   ASSERT(to_index == FrameSize());
-  instructions_.Add(new DeoptPcMarkerInstr(from_index));
+  instructions_.Add(new DeoptPcMarkerInstr(object_table_index));
+}
+
+
+void DeoptInfoBuilder::AddPp(const Function& function, intptr_t to_index) {
+  intptr_t object_table_index = FindOrAddObjectInTable(function);
+  ASSERT(to_index == FrameSize());
+  instructions_.Add(new DeoptPpInstr(object_table_index));
 }
 
 
@@ -864,6 +945,12 @@ void DeoptInfoBuilder::AddCallerFp(intptr_t to_index) {
 }
 
 
+void DeoptInfoBuilder::AddCallerPp(intptr_t to_index) {
+  ASSERT(to_index == FrameSize());
+  instructions_.Add(new DeoptCallerPpInstr());
+}
+
+
 void DeoptInfoBuilder::AddCallerPc(intptr_t to_index) {
   ASSERT(to_index == FrameSize());
   instructions_.Add(new DeoptCallerPcInstr());
@@ -898,20 +985,20 @@ void DeoptInfoBuilder::AddMaterialization(MaterializeObjectInstr* mat) {
 }
 
 
-intptr_t DeoptInfoBuilder::EmitMaterializationArguments() {
-  intptr_t slot_idx = 1;  // Return address is emitted at 0.
+intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t to_index) {
+  ASSERT(to_index == kDartFrameFixedSize);
   for (intptr_t i = 0; i < materializations_.length(); i++) {
     MaterializeObjectInstr* mat = materializations_[i];
-    AddConstant(mat->cls(), slot_idx++);  // Class of the instance to allocate.
+    AddConstant(mat->cls(), to_index++);  // Class of the instance to allocate.
     for (intptr_t i = 0; i < mat->InputCount(); i++) {
       if (!mat->InputAt(i)->BindsToConstantNull()) {
         // Emit field-value pair.
-        AddConstant(mat->FieldAt(i), slot_idx++);
-        AddCopy(mat->InputAt(i), mat->LocationAt(i), slot_idx++);
+        AddConstant(mat->FieldAt(i), to_index++);
+        AddCopy(mat->InputAt(i), mat->LocationAt(i), to_index++);
       }
     }
   }
-  return slot_idx;
+  return to_index;
 }
 
 

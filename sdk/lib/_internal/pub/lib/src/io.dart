@@ -185,6 +185,22 @@ Future<String> createFileFromStream(Stream<List<int>> stream, String file) {
   });
 }
 
+/// Copy all files in [files] to the directory [destination]. Their locations in
+/// [destination] will be determined by their relative location to [baseDir].
+/// Any existing files at those paths will be overwritten.
+void copyFiles(Iterable<String> files, String baseDir, String destination) {
+  for (var file in files) {
+    var newPath = path.join(destination, path.relative(file, from: baseDir));
+    ensureDir(path.dirname(newPath));
+    copyFile(file, newPath);
+  }
+}
+
+/// Copy a file from [source] to [destination].
+void copyFile(String source, String destination) {
+  writeBinaryFile(destination, readBinaryFile(source));
+}
+
 /// Creates a directory [dir].
 String createDir(String dir) {
   new Directory(dir).createSync();
@@ -388,7 +404,11 @@ final Stream<String> stdinLines = streamToLines(
 /// should just be a fragment like, "Are you sure you want to proceed".
 Future<bool> confirm(String message) {
   log.fine('Showing confirm message: $message');
-  stdout.write("$message (y/n)? ");
+  if (runningAsTest) {
+    log.message("$message (y/n)?");
+  } else {
+    stdout.write("$message (y/n)? ");
+  }
   return streamFirst(stdinLines)
       .then((line) => new RegExp(r"^[yY]").hasMatch(line));
 }

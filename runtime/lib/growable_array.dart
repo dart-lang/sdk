@@ -3,10 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _GrowableObjectArray<T> implements List<T> {
-  factory _GrowableObjectArray._uninstantiable() {
-    throw new UnsupportedError(
-        "GrowableObjectArray can only be allocated by the VM");
-  }
+  static final int _classId = (new _GrowableObjectArray(0))._cid;
 
   void insert(int index, T element) {
     if (index < 0 || index > length) {

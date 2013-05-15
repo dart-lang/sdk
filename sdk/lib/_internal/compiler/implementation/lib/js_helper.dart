@@ -1094,18 +1094,6 @@ boolTypeCast(value) {
       Primitives.objectTypeName(value), 'bool');
 }
 
-functionTypeCheck(value) {
-  if (value == null) return value;
-  if (value is Function) return value;
-  throw new TypeErrorImplementation(value, 'Function');
-}
-
-functionTypeCast(value) {
-  if (value is Function || value == null) return value;
-  throw new CastErrorImplementation(
-      Primitives.objectTypeName(value), 'Function');
-}
-
 intTypeCheck(value) {
   if (value == null) return value;
   if (value is int) return value;

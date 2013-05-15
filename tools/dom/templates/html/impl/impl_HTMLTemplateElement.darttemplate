@@ -55,7 +55,7 @@ $!MEMBERS
 
     // Create content
     if (template is! TemplateElement) {
-      var doc = _getTemplateContentsOwner(template.document);
+      var doc = _Bindings._getTemplateContentsOwner(template.document);
       template._templateContent = doc.createDocumentFragment();
     }
 
@@ -65,9 +65,9 @@ $!MEMBERS
     }
 
     if (template is TemplateElement) {
-      _bootstrapTemplatesRecursivelyFrom(template.content);
+      bootstrap(template.content);
     } else {
-      _liftNonNativeTemplateChildrenIntoContent(template);
+      _Bindings._liftNonNativeChildrenIntoContent(template);
     }
 
     return true;
@@ -83,7 +83,23 @@ $!MEMBERS
   // TODO(rafaelw): Review whether this is the right public API.
   @Experimental
   static void bootstrap(Node content) {
-    _bootstrapTemplatesRecursivelyFrom(content);
+    _Bindings._bootstrapTemplatesRecursivelyFrom(content);
+  }
+
+  /**
+   * Binds all mustaches recursively starting from the [root] node.
+   *
+   * Note: this is not an official Model-Driven-Views API; it is intended to
+   * support binding the [ShadowRoot]'s content to a model.
+   */
+  // TODO(jmesserly): this is needed to avoid two <template> nodes when using
+  // bindings in a custom element's template. See also:
+  // https://github.com/polymer-project/polymer/blob/master/src/bindMDV.js#L68
+  // Called from:
+  // https://github.com/polymer-project/polymer/blob/master/src/register.js#L99
+  @Experimental
+  static void bindModel(Node root, model, [CustomBindingSyntax syntax]) {
+    _Bindings._addBindings(root, model, syntax);
   }
 
   static bool _initStyles;
