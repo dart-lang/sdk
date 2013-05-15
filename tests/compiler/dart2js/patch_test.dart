@@ -305,6 +305,9 @@ testPatchSignatureCheck() {
         external void method6({String str});
         external void method7([String s1]);
         external void method8({String s1});
+        external void method9(String str);
+        external void method10([String str]);
+        external void method11({String str});
       }
       """,
       """
@@ -317,6 +320,9 @@ testPatchSignatureCheck() {
         patch void method6([String str]) {}
         patch void method7([String s2]) {}
         patch void method8({String s2}) {}
+        patch void method9(int str) {}
+        patch void method10([int str]) {}
+        patch void method11({int str}) {}
       }
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
@@ -324,83 +330,41 @@ testPatchSignatureCheck() {
   container.ensureResolved(compiler);
   container.parseNode(compiler);
 
-  compiler.resolver.resolveMethodElement(
-      ensure(compiler, "method1", container.lookupLocalMember,
-          expectIsPatched: true, checkHasBody: true));
-  Expect.isTrue(compiler.warnings.isEmpty,
-                "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty);
-  print('method1:${compiler.errors}');
+  void expect(String methodName, List warnings, List errors) {
+    compiler.warnings.clear();
+    compiler.errors.clear();
+    compiler.resolver.resolveMethodElement(
+        ensure(compiler, methodName, container.lookupLocalMember,
+            expectIsPatched: true, checkHasBody: true));
+    Expect.equals(warnings.length, compiler.warnings.length,
+                  "Unexpected warnings: ${compiler.warnings} on $methodName");
+    for (int i = 0 ; i < warnings.length ; i++) {
+      Expect.equals(warnings[i], compiler.warnings[i].message.kind);
+    }
+    Expect.equals(errors.length, compiler.errors.length,
+                  "Unexpected errors: ${compiler.errors} on $methodName");
+    for (int i = 0 ; i < errors.length ; i++) {
+      Expect.equals(errors[i], compiler.errors[i].message.kind);
+    }
+  }
 
-  compiler.warnings.clear();
-  compiler.errors.clear();
-  compiler.resolver.resolveMethodElement(
-      ensure(compiler, "method2", container.lookupLocalMember,
-          expectIsPatched: true, checkHasBody: true));
-  Expect.isTrue(compiler.warnings.isEmpty,
-                "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty);
-  print('method2:${compiler.errors}');
-
-  compiler.warnings.clear();
-  compiler.errors.clear();
-  compiler.resolver.resolveMethodElement(
-      ensure(compiler, "method3", container.lookupLocalMember,
-          expectIsPatched: true, checkHasBody: true));
-  Expect.isTrue(compiler.warnings.isEmpty,
-                "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty);
-  print('method3:${compiler.errors}');
-
-  compiler.warnings.clear();
-  compiler.errors.clear();
-  compiler.resolver.resolveMethodElement(
-      ensure(compiler, "method4", container.lookupLocalMember,
-          expectIsPatched: true, checkHasBody: true));
-  Expect.isTrue(compiler.warnings.isEmpty,
-                "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty);
-  print('method4:${compiler.errors}');
-
-  compiler.warnings.clear();
-  compiler.errors.clear();
-  compiler.resolver.resolveMethodElement(
-      ensure(compiler, "method5", container.lookupLocalMember,
-          expectIsPatched: true, checkHasBody: true));
-  Expect.isTrue(compiler.warnings.isEmpty,
-                "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty);
-  print('method5:${compiler.errors}');
-
-  compiler.warnings.clear();
-  compiler.errors.clear();
-  compiler.resolver.resolveMethodElement(
-      ensure(compiler, "method6", container.lookupLocalMember,
-          expectIsPatched: true, checkHasBody: true));
-  Expect.isTrue(compiler.warnings.isEmpty,
-                "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty);
-  print('method6:${compiler.errors}');
-
-  compiler.warnings.clear();
-  compiler.errors.clear();
-  compiler.resolver.resolveMethodElement(
-      ensure(compiler, "method7", container.lookupLocalMember,
-          expectIsPatched: true, checkHasBody: true));
-  Expect.isTrue(compiler.warnings.isEmpty,
-                "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty);
-  print('method7:${compiler.errors}');
-
-  compiler.warnings.clear();
-  compiler.errors.clear();
-  compiler.resolver.resolveMethodElement(
-      ensure(compiler, "method8", container.lookupLocalMember,
-          expectIsPatched: true, checkHasBody: true));
-  Expect.isTrue(compiler.warnings.isEmpty,
-                "Unexpected warnings: ${compiler.warnings}");
-  Expect.isFalse(compiler.errors.isEmpty);
-  print('method8:${compiler.errors}');
+  expect("method1", [], [MessageKind.PATCH_RETURN_TYPE_MISMATCH]);
+  expect("method2", [], [MessageKind.PATCH_REQUIRED_PARAMETER_COUNT_MISMATCH]);
+  expect("method3", [MessageKind.PATCH_POINT_TO_PARAMETER],
+                    [MessageKind.PATCH_PARAMETER_MISMATCH]);
+  expect("method4", [], [MessageKind.PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH]);
+  expect("method5", [], [MessageKind.PATCH_OPTIONAL_PARAMETER_COUNT_MISMATCH]);
+  expect("method6", [], [MessageKind.PATCH_OPTIONAL_PARAMETER_NAMED_MISMATCH]);
+  expect("method7", [MessageKind.PATCH_POINT_TO_PARAMETER],
+                    [MessageKind.PATCH_PARAMETER_MISMATCH]);
+  expect("method8", [MessageKind.PATCH_POINT_TO_PARAMETER],
+                    [MessageKind.PATCH_PARAMETER_MISMATCH]);
+  expect("method9", [MessageKind.PATCH_POINT_TO_PARAMETER],
+                    [MessageKind.PATCH_PARAMETER_TYPE_MISMATCH]);
+  expect("method10", [MessageKind.PATCH_POINT_TO_PARAMETER],
+                     [MessageKind.PATCH_PARAMETER_TYPE_MISMATCH]);
+  expect("method11", [MessageKind.PATCH_POINT_TO_PARAMETER],
+                     [MessageKind.PATCH_PARAMETER_TYPE_MISMATCH]);
 }
 
 testExternalWithoutImplementationTopLevel() {

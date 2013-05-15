@@ -269,7 +269,7 @@ class Primitives {
     return JS('num', r'parseInt(#, #)', source, radix);
   }
 
-  static double parseDouble(String source, int handleError(String source)) {
+  static double parseDouble(String source, double handleError(String source)) {
     checkString(source);
     if (handleError == null) handleError = _throwFormatException;
     // Notice that JS parseFloat accepts garbage at the end of the string.

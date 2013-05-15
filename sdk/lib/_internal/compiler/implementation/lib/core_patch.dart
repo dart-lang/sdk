@@ -23,7 +23,7 @@ _symbolMapToStringMap(Map<Symbol, dynamic> map) {
   return result;
 }
 
-patch void print(var object) {
+patch void print(Object object) {
   Primitives.printString(object.toString());
 }
 
@@ -105,7 +105,7 @@ patch class int {
 }
 
 patch class double {
-  patch static double parse(String source, [int handleError(String source)]) {
+  patch static double parse(String source, [double handleError(String source)]) {
     return Primitives.parseDouble(source, handleError);
   }
 }

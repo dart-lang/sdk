@@ -465,6 +465,10 @@ Please include the following information:
       "Patch method parameter '#{patchParameter}' doesn't match "
       "'#{originParameter}' on origin method #{methodName}.");
 
+  static const PATCH_PARAMETER_TYPE_MISMATCH = const MessageKind(
+      "Patch method parameter '#{parameterName}' type #{patchParameterType} "
+      "doesn't match #{originParameterType} on origin method #{methodName}.");
+
   static const PATCH_EXTERNAL_WITHOUT_IMPLEMENTATION = const MessageKind(
       "External method without an implementation.");
 
@@ -482,6 +486,9 @@ Please include the following information:
 
   static const PATCH_POINT_TO_CONSTRUCTOR = const MessageKind(
       "Info: This is the constructor patch '#{constructorName}'.");
+
+  static const PATCH_POINT_TO_PARAMETER = const MessageKind(
+      "Info: This is the patch parameter '#{parameterName}'.");
 
   static const PATCH_NON_EXISTING = const MessageKind(
       "Error: Origin does not exist for patch '#{name}'.");

@@ -237,13 +237,13 @@ patch class ServerSocket {
 }
 
 patch class RawSocket {
-  patch static Future<RawSocket> connect(String host, int port) {
+  patch static Future<RawSocket> connect(var host, int port) {
     throw new UnsupportedError("RawSocket constructor");
   }
 }
 
 patch class Socket {
-  patch static Future<Socket> connect(String host, int port) {
+  patch static Future<Socket> connect(var host, int port) {
     throw new UnsupportedError("Socket constructor");
   }
 }

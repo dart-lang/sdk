@@ -198,11 +198,33 @@ class ResolverTask extends CompilerTask {
       String patchParameterText =
           patchParameter.parseNode(compiler).toString();
       if (originParameterText != patchParameterText) {
-        error(originParameter.parseNode(compiler),
-              MessageKind.PATCH_PARAMETER_MISMATCH,
-              {'methodName': origin.name,
-               'originParameter': originParameterText,
-               'patchParameter': patchParameterText});
+        compiler.reportErrorCode(
+            originParameter.parseNode(compiler),
+            MessageKind.PATCH_PARAMETER_MISMATCH,
+            {'methodName': origin.name,
+             'originParameter': originParameterText,
+             'patchParameter': patchParameterText});
+        compiler.reportMessage(
+            compiler.spanFromSpannable(patchParameter),
+            MessageKind.PATCH_POINT_TO_PARAMETER.error(
+                {'parameterName': patchParameter.name}),
+            Diagnostic.INFO);
+      }
+      DartType originParameterType = originParameter.computeType(compiler);
+      DartType patchParameterType = patchParameter.computeType(compiler);
+      if (originParameterType != patchParameterType) {
+        compiler.reportErrorCode(
+            originParameter.parseNode(compiler),
+            MessageKind.PATCH_PARAMETER_TYPE_MISMATCH,
+            {'methodName': origin.name,
+             'parameterName': originParameter.name,
+             'originParameterType': originParameterType,
+             'patchParameterType': patchParameterType});
+        compiler.reportMessage(
+            compiler.spanFromSpannable(patchParameter),
+            MessageKind.PATCH_POINT_TO_PARAMETER.error(
+                {'parameterName': patchParameter.name}),
+            Diagnostic.INFO);
       }
 
       originParameters = originParameters.tail;
