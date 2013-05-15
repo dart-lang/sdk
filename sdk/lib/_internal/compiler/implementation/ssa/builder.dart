@@ -3652,12 +3652,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
-    bool isThisSend(Send send) {
-      if (send.isPrefix || send.isPostfix) return false;
-      Node receiver = send.receiver;
-      if (receiver == null) return true;
-      Identifier identifier = receiver.asIdentifier();
-      return identifier != null && identifier.isThis();
+    bool isOptimizableOperation(Send node, Selector selector, Element element) {
+      ClassElement cls = element.getEnclosingClass();
+      if (isOptimizableOperationOnIndexable(selector, element)) return true;
+      if (!backend.interceptedClasses.contains(cls)) return false;
+      if (selector.isOperator()) return true;
+      if (selector.isSetter()) return true;
+      if (selector.isIndex()) return true;
+      if (selector.isIndexSet()) return true;
+      if (element == backend.jsArrayAdd
+          || element == backend.jsArrayRemoveLast
+          || element == backend.jsStringSplit) {
+        return true;
+      }
+      return false;
     }
 
     Element element = compiler.world.locateSingleElement(selector);
@@ -3666,14 +3674,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         && (node.asSend() != null)
         && !(element.isGetter() && selector.isCall())
         && !(element.isFunction() && selector.isGetter())
-        // This check is to ensure we don't regress compared to our
-        // previous limited inlining. We currently don't want to
-        // inline methods on intercepted classes because the
-        // optimizers apply their own optimizations on these methods.
-        && (!backend.interceptedClasses.contains(element.getEnclosingClass())
-            || isThisSend(node))
-        // Avoid inlining optimizable operations on indexables.
-        && !isOptimizableOperationOnIndexable(selector, element)) {
+        && !isOptimizableOperation(node, selector, element)) {
       Send send = node.asSend();
       Link<Node> nodes = send.isPropertyAccess ? null : send.arguments;
       if (tryInlineMethod(element, selector, nodes, arguments, node)) {

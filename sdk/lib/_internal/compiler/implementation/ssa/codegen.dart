@@ -630,10 +630,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void use(HInstruction argument) {
     if (isGenerateAtUseSite(argument)) {
       visitExpression(argument);
-    } else if (argument is HCheck && argument.isControlFlow()) {
-      // A [HCheck] that has control flow can never be used as an
-      // expression and may not have a name. Therefore we just use the
-      // checked instruction.
+    } else if (argument is HCheck && !variableNames.hasName(argument)) {
       HCheck check = argument;
       use(check.checkedInput);
     } else {

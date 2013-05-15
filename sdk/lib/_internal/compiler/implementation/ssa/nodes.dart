@@ -1127,6 +1127,12 @@ abstract class HCheck extends HInstruction {
   HInstruction get checkedInput => inputs[0];
   bool isJsStatement() => true;
   bool canThrow() => true;
+
+  HInstruction unwrap() {
+    var checked = checkedInput;
+    while (checked is HCheck) checked = checked.checkedInput;
+    return checked;
+  }
 }
 
 class HBailoutTarget extends HInstruction {
