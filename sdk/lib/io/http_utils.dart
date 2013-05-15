@@ -53,22 +53,52 @@ class _HttpUtils {
   static Map<String, String> splitQueryString(String queryString) {
     Map<String, String> result = new Map<String, String>();
     int currentPosition = 0;
-    while (currentPosition < queryString.length) {
-      int position = queryString.indexOf("=", currentPosition);
-      if (position == -1) {
-        break;
+    int length = queryString.length;
+
+    while (currentPosition < length) {
+
+      // Find the first equals character between current position and
+      // the provided end.
+      int indexOfEquals(int end) {
+        int index = currentPosition;
+        while (index < end) {
+          if (queryString.codeUnitAt(index) == _CharCode.EQUAL) return index;
+          index++;
+        }
+        return -1;
       }
-      String name = queryString.substring(currentPosition, position);
-      currentPosition = position + 1;
-      position = queryString.indexOf("&", currentPosition);
+
+      // Find the next separator (either & or ;), see
+      // http://www.w3.org/TR/REC-html40/appendix/notes.html#ampersands-in-uris
+      // relating the ; separator. If no separator is found returns
+      // the length of the query string.
+      int indexOfSeparator() {
+        int end = length;
+        int index = currentPosition;
+        while (index < end) {
+          int codeUnit = queryString.codeUnitAt(index);
+          if (codeUnit == _CharCode.AMPERSAND ||
+              codeUnit == _CharCode.SEMI_COLON) {
+            return index;
+          }
+          index++;
+        }
+        return end;
+      }
+
+      int seppos = indexOfSeparator();
+      int equalspos = indexOfEquals(seppos);
+      String name;
       String value;
-      if (position == -1) {
-        value = queryString.substring(currentPosition);
-        currentPosition = queryString.length;
+      if (equalspos == -1) {
+        name = queryString.substring(currentPosition, seppos);
+        value = '';
       } else {
-        value = queryString.substring(currentPosition, position);
-        currentPosition = position + 1;
+        name = queryString.substring(currentPosition, equalspos);
+        value = queryString.substring(equalspos + 1, seppos);
       }
+      currentPosition = seppos + 1;  // This also works when seppos == length.
+      if (name == '') continue;
       result[_HttpUtils.decodeUrlEncodedString(name)] =
         _HttpUtils.decodeUrlEncodedString(value);
     }
