@@ -1217,6 +1217,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(canBeInlined);
     InliningState state = enterInlinedMethod(
         function, selector, argumentsNodes, providedArguments, currentNode);
+    // Add an explicit null check on the receiver. We use [element]
+    // to get the same name in the NoSuchMethodError message as if we had
+    // called it.
+    if (element.isInstanceMember()
+        && (selector.mask == null || selector.mask.isNullable)) {
+      addWithPosition(
+          new HFieldGet(element, providedArguments[0]), currentNode);
+    }
     inlinedFrom(element, () {
       functionExpression.body.accept(this);
     });
