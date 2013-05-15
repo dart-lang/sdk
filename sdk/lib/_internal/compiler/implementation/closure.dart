@@ -390,20 +390,11 @@ class ClosureTranslator extends Visitor {
     scopeVariables.add(element);
   }
 
-  void registerNeedsThis() {
-    if (closureData.thisElement != null) {
-      useLocal(closureData.thisElement);
-    }
-  }
-
   visit(Node node) => node.accept(this);
 
   visitNode(Node node) => node.visitChildren(this);
 
   visitVariableDefinitions(VariableDefinitions node) {
-    if (node.type != null) {
-      visit(node.type);
-    }
     for (Link<Node> link = node.definitions.nodes;
          !link.isEmpty;
          link = link.tail) {
@@ -426,29 +417,13 @@ class ClosureTranslator extends Visitor {
     }
   }
 
-  visitTypeAnnotation(TypeAnnotation node) {
-    if (compiler.enableTypeAssertions && currentElement.isInstanceMember()) {
-      DartType type = elements.getType(node);
-      // In checked mode, using a type variable in a type annotation may lead
-      // to a runtime type check that needs to access the type argument and
-      // therefore the closure needs a this-element.
-      // TODO(karlklose,johnniwinther): if the type is null, the annotation is
-      // from a parameter which has been analyzed before the method has been
-      // resolved and the result has been thrown away.
-      if (type != null && type.containsTypeVariables) {
-        registerNeedsThis();
-      }
-    }
-    node.visitChildren(this);
-  }
-
   visitIdentifier(Identifier node) {
     if (node.isThis()) {
-      registerNeedsThis();
+      useLocal(closureData.thisElement);
     } else {
       Element element = elements[node];
       if (element != null && element.kind == ElementKind.TYPE_VARIABLE) {
-        registerNeedsThis();
+        useLocal(closureData.thisElement);
       }
     }
     node.visitChildren(this);
@@ -460,9 +435,9 @@ class ClosureTranslator extends Visitor {
       useLocal(element);
     } else if (node.receiver == null &&
                Elements.isInstanceSend(node, elements)) {
-      registerNeedsThis();
+      useLocal(closureData.thisElement);
     } else if (node.isSuperCall) {
-      registerNeedsThis();
+      useLocal(closureData.thisElement);
     } else if (node.isParameterCheck) {
       Element parameter = elements[node.receiver];
       FunctionElement enclosing = parameter.enclosingElement;
@@ -485,10 +460,6 @@ class ClosureTranslator extends Visitor {
     Element element = elements[node];
     if (Elements.isLocal(element)) {
       mutatedVariables.add(element);
-    }
-    if (Elements.isLocal(element) &&
-        element.computeType(compiler).containsTypeVariables) {
-      registerNeedsThis();
     }
     super.visitSendSet(node);
   }
@@ -526,9 +497,7 @@ class ClosureTranslator extends Visitor {
       if (outermostElement.isConstructor() || outermostElement.isField()) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember()) {
-        if (hasTypeVariable(type)) {
-          registerNeedsThis();
-        }
+        if (hasTypeVariable(type)) useLocal(closureData.thisElement);
       }
     }
 
@@ -698,12 +667,6 @@ class ClosureTranslator extends Visitor {
         cls.typeVariables.forEach((TypeVariableType typeVariable) {
           declareLocal(typeVariable.element);
         });
-      }
-
-      // Compute the function type and check for type variables in return or
-      // parameter types.
-      if (element.computeType(compiler).containsTypeVariables) {
-        registerNeedsThis();
       }
 
       visitChildren();
