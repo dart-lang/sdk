@@ -1590,6 +1590,10 @@ class _HttpClient implements HttpClient {
       if (pos >= 0) {
         option = option.substring(pos + 3);
       }
+      pos = option.indexOf("/");
+      if (pos >= 0) {
+        option = option.substring(0, pos);
+      }
       if (option.indexOf(":") == -1) option = "$option:1080";
       return "PROXY $option";
     }
