@@ -1086,6 +1086,8 @@ abstract class HInstruction implements Spannable {
     } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
       return new HTypeConversion(type, kind, HType.BOOLEAN, this);
+    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.isRaw) {
+        throw 'creating compound check to $type (this = ${this})';
     } else {
       HType subtype = new HType.subtype(type, compiler);
       return new HTypeConversion(type, kind, subtype, this);
@@ -2138,7 +2140,6 @@ class HIndexAssign extends HInstruction {
   HInstruction get value => inputs[2];
 }
 
-// TODO(karlklose): use this class to represent type conversions as well.
 class HIs extends HInstruction {
   /// A check against a raw type: 'o is int', 'o is A'.
   static const int RAW_CHECK = 0;
@@ -2203,6 +2204,23 @@ class HTypeConversion extends HCheck {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     sourceElement = input.sourceElement;
     instructionType = type;
+  }
+
+  HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
+                                         HType type, HInstruction input,
+                                         HInstruction typeRepresentation)
+      : super(<HInstruction>[input, typeRepresentation]),
+        receiverTypeCheckSelector = null {
+    sourceElement = input.sourceElement;
+    instructionType = type;
+  }
+
+  bool get hasTypeRepresentation => inputs.length > 1;
+  HInstruction get typeRepresentation => inputs[1];
+
+  HInstruction convertType(Compiler compiler, DartType type, int kind) {
+    if (typeExpression == type) return this;
+    return super.convertType(compiler, type, kind);
   }
 
   bool get isChecked => kind != NO_CHECK;
