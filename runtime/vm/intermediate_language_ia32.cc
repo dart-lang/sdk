@@ -3748,9 +3748,21 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   for (intptr_t i = 0; i < InputCount(); i++) {
     __ movsd(Address(ESP, kDoubleSize * i), locs()->in(i).fpu_reg());
   }
+  // For pow-function return NAN if exponent is NAN.
+  Label do_call, skip_call;
+  if (recognized_kind() == MethodRecognizer::kDoublePow) {
+    XmmRegister exp = locs()->in(1).fpu_reg();
+    __ comisd(exp, exp);
+    __ j(PARITY_ODD, &do_call, Assembler::kNearJump);  // NaN -> false;
+    // Exponent is NaN, return NaN.
+    __ movsd(locs()->out().fpu_reg(), exp);
+    __ jmp(&skip_call, Assembler::kNearJump);
+  }
+  __ Bind(&do_call);
   __ CallRuntime(TargetFunction());
   __ fstpl(Address(ESP, 0));
   __ movsd(locs()->out().fpu_reg(), Address(ESP, 0));
+  __ Bind(&skip_call);
   __ leave();
 }
 
