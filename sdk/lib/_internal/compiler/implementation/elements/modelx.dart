@@ -134,6 +134,8 @@ class ElementX implements Element {
 
   bool get isForwardingConstructor => false;
 
+  bool get isMixinApplication => false;
+
   /**
    * Returns the element which defines the implementation for the entity of this
    * element.

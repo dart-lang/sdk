@@ -230,6 +230,7 @@ abstract class Element implements Spannable {
   bool get isDeclaration;
   bool get isSynthesized;
   bool get isForwardingConstructor;
+  bool get isMixinApplication;
 
   Element get implementation;
   Element get declaration;
