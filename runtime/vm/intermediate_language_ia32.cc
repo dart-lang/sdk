@@ -4520,6 +4520,18 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Location left = locs()->in(0);
   Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(srdjan): Determine why this instruction was not eliminated.
+    bool result = (left.constant().raw() == right.constant().raw());
+    if ((kind_ == Token::kNE_STRICT) || (kind_ == Token::kNE)) {
+      result = !result;
+    }
+    __ movl(locs()->out().reg(),
+            Immediate(reinterpret_cast<int32_t>(
+                Smi::New(result ? if_true_ : if_false_))));
+    return;
+  }
+
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   // Clear upper part of the out register. We are going to use setcc on it
