@@ -559,6 +559,7 @@ Simulator::Simulator() {
   for (int i = 0; i < kNumberOfFRegisters; i++) {
     fregisters_[i] = 0.0;
   }
+  fcsr_ = 0;
 }
 
 
@@ -1375,32 +1376,64 @@ void Simulator::DecodeCop1(Instr* instr) {
   if (instr->HasFormat()) {
     // If the rs field is a valid format, then the function field identifies the
     // instruction.
+    ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
+    double fs_val = get_fregister_double(instr->FsField());
+    double ft_val = get_fregister_double(instr->FtField());
+    uint32_t cc, fcsr_cc;
+    cc = instr->FpuCCField();
+    fcsr_cc = get_fcsr_condition_bit(cc);
     switch (instr->Cop1FunctionField()) {
       case COP1_ADD: {
         // Format(instr, "add.'fmt 'fd, 'fs, 'ft");
-        if (instr->FormatField() == FMT_S) {
-          float fs_val = get_fregister_float(instr->FsField());
-          float ft_val = get_fregister_float(instr->FtField());
-          set_fregister_float(instr->FdField(), fs_val + ft_val);
-        } else {
-          ASSERT(instr->FormatField() == FMT_D);  // Only S and D supported.
-          double fs_val = get_fregister_double(instr->FsField());
-          double ft_val = get_fregister_double(instr->FtField());
-          set_fregister_double(instr->FdField(), fs_val + ft_val);
-        }
+        set_fregister_double(instr->FdField(), fs_val + ft_val);
         break;
       }
       case COP1_MOV: {
         // Format(instr, "mov.'fmt 'fd, 'fs");
-        ASSERT(instr->FtField() == F0);
-        if (instr->FormatField() == FMT_S) {
-          float fs_val = get_fregister_float(instr->FsField());
-          set_fregister_float(instr->FdField(), fs_val);
-        } else {
-          ASSERT(instr->FormatField() == FMT_D);
-          double fs_val = get_fregister_double(instr->FsField());
-          set_fregister_double(instr->FdField(), fs_val);
-        }
+        set_fregister_double(instr->FdField(), fs_val);
+        break;
+      }
+      case COP1_C_F: {
+        ASSERT(instr->FdField() == F0);
+        set_fcsr_bit(fcsr_cc, false);
+        break;
+      }
+      case COP1_C_UN: {
+        ASSERT(instr->FdField() == F0);
+        set_fcsr_bit(fcsr_cc, isnan(fs_val) || isnan(ft_val));
+        break;
+      }
+      case COP1_C_EQ: {
+        ASSERT(instr->FdField() == F0);
+        set_fcsr_bit(fcsr_cc, (fs_val == ft_val));
+        break;
+      }
+      case COP1_C_UEQ: {
+        ASSERT(instr->FdField() == F0);
+        set_fcsr_bit(fcsr_cc,
+            (fs_val == ft_val) || isnan(fs_val) || isnan(ft_val));
+        break;
+      }
+      case COP1_C_OLT: {
+        ASSERT(instr->FdField() == F0);
+        set_fcsr_bit(fcsr_cc, (fs_val < ft_val));
+        break;
+      }
+      case COP1_C_ULT: {
+        ASSERT(instr->FdField() == F0);
+        set_fcsr_bit(fcsr_cc,
+            (fs_val < ft_val) || isnan(fs_val) || isnan(ft_val));
+        break;
+      }
+      case COP1_C_OLE: {
+        ASSERT(instr->FdField() == F0);
+        set_fcsr_bit(fcsr_cc, (fs_val <= ft_val));
+        break;
+      }
+      case COP1_C_ULE: {
+        ASSERT(instr->FdField() == F0);
+        set_fcsr_bit(fcsr_cc,
+            (fs_val <= ft_val) || isnan(fs_val) || isnan(ft_val));
         break;
       }
       default: {
@@ -1424,6 +1457,18 @@ void Simulator::DecodeCop1(Instr* instr) {
         ASSERT(instr->Bits(0, 11) == 0);
         int32_t rt_val = get_register(instr->RtField());
         set_fregister(instr->FsField(), rt_val);
+        break;
+      }
+      case COP1_BC: {
+        ASSERT(instr->Bit(17) == 0);
+        uint32_t cc, fcsr_cc;
+        cc = instr->Bits(18, 3);
+        fcsr_cc = get_fcsr_condition_bit(cc);
+        if (instr->Bit(16) == 1) {  // Branch on true.
+          DoBranch(instr, test_fcsr_bit(fcsr_cc), false);
+        } else {  // Branch on false.
+          DoBranch(instr, !test_fcsr_bit(fcsr_cc), false);
+        }
         break;
       }
       default: {

@@ -1203,23 +1203,6 @@ ASSEMBLER_TEST_RUN(Addd, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(Adds, assembler) {
-  __ LoadImmediate(F0, 1.0f);
-  __ LoadImmediate(F2, 2.0f);
-  __ adds(F4, F0, F2);
-  __ mfc1(V0, F4);
-  __ Ret();
-}
-
-
-ASSEMBLER_TEST_RUN(Adds, test) {
-  typedef double (*SimpleCode)();
-  EXPECT(test != NULL);
-  double res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
-  EXPECT_FLOAT_EQ(3.0, res, 0.001);
-}
-
-
 ASSEMBLER_TEST_GENERATE(Movd, assembler) {
   __ LoadImmediate(F0, 1.0);
   __ movd(F2, F0);
@@ -1233,22 +1216,6 @@ ASSEMBLER_TEST_RUN(Movd, test) {
   typedef double (*SimpleCode)();
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
-  EXPECT_FLOAT_EQ(1.0, res, 0.001);
-}
-
-
-ASSEMBLER_TEST_GENERATE(Movs, assembler) {
-  __ LoadImmediate(F0, 1.0f);
-  __ movd(F2, F0);
-  __ mfc1(V0, F2);
-  __ Ret();
-}
-
-
-ASSEMBLER_TEST_RUN(Movs, test) {
-  typedef double (*SimpleCode)();
-  EXPECT(test != NULL);
-  double res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(1.0, res, 0.001);
 }
 
@@ -1274,57 +1241,246 @@ ASSEMBLER_TEST_RUN(Sdc1Ldc1, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(Swc1Lwc1, assembler) {
-  __ AddImmediate(SP, -1 * kWordSize);
-  __ LoadImmediate(F0, 1.0f);
-  __ swc1(F0, Address(SP));
-  __ lwc1(F1, Address(SP));
-  __ mfc1(V0, F1);
-  __ AddImmediate(SP, 1 * kWordSize);
-  __ Ret();
-}
-
-ASSEMBLER_TEST_RUN(Swc1Lwc1, test) {
-  typedef double (*SimpleCode)();
-  EXPECT(test != NULL);
-  double res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
-  EXPECT_FLOAT_EQ(1.0, res, 0.001);
-}
-
-
-ASSEMBLER_TEST_GENERATE(Adds_NaN, assembler) {
-  __ LoadImmediate(F0, 1.0f);
-  __ LoadImmediate(T0, 0x7f800001);  // NaN
-  __ mtc1(T0, F2);
-  __ adds(F4, F0, F2);
+ASSEMBLER_TEST_GENERATE(Addd_NaN, assembler) {
+  __ LoadImmediate(F0, 1.0);
+  // Double non-signaling NaN is 0x7FF8000000000000.
+  __ LoadImmediate(T0, 0x7FF80000);
+  __ mtc1(ZR, F2);  // Load upper bits of NaN.
+  __ mtc1(T0, F3);  // Load lower bits of NaN.
+  __ addd(F4, F0, F2);
   __ mfc1(V0, F4);
+  __ mfc1(V1, F5);
   __ Ret();
 }
 
 
-ASSEMBLER_TEST_RUN(Adds_NaN, test) {
+ASSEMBLER_TEST_RUN(Addd_NaN, test) {
   typedef double (*SimpleCode)();
   EXPECT(test != NULL);
-  float res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_EQ(isnan(res), true);
 }
 
 
-ASSEMBLER_TEST_GENERATE(Adds_Inf, assembler) {
+ASSEMBLER_TEST_GENERATE(Addd_Inf, assembler) {
   __ LoadImmediate(F0, 1.0f);
-  __ LoadImmediate(T0, 0x7f800000);  // +inf
-  __ mtc1(T0, F2);
-  __ adds(F4, F0, F2);
+  __ LoadImmediate(T0, 0x7FF00000);  // +inf
+  __ mtc1(ZR, F2);
+  __ mtc1(T0, F3);
+  __ addd(F4, F0, F2);
   __ mfc1(V0, F4);
+  __ mfc1(V1, F5);
   __ Ret();
 }
 
 
-ASSEMBLER_TEST_RUN(Adds_Inf, test) {
+ASSEMBLER_TEST_RUN(Addd_Inf, test) {
   typedef double (*SimpleCode)();
   EXPECT(test != NULL);
-  float res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_EQ(isfinite(res), false);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CUN, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.0);
+  __ LoadImmediate(T0, 0x7FF80000);
+  __ mtc1(ZR, F2);
+  __ mtc1(T0, F3);
+  __ LoadImmediate(V0, 42);
+  __ cund(F0, F2);
+  __ bc1t(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CUN, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CUN_not_taken, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.0);
+  __ LoadImmediate(F2, 42.0);
+  __ LoadImmediate(V0, 42);
+  __ cund(F0, F2);
+  __ bc1t(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CUN_not_taken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CEq, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.5);
+  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(V0, 42);
+  __ ceqd(F0, F2);
+  __ bc1t(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CEq, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CEq_not_taken, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.0);
+  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(V0, 42);
+  __ ceqd(F0, F2);
+  __ bc1t(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CEq_not_taken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CEq_false, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.0);
+  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(V0, 42);
+  __ ceqd(F0, F2);
+  __ bc1f(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CEq_false, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CEq_false_not_taken, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.5);
+  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(V0, 42);
+  __ ceqd(F0, F2);
+  __ bc1f(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CEq_false_not_taken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1COLT, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.0);
+  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(V0, 42);
+  __ coltd(F0, F2);
+  __ bc1t(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1COLT, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1COLT_not_taken, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.5);
+  __ LoadImmediate(F2, 42.0);
+  __ LoadImmediate(V0, 42);
+  __ coltd(F0, F2);
+  __ bc1t(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1COLT_not_taken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1COLE, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.0);
+  __ LoadImmediate(F2, 42.0);
+  __ LoadImmediate(V0, 42);
+  __ coled(F0, F2);
+  __ bc1t(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1COLE, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1COLE_not_taken, assembler) {
+  Label is_true;
+
+  __ LoadImmediate(F0, 42.5);
+  __ LoadImmediate(F2, 42.0);
+  __ LoadImmediate(V0, 42);
+  __ coled(F0, F2);
+  __ bc1t(&is_true);
+  __ mov(V0, ZR);
+  __ Bind(&is_true);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1COLE_not_taken, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 

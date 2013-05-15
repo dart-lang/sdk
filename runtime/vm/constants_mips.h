@@ -249,6 +249,8 @@ enum InstructionFields {
   kInstrBits = 26,
   kBreakCodeShift = 6,
   kBreakCodeBits = 20,
+  kFpuCCShift = 8,
+  kFpuCCBits = 3,
 
   kBranchOffsetMask = 0x0000ffff,
 };
@@ -378,11 +380,20 @@ enum RtRegImm {
 enum Cop1Function {
   COP1_ADD = 0,
   COP1_MOV = 6,
+  COP1_C_F = 0b110000,
+  COP1_C_UN = 0b110001,
+  COP1_C_EQ = 0b110010,
+  COP1_C_UEQ = 0b110011,
+  COP1_C_OLT = 0b110100,
+  COP1_C_ULT = 0b110101,
+  COP1_C_OLE = 0b110110,
+  COP1_C_ULE = 0b110111,
 };
 
 enum Cop1Sub {
   COP1_MF = 0,
   COP1_MT = 4,
+  COP1_BC = 8,
 };
 
 enum Format {
@@ -517,6 +528,10 @@ class Instr {
 
   inline Format FormatField() const {
     return static_cast<Format>(Bits(kFmtShift, kFmtBits));
+  }
+
+  inline int32_t FpuCCField() const {
+    return Bits(kFpuCCShift, kFpuCCBits);
   }
 
   // Instructions are read out of a code stream. The only way to get a
