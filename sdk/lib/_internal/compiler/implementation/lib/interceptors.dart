@@ -5,7 +5,8 @@
 library _interceptors;
 
 import 'dart:collection';
-import 'dart:_collection-dev';
+import 'dart:_collection-dev' hide Symbol;
+import "dart:_collection-dev" as _symbol_dev show Symbol;
 import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               Null,
                               JSSyntaxRegExp,
@@ -29,6 +30,17 @@ import 'dart:_foreign_helper' show JS;
 part 'js_array.dart';
 part 'js_number.dart';
 part 'js_string.dart';
+
+String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
+
+_symbolMapToStringMap(Map<Symbol, dynamic> map) {
+  if (map == null) return null;
+  var result = new Map<String, dynamic>();
+  map.forEach((Symbol key, value) {
+    result[_symbolToString(key)] = value;
+  });
+  return result;
+}
 
 /**
  * Get the interceptor for [object]. Called by the compiler when it needs
@@ -277,10 +289,11 @@ abstract class Interceptor {
   String toString() => Primitives.objectToString(this);
 
   dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(this,
-                                invocation.memberName,
-                                invocation.positionalArguments,
-                                invocation.namedArguments);
+    throw new NoSuchMethodError(
+        this,
+        _symbolToString(invocation.memberName),
+        invocation.positionalArguments,
+        _symbolMapToStringMap(invocation.namedArguments));
   }
 
   Type get runtimeType => getRuntimeType(this);

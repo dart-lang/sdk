@@ -144,7 +144,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   HttpConnectionInfo get connectionInfo => _httpConnection.connectionInfo;
 
   X509Certificate get certificate {
-    Socket socket = _httpConnection._socket;
+    var socket = _httpConnection._socket;
     if (socket is SecureSocket) return socket.peerCertificate;
     return null;
   }

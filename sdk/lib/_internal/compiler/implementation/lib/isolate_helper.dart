@@ -939,13 +939,13 @@ class _PendingSendPortFinder extends _MessageTraverser {
     map.values.forEach((e) => _dispatch(e));
   }
 
-  visitSendPort(SendPort port) {
+  visitSendPort(var port) {
     if (port is _BufferingSendPort && port._port == null) {
       ports.add(port._futurePort);
     }
   }
 
-  visitIsolateSink(IsolateSink sink) {
+  visitIsolateSink(JsIsolateSink sink) {
     visitSendPort(sink._port);
   }
 
@@ -1010,7 +1010,7 @@ class _JsSerializer extends _Serializer {
     }
   }
 
-  visitIsolateSink(IsolateSink sink) {
+  visitIsolateSink(JsIsolateSink sink) {
     SendPort port = sink._port;
     bool isClosed = sink._isClosed;
     return ['isolateSink', visitSendPort(port), isClosed];
@@ -1053,10 +1053,10 @@ class _JsCopier extends _Copier {
     }
   }
 
-  IsolateSink visitIsolateSink(IsolateSink sink) {
+  IsolateSink visitIsolateSink(JsIsolateSink sink) {
     SendPort port = sink._port;
     bool isClosed = sink._isClosed;
-    IsolateSink result = new JsIsolateSink.fromPort(visitSendPort(port));
+    JsIsolateSink result = new JsIsolateSink.fromPort(visitSendPort(port));
     result._isClosed = isClosed;
     return result;
   }
@@ -1088,7 +1088,7 @@ class _JsDeserializer extends _Deserializer {
   IsolateSink deserializeIsolateSink(List list) {
     SendPort port = deserializeSendPort(list[1]);
     bool isClosed = list[2];
-    IsolateSink result = new JsIsolateSink.fromPort(port);
+    JsIsolateSink result = new JsIsolateSink.fromPort(port);
     result._isClosed = isClosed;
     return result;
   }

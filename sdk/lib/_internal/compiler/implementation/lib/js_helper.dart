@@ -539,14 +539,14 @@ class Primitives {
     // arguments order.
     if (namedArguments != null && !namedArguments.isEmpty) {
       // Call new List.from to make sure we get a JavaScript array.
-      List<String> listOfNamedArguments =
-          new List<String>.from(namedArguments.keys);
+      List<Symbol> listOfNamedArguments =
+          new List<Symbol>.from(namedArguments.keys);
       argumentCount += namedArguments.length;
       // We're sorting on strings, and the behavior is the same between
       // Dart string sort and JS string sort. To avoid needing the Dart
       // sort implementation, we use the JavaScript one instead.
       JS('void', '#.sort()', listOfNamedArguments);
-      listOfNamedArguments.forEach((String name) {
+      listOfNamedArguments.forEach((Symbol name) {
         buffer.write('\$$name');
         arguments.add(namedArguments[name]);
       });

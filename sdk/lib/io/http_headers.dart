@@ -207,7 +207,7 @@ class _HttpHeaders implements HttpHeaders {
     _set(HttpHeaders.CONTENT_TYPE, contentType.toString());
   }
 
-  void _add(String name, Object value) {
+  void _add(String name, value) {
     var lowerCaseName = name.toLowerCase();
     // TODO(sgjesse): Add immutable state throw HttpException is immutable.
     if (lowerCaseName == HttpHeaders.CONTENT_LENGTH) {
@@ -250,13 +250,13 @@ class _HttpHeaders implements HttpHeaders {
       }
     } else if (lowerCaseName == HttpHeaders.HOST) {
       if (value is String) {
-        int pos = (value as String).indexOf(":");
+        int pos = value.indexOf(":");
         if (pos == -1) {
           _host = value;
           _port = HttpClient.DEFAULT_HTTP_PORT;
         } else {
           if (pos > 0) {
-            _host = (value as String).substring(0, pos);
+            _host = value.substring(0, pos);
           } else {
             _host = null;
           }

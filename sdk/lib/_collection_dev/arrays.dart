@@ -20,7 +20,7 @@ class Arrays {
     }
   }
 
-  static bool areEqual(List a, Object b) {
+  static bool areEqual(List a, var b) {
     if (identical(a, b)) return true;
     if (!(b is List)) return false;
     int length = a.length;
