@@ -491,7 +491,7 @@ class BrowserTestRunner {
   Browser getInstance() {
     if (browserName == "chrome") {
       return new Chrome();
-    } else if (browserName == "firefox") {
+    } else if (browserName == "ff") {
       return new Firefox();
     }
     throw "Non supported browser for browser controller";
@@ -610,9 +610,10 @@ class BrowserTestingServer {
 <head>
   <title>Driving page</title>
   <script type='text/javascript'>
-    var numberOfTests = 0;
-    var currentId;
+    var number_of_tests = 0;
+    var current_id;
     var testing_window;
+    var last_reported_id;
 
     function newTaskHandler() {
       if (this.readyState == this.DONE) {
@@ -628,7 +629,7 @@ class BrowserTestingServer {
             // URL#ID
             var split = this.responseText.split('#');
             var nextTask = split[0];
-            id = split[1];
+            current_id = split[1];
             run(nextTask);
           }
         } else {
@@ -645,8 +646,8 @@ class BrowserTestingServer {
     }
 
     function run(url) {
-      numberOfTests++;
-      document.getElementById('number').innerHTML = numberOfTests;
+      number_of_tests++;
+      document.getElementById('number').innerHTML = number_of_tests;
       if (testing_window == undefined) {
         testing_window = window.open(url);
       } else {
@@ -658,11 +659,14 @@ class BrowserTestingServer {
       var client = new XMLHttpRequest();
       function handleReady() {
         if (this.readyState == this.DONE) {
-          getNextTask();
+          if (current_id != last_reported_id) {
+            getNextTask();
+            last_reported_id = current_id;
+          }
         }
       }
       client.onreadystatechange = handleReady;
-      client.open('POST', '$reportPath/${browserId}?id=' + id);
+      client.open('POST', '$reportPath/${browserId}?id=' + current_id);
       client.setRequestHeader('Content-type',
                               'application/x-www-form-urlencoded');
       client.send(msg);
