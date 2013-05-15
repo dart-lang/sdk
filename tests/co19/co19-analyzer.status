@@ -63,8 +63,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t02: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t02: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t01: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t02: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: fail
@@ -77,9 +75,7 @@ Language/08_Interfaces/5_Superinterfaces_A04_t03: fail
 Language/11_Expressions/01_Constants_A01_t01: fail
 Language/11_Expressions/01_Constants_A08_t02: fail
 Language/11_Expressions/01_Constants_A09_t02: fail
-Language/11_Expressions/01_Constants_A10_t03: fail
 Language/11_Expressions/01_Constants_A11_t03: fail
-Language/11_Expressions/01_Constants_A11_t04: fail
 Language/11_Expressions/01_Constants_A15_t07: fail
 Language/11_Expressions/01_Constants_A15_t08: fail
 Language/11_Expressions/01_Constants_A16_t01: fail
@@ -236,6 +232,11 @@ Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail
 Language/15_Reference/1_Lexical_Rules_A02_t06: fail
 LibTest/core/double/ceil_A01_t05: fail
 LibTest/core/double/floor_A01_t05: fail
+
+# co19 issue #412, using 'null' as operand
+Language/11_Expressions/01_Constants_A11_t01: fail
+Language/11_Expressions/01_Constants_A12_t01: fail
+Language/11_Expressions/01_Constants_A13_t06: fail
 
 
 [ $runtime == drt && $compiler == none ]

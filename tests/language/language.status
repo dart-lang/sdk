@@ -646,7 +646,6 @@ compile_time_constant_c_test/02: fail
 compile_time_constant_d_test: fail
 compile_time_constant_e_test: fail
 compile_time_constant_test/02: fail
-const_counter_negative_test: fail
 const_optional_args_negative_test: fail
 const_syntax_test/06: fail
 constructor2_negative_test: fail
