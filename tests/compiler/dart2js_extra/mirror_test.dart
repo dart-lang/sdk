@@ -14,7 +14,12 @@ void test(void onDone(bool success)) {
   print('mirror.type: ${mirror.type}');
   print('now.toUtc(): ${now.toUtc()}');
 
-  mirror.invokeAsync("toUtc", []).then((value) {
+  var value = mirror.invoke(const Symbol("toUtc"), []);
+  print('mirror.invoke("toUtc", []): $value');
+  Expect.isTrue(value.hasReflectee);
+  Expect.equals(now.toUtc(), value.reflectee);
+
+  mirror.invokeAsync(const Symbol("toUtc"), []).then((value) {
     print('mirror.invokeAsync("toUtc", []): $value');
     Expect.isTrue(value.hasReflectee);
     Expect.equals(now.toUtc(), value.reflectee);
@@ -23,18 +28,5 @@ void test(void onDone(bool success)) {
 }
 
 void main() {
-  reflect("""
-
-This program is using an experimental feature called \"mirrors\".  As
-currently implemented, mirrors do not work with minification, and will
-cause spurious errors depending on how code was optimized.
-
-The authors of this program are aware of these problems and have
-decided the thrill of using an experimental feature is outweighing the
-risks.  Furthermore, the authors of this program understand that
-long-term, to fix the problems mentioned above, mirrors may have
-negative impact on size and performance of Dart programs compiled to
-JavaScript.
-""");
   asyncTest(test);
 }

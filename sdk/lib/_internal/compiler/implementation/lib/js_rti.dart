@@ -21,13 +21,17 @@ getRuntimeTypeArgument(target, substitution, index) {
 }
 
 class TypeImpl implements Type {
-  final String typeName;
-  TypeImpl(this.typeName);
-  toString() => typeName;
-  int get hashCode => typeName.hashCode;
+  final String _typeName;
+
+  TypeImpl(this._typeName);
+
+  toString() => _typeName;
+
+  // TODO(ahe): This is a poor hashCode as it collides with its name.
+  int get hashCode => _typeName.hashCode;
+
   bool operator ==(other) {
-    if (other is !TypeImpl) return false;
-    return typeName == other.typeName;
+    return  (other is TypeImpl) && _typeName == other._typeName;
   }
 }
 

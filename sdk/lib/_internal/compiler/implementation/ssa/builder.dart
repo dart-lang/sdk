@@ -3579,6 +3579,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
+    final bool isSymbolConstructor = element == compiler.symbolConstructor;
     if (!Elements.isErroneousElement(element)) {
       FunctionElement function = element;
       element = function.redirectionTarget;
@@ -3598,6 +3599,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant));
+      if (isSymbolConstructor) {
+        ConstructedConstant symbol = constant;
+        StringConstant stringConstant = symbol.fields.single;
+        String nameString = stringConstant.toDartString().slowToString();
+        compiler.enqueuer.codegen.registerConstSymbol(nameString, elements);
+      }
     } else {
       DartType type = elements.getType(node);
       if (compiler.enableTypeAssertions && type.isMalformed) {

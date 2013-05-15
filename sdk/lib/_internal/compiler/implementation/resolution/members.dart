@@ -2511,11 +2511,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     Node selector = node.send.selector;
     FunctionElement constructor = resolveConstructor(node);
     final bool isSymbolConstructor = constructor == compiler.symbolConstructor;
-    if (!node.isConst() && isSymbolConstructor) {
-      compiler.reportWarningCode(
-          node.newToken, MessageKind.NON_CONST_BLOAT,
-          {'name': compiler.symbolClass.name});
-    }
     resolveSelector(node.send, constructor);
     resolveArguments(node.send.argumentsNode);
     useElement(node.send, constructor);
@@ -2547,35 +2542,46 @@ class ResolverVisitor extends MappingVisitor<Element> {
         includeBackendMembers: false,
         includeSuperMembers: true);
 
-    if (node.isConst() && isSymbolConstructor) {
-      Node argumentNode = node.send.arguments.head;
-      Constant name = compiler.metadataHandler.compileNodeWithDefinitions(
-          argumentNode, mapping, isConst: true);
-      if (!name.isString()) {
-        DartType type = name.computeType(compiler);
-        compiler.reportErrorCode(argumentNode, MessageKind.STRING_EXPECTED,
-                                 {'type': type});
+    if (isSymbolConstructor) {
+      if (node.isConst()) {
+        Node argumentNode = node.send.arguments.head;
+        Constant name = compiler.metadataHandler.compileNodeWithDefinitions(
+            argumentNode, mapping, isConst: true);
+        if (!name.isString()) {
+          DartType type = name.computeType(compiler);
+          compiler.reportErrorCode(argumentNode, MessageKind.STRING_EXPECTED,
+                                   {'type': type});
+        } else {
+          StringConstant stringConstant = name;
+          String nameString = stringConstant.toDartString().slowToString();
+          if (validateSymbol(argumentNode, nameString)) {
+            world.registerConstSymbol(nameString, mapping);
+          }
+        }
       } else {
-        StringConstant stringConstant = name;
-        validateSymbol(argumentNode,
-                       stringConstant.toDartString().slowToString());
+        compiler.reportWarningCode(
+            node.newToken, MessageKind.NON_CONST_BLOAT,
+            {'name': compiler.symbolClass.name});
+        world.registerNewSymbol(mapping);
       }
     }
 
     return null;
   }
 
-  void validateSymbol(Node node, String name) {
-    if (name.isEmpty) return;
+  bool validateSymbol(Node node, String name) {
+    if (name.isEmpty) return true;
     if (name.startsWith('_')) {
       compiler.reportErrorCode(node, MessageKind.PRIVATE_IDENTIFIER,
                                {'value': name});
-      return;
+      return false;
     }
     if (!symbolValidationPattern.hasMatch(name)) {
       compiler.reportErrorCode(node, MessageKind.INVALID_SYMBOL,
                                {'value': name});
+      return false;
     }
+    return true;
   }
 
 

@@ -133,7 +133,15 @@ class JSInvocationMirror implements Invocation {
       arguments = [object]..addAll(arguments);
       receiver = interceptor;
     }
-    return JS("var", "#[#].apply(#, #)", receiver, name, receiver, arguments);
+    var method = JS('var', '#[#]', receiver, name);
+    if (JS('String', 'typeof #', method) == 'function') {
+      return JS("var", "#.apply(#, #)", method, receiver, arguments);
+    } else {
+      // In this case, receiver doesn't implement name.  So we should
+      // invoke noSuchMethod instead (which will often throw a
+      // NoSuchMethodError).
+      return receiver.noSuchMethod(this);
+    }
   }
 
   /// This method is called by [InstanceMirror.delegate].

@@ -343,13 +343,13 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       bool wasAnalyzed = analyzeCount.containsKey(element);
       if (wasAnalyzed) {
         recompiles++;
-        recomputeWatch.start();
+        if (compiler.verbose) recomputeWatch.start();
       }
       bool changed =
           compiler.withCurrentElement(element, () => analyze(element));
       if (optimismState == RETRY) return true;  // Abort.
       analyzed++;
-      if (wasAnalyzed) {
+      if (wasAnalyzed && compiler.verbose) {
         recomputeWatch.stop();
       }
       checkAnalyzedAll();

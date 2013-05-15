@@ -14,6 +14,7 @@ import 'dart_types.dart';
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
     show ErroneousElementX,
+         ClassElementX,
          CompilationUnitElementX,
          LibraryElementX,
          PrefixElementX,
