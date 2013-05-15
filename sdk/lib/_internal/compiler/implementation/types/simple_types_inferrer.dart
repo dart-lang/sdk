@@ -2026,13 +2026,16 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       node.visitChildren(this);
       return inferrer.boolType;
     } else if (const SourceString("as") == op.source) {
-      node.visitChildren(this);
+      TypeMask receiverType = visit(node.receiver);
       DartType type = elements.getType(node.arguments.head);
-      if (type.isDynamic) return inferrer.dynamicType;
-      if (type.kind == TypeKind.TYPEDEF) {
-        return inferrer.functionType.nullable();
-      }
-      return new TypeMask.subtype(type);
+      if (type.isDynamic) return receiverType;
+      TypeMask asType = type.kind == TypeKind.TYPEDEF
+          ? inferrer.functionType.nullable()
+          : new TypeMask.subtype(type);
+      // TODO(ngeoffray): Remove when inferrer.dynamicType is a proper
+      // TypeMask.
+      if (inferrer.isDynamicType(receiverType)) return asType;
+      return receiverType.intersection(asType, compiler);
     } else if (node.isParameterCheck) {
       node.visitChildren(this);
       return inferrer.boolType;

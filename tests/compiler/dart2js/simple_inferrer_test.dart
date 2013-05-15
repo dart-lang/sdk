@@ -87,6 +87,10 @@ returnAsString() {
   return topLevelGetter() as String;
 }
 
+returnIntAsNum() {
+  return 0 as num;
+}
+
 typedef int Foo();
 
 returnAsTypedef() {
@@ -143,6 +147,7 @@ main() {
   returnDynamic1();
   returnDynamic2();
   returnAsString();
+  returnIntAsNum();
   returnAsTypedef();
   new A() == null;
   new A()..returnInt1()
@@ -194,6 +199,7 @@ void main() {
   checkReturn('returnDynamic2', typesInferrer.dynamicType);
   checkReturn('returnAsString',
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
+  checkReturn('returnIntAsNum', typesInferrer.intType);
   checkReturn('returnAsTypedef', typesInferrer.functionType.nullable());
 
   checkReturnInClass(String className, String methodName, type) {
