@@ -700,6 +700,9 @@ class Parser {
         if (optional('<', token.next)) {
           if (token.next is BeginGroupToken) {
             BeginGroupToken beginGroup = token.next;
+            if (beginGroup.endGroup == null) {
+              listener.unmatched(beginGroup);
+            }
             token = beginGroup.endGroup;
           }
         }
