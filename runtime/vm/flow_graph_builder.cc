@@ -2277,44 +2277,24 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     }
     return;
   }
-  // The type arguments are uninstantiated. The generated pseudo code:
-  //   t1 = InstantiatorTypeArguments();
-  //   t2 = ExtractConstructorTypeArguments(t1);
-  //   t1 = ExtractConstructorInstantiator(t1);
-  //   t_n   <- t2
-  //   t_n+1 <- t1
-  // Use expression_temp_var and node->allocated_object_var() locals to keep
-  // intermediate results around (t1 and t2 above).
+  // The type arguments are uninstantiated. We use expression_temp_var to save
+  // the instantiator type arguments becuase they have two uses.
   ASSERT(owner()->parsed_function().expression_temp_var() != NULL);
-  const LocalVariable& t1 = *owner()->parsed_function().expression_temp_var();
-  const LocalVariable& t2 = node->allocated_object_var();
+  const LocalVariable& temp = *owner()->parsed_function().expression_temp_var();
   const Class& instantiator_class = Class::Handle(
       owner()->parsed_function().function().Owner());
   Value* instantiator_type_arguments = BuildInstantiatorTypeArguments(
       node->token_pos(), instantiator_class, NULL);
   Value* stored_instantiator =
-      Bind(BuildStoreTemp(t1, instantiator_type_arguments));
-  // t1: instantiator type arguments.
+      Bind(BuildStoreTemp(temp, instantiator_type_arguments));
 
-  Value* extract_type_arguments = Bind(
+  Value* type_arguments_val = Bind(
       new ExtractConstructorTypeArgumentsInstr(
           node->token_pos(),
           node->type_arguments(),
           instantiator_class,
           stored_instantiator));
 
-  Do(BuildStoreTemp(t2, extract_type_arguments));
-  // t2: extracted constructor type arguments.
-  Value* load_instantiator = Bind(BuildLoadLocal(t1));
-
-  Value* extract_instantiator =
-      Bind(new ExtractConstructorInstantiatorInstr(node,
-                                                   instantiator_class,
-                                                   load_instantiator));
-  Do(BuildStoreTemp(t1, extract_instantiator));
-  // t2: extracted constructor type arguments.
-  // t1: extracted constructor instantiator.
-  Value* type_arguments_val = Bind(BuildLoadLocal(t2));
   if (call_arguments != NULL) {
     ASSERT(type_arguments == NULL);
     call_arguments->Add(PushArgument(type_arguments_val));
@@ -2323,7 +2303,12 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     *type_arguments = type_arguments_val;
   }
 
-  Value* instantiator_val = Bind(BuildLoadLocal(t1));
+  Value* load_instantiator = Bind(BuildLoadLocal(temp));
+  Value* instantiator_val =
+      Bind(new ExtractConstructorInstantiatorInstr(node,
+                                                   instantiator_class,
+                                                   load_instantiator));
+
   if (call_arguments != NULL) {
     ASSERT(instantiator == NULL);
     call_arguments->Add(PushArgument(instantiator_val));
