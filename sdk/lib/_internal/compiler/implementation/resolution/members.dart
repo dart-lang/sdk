@@ -2302,7 +2302,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitSendSet(SendSet node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = node.isPropertyAccess || node.isCall;
     Element target = resolveSend(node);
+    sendIsMemberAccess = oldSendIsMemberAccess;
     Element setter = target;
     Element getter = target;
     SourceString operatorName = node.assignmentOperator.source;
