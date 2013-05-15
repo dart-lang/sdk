@@ -4,7 +4,7 @@
 
 library js_backend;
 
-import 'dart:collection' show LinkedHashMap;
+import 'dart:collection' show LinkedHashMap, Queue;
 
 import '../closure.dart';
 import '../../compiler.dart' as api;

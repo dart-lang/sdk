@@ -11,8 +11,9 @@ const lazy = const DeferredLibrary('deferred_class_library');
 
 main() {
   var x;
-  // TODO(ahe): What are the semantics of this:
-  // x = const MyClass();
+  Expect.isNull(const MyClass());
+  Expect.isNull(const Constant(42));
+  Expect.isNull(const [const Constant(42)]);
   Expect.isNull(x);
   int counter = 0;
   lazy.load().then((bool didLoad) {
@@ -21,6 +22,7 @@ main() {
     print('deferred_class_library was loaded');
     x = const MyClass();
     Expect.equals(42, x.foo(87));
+    Expect.listEquals(const [const Constant(42)], [new Constant(42)]);
   });
   Expect.equals(0, counter);
   Expect.isNull(x);
@@ -30,10 +32,11 @@ main() {
     print('deferred_class_library was loaded');
     x = const MyClass();
     Expect.equals(42, x.foo(87));
+    Expect.listEquals(const [const Constant(42)], [new Constant(42)]);
   });
   Expect.equals(0, counter);
   Expect.isNull(x);
-  // TODO(ahe): What are the semantics of this:
-  // x = const MyClass();
+  Expect.isNull(const Constant(42));
+  Expect.isNull(const [const Constant(42)]);
   Expect.isNull(x);
 }

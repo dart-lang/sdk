@@ -164,8 +164,10 @@ class DeferredLoadTask extends CompilerTask {
     Set<Element> result = new LinkedHashSet<Element>();
     if (element.isGenerativeConstructor()) {
       // When instantiating a class, we record a reference to the
-      // constructor, not the class itself.
-      element = element.getEnclosingClass().implementation;
+      // constructor, not the class itself.  We must add all the
+      // instance members of the constructor's class (see below).
+      result.addAll(
+          allElementsResolvedFrom(element.getEnclosingClass().implementation));
     }
     if (element.isClass()) {
       // If we see a class, add everything its instance members refer
@@ -187,7 +189,8 @@ class DeferredLoadTask extends CompilerTask {
         result.add(type.element.implementation);
       }
       result.add(cls.implementation);
-    } else if (Elements.isStaticOrTopLevel(element)) {
+    } else if (Elements.isStaticOrTopLevel(element)
+               || element.isConstructor()) {
       result.addAll(DependencyCollector.collect(element, compiler));
     }
     // Other elements, in particular instance members, are ignored as
@@ -248,7 +251,7 @@ class DependencyCollector extends Visitor {
   visitNode(Node node) {
     node.visitChildren(this);
     Element dependency = elements[node];
-    if (dependency == null) return;
+    if (Elements.isUnresolved(dependency)) return;
     dependencies.add(dependency.implementation);
   }
 

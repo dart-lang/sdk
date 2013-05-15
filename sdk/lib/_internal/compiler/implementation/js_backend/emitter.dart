@@ -796,6 +796,8 @@ class CodeEmitterTask extends CompilerTask {
       js('newIsolate.prototype = isolatePrototype'),
       js('isolatePrototype.constructor = newIsolate'),
       js('newIsolate.${namer.isolatePropertiesName} = isolateProperties'),
+      // TODO(ahe): Only copy makeConstantList when it is used.
+      js('newIsolate.makeConstantList = oldIsolate.makeConstantList'),
     ]..addAll(copyFinishClasses)
      ..addAll([
 
@@ -2189,8 +2191,7 @@ class CodeEmitterTask extends CompilerTask {
         addedMakeConstantList = true;
         emitMakeConstantList(eagerBuffer);
       }
-      CodeBuffer buffer =
-          bufferForElement(constant.computeType(compiler).element, eagerBuffer);
+      CodeBuffer buffer = bufferForConstant(constant, eagerBuffer);
       jsAst.Expression init = js('$isolateProperties.$name = #',
           constantInitializerExpression(constant));
       buffer.write(jsAst.prettyPrint(init, compiler));
@@ -3049,6 +3050,35 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     if (!isDeferred(element)) return eagerBuffer;
     emitDeferredPreambleWhenEmpty(deferredBuffer);
     return deferredBuffer;
+  }
+
+  bool firstDeferredConstant = true;
+
+  /**
+   * Returns the appropriate buffer for [constant].  If [constant] is
+   * itself an instance of a deferred type (or built from constants
+   * that are instances of deferred types) attempting to use
+   * [constant] before the deferred type has been loaded will not
+   * work, and [constant] itself must be deferred.
+   */
+  CodeBuffer bufferForConstant(Constant constant, CodeBuffer eagerBuffer) {
+    var queue = new Queue()..add(constant);
+    while (!queue.isEmpty) {
+      constant = queue.removeFirst();
+      if (isDeferred(constant.computeType(compiler).element)) {
+        emitDeferredPreambleWhenEmpty(deferredBuffer);
+        if (firstDeferredConstant) {
+          deferredBuffer.write(
+              '${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
+          deferredBuffer.write(
+              'old${namer.CURRENT_ISOLATE}$_=${_}${namer.CURRENT_ISOLATE}$N');
+        }
+        firstDeferredConstant = false;
+        return deferredBuffer;
+      }
+      queue.addAll(constant.getDependencies());
+    }
+    return eagerBuffer;
   }
 
   void emitDeferredCode(CodeBuffer buffer) {
