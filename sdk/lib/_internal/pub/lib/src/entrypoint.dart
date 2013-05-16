@@ -242,8 +242,9 @@ class Entrypoint {
             ["ls-files", "--cached", "--others", "--exclude-standard", beneath],
             workingDir: root.dir).then((files) {
           // Git always prints files relative to the project root, but we want
-          // them relative to the working directory.
-          return files.map((file) => path.join(root.dir, file));
+          // them relative to the working directory. It also prints forward
+          // slashes on Windows which we normalize away for easier testing.
+          return files.map((file) => path.normalize(path.join(root.dir, file)));
         });
       }
 
