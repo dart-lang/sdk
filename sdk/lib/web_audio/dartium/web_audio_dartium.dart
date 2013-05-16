@@ -195,18 +195,6 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable
   int get playbackState native "AudioBufferSourceNode_playbackState_Getter";
 
-  @DomName('AudioBufferSourceNode.noteGrainOn')
-  @DocsEditable
-  void noteGrainOn(num when, num grainOffset, num grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback";
-
-  @DomName('AudioBufferSourceNode.noteOff')
-  @DocsEditable
-  void noteOff(num when) native "AudioBufferSourceNode_noteOff_Callback";
-
-  @DomName('AudioBufferSourceNode.noteOn')
-  @DocsEditable
-  void noteOn(num when) native "AudioBufferSourceNode_noteOn_Callback";
-
   void start(num when, [num grainOffset, num grainDuration]) {
     if ((when is num || when == null) && !?grainOffset && !?grainDuration) {
       _start_1(when);
@@ -337,17 +325,6 @@ class AudioContext extends EventTarget {
 
   DelayNode _createDelay_2() native "AudioContext__createDelay_2_Callback";
 
-  DelayNode createDelayNode([num maxDelayTime]) {
-    if (?maxDelayTime) {
-      return _createDelayNode_1(maxDelayTime);
-    }
-    return _createDelayNode_2();
-  }
-
-  DelayNode _createDelayNode_1(maxDelayTime) native "AudioContext__createDelayNode_1_Callback";
-
-  DelayNode _createDelayNode_2() native "AudioContext__createDelayNode_2_Callback";
-
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable
   DynamicsCompressorNode createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
@@ -355,26 +332,6 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.createGain')
   @DocsEditable
   GainNode createGain() native "AudioContext_createGain_Callback";
-
-  @DomName('AudioContext.createGainNode')
-  @DocsEditable
-  GainNode createGainNode() native "AudioContext_createGainNode_Callback";
-
-  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
-    if (?numberOfOutputChannels) {
-      return _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
-    }
-    if (?numberOfInputChannels) {
-      return _createJavaScriptNode_2(bufferSize, numberOfInputChannels);
-    }
-    return _createJavaScriptNode_3(bufferSize);
-  }
-
-  ScriptProcessorNode _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext__createJavaScriptNode_1_Callback";
-
-  ScriptProcessorNode _createJavaScriptNode_2(bufferSize, numberOfInputChannels) native "AudioContext__createJavaScriptNode_2_Callback";
-
-  ScriptProcessorNode _createJavaScriptNode_3(bufferSize) native "AudioContext__createJavaScriptNode_3_Callback";
 
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable
@@ -615,10 +572,6 @@ class AudioParam extends NativeFieldWrapperClass1 {
   @DomName('AudioParam.setTargetAtTime')
   @DocsEditable
   void setTargetAtTime(num target, num time, num timeConstant) native "AudioParam_setTargetAtTime_Callback";
-
-  @DomName('AudioParam.setTargetValueAtTime')
-  @DocsEditable
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native "AudioParam_setTargetValueAtTime_Callback";
 
   @DomName('AudioParam.setValueAtTime')
   @DocsEditable
@@ -1019,14 +972,6 @@ class OscillatorNode extends AudioSourceNode {
   @DomName('OscillatorNode.type')
   @DocsEditable
   void set type(String value) native "OscillatorNode_type_Setter";
-
-  @DomName('OscillatorNode.noteOff')
-  @DocsEditable
-  void noteOff(num when) native "OscillatorNode_noteOff_Callback";
-
-  @DomName('OscillatorNode.noteOn')
-  @DocsEditable
-  void noteOn(num when) native "OscillatorNode_noteOn_Callback";
 
   @DomName('OscillatorNode.setWaveTable')
   @DocsEditable

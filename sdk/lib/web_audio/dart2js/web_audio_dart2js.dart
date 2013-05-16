@@ -180,18 +180,6 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
   @DocsEditable
   final int playbackState;
 
-  @DomName('AudioBufferSourceNode.noteGrainOn')
-  @DocsEditable
-  void noteGrainOn(num when, num grainOffset, num grainDuration) native;
-
-  @DomName('AudioBufferSourceNode.noteOff')
-  @DocsEditable
-  void noteOff(num when) native;
-
-  @DomName('AudioBufferSourceNode.noteOn')
-  @DocsEditable
-  void noteOn(num when) native;
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -260,21 +248,9 @@ class AudioContext extends EventTarget native "AudioContext" {
   @DocsEditable
   DelayNode createDelay([num maxDelayTime]) native;
 
-  @DomName('AudioContext.createDelayNode')
-  @DocsEditable
-  DelayNode createDelayNode([num maxDelayTime]) native;
-
   @DomName('AudioContext.createDynamicsCompressor')
   @DocsEditable
   DynamicsCompressorNode createDynamicsCompressor() native;
-
-  @DomName('AudioContext.createGainNode')
-  @DocsEditable
-  GainNode createGainNode() native;
-
-  @DomName('AudioContext.createJavaScriptNode')
-  @DocsEditable
-  ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   @DomName('AudioContext.createMediaElementSource')
   @DocsEditable
@@ -474,10 +450,6 @@ class AudioParam native "AudioParam" {
   @DomName('AudioParam.setTargetAtTime')
   @DocsEditable
   void setTargetAtTime(num target, num time, num timeConstant) native;
-
-  @DomName('AudioParam.setTargetValueAtTime')
-  @DocsEditable
-  void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
 
   @DomName('AudioParam.setValueAtTime')
   @DocsEditable
@@ -800,14 +772,6 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
   @DomName('OscillatorNode.type')
   @DocsEditable
   String type;
-
-  @DomName('OscillatorNode.noteOff')
-  @DocsEditable
-  void noteOff(num when) native;
-
-  @DomName('OscillatorNode.noteOn')
-  @DocsEditable
-  void noteOn(num when) native;
 
   @DomName('OscillatorNode.setWaveTable')
   @DocsEditable
