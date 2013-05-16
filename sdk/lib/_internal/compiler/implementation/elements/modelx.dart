@@ -474,6 +474,10 @@ class CompilationUnitElementX extends ElementX
     library.addCompilationUnit(this);
   }
 
+  void forEachLocalMember(f(Element element)) {
+    localMembers.forEach(f);
+  }
+
   void addMember(Element element, DiagnosticListener listener) {
     // Keep a list of top level members.
     localMembers = localMembers.prepend(element);

@@ -551,6 +551,7 @@ abstract class CompilationUnitElement extends Element {
   Script get script;
   PartOf get partTag;
 
+  void forEachLocalMember(f(Element element));
   void addMember(Element element, DiagnosticListener listener);
   void setPartOf(PartOf tag, DiagnosticListener listener);
   bool get hasMembers;

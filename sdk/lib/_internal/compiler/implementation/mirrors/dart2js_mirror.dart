@@ -971,7 +971,7 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
       _typeVariableType.element.bound,
       mirrors.compiler.objectClass.computeType(mirrors.compiler));
 
-  bool operator ==(Object other) {
+  bool operator ==(var other) {
     if (identical(this, other)) {
       return true;
     }
@@ -1671,9 +1671,13 @@ class Dart2JsCompilationUnitMirror extends Dart2JsMirror {
 
   List<DeclarationMirror> get members {
     // TODO(ahe): Should return an immutable List.
-    return _element.localMembers.toList().map(
-        (m) => _convertElementToMembers(_library, m))
-      .fold([], (a, b) => a..addAll(b)).toList();
+    // TODO(johnniwinther): make sure that these are returned in declaration
+    // order.
+    List<DeclarationMirror> members= <DeclarationMirror>[];
+    _element.forEachLocalMember((m) {
+      members.addAll(_convertElementToMembers(_library, m));
+    });
+    return members;
   }
 
   Uri get uri => _element.script.uri;
@@ -1688,7 +1692,7 @@ class Dart2JsCompilationUnitMirror extends Dart2JsMirror {
 class BackDoor {
   /// Return the compilation units comprising [library].
   static List<Mirror> compilationUnitsOf(Dart2JsLibraryMirror library) {
-    return library._element.compilationUnits.toList().map(
+    return library._library.compilationUnits.toList().map(
         (cu) => new Dart2JsCompilationUnitMirror(cu, library)).toList();
   }
 }
