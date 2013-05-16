@@ -58,7 +58,7 @@ SourceBreakpoint::SourceBreakpoint(intptr_t id,
       next_(NULL) {
   ASSERT(!func.IsNull());
   ASSERT((func.token_pos() <= token_pos_) &&
-         (token_pos_ < func.end_token_pos()));
+         (token_pos_ <= func.end_token_pos()));
 }
 
 
@@ -860,6 +860,14 @@ void Debugger::DeoptimizeWorld() {
 }
 
 
+static bool IsSafePoint(PcDescriptors::Kind kind) {
+  return ((kind == PcDescriptors::kIcCall) ||
+          (kind == PcDescriptors::kFuncCall) ||
+          (kind == PcDescriptors::kClosureCall) ||
+          (kind == PcDescriptors::kReturn));
+}
+
+
 void Debugger::InstrumentForStepping(const Function& target_function) {
   if (!target_function.HasCode()) {
     Compiler::CompileFunction(target_function);
@@ -882,11 +890,7 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
       bpt->Enable();
       continue;
     }
-    PcDescriptors::Kind kind = desc.DescriptorKind(i);
-    if ((kind == PcDescriptors::kIcCall) ||
-        (kind == PcDescriptors::kFuncCall) ||
-        (kind == PcDescriptors::kClosureCall) ||
-        (kind == PcDescriptors::kReturn)) {
+    if (IsSafePoint(desc.DescriptorKind(i))) {
       bpt = new CodeBreakpoint(target_function, i);
       RegisterCodeBreakpoint(bpt);
       bpt->Enable();
@@ -1028,18 +1032,20 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
 }
 
 
-CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
-                                             intptr_t first_token_pos,
-                                             intptr_t last_token_pos) {
+// Given a function and a token position range, return the best fit
+// token position to set a breakpoint.
+// If multiple possible breakpoint positions are within the given range,
+// the one with the lowest machine code address is picked.
+// If no possible breakpoint location exists in the given range, the closest
+// token position after the range is returned.
+intptr_t Debugger::ResolveBreakpointPos(const Function& func,
+                                        intptr_t first_token_pos,
+                                        intptr_t last_token_pos) {
   ASSERT(func.HasCode());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
-  // We attempt to find the PC descriptor that is closest to the
-  // beginning of the token range, in terms of native code address. If we
-  // don't find a PC descriptor within the given range, we pick the
-  // nearest one to the beginning of the range, in terms of token position.
   intptr_t best_fit_index = -1;
   intptr_t best_fit = INT_MAX;
   uword lowest_pc = kUwordMax;
@@ -1048,14 +1054,13 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
     intptr_t desc_token_pos = desc.TokenPos(i);
     ASSERT(desc_token_pos >= 0);
     if (desc_token_pos < first_token_pos) {
+      // This descriptor is before the given range.
       continue;
     }
-    PcDescriptors::Kind kind = desc.DescriptorKind(i);
-    if ((kind == PcDescriptors::kIcCall) ||
-        (kind == PcDescriptors::kFuncCall) ||
-        (kind == PcDescriptors::kClosureCall) ||
-        (kind == PcDescriptors::kReturn)) {
+    if (IsSafePoint(desc.DescriptorKind(i))) {
       if ((desc_token_pos - first_token_pos) < best_fit) {
+        // So far, this descriptor has the closest token position to the
+        // beginning of the range.
         best_fit = desc_token_pos - first_token_pos;
         ASSERT(best_fit >= 0);
         best_fit_index = i;
@@ -1063,6 +1068,8 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
       if ((first_token_pos <= desc_token_pos) &&
           (desc_token_pos <= last_token_pos) &&
           (desc.PC(i) < lowest_pc)) {
+        // This descriptor is within the token position range and so
+        // far has the lowest code address.
         lowest_pc = desc.PC(i);
         lowest_pc_index = i;
       }
@@ -1076,26 +1083,31 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
     best_fit_index = lowest_pc_index;
   }
   if (best_fit_index >= 0) {
-    CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(best_fit_index));
-    // We should only ever have one code breakpoint at the same address.
-    if (bpt != NULL) {
-      return bpt;
-    }
-
-    bpt = new CodeBreakpoint(func, best_fit_index);
-    if (FLAG_verbose_debug) {
-      OS::Print("Setting breakpoint in function '%s' "
-                "(%s:%"Pd") (Token %"Pd") (PC %#"Px")\n",
-                String::Handle(func.name()).ToCString(),
-                String::Handle(bpt->SourceUrl()).ToCString(),
-                bpt->LineNumber(),
-                bpt->token_pos(),
-                bpt->pc());
-    }
-    RegisterCodeBreakpoint(bpt);
-    return bpt;
+    return desc.TokenPos(best_fit_index);
   }
-  return NULL;
+  return -1;
+}
+
+
+void Debugger::MakeCodeBreakpointsAt(const Function& func,
+                                     intptr_t token_pos,
+                                     SourceBreakpoint* bpt) {
+  ASSERT(!func.HasOptimizedCode());
+  Code& code = Code::Handle(func.unoptimized_code());
+  ASSERT(!code.IsNull());
+  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  for (int i = 0; i < desc.Length(); i++) {
+    intptr_t desc_token_pos = desc.TokenPos(i);
+    if ((desc_token_pos == token_pos) && IsSafePoint(desc.DescriptorKind(i))) {
+      CodeBreakpoint* code_bpt = GetCodeBreakpoint(desc.PC(i));
+      if (code_bpt == NULL) {
+        // No code breakpoint for this code exists; create one.
+        code_bpt = new CodeBreakpoint(func, i);
+        RegisterCodeBreakpoint(code_bpt);
+      }
+      code_bpt->set_src_bpt(bpt);
+    }
+  }
 }
 
 
@@ -1107,69 +1119,66 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     // The given token position is not within the target function.
     return NULL;
   }
-  DeoptimizeWorld();
-  ASSERT(!target_function.HasOptimizedCode());
-
-  CodeBreakpoint* cbpt = NULL;
-  SourceBreakpoint* source_bpt = NULL;
+  intptr_t breakpoint_pos = -1;
+  Function& closure = Function::Handle(isolate_);
+  if (target_function.HasImplicitClosureFunction()) {
+    // There is a closurized version of this function.
+    closure = target_function.ImplicitClosureFunction();
+  }
+  // Determine actual breakpoint location if the function or an
+  // implicit closure of the function has been compiled already.
   if (target_function.HasCode()) {
-    cbpt = MakeCodeBreakpoint(target_function, first_token_pos, last_token_pos);
-    if (cbpt != NULL) {
-      if (cbpt->src_bpt() != NULL) {
-        // There is already a source breakpoint for the location.
-        ASSERT(cbpt->src_bpt() ==
-               GetSourceBreakpoint(target_function, cbpt->token_pos()));
-        return cbpt->src_bpt();
-      }
-      // No source breakpoint exists yet that is associated with the code
-      // breakpoint we found. (This is an internal breakpoint.) Adjust
-      // the breakpoint location to the actual position where breakpoint
-      // got set.
-      first_token_pos = cbpt->token_pos();
-    }
+    DeoptimizeWorld();
+    ASSERT(!target_function.HasOptimizedCode());
+    breakpoint_pos =
+        ResolveBreakpointPos(target_function, first_token_pos, last_token_pos);
+  } else if (!closure.IsNull() && closure.HasCode()) {
+    DeoptimizeWorld();
+    ASSERT(!closure.HasOptimizedCode());
+    breakpoint_pos =
+        ResolveBreakpointPos(closure, first_token_pos, last_token_pos);
   } else {
-    source_bpt = GetSourceBreakpoint(target_function, first_token_pos);
+    // This function has not been compiled yet. Set a pending
+    // breakpoint to be resolved later.
+    SourceBreakpoint* source_bpt =
+        GetSourceBreakpoint(target_function, first_token_pos);
     if (source_bpt != NULL) {
-      // A source breakpoint for this uncompiled location already
-      // exists.
+      // A pending source breakpoint for this uncompiled location
+      // already exists.
+      if (FLAG_verbose_debug) {
+        OS::Print("Pending breakpoint for uncompiled function"
+                  " '%s' at line %"Pd" already exists\n",
+                  target_function.ToFullyQualifiedCString(),
+                  source_bpt->LineNumber());
+      }
       return source_bpt;
     }
-  }
-  source_bpt = new SourceBreakpoint(nextId(), target_function, first_token_pos);
-  RegisterSourceBreakpoint(source_bpt);
-  if (FLAG_verbose_debug && !target_function.HasCode()) {
-    OS::Print("Registering breakpoint for "
-              "uncompiled function '%s' at line %"Pd"\n",
-              target_function.ToFullyQualifiedCString(),
-              source_bpt->LineNumber());
-  }
-
-  if (cbpt != NULL) {
-    ASSERT(cbpt->src_bpt() == NULL);
-    cbpt->set_src_bpt(source_bpt);
-    SignalBpResolved(source_bpt);
-  } else {
+    source_bpt =
+        new SourceBreakpoint(nextId(), target_function, first_token_pos);
+    RegisterSourceBreakpoint(source_bpt);
     if (FLAG_verbose_debug) {
-      OS::Print("Failed to set breakpoint at '%s' line %"Pd"\n",
-                String::Handle(source_bpt->SourceUrl()).ToCString(),
+      OS::Print("Registering pending breakpoint for "
+                "uncompiled function '%s' at line %"Pd"\n",
+                target_function.ToFullyQualifiedCString(),
                 source_bpt->LineNumber());
     }
+    source_bpt->Enable();
+    return source_bpt;
   }
-
-  if (target_function.HasImplicitClosureFunction()) {
-    // There is a closurized version of this function. If the closure
-    // is already compiled, we need to set a code breakpoint in its
-    // code.
-    const Function& closure =
-        Function::Handle(target_function.ImplicitClosureFunction());
-    if (closure.HasCode()) {
-      ASSERT(!closure.HasOptimizedCode());
-      CodeBreakpoint* closure_bpt =
-          MakeCodeBreakpoint(closure, first_token_pos, last_token_pos);
-      if ((closure_bpt != NULL) && (closure_bpt->src_bpt() == NULL)) {
-        closure_bpt->set_src_bpt(source_bpt);
-      }
-    }
+  ASSERT(breakpoint_pos != -1);
+  SourceBreakpoint* source_bpt =
+      GetSourceBreakpoint(target_function, breakpoint_pos);
+  if (source_bpt != NULL) {
+    // A source breakpoint for this location already exists.
+    return source_bpt;
+  }
+  source_bpt = new SourceBreakpoint(nextId(), target_function, breakpoint_pos);
+  RegisterSourceBreakpoint(source_bpt);
+  if (target_function.HasCode()) {
+    MakeCodeBreakpointsAt(target_function, breakpoint_pos, source_bpt);
+  }
+  if (!closure.IsNull() && closure.HasCode()) {
+    MakeCodeBreakpointsAt(closure, breakpoint_pos, source_bpt);
   }
   source_bpt->Enable();
   return source_bpt;
@@ -1209,8 +1218,8 @@ SourceBreakpoint* Debugger::SetBreakpointAtEntry(
 
 SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
                                           intptr_t line_number) {
-  Library& lib = Library::Handle();
-  Script& script = Script::Handle();
+  Library& lib = Library::Handle(isolate_);
+  Script& script = Script::Handle(isolate_);
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
   for (int i = 0; i < libs.Length(); i++) {
@@ -1237,8 +1246,15 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     }
     return NULL;
   }
-  const Function& func =
-      Function::Handle(lib.LookupFunctionInScript(script, first_token_idx));
+
+  Function& func = Function::Handle(isolate_);
+  while (first_token_idx <= last_token_idx) {
+    func = lib.LookupFunctionInScript(script, first_token_idx);
+    if (!func.IsNull()) {
+      break;
+    }
+    first_token_idx++;
+  }
   if (func.IsNull()) {
     if (FLAG_verbose_debug) {
       OS::Print("No executable code at line %"Pd" in '%s'\n",
@@ -1684,13 +1700,11 @@ void Debugger::NotifyCompilation(const Function& func) {
           OS::Print("Enable pending breakpoint for function '%s'\n",
                     String::Handle(lookup_function.name()).ToCString());
         }
-        // Set breakpoint in newly compiled code of function func.
-        CodeBreakpoint* cbpt =
-            MakeCodeBreakpoint(func, bpt->token_pos(), func.end_token_pos());
-        if (cbpt != NULL) {
-          cbpt->set_src_bpt(bpt);
-          SignalBpResolved(bpt);
-        }
+        intptr_t bp_pos =
+            ResolveBreakpointPos(func, bpt->token_pos(), func.end_token_pos());
+        bpt->set_token_pos(bp_pos);
+        MakeCodeBreakpointsAt(func, bp_pos, bpt);
+        SignalBpResolved(bpt);
       }
       bpt->Enable();  // Enables the code breakpoint as well.
     }
