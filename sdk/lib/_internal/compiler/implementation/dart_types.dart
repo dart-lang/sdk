@@ -513,7 +513,12 @@ class InterfaceType extends GenericType {
     if (member != null) {
       return createMember(receiver, declarer, member);
     }
-    for (DartType supertype in classElement.allSupertypes) {
+    assert(invariant(element, classElement.allSupertypes != null,
+        message: 'Supertypes not computed for $classElement'));
+    for (InterfaceType supertype in classElement.allSupertypes) {
+      // Skip mixin applications since their supertypes are also in the list of
+      // [allSupertypes].
+      if (supertype.element.isMixinApplication) continue;
       declarer = supertype;
       ClassElement lookupTarget = declarer.element;
       member = lookupTarget.lookupLocalMember(name);
