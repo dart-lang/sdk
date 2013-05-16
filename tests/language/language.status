@@ -564,7 +564,6 @@ assign_static_type_test/03: fail
 assign_static_type_test/04: fail
 assign_static_type_test/05: fail
 assign_static_type_test/06: fail
-bad_initializer2_negative_test: fail
 bad_named_parameters2_test: fail
 bad_named_parameters_test: fail
 bad_override_test/01: fail
@@ -903,6 +902,10 @@ unsigned_right_shift_test/01: fail
 unsigned_right_shift_test/02: fail
 wrong_number_type_arguments_test/00: fail
 wrong_number_type_arguments_test/02: fail
+
+# test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
+block_scope_test: fail
+lazy_static3_test: fail
 
 
 [ $arch == arm ]

@@ -200,12 +200,6 @@ Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail
 Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail
 Language/12_Statements/02_Expression_Statements_A01_t06: fail
 Language/12_Statements/02_Expression_Statements_A01_t12: fail
-Language/12_Statements/03_Variable_Declaration_A04_t01: fail
-Language/12_Statements/03_Variable_Declaration_A04_t02: fail
-Language/12_Statements/03_Variable_Declaration_A04_t05: fail
-Language/12_Statements/03_Variable_Declaration_A04_t06: fail
-Language/12_Statements/03_Variable_Declaration_A04_t07: fail
-Language/12_Statements/03_Variable_Declaration_A04_t08: fail
 Language/12_Statements/04_Local_Function_Declaration_A01_t01: fail
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: fail
 Language/12_Statements/05_If_A01_t01: fail
