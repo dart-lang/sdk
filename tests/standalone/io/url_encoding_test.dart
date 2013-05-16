@@ -12,6 +12,7 @@ part "../../../sdk/lib/io/http_impl.dart";
 part "../../../sdk/lib/io/http_parser.dart";
 part "../../../sdk/lib/io/http_utils.dart";
 part "../../../sdk/lib/io/socket.dart";
+part "../../../sdk/lib/io/string_transformer.dart";
 
 void testParseEncodedString() {
   String encodedString = 'foo+bar%20foobar%25%26';

@@ -41,22 +41,38 @@ class HttpBodyHandler
     implements StreamTransformer<HttpRequest, HttpRequestBody> {
   var _transformer;
 
-  HttpBodyHandler() : _transformer = new _HttpBodyHandlerTransformer();
+  /**
+   * Create a new [HttpBodyHandler] to be used with a [Stream]<[HttpRequest]>,
+   * e.g. a [HttpServer].
+   *
+   * If the page was served using different encoding than UTF-8, set
+   * [defaultEncoding] accordingly. This is required for parsing
+   * 'application/x-www-form-urlencoded' content correctly.
+   */
+  HttpBodyHandler({Encoding defaultEncoding: Encoding.UTF_8})
+      : _transformer = new _HttpBodyHandlerTransformer(defaultEncoding);
 
   /**
    * Process and parse an incoming [HttpRequest]. The returned [HttpRequestBody]
    * contains a [response] field for accessing the [HttpResponse].
+   *
+   * See [HttpBodyHandler] constructor for more info on [defaultEncoding].
    */
-  static Future<HttpRequestBody> processRequest(HttpRequest request) {
-    return _HttpBodyHandler.processRequest(request);
+  static Future<HttpRequestBody> processRequest(
+      HttpRequest request,
+      {Encoding defaultEncoding: Encoding.UTF_8}) {
+    return _HttpBodyHandler.processRequest(request, defaultEncoding);
   }
 
   /**
    * Process and parse an incoming [HttpClientResponse].
+   *
+   * See [HttpBodyHandler] constructor for more info on [defaultEncoding].
    */
   static Future<HttpClientResponseBody> processResponse(
-      HttpClientResponse response) {
-    return _HttpBodyHandler.processResponse(response);
+      HttpClientResponse response,
+      {Encoding defaultEncoding: Encoding.UTF_8}) {
+    return _HttpBodyHandler.processResponse(response, defaultEncoding);
   }
 
   Stream<HttpRequestBody> bind(Stream<HttpRequest> stream) {

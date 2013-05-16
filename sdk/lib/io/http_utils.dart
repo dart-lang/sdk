@@ -5,7 +5,9 @@
 part of dart.io;
 
 class _HttpUtils {
-  static String decodeUrlEncodedString(String urlEncoded) {
+  static String decodeUrlEncodedString(
+      String urlEncoded,
+      {Encoding encoding: Encoding.UTF_8}) {
     // First check the string for any encoding.
     int index = 0;
     bool encoded = false;
@@ -47,10 +49,12 @@ class _HttpUtils {
         bytes.add(urlEncoded.codeUnitAt(i));
       }
     }
-    return decodeUtf8(bytes);
+    return _decodeString(bytes, encoding);
   }
 
-  static Map<String, String> splitQueryString(String queryString) {
+  static Map<String, String> splitQueryString(
+      String queryString,
+      {Encoding encoding: Encoding.UTF_8}) {
     Map<String, String> result = new Map<String, String>();
     int currentPosition = 0;
     int length = queryString.length;
@@ -99,8 +103,8 @@ class _HttpUtils {
       }
       currentPosition = seppos + 1;  // This also works when seppos == length.
       if (name == '') continue;
-      result[_HttpUtils.decodeUrlEncodedString(name)] =
-        _HttpUtils.decodeUrlEncodedString(value);
+      result[_HttpUtils.decodeUrlEncodedString(name, encoding: encoding)] =
+        _HttpUtils.decodeUrlEncodedString(value, encoding: encoding);
     }
     return result;
   }

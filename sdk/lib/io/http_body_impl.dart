@@ -6,15 +6,20 @@ part of dart.io;
 
 class _HttpBodyHandlerTransformer
     extends StreamEventTransformer<HttpRequest, HttpRequestBody> {
+  final Encoding _defaultEncoding;
+  _HttpBodyHandlerTransformer(this._defaultEncoding);
+
   void handleData(HttpRequest request, EventSink<HttpRequestBody> sink) {
-    HttpBodyHandler.processRequest(request)
+    _HttpBodyHandler.processRequest(request, _defaultEncoding)
         .then(sink.add, onError: sink.addError);
   }
 }
 
 class _HttpBodyHandler {
-  static Future<HttpRequestBody> processRequest(HttpRequest request) {
-    return process(request, request.headers)
+  static Future<HttpRequestBody> processRequest(
+      HttpRequest request,
+      Encoding defaultEncoding) {
+    return process(request, request.headers, defaultEncoding)
         .then((body) => new _HttpRequestBody(request, body),
               onError: (error) {
                 // Try to send BAD_REQUEST response.
@@ -26,13 +31,15 @@ class _HttpBodyHandler {
   }
 
   static Future<HttpClientResponseBody> processResponse(
-      HttpClientResponse response) {
-    return process(response, response.headers)
+      HttpClientResponse response,
+      Encoding defaultEncoding) {
+    return process(response, response.headers, defaultEncoding)
         .then((body) => new _HttpClientResponseBody(response, body));
   }
 
   static Future<HttpBody> process(Stream<List<int>> stream,
-                                  HttpHeaders headers) {
+                                  HttpHeaders headers,
+                                  Encoding defaultEncoding) {
     ContentType contentType = headers.contentType;
 
     Future<HttpBody> asBinary() {
@@ -113,11 +120,11 @@ class _HttpBodyHandler {
           case "x-www-form-urlencoded":
             return asText(Encoding.ASCII)
                 .then((body) {
-                  var map = _HttpUtils.splitQueryString(body.body);
+                  var map = _HttpUtils.splitQueryString(
+                      body.body, encoding: defaultEncoding);
                   var result = {};
                   String parse(String s) {
-                    return _HttpUtils.decodeHttpEntityString(
-                        _HttpUtils.decodeUrlEncodedString(s));
+                    return _HttpUtils.decodeHttpEntityString(s);
                   }
                   for (var key in map.keys) {
                     result[parse(key)] = parse(map[key]);

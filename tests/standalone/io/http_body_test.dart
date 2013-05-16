@@ -46,7 +46,7 @@ void testHttpClientResponseBody() {
                 Expect.fail("bad body type");
             }
           }, onError: (error) {
-            if (!shouldFail) Expect.fail("Error unexpected");
+            if (!shouldFail) throw error;
           })
           .whenComplete(() {
             client.close();
@@ -90,9 +90,10 @@ void testHttpServerRequestBody() {
             List<int> content,
             dynamic expectedBody,
             String type,
-            {bool shouldFail: false}) {
+            {bool shouldFail: false,
+             Encoding defaultEncoding: Encoding.UTF_8}) {
     HttpServer.bind("127.0.0.1", 0).then((server) {
-      server.transform(new HttpBodyHandler())
+      server.transform(new HttpBodyHandler(defaultEncoding: defaultEncoding))
           .listen((body) {
             if (shouldFail) Expect.fail("Error expected");
             Expect.equals(type, body.type);
@@ -166,6 +167,7 @@ void testHttpServerRequestBody() {
           });
     });
   }
+
   test("text/plain", "body".codeUnits, "body", "text");
   test("text/plain; charset=utf-8",
        "body".codeUnits,
@@ -249,6 +251,22 @@ File content\r
        '2321517%3B&b=%26%2324179%3B%26%2320206%3B%26%2321517%3B'.codeUnits,
        { 'b' : '平仮名',
          '平=仮名' : '平仮名'},
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'a=%F8+%26%23548%3B'.codeUnits,
+       { 'a' : '\u{FFFD}\u{0224}' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'a=%F8+%26%23548%3B'.codeUnits,
+       { 'a' : 'ø Ȥ' },
+       "form",
+       defaultEncoding: Encoding.ISO_8859_1);
+
+  test('application/x-www-form-urlencoded',
+       'a=%C3%B8+%C8%A4'.codeUnits,
+       { 'a' : 'ø Ȥ' },
        "form");
 }
 
