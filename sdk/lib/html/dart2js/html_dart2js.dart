@@ -760,6 +760,19 @@ class CDataSection extends Text native "CDATASection" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
+@DomName('Canvas2DContextAttributes')
+class Canvas2DContextAttributes native "Canvas2DContextAttributes" {
+
+  @DomName('Canvas2DContextAttributes.alpha')
+  @DocsEditable
+  bool alpha;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 @DomName('HTMLCanvasElement')
 class CanvasElement extends Element implements CanvasImageSource native "HTMLCanvasElement" {
 
@@ -966,15 +979,6 @@ class CanvasPattern native "CanvasPattern" {
 
 
 @DocsEditable
-@DomName('CanvasProxy')
-class CanvasProxy native "CanvasProxy" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 /**
  * A rendering context for a canvas element.
  *
@@ -1158,6 +1162,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DomName('CanvasRenderingContext2D.fillText')
   @DocsEditable
   void fillText(String text, num x, num y, [num maxWidth]) native;
+
+  @DomName('CanvasRenderingContext2D.getContextAttributes')
+  @DocsEditable
+  Canvas2DContextAttributes getContextAttributes() native;
 
   @DomName('CanvasRenderingContext2D.getImageData')
   @DocsEditable
@@ -1599,6 +1607,23 @@ class CloseEvent extends Event native "CloseEvent" {
 @DomName('Comment')
 class Comment extends CharacterData native "Comment" {
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('Composition')
+class Composition native "Composition" {
+
+  @DomName('Composition.caret')
+  @DocsEditable
+  final Range caret;
+
+  @DomName('Composition.text')
+  @DocsEditable
+  final Node text;
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1823,6 +1848,19 @@ class Crypto native "Crypto" {
   @Creates('TypedData')
   @Returns('TypedData|Null')
   TypedData getRandomValues(TypedData array) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('CSS')
+class Css native "CSS" {
+
+  @DomName('CSS.supports')
+  @DocsEditable
+  bool supports(String conditionText_OR_property, [String value]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2081,6 +2119,10 @@ class CssRule native "CSSRule" {
   @DomName('CSSRule.STYLE_RULE')
   @DocsEditable
   static const int STYLE_RULE = 1;
+
+  @DomName('CSSRule.SUPPORTS_RULE')
+  @DocsEditable
+  static const int SUPPORTS_RULE = 12;
 
   @DomName('CSSRule.UNKNOWN_RULE')
   @DocsEditable
@@ -5415,6 +5457,33 @@ class CssStyleSheet extends StyleSheet native "CSSStyleSheet" {
   @DomName('CSSStyleSheet.removeRule')
   @DocsEditable
   void removeRule(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('CSSSupportsRule')
+class CssSupportsRule extends CssRule native "CSSSupportsRule" {
+
+  @DomName('CSSSupportsRule.conditionText')
+  @DocsEditable
+  final String conditionText;
+
+  @DomName('CSSSupportsRule.cssRules')
+  @DocsEditable
+  @Returns('_CssRuleList')
+  @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
+
+  @DomName('CSSSupportsRule.deleteRule')
+  @DocsEditable
+  void deleteRule(int index) native;
+
+  @DomName('CSSSupportsRule.insertRule')
+  @DocsEditable
+  int insertRule(String rule, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12495,6 +12564,43 @@ abstract class ButtonInputElement implements InputElementBase {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable
+@DomName('InputMethodContext')
+class InputMethodContext native "InputMethodContext" {
+
+  @DomName('InputMethodContext.composition')
+  @DocsEditable
+  final Composition composition;
+
+  @DomName('InputMethodContext.enabled')
+  @DocsEditable
+  bool enabled;
+
+  @DomName('InputMethodContext.locale')
+  @DocsEditable
+  final String locale;
+
+  @DomName('InputMethodContext.confirmComposition')
+  @DocsEditable
+  void confirmComposition() native;
+
+  @DomName('InputMethodContext.open')
+  @DocsEditable
+  bool open() native;
+
+  @DomName('InputMethodContext.setCaretRectangle')
+  @DocsEditable
+  void setCaretRectangle(Node anchor, int x, int y, int w, int h) native;
+
+  @DomName('InputMethodContext.setExclusionRectangle')
+  @DocsEditable
+  void setExclusionRectangle(Node anchor, int x, int y, int w, int h) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent native "KeyboardEvent" {
 
@@ -12749,21 +12855,6 @@ class LinkElement extends Element native "HTMLLinkElement" {
   @DocsEditable
   String type;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('LocalMediaStream')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@Experimental
-class LocalMediaStream extends MediaStream implements EventTarget native "LocalMediaStream" {
-
-  @DomName('LocalMediaStream.stop')
-  @DocsEditable
-  void stop() native;
-}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12840,6 +12931,14 @@ class Location implements LocationBase native "Location" {
     return '${this.protocol}//${this.host}';
   }
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+typedef void MidiErrorCallback(DomError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13716,6 +13815,10 @@ class MediaStream extends EventTarget native "MediaStream" {
   @DocsEditable
   void removeTrack(MediaStreamTrack track) native;
 
+  @DomName('MediaStream.stop')
+  @DocsEditable
+  void stop() native;
+
   @DomName('MediaStream.onaddtrack')
   @DocsEditable
   Stream<Event> get onAddTrack => addTrackEvent.forTarget(this);
@@ -14130,6 +14233,79 @@ class MeterElement extends Element native "HTMLMeterElement" {
   @DomName('HTMLMeterElement.value')
   @DocsEditable
   num value;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('MIDIConnectionEvent')
+class MidiConnectionEvent extends Event native "MIDIConnectionEvent" {
+
+  @DomName('MIDIConnectionEvent.port')
+  @DocsEditable
+  final MidiPort port;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('MIDIMessageEvent')
+class MidiMessageEvent extends Event native "MIDIMessageEvent" {
+
+  @DomName('MIDIMessageEvent.data')
+  @DocsEditable
+  final Uint8List data;
+
+  @DomName('MIDIMessageEvent.receivedTime')
+  @DocsEditable
+  final num receivedTime;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('MIDIPort')
+class MidiPort extends EventTarget native "MIDIPort" {
+
+  @DomName('MIDIPort.id')
+  @DocsEditable
+  final String id;
+
+  @DomName('MIDIPort.manufacturer')
+  @DocsEditable
+  final String manufacturer;
+
+  @DomName('MIDIPort.name')
+  @DocsEditable
+  final String name;
+
+  @DomName('MIDIPort.type')
+  @DocsEditable
+  final String type;
+
+  @DomName('MIDIPort.version')
+  @DocsEditable
+  final String version;
+
+  @JSName('addEventListener')
+  @DomName('MIDIPort.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('MIDIPort.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native;
+
+  @JSName('removeEventListener')
+  @DomName('MIDIPort.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14730,7 +14906,7 @@ class Navigator native "Navigator" {
    *
    * The user can also pass in Maps to the audio or video parameters to specify 
    * mandatory and optional constraints for the media stream. Not passing in a 
-   * map, but passing in `true` will provide a LocalMediaStream with audio or 
+   * map, but passing in `true` will provide a MediaStream with audio or 
    * video capabilities, but without any additional constraints. The particular
    * constraint names for audio and video are still in flux, but as of this 
    * writing, here is an example providing more constraints.
@@ -14750,8 +14926,8 @@ class Navigator native "Navigator" {
   @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  Future<LocalMediaStream> getUserMedia({audio: false, video: false}) {
-    var completer = new Completer<LocalMediaStream>();
+  Future<MediaStream> getUserMedia({audio: false, video: false}) {
+    var completer = new Completer<MediaStream>();
     var options = {
       'audio': audio,
       'video': video
@@ -14911,7 +15087,7 @@ typedef void _NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // WARNING: Do not edit - generated code.
 
 
-typedef void _NavigatorUserMediaSuccessCallback(LocalMediaStream stream);
+typedef void _NavigatorUserMediaSuccessCallback(MediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16126,25 +16302,37 @@ class Performance extends EventTarget native "Performance" {
   @DocsEditable
   final PerformanceTiming timing;
 
+  @DomName('Performance.clearMarks')
+  @DocsEditable
+  void clearMarks(String markName) native;
+
+  @DomName('Performance.clearMeasures')
+  @DocsEditable
+  void clearMeasures(String measureName) native;
+
+  @DomName('Performance.getEntries')
+  @DocsEditable
+  List<PerformanceEntry> getEntries() native;
+
+  @DomName('Performance.getEntriesByName')
+  @DocsEditable
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+
+  @DomName('Performance.getEntriesByType')
+  @DocsEditable
+  List<PerformanceEntry> getEntriesByType(String entryType) native;
+
+  @DomName('Performance.mark')
+  @DocsEditable
+  void mark(String markName) native;
+
+  @DomName('Performance.measure')
+  @DocsEditable
+  void measure(String measureName, String startMark, String endMark) native;
+
   @DomName('Performance.now')
   @DocsEditable
   num now() native;
-
-  @JSName('webkitClearMarks')
-  @DomName('Performance.webkitClearMarks')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void clearMarks(String markName) native;
-
-  @JSName('webkitClearMeasures')
-  @DomName('Performance.webkitClearMeasures')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void clearMeasures(String measureName) native;
 
   @JSName('webkitClearResourceTimings')
   @DomName('Performance.webkitClearResourceTimings')
@@ -16153,46 +16341,6 @@ class Performance extends EventTarget native "Performance" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void clearResourceTimings() native;
-
-  @JSName('webkitGetEntries')
-  @DomName('Performance.webkitGetEntries')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List<PerformanceEntry> getEntries() native;
-
-  @JSName('webkitGetEntriesByName')
-  @DomName('Performance.webkitGetEntriesByName')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
-
-  @JSName('webkitGetEntriesByType')
-  @DomName('Performance.webkitGetEntriesByType')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  List<PerformanceEntry> getEntriesByType(String entryType) native;
-
-  @JSName('webkitMark')
-  @DomName('Performance.webkitMark')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void mark(String markName) native;
-
-  @JSName('webkitMeasure')
-  @DomName('Performance.webkitMeasure')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  void measure(String measureName, String startMark, String endMark) native;
 
   @JSName('webkitSetResourceTimingBufferSize')
   @DomName('Performance.webkitSetResourceTimingBufferSize')
@@ -16226,23 +16374,6 @@ class PerformanceEntry native "PerformanceEntry" {
   @DomName('PerformanceEntry.startTime')
   @DocsEditable
   final num startTime;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('PerformanceEntryList')
-class PerformanceEntryList native "PerformanceEntryList" {
-
-  @DomName('PerformanceEntryList.length')
-  @DocsEditable
-  final int length;
-
-  @DomName('PerformanceEntryList.item')
-  @DocsEditable
-  PerformanceEntry item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17830,6 +17961,10 @@ class SecurityPolicyViolationEvent extends Event native "SecurityPolicyViolation
   @DocsEditable
   final String blockedUri;
 
+  @DomName('SecurityPolicyViolationEvent.columnNumber')
+  @DocsEditable
+  final int columnNumber;
+
   @JSName('documentURI')
   @DomName('SecurityPolicyViolationEvent.documentURI')
   @DocsEditable
@@ -18674,6 +18809,159 @@ class SpeechRecognitionResult native "SpeechRecognitionResult" {
   @DomName('SpeechRecognitionResult.item')
   @DocsEditable
   SpeechRecognitionAlternative item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SpeechSynthesis')
+class SpeechSynthesis native "SpeechSynthesis" {
+
+  @DomName('SpeechSynthesis.paused')
+  @DocsEditable
+  final bool paused;
+
+  @DomName('SpeechSynthesis.pending')
+  @DocsEditable
+  final bool pending;
+
+  @DomName('SpeechSynthesis.speaking')
+  @DocsEditable
+  final bool speaking;
+
+  @DomName('SpeechSynthesis.cancel')
+  @DocsEditable
+  void cancel() native;
+
+  @DomName('SpeechSynthesis.getVoices')
+  @DocsEditable
+  List<SpeechSynthesisVoice> getVoices() native;
+
+  @DomName('SpeechSynthesis.pause')
+  @DocsEditable
+  void pause() native;
+
+  @DomName('SpeechSynthesis.resume')
+  @DocsEditable
+  void resume() native;
+
+  @DomName('SpeechSynthesis.speak')
+  @DocsEditable
+  void speak(SpeechSynthesisUtterance utterance) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SpeechSynthesisEvent')
+class SpeechSynthesisEvent extends Event native "SpeechSynthesisEvent" {
+
+  @DomName('SpeechSynthesisEvent.charIndex')
+  @DocsEditable
+  final int charIndex;
+
+  @DomName('SpeechSynthesisEvent.elapsedTime')
+  @DocsEditable
+  final num elapsedTime;
+
+  @DomName('SpeechSynthesisEvent.name')
+  @DocsEditable
+  final String name;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SpeechSynthesisUtterance')
+class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUtterance" {
+
+  @DomName('SpeechSynthesisUtterance.errorEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  @DomName('SpeechSynthesisUtterance.pauseEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
+  @DocsEditable
+  factory SpeechSynthesisUtterance([String text]) {
+    if (?text) {
+      return SpeechSynthesisUtterance._create_1(text);
+    }
+    return SpeechSynthesisUtterance._create_2();
+  }
+  static SpeechSynthesisUtterance _create_1(text) => JS('SpeechSynthesisUtterance', 'new SpeechSynthesisUtterance(#)', text);
+  static SpeechSynthesisUtterance _create_2() => JS('SpeechSynthesisUtterance', 'new SpeechSynthesisUtterance()');
+
+  @DomName('SpeechSynthesisUtterance.lang')
+  @DocsEditable
+  String lang;
+
+  @DomName('SpeechSynthesisUtterance.pitch')
+  @DocsEditable
+  num pitch;
+
+  @DomName('SpeechSynthesisUtterance.rate')
+  @DocsEditable
+  num rate;
+
+  @DomName('SpeechSynthesisUtterance.text')
+  @DocsEditable
+  String text;
+
+  @DomName('SpeechSynthesisUtterance.voice')
+  @DocsEditable
+  SpeechSynthesisVoice voice;
+
+  @DomName('SpeechSynthesisUtterance.volume')
+  @DocsEditable
+  num volume;
+
+  @DomName('SpeechSynthesisUtterance.onerror')
+  @DocsEditable
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  @DomName('SpeechSynthesisUtterance.onpause')
+  @DocsEditable
+  Stream<Event> get onPause => pauseEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('SpeechSynthesisVoice')
+class SpeechSynthesisVoice native "SpeechSynthesisVoice" {
+
+  @JSName('default')
+  @DomName('SpeechSynthesisVoice.default')
+  @DocsEditable
+  final bool defaultValue;
+
+  @DomName('SpeechSynthesisVoice.lang')
+  @DocsEditable
+  final String lang;
+
+  @DomName('SpeechSynthesisVoice.localService')
+  @DocsEditable
+  final bool localService;
+
+  @DomName('SpeechSynthesisVoice.name')
+  @DocsEditable
+  final String name;
+
+  @JSName('voiceURI')
+  @DomName('SpeechSynthesisVoice.voiceURI')
+  @DocsEditable
+  final String voiceUri;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21430,6 +21718,11 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @DocsEditable
   static const int TEMPORARY = 0;
 
+  @JSName('CSS')
+  @DomName('Window.CSS')
+  @DocsEditable
+  final Css Css;
+
   @DomName('Window.applicationCache')
   @DocsEditable
   final ApplicationCache applicationCache;
@@ -21580,6 +21873,10 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @DomName('Window.sessionStorage')
   @DocsEditable
   final Storage sessionStorage;
+
+  @DomName('Window.speechSynthesis')
+  @DocsEditable
+  final SpeechSynthesis speechSynthesis;
 
   @DomName('Window.status')
   @DocsEditable

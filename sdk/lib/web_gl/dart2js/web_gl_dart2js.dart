@@ -734,6 +734,10 @@ class OesTextureFloat native "OESTextureFloat" {
 @DocsEditable
 @DomName('OESTextureHalfFloat')
 class OesTextureHalfFloat native "OESTextureHalfFloat" {
+
+  @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
+  @DocsEditable
+  static const int HALF_FLOAT_OES = 0x8D61;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1196,10 +1200,6 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   @DomName('WebGLRenderingContext.GREEN_BITS')
   @DocsEditable
   static const int GREEN_BITS = 0x0D53;
-
-  @DomName('WebGLRenderingContext.HALF_FLOAT_OES')
-  @DocsEditable
-  static const int HALF_FLOAT_OES = 0x8D61;
 
   @DomName('WebGLRenderingContext.HIGH_FLOAT')
   @DocsEditable
@@ -2358,10 +2358,6 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
   @DomName('WebGLRenderingContext.readPixels')
   @DocsEditable
   void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) native;
-
-  @DomName('WebGLRenderingContext.releaseShaderCompiler')
-  @DocsEditable
-  void releaseShaderCompiler() native;
 
   @DomName('WebGLRenderingContext.renderbufferStorage')
   @DocsEditable
