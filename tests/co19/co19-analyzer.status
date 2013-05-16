@@ -40,7 +40,6 @@ Language/07_Classes/3_Setters_A03_t08: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A01_t04: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t03: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t04: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t05: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t06: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t07: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A03_t08: fail
@@ -58,9 +57,6 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A14_t04: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A14_t05: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A14_t06: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t01: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t02: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A16_t07: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A03_t02: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t01: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: fail
