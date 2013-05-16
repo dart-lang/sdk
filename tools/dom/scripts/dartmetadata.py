@@ -322,7 +322,6 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   ],
   'IDBFactory': _indexed_db_annotations,
   'IDBDatabase': _indexed_db_annotations,
-  'LocalMediaStream': _rtc_annotations,
   'MediaStream': _rtc_annotations,
   'MediaStreamEvent': _rtc_annotations,
   'MediaStreamTrack': _rtc_annotations,

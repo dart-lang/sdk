@@ -319,6 +319,7 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Document.querySelector': 'query',
     'DOMURL.createObjectURL': 'createObjectUrl',
     'DOMURL.revokeObjectURL': 'revokeObjectUrl',
+    'DOMWindow.CSS': 'css',
     'DOMWindow.clearTimeout': '_clearTimeout',
     'DOMWindow.clearInterval': '_clearInterval',
     'DOMWindow.setTimeout': '_setTimeout',
