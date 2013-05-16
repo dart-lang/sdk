@@ -1648,6 +1648,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.PropertyAccess.field(prototype, methodName);
       push(jsPropertyCall(
           method, "call", visitArguments(node.inputs, start: 0)), node);
+      // Register this invocation to collect the types used at all call sites.
+      backend.registerDynamicInvocation(node, node.selector);
     }
     world.registerStaticUse(superMethod);
   }

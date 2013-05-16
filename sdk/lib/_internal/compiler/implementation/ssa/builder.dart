@@ -3748,6 +3748,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction instruction = new HInvokeSuper(
         element,
         currentNonClosureClass,
+        selector,
         inputs,
         isSetter: selector.isSetter() || selector.isIndexSet());
     instruction.instructionType =

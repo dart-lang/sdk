@@ -1248,6 +1248,16 @@ abstract class HInvoke extends HInstruction {
   }
   static const int ARGUMENTS_OFFSET = 1;
   bool canThrow() => true;
+
+  /**
+   * Returns whether this call is on an intercepted method.
+   */
+  bool get isInterceptedCall {
+    // We know it's a selector call if it follows the interceptor
+    // calling convention, which adds the actual receiver as a
+    // parameter to the call.
+    return inputs.length - 2 == selector.argumentCount;
+  }
 }
 
 abstract class HInvokeDynamic extends HInvoke {
@@ -1268,16 +1278,6 @@ abstract class HInvokeDynamic extends HInvoke {
   HInstruction get receiver => inputs[0];
   HInstruction getDartReceiver(Compiler compiler) {
     return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
-  }
-
-  /**
-   * Returns whether this call is on an intercepted method.
-   */
-  bool get isInterceptedCall {
-    // We know it's a selector call if it follows the interceptor
-    // calling convention, which adds the actual receiver as a
-    // parameter to the call.
-    return inputs.length - 2 == selector.argumentCount;
   }
 
   /**
@@ -1375,8 +1375,13 @@ class HInvokeSuper extends HInvokeStatic {
   /** The class where the call to super is being done. */
   final ClassElement caller;
   final bool isSetter;
+  final Selector selector;
 
-  HInvokeSuper(Element element, this.caller, inputs, {this.isSetter})
+  HInvokeSuper(Element element,
+               this.caller,
+               this.selector,
+               inputs,
+               {this.isSetter})
       : super(element, inputs, HType.UNKNOWN);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);

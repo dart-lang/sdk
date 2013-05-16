@@ -95,7 +95,7 @@ class HTypeList {
     return result;
   }
 
-  factory HTypeList.fromDynamicInvocation(HInvokeDynamic node,
+  factory HTypeList.fromDynamicInvocation(HInvoke node,
                                           Selector selector) {
     HTypeList result;
     int argumentsCount = node.inputs.length - 1;
@@ -1437,7 +1437,7 @@ class JavaScriptBackend extends Backend {
    *  Register a dynamic invocation and collect the provided types for the
    *  named selector.
    */
-  void registerDynamicInvocation(HInvokeDynamic node, Selector selector) {
+  void registerDynamicInvocation(HInvoke node, Selector selector) {
     HTypeList providedTypes =
         new HTypeList.fromDynamicInvocation(node, selector);
     argumentTypes.registerDynamicInvocation(providedTypes, selector);
