@@ -312,10 +312,10 @@ class CodeEmitterTask extends CompilerTask {
         js.for_('var i = 0', 'i < fields.length', 'i++', [
           js.if_('i != 0', js('str += ", "')),
 
-          js('var field = fields[i]'),
-          js('field = generateAccessor(field, prototype)'),
-          js('str += field'),
-          js('body += ("this." + field + " = " + field + ";\\n")')
+          js('var field = generateAccessor(fields[i], prototype)'),
+          js('var parameter = "parameter_" + field'),
+          js('str += parameter'),
+          js('body += ("this." + field + " = " + parameter + ";\\n")')
         ]),
 
         js('str += (") {" + body + "}\\nreturn " + cls)'),
