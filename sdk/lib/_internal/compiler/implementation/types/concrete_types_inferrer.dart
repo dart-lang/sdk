@@ -867,8 +867,12 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * Get the inferred concrete type of [element].
    */
   TypeMask getTypeOfElement(Element element) {
-    if (!element.isParameter()) return null;
-    return concreteTypeToTypeMask(inferredParameterTypes[element]);
+    if (element.isParameter()) {
+      return concreteTypeToTypeMask(inferredParameterTypes[element]);
+    } else if (element.isField()) {
+      return concreteTypeToTypeMask(inferredFieldTypes[element]);
+    }
+    // TODO(polux): handle field parameters
   }
 
   /**
