@@ -145,7 +145,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 
     # TODO(ricow): temporary hack to run on fyi with --use_browser_controller
     if (os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and
-        (runtime == 'drt' or runtime == 'firefox')):
+        (runtime == 'chrome' or runtime == 'firefox')):
       cmd.append('--use_browser_controller')
 
     global IsFirstTestStepCall
