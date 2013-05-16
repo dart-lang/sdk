@@ -687,7 +687,6 @@ factory_redirection_test/13: skip
 factory_redirection_test/14: skip
 fauxverride_test/03: fail
 fauxverride_test/05: fail
-field_decl_missing_var_type_test/01: fail
 field_method4_negative_test: fail
 field_override_test/01: fail
 field_override_test/02: fail
