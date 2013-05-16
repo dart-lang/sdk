@@ -17,6 +17,7 @@ import 'package:unittest/html_config.dart';
 void main() {
   useHtmlConfiguration();
   test('', () {
+    if (!TrackElement.supported) return;
     document.body.append(new TrackElement()..defaultValue = true);
     if (!document.query('track').defaultValue) {
       throw 'Expected default value to be true';
