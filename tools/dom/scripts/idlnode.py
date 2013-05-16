@@ -409,13 +409,6 @@ class IDLInterface(IDLNode):
     javascript_interface_name = self.ext_attrs.get('InterfaceName', self.id)
     self.javascript_binding_name = javascript_interface_name
     self.doc_js_name = javascript_interface_name
-
-    if not (self._find_first(ast, 'Callback') is None):
-      self.ext_attrs['Callback'] = None
-    if not (self._find_first(ast, 'Partial') is None):
-      self.is_supplemental = True
-      self.ext_attrs['Supplemental'] = None
-
     self.operations = self._convert_all(ast, 'Operation',
       lambda ast: IDLOperation(ast, self.doc_js_name))
     self.attributes = self._convert_all(ast, 'Attribute',
@@ -425,7 +418,6 @@ class IDLInterface(IDLNode):
     self.is_supplemental = 'Supplemental' in self.ext_attrs
     self.is_no_interface_object = 'NoInterfaceObject' in self.ext_attrs
     self.is_fc_suppressed = 'Suppressed' in self.ext_attrs
-
 
   def reset_id(self, new_id):
     """Reset the id of the Interface and corresponding the JS names."""
@@ -507,9 +499,6 @@ class IDLArgument(IDLNode):
     self.type = self._convert_first(ast, 'Type', IDLType)
     self.optional = self._has(ast, 'Optional')
     self._convert_ext_attrs(ast)
-    # TODO(vsm): Recover this from the type instead.
-    if 'Callback' in self.type.id:
-      self.ext_attrs['Callback'] = None
 
   def __repr__(self):
     return '<IDLArgument(type = %s, id = %s)>' % (self.type, self.id)

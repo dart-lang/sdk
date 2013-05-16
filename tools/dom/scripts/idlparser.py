@@ -90,19 +90,13 @@ class IDLParser(object):
         [MAYBE(_Annotations), MAYBE(ExtAttrs), 'module', Id,
          '{', _Definitions, '}', MAYBE(';')])
 
-    def Callback():
-      return ['callback']
-
-    def Partial():
-      return ['partial']
-
     def Interface():
       return syntax_switch(
         # Web IDL:
-        [MAYBE(ExtAttrs), MAYBE(Partial), MAYBE(Callback), 'interface', Id, MAYBE(_ParentInterfaces),
+        [MAYBE(ExtAttrs), 'interface', Id, MAYBE(_ParentInterfaces),
          MAYBE(['{', MAYBE(MANY(_Member)), '}']), ';'],
         # WebKit:
-        [MAYBE(ExtAttrs), MAYBE(Partial), MAYBE(Callback), OR('interface', 'exception'), MAYBE(ExtAttrs), Id, MAYBE(_ParentInterfaces),
+        [MAYBE(ExtAttrs), OR('interface', 'exception'), MAYBE(ExtAttrs), Id, MAYBE(_ParentInterfaces),
          MAYBE(['{', MAYBE(MANY(_Member)), '}']), MAYBE(';')],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs), 'interface',
@@ -212,7 +206,7 @@ class IDLParser(object):
         [MAYBE(ExtAttrs), MAYBE(Static), MAYBE(Stringifier), MAYBE(_Specials),
          ReturnType, MAYBE(Id), '(', _Arguments, ')', ';'],
         # WebKit:
-        [MAYBE(ExtAttrs), MAYBE(Static), MAYBE(_AttrGetterSetter),
+        [MAYBE(ExtAttrs), MAYBE(Static),
          ReturnType, MAYBE(Id), '(', _Arguments, ')', ';'],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs), MAYBE(Static), MAYBE(Stringifier),

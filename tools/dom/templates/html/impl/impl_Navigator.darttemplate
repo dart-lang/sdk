@@ -30,7 +30,7 @@ $endif
    *
    * The user can also pass in Maps to the audio or video parameters to specify 
    * mandatory and optional constraints for the media stream. Not passing in a 
-   * map, but passing in `true` will provide a MediaStream with audio or 
+   * map, but passing in `true` will provide a LocalMediaStream with audio or 
    * video capabilities, but without any additional constraints. The particular
    * constraint names for audio and video are still in flux, but as of this 
    * writing, here is an example providing more constraints.
@@ -50,8 +50,8 @@ $endif
   @DomName('Navigator.webkitGetUserMedia')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
-  Future<MediaStream> getUserMedia({audio: false, video: false}) {
-    var completer = new Completer<MediaStream>();
+  Future<LocalMediaStream> getUserMedia({audio: false, video: false}) {
+    var completer = new Completer<LocalMediaStream>();
     var options = {
       'audio': audio,
       'video': video

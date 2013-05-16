@@ -7,7 +7,7 @@
 #include "config.h"
 #include "Dart$(INTERFACE).h"
 
-#include "bindings/dart/DartBindingsCommonIncludes.h"
+#include "DartBindingsCommonIncludes.h"
 $INCLUDES
 namespace WebCore {
 $HANDLERS
