@@ -380,15 +380,15 @@ enum RtRegImm {
 enum Cop1Function {
   COP1_ADD = 0,
   COP1_MOV = 6,
-  COP1_CVT_D = 0b100001,
-  COP1_C_F = 0b110000,
-  COP1_C_UN = 0b110001,
-  COP1_C_EQ = 0b110010,
-  COP1_C_UEQ = 0b110011,
-  COP1_C_OLT = 0b110100,
-  COP1_C_ULT = 0b110101,
-  COP1_C_OLE = 0b110110,
-  COP1_C_ULE = 0b110111,
+  COP1_CVT_D = 0x21,  // 100001
+  COP1_C_F = 0x30,    // 110000
+  COP1_C_UN = 0x31,   // 110001
+  COP1_C_EQ = 0x32,   // 110010
+  COP1_C_UEQ = 0x33,  // 110011
+  COP1_C_OLT = 0x34,  // 110100
+  COP1_C_ULT = 0x35,  // 110101
+  COP1_C_OLE = 0x36,  // 110110
+  COP1_C_ULE = 0x37,  // 110111
 };
 
 enum Cop1Sub {
