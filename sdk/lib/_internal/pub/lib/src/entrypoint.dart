@@ -238,18 +238,21 @@ class Entrypoint {
       if (dirExists(path.join(root.dir, '.git')) && gitInstalled) {
         // List all files that aren't gitignored, including those not checked
         // in to Git.
-        return git.run(["ls-files", "--cached", "--others",
-                        "--exclude-standard", beneath]).then((files) {
+        return git.run(
+            ["ls-files", "--cached", "--others", "--exclude-standard", beneath],
+            workingDir: root.dir).then((files) {
           // Git always prints files relative to the project root, but we want
           // them relative to the working directory.
           return files.map((file) => path.join(root.dir, file));
         });
       }
 
-      // Skip directories and broken symlinks.
-      return listDir(beneath, recursive: true).where(fileExists);
+      return listDir(beneath, recursive: true);
     }).then((files) {
       return files.where((file) {
+        // Skip directories and broken symlinks.
+        if (!fileExists(file)) return false;
+
         var relative = path.relative(file, from: beneath);
         if (_BLACKLISTED_FILES.contains(path.basename(relative))) return false;
         return !path.split(relative).any(_BLACKLISTED_DIRS.contains);
