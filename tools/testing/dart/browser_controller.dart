@@ -202,7 +202,7 @@ class Chrome extends Browser {
         _cleanup = () { userDir.delete(recursive: true); };
         var args = ["--user-data-dir=${userDir.path}", url,
                     "--disable-extensions", "--disable-popup-blocking",
-                    "--bwsi", "--no-default-browser-check"];
+                    "--bwsi", "--no-first-run"];
         return startBrowser(binary, args);
 
       });
