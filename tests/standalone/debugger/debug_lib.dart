@@ -488,16 +488,33 @@ class Debugger {
   }
 
   void close({killDebugee: false}) {
+    void exit() {
+      if (errorsDetected) throw "Errors detected";
+      exit(errors.length);
+    }
     if (errorsDetected) {
       for (int i = 0; i < errors.length; i++) print(errors[i]);
     }
-    if (socket != null) socket.close();
-    if (killDebugee) {
-      targetProcess.kill();
-      print("Target process killed");
+    if (socket != null) {
+      socket.close().catchError((error) {
+        print("Error occured while closing socket: $error");
+      };
     }
-    if (errorsDetected) throw "Errors detected";
-    exit(errors.length);
+    if (killDebugee) {
+      if (!targetProcess.kill()) {
+        print("Could not send kill signal to target process.");
+      } else {
+        print("Successfully sent kill signal to target process.");
+      }
+      // If the process was already dead exitCode is already
+      // available and we call exit() in the next event loop cycle.
+      // Otherwise this will wait for the process to exit.
+      targetProcess.exitCode.then((exitCode) {
+        exit();
+      });
+    } else {
+      exit();
+    }
   }
 }
 
@@ -508,7 +525,7 @@ bool RunScript(List script) {
     return false;
   }
   verboseWire = options.arguments.contains("--wire");
-  
+
   // Pick a port in the upper half of the port number range.
   var seed = new DateTime.now().millisecondsSinceEpoch;
   Random random = new Random(seed);
@@ -536,11 +553,11 @@ bool RunScript(List script) {
       });
     },
     onError: (e) {
-      if (++retries >= 3) { 
+      if (++retries >= 3) {
         print('unable to find unused port: $e');
         var trace = getAttachedStackTrace(e);
         if (trace != null) print("StackTrace: $trace");
-        return -1; 
+        return -1;
       } else {
         // Retry with another random port.
         RunScript(script);
