@@ -7,9 +7,7 @@ library dart.typed_data;
 
 import 'dart:collection';
 import 'dart:_collection-dev';
-import 'dart:html';
-import 'dart:html_common';
-import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
+import 'dart:_js_helper' show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
 import 'dart:_foreign_helper' show JS;
 
 /**
@@ -27,39 +25,20 @@ class Endianness {
   final bool _littleEndian;
 }
 
-@DocsEditable
-@DomName('ArrayBuffer')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
-@SupportedBrowser(SupportedBrowser.IE, '10')
-@SupportedBrowser(SupportedBrowser.SAFARI)
 class ByteBuffer native "ArrayBuffer" {
   @JSName('byteLength')
-  @DomName('ArrayBuffer.byteLength')
-  @DocsEditable
   final int lengthInBytes;
 }
 
-@DomName('ArrayBufferView')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
-@SupportedBrowser(SupportedBrowser.IE, '10')
-@SupportedBrowser(SupportedBrowser.SAFARI)
 class TypedData native "ArrayBufferView" {
-  @DomName('ArrayBufferView.buffer')
-  @DocsEditable
   @Creates('ByteBuffer')
   @Returns('ByteBuffer|Null')
   final ByteBuffer buffer;
 
   @JSName('byteLength')
-  @DomName('ArrayBufferView.byteLength')
-  @DocsEditable
   final int lengthInBytes;
 
   @JSName('byteOffset')
-  @DomName('ArrayBufferView.byteOffset')
-  @DocsEditable
   final int offsetInBytes;
 
   @JSName('BYTES_PER_ELEMENT')
@@ -80,15 +59,9 @@ class TypedData native "ArrayBufferView" {
   }
 }
 
-@DocsEditable
-@DomName('DataView')
 class ByteData extends TypedData native "DataView" {
-  @DomName('DataView.DataView')
-  @DocsEditable
   factory ByteData(int length) => JS('ByteData', 'new DataView(#)', length);
 
-  @DomName('DataView.DataView')
-  @DocsEditable
   factory ByteData.view(ByteBuffer buffer, [int byteOffset, int byteLength]) {
     if (?byteLength) {
       return ByteData._create_1(buffer, byteOffset, byteLength);
@@ -104,8 +77,6 @@ class ByteData extends TypedData native "DataView" {
   static ByteData _create_2(buffer, byteOffset) => JS('ByteData', 'new DataView(#,#)', buffer, byteOffset);
   static ByteData _create_3(buffer) => JS('ByteData', 'new DataView(#)', buffer);
 
-  @DomName('DataView.getFloat32')
-  @DocsEditable
   num getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getFloat32(byteOffset, endian._littleEndian);
 
@@ -113,8 +84,6 @@ class ByteData extends TypedData native "DataView" {
   @Returns('num')
   num _getFloat32(int byteOffset, [bool littleEndian]) native;
 
-  @DomName('DataView.getFloat64')
-  @DocsEditable
   num getFloat64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getFloat64(byteOffset, endian._littleEndian);
 
@@ -122,8 +91,6 @@ class ByteData extends TypedData native "DataView" {
   @Returns('num')
   num _getFloat64(int byteOffset, [bool littleEndian]) native;
 
-  @DomName('DataView.getInt16')
-  @DocsEditable
   int getInt16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getInt16(byteOffset, endian._littleEndian);
 
@@ -131,8 +98,6 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getInt16(int byteOffset, [bool littleEndian]) native;
 
-  @DomName('DataView.getInt32')
-  @DocsEditable
   int getInt32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getInt32(byteOffset, endian._littleEndian);
 
@@ -140,17 +105,12 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getInt32(int byteOffset, [bool littleEndian]) native;
 
-  @DocsEditable
   int getInt64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError("Int64 accessor not supported by dart2js.");
   }
 
-  @DomName('DataView.getInt8')
-  @DocsEditable
   int getInt8(int byteOffset) native;
 
-  @DomName('DataView.getUint16')
-  @DocsEditable
   int getUint16(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getUint16(byteOffset, endian._littleEndian);
 
@@ -158,8 +118,6 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getUint16(int byteOffset, [bool littleEndian]) native;
 
-  @DomName('DataView.getUint32')
-  @DocsEditable
   int getUint32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getUint32(byteOffset, endian._littleEndian);
 
@@ -167,104 +125,73 @@ class ByteData extends TypedData native "DataView" {
   @Returns('int')
   int _getUint32(int byteOffset, [bool littleEndian]) native;
 
-  @DocsEditable
   int getUint64(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
   }
 
-  @DomName('DataView.getUint8')
-  @DocsEditable
   int getUint8(int byteOffset) native;
 
-  @DomName('DataView.setFloat32')
-  @DocsEditable
   void setFloat32(int byteOffset, num value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setFloat32(byteOffset, value, endian._littleEndian);
 
   @JSName('setFloat32')
   void _setFloat32(int byteOffset, num value, [bool littleEndian]) native;
 
-  @DomName('DataView.setFloat64')
-  @DocsEditable
   void setFloat64(int byteOffset, num value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setFloat64(byteOffset, value, endian._littleEndian);
 
   @JSName('setFloat64')
   void _setFloat64(int byteOffset, num value, [bool littleEndian]) native;
 
-  @DomName('DataView.setInt16')
-  @DocsEditable
   void setInt16(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setInt16(byteOffset, value, endian._littleEndian);
 
   @JSName('setInt16')
   void _setInt16(int byteOffset, int value, [bool littleEndian]) native;
 
-  @DomName('DataView.setInt32')
-  @DocsEditable
   void setInt32(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setInt32(byteOffset, value, endian._littleEndian);
 
   @JSName('setInt32')
   void _setInt32(int byteOffset, int value, [bool littleEndian]) native;
 
-  @DocsEditable
   void setInt64(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError("Int64 accessor not supported by dart2js.");
   }
 
-  @DomName('DataView.setInt8')
-  @DocsEditable
   void setInt8(int byteOffset, int value) native;
 
-  @DomName('DataView.setUint16')
-  @DocsEditable
   void setUint16(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setUint16(byteOffset, value, endian._littleEndian);
 
   @JSName('setUint16')
   void _setUint16(int byteOffset, int value, [bool littleEndian]) native;
 
-  @DomName('DataView.setUint32')
-  @DocsEditable
   void setUint32(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _setUint32(byteOffset, value, endian._littleEndian);
 
   @JSName('setUint32')
   void _setUint32(int byteOffset, int value, [bool littleEndian]) native;
 
-  @DocsEditable
   void setUint64(int byteOffset, int value, [Endianness endian=Endianness.BIG_ENDIAN]) {
     throw new UnsupportedError("Uint64 accessor not supported by dart2js.");
   }
 
-  @DomName('DataView.setUint8')
-  @DocsEditable
   void setUint8(int byteOffset, int value) native;
 }
 
-@DocsEditable
-@DomName('Float32Array')
 class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<double> native "Float32Array" {
-  @DomName('Float32Array.Float32Array')
-  @DocsEditable
   factory Float32List(int length) =>
     _TypedArrayFactoryProvider.createFloat32List(length);
 
-  @DomName('Float32Array.fromList')
-  @DocsEditable
   factory Float32List.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat32List_fromList(list);
 
-  @DomName('Float32Array.fromBuffer')
-  @DocsEditable
   factory Float32List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat32List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  @DomName('Float32Array.length')
-  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   num operator[](int index) {
@@ -285,7 +212,7 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<num>(this);
+    return new ListIterator<num>(this);
   }
 
   num reduce(num combine(num value, num element)) {
@@ -472,29 +399,19 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
   // -- end List<num> mixins.
 }
 
-@DocsEditable
-@DomName('Float64Array')
 class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<double> native "Float64Array" {
 
-  @DomName('Float64Array.Float64Array')
-  @DocsEditable
   factory Float64List(int length) =>
     _TypedArrayFactoryProvider.createFloat64List(length);
 
-  @DomName('Float64Array.fromList')
-  @DocsEditable
   factory Float64List.fromList(List<num> list) =>
     _TypedArrayFactoryProvider.createFloat64List_fromList(list);
 
-  @DomName('Float64Array.fromBuffer')
-  @DocsEditable
   factory Float64List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createFloat64List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 8;
 
-  @DomName('Float64Array.length')
-  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   num operator[](int index) {
@@ -515,7 +432,7 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<num>(this);
+    return new ListIterator<num>(this);
   }
 
   num reduce(num combine(num value, num element)) {
@@ -702,29 +619,19 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
   // -- end List<num> mixins.
 }
 
-@DocsEditable
-@DomName('Int16Array')
 class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int16Array" {
 
-  @DomName('Int16Array.Int16Array')
-  @DocsEditable
   factory Int16List(int length) =>
     _TypedArrayFactoryProvider.createInt16List(length);
 
-  @DomName('Int16Array.fromList')
-  @DocsEditable
   factory Int16List.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt16List_fromList(list);
 
-  @DomName('Int16Array.fromBuffer')
-  @DocsEditable
   factory Int16List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt16List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  @DomName('Int16Array.length')
-  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) {
@@ -745,7 +652,7 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<int>(this);
+    return new ListIterator<int>(this);
   }
 
   int reduce(int combine(int value, int element)) {
@@ -932,29 +839,19 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
   // -- end List<int> mixins.
 }
 
-@DocsEditable
-@DomName('Int32Array')
 class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int32Array" {
 
-  @DomName('Int32Array.Int32Array')
-  @DocsEditable
   factory Int32List(int length) =>
     _TypedArrayFactoryProvider.createInt32List(length);
 
-  @DomName('Int32Array.fromList')
-  @DocsEditable
   factory Int32List.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt32List_fromList(list);
 
-  @DomName('Int32Array.fromBuffer')
-  @DocsEditable
   factory Int32List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt32List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  @DomName('Int32Array.length')
-  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) {
@@ -975,7 +872,7 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<int>(this);
+    return new ListIterator<int>(this);
   }
 
   int reduce(int combine(int value, int element)) {
@@ -1162,29 +1059,19 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
   // -- end List<int> mixins.
 }
 
-@DocsEditable
-@DomName('Int8Array')
 class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Int8Array" {
 
-  @DomName('Int8Array.Int8Array')
-  @DocsEditable
   factory Int8List(int length) =>
     _TypedArrayFactoryProvider.createInt8List(length);
 
-  @DomName('Int8Array.fromList')
-  @DocsEditable
   factory Int8List.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createInt8List_fromList(list);
 
-  @DomName('Int8Array.fromBuffer')
-  @DocsEditable
   factory Int8List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createInt8List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  @DomName('Int8Array.length')
-  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) {
@@ -1205,7 +1092,7 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<int>(this);
+    return new ListIterator<int>(this);
   }
 
   int reduce(int combine(int value, int element)) {
@@ -1392,29 +1279,19 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
   // -- end List<int> mixins.
 }
 
-@DocsEditable
-@DomName('Uint16Array')
 class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint16Array" {
 
-  @DomName('Uint16Array.Uint16Array')
-  @DocsEditable
   factory Uint16List(int length) =>
     _TypedArrayFactoryProvider.createUint16List(length);
 
-  @DomName('Uint16Array.fromList')
-  @DocsEditable
   factory Uint16List.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint16List_fromList(list);
 
-  @DomName('Uint16Array.fromBuffer')
-  @DocsEditable
   factory Uint16List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint16List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 2;
 
-  @DomName('Uint16Array.length')
-  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) {
@@ -1435,7 +1312,7 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<int>(this);
+    return new ListIterator<int>(this);
   }
 
   int reduce(int combine(int value, int element)) {
@@ -1622,29 +1499,19 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
   // -- end List<int> mixins.
 }
 
-@DocsEditable
-@DomName('Uint32Array')
 class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint32Array" {
 
-  @DomName('Uint32Array.Uint32Array')
-  @DocsEditable
   factory Uint32List(int length) =>
     _TypedArrayFactoryProvider.createUint32List(length);
 
-  @DomName('Uint32Array.fromList')
-  @DocsEditable
   factory Uint32List.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint32List_fromList(list);
 
-  @DomName('Uint32Array.fromBuffer')
-  @DocsEditable
   factory Uint32List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint32List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 4;
 
-  @DomName('Uint32Array.length')
-  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) {
@@ -1665,7 +1532,7 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<int>(this);
+    return new ListIterator<int>(this);
   }
 
   int reduce(int combine(int value, int element)) {
@@ -1852,22 +1719,14 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
   // -- end List<int> mixins.
 }
 
-@DocsEditable
-@DomName('Uint8ClampedArray')
 class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, List<int> native "Uint8ClampedArray" {
 
-  @DomName('Uint8ClampedArray.Uint8ClampedArray')
-  @DocsEditable
   factory Uint8ClampedList(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedList(length);
 
-  @DomName('Uint8ClampedArray.fromList')
-  @DocsEditable
   factory Uint8ClampedList.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8ClampedList_fromList(list);
 
-  @DomName('Uint8ClampedArray.fromBuffer')
-  @DocsEditable
   factory Uint8ClampedList.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8ClampedList_fromBuffer(buffer, byteOffset, length);
 
@@ -1892,7 +1751,7 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<int>(this);
+    return new ListIterator<int>(this);
   }
 
   int reduce(int combine(int value, int element)) {
@@ -2079,29 +1938,19 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
   // -- end List<int> mixins.
 }
 
-@DocsEditable
-@DomName('Uint8Array')
 class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<int> native "Uint8Array" {
 
-  @DomName('Uint8Array.Uint8Array')
-  @DocsEditable
   factory Uint8List(int length) =>
     _TypedArrayFactoryProvider.createUint8List(length);
 
-  @DomName('Uint8Array.fromList')
-  @DocsEditable
   factory Uint8List.fromList(List<int> list) =>
     _TypedArrayFactoryProvider.createUint8List_fromList(list);
 
-  @DomName('Uint8Array.fromBuffer')
-  @DocsEditable
   factory Uint8List.view(ByteBuffer buffer, [int byteOffset, int length]) =>
     _TypedArrayFactoryProvider.createUint8List_fromBuffer(buffer, byteOffset, length);
 
   static const int BYTES_PER_ELEMENT = 1;
 
-  @DomName('Uint8Array.length')
-  @DocsEditable
   int get length => JS("int", "#.length", this);
 
   int operator[](int index) {
@@ -2122,7 +1971,7 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
     // Note: NodeLists are not fixed size. And most probably length shouldn't
     // be cached in both iterator _and_ forEach method. For now caching it
     // for consistency.
-    return new FixedSizeListIterator<int>(this);
+    return new ListIterator<int>(this);
   }
 
   int reduce(int combine(int value, int element)) {
