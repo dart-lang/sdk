@@ -10,6 +10,69 @@ import 'dart:_collection-dev';
 import 'dart:_js_helper' show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
 import 'dart:_foreign_helper' show JS;
 
+// TODO: migrate to ListMixin.
+class _Lists {
+
+  /**
+   * Returns the index in the array [a] of the given [element], starting
+   * the search at index [startIndex] to [endIndex] (exclusive).
+   * Returns -1 if [element] is not found.
+   */
+  static int indexOf(List a,
+                     Object element,
+                     int startIndex,
+                     int endIndex) {
+    if (startIndex >= a.length) {
+      return -1;
+    }
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+    for (int i = startIndex; i < endIndex; i++) {
+      if (a[i] == element) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns the last index in the array [a] of the given [element], starting
+   * the search at index [startIndex] to 0.
+   * Returns -1 if [element] is not found.
+   */
+  static int lastIndexOf(List a, Object element, int startIndex) {
+    if (startIndex < 0) {
+      return -1;
+    }
+    if (startIndex >= a.length) {
+      startIndex = a.length - 1;
+    }
+    for (int i = startIndex; i >= 0; i--) {
+      if (a[i] == element) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Returns a sub list copy of this list, from [start] to
+   * [end] ([end] not inclusive).
+   * Returns an empty list if [length] is 0.
+   * It is an error if indices are not valid for the list, or
+   * if [end] is before [start].
+   */
+  static List getRange(List a, int start, int end, List accumulator) {
+    if (start < 0) throw new RangeError.value(start);
+    if (end < start) throw new RangeError.value(end);
+    if (end > a.length) throw new RangeError.value(end);
+    for (int i = start; i < end; i++) {
+      accumulator.add(a[i]);
+    }
+    return accumulator;
+  }
+}
 /**
  * Describes endianness to be used when accessing a sequence of bytes.
  */
@@ -307,11 +370,11 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
   }
 
   int indexOf(num element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   num get first {
@@ -383,7 +446,7 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
 
   List<num> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <num>[]);
+    return _Lists.getRange(this, start, end, <num>[]);
   }
 
   Map<int, num> asMap() =>
@@ -527,11 +590,11 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
   }
 
   int indexOf(num element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(num element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   num get first {
@@ -603,7 +666,7 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
 
   List<num> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <num>[]);
+    return _Lists.getRange(this, start, end, <num>[]);
   }
 
   Map<int, num> asMap() =>
@@ -747,11 +810,11 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
   }
 
   int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int get first {
@@ -823,7 +886,7 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
   List<int> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
+    return _Lists.getRange(this, start, end, <int>[]);
   }
 
   Map<int, int> asMap() =>
@@ -967,11 +1030,11 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
   }
 
   int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int get first {
@@ -1043,7 +1106,7 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
   List<int> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
+    return _Lists.getRange(this, start, end, <int>[]);
   }
 
   Map<int, int> asMap() =>
@@ -1187,11 +1250,11 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
   }
 
   int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int get first {
@@ -1263,7 +1326,7 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
 
   List<int> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
+    return _Lists.getRange(this, start, end, <int>[]);
   }
 
   Map<int, int> asMap() =>
@@ -1407,11 +1470,11 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
   }
 
   int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int get first {
@@ -1483,7 +1546,7 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
 
   List<int> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
+    return _Lists.getRange(this, start, end, <int>[]);
   }
 
   Map<int, int> asMap() =>
@@ -1627,11 +1690,11 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
   }
 
   int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int get first {
@@ -1703,7 +1766,7 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
 
   List<int> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
+    return _Lists.getRange(this, start, end, <int>[]);
   }
 
   Map<int, int> asMap() =>
@@ -1846,11 +1909,11 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
   }
 
   int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int get first {
@@ -1922,7 +1985,7 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
 
   List<int> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
+    return _Lists.getRange(this, start, end, <int>[]);
   }
 
   Map<int, int> asMap() =>
@@ -2066,11 +2129,11 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
   }
 
   int indexOf(int element, [int start = 0]) =>
-      Lists.indexOf(this, element, start, this.length);
+      _Lists.indexOf(this, element, start, this.length);
 
   int lastIndexOf(int element, [int start]) {
     if (start == null) start = length - 1;
-    return Lists.lastIndexOf(this, element, start);
+    return _Lists.lastIndexOf(this, element, start);
   }
 
   int get first {
@@ -2142,7 +2205,7 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
   List<int> sublist(int start, [int end]) {
     if (end == null) end = length;
-    return Lists.getRange(this, start, end, <int>[]);
+    return _Lists.getRange(this, start, end, <int>[]);
   }
 
   Map<int, int> asMap() =>
