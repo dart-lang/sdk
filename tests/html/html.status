@@ -33,7 +33,7 @@ worker_api_test: Fail # Requires Firefox 21.
 [ $compiler == dart2js && $runtime == safari ]
 url_test: Fail # Issue 10096
 
-[ $compiler == dart2js && $runtime == drt && $checked ]
+[ $compiler == dart2js && $browser && $checked ]
 postmessage_structured_test/typed_arrays: Fail # Issue 10097
 postmessage_structured_test/primitives: Fail # Issue 10097
 
