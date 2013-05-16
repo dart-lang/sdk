@@ -100,6 +100,7 @@ float_array_test: Skip # dart:typed_data support needed.
 int_array_test: Skip  # dart:typed_data support needed.
 byte_array_view_optimized_test: Skip # dart:typed_data support needed.
 io/web_socket_protocol_processor_test: Skip  # Importing code with external keyword
+io/url_encoding_test: Skip  # Importing code with external keyword
 int_array_load_elimination_test: Skip  # This is a VM test
 medium_integer_test: Fail, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
