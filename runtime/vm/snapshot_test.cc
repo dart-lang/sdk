@@ -233,7 +233,8 @@ Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
 void CheckMint(int64_t value) {
   StackZone zone(Isolate::Current());
 
-  const Mint& mint = Mint::Handle(Mint::New(value));
+  Mint& mint = Mint::Handle();
+  mint ^= Integer::New(value);
   ApiNativeScope scope;
   Dart_CObject* mint_cobject = SerializeAndDeserializeMint(mint);
   // On 64-bit platforms mints always require 64-bits as the smi range
@@ -371,7 +372,8 @@ TEST_CASE(SerializeBigint) {
   MessageWriter writer(&buffer, &zone_allocator);
   const char* cstr = "0x270FFFFFFFFFFFFFD8F0";
   const String& str = String::Handle(String::New(cstr));
-  const Bigint& bigint = Bigint::Handle(Bigint::NewCanonical(str));
+  Bigint& bigint = Bigint::Handle();
+  bigint ^= Integer::NewCanonical(str);
   writer.WriteMessage(bigint);
   intptr_t buffer_len = writer.BytesWritten();
 

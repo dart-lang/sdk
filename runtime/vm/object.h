@@ -3931,11 +3931,13 @@ class Integer : public Number {
 
   // Return the most compact presentation of an integer.
   RawInteger* AsValidInteger() const;
-  // Return an integer in the form of a RawBigint.
-  RawBigint* AsBigint() const;
 
   RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
   RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
+
+ private:
+  // Return an integer in the form of a RawBigint.
+  RawBigint* AsBigint() const;
 
   OBJECT_IMPLEMENTATION(Integer, Number);
   friend class Class;
@@ -4046,12 +4048,17 @@ class Mint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  static RawMint* New(int64_t value, Heap::Space space = Heap::kNew);
-  static RawMint* NewCanonical(int64_t value);
-
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawMint));
   }
+
+ protected:
+  // Only Integer::NewXXX is allowed to call Mint::NewXXX directly.
+  friend class Integer;
+
+  static RawMint* New(int64_t value, Heap::Space space = Heap::kNew);
+
+  static RawMint* NewCanonical(int64_t value);
 
  private:
   void set_value(int64_t value) const;
@@ -4088,12 +4095,16 @@ class Bigint : public Integer {
     return RoundedAllocationSize(sizeof(RawBigint) + (len * kBytesPerElement));
   }
 
+  RawBigint* ArithmeticOp(Token::Kind operation, const Bigint& other) const;
+
+ protected:
+  // Only Integer::NewXXX is allowed to call Bigint::NewXXX directly.
+  friend class Integer;
+
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
 
   // Returns a canonical Bigint object allocated in the old gen space.
   static RawBigint* NewCanonical(const String& str);
-
-  RawBigint* ArithmeticOp(Token::Kind operation, const Bigint& other) const;
 
  private:
   Chunk GetChunkAt(intptr_t i) const {

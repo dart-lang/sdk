@@ -236,10 +236,10 @@ TEST_CASE(Smi) {
 
   Smi& c = Smi::Handle(Smi::New(-1));
 
-  Mint& mint1 = Mint::Handle(
-      Mint::New(DART_2PART_UINT64_C(0x7FFFFFFF, 100)));
-  Mint& mint2 = Mint::Handle(
-      Mint::New(-DART_2PART_UINT64_C(0x7FFFFFFF, 100)));
+  Mint& mint1 = Mint::Handle();
+  mint1 ^= Integer::New(DART_2PART_UINT64_C(0x7FFFFFFF, 100));
+  Mint& mint2 = Mint::Handle();
+  mint2 ^= Integer::New(-DART_2PART_UINT64_C(0x7FFFFFFF, 100));
   EXPECT_EQ(-1, a.CompareWith(mint1));
   EXPECT_EQ(1, a.CompareWith(mint2));
   EXPECT_EQ(-1, c.CompareWith(mint1));
@@ -307,7 +307,7 @@ TEST_CASE(Mint) {
   { Mint& med = Mint::Handle();
     EXPECT(med.IsNull());
     int64_t v = DART_2PART_UINT64_C(1, 0);
-    med = Mint::New(v);
+    med ^= Integer::New(v);
     EXPECT_EQ(v, med.value());
     const String& smi_str = String::Handle(String::New("1"));
     const String& mint1_str = String::Handle(String::New("2147419168"));
@@ -323,24 +323,28 @@ TEST_CASE(Mint) {
     EXPECT(!i.IsZero());
     EXPECT(i.IsNegative());
   }
-  Integer& i = Integer::Handle(Mint::New(DART_2PART_UINT64_C(1, 0)));
+  Integer& i = Integer::Handle(Integer::New(DART_2PART_UINT64_C(1, 0)));
   EXPECT(i.IsMint());
   EXPECT(!i.IsZero());
   EXPECT(!i.IsNegative());
-  Integer& i1 = Integer::Handle(Mint::New(DART_2PART_UINT64_C(1010, 0)));
-  Mint& i2 = Mint::Handle(Mint::New(DART_2PART_UINT64_C(1010, 0)));
+  Integer& i1 = Integer::Handle(Integer::New(DART_2PART_UINT64_C(1010, 0)));
+  Mint& i2 = Mint::Handle();
+  i2 ^= Integer::New(DART_2PART_UINT64_C(1010, 0));
   EXPECT(i1.Equals(i2));
   EXPECT(!i.Equals(i1));
   int64_t test = DART_2PART_UINT64_C(1010, 0);
   EXPECT_EQ(test, i2.value());
 
-  Mint& a = Mint::Handle(Mint::New(DART_2PART_UINT64_C(5, 0)));
-  Mint& b = Mint::Handle(Mint::New(DART_2PART_UINT64_C(3, 0)));
+  Mint& a = Mint::Handle();
+  a ^= Integer::New(DART_2PART_UINT64_C(5, 0));
+  Mint& b = Mint::Handle();
+  b ^= Integer::New(DART_2PART_UINT64_C(3, 0));
   EXPECT_EQ(1, a.CompareWith(b));
   EXPECT_EQ(-1, b.CompareWith(a));
   EXPECT_EQ(0, a.CompareWith(a));
 
-  Mint& c = Mint::Handle(Mint::New(-DART_2PART_UINT64_C(3, 0)));
+  Mint& c = Mint::Handle();
+  c ^= Integer::New(-DART_2PART_UINT64_C(3, 0));
   Smi& smi1 = Smi::Handle(Smi::New(4));
   Smi& smi2 = Smi::Handle(Smi::New(-4));
   EXPECT_EQ(1, a.CompareWith(smi1));
@@ -357,9 +361,12 @@ TEST_CASE(Mint) {
   EXPECT_EQ(-1, c.CompareWith(big1));
   EXPECT_EQ(1, c.CompareWith(big2));
 
-  int64_t mint_value = DART_2PART_UINT64_C(0x7FFFFFFF, 100);
-  Mint& mint1 = Mint::Handle(Mint::NewCanonical(mint_value));
-  Mint& mint2 = Mint::Handle(Mint::NewCanonical(mint_value));
+  int64_t mint_value = DART_2PART_UINT64_C(0x7FFFFFFF, 64);
+  const String& mint_string = String::Handle(String::New("0x7FFFFFFF00000064"));
+  Mint& mint1 = Mint::Handle();
+  mint1 ^= Integer::NewCanonical(mint_string);
+  Mint& mint2 = Mint::Handle();
+  mint2 ^= Integer::NewCanonical(mint_string);
   EXPECT_EQ(mint1.value(), mint_value);
   EXPECT_EQ(mint2.value(), mint_value);
   EXPECT_EQ(mint1.raw(), mint2.raw());
@@ -440,7 +447,7 @@ TEST_CASE(Bigint) {
   EXPECT(b.IsNull());
   const char* cstr = "18446744073709551615000";
   const String& test = String::Handle(String::New(cstr));
-  b = Bigint::NewCanonical(test);
+  b ^= Integer::NewCanonical(test);
   const char* str = b.ToCString();
   EXPECT_STREQ(cstr, str);
 

@@ -80,10 +80,8 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
   const Bigint& big = Bigint::Handle(BigintOperations::NewFromDouble(val));
-  if (BigintOperations::FitsIntoSmi(big)) {
-    return BigintOperations::ToSmi(big);
-  } else if (BigintOperations::FitsIntoMint(big)) {
-    return Mint::New(BigintOperations::ToMint(big));
+  if (BigintOperations::FitsIntoMint(big)) {
+    return Integer::New(BigintOperations::ToMint(big));
   } else {
     return big.raw();
   }

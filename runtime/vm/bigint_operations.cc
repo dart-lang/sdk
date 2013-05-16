@@ -664,6 +664,9 @@ uint64_t BigintOperations::AbsToUint64(const Bigint& bigint) {
 
 
 int64_t BigintOperations::ToMint(const Bigint& bigint) {
+  if (bigint.IsZero()) {
+    return 0;
+  }
   ASSERT(FitsIntoMint(bigint));
   int64_t value = AbsToUint64(bigint);
   if (bigint.IsNegative()) {

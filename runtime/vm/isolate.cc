@@ -270,7 +270,9 @@ void DeferredDouble::Materialize() {
 void DeferredMint::Materialize() {
   RawMint** mint_slot = reinterpret_cast<RawMint**>(slot());
   ASSERT(!Smi::IsValid64(value()));
-  *mint_slot = Mint::New(value());
+  Mint& mint = Mint::Handle();
+  mint ^= Integer::New(value());
+  *mint_slot = mint.raw();
 
   if (FLAG_trace_deoptimization_verbose) {
     OS::PrintErr("materializing mint at %"Px": %"Pd64"\n",
