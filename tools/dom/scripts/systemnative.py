@@ -13,6 +13,52 @@ from htmldartgenerator import *
 from idlnode import IDLArgument
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
+_cpp_type_map = {
+  ('DataTransferItem', 'webkitGetAsEntry'): 'DataTransferItemFileSystem',
+  ('DOMWindow', 'indexedDB'): 'DOMWindowIndexedDatabase',
+  ('DOMWindow', 'speechSynthesis'): 'DOMWindowSpeechSynthesis',
+  ('DOMWindow', 'webkitNotifications'): 'DOMWindowNotifications',
+  ('DOMWindow', 'storage'): 'DOMWindowQuota',
+  ('DOMWindow', 'webkitStorageInfo'): 'DOMWindowQuota',
+  ('DOMWindow', 'openDatabase'): 'DOMWindowWebDatabase',
+  ('DOMWindow', 'webkitRequestFileSystem'): 'DOMWindowFileSystem',
+  ('DOMWindow', 'webkitResolveLocalFileSystemURL'): 'DOMWindowFileSystem',
+  ('HTMLInputElement', 'webkitEntries'): 'HTMLInputElementFileSystem',
+  ('Navigator', 'doNotTrack'): 'NavigatorDoNotTrack',
+  ('Navigator', 'geolocation'): 'NavigatorGeolocation',
+  ('Navigator', 'webkitPersistentStorage'): 'NavigatorStorageQuota',
+  ('Navigator', 'webkitTemporaryStorage'): 'NavigatorStorageQuota',
+  ('Navigator', 'registerProtocolHandler'): 'NavigatorContentUtils',
+  ('Navigator', 'unregisterProtocolHandler'): 'NavigatorContentUtils',
+  ('Navigator', 'webkitGetUserMedia'): 'NavigatorMediaStream',
+  ('Navigator', 'webkitGetGamepads'): 'NavigatorGamepad',
+  }
+
+_cpp_partial_map = {}
+
+def _GetCPPPartialNames(interface_name):
+  if not _cpp_partial_map:
+    for (type, member) in _cpp_type_map.keys():
+      if type not in _cpp_partial_map:
+        _cpp_partial_map[type] = set([])
+      _cpp_partial_map[type].add(_cpp_type_map[(type, member)])
+
+  if interface_name in _cpp_partial_map:
+    return _cpp_partial_map[interface_name]
+  else:
+    return set([])
+
+def _GetCPPTypeName(interface_name, callback_name):
+  # TODO(vsm): We need to track the original IDL file name in order to recover
+  # the proper CPP name.
+
+  cpp_tuple = (interface_name, callback_name)
+  if cpp_tuple in _cpp_type_map:
+    cpp_type_name = _cpp_type_map[cpp_tuple]
+  else:
+    cpp_type_name = interface_name
+  return cpp_type_name
+
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
@@ -40,7 +86,8 @@ class DartiumBackend(HtmlDartGenerator):
     if IsPureInterface(self._interface.id) or IsCustomType(self._interface.id):
       return
 
-    cpp_impl_includes = set()
+    cpp_impl_includes = set(['"' + partial + '.h"'
+                             for partial in _GetCPPPartialNames(self._interface.id)])
     cpp_header_handlers_emitter = emitter.Emitter()
     cpp_impl_handlers_emitter = emitter.Emitter()
     class_name = 'Dart%s' % self._interface.id
@@ -129,7 +176,8 @@ class DartiumBackend(HtmlDartGenerator):
     self._interface_type_info = self._TypeInfo(self._interface.id)
     self._members_emitter = members_emitter
     self._cpp_declarations_emitter = emitter.Emitter()
-    self._cpp_impl_includes = set()
+    self._cpp_impl_includes = set(['"' + partial + '.h"'
+                                   for partial in _GetCPPPartialNames(self._interface.id)])
     self._cpp_definitions_emitter = emitter.Emitter()
     self._cpp_resolver_emitter = emitter.Emitter()
 
@@ -357,6 +405,8 @@ class DartiumBackend(HtmlDartGenerator):
         webcore_function_name = '_operator'
       elif attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
         webcore_function_name = 'svgTarget'
+      elif attr.id == 'CSS':
+        webcore_function_name = 'css'
       else:
         webcore_function_name = self._ToWebKitName(attr.id)
       if attr.type.id.startswith('SVGAnimated'):
@@ -796,6 +846,17 @@ class DartiumBackend(HtmlDartGenerator):
         '            goto fail;\n'
         '        }\n')
 
+
+    if needs_receiver:
+      interface_name = self._interface_type_info.native_type()
+      cpp_type_name = _GetCPPTypeName(interface_name,
+                                      node.id)
+      if interface_name != cpp_type_name:
+        if interface_name == 'DOMWindow' or interface_name == 'Navigator':
+          cpp_arguments.insert(0, 'receiver')
+        else:
+          cpp_arguments.append('receiver')
+
     function_call = '%s(%s)' % (function_expression, ', '.join(cpp_arguments))
     if return_type == 'void':
       invocation_emitter.Emit(
@@ -843,6 +904,7 @@ class DartiumBackend(HtmlDartGenerator):
         NATIVE_BINDING=native_binding)
 
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
+
     self._cpp_resolver_emitter.Emit(
         '    if (argumentCount == $ARGC && name == "$NATIVE_BINDING")\n'
         '        return Dart$(INTERFACE_NAME)Internal::$CPP_CALLBACK_NAME;\n',
@@ -876,7 +938,12 @@ class DartiumBackend(HtmlDartGenerator):
       return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
     if idl_node.is_static:
       return '%s::%s' % (self._interface_type_info.idl_type(), function_name)
-    return '%s%s' % (self._interface_type_info.receiver(), function_name)
+    interface_name = self._interface_type_info.idl_type()
+    cpp_type_name = _GetCPPTypeName(interface_name, function_name)
+    if cpp_type_name == interface_name:
+      return '%s%s' % (self._interface_type_info.receiver(), function_name)
+    else:
+      return '%s::%s' % (cpp_type_name, function_name)
 
   def _IsArgumentOptionalInWebCore(self, operation, argument):
     if not IsOptional(argument):
