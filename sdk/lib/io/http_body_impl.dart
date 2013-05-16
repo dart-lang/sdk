@@ -123,11 +123,8 @@ class _HttpBodyHandler {
                   var map = _HttpUtils.splitQueryString(
                       body.body, encoding: defaultEncoding);
                   var result = {};
-                  String parse(String s) {
-                    return _HttpUtils.decodeHttpEntityString(s);
-                  }
                   for (var key in map.keys) {
-                    result[parse(key)] = parse(map[key]);
+                    result[key] = map[key];
                   }
                   return new _HttpBody(contentType, "form", result);
                 });

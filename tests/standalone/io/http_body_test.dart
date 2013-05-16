@@ -247,26 +247,75 @@ File content\r
        "form");
 
   test('application/x-www-form-urlencoded',
-       '%E5%B9%B3%3D%E4%BB%AE%E5%90%8D=%26%2324179%3B%26%2320206%3B%26%'
-       '2321517%3B&b=%26%2324179%3B%26%2320206%3B%26%2321517%3B'.codeUnits,
+       '%E5%B9%B3%3D%E4%BB%AE%E5%90%8D=%E5%B9%B3%E4%BB%AE%E5%90%8D&b'
+       '=%E5%B9%B3%E4%BB%AE%E5%90%8D'.codeUnits,
        { 'b' : '平仮名',
          '平=仮名' : '平仮名'},
        "form");
 
   test('application/x-www-form-urlencoded',
        'a=%F8+%26%23548%3B'.codeUnits,
-       { 'a' : '\u{FFFD}\u{0224}' },
+       { 'a' : '\u{FFFD}&#548;' },
        "form");
-
-  test('application/x-www-form-urlencoded',
-       'a=%F8+%26%23548%3B'.codeUnits,
-       { 'a' : 'ø Ȥ' },
-       "form",
-       defaultEncoding: Encoding.ISO_8859_1);
 
   test('application/x-www-form-urlencoded',
        'a=%C3%B8+%C8%A4'.codeUnits,
        { 'a' : 'ø Ȥ' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'a=%F8+%26%23548%3B'.codeUnits,
+       { 'a' : 'ø &#548;' },
+       "form",
+       defaultEncoding: Encoding.ISO_8859_1);
+
+  test('application/x-www-form-urlencoded',
+       'name=%26'.codeUnits,
+       { 'name' : '&' },
+       "form",
+       defaultEncoding: Encoding.ISO_8859_1);
+
+  test('application/x-www-form-urlencoded',
+       'name=%F8%26'.codeUnits,
+       { 'name' : 'ø&' },
+       "form",
+       defaultEncoding: Encoding.ISO_8859_1);
+
+  test('application/x-www-form-urlencoded',
+       'name=%26%3B'.codeUnits,
+       { 'name' : '&;' },
+       "form",
+       defaultEncoding: Encoding.ISO_8859_1);
+
+  test('application/x-www-form-urlencoded',
+       'name=%26%23548%3B%26%23548%3B'.codeUnits,
+       { 'name' : '&#548;&#548;' },
+       "form",
+       defaultEncoding: Encoding.ISO_8859_1);
+
+  test('application/x-www-form-urlencoded',
+       'name=%26'.codeUnits,
+       { 'name' : '&' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'name=%C3%B8%26'.codeUnits,
+       { 'name' : 'ø&' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'name=%26%3B'.codeUnits,
+       { 'name' : '&;' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'name=%C8%A4%26%23548%3B'.codeUnits,
+       { 'name' : 'Ȥ&#548;' },
+       "form");
+
+  test('application/x-www-form-urlencoded',
+       'name=%C8%A4%C8%A4'.codeUnits,
+       { 'name' : 'ȤȤ' },
        "form");
 }
 
