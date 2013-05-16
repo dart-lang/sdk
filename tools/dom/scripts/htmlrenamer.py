@@ -364,6 +364,7 @@ for member in convert_to_future_members:
 # TODO(jacobr): cleanup and augment this list.
 _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Attr.*',
+    'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
     'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',
     'CanvasRenderingContext2D.drawImageFromRect',
@@ -614,6 +615,13 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'NodeIterator.expandEntityReferences',
     'NodeIterator.filter',
     'NodeList.item',
+    'Performance.webkitClearMarks',
+    'Performance.webkitClearMeasures',
+    'Performance.webkitGetEntries',
+    'Performance.webkitGetEntriesByName',
+    'Performance.webkitGetEntriesByType',
+    'Performance.webkitMark',
+    'Performance.webkitMeasure',
     'ShadowRoot.getElementsByTagNameNS',
     'SVGStyledElement.getPresentationAttribute',
     'WheelEvent.wheelDelta',
