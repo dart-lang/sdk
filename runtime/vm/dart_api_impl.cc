@@ -2488,17 +2488,18 @@ static Dart_Handle NewTypedData(Isolate* isolate,
 
 
 static Dart_Handle NewExternalTypedData(
+    Isolate* isolate,
     intptr_t cid,
     void* data,
     intptr_t length,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
   CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
-  const ExternalTypedData& obj = ExternalTypedData::Handle(
-      ExternalTypedData::New(cid,
-                             reinterpret_cast<uint8_t*>(data),
-                             length));
-  return reinterpret_cast<Dart_Handle>(obj.AddFinalizer(peer, callback));
+  const ExternalTypedData& result = ExternalTypedData::Handle(
+      isolate,
+      ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length));
+  result.AddFinalizer(peer, callback);
+  return Api::NewHandle(isolate, result.raw());
 }
 
 
@@ -2507,7 +2508,8 @@ static Dart_Handle NewExternalByteData(Isolate* isolate,
                                        intptr_t length,
                                        void* peer,
                                        Dart_WeakPersistentHandleFinalizer cb) {
-  Dart_Handle ext_data = NewExternalTypedData(kExternalTypedDataUint8ArrayCid,
+  Dart_Handle ext_data = NewExternalTypedData(isolate,
+                                              kExternalTypedDataUint8ArrayCid,
                                               data,
                                               length,
                                               peer,
@@ -2600,73 +2602,85 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
     case kByteData:
       return NewExternalByteData(isolate, data, length, peer, callback);
     case kInt8:
-      return NewExternalTypedData(kExternalTypedDataInt8ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataInt8ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kUint8:
-      return NewExternalTypedData(kExternalTypedDataUint8ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataUint8ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kUint8Clamped:
-      return NewExternalTypedData(kExternalTypedDataUint8ClampedArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataUint8ClampedArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kInt16:
-      return NewExternalTypedData(kExternalTypedDataInt16ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataInt16ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kUint16:
-      return NewExternalTypedData(kExternalTypedDataUint16ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataUint16ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kInt32:
-      return NewExternalTypedData(kExternalTypedDataInt32ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataInt32ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kUint32:
-      return NewExternalTypedData(kExternalTypedDataUint32ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataUint32ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kInt64:
-      return NewExternalTypedData(kExternalTypedDataInt64ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataInt64ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kUint64:
-      return NewExternalTypedData(kExternalTypedDataUint64ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataUint64ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kFloat32:
-      return NewExternalTypedData(kExternalTypedDataFloat32ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataFloat32ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kFloat64:
-      return NewExternalTypedData(kExternalTypedDataFloat64ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataFloat64ArrayCid,
                                   data,
                                   length,
                                   peer,
                                   callback);
     case kFloat32x4:
-      return NewExternalTypedData(kExternalTypedDataFloat32x4ArrayCid,
+      return NewExternalTypedData(isolate,
+                                  kExternalTypedDataFloat32x4ArrayCid,
                                   data,
                                   length,
                                   peer,
