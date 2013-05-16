@@ -1044,18 +1044,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                    Node currentNode) {
     assert(invariant(function, function.isImplementation));
 
-    List<HInstruction> compiledArguments;
+    List<HInstruction> compiledArguments = new List<HInstruction>();
+    bool succeeded;
     bool isInstanceMember = function.isInstanceMember();
 
     if (isInstanceMember) {
       assert(providedArguments != null);
-      compiledArguments = new List<HInstruction>();
       compiledArguments.add(providedArguments[0]);
       // [providedArguments] contains the arguments given in our
       // internal order (see [addDynamicSendArgumentsToList]). So we
       // call [Selector.addArgumentsToList] only for getting the
       // default values of the optional parameters.
-      bool succeeded = selector.addArgumentsToList(
+      succeeded = selector.addArgumentsToList(
           argumentsNodes,
           compiledArguments,
           function,
@@ -1072,13 +1072,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           compiledArguments[i] = providedArguments[argumentIndex++];
         }
       }
-      // The caller of [enterInlinedMethod] has ensured the selector
-      // matches the element.
-      assert(succeeded);
     } else {
-      assert(providedArguments != null);
-      compiledArguments = providedArguments;
+      assert(providedArguments == null);
+      succeeded = addStaticSendArgumentsToList(selector,
+                                               argumentsNodes,
+                                               function,
+                                               compiledArguments);
     }
+    // The caller of [enterInlinedMethod] has ensured the selector
+    // matches the element.
+    assert(succeeded);
 
     // Create the inlining state after evaluating the arguments, that
     // may have an impact on the state of the current method.
@@ -1188,8 +1191,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     PartialFunctionElement function = element;
     bool canBeInlined = backend.canBeInlined[function];
     if (canBeInlined == false) return false;
-    assert(selector != null || Elements.isStaticOrTopLevel(element));
-    if (selector != null && !selector.applies(function, compiler)) return false;
+    if (!selector.applies(function, compiler)) return false;
 
     // Don't inline operator== methods if the parameter can be null.
     if (element.name == const SourceString('==')) {
@@ -2519,7 +2521,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         push(instruction);
       } else {
         if (element.isGetter()) {
-          pushInvokeStatic(send, element, <HInstruction>[]);
+          Selector selector = elements.getSelector(send);
+          if (tryInlineMethod(
+                element, selector, const Link<Node>(), null, send)) {
+            return;
+          }
+        }
+        if (element.isGetter()) {
+          push(buildInvokeStatic(element, <HInstruction>[]));
         } else {
           // TODO(5346): Try to avoid the need for calling [declaration] before
           // creating an [HStatic].
@@ -2580,8 +2589,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     if (Elements.isStaticOrTopLevelField(element)) {
       if (element.isSetter()) {
-        pushInvokeStatic(location, element, <HInstruction>[value]);
-        pop();
+        var instruction = buildInvokeStatic(element,
+            <HInstruction>[value], HType.UNKNOWN);
+        addWithPosition(instruction, location);
       } else {
         value = potentiallyCheckType(value, element.computeType(compiler));
         addWithPosition(new HStaticStore(element, value), location);
@@ -2616,6 +2626,54 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return interceptor;
   }
 
+  void pushInvokeHelper0(Element helper, HType type) {
+    List<HInstruction> inputs = <HInstruction>[];
+    push(buildInvokeStatic(helper, inputs, type));
+  }
+
+  void pushInvokeHelper1(Element helper, HInstruction a0, HType type) {
+    List<HInstruction> inputs = <HInstruction>[a0];
+    push(buildInvokeStatic(helper, inputs, type));
+  }
+
+  void pushInvokeHelper2(Element helper,
+                         HInstruction a0,
+                         HInstruction a1,
+                         HType type) {
+    List<HInstruction> inputs = <HInstruction>[a0, a1];
+    push(buildInvokeStatic(helper, inputs, type));
+  }
+
+  void pushInvokeHelper3(Element helper,
+                         HInstruction a0,
+                         HInstruction a1,
+                         HInstruction a2,
+                         HType type) {
+    List<HInstruction> inputs = <HInstruction>[a0, a1, a2];
+    push(buildInvokeStatic(helper, inputs, type));
+  }
+
+  void pushInvokeHelper4(Element helper,
+                         HInstruction a0,
+                         HInstruction a1,
+                         HInstruction a2,
+                         HInstruction a3,
+                         HType type) {
+    List<HInstruction> inputs = <HInstruction>[a0, a1, a2, a3];
+    push(buildInvokeStatic(helper, inputs, type));
+  }
+
+  void pushInvokeHelper5(Element helper,
+                         HInstruction a0,
+                         HInstruction a1,
+                         HInstruction a2,
+                         HInstruction a3,
+                         HInstruction a4,
+                         HType type) {
+    List<HInstruction> inputs = <HInstruction>[a0, a1, a2, a3, a4];
+    push(buildInvokeStatic(helper, inputs, type));
+  }
+
   HForeign createForeign(String code,
                          HType type,
                          List<HInstruction> inputs) {
@@ -2623,7 +2681,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction getRuntimeTypeInfo(HInstruction target) {
-    pushInvokeStatic(null, backend.getGetRuntimeTypeInfo(), [target]);
+    pushInvokeHelper1(backend.getGetRuntimeTypeInfo(), target, HType.UNKNOWN);
     return pop();
   }
 
@@ -2713,8 +2771,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getGetObjectIsSubtype();
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
-      pushInvokeStatic(null, helper, inputs, HType.BOOLEAN);
-      HInstruction call = pop();
+      HInstruction call = buildInvokeStatic(helper, inputs, HType.BOOLEAN);
+      add(call);
       instruction = new HIs(type, <HInstruction>[expression, call],
                             HIs.VARIABLE_CHECK);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
@@ -2734,8 +2792,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  isFieldName,
                                                  representations,
                                                  asFieldName];
-      pushInvokeStatic(node, helper, inputs, HType.BOOLEAN);
-      HInstruction call = pop();
+      HInstruction call = buildInvokeStatic(helper, inputs, HType.BOOLEAN);
+      add(call);
       instruction = new HIs(type, <HInstruction>[expression, call],
                             HIs.COMPOUND_CHECK);
     } else {
@@ -2909,7 +2967,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.cancel(
             'Isolate library and compiler mismatch', node: node);
       }
-      pushInvokeStatic(null, element, [], HType.UNKNOWN);
+      pushInvokeHelper0(element, HType.UNKNOWN);
     }
   }
 
@@ -2931,7 +2989,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       List<HInstruction> inputs = <HInstruction>[];
       addGenericSendArgumentsToList(link, inputs);
-      pushInvokeStatic(node, element, inputs, HType.UNKNOWN);
+      push(buildInvokeStatic(element, inputs, HType.UNKNOWN));
     }
   }
 
@@ -3074,13 +3132,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Constant kindConstant =
         constantSystem.createInt(selector.invocationMirrorKind);
 
-    pushInvokeStatic(null,
-                     createInvocationMirror,
-                     [graph.addConstant(nameConstant),
+    pushInvokeHelper5(createInvocationMirror,
+                      graph.addConstant(nameConstant),
                       graph.addConstant(internalNameConstant),
                       graph.addConstant(kindConstant),
                       argumentsInstruction,
-                      argumentNamesInstruction],
+                      argumentNamesInstruction,
                       HType.UNKNOWN);
 
     var inputs = <HInstruction>[pop()];
@@ -3146,11 +3203,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction substitution = createForeign('#[#]', HType.UNKNOWN,
         <HInstruction>[target, substitutionName]);
     add(substitution);
-    pushInvokeStatic(null,
-                     backend.getGetRuntimeTypeArgument(),
-                     [target,
+    pushInvokeHelper3(backend.getGetRuntimeTypeArgument(),
+                      target,
                       substitution,
-                      graph.addConstantInt(index, constantSystem)],
+                      graph.addConstantInt(index, constantSystem),
                       HType.UNKNOWN);
     return pop();
   }
@@ -3232,12 +3288,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     // Set the runtime type information on the object.
     Element typeInfoSetterElement = backend.getSetRuntimeTypeInfo();
-    pushInvokeStatic(
-        null,
-        typeInfoSetterElement,
-        <HInstruction>[newObject, typeInfo],
-        HType.UNKNOWN);
-    pop();
+    add(buildInvokeStatic(typeInfoSetterElement,
+        <HInstruction>[newObject, typeInfo], HType.UNKNOWN));
   }
 
   /**
@@ -3245,20 +3297,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *
    * Invariant: [type] must not be malformed in checked mode.
    */
-  handleNewSend(NewExpression node, InterfaceType type) {
-    Send send = node.send;
-    assert(invariant(send,
+  visitNewSend(Send node, InterfaceType type) {
+    assert(invariant(node,
                      !compiler.enableTypeAssertions || !type.isMalformed,
                      message: '$type is malformed in checked mode'));
     bool isListConstructor = false;
     computeType(element) {
-      Element originalElement = elements[send];
+      Element originalElement = elements[node];
       if (Elements.isFixedListConstructorCall(
-              originalElement, send, compiler)) {
+              originalElement, node, compiler)) {
         isListConstructor = true;
         return HType.FIXED_ARRAY;
       } else if (Elements.isGrowableListConstructorCall(
-                    originalElement, send, compiler)) {
+                    originalElement, node, compiler)) {
         isListConstructor = true;
         return HType.EXTENDABLE_ARRAY;
       } else if (element.isGenerativeConstructor()) {
@@ -3269,14 +3320,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
-    Element constructor = elements[send];
-    Selector selector = elements.getSelector(send);
+    Element constructor = elements[node];
+    Selector selector = elements.getSelector(node);
     if (constructor.isForwardingConstructor) {
       compiler.unimplemented('forwarded constructor in named mixin application',
                              element: constructor.getEnclosingClass());
     }
     if (compiler.enqueuer.resolution.getCachedElements(constructor) == null) {
-      compiler.internalError("Unresolved element: $constructor", node: send);
+      compiler.internalError("Unresolved element: $constructor", node: node);
     }
     FunctionElement functionElement = constructor;
     constructor = functionElement.redirectionTarget;
@@ -3285,33 +3336,33 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     if (isSymbolConstructor) {
       constructor = compiler.symbolValidatedConstructor;
-      assert(invariant(send, constructor != null,
+      assert(invariant(node, constructor != null,
                        message: 'Constructor Symbol.validated is missing'));
       selector = compiler.symbolValidatedConstructorSelector;
-      assert(invariant(send, selector != null,
+      assert(invariant(node, selector != null,
                        message: 'Constructor Symbol.validated is missing'));
     }
 
     var inputs = <HInstruction>[];
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [addStaticSendArgumentsToList].
-    bool succeeded = addStaticSendArgumentsToList(selector, send.arguments,
+    bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
                                                   constructor.implementation,
                                                   inputs);
     if (!succeeded) {
-      generateWrongArgumentCountError(send, constructor, send.arguments);
+      generateWrongArgumentCountError(node, constructor, node.arguments);
       return;
     }
 
     ClassElement cls = constructor.getEnclosingClass();
     if (cls.isAbstract(compiler) && constructor.isGenerativeConstructor()) {
-      generateAbstractClassInstantiationError(send, cls.name.slowToString());
+      generateAbstractClassInstantiationError(node, cls.name.slowToString());
       return;
     }
     if (backend.needsRti(cls)) {
       Link<DartType> typeVariable = cls.typeVariables;
       type.typeArguments.forEach((DartType argument) {
-        inputs.add(analyzeTypeArgument(argument, send));
+        inputs.add(analyzeTypeArgument(argument, node));
         typeVariable = typeVariable.tail;
       });
       // Also add null to non-provided type variables to call the
@@ -3326,15 +3377,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       compiler.enqueuer.codegen.registerFactoryWithTypeArguments(elements);
     }
     HType elementType = computeType(constructor);
-    pushInvokeStatic(node, constructor, inputs, elementType);
-    HInstruction newInstance = stack.last;
+    HInstruction newInstance =
+        buildInvokeStatic(constructor, inputs, elementType);
+    pushWithPosition(newInstance, node);
 
     // The List constructor forwards to a Dart static method that does
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
     if (isListConstructor && backend.needsRti(compiler.listClass)) {
-      handleListConstructor(type, send, newInstance);
+      handleListConstructor(type, node, newInstance);
     }
   }
 
@@ -3358,6 +3410,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     compiler.ensure(!element.isGenerativeConstructor());
     if (element.isFunction()) {
+      bool isIdenticalFunction = element == compiler.identicalFunction;
+
+      if (!isIdenticalFunction
+          && tryInlineMethod(element, selector, node.arguments, null, node)) {
+        return;
+      }
+
       var inputs = <HInstruction>[];
       // TODO(5347): Try to avoid the need for calling [implementation] before
       // calling [addStaticSendArgumentsToList].
@@ -3369,12 +3428,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
 
-      if (element == compiler.identicalFunction) {
+      if (isIdenticalFunction) {
         pushWithPosition(new HIdentity(inputs[0], inputs[1]), node);
         return;
       }
 
-      pushInvokeStatic(node, element, inputs);
+      HInvokeStatic instruction =
+          buildInvokeStatic(element, inputs, HType.UNKNOWN);
+      HType returnType =
+          new HType.inferredReturnTypeForElement(element, compiler);
+      if (returnType.isUnknown()) {
+        // TODO(ngeoffray): Only do this if knowing the return type is
+        // useful.
+        returnType =
+            builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
+                currentElement, element);
+      }
+      if (returnType != null) instruction.instructionType = returnType;
+
+      pushWithPosition(instruction, node);
     } else {
       generateGetter(node, element);
       List<HInstruction> inputs = <HInstruction>[pop()];
@@ -3400,13 +3472,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (element.isTypeVariable()) {
       HInstruction value =
           addTypeVariableReference(element.computeType(compiler));
-      pushInvokeStatic(node,
-                       backend.getRuntimeTypeToString(),
-                       [value],
-                       HType.STRING);
-      pushInvokeStatic(node,
-                       backend.getCreateRuntimeType(),
-                       [pop(), value]);
+      pushInvokeHelper1(backend.getRuntimeTypeToString(),
+                        value, HType.STRING);
+      pushInvokeHelper1(backend.getCreateRuntimeType(),
+                        pop(), HType.UNKNOWN);
     } else {
       internalError('unexpected element kind $element', node: node);
     }
@@ -3435,7 +3504,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateError(Node node, String message, Element helper) {
     HInstruction errorMessage = addConstantString(node, message);
-    pushInvokeStatic(node, helper, [errorMessage]);
+    pushInvokeHelper1(helper, errorMessage, HType.UNKNOWN);
   }
 
   void generateRuntimeError(Node node, String message) {
@@ -3485,9 +3554,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       existingNamesList = graph.addConstantNull(constantSystem);
     }
-    pushInvokeStatic(diagnosticNode,
-                     helper,
-                     [receiver, name, arguments, existingNamesList]);
+    pushInvokeHelper4(
+        helper, receiver, name, arguments, existingNamesList, HType.UNKNOWN);
   }
 
   /**
@@ -3514,7 +3582,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction typeString = addConstantString(node, type.toString());
     HInstruction reasonsString = addConstantString(node, reasons);
     Element helper = backend.getThrowMalformedSubtypeError();
-    pushInvokeStatic(node, helper, [value, typeString, reasonsString]);
+    pushInvokeHelper3(helper, value, typeString, reasonsString, HType.UNKNOWN);
   }
 
   visitNewExpression(NewExpression node) {
@@ -3555,7 +3623,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         // TODO(karlklose): move this type registration to the codegen.
         compiler.codegenWorld.instantiatedTypes.add(type);
-        handleNewSend(node, type);
+        Send send = node.send;
+        Element constructor = elements[send];
+        Selector selector = elements.getSelector(send);
+        if (!tryInlineMethod(
+              constructor, selector, send.arguments, null, node)) {
+          visitNewSend(send, type);
+        }
       }
     }
   }
@@ -3643,35 +3717,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  void pushInvokeStatic(Node location,
-                        Element element,
-                        List<HInstruction> arguments,
-                        [HType type = null]) {
-    if (tryInlineMethod(element, null, null, arguments, location)) {
-      return;
-    }
-
+  HInstruction buildInvokeStatic(Element element,
+                                 List<HInstruction> inputs,
+                                 [HType type = null]) {
     if (type == null) {
       type = new HType.inferredReturnTypeForElement(element, compiler);
-      if (type.isUnknown()) {
-        // TODO(ngeoffray): Only do this if knowing the return type is
-        // useful.
-        type =
-            builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
-                currentElement, element);
-        if (type == null) type = HType.UNKNOWN;
-      }
     }
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HInvokeStatic].
     HInstruction instruction =
-        new HInvokeStatic(element.declaration, arguments, type);
+        new HInvokeStatic(element.declaration, inputs, type);
     instruction.sideEffects = compiler.world.getSideEffectsOfElement(element);
-    if (location == null) {
-      push(instruction);
-    } else {
-      pushWithPosition(instruction, location);
-    }
+    return instruction;
   }
 
   HInstruction buildInvokeSuper(Selector selector,
@@ -4202,7 +4259,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(keyValuePairs);
     HType mapType = new HType.nonNullSubtype(
         backend.mapLiteralClass.computeType(compiler), compiler);
-    pushInvokeStatic(node, backend.getMapMaker(), [keyValuePairs], mapType);
+    pushInvokeHelper1(backend.getMapMaker(), keyValuePairs, mapType);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
@@ -4362,7 +4419,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       localsHandler = new LocalsHandler.from(savedLocals);
       visit(switchCase.statements);
       if (!isAborted() && caseIterator.hasNext) {
-        pushInvokeStatic(switchCase, getFallThroughErrorElement, []);
+        pushInvokeHelper0(getFallThroughErrorElement, HType.UNKNOWN);
         HInstruction error = pop();
         closeAndGotoExit(new HThrow(error));
       }
@@ -4479,7 +4536,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.reportWarning(node, 'Missing break at end of switch case');
         Element element =
             compiler.findHelper(const SourceString("getFallThroughError"));
-        pushInvokeStatic(node, element, []);
+        pushInvokeHelper0(element, HType.UNKNOWN);
         HInstruction error = pop();
         closeAndGotoExit(new HThrow(error));
       }
@@ -4619,7 +4676,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
 
-      pushInvokeStatic(node, backend.getExceptionUnwrapper(), [exception]);
+      pushInvokeHelper1(
+          backend.getExceptionUnwrapper(), exception, HType.UNKNOWN);
       HInvokeStatic unwrappedException = pop();
       tryInstruction.exception = exception;
       Link<Node> link = node.catchBlocks.nodes;
@@ -4689,7 +4747,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         Node trace = catchBlock.trace;
         if (trace != null) {
-          pushInvokeStatic(trace, backend.getTraceFromException(), [exception]);
+          pushInvokeHelper1(
+              backend.getTraceFromException(), exception, HType.UNKNOWN);
           HInstruction traceInstruction = pop();
           localsHandler.updateLocal(elements[trace], traceInstruction);
         }

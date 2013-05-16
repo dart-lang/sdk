@@ -791,9 +791,7 @@ abstract class HInstruction implements Spannable {
   static const int IS_TYPECODE = 28;
   static const int INVOKE_DYNAMIC_TYPECODE = 29;
 
-  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[] {
-    assert(inputs.every((e) => e != null));
-  }
+  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
 
   int get hashCode => id;
 
@@ -801,7 +799,6 @@ abstract class HInstruction implements Spannable {
   void setUseGvn() { _useGvn = true; }
 
   void updateInput(int i, HInstruction insn) {
-    assert(insn != null);
     inputs[i] = insn;
   }
 
@@ -955,7 +952,6 @@ abstract class HInstruction implements Spannable {
   // Change all uses of [oldInput] by [this] to [newInput]. Also
   // updates the [usedBy] of [oldInput] and [newInput].
   void changeUse(HInstruction oldInput, HInstruction newInput) {
-    assert(newInput != null);
     for (int i = 0; i < inputs.length; i++) {
       if (identical(inputs[i], oldInput)) {
         inputs[i] = newInput;

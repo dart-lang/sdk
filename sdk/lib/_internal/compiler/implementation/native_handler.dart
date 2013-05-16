@@ -943,7 +943,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
     Element helper = builder.backend.getClosureConverter();
-    builder.pushInvokeStatic(nativeBody, helper, [local, arity]);
+    builder.pushInvokeHelper2(helper, local, arity, HType.UNKNOWN);
     HInstruction closure = builder.pop();
     return closure;
   }
