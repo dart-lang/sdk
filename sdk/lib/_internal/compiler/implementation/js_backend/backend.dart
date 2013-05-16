@@ -1133,11 +1133,11 @@ class JavaScriptBackend extends Backend {
 
     if (compiler.enableTypeAssertions) {
       // We need to register is checks for assignments to fields.
-      cls.forEachLocalMember((Element member) {
+      cls.forEachMember((Element enclosing, Element member) {
         if (!member.isInstanceMember() || !member.isField()) return;
         DartType type = member.computeType(compiler);
         enqueuer.registerIsCheck(type, elements);
-      });
+      }, includeSuperMembers: true);
     }
   }
 
