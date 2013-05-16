@@ -378,24 +378,31 @@ enum RtRegImm {
 
 
 enum Cop1Function {
-  COP1_ADD = 0,
-  COP1_MOV = 6,
-  COP1_CVT_D = 0x21,  // 100001
-  COP1_C_F = 0x30,    // 110000
-  COP1_C_UN = 0x31,   // 110001
-  COP1_C_EQ = 0x32,   // 110010
-  COP1_C_UEQ = 0x33,  // 110011
-  COP1_C_OLT = 0x34,  // 110100
-  COP1_C_ULT = 0x35,  // 110101
-  COP1_C_OLE = 0x36,  // 110110
-  COP1_C_ULE = 0x37,  // 110111
+  COP1_ADD = 0x00,
+  COP1_SUB = 0x01,
+  COP1_MUL = 0x02,
+  COP1_DIV = 0x03,
+  COP1_SQRT = 0x04,
+  COP1_MOV = 0x06,
+  COP1_CVT_D = 0x21,
+  COP1_CVT_W = 0x24,
+  COP1_C_F = 0x30,
+  COP1_C_UN = 0x31,
+  COP1_C_EQ = 0x32,
+  COP1_C_UEQ = 0x33,
+  COP1_C_OLT = 0x34,
+  COP1_C_ULT = 0x35,
+  COP1_C_OLE = 0x36,
+  COP1_C_ULE = 0x37,
 };
+
 
 enum Cop1Sub {
   COP1_MF = 0,
   COP1_MT = 4,
   COP1_BC = 8,
 };
+
 
 enum Format {
   FMT_S = 16,
@@ -404,6 +411,7 @@ enum Format {
   FMT_L = 21,
   FMT_PS = 22,
 };
+
 
 class Instr {
  public:

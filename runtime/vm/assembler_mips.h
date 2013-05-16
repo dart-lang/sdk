@@ -454,8 +454,21 @@ class Assembler : public ValueObject {
     EmitFpuRType(COP1, FMT_L, F0, fs, fd, COP1_CVT_D);
   }
 
+  void cvtwd(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(fd));
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_W);
+  }
+
   void div(Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, R0, 0, DIV);
+  }
+
+  void divd(FRegister fd, FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_DIV);
   }
 
   void divu(Register rs, Register rt) {
@@ -554,6 +567,13 @@ class Assembler : public ValueObject {
          fs << kFsShift);
   }
 
+  void muld(FRegister fd, FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_MUL);
+  }
+
   void mult(Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, R0, 0, MULT);
   }
@@ -609,6 +629,12 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, rd, 0, SLTU);
   }
 
+  void sqrtd(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_SQRT);
+  }
+
   void sra(Register rd, Register rt, int sa) {
     EmitRType(SPECIAL, R0, rt, rd, sa, SRA);
   }
@@ -623,6 +649,13 @@ class Assembler : public ValueObject {
 
   void srlv(Register rd, Register rt, Register rs) {
     EmitRType(SPECIAL, rs, rt, rd, 0, SRLV);
+  }
+
+  void subd(FRegister fd, FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_SUB);
   }
 
   void subu(Register rd, Register rs, Register rt) {

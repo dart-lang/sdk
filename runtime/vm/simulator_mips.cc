@@ -1388,6 +1388,30 @@ void Simulator::DecodeCop1(Instr* instr) {
         set_fregister_double(instr->FdField(), fs_val + ft_val);
         break;
       }
+      case COP1_SUB: {
+        // Format(instr, "sub.'fmt 'fd, 'fs, 'ft");
+        ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
+        set_fregister_double(instr->FdField(), fs_val - ft_val);
+        break;
+      }
+      case COP1_MUL: {
+        // Format(instr, "mul.'fmt 'fd, 'fs, 'ft");
+        ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
+        set_fregister_double(instr->FdField(), fs_val * ft_val);
+        break;
+      }
+      case COP1_DIV: {
+        // Format(instr, "div.'fmt 'fd, 'fs, 'ft");
+        ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
+        set_fregister_double(instr->FdField(), fs_val / ft_val);
+        break;
+      }
+      case COP1_SQRT: {
+        // Format(instr, "sqrt.'fmt 'fd, 'fs");
+        ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
+        set_fregister_double(instr->FdField(), sqrt(fs_val));
+        break;
+      }
       case COP1_MOV: {
         // Format(instr, "mov.'fmt 'fd, 'fs");
         ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
@@ -1457,6 +1481,22 @@ void Simulator::DecodeCop1(Instr* instr) {
             int64_t fs_int = get_fregister_long(instr->FsField());
             double fs_dbl = static_cast<double>(fs_int);
             set_fregister_double(instr->FdField(), fs_dbl);
+            break;
+          }
+          default: {
+            OS::PrintErr("DecodeCop1: 0x%x\n", instr->InstructionBits());
+            UnimplementedInstruction(instr);
+            break;
+          }
+        }
+        break;
+      }
+      case COP1_CVT_W: {
+        switch (instr->FormatField()) {
+          case FMT_D: {
+            double fs_dbl = get_fregister_double(instr->FsField());
+            int32_t fs_int = static_cast<int32_t>(fs_dbl);
+            set_fregister(instr->FdField(), fs_int);
             break;
           }
           default: {

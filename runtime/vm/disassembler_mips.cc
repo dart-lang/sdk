@@ -486,6 +486,22 @@ void MIPSDecoder::DecodeCop1(Instr* instr) {
         Format(instr, "add.'fmt 'fd, 'fs, 'ft");
         break;
       }
+      case COP1_SUB: {
+        Format(instr, "sub.'fmt 'fd, 'fs, 'ft");
+        break;
+      }
+      case COP1_MUL: {
+        Format(instr, "mul.'fmt 'fd, 'fs, 'ft");
+        break;
+      }
+      case COP1_DIV: {
+        Format(instr, "div.'fmt 'fd, 'fs, 'ft");
+        break;
+      }
+      case COP1_SQRT: {
+        Format(instr, "sqrt.'fmt 'fd, 'fs");
+        break;
+      }
       case COP1_MOV: {
         Format(instr, "mov.'fmt 'fd, 'fs");
         break;
@@ -524,6 +540,10 @@ void MIPSDecoder::DecodeCop1(Instr* instr) {
       }
       case COP1_CVT_D: {
         Format(instr, "cvt.d.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_CVT_W: {
+        Format(instr, "cvt.w.'fmt 'fd, 'fs");
         break;
       }
       default: {

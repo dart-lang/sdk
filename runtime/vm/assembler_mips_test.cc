@@ -1282,6 +1282,77 @@ ASSEMBLER_TEST_RUN(Addd_Inf, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Subd, assembler) {
+  __ LoadImmediate(F0, 2.5);
+  __ LoadImmediate(F2, 1.5);
+  __ subd(F4, F0, F2);
+  __ mfc1(V0, F4);
+  __ mfc1(V1, F5);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Subd, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(1.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Muld, assembler) {
+  __ LoadImmediate(F0, 6.0);
+  __ LoadImmediate(F2, 7.0);
+  __ muld(F4, F0, F2);
+  __ mfc1(V0, F4);
+  __ mfc1(V1, F5);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Muld, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(42.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Divd, assembler) {
+  __ LoadImmediate(F0, 42.0);
+  __ LoadImmediate(F2, 7.0);
+  __ divd(F4, F0, F2);
+  __ mfc1(V0, F4);
+  __ mfc1(V1, F5);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Divd, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(6.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sqrtd, assembler) {
+  __ LoadImmediate(F0, 36.0);
+  __ sqrtd(F4, F0);
+  __ mfc1(V0, F4);
+  __ mfc1(V1, F5);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sqrtd, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(6.0, res, 0.001);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Cop1CUN, assembler) {
   Label is_true;
 
@@ -1555,6 +1626,36 @@ ASSEMBLER_TEST_RUN(Cop1CvtDL_neg, test) {
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(-1.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CvtWD, assembler) {
+  __ LoadImmediate(F0, 42.0);
+  __ cvtwd(F2, F0);
+  __ mfc1(V0, F2);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CvtWD, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1CvtWD_neg, assembler) {
+  __ LoadImmediate(F0, -42.0);
+  __ cvtwd(F2, F0);
+  __ mfc1(V0, F2);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CvtWD_neg, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 
