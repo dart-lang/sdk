@@ -488,7 +488,7 @@ class Debugger {
   }
 
   void close({killDebugee: false}) {
-    void exit() {
+    void printErrorsAndExit() {
       if (errorsDetected) throw "Errors detected";
       exit(errors.length);
     }
@@ -498,7 +498,7 @@ class Debugger {
     if (socket != null) {
       socket.close().catchError((error) {
         print("Error occured while closing socket: $error");
-      };
+      });
     }
     if (killDebugee) {
       if (!targetProcess.kill()) {
@@ -510,10 +510,10 @@ class Debugger {
       // available and we call exit() in the next event loop cycle.
       // Otherwise this will wait for the process to exit.
       targetProcess.exitCode.then((exitCode) {
-        exit();
+        printErrorsAndExit();
       });
     } else {
-      exit();
+      printErrorsAndExit();
     }
   }
 }
