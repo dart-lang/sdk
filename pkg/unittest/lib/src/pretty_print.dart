@@ -26,7 +26,7 @@ String prettyPrint(object, {int maxLineLength, int maxItems}) {
 
     if (object is Iterable) {
       // Print the type name for non-List iterables.
-      var typeName = object is List ? "" : typeName(object) + ":";
+      var type = object is List ? "" : typeName(object) + ":";
 
       // Truncate the list of strings if it's longer than [maxItems].
       var strings = object.map(pp).toList();
@@ -36,7 +36,7 @@ String prettyPrint(object, {int maxLineLength, int maxItems}) {
 
       // If the printed string is short and doesn't contain a newline, print it
       // as a single line.
-      var singleLine = "$typeName[${strings.join(', ')}]";
+      var singleLine = "$type[${strings.join(', ')}]";
       if ((maxLineLength == null ||
               singleLine.length + indent <= maxLineLength) &&
           !singleLine.contains("\n")) {
@@ -44,7 +44,7 @@ String prettyPrint(object, {int maxLineLength, int maxItems}) {
       }
 
       // Otherwise, print each member on its own line.
-      return "$typeName[\n" + strings.map((string) {
+      return "$type[\n" + strings.map((string) {
         return _indent(indent + 2) + string;
       }).join(",\n") + "\n" + _indent(indent) + "]";
     } else if (object is Map) {
