@@ -2297,8 +2297,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
     Element element = scope.lookup(new SourceString(typeName));
     if (element == null) return null;
     if (element is! ClassElement) return null;
-    element.ensureResolved(compiler);
-    return element.computeType(compiler);
+    ClassElement cls = element;
+    cls.ensureResolved(compiler);
+    return cls.computeType(compiler);
   }
 
   visitSendSet(SendSet node) {

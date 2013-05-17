@@ -360,20 +360,20 @@ abstract class Compiler implements DiagnosticListener {
         pleaseReportCrash();
       }
       hasCrashed = true;
-      throw;
+      rethrow;
     } on CompilerCancelledException catch (ex) {
-      throw;
+      rethrow;
     } on StackOverflowError catch (ex) {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
-      throw;
+      rethrow;
     } catch (ex) {
       try {
         unhandledExceptionOnElement(element);
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      throw;
+      rethrow;
     } finally {
       _currentElement = old;
     }
@@ -613,7 +613,7 @@ abstract class Compiler implements DiagnosticListener {
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      throw;
+      rethrow;
     } finally {
       tracer.close();
       totalCompileTime.stop();

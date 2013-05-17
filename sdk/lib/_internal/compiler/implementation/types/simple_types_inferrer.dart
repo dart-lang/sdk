@@ -1001,22 +1001,20 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    switch (selector.name) {
-      case const SourceString('*'):
-      case const SourceString('+'):
-      case const SourceString('%'):
-      case const SourceString('remainder'):
+    SourceString name = selector.name;
+    if (name == const SourceString('*')
+        || name == const SourceString('+')
+        || name == const SourceString('%')
+        || name == const SourceString('remainder')) {
         return arguments.hasOnePositionalArgumentWithType(intType)
             ? intType
             : null;
-
-      case const SourceString('-'):
-        if (arguments.hasNoArguments()) return intType;
-        if (arguments.hasOnePositionalArgumentWithType(intType)) return intType;
-        return null;
-
-      case const SourceString('abs'):
-        return arguments.hasNoArguments() ? intType : null;
+    } else if (name == const SourceString('-')) {
+      if (arguments.hasNoArguments()) return intType;
+      if (arguments.hasOnePositionalArgumentWithType(intType)) return intType;
+      return null;
+    } else if (name == const SourceString('abs')) {
+      return arguments.hasNoArguments() ? intType : null;
     }
     return null;
   }

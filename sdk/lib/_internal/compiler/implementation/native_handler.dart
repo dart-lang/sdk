@@ -725,8 +725,9 @@ class NativeBehavior {
       Element e = element.buildScope().lookup(new SourceString(name));
       if (e == null) return null;
       if (e is! ClassElement) return null;
-      e.ensureResolved(compiler);
-      return e.computeType(compiler);
+      ClassElement cls = e;
+      cls.ensureResolved(compiler);
+      return cls.computeType(compiler);
     }
 
     NativeEnqueuerBase enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
