@@ -2773,18 +2773,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitIsSend(Send node) {
-    Node argument = node.arguments.head;
     visit(node.receiver);
     HInstruction expression = pop();
-    TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
-    bool isNot = false;
-    // TODO(ngeoffray): Duplicating pattern in resolver. We should
-    // add a new kind of node.
-    if (typeAnnotation == null) {
-      typeAnnotation = argument.asSend().receiver;
-      isNot = true;
-    }
-    DartType type = elements.getType(typeAnnotation);
+    bool isNot = node.isIsNotCheck;
+    DartType type = elements.getType(node.typeAnnotationFromIsCheck);
     if (type.isMalformed) {
       String reasons = Types.fetchReasonsFromMalformedType(type);
       if (compiler.enableTypeAssertions) {

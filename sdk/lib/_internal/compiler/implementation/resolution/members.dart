@@ -2076,16 +2076,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return target;
   }
 
-  DartType resolveTypeTest(Node argument) {
-    TypeAnnotation node = argument.asTypeAnnotation();
-    if (node == null) {
-      // node is of the form !Type.
-      node = argument.asSend().receiver.asTypeAnnotation();
-      if (node == null) compiler.cancel("malformed send");
-    }
-    return resolveTypeRequired(node);
-  }
-
   static Selector computeSendSelector(Send node,
                                       LibraryElement library,
                                       Element element) {
@@ -2218,15 +2208,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
-      if (operatorString == 'is' || operatorString == 'as') {
-        assert(node.arguments.tail.isEmpty);
-        DartType type = resolveTypeTest(node.arguments.head);
+      if (operatorString == 'is') {
+        DartType type = resolveTypeRequired(node.typeAnnotationFromIsCheck);
         if (type != null) {
-          if (operatorString == 'as') {
-            compiler.enqueuer.resolution.registerAsCheck(type, mapping);
-          } else {
-            compiler.enqueuer.resolution.registerIsCheck(type, mapping);
-          }
+          compiler.enqueuer.resolution.registerIsCheck(type, mapping);
+        }
+        resolvedArguments = true;
+      } else if (operatorString == 'as') {
+        DartType type = resolveTypeRequired(node.arguments.head);
+        if (type != null) {
+          compiler.enqueuer.resolution.registerAsCheck(type, mapping);
         }
         resolvedArguments = true;
       } else if (identical(operatorString, '?')) {

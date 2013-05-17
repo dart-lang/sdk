@@ -90,7 +90,6 @@ class HTypeList {
     HTypeList result = new HTypeList(node.inputs.length);
     for (int i = 0; i < result.types.length; i++) {
       result.types[i] = node.inputs[i].instructionType;
-      assert(!result.types[i].isConflicting());
     }
     return result;
   }
@@ -116,7 +115,6 @@ class HTypeList {
 
     for (int i = 0; i < result.types.length; i++) {
       result.types[i] = node.inputs[i + startInvokeIndex].instructionType;
-      assert(!result.types[i].isConflicting());
     }
     return result;
   }
@@ -278,7 +276,6 @@ class FieldTypesRegistry {
                          Element field,
                          HType type) {
     assert(field.isField());
-    assert(!type.isConflicting());
     HType before = optimisticFieldType(field);
 
     HType oldType = typeMap[field];

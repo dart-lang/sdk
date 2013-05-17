@@ -115,6 +115,10 @@ class SentinelTypeMask extends FlatTypeMask {
 
   bool get isNullable => true;
 
+  TypeMask intersection(TypeMask other, Compiler compiler) {
+    return other;
+  }
+
   String toString() => '$name sentinel type mask';
 }
 
@@ -1244,6 +1248,26 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       return union.containsAll(compiler) ? dynamicType : union;
     }
   }
+
+  TypeMask narrowType(TypeMask type,
+                      DartType annotation,
+                      {bool isNullable: true}) {
+    if (annotation.isDynamic) return type;
+    if (annotation.isMalformed) return type;
+    if (annotation.element == compiler.objectClass) return type;
+    TypeMask otherType;
+    if (annotation.kind == TypeKind.TYPEDEF
+        || annotation.kind == TypeKind.FUNCTION) {
+      otherType = functionType;
+    } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
+      return type;
+    } else {
+      assert(annotation.kind == TypeKind.INTERFACE);
+      otherType = new TypeMask.nonNullSubtype(annotation);
+    }
+    if (isNullable) otherType = otherType.nullable();
+    return type.intersection(otherType, compiler);
+  }
 }
 
 /**
@@ -1415,6 +1439,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
+  bool accumulateIsChecks = false;
+  List<Send> isChecks;
   int loopLevel = 0;
   SideEffects sideEffects = new SideEffects.empty();
 
@@ -2005,35 +2031,68 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return new ArgumentsTypes(positional, named);
   }
 
+  void potentiallyAddIsCheck(Send node) {
+    if (!accumulateIsChecks) return;
+    if (!Elements.isLocal(elements[node.receiver])) return;
+    isChecks.add(node);
+  }
+
+  void updateIsChecks(List<Node> tests, {bool usePositive}) {
+    if (tests == null) return;
+    for (Send node in tests) {
+      if (node.isIsNotCheck) {
+        if (usePositive) continue;
+      } else {
+        if (!usePositive) continue;
+      }
+      DartType type = elements.getType(node.typeAnnotationFromIsCheck);
+      Element element = elements[node.receiver];
+      TypeMask existing = locals.use(element);
+      TypeMask newType = inferrer.narrowType(existing, type, isNullable: false);
+      locals.update(element, newType);
+    }
+  }
+
   TypeMask visitOperatorSend(Send node) {
     Operator op = node.selector;
     if (const SourceString("[]") == op.source) {
       return visitDynamicSend(node);
-    } else if (const SourceString("&&") == op.source ||
-               const SourceString("||") == op.source) {
+    } else if (const SourceString("&&") == op.source) {
+      bool oldAccumulateIsChecks = accumulateIsChecks;
+      accumulateIsChecks = true;
+      if (isChecks == null) isChecks = <Send>[];
+      visit(node.receiver);
+      accumulateIsChecks = oldAccumulateIsChecks;
+      if (!accumulateIsChecks) isChecks = null;
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      updateIsChecks(isChecks, usePositive: true);
+      visit(node.arguments.head);
+      locals.merge(saved);
+      return inferrer.boolType;
+    } else if (const SourceString("||") == op.source) {
       visit(node.receiver);
       LocalsHandler saved = new LocalsHandler.from(locals);
+      updateIsChecks(isChecks, usePositive: false);
+      bool oldAccumulateIsChecks = accumulateIsChecks;
+      accumulateIsChecks = false;
       visit(node.arguments.head);
-      saved.merge(locals);
-      locals = saved;
+      accumulateIsChecks = oldAccumulateIsChecks;
+      locals.merge(saved);
       return inferrer.boolType;
     } else if (const SourceString("!") == op.source) {
+      bool oldAccumulateIsChecks = accumulateIsChecks;
+      accumulateIsChecks = false;
       node.visitChildren(this);
+      accumulateIsChecks = oldAccumulateIsChecks;
       return inferrer.boolType;
     } else if (const SourceString("is") == op.source) {
+      potentiallyAddIsCheck(node);
       node.visitChildren(this);
       return inferrer.boolType;
     } else if (const SourceString("as") == op.source) {
       TypeMask receiverType = visit(node.receiver);
       DartType type = elements.getType(node.arguments.head);
-      if (type.isDynamic) return receiverType;
-      TypeMask asType = type.kind == TypeKind.TYPEDEF
-          ? inferrer.functionType.nullable()
-          : new TypeMask.subtype(type);
-      // TODO(ngeoffray): Remove when inferrer.dynamicType is a proper
-      // TypeMask.
-      if (inferrer.isDynamicType(receiverType)) return asType;
-      return receiverType.intersection(asType, compiler);
+      return inferrer.narrowType(receiverType, type);
     } else if (node.isParameterCheck) {
       node.visitChildren(this);
       return inferrer.boolType;
@@ -2202,12 +2261,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitConditional(Conditional node) {
-    node.condition.accept(this);
+    List<Send> tests = handleCondition(node.condition);
     LocalsHandler saved = new LocalsHandler.from(locals);
-    TypeMask firstType = node.thenExpression.accept(this);
+    updateIsChecks(tests, usePositive: true);
+    TypeMask firstType = visit(node.thenExpression);
     LocalsHandler thenLocals = locals;
     locals = saved;
-    TypeMask secondType = node.elseExpression.accept(this);
+    updateIsChecks(tests, usePositive: false);
+    TypeMask secondType = visit(node.elseExpression);
     locals.merge(thenLocals);
     TypeMask type = inferrer.computeLUB(firstType, secondType);
     return type;
@@ -2228,12 +2289,26 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return inferrer.dynamicType;
   }
 
+  List<Send> handleCondition(Node node) {
+    bool oldAccumulateIsChecks = accumulateIsChecks;
+    List<Send> oldIsChecks = isChecks;
+    List<Send> tests = <Send>[];
+    accumulateIsChecks = true;
+    isChecks = tests;
+    visit(node);
+    accumulateIsChecks = oldAccumulateIsChecks;
+    isChecks = oldIsChecks;
+    return tests;
+  }
+
   TypeMask visitIf(If node) {
-    visit(node.condition);
+    List<Send> tests = handleCondition(node.condition);
     LocalsHandler saved = new LocalsHandler.from(locals);
+    updateIsChecks(tests, usePositive: true);
     visit(node.thenPart);
     LocalsHandler thenLocals = locals;
     locals = saved;
+    updateIsChecks(tests, usePositive: false);
     visit(node.elsePart);
     locals.merge(thenLocals);
     return inferrer.dynamicType;
@@ -2244,7 +2319,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     bool changed = false;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
-      visit(node.condition);
+      List<Send> tests = handleCondition(node.condition);
+      updateIsChecks(tests, usePositive: true);
       visit(node.body);
       changed = saved.merge(locals);
       locals = saved;
@@ -2259,7 +2335,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
       visit(node.body);
-      visit(node.condition);
+      List<Send> tests = handleCondition(node.condition);
+      updateIsChecks(tests, usePositive: true);
       changed = saved.merge(locals);
       locals = saved;
     } while (changed);
@@ -2273,7 +2350,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     loopLevel++;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
-      visit(node.condition);
+      List<Send> tests = handleCondition(node.condition);
+      updateIsChecks(tests, usePositive: true);
       visit(node.body);
       visit(node.update);
       changed = saved.merge(locals);
