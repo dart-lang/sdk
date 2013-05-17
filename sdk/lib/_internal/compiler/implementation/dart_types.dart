@@ -521,7 +521,9 @@ class InterfaceType extends GenericType {
     ClassElement classElement = element;
     InterfaceType receiver = this;
     InterfaceType declarer = receiver;
-    Element member = classElement.lookupLocalMember(name);
+    // TODO(johnniwinther): Lookup and callers should handle private members and
+    // injected members.
+    Element member = classElement.implementation.lookupLocalMember(name);
     if (member != null) {
       return createMember(receiver, declarer, member);
     }
@@ -533,7 +535,7 @@ class InterfaceType extends GenericType {
       if (supertype.element.isMixinApplication) continue;
       declarer = supertype;
       ClassElement lookupTarget = declarer.element;
-      member = lookupTarget.lookupLocalMember(name);
+      member = lookupTarget.implementation.lookupLocalMember(name);
       if (member != null) {
         return createMember(receiver, declarer, member);
       }

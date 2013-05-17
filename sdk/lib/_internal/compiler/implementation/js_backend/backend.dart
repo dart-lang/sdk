@@ -1195,6 +1195,8 @@ class JavaScriptBackend extends Backend {
 
   void registerTypeLiteral(TreeElements elements) {
     enqueueInResolution(getCreateRuntimeType(), elements);
+    compiler.enqueuer.resolution.registerInstantiatedClass(
+        compiler.typeClass, elements);
   }
 
   void registerStackTraceInCatch(TreeElements elements) {

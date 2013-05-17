@@ -78,10 +78,17 @@ class MockFile extends SourceFile {
       : super('<string>', text);
 }
 
+var sourceCounter = 0;
+
 Link<Element> parseUnit(String text, Compiler compiler,
-                        LibraryElement library) {
+                        LibraryElement library,
+                        [void registerSource(Uri uri, String source)]) {
   Token tokens = scan(text);
-  Uri uri = new Uri.fromComponents(scheme: "source");
+  Uri uri =
+      new Uri.fromComponents(scheme: "source", path: '${++sourceCounter}');
+  if (registerSource != null) {
+    registerSource(uri, text);
+  }
   var script = new Script(uri, new MockFile(text));
   var unit = new CompilationUnitElementX(script, library);
   int id = 0;

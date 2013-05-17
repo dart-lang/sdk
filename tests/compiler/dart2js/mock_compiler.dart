@@ -172,6 +172,7 @@ const String DEFAULT_ISOLATE_HELPERLIB = r'''
   class _WorkerBase {}''';
 
 class MockCompiler extends Compiler {
+  api.DiagnosticHandler diagnosticHandler;
   List<WarningMessage> warnings;
   List<WarningMessage> errors;
   final Map<String, SourceFile> sourceFiles;
@@ -255,6 +256,8 @@ class MockCompiler extends Compiler {
   void reportWarning(Node node, var message) {
     if (message is! Message) message = message.message;
     warnings.add(new WarningMessage(node, message));
+    reportDiagnostic(spanFromNode(node),
+        'Warning: $message', api.Diagnostic.WARNING);
   }
 
   void reportError(Node node, var message) {
@@ -264,6 +267,8 @@ class MockCompiler extends Compiler {
     }
     if (message is! Message) message = message.message;
     errors.add(new WarningMessage(node, message));
+    reportDiagnostic(spanFromNode(node),
+        'Error: $message', api.Diagnostic.ERROR);
   }
 
   void reportMessage(SourceSpan span, var message, api.Diagnostic kind) {
@@ -273,10 +278,17 @@ class MockCompiler extends Compiler {
     } else {
       warnings.add(diagnostic);
     }
+    reportDiagnostic(span, "$message", kind);
   }
 
-  void reportDiagnostic(SourceSpan span, String message, var kind) {
-    print(message);
+  void reportDiagnostic(SourceSpan span, String message, api.Diagnostic kind) {
+    if (diagnosticHandler != null) {
+      if (span != null) {
+        diagnosticHandler(span.uri, span.begin, span.end, message, kind);
+      } else {
+        diagnosticHandler(null, null, null, message, kind);
+      }
+    }
   }
 
   bool get compilationFailed => !errors.isEmpty;
@@ -318,7 +330,7 @@ class MockCompiler extends Compiler {
 
   parseScript(String text, [LibraryElement library]) {
     if (library == null) library = mainApp;
-    parseUnit(text, this, library);
+    parseUnit(text, this, library, registerSource);
   }
 
   void scanBuiltinLibraries() {
