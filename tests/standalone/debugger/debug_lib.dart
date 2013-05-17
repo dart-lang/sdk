@@ -179,7 +179,7 @@ class Command {
     var id = template["id"];
     assert(id != null && id >= 0);
     if (response["id"] != id) {
-      debugger.error("Expected messaged id $id but got ${response["id"]}.");
+      debugger.error("Error: expected messaged id $id but got ${response["id"]}.");
     }
   }
 }
@@ -207,7 +207,7 @@ class FrameMatcher extends Command {
       }
     }
     if (frames.length < functionNames.length) {
-      debugger.error("stack trace not long enough "
+      debugger.error("Error: stack trace not long enough "
                      "to match ${functionNames.length} frames");
       return;
     }
@@ -216,7 +216,7 @@ class FrameMatcher extends Command {
       var name = frames[idx]["functionName"];
       assert(name != null);
       if (name != functionNames[i]) {
-        debugger.error("call frame $idx: "
+        debugger.error("Error: call frame $idx: "
           "expected function name '${functionNames[i]}' but found '$name'");
         return;
       }
@@ -305,6 +305,7 @@ class Debugger {
   int seqNr = 0;  // Sequence number of next debugger command message.
   Command lastCommand = null;  // Most recent command sent to target.
   List<String> errors = new List();
+  bool cleanupDone = false;
 
   // Data collected from debug target.
   Map currentMessage = null;  // Currently handled message sent by target.
@@ -344,7 +345,7 @@ class Debugger {
         print("Debuggee isolate id ${msg["params"]["id"]} shut down.");
         shutdownEventSeen = true;
         if (!script.isEmpty) {
-          error("Premature isolate shutdown event seen.");
+          error("Error: premature isolate shutdown event seen.");
         }
       }
     } else if (msg["event"] == "breakpointResolved") {
@@ -360,7 +361,7 @@ class Debugger {
     } else if (msg["event"] == "paused") {
       isPaused = true;
     } else {
-      error("unknown debugger event received");
+      error("Error: unknown debugger event received");
     }
   }
 
@@ -409,7 +410,7 @@ class Debugger {
       if (responses.haveGarbage()) {
         error("Error: leftover text after message: '${responses.buffer}'");
         error("Previous message may be malformed, was: '$msg'");
-        close(killDebugee: true);
+        cleanup();
         return;
       }
       var msgObj = JSON.parse(msg);
@@ -417,11 +418,11 @@ class Debugger {
       if (errorsDetected) {
         error("Error while handling script entry");
         error("Message received from debug target: $msg");
-        close(killDebugee: true);
+        cleanup();
         return;
       }
       if (shutdownEventSeen) {
-        close();
+        cleanup();
         return;
       }
       if (isPaused) sendNextCommand();
@@ -464,18 +465,18 @@ class Debugger {
               handleMessages();
             } catch(e, trace) {
               print("Unexpected exception:\n$e\n$trace");
-              close(killDebugee: true);
+              cleanup();
             }
           },
           onDone: () {
             print("Connection closed by debug target");
-            close(killDebugee: true);
+            cleanup();
           },
           onError: (e) {
             print("Error '$e' detected in input stream from debug target");
             var trace = getAttachedStackTrace(e);
             if (trace != null) print("StackTrace: $trace");
-            close(killDebugee: true);
+            cleanup();
           });
       },
       onError: (e) {
@@ -483,38 +484,34 @@ class Debugger {
         var trace = getAttachedStackTrace(e);
         if (trace != null) msg += "\nStackTrace: $trace";
         error(msg);
-        close(killDebugee: true);
+        cleanup();
       });
   }
 
-  void close({killDebugee: false}) {
-    void printErrorsAndExit() {
-      if (errorsDetected) throw "Errors detected";
-      exit(errors.length);
-    }
-    if (errorsDetected) {
-      for (int i = 0; i < errors.length; i++) print(errors[i]);
-    }
+  void cleanup() {
+    if (cleanupDone) return;
     if (socket != null) {
       socket.close().catchError((error) {
-        print("Error occured while closing socket: $error");
+        // Print this directly in addition to adding it to the
+        // error message queue, in case the error message queue
+        // gets printed before this error handler is called.
+        print("Error occurred while closing socket: $error");
+        error("Error while closing socket: $error");
       });
     }
-    if (killDebugee) {
-      if (!targetProcess.kill()) {
-        print("Could not send kill signal to target process.");
-      } else {
-        print("Successfully sent kill signal to target process.");
+    targetProcess.kill();
+    // If the process was already dead exitCode is already
+    // available and we call exit() in the next event loop cycle.
+    // Otherwise this will wait for the process to exit.
+    targetProcess.exitCode.then((exitCode) {
+      if (errorsDetected) {
+        print("\n===== Errors detected: =====");
+        for (int i = 0; i < errors.length; i++) print(errors[i]);
+        print("============================\n");
       }
-      // If the process was already dead exitCode is already
-      // available and we call exit() in the next event loop cycle.
-      // Otherwise this will wait for the process to exit.
-      targetProcess.exitCode.then((exitCode) {
-        printErrorsAndExit();
-      });
-    } else {
-      printErrorsAndExit();
-    }
+      exit(errors.length);
+    });
+    cleanupDone = true;
   }
 }
 
