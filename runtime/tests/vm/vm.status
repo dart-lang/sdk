@@ -81,3 +81,8 @@ dart/inline_stack_frame_test: Skip
 cc/CustomIsolates: Skip # Bug 6890
 cc/NewNativePort: Skip # Bug 6890
 cc/RunLoop_ExceptionParent: Skip # Bug 6890
+
+[ $compiler == dartanalyzer ]
+# has compilation error, as designed
+dart/isolate_mirror_local_test: fail
+
