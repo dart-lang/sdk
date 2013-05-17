@@ -3,16 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/util/util.dart';
-import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
 import 'mock_compiler.dart';
 import 'parser_helper.dart';
 
 import '../../../sdk/lib/_internal/compiler/implementation/elements/modelx.dart'
-    show ElementX, CompilationUnitElementX;
+    show ElementX;
 
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     hide SourceString;
@@ -40,8 +38,7 @@ main() {
                 // testNewExpression,
                 testConditionalExpression,
                 testIfStatement,
-                testThis,
-                testOperatorsAssignability];
+                testThis];
   for (Function test in tests) {
     setup();
     test();
@@ -114,22 +111,19 @@ testOperators() {
     analyze("{ var i = 1 ${op} 2; }");
     analyze("{ var i = 1; i ${op}= 2; }");
     analyze("{ int i; var j = (i = true) ${op} 2; }",
-            [MessageKind.NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+            MessageKind.NOT_ASSIGNABLE);
     analyze("{ int i; var j = 1 ${op} (i = true); }",
-            [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+            MessageKind.NOT_ASSIGNABLE);
   }
   for (final op in ['-', '~']) {
     analyze("{ var i = ${op}1; }");
-    analyze("{ int i; var j = ${op}(i = true); }",
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+    analyze("{ int i; var j = ${op}(i = true); }", MessageKind.NOT_ASSIGNABLE);
   }
   for (final op in ['++', '--']) {
     analyze("{ int i = 1; int j = i${op}; }");
     analyze("{ int i = 1; bool j = i${op}; }", MessageKind.NOT_ASSIGNABLE);
-    analyze("{ bool b = true; bool j = b${op}; }",
-        MessageKind.OPERATOR_NOT_FOUND);
-    analyze("{ bool b = true; int j = ${op}b; }",
-        MessageKind.OPERATOR_NOT_FOUND);
+    analyze("{ bool b = true; bool j = b${op}; }");
+    analyze("{ bool b = true; int j = ${op}b; }");
   }
   for (final op in ['||', '&&']) {
     analyze("{ bool b = (true ${op} false); }");
@@ -137,21 +131,13 @@ testOperators() {
     analyze("{ bool b = (1 ${op} false); }", MessageKind.NOT_ASSIGNABLE);
     analyze("{ bool b = (true ${op} 2); }", MessageKind.NOT_ASSIGNABLE);
   }
-  for (final op in ['>', '<', '<=', '>=']) {
+  for (final op in ['>', '<', '<=', '>=', '==', '!=']) {
     analyze("{ bool b = 1 ${op} 2; }");
     analyze("{ int i = 1 ${op} 2; }", MessageKind.NOT_ASSIGNABLE);
     analyze("{ int i; bool b = (i = true) ${op} 2; }",
-            [MessageKind.NOT_ASSIGNABLE, MessageKind.OPERATOR_NOT_FOUND]);
+            MessageKind.NOT_ASSIGNABLE);
     analyze("{ int i; bool b = 1 ${op} (i = true); }",
-            [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
-  }
-  for (final op in ['==', '!=']) {
-    analyze("{ bool b = 1 ${op} 2; }");
-    analyze("{ int i = 1 ${op} 2; }", MessageKind.NOT_ASSIGNABLE);
-    analyze("{ int i; bool b = (i = true) ${op} 2; }",
-        MessageKind.NOT_ASSIGNABLE);
-    analyze("{ int i; bool b = 1 ${op} (i = true); }",
-        MessageKind.NOT_ASSIGNABLE);
+            MessageKind.NOT_ASSIGNABLE);
   }
 }
 
@@ -509,281 +495,6 @@ testThis() {
   analyzeIn(foo, "{ Foo f = this; }");
 }
 
-const String CLASSES_WITH_OPERATORS = '''
-class Operators {
-  Operators operator +(Operators other) => this;
-  Operators operator -(Operators other) => this;
-  Operators operator -() => this;
-  Operators operator *(Operators other) => this;
-  Operators operator /(Operators other) => this;
-  Operators operator %(Operators other) => this;
-  Operators operator ~/(Operators other) => this;
-
-  Operators operator &(Operators other) => this;
-  Operators operator |(Operators other) => this;
-  Operators operator ^(Operators other) => this;
-
-  Operators operator ~() => this;
-
-  Operators operator <(Operators other) => true;
-  Operators operator >(Operators other) => false;
-  Operators operator <=(Operators other) => this;
-  Operators operator >=(Operators other) => this;
-
-  Operators operator <<(Operators other) => this;
-  Operators operator >>(Operators other) => this;
-
-  bool operator ==(Operators other) => true;
-
-  Operators operator [](Operators key) => this;
-  void operator []=(Operators key, Operators value) {}
-}
-
-class MismatchA {
-  int operator+(MismatchA other) => 0;
-  MismatchA operator-(int other) => this;
-
-  MismatchA operator[](int key) => this;
-  void operator[]=(int key, MismatchA value) {}
-}
-
-class MismatchB {
-  MismatchB operator+(MismatchB other) => this;
-
-  MismatchB operator[](int key) => this;
-  void operator[]=(String key, MismatchB value) {}
-}
-
-class MismatchC {
-  MismatchC operator+(MismatchC other) => this;
-
-  MismatchC operator[](int key) => this;
-  void operator[]=(int key, String value) {}
-}
-''';
-
-testOperatorsAssignability() {
-  compiler.parseScript(CLASSES_WITH_OPERATORS);
-
-  // Tests against Operators.
-
-  String header = """{
-      bool z;
-      Operators a;
-      Operators b;
-      Operators c;
-      """;
-
-  check(String text, [expectedWarnings]) {
-    analyze('$header $text }', expectedWarnings);
-  }
-
-  // Positive tests on operators.
-
-  check('c = a + b;');
-  check('c = a - b;');
-  check('c = -a;');
-  check('c = a * b;');
-  check('c = a / b;');
-  check('c = a % b;');
-  check('c = a ~/ b;');
-
-  check('c = a & b;');
-  check('c = a | b;');
-  check('c = a ^ b;');
-
-  check('c = ~a;');
-
-  check('c = a < b;');
-  check('c = a > b;');
-  check('c = a <= b;');
-  check('c = a >= b;');
-
-  check('c = a << b;');
-  check('c = a >> b;');
-
-  check('c = a[b];');
-
-  check('a[b] = c;');
-  check('a[b] += c;');
-  check('a[b] -= c;');
-  check('a[b] *= c;');
-  check('a[b] /= c;');
-  check('a[b] %= c;');
-  check('a[b] ~/= c;');
-  check('a[b] <<= c;');
-  check('a[b] >>= c;');
-  check('a[b] &= c;');
-  check('a[b] |= c;');
-  check('a[b] ^= c;');
-
-  check('a += b;');
-  check('a -= b;');
-  check('a *= b;');
-  check('a /= b;');
-  check('a %= b;');
-  check('a ~/= b;');
-
-  check('a <<= b;');
-  check('a >>= b;');
-
-  check('a &= b;');
-  check('a |= b;');
-  check('a ^= b;');
-
-  // Negative tests on operators.
-
-  // For the sake of brevity we misuse the terminology in comments:
-  //  'e1 is not assignable to e2' should be read as
-  //     'the type of e1 is not assignable to the type of e2', and
-  //  'e1 is not assignable to operator o on e2' should be read as
-  //     'the type of e1 is not assignable to the argument type of operator o
-  //      on e2'.
-
-  // `0` is not assignable to operator + on `a`.
-  check('c = a + 0;', MessageKind.NOT_ASSIGNABLE);
-  // `a + b` is not assignable to `z`.
-  check('z = a + b;', MessageKind.NOT_ASSIGNABLE);
-
-  // `-a` is not assignable to `z`.
-  check('z = -a;', MessageKind.NOT_ASSIGNABLE);
-
-  // `0` is not assignable to operator [] on `a`.
-  check('c = a[0];', MessageKind.NOT_ASSIGNABLE);
-  // `a[b]` is not assignable to `z`.
-  check('z = a[b];', MessageKind.NOT_ASSIGNABLE);
-
-  // `0` is not assignable to operator [] on `a`.
-  // Warning suppressed for `0` is not assignable to operator []= on `a`.
-  check('a[0] *= c;', MessageKind.NOT_ASSIGNABLE);
-  // `z` is not assignable to operator * on `a[0]`.
-  check('a[b] *= z;', MessageKind.NOT_ASSIGNABLE);
-
-  check('b = a++;', MessageKind.NOT_ASSIGNABLE);
-  check('b = ++a;', MessageKind.NOT_ASSIGNABLE);
-  check('b = a--;', MessageKind.NOT_ASSIGNABLE);
-  check('b = --a;', MessageKind.NOT_ASSIGNABLE);
-
-  check('c = a[b]++;', MessageKind.NOT_ASSIGNABLE);
-  check('c = ++a[b];', MessageKind.NOT_ASSIGNABLE);
-  check('c = a[b]--;', MessageKind.NOT_ASSIGNABLE);
-  check('c = --a[b];', MessageKind.NOT_ASSIGNABLE);
-
-  check('z = a == b;');
-  check('z = a != b;');
-
-  for (String o in ['&&', '||']) {
-    check('z = z $o z;');
-    check('z = a $o z;', MessageKind.NOT_ASSIGNABLE);
-    check('z = z $o b;', MessageKind.NOT_ASSIGNABLE);
-    check('z = a $o b;',
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
-    check('a = a $o b;',
-        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE,
-         MessageKind.NOT_ASSIGNABLE]);
-  }
-
-  check('z = !z;');
-  check('z = !a;', MessageKind.NOT_ASSIGNABLE);
-  check('a = !z;', MessageKind.NOT_ASSIGNABLE);
-  check('a = !a;',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
-
-
-  // Tests against MismatchA.
-
-  header = """{
-      MismatchA a;
-      MismatchA b;
-      MismatchA c;
-      """;
-
-  // Tests against int operator +(MismatchA other) => 0;
-
-  // `a + b` is not assignable to `c`.
-  check('c = a + b;', MessageKind.NOT_ASSIGNABLE);
-  // `a + b` is not assignable to `a`.
-  check('a += b;', MessageKind.NOT_ASSIGNABLE);
-  // `a[0] + b` is not assignable to `a[0]`.
-  check('a[0] += b;', MessageKind.NOT_ASSIGNABLE);
-
-  // 1 is not applicable to operator +.
-  check('b = a++;', MessageKind.NOT_ASSIGNABLE);
-  // 1 is not applicable to operator +.
-  // `++a` of type int is not assignable to `b`.
-  check('b = ++a;',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
-
-  // 1 is not applicable to operator +.
-  check('b = a[0]++;', MessageKind.NOT_ASSIGNABLE);
-  // 1 is not applicable to operator +.
-  // `++a[0]` of type int is not assignable to `b`.
-  check('b = ++a[0];',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
-
-  // Tests against: MismatchA operator -(int other) => this;
-
-  // `a - b` is not assignable to `c`.
-  check('c = a + b;', MessageKind.NOT_ASSIGNABLE);
-  // `a - b` is not assignable to `a`.
-  check('a += b;', MessageKind.NOT_ASSIGNABLE);
-  // `a[0] - b` is not assignable to `a[0]`.
-  check('a[0] += b;', MessageKind.NOT_ASSIGNABLE);
-
-  check('b = a--;');
-  check('b = --a;');
-
-  check('b = a[0]--;');
-  check('b = --a[0];');
-
-  // Tests against MismatchB.
-
-  header = """{
-      MismatchB a;
-      MismatchB b;
-      MismatchB c;
-      """;
-
-  // Tests against:
-  // MismatchB operator [](int key) => this;
-  // void operator []=(String key, MismatchB value) {}
-
-  // `0` is not applicable to operator []= on `a`.
-  check('a[0] = b;', MessageKind.NOT_ASSIGNABLE);
-
-  // `0` is not applicable to operator []= on `a`.
-  check('a[0] += b;', MessageKind.NOT_ASSIGNABLE);
-  // `""` is not applicable to operator [] on `a`.
-  check('a[""] += b;', MessageKind.NOT_ASSIGNABLE);
-  // `c` is not applicable to operator [] on `a`.
-  // `c` is not applicable to operator []= on `a`.
-  check('a[c] += b;',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
-
-
-  // Tests against MismatchB.
-
-  header = """{
-      MismatchC a;
-      MismatchC b;
-      MismatchC c;
-      """;
-
-  // Tests against:
-  // MismatchC operator[](int key) => this;
-  // void operator[]=(int key, String value) {}
-
-  // `b` is not assignable to `a[0]`.
-  check('a[0] += b;', MessageKind.NOT_ASSIGNABLE);
-  // `0` is not applicable to operator + on `a[0]`.
-  check('a[0] += "";',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
-  // `true` is not applicable to operator + on `a[0]`.
-  // `true` is not assignable to `a[0]`.
-  check('a[0] += true;',
-      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
-}
-
 const CLASS_WITH_METHODS = '''
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
@@ -820,45 +531,8 @@ String returnWithType(String type, expression) {
 Node parseExpression(String text) =>
   parseBodyCode(text, (parser, token) => parser.parseExpression(token));
 
-const String NUM_SOURCE = '''
-abstract class num {
-  num operator +(num other);
-  num operator -(num other);
-  num operator *(num other);
-  num operator %(num other);
-  double operator /(num other);
-  int operator ~/(num other);
-  num operator -();
-  bool operator <(num other);
-  bool operator <=(num other);
-  bool operator >(num other);
-  bool operator >=(num other);
-}
-''';
-
-const String INT_SOURCE = '''
-abstract class int extends num {
-  int operator &(int other);
-  int operator |(int other);
-  int operator ^(int other);
-  int operator ~();
-  int operator <<(int shiftAmount);
-  int operator >>(int shiftAmount);
-  int operator -();
-}
-''';
-
 void setup() {
-  RegExp classNum = new RegExp(r'abstract class num {}');
-  Expect.isTrue(DEFAULT_CORELIB.contains(classNum));
-  RegExp classInt = new RegExp(r'abstract class int extends num { }');
-  Expect.isTrue(DEFAULT_CORELIB.contains(classInt));
-
-  String CORE_SOURCE = DEFAULT_CORELIB
-      .replaceAll(classNum, NUM_SOURCE)
-      .replaceAll(classInt, INT_SOURCE);
-
-  compiler = new MockCompiler(coreSource: CORE_SOURCE);
+  compiler = new MockCompiler();
   types = compiler.types;
   voidType = compiler.types.voidType;
   intType = compiler.intClass.computeType(compiler);
@@ -896,56 +570,23 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   }
 }
 
-api.DiagnosticHandler createHandler(String text) {
-  return (uri, int begin, int end, String message, kind) {
-    SourceFile sourceFile;
-    if (uri == null) {
-      sourceFile = new SourceFile('analysis', text);
-    } else {
-      sourceFile = compiler.sourceFiles[uri.toString()];
-    }
-    if (sourceFile != null) {
-      print(sourceFile.getLocationMessage(message, begin, end, true, (x) => x));
-    } else {
-      print(message);
-    }
-  };
-}
-
 analyze(String text, [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
-
-  compiler.diagnosticHandler = createHandler(text);
 
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(compiler, null);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
-  Element compilationUnit =
-    new CompilationUnitElementX(new Script(null, null), compiler.mainApp);
   Element function = new ElementX(
-      buildSourceString(''), ElementKind.FUNCTION, compilationUnit);
+      buildSourceString(''), ElementKind.FUNCTION, compiler.mainApp);
   TreeElements elements = compiler.resolveNodeStatement(node, function);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
   checker.analyze(node);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
-  compiler.diagnosticHandler = null;
-}
-
-void generateOutput(String text) {
-  for (WarningMessage message in compiler.warnings) {
-    var beginToken = message.node.getBeginToken();
-    var endToken = message.node.getEndToken();
-    int begin = beginToken.charOffset;
-    int end = endToken.charOffset + endToken.slowCharCount;
-    SourceFile sourceFile = new SourceFile('analysis', text);
-    print(sourceFile.getLocationMessage(message.message.toString(),
-                                        begin, end, true, (str) => str));
-  }
 }
 
 analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
@@ -962,7 +603,7 @@ analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
+  checker.currentClass = classElement;
   checker.analyze(node);
-  generateOutput(text);
   compareWarningKinds(text, expectedWarnings, compiler.warnings);
 }

@@ -28,19 +28,12 @@ class MessageKind {
       "no named argument '#{argumentName}' found on method");
   static const METHOD_NOT_FOUND = const MessageKind(
       'no method named #{memberName} in class #{className}');
-  static const OPERATOR_NOT_FOUND = const MessageKind(
-      'no operator #{memberName} in class #{className}');
-  static const PROPERTY_NOT_FOUND = const MessageKind(
-      'no property named #{memberName} in class #{className}');
   static const NOT_CALLABLE = const MessageKind(
       "'#{elementName}' is not callable");
   static const MEMBER_NOT_STATIC = const MessageKind(
       '#{className}.#{memberName} is not static');
   static const NO_INSTANCE_AVAILABLE = const MessageKind(
       '#{name} is only available in instance methods');
-
-  static const THIS_IS_THE_METHOD = const MessageKind(
-      "This is the method declaration.");
 
   static const UNREACHABLE_CODE = const MessageKind(
       'unreachable code');

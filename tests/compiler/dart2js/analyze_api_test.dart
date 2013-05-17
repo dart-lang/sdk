@@ -27,15 +27,8 @@ import '../../../sdk/lib/_internal/libraries.dart';
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String,List<String>> WHITE_LIST = const {
-  'html_dart2js.dart':
-      const ['Warning: Using "new Symbol"', // Issue 10565.
-             'Warning: unreachable code', // Issue 10617.
-             // Issue 10688:
-             'Warning: no property named',
-             'Warning: WindowBase is not assignable to EventTarget',
-             "Warning: 'UnsupportedError' is not callable",
-             "Warning: no method named getBoundingClientRect",
-             "Warning: no operator [] in class Iterable"],
+  'html_dart2js.dart': const ['Warning: Using "new Symbol"', // Issue 10565.
+                              'Warning: unreachable code'], // Issue 10617.
 };
 
 class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {

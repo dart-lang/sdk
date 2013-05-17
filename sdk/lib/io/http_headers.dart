@@ -23,7 +23,7 @@ class _HttpHeaders implements HttpHeaders {
     return values[0];
   }
 
-  void add(String name, value) {
+  void add(String name, Object value) {
     _checkMutable();
     if (value is List) {
       for (int i = 0; i < value.length; i++) {

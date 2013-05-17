@@ -2201,9 +2201,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
         compiler.backend.registerClassUsingVariableExpression(cls);
         compiler.backend.registerTypeVariableExpression(mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
-        // Set the type of the node to [Type] to mark this send as a
-        // type literal.
-        mapping.setType(node, compiler.typeClass.computeType(compiler));
         compiler.backend.registerTypeLiteral(mapping);
       }
     }
