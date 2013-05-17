@@ -18,8 +18,11 @@ abstract class _Filter {
    * Get a chunk of processed data. When there are no more data available,
    * [processed] will return [null]. Set [flush] to [false] for non-final
    * calls to improve performance of some filters.
+   *
+   * The last call to [processed] should have [end] set to [true]. This will make
+   * sure a 'end' packet is written on the stream.
    */
-  List<int> processed({bool flush: true});
+  List<int> processed({bool flush: true, bool end: false});
 
   /**
    * Mark the filter as closed. Always call this method for any filter created
@@ -62,7 +65,7 @@ class _FilterTransformer extends StreamEventTransformer<List<int>, List<int>> {
     if (_empty) _filter.process(const []);
     try {
       var out;
-      while ((out = _filter.processed()) != null) {
+      while ((out = _filter.processed(end: true)) != null) {
         sink.add(out);
       }
     } catch (e, s) {

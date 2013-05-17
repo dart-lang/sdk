@@ -6,7 +6,8 @@
 class _FilterImpl extends NativeFieldWrapperClass1 implements _Filter {
   void process(List<int> data) native "Filter_Process";
 
-  List<int> processed({bool flush: true}) native "Filter_Processed";
+  List<int> processed({bool flush: true, bool end: false})
+      native "Filter_Processed";
 
   void end() native "Filter_End";
 }
