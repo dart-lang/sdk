@@ -119,32 +119,19 @@ substitute(var substitution, var arguments) {
  *   against.
  */
 bool checkSubtype(Object object, String isField, List checks, String asField) {
-  if (object == null) return true;
+  if (object == null) return false;
   var arguments = getRuntimeTypeInfo(object);
   // Interceptor is needed for JSArray and native classes.
   // TODO(sra): It could be a more specialized interceptor since [object] is not
   // `null` or a primitive.
   // TODO(9586): Move type info for static functions onto an interceptor.
-  var interceptor = getInterceptor(object);
+  var interceptor = isJsFunction(object) ? object : getInterceptor(object);
   bool isSubclass = getField(interceptor, isField);
   // When we read the field and it is not there, [isSubclass] will be [:null:].
   if (isSubclass == null || !isSubclass) return false;
   // Should the asField function be passed the receiver?
   var substitution = getField(interceptor, asField);
   return checkArguments(substitution, arguments, checks);
-}
-
-Object assertSubtype(Object object, String isField, List checks,
-                     String asField) {
-  if (!checkSubtype(object, isField, checks, asField)) {
-    // Shorten the field name to the class name and append the textual
-    // representation of the type arguments.
-    int prefixLength = JS_OPERATOR_IS_PREFIX().length;
-    String typeName = '${isField.substring(prefixLength, isField.length)}'
-                      '${joinArguments(checks, 0)}';
-    throw new TypeErrorImplementation(object, typeName);
-  }
-  return object;
 }
 
 /**
@@ -187,7 +174,7 @@ getField(var object, var name) => JS('var', r'#[#]', object, name);
  * representation [t], which is a type representation as described in the
  * comment on [isSubtype].
  */
-bool checkSubtypeOfRuntimeType(Object o, var t) {
+bool objectIsSubtype(Object o, var t) {
   if (JS('bool', '# == null', o) || JS('bool', '# == null', t)) return true;
   // Get the runtime type information from the object here, because we may
   // overwrite o with the interceptor below.
@@ -210,13 +197,6 @@ bool checkSubtypeOfRuntimeType(Object o, var t) {
     type = o;
   }
   return isSubtype(type, t);
-}
-
-Object assertSubtypeOfRuntimeType(Object object, var type) {
-  if (!checkSubtypeOfRuntimeType(object, type)) {
-    throw new TypeErrorImplementation(object, runtimeTypeToString(type));
-  }
-  return object;
 }
 
 /**
@@ -244,10 +224,6 @@ bool isSubtype(var s, var t) {
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? s[0] : s;
   var typeOfT = isJsArray(t) ? t[0] : t;
-  // TODO(johnniwinther): replace this with the real function subtype test.
-  if (JS('bool', '#.func', s) == true || JS('bool', '#.func', t) == true ) {
-    return true;
-  }
   // Check for a subtyping flag.
   var test = '${JS_OPERATOR_IS_PREFIX()}${runtimeTypeToString(typeOfT)}';
   if (getField(typeOfS, test) == null) return false;

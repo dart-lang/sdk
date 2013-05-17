@@ -228,6 +228,7 @@ Language/11_Expressions/18_Assignment_A08_t04: Fail, OK
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t04: Fail # TODO(ahe): Please triage this failure.
+Language/07_Classes/6_Constructors/2_Factories_A03_t07: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t02: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A06_t03: Fail # TODO(ahe): Please triage this failure.
@@ -238,6 +239,7 @@ Language/11_Expressions/03_Numbers_A05_t02: Fail # TODO(ahe): Please triage this
 Language/11_Expressions/06_Lists_A09_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/06_Lists_A09_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/06_Lists_A09_t05: Fail # TODO(ahe): Please triage this failure.
+Language/11_Expressions/07_Maps_A10_t04: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/07_Maps_A10_t05: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/07_Maps_A11_t01: Fail # TODO(ahe): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation/1_New_A07_t01: Fail # TODO(ahe): Please triage this failure.
@@ -260,8 +262,10 @@ LibTest/core/AssertionError/column_A01_t02: Fail # TODO(ahe): Please triage this
 LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/line_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/Map/putIfAbsent_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Match/pattern_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Match/str_A01_t01: Fail # TODO(ahe): Please triage this failure.
+LibTest/core/RegExp/RegExp_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/RegExp/allMatches_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Set/intersection_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -278,7 +282,6 @@ Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.c
 
 LibTest/core/List/operator_subscript_A03_t01: Fail # http://dartbug.com/9228
 LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # http://dartbug.com/9228
-Language/09_Generics/09_Generics_A04_t01: Fail, OK # 1.0 is an int in dart2js; dartbug.com/1533.
 
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 405
@@ -547,7 +550,6 @@ LibTest/core/List/setRange_A05_t01: Fail # setRange throws StateError if there a
 
 # Issues with co19 test suite in checked mode.
 [ $compiler == dart2js && $checked ]
-Language/11_Expressions/30_Identifier_Reference_A07_t01: Fail, OK # test should be marked type-error
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
@@ -718,6 +720,12 @@ Language/07_Classes/3_Setters_A04_t05: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t06: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: Fail # http://dartbug.com/5023
 
+Language/14_Types/4_Interface_Types_A05_t04: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t04: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t06: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t07: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t08: Fail # http://dartbug.com/5022
+Language/14_Types/4_Interface_Types_A10_t09: Fail # http://dartbug.com/5022
 
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5683
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5683

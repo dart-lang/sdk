@@ -2463,87 +2463,81 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    if (!node.isChecked) {
-      use(node.checkedInput);
-      return;
-    }
-    if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      js.Expression test = generateTest(node);
-      js.Block oldContainer = currentContainer;
-      js.Statement body = new js.Block.empty();
-      currentContainer = body;
-      if (node.isArgumentTypeCheck) {
-        generateThrowWithHelper('iae', node.checkedInput);
-      } else if (node.isReceiverTypeCheck) {
-        use(node.checkedInput);
-        String methodName =
-            backend.namer.invocationName(node.receiverTypeCheckSelector);
-        js.Expression call = jsPropertyCall(pop(), methodName, []);
-        pushStatement(new js.Throw(call));
+    if (node.isChecked) {
+      if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
+        js.Expression test = generateTest(node);
+        js.Block oldContainer = currentContainer;
+        js.Statement body = new js.Block.empty();
+        currentContainer = body;
+        if (node.isArgumentTypeCheck) {
+          generateThrowWithHelper('iae', node.checkedInput);
+        } else if (node.isReceiverTypeCheck) {
+          use(node.checkedInput);
+          String methodName =
+              backend.namer.invocationName(node.receiverTypeCheckSelector);
+          js.Expression call = jsPropertyCall(pop(), methodName, []);
+          pushStatement(new js.Throw(call));
+        }
+        currentContainer = oldContainer;
+        body = unwrapStatement(body);
+        pushStatement(new js.If.noElse(test, body), node);
+        return;
       }
-      currentContainer = oldContainer;
-      body = unwrapStatement(body);
-      pushStatement(new js.If.noElse(test, body), node);
-      return;
-    }
 
-    assert(node.isCheckedModeCheck || node.isCastTypeCheck);
-    DartType type = node.typeExpression;
+      assert(node.isCheckedModeCheck || node.isCastTypeCheck);
+      DartType type = node.typeExpression;
       if (type.kind == TypeKind.FUNCTION) {
         // TODO(5022): We currently generate $isFunction checks for
         // function types.
         world.registerIsCheck(
             compiler.functionClass.computeType(compiler), work.resolutionTree);
       }
-    world.registerIsCheck(type, work.resolutionTree);
+      world.registerIsCheck(type, work.resolutionTree);
 
-    FunctionElement helperElement;
-    if (node.isBooleanConversionCheck) {
-      helperElement =
-          compiler.findHelper(const SourceString('boolConversionCheck'));
-    } else {
-      helperElement = backend.getCheckedModeHelper(type,
-          typeCast: node.isCastTypeCheck);
-    }
-    world.registerStaticUse(helperElement);
-    List<js.Expression> arguments = <js.Expression>[];
-    use(node.checkedInput);
-    arguments.add(pop());
-    int parameterCount =
-        helperElement.computeSignature(compiler).parameterCount;
-    // TODO(johnniwinther): Refactor this to avoid using the parameter count
-    // to determine how the helper should be called.
-    if (node.typeExpression.kind == TypeKind.TYPE_VARIABLE) {
-      assert(parameterCount == 2);
-      use(node.typeRepresentation);
+      // TODO(kasperl): For now, we ignore type checks against type
+      // variables. This is clearly wrong.
+      if (type.kind == TypeKind.TYPE_VARIABLE) {
+        use(node.checkedInput);
+        return;
+      }
+
+      FunctionElement helperElement;
+      if (node.isBooleanConversionCheck) {
+        helperElement =
+            compiler.findHelper(const SourceString('boolConversionCheck'));
+      } else {
+        helperElement = backend.getCheckedModeHelper(type,
+            typeCast: node.isCastTypeCheck);
+      }
+      world.registerStaticUse(helperElement);
+      List<js.Expression> arguments = <js.Expression>[];
+      use(node.checkedInput);
       arguments.add(pop());
-    } else if (parameterCount == 2) {
-      // 2 arguments implies that the method is either [propertyTypeCheck],
-      // [propertyTypeCast] or [assertObjectIsSubtype].
-      assert(!type.isMalformed);
-      String additionalArgument = backend.namer.operatorIs(type.element);
-      arguments.add(js.string(additionalArgument));
-    } else if (parameterCount == 3) {
-      // 3 arguments implies that the method is [malformedTypeCheck].
-      assert(type.isMalformed);
-      String reasons = Types.fetchReasonsFromMalformedType(type);
-      arguments.add(js.string('$type'));
-      // TODO(johnniwinther): Handle escaping correctly.
-      arguments.add(js.string(reasons));
-    } else if (parameterCount == 4) {
-      Element element = type.element;
-      String isField = backend.namer.operatorIs(element);
-      arguments.add(js.string(isField));
-      use(node.typeRepresentation);
-      arguments.add(pop());
-      String asField = backend.namer.substitutionName(element);
-      arguments.add(js.string(asField));
+      int parameterCount =
+          helperElement.computeSignature(compiler).parameterCount;
+      // TODO(johnniwinther): Refactor this to avoid using the parameter count
+      // to determine how the helper should be called.
+      if (parameterCount == 2) {
+        // 2 arguments implies that the method is either [propertyTypeCheck]
+        // or [propertyTypeCast].
+        assert(!type.isMalformed);
+        String additionalArgument = backend.namer.operatorIs(type.element);
+        arguments.add(js.string(additionalArgument));
+      } else if (parameterCount == 3) {
+        // 3 arguments implies that the method is [malformedTypeCheck].
+        assert(type.isMalformed);
+        String reasons = Types.fetchReasonsFromMalformedType(type);
+        arguments.add(js.string('$type'));
+        // TODO(johnniwinther): Handle escaping correctly.
+        arguments.add(js.string(reasons));
+      } else {
+        assert(!type.isMalformed);
+      }
+      String helperName = backend.namer.isolateAccess(helperElement);
+      push(new js.Call(new js.VariableUse(helperName), arguments));
     } else {
-      assert(!type.isMalformed);
-      // No additional arguments needed.
+      use(node.checkedInput);
     }
-    String helperName = backend.namer.isolateAccess(helperElement);
-    push(new js.Call(new js.VariableUse(helperName), arguments));
   }
 }
 

@@ -606,9 +606,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   HInstruction visitTypeConversion(HTypeConversion node) {
     HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
-    if (type != null && (!type.isRaw || type.kind == TypeKind.TYPE_VARIABLE)) {
-      return node;
-    }
+    if (type != null && !type.isRaw) return node;
     HType convertedType = node.instructionType;
     if (convertedType.isUnknown()) return node;
     HType combinedType = value.instructionType.intersection(
@@ -725,15 +723,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // interceptor.
     HInstruction value = node.inputs.last;
     if (compiler.enableTypeAssertions) {
-      DartType type = field.computeType(compiler);
-      if (!type.isRaw || type.kind == TypeKind.TYPE_VARIABLE) {
-        // We cannot generate the correct type representation here, so don't
-        // inline this access.
-        return node;
-      }
       HInstruction other = value.convertType(
           compiler,
-          type,
+          field.computeType(compiler),
           HTypeConversion.CHECKED_MODE_CHECK);
       if (other != value) {
         node.block.addBefore(node, other);

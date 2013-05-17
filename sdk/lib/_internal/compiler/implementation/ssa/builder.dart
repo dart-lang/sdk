@@ -361,15 +361,8 @@ class LocalsHandler {
   HInstruction readLocal(Element element) {
     if (isAccessedDirectly(element)) {
       if (directLocals[element] == null) {
-        if (element.isTypeVariable()) {
-          builder.compiler.internalError(
-              "Runtime type information not available for $element",
-              element: builder.compiler.currentElement);
-        } else {
-          builder.compiler.internalError(
-              "Cannot find value $element",
-              element: element);
-        }
+        builder.compiler.internalError("Cannot find value $element",
+                                       element: element);
       }
       return directLocals[element];
     } else if (isStoredInClosureField(element)) {
@@ -1188,6 +1181,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                    compiledArguments[argumentIndex++]);
     }
 
+    FunctionSignature signature = function.computeSignature(compiler);
+    signature.orderedForEachParameter((Element parameter) {
+      HInstruction argument = compiledArguments[argumentIndex++];
+      newLocalsHandler.updateLocal(parameter, argument);
+      potentiallyCheckType(argument, parameter.computeType(compiler));
+    });
+
     if (function.isConstructor()) {
       ClassElement enclosing = function.getEnclosingClass();
       if (backend.needsRti(enclosing)) {
@@ -1207,16 +1207,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       }
     }
-
-    // Check the type of the arguments.  This must be done after setting up the
-    // type variables in the [localsHandler] because the checked types may
-    // contain type variables.
-    FunctionSignature signature = function.computeSignature(compiler);
-    signature.orderedForEachParameter((Element parameter) {
-      HInstruction argument = compiledArguments[argumentIndex++];
-      newLocalsHandler.updateLocal(parameter, argument);
-      potentiallyCheckType(argument, parameter.computeType(compiler));
-    });
 
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new ElementX(const SourceString("result"),
@@ -1307,15 +1297,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       canBeInlined = InlineWeeder.canBeInlined(functionExpression, newElements);
       backend.canBeInlined[function] = canBeInlined;
       if (!canBeInlined) return false;
-    }
-
-    // We cannot inline methods with type variables in the signature in checked
-    // mode, because we currently do not have access to the type variables
-    // through the locals.
-    // TODO(karlklose): remove this and enable inlining of these methods.
-    if (compiler.enableTypeAssertions &&
-        element.computeType(compiler).containsTypeVariables) {
-      return false;
     }
 
     assert(canBeInlined);
@@ -1780,18 +1761,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     open(block);
 
-    // Add the type parameters of the class as parameters of this method.  This
-    // must be done before adding the normal parameters, because their types
-    // may contain references to type variables.
-    var enclosing = element.enclosingElement;
-    if ((element.isConstructor() || element.isGenerativeConstructorBody())
-        && backend.needsRti(enclosing)) {
-      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
-        HParameterValue param = addParameter(typeVariable.element);
-        localsHandler.directLocals[typeVariable.element] = param;
-      });
-    }
-
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
       FunctionSignature signature = functionElement.computeSignature(compiler);
@@ -1828,35 +1797,24 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Otherwise it is a lazy initializer which does not have parameters.
       assert(element is VariableElement);
     }
-  }
 
-  HInstruction buildTypeConversion(Compiler compiler, HInstruction original,
-                                   DartType type, int kind) {
-    if (type == null) return original;
-    if (type.kind == TypeKind.INTERFACE && !type.isMalformed && !type.isRaw) {
-     HType subtype = new HType.subtype(type, compiler);
-     if (type.isRaw) {
-       return new HTypeConversion(type, kind, subtype, original);
-     }
-     HInstruction representations = buildTypeArgumentRepresentations(type);
-     add(representations);
-     return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
-          original, representations);
-    } else if (type.kind == TypeKind.TYPE_VARIABLE) {
-      HType subtype = original.instructionType;
-      HInstruction typeVariable = addTypeVariableReference(type);
-      return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
-          original, typeVariable);
-    } else {
-      return original.convertType(compiler, type, kind);
+    // Add the type parameters of the class as parameters of this
+    // method.
+    var enclosing = element.enclosingElement;
+    if ((element.isConstructor() || element.isGenerativeConstructorBody())
+        && backend.needsRti(enclosing)) {
+      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+        HParameterValue param = addParameter(typeVariable.element);
+        localsHandler.directLocals[typeVariable.element] = param;
+      });
     }
   }
 
-  HInstruction potentiallyCheckType(HInstruction original, DartType type,
+  HInstruction potentiallyCheckType(
+      HInstruction original, DartType type,
       { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (!compiler.enableTypeAssertions) return original;
-    HInstruction other =
-        buildTypeConversion(compiler,  original, type, kind);
+    HInstruction other = original.convertType(compiler, type, kind);
     if (other != original) add(other);
     return other;
   }
@@ -2712,8 +2670,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         pushInvokeStatic(location, element, <HInstruction>[value]);
         pop();
       } else {
-        value =
-            potentiallyCheckType(value, element.computeType(compiler));
+        value = potentiallyCheckType(value, element.computeType(compiler));
         addWithPosition(new HStaticStore(element, value), location);
       }
       stack.add(value);
@@ -2729,8 +2686,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (value.sourceElement == null) {
         value.sourceElement = element;
       }
-      HInstruction checked =
-          potentiallyCheckType(value, element.computeType(compiler));
+      HInstruction checked = potentiallyCheckType(
+          value, element.computeType(compiler));
       if (!identical(checked, value)) {
         pop();
         stack.add(checked);
@@ -2835,30 +2792,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       } else {
         generateRuntimeError(node, '$type is malformed: $reasons');
       }
-    } else {
-      HInstruction instruction = buildIsNode(node, type, expression);
-      if (isNot) {
-        add(instruction);
-        instruction = new HNot(instruction);
-      }
-      push(instruction);
+      return;
     }
-  }
 
-  HInstruction buildIsNode(Node node, DartType type, HInstruction expression) {
+    HInstruction instruction;
     if (type.kind == TypeKind.TYPE_VARIABLE) {
       HInstruction runtimeType = addTypeVariableReference(type);
-      Element helper = backend.getCheckSubtypeOfRuntimeType();
+      Element helper = backend.getGetObjectIsSubtype();
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
       pushInvokeStatic(null, helper, inputs, HType.BOOLEAN);
       HInstruction call = pop();
-      return new HIs(type, <HInstruction>[expression, call],
-                     HIs.VARIABLE_CHECK);
+      instruction = new HIs(type, <HInstruction>[expression, call],
+                            HIs.VARIABLE_CHECK);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
       Element element = type.element;
       Element helper = backend.getCheckSubtype();
       HInstruction representations =
-          buildTypeArgumentRepresentations(type);
+        buildTypeArgumentRepresentations(type);
       add(representations);
       String operator =
           backend.namer.operatorIs(backend.getImplementationClass(element));
@@ -2873,11 +2823,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                                  asFieldName];
       pushInvokeStatic(node, helper, inputs, HType.BOOLEAN);
       HInstruction call = pop();
-      return
-          new HIs(type, <HInstruction>[expression, call], HIs.COMPOUND_CHECK);
+      instruction = new HIs(type, <HInstruction>[expression, call],
+                            HIs.COMPOUND_CHECK);
     } else {
-      return new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
+      instruction = new HIs(type, <HInstruction>[expression], HIs.RAW_CHECK);
     }
+    if (isNot) {
+      add(instruction);
+      instruction = new HNot(instruction);
+    }
+    push(instruction);
   }
 
   void addDynamicSendArgumentsToList(Send node, List<HInstruction> list) {
@@ -3292,19 +3247,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   HInstruction addTypeVariableReference(TypeVariableType type) {
     Element member = currentElement;
-    bool isClosure = member.enclosingElement.isClosure();
-    if (isClosure) {
+    if (member.enclosingElement.isClosure()) {
       ClosureClassElement closureClass = member.enclosingElement;
       member = closureClass.methodElement;
       member = member.getOutermostEnclosingMemberOrTopLevel();
     }
-    if (isClosure && member.isFactoryConstructor()) {
-      // The type variable is used from a closure in a factory constructor.  The
-      // value of the type argument is stored as a local on the closure itself.
-      return localsHandler.readLocal(type.element);
-    } else if (member.isConstructor() ||
-               member.isGenerativeConstructorBody() ||
-               member.isField()) {
+    if (member.isConstructor()
+        || member.isGenerativeConstructorBody()
+        || member.isField()) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
     } else if (member.isInstanceMember()) {
@@ -4865,7 +4815,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             }
             // TODO(karlkose): support type arguments here.
             condition = new HIs(type, <HInstruction>[unwrappedException],
-                                HIs.RAW_CHECK);
+                                HIs.RAW_CHECK, nullOk: true);
             push(condition);
           }
         }
