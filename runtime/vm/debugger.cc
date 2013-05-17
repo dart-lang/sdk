@@ -583,6 +583,15 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 }
 
 
+static bool IsSafePoint(PcDescriptors::Kind kind) {
+  return ((kind == PcDescriptors::kIcCall) ||
+          (kind == PcDescriptors::kFuncCall) ||
+          (kind == PcDescriptors::kClosureCall) ||
+          (kind == PcDescriptors::kReturn) ||
+          (kind == PcDescriptors::kEqualNull));
+}
+
+
 CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
     : function_(func.raw()),
       pc_desc_index_(pc_desc_index),
@@ -601,10 +610,7 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
-  ASSERT((breakpoint_kind_ == PcDescriptors::kIcCall) ||
-         (breakpoint_kind_ == PcDescriptors::kFuncCall) ||
-         (breakpoint_kind_ == PcDescriptors::kClosureCall) ||
-         (breakpoint_kind_ == PcDescriptors::kReturn));
+  ASSERT(IsSafePoint(breakpoint_kind_));
 }
 
 
@@ -675,6 +681,15 @@ void CodeBreakpoint::PatchCode() {
                                      StubCode::BreakpointClosureEntryPoint());
       break;
     }
+    case PcDescriptors::kEqualNull: {
+      const Code& code =
+          Code::Handle(Function::Handle(function_).unoptimized_code());
+      saved_bytes_.target_address_ =
+          CodePatcher::GetStaticCallTargetAt(pc_, code);
+      CodePatcher::PatchStaticCallAt(pc_, code,
+                                     StubCode::BreakpointEqNullEntryPoint());
+      break;
+    }
     case PcDescriptors::kReturn:
       PatchFunctionReturn();
       break;
@@ -696,7 +711,8 @@ void CodeBreakpoint::RestoreCode() {
       break;
     }
     case PcDescriptors::kFuncCall:
-    case PcDescriptors::kClosureCall: {
+    case PcDescriptors::kClosureCall:
+    case PcDescriptors::kEqualNull: {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       CodePatcher::PatchStaticCallAt(pc_, code,
@@ -857,14 +873,6 @@ void Debugger::DeoptimizeWorld() {
       }
     }
   }
-}
-
-
-static bool IsSafePoint(PcDescriptors::Kind kind) {
-  return ((kind == PcDescriptors::kIcCall) ||
-          (kind == PcDescriptors::kFuncCall) ||
-          (kind == PcDescriptors::kClosureCall) ||
-          (kind == PcDescriptors::kReturn));
 }
 
 
@@ -1615,12 +1623,20 @@ void Debugger::SignalBpReached() {
         // by checking that signature_function() is not null.
         const Class& receiver_class = Class::Handle(receiver.clazz());
         if (receiver_class.IsSignatureClass()) {
-          func_to_instrument = Closure::function(Instance::Cast(receiver));
+          Function& closure_func =
+              Function::Handle(Closure::function(Instance::Cast(receiver)));
+          if (IsDebuggable(closure_func)) {
+            func_to_instrument = closure_func.raw();
+          }
         }
         // If the receiver is not a closure, then the runtime will attempt
         // to invoke the "call" method on the object if one exists.
         // TODO(hausner): find call method and intrument it for stepping.
       }
+    } else if (bpt->breakpoint_kind_ == PcDescriptors::kEqualNull) {
+      // This is just a call to the runtime, not Dart code. Stepping
+      // into not possible, just treat like StepOver.
+      func_to_instrument = bpt->function();
     } else {
       ASSERT(bpt->breakpoint_kind_ == PcDescriptors::kReturn);
       // Treat like stepping out to caller.

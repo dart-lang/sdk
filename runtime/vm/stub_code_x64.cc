@@ -1685,6 +1685,18 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
+//  RBX: ICData.
+//  TOS(0): return address (Dart code).
+void StubCode::GenerateBreakpointEqNullStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ pushq(RBX);  // Preserve ICData.
+  __ CallRuntime(kBreakpointClosureHandlerRuntimeEntry);
+  __ popq(RBX);  // Restore arguments descriptor.
+  __ LeaveFrame();
+  __ jmp(&StubCode::EqualityWithNullArgLabel());
+}
+
+
 //  R10: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {

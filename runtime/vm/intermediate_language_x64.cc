@@ -559,7 +559,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ LoadObject(ic_data_reg, equality_ic_data);
     compiler->GenerateCall(token_pos,
                            &StubCode::EqualityWithNullArgLabel(),
-                           PcDescriptors::kOther,
+                           PcDescriptors::kEqualNull,
                            locs);
     __ Drop(2);
   }

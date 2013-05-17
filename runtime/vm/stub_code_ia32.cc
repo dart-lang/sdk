@@ -1708,7 +1708,18 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
-//  EDX: Arguments descriptor array.
+// ECX: ICData
+void StubCode::GenerateBreakpointEqNullStub(Assembler* assembler) {
+  __ EnterStubFrame();
+  __ pushl(ECX);
+  __ CallRuntime(kBreakpointEqualNullHandlerRuntimeEntry);
+  __ popl(ECX);
+  __ LeaveFrame();
+  __ jmp(&StubCode::EqualityWithNullArgLabel());
+}
+
+
+// EDX: Arguments descriptor array.
 void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushl(EDX);  // Push arguments descriptor.
@@ -1719,8 +1730,8 @@ void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
 }
 
 
-//  EDX: Arguments descriptor array.
-//  TOS(0): return address (Dart code).
+// EDX: Arguments descriptor array.
+// TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.

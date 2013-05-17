@@ -2438,6 +2438,7 @@ class PcDescriptors : public Object {
     kFuncCall,         // Call to known target, e.g. static call.
     kClosureCall,      // Closure call.
     kReturn,           // Return from function.
+    kEqualNull,        // Stub for comparison with null.
     kOther
   };
 
