@@ -236,6 +236,36 @@ returnAsTypedef() {
   return topLevelGetter() as Foo;
 }
 
+testSwitch1() {
+  var a = null;
+  switch (topLevelGetter) {
+    case 100: a = 42.5; break;
+    case 200: a = 42; break;
+  }
+  return a;
+}
+
+testSwitch2() {
+  var a = null;
+  switch (topLevelGetter) {
+    case 100: a = 42; break;
+    case 200: a = 42; break;
+    default:
+      a = 43;
+  }
+  return a;
+}
+
+testSwitch3() {
+  var a = 42;
+  var b;
+  switch (topLevelGetter) {
+    L1: case 1: b = a + 42; break;
+    case 2: a = 'foo'; continue L1;
+  }
+  return b;
+}
+
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
 
@@ -307,6 +337,9 @@ main() {
   returnAsString();
   returnIntAsNum();
   returnAsTypedef();
+  testSwitch1();
+  testSwitch2();
+  testSwitch3();
   new A() == null;
   new A()..returnInt1()
          ..returnInt2()
@@ -379,6 +412,10 @@ void main() {
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   checkReturn('returnIntAsNum', typesInferrer.intType);
   checkReturn('returnAsTypedef', typesInferrer.functionType.nullable());
+  checkReturn('testSwitch1',
+    typesInferrer.intType.union(typesInferrer.doubleType, compiler).nullable());
+  checkReturn('testSwitch2', typesInferrer.intType);
+  checkReturn('testSwitch3', interceptorType.nullable());
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);

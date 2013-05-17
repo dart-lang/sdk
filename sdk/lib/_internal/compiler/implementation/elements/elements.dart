@@ -525,6 +525,29 @@ class Elements {
         && node.isCall
         && node.arguments.isEmpty;
   }
+
+  static bool switchStatementHasContinue(SwitchStatement node,
+                                         TreeElements elements) {
+    for (SwitchCase switchCase in node.cases) {
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        Node label = labelOrCase.asLabel();
+        if (label != null) {
+          LabelElement labelElement = elements[label];
+          if (labelElement != null && labelElement.isContinueTarget) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  static bool switchStatementHasDefault(SwitchStatement node) {
+    for (SwitchCase switchCase in node.cases) {
+      if (switchCase.isDefaultCase) return true;
+    }
+    return false;
+  }
 }
 
 abstract class ErroneousElement extends Element implements FunctionElement {

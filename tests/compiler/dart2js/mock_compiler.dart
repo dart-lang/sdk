@@ -97,6 +97,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     var length;
     operator[](index) {}
     toString() {}
+    operator+(other) => this;
   }
   class JSNumber extends Interceptor implements num {
     // All these methods return a number to please type inferencing.

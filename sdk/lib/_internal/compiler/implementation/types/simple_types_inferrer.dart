@@ -2437,4 +2437,45 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   void internalError(String reason, {Node node}) {
     compiler.internalError(reason, node: node);
   }
+
+  TypeMask visitSwitchStatement(SwitchStatement node) {
+    visit(node.parenthesizedExpression);
+
+    if (Elements.switchStatementHasContinue(node, elements)) {
+      // If the switch statement has a continue, we conservatively
+      // visit all cases and update [locals] until we have reached a
+      // fixed point.
+      bool changed;
+      do {
+        changed = false;
+        for (Node switchCase in node.cases) {
+          LocalsHandler saved = new LocalsHandler.from(locals);
+          visit(switchCase);
+          changed = saved.merge(locals) || changed;
+          locals = saved;
+        }
+      } while (changed);
+    } else {
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      // If there is a default case, the current values of the local
+      // variable might be overwritten, so we don't need the current
+      // [locals] for the join block.
+      LocalsHandler result = Elements.switchStatementHasDefault(node)
+          ? null
+          : new LocalsHandler.from(locals);
+
+      for (Node switchCase in node.cases) {
+        locals = saved;
+        visit(switchCase);
+        if (result == null) {
+          result = locals;
+        } else {
+          result.merge(locals);
+        }
+      }
+
+      locals = result;
+    }
+    return inferrer.dynamicType;
+  }
 }
