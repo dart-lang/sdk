@@ -118,6 +118,8 @@ abstract class DartType {
    */
   TypeVariableType get typeVariableOccurrence => null;
 
+  void forEachTypeVariable(f(TypeVariableType variable)) {}
+
   TypeVariableType _findTypeVariableOccurrence(Link<DartType> types) {
     for (Link<DartType> link = types; !link.isEmpty ; link = link.tail) {
       TypeVariableType typeVariable = link.head.typeVariableOccurrence;
@@ -202,6 +204,10 @@ class TypeVariableType extends DartType {
   DartType unalias(Compiler compiler) => this;
 
   DartType get typeVariableOccurrence => this;
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    f(this);
+  }
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitTypeVariableType(this, argument);
@@ -405,6 +411,12 @@ abstract class GenericType extends DartType {
 
   TypeVariableType get typeVariableOccurrence {
     return _findTypeVariableOccurrence(typeArguments);
+  }
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    for (Link<DartType> link = typeArguments; !link.isEmpty; link = link.tail) {
+      link.head.forEachTypeVariable(f);
+    }
   }
 
   void visitChildren(DartTypeVisitor visitor, var argument) {
