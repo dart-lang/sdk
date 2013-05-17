@@ -533,7 +533,7 @@ class LocalsHandler {
     }
   }
 
-  void enterLoopUpdates(Loop node) {
+  void enterLoopUpdates(Node node) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.
@@ -736,6 +736,9 @@ class TargetJumpHandler implements JumpHandler {
       continueInstruction = new HContinue(target);
     } else {
       continueInstruction = new HContinue.toLabel(label);
+      // Switch case continue statements must be handled by the
+      // [SwitchCaseJumpHandler].
+      assert(label.target.statement is! SwitchCase);
     }
     LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
     builder.close(continueInstruction);
@@ -780,6 +783,90 @@ class TargetJumpHandler implements JumpHandler {
       result.add(element);
     }
     return (result == null) ? const <LabelElement>[] : result;
+  }
+}
+
+/// Special [JumpHandler] implementation used to handle continue statements
+/// targeting switch cases.
+class SwitchCaseJumpHandler extends TargetJumpHandler {
+  /// Map from switch case targets to indices used to encode the flow of the
+  /// switch case loop.
+  final Map<TargetElement, int> targetIndexMap = new Map<TargetElement, int>();
+
+  SwitchCaseJumpHandler(SsaBuilder builder,
+                        TargetElement target,
+                        SwitchStatement node)
+      : super(builder, target) {
+    // The switch case indices must match those computed in
+    // [SsaBuilder.buildSwitchCaseConstants].
+    // Switch indices are 1-based so we can bypass the synthetic loop when no
+    // cases match simply by branching on the index (which defaults to null).
+    int switchIndex = 1;
+    for (SwitchCase switchCase in node.cases) {
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        Node label = labelOrCase.asLabel();
+        if (label != null) {
+          LabelElement labelElement = builder.elements[label];
+          if (labelElement != null && labelElement.isContinueTarget) {
+            TargetElement continueTarget = labelElement.target;
+            targetIndexMap[continueTarget] = switchIndex;
+            assert(builder.jumpTargets[continueTarget] == null);
+            builder.jumpTargets[continueTarget] = this;
+          }
+        }
+      }
+      switchIndex++;
+    }
+  }
+
+  void generateBreak([LabelElement label]) {
+    if (label == null) {
+      // Creates a special break instruction for the synthetic loop generated
+      // for a switch statement with continue statements. See
+      // [SsaBuilder.buildComplexSwitchStatement] for detail.
+
+      HInstruction breakInstruction =
+          new HBreak(target, breakSwitchContinueLoop: true);
+      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+      builder.close(breakInstruction);
+      jumps.add(new JumpHandlerEntry(breakInstruction, locals));
+    } else {
+      super.generateBreak(label);
+    }
+  }
+
+  bool isContinueToSwitchCase(LabelElement label) {
+    return label != null && targetIndexMap.containsKey(label.target);
+  }
+
+  void generateContinue([LabelElement label]) {
+    if (isContinueToSwitchCase(label)) {
+      // Creates the special instructions 'label = i; continue l;' used in
+      // switch statements with continue statements. See
+      // [SsaBuilder.buildComplexSwitchStatement] for detail.
+
+      assert(label != null);
+      HInstruction value = builder.graph.addConstantInt(
+          targetIndexMap[label.target],
+          builder.constantSystem);
+      builder.localsHandler.updateLocal(target, value);
+
+      assert(label.target.labels.contains(label));
+      HInstruction continueInstruction = new HContinue(target);
+      LocalsHandler locals = new LocalsHandler.from(builder.localsHandler);
+      builder.close(continueInstruction);
+      jumps.add(new JumpHandlerEntry(continueInstruction, locals));
+    } else {
+      super.generateContinue(label);
+    }
+  }
+
+  void close() {
+    // The mapping from TargetElement to JumpHandler is no longer needed.
+    for (TargetElement target in targetIndexMap.keys) {
+      builder.jumpTargets.remove(target);
+    }
+    super.close();
   }
 }
 
@@ -1902,7 +1989,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(!isAborted());
     HBasicBlock previousBlock = close(new HGoto());
 
-    JumpHandler jumpHandler = createJumpHandler(node);
+    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: true);
     HBasicBlock loopEntry = graph.addNewLoopHeaderBlock(
         jumpHandler.target,
         jumpHandler.labels());
@@ -4069,12 +4156,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    * Creates a [JumpHandler] for a statement. The node must be a jump
    * target. If there are no breaks or continues targeting the statement,
    * a special "null handler" is returned.
+   *
+   * [isLoopJump] is [:true:] when the jump handler is for a loop. This is used
+   * to distinguish the synthetized loop created for a switch statement with
+   * continue statements from simple switch statements.
    */
-  JumpHandler createJumpHandler(Statement node) {
+  JumpHandler createJumpHandler(Statement node, {bool isLoopJump}) {
     TargetElement element = elements[node];
     if (element == null || !identical(element.statement, node)) {
       // No breaks or continues to this node.
       return new NullJumpHandler(compiler);
+    }
+    if (isLoopJump && node is SwitchStatement) {
+      // Create a special jump handler for loops created for switch statements
+      // with continue statements.
+      return new SwitchCaseJumpHandler(this, element, node);
     }
     return new JumpHandler(this, element);
   }
@@ -4214,59 +4310,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(node.expression);
   }
 
-  visitSwitchStatement(SwitchStatement node) {
-    if (tryBuildConstantSwitch(node)) return;
-
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-    HBasicBlock startBlock = openNewBlock();
-    visit(node.expression);
-    HInstruction expression = pop();
-    if (node.cases.isEmpty) {
-      return;
-    }
-
-    Link<Node> cases = node.cases.nodes;
-    JumpHandler jumpHandler = createJumpHandler(node);
-
-    buildSwitchCases(cases, expression);
-
-    HBasicBlock lastBlock = lastOpenedBlock;
-
-    // Create merge block for break targets.
-    HBasicBlock joinBlock = new HBasicBlock();
-    List<LocalsHandler> caseHandlers = <LocalsHandler>[];
-    jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
-      instruction.block.addSuccessor(joinBlock);
-      caseHandlers.add(locals);
-    });
-    if (!isAborted()) {
-      // The current flow is only aborted if the switch has a default that
-      // aborts (all previous cases must abort, and if there is no default,
-      // it's possible to miss all the cases).
-      caseHandlers.add(localsHandler);
-      goto(current, joinBlock);
-    }
-    if (caseHandlers.length != 0) {
-      graph.addBlock(joinBlock);
-      open(joinBlock);
-      if (caseHandlers.length == 1) {
-        localsHandler = caseHandlers[0];
-      } else {
-        localsHandler = savedLocals.mergeMultiple(caseHandlers, joinBlock);
-      }
-    } else {
-      // The joinblock is not used.
-      joinBlock = null;
-    }
-    startBlock.setBlockFlow(
-        new HLabeledBlockInformation.implicit(
-            new HSubGraphBlockInformation(new SubGraph(startBlock, lastBlock)),
-            elements[node]),
-        joinBlock);
-    jumpHandler.close();
-  }
-
-  bool tryBuildConstantSwitch(SwitchStatement node) {
+  Map<CaseMatch,Constant> buildSwitchCaseConstants(SwitchStatement node) {
     Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
     // First check whether all case expressions are compile-time constants,
     // and all have the same type that doesn't override operator==.
@@ -4279,18 +4323,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         if (labelOrCase is CaseMatch) {
           CaseMatch match = labelOrCase;
           Constant constant =
-            compiler.constantHandler.tryCompileNodeWithDefinitions(
-                match.expression, elements);
-          if (constant == null) {
-            compiler.reportWarning(match.expression,
-                MessageKind.NOT_A_COMPILE_TIME_CONSTANT.error());
-            failure = true;
-            continue;
-          }
+              compiler.constantHandler.compileNodeWithDefinitions(
+                  match.expression, elements, isConst: true);
           if (firstConstantType == null) {
             firstConstantType = constant.computeType(compiler);
             if (nonPrimitiveTypeOverridesEquals(constant)) {
-              compiler.reportWarning(match.expression,
+              compiler.reportError(match.expression,
                   MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS.error());
               failure = true;
             }
@@ -4298,36 +4336,258 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             DartType constantType =
                 constant.computeType(compiler);
             if (constantType != firstConstantType) {
-              compiler.reportWarning(match.expression,
+              compiler.reportError(match.expression,
                   MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL.error());
               failure = true;
             }
           }
           constants[labelOrCase] = constant;
-        } else {
-          compiler.reportWarning(node, "Unsupported: Labels on cases");
-          failure = true;
         }
       }
     }
-    if (failure) {
-      return false;
+    return constants;
+  }
+
+  visitSwitchStatement(SwitchStatement node) {
+    Map<CaseMatch,Constant> constants = buildSwitchCaseConstants(node);
+
+    // The switch case indices must match those computed in
+    // [SwitchCaseJumpHandler].
+    bool hasContinue = false;
+    Map<SwitchCase, int> caseIndex = new Map<SwitchCase, int>();
+    int switchIndex = 1;
+    bool hasDefault = false;
+    for (SwitchCase switchCase in node.cases) {
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        Node label = labelOrCase.asLabel();
+        if (label != null) {
+          LabelElement labelElement = elements[label];
+          if (labelElement != null && labelElement.isContinueTarget) {
+            hasContinue = true;
+          }
+        }
+      }
+      if (switchCase.isDefaultCase) {
+        hasDefault = true;
+      }
+      caseIndex[switchCase] = switchIndex;
+      switchIndex++;
     }
+    if (!hasContinue) {
+      // If the switch statement has no switch cases targeted by continue
+      // statements we encode the switch statement directly.
+      buildSimpleSwitchStatement(node, constants);
+    } else {
+      buildComplexSwitchStatement(node, constants, caseIndex, hasDefault);
+    }
+  }
+
+  /**
+   * Builds a simple switch statement which does not handle uses of continue
+   * statements to labeled switch cases.
+   */
+  void buildSimpleSwitchStatement(SwitchStatement node,
+                                  Map<CaseMatch, Constant> constants) {
+    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
+    HInstruction buildExpression() {
+      visit(node.expression);
+      return pop();
+    }
+    Iterable<Constant> getConstants(SwitchCase switchCase) {
+      List<Constant> constantList = <Constant>[];
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is CaseMatch) {
+          constantList.add(constants[labelOrCase]);
+        }
+      }
+      return constantList;
+    }
+    bool isDefaultCase(SwitchCase switchCase) {
+      return switchCase.isDefaultCase;
+    }
+    void buildSwitchCase(SwitchCase node) {
+      visit(node.statements);
+    }
+    handleSwitch(node,
+                 jumpHandler,
+                 buildExpression,
+                 node.cases,
+                 getConstants,
+                 isDefaultCase,
+                 buildSwitchCase);
+    jumpHandler.close();
+  }
+
+  /**
+   * Builds a switch statement that can handle arbitrary uses of continue
+   * statements to labeled switch cases.
+   */
+  void buildComplexSwitchStatement(SwitchStatement node,
+                                   Map<CaseMatch, Constant> constants,
+                                   Map<SwitchCase, int> caseIndex,
+                                   bool hasDefault) {
+    // If the switch statement has switch cases targeted by continue
+    // statements we create the following encoding:
+    //
+    //   switch (e) {
+    //     l_1: case e0: s_1; break;
+    //     l_2: case e1: s_2; continue l_i;
+    //     ...
+    //     l_n: default: s_n; continue l_j;
+    //   }
+    //
+    // is encoded as
+    //
+    //   var target;
+    //   switch (e) {
+    //     case e1: target = 1; break;
+    //     case e2: target = 2; break;
+    //     ...
+    //     default: target = n; break;
+    //   }
+    //   l: while (true) {
+    //    switch (target) {
+    //       case 1: s_1; break l;
+    //       case 2: s_2; target = i; continue l;
+    //       ...
+    //       case n: s_n; target = j; continue l;
+    //     }
+    //   }
+
+    TargetElement switchTarget = elements[node];
+    HInstruction initialValue = graph.addConstantNull(constantSystem);
+    localsHandler.updateLocal(switchTarget, initialValue);
+
+    JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
+    var switchCases = node.cases;
+    if (!hasDefault) {
+      // Use [:null:] as the marker for a synthetic default clause.
+      // The synthetic default is added because otherwise, there would be no
+      // good place to give a default value to the local.
+      switchCases = node.cases.nodes.toList()..add(null);
+    }
+    HInstruction buildExpression() {
+      visit(node.expression);
+      return pop();
+    }
+    Iterable<Constant> getConstants(SwitchCase switchCase) {
+      List<Constant> constantList = <Constant>[];
+      if (switchCase != null) {
+        for (Node labelOrCase in switchCase.labelsAndCases) {
+          if (labelOrCase is CaseMatch) {
+            constantList.add(constants[labelOrCase]);
+          }
+        }
+      }
+      return constantList;
+    }
+    bool isDefaultCase(SwitchCase switchCase) {
+      return switchCase == null || switchCase.isDefaultCase;
+    }
+    void buildSwitchCase(SwitchCase switchCase) {
+      if (switchCase != null) {
+        // Generate 'target = i; break;' for switch case i.
+        int index = caseIndex[switchCase];
+        HInstruction value = graph.addConstantInt(index, constantSystem);
+        localsHandler.updateLocal(switchTarget, value);
+      } else {
+        // Generate synthetic default case 'target = null; break;'.
+        HInstruction value = graph.addConstantNull(constantSystem);
+        localsHandler.updateLocal(switchTarget, value);
+      }
+      jumpTargets[switchTarget].generateBreak();
+    }
+    handleSwitch(node,
+                 jumpHandler,
+                 buildExpression,
+                 switchCases,
+                 getConstants,
+                 isDefaultCase,
+                 buildSwitchCase);
+    jumpHandler.close();
+
+    HInstruction buildCondition() =>
+        graph.addConstantBool(true, constantSystem);
+
+    void buildSwitch() {
+      HInstruction buildExpression() {
+        return localsHandler.readLocal(switchTarget);
+      }
+      Iterable<Constant> getConstants(SwitchCase switchCase) {
+        return <Constant>[constantSystem.createInt(caseIndex[switchCase])];
+      }
+      void buildSwitchCase(SwitchCase switchCase) {
+        visit(switchCase.statements);
+        if (!isAborted()) {
+          // Ensure that we break the loop if the case falls through. (This
+          // is only possible for the last case.)
+          jumpTargets[switchTarget].generateBreak();
+        }
+      }
+      // Pass a [NullJumpHandler] because the target for the contained break
+      // is not the generated switch statement but instead the loop generated
+      // in the call to [handleLoop] below.
+      handleSwitch(node,
+                   new NullJumpHandler(compiler),
+                   buildExpression, node.cases, getConstants,
+                   (_) => false, // No case is default.
+                   buildSwitchCase);
+    }
+
+    void buildLoop() {
+      handleLoop(node,
+          () {},
+          buildCondition,
+          () {},
+          buildSwitch);
+    }
+
+    if (hasDefault) {
+      buildLoop();
+    } else {
+      // If the switch statement has no default case, surround the loop with
+      // a test of the target.
+      void buildCondition() {
+        push(createForeign('#', HType.BOOLEAN,
+                           [localsHandler.readLocal(switchTarget)]));
+      }
+      handleIf(node, buildCondition, buildLoop, () => {});
+    }
+  }
+
+  /**
+   * Creates a switch statement.
+   *
+   * [jumpHandler] is the [JumpHandler] for the created switch statement.
+   * [buildExpression] creates the switch expression.
+   * [switchCases] must be either an [Iterable] of [SwitchCase] nodes or
+   *   a [Link] or a [NodeList] of [SwitchCase] nodes.
+   * [getConstants] returns the set of constants for a switch case.
+   * [isDefaultCase] returns [:true:] if the provided switch case should be
+   *   considered default for the created switch statement.
+   * [buildSwitchCase] creates the statements for the switch case.
+   */
+  void handleSwitch(Node errorNode,
+                    JumpHandler jumpHandler,
+                    HInstruction buildExpression(),
+                    var switchCases,
+                    Iterable<Constant> getConstants(SwitchCase switchCase),
+                    bool isDefaultCase(SwitchCase switchCase),
+                    void buildSwitchCase(SwitchCase switchCase)) {
+    Map<CaseMatch, Constant> constants = new Map<CaseMatch, Constant>();
 
     // TODO(ngeoffray): Handle switch-instruction in bailout code.
     work.allowSpeculativeOptimization = false;
     // Then build a switch structure.
     HBasicBlock expressionStart = openNewBlock();
-    visit(node.expression);
-    HInstruction expression = pop();
-    if (node.cases.isEmpty) {
-      return true;
+    HInstruction expression = buildExpression();
+    if (switchCases.isEmpty) {
+      return;
     }
     HBasicBlock expressionEnd = current;
 
     HSwitch switchInstruction = new HSwitch(<HInstruction>[expression]);
     HBasicBlock expressionBlock = close(switchInstruction);
-    JumpHandler jumpHandler = createJumpHandler(node);
     LocalsHandler savedLocals = localsHandler;
 
     List<List<Constant>> matchExpressions = <List<Constant>>[];
@@ -4335,24 +4595,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool hasDefault = false;
     Element getFallThroughErrorElement = backend.getFallThroughError();
     HasNextIterator<Node> caseIterator =
-        new HasNextIterator<Node>(node.cases.iterator);
+        new HasNextIterator<Node>(switchCases.iterator);
     while (caseIterator.hasNext) {
       SwitchCase switchCase = caseIterator.next();
       List<Constant> caseConstants = <Constant>[];
       HBasicBlock block = graph.addNewBlock();
-      for (Node labelOrCase in switchCase.labelsAndCases) {
-        if (labelOrCase is CaseMatch) {
-          Constant constant = constants[labelOrCase];
-          caseConstants.add(constant);
-          HConstant hConstant = graph.addConstant(constant);
-          switchInstruction.inputs.add(hConstant);
-          hConstant.usedBy.add(switchInstruction);
-          expressionBlock.addSuccessor(block);
-        }
+      for (Constant constant in getConstants(switchCase)) {
+        caseConstants.add(constant);
+        HConstant hConstant = graph.addConstant(constant);
+        switchInstruction.inputs.add(hConstant);
+        hConstant.usedBy.add(switchInstruction);
+        expressionBlock.addSuccessor(block);
       }
       matchExpressions.add(caseConstants);
 
-      if (switchCase.isDefaultCase) {
+      if (isDefaultCase(switchCase)) {
         // An HSwitch has n inputs and n+1 successors, the last being the
         // default case.
         expressionBlock.addSuccessor(block);
@@ -4360,7 +4617,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       open(block);
       localsHandler = new LocalsHandler.from(savedLocals);
-      visit(switchCase.statements);
+      buildSwitchCase(switchCase);
       if (!isAborted() && caseIterator.hasNext) {
         pushInvokeStatic(switchCase, getFallThroughErrorElement, []);
         HInstruction error = pop();
@@ -4382,6 +4639,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
       instruction.block.addSuccessor(joinBlock);
       caseHandlers.add(locals);
+    });
+    jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
+      assert(invariant(errorNode, false,
+                       message: 'Continue cannot target a switch.'));
     });
     if (!isAborted()) {
       current.close(new HGoto());
@@ -4422,7 +4683,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         joinBlock);
 
     jumpHandler.close();
-    return true;
   }
 
   bool nonPrimitiveTypeOverridesEquals(Constant constant) {
@@ -4458,110 +4718,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     SourceString dartMethodName =
         Elements.constructOperatorName(operatorName, false);
     return classElement.lookupMember(dartMethodName);
-  }
-
-
-  // Recursively build an if/else structure to match the cases.
-  void buildSwitchCases(Link<Node> cases, HInstruction expression,
-                        [int encounteredCaseTypes = 0]) {
-    final int NO_TYPE = 0;
-    final int INT_TYPE = 1;
-    final int STRING_TYPE = 2;
-    final int CONFLICT_TYPE = 3;
-    int combine(int type1, int type2) => type1 | type2;
-
-    SwitchCase node = cases.head;
-    // Called for the statements on all but the last case block.
-    // Ensures that a user expecting a fallthrough gets an error.
-    void visitStatementsAndAbort() {
-      visit(node.statements);
-      if (!isAborted()) {
-        compiler.reportWarning(node, 'Missing break at end of switch case');
-        Element element =
-            compiler.findHelper(const SourceString("getFallThroughError"));
-        pushInvokeStatic(node, element, []);
-        HInstruction error = pop();
-        closeAndGotoExit(new HThrow(error));
-      }
-    }
-
-    Link<Node> skipLabels(Link<Node> labelsAndCases) {
-      while (!labelsAndCases.isEmpty && labelsAndCases.head is Label) {
-        labelsAndCases = labelsAndCases.tail;
-      }
-      return labelsAndCases;
-    }
-
-    Link<Node> labelsAndCases = skipLabels(node.labelsAndCases.nodes);
-    if (labelsAndCases.isEmpty) {
-      // Default case with no expressions.
-      if (!node.isDefaultCase) {
-        compiler.internalError("Case with no expression and not default",
-                               node: node);
-      }
-      visit(node.statements);
-      // This must be the final case (otherwise "default" would be invalid),
-      // so we don't need to check for fallthrough.
-      return;
-    }
-
-    // Recursively build the test conditions. Leaves the result on the
-    // expression stack.
-    void buildTests(Link<Node> remainingCases) {
-      // Build comparison for one case expression.
-      void left() {
-        CaseMatch match = remainingCases.head;
-        // TODO(lrn): Move the constant resolution to the resolver, so
-        // we can report an error before reaching the backend.
-        Constant constant =
-            compiler.constantHandler.tryCompileNodeWithDefinitions(
-                match.expression, elements);
-        if (constant != null) {
-          stack.add(graph.addConstant(constant));
-        } else {
-          visit(match.expression);
-        }
-        push(new HIdentity(pop(), expression));
-      }
-
-      // If this is the last expression, just return it.
-      Link<Node> tail = skipLabels(remainingCases.tail);
-      if (tail.isEmpty) {
-        left();
-        return;
-      }
-
-      void right() {
-        buildTests(tail);
-      }
-      SsaBranchBuilder branchBuilder =
-          new SsaBranchBuilder(this, remainingCases.head);
-      branchBuilder.handleLogicalAndOr(left, right, isAnd: false);
-    }
-
-    if (node.isDefaultCase) {
-      // Default case must be last.
-      assert(cases.tail.isEmpty);
-      // Perform the tests until one of them match, but then always execute the
-      // statements.
-      // TODO(lrn): Stop performing tests when all expressions are compile-time
-      // constant strings or integers.
-      handleIf(node, () { buildTests(labelsAndCases); }, (){}, null);
-      visit(node.statements);
-    } else {
-      if (cases.tail.isEmpty) {
-        handleIf(node,
-                 () { buildTests(labelsAndCases); },
-                 () { visit(node.statements); },
-                 null);
-      } else {
-        handleIf(node,
-                 () { buildTests(labelsAndCases); },
-                 () { visitStatementsAndAbort(); },
-                 () { buildSwitchCases(cases.tail, expression,
-                                       encounteredCaseTypes); });
-      }
-    }
   }
 
   visitSwitchCase(SwitchCase node) {

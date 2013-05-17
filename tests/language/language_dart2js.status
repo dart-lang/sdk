@@ -196,7 +196,6 @@ named_parameters_aggregated_test/03: Fail # Presence of default values for optio
 named_parameters_aggregated_test/05: Fail # Absence of positional parameters before named parameters does not trigger static type warning.
 pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
-switch_label_test: Fail # error: target of continue is not a loop or switch case
 on_catch_malformed_type_test: Fail # Malformed types cause compile-time errors.
 
 # Missing compilation error for wrong number of type arguments.

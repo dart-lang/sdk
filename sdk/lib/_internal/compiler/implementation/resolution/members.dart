@@ -2746,10 +2746,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
       if (!target.statement.isValidContinueTarget()) {
         error(node.target, MessageKind.INVALID_CONTINUE);
       }
-      // TODO(lrn): Handle continues to switch cases.
-      if (target.statement is SwitchCase) {
-        unimplemented(node, "continue to switch case");
-      }
       label.setContinueTarget();
       mapping[node.target] = label;
     }
@@ -2929,19 +2925,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
           }
         }
 
-        TargetElement targetElement =
-            new TargetElementX(switchCase,
-                               statementScope.nestingLevel,
-                               enclosingElement);
-        if (mapping[switchCase] != null) {
-          // TODO(ahe): Talk to Lasse about this.
-          mapping.remove(switchCase);
-        }
-        mapping[switchCase] = targetElement;
-
-        LabelElement labelElement =
-            new LabelElementX(label, labelName,
-                              targetElement, enclosingElement);
+        TargetElement targetElement = getOrCreateTargetElement(switchCase);
+        LabelElement labelElement = targetElement.addLabel(label, labelName);
         mapping[label] = labelElement;
         continueLabels[labelName] = labelElement;
       }

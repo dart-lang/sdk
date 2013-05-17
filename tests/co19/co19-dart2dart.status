@@ -332,9 +332,6 @@ Language/12_Statements/11_Return_A05_t01: Fail # Inherited from dart2js
 Language/12_Statements/11_Return_A05_t02: Fail # Inherited from dart2js
 Language/12_Statements/11_Return_A05_t03: Fail # Inherited from dart2js
 Language/12_Statements/12_Labels_A01_t03: Fail # Inherited from VM (Multiple labels fail).
-Language/12_Statements/12_Labels_A03_t04: Fail # Inherited from dart2js
-Language/12_Statements/14_Continue_A02_t12: Fail # Inherited from dart2js
-Language/12_Statements/14_Continue_A02_t13: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A02_t28: Fail # Inherited from dart2js
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Inherited from dart2js

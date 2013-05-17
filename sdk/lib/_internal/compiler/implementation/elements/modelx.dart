@@ -2007,7 +2007,8 @@ class TargetElementX extends ElementX implements TargetElement {
   bool isContinueTarget = false;
 
   TargetElementX(this.statement, this.nestingLevel, Element enclosingElement)
-      : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
+      : super(const SourceString("target"),
+              ElementKind.STATEMENT, enclosingElement);
   bool get isTarget => isBreakTarget || isContinueTarget;
 
   LabelElement addLabel(Label label, String labelName) {

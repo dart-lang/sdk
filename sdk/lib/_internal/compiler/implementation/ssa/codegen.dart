@@ -776,6 +776,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case HLoopBlockInformation.FOR_LOOP:
       case HLoopBlockInformation.WHILE_LOOP:
       case HLoopBlockInformation.FOR_IN_LOOP:
+      case HLoopBlockInformation.SWITCH_CONTINUE_LOOP:
         HBlockInformation initialization = info.initializer;
         int initializationType = TYPE_STATEMENT;
         if (initialization != null) {
@@ -928,7 +929,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           instruction: condition.conditionExpression);
     }
     attachLocationRange(loop, info.sourcePosition, info.endSourcePosition);
-    pushStatement(wrapIntoLabels(loop, info.labels));
+    js.Statement result = loop;
+    if (info.kind == HLoopBlockInformation.SWITCH_CONTINUE_LOOP) {
+      String continueLabelString =
+          backend.namer.implicitContinueLabelName(info.target);
+      result = new js.LabeledStatement(continueLabelString, result);
+    }
+    pushStatement(wrapIntoLabels(result, info.labels));
     return true;
   }
 
@@ -970,15 +977,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           result = new js.LabeledStatement(labelName, result);
         }
       }
-      TargetElement target = labeledBlockInfo.target;
-      if (target.isSwitch) {
-        // This is an extra block around a switch that is generated
-        // as a nested if/else chain. We add an extra break target
-        // so that case code can break.
-        String labelName = backend.namer.implicitBreakLabelName(target);
-        result = new js.LabeledStatement(labelName, result);
-        breakAction[target] = implicitBreakWithLabel;
-      }
+    }
+    TargetElement target = labeledBlockInfo.target;
+    if (target.isSwitch) {
+      // This is an extra block around a switch that is generated
+      // as a nested if/else chain. We add an extra break target
+      // so that case code can break.
+      String labelName = backend.namer.implicitBreakLabelName(target);
+      result = new js.LabeledStatement(labelName, result);
+      breakAction[target] = implicitBreakWithLabel;
     }
 
     currentContainer = body;
@@ -1334,7 +1341,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(breakAction, target)) {
-        pushStatement(new js.Break(null), node);
+        if (node.breakSwitchContinueLoop) {
+          pushStatement(new js.Break(
+              backend.namer.implicitContinueLabelName(target)), node);
+        } else {
+          pushStatement(new js.Break(null), node);
+        }
       }
     }
   }
@@ -1351,7 +1363,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(continueAction, target)) {
-        pushStatement(new js.Continue(null), node);
+        if (target.statement is SwitchStatement) {
+          pushStatement(new js.Continue(
+              backend.namer.implicitContinueLabelName(target)), node);
+        } else {
+          pushStatement(new js.Continue(null), node);
+        }
       }
     }
   }

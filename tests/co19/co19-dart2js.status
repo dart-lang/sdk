@@ -74,20 +74,13 @@ Language/12_Statements/03_Variable_Declaration_A04_t07: Fail # TODO(ahe): Please
 Language/12_Statements/03_Variable_Declaration_A04_t08: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/09_Switch_A02_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A02_t02: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/09_Switch_A03_t01: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/09_Switch_A03_t02: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/09_Switch_A04_t01: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/09_Switch_A06_t02: Fail # TODO(ahe): Please triage this failure.
+Language/12_Statements/09_Switch_A06_t02: Fail # co19 issue 413
 Language/12_Statements/10_Try_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/10_Try_A07_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t03: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/12_Labels_A03_t04: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/14_Continue_A02_t12: Fail # TODO(ahe): Please triage this failure.
-Language/12_Statements/14_Continue_A02_t13: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t03: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t12: Fail # TODO(ahe): Please triage this failure.
 Language/13_Libraries_and_Scripts/1_Imports_A02_t14: Fail # TODO(ahe): Please triage this failure.

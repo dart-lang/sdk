@@ -470,8 +470,6 @@ static_top_level_test/06: Fail
 static_top_level_test/07: Fail
 # Bug in dart2js parser: it happily parses 1is int; variable declaration.
 number_identifier_negative_test: Fail
-# Bug in dart2js frontent: does not support this feature.
-switch_label_test: Fail
 # Common with language_dart2js.
 factory_redirection_test/0*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
 factory_redirection_test/1*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
