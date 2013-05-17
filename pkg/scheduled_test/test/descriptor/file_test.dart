@@ -229,7 +229,7 @@ void main() {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.map((e) => e.error.message), equals([
-        "Expected: contains 'baaz'\n     but: was 'barfoobaz'.\n"
+        "Expected: contains 'baaz'\n     But: was 'barfoobaz'.\n"
       ]), verbose: true);
     });
   }, passing: ['test 2']);
@@ -270,7 +270,7 @@ void main() {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.map((e) => e.error.message), equals([
         "Expected: contains <12>\n"
-        "     but: was <[98, 97, 114, 102, 111, 111, 98, 97, 122]>.\n"
+        "     But: was [98, 97, 114, 102, 111, 111, 98, 97, 122].\n"
       ]), verbose: true);
     });
   }, passing: ['test 2']);

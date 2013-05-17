@@ -173,43 +173,20 @@ class _DeepMatcher extends BaseMatcher {
         }
       } else {
         reason = new StringDescription();
-        var eType = typeName(expected);
-        var aType = typeName(actual);
-        var includeTypes = eType != aType;
         // If we have recursed, show the expected value too; if not,
         // expect() will show it for us.
         if (depth > 0) {
           reason.add('expected ');
-          if (includeTypes) {
-            reason.add(eType).add(':');
-          }
           reason.addDescriptionOf(expected).add(' but ');
         }
         reason.add('was ');
-        if (includeTypes) {
-          reason.add(aType).add(':');
-        }
         reason.addDescriptionOf(actual);
-        if (includeTypes && depth == 0) {
-          reason.add(' (not type ').add(eType).add(')');
-        }
       }
     }
     if (reason != null && location.length > 0) {
       reason.add(' ').add(location);
     }
     return reason;
-  }
-
-  String typeName(x) {
-    // dart2js blows up on some objects (e.g. window.navigator).
-    // So we play safe here.
-    try {
-      if (x == null) return "null";
-      return x.runtimeType.toString();
-    } catch (e) {
-      return "Unknown";
-    }
   }
 
   String _match(expected, actual) {
@@ -583,17 +560,16 @@ class _HasLength extends BaseMatcher {
 
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {
-    super.describeMismatch(item, mismatchDescription, matchState, verbose);
     try {
       // We want to generate a different description if there is no length
       // property. This is harmless code that will throw if no length property
       // but subtle enough that an optimizer shouldn't strip it out.
       if (item.length * item.length >= 0) {
-        return mismatchDescription.add(' with length of ').
+        return mismatchDescription.add('had length of ').
             addDescriptionOf(item.length);
       }
     } catch (e) {
-      return mismatchDescription.add(' has no length property');
+      return mismatchDescription.add('had no length property');
     }
   }
 }

@@ -44,8 +44,8 @@ class _ContainsMapping extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {
     if (!item.containsKey(_key)) {
-      return mismatchDescription.addDescriptionOf(item).
-          add(" doesn't contain key ").addDescriptionOf(_key);
+      return mismatchDescription.add(" doesn't contain key ")
+          .addDescriptionOf(_key);
     } else {
       mismatchDescription.add(' contains key ').addDescriptionOf(_key).
           add(' but with value ');

@@ -84,30 +84,30 @@ void main() {
 
     test('isTrue', () {
       shouldPass(true, isTrue);
-      shouldFail(false, isTrue, "Expected: true but: was <false>.");
+      shouldFail(false, isTrue, "Expected: true But: was <false>.");
     });
 
     test('isFalse', () {
       shouldPass(false, isFalse);
-      shouldFail(10, isFalse, "Expected: false but: was <10>.");
-      shouldFail(true, isFalse, "Expected: false but: was <true>.");
+      shouldFail(10, isFalse, "Expected: false But: was <10>.");
+      shouldFail(true, isFalse, "Expected: false But: was <true>.");
     });
 
     test('isNull', () {
       shouldPass(null, isNull);
-      shouldFail(false, isNull, "Expected: null but: was <false>.");
+      shouldFail(false, isNull, "Expected: null But: was <false>.");
     });
 
     test('isNotNull', () {
       shouldPass(false, isNotNull);
-      shouldFail(null, isNotNull, "Expected: not null but: was <null>.");
+      shouldFail(null, isNotNull, "Expected: not null But: was <null>.");
     });
 
     test('same', () {
       var a = new Map();
       var b = new Map();
       shouldPass(a, same(a));
-      shouldFail(b, same(a), "Expected: same instance as <{}> but: was <{}>.");
+      shouldFail(b, same(a), "Expected: same instance as {} But: was {}.");
     });
 
     test('equals', () {
@@ -122,22 +122,27 @@ void main() {
       shouldPass(0, anything);
       shouldPass(null, anything);
       shouldPass(a, anything);
-      shouldFail(a, isNot(anything), "Expected: not anything but: was <{}>.");
+      shouldFail(a, isNot(anything), "Expected: not anything But: was {}.");
     });
 
     test('throws', () {
       shouldFail(doesNotThrow, throws,
-        "Expected: throws an exception but: no exception.");
+          "Expected: throws an exception But: no exception. "
+          "Actual: <Closure: (dynamic) => dynamic "
+              "from Function 'doesNotThrow': static.>");
       shouldPass(doesThrow, throws);
       shouldFail(true, throws,
-          "Expected: throws an exception but: not a Function or Future.");
+          "Expected: throws an exception But: not a Function or Future. "
+          "Actual: <true>");
     });
 
     test('throwsA', () {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
-        "Expected: throws an exception which matches 'Y' "
-        "but:  exception 'X' does not match 'Y'.");
+          "Expected: throws an exception which matches 'Y' "
+          "But:  exception 'X' does not match 'Y'. "
+          "Actual: <Closure: (dynamic) => dynamic "
+              "from Function 'doesThrow': static.>");
     });
 
     test('throwsFormatException', () {
@@ -145,8 +150,9 @@ void main() {
           throwsFormatException);
       shouldFail(() { throw new Exception(); },
           throwsFormatException,
-        "Expected: throws an exception which matches FormatException "
-        "but:  exception <Exception> does not match FormatException.");
+          "Expected: throws an exception which matches FormatException "
+          "But:  exception ?:<Exception> does not match FormatException. "
+          "Actual: <Closure: (dynamic) => dynamic>");
     });
 
     test('throwsArgumentError', () {
@@ -154,9 +160,10 @@ void main() {
           throwsArgumentError);
       shouldFail(() { throw new Exception(); },
           throwsArgumentError,
-        "Expected: throws an exception which matches ArgumentError "
-        "but:  exception <Exception> does not match "
-            "ArgumentError.");
+          "Expected: throws an exception which matches ArgumentError "
+          "But:  exception ?:<Exception> does not match "
+              "ArgumentError. "
+          "Actual: <Closure: (dynamic) => dynamic>");
     });
 
     test('throwsRangeError', () {
@@ -164,8 +171,9 @@ void main() {
           throwsRangeError);
       shouldFail(() { throw new Exception(); },
           throwsRangeError,
-        "Expected: throws an exception which matches RangeError "
-        "but:  exception <Exception> does not match RangeError.");
+          "Expected: throws an exception which matches RangeError "
+          "But:  exception ?:<Exception> does not match RangeError. "
+          "Actual: <Closure: (dynamic) => dynamic>");
     });
 
     test('throwsNoSuchMethodError', () {
@@ -173,9 +181,10 @@ void main() {
           throwsNoSuchMethodError);
       shouldFail(() { throw new Exception(); },
           throwsNoSuchMethodError,
-        "Expected: throws an exception which matches NoSuchMethodError "
-        "but:  exception <Exception> does not match "
-            "NoSuchMethodError.");
+          "Expected: throws an exception which matches NoSuchMethodError "
+          "But:  exception ?:<Exception> does not match "
+              "NoSuchMethodError. "
+          "Actual: <Closure: (dynamic) => dynamic>");
     });
 
     test('throwsUnimplementedError', () {
@@ -183,9 +192,10 @@ void main() {
           throwsUnimplementedError);
       shouldFail(() { throw new Exception(); },
           throwsUnimplementedError,
-        "Expected: throws an exception which matches UnimplementedError "
-        "but:  exception <Exception> does not match "
-            "UnimplementedError.");
+          "Expected: throws an exception which matches UnimplementedError "
+          "But:  exception ?:<Exception> does not match "
+              "UnimplementedError. "
+          "Actual: <Closure: (dynamic) => dynamic>");
     });
 
     test('throwsUnsupportedError', () {
@@ -193,9 +203,10 @@ void main() {
           throwsUnsupportedError);
       shouldFail(() { throw new Exception(); },
           throwsUnsupportedError,
-        "Expected: throws an exception which matches UnsupportedError "
-        "but:  exception <Exception> does not match "
-            "UnsupportedError.");
+          "Expected: throws an exception which matches UnsupportedError "
+          "But:  exception ?:<Exception> does not match "
+              "UnsupportedError. "
+          "Actual: <Closure: (dynamic) => dynamic>");
     });
 
     test('throwsStateError', () {
@@ -203,15 +214,18 @@ void main() {
           throwsStateError);
       shouldFail(() { throw new Exception(); },
           throwsStateError,
-        "Expected: throws an exception which matches StateError "
-        "but:  exception <Exception> does not match "
-            "StateError.");
+          "Expected: throws an exception which matches StateError "
+          "But:  exception ?:<Exception> does not match "
+              "StateError. "
+          "Actual: <Closure: (dynamic) => dynamic>");
     });
 
     test('returnsNormally', () {
       shouldPass(doesNotThrow, returnsNormally);
       shouldFail(doesThrow, returnsNormally,
-        "Expected: return normally but: threw 'X'.");
+          "Expected: return normally But: threw 'X'. "
+          "Actual: <Closure: (dynamic) => dynamic "
+              "from Function 'doesThrow': static.>");
     });
 
     test('hasLength', () {
@@ -221,41 +235,44 @@ void main() {
       shouldPass(b, hasLength(0));
       shouldPass('a', hasLength(1));
       shouldFail(0, hasLength(0), new PrefixMatcher(
-        "Expected: an object with length of <0> "
-        "but: was <0> has no length property."));
+          "Expected: an object with length of <0> "
+          "But: had no length property."
+          "Actual: <0>"));
 
       b.add(0);
       shouldPass(b, hasLength(1));
       shouldFail(b, hasLength(2),
-        "Expected: an object with length of <2> "
-        "but: was <[0]> with length of <1>.");
+          "Expected: an object with length of <2> "
+          "But: had length of <1>. "
+          "Actual: [0]");
 
       b.add(0);
       shouldFail(b, hasLength(1),
-        "Expected: an object with length of <1> "
-        "but: was <[0, 0]> with length of <2>.");
+          "Expected: an object with length of <1> "
+          "But: had length of <2>. "
+          "Actual: [0, 0]");
       shouldPass(b, hasLength(2));
     });
 
     test('scalar type mismatch', () {
       shouldFail('error', equals(5.1),
-          matches("^Expected: <5\.1>"
-                  "     but: was .*:'error' \\(not type .*\\)\.\$"));
+          "Expected: <5.1> "
+          "But: was 'error'.");
     });
 
     test('nested type mismatch', () {
       shouldFail(['error'], equals([5.1]),
-          matches(r"^Expected: <\[5\.1\]>"
-                  "     but: expected double:<5\.1> "
-                  "but was .*:'error' mismatch at position 0\.\$"));
+          "Expected: [5.1] "
+          "But: expected <5.1> but was 'error' mismatch at position 0. "
+          "Actual: ['error']");
     });
 
     test('doubly-nested type mismatch', () {
       shouldFail([['error']], equals([[5.1]]),
-          matches(r"^Expected: <\[\[5\.1\]\]>"
-                  "     but: expected double:<5\.1> "
-                  "but was .*:'error' mismatch at position 0 "
-                  "mismatch at position 0\.\$"));
+          "Expected: [[5.1]] "
+          "But: expected <5.1> but was 'error' "
+          "mismatch at position 0 mismatch at position 0. "
+          "Actual: [['error']]");
     });
   });
 
@@ -264,64 +281,64 @@ void main() {
     test('greaterThan', () {
       shouldPass(10, greaterThan(9));
       shouldFail(9, greaterThan(10),
-        "Expected: a value greater than <10> but: was <9>.");
+        "Expected: a value greater than <10> But: was <9>.");
     });
 
     test('greaterThanOrEqualTo', () {
       shouldPass(10, greaterThanOrEqualTo(10));
       shouldFail(9, greaterThanOrEqualTo(10),
-        "Expected: a value greater than or equal to <10> but: was <9>.");
+        "Expected: a value greater than or equal to <10> But: was <9>.");
     });
 
     test('lessThan', () {
       shouldFail(10, lessThan(9), "Expected: a value less than <9> "
-          "but: was <10>.");
+          "But: was <10>.");
       shouldPass(9, lessThan(10));
     });
 
     test('lessThanOrEqualTo', () {
       shouldPass(10, lessThanOrEqualTo(10));
       shouldFail(11, lessThanOrEqualTo(10),
-        "Expected: a value less than or equal to <10> but: was <11>.");
+        "Expected: a value less than or equal to <10> But: was <11>.");
     });
 
     test('isZero', () {
       shouldPass(0, isZero);
-      shouldFail(1, isZero, "Expected: a value equal to <0> but: was <1>.");
+      shouldFail(1, isZero, "Expected: a value equal to <0> But: was <1>.");
     });
 
     test('isNonZero', () {
       shouldFail(0, isNonZero, "Expected: a value not equal to <0> "
-          "but: was <0>.");
+          "But: was <0>.");
       shouldPass(1, isNonZero);
     });
 
     test('isPositive', () {
       shouldFail(-1, isPositive, "Expected: a positive value "
-          "but: was <-1>.");
+          "But: was <-1>.");
       shouldFail(0, isPositive, "Expected: a positive value "
-          "but: was <0>.");
+          "But: was <0>.");
       shouldPass(1, isPositive);
     });
 
     test('isNegative', () {
       shouldPass(-1, isNegative);
       shouldFail(0, isNegative,
-          "Expected: a negative value but: was <0>.");
+          "Expected: a negative value But: was <0>.");
     });
 
     test('isNonPositive', () {
       shouldPass(-1, isNonPositive);
       shouldPass(0, isNonPositive);
       shouldFail(1, isNonPositive,
-          "Expected: a non-positive value but: was <1>.");
+          "Expected: a non-positive value But: was <1>.");
     });
 
     test('isNonNegative', () {
       shouldPass(1, isNonNegative);
       shouldPass(0, isNonNegative);
       shouldFail(-1, isNonNegative,
-        "Expected: a non-negative value but: was <-1>.");
+        "Expected: a non-negative value But: was <-1>.");
     });
 
     test('closeTo', () {
@@ -330,38 +347,40 @@ void main() {
       shouldPass(1, closeTo(0, 1));
       shouldFail(1.001, closeTo(0, 1),
           "Expected: a numeric value within <1> of <0> "
-          "but: <1.001> differed by <1.001>.");
+          "But: differed by <1.001>. "
+          "Actual: <1.001>");
       shouldFail(-1.001, closeTo(0, 1),
           "Expected: a numeric value within <1> of <0> "
-          "but: <-1.001> differed by <1.001>.");
+          "But: differed by <1.001>. "
+          "Actual: <-1.001>");
     });
 
     test('inInclusiveRange', () {
       shouldFail(-1, inInclusiveRange(0,2),
           "Expected: be in range from 0 (inclusive) to 2 (inclusive) "
-          "but: was <-1>.");
+          "But: was <-1>.");
       shouldPass(0, inInclusiveRange(0,2));
       shouldPass(1, inInclusiveRange(0,2));
       shouldPass(2, inInclusiveRange(0,2));
       shouldFail(3, inInclusiveRange(0,2),
           "Expected: be in range from 0 (inclusive) to 2 (inclusive) "
-          "but: was <3>.");
+          "But: was <3>.");
     });
 
     test('inExclusiveRange', () {
       shouldFail(0, inExclusiveRange(0,2),
           "Expected: be in range from 0 (exclusive) to 2 (exclusive) "
-          "but: was <0>.");
+          "But: was <0>.");
       shouldPass(1, inExclusiveRange(0,2));
       shouldFail(2, inExclusiveRange(0,2),
           "Expected: be in range from 0 (exclusive) to 2 (exclusive) "
-          "but: was <2>.");
+          "But: was <2>.");
     });
 
     test('inOpenClosedRange', () {
       shouldFail(0, inOpenClosedRange(0,2),
           "Expected: be in range from 0 (exclusive) to 2 (inclusive) "
-          "but: was <0>.");
+          "But: was <0>.");
       shouldPass(1, inOpenClosedRange(0,2));
       shouldPass(2, inOpenClosedRange(0,2));
     });
@@ -371,7 +390,7 @@ void main() {
       shouldPass(1, inClosedOpenRange(0,2));
       shouldFail(2, inClosedOpenRange(0,2),
           "Expected: be in range from 0 (inclusive) to 2 (exclusive) "
-          "but: was <2>.");
+          "But: was <2>.");
     });
   });
 
@@ -380,22 +399,22 @@ void main() {
     test('isEmpty', () {
       shouldPass('', isEmpty);
       shouldFail(null, isEmpty,
-          "Expected: empty but: was <null>.");
+          "Expected: empty But: was <null>.");
       shouldFail(0, isEmpty,
-          "Expected: empty but: was <0>.");
-      shouldFail('a', isEmpty, "Expected: empty but: was 'a'.");
+          "Expected: empty But: was <0>.");
+      shouldFail('a', isEmpty, "Expected: empty But: was 'a'.");
     });
 
     test('equalsIgnoringCase', () {
       shouldPass('hello', equalsIgnoringCase('HELLO'));
       shouldFail('hi', equalsIgnoringCase('HELLO'),
-          "Expected: 'HELLO' ignoring case but: was 'hi'.");
+          "Expected: 'HELLO' ignoring case But: was 'hi'.");
     });
 
     test('equalsIgnoringWhitespace', () {
       shouldPass(' hello   world  ', equalsIgnoringWhitespace('hello world'));
       shouldFail(' helloworld  ', equalsIgnoringWhitespace('hello world'),
-          "Expected: 'hello world' ignoring whitespace but: was 'helloworld'.");
+          "Expected: 'hello world' ignoring whitespace But: was 'helloworld'.");
     });
 
     test('startsWith', () {
@@ -403,7 +422,7 @@ void main() {
       shouldPass('hello', startsWith('hell'));
       shouldPass('hello', startsWith('hello'));
       shouldFail('hello', startsWith('hello '),
-          "Expected: a string starting with 'hello ' but: was 'hello'.");
+          "Expected: a string starting with 'hello ' But: was 'hello'.");
     });
 
     test('endsWith', () {
@@ -411,7 +430,7 @@ void main() {
       shouldPass('hello', endsWith('lo'));
       shouldPass('hello', endsWith('hello'));
       shouldFail('hello', endsWith(' hello'),
-          "Expected: a string ending with ' hello' but: was 'hello'.");
+          "Expected: a string ending with ' hello' But: was 'hello'.");
     });
 
     test('contains', () {
@@ -421,7 +440,7 @@ void main() {
       shouldPass('hello', contains('hell'));
       shouldPass('hello', contains('hello'));
       shouldFail('hello', contains(' '),
-          "Expected: contains ' ' but: was 'hello'.");
+          "Expected: contains ' ' But: was 'hello'.");
     });
 
     test('stringContainsInOrder', () {
@@ -440,14 +459,14 @@ void main() {
       shouldFail('goodbye cruel world',
         stringContainsInOrder(['goo', 'cruel', 'bye']),
         "Expected: a string containing 'goo', 'cruel', 'bye' in order "
-        "but: was 'goodbye cruel world'.");
+        "But: was 'goodbye cruel world'.");
     });
 
     test('matches', () {
       shouldPass('c0d', matches('[a-z][0-9][a-z]'));
       shouldPass('c0d', matches(new RegExp('[a-z][0-9][a-z]')));
       shouldFail('cOd', matches('[a-z][0-9][a-z]'),
-          "Expected: match '[a-z][0-9][a-z]' but: was 'cOd'.");
+          "Expected: match '[a-z][0-9][a-z]' But: was 'cOd'.");
     });
   });
 
@@ -456,13 +475,15 @@ void main() {
       var d = new SimpleIterable(0);
       var e = new SimpleIterable(1);
       shouldPass(d, isEmpty);
-      shouldFail(e, isEmpty, "Expected: empty but: was <[1]>.");
+      shouldFail(e, isEmpty, "Expected: empty But: was SimpleIterable:[1].");
     });
 
     test('contains', () {
       var d = new SimpleIterable(3);
       shouldPass(d, contains(2));
-      shouldFail(d, contains(5), "Expected: contains <5> but: was <[3]>.");
+      shouldFail(d, contains(5),
+          "Expected: contains <5> "
+          "But: was SimpleIterable:[3, 2, 1].");
     });
   });
 
@@ -470,26 +491,27 @@ void main() {
 
     test('isEmpty', () {
       shouldPass([], isEmpty);
-      shouldFail([1], isEmpty, "Expected: empty but: was <[1]>.");
+      shouldFail([1], isEmpty, "Expected: empty But: was [1].");
     });
 
     test('contains', () {
       var d = [1, 2];
       shouldPass(d, contains(1));
-      shouldFail(d, contains(0), "Expected: contains <0> but: was <[1, 2]>.");
+      shouldFail(d, contains(0), "Expected: contains <0> But: was [1, 2].");
     });
 
     test('isIn', () {
       var d = [1, 2];
       shouldPass(1, isIn(d));
-      shouldFail(0, isIn(d), "Expected: is in <[1, 2]> but: was <0>.");
+      shouldFail(0, isIn(d), "Expected: is in [1, 2] But: was <0>.");
     });
 
     test('everyElement', () {
       var d = [1, 2];
       var e = [1, 1, 1];
       shouldFail(d, everyElement(1),
-          "Expected: every element <1> but: was <2> at position 1.");
+          "Expected: every element <1> But: position 1 was <2>. "
+          "Actual: [1, 2]");
       shouldPass(e, everyElement(1));
     });
 
@@ -498,7 +520,7 @@ void main() {
       var e = [1, 1, 1];
       shouldPass(d, someElement(2));
       shouldFail(e, someElement(2),
-          "Expected: some element <2> but: was <[1, 1, 1]>.");
+          "Expected: some element <2> But: was [1, 1, 1].");
     });
 
     test('orderedEquals', () {
@@ -506,22 +528,26 @@ void main() {
       var d = [1, 2];
       shouldPass(d, orderedEquals([1, 2]));
       shouldFail(d, orderedEquals([2, 1]),
-          "Expected: equals <[2, 1]> ordered "
-          "but: expected <2> but was <1> mismatch at position 0.");
+          "Expected: equals [2, 1] ordered "
+          "But: expected <2> but was <1> mismatch at position 0. "
+          "Actual: [1, 2]");
     });
 
     test('unorderedEquals', () {
       var d = [1, 2];
       shouldPass(d, unorderedEquals([2, 1]));
       shouldFail(d, unorderedEquals([1]),
-          "Expected: equals <[1]> unordered "
-          "but: has too many elements (2 > 1).");
+          "Expected: equals [1] unordered "
+          "But: has too many elements (2 > 1). "
+          "Actual: [1, 2]");
       shouldFail(d, unorderedEquals([3, 2, 1]),
-          "Expected: equals <[3, 2, 1]> unordered "
-          "but: has too few elements (2 < 3).");
+          "Expected: equals [3, 2, 1] unordered "
+          "But: has too few elements (2 < 3). "
+          "Actual: [1, 2]");
       shouldFail(d, unorderedEquals([3, 1]),
-          "Expected: equals <[3, 1]> unordered "
-          "but: has no match for element <3> at position 0.");
+          "Expected: equals [3, 1] unordered "
+          "But: has no match for element <3> at position 0. "
+          "Actual: [1, 2]");
     });
 
     test('pairwise compare', () {
@@ -530,19 +556,23 @@ void main() {
       var e = [1, 4, 9];
       shouldFail('x', pairwiseCompare(e, (e,a) => a <= e,
           "less than or equal"),
-          "Expected: pairwise less than or equal <[1, 4, 9]> but: "
-          "not an Iterable.");
+          "Expected: pairwise less than or equal [1, 4, 9] "
+          "But: not an Iterable. "
+          "Actual: 'x'");
       shouldFail(c, pairwiseCompare(e, (e,a) => a <= e, "less than or equal"),
-          "Expected: pairwise less than or equal <[1, 4, 9]> but: "
-          "length was 2 instead of 3.");
+          "Expected: pairwise less than or equal [1, 4, 9] "
+          "But: length was 2 instead of 3. "
+          "Actual: [1, 2]");
       shouldPass(d, pairwiseCompare(e, (e,a) => a <= e, "less than or equal"));
       shouldFail(d, pairwiseCompare(e, (e,a) => a < e, "less than"),
-          "Expected: pairwise less than <[1, 4, 9]> but: "
-          "<1> not less than <1> at position 0.");
+          "Expected: pairwise less than [1, 4, 9] "
+          "But: <1> not less than <1> at position 0. "
+          "Actual: [1, 2, 3]");
       shouldPass(d, pairwiseCompare(e, (e,a) => a * a == e, "square root of"));
       shouldFail(d, pairwiseCompare(e, (e,a) => a + a == e, "double"),
-          "Expected: pairwise double <[1, 4, 9]> but: "
-          "<1> not double <1> at position 0.");
+          "Expected: pairwise double [1, 4, 9] "
+          "But: <1> not double <1> at position 0. "
+          "Actual: [1, 2, 3]");
     });
   });
 
@@ -553,7 +583,7 @@ void main() {
       shouldPass({}, isEmpty);
       shouldPass(a, isEmpty);
       a['foo'] = 'bar';
-      shouldFail(a, isEmpty, "Expected: empty but: was <{foo: bar}>.");
+      shouldFail(a, isEmpty, "Expected: empty But: was {'foo': 'bar'}.");
     });
 
     test('equals', () {
@@ -565,7 +595,8 @@ void main() {
       c['bar'] = 'foo';
       shouldPass(a, equals(b));
       shouldFail(b, equals(c),
-          "Expected: <{bar: foo}> but: missing map key 'bar'.");
+          "Expected: {'bar': 'foo'} But: missing map key 'bar'. "
+          "Actual: {'foo': 'bar'}");
     });
 
     test('equals with different lengths', () {
@@ -578,23 +609,29 @@ void main() {
       c['bar'] = 'foo';
       c['barrista'] = 'caffeine';
       shouldFail(a, equals(b),
-          "Expected: <{foo: bar, bar: foo}> "
-          "but: different map lengths; missing map key 'bar'.");
+          "Expected: {'foo': 'bar', 'bar': 'foo'} "
+          "But: different map lengths; missing map key 'bar'. "
+          "Actual: {'foo': 'bar'}");
       shouldFail(b, equals(a),
-          "Expected: <{foo: bar}> "
-          "but: different map lengths; extra map key 'bar'.");
+          "Expected: {'foo': 'bar'} "
+          "But: different map lengths; extra map key 'bar'. "
+          "Actual: {'foo': 'bar', 'bar': 'foo'}");
       shouldFail(b, equals(c),
-          "Expected: <{bar: foo, barrista: caffeine}> "
-          "but: missing map key 'barrista'.");
+          "Expected: {'bar': 'foo', 'barrista': 'caffeine'} "
+          "But: missing map key 'barrista'. "
+          "Actual: {'foo': 'bar', 'bar': 'foo'}");
       shouldFail(c, equals(b),
-          "Expected: <{foo: bar, bar: foo}> "
-          "but: missing map key 'foo'.");
+          "Expected: {'foo': 'bar', 'bar': 'foo'} "
+          "But: missing map key 'foo'. "
+          "Actual: {'bar': 'foo', 'barrista': 'caffeine'}");
       shouldFail(a, equals(c),
-          "Expected: <{bar: foo, barrista: caffeine}> "
-          "but: different map lengths; missing map key 'bar'.");
+          "Expected: {'bar': 'foo', 'barrista': 'caffeine'} "
+          "But: different map lengths; missing map key 'bar'. "
+          "Actual: {'foo': 'bar'}");
       shouldFail(c, equals(a),
-          "Expected: <{foo: bar}> "
-          "but: different map lengths; missing map key 'foo'.");
+          "Expected: {'foo': 'bar'} "
+          "But: different map lengths; missing map key 'foo'. "
+          "Actual: {'bar': 'foo', 'barrista': 'caffeine'}");
     });
 
     test('contains', () {
@@ -603,9 +640,9 @@ void main() {
       var b = new Map();
       shouldPass(a, contains('foo'));
       shouldFail(b, contains('foo'),
-          "Expected: contains 'foo' but: was <{}>.");
+          "Expected: contains 'foo' But: was {}.");
       shouldFail(10, contains('foo'),
-          "Expected: contains 'foo' but: was <10>.");
+          "Expected: contains 'foo' But: was <10>.");
     });
 
     test('containsValue', () {
@@ -613,7 +650,7 @@ void main() {
       a['foo'] = 'bar';
       shouldPass(a, containsValue('bar'));
       shouldFail(a, containsValue('ba'),
-          "Expected: contains value 'ba' but: was <{foo: bar}>.");
+          "Expected: contains value 'ba' But: was {'foo': 'bar'}.");
     });
 
     test('containsPair', () {
@@ -622,10 +659,12 @@ void main() {
       shouldPass(a, containsPair('foo', 'bar'));
       shouldFail(a, containsPair('foo', 'ba'),
           "Expected: contains pair 'foo' => 'ba' "
-          "but:  contains key 'foo' but with value was 'bar'.");
+          "But:  contains key 'foo' but with value was 'bar'. "
+          "Actual: {'foo': 'bar'}");
       shouldFail(a, containsPair('fo', 'bar'),
           "Expected: contains pair 'fo' => 'bar' "
-          "but: <{foo: bar}> doesn't contain key 'fo'.");
+          "But: doesn't contain key 'fo'. "
+          "Actual: {'foo': 'bar'}");
     });
 
     test('hasLength', () {
@@ -635,7 +674,8 @@ void main() {
       shouldPass(a, hasLength(1));
       shouldFail(b, hasLength(1),
           "Expected: an object with length of <1> "
-          "but: was <{}> with length of <0>.");
+          "But: had length of <0>. "
+          "Actual: {}");
     });
   });
 
@@ -643,7 +683,7 @@ void main() {
 
     test('anyOf', () {
       shouldFail(0, anyOf([equals(1), equals(2)]),
-          "Expected: (<1> or <2>) but: was <0>.");
+          "Expected: (<1> or <2>) But: was <0>.");
       shouldPass(1, anyOf([equals(1), equals(2)]));
     });
 
@@ -651,7 +691,7 @@ void main() {
       shouldPass(1, allOf([lessThan(10), greaterThan(0)]));
       shouldFail(-1, allOf([lessThan(10), greaterThan(0)]),
           "Expected: (a value less than <10> and a value greater than <0>) "
-          "but: a value greater than <0> was <-1>.");
+          "But: was <-1> (wasn't a value greater than <0>).");
     });
   });
 
@@ -711,7 +751,7 @@ void main() {
       var completer = new Completer();
       completer.completeError('X');
       shouldFail(completer.future, throwsA(equals('Y')),
-          "Expected: 'Y' but: was 'X'.",
+          "Expected: 'Y' But: was 'X'.",
           isAsync: true);
     });
   });
@@ -719,7 +759,7 @@ void main() {
   group('Predicate Matchers', () {
     test('isInstanceOf', () {
       shouldFail(0, predicate((x) => x is String, "an instance of String"),
-          "Expected: an instance of String but: was <0>.");
+          "Expected: an instance of String But: was <0>.");
       shouldPass('cow', predicate((x) => x is String, "an instance of String"));
     });
   });
@@ -731,8 +771,9 @@ void main() {
       shouldPass(w, new HasPrice(10));
       shouldPass(w, new HasPrice(greaterThan(0)));
       shouldFail(w, new HasPrice(greaterThan(10)),
-          'Expected: Widget with a price that is a value greater than <10> '
-          'but: price was <10>.');
+          "Expected: Widget with a price that is a value greater than <10> "
+          "But: price was <10>. "
+          "Actual: <Instance of 'Widget'>");
     });
   });
 }

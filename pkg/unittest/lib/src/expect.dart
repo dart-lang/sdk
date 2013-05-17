@@ -137,28 +137,15 @@ ErrorFormatter _assertErrorFormatter = null;
 String _defaultErrorFormatter(actual, Matcher matcher, String reason,
     MatchState matchState, bool verbose) {
   var description = new StringDescription();
-  description.add('Expected: ').addDescriptionOf(matcher).
-      add('\n     but: ');
-  matcher.describeMismatch(actual, description, matchState, verbose);
-  description.add('.\n');
-  if (verbose) {
-    if (actual is Iterable) {
-      description.add('Actual: ').addDescriptionOf(actual).add('\n');
-    } else if (actual is Map) {
-      description.add('Actual: ');
-      var count = 25;
-      for (var k in actual.keys) {
-        if (count == 0) {
-          description.add('...\n');
-          break;
-        }
-        description.addDescriptionOf(k);
-        description.add(' : ');
-        description.addDescriptionOf(actual[k]);
-        description.add('\n');
-        --count;
-      }
-    }
+  description.add('Expected: ').addDescriptionOf(matcher).add('\n');
+
+  var mismatchDescription = new StringDescription();
+  matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);
+  description.add('     But: ')
+      .add(mismatchDescription.toString()).add('.\n');
+
+  if (!mismatchDescription.toString().startsWith("was ")) {
+    description.add('Actual: ').addDescriptionOf(actual);
   }
   if (reason != null) {
     description.add(reason).add('\n');
