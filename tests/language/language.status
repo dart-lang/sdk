@@ -834,7 +834,6 @@ string_interpolation9_test/7: fail
 string_interpolation9_test/8: fail
 string_interpolation9_test/9: fail
 string_interpolation_test/01: fail
-super_call3_test/02: fail
 super_operator_index_test/01: fail
 super_operator_index_test/02: fail
 super_operator_index_test/03: fail
