@@ -67,7 +67,7 @@ String BINARY_TEST = 'void main() { ((x, y) { if (x @!== y) print(x @* y); })(1,
 String SEND_TEST = '''
 void main() {
   @staticSend(0);
-  NewSend o = new @NewSend();
+  NewSend o = @new NewSend();
   @o.dynamicSend(0);
   var closureSend = (x) { print(x); };
   @closureSend(0);
