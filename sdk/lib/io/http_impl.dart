@@ -1071,6 +1071,7 @@ class _HttpClientConnection {
   StreamSubscription _subscription;
   final _HttpClient _httpClient;
   bool _dispose = false;
+  bool closed = false;
 
   Completer<_HttpIncoming> _nextResponseCompleter;
   Future _streamFuture;
@@ -1090,10 +1091,11 @@ class _HttpClientConnection {
           // stream paused until the response have been processed.
           _subscription.pause();
           // We assume the response is not here, until we have send the request.
-          assert(_nextResponseCompleter != null);
-          var completer = _nextResponseCompleter;
+          if (_nextResponseCompleter == null) {
+            throw new HttpException("Unexpected response.");
+          }
+          _nextResponseCompleter.complete(incoming);
           _nextResponseCompleter = null;
-          completer.complete(incoming);
         },
         onError: (error) {
           if (_nextResponseCompleter != null) {
@@ -1102,11 +1104,19 @@ class _HttpClientConnection {
           }
         },
         onDone: () {
+          if (_nextResponseCompleter != null) {
+            _nextResponseCompleter.completeError(new HttpException(
+                "Connection closed before response was received"));
+            _nextResponseCompleter = null;
+          }
           close();
         });
   }
 
   _HttpClientRequest send(Uri uri, int port, String method, _Proxy proxy) {
+    if (closed) {
+      throw new HttpException("Socket closed before request was sent");
+    }
     // Start with pausing the parser.
     _subscription.pause();
     _ProxyCredentials proxyCreds;  // Credentials used to authorize proxy.
@@ -1227,11 +1237,13 @@ class _HttpClientConnection {
   }
 
   void destroy() {
+    closed = true;
     _httpClient._connectionClosed(this);
     _socket.destroy();
   }
 
   void close() {
+    closed = true;
     _httpClient._connectionClosed(this);
     _streamFuture
           // TODO(ajohnsen): Add timeout.
@@ -1407,10 +1419,19 @@ class _HttpClient implements HttpClient {
     }
     return _getConnection(uri.domain, port, proxyConf, isSecure)
         .then((info) {
-          return info.connection.send(uri,
-                                      port,
-                                      method.toUpperCase(),
-                                      info.proxy);
+          send(info) {
+            return info.connection.send(uri,
+                                        port,
+                                        method.toUpperCase(),
+                                        info.proxy);
+          }
+          // If the connection was closed before the request was sent, create
+          // and use another connection.
+          if (info.connection.closed) {
+            return _getConnection(uri.domain, port, proxyConf, isSecure)
+                .then(send);
+          }
+          return send(info);
         });
   }
 
