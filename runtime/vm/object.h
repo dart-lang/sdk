@@ -4096,11 +4096,11 @@ class Bigint : public Integer {
     return RoundedAllocationSize(sizeof(RawBigint) + (len * kBytesPerElement));
   }
 
-  RawBigint* ArithmeticOp(Token::Kind operation, const Bigint& other) const;
-
  protected:
   // Only Integer::NewXXX is allowed to call Bigint::NewXXX directly.
   friend class Integer;
+
+  RawBigint* BigArithmeticOp(Token::Kind operation, const Bigint& other) const;
 
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
 

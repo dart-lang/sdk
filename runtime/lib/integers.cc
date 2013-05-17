@@ -24,7 +24,7 @@ static bool CheckInteger(const Integer& i) {
   if (i.IsBigint()) {
     const Bigint& bigint = Bigint::Cast(i);
     return !BigintOperations::FitsIntoSmi(bigint) &&
-        !BigintOperations::FitsIntoMint(bigint);
+        !BigintOperations::FitsIntoInt64(bigint);
   }
   if (i.IsMint()) {
     const Mint& mint = Mint::Cast(i);

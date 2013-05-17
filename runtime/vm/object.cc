@@ -10344,7 +10344,7 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   if (!OS::StringToInt64(str.ToCString(), &value)) {
     const Bigint& big = Bigint::Handle(Bigint::New(str, space));
     ASSERT(!BigintOperations::FitsIntoSmi(big));
-    ASSERT(!BigintOperations::FitsIntoMint(big));
+    ASSERT(!BigintOperations::FitsIntoInt64(big));
     return big.raw();
   }
   return Integer::New(value, space);
@@ -10358,7 +10358,7 @@ RawInteger* Integer::NewCanonical(const String& str) {
   if (!OS::StringToInt64(str.ToCString(), &value)) {
     const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
     ASSERT(!BigintOperations::FitsIntoSmi(big));
-    ASSERT(!BigintOperations::FitsIntoMint(big));
+    ASSERT(!BigintOperations::FitsIntoInt64(big));
     return big.raw();
   }
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
@@ -10410,8 +10410,8 @@ RawInteger* Integer::AsValidInteger() const {
   big_value ^= raw();
   if (BigintOperations::FitsIntoSmi(big_value)) {
     return BigintOperations::ToSmi(big_value);
-  } else if (BigintOperations::FitsIntoMint(big_value)) {
-    return Mint::New(BigintOperations::ToMint(big_value));
+  } else if (BigintOperations::FitsIntoInt64(big_value)) {
+    return Mint::New(BigintOperations::ToInt64(big_value));
   } else {
     return big_value.raw();
   }
@@ -10512,7 +10512,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
   const Bigint& left_big = Bigint::Handle(AsBigint());
   const Bigint& right_big = Bigint::Handle(other.AsBigint());
   const Bigint& result =
-      Bigint::Handle(left_big.ArithmeticOp(operation, right_big));
+      Bigint::Handle(left_big.BigArithmeticOp(operation, right_big));
   return Integer::Handle(result.AsValidInteger()).raw();
 }
 
@@ -10776,7 +10776,7 @@ int Mint::CompareWith(const Integer& other) const {
     }
   }
   if (other.IsBigint()) {
-    ASSERT(!BigintOperations::FitsIntoMint(Bigint::Cast(other)));
+    ASSERT(!BigintOperations::FitsIntoInt64(Bigint::Cast(other)));
     if (this->IsNegative() == other.IsNegative()) {
       return this->IsNegative() ? 1 : -1;
     }
@@ -10918,8 +10918,8 @@ RawBigint* Integer::AsBigint() const {
 }
 
 
-RawBigint* Bigint::ArithmeticOp(Token::Kind operation,
-                                const Bigint& other) const {
+RawBigint* Bigint::BigArithmeticOp(Token::Kind operation,
+                                   const Bigint& other) const {
   switch (operation) {
     case Token::kADD:
       return BigintOperations::Add(*this, other);
@@ -10971,7 +10971,7 @@ bool Bigint::Equals(const Instance& other) const {
 RawBigint* Bigint::New(const String& str, Heap::Space space) {
   const Bigint& result = Bigint::Handle(
       BigintOperations::NewFromCString(str.ToCString(), space));
-  ASSERT(!BigintOperations::FitsIntoMint(result));
+  ASSERT(!BigintOperations::FitsIntoInt64(result));
   return result.raw();
 }
 
@@ -10979,7 +10979,7 @@ RawBigint* Bigint::New(const String& str, Heap::Space space) {
 RawBigint* Bigint::NewCanonical(const String& str) {
   const Bigint& value = Bigint::Handle(
       BigintOperations::NewFromCString(str.ToCString(), Heap::kOld));
-  ASSERT(!BigintOperations::FitsIntoMint(value));
+  ASSERT(!BigintOperations::FitsIntoInt64(value));
   const Class& cls =
       Class::Handle(Isolate::Current()->object_store()->bigint_class());
   const Array& constants = Array::Handle(cls.constants());
@@ -11012,17 +11012,17 @@ double Bigint::AsDoubleValue() const {
 
 
 int64_t Bigint::AsInt64Value() const {
-  if (!BigintOperations::FitsIntoMint(*this)) {
+  if (!BigintOperations::FitsIntoInt64(*this)) {
     UNREACHABLE();
   }
-  return BigintOperations::ToMint(*this);
+  return BigintOperations::ToInt64(*this);
 }
 
 
 // For positive values: Smi < Mint < Bigint.
 int Bigint::CompareWith(const Integer& other) const {
   ASSERT(!FitsIntoSmi(*this));
-  ASSERT(!BigintOperations::FitsIntoMint(*this));
+  ASSERT(!BigintOperations::FitsIntoInt64(*this));
   if (other.IsBigint()) {
     return BigintOperations::Compare(*this, Bigint::Cast(other));
   }
