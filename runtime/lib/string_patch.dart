@@ -579,23 +579,6 @@ class _TwoByteString extends _StringBase implements String {
 }
 
 
-class _FourByteString extends _StringBase implements String {
-  factory _FourByteString._uninstantiable() {
-    throw new UnsupportedError(
-        "_FourByteString can only be allocated by the VM");
-  }
-
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces. Add checking for multi-byte whitespace codepoints.
-  bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
-  }
-}
-
-
 class _ExternalOneByteString extends _StringBase implements String {
   factory _ExternalOneByteString._uninstantiable() {
     throw new UnsupportedError(
