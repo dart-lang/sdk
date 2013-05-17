@@ -199,6 +199,15 @@ class _StringBase {
   String _substringUncheckedNative(int startIndex, int endIndex)
       native "StringBase_substringUnchecked";
 
+  // Checks for one-byte whitespaces only.
+  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
+  // whitespaces for one byte strings.
+  static bool _isOneByteWhitespace(int codePoint) {
+    return
+      (codePoint == 32) || // Space.
+      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+  }
+
   String trim() {
     final int len = this.length;
     int first = 0;
@@ -510,13 +519,8 @@ class _OneByteString extends _StringBase implements String {
 
   int get hashCode native "String_getHashCode";
 
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces for one byte strings.
   bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+    return _StringBase._isOneByteWhitespace(codePoint);
   }
 
   String _substringUncheckedNative(int startIndex, int endIndex)
@@ -568,13 +572,9 @@ class _TwoByteString extends _StringBase implements String {
         "_TwoByteString can only be allocated by the VM");
   }
 
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces. Add checking for multi-byte whitespace codepoints.
   bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+    // For now we only check for one byte white space characters.
+    return _StringBase._isOneByteWhitespace(codePoint);
   }
 }
 
@@ -585,13 +585,8 @@ class _ExternalOneByteString extends _StringBase implements String {
         "_ExternalOneByteString can only be allocated by the VM");
   }
 
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces for one byte strings.
   bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+    return _StringBase._isOneByteWhitespace(codePoint);
   }
 }
 
@@ -602,13 +597,9 @@ class _ExternalTwoByteString extends _StringBase implements String {
         "_ExternalTwoByteString can only be allocated by the VM");
   }
 
-  // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces. Add checking for multi-byte whitespace codepoints.
   bool _isWhitespace(int codePoint) {
-    return
-      (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+    // For now we only check for one byte white space characters.
+    return _StringBase._isOneByteWhitespace(codePoint);
   }
 }
 
