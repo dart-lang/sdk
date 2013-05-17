@@ -212,6 +212,7 @@ public class DartParser extends CompletionHooksParserBase {
       "new",
       "null",
       "return",
+      "rethrow",
       "super",
       "switch",
       "this",
@@ -4435,8 +4436,8 @@ public class DartParser extends CompletionHooksParserBase {
   // TODO(zundel):  Possibly  we could use Token.IDENTIFIER too, but it is used
   // in so many places, it might make recovery worse rather than better.
   @Terminals(tokens={Token.IF, Token.SWITCH, Token.WHILE, Token.DO, Token.FOR,
-      Token.VAR, Token.FINAL, Token.CONTINUE, Token.BREAK, Token.RETURN, Token.THROW,
-      Token.TRY, Token.SEMICOLON })
+      Token.VAR, Token.FINAL, Token.CONTINUE, Token.BREAK, Token.RETHROW,
+      Token.RETURN, Token.THROW, Token.TRY, Token.SEMICOLON })
   private DartStatement parseNonLabelledStatement() {
     // Try to parse as function declaration.
     if (looksLikeFunctionDeclarationOrExpression()) {
@@ -4523,6 +4524,11 @@ public class DartParser extends CompletionHooksParserBase {
 
       case THROW:
        return parseExpressionStatement();
+
+      case RETHROW:
+        consume(Token.RETHROW);
+        beginExpressionStatement();
+        return done(new DartExprStmt(new DartThrowExpression(null)));
 
       case TRY:
         return parseTryStatement();

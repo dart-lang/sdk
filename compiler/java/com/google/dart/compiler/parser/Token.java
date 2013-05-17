@@ -105,6 +105,7 @@ public enum Token {
   IF("if", 0),
   IN("in", 0),
   NEW("new", 0),
+  RETHROW("rethrow", 0),
   RETURN("return", 0),
   SUPER("super", 0),
   SWITCH("switch", 0),
