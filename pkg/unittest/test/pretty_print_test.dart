@@ -27,7 +27,8 @@ void main() {
     expect(prettyPrint(12.13), equals('<12.13>'));
     expect(prettyPrint(true), equals('<true>'));
     expect(prettyPrint(null), equals('<null>'));
-    expect(prettyPrint(() => 12), equals('<Closure: (dynamic) => dynamic>'));
+    expect(prettyPrint(() => 12),
+        matches(r'<Closure(: \(dynamic\) => dynamic)?>'));
   });
 
   test('with an object with a default [toString]', () {

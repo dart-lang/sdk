@@ -127,9 +127,10 @@ void main() {
 
     test('throws', () {
       shouldFail(doesNotThrow, throws,
-          "Expected: throws an exception But: no exception. "
-          "Actual: <Closure: (dynamic) => dynamic "
-              "from Function 'doesNotThrow': static.>");
+          matches(
+              r"Expected: throws an exception +But:  no exception\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic "
+                  r"from Function 'doesNotThrow': static\.)?>"));
       shouldPass(doesThrow, throws);
       shouldFail(true, throws,
           "Expected: throws an exception But: not a Function or Future. "
@@ -139,10 +140,11 @@ void main() {
     test('throwsA', () {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
-          "Expected: throws an exception which matches 'Y' "
-          "But:  exception 'X' does not match 'Y'. "
-          "Actual: <Closure: (dynamic) => dynamic "
-              "from Function 'doesThrow': static.>");
+          matches(
+              r"Expected: throws an exception which matches 'Y' +"
+              r"But:  exception 'X' does not match 'Y'\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic "
+                  r"from Function 'doesThrow': static\.)?>"));
     });
 
     test('throwsFormatException', () {
@@ -150,9 +152,10 @@ void main() {
           throwsFormatException);
       shouldFail(() { throw new Exception(); },
           throwsFormatException,
-          "Expected: throws an exception which matches FormatException "
-          "But:  exception ?:<Exception> does not match FormatException. "
-          "Actual: <Closure: (dynamic) => dynamic>");
+          matches(
+              r"Expected: throws an exception which matches FormatException +"
+              r"But:  exception \?:<Exception> does not match FormatException\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
     });
 
     test('throwsArgumentError', () {
@@ -160,10 +163,11 @@ void main() {
           throwsArgumentError);
       shouldFail(() { throw new Exception(); },
           throwsArgumentError,
-          "Expected: throws an exception which matches ArgumentError "
-          "But:  exception ?:<Exception> does not match "
-              "ArgumentError. "
-          "Actual: <Closure: (dynamic) => dynamic>");
+          matches(
+              r"Expected: throws an exception which matches ArgumentError +"
+              r"But:  exception \?:<Exception> does not match "
+                  r"ArgumentError\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
     });
 
     test('throwsRangeError', () {
@@ -171,9 +175,10 @@ void main() {
           throwsRangeError);
       shouldFail(() { throw new Exception(); },
           throwsRangeError,
-          "Expected: throws an exception which matches RangeError "
-          "But:  exception ?:<Exception> does not match RangeError. "
-          "Actual: <Closure: (dynamic) => dynamic>");
+          matches(
+              r"Expected: throws an exception which matches RangeError +"
+              r"But:  exception \?:<Exception> does not match RangeError\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
     });
 
     test('throwsNoSuchMethodError', () {
@@ -181,10 +186,11 @@ void main() {
           throwsNoSuchMethodError);
       shouldFail(() { throw new Exception(); },
           throwsNoSuchMethodError,
-          "Expected: throws an exception which matches NoSuchMethodError "
-          "But:  exception ?:<Exception> does not match "
-              "NoSuchMethodError. "
-          "Actual: <Closure: (dynamic) => dynamic>");
+          matches(
+              r"Expected: throws an exception which matches NoSuchMethodError +"
+              r"But:  exception \?:<Exception> does not match "
+                  r"NoSuchMethodError\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
     });
 
     test('throwsUnimplementedError', () {
@@ -192,10 +198,12 @@ void main() {
           throwsUnimplementedError);
       shouldFail(() { throw new Exception(); },
           throwsUnimplementedError,
-          "Expected: throws an exception which matches UnimplementedError "
-          "But:  exception ?:<Exception> does not match "
-              "UnimplementedError. "
-          "Actual: <Closure: (dynamic) => dynamic>");
+          matches(
+              r"Expected: throws an exception which matches "
+                  r"UnimplementedError +"
+              r"But:  exception \?:<Exception> does not match "
+                  r"UnimplementedError\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
     });
 
     test('throwsUnsupportedError', () {
@@ -203,10 +211,11 @@ void main() {
           throwsUnsupportedError);
       shouldFail(() { throw new Exception(); },
           throwsUnsupportedError,
-          "Expected: throws an exception which matches UnsupportedError "
-          "But:  exception ?:<Exception> does not match "
-              "UnsupportedError. "
-          "Actual: <Closure: (dynamic) => dynamic>");
+          matches(
+              r"Expected: throws an exception which matches UnsupportedError +"
+              r"But:  exception \?:<Exception> does not match "
+                  r"UnsupportedError\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
     });
 
     test('throwsStateError', () {
@@ -214,18 +223,20 @@ void main() {
           throwsStateError);
       shouldFail(() { throw new Exception(); },
           throwsStateError,
-          "Expected: throws an exception which matches StateError "
-          "But:  exception ?:<Exception> does not match "
-              "StateError. "
-          "Actual: <Closure: (dynamic) => dynamic>");
+          matches(
+              r"Expected: throws an exception which matches StateError +"
+              r"But:  exception \?:<Exception> does not match "
+                  r"StateError\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
     });
 
     test('returnsNormally', () {
       shouldPass(doesNotThrow, returnsNormally);
       shouldFail(doesThrow, returnsNormally,
-          "Expected: return normally But: threw 'X'. "
-          "Actual: <Closure: (dynamic) => dynamic "
-              "from Function 'doesThrow': static.>");
+          matches(
+              r"Expected: return normally +But:  threw 'X'\."
+              r"Actual: <Closure(: \(dynamic\) => dynamic "
+                  r"from Function 'doesThrow': static\.)?>"));
     });
 
     test('hasLength', () {
