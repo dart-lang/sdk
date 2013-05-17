@@ -39,11 +39,7 @@ stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
-mixin_type_parameters_super_extends_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_mixin_extends_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_mixin_test: Fail # http://dartbug.com/8116
-
+function_type_alias6_test: Crash # dartbug.com/9792
 
 prefix16_test: Fail # dartbug.com/7354
 default_factory2_test/01: Pass # For the wrong reasons.
