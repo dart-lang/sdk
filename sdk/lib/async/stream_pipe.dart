@@ -175,6 +175,11 @@ class _ForwardingStreamSubscription<S, T>
     _subscription.resume();
   }
 
+  bool get isPaused {
+    if (_subscription == null) return false;
+    return _subscription.isPaused;
+  }
+
   void cancel() {
     if (_subscription != null) {
       _subscription.cancel();
