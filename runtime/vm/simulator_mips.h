@@ -61,6 +61,26 @@ class Simulator {
   int32_t get_hi_register() const { return hi_reg_; }
   int32_t get_lo_register() const { return lo_reg_; }
 
+  int32_t get_fcsr_condition_bit(int32_t cc) const {
+    if (cc == 0) {
+      return 23;
+    } else {
+      return 24 + cc;
+    }
+  }
+
+  void set_fcsr_bit(uint32_t cc, bool value) {
+    if (value) {
+      fcsr_ |= (1 << cc);
+    } else {
+      fcsr_ &= ~(1 << cc);
+    }
+  }
+
+  bool test_fcsr_bit(uint32_t cc) {
+    return fcsr_ & (1 << cc);
+  }
+
   // Accessor to the internal simulator stack top.
   uword StackTop() const;
 
@@ -109,6 +129,7 @@ class Simulator {
 
   int32_t registers_[kNumberOfCpuRegisters];
   int32_t fregisters_[kNumberOfFRegisters];
+  int32_t fcsr_;
   uword pc_;
 
   // Simulator support.

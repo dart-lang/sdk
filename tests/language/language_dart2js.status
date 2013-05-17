@@ -39,11 +39,7 @@ stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
-mixin_type_parameters_super_extends_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_super_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_mixin_extends_test: Fail # http://dartbug.com/8116
-mixin_type_parameters_mixin_test: Fail # http://dartbug.com/8116
-
+function_type_alias6_test: Crash # dartbug.com/9792
 
 prefix16_test: Fail # dartbug.com/7354
 default_factory2_test/01: Pass # For the wrong reasons.
@@ -67,7 +63,6 @@ factory1_test/01: Fail
 type_annotation_test/09: Fail # Named constructors interpreted as a type.
 prefix15_test: Fail # Issue 5022
 local_function2_test: Fail # Issue 5022
-number_identity_test: Fail # Issue 9249
 
 [ $compiler == dart2js && $unchecked ]
 default_factory2_test/01: Fail # type arguments on redirecting factory not implemented
@@ -197,7 +192,6 @@ named_parameters_aggregated_test/03: Fail # Presence of default values for optio
 named_parameters_aggregated_test/05: Fail # Absence of positional parameters before named parameters does not trigger static type warning.
 pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
-switch_label_test: Fail # error: target of continue is not a loop or switch case
 on_catch_malformed_type_test: Fail # Malformed types cause compile-time errors.
 
 # Missing compilation error for wrong number of type arguments.

@@ -1552,6 +1552,12 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
+void StubCode::GenerateBreakpointEqNullStub(Assembler* assembler) {
+  // TODO(hausner): implement this stub.
+  __ Branch(&StubCode::EqualityWithNullArgLabel());
+}
+
+
 void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
   // TODO(hausner): implement this stub.
   __ Branch(&StubCode::CallClosureFunctionLabel());

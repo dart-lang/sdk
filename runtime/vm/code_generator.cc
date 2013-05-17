@@ -815,6 +815,17 @@ DEFINE_RUNTIME_ENTRY(BreakpointClosureHandler, 0) {
 }
 
 
+// Gets called from debug stub when code reaches a breakpoint
+// at the stub call to update the ic cache on equality comparison
+// with null.
+DEFINE_RUNTIME_ENTRY(BreakpointEqualNullHandler, 0) {
+  ASSERT(arguments.ArgCount() ==
+         kBreakpointEqualNullHandlerRuntimeEntry.argument_count());
+  ASSERT(isolate->debugger() != NULL);
+  isolate->debugger()->SignalBpReached();
+}
+
+
 // Gets called from debug stub when code reaches a breakpoint.
 DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
   ASSERT(arguments.ArgCount() ==

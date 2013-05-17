@@ -7099,6 +7099,7 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kFuncCall:      return "fn-call      ";
     case PcDescriptors::kClosureCall:   return "closure-call ";
     case PcDescriptors::kReturn:        return "return       ";
+    case PcDescriptors::kEqualNull:     return "equal-null   ";
     case PcDescriptors::kOther:         return "other        ";
   }
   UNREACHABLE();
@@ -10590,7 +10591,8 @@ RawInteger* Smi::ShiftOp(Token::Kind kind, const Smi& other) const {
         if ((cnt + right_value) >= Smi::kBits) {
           if ((cnt + right_value) >= Mint::kBits) {
             return BigintOperations::ShiftLeft(
-                Bigint::Handle(AsBigint()), right_value);
+                Bigint::Handle(BigintOperations::NewFromSmi(*this)),
+                               right_value);
           } else {
             int64_t left_64 = left_value;
             return Integer::New(left_64 << right_value);

@@ -50,7 +50,7 @@ switcher2(val) {
           break;
         } else {
           // Enable when continue to switch-case is implemented.
-          continue hest;  /// 03: compile-time error
+          continue hest;
         }
       }
   }

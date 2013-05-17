@@ -30,13 +30,49 @@ testInvoke(mirrors) {
          equals({"a": 'A', "b":'B', "c": instance}));
 }
 
+testInstanceFieldAccess(mirrors) {
+  var instance = new Class();
+  var instMirror = reflect(instance);
+
+  instMirror.setFieldAsync(const Symbol('field'), 44);
+  instMirror.getFieldAsync(const Symbol('field')).then(
+      expectAsync1((resultMirror) {
+        expect(resultMirror.reflectee, equals(44));
+        expect(instance.field, equals(44));
+      }));
+}
+
+/// In dart2js, lists, numbers, and other objects are treated special
+/// and their methods are invoked through a techique called interceptors.
+testIntercepted(mirrors) {
+  var instance = 1;
+  var instMirror = reflect(instance);
+
+  expect(instMirror.invoke(const Symbol('toString'), []).reflectee,
+         equals('1'));
+
+  instance = [];
+  instMirror = reflect(instance);
+  instMirror.setField(const Symbol('length'), 44);
+  var resultMirror = instMirror.getField(const Symbol('length'));
+  expect(resultMirror.reflectee, equals(44));
+  expect(instance.length, equals(44));
+
+  expect(instMirror.invoke(const Symbol('toString'), []).reflectee,
+         equals('[null, null, null, null, null, null, null, null, null, null,'
+                ' null, null, null, null, null, null, null, null, null, null,'
+                ' null, null, null, null, null, null, null, null, null, null,'
+                ' null, null, null, null, null, null, null, null, null, null,'
+                ' null, null, null, null]'));
+}
+
 testFieldAccess(mirrors) {
   var instance = new Class();
 
   var libMirror = mirrors.findLibrary(const Symbol("MirrorsTest")).single;
   var classMirror = libMirror.classes[const Symbol("Class")];
   var instMirror = reflect(instance);
-  var fieldMirror = classMirror.members[new Symbol('field')];
+  var fieldMirror = classMirror.members[const Symbol('field')];
 
   expect(fieldMirror is VariableMirror, isTrue);
   expect(fieldMirror.type, equals(mirrors.dynamicType));
@@ -46,22 +82,22 @@ testFieldAccess(mirrors) {
          equals([91]));
   expect(topLevelField, equals([91]));
 
-  libMirror.setFieldAsync(new Symbol('topLevelField'), 42);
-  var future = libMirror.getFieldAsync(new Symbol('topLevelField'));
+  libMirror.setFieldAsync(const Symbol('topLevelField'), 42);
+  var future = libMirror.getFieldAsync(const Symbol('topLevelField'));
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(42));
     expect(topLevelField, equals(42));
   }));
 
-  classMirror.setFieldAsync(new Symbol('staticField'), 43);
-  future = classMirror.getFieldAsync(new Symbol('staticField'));
+  classMirror.setFieldAsync(const Symbol('staticField'), 43);
+  future = classMirror.getFieldAsync(const Symbol('staticField'));
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(43));
     expect(Class.staticField, equals(43));
   }));
 
-  instMirror.setFieldAsync(new Symbol('field'), 44);
-  future = instMirror.getFieldAsync(new Symbol('field'));
+  instMirror.setFieldAsync(const Symbol('field'), 44);
+  future = instMirror.getFieldAsync(const Symbol('field'));
   future.then(expectAsync1((resultMirror) {
     expect(resultMirror.reflectee, equals(44));
     expect(instance.field, equals(44));
@@ -87,8 +123,7 @@ testClosureMirrors(mirrors) {
 }
 
 testInvokeConstructor(mirrors) {
-  var libMirror = mirrors.findLibrary(const Symbol("MirrorsTest")).single;
-  var classMirror = libMirror.classes[const Symbol("Class")];
+  var classMirror = reflectClass(Class);
 
   var instanceMirror = classMirror.newInstance(const Symbol(''),[]);
   expect(instanceMirror.reflectee is Class, equals(true));
@@ -99,14 +134,14 @@ testInvokeConstructor(mirrors) {
   expect(instanceMirror.reflectee is Class, equals(true));
   expect(instanceMirror.reflectee.field, equals(45));
 
-  var future = classMirror.newInstanceAsync(new Symbol(''), []);
+  var future = classMirror.newInstanceAsync(const Symbol(''), []);
   future.then(expectAsync1((resultMirror) {
     var instance = resultMirror.reflectee;
     expect(instance is Class, equals(true));
     expect(instance.field, equals("default value"));
   }));
 
-  future = classMirror.newInstanceAsync(new Symbol('withInitialValue'), [45]);
+  future = classMirror.newInstanceAsync(const Symbol('withInitialValue'), [45]);
   future.then(expectAsync1((resultMirror) {
     var instance = resultMirror.reflectee;
     expect(instance is Class, equals(true));
@@ -163,9 +198,12 @@ testLibraryUri(var value, bool check(Uri)) {
   expect(check(valueLibrary.uri), isTrue);
 }
 
-main() {
+mainWithArgument({bool isDart2js}) {
   var mirrors = currentMirrorSystem();
   test("Test reflective method invocation", () { testInvoke(mirrors); });
+  test("Test instance field access", () { testInstanceFieldAccess(mirrors); });
+  test('Test intercepted objects', () { testIntercepted(mirrors); });
+  if (isDart2js) return;
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
@@ -178,4 +216,8 @@ main() {
   test("Test dart library uri", () {
     testLibraryUri("test", (Uri uri) => uri == Uri.parse('dart:core'));
   });
+}
+
+main() {
+  mainWithArgument(isDart2js: false);
 }

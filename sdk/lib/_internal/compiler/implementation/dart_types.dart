@@ -118,6 +118,8 @@ abstract class DartType {
    */
   TypeVariableType get typeVariableOccurrence => null;
 
+  void forEachTypeVariable(f(TypeVariableType variable)) {}
+
   TypeVariableType _findTypeVariableOccurrence(Link<DartType> types) {
     for (Link<DartType> link = types; !link.isEmpty ; link = link.tail) {
       TypeVariableType typeVariable = link.head.typeVariableOccurrence;
@@ -202,6 +204,10 @@ class TypeVariableType extends DartType {
   DartType unalias(Compiler compiler) => this;
 
   DartType get typeVariableOccurrence => this;
+
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    f(this);
+  }
 
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitTypeVariableType(this, argument);
@@ -407,6 +413,12 @@ abstract class GenericType extends DartType {
     return _findTypeVariableOccurrence(typeArguments);
   }
 
+  void forEachTypeVariable(f(TypeVariableType variable)) {
+    for (Link<DartType> link = typeArguments; !link.isEmpty; link = link.tail) {
+      link.head.forEachTypeVariable(f);
+    }
+  }
+
   void visitChildren(DartTypeVisitor visitor, var argument) {
     DartType.visitList(typeArguments, visitor, argument);
   }
@@ -513,7 +525,12 @@ class InterfaceType extends GenericType {
     if (member != null) {
       return createMember(receiver, declarer, member);
     }
-    for (DartType supertype in classElement.allSupertypes) {
+    assert(invariant(element, classElement.allSupertypes != null,
+        message: 'Supertypes not computed for $classElement'));
+    for (InterfaceType supertype in classElement.allSupertypes) {
+      // Skip mixin applications since their supertypes are also in the list of
+      // [allSupertypes].
+      if (supertype.element.isMixinApplication) continue;
       declarer = supertype;
       ClassElement lookupTarget = declarer.element;
       member = lookupTarget.lookupLocalMember(name);

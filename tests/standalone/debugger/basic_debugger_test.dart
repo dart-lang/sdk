@@ -15,6 +15,8 @@ bar(x) {
   print(x);
 }
 
+bam(a) => bar(a);
+
 foo(i) {
   bar("baz");
   print(i);
@@ -24,6 +26,7 @@ main() {
   if (RunScript(testScript)) return;
   print("Hello from debuggee");
   foo(42);
+  bam("bam");
   print("Hello again");
 }
 
@@ -37,5 +40,10 @@ var testScript = [
   Resume(),
   MatchFrames(["bar", "foo", "main"]),
   MatchFrame(1, "foo"),
+  SetBreakpoint(18),  // Set breakpoint a line 18, in function bam.
+  Resume(),
+  MatchFrames(["bam", "main"]),
+  Resume(),
+  MatchFrames(["bar", "bam", "main"]),
   Resume(),
 ];

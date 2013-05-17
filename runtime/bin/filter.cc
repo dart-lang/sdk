@@ -135,9 +135,16 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
     Dart_ThrowException(DartUtils::NewInternalError(
         "Failed to get 'flush' parameter"));
   }
+  Dart_Handle end_obj = Dart_GetNativeArgument(args, 2);
+  bool end;
+  if (Dart_IsError(Dart_BooleanValue(end_obj, &end))) {
+    Dart_ThrowException(DartUtils::NewInternalError(
+        "Failed to get 'end' parameter"));
+  }
   intptr_t read = filter->Processed(filter->processed_buffer(),
                                     filter->processed_buffer_size(),
-                                    flush);
+                                    flush,
+                                    end);
   if (read < 0) {
     // Error, end filter.
     EndFilter(filter_obj, filter);
@@ -216,10 +223,14 @@ bool ZLibDeflateFilter::Process(uint8_t* data, intptr_t length) {
 
 intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
                                       intptr_t length,
-                                      bool flush) {
+                                      bool flush,
+                                      bool end) {
   stream_.avail_out = length;
   stream_.next_out = buffer;
-  switch (deflate(&stream_, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+  switch (deflate(&stream_,
+                  end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+    case Z_STREAM_END:
+    case Z_BUF_ERROR:
     case Z_OK: {
       intptr_t processed = length - stream_.avail_out;
       if (processed == 0) {
@@ -231,13 +242,6 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
         return processed;
       }
     }
-
-    case Z_STREAM_END:
-    case Z_BUF_ERROR:
-      // We processed all available input data.
-      delete[] current_buffer_;
-      current_buffer_ = NULL;
-      return 0;
 
     default:
     case Z_STREAM_ERROR:
@@ -279,10 +283,12 @@ bool ZLibInflateFilter::Process(uint8_t* data, intptr_t length) {
 
 intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
                                       intptr_t length,
-                                      bool flush) {
+                                      bool flush,
+                                      bool end) {
   stream_.avail_out = length;
   stream_.next_out = buffer;
-  switch (inflate(&stream_, flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+  switch (inflate(&stream_,
+                  end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
     case Z_STREAM_END:
     case Z_BUF_ERROR:
     case Z_OK: {

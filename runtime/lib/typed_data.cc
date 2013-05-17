@@ -258,10 +258,8 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
   Integer& result = Integer::Handle();                                         \
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {                        \
     result = BigintOperations::NewFromUint64(value);                           \
-  } else if (value > static_cast<uint64_t>(Smi::kMaxValue)) {                  \
-    result = Mint::New(value);                                                 \
   } else {                                                                     \
-    result = Smi::New(value);                                                  \
+    result = Integer::New(value);                                              \
   }                                                                            \
   return result.raw();                                                         \
 }                                                                              \
@@ -409,10 +407,8 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint64, 2) {
   }
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
     return BigintOperations::NewFromUint64(value);
-  } else if (value > static_cast<uint64_t>(Smi::kMaxValue)) {
-    return Mint::New(value);
   }
-  return Smi::New(value);
+  return Integer::New(value);
 }
 
 

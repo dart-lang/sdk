@@ -39,8 +39,8 @@ class Conversation {
 
   handle() {
     response.done
-      ..then(onClosed)
-      ..catchError(onError);
+      .then(onClosed)
+      .catchError(onError);
 
     String path = request.uri.path;
     if (path == '/') return redirect('/$landingPage');
@@ -62,7 +62,7 @@ class Conversation {
       } else if (path.endsWith('.appcache')) {
         response.headers.set(CONTENT_TYPE, 'text/cache-manifest');
       }
-      f.openRead().pipe(response);
+      f.openRead().pipe(response).catchError(onError);
     });
   }
 

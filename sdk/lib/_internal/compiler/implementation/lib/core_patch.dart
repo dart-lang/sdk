@@ -15,6 +15,7 @@ import "dart:_collection-dev" as _symbol_dev;
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
 _symbolMapToStringMap(Map<Symbol, dynamic> map) {
+  if (map == null) return null;
   var result = new Map<String, dynamic>();
   map.forEach((Symbol key, value) {
     result[_symbolToString(key)] = value;
@@ -22,7 +23,7 @@ _symbolMapToStringMap(Map<Symbol, dynamic> map) {
   return result;
 }
 
-patch void print(var object) {
+patch void print(Object object) {
   Primitives.printString(object.toString());
 }
 
@@ -104,7 +105,8 @@ patch class int {
 }
 
 patch class double {
-  patch static double parse(String source, [int handleError(String source)]) {
+  patch static double parse(String source,
+                            [double handleError(String source)]) {
     return Primitives.parseDouble(source, handleError);
   }
 }

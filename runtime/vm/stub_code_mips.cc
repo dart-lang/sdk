@@ -1702,6 +1702,10 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
+void StubCode::GenerateBreakpointEqNullStub(Assembler* assembler) {
+  // TODO(hausner): implement this stub.
+  __ Branch(&StubCode::EqualityWithNullArgLabel());
+}
 
 void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
   // TODO(hausner): implement this stub.
@@ -1894,7 +1898,8 @@ void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
 // Return the current stack pointer address, used to stack alignment
 // checks.
 void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
-  __ Unimplemented("GetStackPointer Stub");
+  __ Ret();
+  __ delay_slot()->mov(V0, SP);
 }
 
 

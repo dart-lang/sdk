@@ -20,6 +20,7 @@ expectDirect(String uri, environment) {
 
 main() {
   expectDirect("http://www.google.com", {});
+
   expect("PROXY www.proxy.com:1080",
          "http://www.google.com",
          {"http_proxy": "www.proxy.com"});
@@ -40,6 +41,36 @@ main() {
          "https://www.google.com",
          {"http_proxy": "www.proxy.com:8080",
           "https_proxy": "www.proxys.com:8080"});
+
+  expect("PROXY www.proxy.com:1080",
+         "http://www.google.com",
+         {"http_proxy": "http://www.proxy.com"});
+  expect("PROXY www.proxy.com:1080",
+         "http://www.google.com",
+         {"http_proxy": "http://www.proxy.com/"});
+  expect("PROXY www.proxy.com:8080",
+         "http://www.google.com",
+         {"http_proxy": "http://www.proxy.com:8080/"});
+  expect("PROXY www.proxy.com:8080",
+         "http://www.google.com",
+         {"http_proxy": "http://www.proxy.com:8080/index.html"});
+  expect("PROXY www.proxy.com:8080",
+         "http://www.google.com",
+         {"http_proxy": "http://www.proxy.com:8080/",
+          "https_proxy": "http://www.proxy.com:8080/"});
+  expect("PROXY www.proxys.com:8080",
+         "https://www.google.com",
+         {"http_proxy": "http://www.proxy.com:8080/",
+          "https_proxy": "http://www.proxys.com:8080/"});
+  expect("PROXY www.proxy.com:8080",
+         "http://www.google.com",
+         {"http_proxy": "http://www.proxy.com:8080/",
+          "https_proxy": "http://www.proxy.com:8080/index.html"});
+  expect("PROXY www.proxys.com:8080",
+         "https://www.google.com",
+         {"http_proxy": "http://www.proxy.com:8080/",
+          "https_proxy": "http://www.proxys.com:8080/index.html"});
+
   expectDirect("http://www.google.com",
                {"http_proxy": "www.proxy.com:8080",
                 "no_proxy": "www.google.com"});

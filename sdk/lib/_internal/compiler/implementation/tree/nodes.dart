@@ -369,6 +369,20 @@ class Send extends Expression {
   bool get isParameterCheck =>
       isOperator && identical(selector.asOperator().source.stringValue, '?');
 
+  bool get isIsNotCheck {
+    return isOperator
+        && identical(selector.asOperator().source.stringValue, 'is')
+        && arguments.head.asSend() != null;
+  }
+
+  TypeAnnotation get typeAnnotationFromIsCheck {
+    assert(isOperator
+        && identical(selector.asOperator().source.stringValue, 'is'));
+    return isIsNotCheck
+        ? arguments.head.asSend().receiver
+        : arguments.head;
+  }
+
   Token getBeginToken() {
     if (isPrefix && !isIndex) return selector.getBeginToken();
     return firstBeginToken(receiver, selector);

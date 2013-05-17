@@ -404,7 +404,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ LoadObject(ic_data_reg, equality_ic_data);
     compiler->GenerateCall(token_pos,
                            &StubCode::EqualityWithNullArgLabel(),
-                           PcDescriptors::kOther,
+                           PcDescriptors::kEqualNull,
                            locs);
     __ Drop(2);
   }
@@ -3748,9 +3748,21 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   for (intptr_t i = 0; i < InputCount(); i++) {
     __ movsd(Address(ESP, kDoubleSize * i), locs()->in(i).fpu_reg());
   }
+  // For pow-function return NAN if exponent is NAN.
+  Label do_call, skip_call;
+  if (recognized_kind() == MethodRecognizer::kDoublePow) {
+    XmmRegister exp = locs()->in(1).fpu_reg();
+    __ comisd(exp, exp);
+    __ j(PARITY_ODD, &do_call, Assembler::kNearJump);  // NaN -> false;
+    // Exponent is NaN, return NaN.
+    __ movsd(locs()->out().fpu_reg(), exp);
+    __ jmp(&skip_call, Assembler::kNearJump);
+  }
+  __ Bind(&do_call);
   __ CallRuntime(TargetFunction());
   __ fstpl(Address(ESP, 0));
   __ movsd(locs()->out().fpu_reg(), Address(ESP, 0));
+  __ Bind(&skip_call);
   __ leave();
 }
 
@@ -4508,6 +4520,18 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Location left = locs()->in(0);
   Location right = locs()->in(1);
+  if (left.IsConstant() && right.IsConstant()) {
+    // TODO(srdjan): Determine why this instruction was not eliminated.
+    bool result = (left.constant().raw() == right.constant().raw());
+    if ((kind_ == Token::kNE_STRICT) || (kind_ == Token::kNE)) {
+      result = !result;
+    }
+    __ movl(locs()->out().reg(),
+            Immediate(reinterpret_cast<int32_t>(
+                Smi::New(result ? if_true_ : if_false_))));
+    return;
+  }
+
   ASSERT(!left.IsConstant() || !right.IsConstant());
 
   // Clear upper part of the out register. We are going to use setcc on it

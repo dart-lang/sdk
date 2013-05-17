@@ -90,12 +90,11 @@ class HTypeList {
     HTypeList result = new HTypeList(node.inputs.length);
     for (int i = 0; i < result.types.length; i++) {
       result.types[i] = node.inputs[i].instructionType;
-      assert(!result.types[i].isConflicting());
     }
     return result;
   }
 
-  factory HTypeList.fromDynamicInvocation(HInvokeDynamic node,
+  factory HTypeList.fromDynamicInvocation(HInvoke node,
                                           Selector selector) {
     HTypeList result;
     int argumentsCount = node.inputs.length - 1;
@@ -116,7 +115,6 @@ class HTypeList {
 
     for (int i = 0; i < result.types.length; i++) {
       result.types[i] = node.inputs[i + startInvokeIndex].instructionType;
-      assert(!result.types[i].isConflicting());
     }
     return result;
   }
@@ -278,7 +276,6 @@ class FieldTypesRegistry {
                          Element field,
                          HType type) {
     assert(field.isField());
-    assert(!type.isConflicting());
     HType before = optimisticFieldType(field);
 
     HType oldType = typeMap[field];
@@ -1133,11 +1130,11 @@ class JavaScriptBackend extends Backend {
 
     if (compiler.enableTypeAssertions) {
       // We need to register is checks for assignments to fields.
-      cls.forEachLocalMember((Element member) {
+      cls.forEachMember((Element enclosing, Element member) {
         if (!member.isInstanceMember() || !member.isField()) return;
         DartType type = member.computeType(compiler);
         enqueuer.registerIsCheck(type, elements);
-      });
+      }, includeSuperMembers: true);
     }
   }
 
@@ -1229,19 +1226,26 @@ class JavaScriptBackend extends Backend {
   void registerIsCheck(DartType type, Enqueuer world, TreeElements elements) {
     world.registerInstantiatedClass(compiler.boolClass, elements);
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
+    bool inCheckedMode = compiler.enableTypeAssertions;
     if (!type.isRaw || isTypeVariable) {
       enqueueInResolution(getSetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeArgument(), elements);
+      if (inCheckedMode) {
+        enqueueInResolution(getAssertSubtype(), elements);
+      }
       enqueueInResolution(getCheckSubtype(), elements);
       if (isTypeVariable) {
-        enqueueInResolution(getGetObjectIsSubtype(), elements);
+        enqueueInResolution(getCheckSubtypeOfRuntimeType(), elements);
+        if (inCheckedMode) {
+          enqueueInResolution(getAssertSubtypeOfRuntimeType(), elements);
+        }
       }
       world.registerInstantiatedClass(compiler.listClass, elements);
     }
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
-    if (compiler.enableTypeAssertions) {
+    if (inCheckedMode) {
       Element e = getCheckedModeHelper(type, typeCast: false);
       if (e != null) world.addToWorkList(e);
       // We also need the native variant of the check (for DOM types).
@@ -1327,8 +1331,8 @@ class JavaScriptBackend extends Backend {
   }
 
   bool needsRti(ClassElement cls) {
-    return rti.classesNeedingRti.contains(cls.declaration)
-        || compiler.enabledRuntimeType;
+    return rti.classesNeedingRti.contains(cls.declaration) ||
+        compiler.enabledRuntimeType;
   }
 
   bool isDefaultNoSuchMethodImplementation(Element element) {
@@ -1437,7 +1441,7 @@ class JavaScriptBackend extends Backend {
    *  Register a dynamic invocation and collect the provided types for the
    *  named selector.
    */
-  void registerDynamicInvocation(HInvokeDynamic node, Selector selector) {
+  void registerDynamicInvocation(HInvoke node, Selector selector) {
     HTypeList providedTypes =
         new HTypeList.fromDynamicInvocation(node, selector);
     argumentTypes.registerDynamicInvocation(providedTypes, selector);
@@ -1593,8 +1597,9 @@ class JavaScriptBackend extends Backend {
    * backend with implementation types (JSInt, JSString, ...).
    */
   Element getCheckedModeHelper(DartType type, {bool typeCast}) {
-    return compiler.findHelper(getCheckedModeHelperName(
-        type, typeCast: typeCast, nativeCheckOnly: false));
+    SourceString name = getCheckedModeHelperName(
+        type, typeCast: typeCast, nativeCheckOnly: false);
+    return compiler.findHelper(name);
   }
 
   /**
@@ -1693,13 +1698,22 @@ class JavaScriptBackend extends Backend {
         }
       } else {
         if (nativeCheck) {
+          // TODO(karlklose): can we get rid of this branch when we use
+          // interceptors?
           return typeCast
               ? const SourceString("interceptedTypeCast")
               : const SourceString('interceptedTypeCheck');
         } else {
-          return typeCast
-              ? const SourceString("propertyTypeCast")
-              : const SourceString('propertyTypeCheck');
+          if (typeCast) {
+            return const SourceString("propertyTypeCast");
+          }
+          if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
+            return const SourceString('assertSubtype');
+          } else if (type.kind == TypeKind.TYPE_VARIABLE) {
+            return const SourceString('assertSubtypeOfRuntimeType');
+          } else {
+            return const SourceString('propertyTypeCheck');
+          }
         }
       }
     }
@@ -1782,8 +1796,17 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper(const SourceString('checkSubtype'));
   }
 
-  Element getGetObjectIsSubtype() {
-    return compiler.findHelper(const SourceString('objectIsSubtype'));
+  Element getAssertSubtype() {
+    return compiler.findHelper(const SourceString('assertSubtype'));
+  }
+
+  Element getCheckSubtypeOfRuntimeType() {
+    return compiler.findHelper(const SourceString('checkSubtypeOfRuntimeType'));
+  }
+
+  Element getAssertSubtypeOfRuntimeType() {
+    return compiler.findHelper(
+        const SourceString('assertSubtypeOfRuntimeType'));
   }
 
   Element getThrowNoSuchMethod() {

@@ -8,6 +8,58 @@ class EnqueueTask extends CompilerTask {
   final ResolutionEnqueuer resolution;
   final CodegenEnqueuer codegen;
 
+  /// A reverse map from name to *all* elements with that name, not
+  /// just instance members of instantiated classes.
+  final Map<String, Link<Element>> allElementsByName
+      = new Map<String, Link<Element>>();
+
+  void ensureAllElementsByName() {
+    if (!allElementsByName.isEmpty) return;
+
+    void addMemberByName(Element element) {
+      element = element.declaration;
+      String name = element.name.slowToString();
+      Link<Element> members = const Link<Element>();
+      if (element.isLibrary()) {
+        LibraryElementX library = element;
+        Uri uri = library.canonicalUri;
+        if (uri.scheme != 'dart' && !uri.path.startsWith('_')) {
+          members = library.localMembers;
+          // TODO(ahe): Is this right?  Is this necessary?
+          name = library.getLibraryOrScriptName();
+        }
+      } else if (element.isClass() && !element.isMixinApplication) {
+        // TODO(ahe): Investigate what makes mixin applications crash
+        // this method.
+        ClassElementX cls = element;
+        cls.ensureResolved(compiler);
+        members = cls.localMembers;
+        for (var link = cls.computeTypeParameters(compiler);
+             !link.isEmpty;
+             link = link.tail) {
+          addMemberByName(link.head.element);
+        }
+      } else if (element.isConstructor()) {
+        SourceString source = Elements.deconstructConstructorName(
+            element.name, element.getEnclosingClass());
+        if (source == null) {
+          // source is null for unnamed constructors.
+          name = '';
+        } else {
+          name = source.slowToString();
+        }
+      }
+      allElementsByName[name] = allElementsByName.putIfAbsent(
+          name, () => const Link<Element>()).prepend(element);
+      for (var link = members; !link.isEmpty; link = link.tail) {
+        addMemberByName(link.head);
+      }
+    }
+
+    compiler.libraries.values.forEach(addMemberByName);
+  }
+
+
   String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
@@ -29,9 +81,10 @@ abstract class Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
   final Function itemCompilationContextCreator;
-  final Map<String, Link<Element>> instanceMembersByName;
-  final Set<ClassElement> seenClasses;
-  final Universe universe;
+  final Map<String, Link<Element>> instanceMembersByName
+      = new Map<String, Link<Element>>();
+  final Set<ClassElement> seenClasses = new Set<ClassElement>();
+  final Universe universe = new Universe();
 
   bool queueIsClosed = false;
   EnqueueTask task;
@@ -39,10 +92,7 @@ abstract class Enqueuer {
 
   Enqueuer(this.name, this.compiler,
            ItemCompilationContext itemCompilationContextCreator())
-    : this.itemCompilationContextCreator = itemCompilationContextCreator,
-      instanceMembersByName = new Map<String, Link<Element>>(),
-      universe = new Universe(),
-      seenClasses = new Set<ClassElement>();
+    : this.itemCompilationContextCreator = itemCompilationContextCreator;
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue => false;
@@ -270,6 +320,60 @@ abstract class Enqueuer {
     task.measure(() {
       registerNewSelector(setterName, selector, universe.invokedSetters);
     });
+  }
+
+  /// Called when [:const Symbol(name):] is seen.
+  void registerConstSymbol(String name, TreeElements elements) {
+    // If dart:mirrors is loaded, a const symbol may be used to call a
+    // static/top-level method or accessor, instantiate a class, call
+    // an instance method or accessor with the given name.
+    if (compiler.mirrorSystemClass == null) return;
+
+    task.ensureAllElementsByName();
+
+    for (var link = task.allElementsByName[name];
+         link != null && !link.isEmpty;
+         link = link.tail) {
+      Element element = link.head;
+      if (Elements.isUnresolved(element)) {
+        // Ignore.
+      } else if (element.isConstructor()) {
+        ClassElement cls = element.declaration.getEnclosingClass();
+        registerInstantiatedType(cls.rawType, elements);
+        registerStaticUse(element.declaration);
+      } else if (element.impliesType()) {
+        // Don't enqueue classes, typedefs, and type variables.
+      } else if (Elements.isStaticOrTopLevel(element)) {
+        registerStaticUse(element.declaration);
+      } else if (element.isInstanceMember()) {
+        if (element.isFunction()) {
+          int arity =
+              element.asFunctionElement().requiredParameterCount(compiler);
+          Selector selector =
+              new Selector.call(element.name, element.getLibrary(), arity);
+          registerInvocation(element.name, selector);
+        } else if (element.isSetter()) {
+          Selector selector =
+              new Selector.setter(element.name, element.getLibrary());
+          registerInvokedSetter(element.name, selector);
+        } else if (element.isGetter()) {
+          Selector selector =
+              new Selector.getter(element.name, element.getLibrary());
+          registerInvokedGetter(element.name, selector);
+        } else if (element.isField()) {
+          Selector selector =
+              new Selector.setter(element.name, element.getLibrary());
+          registerInvokedSetter(element.name, selector);
+          selector =
+              new Selector.getter(element.name, element.getLibrary());
+          registerInvokedGetter(element.name, selector);
+        }
+      }
+    }
+  }
+
+  /// Called when [:new Symbol(...):] is seen.
+  void registerNewSymbol(TreeElements elements) {
   }
 
   processInstanceMembers(SourceString n, bool f(Element e)) {

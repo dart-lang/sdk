@@ -57,13 +57,15 @@ class TypeEnvironment {
   }
 
   DartType getMemberType(ClassElement element, String name) {
-    Element member = element.localLookup(new SourceString(name));
+    Element member = element.localLookup(sourceString(name));
     return member.computeType(compiler);
   }
 
   bool isSubtype(DartType T, DartType S) {
     return compiler.types.isSubtype(T, S);
   }
+
+  SourceString sourceString(String name) => new SourceString(name);
 
   FunctionType functionType(DartType returnType,
                             List<DartType> parameters,
@@ -78,7 +80,7 @@ class TypeEnvironment {
     var namedParameterTypes = new LinkBuilder<DartType>();
     if (namedParameters != null) {
       namedParameters.forEach((String name, DartType type) {
-        namedParameterNames.addLast(new SourceString(name));
+        namedParameterNames.addLast(sourceString(name));
         namedParameterTypes.addLast(type);
       });
     }

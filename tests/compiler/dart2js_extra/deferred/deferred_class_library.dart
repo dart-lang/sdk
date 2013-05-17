@@ -14,3 +14,10 @@ class MyClass {
     return (x - 3) ~/ 2;
   }
 }
+
+class Constant {
+  final value;
+  const Constant(this.value);
+
+  operator==(other) => other is Constant && value == other.value;
+}

@@ -95,13 +95,13 @@ Encoding requiredEncodingForCharset(String charset) {
 /// Converts [bytes] into a [String] according to [encoding].
 String decodeString(List<int> bytes, Encoding encoding) {
   // TODO(nweiz): implement this once issue 6284 is fixed.
-  return new String.fromCharCodes(bytes);
+  return decodeUtf8(bytes);
 }
 
 /// Converts [string] into a byte array according to [encoding].
 List<int> encodeString(String string, Encoding encoding) {
   // TODO(nweiz): implement this once issue 6284 is fixed.
-  return string.codeUnits;
+  return encodeUtf8(string);
 }
 
 /// A regular expression that matches strings that are composed entirely of

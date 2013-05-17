@@ -28,6 +28,7 @@ class SourceBreakpoint {
 
   RawFunction* function() const { return function_; }
   intptr_t token_pos() const { return token_pos_; }
+  void set_token_pos(intptr_t value) { token_pos_ = value; }
   intptr_t id() const { return id_; }
 
   RawScript* SourceCode();
@@ -49,7 +50,7 @@ class SourceBreakpoint {
 
   const intptr_t id_;
   RawFunction* function_;
-  const intptr_t token_pos_;
+  intptr_t token_pos_;
   intptr_t line_number_;
   bool is_enabled_;
 
@@ -317,6 +318,9 @@ class Debugger {
     kStepOut
   };
 
+  intptr_t ResolveBreakpointPos(const Function& func,
+                                intptr_t first_token_pos,
+                                intptr_t last_token_pos);
   void DeoptimizeWorld();
   void InstrumentForStepping(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
@@ -328,10 +332,9 @@ class Debugger {
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   SourceBreakpoint* GetSourceBreakpoint(const Function& func,
                                         intptr_t token_pos);
-  CodeBreakpoint* MakeCodeBreakpoint(const Function& func,
-                                     intptr_t first_token_pos,
-                                     intptr_t last_token_pos);
-
+  void MakeCodeBreakpointsAt(const Function& func,
+                             intptr_t token_pos,
+                             SourceBreakpoint* bpt);
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
 

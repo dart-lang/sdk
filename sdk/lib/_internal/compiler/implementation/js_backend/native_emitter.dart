@@ -322,7 +322,8 @@ class NativeEmitter {
           if (type is FunctionType) {
             // The parameter type is a function type either directly or through
             // typedef(s).
-            int arity = type.computeArity();
+            FunctionType functionType = type;
+            int arity = functionType.computeArity();
             statements.add(
                 js('$name = $closureConverter($name, $arity)').toStatement());
             break;

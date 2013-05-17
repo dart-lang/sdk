@@ -39,6 +39,7 @@ main() {
   print(new prefix.DateTime(0));
   print(new prefix.DateTime.utc(0));
   prefix.DateTime c = new prefix.DateTime(0);
+  A.bar = 0;
 }
 """;
 

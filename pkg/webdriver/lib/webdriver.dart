@@ -285,11 +285,12 @@ class WebDriverBase {
             var value = null;
             // For some reason we get a bunch of NULs on the end
             // of the text and the json.parse blows up on these, so
-            // strip them with trim().
+            // strip them.
             // These NULs can be seen in the TCP packet, so it is not
             // an issue with character encoding; it seems to be a bug
             // in WebDriver stack.
-            results = new String.fromCharCodes(body).trim();
+            results = new String.fromCharCodes(body)
+                .replaceAll(new RegExp('\u{0}*\$'), '');
             if (!successCodes.contains(rsp.statusCode)) {
               _failRequest(completer, 
                   'Unexpected response ${rsp.statusCode}; $results');

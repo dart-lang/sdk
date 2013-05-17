@@ -198,11 +198,33 @@ class ResolverTask extends CompilerTask {
       String patchParameterText =
           patchParameter.parseNode(compiler).toString();
       if (originParameterText != patchParameterText) {
-        error(originParameter.parseNode(compiler),
-              MessageKind.PATCH_PARAMETER_MISMATCH,
-              {'methodName': origin.name,
-               'originParameter': originParameterText,
-               'patchParameter': patchParameterText});
+        compiler.reportErrorCode(
+            originParameter.parseNode(compiler),
+            MessageKind.PATCH_PARAMETER_MISMATCH,
+            {'methodName': origin.name,
+             'originParameter': originParameterText,
+             'patchParameter': patchParameterText});
+        compiler.reportMessage(
+            compiler.spanFromSpannable(patchParameter),
+            MessageKind.PATCH_POINT_TO_PARAMETER.error(
+                {'parameterName': patchParameter.name}),
+            Diagnostic.INFO);
+      }
+      DartType originParameterType = originParameter.computeType(compiler);
+      DartType patchParameterType = patchParameter.computeType(compiler);
+      if (originParameterType != patchParameterType) {
+        compiler.reportErrorCode(
+            originParameter.parseNode(compiler),
+            MessageKind.PATCH_PARAMETER_TYPE_MISMATCH,
+            {'methodName': origin.name,
+             'parameterName': originParameter.name,
+             'originParameterType': originParameterType,
+             'patchParameterType': patchParameterType});
+        compiler.reportMessage(
+            compiler.spanFromSpannable(patchParameter),
+            MessageKind.PATCH_POINT_TO_PARAMETER.error(
+                {'parameterName': patchParameter.name}),
+            Diagnostic.INFO);
       }
 
       originParameters = originParameters.tail;
@@ -2054,16 +2076,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     return target;
   }
 
-  DartType resolveTypeTest(Node argument) {
-    TypeAnnotation node = argument.asTypeAnnotation();
-    if (node == null) {
-      // node is of the form !Type.
-      node = argument.asSend().receiver.asTypeAnnotation();
-      if (node == null) compiler.cancel("malformed send");
-    }
-    return resolveTypeRequired(node);
-  }
-
   static Selector computeSendSelector(Send node,
                                       LibraryElement library,
                                       Element element) {
@@ -2196,15 +2208,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
-      if (operatorString == 'is' || operatorString == 'as') {
-        assert(node.arguments.tail.isEmpty);
-        DartType type = resolveTypeTest(node.arguments.head);
+      if (operatorString == 'is') {
+        DartType type = resolveTypeRequired(node.typeAnnotationFromIsCheck);
         if (type != null) {
-          if (operatorString == 'as') {
-            compiler.enqueuer.resolution.registerAsCheck(type, mapping);
-          } else {
-            compiler.enqueuer.resolution.registerIsCheck(type, mapping);
-          }
+          compiler.enqueuer.resolution.registerIsCheck(type, mapping);
+        }
+        resolvedArguments = true;
+      } else if (operatorString == 'as') {
+        DartType type = resolveTypeRequired(node.arguments.head);
+        if (type != null) {
+          compiler.enqueuer.resolution.registerAsCheck(type, mapping);
         }
         resolvedArguments = true;
       } else if (identical(operatorString, '?')) {
@@ -2275,12 +2288,16 @@ class ResolverVisitor extends MappingVisitor<Element> {
     Element element = scope.lookup(new SourceString(typeName));
     if (element == null) return null;
     if (element is! ClassElement) return null;
-    element.ensureResolved(compiler);
-    return element.computeType(compiler);
+    ClassElement cls = element;
+    cls.ensureResolved(compiler);
+    return cls.computeType(compiler);
   }
 
   visitSendSet(SendSet node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = node.isPropertyAccess || node.isCall;
     Element target = resolveSend(node);
+    sendIsMemberAccess = oldSendIsMemberAccess;
     Element setter = target;
     Element getter = target;
     SourceString operatorName = node.assignmentOperator.source;
@@ -2511,11 +2528,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     Node selector = node.send.selector;
     FunctionElement constructor = resolveConstructor(node);
     final bool isSymbolConstructor = constructor == compiler.symbolConstructor;
-    if (!node.isConst() && isSymbolConstructor) {
-      compiler.reportWarningCode(
-          node.newToken, MessageKind.NON_CONST_BLOAT,
-          {'name': compiler.symbolClass.name});
-    }
     resolveSelector(node.send, constructor);
     resolveArguments(node.send.argumentsNode);
     useElement(node.send, constructor);
@@ -2547,35 +2559,46 @@ class ResolverVisitor extends MappingVisitor<Element> {
         includeBackendMembers: false,
         includeSuperMembers: true);
 
-    if (node.isConst() && isSymbolConstructor) {
-      Node argumentNode = node.send.arguments.head;
-      Constant name = compiler.metadataHandler.compileNodeWithDefinitions(
-          argumentNode, mapping, isConst: true);
-      if (!name.isString()) {
-        DartType type = name.computeType(compiler);
-        compiler.reportErrorCode(argumentNode, MessageKind.STRING_EXPECTED,
-                                 {'type': type});
+    if (isSymbolConstructor) {
+      if (node.isConst()) {
+        Node argumentNode = node.send.arguments.head;
+        Constant name = compiler.metadataHandler.compileNodeWithDefinitions(
+            argumentNode, mapping, isConst: true);
+        if (!name.isString()) {
+          DartType type = name.computeType(compiler);
+          compiler.reportErrorCode(argumentNode, MessageKind.STRING_EXPECTED,
+                                   {'type': type});
+        } else {
+          StringConstant stringConstant = name;
+          String nameString = stringConstant.toDartString().slowToString();
+          if (validateSymbol(argumentNode, nameString)) {
+            world.registerConstSymbol(nameString, mapping);
+          }
+        }
       } else {
-        StringConstant stringConstant = name;
-        validateSymbol(argumentNode,
-                       stringConstant.toDartString().slowToString());
+        compiler.reportWarningCode(
+            node.newToken, MessageKind.NON_CONST_BLOAT,
+            {'name': compiler.symbolClass.name});
+        world.registerNewSymbol(mapping);
       }
     }
 
     return null;
   }
 
-  void validateSymbol(Node node, String name) {
-    if (name.isEmpty) return;
+  bool validateSymbol(Node node, String name) {
+    if (name.isEmpty) return true;
     if (name.startsWith('_')) {
       compiler.reportErrorCode(node, MessageKind.PRIVATE_IDENTIFIER,
                                {'value': name});
-      return;
+      return false;
     }
     if (!symbolValidationPattern.hasMatch(name)) {
       compiler.reportErrorCode(node, MessageKind.INVALID_SYMBOL,
                                {'value': name});
+      return false;
     }
+    return true;
   }
 
 
@@ -2714,10 +2737,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
       target = label.target;
       if (!target.statement.isValidContinueTarget()) {
         error(node.target, MessageKind.INVALID_CONTINUE);
-      }
-      // TODO(lrn): Handle continues to switch cases.
-      if (target.statement is SwitchCase) {
-        unimplemented(node, "continue to switch case");
       }
       label.setContinueTarget();
       mapping[node.target] = label;
@@ -2898,19 +2917,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
           }
         }
 
-        TargetElement targetElement =
-            new TargetElementX(switchCase,
-                               statementScope.nestingLevel,
-                               enclosingElement);
-        if (mapping[switchCase] != null) {
-          // TODO(ahe): Talk to Lasse about this.
-          mapping.remove(switchCase);
-        }
-        mapping[switchCase] = targetElement;
-
-        LabelElement labelElement =
-            new LabelElementX(label, labelName,
-                              targetElement, enclosingElement);
+        TargetElement targetElement = getOrCreateTargetElement(switchCase);
+        LabelElement labelElement = targetElement.addLabel(label, labelName);
         mapping[label] = labelElement;
         continueLabels[labelName] = labelElement;
       }

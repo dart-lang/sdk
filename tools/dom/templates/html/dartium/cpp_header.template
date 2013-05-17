@@ -7,7 +7,7 @@
 #ifndef Dart$(INTERFACE)_h
 #define Dart$(INTERFACE)_h
 
-#include "DartDOMWrapper.h"
+#include "bindings/dart/DartDOMWrapper.h"
 $WEBCORE_INCLUDES
 #include <dart_api.h>
 

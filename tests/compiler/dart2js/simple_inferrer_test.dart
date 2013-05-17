@@ -83,14 +83,187 @@ returnDynamic2() {
   return 42.abs(42);
 }
 
+testIsCheck1(a) {
+  if (a is int) {
+    return a;
+  } else {
+    return 42;
+  }
+}
+
+testIsCheck2(a) {
+  if (a is !int) {
+    return 0;
+  } else {
+    return a;
+  }
+}
+
+testIsCheck3(a) {
+  if (a is !int) {
+    print('hello');
+  } else {
+    return a;
+  }
+}
+
+testIsCheck4(a) {
+  if (a is int) {
+    return a;
+  } else {
+    return 42;
+  }
+}
+
+testIsCheck5(a) {
+  if (a is !int) {
+    return 42;
+  } else {
+    return a;
+  }
+}
+
+testIsCheck6(a) {
+  if (a is !int) {
+    return a;
+  } else {
+    return 42;
+  }
+}
+
+testIsCheck7(a) {
+  if (a == 'foo' && a is int) {
+    return a;
+  } else {
+    return 42;
+  }
+}
+
+testIsCheck8(a) {
+  if (a == 'foo' || a is int) {
+    return a;
+  } else {
+    return 42;
+  }
+}
+
+testIsCheck9(a) {
+  return a is int ? a : 42;
+}
+
+testIsCheck10(a) {
+  return a is !int ? a : 42;
+}
+
+testIsCheck11(a) {
+  return a is !int ? 42 : a;
+}
+
+testIsCheck12(a) {
+  return a is int ? 42 : a;
+}
+
+testIsCheck13(a) {
+  while (a is int) {
+    return a;
+  }
+  return 42;
+}
+
+testIsCheck14(a) {
+  while (a is !int) {
+    return 42;
+  }
+  return a;
+}
+
+testIsCheck15(a) {
+  var c = 42;
+  do {
+    if (a) return c;
+    c = topLevelGetter();
+  } while (c is int);
+  return 42;
+}
+
+testIsCheck16(a) {
+  var c = 42;
+  do {
+    if (a) return c;
+    c = topLevelGetter();
+  } while (c is !int);
+  return 42;
+}
+
+testIsCheck17(a) {
+  var c = 42;
+  for (; c is int;) {
+    if (a) return c;
+    c = topLevelGetter();
+  }
+  return 42;
+}
+
+testIsCheck18(a) {
+  var c = 42;
+  for (; c is int;) {
+    if (a) return c;
+    c = topLevelGetter();
+  }
+  return c;
+}
+
+testIsCheck19(a) {
+  var c = 42;
+  for (; c is !int;) {
+    if (a) return c;
+    c = topLevelGetter();
+  }
+  return 42;
+}
+
 returnAsString() {
   return topLevelGetter() as String;
+}
+
+returnIntAsNum() {
+  return 0 as num;
 }
 
 typedef int Foo();
 
 returnAsTypedef() {
   return topLevelGetter() as Foo;
+}
+
+testSwitch1() {
+  var a = null;
+  switch (topLevelGetter) {
+    case 100: a = 42.5; break;
+    case 200: a = 42; break;
+  }
+  return a;
+}
+
+testSwitch2() {
+  var a = null;
+  switch (topLevelGetter) {
+    case 100: a = 42; break;
+    case 200: a = 42; break;
+    default:
+      a = 43;
+  }
+  return a;
+}
+
+testSwitch3() {
+  var a = 42;
+  var b;
+  switch (topLevelGetter) {
+    L1: case 1: b = a + 42; break;
+    case 2: a = 'foo'; continue L1;
+  }
+  return b;
 }
 
 get topLevelGetter => 42;
@@ -142,8 +315,31 @@ main() {
   returnDynamic();
   returnDynamic1();
   returnDynamic2();
+  testIsCheck1(topLevelGetter());
+  testIsCheck2(topLevelGetter());
+  testIsCheck3(topLevelGetter());
+  testIsCheck4(topLevelGetter());
+  testIsCheck5(topLevelGetter());
+  testIsCheck6(topLevelGetter());
+  testIsCheck7(topLevelGetter());
+  testIsCheck8(topLevelGetter());
+  testIsCheck9(topLevelGetter());
+  testIsCheck10(topLevelGetter());
+  testIsCheck11(topLevelGetter());
+  testIsCheck12(topLevelGetter());
+  testIsCheck13(topLevelGetter());
+  testIsCheck14(topLevelGetter());
+  testIsCheck15(topLevelGetter());
+  testIsCheck16(topLevelGetter());
+  testIsCheck17(topLevelGetter());
+  testIsCheck18(topLevelGetter());
+  testIsCheck19(topLevelGetter());
   returnAsString();
+  returnIntAsNum();
   returnAsTypedef();
+  testSwitch1();
+  testSwitch2();
+  testSwitch3();
   new A() == null;
   new A()..returnInt1()
          ..returnInt2()
@@ -192,9 +388,34 @@ void main() {
   checkReturn('returnInt8', typesInferrer.intType);
   checkReturn('returnDynamic1', typesInferrer.dynamicType);
   checkReturn('returnDynamic2', typesInferrer.dynamicType);
+  TypeMask intType = new TypeMask.nonNullSubtype(compiler.intClass.rawType);
+  checkReturn('testIsCheck1', intType);
+  checkReturn('testIsCheck2', intType);
+  checkReturn('testIsCheck3', intType.nullable());
+  checkReturn('testIsCheck4', intType);
+  checkReturn('testIsCheck5', intType);
+  checkReturn('testIsCheck6', typesInferrer.dynamicType);
+  checkReturn('testIsCheck7', intType);
+  checkReturn('testIsCheck8', typesInferrer.dynamicType);
+  checkReturn('testIsCheck9', intType);
+  checkReturn('testIsCheck10', typesInferrer.dynamicType);
+  checkReturn('testIsCheck11', intType);
+  checkReturn('testIsCheck12', typesInferrer.dynamicType);
+  checkReturn('testIsCheck13', intType);
+  checkReturn('testIsCheck14', typesInferrer.dynamicType);
+  checkReturn('testIsCheck15', intType);
+  checkReturn('testIsCheck16', typesInferrer.dynamicType);
+  checkReturn('testIsCheck17', intType);
+  checkReturn('testIsCheck18', typesInferrer.dynamicType);
+  checkReturn('testIsCheck19', typesInferrer.dynamicType);
   checkReturn('returnAsString',
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
+  checkReturn('returnIntAsNum', typesInferrer.intType);
   checkReturn('returnAsTypedef', typesInferrer.functionType.nullable());
+  checkReturn('testSwitch1',
+    typesInferrer.intType.union(typesInferrer.doubleType, compiler).nullable());
+  checkReturn('testSwitch2', typesInferrer.intType);
+  checkReturn('testSwitch3', interceptorType.nullable());
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);

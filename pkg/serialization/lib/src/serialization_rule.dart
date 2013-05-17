@@ -492,6 +492,18 @@ class SymbolRule extends CustomRule {
   bool get hasVariableLengthEntries => false;
 }
 
+/** A hard-coded rule for DateTime. */
+class DateTimeRule extends CustomRule {
+  bool appliesTo(instance, _) => instance is DateTime;
+  List getState(DateTime date) => [date.millisecondsSinceEpoch, date.isUtc];
+  create(List state) =>
+      new DateTime.fromMillisecondsSinceEpoch(state[0], isUtc: state[1]);
+  void setState(date, state) {}
+  // Let the system know we don't have to store a length for these.
+  int get dataLength => 2;
+  bool get hasVariableLengthEntries => false;
+}
+
 /** Create a lazy list/map that will inflate its items on demand in [r]. */
 _lazy(l, Reader r) {
   if (l is List) return new _LazyList(l, r);
@@ -561,7 +573,7 @@ class _LazyList extends IterableBase implements List {
   // These operations, and other inherited methods that iterate over the whole
   // list will work, but may be expensive, and are probably
   // best avoided.
-  List get _inflated => _raw.map(_reader.inflateReference);
+  Iterable get _inflated => _raw.map(_reader.inflateReference);
   Iterator get iterator => _inflated.iterator;
   indexOf(x, [pos = 0]) => _inflated.toList().indexOf(x);
   lastIndexOf(x, [pos]) => _inflated.toList().lastIndexOf(x);

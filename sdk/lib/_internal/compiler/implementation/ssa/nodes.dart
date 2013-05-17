@@ -791,7 +791,9 @@ abstract class HInstruction implements Spannable {
   static const int IS_TYPECODE = 28;
   static const int INVOKE_DYNAMIC_TYPECODE = 29;
 
-  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[];
+  HInstruction(this.inputs) : id = idCounter++, usedBy = <HInstruction>[] {
+    assert(inputs.every((e) => e != null));
+  }
 
   int get hashCode => id;
 
@@ -799,6 +801,7 @@ abstract class HInstruction implements Spannable {
   void setUseGvn() { _useGvn = true; }
 
   void updateInput(int i, HInstruction insn) {
+    assert(insn != null);
     inputs[i] = insn;
   }
 
@@ -952,6 +955,7 @@ abstract class HInstruction implements Spannable {
   // Change all uses of [oldInput] by [this] to [newInput]. Also
   // updates the [usedBy] of [oldInput] and [newInput].
   void changeUse(HInstruction oldInput, HInstruction newInput) {
+    assert(newInput != null);
     for (int i = 0; i < inputs.length; i++) {
       if (identical(inputs[i], oldInput)) {
         inputs[i] = newInput;
@@ -1086,6 +1090,8 @@ abstract class HInstruction implements Spannable {
     } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
       return new HTypeConversion(type, kind, HType.BOOLEAN, this);
+    } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.isRaw) {
+        throw 'creating compound check to $type (this = ${this})';
     } else {
       HType subtype = new HType.subtype(type, compiler);
       return new HTypeConversion(type, kind, subtype, this);
@@ -1127,6 +1133,12 @@ abstract class HCheck extends HInstruction {
   HInstruction get checkedInput => inputs[0];
   bool isJsStatement() => true;
   bool canThrow() => true;
+
+  HInstruction unwrap() {
+    var checked = checkedInput;
+    while (checked is HCheck) checked = checked.checkedInput;
+    return checked;
+  }
 }
 
 class HBailoutTarget extends HInstruction {
@@ -1242,6 +1254,16 @@ abstract class HInvoke extends HInstruction {
   }
   static const int ARGUMENTS_OFFSET = 1;
   bool canThrow() => true;
+
+  /**
+   * Returns whether this call is on an intercepted method.
+   */
+  bool get isInterceptedCall {
+    // We know it's a selector call if it follows the interceptor
+    // calling convention, which adds the actual receiver as a
+    // parameter to the call.
+    return inputs.length - 2 == selector.argumentCount;
+  }
 }
 
 abstract class HInvokeDynamic extends HInvoke {
@@ -1262,16 +1284,6 @@ abstract class HInvokeDynamic extends HInvoke {
   HInstruction get receiver => inputs[0];
   HInstruction getDartReceiver(Compiler compiler) {
     return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
-  }
-
-  /**
-   * Returns whether this call is on an intercepted method.
-   */
-  bool get isInterceptedCall {
-    // We know it's a selector call if it follows the interceptor
-    // calling convention, which adds the actual receiver as a
-    // parameter to the call.
-    return inputs.length - 2 == selector.argumentCount;
   }
 
   /**
@@ -1369,8 +1381,13 @@ class HInvokeSuper extends HInvokeStatic {
   /** The class where the call to super is being done. */
   final ClassElement caller;
   final bool isSetter;
+  final Selector selector;
 
-  HInvokeSuper(Element element, this.caller, inputs, {this.isSetter})
+  HInvokeSuper(Element element,
+               this.caller,
+               this.selector,
+               inputs,
+               {this.isSetter})
       : super(element, inputs, HType.UNKNOWN);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
@@ -1667,7 +1684,7 @@ class HBitNot extends HInvokeUnary {
     instructionType = HType.INTEGER;
   }
   accept(HVisitor visitor) => visitor.visitBitNot(this);
-  
+
   UnaryOperation operation(ConstantSystem constantSystem)
       => constantSystem.bitNot;
   int typeCode() => HInstruction.BIT_NOT_TYPECODE;
@@ -1696,8 +1713,16 @@ abstract class HJump extends HControlFlow {
 }
 
 class HBreak extends HJump {
-  HBreak(TargetElement target) : super(target);
-  HBreak.toLabel(LabelElement label) : super.toLabel(label);
+  /**
+   * Signals that this is a special break instruction for the synthetic loop
+   * generatedfor a switch statement with continue statements. See
+   * [SsaBuilder.buildComplexSwitchStatement] for detail.
+   */
+  final bool breakSwitchContinueLoop;
+  HBreak(TargetElement target, {bool this.breakSwitchContinueLoop: false})
+      : super(target);
+  HBreak.toLabel(LabelElement label)
+      : breakSwitchContinueLoop = false, super.toLabel(label);
   toString() => (label != null) ? 'break ${label.labelName}' : 'break';
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
@@ -2132,7 +2157,6 @@ class HIndexAssign extends HInstruction {
   HInstruction get value => inputs[2];
 }
 
-// TODO(karlklose): use this class to represent type conversions as well.
 class HIs extends HInstruction {
   /// A check against a raw type: 'o is int', 'o is A'.
   static const int RAW_CHECK = 0;
@@ -2197,6 +2221,23 @@ class HTypeConversion extends HCheck {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     sourceElement = input.sourceElement;
     instructionType = type;
+  }
+
+  HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
+                                         HType type, HInstruction input,
+                                         HInstruction typeRepresentation)
+      : super(<HInstruction>[input, typeRepresentation]),
+        receiverTypeCheckSelector = null {
+    sourceElement = input.sourceElement;
+    instructionType = type;
+  }
+
+  bool get hasTypeRepresentation => inputs.length > 1;
+  HInstruction get typeRepresentation => inputs[1];
+
+  HInstruction convertType(Compiler compiler, DartType type, int kind) {
+    if (typeExpression == type) return this;
+    return super.convertType(compiler, type, kind);
   }
 
   bool get isChecked => kind != NO_CHECK;
@@ -2462,6 +2503,8 @@ class LoopTypeVisitor extends Visitor {
   int visitFor(For node) => HLoopBlockInformation.FOR_LOOP;
   int visitDoWhile(DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
   int visitForIn(ForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
+  int visitSwitchStatement(SwitchStatement node) =>
+      HLoopBlockInformation.SWITCH_CONTINUE_LOOP;
 }
 
 class HLoopBlockInformation implements HStatementInformation {
@@ -2469,6 +2512,7 @@ class HLoopBlockInformation implements HStatementInformation {
   static const int FOR_LOOP = 1;
   static const int DO_WHILE_LOOP = 2;
   static const int FOR_IN_LOOP = 3;
+  static const int SWITCH_CONTINUE_LOOP = 4;
   static const int NOT_A_LOOP = -1;
 
   final int kind;

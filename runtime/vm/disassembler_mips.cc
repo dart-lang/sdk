@@ -486,8 +486,64 @@ void MIPSDecoder::DecodeCop1(Instr* instr) {
         Format(instr, "add.'fmt 'fd, 'fs, 'ft");
         break;
       }
+      case COP1_SUB: {
+        Format(instr, "sub.'fmt 'fd, 'fs, 'ft");
+        break;
+      }
+      case COP1_MUL: {
+        Format(instr, "mul.'fmt 'fd, 'fs, 'ft");
+        break;
+      }
+      case COP1_DIV: {
+        Format(instr, "div.'fmt 'fd, 'fs, 'ft");
+        break;
+      }
+      case COP1_SQRT: {
+        Format(instr, "sqrt.'fmt 'fd, 'fs");
+        break;
+      }
       case COP1_MOV: {
         Format(instr, "mov.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_C_F: {
+        Format(instr, "c.f.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_C_UN: {
+        Format(instr, "c.un.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_C_EQ: {
+        Format(instr, "c.eq.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_C_UEQ: {
+        Format(instr, "c.ueq.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_C_OLT: {
+        Format(instr, "c.olt.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_C_ULT: {
+        Format(instr, "c.ult.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_C_OLE: {
+        Format(instr, "c.ole.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_C_ULE: {
+        Format(instr, "c.ule.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_CVT_D: {
+        Format(instr, "cvt.d.'fmt 'fd, 'fs");
+        break;
+      }
+      case COP1_CVT_W: {
+        Format(instr, "cvt.w.'fmt 'fd, 'fs");
         break;
       }
       default: {
@@ -511,6 +567,15 @@ void MIPSDecoder::DecodeCop1(Instr* instr) {
           Unknown(instr);
         } else {
           Format(instr, "mtc1 'rt, 'fs");
+        }
+        break;
+      }
+      case COP1_BC: {
+        ASSERT(instr->Bit(17) == 0);
+        if (instr->Bit(16) == 1) {  // Branch on true.
+          Format(instr, "bc1t 'dest");
+        } else {  // Branch on false.
+          Format(instr, "bc1f 'dest");
         }
         break;
       }

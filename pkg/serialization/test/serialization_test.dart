@@ -144,15 +144,14 @@ main() {
 
   test('date', () {
     var date = new DateTime.now();
-    var s = new Serialization()
-        ..addRuleFor(date,
-            constructorFields : ["year", "month", "day", "hour", "minute",
-                                 "second", "millisecond", "isUtc"])
-            .configureForMaps();
-    var state = states(date, s).first;
-    expect(state["year"],date.year);
-    expect(state["isUtc"],date.isUtc);
-    expect(state["millisecond"], date.millisecond);
+    var utcDate = new DateTime.utc(date.year, date.month, date.day,
+        date.hour, date.minute, date.second, date.millisecond);
+    var s = new Serialization();
+    var out = s.write([date, utcDate]);
+    expect(s.selfDescribing, isTrue);
+    var input = s.read(out);
+    expect(input.first, date);
+    expect(input.last, utcDate);
   });
 
   test('Iteration helpers', () {
@@ -220,7 +219,7 @@ main() {
     var w = new Writer(s, const InternalMapFormat());
     w.trace = new Trace(w);
     w.write(n1);
-    expect(w.states.length, 6); // prims, lists, essential lists, basic, symbol
+    expect(w.states.length, 7); // prims, lists * 2, basic, symbol, date
     var children = 0, name = 1, parent = 2;
     var nodeRule = s.rules.firstWhere((x) => x is BasicRule);
     List rootNode = w.states[nodeRule.number].where(

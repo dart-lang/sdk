@@ -230,6 +230,7 @@ abstract class Element implements Spannable {
   bool get isDeclaration;
   bool get isSynthesized;
   bool get isForwardingConstructor;
+  bool get isMixinApplication;
 
   Element get implementation;
   Element get declaration;
@@ -524,6 +525,29 @@ class Elements {
         && node.isCall
         && node.arguments.isEmpty;
   }
+
+  static bool switchStatementHasContinue(SwitchStatement node,
+                                         TreeElements elements) {
+    for (SwitchCase switchCase in node.cases) {
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        Node label = labelOrCase.asLabel();
+        if (label != null) {
+          LabelElement labelElement = elements[label];
+          if (labelElement != null && labelElement.isContinueTarget) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  static bool switchStatementHasDefault(SwitchStatement node) {
+    for (SwitchCase switchCase in node.cases) {
+      if (switchCase.isDefaultCase) return true;
+    }
+    return false;
+  }
 }
 
 abstract class ErroneousElement extends Element implements FunctionElement {
@@ -550,6 +574,7 @@ abstract class CompilationUnitElement extends Element {
   Script get script;
   PartOf get partTag;
 
+  void forEachLocalMember(f(Element element));
   void addMember(Element element, DiagnosticListener listener);
   void setPartOf(PartOf tag, DiagnosticListener listener);
   bool get hasMembers;

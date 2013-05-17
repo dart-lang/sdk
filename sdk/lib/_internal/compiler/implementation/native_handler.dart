@@ -725,8 +725,9 @@ class NativeBehavior {
       Element e = element.buildScope().lookup(new SourceString(name));
       if (e == null) return null;
       if (e is! ClassElement) return null;
-      e.ensureResolved(compiler);
-      return e.computeType(compiler);
+      ClassElement cls = e;
+      cls.ensureResolved(compiler);
+      return cls.computeType(compiler);
     }
 
     NativeEnqueuerBase enqueuer = compiler.enqueuer.resolution.nativeEnqueuer;
@@ -943,7 +944,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
     Element helper = builder.backend.getClosureConverter();
-    builder.pushInvokeHelper2(helper, local, arity, HType.UNKNOWN);
+    builder.pushInvokeStatic(nativeBody, helper, [local, arity]);
     HInstruction closure = builder.pop();
     return closure;
   }

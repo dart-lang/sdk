@@ -360,20 +360,20 @@ abstract class Compiler implements DiagnosticListener {
         pleaseReportCrash();
       }
       hasCrashed = true;
-      throw;
+      rethrow;
     } on CompilerCancelledException catch (ex) {
-      throw;
+      rethrow;
     } on StackOverflowError catch (ex) {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
-      throw;
+      rethrow;
     } catch (ex) {
       try {
         unhandledExceptionOnElement(element);
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      throw;
+      rethrow;
     } finally {
       _currentElement = old;
     }
@@ -613,7 +613,7 @@ abstract class Compiler implements DiagnosticListener {
       } catch (doubleFault) {
         // Ignoring exceptions in exception handling.
       }
-      throw;
+      rethrow;
     } finally {
       tracer.close();
       totalCompileTime.stop();
@@ -725,12 +725,6 @@ abstract class Compiler implements DiagnosticListener {
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');
     foreignLibrary = scanBuiltinLibrary('_foreign_helper');
     isolateHelperLibrary = scanBuiltinLibrary('_isolate_helper');
-    // The helper library does not use the native language extension,
-    // so we manually set the native classes this library defines.
-    // TODO(ngeoffray): Enable annotations on these classes.
-    ClassElement cls =
-        isolateHelperLibrary.find(const SourceString('_WorkerStub'));
-    cls.setNative('"Worker"');
 
     assertMethod = jsHelperLibrary.find(const SourceString('assertHelper'));
     identicalFunction = coreLibrary.find(const SourceString('identical'));

@@ -1379,12 +1379,15 @@ TEST_CASE(Float32x4List) {
                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-  obj = Dart_NewExternalTypedData(kFloat32x4,
-                                  data,
-                                  10,
-                                  &peer,
-                                  ExternalTypedDataCallbackFinalizer);
-  CheckFloat32x4Data(obj);
+  // Push a scope so that we can collect the local handle created as part of
+  // Dart_NewExternalTypedData.
+  Dart_EnterScope();
+  {
+    Dart_Handle lcl = Dart_NewExternalTypedData(
+        kFloat32x4, data, 10, &peer, ExternalTypedDataCallbackFinalizer);
+    CheckFloat32x4Data(lcl);
+  }
+  Dart_ExitScope();
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
   EXPECT(peer == 42);
 }

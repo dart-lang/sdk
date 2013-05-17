@@ -243,10 +243,6 @@ class Assembler : public ValueObject {
     EmitIType(ADDIU, rs, rt, imm_value);
   }
 
-  void adds(FRegister fd, FRegister fs, FRegister ft) {
-    EmitFpuRType(COP1, FMT_S, ft, fs, fd, COP1_ADD);
-  }
-
   void addu(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, ADDU);
   }
@@ -269,6 +265,18 @@ class Assembler : public ValueObject {
   void bal(Label *l) {
     ASSERT(!in_delay_slot_);
     EmitRegImmBranch(BGEZAL, R0, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch on floating point false.
+  void bc1f(Label* l) {
+    EmitFpuBranch(false, l);
+    EmitBranchDelayNop();
+  }
+
+  // Branch on floating point true.
+  void bc1t(Label* l) {
+    EmitFpuBranch(true, l);
     EmitBranchDelayNop();
   }
 
@@ -369,6 +377,62 @@ class Assembler : public ValueObject {
          BREAK << kFunctionShift);
   }
 
+  // FPU compare, always false.
+  void cfd(FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_F);
+  }
+
+  // FPU compare, true if unordered, i.e. one is NaN.
+  void cund(FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_UN);
+  }
+
+  // FPU compare, true if equal.
+  void ceqd(FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_EQ);
+  }
+
+  // FPU compare, true if unordered or equal.
+  void cueqd(FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_UEQ);
+  }
+
+  // FPU compare, true if less than.
+  void coltd(FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_OLT);
+  }
+
+  // FPU compare, true if unordered or less than.
+  void cultd(FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_ULT);
+  }
+
+  // FPU compare, true if less or equal.
+  void coled(FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_OLE);
+  }
+
+  // FPU compare, true if unordered or less or equal.
+  void culed(FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_ULE);
+  }
+
   void clo(Register rd, Register rs) {
     EmitRType(SPECIAL2, rs, rd, rd, 0, CLO);
   }
@@ -377,8 +441,34 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL2, rs, rd, rd, 0, CLZ);
   }
 
+  // Converts a 32-bit signed int in fs to a double in fd.
+  void cvtdw(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fd));
+    EmitFpuRType(COP1, FMT_W, F0, fs, fd, COP1_CVT_D);
+  }
+
+  // Converts a 64-bit signed int in fs to a double in fd.
+  void cvtdl(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(fd));
+    EmitFpuRType(COP1, FMT_L, F0, fs, fd, COP1_CVT_D);
+  }
+
+  void cvtwd(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(fd));
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_W);
+  }
+
   void div(Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, R0, 0, DIV);
+  }
+
+  void divd(FRegister fd, FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_DIV);
   }
 
   void divu(Register rs, Register rt) {
@@ -477,6 +567,13 @@ class Assembler : public ValueObject {
          fs << kFsShift);
   }
 
+  void muld(FRegister fd, FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_MUL);
+  }
+
   void mult(Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, R0, 0, MULT);
   }
@@ -532,6 +629,12 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, rd, 0, SLTU);
   }
 
+  void sqrtd(FRegister fd, FRegister fs) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_SQRT);
+  }
+
   void sra(Register rd, Register rt, int sa) {
     EmitRType(SPECIAL, R0, rt, rd, sa, SRA);
   }
@@ -546,6 +649,13 @@ class Assembler : public ValueObject {
 
   void srlv(Register rd, Register rt, Register rs) {
     EmitRType(SPECIAL, rs, rt, rd, 0, SRLV);
+  }
+
+  void subd(FRegister fd, FRegister fs, FRegister ft) {
+    ASSERT(EvenFPURegister(fd));
+    ASSERT(EvenFPURegister(fs));
+    ASSERT(EvenFPURegister(ft));
+    EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_SUB);
   }
 
   void subu(Register rd, Register rs, Register rt) {
@@ -990,6 +1100,28 @@ class Assembler : public ValueObject {
       const int position = buffer_.Size();
       const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
       EmitRegImmType(REGIMM, rs, b, dest_off);
+      label->LinkTo(position);
+    }
+  }
+
+  void EmitFpuBranch(bool kind, Label *label) {
+    const int32_t b16 = kind ? (1 << 16) : 0;  // Bit 16 set for branch on true.
+    if (label->IsBound()) {
+      // Relative destination from an instruction after the branch.
+      const int32_t dest =
+          label->Position() - (buffer_.Size() + Instr::kInstrSize);
+      const uint16_t dest_off = EncodeBranchOffset(dest, 0);
+      Emit(COP1 << kOpcodeShift |
+           COP1_BC << kCop1SubShift |
+           b16 |
+           dest_off);
+    } else {
+      const int position = buffer_.Size();
+      const uint16_t dest_off = EncodeBranchOffset(label->position_, 0);
+      Emit(COP1 << kOpcodeShift |
+           COP1_BC << kCop1SubShift |
+           b16 |
+           dest_off);
       label->LinkTo(position);
     }
   }

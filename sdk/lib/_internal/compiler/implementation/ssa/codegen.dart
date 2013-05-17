@@ -630,10 +630,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void use(HInstruction argument) {
     if (isGenerateAtUseSite(argument)) {
       visitExpression(argument);
-    } else if (argument is HCheck && argument.isControlFlow()) {
-      // A [HCheck] that has control flow can never be used as an
-      // expression and may not have a name. Therefore we just use the
-      // checked instruction.
+    } else if (argument is HCheck && !variableNames.hasName(argument)) {
       HCheck check = argument;
       use(check.checkedInput);
     } else {
@@ -779,6 +776,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       case HLoopBlockInformation.FOR_LOOP:
       case HLoopBlockInformation.WHILE_LOOP:
       case HLoopBlockInformation.FOR_IN_LOOP:
+      case HLoopBlockInformation.SWITCH_CONTINUE_LOOP:
         HBlockInformation initialization = info.initializer;
         int initializationType = TYPE_STATEMENT;
         if (initialization != null) {
@@ -931,7 +929,13 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           instruction: condition.conditionExpression);
     }
     attachLocationRange(loop, info.sourcePosition, info.endSourcePosition);
-    pushStatement(wrapIntoLabels(loop, info.labels));
+    js.Statement result = loop;
+    if (info.kind == HLoopBlockInformation.SWITCH_CONTINUE_LOOP) {
+      String continueLabelString =
+          backend.namer.implicitContinueLabelName(info.target);
+      result = new js.LabeledStatement(continueLabelString, result);
+    }
+    pushStatement(wrapIntoLabels(result, info.labels));
     return true;
   }
 
@@ -973,15 +977,15 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           result = new js.LabeledStatement(labelName, result);
         }
       }
-      TargetElement target = labeledBlockInfo.target;
-      if (target.isSwitch) {
-        // This is an extra block around a switch that is generated
-        // as a nested if/else chain. We add an extra break target
-        // so that case code can break.
-        String labelName = backend.namer.implicitBreakLabelName(target);
-        result = new js.LabeledStatement(labelName, result);
-        breakAction[target] = implicitBreakWithLabel;
-      }
+    }
+    TargetElement target = labeledBlockInfo.target;
+    if (target.isSwitch) {
+      // This is an extra block around a switch that is generated
+      // as a nested if/else chain. We add an extra break target
+      // so that case code can break.
+      String labelName = backend.namer.implicitBreakLabelName(target);
+      result = new js.LabeledStatement(labelName, result);
+      breakAction[target] = implicitBreakWithLabel;
     }
 
     currentContainer = body;
@@ -1337,7 +1341,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(breakAction, target)) {
-        pushStatement(new js.Break(null), node);
+        if (node.breakSwitchContinueLoop) {
+          pushStatement(new js.Break(
+              backend.namer.implicitContinueLabelName(target)), node);
+        } else {
+          pushStatement(new js.Break(null), node);
+        }
       }
     }
   }
@@ -1354,7 +1363,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(continueAction, target)) {
-        pushStatement(new js.Continue(null), node);
+        if (target.statement is SwitchStatement) {
+          pushStatement(new js.Continue(
+              backend.namer.implicitContinueLabelName(target)), node);
+        } else {
+          pushStatement(new js.Continue(null), node);
+        }
       }
     }
   }
@@ -1651,6 +1665,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.PropertyAccess.field(prototype, methodName);
       push(jsPropertyCall(
           method, "call", visitArguments(node.inputs, start: 0)), node);
+      // Register this invocation to collect the types used at all call sites.
+      backend.registerDynamicInvocation(node, node.selector);
     }
     world.registerStaticUse(superMethod);
   }
@@ -2447,81 +2463,87 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    if (node.isChecked) {
-      if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-        js.Expression test = generateTest(node);
-        js.Block oldContainer = currentContainer;
-        js.Statement body = new js.Block.empty();
-        currentContainer = body;
-        if (node.isArgumentTypeCheck) {
-          generateThrowWithHelper('iae', node.checkedInput);
-        } else if (node.isReceiverTypeCheck) {
-          use(node.checkedInput);
-          String methodName =
-              backend.namer.invocationName(node.receiverTypeCheckSelector);
-          js.Expression call = jsPropertyCall(pop(), methodName, []);
-          pushStatement(new js.Throw(call));
-        }
-        currentContainer = oldContainer;
-        body = unwrapStatement(body);
-        pushStatement(new js.If.noElse(test, body), node);
-        return;
+    if (!node.isChecked) {
+      use(node.checkedInput);
+      return;
+    }
+    if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
+      js.Expression test = generateTest(node);
+      js.Block oldContainer = currentContainer;
+      js.Statement body = new js.Block.empty();
+      currentContainer = body;
+      if (node.isArgumentTypeCheck) {
+        generateThrowWithHelper('iae', node.checkedInput);
+      } else if (node.isReceiverTypeCheck) {
+        use(node.checkedInput);
+        String methodName =
+            backend.namer.invocationName(node.receiverTypeCheckSelector);
+        js.Expression call = jsPropertyCall(pop(), methodName, []);
+        pushStatement(new js.Throw(call));
       }
+      currentContainer = oldContainer;
+      body = unwrapStatement(body);
+      pushStatement(new js.If.noElse(test, body), node);
+      return;
+    }
 
-      assert(node.isCheckedModeCheck || node.isCastTypeCheck);
-      DartType type = node.typeExpression;
+    assert(node.isCheckedModeCheck || node.isCastTypeCheck);
+    DartType type = node.typeExpression;
       if (type.kind == TypeKind.FUNCTION) {
         // TODO(5022): We currently generate $isFunction checks for
         // function types.
         world.registerIsCheck(
             compiler.functionClass.computeType(compiler), work.resolutionTree);
       }
-      world.registerIsCheck(type, work.resolutionTree);
+    world.registerIsCheck(type, work.resolutionTree);
 
-      // TODO(kasperl): For now, we ignore type checks against type
-      // variables. This is clearly wrong.
-      if (type.kind == TypeKind.TYPE_VARIABLE) {
-        use(node.checkedInput);
-        return;
-      }
-
-      FunctionElement helperElement;
-      if (node.isBooleanConversionCheck) {
-        helperElement =
-            compiler.findHelper(const SourceString('boolConversionCheck'));
-      } else {
-        helperElement = backend.getCheckedModeHelper(type,
-            typeCast: node.isCastTypeCheck);
-      }
-      world.registerStaticUse(helperElement);
-      List<js.Expression> arguments = <js.Expression>[];
-      use(node.checkedInput);
-      arguments.add(pop());
-      int parameterCount =
-          helperElement.computeSignature(compiler).parameterCount;
-      // TODO(johnniwinther): Refactor this to avoid using the parameter count
-      // to determine how the helper should be called.
-      if (parameterCount == 2) {
-        // 2 arguments implies that the method is either [propertyTypeCheck]
-        // or [propertyTypeCast].
-        assert(!type.isMalformed);
-        String additionalArgument = backend.namer.operatorIs(type.element);
-        arguments.add(js.string(additionalArgument));
-      } else if (parameterCount == 3) {
-        // 3 arguments implies that the method is [malformedTypeCheck].
-        assert(type.isMalformed);
-        String reasons = Types.fetchReasonsFromMalformedType(type);
-        arguments.add(js.string('$type'));
-        // TODO(johnniwinther): Handle escaping correctly.
-        arguments.add(js.string(reasons));
-      } else {
-        assert(!type.isMalformed);
-      }
-      String helperName = backend.namer.isolateAccess(helperElement);
-      push(new js.Call(new js.VariableUse(helperName), arguments));
+    FunctionElement helperElement;
+    if (node.isBooleanConversionCheck) {
+      helperElement =
+          compiler.findHelper(const SourceString('boolConversionCheck'));
     } else {
-      use(node.checkedInput);
+      helperElement = backend.getCheckedModeHelper(type,
+          typeCast: node.isCastTypeCheck);
     }
+    world.registerStaticUse(helperElement);
+    List<js.Expression> arguments = <js.Expression>[];
+    use(node.checkedInput);
+    arguments.add(pop());
+    int parameterCount =
+        helperElement.computeSignature(compiler).parameterCount;
+    // TODO(johnniwinther): Refactor this to avoid using the parameter count
+    // to determine how the helper should be called.
+    if (node.typeExpression.kind == TypeKind.TYPE_VARIABLE) {
+      assert(parameterCount == 2);
+      use(node.typeRepresentation);
+      arguments.add(pop());
+    } else if (parameterCount == 2) {
+      // 2 arguments implies that the method is either [propertyTypeCheck],
+      // [propertyTypeCast] or [assertObjectIsSubtype].
+      assert(!type.isMalformed);
+      String additionalArgument = backend.namer.operatorIs(type.element);
+      arguments.add(js.string(additionalArgument));
+    } else if (parameterCount == 3) {
+      // 3 arguments implies that the method is [malformedTypeCheck].
+      assert(type.isMalformed);
+      String reasons = Types.fetchReasonsFromMalformedType(type);
+      arguments.add(js.string('$type'));
+      // TODO(johnniwinther): Handle escaping correctly.
+      arguments.add(js.string(reasons));
+    } else if (parameterCount == 4) {
+      Element element = type.element;
+      String isField = backend.namer.operatorIs(element);
+      arguments.add(js.string(isField));
+      use(node.typeRepresentation);
+      arguments.add(pop());
+      String asField = backend.namer.substitutionName(element);
+      arguments.add(js.string(asField));
+    } else {
+      assert(!type.isMalformed);
+      // No additional arguments needed.
+    }
+    String helperName = backend.namer.isolateAccess(helperElement);
+    push(new js.Call(new js.VariableUse(helperName), arguments));
   }
 }
 

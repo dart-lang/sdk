@@ -349,4 +349,10 @@ void runDateTests(Function subsetFunc) {
     var knownResult = knownDefault.format(someDate);
     expect(result, knownResult);
   });
+
+  test('Get symbols', () {
+    var emptyFormat = new DateFormat(null, "en_US");
+    var symbols = emptyFormat.dateSymbols;
+    expect(symbols.NARROWWEEKDAYS, ['S', 'M', 'T', 'W', 'T', 'F', 'S']);
+  });
 }

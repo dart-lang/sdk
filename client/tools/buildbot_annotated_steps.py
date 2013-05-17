@@ -215,6 +215,8 @@ def main():
     status = ProcessBot(name, 'pub')
   elif name.startswith('vm-android'):
     status = ProcessBot(name, 'android')
+  elif name.startswith('cross') or name.startswith('target'):
+    status = ProcessBot(name, 'cross-vm')
   else:
     status = ProcessBot(name, 'compiler')
 

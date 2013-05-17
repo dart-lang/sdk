@@ -215,9 +215,13 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
 
   // Returns whether an invocation of [selector] on [receiver] will throw a
   // [ArgumentError] if the argument is not of the right type.
-  bool willThrowArgumentError(Selector selector, HInstruction receiver) {
+  bool willThrowArgumentError(Selector selector,
+                              HInstruction receiver,
+                              HType speculativeType) {
     if (receiver != null && (receiver.isInteger() || receiver.isString())) {
-      return selector.isOperator() && selector.name != const SourceString('==');
+      return selector.isOperator()
+          && selector.name != const SourceString('==')
+          && (speculativeType.isNumber() && !speculativeType.isInteger());
     }
     return false;
   }
@@ -290,7 +294,7 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
         receiverSelectorOnThrow = selector;
         willThrow = true;
       }
-    } else if (willThrowArgumentError(selector, receiver)) {
+    } else if (willThrowArgumentError(selector, receiver, speculativeType)) {
       willThrow = true;
     }
 

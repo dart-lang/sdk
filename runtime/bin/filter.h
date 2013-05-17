@@ -26,7 +26,10 @@ class Filter {
    * a delete[] call.
    */
   virtual bool Process(uint8_t* data, intptr_t length) = 0;
-  virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish) = 0;
+  virtual intptr_t Processed(uint8_t* buffer,
+                             intptr_t length,
+                             bool finish,
+                             bool end) = 0;
 
   static Dart_Handle SetFilterPointerNativeField(Dart_Handle filter,
                                                  Filter* filter_pointer);
@@ -57,7 +60,10 @@ class ZLibDeflateFilter : public Filter {
 
   virtual bool Init();
   virtual bool Process(uint8_t* data, intptr_t length);
-  virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish);
+  virtual intptr_t Processed(uint8_t* buffer,
+                             intptr_t length,
+                             bool finish,
+                             bool end);
 
  private:
   const bool gzip_;
@@ -75,7 +81,10 @@ class ZLibInflateFilter : public Filter {
 
   virtual bool Init();
   virtual bool Process(uint8_t* data, intptr_t length);
-  virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish);
+  virtual intptr_t Processed(uint8_t* buffer,
+                             intptr_t length,
+                             bool finish,
+                             bool end);
 
  private:
   uint8_t* current_buffer_;

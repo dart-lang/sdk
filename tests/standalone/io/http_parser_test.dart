@@ -76,6 +76,15 @@ class HttpParserTest {
             onDone: () {
               Expect.isFalse(upgraded);
               port2.close();
+              Expect.equals(expectedMethod, method);
+              Expect.stringEquals(expectedUri, uri.toString());
+              Expect.equals(expectedVersion, headers.protocolVersion);
+              if (upgrade) {
+                Expect.equals(0, bytesReceived);
+                // port1 is closed by the listener on the detached data.
+              } else {
+                Expect.equals(expectedBytesReceived, bytesReceived);
+              }
             });
 
         if (upgraded) {
@@ -93,15 +102,6 @@ class HttpParserTest {
         incoming.dataDone.then((_) {
           port1.close();
           Expect.isFalse(upgraded);
-          Expect.equals(expectedMethod, method);
-          Expect.stringEquals(expectedUri, uri.toString());
-          Expect.equals(expectedVersion, headers.protocolVersion);
-          if (upgrade) {
-            Expect.equals(0, bytesReceived);
-            // port1 is closed by the listener on the detached data.
-          } else {
-            Expect.equals(expectedBytesReceived, bytesReceived);
-          }
         });
       });
 
@@ -187,19 +187,19 @@ class HttpParserTest {
                                   bool upgrade: false,
                                   int unparsedLength: 0,
                                   String expectedVersion: "1.1"}) {
-    _HttpParser httpParser;
-    bool headersCompleteCalled;
-    bool dataEndCalled;
-    bool dataEndClose;
-    int statusCode;
-    String reasonPhrase;
-    HttpHeaders headers;
-    int contentLength;
-    int bytesReceived;
     StreamController controller;
     bool upgraded;
 
     void reset() {
+      _HttpParser httpParser;
+      bool headersCompleteCalled;
+      bool dataEndCalled;
+      bool dataEndClose;
+      int statusCode;
+      String reasonPhrase;
+      HttpHeaders headers;
+      int contentLength;
+      int bytesReceived;
       httpParser = new _HttpParser.responseParser();
       controller = new StreamController();
       var port = new ReceivePort();
@@ -338,7 +338,6 @@ class HttpParserTest {
       _testParseRequest(request, method, "/index.html");
     });
 
-
     request = "GET / HTTP/1.0\r\n\r\n";
     _testParseRequest(request, "GET", "/",
                       expectedVersion: "1.0",
@@ -403,6 +402,7 @@ X-Header-B:           b\r
 \t    b\r
 \r
 """;
+
     headers = new Map();
     headers["header-a"] = "AAA";
     headers["x-header-b"] = "bbb";

@@ -470,8 +470,6 @@ static_top_level_test/06: Fail
 static_top_level_test/07: Fail
 # Bug in dart2js parser: it happily parses 1is int; variable declaration.
 number_identifier_negative_test: Fail
-# Bug in dart2js frontent: does not support this feature.
-switch_label_test: Fail
 # Common with language_dart2js.
 factory_redirection_test/0*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
 factory_redirection_test/1*: Skip # Flaky negative tests, crash, fail, or pass. Not implemented.
@@ -564,7 +562,6 @@ assign_static_type_test/03: fail
 assign_static_type_test/04: fail
 assign_static_type_test/05: fail
 assign_static_type_test/06: fail
-bad_initializer2_negative_test: fail
 bad_named_parameters2_test: fail
 bad_named_parameters_test: fail
 bad_override_test/01: fail
@@ -646,23 +643,17 @@ compile_time_constant_c_test/02: fail
 compile_time_constant_d_test: fail
 compile_time_constant_e_test: fail
 compile_time_constant_test/02: fail
-const_counter_negative_test: fail
-const_factory_negative_test: fail
 const_optional_args_negative_test: fail
 const_syntax_test/06: fail
 constructor2_negative_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
 constructor_negative_test: fail
-constructor_redirect1_negative_test: fail
-constructor_redirect2_negative_test: fail
 constructor_redirect2_test/02: fail
-constructor_redirect2_test/03: fail
 constructor_redirect2_test/04: fail
 constructor_redirect_test/01: fail
 constructor_return_with_arrow_negative_test: fail
 constructor_return_with_init_and_arrow_negative_test: fail
-cyclic_constructor_test/01: fail
 cyclic_type_variable_test/01: fail
 cyclic_type_variable_test/02: fail
 cyclic_type_variable_test/03: fail
@@ -681,7 +672,6 @@ factory2_test: fail
 factory5_test/00: fail
 factory_implementation_test/00: skip
 factory_redirection2_test/01: fail
-factory_redirection_test/04: fail
 factory_redirection_test/07: fail
 factory_redirection_test/08: skip
 factory_redirection_test/09: skip
@@ -692,7 +682,6 @@ factory_redirection_test/13: skip
 factory_redirection_test/14: skip
 fauxverride_test/03: fail
 fauxverride_test/05: fail
-field_decl_missing_var_type_test/01: fail
 field_method4_negative_test: fail
 field_override_test/01: fail
 field_override_test/02: fail
@@ -724,6 +713,7 @@ implicit_this_test/04: fail
 implicit_this_test/none: fail
 import_combinators_negative_test: fail
 import_private_test/01: fail
+infinite_switch_label_test: fail
 inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
 instance_method2_negative_test: fail
@@ -765,6 +755,7 @@ named_parameters_aggregated_test/03: fail
 named_parameters_aggregated_test/04: fail
 named_parameters_aggregated_test/05: fail
 named_parameters_type_test: fail
+nested_switch_label_test: fail
 new_expression_type_args_test/00: fail
 new_expression_type_args_test/01: fail
 new_expression_type_args_test/02: fail
@@ -780,7 +771,6 @@ override_field_test/02: fail
 override_field_test/03: fail
 override_method_with_field_test/01: fail
 override_method_with_field_test/02: fail
-parameter_initializer3_negative_test: fail
 parameter_initializer5_negative_test: fail
 positional_parameters_type_test: fail
 prefix10_negative_test: fail
@@ -844,7 +834,6 @@ string_interpolation9_test/7: fail
 string_interpolation9_test/8: fail
 string_interpolation9_test/9: fail
 string_interpolation_test/01: fail
-super_call3_test/02: fail
 super_operator_index_test/01: fail
 super_operator_index_test/02: fail
 super_operator_index_test/03: fail
@@ -852,6 +841,7 @@ super_operator_index_test/04: fail
 super_operator_index_test/05: fail
 super_operator_index_test/06: fail
 super_operator_index_test/07: fail
+switch_label2_test: fail
 syntax_test/28: fail
 syntax_test/29: fail
 syntax_test/30: fail
@@ -906,6 +896,10 @@ unsigned_right_shift_test/01: fail
 unsigned_right_shift_test/02: fail
 wrong_number_type_arguments_test/00: fail
 wrong_number_type_arguments_test/02: fail
+
+# test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
+block_scope_test: fail
+lazy_static3_test: fail
 
 
 [ $arch == arm ]

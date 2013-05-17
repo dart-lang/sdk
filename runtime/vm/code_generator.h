@@ -28,6 +28,7 @@ DECLARE_RUNTIME_ENTRY(BreakpointClosureHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointStaticHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointReturnHandler);
 DECLARE_RUNTIME_ENTRY(BreakpointDynamicHandler);
+DECLARE_RUNTIME_ENTRY(BreakpointEqualNullHandler);
 DECLARE_RUNTIME_ENTRY(CloneContext);
 DECLARE_RUNTIME_ENTRY(Deoptimize);
 DECLARE_RUNTIME_ENTRY(FixCallersTarget);

@@ -115,6 +115,10 @@ class SentinelTypeMask extends FlatTypeMask {
 
   bool get isNullable => true;
 
+  TypeMask intersection(TypeMask other, Compiler compiler) {
+    return other;
+  }
+
   String toString() => '$name sentinel type mask';
 }
 
@@ -343,13 +347,13 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       bool wasAnalyzed = analyzeCount.containsKey(element);
       if (wasAnalyzed) {
         recompiles++;
-        recomputeWatch.start();
+        if (compiler.verbose) recomputeWatch.start();
       }
       bool changed =
           compiler.withCurrentElement(element, () => analyze(element));
       if (optimismState == RETRY) return true;  // Abort.
       analyzed++;
-      if (wasAnalyzed) {
+      if (wasAnalyzed && compiler.verbose) {
         recomputeWatch.stop();
       }
       checkAnalyzedAll();
@@ -1001,22 +1005,20 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    switch (selector.name) {
-      case const SourceString('*'):
-      case const SourceString('+'):
-      case const SourceString('%'):
-      case const SourceString('remainder'):
+    SourceString name = selector.name;
+    if (name == const SourceString('*')
+        || name == const SourceString('+')
+        || name == const SourceString('%')
+        || name == const SourceString('remainder')) {
         return arguments.hasOnePositionalArgumentWithType(intType)
             ? intType
             : null;
-
-      case const SourceString('-'):
-        if (arguments.hasNoArguments()) return intType;
-        if (arguments.hasOnePositionalArgumentWithType(intType)) return intType;
-        return null;
-
-      case const SourceString('abs'):
-        return arguments.hasNoArguments() ? intType : null;
+    } else if (name == const SourceString('-')) {
+      if (arguments.hasNoArguments()) return intType;
+      if (arguments.hasOnePositionalArgumentWithType(intType)) return intType;
+      return null;
+    } else if (name == const SourceString('abs')) {
+      return arguments.hasNoArguments() ? intType : null;
     }
     return null;
   }
@@ -1246,6 +1248,26 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       return union.containsAll(compiler) ? dynamicType : union;
     }
   }
+
+  TypeMask narrowType(TypeMask type,
+                      DartType annotation,
+                      {bool isNullable: true}) {
+    if (annotation.isDynamic) return type;
+    if (annotation.isMalformed) return type;
+    if (annotation.element == compiler.objectClass) return type;
+    TypeMask otherType;
+    if (annotation.kind == TypeKind.TYPEDEF
+        || annotation.kind == TypeKind.FUNCTION) {
+      otherType = functionType;
+    } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
+      return type;
+    } else {
+      assert(annotation.kind == TypeKind.INTERFACE);
+      otherType = new TypeMask.nonNullSubtype(annotation);
+    }
+    if (isNullable) otherType = otherType.nullable();
+    return type.intersection(otherType, compiler);
+  }
 }
 
 /**
@@ -1417,6 +1439,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
+  bool accumulateIsChecks = false;
+  List<Send> isChecks;
   int loopLevel = 0;
   SideEffects sideEffects = new SideEffects.empty();
 
@@ -2007,32 +2031,68 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return new ArgumentsTypes(positional, named);
   }
 
+  void potentiallyAddIsCheck(Send node) {
+    if (!accumulateIsChecks) return;
+    if (!Elements.isLocal(elements[node.receiver])) return;
+    isChecks.add(node);
+  }
+
+  void updateIsChecks(List<Node> tests, {bool usePositive}) {
+    if (tests == null) return;
+    for (Send node in tests) {
+      if (node.isIsNotCheck) {
+        if (usePositive) continue;
+      } else {
+        if (!usePositive) continue;
+      }
+      DartType type = elements.getType(node.typeAnnotationFromIsCheck);
+      Element element = elements[node.receiver];
+      TypeMask existing = locals.use(element);
+      TypeMask newType = inferrer.narrowType(existing, type, isNullable: false);
+      locals.update(element, newType);
+    }
+  }
+
   TypeMask visitOperatorSend(Send node) {
     Operator op = node.selector;
     if (const SourceString("[]") == op.source) {
       return visitDynamicSend(node);
-    } else if (const SourceString("&&") == op.source ||
-               const SourceString("||") == op.source) {
+    } else if (const SourceString("&&") == op.source) {
+      bool oldAccumulateIsChecks = accumulateIsChecks;
+      accumulateIsChecks = true;
+      if (isChecks == null) isChecks = <Send>[];
+      visit(node.receiver);
+      accumulateIsChecks = oldAccumulateIsChecks;
+      if (!accumulateIsChecks) isChecks = null;
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      updateIsChecks(isChecks, usePositive: true);
+      visit(node.arguments.head);
+      locals.merge(saved);
+      return inferrer.boolType;
+    } else if (const SourceString("||") == op.source) {
       visit(node.receiver);
       LocalsHandler saved = new LocalsHandler.from(locals);
+      updateIsChecks(isChecks, usePositive: false);
+      bool oldAccumulateIsChecks = accumulateIsChecks;
+      accumulateIsChecks = false;
       visit(node.arguments.head);
-      saved.merge(locals);
-      locals = saved;
+      accumulateIsChecks = oldAccumulateIsChecks;
+      locals.merge(saved);
       return inferrer.boolType;
     } else if (const SourceString("!") == op.source) {
+      bool oldAccumulateIsChecks = accumulateIsChecks;
+      accumulateIsChecks = false;
       node.visitChildren(this);
+      accumulateIsChecks = oldAccumulateIsChecks;
       return inferrer.boolType;
     } else if (const SourceString("is") == op.source) {
+      potentiallyAddIsCheck(node);
       node.visitChildren(this);
       return inferrer.boolType;
     } else if (const SourceString("as") == op.source) {
-      node.visitChildren(this);
+      TypeMask receiverType = visit(node.receiver);
       DartType type = elements.getType(node.arguments.head);
-      if (type.isDynamic) return inferrer.dynamicType;
-      if (type.kind == TypeKind.TYPEDEF) {
-        return inferrer.functionType.nullable();
-      }
-      return new TypeMask.subtype(type);
+      return inferrer.narrowType(receiverType, type);
     } else if (node.isParameterCheck) {
       node.visitChildren(this);
       return inferrer.boolType;
@@ -2201,12 +2261,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitConditional(Conditional node) {
-    node.condition.accept(this);
+    List<Send> tests = handleCondition(node.condition);
     LocalsHandler saved = new LocalsHandler.from(locals);
-    TypeMask firstType = node.thenExpression.accept(this);
+    updateIsChecks(tests, usePositive: true);
+    TypeMask firstType = visit(node.thenExpression);
     LocalsHandler thenLocals = locals;
     locals = saved;
-    TypeMask secondType = node.elseExpression.accept(this);
+    updateIsChecks(tests, usePositive: false);
+    TypeMask secondType = visit(node.elseExpression);
     locals.merge(thenLocals);
     TypeMask type = inferrer.computeLUB(firstType, secondType);
     return type;
@@ -2227,12 +2289,26 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return inferrer.dynamicType;
   }
 
+  List<Send> handleCondition(Node node) {
+    bool oldAccumulateIsChecks = accumulateIsChecks;
+    List<Send> oldIsChecks = isChecks;
+    List<Send> tests = <Send>[];
+    accumulateIsChecks = true;
+    isChecks = tests;
+    visit(node);
+    accumulateIsChecks = oldAccumulateIsChecks;
+    isChecks = oldIsChecks;
+    return tests;
+  }
+
   TypeMask visitIf(If node) {
-    visit(node.condition);
+    List<Send> tests = handleCondition(node.condition);
     LocalsHandler saved = new LocalsHandler.from(locals);
+    updateIsChecks(tests, usePositive: true);
     visit(node.thenPart);
     LocalsHandler thenLocals = locals;
     locals = saved;
+    updateIsChecks(tests, usePositive: false);
     visit(node.elsePart);
     locals.merge(thenLocals);
     return inferrer.dynamicType;
@@ -2243,7 +2319,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     bool changed = false;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
-      visit(node.condition);
+      List<Send> tests = handleCondition(node.condition);
+      updateIsChecks(tests, usePositive: true);
       visit(node.body);
       changed = saved.merge(locals);
       locals = saved;
@@ -2258,7 +2335,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
       visit(node.body);
-      visit(node.condition);
+      List<Send> tests = handleCondition(node.condition);
+      updateIsChecks(tests, usePositive: true);
       changed = saved.merge(locals);
       locals = saved;
     } while (changed);
@@ -2272,7 +2350,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     loopLevel++;
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
-      visit(node.condition);
+      List<Send> tests = handleCondition(node.condition);
+      updateIsChecks(tests, usePositive: true);
       visit(node.body);
       visit(node.update);
       changed = saved.merge(locals);
@@ -2357,5 +2436,46 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   void internalError(String reason, {Node node}) {
     compiler.internalError(reason, node: node);
+  }
+
+  TypeMask visitSwitchStatement(SwitchStatement node) {
+    visit(node.parenthesizedExpression);
+
+    if (Elements.switchStatementHasContinue(node, elements)) {
+      // If the switch statement has a continue, we conservatively
+      // visit all cases and update [locals] until we have reached a
+      // fixed point.
+      bool changed;
+      do {
+        changed = false;
+        for (Node switchCase in node.cases) {
+          LocalsHandler saved = new LocalsHandler.from(locals);
+          visit(switchCase);
+          changed = saved.merge(locals) || changed;
+          locals = saved;
+        }
+      } while (changed);
+    } else {
+      LocalsHandler saved = new LocalsHandler.from(locals);
+      // If there is a default case, the current values of the local
+      // variable might be overwritten, so we don't need the current
+      // [locals] for the join block.
+      LocalsHandler result = Elements.switchStatementHasDefault(node)
+          ? null
+          : new LocalsHandler.from(locals);
+
+      for (Node switchCase in node.cases) {
+        locals = saved;
+        visit(switchCase);
+        if (result == null) {
+          result = locals;
+        } else {
+          result.merge(locals);
+        }
+      }
+
+      locals = result;
+    }
+    return inferrer.dynamicType;
   }
 }

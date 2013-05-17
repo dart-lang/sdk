@@ -5,60 +5,53 @@
 // Patch library for dart:mirrors.
 
 import 'dart:_foreign_helper' show JS;
-import "dart:_collection-dev" as _symbol_dev;
-
-// Yeah, seriously: mirrors in dart2js are experimental...
-const String _MIRROR_OPT_IN_MESSAGE = """
-
-This program is using an experimental feature called \"mirrors\".  As
-currently implemented, mirrors do not work with minification, and will
-cause spurious errors depending on how code was optimized.
-
-The authors of this program are aware of these problems and have
-decided the thrill of using an experimental feature is outweighing the
-risks.  Furthermore, the authors of this program understand that
-long-term, to fix the problems mentioned above, mirrors may have
-negative impact on size and performance of Dart programs compiled to
-JavaScript.
-""";
-
-bool _mirrorsEnabled = false;
+import 'dart:_collection-dev' as _symbol_dev;
+import 'dart:_js_helper' show createInvocationMirror;
+import 'dart:_interceptors' show getInterceptor;
 
 patch class MirrorSystem {
-  patch static String getName(Symbol symbol) {
-    return _symbol_dev.Symbol.getName(symbol);
-  }
+  patch static String getName(Symbol symbol) => _n(symbol);
 }
 
-/**
- * Stub class for the mirror system.
- */
-patch MirrorSystem currentMirrorSystem() {
-  _ensureEnabled();
-  throw new UnsupportedError("MirrorSystem not implemented");
+class _MirrorSystem implements MirrorSystem {
 }
+
+String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
+
+patch MirrorSystem currentMirrorSystem() => _currentMirrorSystem;
+
+final _MirrorSystem _currentMirrorSystem = new _MirrorSystem();
 
 patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
-  _ensureEnabled();
   throw new UnsupportedError("MirrorSystem not implemented");
 }
 
 patch InstanceMirror reflect(Object reflectee) {
-  if (!_mirrorsEnabled && (_MIRROR_OPT_IN_MESSAGE == reflectee)) {
-    // Turn on mirrors and warn that it is an experimental feature.
-    _mirrorsEnabled = true;
-    print(reflectee);
-  }
   return new _InstanceMirror(reflectee);
 }
 
-patch ClassMirror reflectClass(Type key) {
-  throw new UnimplementedError('reflectClass is not yet implemented'
-                               'in dart2js');
+final Expando<ClassMirror> _classMirrors = new Expando<ClassMirror>();
+
+patch ClassMirror reflectClass(Type key) => _reflectClass(key);
+
+// TODO(ahe): This is a workaround for http://dartbug.com/10543
+ClassMirror _reflectClass(Type key) {
+  String className = '$key';
+  var constructor = Primitives.getConstructor(className);
+  if (constructor == null) {
+    // Probably an intercepted class.
+    // TODO(ahe): How to handle intercepted classes?
+    throw new UnsupportedError('Cannot find class for: $className');
+  }
+  var mirror = _classMirrors[constructor];
+  if (mirror == null) {
+    mirror = new _ClassMirror(className, constructor);
+    _classMirrors[constructor] = mirror;
+  }
+  return mirror;
 }
 
 class _InstanceMirror extends InstanceMirror {
-  static final Expando<ClassMirror> classMirrors = new Expando<ClassMirror>();
 
   final reflectee;
 
@@ -66,43 +59,62 @@ class _InstanceMirror extends InstanceMirror {
 
   bool get hasReflectee => true;
 
-  ClassMirror get type {
-    _ensureEnabled();
-    String className = Primitives.objectTypeName(reflectee);
-    var constructor = Primitives.getConstructor(className);
-    var mirror = classMirrors[constructor];
-    if (mirror == null) {
-      mirror = new _ClassMirror(className, constructor);
-      classMirrors[constructor] = mirror;
-    }
-    return mirror;
-  }
+  ClassMirror get type => _reflectClass(reflectee.runtimeType);
 
-  Future<InstanceMirror> invokeAsync(String memberName,
+  Future<InstanceMirror> invokeAsync(Symbol memberName,
                                      List<Object> positionalArguments,
                                      [Map<String,Object> namedArguments]) {
-    _ensureEnabled();
+    if (namedArguments != null && !namedArguments.isEmpty) {
+      throw new UnsupportedError('Named arguments are not implemented');
+    }
+    return
+        new Future<InstanceMirror>(
+            () => invoke(memberName, positionalArguments, namedArguments));
+  }
+
+  InstanceMirror invoke(Symbol memberName,
+                        List positionalArguments,
+                        [Map<Symbol,dynamic> namedArguments]) {
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented');
     }
     // Copy the list to ensure that it can safely be passed to
     // JavaScript.
     var jsList = new List.from(positionalArguments);
-    var mangledName = '${memberName}\$${positionalArguments.length}';
-    var method = JS('var', '#[#]', reflectee, mangledName);
-    var completer = new Completer<InstanceMirror>();
-    // TODO(ahe): [Completer] or [Future] should have API to create a
-    // delayed action.  Simulating with a [Timer].
-    Timer.run(() {
-      if (JS('String', 'typeof #', method) == 'function') {
-        var result =
-            JS('var', '#.apply(#, #)', method, reflectee, jsList);
-        completer.complete(new _InstanceMirror(result));
-      } else {
-        completer.completeError('not a method $memberName');
-      }
-    });
-    return completer.future;
+    return _invoke(
+        memberName, JSInvocationMirror.METHOD,
+        '${_n(memberName)}\$${positionalArguments.length}', jsList);
+  }
+
+  InstanceMirror _invoke(Symbol name,
+                         int type,
+                         String mangledName,
+                         List arguments) {
+    // TODO(ahe): Get the argument names.
+    List<String> argumentNames = [];
+    Invocation invocation = createInvocationMirror(
+        _n(name), mangledName, type, arguments, argumentNames);
+
+    return new _InstanceMirror(delegate(invocation));
+  }
+
+  Future<InstanceMirror> setFieldAsync(Symbol fieldName, Object value) {
+    return new Future<InstanceMirror>(() => setField(fieldName, value));
+  }
+
+  InstanceMirror setField(Symbol fieldName, Object arg) {
+    _invoke(
+        fieldName, JSInvocationMirror.SETTER, 'set\$${_n(fieldName)}', [arg]);
+    return new _InstanceMirror(arg);
+  }
+
+  InstanceMirror getField(Symbol fieldName) {
+    return _invoke(
+        fieldName, JSInvocationMirror.GETTER, 'get\$${_n(fieldName)}', []);
+  }
+
+  Future<InstanceMirror> getFieldAsync(Symbol fieldName) {
+    return new Future<InstanceMirror>(() => getField(fieldName));
   }
 
   delegate(Invocation invocation) {
@@ -117,13 +129,7 @@ class _ClassMirror extends ClassMirror {
   final _jsConstructor;
 
   _ClassMirror(this._name, this._jsConstructor) {
-    _ensureEnabled();
   }
 
   String toString() => 'ClassMirror($_name)';
-}
-
-_ensureEnabled() {
-  if (_mirrorsEnabled) return;
-  throw new UnsupportedError('dart:mirrors is an experimental feature');
 }

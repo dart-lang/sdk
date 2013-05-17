@@ -1082,10 +1082,16 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         non_inlined_variants_.is_empty()) {
       // If it is the last variant use a check class or check smi
       // instruction which can deoptimize, followed unconditionally by the
-      // body.
+      // body.  Check a redefinition of the receiver, to prevent the check
+      // from being hoisted.
+      RedefinitionInstr* redefinition =
+          new RedefinitionInstr(new Value(receiver));
+      redefinition->set_ssa_temp_index(
+          owner_->caller_graph()->alloc_ssa_temp_index());
+      cursor = AppendInstruction(cursor, redefinition);
       if (inlined_variants_[i].cid == kSmiCid) {
         CheckSmiInstr* check_smi =
-            new CheckSmiInstr(new Value(receiver), call_->deopt_id());
+            new CheckSmiInstr(new Value(redefinition), call_->deopt_id());
         check_smi->InheritDeoptTarget(call_);
         cursor = AppendInstruction(cursor, check_smi);
       } else {
@@ -1098,7 +1104,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         new_checks.AddReceiverCheck(inlined_variants_[i].cid,
                                     *inlined_variants_[i].target);
         CheckClassInstr* check_class =
-            new CheckClassInstr(new Value(receiver),
+            new CheckClassInstr(new Value(redefinition),
                                 call_->deopt_id(),
                                 new_checks);
         check_class->InheritDeoptTarget(call_);

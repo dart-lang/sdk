@@ -134,6 +134,8 @@ class ElementX implements Element {
 
   bool get isForwardingConstructor => false;
 
+  bool get isMixinApplication => false;
+
   /**
    * Returns the element which defines the implementation for the entity of this
    * element.
@@ -470,6 +472,10 @@ class CompilationUnitElementX extends ElementX
             ElementKind.COMPILATION_UNIT,
             library) {
     library.addCompilationUnit(this);
+  }
+
+  void forEachLocalMember(f(Element element)) {
+    localMembers.forEach(f);
   }
 
   void addMember(Element element, DiagnosticListener listener) {
@@ -2001,7 +2007,8 @@ class TargetElementX extends ElementX implements TargetElement {
   bool isContinueTarget = false;
 
   TargetElementX(this.statement, this.nestingLevel, Element enclosingElement)
-      : super(const SourceString(""), ElementKind.STATEMENT, enclosingElement);
+      : super(const SourceString("target"),
+              ElementKind.STATEMENT, enclosingElement);
   bool get isTarget => isBreakTarget || isContinueTarget;
 
   LabelElement addLabel(Label label, String labelName) {

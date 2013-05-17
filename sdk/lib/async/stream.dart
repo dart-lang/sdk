@@ -854,6 +854,11 @@ abstract class StreamSubscription<T> {
   void resume();
 
   /**
+   * Returns true if the [StreamSubscription] is paused.
+   */
+  bool get isPaused;
+
+  /**
    * Returns a future that handles the [onDone] and [onError] callbacks.
    *
    * This method *overwrites* the existing [onDone] and [onError] callbacks
@@ -1144,6 +1149,8 @@ class _EventTransformStreamSubscription<S, T>
   void resume() {
     if (_isSubscribed) _subscription.resume();
   }
+
+  bool get isPaused => _isSubscribed ? _subscription.isPaused : false;
 
   void cancel() {
     if (_isSubscribed) {

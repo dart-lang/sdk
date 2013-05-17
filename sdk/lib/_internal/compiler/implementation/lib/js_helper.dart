@@ -133,7 +133,15 @@ class JSInvocationMirror implements Invocation {
       arguments = [object]..addAll(arguments);
       receiver = interceptor;
     }
-    return JS("var", "#[#].apply(#, #)", receiver, name, receiver, arguments);
+    var method = JS('var', '#[#]', receiver, name);
+    if (JS('String', 'typeof #', method) == 'function') {
+      return JS("var", "#.apply(#, #)", method, receiver, arguments);
+    } else {
+      // In this case, receiver doesn't implement name.  So we should
+      // invoke noSuchMethod instead (which will often throw a
+      // NoSuchMethodError).
+      return receiver.noSuchMethod(this);
+    }
   }
 
   /// This method is called by [InstanceMirror.delegate].
@@ -261,7 +269,7 @@ class Primitives {
     return JS('num', r'parseInt(#, #)', source, radix);
   }
 
-  static double parseDouble(String source, int handleError(String source)) {
+  static double parseDouble(String source, double handleError(String source)) {
     checkString(source);
     if (handleError == null) handleError = _throwFormatException;
     // Notice that JS parseFloat accepts garbage at the end of the string.
@@ -517,7 +525,7 @@ class Primitives {
 
   static applyFunction(Function function,
                        List positionalArguments,
-                       Map<Symbol, dynamic> namedArguments) {
+                       Map<String, dynamic> namedArguments) {
     int argumentCount = 0;
     StringBuffer buffer = new StringBuffer();
     List arguments = [];

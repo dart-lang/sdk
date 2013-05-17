@@ -94,7 +94,9 @@ class JSNumber extends Interceptor implements num {
     return this;
   }
 
-  double toDouble() => this;
+  // The return type is intentionally omitted to avoid type checker warnings
+  // from assigning JSNumber to double.
+  toDouble() => this;
 
   String toStringAsFixed(int fractionDigits) {
     checkNum(fractionDigits);

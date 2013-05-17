@@ -222,13 +222,6 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     }
   }
 
-  HInstruction unwrap(instruction) {
-    do {
-      instruction = instruction.checkedInput;
-    } while (instruction is HCheck);
-    return instruction;
-  }
-
   void markAsLiveInEnvironment(HInstruction instruction,
                                LiveEnvironment environment) {
     if (generateAtUseSite.contains(instruction)) {
@@ -239,7 +232,8 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
       // checked instruction live. The checked instruction and the
       // [HCheck] will share the same live ranges.
       if (instruction is HCheck) {
-        HInstruction checked = unwrap(instruction);
+        HCheck check = instruction;
+        HInstruction checked = check.unwrap();
         if (!generateAtUseSite.contains(checked)) {
           environment.add(checked, instructionId);
         }
@@ -253,7 +247,8 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     // Special case the HCheck instruction to have the same live
     // interval as the instruction it is checking.
     if (instruction is HCheck) {
-      HInstruction checked = unwrap(instruction);
+      HCheck check = instruction;
+      HInstruction checked = check.unwrap();
       if (!generateAtUseSite.contains(checked)) {
         liveIntervals.putIfAbsent(checked, () => new LiveInterval());
         // Unconditionally force the live ranges of the HCheck to
@@ -625,17 +620,15 @@ class SsaVariableAllocator extends HBaseVisitor {
    * Returns whether [instruction] needs a name. Instructions that
    * have no users or that are generated at use site do not need a name.
    */
-  bool needsName(HInstruction instruction) {
+  bool needsName(instruction) {
     if (instruction is HThis) return false;
     if (instruction is HParameterValue) return true;
     if (instruction.usedBy.isEmpty) return false;
     if (generateAtUseSite.contains(instruction)) return false;
-    // A [HCheck] instruction that has control flow needs a name only if its
-    // checked input needs a name (for example, a checked [HConstant] does not
-    // need a name).
-    if (instruction is HCheck && instruction.isControlFlow()) {
-      HCheck check = instruction;
-      return needsName(instruction.checkedInput);
+    // A [HCheck] instruction needs a name only if its
+    // checked input does not have a fixed name or value.
+    if (instruction is HCheck) {
+      return !instruction.unwrap().isCodeMotionInvariant();
     }
     return true;
   }

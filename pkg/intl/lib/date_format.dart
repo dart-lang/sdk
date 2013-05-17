@@ -534,6 +534,15 @@ class DateFormat {
   }
 
   /**
+   * Return the [DateSymbol] information for the locale. This can be useful
+   * to find lists like the names of weekdays or months in a locale, but
+   * the structure of this data may change, and it's generally better to go
+   * through the [format] and [parse] APIs. If the locale isn't present, or
+   * is uninitialized, returns null;
+   */
+  DateSymbols get dateSymbols => dateTimeSymbols[_locale];
+
+  /**
    * Set the locale. If the locale can't be found, we also look up
    * based on alternative versions, e.g. if we have no 'en_CA' we will
    * look for 'en' as a fallback. It will also translate en-ca into en_CA.
