@@ -649,14 +649,11 @@ constructor2_negative_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
 constructor_negative_test: fail
-constructor_redirect1_negative_test: fail
-constructor_redirect2_negative_test: fail
 constructor_redirect2_test/02: fail
 constructor_redirect2_test/04: fail
 constructor_redirect_test/01: fail
 constructor_return_with_arrow_negative_test: fail
 constructor_return_with_init_and_arrow_negative_test: fail
-cyclic_constructor_test/01: fail
 cyclic_type_variable_test/01: fail
 cyclic_type_variable_test/02: fail
 cyclic_type_variable_test/03: fail
@@ -716,6 +713,7 @@ implicit_this_test/04: fail
 implicit_this_test/none: fail
 import_combinators_negative_test: fail
 import_private_test/01: fail
+infinite_switch_label_test: fail
 inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
 instance_method2_negative_test: fail
@@ -757,6 +755,7 @@ named_parameters_aggregated_test/03: fail
 named_parameters_aggregated_test/04: fail
 named_parameters_aggregated_test/05: fail
 named_parameters_type_test: fail
+nested_switch_label_test: fail
 new_expression_type_args_test/00: fail
 new_expression_type_args_test/01: fail
 new_expression_type_args_test/02: fail
@@ -843,6 +842,7 @@ super_operator_index_test/04: fail
 super_operator_index_test/05: fail
 super_operator_index_test/06: fail
 super_operator_index_test/07: fail
+switch_label2_test: fail
 syntax_test/28: fail
 syntax_test/29: fail
 syntax_test/30: fail
