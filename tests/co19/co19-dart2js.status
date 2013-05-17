@@ -629,6 +629,7 @@ Language/11_Expressions/22_Equality_A05_t01: Fail # != cannot be called on super
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 Language/12_Statements/06_For_A01_t11: Fail # http://dartbug.com/9824
+Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 
 
 [ $compiler == dart2js && $jscl ]
@@ -648,9 +649,6 @@ Language/11_Expressions/07_Maps_A06_t02: Fail # generic type information is lost
 #
 [ $compiler == dart2js && $jscl ]
 LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical to NaN?
-
-[ $compiler == dart2js && $runtime == d8 ]
-Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
 
 
 [ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == opera) ]
