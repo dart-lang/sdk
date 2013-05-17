@@ -846,7 +846,7 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
       } else if (fields[ERROR_LEVEL] == 'WARNING') {
         // We only care about testing Static type warnings
         // ignore all others
-        if (fields[ERROR_TYPE] == 'STATIC_TYPE') {
+        if (fields[ERROR_TYPE] == 'STATIC_TYPE' || fields[ERROR_TYPE] == 'STATIC_TYPE_WARNING') {
           staticWarnings.add(fields[FORMATTED_ERROR]);
         }
       }
