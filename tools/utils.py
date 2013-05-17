@@ -196,6 +196,12 @@ BUILD_ROOT = {
   'macos': os.path.join('xcodebuild'),
 }
 
+def GetBuildbotGSUtilPath():
+  gsutil = '/b/build/scripts/slave/gsutil'
+  if platform.system() == 'Windows':
+    gsutil = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
+  return gsutil
+
 def GetBuildMode(mode):
   global BUILD_MODES
   return BUILD_MODES[mode]

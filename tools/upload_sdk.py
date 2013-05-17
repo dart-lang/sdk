@@ -16,10 +16,9 @@ import sys
 import utils
 
 
-GSUTIL = '/b/build/scripts/slave/gsutil'
+GSUTIL = utils.GetBuildbotGSUtilPath()
 HAS_SHELL = False
 if platform.system() == 'Windows':
-  GSUTIL = 'e:\\\\b\\build\\scripts\\slave\\gsutil'
   HAS_SHELL = True
 GS_SITE = 'gs://'
 GS_DIR = 'dart-dump-render-tree'
