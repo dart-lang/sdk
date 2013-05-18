@@ -79,7 +79,6 @@ io/web_socket_protocol_processor_test: Skip  # dart:io unit test.
 io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
 [ $compiler == dartanalyzer ]
-crypto/base64_test: fail
 io/file_constructor_test: fail
 io/http_date_test: fail
 io/http_headers_test: fail

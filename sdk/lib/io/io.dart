@@ -25,7 +25,6 @@ import 'dart:uri';
 import 'dart:utf';
 import 'dart:typed_data';
 
-part 'base64.dart';
 part 'buffer_list.dart';
 part 'common.dart';
 part 'data_transformer.dart';

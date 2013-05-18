@@ -4,7 +4,6 @@
 
 {
   'sources': [
-    'base64.dart',
     'buffer_list.dart',
     'common.dart',
     'data_transformer.dart',
