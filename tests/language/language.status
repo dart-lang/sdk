@@ -114,7 +114,6 @@ compile_time_constant_checked3_test/06: Fail, OK
 [ $compiler == dartc ]
 class_literal_test/none : Fail # Issue 7630.
 import_private_test/01: Fail # Issue 8365.
-call_nonexistent_static_test/01: fail
 
 # test issue 7749
 list_literal1_negative_test: Fail
