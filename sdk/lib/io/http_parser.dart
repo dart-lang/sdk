@@ -729,7 +729,7 @@ class _HttpParser
               new HttpParserException(
                   "Connection closed while receiving data"));
       }
-      _closeIncoming();
+      _closeIncoming(true);
       _controller.close();
       return;
     }
@@ -909,7 +909,7 @@ class _HttpParser
           if (_socketSubscription != null) {
             _socketSubscription.cancel();
           }
-          _closeIncoming();
+          _closeIncoming(true);
           _controller.close();
         });
     incoming = _incoming = new _HttpIncoming(
@@ -918,11 +918,11 @@ class _HttpParser
     _pauseStateChanged();
   }
 
-  void _closeIncoming() {
+  void _closeIncoming([bool closing = false]) {
     // Ignore multiple close (can happend in re-entrance).
     if (_incoming == null) return;
     var tmp = _incoming;
-    tmp.close();
+    tmp.close(closing);
     _incoming = null;
     if (_bodyController != null) {
       _bodyController.close();

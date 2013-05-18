@@ -47,9 +47,9 @@ class _HttpIncoming extends Stream<List<int>> {
   // Is completed once all data have been received.
   Future get dataDone => _dataCompleter.future;
 
-  void close() {
+  void close(bool closing) {
     fullBodyRead = true;
-    _dataCompleter.complete();
+    _dataCompleter.complete(closing);
   }
 }
 
@@ -1668,6 +1668,10 @@ class _HttpConnection {
     _socket.pipe(_httpParser);
     _subscription = _httpParser.listen(
         (incoming) {
+          // If the incoming was closed, close the connection.
+          incoming.dataDone.then((closing) {
+            if (closing) destroy();
+          });
           // Only handle one incoming request at the time. Keep the
           // stream paused until the request has been send.
           _subscription.pause();

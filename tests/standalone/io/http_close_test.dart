@@ -111,9 +111,36 @@ void testClientCloseSendingResponse(int connections) {
 }
 
 
+void testClientCloseWhileSendingRequest(int connections) {
+  HttpServer.bind("127.0.0.1", 0).then((server) {
+    int errors = 0;
+    server.listen((request) {
+      request.listen((_) {}, onError: (e) { errors++; });
+    });
+    var client = new HttpClient();
+    for (int i = 0; i < connections; i++) {
+      client.post("127.0.0.1", server.port, "/")
+          .then((request) {
+            request.contentLength = 110;
+            request.write("0123456789");
+            return request.close();
+          })
+          .catchError((_) {});
+    }
+    new Timer.periodic(const Duration(milliseconds: 100), (t) {
+      if (errors == connections && server.connectionsInfo().total == 0) {
+        t.cancel();
+        server.close();
+      }
+    });
+  });
+}
+
+
 void main() {
   testClientAndServerCloseNoListen(10);
   testClientCloseServerListen(10);
   testClientCloseSendingResponse(10);
+  testClientCloseWhileSendingRequest(10);
 }
 
