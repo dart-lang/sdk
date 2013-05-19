@@ -40,7 +40,6 @@ compute_this_script_browser_test: Pass
 
 [ $compiler == dartanalyzer ]
 isolate2_negative_test: fail
-isolate3_negative_test: fail
 isolate_import_negative_test: fail
 isolate_negative_test: fail
 spawn_function_negative_test: fail

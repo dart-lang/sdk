@@ -636,7 +636,6 @@ constructor_call_wrong_argument_count_negative_test: fail
 constructor_negative_test: fail
 constructor_redirect2_test/02: fail
 constructor_redirect2_test/04: fail
-constructor_redirect_test/01: fail
 constructor_return_with_arrow_negative_test: fail
 constructor_return_with_init_and_arrow_negative_test: fail
 cyclic_type_variable_test/01: fail
@@ -739,7 +738,6 @@ override_field_test/02: fail
 override_field_test/03: fail
 override_method_with_field_test/01: fail
 override_method_with_field_test/02: fail
-parameter_initializer5_negative_test: fail
 prefix10_negative_test: fail
 prefix11_negative_test: fail
 prefix12_negative_test: fail
