@@ -68,27 +68,31 @@ class _Random implements Random {
   // The algorithm used here is Multiply with Carry (MWC) with a Base b = 2^32.
   // http://en.wikipedia.org/wiki/Multiply-with-carry
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
-  int _nextInt32() {
+  void _nextState() {
     var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
     _state[kSTATE_LO] = state & _MASK_32;
     _state[kSTATE_HI] = state >> 32;
-    return _state[kSTATE_LO];
   }
 
   int nextInt(int max) {
-    if (max <= 0 || max > _POW2_32) {
+    // TODO(srdjan): Remove the 'limit' check once optimizing  comparison of
+    // Smi-s with Mint constants.
+    final limit = 0x3FFFFFFF;
+    if (max <= 0 || ((max > limit) && (max > _POW2_32))) {
       throw new ArgumentError("max must be positive and < 2^32:"
                                          " $max");
     }
     if ((max & -max) == max) {
       // Fast case for powers of two.
-      return _nextInt32() & (max - 1);
+      _nextState();
+      return _state[kSTATE_LO] & (max - 1);
     }
 
     var rnd32;
     var result;
     do {
-      rnd32 = _nextInt32();
+      _nextState();
+      rnd32 = _state[kSTATE_LO];
       result = rnd32 % max;
     } while ((rnd32 - result + max) >= _POW2_32);
     return result;
@@ -119,6 +123,7 @@ class _Random implements Random {
       _prng = new Random(new DateTime.now().millisecondsSinceEpoch);
     }
     // Trigger the PRNG once to change the internal state.
-    return _prng._nextInt32();
+    _prng._nextState();
+    return _prng._state[kSTATE_LO];
   }
 }

@@ -14,6 +14,7 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -1424,6 +1425,52 @@ bool Intrinsifier::Math_sin(Assembler* assembler) {
 bool Intrinsifier::Math_cos(Assembler* assembler) {
   EmitTrigonometric(assembler, kCosine);
   return false;  // Compile method for slow case.
+}
+
+
+//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
+//    _state[kSTATE_LO] = state & _MASK_32;
+//    _state[kSTATE_HI] = state >> 32;
+bool Intrinsifier::Random_nextState(Assembler* assembler) {
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  ASSERT(!math_lib.IsNull());
+  const Class& random_class =
+      Class::Handle(math_lib.LookupClassAllowPrivate(Symbols::_Random()));
+  ASSERT(!random_class.IsNull());
+  const Field& state_field = Field::ZoneHandle(
+      random_class.LookupInstanceField(Symbols::_state()));
+  ASSERT(!state_field.IsNull());
+  const Field& random_A_field = Field::ZoneHandle(
+      random_class.LookupStaticField(Symbols::_A()));
+  ASSERT(!random_A_field.IsNull());
+  ASSERT(random_A_field.is_const());
+  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
+  // 'a_int_value' is a mask.
+  ASSERT(Utils::IsUint(32, a_int_value));
+  int32_t a_int32_value = static_cast<int32_t>(a_int_value);
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
+  __ movl(EBX, FieldAddress(EAX, state_field.Offset()));  // Field '_state'.
+  // Addresses of _state[0] and _state[1].
+  Address addr_0 = FlowGraphCompiler::ElementAddressForIntIndex(
+      kTypedDataUint32ArrayCid,
+      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid),
+      EBX,
+      0);
+  Address addr_1 = FlowGraphCompiler::ElementAddressForIntIndex(
+      kTypedDataUint32ArrayCid,
+      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid),
+      EBX,
+      1);
+  __ movl(EAX, Immediate(a_int32_value));
+  // 64-bit multiply EAX * value -> EDX:EAX.
+  __ mull(addr_0);
+  __ addl(EAX, addr_1);
+  __ adcl(EDX, Immediate(0));
+  __ movl(addr_1, EDX);
+  __ movl(addr_0, EAX);
+  __ ret();
+  return true;
 }
 
 

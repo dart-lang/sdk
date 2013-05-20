@@ -2482,7 +2482,7 @@ RawField* Class::LookupField(const String& name) const {
     field ^= flds.At(i);
     field_name ^= field.name();
     if (String::EqualsIgnoringPrivateKey(field_name, name)) {
-        return field.raw();
+      return field.raw();
     }
   }
   // No field found.
@@ -4820,6 +4820,9 @@ RawString* Field::UserVisibleName() const {
 
 
 const char* Field::ToCString() const {
+  if (IsNull()) {
+    return "Field::null";
+  }
   const char* kF0 = is_static() ? " static" : "";
   const char* kF1 = is_final() ? " final" : "";
   const char* kF2 = is_const() ? " const" : "";
@@ -7092,7 +7095,7 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeopt:         return "deopt ";
+    case PcDescriptors::kDeopt:         return "deopt        ";
     case PcDescriptors::kEntryPatch:    return "entry-patch  ";
     case PcDescriptors::kPatchCode:     return "patch        ";
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
