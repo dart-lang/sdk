@@ -2,24 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:unittest/src/pretty_print.dart';
 import 'package:unittest/unittest.dart';
-
-class DefaultToString {}
-
-class CustomToString {
-  String toString() => "string representation";
-}
-
-class _PrivateName {
-  String toString() => "string representation";
-}
-
-class _PrivateNameIterable extends IterableMixin {
-  Iterator get iterator => [1, 2, 3].iterator;
-}
 
 void main() {
   test('with primitive objects', () {
@@ -29,21 +13,6 @@ void main() {
     expect(prettyPrint(null), equals('<null>'));
     expect(prettyPrint(() => 12),
         matches(r'<Closure(: \(dynamic\) => dynamic)?>'));
-  });
-
-  test('with an object with a default [toString]', () {
-    expect(prettyPrint(new DefaultToString()),
-        equals("<Instance of 'DefaultToString'>"));
-  });
-
-  test('with an object with a custom [toString]', () {
-    expect(prettyPrint(new CustomToString()),
-        equals('CustomToString:<string representation>'));
-  });
-
-  test('with an object with a custom [toString] and a private name', () {
-    expect(prettyPrint(new _PrivateName()),
-        equals('?:<string representation>'));
   });
 
   group('with a string', () {
@@ -130,16 +99,6 @@ void main() {
     test("that's over maxItems", () {
       expect(prettyPrint([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], maxItems: 9),
           equals("[0, 1, 2, 3, 4, 5, 6, 7, ...]"));
-    });
-
-    test("that's not a list", () {
-      expect(prettyPrint([1, 2, 3, 4].map((n) => n * 2)),
-          equals("MappedListIterable:[2, 4, 6, 8]"));
-    });
-
-    test("that's not a list and has a private name", () {
-      expect(prettyPrint(new _PrivateNameIterable()),
-          equals("?:[1, 2, 3]"));
     });
 
     test("that's recursive", () {

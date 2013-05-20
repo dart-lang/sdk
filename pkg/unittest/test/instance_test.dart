@@ -5,9 +5,7 @@
 library unittestTests;
 import 'package:unittest/unittest.dart';
 
-part 'test_utils.dart';
-
-doesThrow() { throw 'X'; }
+import 'test_utils.dart';
 
 main() {
   initUtils();

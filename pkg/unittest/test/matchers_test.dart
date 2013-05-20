@@ -2,77 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library unittestTests;
-import 'package:unittest/unittest.dart';
 import 'dart:async';
 import 'dart:collection';
-part 'test_utils.dart';
 
-doesNotThrow() {}
-doesThrow() { throw 'X'; }
+import 'package:unittest/unittest.dart';
 
-class PrefixMatcher extends BaseMatcher {
-  final String _prefix;
-  const PrefixMatcher(this._prefix);
-  bool matches(item, MatchState matchState) {
-    return item is String &&
-        (collapseWhitespace(item)).startsWith(collapseWhitespace(_prefix));
-  }
-
-  Description describe(Description description) =>
-    description.add('a string starting with ').
-        addDescriptionOf(collapseWhitespace(_prefix)).
-        add(' ignoring whitespace');
-}
-
-class Widget {
-  int price;
-}
-
-class HasPrice extends CustomMatcher {
-  HasPrice(matcher) :
-    super("Widget with a price that is", "price", matcher);
-  featureValueOf(actual) => actual.price;
-}
-
-class SimpleIterable extends IterableBase {
-  int count;
-  SimpleIterable(this.count);
-
-  bool contains(int val) => count < val ? false : true;
-
-  bool any(bool f(element)) {
-    for(var i = 0; i <= count; i++) {
-      if(f(i)) return true;
-    }
-    return false;
-  }
-
-  String toString() => "<[$count]>";
-
-  Iterator get iterator {
-    return new SimpleIterator(count);
-  }
-}
-
-class SimpleIterator implements Iterator {
-  int _count;
-  int _current;
-
-  SimpleIterator(this._count);
-
-  bool moveNext() {
-    if (_count > 0) {
-      _current = _count;
-      _count--;
-      return true;
-    }
-    _current = null;
-    return false;
-  }
-
-  get current => _current;
-}
+import 'test_common.dart';
+import 'test_utils.dart';
 
 void main() {
 
@@ -145,89 +81,6 @@ void main() {
               r"But:  exception 'X' does not match 'Y'\."
               r"Actual: <Closure(: \(dynamic\) => dynamic "
                   r"from Function 'doesThrow': static\.)?>"));
-    });
-
-    test('throwsFormatException', () {
-      shouldPass(() { throw new FormatException(''); },
-          throwsFormatException);
-      shouldFail(() { throw new Exception(); },
-          throwsFormatException,
-          matches(
-              r"Expected: throws an exception which matches FormatException +"
-              r"But:  exception \?:<Exception> does not match FormatException\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
-    });
-
-    test('throwsArgumentError', () {
-      shouldPass(() { throw new ArgumentError(''); },
-          throwsArgumentError);
-      shouldFail(() { throw new Exception(); },
-          throwsArgumentError,
-          matches(
-              r"Expected: throws an exception which matches ArgumentError +"
-              r"But:  exception \?:<Exception> does not match "
-                  r"ArgumentError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
-    });
-
-    test('throwsRangeError', () {
-      shouldPass(() { throw new RangeError(0); },
-          throwsRangeError);
-      shouldFail(() { throw new Exception(); },
-          throwsRangeError,
-          matches(
-              r"Expected: throws an exception which matches RangeError +"
-              r"But:  exception \?:<Exception> does not match RangeError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
-    });
-
-    test('throwsNoSuchMethodError', () {
-      shouldPass(() { throw new NoSuchMethodError(null, '', null, null); },
-          throwsNoSuchMethodError);
-      shouldFail(() { throw new Exception(); },
-          throwsNoSuchMethodError,
-          matches(
-              r"Expected: throws an exception which matches NoSuchMethodError +"
-              r"But:  exception \?:<Exception> does not match "
-                  r"NoSuchMethodError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
-    });
-
-    test('throwsUnimplementedError', () {
-      shouldPass(() { throw new UnimplementedError(''); },
-          throwsUnimplementedError);
-      shouldFail(() { throw new Exception(); },
-          throwsUnimplementedError,
-          matches(
-              r"Expected: throws an exception which matches "
-                  r"UnimplementedError +"
-              r"But:  exception \?:<Exception> does not match "
-                  r"UnimplementedError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
-    });
-
-    test('throwsUnsupportedError', () {
-      shouldPass(() { throw new UnsupportedError(''); },
-          throwsUnsupportedError);
-      shouldFail(() { throw new Exception(); },
-          throwsUnsupportedError,
-          matches(
-              r"Expected: throws an exception which matches UnsupportedError +"
-              r"But:  exception \?:<Exception> does not match "
-                  r"UnsupportedError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
-    });
-
-    test('throwsStateError', () {
-      shouldPass(() { throw new StateError(''); },
-          throwsStateError);
-      shouldFail(() { throw new Exception(); },
-          throwsStateError,
-          matches(
-              r"Expected: throws an exception which matches StateError +"
-              r"But:  exception \?:<Exception> does not match "
-                  r"StateError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
     });
 
     test('returnsNormally', () {
@@ -478,23 +331,6 @@ void main() {
       shouldPass('c0d', matches(new RegExp('[a-z][0-9][a-z]')));
       shouldFail('cOd', matches('[a-z][0-9][a-z]'),
           "Expected: match '[a-z][0-9][a-z]' But: was 'cOd'.");
-    });
-  });
-
-  group('Iterable Matchers', () {
-    test('isEmpty', () {
-      var d = new SimpleIterable(0);
-      var e = new SimpleIterable(1);
-      shouldPass(d, isEmpty);
-      shouldFail(e, isEmpty, "Expected: empty But: was SimpleIterable:[1].");
-    });
-
-    test('contains', () {
-      var d = new SimpleIterable(3);
-      shouldPass(d, contains(2));
-      shouldFail(d, contains(5),
-          "Expected: contains <5> "
-          "But: was SimpleIterable:[3, 2, 1].");
     });
   });
 
@@ -772,19 +608,6 @@ void main() {
       shouldFail(0, predicate((x) => x is String, "an instance of String"),
           "Expected: an instance of String But: was <0>.");
       shouldPass('cow', predicate((x) => x is String, "an instance of String"));
-    });
-  });
-
-  group('Feature Matchers', () {
-    test("Feature Matcher", () {
-      var w = new Widget();
-      w.price = 10;
-      shouldPass(w, new HasPrice(10));
-      shouldPass(w, new HasPrice(greaterThan(0)));
-      shouldFail(w, new HasPrice(greaterThan(10)),
-          "Expected: Widget with a price that is a value greater than <10> "
-          "But: price was <10>. "
-          "Actual: <Instance of 'Widget'>");
     });
   });
 }

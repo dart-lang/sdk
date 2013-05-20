@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of unittestTests;
+library test_utils;
+
+import 'package:unittest/unittest.dart';
+
+import 'dart:async';
 
 int errorCount;
 String errorString;
@@ -57,4 +61,21 @@ void shouldPass(value, Matcher matcher, {bool isAsync: false}) {
   } else {
     afterTest();
   }
+}
+
+doesNotThrow() {}
+doesThrow() { throw 'X'; }
+
+class PrefixMatcher extends BaseMatcher {
+  final String _prefix;
+  const PrefixMatcher(this._prefix);
+  bool matches(item, MatchState matchState) {
+    return item is String &&
+        (collapseWhitespace(item)).startsWith(collapseWhitespace(_prefix));
+  }
+
+  Description describe(Description description) =>
+    description.add('a string starting with ').
+        addDescriptionOf(collapseWhitespace(_prefix)).
+        add(' ignoring whitespace');
 }
