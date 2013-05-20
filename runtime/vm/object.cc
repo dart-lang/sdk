@@ -6054,7 +6054,8 @@ RawArray* Library::LoadedScripts() const {
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.
-    StorePointer(&raw_ptr()->loaded_scripts_, Array::MakeArray(scripts));
+    const Array& scripts_array = Array::Handle(Array::MakeArray(scripts));
+    StorePointer(&raw_ptr()->loaded_scripts_, scripts_array.raw());
   }
   return loaded_scripts();
 }
