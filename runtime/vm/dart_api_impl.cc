@@ -3934,10 +3934,14 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     RETURN_TYPE_ERROR(isolate, name, String);
   }
 
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(container));
-
+  // Finalize all classes.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
   Field& field = Field::Handle(isolate);
   Function& getter = Function::Handle(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(container));
   if (obj.IsNull()) {
     return Api::NewError("%s expects argument 'container' to be non-null.",
                          CURRENT_FUNC);
@@ -3973,11 +3977,6 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     return Api::NewHandle(isolate, DartEntry::InvokeFunction(getter, args));
 
   } else if (obj.IsClass()) {
-    // Finalize all classes.
-    Dart_Handle state = Api::CheckIsolateState(isolate);
-    if (::Dart_IsError(state)) {
-      return state;
-    }
     // To access a static field we may need to use the Field or the
     // getter Function.
     const Class& cls = Class::Cast(obj);
@@ -4000,8 +3999,6 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     }
 
   } else if (obj.IsLibrary()) {
-    // TODO(turnidge): Do we need to call CheckIsolateState here?
-
     // To access a top-level we may need to use the Field or the
     // getter Function.  The getter function may either be in the
     // library or in the field's owner class, depending.
@@ -4061,6 +4058,11 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
   Instance& value_instance = Instance::Handle(isolate);
   value_instance ^= value_obj.raw();
 
+  // Finalize all classes.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
   Field& field = Field::Handle(isolate);
   Function& setter = Function::Handle(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(container));

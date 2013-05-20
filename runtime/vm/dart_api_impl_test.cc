@@ -3516,6 +3516,53 @@ TEST_CASE(GetStaticField_RunsInitializer) {
 }
 
 
+TEST_CASE(GetField_CheckIsolate) {
+  const char* kScriptChars =
+      "class TestClass  {\n"
+      "  static int fld2 = 11;\n"
+      "  static void testMain() {\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle result;
+  int64_t value = 0;
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, NewString("TestClass"));
+  EXPECT_VALID(cls);
+
+  result = Dart_GetField(cls, NewString("fld2"));
+  EXPECT_VALID(result);
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_EQ(11, value);
+}
+
+
+TEST_CASE(SetField_CheckIsolate) {
+  const char* kScriptChars =
+      "class TestClass  {\n"
+      "  static int fld2 = 11;\n"
+      "  static void testMain() {\n"
+      "  }\n"
+      "}\n";
+  Dart_Handle result;
+  int64_t value = 0;
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle cls = Dart_GetClass(lib, NewString("TestClass"));
+  EXPECT_VALID(cls);
+
+  result = Dart_SetField(cls, NewString("fld2"), Dart_NewInteger(13));
+  EXPECT_VALID(result);
+
+  result = Dart_GetField(cls, NewString("fld2"));
+  EXPECT_VALID(result);
+  result = Dart_IntegerToInt64(result, &value);
+  EXPECT_EQ(13, value);
+}
+
+
 TEST_CASE(New) {
   const char* kScriptChars =
       "class MyClass {\n"
