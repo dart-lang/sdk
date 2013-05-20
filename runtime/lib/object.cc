@@ -17,8 +17,7 @@ DECLARE_FLAG(bool, enable_type_checks);
 
 DEFINE_NATIVE_ENTRY(Object_cid, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  const Class& cls = Class::Handle(instance.clazz());
-  return Smi::New(cls.id());
+  return Smi::New(instance.GetClassId());
 }
 
 

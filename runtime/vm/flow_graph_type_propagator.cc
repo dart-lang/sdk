@@ -736,7 +736,7 @@ CompileType ConstantInstr::ComputeType() const {
 
   if (value().IsInstance()) {
     return CompileType::Create(
-        Class::Handle(value().clazz()).id(),
+        value().GetClassId(),
         AbstractType::ZoneHandle(Instance::Cast(value()).GetType()));
   } else {
     ASSERT(value().IsAbstractTypeArguments());

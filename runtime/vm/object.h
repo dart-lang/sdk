@@ -216,7 +216,10 @@ class Object {
     ASSERT(!IsNull());
     raw()->SetCanonical();
   }
-
+  intptr_t GetClassId() const {
+    return !raw()->IsHeapObject() ?
+        static_cast<intptr_t>(kSmiCid) : raw()->GetClassId();
+  }
   inline RawClass* clazz() const;
   static intptr_t tags_offset() { return OFFSET_OF(RawObject, tags_); }
 
