@@ -12,40 +12,35 @@ import sys
 
 _logger = logging.getLogger('fremontcutbuilder')
 
+# See:
+#  http://src.chromium.org/viewvc/multivm/trunk/webkit/Source/core/features.gypi
+# for ENABLE_* flags defined in Chromium / Blink.
+# We list all ENABLE flags used in IDL in one of these two lists.
 FEATURE_DISABLED = [
     'ENABLE_BATTERY_STATUS',
-    'ENABLE_CSS3_CONDITIONAL_RULES',
     'ENABLE_CSS_DEVICE_ADAPTATION',
     'ENABLE_CUSTOM_SCHEME_HANDLER',
     'ENABLE_ENCRYPTED_MEDIA_V2',
     'ENABLE_MEDIA_CAPTURE', # Only enabled on Android.
     'ENABLE_ORIENTATION_EVENTS', # Only enabled on Android.
-    'ENABLE_SPEECH_SYNTHESIS',
     'ENABLE_WEBVTT_REGIONS',
     'ENABLE_XHR_TIMEOUT',
 ]
 
 FEATURE_DEFINES = [
-    'ENABLE_CALENDAR_PICKER',
-    'ENABLE_CANVAS_PROXY',
+    'ENABLE_CALENDAR_PICKER', # Not on Android
     'ENABLE_CSS_REGIONS',
-    'ENABLE_CUSTOM_ELEMENTS',
-    'ENABLE_DATALIST_ELEMENT',
-    'ENABLE_DIALOG_ELEMENT',
+    'ENABLE_DATALIST_ELEMENT', # Not on Android
     'ENABLE_ENCRYPTED_MEDIA',
-    'ENABLE_FONT_LOAD_EVENTS',
-    'ENABLE_GAMEPAD',
-    'ENABLE_INPUT_SPEECH',
-    'ENABLE_LEGACY_NOTIFICATIONS',
+    'ENABLE_INPUT_SPEECH', # Not on Android
+    'ENABLE_LEGACY_NOTIFICATIONS', # Not on Android
     'ENABLE_MEDIA_STREAM',
-    'ENABLE_NAVIGATOR_CONTENT_UTILS',
-    'ENABLE_NOTIFICATIONS',
-    'ENABLE_PAGE_POPUP',
-    'ENABLE_SHARED_WORKERS',
+    'ENABLE_NAVIGATOR_CONTENT_UTILS', # Not on Android
+    'ENABLE_NOTIFICATIONS', # Not on Android
+    'ENABLE_PAGE_POPUP', # Not on Android
     'ENABLE_SVG',
     'ENABLE_SVG_FONTS',
-    'ENABLE_VIDEO',
-    'ENABLE_WEB_AUDIO',
+    'ENABLE_WEB_AUDIO', # Not on Android
     'ENABLE_WEBGL',
 ]
 
@@ -111,11 +106,13 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
   if unused_conditionals:
     _logger.warning('There are some unused conditionals %s' %
         sorted(unused_conditionals))
+    _logger.warning('Please update fremontcutbuilder.py')
 
   unknown_conditionals = conditionals_met - known_conditionals
   if unknown_conditionals:
     _logger.warning('There are some unknown conditionals %s' %
         sorted(unknown_conditionals))
+    _logger.warning('Please update fremontcutbuilder.py')
 
   db.Save()
   return db
