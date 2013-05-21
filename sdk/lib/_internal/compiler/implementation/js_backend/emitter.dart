@@ -2601,12 +2601,12 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                   ['receiver'])));
 
     } else {
-
-      if (backend.jsUnknownClass != null) {
+      ClassElement jsUnknown = backend.jsUnknownClass;
+      if (compiler.codegenWorld.instantiatedClasses.contains(jsUnknown)) {
         block.statements.add(
             js.if_(js('!(receiver instanceof #)',
                       js(namer.isolateAccess(compiler.objectClass))),
-                   buildReturnInterceptor(backend.jsUnknownClass)));
+                   buildReturnInterceptor(jsUnknown)));
       }
 
       block.statements.add(js.return_(js('receiver')));
