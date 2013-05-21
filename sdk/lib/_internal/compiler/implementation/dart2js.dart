@@ -212,6 +212,8 @@ void compile(List<String> argv) {
                       (_) => passThrough('--enable-checked-mode')),
     new OptionHandler('--enable-concrete-type-inference',
                       (_) => passThrough('--enable-concrete-type-inference')),
+    new OptionHandler('--trust-type-annotations',
+                      (_) => passThrough('--trust-type-annotations')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--disallow-unsafe-eval', passThrough),

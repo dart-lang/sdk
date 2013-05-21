@@ -251,6 +251,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableMinification;
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
+  final bool trustTypeAnnotations;
   final bool enableConcreteTypeInference;
   /**
    * The maximum size of a concrete type before it widens to dynamic during
@@ -440,6 +441,7 @@ abstract class Compiler implements DiagnosticListener {
   Compiler({this.tracer: const Tracer(),
             this.enableTypeAssertions: false,
             this.enableUserAssertions: false,
+            this.trustTypeAnnotations: false,
             this.enableConcreteTypeInference: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,

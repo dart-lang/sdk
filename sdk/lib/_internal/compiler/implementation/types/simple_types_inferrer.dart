@@ -113,11 +113,11 @@ class SentinelTypeMask extends FlatTypeMask {
     throw 'Unsupported operation';
   }
 
-  bool get isNullable => true;
-
   TypeMask intersection(TypeMask other, Compiler compiler) {
     return other;
   }
+
+  bool get isNullable => true;
 
   String toString() => '$name sentinel type mask';
 }
@@ -653,6 +653,18 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   bool internalRecordType(Element analyzedElement,
                           TypeMask newType,
                           Map<Element, TypeMask> types) {
+    if (compiler.trustTypeAnnotations
+        // Parameters are being checked by the method, and we can
+        // therefore only trust their type after the checks.
+        || (compiler.enableTypeAssertions && !analyzedElement.isParameter())) {
+      var annotation = analyzedElement.computeType(compiler);
+      if (types == returnTypeOf) {
+        assert(annotation is FunctionType);
+        annotation = annotation.returnType;
+      }
+      newType = narrowType(newType, annotation);
+    }
+
     // Fields and native methods of native classes are handled
     // specially when querying for their type or return type.
     if (isNativeElement(analyzedElement)) return false;
@@ -688,7 +700,15 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     }
     TypeMask returnType = returnTypeOf[element];
     if (returnType == null) {
-      return dynamicType;
+      if ((compiler.trustTypeAnnotations || compiler.enableTypeAssertions)
+          && (element.isFunction()
+              || element.isGetter()
+              || element.isFactoryConstructor())) {
+        returnType = narrowType(
+            dynamicType, element.computeType(compiler).returnType);
+      } else {
+        returnType = dynamicType;
+      }
     }
     assert(returnType != null);
     return returnType;
@@ -753,7 +773,18 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     }
     TypeMask type = typeOf[element];
     if (type == null) {
-      return dynamicType;
+      if ((compiler.trustTypeAnnotations
+           && (element.isField()
+               || element.isParameter()
+               || element.isVariable()))
+          // Parameters are being checked by the method, and we can
+          // therefore only trust their type after the checks.
+          || (compiler.enableTypeAssertions
+              && (element.isField() || element.isVariable()))) {
+        type = narrowType(dynamicType, element.computeType(compiler));
+      } else {
+        type = dynamicType;
+      }
     }
     assert(type != null);
     return type;
@@ -1254,6 +1285,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                       {bool isNullable: true}) {
     if (annotation.isDynamic) return type;
     if (annotation.isMalformed) return type;
+    if (annotation.isVoid) return nullType;
     if (annotation.element == compiler.objectClass) return type;
     TypeMask otherType;
     if (annotation.kind == TypeKind.TYPEDEF
@@ -1338,6 +1370,10 @@ class LocalsHandler {
 
   void update(Element local, TypeMask type) {
     assert(type != null);
+    if (inferrer.compiler.trustTypeAnnotations
+        || inferrer.compiler.enableTypeAssertions) {
+      type = inferrer.narrowType(type, local.computeType(inferrer.compiler));
+    }
     if (capturedAndBoxed.contains(local) || inTryBlock) {
       // If a local is captured and boxed, or is set in a try block,
       // we compute the LUB of its assignments.

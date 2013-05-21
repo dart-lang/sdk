@@ -38,6 +38,8 @@ class Compiler extends leg.Compiler {
             outputProvider: outputProvider,
             enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
             enableUserAssertions: hasOption(options, '--enable-checked-mode'),
+            trustTypeAnnotations:
+                hasOption(options, '--trust-type-annotations'),
             enableMinification: hasOption(options, '--minify'),
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),
