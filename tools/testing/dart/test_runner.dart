@@ -970,6 +970,20 @@ class AnalysisCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
+
+/** Modifies the --timeout=XX parameter passed to run_selenium.py */
+List<String> _modifySeleniumTimeout(List<String> arguments, int timeout) {
+  return arguments.map((argument) {
+    if (argument.startsWith('--timeout=')) {
+      return "--timeout=$timeout";
+    } else {
+      return argument;
+    }
+  }).toList();
+  return;
+}
+
+
 /**
  * A RunningProcess actually runs a test, getting the command lines from
  * its [TestCase], starting the test process (and first, a compilation
@@ -1011,8 +1025,10 @@ class RunningProcess {
         _commandComplete(0);
       } else {
         var processOptions = _createProcessOptions();
+        var commandArguments = _modifySeleniumTimeout(command.arguments,
+                                                      testCase.timeout);
         Future processFuture = io.Process.start(command.executable,
-                                                command.arguments,
+                                                commandArguments,
                                                 processOptions);
         processFuture.then((io.Process process) {
           // Close stdin so that tests that try to block on input will fail.
@@ -1177,7 +1193,8 @@ class BatchRunnerProcess {
             "environments for batch runner tests!");
     }
 
-    var line = _createArgumentsLine(testCase.batchTestArguments);
+    var line = _createArgumentsLine(testCase.batchTestArguments,
+                                    testCase.timeout);
     _process.stdin.write(line);
     _stdoutSubscription.resume();
     _stderrSubscription.resume();
@@ -1185,7 +1202,8 @@ class BatchRunnerProcess {
                  _stderrCompleter.future]).then((_) => _reportResult());
   }
 
-  String _createArgumentsLine(List<String> arguments) {
+  String _createArgumentsLine(List<String> arguments, int timeout) {
+    arguments = _modifySeleniumTimeout(arguments, timeout);
     return arguments.join(' ').concat('\n');
   }
 
