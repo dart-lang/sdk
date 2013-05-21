@@ -297,8 +297,9 @@ lookupDispatchRecord(obj) {
     //   example, on node.js.
     return null;
   }
-  var isLeaf = (leafTags != null) && JS('', '#[#]', leafTags, tag);
-  if (true == isLeaf) {
+  var isLeaf =
+      (leafTags != null) && JS('bool', '(#[#]) === true', leafTags, tag);
+  if (isLeaf) {
     return makeDispatchRecord(interceptor, false, null);
   } else {
     var proto = JS('', 'Object.getPrototypeOf(#)', obj);
