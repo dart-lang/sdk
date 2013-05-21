@@ -2968,7 +2968,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitCatchBlock(CatchBlock node) {
-    compiler.backend.registerCatchStatement(mapping);
+    compiler.backend.registerCatchStatement(world, mapping);
     // Check that if catch part is present, then
     // it has one or two formal parameters.
     if (node.formals != null) {

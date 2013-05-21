@@ -1183,10 +1183,10 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getStringInterpolationHelper(), elements);
   }
 
-  void registerCatchStatement(TreeElements elements) {
+  void registerCatchStatement(Enqueuer enqueuer, TreeElements elements) {
     enqueueInResolution(getExceptionUnwrapper(), elements);
     if (jsUnknownClass != null) {
-      world.registerInstantiatedClass(jsUnknownClass, elements);
+      enqueuer.registerInstantiatedClass(jsUnknownClass, elements);
     }
   }
 

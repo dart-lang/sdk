@@ -137,7 +137,8 @@ abstract class Backend {
                                  Enqueuer enqueuer,
                                  TreeElements elements) {}
   void registerStringInterpolation(TreeElements elements) {}
-  void registerCatchStatement(TreeElements elements) {}
+  void registerCatchStatement(Enqueuer enqueuer,
+                              TreeElements elements) {}
   void registerWrapException(TreeElements elements) {}
   void registerThrowExpression(TreeElements elements) {}
   void registerLazyField(TreeElements elements) {}
