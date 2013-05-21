@@ -5295,6 +5295,10 @@
     },
     "support_level": "untriaged"
   },
+  "MIDIInput": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "MIDIMessageEvent": {
     "members": {
       "data": {
