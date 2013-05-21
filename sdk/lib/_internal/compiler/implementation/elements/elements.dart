@@ -548,6 +548,16 @@ class Elements {
     }
     return false;
   }
+
+  static bool isUnusedLabel(LabeledStatement node, TreeElements elements) {
+    Node body = node.statement;
+    TargetElement element = elements[body];
+    // Labeled statements with no element on the body have no breaks.
+    // A different target statement only happens if the body is itself
+    // a break or continue for a different target. In that case, this
+    // label is also always unused.
+    return element == null || element.statement != body;
+  }
 }
 
 abstract class ErroneousElement extends Element implements FunctionElement {

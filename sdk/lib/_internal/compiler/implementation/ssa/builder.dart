@@ -4274,21 +4274,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitLabeledStatement(LabeledStatement node) {
     Statement body = node.statement;
-    if (body is Loop || body is SwitchStatement) {
+    if (body is Loop
+        || body is SwitchStatement
+        || Elements.isUnusedLabel(node, elements)) {
       // Loops and switches handle their own labels.
       visit(body);
       return;
     }
-    // Non-loop statements can only be break targets, not continue targets.
     TargetElement targetElement = elements[body];
-    if (targetElement == null || !identical(targetElement.statement, body)) {
-      // Labeled statements with no element on the body have no breaks.
-      // A different target statement only happens if the body is itself
-      // a break or continue for a different target. In that case, this
-      // label is also always unused.
-      visit(body);
-      return;
-    }
     LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
     assert(targetElement.isBreakTarget);
     JumpHandler handler = new JumpHandler(this, targetElement);

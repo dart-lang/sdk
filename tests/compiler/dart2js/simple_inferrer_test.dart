@@ -236,6 +236,24 @@ returnAsTypedef() {
   return topLevelGetter() as Foo;
 }
 
+testDeadCode() {
+  return 42;
+  return 'foo';
+}
+
+testLabeledIf(a) {
+  var c;
+  L1: if (a > 1) {
+    if (a == 2) {
+      break L1;
+    }
+    c = 42;
+  } else {
+    c = 38;
+  }
+  return c;
+}
+
 testSwitch1() {
   var a = null;
   switch (topLevelGetter) {
@@ -262,6 +280,54 @@ testSwitch3() {
   switch (topLevelGetter) {
     L1: case 1: b = a + 42; break;
     case 2: a = 'foo'; continue L1;
+  }
+  return b;
+}
+
+testContinue1() {
+  var a = 42;
+  var b;
+  while (true) {
+    b = a + 54;
+    if (b == 42) continue;
+    a = 'foo';
+  }
+  return b;
+}
+
+testBreak1() {
+  var a = 42;
+  var b;
+  while (true) {
+    b = a + 54;
+    if (b == 42) break;
+    b = 'foo';
+  }
+  return b;
+}
+
+testContinue2() {
+  var a = 42;
+  var b;
+  while (true) {
+    b = a + 54;
+    if (b == 42) {
+      b = 'foo';
+      continue;
+    }
+  }
+  return b;
+}
+
+testBreak2() {
+  var a = 42;
+  var b;
+  while (true) {
+    b = a + 54;
+    if (b == 42) {
+      a = 'foo';
+      break;
+    }
   }
   return b;
 }
@@ -337,9 +403,15 @@ main() {
   returnAsString();
   returnIntAsNum();
   returnAsTypedef();
+  testDeadCode();
+  testLabeledIf();
   testSwitch1();
   testSwitch2();
   testSwitch3();
+  testContinue1();
+  testBreak1();
+  testContinue2();
+  testBreak2();
   new A() == null;
   new A()..returnInt1()
          ..returnInt2()
@@ -412,10 +484,16 @@ void main() {
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   checkReturn('returnIntAsNum', typesInferrer.intType);
   checkReturn('returnAsTypedef', typesInferrer.functionType.nullable());
+  checkReturn('testDeadCode', typesInferrer.intType);
+  checkReturn('testLabeledIf', typesInferrer.intType.nullable());
   checkReturn('testSwitch1',
     typesInferrer.intType.union(typesInferrer.doubleType, compiler).nullable());
   checkReturn('testSwitch2', typesInferrer.intType);
   checkReturn('testSwitch3', interceptorType.nullable());
+  checkReturn('testContinue1', interceptorType.nullable());
+  checkReturn('testBreak1', interceptorType.nullable());
+  checkReturn('testContinue2', interceptorType.nullable());
+  checkReturn('testBreak2', typesInferrer.intType.nullable());
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);

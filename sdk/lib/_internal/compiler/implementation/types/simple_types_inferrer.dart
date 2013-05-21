@@ -1345,6 +1345,11 @@ class LocalsHandler {
   final bool inTryBlock;
   bool isThisExposed;
   bool seenReturn = false;
+  bool seenBreakOrContinue = false;
+
+  bool get aborts {
+    return seenReturn || seenBreakOrContinue;
+  }
 
   LocalsHandler(this.inferrer)
       : locals = new Map<Element, TypeMask>(),
@@ -1394,14 +1399,15 @@ class LocalsHandler {
    * Merge handlers [first] and [second] into [:this:] and returns
    * whether the merge changed one of the variables types in [first].
    */
-  bool merge(LocalsHandler other) {
+  bool merge(LocalsHandler other, {bool discardIfAborts: true}) {
     bool changed = false;
     List<Element> toRemove = <Element>[];
     // Iterating over a map and just updating its entries is OK.
     locals.forEach((Element local, TypeMask oldType) {
       TypeMask otherType = other.locals[local];
+      bool isCaptured = capturedAndBoxed.contains(local);
       if (otherType == null) {
-        if (!capturedAndBoxed.contains(local)) {
+        if (!isCaptured) {
           // If [local] is not in the other map and is not captured
           // and boxed, we know it is not a
           // local we want to keep. For example, in an if/else, we don't
@@ -1411,9 +1417,15 @@ class LocalsHandler {
         }
         return;
       }
-      TypeMask type = inferrer.computeLUB(oldType, otherType);
-      if (type != oldType) changed = true;
-      locals[local] = type;
+      if (!isCaptured && aborts && discardIfAborts) {
+        locals[local] = otherType;
+      } else if (!isCaptured && other.aborts && discardIfAborts) {
+        // Don't do anything.
+      } else {
+        TypeMask type = inferrer.computeLUB(oldType, otherType);
+        if (type != oldType) changed = true;
+        locals[local] = type;
+      }
     });
 
     // Remove locals that will not be used anymore.
@@ -1455,6 +1467,7 @@ class LocalsHandler {
     });
     isThisExposed = isThisExposed || other.isThisExposed;
     seenReturn = seenReturn && other.seenReturn;
+    seenBreakOrContinue = seenBreakOrContinue && other.seenBreakOrContinue;
 
     return changed;
   }
@@ -1470,6 +1483,10 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   final Element outermostElement;
   final InternalSimpleTypesInferrer inferrer;
   final Compiler compiler;
+  final Map<TargetElement, List<LocalsHandler>> breaksFor =
+      new Map<TargetElement, List<LocalsHandler>>();
+  final Map<TargetElement, List<LocalsHandler>> continuesFor =
+      new Map<TargetElement, List<LocalsHandler>>();
   LocalsHandler locals;
   TypeMask returnType;
 
@@ -1630,6 +1647,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       // TODO(ngeoffray): Re-analyze method if [changed]?
     }
     compiler.world.registerSideEffects(analyzedElement, sideEffects);    
+    assert(breaksFor.isEmpty);
+    assert(continuesFor.isEmpty);
     return returnType;
   }
 
@@ -2350,51 +2369,77 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return inferrer.dynamicType;
   }
 
-  TypeMask visitWhile(While node) {
+  void setupBreaksAndContinues(TargetElement element) {
+    if (element == null) return;
+    if (element.isContinueTarget) continuesFor[element] = <LocalsHandler>[];
+    if (element.isBreakTarget) breaksFor[element] = <LocalsHandler>[];
+  }
+
+  void clearBreaksAndContinues(TargetElement element) {
+    continuesFor.remove(element);
+    breaksFor.remove(element);
+  }
+
+  void mergeBreaks(TargetElement element) {
+    if (element == null) return;
+    if (!element.isBreakTarget) return;
+    for (LocalsHandler handler in breaksFor[element]) {
+      locals.merge(handler, discardIfAborts: false);
+    }
+  }
+
+  bool mergeContinues(TargetElement element) {
+    if (element == null) return false;
+    if (!element.isContinueTarget) return false;
+    bool changed = false;
+    for (LocalsHandler handler in continuesFor[element]) {
+      changed = locals.merge(handler, discardIfAborts: false) || changed;
+    }
+    return changed;
+  }
+
+  TypeMask handleLoop(Node node, void logic()) {
     loopLevel++;
     bool changed = false;
+    TargetElement target = elements[node];
+    setupBreaksAndContinues(target);
     do {
       LocalsHandler saved = new LocalsHandler.from(locals);
+      logic();
+      changed = saved.merge(locals);
+      locals = saved;
+      changed = mergeContinues(target) || changed;
+    } while (changed);
+    loopLevel--;
+    mergeBreaks(target);
+    clearBreaksAndContinues(target);
+    return inferrer.dynamicType;
+  }
+
+  TypeMask visitWhile(While node) {
+    return handleLoop(node, () {
       List<Send> tests = handleCondition(node.condition);
       updateIsChecks(tests, usePositive: true);
       visit(node.body);
-      changed = saved.merge(locals);
-      locals = saved;
-    } while (changed);
-    loopLevel--;
-    return inferrer.dynamicType;
+    });
   }
 
   TypeMask visitDoWhile(DoWhile node) {
-    loopLevel++;
-    bool changed = false;
-    do {
-      LocalsHandler saved = new LocalsHandler.from(locals);
+    return handleLoop(node, () {
       visit(node.body);
       List<Send> tests = handleCondition(node.condition);
       updateIsChecks(tests, usePositive: true);
-      changed = saved.merge(locals);
-      locals = saved;
-    } while (changed);
-    loopLevel--;
-    return inferrer.dynamicType;
+    });
   }
 
   TypeMask visitFor(For node) {
-    bool changed = false;
     visit(node.initializer);
-    loopLevel++;
-    do {
-      LocalsHandler saved = new LocalsHandler.from(locals);
+    return handleLoop(node, () {
       List<Send> tests = handleCondition(node.condition);
       updateIsChecks(tests, usePositive: true);
       visit(node.body);
       visit(node.update);
-      changed = saved.merge(locals);
-      locals = saved;
-    } while (changed);
-    loopLevel--;
-    return inferrer.dynamicType;
+    });
   }
 
   TypeMask visitForIn(ForIn node) {
@@ -2416,15 +2461,9 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     handlePlainAssignment(identifier, variable, selector,
                           inferrer.dynamicType, inferrer.dynamicType,
                           node.expression);
-    loopLevel++;
-    do {
-      LocalsHandler saved = new LocalsHandler.from(locals);
+    return handleLoop(node, () {
       visit(node.body);
-      changed = saved.merge(locals);
-      locals = saved;
-    } while (changed);
-    loopLevel--;
-    return inferrer.dynamicType;
+    });
   }
 
   TypeMask visitTryStatement(TryStatement node) {
@@ -2470,6 +2509,48 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return visit(node.expression);
   }
 
+  TypeMask visitBlock(Block node) {
+    if (node.statements != null) {
+      for (Node statement in node.statements) {
+        visit(statement);
+        if (locals.aborts) break;
+      }
+    }
+    return inferrer.dynamicType;
+  }
+
+  TypeMask visitLabeledStatement(LabeledStatement node) {
+    Statement body = node.statement;
+    if (body is Loop
+        || body is SwitchStatement
+        || Elements.isUnusedLabel(node, elements)) {
+      // Loops and switches handle their own labels.
+      visit(body);
+      return inferrer.dynamicType;
+    }
+
+    TargetElement targetElement = elements[body];
+    setupBreaksAndContinues(targetElement);
+    visit(body);
+    mergeBreaks(targetElement);
+    clearBreaksAndContinues(targetElement);
+    return inferrer.dynamicType;
+  }
+
+  TypeMask visitBreakStatement(BreakStatement node) {
+    TargetElement target = elements[node];
+    breaksFor[target].add(locals);
+    locals.seenBreakOrContinue = true;
+    return inferrer.dynamicType;
+  }
+
+  TypeMask visitContinueStatement(ContinueStatement node) {
+    TargetElement target = elements[node];
+    continuesFor[target].add(locals);
+    locals.seenBreakOrContinue = true;
+    return inferrer.dynamicType;
+  }
+
   void internalError(String reason, {Node node}) {
     compiler.internalError(reason, node: node);
   }
@@ -2477,7 +2558,24 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitSwitchStatement(SwitchStatement node) {
     visit(node.parenthesizedExpression);
 
+    setupBreaksAndContinues(elements[node]);
     if (Elements.switchStatementHasContinue(node, elements)) {
+      void forEachLabeledCase(void action(TargetElement target)) {
+        for (SwitchCase switchCase in node.cases) {
+          for (Node labelOrCase in switchCase.labelsAndCases) {
+            if (labelOrCase.asLabel() == null) continue;
+            LabelElement labelElement = elements[labelOrCase];
+            if (labelElement != null) {
+              action(labelElement.target);
+            }
+          }
+        }
+      }
+
+      forEachLabeledCase((TargetElement target) {
+        setupBreaksAndContinues(target);
+      });
+
       // If the switch statement has a continue, we conservatively
       // visit all cases and update [locals] until we have reached a
       // fixed point.
@@ -2487,10 +2585,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         for (Node switchCase in node.cases) {
           LocalsHandler saved = new LocalsHandler.from(locals);
           visit(switchCase);
-          changed = saved.merge(locals) || changed;
+          changed = saved.merge(locals, discardIfAborts: false) || changed;
           locals = saved;
         }
       } while (changed);
+
+      forEachLabeledCase((TargetElement target) {
+        clearBreaksAndContinues(target);
+      });
     } else {
       LocalsHandler saved = new LocalsHandler.from(locals);
       // If there is a default case, the current values of the local
@@ -2501,17 +2603,17 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
           : new LocalsHandler.from(locals);
 
       for (Node switchCase in node.cases) {
-        locals = saved;
+        locals = new LocalsHandler.from(saved);
         visit(switchCase);
         if (result == null) {
           result = locals;
         } else {
-          result.merge(locals);
+          result.merge(locals, discardIfAborts: false);
         }
       }
-
       locals = result;
     }
+    clearBreaksAndContinues(elements[node]);
     return inferrer.dynamicType;
   }
 }
