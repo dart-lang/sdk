@@ -84,6 +84,7 @@ class ElementX implements Element {
   bool isTypedef() => identical(kind, ElementKind.TYPEDEF);
   bool isTypeVariable() => identical(kind, ElementKind.TYPE_VARIABLE);
   bool isField() => identical(kind, ElementKind.FIELD);
+  bool isFieldParameter() => identical(kind, ElementKind.FIELD_PARAMETER);
   bool isAbstractField() => identical(kind, ElementKind.ABSTRACT_FIELD);
   bool isGetter() => identical(kind, ElementKind.GETTER);
   bool isSetter() => identical(kind, ElementKind.SETTER);

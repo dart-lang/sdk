@@ -376,7 +376,7 @@ class LocalsHandler {
       Element redirect = redirectionMapping[element];
       HInstruction receiver = readLocal(closureData.closureElement);
       HInstruction fieldGet = new HFieldGet(redirect, receiver);
-      fieldGet.instructionType = builder.getTypeOfCapturedVariable(element);
+      fieldGet.instructionType = builder.getTypeOfCapturedVariable(redirect);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -389,7 +389,7 @@ class LocalsHandler {
       assert(redirect.enclosingElement.isVariable());
       HInstruction box = readLocal(redirect.enclosingElement);
       HInstruction lookup = new HFieldGet(redirect, box);
-      lookup.instructionType = builder.getTypeOfCapturedVariable(element);
+      lookup.instructionType = builder.getTypeOfCapturedVariable(redirect);
       builder.add(lookup);
       return lookup;
     } else {
@@ -1014,6 +1014,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       new Map<Element, HType>();
 
   HType getTypeOfCapturedVariable(Element element) {
+    assert(element.isField());
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
       return new HType.inferredTypeForElement(element, compiler);
     });

@@ -198,6 +198,7 @@ abstract class Element implements Spannable {
   bool isTypedef();
   bool isTypeVariable();
   bool isField();
+  bool isFieldParameter();
   bool isAbstractField();
   bool isGetter();
   bool isSetter();

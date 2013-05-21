@@ -67,7 +67,9 @@ class ClosureTask extends CompilerTask {
 // move these classes to elements/modelx.dart or see if we can find a
 // more general solution.
 class ClosureFieldElement extends ElementX {
-  ClosureFieldElement(SourceString name, ClassElement enclosing)
+  ClosureFieldElement(SourceString name,
+                      this.variableElement,
+                      ClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
 
   bool isInstanceMember() => true;
@@ -77,9 +79,16 @@ class ClosureFieldElement extends ElementX {
   bool hasFixedBackendName() => true;
   String fixedBackendName() => name.slowToString();
 
-  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+  DartType computeType(Compiler compiler) {
+    return variableElement.computeType(compiler);
+  }
 
   String toString() => "ClosureFieldElement($name)";
+
+  /**
+   * The source variable this element refers to.
+   */
+  final Element variableElement;
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to
@@ -119,7 +128,7 @@ class ClosureClassElement extends ClassElementX {
   /**
    * The most outer method this closure is declared into.
    */
-  Element methodElement;
+  final Element methodElement;
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to
@@ -128,6 +137,24 @@ class ClosureClassElement extends ClassElementX {
 class BoxElement extends ElementX {
   BoxElement(SourceString name, Element enclosingElement)
       : super(name, ElementKind.VARIABLE, enclosingElement);
+
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+}
+
+// TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
+// move these classes to elements/modelx.dart or see if we can find a
+// more general solution.
+class BoxFieldElement extends ElementX {
+  BoxFieldElement(SourceString name,
+                  this.variableElement,
+                  BoxElement enclosingBox)
+      : super(name, ElementKind.FIELD, enclosingBox);
+
+  DartType computeType(Compiler compiler) {
+    return variableElement.computeType(compiler);
+  }
+
+  final Element variableElement;
 }
 
 // TODO(ahe): These classes continuously cause problems.  We need to
@@ -138,6 +165,8 @@ class ThisElement extends ElementX {
       : super(const SourceString('this'), ElementKind.PARAMETER, enclosing);
 
   bool isAssignable() => false;
+
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
   // Since there is no declaration corresponding to 'this', use the position of
   // the enclosing method.
@@ -151,6 +180,8 @@ class CheckVariableElement extends ElementX {
   Element parameter;
   CheckVariableElement(SourceString name, this.parameter, Element enclosing)
       : super(name, ElementKind.VARIABLE, enclosing);
+
+  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 
   // Since there is no declaration for the synthetic 'check' variable, use
   // parameter.
@@ -228,25 +259,25 @@ class ClosureClassMap {
     return copy != null && !copy.isMember();
   }
 
-  void forEachCapturedVariable(void f(Element element)) {
-    freeVariableMapping.forEach((variable, _) {
+  void forEachCapturedVariable(void f(Element local, Element field)) {
+    freeVariableMapping.forEach((variable, copy) {
       if (variable is BoxElement) return;
-      f(variable);
+      f(variable, copy);
     });
   }
 
-  void forEachBoxedVariable(void f(Element element)) {
+  void forEachBoxedVariable(void f(Element local, Element field)) {
     freeVariableMapping.forEach((variable, copy) {
       if (!isVariableBoxed(variable)) return;
-      f(variable);
+      f(variable, copy);
     });
   }
 
-  void forEachNonBoxedCapturedVariable(void f(Element element)) {
+  void forEachNonBoxedCapturedVariable(void f(Element local, Element field)) {
     freeVariableMapping.forEach((variable, copy) {
       if (variable is BoxElement) return;
       if (isVariableBoxed(variable)) return;
-      f(variable);
+      f(variable, copy);
     });
   }
 }
@@ -344,7 +375,8 @@ class ClosureTranslator extends Visitor {
       assert(closureElement != null ||
              (fieldCaptures.isEmpty && boxes.isEmpty));
       void addElement(Element element, SourceString name) {
-        Element fieldElement = new ClosureFieldElement(name, closureElement);
+        Element fieldElement = new ClosureFieldElement(
+            name, element, closureElement);
         closureElement.addMember(fieldElement, compiler);
         data.capturedFieldMapping[fieldElement] = element;
         freeVariableMapping[element] = fieldElement;
@@ -570,7 +602,7 @@ class ClosureTranslator extends Visitor {
             namer.getClosureVariableName(new SourceString(elementName),
                                          boxedFieldCounter++);
         // TODO(kasperl): Should this be a FieldElement instead?
-        Element boxed = new ElementX(boxedName, ElementKind.FIELD, box);
+        Element boxed = new BoxFieldElement(boxedName, element, box);
         // No need to rename the fields of a box, so we give them a native name
         // right now.
         boxed.setFixedBackendName(boxedName.slowToString());

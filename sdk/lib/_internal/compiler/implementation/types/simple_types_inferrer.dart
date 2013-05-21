@@ -623,6 +623,9 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
 
   bool recordType(Element analyzedElement, TypeMask type) {
     assert(type != null);
+    assert(analyzedElement.isField()
+           || analyzedElement.isParameter()
+           || analyzedElement.isFieldParameter());
     return internalRecordType(analyzedElement, type, typeOf);
   }
 
@@ -1340,7 +1343,7 @@ class ArgumentsTypes {
 class LocalsHandler {
   final InternalSimpleTypesInferrer inferrer;
   final Map<Element, TypeMask> locals;
-  final Set<Element> capturedAndBoxed;
+  final Map<Element, Element> capturedAndBoxed;
   final Map<Element, TypeMask> fieldsInitializedInConstructor;
   final bool inTryBlock;
   bool isThisExposed;
@@ -1353,13 +1356,14 @@ class LocalsHandler {
 
   LocalsHandler(this.inferrer)
       : locals = new Map<Element, TypeMask>(),
-        capturedAndBoxed = new Set<Element>(),
+        capturedAndBoxed = new Map<Element, Element>(),
         fieldsInitializedInConstructor = new Map<Element, TypeMask>(),
         inTryBlock = false,
         isThisExposed = true;
   LocalsHandler.from(LocalsHandler other, {bool inTryBlock: false})
       : locals = new Map<Element, TypeMask>.from(other.locals),
-        capturedAndBoxed = new Set<Element>.from(other.capturedAndBoxed),
+        capturedAndBoxed = new Map<Element, Element>.from(
+            other.capturedAndBoxed),
         fieldsInitializedInConstructor = new Map<Element, TypeMask>.from(
             other.fieldsInitializedInConstructor),
         inTryBlock = other.inTryBlock || inTryBlock,
@@ -1367,8 +1371,8 @@ class LocalsHandler {
         isThisExposed = other.isThisExposed;
 
   TypeMask use(Element local) {
-    if (capturedAndBoxed.contains(local)) {
-      return inferrer.typeOfElement(local);
+    if (capturedAndBoxed.containsKey(local)) {
+      return inferrer.typeOfElement(capturedAndBoxed[local]);
     }
     return locals[local];
   }
@@ -1379,7 +1383,7 @@ class LocalsHandler {
         || inferrer.compiler.enableTypeAssertions) {
       type = inferrer.narrowType(type, local.computeType(inferrer.compiler));
     }
-    if (capturedAndBoxed.contains(local) || inTryBlock) {
+    if (capturedAndBoxed.containsKey(local) || inTryBlock) {
       // If a local is captured and boxed, or is set in a try block,
       // we compute the LUB of its assignments.
       //
@@ -1391,8 +1395,8 @@ class LocalsHandler {
     locals[local] = type;
   }
 
-  void setCapturedAndBoxed(Element local) {
-    capturedAndBoxed.add(local);
+  void setCapturedAndBoxed(Element local, Element field) {
+    capturedAndBoxed[local] = field;
   }
 
   /**
@@ -1405,7 +1409,7 @@ class LocalsHandler {
     // Iterating over a map and just updating its entries is OK.
     locals.forEach((Element local, TypeMask oldType) {
       TypeMask otherType = other.locals[local];
-      bool isCaptured = capturedAndBoxed.contains(local);
+      bool isCaptured = capturedAndBoxed.containsKey(local);
       if (otherType == null) {
         if (!isCaptured) {
           // If [local] is not in the other map and is not captured
@@ -1436,12 +1440,12 @@ class LocalsHandler {
     // Update the locals that are captured and boxed. We
     // unconditionally add them to [this] because we register the type
     // of boxed variables after analyzing all closures.
-    other.capturedAndBoxed.forEach((Element element) {
-      capturedAndBoxed.add(element);
+    other.capturedAndBoxed.forEach((Element local, Element field) {
+      capturedAndBoxed[local] =  field;
       // If [element] is not in our [locals], we need to update it.
       // Otherwise, we have already computed the LUB of it.
-      if (locals[element] == null) {
-        locals[element] = other.locals[element];
+      if (locals[local] == null) {
+        locals[local] = other.locals[local];
       }
     });
 
@@ -1534,14 +1538,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     // Update the locals that are boxed in [locals]. These locals will
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
-    // previous analysis ouf [outermostElement].
+    // previous analysis of [outermostElement].
     ClosureClassMap closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             analyzedElement, node, elements);
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData != null) {
-      scopeData.capturedVariableMapping.forEach((Element variable, _) {
-        locals.setCapturedAndBoxed(variable);
+      scopeData.capturedVariableMapping.forEach((variable, field) {
+        locals.setCapturedAndBoxed(variable, field);
       });
     }
     if (analyzedElement.isField()) {
@@ -1639,8 +1643,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
     if (analyzedElement == outermostElement) {
       bool changed = false;
-      locals.capturedAndBoxed.forEach((Element local) {
-        if (inferrer.recordType(local, locals.locals[local])) {
+      locals.capturedAndBoxed.forEach((Element local, Element field) {
+        if (inferrer.recordType(field, locals.locals[local])) {
           changed = true;
         }
       });
@@ -1709,11 +1713,11 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     // same as [newType].
     ClosureClassMap nestedClosureData =
         compiler.closureToClassMapper.getMappingForNestedFunction(node);
-    nestedClosureData.forEachNonBoxedCapturedVariable((Element variable) {
+    nestedClosureData.forEachNonBoxedCapturedVariable((variable, field) {
       // The type may be null for instance contexts (this and type
       // parameters), as well as captured argument checks.
       if (locals.locals[variable] == null) return;
-      inferrer.recordType(variable, locals.locals[variable]);
+      inferrer.recordType(field, locals.locals[variable]);
     });
 
     return inferrer.functionType;
