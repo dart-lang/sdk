@@ -108,7 +108,7 @@ def ProcessOptions(options, args):
       # We have not yet tweaked the v8 dart build to work with the Android
       # NDK/SDK, so don't try to build it.
       if args == []:
-        print "For android builds you must specify a target, such as 'dart'."
+        print "For android builds you must specify a target, such as 'samples'."
         return False
       if 'v8' in args:
         print "The v8 target is not supported for android builds."
@@ -166,7 +166,7 @@ def SetCrossCompilationEnvironment(host_os, target_os, target_arch, old_path):
 
   os.environ['ANDROID_TOOLCHAIN'] = android_toolchain
 
-  android_sdk_version = 9
+  android_sdk_version = 15
 
   android_sdk_tools = os.path.join(android_sdk_root, 'tools')
   CheckDirExists(android_sdk_tools, 'Android SDK tools')

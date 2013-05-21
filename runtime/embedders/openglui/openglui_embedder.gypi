@@ -50,6 +50,7 @@
               '../../vm/version.h',
               '../../../third_party/android_tools/ndk/sources/android/native_app_glue/android_native_app_glue.h',
               '../../../third_party/android_tools/ndk/sources/android/native_app_glue/android_native_app_glue.c',
+              '../../../third_party/skia/trunk/src/core/SkPaintOptionsAndroid.cpp',
               'android/android_graphics_handler.cc',
               'android/android_graphics_handler.h',
               'android/android_input_handler.h',
@@ -115,6 +116,10 @@
                 '-lgif',
                 '-ljpeg',
                 '-lpng',
+                '-lwebp_dec',
+                '-lwebp_utils',
+                '-lwebp_dsp',
+                '-lwebp_enc',
                 '-lskia_core',
                 '-lskia_effects',
                 '-lskia_gr',
@@ -264,7 +269,8 @@
                 '-lGL',
                 '-lglut',
                 '-lGLU',
-                '-lm'
+                '-lm',
+                '-lwebp'
               ],
             },
             'conditions': [
