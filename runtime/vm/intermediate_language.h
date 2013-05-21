@@ -3710,17 +3710,15 @@ class MaterializeObjectInstr : public Definition {
 };
 
 
-class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
+class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<0> {
  public:
-  AllocateObjectWithBoundsCheckInstr(ConstructorCallNode* node,
-                                     Value* type_arguments,
-                                     Value* instantiator)
+  explicit AllocateObjectWithBoundsCheckInstr(ConstructorCallNode* node)
       : ast_node_(*node) {
-    SetInputAt(0, type_arguments);
-    SetInputAt(1, instantiator);
   }
 
   DECLARE_INSTRUCTION(AllocateObjectWithBoundsCheck)
+
+  virtual intptr_t ArgumentCount() const { return 4; }
 
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }

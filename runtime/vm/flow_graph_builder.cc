@@ -2017,32 +2017,37 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
 
   // In checked mode, if the type arguments are uninstantiated, they may need to
   // be checked against declared bounds at run time.
-  Definition* allocate_comp = NULL;
+  Definition* allocation = NULL;
   if (FLAG_enable_type_checks &&
       requires_type_arguments &&
       !node->type_arguments().IsNull() &&
       !node->type_arguments().IsInstantiated() &&
       node->type_arguments().IsBounded()) {
-    Value* type_arguments = NULL;
-    Value* instantiator = NULL;
-    BuildConstructorTypeArguments(node, &type_arguments, &instantiator, NULL);
+    ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
+        new ZoneGrowableArray<PushArgumentInstr*>(4);
+    // Argument 1: Empty argument slot for return value.
+    Value* null_val = Bind(new ConstantInstr(Object::ZoneHandle()));
+    allocate_arguments->Add(PushArgument(null_val));
+    // Argument 2: Class.
+    Value* cls_val =
+        Bind(new ConstantInstr(Class::ZoneHandle(node->constructor().Owner())));
+    allocate_arguments->Add(PushArgument(cls_val));
+    // Build arguments 3 and 4.
+    BuildConstructorTypeArguments(node, allocate_arguments);
 
     // The uninstantiated type arguments cannot be verified to be within their
     // bounds at compile time, so verify them at runtime.
-    allocate_comp = new AllocateObjectWithBoundsCheckInstr(node,
-                                                           type_arguments,
-                                                           instantiator);
+    allocation = new AllocateObjectWithBoundsCheckInstr(node);
   } else {
     ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
         new ZoneGrowableArray<PushArgumentInstr*>();
-
     if (requires_type_arguments) {
-      BuildConstructorTypeArguments(node, NULL, NULL, allocate_arguments);
+      BuildConstructorTypeArguments(node, allocate_arguments);
     }
 
-    allocate_comp = new AllocateObjectInstr(node, allocate_arguments);
+    allocation = new AllocateObjectInstr(node, allocate_arguments);
   }
-  return Bind(allocate_comp);
+  return Bind(allocation);
 }
 
 
@@ -2249,36 +2254,23 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
 
 void EffectGraphVisitor::BuildConstructorTypeArguments(
     ConstructorCallNode* node,
-    Value** type_arguments,
-    Value** instantiator,
     ZoneGrowableArray<PushArgumentInstr*>* call_arguments) {
   const Class& cls = Class::ZoneHandle(node->constructor().Owner());
   ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
     Value* type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));
-    if (call_arguments != NULL) {
-      ASSERT(type_arguments == NULL);
-      call_arguments->Add(PushArgument(type_arguments_val));
-    } else {
-      ASSERT(type_arguments != NULL);
-      *type_arguments = type_arguments_val;
-    }
+    call_arguments->Add(PushArgument(type_arguments_val));
 
     // No instantiator required.
     Value* instantiator_val = Bind(new ConstantInstr(
         Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
-    if (call_arguments != NULL) {
-      ASSERT(instantiator == NULL);
-      call_arguments->Add(PushArgument(instantiator_val));
-    } else {
-      ASSERT(instantiator != NULL);
-      *instantiator = instantiator_val;
-    }
+    call_arguments->Add(PushArgument(instantiator_val));
     return;
   }
+
   // The type arguments are uninstantiated. We use expression_temp_var to save
-  // the instantiator type arguments becuase they have two uses.
+  // the instantiator type arguments because they have two uses.
   ASSERT(owner()->parsed_function().expression_temp_var() != NULL);
   const LocalVariable& temp = *owner()->parsed_function().expression_temp_var();
   const Class& instantiator_class = Class::Handle(
@@ -2292,44 +2284,39 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
           instantiator_class);
 
   if (!use_instantiator_type_args) {
-    type_arguments_val =
-        Bind(BuildStoreTemp(temp, type_arguments_val));
-    type_arguments_val = Bind(
-        new ExtractConstructorTypeArgumentsInstr(
-            node->token_pos(),
-            node->type_arguments(),
-            instantiator_class,
-            type_arguments_val));
+    const intptr_t len = node->type_arguments().Length();
+    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
+      type_arguments_val =
+          Bind(BuildStoreTemp(temp, type_arguments_val));
+      type_arguments_val = Bind(
+          new ExtractConstructorTypeArgumentsInstr(
+              node->token_pos(),
+              node->type_arguments(),
+              instantiator_class,
+              type_arguments_val));
+    } else {
+      Do(BuildStoreTemp(temp, type_arguments_val));
+      type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));
+    }
   }
-
-  if (call_arguments != NULL) {
-    ASSERT(type_arguments == NULL);
-    call_arguments->Add(PushArgument(type_arguments_val));
-  } else {
-    ASSERT(type_arguments != NULL);
-    *type_arguments = type_arguments_val;
-  }
+  call_arguments->Add(PushArgument(type_arguments_val));
 
   Value* instantiator_val = NULL;
   if (!use_instantiator_type_args) {
     instantiator_val = Bind(BuildLoadLocal(temp));
-    instantiator_val =
-        Bind(new ExtractConstructorInstantiatorInstr(node,
-                                                     instantiator_class,
-                                                     instantiator_val));
+    const intptr_t len = node->type_arguments().Length();
+    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
+      instantiator_val =
+          Bind(new ExtractConstructorInstantiatorInstr(node,
+                                                       instantiator_class,
+                                                       instantiator_val));
+    }
   } else {
     // No instantiator required.
     instantiator_val = Bind(new ConstantInstr(
         Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
   }
-
-  if (call_arguments != NULL) {
-    ASSERT(instantiator == NULL);
-    call_arguments->Add(PushArgument(instantiator_val));
-  } else {
-    ASSERT(instantiator != NULL);
-    *instantiator = instantiator_val;
-  }
+  call_arguments->Add(PushArgument(instantiator_val));
 }
 
 

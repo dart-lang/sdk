@@ -263,8 +263,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // May be called only if allocating an object of a parameterized class.
   void BuildConstructorTypeArguments(
       ConstructorCallNode* node,
-      Value** type_arguments,
-      Value** instantiator,
       ZoneGrowableArray<PushArgumentInstr*>* call_arguments);
 
   void BuildTypecheckPushArguments(
