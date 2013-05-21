@@ -704,8 +704,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
           && (element.isFunction()
               || element.isGetter()
               || element.isFactoryConstructor())) {
-        returnType = narrowType(
-            dynamicType, element.computeType(compiler).returnType);
+        FunctionType functionType = element.computeType(compiler);
+        returnType = narrowType(dynamicType, functionType.returnType);
       } else {
         returnType = dynamicType;
       }
