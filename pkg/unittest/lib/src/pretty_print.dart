@@ -48,13 +48,9 @@ String prettyPrint(object, {int maxLineLength, int maxItems}) {
         return _indent(indent + 2) + string;
       }).join(",\n") + "\n" + _indent(indent) + "]";
     } else if (object is Map) {
-      // TODO(nweiz): This re-assignment is necessary to work around issue
-      // 10721. Remove it when that issue is fixed.
-      var map = object;
-
       // Convert the contents of the map to string representations.
-      var strings = map.keys.map((key) {
-        return '${pp(key)}: ${pp(map[key])}';
+      var strings = object.keys.map((key) {
+        return '${pp(key)}: ${pp(object[key])}';
       }).toList();
 
       // Truncate the list of strings if it's longer than [maxItems].
