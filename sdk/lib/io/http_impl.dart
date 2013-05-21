@@ -1332,7 +1332,7 @@ class _HttpClient implements HttpClient {
 
   void set idleTimeout(Duration timeout) {
     _idleTimeout = timeout;
-    var idle = _idleConnections.values.forEach(
+    _idleConnections.values.forEach(
         (l) => l.forEach((c) {
           // Reset timer. This is fine, as it's not happening often.
           c.stopTimer();
