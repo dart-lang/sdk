@@ -152,7 +152,7 @@ $if DART2JS
     return _requestAnimationFrame(callback);
   }
 
-  void cancelAnimationFrame(id) {
+  void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
     _cancelAnimationFrame(id);
   }
@@ -205,7 +205,7 @@ $if DART2JS
          this, this, this);
 
   @DomName('Window.console')
-  Console get console => Console.safeConsole;
+  Console get console => Console._safeConsole;
 
   /// Checks if _setImmediate is supported.
   static bool get _supportsSetImmediate =>

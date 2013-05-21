@@ -65,7 +65,7 @@ _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
-spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
+spawnDomFunction(Function f) => IsolateNatives.spawnDomFunction(f);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1535,7 +1535,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
       '#.lineDashOffset || #.webkitLineDashOffset', this, this);
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
-  void set lineDashOffset(num value) => JS('void', 
+  void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
 }
@@ -1662,7 +1662,7 @@ class CompositionEvent extends UIEvent native "CompositionEvent" {
 @DomName('Console')
 class Console {
 
-  static Console safeConsole = new Console();
+  static Console _safeConsole = new Console();
 
   bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
@@ -1735,8 +1735,8 @@ class Console {
       JS('void', 'console.time(#)', title) : null;
 
   @DomName('Console.timeEnd')
-  void timeEnd(String timerName) => _isConsoleDefined ?
-      JS('void', 'console.timeEnd(#)', timerName) : null;
+  void timeEnd(String title) => _isConsoleDefined ?
+      JS('void', 'console.timeEnd(#)', title) : null;
 
   @DomName('Console.timeStamp')
   void timeStamp(Object arg) => _isConsoleDefined ?
@@ -7598,11 +7598,11 @@ abstract class Element extends Node implements ElementTraversal native "Element"
    * * [insertAdjacentText]
    * * [insertAdjacentElement]
    */
-  void insertAdjacentHtml(String where, String text) {
+  void insertAdjacentHtml(String where, String html) {
     if (JS('bool', '!!#.insertAdjacentHtml', this)) {
-      _insertAdjacentHtml(where, text);
+      _insertAdjacentHtml(where, html);
     } else {
-      _insertAdjacentNode(where, new DocumentFragment.html(text));
+      _insertAdjacentNode(where, new DocumentFragment.html(html));
     }
   }
 
@@ -20929,9 +20929,9 @@ class Url native "URL" {
          '(self.URL || self.webkitURL).createObjectURL(#)',
          blob_OR_source_OR_stream);
 
-  static void revokeObjectUrl(String objectUrl) =>
+  static void revokeObjectUrl(String url) =>
       JS('void',
-         '(self.URL || self.webkitURL).revokeObjectURL(#)', objectUrl);
+         '(self.URL || self.webkitURL).revokeObjectURL(#)', url);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21642,7 +21642,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
     return _requestAnimationFrame(callback);
   }
 
-  void cancelAnimationFrame(id) {
+  void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
     _cancelAnimationFrame(id);
   }
@@ -21695,7 +21695,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
          this, this, this);
 
   @DomName('Window.console')
-  Console get console => Console.safeConsole;
+  Console get console => Console._safeConsole;
 
   /// Checks if _setImmediate is supported.
   static bool get _supportsSetImmediate =>

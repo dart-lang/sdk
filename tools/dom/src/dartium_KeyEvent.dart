@@ -66,6 +66,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
+  /** Accessor to the clipboardData available for this event. */
+  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;

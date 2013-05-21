@@ -564,11 +564,11 @@ $if DART2JS
    * * [insertAdjacentText]
    * * [insertAdjacentElement]
    */
-  void insertAdjacentHtml(String where, String text) {
+  void insertAdjacentHtml(String where, String html) {
     if (JS('bool', '!!#.insertAdjacentHtml', this)) {
-      _insertAdjacentHtml(where, text);
+      _insertAdjacentHtml(where, html);
     } else {
-      _insertAdjacentNode(where, new DocumentFragment.html(text));
+      _insertAdjacentNode(where, new DocumentFragment.html(html));
     }
   }
 

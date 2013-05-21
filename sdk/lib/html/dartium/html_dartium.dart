@@ -1435,7 +1435,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DocsEditable
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
-  void $dom_drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
+  void _drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
     if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
@@ -1758,13 +1758,13 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void drawImageToRect(CanvasImageSource source, Rect destRect,
       {Rect sourceRect}) {
     if (sourceRect == null) {
-      $dom_drawImage(source,
+      _drawImage(source,
           destRect.left,
           destRect.top,
           destRect.width,
           destRect.height);
     } else {
-      $dom_drawImage(source,
+      _drawImage(source,
           sourceRect.left,
           sourceRect.top,
           sourceRect.width,
@@ -1807,7 +1807,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
    */
   @DomName('CanvasRenderingContext2D.drawImage')
   void drawImage(CanvasImageSource source, num destX, num destY) {
-    $dom_drawImage(source, destX, destY);
+    _drawImage(source, destX, destY);
   }
 
   /**
@@ -1839,7 +1839,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   @DomName('CanvasRenderingContext2D.drawImage')
   void drawImageScaled(CanvasImageSource source,
       num destX, num destY, num destWidth, num destHeight) {
-    $dom_drawImage(source, destX, destY, destWidth, destHeight);
+    _drawImage(source, destX, destY, destWidth, destHeight);
   }
 
   /**
@@ -1875,7 +1875,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void drawImageScaledFromSource(CanvasImageSource source,
       num sourceX, num sourceY, num sourceWidth, num sourceHeight,
       num destX, num destY, num destWidth, num destHeight) {
-    $dom_drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight,
+    _drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight,
         destX, destY, destWidth, destHeight);
   }
 
@@ -23043,11 +23043,11 @@ class WheelEvent extends MouseEvent {
 
   @DomName('WheelEvent.wheelDeltaX')
   @DocsEditable
-  int get $dom_wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
+  int get _wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
 
   @DomName('WheelEvent.wheelDeltaY')
   @DocsEditable
-  int get $dom_wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
+  int get _wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
 
   @DomName('WheelEvent.initWebKitWheelEvent')
   @DocsEditable
@@ -23063,7 +23063,7 @@ class WheelEvent extends MouseEvent {
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
   @DomName('WheelEvent.deltaX')
-  num get deltaX => -$dom_wheelDeltaX;
+  num get deltaX => -_wheelDeltaX;
 
   /**
    * The amount that is expected to scroll vertically, in units determined by
@@ -23074,7 +23074,7 @@ class WheelEvent extends MouseEvent {
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
   @DomName('WheelEvent.deltaY')
-  num get deltaY => -$dom_wheelDeltaY;
+  num get deltaY => -_wheelDeltaY;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29248,6 +29248,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** True if the altGraphKey is pressed during this event. */
   bool get altGraphKey => _parent.altGraphKey;
+  /** Accessor to the clipboardData available for this event. */
+  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;

@@ -230,7 +230,7 @@ $else
    * * [WheelEvent.deltaX](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaX) from the W3C.
    */
   @DomName('WheelEvent.deltaX')
-  num get deltaX => -$dom_wheelDeltaX;
+  num get deltaX => -_wheelDeltaX;
 
   /**
    * The amount that is expected to scroll vertically, in units determined by
@@ -241,6 +241,6 @@ $else
    * * [WheelEvent.deltaY](http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-WheelEvent-deltaY) from the W3C.
    */
   @DomName('WheelEvent.deltaY')
-  num get deltaY => -$dom_wheelDeltaY;
+  num get deltaY => -_wheelDeltaY;
 $endif
 }

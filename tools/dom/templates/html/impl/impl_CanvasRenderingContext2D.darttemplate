@@ -112,13 +112,13 @@ $if DART2JS
     }
 $else
     if (sourceRect == null) {
-      $dom_drawImage(source,
+      _drawImage(source,
           destRect.left,
           destRect.top,
           destRect.width,
           destRect.height);
     } else {
-      $dom_drawImage(source,
+      _drawImage(source,
           sourceRect.left,
           sourceRect.top,
           sourceRect.width,
@@ -166,7 +166,7 @@ $if DART2JS
   void drawImage(CanvasImageSource source, num destX, num destY) native;
 $else
   void drawImage(CanvasImageSource source, num destX, num destY) {
-    $dom_drawImage(source, destX, destY);
+    _drawImage(source, destX, destY);
   }
 $endif
 
@@ -204,7 +204,7 @@ $if DART2JS
 $else
   void drawImageScaled(CanvasImageSource source,
       num destX, num destY, num destWidth, num destHeight) {
-    $dom_drawImage(source, destX, destY, destWidth, destHeight);
+    _drawImage(source, destX, destY, destWidth, destHeight);
   }
 $endif
 
@@ -247,7 +247,7 @@ $else
   void drawImageScaledFromSource(CanvasImageSource source,
       num sourceX, num sourceY, num sourceWidth, num sourceHeight,
       num destX, num destY, num destWidth, num destHeight) {
-    $dom_drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight,
+    _drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight,
         destX, destY, destWidth, destHeight);
   }
 $endif
@@ -258,7 +258,7 @@ $if DART2JS
       '#.lineDashOffset || #.webkitLineDashOffset', this, this);
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
-  void set lineDashOffset(num value) => JS('void', 
+  void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
 $else
