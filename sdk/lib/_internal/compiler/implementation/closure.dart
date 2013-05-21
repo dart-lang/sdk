@@ -114,6 +114,8 @@ class ClosureClassElement extends ClassElementX {
 
   Token position() => node.getBeginToken();
 
+  Node parseNode(DiagnosticListener listener) => node;
+
   /**
    * The most outer method this closure is declared into.
    */

@@ -341,6 +341,8 @@ class MalformedType extends DartType {
     return visitor.visitMalformedType(this, argument);
   }
 
+  bool operator ==(other) => identical(this, other);
+
   String toString() {
     var sb = new StringBuffer();
     if (typeArguments != null) {
@@ -446,8 +448,9 @@ abstract class GenericType extends DartType {
   }
 
   bool operator ==(other) {
-    if (!identical(element, other.element)) return false;
-    return typeArguments == other.typeArguments;
+    if (other is !GenericType) return false;
+    return identical(element, other.element)
+        && typeArguments == other.typeArguments;
   }
 
   bool get isRaw => typeArguments.isEmpty || identical(this, element.rawType);
