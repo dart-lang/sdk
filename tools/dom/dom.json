@@ -3529,7 +3529,10 @@
       "HTMLFormElement": {},
       "acceptCharset": {},
       "action": {},
-      "autocomplete": {},
+      "autocomplete": {
+        "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute",
+        "support_level": "experimental"
+      },
       "checkValidity": {},
       "elements": {},
       "encoding": {},
@@ -5325,6 +5328,9 @@
         "support_level": "untriaged"
       },
       "name": {
+        "support_level": "untriaged"
+      },
+      "ondisconnect": {
         "support_level": "untriaged"
       },
       "removeEventListener": {
@@ -10177,10 +10183,25 @@
       "lang": {
         "support_level": "untriaged"
       },
+      "onboundary": {
+        "support_level": "untriaged"
+      },
+      "onend": {
+        "support_level": "untriaged"
+      },
       "onerror": {
         "support_level": "untriaged"
       },
+      "onmark": {
+        "support_level": "untriaged"
+      },
       "onpause": {
+        "support_level": "untriaged"
+      },
+      "onresume": {
+        "support_level": "untriaged"
+      },
+      "onstart": {
         "support_level": "untriaged"
       },
       "pitch": {

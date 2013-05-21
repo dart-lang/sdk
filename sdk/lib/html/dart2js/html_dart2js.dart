@@ -6110,6 +6110,10 @@ class Document extends Node  native "Document"
   @DocsEditable
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
+  @DomName('Document.securitypolicyviolationEvent')
+  @DocsEditable
+  static const EventStreamProvider<SecurityPolicyViolationEvent> securityPolicyViolationEvent = const EventStreamProvider<SecurityPolicyViolationEvent>('securitypolicyviolation');
+
   @DomName('Document.selectionchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
@@ -6633,6 +6637,10 @@ class Document extends Node  native "Document"
   @DomName('Document.onsearch')
   @DocsEditable
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
+
+  @DomName('Document.onsecuritypolicyviolation')
+  @DocsEditable
+  Stream<SecurityPolicyViolationEvent> get onSecurityPolicyViolation => securityPolicyViolationEvent.forTarget(this);
 
   @DomName('Document.onselect')
   @DocsEditable
@@ -10039,7 +10047,19 @@ class FontLoader extends EventTarget native "FontLoader" {
 
   @DomName('FontLoader.loadEvent')
   @DocsEditable
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+  static const EventStreamProvider<CssFontFaceLoadEvent> loadEvent = const EventStreamProvider<CssFontFaceLoadEvent>('load');
+
+  @DomName('FontLoader.loadingEvent')
+  @DocsEditable
+  static const EventStreamProvider<CssFontFaceLoadEvent> loadingEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loading');
+
+  @DomName('FontLoader.loadingdoneEvent')
+  @DocsEditable
+  static const EventStreamProvider<CssFontFaceLoadEvent> loadingDoneEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loadingdone');
+
+  @DomName('FontLoader.loadstartEvent')
+  @DocsEditable
+  static const EventStreamProvider<CssFontFaceLoadEvent> loadStartEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loadstart');
 
   @DomName('FontLoader.loading')
   @DocsEditable
@@ -10085,7 +10105,19 @@ class FontLoader extends EventTarget native "FontLoader" {
 
   @DomName('FontLoader.onload')
   @DocsEditable
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  Stream<CssFontFaceLoadEvent> get onLoad => loadEvent.forTarget(this);
+
+  @DomName('FontLoader.onloading')
+  @DocsEditable
+  Stream<CssFontFaceLoadEvent> get onLoading => loadingEvent.forTarget(this);
+
+  @DomName('FontLoader.onloadingdone')
+  @DocsEditable
+  Stream<CssFontFaceLoadEvent> get onLoadingDone => loadingDoneEvent.forTarget(this);
+
+  @DomName('FontLoader.onloadstart')
+  @DocsEditable
+  Stream<CssFontFaceLoadEvent> get onLoadStart => loadStartEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10126,6 +10158,14 @@ class FormData native "FormData" {
 @DocsEditable
 @DomName('HTMLFormElement')
 class FormElement extends Element native "HTMLFormElement" {
+
+  @DomName('HTMLFormElement.autocompleteEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> autocompleteEvent = const EventStreamProvider<Event>('autocomplete');
+
+  @DomName('HTMLFormElement.autocompleteerrorEvent')
+  @DocsEditable
+  static const EventStreamProvider<AutocompleteErrorEvent> autocompleteErrorEvent = const EventStreamProvider<AutocompleteErrorEvent>('autocompleteerror');
 
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable
@@ -10186,6 +10226,14 @@ class FormElement extends Element native "HTMLFormElement" {
   @DomName('HTMLFormElement.submit')
   @DocsEditable
   void submit() native;
+
+  @DomName('HTMLFormElement.onautocomplete')
+  @DocsEditable
+  Stream<Event> get onAutocomplete => autocompleteEvent.forTarget(this);
+
+  @DomName('HTMLFormElement.onautocompleteerror')
+  @DocsEditable
+  Stream<AutocompleteErrorEvent> get onAutocompleteError => autocompleteErrorEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14273,6 +14321,10 @@ class MidiMessageEvent extends Event native "MIDIMessageEvent" {
 @DomName('MIDIPort')
 class MidiPort extends EventTarget native "MIDIPort" {
 
+  @DomName('MIDIPort.disconnectEvent')
+  @DocsEditable
+  static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
+
   @DomName('MIDIPort.id')
   @DocsEditable
   final String id;
@@ -14306,6 +14358,10 @@ class MidiPort extends EventTarget native "MIDIPort" {
   @DomName('MIDIPort.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('MIDIPort.ondisconnect')
+  @DocsEditable
+  Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16287,6 +16343,13 @@ class Path native "Path" {
 @SupportedBrowser(SupportedBrowser.IE)
 class Performance extends EventTarget native "Performance" {
 
+  @DomName('Performance.webkitresourcetimingbufferfullEvent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
@@ -16349,6 +16412,10 @@ class Performance extends EventTarget native "Performance" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void setResourceTimingBufferSize(int maxSize) native;
+
+  @DomName('Performance.onwebkitresourcetimingbufferfull')
+  @DocsEditable
+  Stream<Event> get onResourceTimingBufferFull => resourceTimingBufferFullEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18881,13 +18948,33 @@ class SpeechSynthesisEvent extends Event native "SpeechSynthesisEvent" {
 @DomName('SpeechSynthesisUtterance')
 class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUtterance" {
 
+  @DomName('SpeechSynthesisUtterance.boundaryEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> boundaryEvent = const EventStreamProvider<SpeechSynthesisEvent>('boundary');
+
+  @DomName('SpeechSynthesisUtterance.endEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> endEvent = const EventStreamProvider<SpeechSynthesisEvent>('end');
+
   @DomName('SpeechSynthesisUtterance.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DomName('SpeechSynthesisUtterance.markEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> markEvent = const EventStreamProvider<SpeechSynthesisEvent>('mark');
+
   @DomName('SpeechSynthesisUtterance.pauseEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  @DomName('SpeechSynthesisUtterance.resumeEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> resumeEvent = const EventStreamProvider<SpeechSynthesisEvent>('resume');
+
+  @DomName('SpeechSynthesisUtterance.startEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> startEvent = const EventStreamProvider<SpeechSynthesisEvent>('start');
 
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
   @DocsEditable
@@ -18924,13 +19011,33 @@ class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUttera
   @DocsEditable
   num volume;
 
+  @DomName('SpeechSynthesisUtterance.onboundary')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
+
+  @DomName('SpeechSynthesisUtterance.onend')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onEnd => endEvent.forTarget(this);
+
   @DomName('SpeechSynthesisUtterance.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DomName('SpeechSynthesisUtterance.onmark')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onMark => markEvent.forTarget(this);
+
   @DomName('SpeechSynthesisUtterance.onpause')
   @DocsEditable
   Stream<Event> get onPause => pauseEvent.forTarget(this);
+
+  @DomName('SpeechSynthesisUtterance.onresume')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onResume => resumeEvent.forTarget(this);
+
+  @DomName('SpeechSynthesisUtterance.onstart')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onStart => startEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
