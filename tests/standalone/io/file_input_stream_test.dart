@@ -212,9 +212,10 @@ void testInputStreamBadOffset() {
           streamedBytes += d.length;
         },
         onDone: () {
+          temp.delete(recursive: true);
         },
         onError: (e) {
-          temp.delete(recursive: true).then((_) => keepAlive.close());
+          keepAlive.close();
         });
   }
   test(-1, null);
