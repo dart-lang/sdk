@@ -169,6 +169,60 @@ void testInputStreamAppend() {
 }
 
 
+void testInputStreamOffset() {
+  void test(int start, int end, int expectedBytes) {
+    var keepAlive = new ReceivePort();
+    var temp = new Directory('').createTempSync();
+    var file = new File('${temp.path}/input_stream_offset.txt');
+    var originalLength = writeLongFileSync(file);
+    var streamedBytes = 0;
+    if (expectedBytes < 0) expectedBytes = originalLength + expectedBytes;
+    file.openRead(start, end).listen(
+        (d) {
+          streamedBytes += d.length;
+        },
+        onDone: () {
+          Expect.equals(expectedBytes, streamedBytes);
+          temp.delete(recursive: true).then((_) => keepAlive.close());
+        },
+        onError: (e) {
+          Expect.fail("Unexpected error");
+        });
+  }
+  test(10, 20, 10);
+  test(10, 11, 1);
+  test(10, 10, 0);
+  test(100000000, null, 0);
+  test(null, 0, 0);
+  test(null, 1, 1);
+  test(1, null, -1);
+  test(20, null, -20);
+}
+
+
+void testInputStreamBadOffset() {
+  void test(int start, int end) {
+    var keepAlive = new ReceivePort();
+    var temp = new Directory('').createTempSync();
+    var file = new File('${temp.path}/input_stream_bad_offset.txt');
+    var originalLength = writeLongFileSync(file);
+    var streamedBytes = 0;
+    file.openRead(start, end).listen(
+        (d) {
+          streamedBytes += d.length;
+        },
+        onDone: () {
+        },
+        onError: (e) {
+          temp.delete(recursive: true).then((_) => keepAlive.close());
+        });
+  }
+  test(-1, null);
+  test(100, 99);
+  test(null, -1);
+}
+
+
 void testStringLineTransformerEnding(String name, int length) {
   String fileName = getFilename("tests/standalone/io/$name");
   // File contains 10 lines.
@@ -198,6 +252,8 @@ main() {
   testInputStreamTruncate();
   testInputStreamDelete();
   testInputStreamAppend();
+  testInputStreamOffset();
+  testInputStreamBadOffset();
   // Check the length of these files as both are text files where one
   // is without a terminating line separator which can easily be added
   // back if accidentally opened in a text editor.

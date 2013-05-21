@@ -16,6 +16,7 @@ class _FileStream extends Stream<List<int>> {
   String _path;
   RandomAccessFile _openedFile;
   int _position;
+  int _end;
 
   // Has the stream been paused or unsubscribed?
   bool _paused = false;
@@ -27,7 +28,7 @@ class _FileStream extends Stream<List<int>> {
   // Block read but not yet send because stream is paused.
   List<int> _currentBlock;
 
-  _FileStream(String this._path) : _position = 0 {
+  _FileStream(String this._path, this._position, this._end) {
     _setupController();
   }
 
@@ -71,7 +72,14 @@ class _FileStream extends Stream<List<int>> {
     // Don't start a new read if one is already in progress.
     if (_readInProgress) return;
     _readInProgress = true;
-    _openedFile.read(_BLOCK_SIZE)
+    int readBytes = _BLOCK_SIZE;
+    if (_end != null) {
+      readBytes = min(readBytes, _end - _position);
+      if (readBytes < 0) {
+        throw new RangeError("Bad end position: $_end");
+      }
+    }
+    _openedFile.read(readBytes)
       .then((block) {
         _readInProgress = false;
         if (block.length == 0) {
@@ -108,8 +116,16 @@ class _FileStream extends Stream<List<int>> {
     openFuture
       .then((RandomAccessFile opened) {
         _openedFile = opened;
-        _readBlock();
+        if (_position == null) {
+          _position = 0;
+        }
+        if (_position > 0) {
+          return opened.setPosition(_position);
+        } else if (_position < 0) {
+          throw new RangeError("Bad start position: $_position");
+        }
       })
+      .then((_) => _readBlock())
       .catchError((e) {
         _controller.addError(e);
         _controller.close();
@@ -430,8 +446,8 @@ class _File implements File {
     return result;
   }
 
-  Stream<List<int>> openRead() {
-    return new _FileStream(_path);
+  Stream<List<int>> openRead([int start, int end]) {
+    return new _FileStream(_path, start, end);
   }
 
   IOSink openWrite({FileMode mode: FileMode.WRITE,
