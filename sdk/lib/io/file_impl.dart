@@ -76,7 +76,12 @@ class _FileStream extends Stream<List<int>> {
     if (_end != null) {
       readBytes = min(readBytes, _end - _position);
       if (readBytes < 0) {
-        throw new RangeError("Bad end position: $_end");
+        if (!_unsubscribed) {
+          _controller.addError(new RangeError("Bad end position: $_end"));
+          _closeFile().then((_) { _controller.close(); });
+          _unsubscribed = true;
+        }
+        return;
       }
     }
     _openedFile.read(readBytes)
@@ -107,6 +112,13 @@ class _FileStream extends Stream<List<int>> {
   }
 
   void _start() {
+    if (_position == null) {
+      _position = 0;
+    } else if (_position < 0) {
+      _controller.addError(new RangeError("Bad start position: $_position"));
+      _controller.close();
+      return;
+    }
     Future<RandomAccessFile> openFuture;
     if (_path != null) {
       openFuture = new File(_path).open(mode: FileMode.READ);
@@ -116,13 +128,8 @@ class _FileStream extends Stream<List<int>> {
     openFuture
       .then((RandomAccessFile opened) {
         _openedFile = opened;
-        if (_position == null) {
-          _position = 0;
-        }
         if (_position > 0) {
           return opened.setPosition(_position);
-        } else if (_position < 0) {
-          throw new RangeError("Bad start position: $_position");
         }
       })
       .then((_) => _readBlock())
