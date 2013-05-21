@@ -40,6 +40,7 @@ main() {
   group('root dependency', rootDependency);
   group('dev dependency', devDependency);
   group('unsolvable', unsolvable);
+  group('bad source', badSource);
   group('backtracking', backtracking);
   group('SDK constraint', sdkConstraint);
 }
@@ -402,6 +403,55 @@ unsolvable() {
       'a': '1.0.0'
     }
   }, error: couldNotSolve, maxTries: 4);
+}
+
+badSource() {
+  testResolve('fail if the root package has a bad source in dep', {
+    'myapp 0.0.0': {
+      'foo from bad': 'any'
+    },
+  }, error: unknownSource('myapp', 'foo', 'bad'));
+
+  testResolve('fail if the root package has a bad source in dev dep', {
+    'myapp 0.0.0': {
+      '(dev) foo from bad': 'any'
+    },
+  }, error: unknownSource('myapp', 'foo', 'bad'));
+
+  testResolve('fail if all versions have bad source in dep', {
+    'myapp 0.0.0': {
+      'foo': 'any'
+    },
+    'foo 1.0.0': {
+      'bar from bad': 'any'
+    },
+    'foo 1.0.1': {
+      'baz from bad': 'any'
+    },
+    'foo 1.0.3': {
+      'bang from bad': 'any'
+    },
+  }, error: unknownSource('foo', 'bar', 'bad'), maxTries: 3);
+
+  testResolve('ignore versions with bad source in dep', {
+    'myapp 1.0.0': {
+      'foo': 'any'
+    },
+    'foo 1.0.0': {
+      'bar': 'any'
+    },
+    'foo 1.0.1': {
+      'bar from bad': 'any'
+    },
+    'foo 1.0.3': {
+      'bar from bad': 'any'
+    },
+    'bar 1.0.0': {}
+  }, result: {
+    'myapp from root': '1.0.0',
+    'foo': '1.0.0',
+    'bar': '1.0.0'
+  }, maxTries: 3);
 }
 
 backtracking() {
@@ -775,7 +825,7 @@ _testResolve(void testFn(String description, Function body),
           // remote server.
           root = package;
         } else {
-          source.addPackage(name, package);
+          cache.sources[source].addPackage(name, package);
         }
       });
     });
@@ -797,7 +847,7 @@ _testResolve(void testFn(String description, Function body),
       lockfile.forEach((name, version) {
         version = new Version.parse(version);
         realLockFile.packages[name] =
-          new PackageId(name, source1, version, name);
+            new PackageId(name, source1.name, version, name);
       });
     }
 
@@ -856,6 +906,11 @@ FailMatcherBuilder sourceMismatch(String package1, String package2) {
       SourceMismatchException);
 }
 
+unknownSource(String depender, String dependency, String source) {
+  return (maxTries) => new SolveFailMatcher([depender, dependency, source],
+      maxTries, UnknownSourceException);
+}
+
 class SolveSuccessMatcher implements Matcher {
   /// The expected concrete package selections.
   final Map<String, PackageId> _expected;
@@ -877,7 +932,7 @@ class SolveSuccessMatcher implements Matcher {
                                MatchState state, bool verbose) {
     if (!result.succeeded) {
       description.add('Solver failed with:\n${result.error}');
-      return;
+      return null;
     }
 
     description.add('Resolved:\n${_listPackages(result.packages)}\n');
@@ -1033,6 +1088,7 @@ class MockSource extends Source {
         throw new Exception('MockSource does not have a package matching '
             '"$description".');
       }
+
       return _packages[description].keys.toList();
     });
   }
@@ -1098,7 +1154,7 @@ Package mockPackage(String description, String version,
 }
 
 void parseSource(String description,
-    callback(bool isDev, String name, Source source)) {
+    callback(bool isDev, String name, String source)) {
   var isDev = false;
 
   if (description.startsWith("(dev) ")) {
@@ -1107,18 +1163,12 @@ void parseSource(String description,
   }
 
   var name = description;
-  var source = source1;
-
-  var sourceNames = {
-    'mock1': source1,
-    'mock2': source2,
-    'root': null
-  };
-
+  var source = "mock1";
   var match = new RegExp(r"(.*) from (.*)").firstMatch(description);
   if (match != null) {
     name = match[1];
-    source = sourceNames[match[2]];
+    source = match[2];
+    if (source == "root") source = null;
   }
 
   callback(isDev, name, source);

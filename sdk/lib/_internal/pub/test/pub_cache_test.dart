@@ -15,9 +15,9 @@ import 'test_pub.dart';
 
 main() {
   initConfig();
-  
+
   integration('running pub cache displays error message', () {
-    schedulePub(args: ['cache'], 
+    schedulePub(args: ['cache'],
         output: '''
           Inspect the system cache.
 
@@ -26,9 +26,9 @@ main() {
         error: 'The cache command expects one argument.',
         exitCode: 64);
   });
-  
+
   integration('running pub cache foo displays error message', () {
-    schedulePub(args: ['cache' ,'foo'], 
+    schedulePub(args: ['cache' ,'foo'],
         output: '''
           Inspect the system cache.
 
@@ -37,12 +37,12 @@ main() {
         error: 'Unknown cache command "foo".',
         exitCode: 64);
   });
-  
-  integration('running pub cache list when there is no cache', () {      
+
+  integration('running pub cache list when there is no cache', () {
     schedulePub(args: ['cache', 'list'], output: '{"packages":{}}');
   });
-  
-  integration('running pub cache list on empty cache', () {      
+
+  integration('running pub cache list on empty cache', () {
     // Set up a cache.
     d.dir(cachePath, [
       d.dir('hosted', [
@@ -50,10 +50,10 @@ main() {
         ])
       ])
     ]).create();
-    
+
     schedulePub(args: ['cache', 'list'], output: '{"packages":{}}');
   });
-  
+
   integration('running pub cache list', () {
     // Set up a cache.
     d.dir(cachePath, [
@@ -69,11 +69,28 @@ main() {
         ])
       ])
     ]).create();
-    
-    schedulePub(args: ['cache', 'list'], output: 
+
+    schedulePub(args: ['cache', 'list'], output:
       new RegExp(r'\{"packages":\{"bar":\{"version":"2\.0\.0","location":'
           r'"[^"]+bar-2\.0\.0"\},"foo":\{"version":"1\.2\.3","location":'
           r'"[^"]+foo-1\.2\.3"\}\}\}$'));
   });
-  
+
+  integration('includes packages containing deps with bad sources', () {
+    // Set up a cache.
+    d.dir(cachePath, [
+      d.dir('hosted', [
+         d.dir('pub.dartlang.org', [
+          d.dir("foo-1.2.3", [
+            d.libPubspec("foo", "1.2.3", deps: [{"bad": "bar"}]),
+            d.libDir("foo")
+          ])
+        ])
+      ])
+    ]).create();
+
+    schedulePub(args: ['cache', 'list'], output:
+      new RegExp(r'\{"packages":\{"foo":\{"version":"1\.2\.3","location":'
+          r'"[^"]+foo-1\.2\.3"\}\}\}$'));
+  });
 }

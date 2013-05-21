@@ -214,11 +214,9 @@ class Pubspec {
   }
 }
 
-/**
- * Evaluates whether the given [url] for [field] is valid.
- *
- * Throws [FormatException] on an invalid url.
- */
+/// Evaluates whether the given [url] for [field] is valid.
+///
+/// Throws [FormatException] on an invalid url.
 void _validateFieldUrl(url, String field) {
   if (url is! String) {
     throw new FormatException(
@@ -247,14 +245,16 @@ List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,
   }
 
   yaml.forEach((name, spec) {
-    var description, source;
+    var description;
+    var sourceName;
+
     var versionConstraint = new VersionRange();
     if (spec == null) {
       description = name;
-      source = sources.defaultSource;
+      sourceName = sources.defaultSource.name;
     } else if (spec is String) {
       description = name;
-      source = sources.defaultSource;
+      sourceName = sources.defaultSource.name;
       versionConstraint = new VersionConstraint.parse(spec);
     } else if (spec is Map) {
       if (spec.containsKey('version')) {
@@ -267,24 +267,27 @@ List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,
             'Dependency $name may only have one source: $sourceNames.');
       }
 
-      var sourceName = only(sourceNames);
+      sourceName = only(sourceNames);
       if (sourceName is! String) {
         throw new FormatException(
             'Source name $sourceName should be a string.');
       }
 
-      source = sources[sourceName];
       description = spec[sourceName];
     } else {
       throw new FormatException(
           'Dependency specification $spec should be a string or a mapping.');
     }
 
-    description = source.parseDescription(pubspecPath, description,
-        fromLockFile: false);
+    // If we have a valid source, use it to process the description. Allow
+    // unknown sources so pub doesn't choke on old pubspecs.
+    if (sources.contains(sourceName)) {
+      description = sources[sourceName].parseDescription(
+          pubspecPath, description, fromLockFile: false);
+    }
 
     dependencies.add(new PackageDep(
-        name, source, versionConstraint, description));
+        name, sourceName, versionConstraint, description));
   });
 
   return dependencies;

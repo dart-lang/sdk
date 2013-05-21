@@ -70,41 +70,25 @@ class SystemCache {
     sources.register(source);
   }
 
-  /// Gets the package identified by [id]. If the package is already cached,
-  /// reads it from the cache. Otherwise, requests it from the source.
-  Future<Pubspec> describe(PackageId id) {
-    if (id.isRoot) throw new ArgumentError("Cannot describe the root package.");
-
-    // Try to get it from the system cache first.
-    if (id.source.shouldCache) {
-      return id.systemCacheDirectory.then((packageDir) {
-        if (!fileExists(path.join(packageDir, "pubspec.yaml"))) {
-          return id.source.describe(id);
-        }
-
-        return new Pubspec.load(id.name, packageDir, sources);
-      });
-    }
-
-    // Not cached, so get it from the source.
-    return id.source.describe(id);
-  }
-
   /// Ensures that the package identified by [id] is installed to the cache,
   /// loads it, and returns it.
   ///
-  /// It is an error to try installing a package from a source with `shouldCache
-  /// == false` to the system cache.
+  /// It is an error to try installing a package from a source with
+  /// `shouldCache == false` to the system cache.
   Future<Package> install(PackageId id) {
-    if (!id.source.shouldCache) {
+    var source = sources[id.source];
+
+    if (!source.shouldCache) {
       throw new ArgumentError("Package $id is not cacheable.");
     }
 
     var pending = _pendingInstalls[id];
     if (pending != null) return pending;
 
-    var future = id.source.installToSystemCache(id)
-        .whenComplete(() { _pendingInstalls.remove(id); });
+    var future = source.installToSystemCache(id).whenComplete(() {
+      _pendingInstalls.remove(id);
+    });
+
     _pendingInstalls[id] = future;
     return future;
   }

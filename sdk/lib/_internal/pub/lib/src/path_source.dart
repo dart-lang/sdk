@@ -23,7 +23,7 @@ class PathSource extends Source {
   final name = 'path';
   final shouldCache = false;
 
-  Future<Pubspec> describe(PackageId id) {
+  Future<Pubspec> describeUncached(PackageId id) {
     return new Future.sync(() {
       _validatePath(id.name, id.description);
       return new Pubspec.load(id.name, id.description["path"],

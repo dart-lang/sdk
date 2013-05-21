@@ -22,7 +22,7 @@ class DependencyValidator extends Validator {
 
   Future validate() {
     return Future.forEach(entrypoint.root.pubspec.dependencies, (dependency) {
-      if (dependency.source is! HostedSource) {
+      if (dependency.source != "hosted") {
         return _warnAboutSource(dependency);
       }
 
@@ -59,11 +59,11 @@ class DependencyValidator extends Validator {
 
       // Path sources are errors. Other sources are just warnings.
       var messages = warnings;
-      if (dep.source is PathSource) {
+      if (dep.source == "path") {
         messages = errors;
       }
 
-      messages.add('Don\'t depend on "${dep.name}" from the ${dep.source.name} '
+      messages.add('Don\'t depend on "${dep.name}" from the ${dep.source} '
               'source. Use the hosted source instead. For example:\n'
           '\n'
           'dependencies:\n'

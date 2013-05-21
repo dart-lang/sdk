@@ -14,6 +14,7 @@ import '../pubspec.dart';
 import '../source.dart';
 import '../source_registry.dart';
 import '../version.dart';
+import '../utils.dart';
 import 'backtracking_solver.dart';
 
 /// Attempts to select the best concrete versions for all of the transitive
@@ -70,7 +71,11 @@ class SolveResult {
 /// Used to avoid requesting the same pubspec from the server repeatedly.
 class PubspecCache {
   final SourceRegistry _sources;
+
+  /// The already-requested cached version lists.
   final _versions = new Map<PackageRef, List<PackageId>>();
+
+  /// The already-requested cached pubspecs.
   final _pubspecs = new Map<PackageId, Pubspec>();
 
   /// The number of times a version list was requested and it wasn't cached and
@@ -105,10 +110,9 @@ class PubspecCache {
     }
 
     pubspecCacheMisses++;
-    return id.describe().then((pubspec) {
-      log.solver('requested $id pubspec');
 
-      // Cache it.
+    var source = _sources[id.source];
+    return source.describe(id).then((pubspec) {
       _pubspecs[id] = pubspec;
       return pubspec;
     });
@@ -120,6 +124,10 @@ class PubspecCache {
 
   /// Gets the list of versions for [package] in descending order.
   Future<List<PackageId>> getVersions(PackageRef package) {
+    if (package.isRoot) {
+      throw new StateError("Cannot get versions for root package $package.");
+    }
+
     // See if we have it cached.
     var versions = _versions[package];
     if (versions != null) {
@@ -128,11 +136,14 @@ class PubspecCache {
     }
 
     versionCacheMisses++;
-    return package.getVersions().then((ids) {
-      // Sort by descending version so we try newer versions first.
-      ids.sort((a, b) => b.version.compareTo(a.version));
 
-      log.solver('requested $package version list');
+    var source = _sources[package.source];
+    return source.getVersions(package.name, package.description)
+        .then((versions) {
+      // Sort by descending version so we try newer versions first.
+      versions.sort((a, b) => b.compareTo(a));
+
+      var ids = versions.map((version) => package.atVersion(version)).toList();
       _versions[package] = ids;
       return ids;
     });
@@ -153,7 +164,7 @@ class Dependency {
 }
 
 /// Base class for all failures that can occur while trying to resolve versions.
-class SolveFailure implements Exception {
+abstract class SolveFailure implements ApplicationException {
   /// The name of the package whose version could not be solved. Will be `null`
   /// if the failure is not specific to one package.
   final String package;
@@ -270,7 +281,6 @@ class DisjointConstraintException extends SolveFailure {
 /// Exception thrown when two packages with the same name but different sources
 /// are depended upon.
 class SourceMismatchException extends SolveFailure {
-
   SourceMismatchException(String package, Iterable<Dependency> dependencies)
       : super(package, dependencies);
 
@@ -278,6 +288,18 @@ class SourceMismatchException extends SolveFailure {
 
   String _describeDependency(PackageDep dep) =>
       "depends on it from source ${dep.source}";
+}
+
+/// Exception thrown when a dependency on an unknown source name is found.
+class UnknownSourceException extends SolveFailure {
+  UnknownSourceException(String package, Iterable<Dependency> dependencies)
+      : super(package, dependencies);
+
+  String toString() {
+    var dep = only(dependencies);
+    return "Package '${dep.depender}' depends on '${dep.dep.name}' from "
+           "unknown source '${dep.dep.source}'.";
+  }
 }
 
 /// Exception thrown when two packages with the same name and source but

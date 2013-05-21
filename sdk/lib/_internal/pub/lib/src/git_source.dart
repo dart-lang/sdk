@@ -112,12 +112,12 @@ class GitSource extends Source {
     return _revisionAt(id).then((revision) {
       var description = {'url': _getUrl(id), 'ref': _getRef(id)};
       description['resolved-ref'] = revision;
-      return new PackageId(id.name, this, id.version, description);
+      return new PackageId(id.name, name, id.version, description);
     });
   }
 
   // TODO(keertip): Implement getCachedPackages().
-  
+
   /// Ensure that the canonical clone of the repository referred to by [id] (the
   /// one in `<system cache>/git/cache`) exists and is up-to-date. Returns a
   /// future that completes once this is finished and throws an exception if it

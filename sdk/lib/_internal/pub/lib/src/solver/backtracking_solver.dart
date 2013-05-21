@@ -387,6 +387,14 @@ class Traverser {
       // Include dev dependencies of the root package.
       if (id.isRoot) deps.addAll(pubspec.devDependencies);
 
+      // Make sure the package doesn't have any bad dependencies.
+      for (var dep in deps) {
+        if (!dep.isRoot && !_solver.sources.contains(dep.source)) {
+          throw new UnknownSourceException(id.name,
+              [new Dependency(id.name, dep)]);
+        }
+      }
+
       // Given a package dep, returns a future that completes to a pair of the
       // dep and the number of versions available for it.
       getNumVersions(PackageDep dep) {
@@ -433,8 +441,8 @@ class Traverser {
     });
   }
 
-  /// Traverses the references that [depender] depends on, stored in [refs].
-  /// Desctructively modifies [refs]. Completes to a list of packages if the
+  /// Traverses the references that [depender] depends on, stored in [deps].
+  /// Desctructively modifies [deps]. Completes to a list of packages if the
   /// traversal is complete. Completes it to an error if a failure occurred.
   /// Otherwise, recurses.
   Future<List<PackageId>> _traverseDeps(String depender,
@@ -465,7 +473,7 @@ class Traverser {
   }
 
   /// Ensures that dependency [dep] from [depender] is consistent with the
-  /// other dependencies on the same package. Throws a [SolverFailure]
+  /// other dependencies on the same package. Throws a [SolveFailure]
   /// exception if not. Only validates sources and descriptions, not the
   /// version.
   void _validateDependency(PackageDep dep, String depender) {
@@ -474,7 +482,7 @@ class Traverser {
     if (required == null) return;
 
     // Make sure all of the existing sources match the new reference.
-    if (required.dep.source.name != dep.source.name) {
+    if (required.dep.source != dep.source) {
       _solver.logSolve('source mismatch on ${dep.name}: ${required.dep.source} '
                        '!= ${dep.source}');
       throw new SourceMismatchException(dep.name,
@@ -482,7 +490,8 @@ class Traverser {
     }
 
     // Make sure all of the existing descriptions match the new reference.
-    if (!dep.descriptionEquals(required.dep)) {
+    var source = _solver.sources[dep.source];
+    if (!source.descriptionsEqual(dep.description, required.dep.description)) {
       _solver.logSolve('description mismatch on ${dep.name}: '
                        '${required.dep.description} != ${dep.description}');
       throw new DescriptionMismatchException(dep.name,
@@ -492,7 +501,7 @@ class Traverser {
 
   /// Adds the version constraint that [depender] places on [dep] to the
   /// overall constraint that all shared dependencies place on [dep]. Throws a
-  /// [SolverFailure] if that results in an unsolvable constraints.
+  /// [SolveFailure] if that results in an unsolvable constraints.
   ///
   /// Returns the combined [VersionConstraint] that all dependers place on the
   /// package.
@@ -517,7 +526,7 @@ class Traverser {
 
   /// Validates the currently selected package against the new dependency that
   /// [dep] and [constraint] place on it. Returns `null` if there is no
-  /// currently selected package, throws a [SolverFailure] if the new reference
+  /// currently selected package, throws a [SolveFailure] if the new reference
   /// it not does not allow the previously selected version, or returns the
   /// selected package if successful.
   PackageId _validateSelected(PackageDep dep, VersionConstraint constraint) {
@@ -538,7 +547,7 @@ class Traverser {
   /// the solver state so that we can backtrack from this decision if it turns
   /// out wrong, but continues traversing with the new selection.
   ///
-  /// Returns a future that completes with a [SolverFailure] if a version
+  /// Returns a future that completes with a [SolveFailure] if a version
   /// could not be selected or that completes successfully if a package was
   /// selected and traversing should continue.
   Future _selectPackage(PackageDep dep, VersionConstraint constraint) {
@@ -608,8 +617,11 @@ class Traverser {
 
     var required = _getRequired(name);
     if (required != null) {
-      if (package.source.name != required.dep.source.name) return null;
-      if (!package.descriptionEquals(required.dep)) return null;
+      if (package.source != required.dep.source) return null;
+
+      var source = _solver.sources[package.source];
+      if (!source.descriptionsEqual(
+          package.description, required.dep.description)) return null;
     }
 
     return package;
@@ -617,7 +629,7 @@ class Traverser {
 }
 
 /// Ensures that if [pubspec] has an SDK constraint, then it is compatible
-/// with the current SDK. Throws a [SolverFailure] if not.
+/// with the current SDK. Throws a [SolveFailure] if not.
 void _validateSdkConstraint(Pubspec pubspec) {
   // If the user is running a continouous build of the SDK, just disable SDK
   // constraint checking entirely. The actual version number you get is
