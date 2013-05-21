@@ -873,6 +873,12 @@ abstract class HttpClient {
   static const int DEFAULT_HTTP_PORT = 80;
   static const int DEFAULT_HTTPS_PORT = 443;
 
+  /**
+   * Get and set the idle timeout of non-active persistent (keep-alive)
+   * connections. The default value is 15 seconds.
+   */
+  Duration idleTimeout;
+
   factory HttpClient() => new _HttpClient();
 
   /**
