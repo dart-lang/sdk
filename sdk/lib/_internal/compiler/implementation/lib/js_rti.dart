@@ -134,14 +134,27 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
   return checkArguments(substitution, arguments, checks);
 }
 
+String computeTypeName(String isField, List checks) {
+  // Shorten the field name to the class name and append the textual
+  // representation of the type arguments.
+  int prefixLength = JS_OPERATOR_IS_PREFIX().length;
+  return '${isField.substring(prefixLength, isField.length)}'
+         '${joinArguments(checks, 0)}';
+}
+
+Object subtypeCast(Object object, String isField, List checks, String asField) {
+  if (!checkSubtype(object, isField, checks, asField)) {
+    String actualType = Primitives.objectTypeName(object);
+    String typeName = computeTypeName(isField, checks);
+    throw new CastErrorImplementation(object, typeName);
+  }
+  return object;
+}
+
 Object assertSubtype(Object object, String isField, List checks,
                      String asField) {
   if (!checkSubtype(object, isField, checks, asField)) {
-    // Shorten the field name to the class name and append the textual
-    // representation of the type arguments.
-    int prefixLength = JS_OPERATOR_IS_PREFIX().length;
-    String typeName = '${isField.substring(prefixLength, isField.length)}'
-                      '${joinArguments(checks, 0)}';
+    String typeName = computeTypeName(isField, checks);
     throw new TypeErrorImplementation(object, typeName);
   }
   return object;
@@ -210,6 +223,14 @@ bool checkSubtypeOfRuntimeType(Object o, var t) {
     type = o;
   }
   return isSubtype(type, t);
+}
+
+Object subtypeOfRuntimeTypeCast(Object object, var type) {
+  if (!checkSubtypeOfRuntimeType(object, type)) {
+    String actualType = Primitives.objectTypeName(object);
+    throw new CastErrorImplementation(actualType, runtimeTypeToString(type));
+  }
+  return object;
 }
 
 Object assertSubtypeOfRuntimeType(Object object, var type) {

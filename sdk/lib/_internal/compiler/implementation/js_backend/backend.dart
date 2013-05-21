@@ -1713,15 +1713,18 @@ class JavaScriptBackend extends Backend {
               ? const SourceString("interceptedTypeCast")
               : const SourceString('interceptedTypeCheck');
         } else {
-          if (typeCast) {
-            return const SourceString("propertyTypeCast");
-          }
           if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
-            return const SourceString('assertSubtype');
+            return typeCast
+                ? const SourceString('subtypeCast')
+                : const SourceString('assertSubtype');
           } else if (type.kind == TypeKind.TYPE_VARIABLE) {
-            return const SourceString('assertSubtypeOfRuntimeType');
+            return typeCast
+                ? const SourceString('subtypeOfRuntimeTypeCast')
+                : const SourceString('assertSubtypeOfRuntimeType');
           } else {
-            return const SourceString('propertyTypeCheck');
+            return typeCast
+                ? const SourceString('propertyTypeCast')
+                : const SourceString('propertyTypeCheck');
           }
         }
       }

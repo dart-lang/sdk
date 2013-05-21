@@ -1827,14 +1827,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInstruction buildTypeConversion(Compiler compiler, HInstruction original,
-                                   DartType type, int kind) {
+  HInstruction buildTypeConversion(HInstruction original,
+                                   DartType type,
+                                   int kind) {
     if (type == null) return original;
     if (type.kind == TypeKind.INTERFACE && !type.isMalformed && !type.isRaw) {
      HType subtype = new HType.subtype(type, compiler);
-     if (type.isRaw) {
-       return new HTypeConversion(type, kind, subtype, original);
-     }
      HInstruction representations = buildTypeArgumentRepresentations(type);
      add(representations);
      return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
@@ -1852,8 +1850,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction potentiallyCheckType(HInstruction original, DartType type,
       { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (!compiler.enableTypeAssertions) return original;
-    HInstruction other =
-        buildTypeConversion(compiler,  original, type, kind);
+    HInstruction other = buildTypeConversion(original, type, kind);
     if (other != original) add(other);
     return other;
   }
@@ -2798,8 +2795,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Node argument = node.arguments.head;
       TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
       DartType type = elements.getType(typeAnnotation);
-      HInstruction converted = expression.convertType(
-          compiler, type, HTypeConversion.CAST_TYPE_CHECK);
+      HInstruction converted = buildTypeConversion(
+          expression, type, HTypeConversion.CAST_TYPE_CHECK);
       if (converted != expression) add(converted);
       stack.add(converted);
     } else {

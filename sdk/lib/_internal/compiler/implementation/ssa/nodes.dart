@@ -1083,6 +1083,15 @@ abstract class HInstruction implements Spannable {
 
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
     if (type == null) return this;
+    // Only the builder knows how to create [HTypeConversion]
+    // instructions with generics. It has the generic type context
+    // available.
+    assert(type.kind != TypeKind.TYPE_VARIABLE);
+    // TODO(5022): Generic typedefs should not be handled here.
+    assert(type.isRaw
+           || type.isMalformed
+           || type.kind == TypeKind.TYPEDEF
+           || type.kind == TypeKind.FUNCTION);
     if (identical(type.element, compiler.dynamicClass)) return this;
     if (identical(type.element, compiler.objectClass)) return this;
     if (type.isMalformed || type.kind != TypeKind.INTERFACE) {
