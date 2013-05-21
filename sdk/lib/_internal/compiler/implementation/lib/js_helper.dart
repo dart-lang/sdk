@@ -19,7 +19,8 @@ import 'dart:_interceptors' show getInterceptor,
                                  makeDispatchRecord,
                                  setDispatchProperty,
                                  Interceptor,
-                                 JSMutableIndexable;
+                                 JSMutableIndexable,
+                                 JSUnknown;
 import "dart:_collection-dev" as _symbol_dev;
 
 part 'constant_map.dart';
@@ -757,8 +758,13 @@ throwAbstractClassInstantiationError(className) {
 unwrapException(ex) {
   // Note that we are checking if the object has the property. If it
   // has, it could be set to null if the thrown value is null.
+  if (ex == null) return null;
+  if (JS('bool', 'typeof # !== "object"', ex)) return ex;
+
   if (JS('bool', r'"dartException" in #', ex)) {
     return JS('', r'#.dartException', ex);
+  } else if (!JS('bool', r'"message" in #', ex)) {
+    return ex;
   }
 
   // Grab hold of the exception message. This field is available on
@@ -795,7 +801,7 @@ unwrapException(ex) {
           message.endsWith('is null or undefined') ||
           message.endsWith('of undefined') ||
           message.endsWith('of null')) {
-        return new NoSuchMethodError(null, '<unknown>', [], {});
+        return new NoSuchMethodError(null, message, [], {});
       } else if (contains(message, ' has no method ') ||
                  contains(message, ' is not a function') ||
                  (ieErrorCode == 438 && ieFacilityNumber == 10)) {
@@ -805,7 +811,7 @@ unwrapException(ex) {
         // Object doesn't support property or method 'foo' which sets the error
         // code 438 in IE.
         // TODO(kasperl): Compute the right name if possible.
-        return new NoSuchMethodError('', '<unknown>', [], {});
+        return new NoSuchMethodError('', message, [], {});
       }
     }
 
@@ -846,7 +852,13 @@ unwrapException(ex) {
  * exception.
  */
 StackTrace getTraceFromException(exception) {
-  return new _StackTrace(JS("var", r"#.stack", exception));
+  if (exception == null) return null;
+  if (JS('bool', 'typeof # !== "object"', exception)) return null;
+  if (JS('bool', r'"stack" in #', exception)) {
+    return new _StackTrace(JS("var", r"#.stack", exception));
+  } else {
+    return null;
+  }
 }
 
 class _StackTrace implements StackTrace {

@@ -139,6 +139,9 @@ getNativeInterceptor(object) {
   }
 
   record = lookupDispatchRecord(object);
+  if (record == null) {
+    return const JSUnknown();
+  }
   setDispatchProperty(JS('', 'Object.getPrototypeOf(#)', object), record);
   return getNativeInterceptor(object);
 }
@@ -335,6 +338,15 @@ class JSNull extends Interceptor implements Null {
   Type get runtimeType => Null;
 }
 
+class JSUnknown extends Interceptor {
+  const JSUnknown();
+
+  String toString() => JS('String', 'String(#)', this);
+
+  int get hashCode => 0;
+
+  Type get runtimeType => null;
+}
 
 /**
  * The supertype for JSString and JSArray. Used by the backend as to

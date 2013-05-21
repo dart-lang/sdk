@@ -646,6 +646,7 @@ class JavaScriptBackend extends Backend {
   ClassElement jsDoubleClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
+  ClassElement jsUnknownClass;
 
   ClassElement jsIndexableClass;
   ClassElement jsMutableIndexableClass;
@@ -921,7 +922,10 @@ class JavaScriptBackend extends Backend {
       jsFixedArrayClass =
           compiler.findInterceptor(const SourceString('JSFixedArray')),
       jsExtendableArrayClass =
-          compiler.findInterceptor(const SourceString('JSExtendableArray'))];
+          compiler.findInterceptor(const SourceString('JSExtendableArray')),
+      jsUnknownClass =
+          compiler.findInterceptor(const SourceString('JSUnknown')),
+    ];
 
     jsIndexableClass =
         compiler.findInterceptor(const SourceString('JSIndexable'));
@@ -1124,6 +1128,8 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
+    } else if (cls == jsUnknownClass) {
+      addInterceptors(jsUnknownClass, enqueuer, elements);
     } else if (cls.isNative()) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
@@ -1179,6 +1185,9 @@ class JavaScriptBackend extends Backend {
 
   void registerCatchStatement(TreeElements elements) {
     enqueueInResolution(getExceptionUnwrapper(), elements);
+    if (jsUnknownClass != null) {
+      world.registerInstantiatedClass(jsUnknownClass, elements);
+    }
   }
 
   void registerWrapException(TreeElements elements) {
