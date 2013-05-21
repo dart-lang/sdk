@@ -3250,7 +3250,8 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     } else {
       // Not patching a class, but it has been found. This must be one of the
       // pre-registered classes from object.cc or a duplicate definition.
-      if (cls.functions() != Object::empty_array().raw()) {
+      if (!(cls.is_prefinalized() ||
+            RawObject::IsTypedDataViewClassId(cls.id()))) {
         ErrorMsg(classname_pos, "class '%s' is already defined",
                  class_name.ToCString());
       }

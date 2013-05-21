@@ -943,12 +943,14 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float32x4_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Uint32x4(), lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_uint32x4_type(type);
@@ -976,18 +978,21 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Int(), core_lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Double(), core_lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
 
   name = Symbols::New("String");
   cls = Class::New<Instance>(kIllegalCid);
+  cls.set_is_prefinalized();
   RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
@@ -995,6 +1000,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::List(), core_lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   object_store->set_list_class(cls);
 
