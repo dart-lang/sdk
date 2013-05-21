@@ -2283,17 +2283,24 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   const LocalVariable& temp = *owner()->parsed_function().expression_temp_var();
   const Class& instantiator_class = Class::Handle(
       owner()->parsed_function().function().Owner());
-  Value* instantiator_type_arguments = BuildInstantiatorTypeArguments(
+  Value* type_arguments_val = BuildInstantiatorTypeArguments(
       node->token_pos(), instantiator_class, NULL);
-  Value* stored_instantiator =
-      Bind(BuildStoreTemp(temp, instantiator_type_arguments));
 
-  Value* type_arguments_val = Bind(
-      new ExtractConstructorTypeArgumentsInstr(
-          node->token_pos(),
-          node->type_arguments(),
-          instantiator_class,
-          stored_instantiator));
+  const bool use_instantiator_type_args =
+      node->type_arguments().IsUninstantiatedIdentity() ||
+      node->type_arguments().CanShareInstantiatorTypeArguments(
+          instantiator_class);
+
+  if (!use_instantiator_type_args) {
+    type_arguments_val =
+        Bind(BuildStoreTemp(temp, type_arguments_val));
+    type_arguments_val = Bind(
+        new ExtractConstructorTypeArgumentsInstr(
+            node->token_pos(),
+            node->type_arguments(),
+            instantiator_class,
+            type_arguments_val));
+  }
 
   if (call_arguments != NULL) {
     ASSERT(type_arguments == NULL);
@@ -2303,11 +2310,18 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     *type_arguments = type_arguments_val;
   }
 
-  Value* load_instantiator = Bind(BuildLoadLocal(temp));
-  Value* instantiator_val =
-      Bind(new ExtractConstructorInstantiatorInstr(node,
-                                                   instantiator_class,
-                                                   load_instantiator));
+  Value* instantiator_val = NULL;
+  if (!use_instantiator_type_args) {
+    instantiator_val = Bind(BuildLoadLocal(temp));
+    instantiator_val =
+        Bind(new ExtractConstructorInstantiatorInstr(node,
+                                                     instantiator_class,
+                                                     instantiator_val));
+  } else {
+    // No instantiator required.
+    instantiator_val = Bind(new ConstantInstr(
+        Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
+  }
 
   if (call_arguments != NULL) {
     ASSERT(instantiator == NULL);
