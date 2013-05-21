@@ -1564,9 +1564,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             }
             fieldValues[member] = value;
           });
-        },
-        includeBackendMembers: true,
-        includeSuperMembers: false);
+        });
   }
 
 
@@ -1624,8 +1622,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           constructorArguments.add(potentiallyCheckType(
               fieldValues[member], member.computeType(compiler)));
         },
-        includeBackendMembers: true,
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
 
     InterfaceType type = classElement.computeType(compiler);
     HType ssaType = new HType.nonNullExact(type, compiler);
@@ -2487,10 +2484,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.registerInstantiatedClass(
         closureClassElement, work.resolutionTree);
-    assert(!closureClassElement.hasLocalScopeMembers);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureClassElement.forEachBackendMember((Element member) {
+    closureClassElement.forEachMember((_, Element member) {
       // The backendMembers also contains the call method(s). We are only
       // interested in the fields.
       if (member.isField()) {

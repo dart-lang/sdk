@@ -247,7 +247,7 @@ class FlatTypeMask implements TypeMask {
     int bestSize;
     for (ClassElement candidate in candidates) {
       Set<ClassElement> subclasses = useSubclass
-          ? compiler.world.subclasses[candidate]
+          ? compiler.world.subclassesOf(candidate)
           : null;
       int size;
       int kind;
@@ -260,10 +260,10 @@ class FlatTypeMask implements TypeMask {
         // subtype type mask.
         kind = SUBCLASS;
         size = subclasses.length;
-        assert(size <= compiler.world.subtypes[candidate].length);
+        assert(size <= compiler.world.subtypesOf(candidate).length);
       } else {
         kind = SUBTYPE;
-        size = compiler.world.subtypes[candidate].length;
+        size = compiler.world.subtypesOf(candidate).length;
       }
       // Update the best candidate if the new one is better.
       if (bestElement == null || size < bestSize) {
@@ -402,10 +402,10 @@ class FlatTypeMask implements TypeMask {
     if (isExact) {
       return new Set<ClassElement>()..add(element);
     } else if (isSubclass) {
-      return compiler.world.subclasses[element];
+      return compiler.world.subclassesOf(element);
     } else {
       assert(isSubtype);
-      return compiler.world.subtypes[element];
+      return compiler.world.subtypesOf(element);
     }
   }
 
@@ -510,10 +510,10 @@ class FlatTypeMask implements TypeMask {
     if (isExact) {
       return false;
     } else if (isSubtype) {
-      subtypesToCheck = compiler.world.subtypes[cls];
+      subtypesToCheck = compiler.world.subtypesOf(cls);
     } else {
       assert(isSubclass);
-      subtypesToCheck = compiler.world.subclasses[cls];
+      subtypesToCheck = compiler.world.subclassesOf(cls);
     }
 
     return subtypesToCheck != null
@@ -562,14 +562,14 @@ class FlatTypeMask implements TypeMask {
   static bool isSubclassOf(DartType x, DartType y, Compiler compiler) {
     ClassElement xElement = x.element;
     ClassElement yElement = y.element;
-    Set<ClassElement> subclasses = compiler.world.subclasses[yElement];
+    Set<ClassElement> subclasses = compiler.world.subclassesOf(yElement);
     return (subclasses != null) ? subclasses.contains(xElement) : false;
   }
 
   static bool isSubtypeOf(DartType x, DartType y, Compiler compiler) {
     ClassElement xElement = x.element;
     ClassElement yElement = y.element;
-    Set<ClassElement> subtypes = compiler.world.subtypes[yElement];
+    Set<ClassElement> subtypes = compiler.world.subtypesOf(yElement);
     return (subtypes != null) ? subtypes.contains(xElement) : false;
   }
 

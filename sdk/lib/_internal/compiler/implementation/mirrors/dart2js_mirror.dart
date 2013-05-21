@@ -1587,7 +1587,7 @@ class Dart2JsConstructedConstantMirror extends Dart2JsConstantMirror {
           String fieldName = field.name.slowToString();
           _fieldMapCache.putIfAbsent(fieldName, () => _constant.fields[index]);
           index++;
-        }, includeBackendMembers: true, includeSuperMembers: true);
+        }, includeSuperAndInjectedMembers: true);
       }
     }
     return _fieldMapCache;

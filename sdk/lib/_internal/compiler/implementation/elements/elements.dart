@@ -847,11 +847,10 @@ abstract class ClassElement extends TypeDeclarationElement
 
   void forEachMember(void f(ClassElement enclosingClass, Element member),
                      {includeBackendMembers: false,
-                      includeSuperMembers: false});
+                      includeSuperAndInjectedMembers: false});
 
   void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
-                            {includeBackendMembers: false,
-                             includeSuperMembers: false});
+                            {includeSuperAndInjectedMembers: false});
 
   void forEachBackendMember(void f(Element member));
 }

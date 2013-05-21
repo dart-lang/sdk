@@ -345,7 +345,7 @@ class ClosureTranslator extends Visitor {
              (fieldCaptures.isEmpty && boxes.isEmpty));
       void addElement(Element element, SourceString name) {
         Element fieldElement = new ClosureFieldElement(name, closureElement);
-        closureElement.addBackendMember(fieldElement);
+        closureElement.addMember(fieldElement, compiler);
         data.capturedFieldMapping[fieldElement] = element;
         freeVariableMapping[element] = fieldElement;
       }
@@ -660,7 +660,7 @@ class ClosureTranslator extends Visitor {
         new FunctionElementX.from(Compiler.CALL_OPERATOR_NAME,
                                   element,
                                   globalizedElement);
-    globalizedElement.addBackendMember(callElement);
+    globalizedElement.addMember(callElement, compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;

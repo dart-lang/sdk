@@ -1498,6 +1498,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler);
 
   void addBackendMember(Element member) {
+    // TODO(ngeoffray): Deprecate this method.
+    assert(member.isGenerativeConstructorBody());
     backendMembers = backendMembers.prepend(member);
   }
 
@@ -1590,6 +1592,11 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
          current != null;
          current = current.superclass) {
       Element member = current.lookupLocalMember(name);
+      if (member == null && current.isPatched) {
+        // Doing lookups on selectors is done after resolution, so it
+        // is safe to look in the patch class.
+        member = current.patch.lookupLocalMember(name);
+      }
       if (member == null) continue;
       // Private members from a different library are not visible.
       if (isPrivate && !identical(library, member.getLibrary())) continue;
@@ -1715,7 +1722,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * Runs through all members of this class.
    *
    * The enclosing class is passed to the callback. This is useful when
-   * [includeSuperMembers] is [:true:].
+   * [includeSuperAndInjectedMembers] is [:true:].
    *
    * When called on an implementation element both the members in the origin
    * and patch class are included.
@@ -1723,8 +1730,8 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
   // TODO(johnniwinther): Clean up lookup to get rid of the include predicates.
   void forEachMember(void f(ClassElement enclosingClass, Element member),
                      {includeBackendMembers: false,
-                      includeSuperMembers: false}) {
-    bool includeInjectedMembers = isPatch;
+                      includeSuperAndInjectedMembers: false}) {
+    bool includeInjectedMembers = includeSuperAndInjectedMembers || isPatch;
     Set<ClassElement> seen = new Set<ClassElement>();
     ClassElement classElement = declaration;
     do {
@@ -1746,7 +1753,9 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
           });
         }
       }
-      classElement = includeSuperMembers ? classElement.superclass : null;
+      classElement = includeSuperAndInjectedMembers
+          ? classElement.superclass
+          : null;
     } while(classElement != null);
   }
 
@@ -1754,18 +1763,13 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * Runs through all instance-field members of this class.
    *
    * The enclosing class is passed to the callback. This is useful when
-   * [includeSuperMembers] is [:true:].
-   *
-   * When [includeBackendMembers] and [includeSuperMembers] are both [:true:]
-   * then the fields are visited in the same order as they need to be given
-   * to the JavaScript constructor.
+   * [includeSuperAndInjectedMembers] is [:true:].
    *
    * When called on the implementation element both the fields declared in the
    * origin and in the patch are included.
    */
   void forEachInstanceField(void f(ClassElement enclosingClass, Element field),
-                            {includeBackendMembers: false,
-                             includeSuperMembers: false}) {
+                            {includeSuperAndInjectedMembers: false}) {
     // Filters so that [f] is only invoked with instance fields.
     void fieldFilter(ClassElement enclosingClass, Element member) {
       if (member.isInstanceMember() && member.kind == ElementKind.FIELD) {
@@ -1774,8 +1778,7 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
     }
 
     forEachMember(fieldFilter,
-                  includeBackendMembers: includeBackendMembers,
-                  includeSuperMembers: includeSuperMembers);
+        includeSuperAndInjectedMembers: includeSuperAndInjectedMembers);
   }
 
   void forEachBackendMember(void f(Element member)) {

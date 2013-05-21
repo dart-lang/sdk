@@ -2560,8 +2560,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         (ClassElement enclosingClass, Element member) {
           world.addToWorkList(member);
         },
-        includeBackendMembers: false,
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
 
     if (isSymbolConstructor) {
       if (node.isConst()) {

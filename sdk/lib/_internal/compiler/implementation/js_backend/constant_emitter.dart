@@ -269,8 +269,7 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
           }
           emittedArgumentCount++;
         },
-        includeBackendMembers: true,
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
 
     if ((constant.protoValue == null && emittedArgumentCount != 3) ||
         (constant.protoValue != null && emittedArgumentCount != 4)) {

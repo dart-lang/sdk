@@ -863,7 +863,7 @@ class JavaScriptBackend extends Backend {
     if (uses == null) return null;
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      Iterable<ClassElement> subclasses = compiler.world.subclasses[use];
+      Iterable<ClassElement> subclasses = compiler.world.subclassesOf(use);
       if (subclasses != null) {
         for (ClassElement subclass in subclasses) {
           if (subclass.isNative()) {
@@ -1016,7 +1016,7 @@ class JavaScriptBackend extends Backend {
           classesMixedIntoNativeClasses.add(mixinApplication.mixin);
         }
       },
-      includeSuperMembers: true);
+      includeSuperAndInjectedMembers: true);
     }
   }
 
@@ -1032,7 +1032,7 @@ class JavaScriptBackend extends Backend {
               member.name, () => new Set<Element>());
           set.add(member);
         },
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
     }
     enqueuer.registerInstantiatedClass(cls, elements);
   }
@@ -1140,7 +1140,7 @@ class JavaScriptBackend extends Backend {
         if (!member.isInstanceMember() || !member.isField()) return;
         DartType type = member.computeType(compiler);
         enqueuer.registerIsCheck(type, elements);
-      }, includeSuperMembers: true);
+      }, includeSuperAndInjectedMembers: true);
     }
   }
 

@@ -6,32 +6,54 @@ part of dart2js;
 
 class World {
   final Compiler compiler;
-  final Map<ClassElement, Set<MixinApplicationElement>> mixinUses;
-  final Map<ClassElement, Set<ClassElement>> typesImplementedBySubclasses;
   final FullFunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
-  // We keep track of subtype and subclass relationships in four
-  // distinct sets to make class hierarchy analysis faster.
-  final Map<ClassElement, Set<ClassElement>> subclasses =
-      new Map<ClassElement, Set<ClassElement>>();
-  final Map<ClassElement, Set<ClassElement>> superclasses =
-      new Map<ClassElement, Set<ClassElement>>();
-  final Map<ClassElement, Set<ClassElement>> subtypes =
-      new Map<ClassElement, Set<ClassElement>>();
-  final Map<ClassElement, Set<ClassElement>> supertypes =
+  final Map<ClassElement, Set<MixinApplicationElement>> mixinUses =
+      new Map<ClassElement, Set<MixinApplicationElement>>();
+
+  final Map<ClassElement, Set<ClassElement>> _typesImplementedBySubclasses =
       new Map<ClassElement, Set<ClassElement>>();
 
+  // We keep track of subtype and subclass relationships in four
+  // distinct sets to make class hierarchy analysis faster.
+  final Map<ClassElement, Set<ClassElement>> _subclasses =
+      new Map<ClassElement, Set<ClassElement>>();
+  final Map<ClassElement, Set<ClassElement>> _superclasses =
+      new Map<ClassElement, Set<ClassElement>>();
+  final Map<ClassElement, Set<ClassElement>> _subtypes =
+      new Map<ClassElement, Set<ClassElement>>();
+  final Map<ClassElement, Set<ClassElement>> _supertypes =
+      new Map<ClassElement, Set<ClassElement>>();
+
+  Set<ClassElement> subclassesOf(ClassElement cls) {
+    return _subclasses[cls.declaration];
+  }
+
+  Set<ClassElement> subtypesOf(ClassElement cls) {
+    return _subtypes[cls.declaration];
+  }
+
+  Set<ClassElement> superclassesOf(ClassElement cls) {
+    return _superclasses[cls.declaration];
+  }
+
+  Set<ClassElement> supertypesOf(ClassElement cls) {
+    return _supertypes[cls.declaration];
+  }
+
+  Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
+    return _typesImplementedBySubclasses[cls];
+  }
+
   World(Compiler compiler)
-      : mixinUses = new Map<ClassElement, Set<MixinApplicationElement>>(),
-        typesImplementedBySubclasses =
-            new Map<ClassElement, Set<ClassElement>>(),
-        allFunctions = new FullFunctionSet(compiler),
+      : allFunctions = new FullFunctionSet(compiler),
         this.compiler = compiler;
 
   void populate() {
     void addSubtypes(ClassElement cls) {
+      assert(cls.isDeclaration);
       if (cls.resolutionState != STATE_DONE) {
         compiler.internalErrorOnElement(
             cls, 'Class "${cls.name.slowToString()}" is not resolved.');
@@ -39,9 +61,9 @@ class World {
 
       for (DartType type in cls.allSupertypes) {
         Set<Element> supertypesOfClass =
-            supertypes.putIfAbsent(cls, () => new Set<ClassElement>());
+            _supertypes.putIfAbsent(cls, () => new Set<ClassElement>());
         Set<Element> subtypesOfSupertype =
-            subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
+            _subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
         supertypesOfClass.add(type.element);
         subtypesOfSupertype.add(cls);
       }
@@ -51,14 +73,14 @@ class World {
       DartType type = cls.supertype;
       while (type != null) {
         Set<Element> superclassesOfClass =
-            superclasses.putIfAbsent(cls, () => new Set<ClassElement>());
+            _superclasses.putIfAbsent(cls, () => new Set<ClassElement>());
         Set<Element> subclassesOfSuperclass =
-            subclasses.putIfAbsent(type.element, () => new Set<ClassElement>());
+            _subclasses.putIfAbsent(type.element, () => new Set<ClassElement>());
         superclassesOfClass.add(type.element);
         subclassesOfSuperclass.add(cls);
 
         Set<Element> typesImplementedBySubclassesOfCls =
-            typesImplementedBySubclasses.putIfAbsent(
+            _typesImplementedBySubclasses.putIfAbsent(
                 type.element, () => new Set<ClassElement>());
         for (DartType current in cls.allSupertypes) {
           typesImplementedBySubclassesOfCls.add(current.element);
@@ -76,9 +98,9 @@ class World {
   }
 
   Iterable<ClassElement> commonSupertypesOf(ClassElement x, ClassElement y) {
-    Set<ClassElement> xSet = supertypes[x];
+    Set<ClassElement> xSet = supertypesOf(x);
     if (xSet == null) return const <ClassElement>[];
-    Set<ClassElement> ySet = supertypes[y];
+    Set<ClassElement> ySet = supertypesOf(y);
     if (ySet == null) return const <ClassElement>[];
     Set<ClassElement> smallSet, largeSet;
     if (xSet.length <= ySet.length) {
@@ -93,6 +115,8 @@ class World {
 
   void registerMixinUse(MixinApplicationElement mixinApplication,
                         ClassElement mixin) {
+    // We don't support patch classes as mixin.
+    assert(mixin.isDeclaration);
     Set<MixinApplicationElement> users =
         mixinUses.putIfAbsent(mixin, () =>
                               new Set<MixinApplicationElement>());
@@ -105,12 +129,12 @@ class World {
   }
 
   bool hasAnySubclass(ClassElement cls) {
-    Set<ClassElement> classes = subclasses[cls];
+    Set<ClassElement> classes = subclassesOf(cls);
     return classes != null && !classes.isEmpty;
   }
 
   bool hasAnySubtype(ClassElement cls) {
-    Set<ClassElement> classes = subtypes[cls];
+    Set<ClassElement> classes = subtypesOf(cls);
     return classes != null && !classes.isEmpty;
   }
 
@@ -124,7 +148,7 @@ class World {
 
   // Returns whether a subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, DartType type) {
-    Set<ClassElement> subclasses = typesImplementedBySubclasses[superclass];
+    Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
     if (subclasses == null) return false;
     return subclasses.contains(type.element);
   }

@@ -59,7 +59,7 @@ class FullFunctionSetNode extends FunctionSetNode {
     ClassElement single = classes[0];
     // Return true if the single class in our list does not have a
     // single instantiated subclass.
-    Set<ClassElement> subtypes = compiler.world.subtypes[single];
+    Set<ClassElement> subtypes = compiler.world.subtypesOf(single);
     return subtypes == null
         || subtypes.every((ClassElement each) => !each.isSubclassOf(single));
   }

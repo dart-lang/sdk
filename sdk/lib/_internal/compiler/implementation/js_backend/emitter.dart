@@ -1197,8 +1197,7 @@ class CodeEmitterTask extends CompilerTask {
 
     classElement.implementation.forEachMember(
         visitMember,
-        includeBackendMembers: true,
-        includeSuperMembers: false);
+        includeBackendMembers: true);
 
     if (identical(classElement, compiler.objectClass)
         && compiler.enabledNoSuchMethod) {
@@ -1349,8 +1348,7 @@ class CodeEmitterTask extends CompilerTask {
     // superclasses for non-instantiated classes.
     classElement.implementation.forEachInstanceField(
         visitField,
-        includeBackendMembers: true,
-        includeSuperMembers: isInstantiated);
+        includeSuperAndInjectedMembers: isInstantiated);
   }
 
   void generateGetter(Element member, String fieldName, String accessorName,
