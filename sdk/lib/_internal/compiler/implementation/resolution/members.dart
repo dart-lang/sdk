@@ -876,7 +876,7 @@ class ResolverTask extends CompilerTask {
     // TODO(johnniwinther): Store the mapping in the resolution enqueuer.
     element.mapping = mapping;
     return compiler.withCurrentElement(element, () {
-      measure(() {
+      return measure(() {
         Typedef node =
           compiler.parser.measure(() => element.parseNode(compiler));
         TypedefResolverVisitor visitor =
@@ -2201,6 +2201,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
         compiler.backend.registerClassUsingVariableExpression(cls);
         compiler.backend.registerTypeVariableExpression(mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
+        // Set the type of the node to [Type] to mark this send as a
+        // type literal.
+        mapping.setType(node, compiler.typeClass.computeType(compiler));
+        world.registerInstantiatedClass(compiler.typeClass, mapping);
         compiler.backend.registerTypeLiteral(mapping);
       }
     }

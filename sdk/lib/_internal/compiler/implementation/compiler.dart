@@ -1027,7 +1027,6 @@ abstract class Compiler implements DiagnosticListener {
     if (message is TypeWarning) {
       // TODO(ahe): Don't supress these warning when the type checker
       // is more complete.
-      if (identical(message.message.kind, MessageKind.NOT_ASSIGNABLE)) return;
       if (identical(message.message.kind, MessageKind.MISSING_RETURN)) return;
       if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) {
         return;
