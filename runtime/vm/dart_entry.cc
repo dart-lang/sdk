@@ -176,17 +176,17 @@ bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
 
 
 intptr_t ArgumentsDescriptor::count_offset() {
-  return Array::data_offset() + (kCountIndex * kWordSize);
+  return Array::element_offset(kCountIndex);
 }
 
 
 intptr_t ArgumentsDescriptor::positional_count_offset() {
-  return Array::data_offset() + (kPositionalCountIndex * kWordSize);
+  return Array::element_offset(kPositionalCountIndex);
 }
 
 
 intptr_t ArgumentsDescriptor::first_named_entry_offset() {
-  return Array::data_offset() + (kFirstNamedEntryIndex * kWordSize);
+  return Array::element_offset(kFirstNamedEntryIndex);
 }
 
 

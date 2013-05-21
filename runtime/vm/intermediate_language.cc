@@ -1396,55 +1396,12 @@ Instruction* CheckEitherNonSmiInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-// Shared code generation methods (EmitNativeCode, MakeLocationSummary, and
-// PrepareEntry). Only assembly code that can be shared across all architectures
-// can be used. Machine specific register allocation and code generation
-// is located in intermediate_language_<arch>.cc
+// Shared code generation methods (EmitNativeCode and
+// MakeLocationSummary). Only assembly code that can be shared across all
+// architectures can be used. Machine specific register allocation and code
+// generation is located in intermediate_language_<arch>.cc
 
 #define __ compiler->assembler()->
-
-void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  // Nothing to do.
-}
-
-
-void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   deopt_id_,
-                                   Scanner::kDummyTokenIndex);
-  }
-  __ Bind(compiler->GetJumpLabel(this));
-  if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
-  }
-}
-
-
-void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  if (!compiler->is_optimizing()) {
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   deopt_id_,
-                                   Scanner::kDummyTokenIndex);
-  }
-  __ Bind(compiler->GetJumpLabel(this));
-  if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
-  }
-}
-
-
-void CatchBlockEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
-  __ Bind(compiler->GetJumpLabel(this));
-  compiler->AddExceptionHandler(catch_try_index(),
-                                try_index(),
-                                compiler->assembler()->CodeSize(),
-                                catch_handler_types_);
-  if (HasParallelMove()) {
-    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
-  }
-}
-
 
 LocationSummary* GraphEntryInstr::MakeLocationSummary() const {
   UNREACHABLE();
@@ -1453,7 +1410,7 @@ LocationSummary* GraphEntryInstr::MakeLocationSummary() const {
 
 
 void GraphEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  // Nothing to do.
 }
 
 
@@ -1464,7 +1421,15 @@ LocationSummary* JoinEntryInstr::MakeLocationSummary() const {
 
 
 void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kDummyTokenIndex);
+  }
+  __ Bind(compiler->GetJumpLabel(this));
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
 }
 
 
@@ -1475,7 +1440,15 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary() const {
 
 
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  if (!compiler->is_optimizing()) {
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id_,
+                                   Scanner::kDummyTokenIndex);
+  }
+  __ Bind(compiler->GetJumpLabel(this));
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
 }
 
 
@@ -1486,7 +1459,14 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary() const {
 
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNREACHABLE();
+  __ Bind(compiler->GetJumpLabel(this));
+  compiler->AddExceptionHandler(catch_try_index(),
+                                try_index(),
+                                compiler->assembler()->CodeSize(),
+                                catch_handler_types_);
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
 }
 
 

@@ -1405,9 +1405,9 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t num_temps =  0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary =
-      new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, ShouldEmitStoreBarrier()
                        ? Location::WritableRegister()
@@ -2640,9 +2640,9 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Add deoptimization descriptor for deoptimizing instructions
-  // that may be inserted before this instruction.
   if (!compiler->is_optimizing()) {
+    // Add deoptimization descriptor for deoptimizing instructions that may
+    // be inserted before this instruction.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    0);  // No token position.

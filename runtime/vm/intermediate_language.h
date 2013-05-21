@@ -1070,7 +1070,6 @@ class BlockEntryInstr : public Instruction {
 
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
-  virtual void PrepareEntry(FlowGraphCompiler* compiler) = 0;
 
   intptr_t preorder_number() const { return preorder_number_; }
   void set_preorder_number(intptr_t number) { preorder_number_ = number; }
@@ -1292,8 +1291,6 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   CatchBlockEntryInstr* GetCatchEntry(intptr_t index);
 
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
-
   GrowableArray<Definition*>* initial_definitions() {
     return &initial_definitions_;
   }
@@ -1358,8 +1355,6 @@ class JoinEntryInstr : public BlockEntryInstr {
   intptr_t IndexOfPredecessor(BlockEntryInstr* pred) const;
 
   ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
-
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   void InsertPhi(intptr_t var_index, intptr_t var_count);
   void RemoveDeadPhis(Definition* replacement);
@@ -1429,8 +1424,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     return predecessor_;
   }
 
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
-
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
@@ -1477,8 +1470,6 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   GrowableArray<Definition*>* initial_definitions() {
     return &initial_definitions_;
   }
-
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   virtual void PrintTo(BufferFormatter* f) const;
 
