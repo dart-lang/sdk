@@ -18,6 +18,7 @@
 #include "vm/constants_arm.h"
 #include "vm/disassembler.h"
 #include "vm/native_arguments.h"
+#include "vm/stack_frame.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -112,6 +113,13 @@ class SimulatorDebugger {
   bool GetValue(char* desc, uint32_t* value);
   bool GetFValue(char* desc, float* value);
   bool GetDValue(char* desc, double* value);
+
+  void PrintDartFrame(uword pc, uword fp, uword sp,
+                      const Function& function,
+                      intptr_t token_pos,
+                      bool is_optimized,
+                      bool is_inlined);
+  void PrintBacktrace();
 
   // Set or delete a breakpoint. Returns true if successful.
   bool SetBreakpoint(Instr* breakpc);
@@ -254,6 +262,79 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
 }
 
 
+void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
+                                       const Function& function,
+                                       intptr_t token_pos,
+                                       bool is_optimized,
+                                       bool is_inlined) {
+  const Script& script = Script::Handle(function.script());
+  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& url = String::Handle(script.url());
+  intptr_t line = -1;
+  intptr_t column = -1;
+  if (token_pos >= 0) {
+    script.GetTokenLocation(token_pos, &line, &column);
+  }
+  OS::Print("pc=0x%"Px" fp=0x%"Px" sp=0x%"Px" %s%s (%s:%d:%d)\n",
+            pc, fp, sp,
+            is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
+            func_name.ToCString(),
+            url.ToCString(),
+            line, column);
+}
+
+
+void SimulatorDebugger::PrintBacktrace() {
+  StackFrameIterator frames(sim_->get_register(FP),
+                            sim_->get_register(SP),
+                            sim_->get_pc(),
+                            StackFrameIterator::kDontValidateFrames);
+  StackFrame* frame = frames.NextFrame();
+  ASSERT(frame != NULL);
+  Function& function = Function::Handle();
+  Function& inlined_function = Function::Handle();
+  Code& code = Code::Handle();
+  Code& unoptimized_code = Code::Handle();
+  while (frame != NULL) {
+    if (frame->IsDartFrame()) {
+      code = frame->LookupDartCode();
+      function = code.function();
+      if (code.is_optimized()) {
+        // For optimized frames, extract all the inlined functions if any
+        // into the stack trace.
+        InlinedFunctionsIterator it(frame);
+        while (!it.Done()) {
+          // Print each inlined frame with its pc in the corresponding
+          // unoptimized frame.
+          inlined_function = it.function();
+          unoptimized_code = it.code();
+          uword unoptimized_pc = it.pc();
+          it.Advance();
+          if (!it.Done()) {
+            PrintDartFrame(unoptimized_pc, frame->fp(), frame->sp(),
+                           inlined_function,
+                           unoptimized_code.GetTokenIndexOfPC(unoptimized_pc),
+                           true, true);
+          }
+        }
+        // Print the optimized inlining frame below.
+      }
+      PrintDartFrame(frame->pc(), frame->fp(), frame->sp(),
+                     function,
+                     code.GetTokenIndexOfPC(frame->pc()),
+                     code.is_optimized(), false);
+    } else {
+      OS::Print("pc=0x%"Px" fp=0x%"Px" sp=0x%"Px" %s frame\n",
+                frame->pc(), frame->fp(), frame->sp(),
+                frame->IsEntryFrame() ? "entry" :
+                    frame->IsExitFrame() ? "exit" :
+                        frame->IsStubFrame() ? "stub" : "invalid");
+    }
+    frame = frames.NextFrame();
+  }
+}
+
+
 bool SimulatorDebugger::SetBreakpoint(Instr* breakpc) {
   // Check if a breakpoint can be set. If not return without any side-effects.
   if (sim_->break_pc_ != NULL) {
@@ -350,6 +431,8 @@ void SimulatorDebugger::Debug() {
                   "pd/printdouble <dreg or *addr> -- print double value\n"
                   "po/printobject <*reg or *addr> -- print object\n"
                   "si/stepi -- single step an instruction\n"
+                  "trace -- toggle execution tracing mode\n"
+                  "bt -- print backtrace\n"
                   "unstop -- if current pc is a stop instr make it a nop\n"
                   "q/quit -- Quit the debugger and exit the program\n");
       } else if ((strcmp(cmd, "quit") == 0) || (strcmp(cmd, "q") == 0)) {
@@ -481,6 +564,11 @@ void SimulatorDebugger::Debug() {
         } else {
           OS::Print("Not at debugger stop.\n");
         }
+      } else if (strcmp(cmd, "trace") == 0) {
+        FLAG_trace_sim = !FLAG_trace_sim;
+        OS::Print("execution tracing %s\n", FLAG_trace_sim ? "on" : "off");
+      } else if (strcmp(cmd, "bt") == 0) {
+        PrintBacktrace();
       } else {
         OS::Print("Unknown command: %s\n", cmd);
       }
