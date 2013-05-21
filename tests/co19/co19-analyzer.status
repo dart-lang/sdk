@@ -62,17 +62,8 @@ Language/11_Expressions/03_Numbers_A01_t03: fail
 Language/11_Expressions/03_Numbers_A01_t04: fail
 Language/11_Expressions/03_Numbers_A01_t08: fail
 Language/11_Expressions/03_Numbers_A01_t10: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t03: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t09: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t11: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t14: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t15: fail
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: fail
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: fail
-Language/11_Expressions/05_Strings_A02_t34: fail
-Language/11_Expressions/05_Strings_A02_t36: fail
-Language/11_Expressions/05_Strings_A02_t42: fail
-Language/11_Expressions/05_Strings_A02_t44: fail
 Language/11_Expressions/05_Strings_A02_t46: fail
 Language/11_Expressions/05_Strings_A02_t48: fail
 Language/11_Expressions/06_Lists_A03_t01: fail
