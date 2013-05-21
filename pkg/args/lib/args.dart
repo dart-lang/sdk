@@ -169,16 +169,45 @@
  * option passed to the command. You can add a command like so:
  *
  *     var parser = new ArgParser();
- *     var command = parser.addCommand("commit");
+ *     var command = parser.addCommand('commit');
+ *
+ * It returns another [ArgParser] which you can then use to define options
+ * specific to that command. If you already have an [ArgParser] for the
+ * command's options, you can pass it to [addCommand]:
+ *
+ *     var parser = new ArgParser();
+ *     var command = new ArgParser();
+ *     parser.addCommand('commit', command);
+ *
+ * The [ArgParser] for a command can then define whatever options or flags:
+ *
  *     command.addFlag('all', abbr: 'a');
  *
- * It returns another [ArgParser] which you can use to define options and
- * subcommands on that command. When an argument list is parsed, you can then
- * determine which command was entered and what options were provided for it.
+ * You can add multiple commands to the same parser so that a user can select
+ * one from a range of possible commands. When an argument list is parsed,
+ * you can then determine which command was entered and what options were
+ * provided for it.
  *
  *     var results = parser.parse(['commit', '-a']);
  *     print(results.command.name); // "commit"
  *     print(results.command['a']); // true
+ *
+ * Options for a command must appear after the command in the argument list.
+ * For example, given the above parser, "git -a commit" is *not* valid. The
+ * parser will try to find the right-most command that accepts an option. For
+ * example:
+ *
+ *     var parser = new ArgParser();
+ *     parser.addFlag('all', abbr: 'a');
+ *     var command = new ArgParser().addCommand('commit');
+ *     parser.addFlag('all', abbr: 'a');
+ *     var results = parser.parse(['commit', '-a']);
+ *     print(results.command['a']); // true
+ *
+ * Here, both the top-level parser and the "commit" command can accept a "-a"
+ * (which is probably a bad command line interface, admittedly). In that case,
+ * when "-a" appears after "commit", it will be applied to that command. If it
+ * appears to the left of "commit", it will be given to the top-level parser.
  *
  * ## Displaying usage ##
  *
@@ -248,19 +277,21 @@ class ArgParser {
   ArgParser();
 
   /**
-   * Defines a command. A command is a named argument which may in turn
-   * define its own options and subcommands. Returns an [ArgParser] that can
-   * be used to define the command's options.
+   * Defines a command.
+   *
+   * A command is a named argument which may in turn define its own options and
+   * subcommands using the given parser. If [parser] is omitted, implicitly
+   * creates a new one. Returns the parser for the command.
    */
-  ArgParser addCommand(String name) {
+  ArgParser addCommand(String name, [ArgParser parser]) {
     // Make sure the name isn't in use.
     if (commands.containsKey(name)) {
       throw new ArgumentError('Duplicate command "$name".');
     }
 
-    var command = new ArgParser();
-    commands[name] = command;
-    return command;
+    if (parser == null) parser = new ArgParser();
+    commands[name] = parser;
+    return parser;
   }
 
   /**
