@@ -7,7 +7,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # This file is a modified copy of Chromium's src/net/third_party/nss/ssl.gyp.
-# Revision 169195 (this should agree with "nss_rev" in DEPS).
+# Revision 199075 (this should agree with "nss_rev" in DEPS).
 
 # The following modification was made to make sure we have the same
 # xcode_settings on all configurations (otherwise we can't build with ninja):
@@ -96,8 +96,8 @@
         '<(ssl_directory)/ssl/os2_err.h',
       ],
       'defines': [
+        'NO_PKCS11_BYPASS',
         'NSS_ENABLE_ECC',
-        'NSS_ENABLE_ZLIB',
         'USE_UTIL_DIRECTLY',
       ],
       'defines!': [
@@ -124,8 +124,25 @@
         ],
         # Dart: End of copy of code from bodge conditions section.
       },
-      'msvs_disabled_warnings': [4018, 4244],
+      'msvs_disabled_warnings': [4018, 4244, 4267],
       'conditions': [
+        ['component == "shared_library"', {
+          'conditions': [
+            ['OS == "mac" or OS == "ios"', {
+              'xcode_settings': {
+                'GCC_SYMBOLS_PRIVATE_EXTERN': 'NO',
+              },
+            }],
+            ['OS == "win"', {
+              'sources': [
+                'ssl/exports_win.def',
+              ],
+            }],
+            ['os_posix == 1 and OS != "mac" and OS != "ios"', {
+              'cflags!': ['-fvisibility=hidden'],
+            }],
+          ],
+        }],
         [ 'clang == 1', {
           'cflags': [
             # See http://crbug.com/138571#c8. In short, sslsecur.c picks up the
@@ -147,6 +164,13 @@
             'DARWIN',
             'XP_MACOSX',
           ],
+        }],
+        [ 'OS == "mac"', {
+          'link_settings': {
+            'libraries': [
+              '$(SDKROOT)/System/Library/Frameworks/Security.framework',
+            ],
+          },
         }],
         [ 'OS == "win"', {
             'sources!': [
