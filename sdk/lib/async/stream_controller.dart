@@ -50,11 +50,6 @@ class StreamController<T> extends EventSink<T> {
   final _StreamImpl<T> stream;
 
   /**
-   *
-   * If the stream is canceled before the controller needs new data the
-   * [onResume] call might not be executed.
-      : stream = new _MultiControllerStream<T>(
-            onListen, onPause, onResume, onCancel);
    * A controller with a [stream] that supports only one single subscriber.
    *
    * The controller will buffer all incoming events until the subscriber is
