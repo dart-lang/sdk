@@ -607,7 +607,6 @@ compile_time_constant8_test: fail
 compile_time_constant_arguments_test/01: fail
 compile_time_constant_arguments_test/02: fail
 compile_time_constant_arguments_test/03: fail
-compile_time_constant_arguments_test/04: fail
 compile_time_constant_arguments_test/05: fail
 compile_time_constant_arguments_test/06: fail
 compile_time_constant_b_test: fail
@@ -716,7 +715,6 @@ mixin_type_parameters_errors_test/04: fail
 mixin_type_parameters_errors_test/05: fail
 named_parameters2_test: fail
 named_parameters_aggregated_test/03: fail
-named_parameters_aggregated_test/04: fail
 named_parameters_aggregated_test/05: fail
 new_expression_type_args_test/00: fail
 new_expression_type_args_test/01: fail
