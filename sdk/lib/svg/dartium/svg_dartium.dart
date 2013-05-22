@@ -6110,7 +6110,7 @@ class SvgElement extends Element {
     return _cssClassSet;
   }
 
-  List<Element> get children => new FilteredElementList(this);
+  List<Element> get children => new FilteredElementList<Element>(this);
 
   void set children(List<Element> value) {
     final children = this.children;

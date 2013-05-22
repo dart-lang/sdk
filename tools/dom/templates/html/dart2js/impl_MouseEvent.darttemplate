@@ -64,13 +64,12 @@ $!MEMBERS
       return new Point(x, y);
     } else {
       // Firefox does not support offsetX.
-      var target = this.target;
-      if (!(target is Element)) {
+      if (!(this.target is Element)) {
         throw new UnsupportedError(
             'offsetX is only supported on elements');
       }
-      return (this.client -
-          this.target.getBoundingClientRect().topLeft).toInt();
+      Element target = this.target;
+      return (this.client - target.getBoundingClientRect().topLeft).toInt();
     }
   }
 

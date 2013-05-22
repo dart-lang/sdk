@@ -7668,7 +7668,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
     throw new UnsupportedError("Not supported on this platform");
   }
 
-  @Creates('Null')
+  @Creates('Null') // Set from Dart code; does not instantiate a native type.
   Map<String, StreamSubscription> _attributeBindings;
 
   // TODO(jmesserly): I'm concerned about adding these to every element.
@@ -14624,13 +14624,12 @@ class MouseEvent extends UIEvent native "MouseEvent" {
       return new Point(x, y);
     } else {
       // Firefox does not support offsetX.
-      var target = this.target;
-      if (!(target is Element)) {
+      if (!(this.target is Element)) {
         throw new UnsupportedError(
             'offsetX is only supported on elements');
       }
-      return (this.client -
-          this.target.getBoundingClientRect().topLeft).toInt();
+      Element target = this.target;
+      return (this.client - target.getBoundingClientRect().topLeft).toInt();
     }
   }
 
@@ -15183,11 +15182,12 @@ class _ChildNodeListLazy extends ListBase<Node> {
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      if (!identical(iterable._this, _this)) {
+      _ChildNodeListLazy otherList = iterable;
+      if (!identical(otherList._this, _this)) {
         // Optimized route for copying between nodes.
-        for (var i = 0, len = iterable.length; i < len; ++i) {
+        for (var i = 0, len = otherList.length; i < len; ++i) {
           // Should use $dom_firstChild, Bug 8886.
-          _this.append(iterable[0]);
+          _this.append(otherList[0]);
         }
       }
       return;
@@ -24557,16 +24557,16 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
   }
 
-  bool get _paused => _pauseCount > 0;
+  bool get isPaused => _pauseCount > 0;
 
   void resume() {
-    if (_canceled || !_paused) return;
+    if (_canceled || !isPaused) return;
     --_pauseCount;
     _tryResume();
   }
 
   void _tryResume() {
-    if (_onData != null && !_paused) {
+    if (_onData != null && !isPaused) {
       _target.$dom_addEventListener(_eventType, _onData, _useCapture);
     }
   }
@@ -24690,7 +24690,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24702,7 +24702,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<E> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -26774,7 +26774,7 @@ class _Bindings {
   }
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-  static Document _getTemplateContentsOwner(Document doc) {
+  static Document _getTemplateContentsOwner(HtmlDocument doc) {
     if (doc.window == null) {
       return doc;
     }
@@ -26852,7 +26852,7 @@ class _Bindings {
     // template.
     // TODO(jmesserly): node is DocumentFragment or Element
     var descendents = (node as dynamic).queryAll(_allTemplatesSelectors);
-    if (node is Element && node.isTemplate) bootstrap(node);
+    if (node is Element && (node as Element).isTemplate) bootstrap(node);
 
     descendents.forEach(bootstrap);
   }
@@ -27006,7 +27006,7 @@ class _Bindings {
 
   static void _removeChild(Node parent, Node child) {
     child._templateInstance = null;
-    if (child is Element && child.isTemplate) {
+    if (child is Element && (child as Element).isTemplate) {
       // Make sure we stop observing when we remove an element.
       var templateIterator = child._templateIterator;
       if (templateIterator != null) {
@@ -27841,7 +27841,7 @@ class _WrappedList<E> extends ListBase<E> {
 
   void add(E element) { _list.add(element); }
 
-  void remove(Object element) { _list.remove(element); }
+  bool remove(Object element) => _list.remove(element);
 
   void clear() { _list.clear(); }
 
@@ -27976,8 +27976,14 @@ EventTarget _convertNativeToDart_EventTarget(e) {
   // Assume it's a Window if it contains the setInterval property.  It may be
   // from a different frame - without a patched prototype - so we cannot
   // rely on Dart type checking.
-  if (JS('bool', r'"setInterval" in #', e))
-    return _DOMWindowCrossFrame._createSafe(e);
+  if (JS('bool', r'"setInterval" in #', e)) {
+    var window = _DOMWindowCrossFrame._createSafe(e);
+    // If it's a native window.
+    if (window is EventTarget) {
+      return window;
+    }
+    return null;
+  }
   else
     return e;
 }

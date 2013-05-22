@@ -23,7 +23,7 @@ class _WrappedList<E> extends ListBase<E> {
 
   void add(E element) { _list.add(element); }
 
-  void remove(Object element) { _list.remove(element); }
+  bool remove(Object element) => _list.remove(element);
 
   void clear() { _list.clear(); }
 

@@ -636,7 +636,9 @@ $if DART2JS
 $else
 $endif
 
-  @Creates('Null')
+$if DART2JS
+  @Creates('Null') // Set from Dart code; does not instantiate a native type.
+$endif
   Map<String, StreamSubscription> _attributeBindings;
 
   // TODO(jmesserly): I'm concerned about adding these to every element.
