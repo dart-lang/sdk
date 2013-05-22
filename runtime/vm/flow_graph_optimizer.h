@@ -267,6 +267,11 @@ class ConstantPropagator : public FlowGraphVisitor {
     return !IsNonConstant(value) && !IsUnknown(value);
   }
 
+  void HandleBinaryOp(Definition* instr,
+                      Token::Kind op_kind,
+                      const Value& left,
+                      const Value& right);
+
   virtual void VisitBlocks() { UNREACHABLE(); }
 
 #define DECLARE_VISIT(type) virtual void Visit##type(type##Instr* instr);

@@ -2377,8 +2377,7 @@ class ConstraintInstr : public TemplateDefinition<2> {
 
 class ConstantInstr : public TemplateDefinition<0> {
  public:
-  explicit ConstantInstr(const Object& value)
-      : value_(value) { }
+  explicit ConstantInstr(const Object& value);
 
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;

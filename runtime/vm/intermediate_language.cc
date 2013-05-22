@@ -4,6 +4,7 @@
 
 #include "vm/intermediate_language.h"
 
+#include "vm/bigint_operations.h"
 #include "vm/bit_vector.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_allocator.h"
@@ -201,6 +202,16 @@ bool LoadIndexedInstr::AttributesEqual(Instruction* other) const {
   LoadIndexedInstr* other_load = other->AsLoadIndexed();
   ASSERT(other_load != NULL);
   return class_id() == other_load->class_id();
+}
+
+
+ConstantInstr::ConstantInstr(const Object& value) : value_(value) {
+  // Check that the value is not an incorrect Integer representation.
+  ASSERT(!value.IsBigint() ||
+         !BigintOperations::FitsIntoSmi(Bigint::Cast(value)));
+  ASSERT(!value.IsBigint() ||
+         !BigintOperations::FitsIntoInt64(Bigint::Cast(value)));
+  ASSERT(!value.IsMint() || !Smi::IsValid64(Mint::Cast(value).AsInt64Value()));
 }
 
 

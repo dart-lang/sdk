@@ -5338,50 +5338,67 @@ void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
+void ConstantPropagator::HandleBinaryOp(Definition* instr,
+                                        Token::Kind op_kind,
+                                        const Value& left_val,
+                                        const Value& right_val) {
+  const Object& left = left_val.definition()->constant_value();
+  const Object& right = right_val.definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
+    // TODO(srdjan): Add arithemtic simplifications, e.g, add with 0.
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    if (left.IsSmi() && right.IsSmi()) {
-      const Smi& left_smi = Smi::Cast(left);
-      const Smi& right_smi = Smi::Cast(right);
-      switch (instr->op_kind()) {
+    if (left.IsInteger() && right.IsInteger()) {
+      const Integer& left_int = Integer::Cast(left);
+      const Integer& right_int = Integer::Cast(right);
+      switch (op_kind) {
         case Token::kADD:
         case Token::kSUB:
         case Token::kMUL:
         case Token::kTRUNCDIV:
         case Token::kMOD: {
-          const Object& result = Integer::ZoneHandle(
-              left_smi.ArithmeticOp(instr->op_kind(), right_smi));
+          Instance& result = Integer::ZoneHandle(
+              left_int.ArithmeticOp(op_kind, right_int));
+          result = result.Canonicalize();
           SetValue(instr, result);
           break;
         }
         case Token::kSHL:
-        case Token::kSHR: {
-          const Object& result = Integer::ZoneHandle(
-              left_smi.ShiftOp(instr->op_kind(), right_smi));
-          SetValue(instr, result);
+        case Token::kSHR:
+          if (left.IsSmi() && right.IsSmi()) {
+            Instance& result = Integer::ZoneHandle(
+                Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
+            result = result.Canonicalize();
+            SetValue(instr, result);
+          } else {
+            SetValue(instr, non_constant_);
+          }
           break;
-        }
         case Token::kBIT_AND:
         case Token::kBIT_OR:
         case Token::kBIT_XOR: {
-          const Object& result = Integer::ZoneHandle(
-              left_smi.BitOp(instr->op_kind(), right_smi));
+          Instance& result = Integer::ZoneHandle(
+              left_int.BitOp(op_kind, right_int));
+          result = result.Canonicalize();
           SetValue(instr, result);
           break;
         }
-        default:
-          // TODO(kmillikin): support other smi operations.
+        case Token::kDIV:
           SetValue(instr, non_constant_);
+          break;
+        default:
+          UNREACHABLE();
       }
     } else {
       // TODO(kmillikin): support other types.
       SetValue(instr, non_constant_);
     }
   }
+}
+
+
+void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
@@ -5399,15 +5416,13 @@ void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
 
 void ConstantPropagator::VisitBinaryMintOp(
     BinaryMintOpInstr* instr) {
-  // TODO(kmillikin): Handle binary operations.
-  SetValue(instr, non_constant_);
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
 void ConstantPropagator::VisitShiftMintOp(
     ShiftMintOpInstr* instr) {
-  // TODO(kmillikin): Handle shift operations.
-  SetValue(instr, non_constant_);
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
