@@ -37,6 +37,7 @@ abstract class HVisitor<R> {
   R visitInvokeDynamicSetter(HInvokeDynamicSetter node);
   R visitInvokeStatic(HInvokeStatic node);
   R visitInvokeSuper(HInvokeSuper node);
+  R visitInvokeConstructorBody(HInvokeConstructorBody node);
   R visitIs(HIs node);
   R visitLazyStatic(HLazyStatic node);
   R visitLess(HLess node);
@@ -303,6 +304,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInterceptor(HInterceptor node) => visitInstruction(node);
   visitInvokeClosure(HInvokeClosure node)
       => visitInvokeDynamic(node);
+  visitInvokeConstructorBody(HInvokeConstructorBody node)
+      => visitInvokeStatic(node);
   visitInvokeDynamicMethod(HInvokeDynamicMethod node)
       => visitInvokeDynamic(node);
   visitInvokeDynamicGetter(HInvokeDynamicGetter node)
@@ -310,7 +313,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitInvokeDynamicSetter(HInvokeDynamicSetter node)
       => visitInvokeDynamicField(node);
   visitInvokeStatic(HInvokeStatic node) => visitInvoke(node);
-  visitInvokeSuper(HInvokeSuper node) => visitInvoke(node);
+  visitInvokeSuper(HInvokeSuper node) => visitInvokeStatic(node);
   visitJump(HJump node) => visitControlFlow(node);
   visitLazyStatic(HLazyStatic node) => visitInstruction(node);
   visitLess(HLess node) => visitRelational(node);
@@ -1406,6 +1409,14 @@ class HInvokeSuper extends HInvokeStatic {
     // Index 0: 'this'.
     return inputs[1];
   }
+}
+
+class HInvokeConstructorBody extends HInvokeStatic {
+  HInvokeConstructorBody(element, inputs)
+      : super(element, inputs, HType.UNKNOWN);
+
+  String toString() => 'invoke constructor body: ${element.name}';
+  accept(HVisitor visitor) => visitor.visitInvokeConstructorBody(this);
 }
 
 abstract class HFieldAccess extends HInstruction {

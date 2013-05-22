@@ -1487,32 +1487,26 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     Element target = node.element;
 
-    if (target != null) {
-      // Avoid adding the generative constructor name to the list of
-      // seen selectors.
-      if (target.isGenerativeConstructorBody()) {
-        methodName = name.slowToString();
-      } else if (!node.isInterceptedCall) {
-        if (target == backend.jsArrayAdd) {
-          methodName = 'push';
-        } else if (target == backend.jsArrayRemoveLast) {
-          methodName = 'pop';
-        } else if (target == backend.jsStringSplit) {
-          methodName = 'split';
-          // Split returns a List, so we make sure the backend knows the
-          // list class is instantiated.
-          world.registerInstantiatedClass(
-              compiler.listClass, work.resolutionTree);
-        } else if (target == backend.jsStringConcat) {
-          push(new js.Binary('+', object, arguments[0]), node);
-          return;
-        } else if (target.isNative() && target.isFunction()
-                   && !node.isInterceptedCall) {
-          // A direct (i.e. non-interceptor) native call is the result of
-          // optimization.  The optimization ensures any type checks or
-          // conversions have been satisified.
-          methodName = target.fixedBackendName();
-        }
+    if (target != null && !node.isInterceptedCall) {
+      if (target == backend.jsArrayAdd) {
+        methodName = 'push';
+      } else if (target == backend.jsArrayRemoveLast) {
+        methodName = 'pop';
+      } else if (target == backend.jsStringSplit) {
+        methodName = 'split';
+        // Split returns a List, so we make sure the backend knows the
+        // list class is instantiated.
+        world.registerInstantiatedClass(
+            compiler.listClass, work.resolutionTree);
+      } else if (target == backend.jsStringConcat) {
+        push(new js.Binary('+', object, arguments[0]), node);
+        return;
+      } else if (target.isNative() && target.isFunction()
+                 && !node.isInterceptedCall) {
+        // A direct (i.e. non-interceptor) native call is the result of
+        // optimization.  The optimization ensures any type checks or
+        // conversions have been satisified.
+        methodName = target.fixedBackendName();
       }
     }
 
@@ -1520,6 +1514,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       methodName = backend.namer.invocationName(node.selector);
       registerMethodInvoke(node);
     }
+    push(jsPropertyCall(object, methodName, arguments), node);
+  }
+
+  void visitInvokeConstructorBody(HInvokeConstructorBody node) {
+    use(node.inputs[0]);
+    js.Expression object = pop();
+    String methodName = backend.namer.getName(node.element);
+    List<js.Expression> arguments = visitArguments(node.inputs);
     push(jsPropertyCall(object, methodName, arguments), node);
   }
 

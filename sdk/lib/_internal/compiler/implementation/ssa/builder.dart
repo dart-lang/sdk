@@ -1694,20 +1694,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
       }
 
-      // TODO(ahe): The constructor name is statically resolved. See
-      // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner
-      // way to do this?
-      SourceString name =
-          new SourceString(backend.namer.getName(body.declaration));
-      // TODO(kasperl): This seems fishy. We shouldn't be inventing all
-      // these selectors. Maybe the resolver can do more of the work
-      // for us here?
-      LibraryElement library = body.getLibrary();
-      Selector selector = new Selector.call(
-          name, library, bodyCallInputs.length - 1);
-      HInvokeDynamic invoke =
-          new HInvokeDynamicMethod(selector, bodyCallInputs);
-      invoke.element = body;
+      HInvokeConstructorBody invoke =
+          new HInvokeConstructorBody(body, bodyCallInputs);
+      invoke.sideEffects = compiler.world.getSideEffectsOfElement(constructor);
       add(invoke);
     }
     closeAndGotoExit(new HReturn(newObject));

@@ -206,6 +206,13 @@ class World {
   }
 
   SideEffects getSideEffectsOfElement(Element element) {
+    // The type inferrer (where the side effects are being computed),
+    // does not see generative constructor bodies because they are
+    // created by the backend. Also, it does not make any distinction
+    // between a constructor and its body for side effects. This
+    // implies that currently, the side effects of a constructor body
+    // contain the side effects of the initializers.
+    assert(!element.isGenerativeConstructorBody());
     return sideEffects.putIfAbsent(element.declaration, () {
       return new SideEffects();
     });
