@@ -32,9 +32,7 @@ const Map<String,List<String>> WHITE_LIST = const {
              'Warning: unreachable code', // Issue 10617.
              // Issue 10688:
              'Warning: no property named',
-             'Warning: WindowBase is not assignable to EventTarget',
              "Warning: 'UnsupportedError' is not callable",
-             "Warning: no method named getBoundingClientRect",
              "Warning: no operator [] in class Iterable"],
 };
 
