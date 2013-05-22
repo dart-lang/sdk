@@ -514,9 +514,7 @@ class DartiumBackend(HtmlDartGenerator):
       self._EmitNativeIndexSetter(dart_element_type)
 
   def _HasNativeIndexGetter(self):
-    ext_attrs = self._interface.ext_attrs
-    return ('CustomIndexedGetter' in ext_attrs or
-        'NumericIndexedGetter' in ext_attrs)
+    return 'CustomIndexedGetter' in self._interface.ext_attrs
 
   def _EmitNativeIndexGetter(self, element_type):
     dart_declaration = '%s operator[](int index)' % \
