@@ -1689,7 +1689,8 @@ class JavaScriptBackend extends Backend {
             ? const SourceString("stringSuperTypeCast")
             : const SourceString('stringSuperTypeCheck');
       }
-    } else if (element == compiler.listClass || element == jsArrayClass) {
+    } else if ((element == compiler.listClass || element == jsArrayClass) &&
+               type.isRaw) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? const SourceString("listTypeCast")

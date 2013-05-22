@@ -2830,7 +2830,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return new HIs(type, <HInstruction>[expression, call],
                      HIs.VARIABLE_CHECK);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
-      Element element = type.element;
+      ClassElement element = type.element;
       Element helper = backend.getCheckSubtype();
       HInstruction representations =
           buildTypeArgumentRepresentations(type);
@@ -2838,10 +2838,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       String operator =
           backend.namer.operatorIs(backend.getImplementationClass(element));
       HInstruction isFieldName = addConstantString(node, operator);
-      // TODO(karlklose): use [:null:] for [asField] if [element] does not
-      // have a subclass.
-      HInstruction asFieldName =
-          addConstantString(node, backend.namer.substitutionName(element));
+      HInstruction asFieldName = compiler.world.hasAnySubtype(element)
+          ? addConstantString(node, backend.namer.substitutionName(element))
+          : graph.addConstantNull(constantSystem);
       List<HInstruction> inputs = <HInstruction>[expression,
                                                  isFieldName,
                                                  representations,
