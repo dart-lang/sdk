@@ -200,12 +200,40 @@ class _StringBase {
       native "StringBase_substringUnchecked";
 
   // Checks for one-byte whitespaces only.
-  // TODO(srdjan): Investigate if 0x85 (NEL) and 0xA0 (NBSP) are valid
-  // whitespaces for one byte strings.
   static bool _isOneByteWhitespace(int codePoint) {
     return
       (codePoint == 32) || // Space.
-      ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
+      ((9 <= codePoint) && (codePoint <= 13)) || // CR, LF, TAB, etc.
+      (codePoint == 0x85) ||  // NEL
+      (codePoint == 0xA0);  // NBSP
+  }
+
+  // Characters with Whitespace property (Unicode 6.2).
+  // 0009..000D    ; White_Space # Cc       <control-0009>..<control-000D>
+  // 0020          ; White_Space # Zs       SPACE
+  // 0085          ; White_Space # Cc       <control-0085>
+  // 00A0          ; White_Space # Zs       NO-BREAK SPACE
+  // 1680          ; White_Space # Zs       OGHAM SPACE MARK
+  // 180E          ; White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
+  // 2000..200A    ; White_Space # Zs       EN QUAD..HAIR SPACE
+  // 2028          ; White_Space # Zl       LINE SEPARATOR
+  // 2029          ; White_Space # Zp       PARAGRAPH SEPARATOR
+  // 202F          ; White_Space # Zs       NARROW NO-BREAK SPACE
+  // 205F          ; White_Space # Zs       MEDIUM MATHEMATICAL SPACE
+  // 3000          ; White_Space # Zs       IDEOGRAPHIC SPACE
+  //
+  // BOM: 0xFEFF
+  static bool _isTwoByteWhitespace(int codePoint) {
+    if (codePoint < 256) return _isOneByteWhitespace(codePoint);
+    return (codePoint == 0x1680) ||
+        (codePoint == 0x180E) ||
+        ((0x2000 <= codePoint) && (codePoint <= 0x200A)) ||
+        (codePoint == 0x2028) ||
+        (codePoint == 0x2029) ||
+        (codePoint == 0x202F) ||
+        (codePoint == 0x205F) ||
+        (codePoint == 0x3000) ||
+        (codePoint == 0xFEFF);
   }
 
   String trim() {
@@ -573,8 +601,7 @@ class _TwoByteString extends _StringBase implements String {
   }
 
   bool _isWhitespace(int codePoint) {
-    // For now we only check for one byte white space characters.
-    return _StringBase._isOneByteWhitespace(codePoint);
+    return _StringBase._isTwoByteWhitespace(codePoint);
   }
 }
 
@@ -598,8 +625,7 @@ class _ExternalTwoByteString extends _StringBase implements String {
   }
 
   bool _isWhitespace(int codePoint) {
-    // For now we only check for one byte white space characters.
-    return _StringBase._isOneByteWhitespace(codePoint);
+    return _StringBase._isTwoByteWhitespace(codePoint);
   }
 }
 
