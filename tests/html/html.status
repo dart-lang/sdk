@@ -28,9 +28,6 @@ async_test: Pass, Fail # timers test fails on ie10.
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
 
-[ $compiler == dart2js && ( $runtime == ff ) ]
-worker_api_test: Fail # Requires Firefox 21.
-
 [ $compiler == dart2js && $runtime == safari ]
 url_test: Fail # Issue 10096
 
@@ -317,7 +314,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Firefox do
 # All changes should be accompanied by platform support annotation changes.
 audiobuffersourcenode_test/supported: Fail
 audiocontext_test/supported: Fail
-crypto_test/supported: Fail
 css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
