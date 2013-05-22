@@ -79,9 +79,11 @@ String constructorNameFallback(object) {
   if (object == null) return 'Null';
   var constructor = JS('var', "#.constructor", object);
   if (identical(JS('String', "typeof(#)", constructor), 'function')) {
+    var name = JS('var', r'#.builtin$cls', constructor);
+    if (name != null) return name;
     // The constructor isn't null or undefined at this point. Try
     // to grab hold of its name.
-    var name = JS('var', '#.name', constructor);
+    name = JS('var', '#.name', constructor);
     // If the name is a non-empty string, we use that as the type
     // name of this object. On Firefox, we often get 'Object' as
     // the constructor name even for more specialized objects so

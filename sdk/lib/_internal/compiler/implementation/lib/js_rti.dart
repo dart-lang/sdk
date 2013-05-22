@@ -134,12 +134,12 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
   return checkArguments(substitution, arguments, checks);
 }
 
-String computeTypeName(String isField, List checks) {
+String computeTypeName(String isField, List arguments) {
   // Shorten the field name to the class name and append the textual
   // representation of the type arguments.
   int prefixLength = JS_OPERATOR_IS_PREFIX().length;
-  return '${isField.substring(prefixLength, isField.length)}'
-         '${joinArguments(checks, 0)}';
+  return Primitives.formatType(isField.substring(prefixLength, isField.length),
+                               arguments);
 }
 
 Object subtypeCast(Object object, String isField, List checks, String asField) {

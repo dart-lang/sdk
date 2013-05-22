@@ -295,6 +295,13 @@ class Primitives {
   /** [: r"$".codeUnitAt(0) :] */
   static const int DOLLAR_CHAR_VALUE = 36;
 
+  /// Creates a string containing the complete type for the class [className]
+  /// with the given type arguments.
+  static String formatType(String className, List typeArguments) {
+    return '$className${joinArguments(typeArguments, 0)}';
+  }
+
+  /// Returns the type of [object] as a string (including type arguments).
   static String objectTypeName(Object object) {
     String name = constructorNameFallback(object);
     if (name == 'Object') {
@@ -307,8 +314,10 @@ class Primitives {
     }
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
-    if (identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) name = name.substring(1);
-    return name;
+    if (identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
+      name = name.substring(1);
+    }
+    return formatType(name, getRuntimeTypeInfo(object));
   }
 
   static String objectToString(Object object) {
