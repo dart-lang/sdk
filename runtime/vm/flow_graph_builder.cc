@@ -42,8 +42,10 @@ static const String& PrivateCoreLibName(const String& str) {
 
 
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
+                                   const Array& ic_data_array,
                                    InlineExitCollector* exit_collector)
   : parsed_function_(parsed_function),
+    ic_data_array_(ic_data_array),
     num_copied_params_(parsed_function.num_copied_params()),
     // All parameters are copied if any parameter is.
     num_non_copied_params_((num_copied_params_ == 0)
@@ -926,7 +928,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
                                                   node->kind(),
                                                   arguments,
                                                   Array::ZoneHandle(),
-                                                  2);
+                                                  2,
+                                                  owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1168,7 +1171,8 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       node->kind(),
       arguments,
       Array::ZoneHandle(),  // No argument names.
-      kNumArgsChecked);
+      kNumArgsChecked,
+      owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1237,7 +1241,8 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
         node->kind(),
         arguments,
         Array::ZoneHandle(),  // No argument names.
-        kNumArgsChecked);
+        kNumArgsChecked,
+        owner()->ic_data_array());
     ReturnDefinition(call);
   }
 }
@@ -1282,7 +1287,8 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
           node->token_pos(),
           Token::kEQ,
           for_left_value.value(),
-          for_right_value.value());
+          for_right_value.value(),
+          owner()->ic_data_array());
       if (node->kind() == Token::kEQ) {
         ReturnDefinition(comp);
       } else {
@@ -1295,7 +1301,8 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
           node->token_pos(),
           node->kind(),
           for_left_value.value(),
-          for_right_value.value());
+          for_right_value.value(),
+          owner()->ic_data_array());
       ReturnDefinition(comp);
     }
     return;
@@ -1310,7 +1317,8 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   RelationalOpInstr* comp = new RelationalOpInstr(node->token_pos(),
                                                   node->kind(),
                                                   for_left_value.value(),
-                                                  for_right_value.value());
+                                                  for_right_value.value(),
+                                                  owner()->ic_data_array());
   ReturnDefinition(comp);
 }
 
@@ -1345,7 +1353,8 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
                             node->kind(),
                             arguments,
                             Array::ZoneHandle(),
-                            1);
+                            1,
+                            owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1913,7 +1922,9 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   InstanceCallInstr* call = new InstanceCallInstr(
       node->token_pos(),
       node->function_name(), Token::kILLEGAL, arguments,
-      node->arguments()->names(), 1);
+      node->arguments()->names(),
+      1,
+      owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2358,8 +2369,12 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   const String& name =
       String::ZoneHandle(Field::GetterSymbol(node->field_name()));
   InstanceCallInstr* call = new InstanceCallInstr(
-      node->token_pos(), name, Token::kGET,
-      arguments, Array::ZoneHandle(), 1);
+      node->token_pos(),
+      name,
+      Token::kGET,
+      arguments, Array::ZoneHandle(),
+      1,
+      owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2398,7 +2413,8 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                                                   Token::kSET,
                                                   arguments,
                                                   Array::ZoneHandle(),
-                                                  2);  // Checked arg count.
+                                                  2,  // Checked arg count.
+                                                  owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2414,7 +2430,8 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                            Token::kSET,
                            arguments,
                            Array::ZoneHandle(),
-                           2));  // Checked argument count.
+                           2,  // Checked argument count.
+                           owner()->ic_data_array()));
   ReturnDefinition(BuildLoadExprTemp());
 }
 
@@ -2779,7 +2796,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
                                                     Token::kINDEX,
                                                     arguments,
                                                     Array::ZoneHandle(),
-                                                    checked_argument_count);
+                                                    checked_argument_count,
+                                                    owner()->ic_data_array());
     ReturnDefinition(load);
   }
 }
@@ -2878,7 +2896,8 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
                               Token::kASSIGN_INDEX,
                               arguments,
                               Array::ZoneHandle(),
-                              checked_argument_count);
+                              checked_argument_count,
+                              owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp();

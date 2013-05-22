@@ -121,7 +121,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
   HANDLESCOPE(isolate);
-  ASSERT(isolate->ic_data_array() == Array::null());  // Must be reset to null.
   const intptr_t prev_deopt_id = isolate->deopt_id();
   isolate->set_deopt_id(0);
   LongJump* old_base = isolate->long_jump_base();
@@ -135,6 +134,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphbuilder_timer,
                        isolate);
+      Array& ic_data_array = Array::Handle();
       if (optimized) {
         ASSERT(parsed_function.function().HasCode());
         // Extract type feedback before the graph is built, as the graph
@@ -145,13 +145,14 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
             FLAG_deoptimization_counter_threshold) {
           const Code& unoptimized_code =
               Code::Handle(parsed_function.function().unoptimized_code());
-          isolate->set_ic_data_array(
-              unoptimized_code.ExtractTypeFeedbackArray());
+          ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
         }
       }
 
       // Build the flow graph.
-      FlowGraphBuilder builder(parsed_function, NULL);  // NULL = not inlining.
+      FlowGraphBuilder builder(parsed_function,
+                               ic_data_array,
+                               NULL);  // NULL = not inlining.
       flow_graph = builder.BuildGraph();
     }
 
@@ -396,7 +397,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
     is_compiled = false;
   }
   // Reset global isolate state.
-  isolate->set_ic_data_array(Array::null());
   isolate->set_long_jump_base(old_base);
   isolate->set_deopt_id(prev_deopt_id);
   return is_compiled;

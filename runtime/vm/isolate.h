@@ -405,10 +405,6 @@ class Isolate : public BaseIsolate {
     return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
   }
 
-  RawArray* ic_data_array() const { return ic_data_array_; }
-  void set_ic_data_array(RawArray* value) { ic_data_array_ = value; }
-  ICData* GetICDataForDeoptId(intptr_t deopt_id) const;
-
   Mutex* mutex() const { return mutex_; }
 
   Debugger* debugger() const { return debugger_; }
@@ -615,7 +611,6 @@ class Isolate : public BaseIsolate {
   LongJump* long_jump_base_;
   TimerList timer_list_;
   intptr_t deopt_id_;
-  RawArray* ic_data_array_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;
   uword saved_stack_limit_;

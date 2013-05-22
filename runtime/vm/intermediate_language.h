@@ -646,6 +646,8 @@ class Instruction : public ZoneAllocated {
     return deopt_id_;
   }
 
+  ICData* GetICData(const Array& ic_data_array) const;
+
   bool IsBlockEntry() { return (AsBlockEntry() != NULL); }
   virtual BlockEntryInstr* AsBlockEntry() { return NULL; }
 
@@ -2591,8 +2593,9 @@ class InstanceCallInstr : public TemplateDefinition<0> {
                     Token::Kind token_kind,
                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
                     const Array& argument_names,
-                    intptr_t checked_argument_count)
-      : ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
+                    intptr_t checked_argument_count,
+                    const Array& ic_data_array)
+      : ic_data_(GetICData(ic_data_array)),
         token_pos_(token_pos),
         function_name_(function_name),
         token_kind_(token_kind),
@@ -2833,12 +2836,12 @@ class EqualityCompareInstr : public ComparisonInstr {
   EqualityCompareInstr(intptr_t token_pos,
                        Token::Kind kind,
                        Value* left,
-                       Value* right)
+                       Value* right,
+                       const Array& ic_data_array)
       : ComparisonInstr(kind, left, right),
+        ic_data_(GetICData(ic_data_array)),
         token_pos_(token_pos),
         receiver_class_id_(kIllegalCid) {
-    // deopt_id() checks receiver_class_id_ value.
-    ic_data_ = Isolate::Current()->GetICDataForDeoptId(deopt_id());
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
@@ -2912,12 +2915,12 @@ class RelationalOpInstr : public ComparisonInstr {
   RelationalOpInstr(intptr_t token_pos,
                     Token::Kind kind,
                     Value* left,
-                    Value* right)
+                    Value* right,
+                    const Array& ic_data_array)
       : ComparisonInstr(kind, left, right),
+        ic_data_(GetICData(ic_data_array)),
         token_pos_(token_pos),
         operands_class_id_(kIllegalCid) {
-    // deopt_id() checks operands_class_id_ value.
-    ic_data_ = Isolate::Current()->GetICDataForDeoptId(deopt_id());
     ASSERT(Token::IsRelationalOperator(kind));
   }
 

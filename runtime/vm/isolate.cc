@@ -382,7 +382,6 @@ Isolate::Isolate()
       long_jump_base_(NULL),
       timer_list_(),
       deopt_id_(0),
-      ic_data_array_(Array::null()),
       mutex_(new Mutex()),
       stack_limit_(0),
       saved_stack_limit_(0),
@@ -650,21 +649,6 @@ uword Isolate::GetAndClearInterrupts() {
 }
 
 
-ICData* Isolate::GetICDataForDeoptId(intptr_t deopt_id) const {
-  if (ic_data_array() == Array::null()) {
-    return &ICData::ZoneHandle();
-  }
-  const Array& array_handle = Array::Handle(ic_data_array());
-  if (deopt_id >= array_handle.Length()) {
-    // For computations being added in the optimizing compiler.
-    return &ICData::ZoneHandle();
-  }
-  ICData& ic_data_handle = ICData::ZoneHandle();
-  ic_data_handle ^= array_handle.At(deopt_id);
-  return &ic_data_handle;
-}
-
-
 static int MostUsedFunctionFirst(const Function* const* a,
                                  const Function* const* b) {
   if ((*a)->usage_counter() > (*b)->usage_counter()) {
@@ -836,9 +820,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the top context which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&top_context_));
-
-  // Visit the currently active IC data array.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&ic_data_array_));
 
   // Visit objects in the debugger.
   debugger()->VisitObjectPointers(visitor);

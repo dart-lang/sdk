@@ -102,11 +102,13 @@ class FlowGraphBuilder: public ValueObject {
  public:
   // The inlining context is NULL if not inlining.
   FlowGraphBuilder(const ParsedFunction& parsed_function,
+                   const Array& ic_data_array,
                    InlineExitCollector* exit_collector);
 
   FlowGraph* BuildGraph();
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
+  const Array& ic_data_array() const { return ic_data_array_; }
 
   void Bailout(const char* reason);
 
@@ -147,6 +149,7 @@ class FlowGraphBuilder: public ValueObject {
   }
 
   const ParsedFunction& parsed_function_;
+  const Array& ic_data_array_;
 
   const intptr_t num_copied_params_;
   const intptr_t num_non_copied_params_;

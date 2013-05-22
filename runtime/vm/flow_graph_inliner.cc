@@ -465,9 +465,6 @@ class CallSiteInliner : public ValueObject {
     }
 
     Isolate* isolate = Isolate::Current();
-    // Save and clear IC data.
-    const Array& prev_ic_data = Array::Handle(isolate->ic_data_array());
-    isolate->set_ic_data_array(Array::null());
     // Save and clear deopt id.
     const intptr_t prev_deopt_id = isolate->deopt_id();
     isolate->set_deopt_id(0);
@@ -487,16 +484,17 @@ class CallSiteInliner : public ValueObject {
       }
 
       // Load IC data for the callee.
+      Array& ic_data_array = Array::Handle();
       if (function.HasCode()) {
         const Code& unoptimized_code =
             Code::Handle(function.unoptimized_code());
-        isolate->set_ic_data_array(unoptimized_code.ExtractTypeFeedbackArray());
+        ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
       }
 
       // Build the callee graph.
       InlineExitCollector* exit_collector =
           new InlineExitCollector(caller_graph_, call);
-      FlowGraphBuilder builder(*parsed_function, exit_collector);
+      FlowGraphBuilder builder(*parsed_function, ic_data_array, exit_collector);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
@@ -597,7 +595,6 @@ class CallSiteInliner : public ValueObject {
         }
         isolate->set_long_jump_base(base);
         isolate->set_deopt_id(prev_deopt_id);
-        isolate->set_ic_data_array(prev_ic_data.raw());
         TRACE_INLINING(OS::Print("     Bailout: heuristics with "
                                  "code size:  %"Pd", "
                                  "call sites: %"Pd", "
@@ -621,7 +618,6 @@ class CallSiteInliner : public ValueObject {
       inlined_size_ += size;
       isolate->set_long_jump_base(base);
       isolate->set_deopt_id(prev_deopt_id);
-      isolate->set_ic_data_array(prev_ic_data.raw());
 
       call_data->callee_graph = callee_graph;
       call_data->parameter_stubs = param_stubs;
@@ -634,7 +630,6 @@ class CallSiteInliner : public ValueObject {
       isolate->object_store()->clear_sticky_error();
       isolate->set_long_jump_base(base);
       isolate->set_deopt_id(prev_deopt_id);
-      isolate->set_ic_data_array(prev_ic_data.raw());
       TRACE_INLINING(OS::Print("     Bailout: %s\n", error.ToErrorCString()));
       return false;
     }
