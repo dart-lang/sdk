@@ -103,10 +103,7 @@ class SsaBuilderTask extends CompilerTask {
   }
 
   HGraph compileConstructor(SsaBuilder builder, CodegenWorkItem work) {
-    // The body of the constructor will be generated in a separate function.
-    final ClassElement classElement = work.element.getEnclosingClass();
-    return builder.buildFactory(classElement.implementation,
-                                work.element.implementation);
+    return builder.buildFactory(work.element);
   }
 }
 
@@ -279,8 +276,7 @@ class LocalsHandler {
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
-    } else if (element.isInstanceMember()
-               || element.isGenerativeConstructor()) {
+    } else if (element.isInstanceMember()) {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
@@ -1117,6 +1113,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HParameterValue addParameter(Element element) {
+    assert(inliningStack.isEmpty);
     HParameterValue result = new HParameterValue(element);
     if (lastAddedParameter == null) {
       graph.entry.addBefore(graph.entry.first, result);
@@ -1179,7 +1176,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // may have an impact on the state of the current method.
     InliningState state = new InliningState(
         function, returnElement, returnType, elements, stack, localsHandler);
-    LocalsHandler newLocalsHandler = new LocalsHandler.from(localsHandler);
+    LocalsHandler newLocalsHandler = new LocalsHandler(this);
     newLocalsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             function, function.parseNode(compiler), elements);
@@ -1273,7 +1270,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (element is !PartialFunctionElement) return false;
     // TODO(ngeoffray): try to inline generative constructors. They
     // don't have any body, which make it more difficult.
-    if (element.isGenerativeConstructor()) return false;
     if (inliningStack.length > MAX_INLINING_DEPTH) return false;
     // Don't inline recursive calls. We use the same elements for the inlined
     // functions and would thus clobber our local variables.
@@ -1331,7 +1327,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     InliningState state = enterInlinedMethod(
         function, selector, argumentsNodes, providedArguments, currentNode);
     inlinedFrom(element, () {
-      functionExpression.body.accept(this);
+      element.isGenerativeConstructor()
+          ? buildFactory(element)
+          : functionExpression.body.accept(this);
     });
     leaveInlinedMethod(state);
     return true;
@@ -1437,11 +1435,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
               constructor, node, elements);
-      // The [:this:] element now refers to the one in the new closure
-      // data, that is the [:this:] of the super constructor. We
-      // update the element to refer to the current [:this:].
-      localsHandler.updateLocal(newClosureData.thisElement,
-                                localsHandler.readThis());
       localsHandler.closureData = newClosureData;
 
       params.orderedForEachParameter((Element parameterElement) {
@@ -1577,21 +1570,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *    to, starting from the current constructor.
    *  - Call the the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
-   *
-   * Invariant: Both [classElement] and [functionElement] must be
-   * implementation elements.
    */
-  HGraph buildFactory(ClassElement classElement,
-                      FunctionElement functionElement) {
-    assert(invariant(classElement, classElement.isImplementation));
-    assert(invariant(functionElement, functionElement.isImplementation));
+  HGraph buildFactory(FunctionElement functionElement) {
+    functionElement = functionElement.implementation;
+    ClassElement classElement =
+        functionElement.getEnclosingClass().implementation;
     FunctionExpression function = functionElement.parseNode(compiler);
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
     // arguments as if they were positional.
 
-    // The initializer list could contain closures.
-    openFunction(functionElement, function);
+    if (inliningStack.isEmpty) {
+      // The initializer list could contain closures.
+      openFunction(functionElement, function);
+    }
 
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
 
@@ -1699,8 +1691,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       invoke.sideEffects = compiler.world.getSideEffectsOfElement(constructor);
       add(invoke);
     }
-    closeAndGotoExit(new HReturn(newObject));
-    return closeFunction();
+    if (inliningStack.isEmpty) {
+      closeAndGotoExit(new HReturn(newObject));
+      return closeFunction();
+    } else {
+      localsHandler.updateLocal(returnElement, newObject);
+      return null;
+    }
   }
 
   void addParameterCheckInstruction(Element element) {
@@ -5058,6 +5055,7 @@ class InlineWeeder extends Visitor {
   static bool canBeInlined(FunctionExpression functionExpression,
                            TreeElements elements) {
     InlineWeeder weeder = new InlineWeeder(elements);
+    weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     if (weeder.tooDifficult) return false;
     return true;
@@ -5073,7 +5071,7 @@ class InlineWeeder extends Visitor {
   }
 
   void visit(Node node) {
-    node.accept(this);
+    if (node != null) node.accept(this);
   }
 
   void visitNode(Node node) {
