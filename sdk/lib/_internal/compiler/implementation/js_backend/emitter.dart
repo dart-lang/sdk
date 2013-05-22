@@ -1798,8 +1798,15 @@ class CodeEmitterTask extends CompilerTask {
             .where(isStaticFunction)
             .toSet();
 
+    LibraryElement previousLibrary = null;
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      LibraryElement library = element.getLibrary();
+      if (library != previousLibrary) {
+        previousLibrary = library;
+        addComment(
+            'Library: ${library.getLibraryOrScriptName()}', buffer);
+      }
       jsAst.Expression code = backend.generatedCode[element];
       emitStaticFunction(buffer, namer.getName(element), code);
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
@@ -1809,6 +1816,9 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
+    if (!pendingElementsWithBailouts.isEmpty) {
+      addComment('pendingElementsWithBailouts', eagerBuffer);
+    }
     // Is it possible the primary function was inlined but the bailout was not?
     for (Element element in
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
@@ -2964,7 +2974,14 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // Might create boundClosures.
       if (!regularClasses.isEmpty) {
         addComment('Classes', mainBuffer);
+        LibraryElement previousLibrary = null;
         for (ClassElement element in regularClasses) {
+          LibraryElement library =  element.getLibrary();
+          if (library != previousLibrary) {
+            previousLibrary = library;
+            addComment(
+                'Library: ${library.getLibraryOrScriptName()}', mainBuffer);
+          }
           generateClass(element, mainBuffer);
         }
       }

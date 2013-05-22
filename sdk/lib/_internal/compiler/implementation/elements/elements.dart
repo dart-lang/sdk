@@ -489,15 +489,13 @@ class Elements {
   /// A `compareTo` function that places [Element]s in a consistent order based
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
-    CompilationUnitElement unitA = a.getCompilationUnit();
-    CompilationUnitElement unitB = b.getCompilationUnit();
-    if (!identical(unitA, unitB)) {
-      int r = unitA.script.uri.path.compareTo(unitB.script.uri.path);
-      if (r != 0) return r;
-    }
+    int r = a.getLibrary().compareTo(b.getLibrary());
+    if (r != 0) return r;
+    r = a.getCompilationUnit().compareTo(b.getCompilationUnit());
+    if (r != 0) return r;
     Token positionA = a.position();
     Token positionB = b.position();
-    int r = positionA.charOffset.compareTo(positionB.charOffset);
+    r = positionA.charOffset.compareTo(positionB.charOffset);
     if (r != 0) return r;
     r = a.name.slowToString().compareTo(b.name.slowToString());
     if (r != 0) return r;
@@ -589,6 +587,8 @@ abstract class CompilationUnitElement extends Element {
   void addMember(Element element, DiagnosticListener listener);
   void setPartOf(PartOf tag, DiagnosticListener listener);
   bool get hasMembers;
+
+  int compareTo(CompilationUnitElement other);
 }
 
 abstract class LibraryElement extends Element implements ScopeContainerElement {
@@ -650,6 +650,8 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
 
   bool hasLibraryName();
   String getLibraryOrScriptName();
+
+  int compareTo(LibraryElement other);
 }
 
 abstract class PrefixElement extends Element {

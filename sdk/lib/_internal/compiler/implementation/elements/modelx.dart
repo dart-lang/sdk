@@ -526,6 +526,11 @@ class CompilationUnitElementX extends ElementX
   }
 
   bool get hasMembers => !localMembers.isEmpty;
+
+  int compareTo(CompilationUnitElement other) {
+    if (this == other) return 0;
+    return '${script.uri}'.compareTo('${other.script.uri}');
+  }
 }
 
 class LibraryElementX extends ElementX implements LibraryElement {
@@ -770,6 +775,11 @@ class LibraryElementX extends ElementX implements LibraryElement {
     } else {
       return 'library(${getLibraryOrScriptName()})';
     }
+  }
+
+  int compareTo(LibraryElement other) {
+    if (this == other) return 0;
+    return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
   }
 }
 
