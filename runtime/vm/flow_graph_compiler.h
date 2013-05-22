@@ -107,11 +107,15 @@ class ParallelMoveResolver : public ValueObject {
 // For deoptimization before instruction use class CompilerDeoptInfoWithStub.
 class CompilerDeoptInfo : public ZoneAllocated {
  public:
-  CompilerDeoptInfo(intptr_t deopt_id, DeoptReasonId reason)
+  CompilerDeoptInfo(intptr_t deopt_id,
+                    DeoptReasonId reason,
+                    Environment* deopt_env)
       : pc_offset_(-1),
         deopt_id_(deopt_id),
         reason_(reason),
-        deoptimization_env_(NULL) {}
+        deopt_env_(deopt_env) {
+    ASSERT(deopt_env != NULL);
+  }
 
   RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler,
                                 DeoptInfoBuilder* builder);
@@ -124,11 +128,8 @@ class CompilerDeoptInfo : public ZoneAllocated {
   void set_pc_offset(intptr_t offset) { pc_offset_ = offset; }
 
   intptr_t deopt_id() const { return deopt_id_; }
-
   DeoptReasonId reason() const { return reason_; }
-
-  const Environment* deoptimization_env() const { return deoptimization_env_; }
-  void set_deoptimization_env(Environment* env) { deoptimization_env_ = env; }
+  const Environment* deopt_env() const { return deopt_env_; }
 
  private:
   void EmitMaterializations(Environment* env, DeoptInfoBuilder* builder);
@@ -139,7 +140,7 @@ class CompilerDeoptInfo : public ZoneAllocated {
   intptr_t pc_offset_;
   const intptr_t deopt_id_;
   const DeoptReasonId reason_;
-  Environment* deoptimization_env_;
+  Environment* deopt_env_;
 
   DISALLOW_COPY_AND_ASSIGN(CompilerDeoptInfo);
 };
@@ -148,8 +149,9 @@ class CompilerDeoptInfo : public ZoneAllocated {
 class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
  public:
   CompilerDeoptInfoWithStub(intptr_t deopt_id,
-                            DeoptReasonId reason)
-      : CompilerDeoptInfo(deopt_id, reason), entry_label_() {
+                            DeoptReasonId reason,
+                            Environment* deopt_env)
+      : CompilerDeoptInfo(deopt_id, reason, deopt_env), entry_label_() {
     ASSERT(reason != kDeoptAtCall);
   }
 

@@ -338,9 +338,10 @@ void FlowGraphCompiler::AddStaticCallTarget(const Function& func) {
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
                                             intptr_t token_pos) {
   ASSERT(is_optimizing());
-  CompilerDeoptInfo* info = new CompilerDeoptInfo(deopt_id, kDeoptAtCall);
-  ASSERT(pending_deoptimization_env_ != NULL);
-  info->set_deoptimization_env(pending_deoptimization_env_);
+  CompilerDeoptInfo* info =
+      new CompilerDeoptInfo(deopt_id,
+                            kDeoptAtCall,
+                            pending_deoptimization_env_);
   info->set_pc_offset(assembler()->CodeSize());
   deopt_infos_.Add(info);
 }
@@ -399,11 +400,11 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        DeoptReasonId reason) {
-  CompilerDeoptInfoWithStub* stub =
-      new CompilerDeoptInfoWithStub(deopt_id, reason);
   ASSERT(is_optimizing_);
-  ASSERT(pending_deoptimization_env_ != NULL);
-  stub->set_deoptimization_env(pending_deoptimization_env_);
+  CompilerDeoptInfoWithStub* stub =
+      new CompilerDeoptInfoWithStub(deopt_id,
+                                    reason,
+                                    pending_deoptimization_env_);
   deopt_infos_.Add(stub);
   return stub->entry_label();
 }
