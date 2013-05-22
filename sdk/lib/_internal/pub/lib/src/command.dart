@@ -27,27 +27,11 @@ import 'utils.dart';
 /// The base class for commands for the pub executable.
 abstract class PubCommand {
   /// The commands that Pub understands.
-  static Map<String, PubCommand> get commands {
-    var commands = {
-      'cache': new CacheCommand(),
-      'deploy': new DeployCommand(),
-      'help': new HelpCommand(),
-      'install': new InstallCommand(),
-      'publish': new LishCommand(),
-      'update': new UpdateCommand(),
-      'uploader': new UploaderCommand(),
-      'version': new VersionCommand()
-     };
-    for (var command in commands.values.toList()) {
-      for (var alias in command.aliases) {
-        commands[alias] = command;
-      }
-    }
-    return commands;
-  }
+  static final Map<String, PubCommand> commands = _initCommands();
 
   SystemCache cache;
-  ArgResults globalOptions;
+
+  /// The parsed options for this command.
   ArgResults commandOptions;
 
   Entrypoint entrypoint;
@@ -67,25 +51,26 @@ abstract class PubCommand {
   /// documentation, but they will work when invoked on the command line.
   final aliases = const <String>[];
 
-  /// Override this to define command-specific options. The results will be made
-  /// available in [commandOptions].
-  ArgParser get commandParser => new ArgParser();
+  /// The [ArgParser] for this command.
+  final commandParser = new ArgParser();
 
   /// Override this to use offline-only sources instead of hitting the network.
   /// This will only be called before the [SystemCache] is created. After that,
   /// it has no effect.
   bool get isOffline => false;
 
-  void run(String cacheDir, ArgResults globalOptions_,
-      List<String> commandArgs) {
-    globalOptions = globalOptions_;
+  PubCommand() {
+    // Allow "--help" after a command to get command help.
+    commandParser.addFlag('help', abbr: 'h', negatable: false,
+        help: 'Print usage information for this command.');
+  }
 
-    try {
-      commandOptions = commandParser.parse(commandArgs);
-    } on FormatException catch (e) {
-      log.error(e.message);
-      log.error('Use "pub help" for more information.');
-      exit(exit_codes.USAGE);
+  void run(String cacheDir, ArgResults options) {
+    commandOptions = options.command;
+
+    if (commandOptions['help']) {
+      this.printUsage();
+      return;
     }
 
     cache = new SystemCache.withSources(cacheDir, isOffline: isOffline);
@@ -113,14 +98,14 @@ abstract class PubCommand {
       log.error(message);
 
       if (trace != null) {
-        if (globalOptions['trace'] || !isUserFacingException(error)) {
+        if (options['trace'] || !isUserFacingException(error)) {
           log.error(trace);
         } else {
           log.fine(trace);
         }
       }
 
-      if (globalOptions['trace']) {
+      if (options['trace']) {
         log.dumpTranscript();
       } else if (!isUserFacingException(error)) {
         log.error("""
@@ -197,4 +182,25 @@ and include the results in a bug report on http://dartbug.com/new.
       return 1;
     }
   }
+}
+
+_initCommands() {
+  var commands = {
+    'cache': new CacheCommand(),
+    'deploy': new DeployCommand(),
+    'help': new HelpCommand(),
+    'install': new InstallCommand(),
+    'publish': new LishCommand(),
+    'update': new UpdateCommand(),
+    'uploader': new UploaderCommand(),
+    'version': new VersionCommand()
+  };
+
+  for (var command in commands.values.toList()) {
+    for (var alias in command.aliases) {
+      commands[alias] = command;
+    }
+  }
+
+  return commands;
 }

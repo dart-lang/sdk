@@ -25,6 +25,9 @@ import 'version.dart';
 /// A package source that installs packages from a package hosting site that
 /// uses the same API as pub.dartlang.org.
 class HostedSource extends Source {
+  /// The URL of the default package repository.
+  static const DEFAULT_URL = "https://pub.dartlang.org";
+
   final name = "hosted";
   final shouldCache = true;
 
@@ -121,7 +124,7 @@ class HostedSource extends Source {
   }
 
   List<Package> getCachedPackages([String url]) {
-    if (url == null) url = _defaultUrl;
+    if (url == null) url = DEFAULT_URL;
 
     var cacheDir = path.join(systemCacheRoot,
                              _getSourceDirectory(url));
@@ -199,9 +202,6 @@ class OfflineHostedSource extends HostedSource {
   }
 }
 
-/// The URL of the default package repository.
-final _defaultUrl = "https://pub.dartlang.org";
-
 String _getSourceDirectory(String url) {
   url = url.replaceAll(new RegExp(r"^https?://"), "");
   return replace(url, new RegExp(r'[<>:"\\/|?*%]'),
@@ -236,7 +236,7 @@ Uri _makeVersionUrl(PackageId id,
 /// this throws a descriptive FormatException.
 Pair<String, String> _parseDescription(description) {
   if (description is String) {
-    return new Pair<String, String>(description, _defaultUrl);
+    return new Pair<String, String>(description, HostedSource.DEFAULT_URL);
   }
 
   if (description is! Map) {
@@ -254,6 +254,8 @@ Pair<String, String> _parseDescription(description) {
     throw new FormatException("The 'name' key must have a string value.");
   }
 
-  var url = description.containsKey("url") ? description["url"] : _defaultUrl;
+  var url = description["url"];
+  if (url == null) url = HostedSource.DEFAULT_URL;
+
   return new Pair<String, String>(name, url);
 }

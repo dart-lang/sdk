@@ -17,62 +17,53 @@ import '../lib/src/sdk.dart' as sdk;
 import '../lib/src/system_cache.dart';
 import '../lib/src/utils.dart';
 
-/// The parser for arguments that are global to Pub rather than specific to a
-/// single command.
-ArgParser get pubArgParser {
-  var parser = new ArgParser();
-  parser.addFlag('help', abbr: 'h', negatable: false,
-      help: 'Print this usage information.');
-  parser.addFlag('version', negatable: false,
-      help: 'Print pub version.');
-  parser.addFlag('trace',
-       help: 'Print debugging information when an error occurs.');
-  parser.addOption('verbosity',
-      help: 'Control output verbosity.',
-      allowed: ['normal', 'io', 'solver', 'all'],
-      allowedHelp: {
-        'normal': 'Show errors, warnings, and user messages.',
-        'io':     'Also show IO operations.',
-        'solver': 'Show steps during version resolution.',
-        'all':    'Show all output including internal tracing messages.'
-      });
-  parser.addFlag('verbose', abbr: 'v', negatable: false,
-      help: 'Shortcut for "--verbosity=all".');
-  return parser;
-}
+final pubArgParser = initArgParser();
 
 void main() {
-  var globalOptions;
+  ArgResults options;
+
   try {
-    globalOptions = pubArgParser.parse(new Options().arguments);
+    options = pubArgParser.parse(new Options().arguments);
   } on FormatException catch (e) {
     log.error(e.message);
     log.error('Run "pub help" to see available options.');
     exit(exit_codes.USAGE);
   }
 
-  if (globalOptions['version']) {
+  if (options['version']) {
     log.message('Pub ${sdk.version}');
     return;
   }
 
-  if (globalOptions['help'] || globalOptions.rest.isEmpty) {
+  if (options['help']) {
     printUsage();
     return;
   }
 
-  if (globalOptions['trace']) {
+  if (options.command == null) {
+    if (options.rest.isEmpty) {
+      // No command was chosen.
+      printUsage();
+    } else {
+      log.error('Could not find a command named "${options.rest[0]}".');
+      log.error('Run "pub help" to see available commands.');
+      exit(exit_codes.USAGE);
+    }
+    return;
+  }
+
+  if (options['trace']) {
     log.recordTranscript();
   }
 
-  switch (globalOptions['verbosity']) {
+  switch (options['verbosity']) {
     case 'normal': log.showNormal(); break;
-    case 'io': log.showIO(); break;
+    case 'io':     log.showIO(); break;
     case 'solver': log.showSolver(); break;
-    case 'all': log.showAll(); break;
+    case 'all':    log.showAll(); break;
     default:
       // No specific verbosity given, so check for the shortcut.
-      if (globalOptions['verbose']) {
+      if (options['verbose']) {
         log.showAll();
       } else {
         log.showNormal();
@@ -93,18 +84,38 @@ void main() {
   }
 
   validatePlatform().then((_) {
-    // Select the command.
-    var command = PubCommand.commands[globalOptions.rest[0]];
-    if (command == null) {
-      log.error('Could not find a command named "${globalOptions.rest[0]}".');
-      log.error('Run "pub help" to see available commands.');
-      exit(exit_codes.USAGE);
-      return;
-    }
-
-    var commandArgs = globalOptions.rest.sublist(1);
-    command.run(cacheDir, globalOptions, commandArgs);
+    PubCommand.commands[options.command.name].run(cacheDir, options);
   });
+}
+
+ArgParser initArgParser() {
+  var argParser = new ArgParser();
+
+  // Add the global options.
+  argParser.addFlag('help', abbr: 'h', negatable: false,
+      help: 'Print this usage information.');
+  argParser.addFlag('version', negatable: false,
+      help: 'Print pub version.');
+  argParser.addFlag('trace',
+       help: 'Print debugging information when an error occurs.');
+  argParser.addOption('verbosity',
+      help: 'Control output verbosity.',
+      allowed: ['normal', 'io', 'solver', 'all'],
+      allowedHelp: {
+        'normal': 'Show errors, warnings, and user messages.',
+        'io':     'Also show IO operations.',
+        'solver': 'Show steps during version resolution.',
+        'all':    'Show all output including internal tracing messages.'
+      });
+  argParser.addFlag('verbose', abbr: 'v', negatable: false,
+      help: 'Shortcut for "--verbosity=all".');
+
+  // Register the commands.
+  PubCommand.commands.forEach((name, command) {
+    argParser.addCommand(name, command.commandParser);
+  });
+
+  return argParser;
 }
 
 /// Checks that pub is running on a supported platform. If it isn't, it prints

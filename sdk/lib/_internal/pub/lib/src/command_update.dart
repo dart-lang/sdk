@@ -19,13 +19,12 @@ class UpdateCommand extends PubCommand {
 
   String get usage => 'pub update [dependencies...]';
 
-  ArgParser get commandParser {
-    return new ArgParser()
-        ..addFlag('offline',
-            help: 'Use cached packages instead of accessing the network.');
-  }
-
   bool get isOffline => commandOptions['offline'];
+
+  UpdateCommand() {
+    commandParser.addFlag('offline',
+        help: 'Use cached packages instead of accessing the network.');
+  }
 
   Future onRun() {
     var future;

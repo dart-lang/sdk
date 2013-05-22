@@ -22,6 +22,7 @@ main() {
           Inspect the system cache.
 
           Usage: pub cache list
+          -h, --help    Print usage information for this command.
           ''',
         error: 'The cache command expects one argument.',
         exitCode: 64);
@@ -33,6 +34,7 @@ main() {
           Inspect the system cache.
 
           Usage: pub cache list
+          -h, --help    Print usage information for this command.
           ''',
         error: 'Unknown cache command "foo".',
         exitCode: 64);

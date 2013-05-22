@@ -17,13 +17,12 @@ class InstallCommand extends PubCommand {
   String get description => "Install the current package's dependencies.";
   String get usage => "pub install";
 
-  ArgParser get commandParser {
-    return new ArgParser()
-        ..addFlag('offline',
-            help: 'Use cached packages instead of accessing the network.');
-  }
-
   bool get isOffline => commandOptions['offline'];
+
+  InstallCommand() {
+    commandParser.addFlag('offline',
+        help: 'Use cached packages instead of accessing the network.');
+  }
 
   Future onRun() {
     return entrypoint.installDependencies()

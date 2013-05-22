@@ -17,6 +17,7 @@ import 'command.dart';
 import 'directory_tree.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'git.dart' as git;
+import 'hosted_source.dart';
 import 'http.dart';
 import 'io.dart';
 import 'log.dart' as log;
@@ -30,19 +31,6 @@ class LishCommand extends PubCommand {
   final usage = "pub publish [options]";
   final aliases = const ["lish", "lush"];
 
-  ArgParser get commandParser {
-    var parser = new ArgParser();
-    // TODO(nweiz): Use HostedSource.defaultUrl as the default value once we use
-    // dart:io for HTTPS requests.
-    parser.addFlag('dry-run', abbr: 'n', negatable: false,
-        help: 'Validate but do not publish the package.');
-    parser.addFlag('force', abbr: 'f', negatable: false,
-        help: 'Publish without confirmation if there are no errors.');
-    parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
-        help: 'The package server to which to upload this package.');
-    return parser;
-  }
-
   /// The URL of the server to which to upload the package.
   Uri get server => Uri.parse(commandOptions['server']);
 
@@ -51,6 +39,15 @@ class LishCommand extends PubCommand {
 
   /// Whether the publish requires confirmation.
   bool get force => commandOptions['force'];
+
+  LishCommand() {
+    commandParser.addFlag('dry-run', abbr: 'n', negatable: false,
+        help: 'Validate but do not publish the package.');
+    commandParser.addFlag('force', abbr: 'f', negatable: false,
+        help: 'Publish without confirmation if there are no errors.');
+    commandParser.addOption('server', defaultsTo: HostedSource.DEFAULT_URL,
+        help: 'The package server to which to upload this package.');
+  }
 
   Future _publish(packageBytes) {
     var cloudStorageUrl;
