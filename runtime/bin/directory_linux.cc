@@ -416,7 +416,18 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 
 
 char* Directory::Current() {
-  return getcwd(NULL, 0);
+  size_t size = PATH_MAX;
+  char* buffer = NULL;
+  for (char* result = NULL; result == NULL; size *= 2) {
+    if ((buffer = reinterpret_cast<char*>(realloc(buffer, size))) == NULL) {
+      return NULL;
+    }
+    result = getcwd(buffer, size);
+    if (result == NULL && errno != ERANGE) {
+      return NULL;
+    }
+  }
+  return buffer;
 }
 
 
