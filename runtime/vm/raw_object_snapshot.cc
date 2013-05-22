@@ -573,8 +573,9 @@ RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
                                     intptr_t tags,
                                     Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Allocate function object.
   PatchClass& cls = PatchClass::ZoneHandle(reader->isolate(),
@@ -600,8 +601,9 @@ void RawPatchClass::WriteTo(SnapshotWriter* writer,
                             intptr_t object_id,
                             Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -620,8 +622,9 @@ RawClosureData* ClosureData::ReadFrom(SnapshotReader* reader,
                                       intptr_t tags,
                                       Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Allocate closure data object.
   ClosureData& data = ClosureData::ZoneHandle(
@@ -647,8 +650,9 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -678,8 +682,9 @@ RawRedirectionData* RedirectionData::ReadFrom(SnapshotReader* reader,
                                               intptr_t tags,
                                               Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Allocate redirection data object.
   RedirectionData& data = RedirectionData::ZoneHandle(
@@ -705,8 +710,9 @@ void RawRedirectionData::WriteTo(SnapshotWriter* writer,
                                  intptr_t object_id,
                                  Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -726,8 +732,9 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Allocate function object.
   Function& func = Function::ZoneHandle(
@@ -764,8 +771,9 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -796,8 +804,9 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
                           intptr_t tags,
                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Allocate field object.
   Field& field = Field::ZoneHandle(reader->isolate(), NEW_OBJECT(Field));
@@ -828,8 +837,9 @@ void RawField::WriteTo(SnapshotWriter* writer,
                        intptr_t object_id,
                        Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -904,8 +914,9 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
                                       intptr_t tags,
                                       Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage)
-          && !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Read the length so that we can determine number of tokens to read.
   intptr_t len = reader->ReadSmiValue();
@@ -941,8 +952,9 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
                              intptr_t object_id,
                              Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -969,8 +981,9 @@ RawScript* Script::ReadFrom(SnapshotReader* reader,
                             intptr_t tags,
                             Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Allocate script object.
   Script& script = Script::ZoneHandle(reader->isolate(), NEW_OBJECT(Script));
@@ -1003,8 +1016,9 @@ void RawScript::WriteTo(SnapshotWriter* writer,
                         Snapshot::Kind kind) {
   ASSERT(writer != NULL);
   ASSERT(tokens_ != TokenStream::null());
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -1088,7 +1102,8 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   writer->WriteVMIsolateObject(kLibraryCid);
   writer->WriteIntptrValue(writer->GetObjectTags(this));
 
-  if (RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) {
+  if ((kind == Snapshot::kScript) &&
+      RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) {
     ASSERT(kind != Snapshot::kFull);
     // Write out library URL so that it can be looked up when reading.
     writer->WriteObjectImpl(ptr()->url_);
@@ -1119,8 +1134,9 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Allocate library prefix object.
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(
@@ -1149,8 +1165,9 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
@@ -1173,8 +1190,9 @@ RawNamespace* Namespace::ReadFrom(SnapshotReader* reader,
                                   intptr_t tags,
                                   Snapshot::Kind kind) {
   ASSERT(reader != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(tags));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(tags)) ||
+         (kind == Snapshot::kFull));
 
   // Allocate Namespace object.
   Namespace& ns = Namespace::ZoneHandle(
@@ -1200,8 +1218,9 @@ void RawNamespace::WriteTo(SnapshotWriter* writer,
                            intptr_t object_id,
                            Snapshot::Kind kind) {
   ASSERT(writer != NULL);
-  ASSERT((kind != Snapshot::kMessage) &&
-         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+  ASSERT(((kind == Snapshot::kScript) &&
+          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) ||
+         (kind == Snapshot::kFull));
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
