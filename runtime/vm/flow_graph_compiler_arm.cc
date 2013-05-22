@@ -63,9 +63,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // Current PP, FP, and PC.
   builder->AddPp(current->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(current->function(),
-                            deopt_id(),
-                            slot_ix++);
+  builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
   // Callee's PC marker is not used anymore. Pass Function::null() to set to 0.
   builder->AddPcMarker(Function::Handle(), slot_ix++);
@@ -535,12 +533,84 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 }
 
 
+// If instanceof type test cannot be performed successfully at compile time and
+// therefore eliminated, optimize it by adding inlined tests for:
+// - NULL -> return false.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - R0: object.
+// - R1: instantiator type arguments or raw_null.
+// - R2: instantiator or raw_null.
+// Returns:
+// - true or false in R0.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            intptr_t deopt_id,
                                            const AbstractType& type,
                                            bool negate_result,
                                            LocationSummary* locs) {
-  UNIMPLEMENTED();
+  ASSERT(type.IsFinalized() && !type.IsMalformed());
+
+  // Preserve instantiator (R2) and its type arguments (R1).
+  __ PushList((1 << R1) | (1 << R2));
+
+  Label is_instance, is_not_instance;
+  // If type is instantiated and non-parameterized, we can inline code
+  // checking whether the tested instance is a Smi.
+  if (type.IsInstantiated()) {
+    // A null object is only an instance of Object and dynamic, which has
+    // already been checked above (if the type is instantiated). So we can
+    // return false here if the instance is null (and if the type is
+    // instantiated).
+    // We can only inline this null check if the type is instantiated at compile
+    // time, since an uninstantiated type at compile time could be Object or
+    // dynamic at run time.
+    __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
+    __ b(&is_not_instance, EQ);
+  }
+
+  // Generate inline instanceof test.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(token_pos, type,
+                                        &is_instance, &is_not_instance);
+
+  // test_cache is null if there is no fall-through.
+  Label done;
+  if (!test_cache.IsNull()) {
+    // Generate runtime call.
+    // Load instantiator (R2) and its type arguments (R1).
+    __ ldm(IA, SP,  (1 << R1) | (1 << R2));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ Push(R0);  // Push the instance.
+    __ PushObject(type);  // Push the type.
+    // Push instantiator (R2) and its type arguments (R1).
+    __ PushList((1 << R1) | (1 << R2));
+    __ LoadObject(R0, test_cache);
+    __ Push(R0);
+    GenerateCallRuntime(token_pos, deopt_id, kInstanceofRuntimeEntry, locs);
+    // Pop the parameters supplied to the runtime entry. The result of the
+    // instanceof runtime call will be left as the result of the operation.
+    __ Drop(5);
+    if (negate_result) {
+      __ Pop(R1);
+      __ LoadObject(R0, Bool::True());
+      __ cmp(R1, ShifterOperand(R0));
+      __ b(&done, NE);
+      __ LoadObject(R0, Bool::False());
+    } else {
+      __ Pop(R0);
+    }
+    __ b(&done);
+  }
+  __ Bind(&is_not_instance);
+  __ LoadObject(R0, negate_result ? Bool::True() : Bool::False());
+  __ b(&done);
+
+  __ Bind(&is_instance);
+  __ LoadObject(R0, negate_result ? Bool::False() : Bool::True());
+  __ Bind(&done);
+  // Remove instantiator (R2) and its type arguments (R1).
+  __ Drop(2);
 }
 
 
@@ -1101,12 +1171,12 @@ void FlowGraphCompiler::CompileGraph() {
 
   __ bkpt(0);
   GenerateDeferredCode();
-  // Emit function patching code. This will be swapped with the first 5 bytes
-  // at entry point.
+  // Emit function patching code. This will be swapped with the first 3
+  // instructions at entry point.
   AddCurrentDescriptor(PcDescriptors::kPatchCode,
                        Isolate::kNoDeoptId,
                        0);  // No token position.
-  __ Branch(&StubCode::FixCallersTargetLabel());
+  __ BranchPatchable(&StubCode::FixCallersTargetLabel());
   AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
                        Isolate::kNoDeoptId,
                        0);  // No token position.
@@ -1317,13 +1387,48 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
 
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Register class_id_reg,
-                                        intptr_t arg_count,
-                                        const Array& arg_names,
+                                        intptr_t argument_count,
+                                        const Array& argument_names,
                                         Label* deopt,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
-  UNIMPLEMENTED();
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  Label match_found;
+  const intptr_t len = ic_data.NumberOfChecks();
+  GrowableArray<CidTarget> sorted(len);
+  SortICDataByCount(ic_data, &sorted);
+  ASSERT(class_id_reg != R4);
+  ASSERT(len > 0);  // Why bother otherwise.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
+                                                 argument_names));
+  __ LoadObject(R4, arguments_descriptor);
+  for (intptr_t i = 0; i < len; i++) {
+    const bool is_last_check = (i == (len - 1));
+    Label next_test;
+    assembler()->CompareImmediate(class_id_reg, sorted[i].cid);
+    if (is_last_check) {
+      assembler()->b(deopt, NE);
+    } else {
+      assembler()->b(&next_test, NE);
+    }
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    GenerateDartCall(deopt_id,
+                     token_index,
+                     &StubCode::CallStaticFunctionLabel(),
+                     PcDescriptors::kFuncCall,
+                     locs);
+    const Function& function = *sorted[i].target;
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
+    if (!is_last_check) {
+      assembler()->b(&match_found);
+    }
+    assembler()->Bind(&next_test);
+  }
+  assembler()->Bind(&match_found);
 }
 
 

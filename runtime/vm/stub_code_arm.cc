@@ -291,18 +291,8 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
 
-  // Stack:
-  // TOS + 0: argument array.
-  // TOS + 1: arguments descriptor array.
-  // TOS + 2: IC data object.
-  // TOS + 3: Receiver.
-  // TOS + 4: place for result from the call.
-  // TOS + 5: saved FP of previous frame.
-  // TOS + 6: dart code return address
-  // TOS + 7: pc marker (0 for stub).
-  // TOS + 8: last argument of caller.
-  // ....
   __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
+
   // Remove arguments.
   __ Drop(4);
   __ Pop(R0);  // Get result into R0.
@@ -346,7 +336,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame((1 << PP) | (1 << FP) | (1 << LR) | (1 << PC), 0);
+  __ mov(IP, ShifterOperand(LR));
+  __ mov(LR, ShifterOperand(0));
+  __ EnterFrame((1 << PP) | (1 << FP) | (1 << IP) | (1 << LR), 0);
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
@@ -377,7 +369,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
-  __ EnterFrame((1 << PP) | (1 << FP) | (1 << LR) | (1 << PC), 0);
+  __ mov(IP, ShifterOperand(LR));
+  __ mov(LR, ShifterOperand(0));
+  __ EnterFrame((1 << PP) | (1 << FP) | (1 << IP) | (1 << LR), 0);
   __ mov(R0, ShifterOperand(FP));  // Get last FP address.
   if (preserve_result) {
     __ Push(R1);  // Preserve result as first local.
@@ -427,7 +421,40 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
 
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
-  __ Unimplemented("MegamorphicMiss stub");
+  __ EnterStubFrame();
+
+  // Load the receiver.
+  __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ add(IP, FP, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
+  __ ldr(R6, Address(IP, kParamEndSlotFromFp * kWordSize));
+
+  // Preserve IC data and arguments descriptor.
+  __ PushList((1 << R4) | (1 << R5));
+
+  // Push space for the return value.
+  // Push the receiver.
+  // Push IC data object.
+  // Push arguments descriptor array.
+  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  __ PushList((1 << R4) | (1 << R5) | (1 << R6) | (1 << IP));
+
+  // R2: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+
+  __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry);
+  // Remove arguments.
+  __ Drop(4);
+  __ Pop(R0);  // Get result into R0.
+
+  // Restore IC data and arguments descriptor.
+  __ PopList((1 << R4) | (1 << R5));
+
+  __ LeaveStubFrame();
+
+  __ CompareImmediate(R0, reinterpret_cast<intptr_t>(Object::null()));
+  __ Branch(&StubCode::InstanceFunctionLookupLabel(), EQ);
+  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ bx(R0);
 }
 
 
@@ -645,15 +672,6 @@ void StubCode::GenerateCallClosureFunctionStub(Assembler* assembler) {
   __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
   PushArgumentsArray(assembler);
 
-  // Stack:
-  // TOS + 0: argument array.
-  // TOS + 1: arguments descriptor array.
-  // TOS + 2: place for result from the call.
-  // TOS + 3: saved FP of previous frame.
-  // TOS + 4: dart code return address
-  // TOS + 5: pc marker (0 for stub).
-  // TOS + 6: last argument of caller.
-  // ....
   __ CallRuntime(kInvokeNonClosureRuntimeEntry);
   // Remove arguments.
   __ Drop(2);
@@ -1267,8 +1285,34 @@ void StubCode::GenerateAllocationStubForClosure(Assembler* assembler,
 }
 
 
+// The target function was not found, so invoke method
+// "dynamic noSuchMethod(Invocation invocation)".
+//  R5: inline cache data object.
+//  R4: arguments descriptor array.
 void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
-  __ Unimplemented("CallNoSuchMethodFunction stub");
+  __ EnterStubFrame();
+
+  // Load the receiver.
+  __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ add(IP, FP, ShifterOperand(R2, LSL, 1));  // R2 is Smi.
+  __ ldr(R6, Address(IP, kParamEndSlotFromFp * kWordSize));
+
+  // Push space for the return value.
+  // Push the receiver.
+  // Push IC data object.
+  // Push arguments descriptor array.
+  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  __ PushList((1 << R4) | (1 << R5) | (1 << R6) | (1 << IP));
+
+  // R2: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+
+  __ CallRuntime(kInvokeNoSuchMethodFunctionRuntimeEntry);
+  // Remove arguments.
+  __ Drop(4);
+  __ Pop(R0);  // Get result into R0.
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 
