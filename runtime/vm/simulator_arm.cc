@@ -275,7 +275,7 @@ void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
   if (token_pos >= 0) {
     script.GetTokenLocation(token_pos, &line, &column);
   }
-  OS::Print("pc=0x%"Px" fp=0x%"Px" sp=0x%"Px" %s%s (%s:%d:%d)\n",
+  OS::Print("pc=0x%"Px" fp=0x%"Px" sp=0x%"Px" %s%s (%s:%"Pd":%"Pd")\n",
             pc, fp, sp,
             is_optimized ? (is_inlined ? "inlined " : "optimized ") : "",
             func_name.ToCString(),
