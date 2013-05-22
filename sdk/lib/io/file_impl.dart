@@ -338,14 +338,10 @@ class _File implements File {
 
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {
     _ensureFileService();
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
-      Timer.run(() {
-        completer.completeError(new ArgumentError());
-      });
-      return completer.future;
+      return new Future.error(new ArgumentError());
     }
     List request = new List(3);
     request[0] = _OPEN_REQUEST;
@@ -523,7 +519,6 @@ class _File implements File {
 
   Future<List<String>> readAsLines({Encoding encoding: Encoding.UTF_8}) {
     _ensureFileService();
-    Completer<List<String>> completer = new Completer<List<String>>();
     return readAsBytes().then((bytes) {
       return _decodeLines(bytes, encoding);
     });
@@ -557,9 +552,7 @@ class _File implements File {
     try {
       return writeAsBytes(_encodeString(contents, encoding), mode: mode);
     } catch (e) {
-      var completer = new Completer();
-      Timer.run(() => completer.completeError(e));
-      return completer.future;
+      return new Future.error(e);
     }
   }
 
@@ -595,8 +588,7 @@ class _RandomAccessFile implements RandomAccessFile {
   _RandomAccessFile(int this._id, String this._path);
 
   Future<RandomAccessFile> close() {
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     _ensureFileService();
     List request = new List(2);
     request[0] = _CLOSE_REQUEST;
@@ -627,8 +619,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<int> readByte() {
     _ensureFileService();
-    Completer<int> completer = new Completer<int>();
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     List request = new List(2);
     request[0] = _READ_BYTE_REQUEST;
     request[1] = _id;
@@ -654,18 +645,11 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<List<int>> read(int bytes) {
     _ensureFileService();
-    Completer<List<int>> completer = new Completer<List<int>>();
     if (bytes is !int) {
-      // Complete asynchronously so the user has a chance to setup
-      // handlers without getting exceptions when registering the
-      // then handler.
-      Timer.run(() {
-        completer.completeError(new FileIOException(
-            "Invalid arguments to read for file '$_path'"));
-      });
-      return completer.future;
-    };
-    if (closed) return _completeWithClosedException(completer);
+      return new Future.error(new FileIOException(
+          "Invalid arguments to read for file '$_path'"));
+    }
+    if (closed) return _closedException();
     List request = new List(3);
     request[0] = _READ_REQUEST;
     request[1] = _id;
@@ -703,8 +687,7 @@ class _RandomAccessFile implements RandomAccessFile {
       return new Future.error(new FileIOException(
           "Invalid arguments to readInto for file '$_path'"));
     };
-    Completer<int> completer = new Completer<int>();
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     List request = new List(3);
     if (start == null) start = 0;
     if (end == null) end = buffer.length;
@@ -755,18 +738,11 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> writeByte(int value) {
     _ensureFileService();
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
     if (value is !int) {
-      // Complete asynchronously so the user has a chance to setup
-      // handlers without getting exceptions when registering the
-      // then handler.
-      Timer.run(() {
-          completer.completeError(new FileIOException(
-              "Invalid argument to writeByte for file '$_path'"));
-      });
-      return completer.future;
+      return new Future.error(new FileIOException(
+          "Invalid argument to writeByte for file '$_path'"));
     }
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     List request = new List(3);
     request[0] = _WRITE_BYTE_REQUEST;
     request[1] = _id;
@@ -804,9 +780,8 @@ class _RandomAccessFile implements RandomAccessFile {
       return new Future.error(new FileIOException(
           "Invalid arguments to writeFrom for file '$_path'"));
     }
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
 
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
 
     _BufferAndStart result;
     try {
@@ -858,12 +833,8 @@ class _RandomAccessFile implements RandomAccessFile {
   Future<RandomAccessFile> writeString(String string,
                                        {Encoding encoding: Encoding.UTF_8}) {
     if (encoding is! Encoding) {
-      var completer = new Completer();
-      Timer.run(() {
-        completer.completeError(new FileIOException(
-            "Invalid encoding in writeString: $encoding"));
-      });
-      return completer.future;
+      return new Future.error(new FileIOException(
+          "Invalid encoding in writeString: $encoding"));
     }
     var data = _encodeString(string, encoding);
     return writeFrom(data, 0, data.length);
@@ -880,8 +851,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<int> position() {
     _ensureFileService();
-    Completer<int> completer = new Completer<int>();
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     List request = new List(2);
     request[0] = _POSITION_REQUEST;
     request[1] = _id;
@@ -907,8 +877,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> setPosition(int position) {
     _ensureFileService();
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     List request = new List(3);
     request[0] = _SET_POSITION_REQUEST;
     request[1] = _id;
@@ -934,8 +903,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> truncate(int length) {
     _ensureFileService();
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     List request = new List(3);
     request[0] = _TRUNCATE_REQUEST;
     request[1] = _id;
@@ -961,8 +929,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<int> length() {
     _ensureFileService();
-    Completer<int> completer = new Completer<int>();
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     List request = new List(2);
     request[0] = _LENGTH_REQUEST;
     request[1] = _id;
@@ -988,8 +955,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   Future<RandomAccessFile> flush() {
     _ensureFileService();
-    Completer<RandomAccessFile> completer = new Completer<RandomAccessFile>();
-    if (closed) return _completeWithClosedException(completer);
+    if (closed) return _closedException();
     List request = new List(2);
     request[0] = _FLUSH_REQUEST;
     request[1] = _id;
@@ -1028,12 +994,8 @@ class _RandomAccessFile implements RandomAccessFile {
     }
   }
 
-  Future _completeWithClosedException(Completer completer) {
-    Timer.run(() {
-      completer.completeError(
-          new FileIOException("File closed '$_path'"));
-    });
-    return completer.future;
+  Future _closedException() {
+    return new Future.error(new FileIOException("File closed '$_path'"));
   }
 
   final String _path;

@@ -116,13 +116,12 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
 
   void _completeDone({value, error}) {
     if (_doneCompleter == null) return;
-    var tmp = _doneCompleter;
-    _doneCompleter = null;
     if (error == null) {
-      tmp.complete(value);
+      _doneCompleter.complete(value);
     } else {
-      tmp.completeError(error);
+      _doneCompleter.completeError(error);
     }
+    _doneCompleter = null;
   }
 
   StreamController<T> get _controller {
@@ -140,10 +139,9 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
               (_) {
                 if (_isBound) {
                   // A new stream takes over - forward values to that stream.
-                  var completer = _controllerCompleter;
+                  _controllerCompleter.complete();
                   _controllerCompleter = null;
                   _controllerInstance = null;
-                  completer.complete();
                 } else {
                   // No new stream, .close was called. Close _target.
                   _closeTarget();
@@ -152,10 +150,9 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
               onError: (error) {
                 if (_isBound) {
                   // A new stream takes over - forward errors to that stream.
-                  var completer = _controllerCompleter;
+                  _controllerCompleter.completeError(error);
                   _controllerCompleter = null;
                   _controllerInstance = null;
-                  completer.completeError(error);
                 } else {
                   // No new stream. No need to close target, as it have already
                   // failed.

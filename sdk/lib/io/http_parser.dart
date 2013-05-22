@@ -105,8 +105,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   Completer resumeCompleter;
 
   _HttpDetachedIncoming(StreamSubscription this.subscription,
-                        List<int> this.carryOverData,
-                        Completer oldResumeCompleter) {
+                        List<int> this.carryOverData) {
     controller = new StreamController<List<int>>(
         onListen: resume,
         onPause: pause,
@@ -118,7 +117,6 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
       controller.close();
     } else {
       pause();
-      if (oldResumeCompleter != null) oldResumeCompleter.complete();
       subscription.resume();
       subscription.onData(controller.add);
       subscription.onDone(controller.close);
@@ -792,11 +790,8 @@ class _HttpParser
   void set responseToMethod(String method) { _responseToMethod = method; }
 
   _HttpDetachedIncoming detachIncoming() {
-    var completer = _pauseCompleter;
-    _pauseCompleter = null;
     return new _HttpDetachedIncoming(_socketSubscription,
-                                     readUnparsedData(),
-                                     completer);
+                                     readUnparsedData());
   }
 
   List<int> readUnparsedData() {
@@ -993,7 +988,6 @@ class _HttpParser
   StreamSubscription _socketSubscription;
   bool _paused = true;
   bool _bodyPaused = false;
-  Completer _pauseCompleter;
   StreamController<_HttpIncoming> _controller;
   StreamController<List<int>> _bodyController;
 }

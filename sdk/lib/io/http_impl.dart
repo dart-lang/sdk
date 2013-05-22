@@ -580,13 +580,12 @@ class _HttpOutboundConsumer implements StreamConsumer {
 
   bool _done([error]) {
     if (_completer == null) return false;
-    var tmp = _completer;
-    _completer = null;
     if (error != null) {
-      tmp.completeError(error);
+      _completer.completeError(error);
     } else {
-      tmp.complete(_outbound);
+      _completer.complete(_outbound);
     }
+    _completer = null;
     return true;
   }
 

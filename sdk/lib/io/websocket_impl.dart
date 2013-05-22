@@ -585,13 +585,12 @@ class _WebSocketConsumer implements StreamConsumer {
 
   bool _done([error]) {
     if (_completer == null) return false;
-    var tmp = _completer;
-    _completer = null;
     if (error != null) {
-      tmp.completeError(error);
+      _completer.completeError(error);
     } else {
-      tmp.complete(webSocket);
+      _completer.complete(webSocket);
     }
+    _completer = null;
     return true;
   }
 

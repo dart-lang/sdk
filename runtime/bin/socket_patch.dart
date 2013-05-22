@@ -867,13 +867,12 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
 
   void done([error]) {
     if (streamCompleter != null) {
-      var tmp = streamCompleter;
-      streamCompleter = null;
       if (error != null) {
-        tmp.completeError(error);
+        streamCompleter.completeError(error);
       } else {
-        tmp.complete(socket);
+        streamCompleter.complete(socket);
       }
+      streamCompleter = null;
     }
   }
 
