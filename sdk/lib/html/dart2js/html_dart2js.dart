@@ -6952,7 +6952,7 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("String", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -9696,7 +9696,7 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("File", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, File value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -10574,7 +10574,7 @@ class HtmlAllCollection extends Interceptor with ListMixin<Node>, ImmutableListM
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Node", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -10645,7 +10645,7 @@ class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixi
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Node", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -11413,39 +11413,6 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
   @DocsEditable
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('XMLHttpRequestException')
-class HttpRequestException native "XMLHttpRequestException" {
-
-  @DomName('XMLHttpRequestException.ABORT_ERR')
-  @DocsEditable
-  static const int ABORT_ERR = 102;
-
-  @DomName('XMLHttpRequestException.NETWORK_ERR')
-  @DocsEditable
-  static const int NETWORK_ERR = 101;
-
-  @DomName('XMLHttpRequestException.code')
-  @DocsEditable
-  final int code;
-
-  @DomName('XMLHttpRequestException.message')
-  @DocsEditable
-  final String message;
-
-  @DomName('XMLHttpRequestException.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('XMLHttpRequestException.toString')
-  @DocsEditable
-  String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14301,6 +14268,15 @@ class MidiConnectionEvent extends Event native "MIDIConnectionEvent" {
 
 
 @DocsEditable
+@DomName('MIDIInput')
+class MidiInput extends MidiPort implements EventTarget native "MIDIInput" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('MIDIMessageEvent')
 class MidiMessageEvent extends Event native "MIDIMessageEvent" {
 
@@ -14405,7 +14381,7 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("MimeType", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, MimeType value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -15703,7 +15679,7 @@ class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Node", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -16693,7 +16669,7 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Plugin", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Plugin value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -17125,39 +17101,6 @@ class Range native "Range" {
    */
   static bool get supportsCreateContextualFragment =>
       JS('bool', '("createContextualFragment" in window.Range.prototype)');
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('RangeException')
-class RangeException native "RangeException" {
-
-  @DomName('RangeException.BAD_BOUNDARYPOINTS_ERR')
-  @DocsEditable
-  static const int BAD_BOUNDARYPOINTS_ERR = 1;
-
-  @DomName('RangeException.INVALID_NODE_TYPE_ERR')
-  @DocsEditable
-  static const int INVALID_NODE_TYPE_ERR = 2;
-
-  @DomName('RangeException.code')
-  @DocsEditable
-  final int code;
-
-  @DomName('RangeException.message')
-  @DocsEditable
-  final String message;
-
-  @DomName('RangeException.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('RangeException.toString')
-  @DocsEditable
-  String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18407,7 +18350,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("SourceBuffer", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, SourceBuffer value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -18551,7 +18494,7 @@ class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, Immut
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("SpeechGrammar", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, SpeechGrammar value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -20231,7 +20174,7 @@ class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, Immutab
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("TextTrackCue", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -20300,7 +20243,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("TextTrack", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -20595,7 +20538,7 @@ class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<To
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Touch", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Touch value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -22971,7 +22914,7 @@ class _ClientRectList extends Interceptor with ListMixin<Rect>, ImmutableListMix
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Rect", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Rect value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23041,7 +22984,7 @@ class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMix
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("CssRule", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23102,7 +23045,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("_CSSValue", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23252,7 +23195,7 @@ class _EntryArray extends Interceptor with ListMixin<Entry>, ImmutableListMixin<
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Entry", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Entry value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23313,7 +23256,7 @@ class _EntryArraySync extends Interceptor with ListMixin<_EntrySync>, ImmutableL
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("_EntrySync", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, _EntrySync value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23417,7 +23360,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Gamepad", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23541,7 +23484,7 @@ class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("Node", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23691,7 +23634,7 @@ class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResul
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("SpeechInputResult", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, SpeechInputResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23752,7 +23695,7 @@ class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechReco
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("SpeechRecognitionResult", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, SpeechRecognitionResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -23813,7 +23756,7 @@ class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableL
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.range(index, 0, length);
-    return JS("StyleSheet", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");

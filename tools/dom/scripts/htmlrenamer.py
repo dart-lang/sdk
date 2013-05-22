@@ -56,7 +56,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
     'XMLHttpRequest': 'HttpRequest',
-    'XMLHttpRequestException': 'HttpRequestException',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
 }, **typed_array_renames))

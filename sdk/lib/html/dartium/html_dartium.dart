@@ -11862,43 +11862,6 @@ class HttpRequest extends EventTarget {
 
 
 @DocsEditable
-@DomName('XMLHttpRequestException')
-class HttpRequestException extends NativeFieldWrapperClass1 {
-  HttpRequestException.internal();
-
-  @DomName('XMLHttpRequestException.ABORT_ERR')
-  @DocsEditable
-  static const int ABORT_ERR = 102;
-
-  @DomName('XMLHttpRequestException.NETWORK_ERR')
-  @DocsEditable
-  static const int NETWORK_ERR = 101;
-
-  @DomName('XMLHttpRequestException.code')
-  @DocsEditable
-  int get code native "XMLHttpRequestException_code_Getter";
-
-  @DomName('XMLHttpRequestException.message')
-  @DocsEditable
-  String get message native "XMLHttpRequestException_message_Getter";
-
-  @DomName('XMLHttpRequestException.name')
-  @DocsEditable
-  String get name native "XMLHttpRequestException_name_Getter";
-
-  @DomName('XMLHttpRequestException.toString')
-  @DocsEditable
-  String toString() native "XMLHttpRequestException_toString_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('XMLHttpRequestProgressEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -15314,6 +15277,19 @@ class MidiConnectionEvent extends Event {
 
 
 @DocsEditable
+@DomName('MIDIInput')
+class MidiInput extends MidiPort implements EventTarget {
+  MidiInput.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('MIDIMessageEvent')
 class MidiMessageEvent extends Event {
   MidiMessageEvent.internal() : super.internal();
@@ -18319,43 +18295,6 @@ class Range extends NativeFieldWrapperClass1 {
    * * [createContextualFragment]
    */
   static bool get supportsCreateContextualFragment => true;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('RangeException')
-class RangeException extends NativeFieldWrapperClass1 {
-  RangeException.internal();
-
-  @DomName('RangeException.BAD_BOUNDARYPOINTS_ERR')
-  @DocsEditable
-  static const int BAD_BOUNDARYPOINTS_ERR = 1;
-
-  @DomName('RangeException.INVALID_NODE_TYPE_ERR')
-  @DocsEditable
-  static const int INVALID_NODE_TYPE_ERR = 2;
-
-  @DomName('RangeException.code')
-  @DocsEditable
-  int get code native "RangeException_code_Getter";
-
-  @DomName('RangeException.message')
-  @DocsEditable
-  String get message native "RangeException_message_Getter";
-
-  @DomName('RangeException.name')
-  @DocsEditable
-  String get name native "RangeException_name_Getter";
-
-  @DomName('RangeException.toString')
-  @DocsEditable
-  String toString() native "RangeException_toString_Callback";
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
