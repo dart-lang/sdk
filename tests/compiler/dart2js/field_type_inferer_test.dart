@@ -344,7 +344,8 @@ void doTest(String test, bool disableInlining, Map<String, dynamic> fields) {
       name,
       disableInlining,
       (backend, field) {
-        HType inferredType = backend.optimisticFieldType(field);
+        HType inferredType =
+            backend.optimisticFieldType(field).simplify(backend.compiler);
         if (type is Function) type = type(backend.compiler);
         Expect.equals(type, inferredType);
     });

@@ -1,0 +1,257 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of types;
+
+class UnionTypeMask implements TypeMask {
+  final Iterable<FlatTypeMask> disjointMasks;
+
+  static const int MAX_UNION_LENGTH = 4;
+
+  UnionTypeMask._(this.disjointMasks);
+
+  static TypeMask unionOf(Iterable<TypeMask> masks, Compiler compiler) {
+    List<FlatTypeMask> disjoint = <FlatTypeMask>[];
+    unionOfHelper(masks, disjoint, compiler);
+    if (disjoint.isEmpty) return new TypeMask.nonNullEmpty();
+    if (disjoint.length > MAX_UNION_LENGTH) return flatten(disjoint, compiler);
+    if (disjoint.length == 1) return disjoint[0];
+    return new UnionTypeMask._(disjoint);
+  }
+
+  static void unionOfHelper(Iterable<TypeMask> masks,
+                            List<FlatTypeMask> disjoint,
+                            Compiler compiler) {
+    for (TypeMask mask in masks) {
+      if (mask.isUnion) {
+        UnionTypeMask union = mask;
+        unionOfHelper(union.disjointMasks, disjoint, compiler);
+      } else if (mask.isEmpty && !mask.isNullable) {
+        continue;
+      } else {
+        assert(mask.base == null || mask.base.element != compiler.dynamicClass);
+        assert(mask is FlatTypeMask);
+        int inListIndex = -1;
+        bool covered = false;
+
+        // Iterate over [disjoint] to find out if one of the mask
+        // already covers [mask].
+        for (int i = 0; i < disjoint.length; i++) {
+          FlatTypeMask current = disjoint[i];
+          if (current == null) continue;
+          TypeMask newMask = mask.union(current, compiler);
+          // If we have found a disjoint union, continue iterating.
+          if (newMask.isUnion) continue;
+          covered = true;
+          // We found a mask that is either equal to [mask] or is a
+          // supertype of [mask].
+          if (current == newMask) break;
+
+          // [mask] is a supertype of [current], replace the [disjoint]
+          // list with [newMask] instead of [current]. Note that
+          // [newMask] may contain different information than [mask],
+          // like nullability.
+          disjoint[i] = newMask;
+          mask = newMask;
+
+          if (inListIndex != -1) {
+            // If the mask was already covered, we remove the previous
+            // place where it was inserted. This new mask subsumes the
+            // previously covered one.
+            disjoint.removeAt(inListIndex);
+            i--;
+          }
+          // Record where the mask was inserted.
+          inListIndex = i;
+        }
+        // If none of the masks in [disjoint] covers [mask], we just
+        // add [mask] to the list.
+        if (!covered) disjoint.add(mask);
+      }
+    }
+  }
+
+  static TypeMask flatten(List<FlatTypeMask> masks, Compiler compiler) {
+    assert(masks.length > 1);
+    // If either type mask is a subtype type mask, we cannot use a
+    // subclass type mask to represent their union.
+    bool useSubclass = masks.every((e) => !e.isSubtype);
+    bool isNullable = masks.any((e) => e.isNullable);
+
+    // Compute the common supertypes of the two types.
+    ClassElement firstElement = masks[0].base.element;
+    ClassElement secondElement = masks[1].base.element;
+    Iterable<ClassElement> candidates =
+        compiler.world.commonSupertypesOf(firstElement, secondElement);
+    for (int i = 2; i < masks.length; i++) {
+      ClassElement element = masks[i].base.element;
+      Set<ClassElement> supertypes = compiler.world.supertypesOf(element);
+      if (supertypes == null) {
+        candidates.clear();
+        break;
+      }
+      candidates = candidates.where((e) => supertypes.contains(e));
+    }
+
+    if (candidates.isEmpty) {
+      // TODO(kasperl): Get rid of this check. It can only happen when
+      // at least one of the two base types is 'unseen'.
+      return new TypeMask(compiler.objectClass.rawType,
+                          FlatTypeMask.SUBCLASS,
+                          isNullable);
+    }
+    // Compute the best candidate and its kind.
+    ClassElement bestElement;
+    int bestKind;
+    int bestSize;
+    for (ClassElement candidate in candidates) {
+      Set<ClassElement> subclasses = useSubclass
+          ? compiler.world.subclassesOf(candidate)
+          : null;
+      int size;
+      int kind;
+      if (subclasses != null
+          && masks.every((t) => subclasses.contains(t.base.element))) {
+        // If both [this] and [other] are subclasses of the supertype,
+        // then we prefer to construct a subclass type mask because it
+        // will always be at least as small as the corresponding
+        // subtype type mask.
+        kind = FlatTypeMask.SUBCLASS;
+        size = subclasses.length;
+        assert(size <= compiler.world.subtypesOf(candidate).length);
+      } else {
+        kind = FlatTypeMask.SUBTYPE;
+        size = compiler.world.subtypesOf(candidate).length;
+      }
+      // Update the best candidate if the new one is better.
+      if (bestElement == null || size < bestSize) {
+        bestElement = candidate;
+        bestSize = size;
+        bestKind = kind;
+      }
+    }
+    if (bestElement == compiler.objectClass) bestKind = FlatTypeMask.SUBCLASS;
+    return new TypeMask(bestElement.computeType(compiler),
+                        bestKind,
+                        isNullable);
+  }
+
+  TypeMask union(var other, Compiler compiler) {
+    if (!other.isUnion && disjointMasks.contains(other)) return this;
+
+    List<FlatTypeMask> newList =
+        new List<FlatTypeMask>.from(disjointMasks);
+    if (!other.isUnion) {
+      newList.add(other);
+    } else {
+      assert(other is UnionTypeMask);
+      newList.addAll(other.disjointMasks);
+    }
+    return new TypeMask.unionOf(newList, compiler);
+  }
+
+  TypeMask intersection(var other, Compiler compiler) {
+    if (!other.isUnion && disjointMasks.contains(other)) return other;
+
+    List<TypeMask> intersections = <TypeMask>[];
+    for (TypeMask current in disjointMasks) {
+      if (other.isUnion) {
+        for (FlatTypeMask flatOther in other.disjointMasks) {
+          intersections.add(current.intersection(flatOther, compiler)); 
+        }
+      } else {
+        intersections.add(current.intersection(other, compiler));
+      }
+    }
+    return new TypeMask.unionOf(intersections, compiler);
+  }
+
+  TypeMask nullable() {
+    if (isNullable) return this;
+    List<FlatTypeMask> newList = new List<FlatTypeMask>.from(disjointMasks);
+    newList[0] = newList[0].nullable();
+    return new UnionTypeMask._(newList);
+  }
+
+  TypeMask nonNullable() {
+    if (!isNullable) return this;
+    Iterable<FlatTypeMask> newIterable =
+        disjointMasks.map((e) => e.nonNullable());
+    return new UnionTypeMask._(newIterable);
+  }
+
+  TypeMask simplify(Compiler compiler) => flatten(disjointMasks, compiler);
+
+  bool get isEmpty => false;
+  bool get isNullable => disjointMasks.any((e) => e.isNullable);
+  bool get isExact => false;
+  bool get isUnion => true;
+
+  bool containsOnlyInt(Compiler compiler) => false;
+  bool containsOnlyDouble(Compiler compiler) => false;
+  bool containsOnlyNum(Compiler compiler) {
+    return disjointMasks.every((mask) {
+      return mask.containsOnlyInt(compiler)
+          || mask.containsOnlyDouble(compiler)
+          || mask.containsOnlyNum(compiler);
+    });
+  }
+  bool containsOnlyNull(Compiler compiler) => false;
+  bool containsOnlyBool(Compiler compiler) => false;
+  bool containsOnlyString(Compiler compiler) => false;
+  bool containsOnly(ClassElement element) => false;
+  bool satisfies(ClassElement cls, Compiler compiler) {
+    return disjointMasks.every((mask) => mask.satisfies(cls, compiler));
+  }
+
+  bool contains(DartType type, Compiler compiler) {
+    return disjointMasks.any((e) => e.contains(type, compiler));
+  }
+
+  bool containsAll(Compiler compiler) => false;
+
+  ClassElement singleClass(Compiler compiler) => null;
+
+  Set<ClassElement> containedClasses(Compiler compiler) {
+    Set<ClassElement> set = new Set<ClassElement>();
+    disjointMasks.forEach((e) => set.addAll(e.containedClasses(compiler)));
+    return set;
+  }
+
+  /**
+   * Returns whether a [selector] call will hit a method at runtime,
+   * and not go through [noSuchMethod].
+   */
+  bool willHit(Selector selector, Compiler compiler) {
+    return disjointMasks.every((e) => e.willHit(selector, compiler));
+  }
+
+  bool canHit(Element element, Selector selector, Compiler compiler) {
+    return disjointMasks.any((e) => e.canHit(element, selector, compiler));
+  }
+
+  Element locateSingleElement(Selector selector, Compiler compiler) {
+    Element candidate;
+    for (FlatTypeMask mask in disjointMasks) {
+      Element current = mask.locateSingleElement(selector, compiler);
+      if (current == null) {
+        return null;
+      } else if (candidate == null) {
+        candidate = current;
+      } else if (candidate != current) {
+        return null;
+      }
+    }
+    return candidate;
+  }
+
+  String toString() => 'Union of $disjointMasks';
+
+  bool operator==(other) {
+    if (identical(this, other)) return true;
+    return other is UnionTypeMask
+        && other.disjointMasks.length == disjointMasks.length
+        && other.disjointMasks.every((e) => disjointMasks.contains(e));
+  }
+}

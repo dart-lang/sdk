@@ -443,7 +443,10 @@ void main() {
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
-    Expect.equals(type, typesInferrer.internal.returnTypeOf[element], name);
+    Expect.equals(
+        type,
+        typesInferrer.internal.returnTypeOf[element].simplify(compiler),
+        name);
   }
   var interceptorType =
       findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
@@ -491,8 +494,8 @@ void main() {
   checkReturn('returnTopLevelGetter', typesInferrer.intType);
   checkReturn('testDeadCode', typesInferrer.intType);
   checkReturn('testLabeledIf', typesInferrer.intType.nullable());
-  checkReturn('testSwitch1',
-    typesInferrer.intType.union(typesInferrer.doubleType, compiler).nullable());
+  checkReturn('testSwitch1', typesInferrer.intType
+      .union(typesInferrer.doubleType, compiler).nullable().simplify(compiler));
   checkReturn('testSwitch2', typesInferrer.intType);
   checkReturn('testSwitch3', interceptorType.nullable());
   checkReturn('testContinue1', interceptorType.nullable());
@@ -503,7 +506,8 @@ void main() {
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
     var element = cls.lookupLocalMember(buildSourceString(methodName));
-    Expect.equals(type, typesInferrer.internal.returnTypeOf[element]);
+    Expect.equals(type,
+        typesInferrer.internal.returnTypeOf[element].simplify(compiler));
   }
 
   checkReturnInClass('A', 'returnInt1', typesInferrer.intType);

@@ -450,7 +450,8 @@ void doTest(String test, bool disableInlining, Map<String, Function> fields) {
       disableInlining,
       (inferrer, field) {
         TypeMask type = f(inferrer);
-        TypeMask inferredType = inferrer.internal.typeOf[field];
+        TypeMask inferredType =
+            inferrer.internal.typeOf[field].simplify(inferrer.compiler);
         Expect.equals(type, inferredType, name);
     });
   });
@@ -478,11 +479,10 @@ void test() {
   // code at the declaration site of the fields does not matter.
   runTest(TEST_5, {'f1': subclassOfInterceptor,
                    'f2': subclassOfInterceptor});
-  // TODO(9415). These tests seem flaky.
-  //runTest(TEST_6, {'f1': subclassOfInterceptor,
-  //                 'f2': subclassOfInterceptor});
-  //runTest(TEST_7, {'f1': subclassOfInterceptor,
-  //                 'f2': subclassOfInterceptor});
+  runTest(TEST_6, {'f1': subclassOfInterceptor,
+                   'f2': subclassOfInterceptor});
+  runTest(TEST_7, {'f1': subclassOfInterceptor,
+                   'f2': subclassOfInterceptor});
 
   runTest(TEST_8, {'f': (inferrer) => inferrer.stringType.nullable()});
   runTest(TEST_9, {'f': (inferrer) => inferrer.stringType.nullable()});

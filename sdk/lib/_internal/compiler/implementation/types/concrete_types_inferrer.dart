@@ -851,6 +851,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
     if (concreteType == null) return null;
     TypeMask typeMask = new TypeMask.nonNullEmpty();
     for (BaseType baseType in concreteType.baseTypes) {
+      TypeMask other = baseTypeToTypeMask(baseType);
+      if (other == null) return null;
       typeMask = typeMask.union(baseTypeToTypeMask(baseType), compiler);
     }
     return typeMask;

@@ -84,8 +84,9 @@ void doTest(String test,
       HTypeList types = compiler.backend.optimisticParameterTypes(x, null);
       if (expectedTypes != null) {
         Expect.isFalse(types.allUnknown);
-        Expect.listEquals(expectedTypes.map((f) => f(compiler)).toList(),
-                          types.types);
+        Expect.listEquals(
+            expectedTypes.map((f) => f(compiler)).toList(),
+            types.types.map((e) => e.simplify(compiler)).toList());
       } else {
         Expect.isTrue(types.allUnknown);
       }

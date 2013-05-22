@@ -19,6 +19,7 @@ import '../dart_types.dart';
 part 'concrete_types_inferrer.dart';
 part 'flat_type_mask.dart';
 part 'type_mask.dart';
+part 'union_type_mask.dart';
 
 /**
  * Common super class for our type inferrers.
@@ -91,6 +92,9 @@ class TypesTask extends CompilerTask {
    * is for debugging purposes only and can be omitted.
    */
   TypeMask best(var type1, var type2, [element]) {
+    // TODO(polux): Handle [UnionTypeMask].
+    if (type1 != null) type1 = type1.simplify(compiler);
+    if (type2 != null) type2 = type2.simplify(compiler);
     final result = _best(type1, type2);
     // Tests type1 and type2 for equality modulo normalization of native types.
     // Only called when DUMP_SURPRISING_RESULTS is true.

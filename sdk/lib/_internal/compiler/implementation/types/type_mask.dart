@@ -28,6 +28,10 @@ abstract class TypeMask {
   factory TypeMask.nonNullSubtype(DartType base)
       => new FlatTypeMask.nonNullSubtype(base);
 
+  factory TypeMask.unionOf(Iterable<TypeMask> masks, Compiler compiler) {
+    return UnionTypeMask.unionOf(masks, compiler);
+  }
+
   /**
    * Returns a nullable variant of [this] type mask.
    */
@@ -38,9 +42,12 @@ abstract class TypeMask {
    */
   TypeMask nonNullable();
 
+  TypeMask simplify(Compiler compiler);
+
   bool get isEmpty;
   bool get isNullable;
   bool get isExact;
+  bool get isUnion;
 
   bool containsOnlyInt(Compiler compiler);
   bool containsOnlyDouble(Compiler compiler);
@@ -49,6 +56,11 @@ abstract class TypeMask {
   bool containsOnlyBool(Compiler compiler);
   bool containsOnlyString(Compiler compiler);
   bool containsOnly(ClassElement element);
+  
+  /**
+   * Returns whether this type mask is an instance of [cls].
+   */
+  bool satisfies(ClassElement cls, Compiler compiler);
 
   /**
    * Returns whether or not this type mask contains the given type.

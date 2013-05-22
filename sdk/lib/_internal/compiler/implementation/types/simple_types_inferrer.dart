@@ -7,7 +7,8 @@ library simple_types_inferrer;
 import 'dart:collection' show Queue, LinkedHashSet;
 
 import '../closure.dart' show ClosureClassMap, ClosureScope;
-import '../dart_types.dart' show DartType, FunctionType, TypeKind;
+import '../dart_types.dart'
+    show DartType, InterfaceType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
@@ -265,7 +266,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * Sentinel used by the inferrer to notify that it does not know
    * the type of a specific element.
    */
-  TypeMask dynamicType = new SentinelTypeMask('dynamic');
+  TypeMask dynamicType;
   bool isDynamicType(TypeMask type) => identical(type, dynamicType);
 
   TypeMask nullType;
@@ -547,6 +548,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         rawTypeOf(backend.functionImplementation));
     typeType = new TypeMask.nonNullExact(
         rawTypeOf(backend.typeImplementation));
+
+    dynamicType = new TypeMask.subclass(rawTypeOf(compiler.objectClass));
   }
 
   dump() {
@@ -713,7 +716,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         returnType = dynamicType;
       }
     }
-    assert(returnType != null);
     return returnType;
   }
 
@@ -769,7 +771,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     element = element.implementation;
     if (isNativeElement(element) && element.isField()) {
       var type = typeOf.putIfAbsent(element, () {
-        return new TypeMask.subtype(element.computeType(compiler).asRaw());
+        InterfaceType type = element.computeType(compiler).asRaw();
+        return type.isDynamic ? dynamicType : new TypeMask.subtype(type);
       });
       assert(type != null);
       return type;
@@ -789,7 +792,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         type = dynamicType;
       }
     }
-    assert(type != null);
     return type;
   }
 
@@ -1270,7 +1272,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * [secondType].
    */
   TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
-    assert(secondType != null);
     if (firstType == null) {
       return secondType;
     } else if (isDynamicType(secondType)) {
@@ -1303,6 +1304,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       otherType = new TypeMask.nonNullSubtype(annotation);
     }
     if (isNullable) otherType = otherType.nullable();
+    if (type == null) return otherType;
     return type.intersection(otherType, compiler);
   }
 }

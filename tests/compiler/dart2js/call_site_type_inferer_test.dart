@@ -228,7 +228,8 @@ void doTest(String test,
             .toList();
         Expect.isFalse(types.allUnknown);
         Expect.equals(expectedTypes.length, types.types.length);
-        Expect.listEquals(expectedTypes, types.types);
+        Expect.listEquals(expectedTypes,
+            types.types.map((t) => t.simplify(compiler)).toList());
       } else {
         Expect.isTrue(types.allUnknown);
       }

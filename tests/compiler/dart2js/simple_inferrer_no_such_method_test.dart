@@ -71,7 +71,7 @@ test7() => new B().bar();
 test8() => new C().bar();
 test9() => (a ? new B() : new C()).bar();
 
-// Can hit A.noSuchMethod, D.noSuchMethod and Object.noSuchMethod.
+// Can hit A.noSuchMethod and D.noSuchMethod.
 test10() => (a ? new B() : new D()).bar();
 
 // Can hit D.noSuchMethod.
@@ -101,15 +101,18 @@ main() {
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
-    Expect.equals(type, typesInferrer.internal.returnTypeOf[element], name);
+    Expect.equals(
+        type,
+        typesInferrer.internal.returnTypeOf[element].simplify(compiler),
+        name);
   }
 
   checkReturn('test1', typesInferrer.intType);
   checkReturn('test2', typesInferrer.dynamicType);
   checkReturn('test3', typesInferrer.intType);
   checkReturn('test4', typesInferrer.mapType);
-  checkReturn('test5', typesInferrer.dynamicType);
-  checkReturn('test6', typesInferrer.dynamicType);
+  checkReturn('test5', typesInferrer.dynamicType.nonNullable());
+  checkReturn('test6', typesInferrer.dynamicType.nonNullable());
 
   compiler = compilerFor(TEST2, uri);
   compiler.runCompiler(uri);
@@ -129,6 +132,6 @@ main() {
   checkReturn('test7', typesInferrer.intType);
   checkReturn('test8', typesInferrer.intType);
   checkReturn('test9', typesInferrer.intType);
-  checkReturn('test10', typesInferrer.numType.nullable());
+  checkReturn('test10', typesInferrer.numType);
   checkReturn('test11', typesInferrer.doubleType);
 }

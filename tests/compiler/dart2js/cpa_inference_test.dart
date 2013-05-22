@@ -1255,8 +1255,9 @@ testConcreteTypeToTypeMask() {
   Expect.equals(convert(singleton(a).union(singleton(b)).union(nullSingleton)),
                 new TypeMask.subclass(a.rawType));
 
-  Expect.equals(convert(singleton(b).union(singleton(d))),
-                new TypeMask.nonNullSubtype(a.rawType));
+  Expect.equals(
+      convert(singleton(b).union(singleton(d))).simplify(result.compiler),
+      new TypeMask.nonNullSubtype(a.rawType));
 }
 
 testSelectors() {
@@ -1302,7 +1303,7 @@ testSelectors() {
   Selector foo = new Selector.call(buildSourceString("foo"), null, 0);
 
   Expect.equals(
-      inferredType(foo),
+      inferredType(foo).simplify(result.compiler),
       new TypeMask.nonNullSubclass(abc.rawType));
   Expect.equals(
       inferredType(new TypedSelector.subclass(x.rawType, foo)),
@@ -1314,7 +1315,8 @@ testSelectors() {
       inferredType(new TypedSelector.subclass(z.rawType, foo)),
       new TypeMask.nonNullExact(a.rawType));
   Expect.equals(
-      inferredType(new TypedSelector.subclass(xy.rawType, foo)),
+      inferredType(new TypedSelector.subclass(
+          xy.rawType, foo)).simplify(result.compiler),
       new TypeMask.nonNullSubclass(bc.rawType));
 
   Selector bar = new Selector.call(buildSourceString("bar"), null, 0);
