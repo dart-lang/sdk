@@ -52,7 +52,7 @@ main() {
 
 void main() {
   String generated = compileAll(TEST);
-  if (!generated.contains(r'if ($.$eq(c, d))')) {
+  if (generated.contains(r'=== true')) {
     print(generated);
     Expect.fail("missing elision of '=== true'");
   }

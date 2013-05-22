@@ -357,11 +357,17 @@ class SsaConditionMerger extends HGraphVisitor {
     // the builder. Mark the if instruction as such.
     controlFlowOperators.add(startIf);
 
+    // Find the next non-HGoto instruction following the phi.
+    HInstruction nextInstruction = phi.block.first;
+    while (nextInstruction is HGoto) {
+      nextInstruction = nextInstruction.block.successors[0].first;
+    }
+
     // If the operation is only used by the first instruction
     // of its block and is safe to be generated at use site, mark it
     // so.
     if (phi.usedBy.length == 1
-        && identical(phi.usedBy[0], phi.block.first)
+        && phi.usedBy[0] == nextInstruction
         && isSafeToGenerateAtUseSite(phi.usedBy[0], phi)) {
       markAsGenerateAtUseSite(phi);
     }

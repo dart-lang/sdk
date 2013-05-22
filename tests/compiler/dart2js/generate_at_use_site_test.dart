@@ -22,8 +22,23 @@ add(x, y) {
 }
 """;
 
+const String BAR = r"""
+bar() {
+  var isLeaf = (bar() != null) && bar();
+  // Because we're using a local variable, the graph gets an empty
+  // block between the [isLeaf] phi and the next instruction that uses
+  // it. The optimizer must take that new block into account in order
+  // to have the phi be generate at use uste.
+  if (isLeaf) return null;
+  return true;
+}
+""";
+
 main() {
   // Make sure we don't introduce a new variable.
   RegExp regexp = new RegExp("var $anyIdentifier =");
   compileAndDoNotMatch(FIB, 'fib', regexp);
+
+  regexp = new RegExp("isLeaf");
+  compileAndDoNotMatch(BAR, 'bar', regexp);
 }
