@@ -39,7 +39,7 @@ abstract class Iterable<E> {
   Iterator<E> get iterator;
 
   /**
-   * Returns a lazy [Iterable] where each element [:e:] of [this] is replaced
+   * Returns a lazy [Iterable] where each element [:e:] of `this` is replaced
    * by the result of [:f(e):].
    *
    * This method returns a view of the mapped elements. As long as the
@@ -112,7 +112,7 @@ abstract class Iterable<E> {
 
   /**
    * Returns true if every elements of this collection satisify the
-   * predicate [f]. Returns false otherwise.
+   * predicate [f]. Returns `false` otherwise.
    */
   bool every(bool f(E element));
 
@@ -164,7 +164,7 @@ abstract class Iterable<E> {
   /**
    * Returns an [Iterable] with at most [n] elements.
    *
-   * The returned [Iterable] may contain fewer than [n] elements, if [this]
+   * The returned [Iterable] may contain fewer than [n] elements, if `this`
    * contains fewer than [n] elements.
    */
   Iterable<E> take(int n);
@@ -173,9 +173,10 @@ abstract class Iterable<E> {
    * Returns an [Iterable] that stops once [test] is not satisfied anymore.
    *
    * The filtering happens lazily. Every new [Iterator] of the returned
-   * [Iterable] will start iterating over the elements of [this].
-   * When the iterator encounters an element [:e:] that does not satisfy [test],
-   * it discards [:e:] and moves into the finished state. That is, it will not
+   * [Iterable] will start iterating over the elements of `this`.
+   *
+   * When the iterator encounters an element `e` that does not satisfy [test],
+   * it discards `e` and moves into the finished state. That is, it will not
    * ask or provide any more elements.
    */
   Iterable<E> takeWhile(bool test(E value));
@@ -183,7 +184,7 @@ abstract class Iterable<E> {
   /**
    * Returns an [Iterable] that skips the first [n] elements.
    *
-   * If [this] has fewer than [n] elements, then the resulting [Iterable] will
+   * If `this` has fewer than [n] elements, then the resulting [Iterable] will
    * be empty.
    */
   Iterable<E> skip(int n);
@@ -192,17 +193,20 @@ abstract class Iterable<E> {
    * Returns an [Iterable] that skips elements while [test] is satisfied.
    *
    * The filtering happens lazily. Every new [Iterator] of the returned
-   * [Iterable] will iterate over all elements of [this].
+   * [Iterable] will iterate over all elements of `this`.
+   *
    * As long as the iterator's elements do not satisfy [test] they are
    * discarded. Once an element satisfies the [test] the iterator stops testing
-   * and uses every element unconditionally.
+   * and uses every element unconditionally. That is, the elements of the
+   * returned [Iterable] are the elements of `this` starting from the first
+   * element that doesn't satisfy [test].
    */
   Iterable<E> skipWhile(bool test(E value));
 
   /**
    * Returns the first element.
    *
-   * If [this] is empty throws a [StateError]. Otherwise this method is
+   * If `this` is empty throws a [StateError]. Otherwise this method is
    * equivalent to [:this.elementAt(0):]
    */
   E get first;
@@ -210,14 +214,14 @@ abstract class Iterable<E> {
   /**
    * Returns the last element.
    *
-   * If [this] is empty throws a [StateError].
+   * If `this` is empty throws a [StateError].
    */
   E get last;
 
   /**
-   * Returns the single element in [this].
+   * Returns the single element in `this`.
    *
-   * If [this] is empty or has more than one element throws a [StateError].
+   * If `this` is empty or has more than one element throws a [StateError].
    */
   E get single;
 
@@ -234,7 +238,7 @@ abstract class Iterable<E> {
    * Returns the last element that satisfies the given predicate [f].
    *
    * If none matches, the result of invoking the [orElse] function is
-   * returned. By default, when [orElse] is [:null:], a [StateError] is
+   * returned. By default, when [orElse] is `null`, a [StateError] is
    * thrown.
    */
   E lastWhere(bool test(E value), {E orElse()});
@@ -248,12 +252,11 @@ abstract class Iterable<E> {
   /**
    * Returns the [index]th element.
    *
-   * If [this] [Iterable] has fewer than [index] elements throws a
-   * [RangeError].
+   * If `this` has fewer than [index] elements throws a [RangeError].
    *
-   * Note: if [this] does not have a deterministic iteration order then the
+   * Note: if `this` does not have a deterministic iteration order then the
    * function may simply return any element without any iteration if there are
-   * at least [index] elements in [this].
+   * at least [index] elements in `this`.
    */
   E elementAt(int index);
 }
