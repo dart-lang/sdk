@@ -106,7 +106,8 @@ is 'dart file.dart' and you specify special command
           tests).''',
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
-               'chrome', 'safari', 'ie9', 'ie10', 'opera', 'chromeOnAndroid', 'none'],
+               'chrome', 'safari', 'ie9', 'ie10', 'opera', 'chromeOnAndroid',
+               'none'],
               'vm'),
           new _TestOptionSpecification(
               'arch',

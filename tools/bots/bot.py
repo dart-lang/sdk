@@ -17,9 +17,6 @@ import sys
 
 DART_PATH = dirname(dirname(dirname(abspath(__file__))))
 
-NO_COLOR_ENV = dict(os.environ)
-NO_COLOR_ENV['TERM'] = 'nocolor'
-
 BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 BUILDER_CLOBBER = 'BUILDBOT_CLOBBER'
 
@@ -229,7 +226,10 @@ def RunProcess(command):
   If a non-zero exit code is returned, raises an OSError with errno as the exit
   code.
   """
-  exit_code = subprocess.call(command, env=NO_COLOR_ENV)
+  no_color_env = dict(os.environ)
+  no_color_env['TERM'] = 'nocolor'
+
+  exit_code = subprocess.call(command, env=no_color_env)
   if exit_code != 0:
     raise OSError(exit_code)
 
