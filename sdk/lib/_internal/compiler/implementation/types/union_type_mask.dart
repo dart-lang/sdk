@@ -30,8 +30,9 @@ class UnionTypeMask implements TypeMask {
       } else if (mask.isEmpty && !mask.isNullable) {
         continue;
       } else {
-        assert(mask.base == null || mask.base.element != compiler.dynamicClass);
-        assert(mask is FlatTypeMask);
+        FlatTypeMask flatMask = mask;
+        assert(flatMask.base == null
+               || flatMask.base.element != compiler.dynamicClass);
         int inListIndex = -1;
         bool covered = false;
 
@@ -84,17 +85,18 @@ class UnionTypeMask implements TypeMask {
     ClassElement secondElement = masks[1].base.element;
     Iterable<ClassElement> candidates =
         compiler.world.commonSupertypesOf(firstElement, secondElement);
+    bool unseenType = false;
     for (int i = 2; i < masks.length; i++) {
       ClassElement element = masks[i].base.element;
       Set<ClassElement> supertypes = compiler.world.supertypesOf(element);
       if (supertypes == null) {
-        candidates.clear();
+        unseenType = true;
         break;
       }
       candidates = candidates.where((e) => supertypes.contains(e));
     }
 
-    if (candidates.isEmpty) {
+    if (candidates.isEmpty || unseenType) {
       // TODO(kasperl): Get rid of this check. It can only happen when
       // at least one of the two base types is 'unseen'.
       return new TypeMask(compiler.objectClass.rawType,

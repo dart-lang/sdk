@@ -771,8 +771,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     element = element.implementation;
     if (isNativeElement(element) && element.isField()) {
       var type = typeOf.putIfAbsent(element, () {
-        InterfaceType type = element.computeType(compiler).asRaw();
-        return type.isDynamic ? dynamicType : new TypeMask.subtype(type);
+        InterfaceType rawType = element.computeType(compiler).asRaw();
+        return rawType.isDynamic ? dynamicType : new TypeMask.subtype(rawType);
       });
       assert(type != null);
       return type;
