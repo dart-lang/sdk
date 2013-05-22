@@ -334,6 +334,7 @@ testBreak2() {
 
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
+returnTopLevelGetter() => topLevelGetter;
 
 class A {
   factory A() = A.generative;
@@ -362,6 +363,7 @@ class B extends A {
   returnInt6() => super.myField += 4;
   returnInt7() => ++super[0];
   returnInt8() => super[0] += 54;
+  returnInt9() => super.myField;
 }
 
 main() {
@@ -403,6 +405,7 @@ main() {
   returnAsString();
   returnIntAsNum();
   returnAsTypedef();
+  returnTopLevelGetter();
   testDeadCode();
   testLabeledIf();
   testSwitch1();
@@ -427,7 +430,8 @@ main() {
          ..returnInt5()
          ..returnInt6()
          ..returnInt7()
-         ..returnInt8();
+         ..returnInt8()
+         ..returnInt9();
 }
 """;
 
@@ -484,6 +488,7 @@ void main() {
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   checkReturn('returnIntAsNum', typesInferrer.intType);
   checkReturn('returnAsTypedef', typesInferrer.functionType.nullable());
+  checkReturn('returnTopLevelGetter', typesInferrer.intType);
   checkReturn('testDeadCode', typesInferrer.intType);
   checkReturn('testLabeledIf', typesInferrer.intType.nullable());
   checkReturn('testSwitch1',
@@ -517,6 +522,7 @@ void main() {
   checkReturnInClass('B', 'returnInt6', typesInferrer.intType);
   checkReturnInClass('B', 'returnInt7', typesInferrer.intType);
   checkReturnInClass('B', 'returnInt8', typesInferrer.intType);
+  checkReturnInClass('B', 'returnInt9', typesInferrer.intType);
 
   checkFactoryConstructor(String className) {
     var cls = findElement(compiler, className);

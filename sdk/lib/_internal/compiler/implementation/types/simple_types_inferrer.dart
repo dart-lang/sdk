@@ -827,6 +827,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         return functionType == null ? dynamicType : functionType;
       } else if (element.isField()) {
         return typeOfElement(element);
+      } else if (Elements.isUnresolved(element)) {
+        return dynamicType;
       } else {
         assert(element.isGetter());
         return returnTypeOfElement(element);
@@ -1907,9 +1909,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       ArgumentsTypes operatorArguments = new ArgumentsTypes([rhsType], null);
       if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
-        getterType = getterElement.isField()
-            ? inferrer.typeOfElement(element)
-            : inferrer.returnTypeOfElement(element);
+        getterType =
+            inferrer.typeOfElementWithSelector(getterElement, getterSelector);
         handleStaticSend(node, getterSelector, getterElement, null);
         newType = handleDynamicSend(
             node, operatorSelector, getterType, operatorArguments);
@@ -2014,7 +2015,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     isThisExposed = true;
     if (node.isPropertyAccess) {
       handleStaticSend(node, selector, element, null);
-      return inferrer.typeOfElement(element);
+      return inferrer.typeOfElementWithSelector(element, selector);
     } else if (element.isFunction()) {
       if (!selector.applies(element, compiler)) return inferrer.dynamicType;
       ArgumentsTypes arguments = analyzeArguments(node.arguments);
@@ -2179,7 +2180,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     Selector selector = elements.getSelector(node);
     if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, selector, element, null);
-      return inferrer.typeOfElement(element);
+      return inferrer.typeOfElementWithSelector(element, selector);
     } else if (Elements.isInstanceSend(node, elements)) {
       return visitDynamicSend(node);
     } else if (Elements.isStaticOrTopLevelFunction(element)) {
