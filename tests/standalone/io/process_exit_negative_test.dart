@@ -9,14 +9,14 @@ import "dart:io";
 import "process_test_util.dart";
 
 void main() {
-  Future<Process> fp = Process.start(getProcessTestFileName(),
-                            const ["0", "0", "0", "0"]);
+  var fp = Process.start(getProcessTestFileName(),
+                         const ["0", "0", "0", "0"]);
   fp.then((p) {
-    p.onExit = (int s) {
+    p.exitCode.then((int s) {
       print(a.toString());  // Should cause a compilation error here.
-    };
+    });
     // Drain stdout and stderr.
-    p.stdout.onData = p.stdout.read;
-    p.stderr.onData = p.stderr.read;
+    p.stdout.listen((_) {});
+    p.stderr.listen((_) {});
   });
 }
