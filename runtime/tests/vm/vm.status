@@ -61,6 +61,7 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 # Tests missing code generation support.
 cc/Dart2JSCompileAll: Skip
 cc/CorelibCompileAll: Skip
+cc/ParsePatchLibrary: Skip
 dart/byte_array_test: Skip
 dart/byte_array_optimized_test: Skip
 dart/inline_stack_frame_test: Skip
@@ -72,6 +73,7 @@ dart/inline_stack_frame_test: Skip
 # Tests missing code generation support.
 cc/CorelibCompileAll: Skip
 cc/Dart2JSCompileAll: Skip
+cc/ParsePatchLibrary: Skip
 dart/byte_array_test: Skip
 dart/byte_array_optimized_test: Skip
 dart/inline_stack_frame_test: Skip

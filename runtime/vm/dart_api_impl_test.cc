@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_api.h"
+#include "bin/builtin.h"
 #include "platform/assert.h"
 #include "platform/json.h"
 #include "platform/utils.h"
@@ -6004,6 +6005,9 @@ TEST_CASE(ParsePatchLibrary) {
   "  return b.val;\n"
   "}\n"
   ;  // NOLINT
+
+  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
 
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);

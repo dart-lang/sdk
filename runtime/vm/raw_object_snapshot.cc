@@ -1047,7 +1047,7 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
   Library& library = Library::ZoneHandle(reader->isolate(), Library::null());
   reader->AddBackRef(object_id, &library, kIsDeserialized);
 
-  if (RawObject::IsCreatedFromSnapshot(tags)) {
+  if ((kind == Snapshot::kScript) && RawObject::IsCreatedFromSnapshot(tags)) {
     ASSERT(kind != Snapshot::kFull);
     // Lookup the object as it should already exist in the heap.
     *reader->StringHandle() ^= reader->ReadObjectImpl();

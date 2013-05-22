@@ -188,6 +188,13 @@ class CodeGenerator;
 class VirtualMemory;
 
 
+// snapshot_buffer points to a snapshot if we link in a snapshot otherwise
+// it is initialized to NULL.
+namespace bin {
+extern const uint8_t* snapshot_buffer;
+}
+
+
 class TestCaseBase {
  public:
   explicit TestCaseBase(const char* name);
@@ -225,7 +232,7 @@ class TestCase : TestCaseBase {
     return CreateIsolate(buffer);
   }
   static Dart_Isolate CreateTestIsolate() {
-    return CreateIsolate(NULL);
+    return CreateIsolate(bin::snapshot_buffer);
   }
   static Dart_Handle library_handler(Dart_LibraryTag tag,
                                      Dart_Handle library,
@@ -234,7 +241,7 @@ class TestCase : TestCaseBase {
   virtual void Run();
 
  private:
-  static Dart_Isolate CreateIsolate(uint8_t* buffer) {
+  static Dart_Isolate CreateIsolate(const uint8_t* buffer) {
     char* err;
     Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, buffer, NULL, &err);
     if (isolate == NULL) {
