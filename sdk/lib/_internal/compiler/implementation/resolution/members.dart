@@ -3743,9 +3743,19 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       requiredParameterCount  = parametersBuilder.length;
       parameters = parametersBuilder.toLink();
     }
-    DartType returnType = element.isFactoryConstructor()
-        ? element.getEnclosingClass().computeType(compiler)
-        : compiler.resolveReturnType(element, returnNode);
+    DartType returnType;
+    if (element.isFactoryConstructor()) {
+      returnType = element.getEnclosingClass().computeType(compiler);
+      // Because there is no type annotation for the return type of
+      // this element, we explicitly add one.
+      if (compiler.enableTypeAssertions) {
+        compiler.enqueuer.resolution.registerIsCheck(
+            returnType, new TreeElementMapping(element));
+      }
+    } else {
+      returnType = compiler.resolveReturnType(element, returnNode);
+    }
+
     if (element.isSetter() && (requiredParameterCount != 1 ||
                                visitor.optionalParameterCount != 0)) {
       // If there are no formal parameters, we already reported an error above.
