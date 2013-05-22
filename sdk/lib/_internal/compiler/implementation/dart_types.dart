@@ -341,6 +341,8 @@ class MalformedType extends DartType {
     return visitor.visitMalformedType(this, argument);
   }
 
+  bool operator ==(other) => identical(this, other);
+
   String toString() {
     var sb = new StringBuffer();
     if (typeArguments != null) {
@@ -446,8 +448,9 @@ abstract class GenericType extends DartType {
   }
 
   bool operator ==(other) {
-    if (!identical(element, other.element)) return false;
-    return typeArguments == other.typeArguments;
+    if (other is !GenericType) return false;
+    return identical(element, other.element)
+        && typeArguments == other.typeArguments;
   }
 
   bool get isRaw => typeArguments.isEmpty || identical(this, element.rawType);
@@ -521,7 +524,9 @@ class InterfaceType extends GenericType {
     ClassElement classElement = element;
     InterfaceType receiver = this;
     InterfaceType declarer = receiver;
-    Element member = classElement.lookupLocalMember(name);
+    // TODO(johnniwinther): Lookup and callers should handle private members and
+    // injected members.
+    Element member = classElement.implementation.lookupLocalMember(name);
     if (member != null) {
       return createMember(receiver, declarer, member);
     }
@@ -533,7 +538,7 @@ class InterfaceType extends GenericType {
       if (supertype.element.isMixinApplication) continue;
       declarer = supertype;
       ClassElement lookupTarget = declarer.element;
-      member = lookupTarget.lookupLocalMember(name);
+      member = lookupTarget.implementation.lookupLocalMember(name);
       if (member != null) {
         return createMember(receiver, declarer, member);
       }

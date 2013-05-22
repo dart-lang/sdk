@@ -9,6 +9,21 @@ import 'package:args/args.dart';
 
 main() {
   group('ArgParser.addCommand()', () {
+    test('creates a new ArgParser if none is given', () {
+      var parser = new ArgParser();
+      var command = parser.addCommand('install');
+      expect(parser.commands['install'], equals(command));
+      expect(command is ArgParser, isTrue);
+    });
+
+    test('uses the command parser if given one', () {
+      var parser = new ArgParser();
+      var command = new ArgParser();
+      var result = parser.addCommand('install', command);
+      expect(parser.commands['install'], equals(command));
+      expect(result, equals(command));
+    });
+
     test('throws on a duplicate command name', () {
       var parser = new ArgParser();
       parser.addCommand('install');

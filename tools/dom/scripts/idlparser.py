@@ -212,7 +212,7 @@ class IDLParser(object):
         [MAYBE(ExtAttrs), MAYBE(Static), MAYBE(Stringifier), MAYBE(_Specials),
          ReturnType, MAYBE(Id), '(', _Arguments, ')', ';'],
         # WebKit:
-        [MAYBE(ExtAttrs), MAYBE(Static), MAYBE(_AttrGetterSetter),
+        [MAYBE(ExtAttrs), MAYBE(Static), MAYBE(_Specials),
          ReturnType, MAYBE(Id), '(', _Arguments, ')', ';'],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs), MAYBE(Static), MAYBE(Stringifier),

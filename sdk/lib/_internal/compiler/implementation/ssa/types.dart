@@ -18,11 +18,13 @@ abstract class HType {
       return isNullable ? HType.NULL : HType.CONFLICTING;
     }
 
+    JavaScriptBackend backend = compiler.backend;
     if (mask.containsOnlyInt(compiler)) {
       return isNullable ? HType.INTEGER_OR_NULL : HType.INTEGER;
     } else if (mask.containsOnlyDouble(compiler)) {
       return isNullable ? HType.DOUBLE_OR_NULL : HType.DOUBLE;
-    } else if (mask.containsOnlyNum(compiler)) {
+    } else if (mask.containsOnlyNum(compiler)
+               || mask.satisfies(backend.jsNumberClass, compiler)) {
       return isNullable ? HType.NUMBER_OR_NULL : HType.NUMBER;
     } else if (mask.containsOnlyString(compiler)) {
       return isNullable ? HType.STRING_OR_NULL : HType.STRING;
@@ -38,18 +40,17 @@ abstract class HType {
       return isNullable ? HType.UNKNOWN : HType.NON_NULL;
     }
 
-    JavaScriptBackend backend = compiler.backend;
     if (!isNullable) {
-      if (mask.containsOnly(backend.jsIndexableClass)) {
-        return HType.INDEXABLE_PRIMITIVE;
-      } else if (mask.containsOnly(backend.jsArrayClass)) {
-        return HType.READABLE_ARRAY;
-      } else if (mask.containsOnly(backend.jsMutableArrayClass)) {
-        return HType.MUTABLE_ARRAY;
-      } else if (mask.containsOnly(backend.jsFixedArrayClass)) {
+      if (mask.containsOnly(backend.jsFixedArrayClass)) {
         return HType.FIXED_ARRAY;
       } else if (mask.containsOnly(backend.jsExtendableArrayClass)) {
         return HType.EXTENDABLE_ARRAY;
+      } else if (mask.satisfies(backend.jsMutableArrayClass, compiler)) {
+        return HType.MUTABLE_ARRAY;
+      } else if (mask.satisfies(backend.jsArrayClass, compiler)) {
+        return HType.READABLE_ARRAY;
+      } else if (mask.satisfies(backend.jsIndexableClass, compiler)) {
+        return HType.INDEXABLE_PRIMITIVE;
       }
     }
     return new HBoundedType(mask);
@@ -270,6 +271,8 @@ abstract class HType {
     TypeMask union = mask.union(otherMask, compiler);
     return new HType.fromMask(union, compiler);
   }
+
+  HType simplify(Compiler compiler) => this;
 }
 
 /** Used to represent [HType.UNKNOWN] and [HType.CONFLICTING]. */
@@ -561,7 +564,11 @@ class HBoundedType extends HType {
   bool canBePrimitiveNumber(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
     DartType jsNumberType = backend.jsNumberClass.computeType(compiler);
-    return mask.contains(jsNumberType, compiler);
+    DartType jsIntType = backend.jsIntClass.computeType(compiler);
+    DartType jsDoubleType = backend.jsDoubleClass.computeType(compiler);
+    return mask.contains(jsNumberType, compiler)
+        || mask.contains(jsIntType, compiler)
+        || mask.contains(jsDoubleType, compiler);
   }
 
   bool canBePrimitiveBoolean(Compiler compiler) {
@@ -587,6 +594,10 @@ class HBoundedType extends HType {
   }
 
   TypeMask computeMask(Compiler compiler) => mask;
+
+  HType simplify(Compiler compiler) {
+    return new HType.fromMask(mask.simplify(compiler), compiler);
+  }
 
   bool operator ==(HType other) {
     if (other is !HBoundedType) return false;

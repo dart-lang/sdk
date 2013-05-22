@@ -44,7 +44,6 @@ function_type_alias6_test: Crash # dartbug.com/9792
 prefix16_test: Fail # dartbug.com/7354
 default_factory2_test/01: Pass # For the wrong reasons.
 type_variable_scope_test/none: Fail
-factory_implementation_test/00: Fail
 redirecting_factory_infinite_steps_test/01: Fail
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
@@ -58,8 +57,6 @@ type_variable_bounds3_test/00: Fail
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
 closure_type_test: Fail # does not detect type error in checked mode.
-factory1_test/00: Fail
-factory1_test/01: Fail
 type_annotation_test/09: Fail # Named constructors interpreted as a type.
 prefix15_test: Fail # Issue 5022
 local_function2_test: Fail # Issue 5022

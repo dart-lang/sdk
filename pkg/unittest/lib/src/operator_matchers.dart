@@ -94,9 +94,9 @@ class _AllOf extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {
     var matcher = matchState.state['matcher'];
-    mismatchDescription.addDescriptionOf(matcher).add(' ');
-        matcher.describeMismatch(item, mismatchDescription,
-            matchState.state['state'], verbose);
+    matcher.describeMismatch(item, mismatchDescription,
+        matchState.state['state'], verbose);
+    mismatchDescription.add(" (wasn't ").addDescriptionOf(matcher).add(')');
     return mismatchDescription;
   }
 

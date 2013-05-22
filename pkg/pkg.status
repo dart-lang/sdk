@@ -126,6 +126,17 @@ unittest/test/instance_test: Skip
 unittest/test/mock_test: Fail
 unittest/test/mock_regexp_negative_test: Fail
 
+# The unminified unittest tests test that the real names of Dart types are
+# printed. Minified versions of these tests exist that test the behavior when
+# minified.
+unittest/test/*_unminified_test: Skip
+
+[ $minified == false ]
+# The minified unittest tests test that the minified names of Dart types are
+# printed. Unminified versions of these tests exist that test the behavior when
+# not minified.
+unittest/test/*_minified_test: Skip
+
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 

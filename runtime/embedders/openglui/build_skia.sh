@@ -61,7 +61,7 @@ pushd "${DART_DIR}/third_party/skia"
 
 if [ ${DO_ANDROID} != 0 ] ; then
   echo "Building for Android ${TARGET_ARCH}"
-  curl http://skia.googlecode.com/svn/android/gclient.config -o .gclient
+  curl http://skia.googlecode.com/svn/trunk/platform_tools/android/gclient.config -o .gclient
   gclient sync
 
   export ANDROID_SDK_ROOT=`readlink -f ../android_tools/sdk`
@@ -71,9 +71,10 @@ if [ ${DO_ANDROID} != 0 ] ; then
 
   echo "Using SDK ${ANDROID_SDK_ROOT}"
   if [ ${CLEAN} != 0 ] ; then
-    ../android/bin/android_make -d $TARGET_ARCH -j clean
+    ./platform_tools/android/bin/android_make -d $TARGET_ARCH -j clean
   else
-    env -i BUILDTYPE=$BUILD ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" PATH="${PATH}:${GSUTIL_LOCATION}" ../android/bin/android_make BUILDTYPE=$BUILD -d $TARGET_ARCH -j --debug=j
+    echo env -i BUILDTYPE=$BUILD ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" PATH="${PATH}:${GSUTIL_LOCATION}" ../android/bin/android_make BUILDTYPE=$BUILD -d $TARGET_ARCH -j --debug=j
+    env -i BUILDTYPE=$BUILD ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}" PATH="${PATH}:${GSUTIL_LOCATION}" ./platform_tools/android/bin/android_make BUILDTYPE=$BUILD -d $TARGET_ARCH -j --debug=j
   fi
 
 else

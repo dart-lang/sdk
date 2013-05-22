@@ -32,8 +32,14 @@ EventTarget _convertNativeToDart_EventTarget(e) {
   // Assume it's a Window if it contains the setInterval property.  It may be
   // from a different frame - without a patched prototype - so we cannot
   // rely on Dart type checking.
-  if (JS('bool', r'"setInterval" in #', e))
-    return _DOMWindowCrossFrame._createSafe(e);
+  if (JS('bool', r'"setInterval" in #', e)) {
+    var window = _DOMWindowCrossFrame._createSafe(e);
+    // If it's a native window.
+    if (window is EventTarget) {
+      return window;
+    }
+    return null;
+  }
   else
     return e;
 }

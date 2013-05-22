@@ -236,6 +236,24 @@ returnAsTypedef() {
   return topLevelGetter() as Foo;
 }
 
+testDeadCode() {
+  return 42;
+  return 'foo';
+}
+
+testLabeledIf(a) {
+  var c;
+  L1: if (a > 1) {
+    if (a == 2) {
+      break L1;
+    }
+    c = 42;
+  } else {
+    c = 38;
+  }
+  return c;
+}
+
 testSwitch1() {
   var a = null;
   switch (topLevelGetter) {
@@ -266,8 +284,57 @@ testSwitch3() {
   return b;
 }
 
+testContinue1() {
+  var a = 42;
+  var b;
+  while (true) {
+    b = a + 54;
+    if (b == 42) continue;
+    a = 'foo';
+  }
+  return b;
+}
+
+testBreak1() {
+  var a = 42;
+  var b;
+  while (true) {
+    b = a + 54;
+    if (b == 42) break;
+    b = 'foo';
+  }
+  return b;
+}
+
+testContinue2() {
+  var a = 42;
+  var b;
+  while (true) {
+    b = a + 54;
+    if (b == 42) {
+      b = 'foo';
+      continue;
+    }
+  }
+  return b;
+}
+
+testBreak2() {
+  var a = 42;
+  var b;
+  while (true) {
+    b = a + 54;
+    if (b == 42) {
+      a = 'foo';
+      break;
+    }
+  }
+  return b;
+}
+
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
+returnTopLevelGetter() => topLevelGetter;
 
 class A {
   factory A() = A.generative;
@@ -296,6 +363,7 @@ class B extends A {
   returnInt6() => super.myField += 4;
   returnInt7() => ++super[0];
   returnInt8() => super[0] += 54;
+  returnInt9() => super.myField;
 }
 
 main() {
@@ -337,9 +405,16 @@ main() {
   returnAsString();
   returnIntAsNum();
   returnAsTypedef();
+  returnTopLevelGetter();
+  testDeadCode();
+  testLabeledIf();
   testSwitch1();
   testSwitch2();
   testSwitch3();
+  testContinue1();
+  testBreak1();
+  testContinue2();
+  testBreak2();
   new A() == null;
   new A()..returnInt1()
          ..returnInt2()
@@ -355,7 +430,8 @@ main() {
          ..returnInt5()
          ..returnInt6()
          ..returnInt7()
-         ..returnInt8();
+         ..returnInt8()
+         ..returnInt9();
 }
 """;
 
@@ -367,7 +443,10 @@ void main() {
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
-    Expect.equals(type, typesInferrer.internal.returnTypeOf[element], name);
+    Expect.equals(
+        type,
+        typesInferrer.internal.returnTypeOf[element].simplify(compiler),
+        name);
   }
   var interceptorType =
       findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
@@ -412,15 +491,23 @@ void main() {
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   checkReturn('returnIntAsNum', typesInferrer.intType);
   checkReturn('returnAsTypedef', typesInferrer.functionType.nullable());
-  checkReturn('testSwitch1',
-    typesInferrer.intType.union(typesInferrer.doubleType, compiler).nullable());
+  checkReturn('returnTopLevelGetter', typesInferrer.intType);
+  checkReturn('testDeadCode', typesInferrer.intType);
+  checkReturn('testLabeledIf', typesInferrer.intType.nullable());
+  checkReturn('testSwitch1', typesInferrer.intType
+      .union(typesInferrer.doubleType, compiler).nullable().simplify(compiler));
   checkReturn('testSwitch2', typesInferrer.intType);
   checkReturn('testSwitch3', interceptorType.nullable());
+  checkReturn('testContinue1', interceptorType.nullable());
+  checkReturn('testBreak1', interceptorType.nullable());
+  checkReturn('testContinue2', interceptorType.nullable());
+  checkReturn('testBreak2', typesInferrer.intType.nullable());
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
     var element = cls.lookupLocalMember(buildSourceString(methodName));
-    Expect.equals(type, typesInferrer.internal.returnTypeOf[element]);
+    Expect.equals(type,
+        typesInferrer.internal.returnTypeOf[element].simplify(compiler));
   }
 
   checkReturnInClass('A', 'returnInt1', typesInferrer.intType);
@@ -439,6 +526,7 @@ void main() {
   checkReturnInClass('B', 'returnInt6', typesInferrer.intType);
   checkReturnInClass('B', 'returnInt7', typesInferrer.intType);
   checkReturnInClass('B', 'returnInt8', typesInferrer.intType);
+  checkReturnInClass('B', 'returnInt9', typesInferrer.intType);
 
   checkFactoryConstructor(String className) {
     var cls = findElement(compiler, className);

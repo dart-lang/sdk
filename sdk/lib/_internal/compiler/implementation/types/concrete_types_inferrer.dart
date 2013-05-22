@@ -851,6 +851,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
     if (concreteType == null) return null;
     TypeMask typeMask = new TypeMask.nonNullEmpty();
     for (BaseType baseType in concreteType.baseTypes) {
+      TypeMask other = baseTypeToTypeMask(baseType);
+      if (other == null) return null;
       typeMask = typeMask.union(baseTypeToTypeMask(baseType), compiler);
     }
     return typeMask;
@@ -1098,7 +1100,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
       } else if (type.element == compiler.boolClass) {
         concreteType = singletonConcreteType(baseTypes.boolBaseType);
       } else {
-        Set<ClassElement> subtypes = compiler.world.subtypes[type.element];
+        Set<ClassElement> subtypes = compiler.world.subtypesOf(type.element);
         if (subtypes == null) continue;
         concreteType = emptyConcreteType;
         for (ClassElement subtype in subtypes) {
@@ -1221,7 +1223,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
       if (type == null) {
         uninitializedFields.add(field);
       }
-    }, includeSuperMembers: false);
+    });
 
     // handle initializing formals
     element.functionSignature.forEachParameter((param) {

@@ -62,8 +62,8 @@ class BigintOperations : public AllStatic {
   static bool FitsIntoSmi(const Bigint& bigint);
   static RawSmi* ToSmi(const Bigint& bigint);
 
-  static bool FitsIntoMint(const Bigint& bigint);
-  static int64_t ToMint(const Bigint& bigint);
+  static bool FitsIntoInt64(const Bigint& bigint);
+  static int64_t ToInt64(const Bigint& bigint);
 
   static bool FitsIntoUint64(const Bigint& bigint);
   static bool AbsFitsIntoUint64(const Bigint& bigint);

@@ -56,7 +56,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
     'XMLHttpRequest': 'HttpRequest',
-    'XMLHttpRequestException': 'HttpRequestException',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
 }, **typed_array_renames))
@@ -157,7 +156,6 @@ convert_to_future_members = monitored.Set(
 # browser.
 _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'CanvasRenderingContext2D.arc',
-  'CanvasRenderingContext2D.drawImage',
   'CompositionEvent.initCompositionEvent',
   'CustomEvent.initCustomEvent',
   'DeviceOrientationEvent.initDeviceOrientationEvent',
@@ -301,8 +299,6 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
-  'WheelEvent.wheelDeltaX',
-  'WheelEvent.wheelDeltaY',
   'WheelEvent.initWebKitWheelEvent',
   'DOMWindow.getComputedStyle',
 ])
@@ -310,6 +306,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
+    'CanvasRenderingContext2D.drawImage': '_drawImage',
     'CSSStyleDeclaration.getPropertyValue': '_getPropertyValue',
     'CSSStyleDeclaration.setProperty': '_setProperty',
     'DirectoryEntry.getDirectory': '_getDirectory',
@@ -346,6 +343,8 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'StorageInfo.queryUsageAndQuota': '_queryUsageAndQuota',
     'SVGElement.className': '$dom_svgClassName',
     'SVGStopElement.offset': 'gradientOffset',
+    'WheelEvent.wheelDeltaX': '_wheelDeltaX',
+    'WheelEvent.wheelDeltaY': '_wheelDeltaY',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
     #'WorkerContext.webkitRequestFileSystemSync': '_requestFileSystemSync',
 })

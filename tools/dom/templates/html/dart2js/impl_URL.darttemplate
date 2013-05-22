@@ -11,8 +11,8 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
          '(self.URL || self.webkitURL).createObjectURL(#)',
          blob_OR_source_OR_stream);
 
-  static void revokeObjectUrl(String objectUrl) =>
+  static void revokeObjectUrl(String url) =>
       JS('void',
-         '(self.URL || self.webkitURL).revokeObjectURL(#)', objectUrl);
+         '(self.URL || self.webkitURL).revokeObjectURL(#)', url);
 $!MEMBERS
 }

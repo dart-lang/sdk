@@ -62,7 +62,8 @@ void main() {
 
   checkReturn(String name, type) {
     var element = findElement(compiler, name);
-    Expect.equals(type, typesInferrer.internal.returnTypeOf[element]);
+    Expect.equals(type,
+        typesInferrer.internal.returnTypeOf[element].simplify(compiler));
   }
 
   var subclassOfInterceptor =
@@ -71,7 +72,7 @@ void main() {
   checkReturn('returnDyn1', subclassOfInterceptor);
   checkReturn('returnDyn2', subclassOfInterceptor);
   checkReturn('returnDyn3', subclassOfInterceptor);
-  checkReturn('returnDyn4', typesInferrer.dynamicType);
-  checkReturn('returnDyn5', typesInferrer.dynamicType);
-  checkReturn('returnDyn6', typesInferrer.dynamicType);
+  checkReturn('returnDyn4', typesInferrer.dynamicType.nonNullable());
+  checkReturn('returnDyn5', typesInferrer.dynamicType.nonNullable());
+  checkReturn('returnDyn6', typesInferrer.dynamicType.nonNullable());
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js;
+library dart2js.cmdline;
 
 import 'dart:async';
 import 'dart:collection' show Queue, LinkedHashMap;
@@ -212,6 +212,8 @@ void compile(List<String> argv) {
                       (_) => passThrough('--enable-checked-mode')),
     new OptionHandler('--enable-concrete-type-inference',
                       (_) => passThrough('--enable-concrete-type-inference')),
+    new OptionHandler('--trust-type-annotations',
+                      (_) => passThrough('--trust-type-annotations')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--disallow-unsafe-eval', passThrough),

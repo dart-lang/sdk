@@ -267,6 +267,17 @@ static Dart_Handle ResolveUri(const char* library_uri, const char* uri) {
 }
 
 
+static Builtin::BuiltinLibraryId BuiltinId(const char* url) {
+  if (DartUtils::IsDartBuiltinLibURL(url)) {
+    return Builtin::kBuiltinLibrary;
+  }
+  if (DartUtils::IsDartIOLibURL(url)) {
+    return Builtin::kIOLibrary;
+  }
+  return Builtin::kInvalidLibrary;
+}
+
+
 static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
                                                    Dart_Handle library,
                                                    Dart_Handle url) {
@@ -292,17 +303,36 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   const char* mapped_url_string = DartUtils::MapLibraryUrl(url_mapping,
                                                            url_string);
 
+  Builtin::BuiltinLibraryId libraryBuiltinId = BuiltinId(library_url_string);
   if (tag == kCanonicalizeUrl) {
-    // Keep original names for libraries that have a mapping (e.g. dart:io).
     if (mapped_url_string) {
+      return url;
+    }
+    // Parts of internal libraries are handled internally.
+    if (libraryBuiltinId != Builtin::kInvalidLibrary) {
       return url;
     }
     return ResolveUri(library_url_string, url_string);
   }
 
-  if (DartUtils::IsDartIOLibURL(url_string) && mapped_url_string == NULL) {
-    // No url mapping for dart:io. Load original version.
-    return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
+  Builtin::BuiltinLibraryId builtinId = BuiltinId(url_string);
+  if (builtinId != Builtin::kInvalidLibrary) {
+    // Special case for importing a builtin library.
+    if (tag == kImportTag) {
+      return Builtin::LoadAndCheckLibrary(builtinId);
+    }
+    ASSERT(tag == kSourceTag);
+    return Dart_Error("Unable to part '%s' ", url_string);
+  }
+
+  if (libraryBuiltinId != Builtin::kInvalidLibrary) {
+    // Special case for parting sources of a builtin library.
+    if (tag == kSourceTag) {
+      return Dart_LoadSource(
+          library, url, Builtin::PartSource(libraryBuiltinId, url_string));
+    }
+    ASSERT(tag == kImportTag);
+    return Dart_Error("Unable to import '%s' ", url_string);
   }
 
   Dart_Handle resolved_url = url;

@@ -72,7 +72,7 @@ void runTest(String test, Function findExpectedType) {
       var backend = compiler.backend;
       HType type =
           backend.optimisticReturnTypesWithRecompilationOnTypeChange(null, x);
-      Expect.equals(findExpectedType(compiler), type);
+      Expect.equals(findExpectedType(compiler), type.simplify(compiler));
   });
 }
 

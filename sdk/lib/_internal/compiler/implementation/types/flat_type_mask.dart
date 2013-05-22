@@ -62,6 +62,7 @@ class FlatTypeMask implements TypeMask {
   bool get isEmpty => (flags >> 1) == EMPTY;
   bool get isExact => (flags >> 1) == EXACT;
   bool get isNullable => (flags & 1) != 0;
+  bool get isUnion => false;
 
   // TODO(kasperl): Get rid of these. They should not be a visible
   // part of the implementation because they make it hard to add
@@ -76,6 +77,8 @@ class FlatTypeMask implements TypeMask {
   TypeMask nonNullable() {
     return isNullable ? new FlatTypeMask.internal(base, flags & ~1) : this;
   }
+
+  TypeMask simplify(Compiler compiler) => this;
 
   bool contains(DartType type, Compiler compiler) {
     if (isEmpty) {
@@ -126,6 +129,21 @@ class FlatTypeMask implements TypeMask {
     return base.element == cls;
   }
 
+  bool satisfies(ClassElement cls, Compiler compiler) {
+    if (isEmpty) {
+      return false;
+    } else if (base.element == cls) {
+      return true;
+    } else if (isExact) {
+      return false;
+    } else if (isSubclass) {
+      return isSubclassOf(base, cls.computeType(compiler).asRaw(), compiler);
+    } else {
+      assert(isSubtype);
+      return isSubtypeOf(base, cls.computeType(compiler).asRaw(), compiler);
+    }
+  }
+
   /**
    * Returns the [ClassElement] if this type represents a single class,
    * otherwise returns `null`.  This method is conservative.
@@ -153,23 +171,26 @@ class FlatTypeMask implements TypeMask {
         || identical(base.element, compiler.dynamicClass);
   }
 
-  TypeMask union(FlatTypeMask other, Compiler compiler) {
+  TypeMask union(TypeMask other, Compiler compiler) {
+    assert(other != null);
+    if (other is! FlatTypeMask) return other.union(this, compiler);
+    FlatTypeMask flatOther = other;
     if (isEmpty) {
-      return isNullable ? other.nullable() : other;
-    } else if (other.isEmpty) {
-      return other.isNullable ? nullable() : this;
-    } else if (base == other.base) {
-      return unionSame(other, compiler);
-    } else if (isSubclassOf(other.base, base, compiler)) {
-      return unionSubclass(other, compiler);
-    } else if (isSubclassOf(base, other.base, compiler)) {
-      return other.unionSubclass(this, compiler);
-    } else if (isSubtypeOf(other.base, base, compiler)) {
-      return unionSubtype(other, compiler);
-    } else if (isSubtypeOf(base, other.base, compiler)) {
-      return other.unionSubtype(this, compiler);
+      return isNullable ? flatOther.nullable() : flatOther;
+    } else if (flatOther.isEmpty) {
+      return flatOther.isNullable ? nullable() : this;
+    } else if (base == flatOther.base) {
+      return unionSame(flatOther, compiler);
+    } else if (isSubclassOf(flatOther.base, base, compiler)) {
+      return unionSubclass(flatOther, compiler);
+    } else if (isSubclassOf(base, flatOther.base, compiler)) {
+      return flatOther.unionSubclass(this, compiler);
+    } else if (isSubtypeOf(flatOther.base, base, compiler)) {
+      return unionSubtype(flatOther, compiler);
+    } else if (isSubtypeOf(base, flatOther.base, compiler)) {
+      return flatOther.unionSubtype(this, compiler);
     } else {
-      return unionDisjoint(other, compiler);
+      return new UnionTypeMask._(<FlatTypeMask>[this, flatOther]);
     }
   }
 
@@ -222,78 +243,26 @@ class FlatTypeMask implements TypeMask {
         : this;
   }
 
-  TypeMask unionDisjoint(FlatTypeMask other, Compiler compiler) {
-    assert(base != other.base);
-    assert(!isSubtypeOf(base, other.base, compiler));
-    assert(!isSubtypeOf(other.base, base, compiler));
-    // If either type mask is a subtype type mask, we cannot use a
-    // subclass type mask to represent their union.
-    bool useSubclass = !isSubtype && !other.isSubtype;
-    // Compute the common supertypes of the two types.
-    ClassElement thisElement = base.element;
-    ClassElement otherElement = other.base.element;
-    Iterable<ClassElement> candidates =
-        compiler.world.commonSupertypesOf(thisElement, otherElement);
-    if (candidates.isEmpty) {
-      // TODO(kasperl): Get rid of this check. It can only happen when
-      // at least one of the two base types is 'unseen'.
-      return new TypeMask(compiler.objectClass.rawType,
-                          SUBCLASS,
-                          isNullable || other.isNullable);
-    }
-    // Compute the best candidate and its kind.
-    ClassElement bestElement;
-    int bestKind;
-    int bestSize;
-    for (ClassElement candidate in candidates) {
-      Set<ClassElement> subclasses = useSubclass
-          ? compiler.world.subclasses[candidate]
-          : null;
-      int size;
-      int kind;
-      if (subclasses != null &&
-          subclasses.contains(thisElement) &&
-          subclasses.contains(otherElement)) {
-        // If both [this] and [other] are subclasses of the supertype,
-        // then we prefer to construct a subclass type mask because it
-        // will always be at least as small as the corresponding
-        // subtype type mask.
-        kind = SUBCLASS;
-        size = subclasses.length;
-        assert(size <= compiler.world.subtypes[candidate].length);
-      } else {
-        kind = SUBTYPE;
-        size = compiler.world.subtypes[candidate].length;
-      }
-      // Update the best candidate if the new one is better.
-      if (bestElement == null || size < bestSize) {
-        bestElement = candidate;
-        bestSize = size;
-        bestKind = kind;
-      }
-    }
-    return new TypeMask(bestElement.computeType(compiler),
-                        bestKind,
-                        isNullable || other.isNullable);
-  }
-
-  TypeMask intersection(FlatTypeMask other, Compiler compiler) {
+  TypeMask intersection(TypeMask other, Compiler compiler) {
+    assert(other != null);
+    if (other is! FlatTypeMask) return other.intersection(this, compiler);
+    FlatTypeMask flatOther = other;
     if (isEmpty) {
-      return other.isNullable ? this : nonNullable();
-    } else if (other.isEmpty) {
-      return isNullable ? other : other.nonNullable();
-    } else if (base == other.base) {
-      return intersectionSame(other, compiler);
-    } else if (isSubclassOf(other.base, base, compiler)) {
-      return intersectionSubclass(other, compiler);
-    } else if (isSubclassOf(base, other.base, compiler)) {
-      return other.intersectionSubclass(this, compiler);
-    } else if (isSubtypeOf(other.base, base, compiler)) {
-      return intersectionSubtype(other, compiler);
-    } else if (isSubtypeOf(base, other.base, compiler)) {
-      return other.intersectionSubtype(this, compiler);
+      return flatOther.isNullable ? this : nonNullable();
+    } else if (flatOther.isEmpty) {
+      return isNullable ? flatOther : other.nonNullable();
+    } else if (base == flatOther.base) {
+      return intersectionSame(flatOther, compiler);
+    } else if (isSubclassOf(flatOther.base, base, compiler)) {
+      return intersectionSubclass(flatOther, compiler);
+    } else if (isSubclassOf(base, flatOther.base, compiler)) {
+      return flatOther.intersectionSubclass(this, compiler);
+    } else if (isSubtypeOf(flatOther.base, base, compiler)) {
+      return intersectionSubtype(flatOther, compiler);
+    } else if (isSubtypeOf(base, flatOther.base, compiler)) {
+      return flatOther.intersectionSubtype(this, compiler);
     } else {
-      return intersectionDisjoint(other, compiler);
+      return intersectionDisjoint(flatOther, compiler);
     }
   }
 
@@ -402,10 +371,10 @@ class FlatTypeMask implements TypeMask {
     if (isExact) {
       return new Set<ClassElement>()..add(element);
     } else if (isSubclass) {
-      return compiler.world.subclasses[element];
+      return compiler.world.subclassesOf(element);
     } else {
       assert(isSubtype);
-      return compiler.world.subtypes[element];
+      return compiler.world.subtypesOf(element);
     }
   }
 
@@ -510,10 +479,10 @@ class FlatTypeMask implements TypeMask {
     if (isExact) {
       return false;
     } else if (isSubtype) {
-      subtypesToCheck = compiler.world.subtypes[cls];
+      subtypesToCheck = compiler.world.subtypesOf(cls);
     } else {
       assert(isSubclass);
-      subtypesToCheck = compiler.world.subclasses[cls];
+      subtypesToCheck = compiler.world.subclassesOf(cls);
     }
 
     return subtypesToCheck != null
@@ -562,14 +531,14 @@ class FlatTypeMask implements TypeMask {
   static bool isSubclassOf(DartType x, DartType y, Compiler compiler) {
     ClassElement xElement = x.element;
     ClassElement yElement = y.element;
-    Set<ClassElement> subclasses = compiler.world.subclasses[yElement];
+    Set<ClassElement> subclasses = compiler.world.subclassesOf(yElement);
     return (subclasses != null) ? subclasses.contains(xElement) : false;
   }
 
   static bool isSubtypeOf(DartType x, DartType y, Compiler compiler) {
     ClassElement xElement = x.element;
     ClassElement yElement = y.element;
-    Set<ClassElement> subtypes = compiler.world.subtypes[yElement];
+    Set<ClassElement> subtypes = compiler.world.subtypesOf(yElement);
     return (subtypes != null) ? subtypes.contains(xElement) : false;
   }
 

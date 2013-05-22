@@ -105,8 +105,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   Completer resumeCompleter;
 
   _HttpDetachedIncoming(StreamSubscription this.subscription,
-                        List<int> this.carryOverData,
-                        Completer oldResumeCompleter) {
+                        List<int> this.carryOverData) {
     controller = new StreamController<List<int>>(
         onListen: resume,
         onPause: pause,
@@ -118,7 +117,6 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
       controller.close();
     } else {
       pause();
-      if (oldResumeCompleter != null) oldResumeCompleter.complete();
       subscription.resume();
       subscription.onData(controller.add);
       subscription.onDone(controller.close);
@@ -729,7 +727,7 @@ class _HttpParser
               new HttpParserException(
                   "Connection closed while receiving data"));
       }
-      _closeIncoming();
+      _closeIncoming(true);
       _controller.close();
       return;
     }
@@ -792,11 +790,8 @@ class _HttpParser
   void set responseToMethod(String method) { _responseToMethod = method; }
 
   _HttpDetachedIncoming detachIncoming() {
-    var completer = _pauseCompleter;
-    _pauseCompleter = null;
     return new _HttpDetachedIncoming(_socketSubscription,
-                                     readUnparsedData(),
-                                     completer);
+                                     readUnparsedData());
   }
 
   List<int> readUnparsedData() {
@@ -909,7 +904,7 @@ class _HttpParser
           if (_socketSubscription != null) {
             _socketSubscription.cancel();
           }
-          _closeIncoming();
+          _closeIncoming(true);
           _controller.close();
         });
     incoming = _incoming = new _HttpIncoming(
@@ -918,11 +913,11 @@ class _HttpParser
     _pauseStateChanged();
   }
 
-  void _closeIncoming() {
+  void _closeIncoming([bool closing = false]) {
     // Ignore multiple close (can happend in re-entrance).
     if (_incoming == null) return;
     var tmp = _incoming;
-    tmp.close();
+    tmp.close(closing);
     _incoming = null;
     if (_bodyController != null) {
       _bodyController.close();
@@ -993,7 +988,6 @@ class _HttpParser
   StreamSubscription _socketSubscription;
   bool _paused = true;
   bool _bodyPaused = false;
-  Completer _pauseCompleter;
   StreamController<_HttpIncoming> _controller;
   StreamController<List<int>> _bodyController;
 }

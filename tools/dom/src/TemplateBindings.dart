@@ -378,7 +378,7 @@ class _Bindings {
   }
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-  static Document _getTemplateContentsOwner(Document doc) {
+  static Document _getTemplateContentsOwner(HtmlDocument doc) {
     if (doc.window == null) {
       return doc;
     }
@@ -456,7 +456,7 @@ class _Bindings {
     // template.
     // TODO(jmesserly): node is DocumentFragment or Element
     var descendents = (node as dynamic).queryAll(_allTemplatesSelectors);
-    if (node is Element && node.isTemplate) bootstrap(node);
+    if (node is Element && (node as Element).isTemplate) bootstrap(node);
 
     descendents.forEach(bootstrap);
   }
@@ -610,7 +610,7 @@ class _Bindings {
 
   static void _removeChild(Node parent, Node child) {
     child._templateInstance = null;
-    if (child is Element && child.isTemplate) {
+    if (child is Element && (child as Element).isTemplate) {
       // Make sure we stop observing when we remove an element.
       var templateIterator = child._templateIterator;
       if (templateIterator != null) {

@@ -42,8 +42,9 @@ class _EveryElement extends _IterableMatcher {
     if (matchState.state != null) {
       var index = matchState.state['index'];
       var element = matchState.state['element'];
+      mismatchDescription.add('position $index ');
       return _matcher.describeMismatch(element, mismatchDescription,
-            matchState.state['state'], verbose).add(' at position $index');
+            matchState.state['state'], verbose);
     }
     return super.describeMismatch(item, mismatchDescription,
           matchState, verbose);

@@ -708,8 +708,11 @@ class Dart2JSBackend(HtmlDartGenerator):
     #
 
     ext_attrs = self._interface.ext_attrs
-    has_indexed_getter = ('IndexedGetter' in ext_attrs or
-      'CustomIndexedSetter' in ext_attrs)
+    has_indexed_getter = 'CustomIndexedGetter' in ext_attrs
+    for operation in self._interface.operations:
+      if operation.id == 'item' and 'getter' in operation.specials:
+        has_indexed_getter = True
+        break
 
     if has_indexed_getter:
       indexed_getter = ('JS("%s", "#[#]", this, index)' %

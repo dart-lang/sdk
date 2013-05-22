@@ -150,14 +150,11 @@ class _IsCloseTo extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {
     if (item is !num) {
-      return mismatchDescription.
-          addDescriptionOf(item).
-          add(' not numeric');
+      return mismatchDescription.add(' not numeric');
     } else {
       var diff = item - _value;
       if (diff < 0) diff = -diff;
       return mismatchDescription.
-          addDescriptionOf(item).
           add(' differed by ').
           addDescriptionOf(diff);
     }

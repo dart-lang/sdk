@@ -336,8 +336,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     ext_attrs = self._interface.ext_attrs
 
-    if ('CustomToJS' in ext_attrs or
-        ('CustomToJSObject' in ext_attrs and 'TypedArray' not in ext_attrs) or
+    if ('CustomToV8' in ext_attrs or
         'PureInterface' in ext_attrs or
         'CPPPureInterface' in ext_attrs or
         self._interface_type_info.custom_to_dart()):

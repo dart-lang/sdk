@@ -42,8 +42,10 @@ static const String& PrivateCoreLibName(const String& str) {
 
 
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
+                                   const Array& ic_data_array,
                                    InlineExitCollector* exit_collector)
   : parsed_function_(parsed_function),
+    ic_data_array_(ic_data_array),
     num_copied_params_(parsed_function.num_copied_params()),
     // All parameters are copied if any parameter is.
     num_non_copied_params_((num_copied_params_ == 0)
@@ -926,7 +928,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
                                                   node->kind(),
                                                   arguments,
                                                   Array::ZoneHandle(),
-                                                  2);
+                                                  2,
+                                                  owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1168,7 +1171,8 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       node->kind(),
       arguments,
       Array::ZoneHandle(),  // No argument names.
-      kNumArgsChecked);
+      kNumArgsChecked,
+      owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1237,7 +1241,8 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
         node->kind(),
         arguments,
         Array::ZoneHandle(),  // No argument names.
-        kNumArgsChecked);
+        kNumArgsChecked,
+        owner()->ic_data_array());
     ReturnDefinition(call);
   }
 }
@@ -1282,7 +1287,8 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
           node->token_pos(),
           Token::kEQ,
           for_left_value.value(),
-          for_right_value.value());
+          for_right_value.value(),
+          owner()->ic_data_array());
       if (node->kind() == Token::kEQ) {
         ReturnDefinition(comp);
       } else {
@@ -1295,7 +1301,8 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
           node->token_pos(),
           node->kind(),
           for_left_value.value(),
-          for_right_value.value());
+          for_right_value.value(),
+          owner()->ic_data_array());
       ReturnDefinition(comp);
     }
     return;
@@ -1310,7 +1317,8 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   RelationalOpInstr* comp = new RelationalOpInstr(node->token_pos(),
                                                   node->kind(),
                                                   for_left_value.value(),
-                                                  for_right_value.value());
+                                                  for_right_value.value(),
+                                                  owner()->ic_data_array());
   ReturnDefinition(comp);
 }
 
@@ -1345,7 +1353,8 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
                             node->kind(),
                             arguments,
                             Array::ZoneHandle(),
-                            1);
+                            1,
+                            owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -1913,7 +1922,9 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   InstanceCallInstr* call = new InstanceCallInstr(
       node->token_pos(),
       node->function_name(), Token::kILLEGAL, arguments,
-      node->arguments()->names(), 1);
+      node->arguments()->names(),
+      1,
+      owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2017,32 +2028,37 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
 
   // In checked mode, if the type arguments are uninstantiated, they may need to
   // be checked against declared bounds at run time.
-  Definition* allocate_comp = NULL;
+  Definition* allocation = NULL;
   if (FLAG_enable_type_checks &&
       requires_type_arguments &&
       !node->type_arguments().IsNull() &&
       !node->type_arguments().IsInstantiated() &&
       node->type_arguments().IsBounded()) {
-    Value* type_arguments = NULL;
-    Value* instantiator = NULL;
-    BuildConstructorTypeArguments(node, &type_arguments, &instantiator, NULL);
+    ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
+        new ZoneGrowableArray<PushArgumentInstr*>(4);
+    // Argument 1: Empty argument slot for return value.
+    Value* null_val = Bind(new ConstantInstr(Object::ZoneHandle()));
+    allocate_arguments->Add(PushArgument(null_val));
+    // Argument 2: Class.
+    Value* cls_val =
+        Bind(new ConstantInstr(Class::ZoneHandle(node->constructor().Owner())));
+    allocate_arguments->Add(PushArgument(cls_val));
+    // Build arguments 3 and 4.
+    BuildConstructorTypeArguments(node, allocate_arguments);
 
     // The uninstantiated type arguments cannot be verified to be within their
     // bounds at compile time, so verify them at runtime.
-    allocate_comp = new AllocateObjectWithBoundsCheckInstr(node,
-                                                           type_arguments,
-                                                           instantiator);
+    allocation = new AllocateObjectWithBoundsCheckInstr(node);
   } else {
     ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
         new ZoneGrowableArray<PushArgumentInstr*>();
-
     if (requires_type_arguments) {
-      BuildConstructorTypeArguments(node, NULL, NULL, allocate_arguments);
+      BuildConstructorTypeArguments(node, allocate_arguments);
     }
 
-    allocate_comp = new AllocateObjectInstr(node, allocate_arguments);
+    allocation = new AllocateObjectInstr(node, allocate_arguments);
   }
-  return Bind(allocate_comp);
+  return Bind(allocation);
 }
 
 
@@ -2249,73 +2265,69 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
 
 void EffectGraphVisitor::BuildConstructorTypeArguments(
     ConstructorCallNode* node,
-    Value** type_arguments,
-    Value** instantiator,
     ZoneGrowableArray<PushArgumentInstr*>* call_arguments) {
   const Class& cls = Class::ZoneHandle(node->constructor().Owner());
   ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
     Value* type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));
-    if (call_arguments != NULL) {
-      ASSERT(type_arguments == NULL);
-      call_arguments->Add(PushArgument(type_arguments_val));
-    } else {
-      ASSERT(type_arguments != NULL);
-      *type_arguments = type_arguments_val;
-    }
+    call_arguments->Add(PushArgument(type_arguments_val));
 
     // No instantiator required.
     Value* instantiator_val = Bind(new ConstantInstr(
         Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
-    if (call_arguments != NULL) {
-      ASSERT(instantiator == NULL);
-      call_arguments->Add(PushArgument(instantiator_val));
-    } else {
-      ASSERT(instantiator != NULL);
-      *instantiator = instantiator_val;
-    }
+    call_arguments->Add(PushArgument(instantiator_val));
     return;
   }
+
   // The type arguments are uninstantiated. We use expression_temp_var to save
-  // the instantiator type arguments becuase they have two uses.
+  // the instantiator type arguments because they have two uses.
   ASSERT(owner()->parsed_function().expression_temp_var() != NULL);
   const LocalVariable& temp = *owner()->parsed_function().expression_temp_var();
   const Class& instantiator_class = Class::Handle(
       owner()->parsed_function().function().Owner());
-  Value* instantiator_type_arguments = BuildInstantiatorTypeArguments(
+  Value* type_arguments_val = BuildInstantiatorTypeArguments(
       node->token_pos(), instantiator_class, NULL);
-  Value* stored_instantiator =
-      Bind(BuildStoreTemp(temp, instantiator_type_arguments));
 
-  Value* type_arguments_val = Bind(
-      new ExtractConstructorTypeArgumentsInstr(
-          node->token_pos(),
-          node->type_arguments(),
-          instantiator_class,
-          stored_instantiator));
+  const bool use_instantiator_type_args =
+      node->type_arguments().IsUninstantiatedIdentity() ||
+      node->type_arguments().CanShareInstantiatorTypeArguments(
+          instantiator_class);
 
-  if (call_arguments != NULL) {
-    ASSERT(type_arguments == NULL);
-    call_arguments->Add(PushArgument(type_arguments_val));
-  } else {
-    ASSERT(type_arguments != NULL);
-    *type_arguments = type_arguments_val;
+  if (!use_instantiator_type_args) {
+    const intptr_t len = node->type_arguments().Length();
+    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
+      type_arguments_val =
+          Bind(BuildStoreTemp(temp, type_arguments_val));
+      type_arguments_val = Bind(
+          new ExtractConstructorTypeArgumentsInstr(
+              node->token_pos(),
+              node->type_arguments(),
+              instantiator_class,
+              type_arguments_val));
+    } else {
+      Do(BuildStoreTemp(temp, type_arguments_val));
+      type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));
+    }
   }
+  call_arguments->Add(PushArgument(type_arguments_val));
 
-  Value* load_instantiator = Bind(BuildLoadLocal(temp));
-  Value* instantiator_val =
-      Bind(new ExtractConstructorInstantiatorInstr(node,
-                                                   instantiator_class,
-                                                   load_instantiator));
-
-  if (call_arguments != NULL) {
-    ASSERT(instantiator == NULL);
-    call_arguments->Add(PushArgument(instantiator_val));
+  Value* instantiator_val = NULL;
+  if (!use_instantiator_type_args) {
+    instantiator_val = Bind(BuildLoadLocal(temp));
+    const intptr_t len = node->type_arguments().Length();
+    if (node->type_arguments().IsRawInstantiatedRaw(len)) {
+      instantiator_val =
+          Bind(new ExtractConstructorInstantiatorInstr(node,
+                                                       instantiator_class,
+                                                       instantiator_val));
+    }
   } else {
-    ASSERT(instantiator != NULL);
-    *instantiator = instantiator_val;
+    // No instantiator required.
+    instantiator_val = Bind(new ConstantInstr(
+        Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
   }
+  call_arguments->Add(PushArgument(instantiator_val));
 }
 
 
@@ -2357,8 +2369,12 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   const String& name =
       String::ZoneHandle(Field::GetterSymbol(node->field_name()));
   InstanceCallInstr* call = new InstanceCallInstr(
-      node->token_pos(), name, Token::kGET,
-      arguments, Array::ZoneHandle(), 1);
+      node->token_pos(),
+      name,
+      Token::kGET,
+      arguments, Array::ZoneHandle(),
+      1,
+      owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2397,7 +2413,8 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                                                   Token::kSET,
                                                   arguments,
                                                   Array::ZoneHandle(),
-                                                  2);  // Checked arg count.
+                                                  2,  // Checked arg count.
+                                                  owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2413,7 +2430,8 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                            Token::kSET,
                            arguments,
                            Array::ZoneHandle(),
-                           2));  // Checked argument count.
+                           2,  // Checked argument count.
+                           owner()->ic_data_array()));
   ReturnDefinition(BuildLoadExprTemp());
 }
 
@@ -2778,7 +2796,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
                                                     Token::kINDEX,
                                                     arguments,
                                                     Array::ZoneHandle(),
-                                                    checked_argument_count);
+                                                    checked_argument_count,
+                                                    owner()->ic_data_array());
     ReturnDefinition(load);
   }
 }
@@ -2877,7 +2896,8 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
                               Token::kASSIGN_INDEX,
                               arguments,
                               Array::ZoneHandle(),
-                              checked_argument_count);
+                              checked_argument_count,
+                              owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp();

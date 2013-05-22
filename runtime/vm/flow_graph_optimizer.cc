@@ -5984,7 +5984,8 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
         new EqualityCompareInstr(equality_compare->token_pos(),
                                  comparison->kind(),
                                  left,
-                                 right);
+                                 right,
+                                 Array::Handle());
     new_equality_compare->set_ic_data(equality_compare->ic_data());
     new_comparison = new_equality_compare;
   } else {
@@ -5994,7 +5995,8 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
         new RelationalOpInstr(relational_op->token_pos(),
                               comparison->kind(),
                               left,
-                              right);
+                              right,
+                              Array::Handle());
     new_relational_op->set_ic_data(relational_op->ic_data());
     new_comparison = new_relational_op;
   }

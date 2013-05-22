@@ -57,11 +57,12 @@ $endif
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      if (!identical(iterable._this, _this)) {
+      _ChildNodeListLazy otherList = iterable;
+      if (!identical(otherList._this, _this)) {
         // Optimized route for copying between nodes.
-        for (var i = 0, len = iterable.length; i < len; ++i) {
+        for (var i = 0, len = otherList.length; i < len; ++i) {
           // Should use $dom_firstChild, Bug 8886.
-          _this.append(iterable[0]);
+          _this.append(otherList[0]);
         }
       }
       return;

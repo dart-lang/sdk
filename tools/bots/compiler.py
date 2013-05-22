@@ -219,9 +219,11 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     # The dart2js compiler isn't self-hosted (yet) so we run its
     # unit tests on the VM. We avoid doing this on the builders
     # that run the browser tests to cut down on the cycle time.
+    unit_test_flags = [flag for flag in flags if flag.startswith('--shard')]
+    # Run the unit tests in checked mode (the VM's checked mode).
+    unit_test_flags.append('--checked')
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
-             # Run the unit tests in checked mode (the VM's checked mode).
-             ['--checked'])
+             unit_test_flags)
 
   if system.startswith('win') and runtime.startswith('ie10'):
     TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)

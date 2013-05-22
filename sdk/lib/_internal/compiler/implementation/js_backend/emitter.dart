@@ -1197,8 +1197,7 @@ class CodeEmitterTask extends CompilerTask {
 
     classElement.implementation.forEachMember(
         visitMember,
-        includeBackendMembers: true,
-        includeSuperMembers: false);
+        includeBackendMembers: true);
 
     if (identical(classElement, compiler.objectClass)
         && compiler.enabledNoSuchMethod) {
@@ -1349,8 +1348,7 @@ class CodeEmitterTask extends CompilerTask {
     // superclasses for non-instantiated classes.
     classElement.implementation.forEachInstanceField(
         visitField,
-        includeBackendMembers: true,
-        includeSuperMembers: isInstantiated);
+        includeSuperAndInjectedMembers: isInstantiated);
   }
 
   void generateGetter(Element member, String fieldName, String accessorName,
@@ -1800,8 +1798,15 @@ class CodeEmitterTask extends CompilerTask {
             .where(isStaticFunction)
             .toSet();
 
+    LibraryElement previousLibrary = null;
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      LibraryElement library = element.getLibrary();
+      if (library != previousLibrary) {
+        previousLibrary = library;
+        addComment(
+            'Library: ${library.getLibraryOrScriptName()}', buffer);
+      }
       jsAst.Expression code = backend.generatedCode[element];
       emitStaticFunction(buffer, namer.getName(element), code);
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
@@ -1811,6 +1816,9 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
+    if (!pendingElementsWithBailouts.isEmpty) {
+      addComment('pendingElementsWithBailouts', eagerBuffer);
+    }
     // Is it possible the primary function was inlined but the bailout was not?
     for (Element element in
              Elements.sortedByPosition(pendingElementsWithBailouts)) {
@@ -2601,6 +2609,14 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                   ['receiver'])));
 
     } else {
+      ClassElement jsUnknown = backend.jsUnknownClass;
+      if (compiler.codegenWorld.instantiatedClasses.contains(jsUnknown)) {
+        block.statements.add(
+            js.if_(js('!(receiver instanceof #)',
+                      js(namer.isolateAccess(compiler.objectClass))),
+                   buildReturnInterceptor(jsUnknown)));
+      }
+
       block.statements.add(js.return_(js('receiver')));
     }
 
@@ -2958,7 +2974,14 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       // Might create boundClosures.
       if (!regularClasses.isEmpty) {
         addComment('Classes', mainBuffer);
+        LibraryElement previousLibrary = null;
         for (ClassElement element in regularClasses) {
+          LibraryElement library =  element.getLibrary();
+          if (library != previousLibrary) {
+            previousLibrary = library;
+            addComment(
+                'Library: ${library.getLibraryOrScriptName()}', mainBuffer);
+          }
           generateClass(element, mainBuffer);
         }
       }

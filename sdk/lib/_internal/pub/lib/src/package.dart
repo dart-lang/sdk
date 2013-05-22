@@ -10,7 +10,6 @@ import 'package:pathos/path.dart' as path;
 
 import 'io.dart';
 import 'pubspec.dart';
-import 'source.dart';
 import 'source_registry.dart';
 import 'version.dart';
 
@@ -87,9 +86,9 @@ class _PackageName {
   /// The name of the package being identified.
   final String name;
 
-  /// The [Source] used to look up this package given its [description]. If
-  /// this is a root package, this will be `null`.
-  final Source source;
+  /// The name of the [Source] used to look up this package given its
+  /// [description]. If this is a root package, this will be `null`.
+  final String source;
 
   /// The metadata used by the package's [source] to identify and locate it. It
   /// contains whatever [Source]-specific data it needs to be able to install
@@ -100,13 +99,8 @@ class _PackageName {
   /// Whether this package is the root package.
   bool get isRoot => source == null;
 
-  /// Gets the directory where this package is or would be found in the
-  /// [SystemCache].
-  Future<String> get systemCacheDirectory => source.systemCacheDirectory(this);
-
   String toString() {
     if (isRoot) return "$name (root)";
-    if (source.isDefault) return name;
     return "$name from $source";
   }
 
@@ -117,16 +111,11 @@ class _PackageName {
   /// Returns a [PackageId] for this package with the given concrete version.
   PackageId atVersion(Version version) =>
     new PackageId(name, source, version, description);
-
-  /// Returns `true` if this package's description matches [other]'s.
-  bool descriptionEquals(PackageDep other) {
-    return source.descriptionsEqual(description, other.description);
-  }
 }
 
 /// A reference to a [Package], but not any particular version(s) of it.
 class PackageRef extends _PackageName {
-  PackageRef(String name, Source source, description)
+  PackageRef(String name, String source, description)
       : super(name, source, description);
 
   int get hashCode => name.hashCode ^ source.hashCode;
@@ -137,18 +126,6 @@ class PackageRef extends _PackageName {
     return other is PackageRef &&
            other.name == name &&
            other.source == source;
-  }
-
-  /// Gets the list of ids of all versions of the package that are described by
-  /// this reference.
-  Future<List<PackageId>> getVersions() {
-    if (isRoot) {
-      throw new StateError("Cannot get versions for the root package.");
-    }
-
-    return source.getVersions(name, description).then((versions) {
-      return versions.map((version) => atVersion(version)).toList();
-    });
   }
 }
 
@@ -163,7 +140,7 @@ class PackageId extends _PackageName {
   /// The package's version.
   final Version version;
 
-  PackageId(String name, Source source, this.version, description)
+  PackageId(String name, String source, this.version, description)
       : super(name, source, description);
 
   /// Creates an ID for the given root package.
@@ -184,15 +161,8 @@ class PackageId extends _PackageName {
 
   String toString() {
     if (isRoot) return "$name $version (root)";
-    if (source.isDefault) return "$name $version";
     return "$name $version from $source";
   }
-
-  /// Returns the pubspec for this package.
-  Future<Pubspec> describe() => source.systemCache.describe(this);
-
-  /// Returns a future that completes to the resolved [PackageId] for this id.
-  Future<PackageId> get resolved => source.resolveId(this);
 }
 
 /// A reference to a constrained range of versions of one package.
@@ -200,7 +170,7 @@ class PackageDep extends _PackageName {
   /// The allowed package versions.
   final VersionConstraint constraint;
 
-  PackageDep(String name, Source source, this.constraint, description)
+  PackageDep(String name, String source, this.constraint, description)
       : super(name, source, description);
 
   String toString() {

@@ -876,7 +876,7 @@ class ResolverTask extends CompilerTask {
     // TODO(johnniwinther): Store the mapping in the resolution enqueuer.
     element.mapping = mapping;
     return compiler.withCurrentElement(element, () {
-      measure(() {
+      return measure(() {
         Typedef node =
           compiler.parser.measure(() => element.parseNode(compiler));
         TypedefResolverVisitor visitor =
@@ -2201,6 +2201,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
         compiler.backend.registerClassUsingVariableExpression(cls);
         compiler.backend.registerTypeVariableExpression(mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
+        // Set the type of the node to [Type] to mark this send as a
+        // type literal.
+        mapping.setType(node, compiler.typeClass.computeType(compiler));
+        world.registerInstantiatedClass(compiler.typeClass, mapping);
         compiler.backend.registerTypeLiteral(mapping);
       }
     }
@@ -2556,8 +2560,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         (ClassElement enclosingClass, Element member) {
           world.addToWorkList(member);
         },
-        includeBackendMembers: false,
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
 
     if (isSymbolConstructor) {
       if (node.isConst()) {
@@ -2968,7 +2971,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
   }
 
   visitCatchBlock(CatchBlock node) {
-    compiler.backend.registerCatchStatement(mapping);
+    compiler.backend.registerCatchStatement(world, mapping);
     // Check that if catch part is present, then
     // it has one or two formal parameters.
     if (node.formals != null) {
@@ -3740,7 +3743,19 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       requiredParameterCount  = parametersBuilder.length;
       parameters = parametersBuilder.toLink();
     }
-    DartType returnType = compiler.resolveReturnType(element, returnNode);
+    DartType returnType;
+    if (element.isFactoryConstructor()) {
+      returnType = element.getEnclosingClass().computeType(compiler);
+      // Because there is no type annotation for the return type of
+      // this element, we explicitly add one.
+      if (compiler.enableTypeAssertions) {
+        compiler.enqueuer.resolution.registerIsCheck(
+            returnType, new TreeElementMapping(element));
+      }
+    } else {
+      returnType = compiler.resolveReturnType(element, returnNode);
+    }
+
     if (element.isSetter() && (requiredParameterCount != 1 ||
                                visitor.optionalParameterCount != 0)) {
       // If there are no formal parameters, we already reported an error above.

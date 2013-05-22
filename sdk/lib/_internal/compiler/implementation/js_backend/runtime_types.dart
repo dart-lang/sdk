@@ -115,7 +115,7 @@ class RuntimeTypes {
       classesNeedingRti.add(cls);
 
       // TODO(ngeoffray): This should use subclasses, not subtypes.
-      Set<ClassElement> classes = compiler.world.subtypes[cls];
+      Set<ClassElement> classes = compiler.world.subtypesOf(cls);
       if (classes != null) {
         classes.forEach((ClassElement sub) {
           potentiallyAddForRti(sub);

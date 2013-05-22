@@ -373,10 +373,6 @@ class Debugger {
   // Tells debugger what to do when resuming execution after a breakpoint.
   ResumeAction resume_action_;
 
-  // If >= 0, last_bpt_line contains the line number of the last breakpoint
-  // location for which the breakpoint callback function was called.
-  intptr_t last_bpt_line_;
-
   // Do not call back to breakpoint handler if this flag is set.
   // Effectively this means ignoring breakpoints. Set when Dart code may
   // be run as a side effect of getting values of fields.

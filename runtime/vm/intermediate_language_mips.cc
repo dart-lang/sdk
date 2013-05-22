@@ -1342,9 +1342,9 @@ void GuardFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const intptr_t num_temps =  0;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary =
-      new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, ShouldEmitStoreBarrier()
                        ? Location::WritableRegister()
@@ -1556,27 +1556,24 @@ void ExtractConstructorTypeArgumentsInstr::EmitNativeCode(
 
   // instantiator_reg is the instantiator type argument vector, i.e. an
   // AbstractTypeArguments object (or null).
-  if (!type_arguments().IsUninstantiatedIdentity() &&
-      !type_arguments().CanShareInstantiatorTypeArguments(
-          instantiator_class())) {
-    // If the instantiator is null and if the type argument vector
-    // instantiated from null becomes a vector of dynamic, then use null as
-    // the type arguments.
-    Label type_arguments_instantiated;
-    const intptr_t len = type_arguments().Length();
-    if (type_arguments().IsRawInstantiatedRaw(len)) {
-      __ BranchEqual(instantiator_reg,
-                     reinterpret_cast<intptr_t>(Object::null()),
-                     &type_arguments_instantiated);
-    }
-    // Instantiate non-null type arguments.
-    // In the non-factory case, we rely on the allocation stub to
-    // instantiate the type arguments.
-    __ LoadObject(result_reg, type_arguments());
-    // result_reg: uninstantiated type arguments.
-    __ Bind(&type_arguments_instantiated);
-  }
-  ASSERT(instantiator_reg == result_reg);
+  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
+         !type_arguments().CanShareInstantiatorTypeArguments(
+             instantiator_class()));
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
+  __ BranchEqual(instantiator_reg,
+                 reinterpret_cast<intptr_t>(Object::null()),
+                 &type_arguments_instantiated);
+  // Instantiate non-null type arguments.
+  // In the non-factory case, we rely on the allocation stub to
+  // instantiate the type arguments.
+  __ LoadObject(result_reg, type_arguments());
+  // result_reg: uninstantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
+
   // result_reg: uninstantiated or instantiated type arguments.
 }
 
@@ -1600,29 +1597,22 @@ void ExtractConstructorInstantiatorInstr::EmitNativeCode(
 
   // instantiator_reg is the instantiator AbstractTypeArguments object
   // (or null).
-  if (type_arguments().IsUninstantiatedIdentity() ||
-      type_arguments().CanShareInstantiatorTypeArguments(
-          instantiator_class())) {
-    // The instantiator was used in VisitExtractConstructorTypeArguments as the
-    // instantiated type arguments, no proper instantiator needed.
-    __ LoadImmediate(instantiator_reg,
-                     Smi::RawValue(StubCode::kNoInstantiator));
-  } else {
-    // If the instantiator is null and if the type argument vector
-    // instantiated from null becomes a vector of dynamic, then use null as
-    // the type arguments and do not pass the instantiator.
-    const intptr_t len = type_arguments().Length();
-    if (type_arguments().IsRawInstantiatedRaw(len)) {
-      Label instantiator_not_null;
-      __ BranchNotEqual(instantiator_reg,
-          reinterpret_cast<intptr_t>(Object::null()), &instantiator_not_null);
-      // Null was used in VisitExtractConstructorTypeArguments as the
-      // instantiated type arguments, no proper instantiator needed.
-      __ LoadImmediate(instantiator_reg,
-                       Smi::RawValue(StubCode::kNoInstantiator));
-      __ Bind(&instantiator_not_null);
-    }
-  }
+  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
+         !type_arguments().CanShareInstantiatorTypeArguments(
+             instantiator_class()));
+
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of dynamic, then use null as
+  // the type arguments and do not pass the instantiator.
+  ASSERT(type_arguments().IsRawInstantiatedRaw(type_arguments().Length()));
+  Label instantiator_not_null;
+  __ BranchNotEqual(instantiator_reg,
+      reinterpret_cast<intptr_t>(Object::null()), &instantiator_not_null);
+  // Null was used in VisitExtractConstructorTypeArguments as the
+  // instantiated type arguments, no proper instantiator needed.
+  __ LoadImmediate(instantiator_reg,
+                   Smi::RawValue(StubCode::kNoInstantiator));
+  __ Bind(&instantiator_not_null);
   // instantiator_reg: instantiator or kNoInstantiator.
 }
 
@@ -2618,9 +2608,9 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("GotoInstr");
-  // Add deoptimization descriptor for deoptimizing instructions
-  // that may be inserted before this instruction.
   if (!compiler->is_optimizing()) {
+    // Add deoptimization descriptor for deoptimizing instructions that may
+    // be inserted before this instruction.
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    0);  // No token position.

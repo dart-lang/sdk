@@ -311,6 +311,11 @@ bool Intrinsifier::Math_cos(Assembler* assembler) {
 }
 
 
+bool Intrinsifier::Random_nextState(Assembler* assembler) {
+  return false;
+}
+
+
 bool Intrinsifier::Object_equal(Assembler* assembler) {
   return false;
 }

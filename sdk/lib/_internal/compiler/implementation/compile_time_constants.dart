@@ -884,8 +884,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
           }
           jsNewArguments.add(fieldValue);
         },
-        includeBackendMembers: true,
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
     return jsNewArguments;
   }
 }

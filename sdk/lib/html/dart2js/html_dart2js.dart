@@ -65,7 +65,7 @@ _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
-spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
+spawnDomFunction(Function f) => IsolateNatives.spawnDomFunction(f);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1535,7 +1535,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
       '#.lineDashOffset || #.webkitLineDashOffset', this, this);
 
   @DomName('CanvasRenderingContext2D.lineDashOffset')
-  void set lineDashOffset(num value) => JS('void', 
+  void set lineDashOffset(num value) => JS('void',
       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
       '#.webkitLineDashOffset = #', this, this, value, this, value);
 }
@@ -1662,7 +1662,7 @@ class CompositionEvent extends UIEvent native "CompositionEvent" {
 @DomName('Console')
 class Console {
 
-  static Console safeConsole = new Console();
+  static Console _safeConsole = new Console();
 
   bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
@@ -1735,8 +1735,8 @@ class Console {
       JS('void', 'console.time(#)', title) : null;
 
   @DomName('Console.timeEnd')
-  void timeEnd(String timerName) => _isConsoleDefined ?
-      JS('void', 'console.timeEnd(#)', timerName) : null;
+  void timeEnd(String title) => _isConsoleDefined ?
+      JS('void', 'console.timeEnd(#)', title) : null;
 
   @DomName('Console.timeStamp')
   void timeStamp(Object arg) => _isConsoleDefined ?
@@ -6110,6 +6110,10 @@ class Document extends Node  native "Document"
   @DocsEditable
   static const EventStreamProvider<Event> readyStateChangeEvent = const EventStreamProvider<Event>('readystatechange');
 
+  @DomName('Document.securitypolicyviolationEvent')
+  @DocsEditable
+  static const EventStreamProvider<SecurityPolicyViolationEvent> securityPolicyViolationEvent = const EventStreamProvider<SecurityPolicyViolationEvent>('securitypolicyviolation');
+
   @DomName('Document.selectionchangeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
@@ -6633,6 +6637,10 @@ class Document extends Node  native "Document"
   @DomName('Document.onsearch')
   @DocsEditable
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
+
+  @DomName('Document.onsecuritypolicyviolation')
+  @DocsEditable
+  Stream<SecurityPolicyViolationEvent> get onSecurityPolicyViolation => securityPolicyViolationEvent.forTarget(this);
 
   @DomName('Document.onselect')
   @DocsEditable
@@ -7590,11 +7598,11 @@ abstract class Element extends Node implements ElementTraversal native "Element"
    * * [insertAdjacentText]
    * * [insertAdjacentElement]
    */
-  void insertAdjacentHtml(String where, String text) {
+  void insertAdjacentHtml(String where, String html) {
     if (JS('bool', '!!#.insertAdjacentHtml', this)) {
-      _insertAdjacentHtml(where, text);
+      _insertAdjacentHtml(where, html);
     } else {
-      _insertAdjacentNode(where, new DocumentFragment.html(text));
+      _insertAdjacentNode(where, new DocumentFragment.html(html));
     }
   }
 
@@ -7660,7 +7668,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
     throw new UnsupportedError("Not supported on this platform");
   }
 
-  @Creates('Null')
+  @Creates('Null') // Set from Dart code; does not instantiate a native type.
   Map<String, StreamSubscription> _attributeBindings;
 
   // TODO(jmesserly): I'm concerned about adding these to every element.
@@ -10039,7 +10047,19 @@ class FontLoader extends EventTarget native "FontLoader" {
 
   @DomName('FontLoader.loadEvent')
   @DocsEditable
-  static const EventStreamProvider<Event> loadEvent = const EventStreamProvider<Event>('load');
+  static const EventStreamProvider<CssFontFaceLoadEvent> loadEvent = const EventStreamProvider<CssFontFaceLoadEvent>('load');
+
+  @DomName('FontLoader.loadingEvent')
+  @DocsEditable
+  static const EventStreamProvider<CssFontFaceLoadEvent> loadingEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loading');
+
+  @DomName('FontLoader.loadingdoneEvent')
+  @DocsEditable
+  static const EventStreamProvider<CssFontFaceLoadEvent> loadingDoneEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loadingdone');
+
+  @DomName('FontLoader.loadstartEvent')
+  @DocsEditable
+  static const EventStreamProvider<CssFontFaceLoadEvent> loadStartEvent = const EventStreamProvider<CssFontFaceLoadEvent>('loadstart');
 
   @DomName('FontLoader.loading')
   @DocsEditable
@@ -10085,7 +10105,19 @@ class FontLoader extends EventTarget native "FontLoader" {
 
   @DomName('FontLoader.onload')
   @DocsEditable
-  Stream<Event> get onLoad => loadEvent.forTarget(this);
+  Stream<CssFontFaceLoadEvent> get onLoad => loadEvent.forTarget(this);
+
+  @DomName('FontLoader.onloading')
+  @DocsEditable
+  Stream<CssFontFaceLoadEvent> get onLoading => loadingEvent.forTarget(this);
+
+  @DomName('FontLoader.onloadingdone')
+  @DocsEditable
+  Stream<CssFontFaceLoadEvent> get onLoadingDone => loadingDoneEvent.forTarget(this);
+
+  @DomName('FontLoader.onloadstart')
+  @DocsEditable
+  Stream<CssFontFaceLoadEvent> get onLoadStart => loadStartEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10126,6 +10158,14 @@ class FormData native "FormData" {
 @DocsEditable
 @DomName('HTMLFormElement')
 class FormElement extends Element native "HTMLFormElement" {
+
+  @DomName('HTMLFormElement.autocompleteEvent')
+  @DocsEditable
+  static const EventStreamProvider<Event> autocompleteEvent = const EventStreamProvider<Event>('autocomplete');
+
+  @DomName('HTMLFormElement.autocompleteerrorEvent')
+  @DocsEditable
+  static const EventStreamProvider<AutocompleteErrorEvent> autocompleteErrorEvent = const EventStreamProvider<AutocompleteErrorEvent>('autocompleteerror');
 
   @DomName('HTMLFormElement.HTMLFormElement')
   @DocsEditable
@@ -10186,6 +10226,14 @@ class FormElement extends Element native "HTMLFormElement" {
   @DomName('HTMLFormElement.submit')
   @DocsEditable
   void submit() native;
+
+  @DomName('HTMLFormElement.onautocomplete')
+  @DocsEditable
+  Stream<Event> get onAutocomplete => autocompleteEvent.forTarget(this);
+
+  @DomName('HTMLFormElement.onautocompleteerror')
+  @DocsEditable
+  Stream<AutocompleteErrorEvent> get onAutocompleteError => autocompleteErrorEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11365,39 +11413,6 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
   @DocsEditable
   Stream<ProgressEvent> get onReadyStateChange => readyStateChangeEvent.forTarget(this);
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('XMLHttpRequestException')
-class HttpRequestException native "XMLHttpRequestException" {
-
-  @DomName('XMLHttpRequestException.ABORT_ERR')
-  @DocsEditable
-  static const int ABORT_ERR = 102;
-
-  @DomName('XMLHttpRequestException.NETWORK_ERR')
-  @DocsEditable
-  static const int NETWORK_ERR = 101;
-
-  @DomName('XMLHttpRequestException.code')
-  @DocsEditable
-  final int code;
-
-  @DomName('XMLHttpRequestException.message')
-  @DocsEditable
-  final String message;
-
-  @DomName('XMLHttpRequestException.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('XMLHttpRequestException.toString')
-  @DocsEditable
-  String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14253,6 +14268,15 @@ class MidiConnectionEvent extends Event native "MIDIConnectionEvent" {
 
 
 @DocsEditable
+@DomName('MIDIInput')
+class MidiInput extends MidiPort implements EventTarget native "MIDIInput" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('MIDIMessageEvent')
 class MidiMessageEvent extends Event native "MIDIMessageEvent" {
 
@@ -14272,6 +14296,10 @@ class MidiMessageEvent extends Event native "MIDIMessageEvent" {
 @DocsEditable
 @DomName('MIDIPort')
 class MidiPort extends EventTarget native "MIDIPort" {
+
+  @DomName('MIDIPort.disconnectEvent')
+  @DocsEditable
+  static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
   @DomName('MIDIPort.id')
   @DocsEditable
@@ -14306,6 +14334,10 @@ class MidiPort extends EventTarget native "MIDIPort" {
   @DomName('MIDIPort.removeEventListener')
   @DocsEditable
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('MIDIPort.ondisconnect')
+  @DocsEditable
+  Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14568,13 +14600,12 @@ class MouseEvent extends UIEvent native "MouseEvent" {
       return new Point(x, y);
     } else {
       // Firefox does not support offsetX.
-      var target = this.target;
-      if (!(target is Element)) {
+      if (!(this.target is Element)) {
         throw new UnsupportedError(
             'offsetX is only supported on elements');
       }
-      return (this.client -
-          this.target.getBoundingClientRect().topLeft).toInt();
+      Element target = this.target;
+      return (this.client - target.getBoundingClientRect().topLeft).toInt();
     }
   }
 
@@ -15127,11 +15158,12 @@ class _ChildNodeListLazy extends ListBase<Node> {
 
   void addAll(Iterable<Node> iterable) {
     if (iterable is _ChildNodeListLazy) {
-      if (!identical(iterable._this, _this)) {
+      _ChildNodeListLazy otherList = iterable;
+      if (!identical(otherList._this, _this)) {
         // Optimized route for copying between nodes.
-        for (var i = 0, len = iterable.length; i < len; ++i) {
+        for (var i = 0, len = otherList.length; i < len; ++i) {
           // Should use $dom_firstChild, Bug 8886.
-          _this.append(iterable[0]);
+          _this.append(otherList[0]);
         }
       }
       return;
@@ -16287,6 +16319,13 @@ class Path native "Path" {
 @SupportedBrowser(SupportedBrowser.IE)
 class Performance extends EventTarget native "Performance" {
 
+  @DomName('Performance.webkitresourcetimingbufferfullEvent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
@@ -16349,6 +16388,10 @@ class Performance extends EventTarget native "Performance" {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void setResourceTimingBufferSize(int maxSize) native;
+
+  @DomName('Performance.onwebkitresourcetimingbufferfull')
+  @DocsEditable
+  Stream<Event> get onResourceTimingBufferFull => resourceTimingBufferFullEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17058,39 +17101,6 @@ class Range native "Range" {
    */
   static bool get supportsCreateContextualFragment =>
       JS('bool', '("createContextualFragment" in window.Range.prototype)');
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
-@DomName('RangeException')
-class RangeException native "RangeException" {
-
-  @DomName('RangeException.BAD_BOUNDARYPOINTS_ERR')
-  @DocsEditable
-  static const int BAD_BOUNDARYPOINTS_ERR = 1;
-
-  @DomName('RangeException.INVALID_NODE_TYPE_ERR')
-  @DocsEditable
-  static const int INVALID_NODE_TYPE_ERR = 2;
-
-  @DomName('RangeException.code')
-  @DocsEditable
-  final int code;
-
-  @DomName('RangeException.message')
-  @DocsEditable
-  final String message;
-
-  @DomName('RangeException.name')
-  @DocsEditable
-  final String name;
-
-  @DomName('RangeException.toString')
-  @DocsEditable
-  String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18881,13 +18891,33 @@ class SpeechSynthesisEvent extends Event native "SpeechSynthesisEvent" {
 @DomName('SpeechSynthesisUtterance')
 class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUtterance" {
 
+  @DomName('SpeechSynthesisUtterance.boundaryEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> boundaryEvent = const EventStreamProvider<SpeechSynthesisEvent>('boundary');
+
+  @DomName('SpeechSynthesisUtterance.endEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> endEvent = const EventStreamProvider<SpeechSynthesisEvent>('end');
+
   @DomName('SpeechSynthesisUtterance.errorEvent')
   @DocsEditable
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+  @DomName('SpeechSynthesisUtterance.markEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> markEvent = const EventStreamProvider<SpeechSynthesisEvent>('mark');
+
   @DomName('SpeechSynthesisUtterance.pauseEvent')
   @DocsEditable
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  @DomName('SpeechSynthesisUtterance.resumeEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> resumeEvent = const EventStreamProvider<SpeechSynthesisEvent>('resume');
+
+  @DomName('SpeechSynthesisUtterance.startEvent')
+  @DocsEditable
+  static const EventStreamProvider<SpeechSynthesisEvent> startEvent = const EventStreamProvider<SpeechSynthesisEvent>('start');
 
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
   @DocsEditable
@@ -18924,13 +18954,33 @@ class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUttera
   @DocsEditable
   num volume;
 
+  @DomName('SpeechSynthesisUtterance.onboundary')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
+
+  @DomName('SpeechSynthesisUtterance.onend')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onEnd => endEvent.forTarget(this);
+
   @DomName('SpeechSynthesisUtterance.onerror')
   @DocsEditable
   Stream<Event> get onError => errorEvent.forTarget(this);
 
+  @DomName('SpeechSynthesisUtterance.onmark')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onMark => markEvent.forTarget(this);
+
   @DomName('SpeechSynthesisUtterance.onpause')
   @DocsEditable
   Stream<Event> get onPause => pauseEvent.forTarget(this);
+
+  @DomName('SpeechSynthesisUtterance.onresume')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onResume => resumeEvent.forTarget(this);
+
+  @DomName('SpeechSynthesisUtterance.onstart')
+  @DocsEditable
+  Stream<SpeechSynthesisEvent> get onStart => startEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20822,9 +20872,9 @@ class Url native "URL" {
          '(self.URL || self.webkitURL).createObjectURL(#)',
          blob_OR_source_OR_stream);
 
-  static void revokeObjectUrl(String objectUrl) =>
+  static void revokeObjectUrl(String url) =>
       JS('void',
-         '(self.URL || self.webkitURL).revokeObjectURL(#)', objectUrl);
+         '(self.URL || self.webkitURL).revokeObjectURL(#)', url);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21535,7 +21585,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
     return _requestAnimationFrame(callback);
   }
 
-  void cancelAnimationFrame(id) {
+  void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
     _cancelAnimationFrame(id);
   }
@@ -21588,7 +21638,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
          this, this, this);
 
   @DomName('Window.console')
-  Console get console => Console.safeConsole;
+  Console get console => Console._safeConsole;
 
   /// Checks if _setImmediate is supported.
   static bool get _supportsSetImmediate =>
@@ -24450,16 +24500,16 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
   }
 
-  bool get _paused => _pauseCount > 0;
+  bool get isPaused => _pauseCount > 0;
 
   void resume() {
-    if (_canceled || !_paused) return;
+    if (_canceled || !isPaused) return;
     --_pauseCount;
     _tryResume();
   }
 
   void _tryResume() {
-    if (_onData != null && !_paused) {
+    if (_onData != null && !isPaused) {
       _target.$dom_addEventListener(_eventType, _onData, _useCapture);
     }
   }
@@ -24583,7 +24633,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -24595,7 +24645,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<E> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 
@@ -26667,7 +26717,7 @@ class _Bindings {
   }
 
   // http://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#dfn-template-contents-owner
-  static Document _getTemplateContentsOwner(Document doc) {
+  static Document _getTemplateContentsOwner(HtmlDocument doc) {
     if (doc.window == null) {
       return doc;
     }
@@ -26745,7 +26795,7 @@ class _Bindings {
     // template.
     // TODO(jmesserly): node is DocumentFragment or Element
     var descendents = (node as dynamic).queryAll(_allTemplatesSelectors);
-    if (node is Element && node.isTemplate) bootstrap(node);
+    if (node is Element && (node as Element).isTemplate) bootstrap(node);
 
     descendents.forEach(bootstrap);
   }
@@ -26899,7 +26949,7 @@ class _Bindings {
 
   static void _removeChild(Node parent, Node child) {
     child._templateInstance = null;
-    if (child is Element && child.isTemplate) {
+    if (child is Element && (child as Element).isTemplate) {
       // Make sure we stop observing when we remove an element.
       var templateIterator = child._templateIterator;
       if (templateIterator != null) {
@@ -27734,7 +27784,7 @@ class _WrappedList<E> extends ListBase<E> {
 
   void add(E element) { _list.add(element); }
 
-  void remove(Object element) { _list.remove(element); }
+  bool remove(Object element) => _list.remove(element);
 
   void clear() { _list.clear(); }
 
@@ -27869,8 +27919,14 @@ EventTarget _convertNativeToDart_EventTarget(e) {
   // Assume it's a Window if it contains the setInterval property.  It may be
   // from a different frame - without a patched prototype - so we cannot
   // rely on Dart type checking.
-  if (JS('bool', r'"setInterval" in #', e))
-    return _DOMWindowCrossFrame._createSafe(e);
+  if (JS('bool', r'"setInterval" in #', e)) {
+    var window = _DOMWindowCrossFrame._createSafe(e);
+    // If it's a native window.
+    if (window is EventTarget) {
+      return window;
+    }
+    return null;
+  }
   else
     return e;
 }

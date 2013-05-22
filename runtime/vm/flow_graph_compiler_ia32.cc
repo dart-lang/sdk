@@ -48,17 +48,17 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder) {
-  if (deoptimization_env_ == NULL) return DeoptInfo::null();
+  if (deopt_env_ == NULL) return DeoptInfo::null();
 
   intptr_t stack_height = compiler->StackSize();
-  AllocateIncomingParametersRecursive(deoptimization_env_, &stack_height);
+  AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
 
   intptr_t slot_ix = 0;
-  Environment* current = deoptimization_env_;
+  Environment* current = deopt_env_;
 
   // Emit all kMaterializeObject instructions describing objects to be
   // materialized on the deoptimization as a prefix to the deoptimization info.
-  EmitMaterializations(deoptimization_env_, builder);
+  EmitMaterializations(deopt_env_, builder);
 
   // The real frame starts here.
   builder->MarkFrameStart();
@@ -148,7 +148,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   __ Bind(entry_label());
   if (FLAG_trap_on_deoptimization) __ int3();
 
-  ASSERT(deoptimization_env() != NULL);
+  ASSERT(deopt_env() != NULL);
 
   __ call(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());

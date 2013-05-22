@@ -137,7 +137,8 @@ abstract class Backend {
                                  Enqueuer enqueuer,
                                  TreeElements elements) {}
   void registerStringInterpolation(TreeElements elements) {}
-  void registerCatchStatement(TreeElements elements) {}
+  void registerCatchStatement(Enqueuer enqueuer,
+                              TreeElements elements) {}
   void registerWrapException(TreeElements elements) {}
   void registerThrowExpression(TreeElements elements) {}
   void registerLazyField(TreeElements elements) {}
@@ -251,6 +252,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableMinification;
   final bool enableTypeAssertions;
   final bool enableUserAssertions;
+  final bool trustTypeAnnotations;
   final bool enableConcreteTypeInference;
   /**
    * The maximum size of a concrete type before it widens to dynamic during
@@ -440,6 +442,7 @@ abstract class Compiler implements DiagnosticListener {
   Compiler({this.tracer: const Tracer(),
             this.enableTypeAssertions: false,
             this.enableUserAssertions: false,
+            this.trustTypeAnnotations: false,
             this.enableConcreteTypeInference: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
@@ -1024,7 +1027,6 @@ abstract class Compiler implements DiagnosticListener {
     if (message is TypeWarning) {
       // TODO(ahe): Don't supress these warning when the type checker
       // is more complete.
-      if (identical(message.message.kind, MessageKind.NOT_ASSIGNABLE)) return;
       if (identical(message.message.kind, MessageKind.MISSING_RETURN)) return;
       if (identical(message.message.kind, MessageKind.MAYBE_MISSING_RETURN)) {
         return;

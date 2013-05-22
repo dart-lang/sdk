@@ -1586,8 +1586,7 @@ class SsaConstructionFieldTypes
               element, node.inputs[j].instructionType);
           j++;
         },
-        includeBackendMembers: false,
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
   }
 
   visitFieldSet(HFieldSet node) {

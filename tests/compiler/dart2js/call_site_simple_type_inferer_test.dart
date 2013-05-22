@@ -222,7 +222,7 @@ void doTest(String test, bool enableInlining, Function f) {
       int index = 0;
       signature.forEachParameter((Element element) {
         Expect.equals(expectedTypes[index++],
-                      inferrer.internal.typeOf[element]);
+            inferrer.internal.typeOf[element].simplify(inferrer.compiler));
       });
       Expect.equals(index, expectedTypes.length);
   });
@@ -245,14 +245,14 @@ void test() {
   runTest(TEST_5, (inferrer) => [inferrer.numType]);
   runTest(TEST_6, (inferrer) => [inferrer.numType]);
   runTest(TEST_7a, (inferrer) => [subclassOfInterceptor(inferrer)]);
-  runTest(TEST_7b, (inferrer) => [inferrer.dynamicType]);
+  runTest(TEST_7b, (inferrer) => [inferrer.dynamicType.nonNullable()]);
 
   // In the following tests, we can't infer the right types because we
   // have recursive calls with the same parameters. We should build a
   // constraint system for those, to find the types.
   runTest(TEST_8, (inferrer) => [inferrer.dynamicType,
                                  subclassOfInterceptor(inferrer),
-                                 inferrer.dynamicType]);
+                                 inferrer.dynamicType.nonNullable()]);
   runTest(TEST_9, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
   runTest(TEST_10, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
   runTest(TEST_11, (inferrer) => [subclassOfInterceptor(inferrer),

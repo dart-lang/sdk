@@ -257,6 +257,9 @@ class ObjectPointerVisitor;
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartUri, "dart:uri")                                                       \
   V(DartUtf, "dart:utf")                                                       \
+  V(_Random, "_Random")                                                        \
+  V(_state, "_state")                                                          \
+  V(_A, "_A")                                                                  \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

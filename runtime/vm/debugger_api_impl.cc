@@ -492,7 +492,7 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
   DARTSCOPE(isolate);
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   CHECK_NOT_NULL(class_id);
-  *class_id = Class::Handle(obj.clazz()).id();
+  *class_id = obj.GetClassId();
   return Api::True(isolate);
 }
 

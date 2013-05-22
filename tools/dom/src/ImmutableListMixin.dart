@@ -47,7 +47,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void remove(Object object) {
+  bool remove(Object object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -59,7 +59,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void setRange(int start, int end, Iterable<E> iterable, [int skipCount]) {
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     throw new UnsupportedError("Cannot setRange on immutable List.");
   }
 

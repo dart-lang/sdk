@@ -646,6 +646,7 @@ class JavaScriptBackend extends Backend {
   ClassElement jsDoubleClass;
   ClassElement jsNullClass;
   ClassElement jsBoolClass;
+  ClassElement jsUnknownClass;
 
   ClassElement jsIndexableClass;
   ClassElement jsMutableIndexableClass;
@@ -862,7 +863,7 @@ class JavaScriptBackend extends Backend {
     if (uses == null) return null;
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      Iterable<ClassElement> subclasses = compiler.world.subclasses[use];
+      Iterable<ClassElement> subclasses = compiler.world.subclassesOf(use);
       if (subclasses != null) {
         for (ClassElement subclass in subclasses) {
           if (subclass.isNative()) {
@@ -921,7 +922,10 @@ class JavaScriptBackend extends Backend {
       jsFixedArrayClass =
           compiler.findInterceptor(const SourceString('JSFixedArray')),
       jsExtendableArrayClass =
-          compiler.findInterceptor(const SourceString('JSExtendableArray'))];
+          compiler.findInterceptor(const SourceString('JSExtendableArray')),
+      jsUnknownClass =
+          compiler.findInterceptor(const SourceString('JSUnknown')),
+    ];
 
     jsIndexableClass =
         compiler.findInterceptor(const SourceString('JSIndexable'));
@@ -1012,7 +1016,7 @@ class JavaScriptBackend extends Backend {
           classesMixedIntoNativeClasses.add(mixinApplication.mixin);
         }
       },
-      includeSuperMembers: true);
+      includeSuperAndInjectedMembers: true);
     }
   }
 
@@ -1028,7 +1032,7 @@ class JavaScriptBackend extends Backend {
               member.name, () => new Set<Element>());
           set.add(member);
         },
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
     }
     enqueuer.registerInstantiatedClass(cls, elements);
   }
@@ -1124,6 +1128,8 @@ class JavaScriptBackend extends Backend {
       addInterceptors(jsIntClass, enqueuer, elements);
       addInterceptors(jsDoubleClass, enqueuer, elements);
       addInterceptors(jsNumberClass, enqueuer, elements);
+    } else if (cls == jsUnknownClass) {
+      addInterceptors(jsUnknownClass, enqueuer, elements);
     } else if (cls.isNative()) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     }
@@ -1134,7 +1140,7 @@ class JavaScriptBackend extends Backend {
         if (!member.isInstanceMember() || !member.isField()) return;
         DartType type = member.computeType(compiler);
         enqueuer.registerIsCheck(type, elements);
-      }, includeSuperMembers: true);
+      }, includeSuperAndInjectedMembers: true);
     }
   }
 
@@ -1177,8 +1183,11 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getStringInterpolationHelper(), elements);
   }
 
-  void registerCatchStatement(TreeElements elements) {
+  void registerCatchStatement(Enqueuer enqueuer, TreeElements elements) {
     enqueueInResolution(getExceptionUnwrapper(), elements);
+    if (jsUnknownClass != null) {
+      enqueuer.registerInstantiatedClass(jsUnknownClass, elements);
+    }
   }
 
   void registerWrapException(TreeElements elements) {
@@ -1680,7 +1689,8 @@ class JavaScriptBackend extends Backend {
             ? const SourceString("stringSuperTypeCast")
             : const SourceString('stringSuperTypeCheck');
       }
-    } else if (element == compiler.listClass || element == jsArrayClass) {
+    } else if ((element == compiler.listClass || element == jsArrayClass) &&
+               type.isRaw) {
       if (nativeCheckOnly) return null;
       return typeCast
           ? const SourceString("listTypeCast")
@@ -1704,15 +1714,18 @@ class JavaScriptBackend extends Backend {
               ? const SourceString("interceptedTypeCast")
               : const SourceString('interceptedTypeCheck');
         } else {
-          if (typeCast) {
-            return const SourceString("propertyTypeCast");
-          }
           if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
-            return const SourceString('assertSubtype');
+            return typeCast
+                ? const SourceString('subtypeCast')
+                : const SourceString('assertSubtype');
           } else if (type.kind == TypeKind.TYPE_VARIABLE) {
-            return const SourceString('assertSubtypeOfRuntimeType');
+            return typeCast
+                ? const SourceString('subtypeOfRuntimeTypeCast')
+                : const SourceString('assertSubtypeOfRuntimeType');
           } else {
-            return const SourceString('propertyTypeCheck');
+            return typeCast
+                ? const SourceString('propertyTypeCast')
+                : const SourceString('propertyTypeCheck');
           }
         }
       }

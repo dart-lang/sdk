@@ -5,9 +5,7 @@
 library unittestTests;
 import 'package:unittest/unittest.dart';
 
-part 'test_utils.dart';
-
-doesThrow() { throw 'X'; }
+import 'test_utils.dart';
 
 main() {
   initUtils();
@@ -15,15 +13,17 @@ main() {
   group('Type Matchers', () {
     test('isInstanceOf', () {
       shouldFail(0, new isInstanceOf<String>('String'),
-        "Expected: an instance of String but: was <0>.");
+          "Expected: an instance of String But: was <0>.");
       shouldPass('cow', new isInstanceOf<String>('String'));
     });
 
     test('throwsA', () {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
-        "Expected: throws an exception which matches 'Y' "
-        "but:  exception 'X' does not match 'Y'.");
+          "Expected: throws an exception which matches 'Y' "
+          "But:  exception 'X' does not match 'Y'. "
+          "Actual: <Closure: (dynamic) => dynamic "
+              "from Function 'doesThrow': static.>");
     });
   });
 }

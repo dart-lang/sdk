@@ -8,6 +8,7 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
@@ -1341,6 +1342,52 @@ bool Intrinsifier::Math_cos(Assembler* assembler) {
   EmitTrigonometric(assembler, kCosine);
   return false;  // Compile method for slow case.
 }
+
+
+//    var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
+//    _state[kSTATE_LO] = state & _MASK_32;
+//    _state[kSTATE_HI] = state >> 32;
+bool Intrinsifier::Random_nextState(Assembler* assembler) {
+  const Library& math_lib = Library::Handle(Library::MathLibrary());
+  ASSERT(!math_lib.IsNull());
+  const Class& random_class =
+      Class::Handle(math_lib.LookupClassAllowPrivate(Symbols::_Random()));
+  ASSERT(!random_class.IsNull());
+  const Field& state_field = Field::ZoneHandle(
+      random_class.LookupInstanceField(Symbols::_state()));
+  ASSERT(!state_field.IsNull());
+  const Field& random_A_field = Field::ZoneHandle(
+      random_class.LookupStaticField(Symbols::_A()));
+  ASSERT(!random_A_field.IsNull());
+  ASSERT(random_A_field.is_const());
+  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Receiver.
+  __ movq(RBX, FieldAddress(RAX, state_field.Offset()));  // Field '_state'.
+  // Addresses of _state[0] and _state[1].
+  Address addr_0 = FlowGraphCompiler::ElementAddressForIntIndex(
+      kTypedDataUint32ArrayCid,
+      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid),
+      RBX,
+      0);
+  Address addr_1 = FlowGraphCompiler::ElementAddressForIntIndex(
+      kTypedDataUint32ArrayCid,
+      FlowGraphCompiler::ElementSizeFor(kTypedDataUint32ArrayCid),
+      RBX,
+      1);
+
+  __ movq(RAX, Immediate(a_int_value));
+  __ movl(RCX, addr_0);
+  __ imulq(RCX, RAX);
+  __ movl(RDX, addr_1);
+  __ addq(RDX, RCX);
+  __ movl(addr_0, RDX);
+  __ shrq(RDX, Immediate(32));
+  __ movl(addr_1, RDX);
+  __ ret();
+  return true;
+}
+
 
 
 // Identity comparison.

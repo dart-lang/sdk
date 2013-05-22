@@ -36,9 +36,7 @@ class StackFrame : public ValueObject {
   // Accessors to get the pc, sp and fp of a frame.
   uword sp() const { return sp_; }
   uword fp() const { return fp_; }
-  uword pc() const {
-    return *reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize));
-  }
+  uword pc() const { return pc_; }
 
   // The pool pointer is not implemented on all architectures.
   static int SavedCallerPpSlotFromFp() {
@@ -79,7 +77,7 @@ class StackFrame : public ValueObject {
 
 
  protected:
-  StackFrame() : fp_(0), sp_(0) { }
+  StackFrame() : fp_(0), sp_(0), pc_(0) { }
 
   // Name of the frame, used for generic frame printing functionality.
   virtual const char* GetName() const { return IsStubFrame()? "stub" : "dart"; }
@@ -94,9 +92,14 @@ class StackFrame : public ValueObject {
     return *(reinterpret_cast<uword*>(
         fp() + (kSavedCallerFpSlotFromFp * kWordSize)));
   }
+  uword GetCallerPc() const {
+    return *(reinterpret_cast<uword*>(
+        fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
+  }
 
   uword fp_;
   uword sp_;
+  uword pc_;
 
   // The iterators FrameSetIterator and StackFrameIterator set the private
   // fields fp_ and sp_ when they return the respective frame objects.
@@ -154,15 +157,19 @@ class EntryFrame : public StackFrame {
 };
 
 
-// Iterator for iterating over all frames from the last ExitFrame to the
-// first EntryFrame.
 class StackFrameIterator : public ValueObject {
  public:
   static const bool kValidateFrames = true;
   static const bool kDontValidateFrames = false;
 
+  // Iterators for iterating over all frames from the last ExitFrame to the
+  // first EntryFrame.
   explicit StackFrameIterator(bool validate);
   StackFrameIterator(uword last_fp, bool validate);
+
+  // Iterator for iterating over all frames from the current frame (given by its
+  // fp, sp, and pc) to the first EntryFrame.
+  StackFrameIterator(uword fp, uword sp, uword pc, bool validate);
 
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
@@ -189,10 +196,11 @@ class StackFrameIterator : public ValueObject {
     StackFrame* NextFrame(bool validate);
 
    private:
-    FrameSetIterator() : fp_(0), sp_(0), stack_frame_() { }
+    FrameSetIterator() : fp_(0), sp_(0), pc_(0), stack_frame_() { }
 
     uword fp_;
     uword sp_;
+    uword pc_;
     StackFrame stack_frame_;  // Singleton frame returned by NextFrame().
 
     friend class StackFrameIterator;

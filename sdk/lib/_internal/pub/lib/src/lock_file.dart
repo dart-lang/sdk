@@ -58,21 +58,20 @@ class LockFile {
           throw new FormatException('Package $name is missing a source.');
         }
         var sourceName = spec['source'];
-        if (!sources.contains(sourceName)) {
-          throw new FormatException(
-              'Could not find a source named $sourceName.');
-        }
-        var source = sources[sourceName];
 
-        // Parse the description.
         if (!spec.containsKey('description')) {
           throw new FormatException('Package $name is missing a description.');
         }
         var description = spec['description'];
-        description = source.parseDescription(filePath, description,
-            fromLockFile: true);
 
-        var id = new PackageId(name, source, version, description);
+        // Parse the description if we know the source.
+        if (sources.contains(sourceName)) {
+          var source = sources[sourceName];
+          description = source.parseDescription(filePath, description,
+              fromLockFile: true);
+        }
+
+        var id = new PackageId(name, sourceName, version, description);
 
         // Validate the name.
         if (name != id.name) {
@@ -97,7 +96,7 @@ class LockFile {
     sortedKeys.forEach((name) {
       packagesObj[name] = {
         'version': packages[name].version.toString(),
-        'source': packages[name].source.name,
+        'source': packages[name].source,
         'description': packages[name].description
       };
     });

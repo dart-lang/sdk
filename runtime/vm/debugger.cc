@@ -779,7 +779,6 @@ Debugger::Debugger()
       src_breakpoints_(NULL),
       code_breakpoints_(NULL),
       resume_action_(kContinue),
-      last_bpt_line_(-1),
       ignore_breakpoints_(false),
       exc_pause_info_(kNoPauseOnExceptions) {
 }
@@ -1024,8 +1023,6 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   if (!ShouldPauseOnException(stack_trace, exc)) {
     return;
   }
-  // No single-stepping possible after this pause event.
-  last_bpt_line_ = -1;
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   ASSERT(obj_cache_ == NULL);
@@ -1532,31 +1529,19 @@ void Debugger::SignalBpReached() {
               top_frame->pc());
   }
 
-  if (!bpt->IsInternal()) {
-    // This is a user-defined breakpoint so we call the breakpoint
-    // callback even if it is on the same line as the previous breakpoint.
-    last_bpt_line_ = -1;
-  }
-
-  bool notify_frontend =
-    (last_bpt_line_ < 0) || (last_bpt_line_ != bpt->LineNumber());
-
-  if (notify_frontend) {
-    resume_action_ = kContinue;
-    if (event_handler_ != NULL) {
-      ASSERT(stack_trace_ == NULL);
-      ASSERT(obj_cache_ == NULL);
-      obj_cache_ = new RemoteObjectCache(64);
-      stack_trace_ = stack_trace;
-      DebuggerEvent event;
-      event.type = kBreakpointReached;
-      ASSERT(stack_trace->Length() > 0);
-      event.top_frame = stack_trace->ActivationFrameAt(0);
-      (*event_handler_)(&event);
-      stack_trace_ = NULL;
-      obj_cache_ = NULL;  // Remote object cache is zone allocated.
-      last_bpt_line_ = bpt->LineNumber();
-    }
+  resume_action_ = kContinue;
+  if (event_handler_ != NULL) {
+    ASSERT(stack_trace_ == NULL);
+    ASSERT(obj_cache_ == NULL);
+    obj_cache_ = new RemoteObjectCache(64);
+    stack_trace_ = stack_trace;
+    DebuggerEvent event;
+    event.type = kBreakpointReached;
+    ASSERT(stack_trace->Length() > 0);
+    event.top_frame = stack_trace->ActivationFrameAt(0);
+    (*event_handler_)(&event);
+    stack_trace_ = NULL;
+    obj_cache_ = NULL;  // Remote object cache is zone allocated.
   }
 
   Function& currently_instrumented_func = Function::Handle();
@@ -1656,7 +1641,6 @@ void Debugger::SignalBpReached() {
 
   if (func_to_instrument.IsNull() ||
       (func_to_instrument.raw() != currently_instrumented_func.raw())) {
-    last_bpt_line_ = -1;
     RemoveInternalBreakpoints();  // *bpt is now invalid.
     if (!func_to_instrument.IsNull()) {
       InstrumentForStepping(func_to_instrument);

@@ -63,15 +63,17 @@ class Entrypoint {
   /// using the `package:` scheme.
   ///
   /// This will automatically install the package to the system-wide cache as
-  /// well if it requires network access to retrieve (specifically, if
-  /// `id.source.shouldCache` is true).
+  /// well if it requires network access to retrieve (specifically, if the
+  /// package's source has [shouldCache] as `true`).
   ///
   /// See also [installDependencies].
   Future<PackageId> install(PackageId id) {
-    var pendingOrCompleted = _installs[id];
-    if (pendingOrCompleted != null) return pendingOrCompleted;
+    var pending = _installs[id];
+    if (pending != null) return pending;
 
     var packageDir = path.join(packagesDir, id.name);
+    var source;
+
     var future = new Future.sync(() {
       ensureDir(path.dirname(packageDir));
 
@@ -82,16 +84,18 @@ class Entrypoint {
         deleteEntry(packageDir);
       }
 
-      if (id.source.shouldCache) {
+      source = cache.sources[id.source];
+
+      if (source.shouldCache) {
         return cache.install(id).then(
             (pkg) => createPackageSymlink(id.name, pkg.dir, packageDir));
       } else {
-        return id.source.install(id, packageDir).then((found) {
+        return source.install(id, packageDir).then((found) {
           if (found) return null;
-          fail('Package ${id.name} not found in source "${id.source.name}".');
+          fail('Package ${id.name} not found in source "${id.source}".');
         });
       }
-    }).then((_) => id.resolved);
+    }).then((_) => source.resolveId(id));
 
     _installs[id] = future;
 

@@ -48,7 +48,7 @@ class HostedSource extends Source {
 
   /// Downloads and parses the pubspec for a specific version of a package that
   /// is available from the site.
-  Future<Pubspec> describe(PackageId id) {
+  Future<Pubspec> describeUncached(PackageId id) {
     // Request it from the server.
     var url = _makeVersionUrl(id, (server, package, version) =>
         "$server/packages/$package/versions/$version.yaml");
@@ -191,9 +191,9 @@ class OfflineHostedSource extends HostedSource {
     throw new UnsupportedError("Cannot install packages when offline.");
   }
 
-  Future<Pubspec> describe(PackageId id) {
+  Future<Pubspec> describeUncached(PackageId id) {
     // [getVersions()] will only return packages that are already cached.
-    // SystemCache should only call [describe()] on a package after it has
+    // Source should only call [describeUncached()] on a package after it has
     // failed to find it in the cache, so this code should not be reached.
     throw new UnsupportedError("Cannot describe packages when offline.");
   }

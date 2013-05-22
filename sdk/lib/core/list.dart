@@ -21,18 +21,18 @@ part of dart.core;
  *
  * Example:
  *
- *    var fixedLengthList = new List(5);
- *    fixedLengthList.length = 0;  // throws.
- *    fixedLengthList.add(499);  // throws
- *    fixedLengthList[0] = 87;
- *    var growableList = [1, 2];
- *    growableList.length = 0;
- *    growableList.add(499);
- *    growableList[0] = 87;
- *    var unmodifiableList = const [1, 2];
- *    unmodifiableList.length = 0;  // throws.
- *    unmodifiableList.add(499);  // throws
- *    unmodifiableList[0] = 87;  // throws.
+ *     var fixedLengthList = new List(5);
+ *     fixedLengthList.length = 0;  // throws.
+ *     fixedLengthList.add(499);  // throws
+ *     fixedLengthList[0] = 87;
+ *     var growableList = [1, 2];
+ *     growableList.length = 0;
+ *     growableList.add(499);
+ *     growableList[0] = 87;
+ *     var unmodifiableList = const [1, 2];
+ *     unmodifiableList.length = 0;  // throws.
+ *     unmodifiableList.add(499);  // throws
+ *     unmodifiableList[0] = 87;  // throws.
  *
  * Lists are [Iterable].
  * List iteration iterates over values in index order.
@@ -94,7 +94,7 @@ abstract class List<E> implements Iterable<E> {
    * for each index in the range `0` .. `[length] - 1`
    * in increasing order.
    *
-   * The created length's length is fixed unless [growable] is true.
+   * The created list's length is fixed unless [growable] is true.
    */
   factory List.generate(int length, E generator(int index),
                        { bool growable: true }) {
@@ -118,6 +118,7 @@ abstract class List<E> implements Iterable<E> {
 
   /**
    * Sets the entry at the given [index] in the list to [value].
+   *
    * Throws an [RangeError] if [index] is out of bounds.
    */
   void operator []=(int index, E value);
@@ -131,20 +132,23 @@ abstract class List<E> implements Iterable<E> {
 
   /**
    * Changes the length of the list. If [newLength] is greater than
-   * the current [length], entries are initialized to [:null:]. Throws
-   * an [UnsupportedError] if the list is not extendable.
+   * the current [length], entries are initialized to [:null:].
+   *
+   * Throws an [UnsupportedError] if the list is not extendable.
    */
   void set length(int newLength);
 
   /**
    * Adds [value] at the end of the list, extending the length by
-   * one. Throws an [UnsupportedError] if the list is not
-   * extendable.
+   * one.
+   *
+   * Throws an [UnsupportedError] if the list is not extendable.
    */
   void add(E value);
 
   /**
    * Appends all elements of the [iterable] to the end of this list.
+   *
    * Extends the length of the list by the number of elements in [iterable].
    * Throws an [UnsupportedError] if this list is not extensible.
    */
@@ -159,6 +163,7 @@ abstract class List<E> implements Iterable<E> {
    * Sorts the list according to the order specified by the [compare] function.
    *
    * The [compare] function must act as a [Comparator].
+   *
    * The default [List] implementations use [Comparable.compare] if
    * [compare] is omitted.
    */
@@ -178,9 +183,12 @@ abstract class List<E> implements Iterable<E> {
    * Returns the last index of [element] in the list.
    *
    * Searches the list backwards from index [start] (inclusive) to 0.
+   *
    * The first time an element [:e:] is encountered so that [:e == element:],
    * the index of [:e:] is returned.
-   * If start is not provided, it defaults to [:this.length - 1:] .
+   *
+   * If start is not provided, it defaults to [:this.length - 1:].
+   *
    * Returns -1 if [element] is not found.
    */
   int lastIndexOf(E element, [int start]);
@@ -189,6 +197,7 @@ abstract class List<E> implements Iterable<E> {
    * Removes all elements in the list.
    *
    * The length of the list becomes zero.
+   *
    * Throws an [UnsupportedError], and retains all elements, if the
    * length of the list cannot be changed.
    */
@@ -220,7 +229,7 @@ abstract class List<E> implements Iterable<E> {
    * Overwrites elements of `this` with the elemenst of [iterable] starting
    * at position [index] in the list.
    *
-   * This operation does not increase the length of the list.
+   * This operation does not increase the length of `this`.
    *
    * It is an error if the [index] does not point inside the list or at the
    * position after the last element.
@@ -239,14 +248,18 @@ abstract class List<E> implements Iterable<E> {
   /**
    * Removes the element at position [index] from the list.
    *
-   * This reduces the length of the list by one and moves all later elements
+   * This reduces the length of `this` by one and moves all later elements
    * down by one position.
+   *
    * Returns the removed element.
+   *
    * Throws an [ArgumentError] if [index] is not an [int].
+   *
    * Throws an [RangeError] if the [index] does not point inside
    * the list.
+   *
    * Throws an [UnsupportedError], and doesn't remove the element,
-   * if the length of the list cannot be changed.
+   * if the length of `this` cannot be changed.
    */
   E removeAt(int index);
 
@@ -274,9 +287,9 @@ abstract class List<E> implements Iterable<E> {
   /**
    * Returns a new list containing the elements from [start] to [end].
    *
-   * If [end] is omitted, the [length] of the list is used.
+   * If [end] is omitted, the [length] of `this` is used.
    *
-   * It is an error if [start] or [end] are not list indices for this list,
+   * It is an error if [start] or [end] are not indices into `this`,
    * or if [end] is before [start].
    */
   List<E> sublist(int start, [int end]);
@@ -304,17 +317,24 @@ abstract class List<E> implements Iterable<E> {
   Iterable<E> getRange(int start, int end);
 
   /**
-   * Copies the elements of [iterable], skipping the [skipCount] first elements
+   * Copies the elements of [iterable], skipping the [skipCount] first elements,
    * into the range [start] to [end] exclusive of `this`.
    *
-   * If [start] equals [end] and represent a legal range, this method has
-   * no effect.
+   * If [start] equals [end] and [start]..[end] represents a legal range, this
+   * method has no effect.
    *
    * It is an error if [start]..[end] is not a valid range pointing into the
    * `this`.
    *
    * It is an error if the [iterable] does not have enough elements after
    * skipping [skipCount] elements.
+   *
+   * Example:
+   *
+   *     var list = [1, 2, 3, 4];
+   *     var list2 = [5, 6, 7, 8, 9];
+   *     list.setRange(1, 3, list2, 3);
+   *     print(list);  // => [1, 8, 9, 4]
    */
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]);
 

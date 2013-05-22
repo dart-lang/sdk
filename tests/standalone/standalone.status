@@ -7,6 +7,9 @@ package/invalid_uri_test: Fail, OK # Fails intentionally
 [ $runtime == vm && $system == macos ]
 debugger/basic_debugger_test: Pass, Crash # Issue 10488.
 
+[ $runtime == vm && $system == windows ]
+debugger/*: Skip # Issue: 10791
+
 [ $runtime == vm ]
 # Fails because checked-in dart executable is not up to date.
 io/test_runner_test: Fail
@@ -79,7 +82,6 @@ io/web_socket_protocol_processor_test: Skip  # dart:io unit test.
 io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
 [ $compiler == dartanalyzer ]
-crypto/base64_test: fail
 io/file_constructor_test: fail
 io/http_date_test: fail
 io/http_headers_test: fail

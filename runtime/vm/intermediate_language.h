@@ -646,6 +646,8 @@ class Instruction : public ZoneAllocated {
     return deopt_id_;
   }
 
+  ICData* GetICData(const Array& ic_data_array) const;
+
   bool IsBlockEntry() { return (AsBlockEntry() != NULL); }
   virtual BlockEntryInstr* AsBlockEntry() { return NULL; }
 
@@ -1070,7 +1072,6 @@ class BlockEntryInstr : public Instruction {
 
   virtual intptr_t PredecessorCount() const = 0;
   virtual BlockEntryInstr* PredecessorAt(intptr_t index) const = 0;
-  virtual void PrepareEntry(FlowGraphCompiler* compiler) = 0;
 
   intptr_t preorder_number() const { return preorder_number_; }
   void set_preorder_number(intptr_t number) { preorder_number_ = number; }
@@ -1292,8 +1293,6 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   CatchBlockEntryInstr* GetCatchEntry(intptr_t index);
 
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
-
   GrowableArray<Definition*>* initial_definitions() {
     return &initial_definitions_;
   }
@@ -1358,8 +1357,6 @@ class JoinEntryInstr : public BlockEntryInstr {
   intptr_t IndexOfPredecessor(BlockEntryInstr* pred) const;
 
   ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
-
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   void InsertPhi(intptr_t var_index, intptr_t var_count);
   void RemoveDeadPhis(Definition* replacement);
@@ -1429,8 +1426,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     return predecessor_;
   }
 
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
-
   virtual void PrintTo(BufferFormatter* f) const;
 
  private:
@@ -1477,8 +1472,6 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   GrowableArray<Definition*>* initial_definitions() {
     return &initial_definitions_;
   }
-
-  virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   virtual void PrintTo(BufferFormatter* f) const;
 
@@ -2600,8 +2593,9 @@ class InstanceCallInstr : public TemplateDefinition<0> {
                     Token::Kind token_kind,
                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
                     const Array& argument_names,
-                    intptr_t checked_argument_count)
-      : ic_data_(Isolate::Current()->GetICDataForDeoptId(deopt_id())),
+                    intptr_t checked_argument_count,
+                    const Array& ic_data_array)
+      : ic_data_(GetICData(ic_data_array)),
         token_pos_(token_pos),
         function_name_(function_name),
         token_kind_(token_kind),
@@ -2842,12 +2836,12 @@ class EqualityCompareInstr : public ComparisonInstr {
   EqualityCompareInstr(intptr_t token_pos,
                        Token::Kind kind,
                        Value* left,
-                       Value* right)
+                       Value* right,
+                       const Array& ic_data_array)
       : ComparisonInstr(kind, left, right),
+        ic_data_(GetICData(ic_data_array)),
         token_pos_(token_pos),
         receiver_class_id_(kIllegalCid) {
-    // deopt_id() checks receiver_class_id_ value.
-    ic_data_ = Isolate::Current()->GetICDataForDeoptId(deopt_id());
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
@@ -2921,12 +2915,12 @@ class RelationalOpInstr : public ComparisonInstr {
   RelationalOpInstr(intptr_t token_pos,
                     Token::Kind kind,
                     Value* left,
-                    Value* right)
+                    Value* right,
+                    const Array& ic_data_array)
       : ComparisonInstr(kind, left, right),
+        ic_data_(GetICData(ic_data_array)),
         token_pos_(token_pos),
         operands_class_id_(kIllegalCid) {
-    // deopt_id() checks operands_class_id_ value.
-    ic_data_ = Isolate::Current()->GetICDataForDeoptId(deopt_id());
     ASSERT(Token::IsRelationalOperator(kind));
   }
 
@@ -3719,17 +3713,15 @@ class MaterializeObjectInstr : public Definition {
 };
 
 
-class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<2> {
+class AllocateObjectWithBoundsCheckInstr : public TemplateDefinition<0> {
  public:
-  AllocateObjectWithBoundsCheckInstr(ConstructorCallNode* node,
-                                     Value* type_arguments,
-                                     Value* instantiator)
+  explicit AllocateObjectWithBoundsCheckInstr(ConstructorCallNode* node)
       : ast_node_(*node) {
-    SetInputAt(0, type_arguments);
-    SetInputAt(1, instantiator);
   }
 
   DECLARE_INSTRUCTION(AllocateObjectWithBoundsCheck)
+
+  virtual intptr_t ArgumentCount() const { return 4; }
 
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }

@@ -68,15 +68,6 @@ main() {
     var isSvgSvgElement =
         predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
     var isNode = predicate((x) => x is Node, 'is a Node');
-    var isSvgTests = predicate((x) => x is svg.Tests, 'is a svg.Tests');
-    var isSvgLangSpace = predicate((x) => x is svg.LangSpace, 'is a svg.LangSpace');
-    var isSvgExternalResourcesRequired =
-        predicate((x) => x is svg.ExternalResourcesRequired,
-            'is a svg.ExternalResourcesRequired');
-    var isSvgTransformable =
-        predicate((x) => x is svg.Transformable, 'is a svg.Transformable');
-    var isSvgLocatable =
-        predicate((x) => x is svg.Locatable, 'is a svg.Locatable');
     var isSvgNumber = predicate((x) => x is svg.Number, 'is a svg.Number');
     var isSvgRect = predicate((x) => x is svg.Rect, 'is a svg.Rect');
 
@@ -88,13 +79,6 @@ main() {
         expect(r, isSvgElement);
         expect(r, isElement);
         expect(r, isNode);
-
-        // Other implemented interfaces.
-        expect(r, isSvgTests);
-        expect(r, isSvgLangSpace);
-        expect(r, isSvgExternalResourcesRequired);
-        expect(r, isSvgTransformable);
-        expect(r, isSvgLocatable);
 
         // Interfaces not implemented.
         expect(r, isNot(isSvgNumber));
@@ -116,24 +100,6 @@ main() {
     return element;
   }
 
-  group('supported_externalResourcesRequired', () {
-    test('supported', () {
-      var div = insertTestDiv();
-      var r = document.query('#rect1');
-      expect(svg.ExternalResourcesRequired.supported(r), true);
-      div.remove();
-    });
-  });
-
-  group('supported_langSpace', () {
-    test('supported', () {
-      var div = insertTestDiv();
-      var r = document.query('#rect1');
-      expect(svg.LangSpace.supported(r), true);
-      div.remove();
-    });
-  });
-
   group('svgBehavioral', () {
 
     // Test that SVG elements have the operations advertised through all the IDL
@@ -154,47 +120,6 @@ main() {
     var isCssStyleDeclaration =
         predicate((x) => x is CssStyleDeclaration, 'is a CssStyleDeclaration');
 
-    /// Verifies that [e] supports the operations on the svg.Tests interface.
-    checkSvgTests(e) {
-      // Just check that the operations seem to exist.
-      var rx = e.requiredExtensions;
-      expect(rx, isStringList);
-      var rf = e.requiredFeatures;
-      expect(rf, isStringList);
-      var sl = e.systemLanguage;
-      expect(sl, isStringList);
-
-      bool hasDoDo = e.hasExtension("DoDo");
-      expect(hasDoDo, isFalse);
-    }
-
-    /// Verifies that [e] supports the operations on the svg.Locatable interface.
-    checkSvgLocatable(e) {
-      var v1 = e.farthestViewportElement;
-      var v2 = e.nearestViewportElement;
-      expect(v1, same(v2));
-
-      var bbox = e.getBBox();
-      expect(bbox, isSvgRect);
-
-      var ctm = e.getCtm();
-      expect(ctm, isSvgMatrix);
-
-      var sctm = e.getScreenCtm();
-      expect(sctm, isSvgMatrix);
-
-      var xf2e = e.getTransformToElement(e);
-      expect(xf2e, isSvgMatrix);
-    }
-
-    /**
-     * Verifies that [e] supports the operations on the svg.Transformable
-     * interface.
-     */
-    checkSvgTransformable(e) {
-      var trans = e.transform;
-      expect(trans, isSvgAnimatedTransformList);
-    }
 
     testRect(name, checker) {
       test(name, () {
@@ -204,43 +129,6 @@ main() {
         div.remove();
       });
     }
-
-    /**
-     * Verifies that [e] supports the operations on the svg.LangSpace interface.
-     */
-    checkSvgLangSpace(e) {
-      if (svg.LangSpace.supported(e)) {
-        // Just check that the attributes seem to exist.
-        var lang = e.xmllang;
-        e.xmllang = lang;
-
-        String space = e.xmlspace;
-        e.xmlspace = space;
-
-        expect(lang, isString);
-        expect(space, isString);
-      }
-    }
-
-    /**
-     * Verifies that [e] supports the operations on the
-     * svg.ExternalResourcesRequired interface.
-     */
-    checkSvgExternalResourcesRequired(e) {
-      if (svg.ExternalResourcesRequired.supported(e)) {
-        var b = e.externalResourcesRequired;
-        expect(b, isSvgAnimatedBoolean);
-        expect(b.baseVal, isFalse);
-        expect(b.animVal, isFalse);
-      }
-    }
-
-    testRect('rect_SvgTests', checkSvgTests);
-    testRect('rect_SvgLangSpace', checkSvgLangSpace);
-    testRect('rect_SvgExternalResourcesRequired',
-             checkSvgExternalResourcesRequired);
-    testRect('rect_SvgLocatable', checkSvgLocatable);
-    testRect('rect_SvgTransformable', checkSvgTransformable);
   });
 
 }

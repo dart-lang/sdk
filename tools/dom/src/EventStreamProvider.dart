@@ -78,16 +78,16 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
   }
 
-  bool get _paused => _pauseCount > 0;
+  bool get isPaused => _pauseCount > 0;
 
   void resume() {
-    if (_canceled || !_paused) return;
+    if (_canceled || !isPaused) return;
     --_pauseCount;
     _tryResume();
   }
 
   void _tryResume() {
-    if (_onData != null && !_paused) {
+    if (_onData != null && !isPaused) {
       _target.$dom_addEventListener(_eventType, _onData, _useCapture);
     }
   }

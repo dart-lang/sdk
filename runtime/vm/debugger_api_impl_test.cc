@@ -361,9 +361,11 @@ void TestStepIntoHandler(Dart_IsolateId isolate_id,
           "f1",
         "foo",
           "X.X.",
+          "X.X.",
         "foo",
           "X.kvmk",
             "f2",
+          "X.kvmk",
           "X.kvmk",
         "foo",
       "main"
@@ -418,11 +420,7 @@ TEST_CASE(Debug_StepInto) {
   LoadScript(kScriptChars);
   Dart_SetPausedEventHandler(&TestStepIntoHandler);
 
-  // Set a breakpoint in function f1, then repeatedly step out until
-  // we get to main. We should see one breakpoint each in f1,
-  // foo, main, but not in f2.
   SetBreakpointAtEntry("", "main");
-
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");

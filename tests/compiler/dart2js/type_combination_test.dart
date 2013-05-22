@@ -96,7 +96,8 @@ class RuleSet {
 }
 
 void testUnion(MockCompiler compiler) {
-  RuleSet ruleSet = new RuleSet('union', (t1, t2) => t1.union(t2, compiler));
+  RuleSet ruleSet = new RuleSet('union',
+      (t1, t2) => t1.union(t2, compiler).simplify(compiler));
   rule(type1, type2, result) => ruleSet.rule(type1, type2, result);
   check(type1, type2, predicate) => ruleSet.check(type1, type2, predicate);
 

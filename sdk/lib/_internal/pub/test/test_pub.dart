@@ -545,20 +545,6 @@ Future<Map> dependencyListToMap(List<Map> dependencies) {
     for (var dependency in resolvedDependencies) {
       var keys = dependency.keys.where((key) => key != "version");
       var sourceName = only(keys);
-      var source;
-      switch (sourceName) {
-      case "git":
-        source = new GitSource();
-        break;
-      case "hosted":
-        source = new HostedSource();
-        break;
-      case "path":
-        source = new PathSource();
-        break;
-      default:
-        throw new Exception('Unknown source "$sourceName"');
-      }
 
       result[_packageName(sourceName, dependency[sourceName])] = dependency;
     }

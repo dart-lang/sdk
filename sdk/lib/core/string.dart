@@ -145,13 +145,31 @@ abstract class String implements Comparable<String>, Pattern {
   String substring(int startIndex, [int endIndex]);
 
   /**
-   * Removes leading and trailing whitespace from a string. If the string
-   * contains leading or trailing whitespace a new string with no leading and
-   * no trailing whitespace is returned. Otherwise, the string itself is
-   * returned.  Whitespace is defined as every Unicode character in the Zs, Zl
-   * and Zp categories (this includes no-break space), the spacing control
-   * characters from 9 to 13 (tab, lf, vtab, ff and cr), and 0xfeff the BOM
-   * character.
+   * Removes leading and trailing whitespace from a string.
+   *
+   * If the string contains leading or trailing whitespace a new string with no
+   * leading and no trailing whitespace is returned. Otherwise, the string
+   * itself is returned.
+   *
+   * Whitespace is defined by the Unicode White_Space property (as defined in
+   * version 6.2 or later) and the BOM character, 0xFEFF.
+   *
+   * Here is the list of trimmed characters (following version 6.2):
+   *
+   *     0009..000D    ; White_Space # Cc   <control-0009>..<control-000D>
+   *     0020          ; White_Space # Zs   SPACE
+   *     0085          ; White_Space # Cc   <control-0085>
+   *     00A0          ; White_Space # Zs   NO-BREAK SPACE
+   *     1680          ; White_Space # Zs   OGHAM SPACE MARK
+   *     180E          ; White_Space # Zs   MONGOLIAN VOWEL SEPARATOR
+   *     2000..200A    ; White_Space # Zs   EN QUAD..HAIR SPACE
+   *     2028          ; White_Space # Zl   LINE SEPARATOR
+   *     2029          ; White_Space # Zp   PARAGRAPH SEPARATOR
+   *     202F          ; White_Space # Zs   NARROW NO-BREAK SPACE
+   *     205F          ; White_Space # Zs   MEDIUM MATHEMATICAL SPACE
+   *     3000          ; White_Space # Zs   IDEOGRAPHIC SPACE
+   *
+   *     FEFF          ; BOM                ZERO WIDTH NO_BREAK SPACE
    */
   String trim();
 

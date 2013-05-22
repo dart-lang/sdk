@@ -103,10 +103,7 @@ class SsaBuilderTask extends CompilerTask {
   }
 
   HGraph compileConstructor(SsaBuilder builder, CodegenWorkItem work) {
-    // The body of the constructor will be generated in a separate function.
-    final ClassElement classElement = work.element.getEnclosingClass();
-    return builder.buildFactory(classElement.implementation,
-                                work.element.implementation);
+    return builder.buildFactory(work.element);
   }
 }
 
@@ -279,8 +276,7 @@ class LocalsHandler {
       builder.graph.thisInstruction = thisInstruction;
       builder.graph.entry.addAtEntry(thisInstruction);
       updateLocal(closureData.closureElement, thisInstruction);
-    } else if (element.isInstanceMember()
-               || element.isGenerativeConstructor()) {
+    } else if (element.isInstanceMember()) {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
@@ -376,7 +372,7 @@ class LocalsHandler {
       Element redirect = redirectionMapping[element];
       HInstruction receiver = readLocal(closureData.closureElement);
       HInstruction fieldGet = new HFieldGet(redirect, receiver);
-      fieldGet.instructionType = builder.getTypeOfCapturedVariable(element);
+      fieldGet.instructionType = builder.getTypeOfCapturedVariable(redirect);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -389,7 +385,7 @@ class LocalsHandler {
       assert(redirect.enclosingElement.isVariable());
       HInstruction box = readLocal(redirect.enclosingElement);
       HInstruction lookup = new HFieldGet(redirect, box);
-      lookup.instructionType = builder.getTypeOfCapturedVariable(element);
+      lookup.instructionType = builder.getTypeOfCapturedVariable(redirect);
       builder.add(lookup);
       return lookup;
     } else {
@@ -1014,6 +1010,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       new Map<Element, HType>();
 
   HType getTypeOfCapturedVariable(Element element) {
+    assert(element.isField());
     return cachedTypesOfCapturedVariables.putIfAbsent(element, () {
       return new HType.inferredTypeForElement(element, compiler);
     });
@@ -1116,6 +1113,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HParameterValue addParameter(Element element) {
+    assert(inliningStack.isEmpty);
     HParameterValue result = new HParameterValue(element);
     if (lastAddedParameter == null) {
       graph.entry.addBefore(graph.entry.first, result);
@@ -1178,7 +1176,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // may have an impact on the state of the current method.
     InliningState state = new InliningState(
         function, returnElement, returnType, elements, stack, localsHandler);
-    LocalsHandler newLocalsHandler = new LocalsHandler.from(localsHandler);
+    LocalsHandler newLocalsHandler = new LocalsHandler(this);
     newLocalsHandler.closureData =
         compiler.closureToClassMapper.computeClosureToClassMapping(
             function, function.parseNode(compiler), elements);
@@ -1272,7 +1270,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (element is !PartialFunctionElement) return false;
     // TODO(ngeoffray): try to inline generative constructors. They
     // don't have any body, which make it more difficult.
-    if (element.isGenerativeConstructor()) return false;
     if (inliningStack.length > MAX_INLINING_DEPTH) return false;
     // Don't inline recursive calls. We use the same elements for the inlined
     // functions and would thus clobber our local variables.
@@ -1319,18 +1316,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     assert(canBeInlined);
-    InliningState state = enterInlinedMethod(
-        function, selector, argumentsNodes, providedArguments, currentNode);
-    // Add an explicit null check on the receiver. We use [element]
-    // to get the same name in the NoSuchMethodError message as if we had
-    // called it.
+    // Add an explicit null check on the receiver before doing the
+    // inlining. We use [element] to get the same name in the NoSuchMethodError
+    // message as if we had called it.
     if (element.isInstanceMember()
         && (selector.mask == null || selector.mask.isNullable)) {
       addWithPosition(
           new HFieldGet(element, providedArguments[0]), currentNode);
     }
+    InliningState state = enterInlinedMethod(
+        function, selector, argumentsNodes, providedArguments, currentNode);
     inlinedFrom(element, () {
-      functionExpression.body.accept(this);
+      element.isGenerativeConstructor()
+          ? buildFactory(element)
+          : functionExpression.body.accept(this);
     });
     leaveInlinedMethod(state);
     return true;
@@ -1436,11 +1435,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.computeClosureToClassMapping(
               constructor, node, elements);
-      // The [:this:] element now refers to the one in the new closure
-      // data, that is the [:this:] of the super constructor. We
-      // update the element to refer to the current [:this:].
-      localsHandler.updateLocal(newClosureData.thisElement,
-                                localsHandler.readThis());
       localsHandler.closureData = newClosureData;
 
       params.orderedForEachParameter((Element parameterElement) {
@@ -1564,9 +1558,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             }
             fieldValues[member] = value;
           });
-        },
-        includeBackendMembers: true,
-        includeSuperMembers: false);
+        });
   }
 
 
@@ -1578,21 +1570,20 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *    to, starting from the current constructor.
    *  - Call the the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
-   *
-   * Invariant: Both [classElement] and [functionElement] must be
-   * implementation elements.
    */
-  HGraph buildFactory(ClassElement classElement,
-                      FunctionElement functionElement) {
-    assert(invariant(classElement, classElement.isImplementation));
-    assert(invariant(functionElement, functionElement.isImplementation));
+  HGraph buildFactory(FunctionElement functionElement) {
+    functionElement = functionElement.implementation;
+    ClassElement classElement =
+        functionElement.getEnclosingClass().implementation;
     FunctionExpression function = functionElement.parseNode(compiler);
     // Note that constructors (like any other static function) do not need
     // to deal with optional arguments. It is the callers job to provide all
     // arguments as if they were positional.
 
-    // The initializer list could contain closures.
-    openFunction(functionElement, function);
+    if (inliningStack.isEmpty) {
+      // The initializer list could contain closures.
+      openFunction(functionElement, function);
+    }
 
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
 
@@ -1624,8 +1615,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           constructorArguments.add(potentiallyCheckType(
               fieldValues[member], member.computeType(compiler)));
         },
-        includeBackendMembers: true,
-        includeSuperMembers: true);
+        includeSuperAndInjectedMembers: true);
 
     InterfaceType type = classElement.computeType(compiler);
     HType ssaType = new HType.nonNullExact(type, compiler);
@@ -1696,24 +1686,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
       }
 
-      // TODO(ahe): The constructor name is statically resolved. See
-      // SsaCodeGenerator.visitInvokeDynamicMethod. Is there a cleaner
-      // way to do this?
-      SourceString name =
-          new SourceString(backend.namer.getName(body.declaration));
-      // TODO(kasperl): This seems fishy. We shouldn't be inventing all
-      // these selectors. Maybe the resolver can do more of the work
-      // for us here?
-      LibraryElement library = body.getLibrary();
-      Selector selector = new Selector.call(
-          name, library, bodyCallInputs.length - 1);
-      HInvokeDynamic invoke =
-          new HInvokeDynamicMethod(selector, bodyCallInputs);
-      invoke.element = body;
+      HInvokeConstructorBody invoke =
+          new HInvokeConstructorBody(body, bodyCallInputs);
+      invoke.sideEffects = compiler.world.getSideEffectsOfElement(constructor);
       add(invoke);
     }
-    closeAndGotoExit(new HReturn(newObject));
-    return closeFunction();
+    if (inliningStack.isEmpty) {
+      closeAndGotoExit(new HReturn(newObject));
+      return closeFunction();
+    } else {
+      localsHandler.updateLocal(returnElement, newObject);
+      return null;
+    }
   }
 
   void addParameterCheckInstruction(Element element) {
@@ -1830,14 +1814,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInstruction buildTypeConversion(Compiler compiler, HInstruction original,
-                                   DartType type, int kind) {
+  HInstruction buildTypeConversion(HInstruction original,
+                                   DartType type,
+                                   int kind) {
     if (type == null) return original;
     if (type.kind == TypeKind.INTERFACE && !type.isMalformed && !type.isRaw) {
      HType subtype = new HType.subtype(type, compiler);
-     if (type.isRaw) {
-       return new HTypeConversion(type, kind, subtype, original);
-     }
      HInstruction representations = buildTypeArgumentRepresentations(type);
      add(representations);
      return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
@@ -1855,8 +1837,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction potentiallyCheckType(HInstruction original, DartType type,
       { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (!compiler.enableTypeAssertions) return original;
-    HInstruction other =
-        buildTypeConversion(compiler,  original, type, kind);
+    HInstruction other = buildTypeConversion(original, type, kind);
     if (other != original) add(other);
     return other;
   }
@@ -2487,10 +2468,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.registerInstantiatedClass(
         closureClassElement, work.resolutionTree);
-    assert(!closureClassElement.hasLocalScopeMembers);
 
     List<HInstruction> capturedVariables = <HInstruction>[];
-    closureClassElement.forEachBackendMember((Element member) {
+    closureClassElement.forEachMember((_, Element member) {
       // The backendMembers also contains the call method(s). We are only
       // interested in the fields.
       if (member.isField()) {
@@ -2802,8 +2782,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Node argument = node.arguments.head;
       TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
       DartType type = elements.getType(typeAnnotation);
-      HInstruction converted = expression.convertType(
-          compiler, type, HTypeConversion.CAST_TYPE_CHECK);
+      HInstruction converted = buildTypeConversion(
+          expression, type, HTypeConversion.CAST_TYPE_CHECK);
       if (converted != expression) add(converted);
       stack.add(converted);
     } else {
@@ -2847,7 +2827,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return new HIs(type, <HInstruction>[expression, call],
                      HIs.VARIABLE_CHECK);
     } else if (RuntimeTypes.hasTypeArguments(type)) {
-      Element element = type.element;
+      ClassElement element = type.element;
       Element helper = backend.getCheckSubtype();
       HInstruction representations =
           buildTypeArgumentRepresentations(type);
@@ -2855,10 +2835,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       String operator =
           backend.namer.operatorIs(backend.getImplementationClass(element));
       HInstruction isFieldName = addConstantString(node, operator);
-      // TODO(karlklose): use [:null:] for [asField] if [element] does not
-      // have a subclass.
-      HInstruction asFieldName =
-          addConstantString(node, backend.namer.substitutionName(element));
+      HInstruction asFieldName = compiler.world.hasAnySubtype(element)
+          ? addConstantString(node, backend.namer.substitutionName(element))
+          : graph.addConstantNull(constantSystem);
       List<HInstruction> inputs = <HInstruction>[expression,
                                                  isFieldName,
                                                  representations,
@@ -4274,21 +4253,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitLabeledStatement(LabeledStatement node) {
     Statement body = node.statement;
-    if (body is Loop || body is SwitchStatement) {
+    if (body is Loop
+        || body is SwitchStatement
+        || Elements.isUnusedLabel(node, elements)) {
       // Loops and switches handle their own labels.
       visit(body);
       return;
     }
-    // Non-loop statements can only be break targets, not continue targets.
     TargetElement targetElement = elements[body];
-    if (targetElement == null || !identical(targetElement.statement, body)) {
-      // Labeled statements with no element on the body have no breaks.
-      // A different target statement only happens if the body is itself
-      // a break or continue for a different target. In that case, this
-      // label is also always unused.
-      visit(body);
-      return;
-    }
     LocalsHandler beforeLocals = new LocalsHandler.from(localsHandler);
     assert(targetElement.isBreakTarget);
     JumpHandler handler = new JumpHandler(this, targetElement);
@@ -5083,6 +5055,7 @@ class InlineWeeder extends Visitor {
   static bool canBeInlined(FunctionExpression functionExpression,
                            TreeElements elements) {
     InlineWeeder weeder = new InlineWeeder(elements);
+    weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     if (weeder.tooDifficult) return false;
     return true;
@@ -5098,7 +5071,7 @@ class InlineWeeder extends Visitor {
   }
 
   void visit(Node node) {
-    node.accept(this);
+    if (node != null) node.accept(this);
   }
 
   void visitNode(Node node) {

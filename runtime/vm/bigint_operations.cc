@@ -605,7 +605,7 @@ RawDouble* BigintOperations::ToDouble(const Bigint& bigint) {
 }
 
 
-bool BigintOperations::FitsIntoMint(const Bigint& bigint) {
+bool BigintOperations::FitsIntoInt64(const Bigint& bigint) {
   intptr_t bigint_length = bigint.Length();
   if (bigint_length == 0) {
     return true;
@@ -663,11 +663,11 @@ uint64_t BigintOperations::AbsToUint64(const Bigint& bigint) {
 }
 
 
-int64_t BigintOperations::ToMint(const Bigint& bigint) {
+int64_t BigintOperations::ToInt64(const Bigint& bigint) {
   if (bigint.IsZero()) {
     return 0;
   }
-  ASSERT(FitsIntoMint(bigint));
+  ASSERT(FitsIntoInt64(bigint));
   int64_t value = AbsToUint64(bigint);
   if (bigint.IsNegative()) {
     value = -value;

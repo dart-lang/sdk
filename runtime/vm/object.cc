@@ -943,12 +943,14 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float32x4_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Uint32x4(), lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_uint32x4_type(type);
@@ -976,18 +978,21 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Int(), core_lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int_type(type);
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Double(), core_lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
 
   name = Symbols::New("String");
   cls = Class::New<Instance>(kIllegalCid);
+  cls.set_is_prefinalized();
   RegisterClass(cls, name, core_lib);
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
@@ -995,6 +1000,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::List(), core_lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   object_store->set_list_class(cls);
 
@@ -2482,7 +2488,7 @@ RawField* Class::LookupField(const String& name) const {
     field ^= flds.At(i);
     field_name ^= field.name();
     if (String::EqualsIgnoringPrivateKey(field_name, name)) {
-        return field.raw();
+      return field.raw();
     }
   }
   // No field found.
@@ -4820,6 +4826,9 @@ RawString* Field::UserVisibleName() const {
 
 
 const char* Field::ToCString() const {
+  if (IsNull()) {
+    return "Field::null";
+  }
   const char* kF0 = is_static() ? " static" : "";
   const char* kF1 = is_final() ? " final" : "";
   const char* kF2 = is_const() ? " const" : "";
@@ -6054,7 +6063,8 @@ RawArray* Library::LoadedScripts() const {
     }
 
     // Create the array of scripts and cache it in loaded_scripts_.
-    StorePointer(&raw_ptr()->loaded_scripts_, Array::MakeArray(scripts));
+    const Array& scripts_array = Array::Handle(Array::MakeArray(scripts));
+    StorePointer(&raw_ptr()->loaded_scripts_, scripts_array.raw());
   }
   return loaded_scripts();
 }
@@ -7091,7 +7101,7 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeopt:         return "deopt ";
+    case PcDescriptors::kDeopt:         return "deopt        ";
     case PcDescriptors::kEntryPatch:    return "entry-patch  ";
     case PcDescriptors::kPatchCode:     return "patch        ";
     case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
@@ -10344,7 +10354,7 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   if (!OS::StringToInt64(str.ToCString(), &value)) {
     const Bigint& big = Bigint::Handle(Bigint::New(str, space));
     ASSERT(!BigintOperations::FitsIntoSmi(big));
-    ASSERT(!BigintOperations::FitsIntoMint(big));
+    ASSERT(!BigintOperations::FitsIntoInt64(big));
     return big.raw();
   }
   return Integer::New(value, space);
@@ -10358,7 +10368,7 @@ RawInteger* Integer::NewCanonical(const String& str) {
   if (!OS::StringToInt64(str.ToCString(), &value)) {
     const Bigint& big = Bigint::Handle(Bigint::NewCanonical(str));
     ASSERT(!BigintOperations::FitsIntoSmi(big));
-    ASSERT(!BigintOperations::FitsIntoMint(big));
+    ASSERT(!BigintOperations::FitsIntoInt64(big));
     return big.raw();
   }
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
@@ -10410,8 +10420,8 @@ RawInteger* Integer::AsValidInteger() const {
   big_value ^= raw();
   if (BigintOperations::FitsIntoSmi(big_value)) {
     return BigintOperations::ToSmi(big_value);
-  } else if (BigintOperations::FitsIntoMint(big_value)) {
-    return Mint::New(BigintOperations::ToMint(big_value));
+  } else if (BigintOperations::FitsIntoInt64(big_value)) {
+    return Mint::New(BigintOperations::ToInt64(big_value));
   } else {
     return big_value.raw();
   }
@@ -10512,7 +10522,7 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
   const Bigint& left_big = Bigint::Handle(AsBigint());
   const Bigint& right_big = Bigint::Handle(other.AsBigint());
   const Bigint& result =
-      Bigint::Handle(left_big.ArithmeticOp(operation, right_big));
+      Bigint::Handle(left_big.BigArithmeticOp(operation, right_big));
   return Integer::Handle(result.AsValidInteger()).raw();
 }
 
@@ -10776,7 +10786,7 @@ int Mint::CompareWith(const Integer& other) const {
     }
   }
   if (other.IsBigint()) {
-    ASSERT(!BigintOperations::FitsIntoMint(Bigint::Cast(other)));
+    ASSERT(!BigintOperations::FitsIntoInt64(Bigint::Cast(other)));
     if (this->IsNegative() == other.IsNegative()) {
       return this->IsNegative() ? 1 : -1;
     }
@@ -10918,8 +10928,8 @@ RawBigint* Integer::AsBigint() const {
 }
 
 
-RawBigint* Bigint::ArithmeticOp(Token::Kind operation,
-                                const Bigint& other) const {
+RawBigint* Bigint::BigArithmeticOp(Token::Kind operation,
+                                   const Bigint& other) const {
   switch (operation) {
     case Token::kADD:
       return BigintOperations::Add(*this, other);
@@ -10971,7 +10981,7 @@ bool Bigint::Equals(const Instance& other) const {
 RawBigint* Bigint::New(const String& str, Heap::Space space) {
   const Bigint& result = Bigint::Handle(
       BigintOperations::NewFromCString(str.ToCString(), space));
-  ASSERT(!BigintOperations::FitsIntoMint(result));
+  ASSERT(!BigintOperations::FitsIntoInt64(result));
   return result.raw();
 }
 
@@ -10979,7 +10989,7 @@ RawBigint* Bigint::New(const String& str, Heap::Space space) {
 RawBigint* Bigint::NewCanonical(const String& str) {
   const Bigint& value = Bigint::Handle(
       BigintOperations::NewFromCString(str.ToCString(), Heap::kOld));
-  ASSERT(!BigintOperations::FitsIntoMint(value));
+  ASSERT(!BigintOperations::FitsIntoInt64(value));
   const Class& cls =
       Class::Handle(Isolate::Current()->object_store()->bigint_class());
   const Array& constants = Array::Handle(cls.constants());
@@ -11012,17 +11022,17 @@ double Bigint::AsDoubleValue() const {
 
 
 int64_t Bigint::AsInt64Value() const {
-  if (!BigintOperations::FitsIntoMint(*this)) {
+  if (!BigintOperations::FitsIntoInt64(*this)) {
     UNREACHABLE();
   }
-  return BigintOperations::ToMint(*this);
+  return BigintOperations::ToInt64(*this);
 }
 
 
 // For positive values: Smi < Mint < Bigint.
 int Bigint::CompareWith(const Integer& other) const {
   ASSERT(!FitsIntoSmi(*this));
-  ASSERT(!BigintOperations::FitsIntoMint(*this));
+  ASSERT(!BigintOperations::FitsIntoInt64(*this));
   if (other.IsBigint()) {
     return BigintOperations::Compare(*this, Bigint::Cast(other));
   }

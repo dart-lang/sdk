@@ -215,6 +215,7 @@ void StackFrameIterator::SetupNextExitFrameData() {
   uword exit_marker = *reinterpret_cast<uword*>(exit_address);
   frames_.fp_ = exit_marker;
   frames_.sp_ = 0;
+  frames_.pc_ = 0;
 }
 
 
@@ -223,29 +224,52 @@ StackFrameIterator::StackFrameIterator(bool validate)
   SetupLastExitFrameData();  // Setup data for last exit frame.
 }
 
+
 StackFrameIterator::StackFrameIterator(uword last_fp, bool validate)
     : validate_(validate), entry_(), exit_(), current_frame_(NULL) {
   frames_.fp_ = last_fp;
+  frames_.sp_ = 0;
+  frames_.pc_ = 0;
+}
+
+
+StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
+                                       bool validate)
+    : validate_(validate), entry_(), exit_(), current_frame_(NULL) {
+  frames_.fp_ = fp;
+  frames_.sp_ = sp;
+  frames_.pc_ = pc;
 }
 
 
 StackFrame* StackFrameIterator::NextFrame() {
   // When we are at the start of iteration after having created an
-  // iterator object current_frame_ will be NULL as we haven't seen
-  // any frames yet. At this point if NextFrame is called it tries
+  // iterator object, current_frame_ will be NULL as we haven't seen
+  // any frames yet (unless we start iterating in the simulator from a given
+  // triplet of fp, sp, and pc). At this point, if NextFrame is called, it tries
   // to set up the next exit frame by reading the top_exit_frame_info
-  // from the isolate. If we do not have any dart invocations yet
+  // from the isolate. If we do not have any dart invocations yet,
   // top_exit_frame_info will be 0 and so we would return NULL.
 
   // current_frame_ will also be NULL, when we are at the end of having
-  // iterated through all the frames. if NextFrame is called at this
-  // point we will try and set up the next exit frame but since we are
-  // at the end of the iteration fp_ will be 0 and we would return NULL.
+  // iterated through all the frames. If NextFrame is called at this
+  // point, we will try and set up the next exit frame, but since we are
+  // at the end of the iteration, fp_ will be 0 and we would return NULL.
   if (current_frame_ == NULL) {
     if (!HasNextFrame()) {
       return NULL;
     }
-    current_frame_ = NextExitFrame();
+    if (frames_.pc_ == 0) {
+      // Iteration starts from an exit frame given by its fp.
+      current_frame_ = NextExitFrame();
+    } else if (*(reinterpret_cast<uword*>(
+        frames_.fp_ + (kSavedCallerFpSlotFromFp * kWordSize))) == 0) {
+      // Iteration starts from an entry frame given by its fp, sp, and pc.
+      current_frame_ = NextEntryFrame();
+    } else {
+      // Iteration starts from a Dart or stub frame given by its fp, sp, and pc.
+      current_frame_ = frames_.NextFrame(validate_);
+    }
     return current_frame_;
   }
   ASSERT((validate_ == kDontValidateFrames) || current_frame_->IsValid());
@@ -276,8 +300,10 @@ StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
   frame = &stack_frame_;
   frame->sp_ = sp_;
   frame->fp_ = fp_;
+  frame->pc_ = pc_;
   sp_ = frame->GetCallerSp();
   fp_ = frame->GetCallerFp();
+  pc_ = frame->GetCallerPc();
   ASSERT((validate == kDontValidateFrames) || frame->IsValid());
   return frame;
 }
@@ -286,8 +312,10 @@ StackFrame* StackFrameIterator::FrameSetIterator::NextFrame(bool validate) {
 ExitFrame* StackFrameIterator::NextExitFrame() {
   exit_.sp_ = frames_.sp_;
   exit_.fp_ = frames_.fp_;
+  exit_.pc_ = frames_.pc_;
   frames_.sp_ = exit_.GetCallerSp();
   frames_.fp_ = exit_.GetCallerFp();
+  frames_.pc_ = exit_.GetCallerPc();
   ASSERT(exit_.IsValid());
   return &exit_;
 }
@@ -297,6 +325,7 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
   ASSERT(!frames_.HasNext());
   entry_.sp_ = frames_.sp_;
   entry_.fp_ = frames_.fp_;
+  entry_.pc_ = frames_.pc_;
   SetupNextExitFrameData();  // Setup data for next exit frame in chain.
   ASSERT(entry_.IsValid());
   return &entry_;
@@ -317,7 +346,7 @@ InlinedFunctionsIterator::InlinedFunctionsIterator(StackFrame* frame)
   intptr_t deopt_reason = kDeoptUnknown;
   deopt_info_ = code_.GetDeoptInfoAtPc(frame->pc(), &deopt_reason);
   if (deopt_info_.IsNull()) {
-    // This is the case when a call without deopt info in optimzed code
+    // This is the case when a call without deopt info in optimized code
     // throws an exception. (e.g. in the parameter copying prologue).
     // In that case there won't be any inlined frames.
     function_ = code_.function();

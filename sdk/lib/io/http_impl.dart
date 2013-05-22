@@ -47,9 +47,9 @@ class _HttpIncoming extends Stream<List<int>> {
   // Is completed once all data have been received.
   Future get dataDone => _dataCompleter.future;
 
-  void close() {
+  void close(bool closing) {
     fullBodyRead = true;
-    _dataCompleter.complete();
+    _dataCompleter.complete(closing);
   }
 }
 
@@ -580,13 +580,12 @@ class _HttpOutboundConsumer implements StreamConsumer {
 
   bool _done([error]) {
     if (_completer == null) return false;
-    var tmp = _completer;
-    _completer = null;
     if (error != null) {
-      tmp.completeError(error);
+      _completer.completeError(error);
     } else {
-      tmp.complete(_outbound);
+      _completer.complete(_outbound);
     }
+    _completer = null;
     return true;
   }
 
@@ -1071,6 +1070,7 @@ class _HttpClientConnection {
   StreamSubscription _subscription;
   final _HttpClient _httpClient;
   bool _dispose = false;
+  Timer _idleTimer;
   bool closed = false;
 
   Completer<_HttpIncoming> _nextResponseCompleter;
@@ -1285,6 +1285,22 @@ class _HttpClientConnection {
     return isSecure ? "ssh:$host:$port" : "$host:$port";
   }
 
+  void stopTimer() {
+    if (_idleTimer != null) {
+      _idleTimer.cancel();
+      _idleTimer = null;
+    }
+  }
+
+  void startTimer() {
+    assert(_idleTimer == null);
+    _idleTimer = new Timer(
+        _httpClient.idleTimeout,
+        () {
+          _idleTimer = null;
+          close();
+        });
+  }
 }
 
 class _ConnnectionInfo {
@@ -1296,7 +1312,6 @@ class _ConnnectionInfo {
 
 class _HttpClient implements HttpClient {
   // TODO(ajohnsen): Use eviction timeout.
-  static const int DEFAULT_EVICTION_TIMEOUT = 60000;
   bool _closing = false;
 
   final Map<String, Set<_HttpClientConnection>> _idleConnections
@@ -1308,6 +1323,21 @@ class _HttpClient implements HttpClient {
   Function _authenticate;
   Function _authenticateProxy;
   Function _findProxy = HttpClient.findProxyFromEnvironment;
+  Duration _idleTimeout = const Duration(seconds: 15);
+
+  Timer _noActiveTimer;
+
+  Duration get idleTimeout => _idleTimeout;
+
+  void set idleTimeout(Duration timeout) {
+    _idleTimeout = timeout;
+    _idleConnections.values.forEach(
+        (l) => l.forEach((c) {
+          // Reset timer. This is fine, as it's not happening often.
+          c.stopTimer();
+          c.startTimer();
+        }));
+  }
 
   Future<HttpClientRequest> open(String method,
                                  String host,
@@ -1485,21 +1515,41 @@ class _HttpClient implements HttpClient {
       connection.close();
       return;
     }
-    // TODO(ajohnsen): Listen for socket close events.
     if (!_idleConnections.containsKey(connection.key)) {
       _idleConnections[connection.key] = new LinkedHashSet();
     }
     _idleConnections[connection.key].add(connection);
+    connection.startTimer();
+    _updateTimers();
   }
 
   // Remove a closed connnection from the active set.
   void _connectionClosed(_HttpClientConnection connection) {
+    connection.stopTimer();
     _activeConnections.remove(connection);
     if (_idleConnections.containsKey(connection.key)) {
       _idleConnections[connection.key].remove(connection);
       if (_idleConnections[connection.key].isEmpty) {
         _idleConnections.remove(connection.key);
       }
+    }
+    _updateTimers();
+  }
+
+  void _updateTimers() {
+    if (_activeConnections.isEmpty) {
+      if (!_idleConnections.isEmpty && _noActiveTimer == null) {
+        _noActiveTimer = new Timer(const Duration(milliseconds: 100), () {
+          _noActiveTimer = null;
+          if (_activeConnections.isEmpty) {
+            close();
+            _closing = false;
+          }
+        });
+      }
+    } else if (_noActiveTimer != null) {
+      _noActiveTimer.cancel();
+      _noActiveTimer = null;
     }
   }
 
@@ -1523,7 +1573,9 @@ class _HttpClient implements HttpClient {
         if (_idleConnections[key].isEmpty) {
           _idleConnections.remove(key);
         }
+        connection.stopTimer();
         _activeConnections.add(connection);
+        _updateTimers();
         return new Future.value(new _ConnnectionInfo(connection, proxy));
       }
       return (isSecure && proxy.isDirect
@@ -1668,6 +1720,10 @@ class _HttpConnection {
     _socket.pipe(_httpParser);
     _subscription = _httpParser.listen(
         (incoming) {
+          // If the incoming was closed, close the connection.
+          incoming.dataDone.then((closing) {
+            if (closing) destroy();
+          });
           // Only handle one incoming request at the time. Keep the
           // stream paused until the request has been send.
           _subscription.pause();

@@ -68,20 +68,54 @@ abstract class Source {
   /// By default, this assumes that each description has a single version and
   /// uses [describe] to get that version.
   Future<List<Version>> getVersions(String name, description) {
-    return describe(new PackageId(name, this, Version.none, description))
-      .then((pubspec) => [pubspec.version]);
+    var id = new PackageId(name, this.name, Version.none, description);
+    return describeUncached(id).then((pubspec) => [pubspec.version]);
   }
 
   /// Loads the (possibly remote) pubspec for the package version identified by
   /// [id]. This may be called for packages that have not yet been installed
   /// during the version resolution process.
   ///
+  /// If the package has been installed to the system cache, the cached pubspec
+  /// will be used. Otherwise, it delegates to host-specific lookup behavior.
+  ///
   /// For cached sources, by default this uses [installToSystemCache] to get the
   /// pubspec. There is no default implementation for non-cached sources; they
   /// must implement it manually.
   Future<Pubspec> describe(PackageId id) {
+    if (id.isRoot) throw new ArgumentError("Cannot describe the root package.");
+    if (id.source != name) {
+      throw new ArgumentError("Package $id does not use source $name.");
+    }
+
+    // Try to get it from the system cache first.
+    if (shouldCache) {
+      return systemCacheDirectory(id).then((packageDir) {
+        if (!fileExists(path.join(packageDir, "pubspec.yaml"))) {
+          return describeUncached(id);
+        }
+
+        return new Pubspec.load(id.name, packageDir, _systemCache.sources);
+      });
+    }
+
+    // Not cached, so get it from the source.
+    return describeUncached(id);
+  }
+
+  /// Loads the pubspec for the package version identified by [id] which is not
+  /// already in the system cache.
+  ///
+  /// For cached sources, by default this uses [installToSystemCache] to get
+  /// the pubspec. There is no default implementation for non-cached sources;
+  /// they must implement it manually.
+  ///
+  /// This method is effectively protected. Derived classes may override it,
+  /// but external code should not call it. Call [describe()] instead.
+  Future<Pubspec> describeUncached(PackageId id) {
     if (!shouldCache) {
-      throw new UnimplementedError("Source $name must implement describe(id).");
+      throw new UnimplementedError(
+          "Source $name must implement describeUncached(id).");
     }
     return installToSystemCache(id).then((package) => package.pubspec);
   }

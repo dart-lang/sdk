@@ -893,13 +893,12 @@ static RawFunction* InlineCacheMissHandler(
       Function::Handle(target_code.function());
   ASSERT(!target_function.IsNull());
   if (args.length() == 1) {
-    ic_data.AddReceiverCheck(Class::Handle(args[0]->clazz()).id(),
-                             target_function);
+    ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
   } else {
     GrowableArray<intptr_t> class_ids(args.length());
     ASSERT(ic_data.num_args_tested() == args.length());
     for (intptr_t i = 0; i < args.length(); i++) {
-      class_ids.Add(Class::Handle(args[i]->clazz()).id());
+      class_ids.Add(args[i]->GetClassId());
     }
     ic_data.AddCheck(class_ids, target_function);
   }
@@ -921,7 +920,7 @@ static RawFunction* InlineCacheMissHandler(
           args.length(),
           caller_frame->pc(),
           Class::Handle(receiver.clazz()).ToCString(),
-          Class::Handle(receiver.clazz()).id(),
+          receiver.GetClassId(),
           target_function.ToCString());
     }
   }
@@ -1088,8 +1087,8 @@ DEFINE_RUNTIME_ENTRY(UpdateICDataTwoArgs, 4) {
   ASSERT(!target_function.IsNull());
   GrowableArray<intptr_t> class_ids(kNumArguments);
   ASSERT(ic_data.num_args_tested() == kNumArguments);
-  class_ids.Add(Class::Handle(receiver.clazz()).id());
-  class_ids.Add(Class::Handle(arg1.clazz()).id());
+  class_ids.Add(receiver.GetClassId());
+  class_ids.Add(arg1.GetClassId());
   ic_data.AddCheck(class_ids, target_function);
 }
 
@@ -1771,7 +1770,7 @@ DEFINE_RUNTIME_ENTRY(UpdateFieldCid, 2) {
   const Field& field = Field::CheckedHandle(arguments.ArgAt(0));
   const Object& value = Object::Handle(arguments.ArgAt(1));
 
-  field.UpdateCid(Class::Handle(value.clazz()).id());
+  field.UpdateCid(value.GetClassId());
 }
 
 }  // namespace dart

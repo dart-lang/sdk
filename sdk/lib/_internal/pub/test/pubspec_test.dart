@@ -81,6 +81,18 @@ dev_dependencies:
       expect(pubspec.devDependencies, isEmpty);
     });
 
+    test("allows an unknown source", () {
+      var pubspec = new Pubspec.parse(null, '''
+dependencies:
+  foo:
+    unknown: blah
+''', sources);
+
+      var foo = pubspec.dependencies[0];
+      expect(foo.name, equals('foo'));
+      expect(foo.source, equals('unknown'));
+    });
+
     test("throws if a package is in dependencies and dev_dependencies", () {
       expectFormatError('''
 dependencies:

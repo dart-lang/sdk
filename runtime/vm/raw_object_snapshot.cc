@@ -138,8 +138,9 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (unresolved_class.raw()->to() -
                        unresolved_class.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
     unresolved_class.StorePointer((unresolved_class.raw()->from() + i),
-                                  reader->ReadObjectRef());
+                                  reader->ObjectHandle()->raw());
   }
   return unresolved_class.raw();
 }
@@ -201,7 +202,8 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (type.raw()->to() - type.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    type.StorePointer((type.raw()->from() + i), reader->ReadObjectRef());
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    type.StorePointer((type.raw()->from() + i), reader->ObjectHandle()->raw());
   }
 
   // If object needs to be a canonical object, Canonicalize it.
@@ -315,8 +317,9 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (type_parameter.raw()->to() -
                        type_parameter.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
     type_parameter.StorePointer((type_parameter.raw()->from() + i),
-                                reader->ReadObjectRef());
+                                reader->ObjectHandle()->raw());
   }
 
   return type_parameter.raw();
@@ -386,8 +389,9 @@ RawBoundedType* BoundedType::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds = (bounded_type.raw()->to() -
                        bounded_type.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
     bounded_type.StorePointer((bounded_type.raw()->from() + i),
-                              reader->ReadObjectRef());
+                              reader->ObjectHandle()->raw());
   }
 
   bounded_type.set_is_being_checked(false);
@@ -536,9 +540,10 @@ RawInstantiatedTypeArguments* InstantiatedTypeArguments::ReadFrom(
   intptr_t num_flds = (instantiated_type_arguments.raw()->to() -
                        instantiated_type_arguments.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
     instantiated_type_arguments.StorePointer(
         (instantiated_type_arguments.raw()->from() + i),
-        reader->ReadObjectRef());
+        reader->ObjectHandle()->raw());
   }
   return instantiated_type_arguments.raw();
 }
@@ -1352,7 +1357,9 @@ RawContext* Context::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (context.raw()->to(num_vars) - context.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
-    context.StorePointer((context.raw()->from() + i), reader->ReadObjectRef());
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
+    context.StorePointer((context.raw()->from() + i),
+                         reader->ObjectHandle()->raw());
   }
 
   return context.raw();
@@ -1481,8 +1488,9 @@ RawApiError* ApiError::ReadFrom(SnapshotReader* reader,
   // allocations may happen.
   intptr_t num_flds = (api_error.raw()->to() - api_error.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
     api_error.StorePointer((api_error.raw()->from() + i),
-                           reader->ReadObjectRef());
+                           reader->ObjectHandle()->raw());
   }
 
   return api_error.raw();
@@ -1527,8 +1535,9 @@ RawLanguageError* LanguageError::ReadFrom(SnapshotReader* reader,
   intptr_t num_flds =
       (language_error.raw()->to() - language_error.raw()->from());
   for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->ObjectHandle()) = reader->ReadObjectRef();
     language_error.StorePointer((language_error.raw()->from() + i),
-                                reader->ReadObjectRef());
+                                reader->ObjectHandle()->raw());
   }
 
   return language_error.raw();

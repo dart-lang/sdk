@@ -100,6 +100,57 @@ abstract class Process {
                                             [ProcessOptions options]);
 
   /**
+   * Starts a process in the system shell and runs it non-interactively to
+   * completion.
+   *
+   * On Linux and Mac OS, [:/bin/sh:] is used to execute the [executable].
+   * On Windows, [:%WINDIR%\system32\cmd.exe:] is used.
+   *
+   * An optional [ProcessOptions] object can be passed to specify
+   * options other than the executable and the arguments.
+   *
+   * Returns a [:Future<ProcessResult>:] that completes with the
+   * result of running the process, i.e., exit code, standard out and
+   * standard in.
+   */
+  static Future<ProcessResult> runShell(String executable,
+                                        List<String> arguments,
+                                        [ProcessOptions options])
+      => run(_getShellCommand(),
+             _getShellArguments(executable, arguments),
+             options);
+
+  static String _getShellCommand() {
+    if (Platform.operatingSystem == 'windows') {
+      return 'cmd.exe';
+    }
+    return '/bin/sh';
+  }
+
+  static List<String> _getShellArguments(String executable,
+                                         List<String> arguments) {
+    List<String> shellArguments = [];
+    if (Platform.operatingSystem == 'windows') {
+      shellArguments.add('/c');
+      shellArguments.add(executable);
+      for (var arg in arguments) {
+        arg = arg.replaceAll('"', r'\"');
+        shellArguments.add(arg);
+      }
+    } else {
+      var commandLine = new StringBuffer();
+      commandLine.write(executable);
+      shellArguments.add("-c");
+      for (var arg in arguments) {
+        arg = arg.replaceAll("'", "'\"'\"'");
+        commandLine.write(" '$arg'");
+      }
+      shellArguments.add(commandLine.toString());
+    }
+    return shellArguments;
+  }
+
+  /**
    * Returns the standard output stream of the process as a [:Stream:].
    *
    * Throws an [UnsupportedError] if the process is

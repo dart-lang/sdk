@@ -4,7 +4,6 @@
 
 window_open_test: Skip # http://dartbug.com/5151
 async_window_test: Skip #TODO(gram): investigating
-svg_test: Skip #TODO(vsm): investigating
 
 event_test: Skip  # Issue 1996
 custom_elements_test: Skip # Not yet implemented.
@@ -13,6 +12,7 @@ interactive_test: Skip # Must be run manually.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+custom_element_bindings_test: Fail # To investigate.
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
@@ -27,9 +27,6 @@ async_test: Pass, Fail # timers test fails on ie10.
 
 [ $compiler == dart2js && ( $runtime == ie9 || $runtime == ie10 ) ]
 worker_api_test: Fail # IE does not support URL.createObjectURL in web workers.
-
-[ $compiler == dart2js && ( $runtime == ff ) ]
-worker_api_test: Fail # Requires Firefox 21.
 
 [ $compiler == dart2js && $runtime == safari ]
 url_test: Fail # Issue 10096
@@ -187,7 +184,6 @@ range_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
-svg_test/supported_externalResourcesRequired: Fail
 svgelement_test/supported_altGlyph: Fail
 svgelement_test/supported_animate: Fail
 svgelement_test/supported_animateMotion: Fail
@@ -265,6 +261,9 @@ shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 
+[ $runtime == ie9 && $checked ]
+element_types_test/constructors: Fail # Issue 10796
+
 [ $runtime == opera ]
 blob_constructor_test: Fail
 canvas_test: Fail
@@ -306,8 +305,6 @@ mutationobserver_test/supported: Fail
 notifications_test/supported: Fail
 performance_api_test/supported: Fail
 speechrecognition_test/supported: Fail
-svg_test/supported_externalResourcesRequired: Fail
-svg_test/supported_langSpace: Fail
 websql_test/supported: Fail
 
 [ $runtime == ff ]
@@ -320,7 +317,6 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Firefox do
 # All changes should be accompanied by platform support annotation changes.
 audiobuffersourcenode_test/supported: Fail
 audiocontext_test/supported: Fail
-crypto_test/supported: Fail
 css_test/supportsPointConversions: Fail
 document_test/supports_cssCanvasContext: Fail
 element_types_test/supported_content: Fail
@@ -346,8 +342,6 @@ notifications_test/supported: Fail
 rtc_test/supported: Fail # Release build does not enable by default.
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
-svg_test/supported_externalResourcesRequired: Fail
-svg_test/supported_langSpace: Fail
 touchevent_test/supported: Fail
 websql_test/supported: Fail
 xhr_test/supported_HttpRequestProgressEvent: Fail

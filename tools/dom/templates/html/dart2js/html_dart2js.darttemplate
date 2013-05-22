@@ -94,4 +94,4 @@ _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
-spawnDomFunction(f) => IsolateNatives.spawnDomFunction(f);
+spawnDomFunction(Function f) => IsolateNatives.spawnDomFunction(f);

@@ -79,45 +79,45 @@ TEST_CASE(BigintInt64) {
 
   const Bigint& one = Bigint::Handle(BigintOperations::NewFromInt64(1));
   big = BigintOperations::NewFromInt64(kMinInt64);
-  EXPECT(BigintOperations::FitsIntoMint(big));
-  int64_t back = BigintOperations::ToMint(big);
+  EXPECT(BigintOperations::FitsIntoInt64(big));
+  int64_t back = BigintOperations::ToInt64(big);
   EXPECT_EQ(kMinInt64, back);
 
   big = BigintOperations::Subtract(big, one);
-  EXPECT(!BigintOperations::FitsIntoMint(big));
+  EXPECT(!BigintOperations::FitsIntoInt64(big));
 
   big = BigintOperations::NewFromInt64(kMaxInt64);
-  EXPECT(BigintOperations::FitsIntoMint(big));
-  back = BigintOperations::ToMint(big);
+  EXPECT(BigintOperations::FitsIntoInt64(big));
+  back = BigintOperations::ToInt64(big);
   EXPECT_EQ(kMaxInt64, back);
 
   big = BigintOperations::Add(big, one);
-  EXPECT(!BigintOperations::FitsIntoMint(big));
+  EXPECT(!BigintOperations::FitsIntoInt64(big));
 }
 
 
 TEST_CASE(BigintUint64) {
   const Bigint& one = Bigint::Handle(BigintOperations::NewFromUint64(1));
-  EXPECT(BigintOperations::FitsIntoMint(one));
+  EXPECT(BigintOperations::FitsIntoInt64(one));
   EXPECT(BigintOperations::FitsIntoUint64(one));
 
   Bigint& big = Bigint::Handle(BigintOperations::NewFromUint64(kMaxUint64));
-  EXPECT(!BigintOperations::FitsIntoMint(big));
+  EXPECT(!BigintOperations::FitsIntoInt64(big));
   EXPECT(BigintOperations::FitsIntoUint64(big));
 
   uint64_t back = BigintOperations::ToUint64(big);
   EXPECT_EQ(kMaxUint64, back);
 
   big = BigintOperations::Add(big, one);
-  EXPECT(!BigintOperations::FitsIntoMint(big));
+  EXPECT(!BigintOperations::FitsIntoInt64(big));
   EXPECT(!BigintOperations::FitsIntoUint64(big));
 
   big = BigintOperations::Subtract(big, one);
-  EXPECT(!BigintOperations::FitsIntoMint(big));
+  EXPECT(!BigintOperations::FitsIntoInt64(big));
   EXPECT(BigintOperations::FitsIntoUint64(big));
 
   big = BigintOperations::ShiftRight(big, 1);
-  EXPECT(BigintOperations::FitsIntoMint(big));
+  EXPECT(BigintOperations::FitsIntoInt64(big));
   EXPECT(BigintOperations::FitsIntoUint64(big));
 }
 

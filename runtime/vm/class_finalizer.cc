@@ -115,7 +115,7 @@ bool ClassFinalizer::FinalizePendingClasses() {
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
   ObjectStore* object_store = isolate->object_store();
-  const Error& error = Error::Handle(object_store->sticky_error());
+  const Error& error = Error::Handle(isolate, object_store->sticky_error());
   if (!error.IsNull()) {
     return false;
   }

@@ -355,9 +355,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInvokeStatic(HInvokeStatic invoke) {
     String target = invoke.element.name.slowToString();
-    int offset = HInvoke.ARGUMENTS_OFFSET;
-    List arguments = invoke.inputs.sublist(offset);
-    return visitGenericInvoke("Invoke", target, arguments);
+    return visitGenericInvoke("Invoke", target, invoke.inputs);
   }
 
   String visitInvokeSuper(HInvokeSuper invoke) {
@@ -365,6 +363,13 @@ class HInstructionStringifier implements HVisitor<String> {
     int offset = HInvoke.ARGUMENTS_OFFSET + 1;
     List arguments = invoke.inputs.sublist(offset);
     return visitGenericInvoke("Invoke super", target, arguments);
+  }
+
+  String visitInvokeConstructorBody(HInvokeConstructorBody invoke) {
+    String target = invoke.element.name.slowToString();
+    int offset = HInvoke.ARGUMENTS_OFFSET + 1;
+    List arguments = invoke.inputs.sublist(offset);
+    return visitGenericInvoke("Invoke constructor body", target, arguments);
   }
 
   String visitForeign(HForeign foreign) {

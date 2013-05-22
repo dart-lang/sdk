@@ -79,9 +79,11 @@ String constructorNameFallback(object) {
   if (object == null) return 'Null';
   var constructor = JS('var', "#.constructor", object);
   if (identical(JS('String', "typeof(#)", constructor), 'function')) {
+    var name = JS('var', r'#.builtin$cls', constructor);
+    if (name != null) return name;
     // The constructor isn't null or undefined at this point. Try
     // to grab hold of its name.
-    var name = JS('var', '#.name', constructor);
+    name = JS('var', '#.name', constructor);
     // If the name is a non-empty string, we use that as the type
     // name of this object. On Firefox, we often get 'Object' as
     // the constructor name even for more specialized objects so
@@ -269,6 +271,7 @@ void defineNativeMethodsFinish() {
 
 lookupInterceptor(var hasOwnPropertyFunction, String tag) {
   var map = interceptorsByTag;
+  if (map == null) return null;
   return callHasOwnProperty(hasOwnPropertyFunction, map, tag)
       ? propertyGet(map, tag)
       : null;
@@ -288,11 +291,17 @@ lookupDispatchRecord(obj) {
     }
   }
   if (interceptor == null) {
-    // TODO(sra): Think about the error case.
-    interceptor = JS('', '{__what: "interceptor not found", __tag: #}', tag);
+    // This object is not known to Dart.  There could be several
+    // reasons for that, including (but not limited to):
+    // * A bug in native code (hopefully this is caught during development).
+    // * An unknown DOM object encountered.
+    // * JavaScript code running in an unexpected context.  For
+    //   example, on node.js.
+    return null;
   }
-  var isLeaf = JS('', '#[#]', leafTags, tag);
-  if (true == isLeaf) {
+  var isLeaf =
+      (leafTags != null) && JS('bool', '(#[#]) === true', leafTags, tag);
+  if (isLeaf) {
     return makeDispatchRecord(interceptor, false, null);
   } else {
     var proto = JS('', 'Object.getPrototypeOf(#)', obj);

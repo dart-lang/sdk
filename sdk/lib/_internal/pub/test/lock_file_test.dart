@@ -13,6 +13,7 @@ import '../lib/src/source.dart';
 import '../lib/src/source_registry.dart';
 import '../lib/src/utils.dart';
 import '../lib/src/version.dart';
+import 'test_pub.dart';
 
 class MockSource extends Source {
   final String name = 'mock';
@@ -31,6 +32,8 @@ class MockSource extends Source {
 }
 
 main() {
+  initConfig();
+
   var sources = new SourceRegistry();
   var mockSource = new MockSource();
   sources.register(mockSource);
@@ -65,14 +68,26 @@ packages:
         var bar = lockFile.packages['bar'];
         expect(bar.name, equals('bar'));
         expect(bar.version, equals(new Version(1, 2, 3)));
-        expect(bar.source, equals(mockSource));
+        expect(bar.source, equals(mockSource.name));
         expect(bar.description, equals('bar desc'));
 
         var foo = lockFile.packages['foo'];
         expect(foo.name, equals('foo'));
         expect(foo.version, equals(new Version(2, 3, 4)));
-        expect(foo.source, equals(mockSource));
+        expect(foo.source, equals(mockSource.name));
         expect(foo.description, equals('foo desc'));
+      });
+
+      test("allows an unknown source", () {
+        var lockFile = new LockFile.parse('''
+packages:
+  foo:
+    source: bad
+    version: 1.2.3
+    description: foo desc
+''', sources);
+        var foo = lockFile.packages['foo'];
+        expect(foo.source, equals('bad'));
       });
 
       test("throws if the version is missing", () {
@@ -104,18 +119,6 @@ packages:
 packages:
   foo:
     version: 1.2.3
-    description: foo desc
-''', sources);
-        }, throwsFormatException);
-      });
-
-      test("throws if the source is unknown", () {
-        expect(() {
-          new LockFile.parse('''
-packages:
-  foo:
-    version: 1.2.3
-    source: notreal
     description: foo desc
 ''', sources);
         }, throwsFormatException);
@@ -166,9 +169,9 @@ packages:
 
       test('dumps the lockfile to YAML', () {
         lockfile.packages['foo'] = new PackageId(
-            'foo', mockSource, new Version.parse('1.2.3'), 'foo desc');
+            'foo', mockSource.name, new Version.parse('1.2.3'), 'foo desc');
         lockfile.packages['bar'] = new PackageId(
-            'bar', mockSource, new Version.parse('3.2.1'), 'bar desc');
+            'bar', mockSource.name, new Version.parse('3.2.1'), 'bar desc');
 
         expect(loadYaml(lockfile.serialize()), equals({
           'packages': {
@@ -189,7 +192,7 @@ packages:
       test('lockfile is alphabetized by package name', () {
         var testNames = ['baz', 'Qwe', 'Q', 'B', 'Bar', 'bar', 'foo'];
         testNames.forEach((name) {
-          lockfile.packages[name] = new PackageId(name, mockSource,
+          lockfile.packages[name] = new PackageId(name, mockSource.name,
             new Version.parse('5.5.5'), '$name desc');
         });
 

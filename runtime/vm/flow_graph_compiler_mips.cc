@@ -60,7 +60,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   __ Bind(entry_label());
   if (FLAG_trap_on_deoptimization) __ break_(0);
 
-  ASSERT(deoptimization_env() != NULL);
+  ASSERT(deopt_env() != NULL);
 
   __ BranchLink(&StubCode::DeoptimizeLabel());
   set_pc_offset(assem->CodeSize());
