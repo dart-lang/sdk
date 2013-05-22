@@ -38,15 +38,15 @@ class _SHA1 extends _HashBase implements SHA1 {
         var n = _w[i - 3] ^ _w[i - 8] ^ _w[i - 14] ^ _w[i - 16];
         _w[i] = _rotl32(n, 1);
       }
-      var t = _rotl32(a, 5) + e + _w[i];
+      var t = _add32(_add32(_rotl32(a, 5), e), _w[i]);
       if (i < 20) {
-        t = t + ((b & c) | (~b & d)) + 0x5A827999;
+        t = _add32(_add32(t, (b & c) | (~b & d)), 0x5A827999);
       } else if (i < 40) {
-        t = t + (b ^ c ^ d) + 0x6ED9EBA1;
+        t = _add32(_add32(t, (b ^ c ^ d)), 0x6ED9EBA1);
       } else if (i < 60) {
-        t = t + ((b & c) | (b & d) | (c & d)) + 0x8F1BBCDC;
+        t = _add32(_add32(t, (b & c) | (b & d) | (c & d)), 0x8F1BBCDC);
       } else {
-        t = t + (b ^ c ^ d) + 0xCA62C1D6;
+        t = _add32(_add32(t, b ^ c ^ d), 0xCA62C1D6);
       }
 
       e = d;
