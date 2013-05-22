@@ -74,7 +74,8 @@ is 'dart file.dart' and you specify special command
 
    dart2js: Compile dart code to JavaScript by running dart2js.
          (only valid with the following runtimes: d8, drt, chrome,
-         safari, ie9, ie10, firefox, opera, none (compile only)),
+         safari, ie9, ie10, firefox, opera, chromeOnAndroid,
+         none (compile only)),
 
    dartc: Perform static analysis on Dart code by running dartc.
           (only valid with the following runtimes: none),
@@ -98,14 +99,14 @@ is 'dart file.dart' and you specify special command
 
     dartium: Run Dart or JavaScript in Dartium.
 
-    [ff | chrome | safari | ie9 | ie10 | opera]: Run JavaScript in the specified
-         browser.
+    [ff | chrome | safari | ie9 | ie10 | opera | chromeOnAndroid]:
+        Run JavaScript in the specified browser.
 
     none: No runtime, compile only (for example, used for dartc static analysis
           tests).''',
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
-               'chrome', 'safari', 'ie9', 'ie10', 'opera', 'none'],
+               'chrome', 'safari', 'ie9', 'ie10', 'opera', 'chromeOnAndroid', 'none'],
               'vm'),
           new _TestOptionSpecification(
               'arch',
@@ -309,7 +310,14 @@ Note: currently only implemented for dart2js.''',
               [],
               false,
               'bool'
-              ),];
+              ),
+          new _TestOptionSpecification(
+              'local_ip',
+              'IP address the http servers should listen on.'
+              'This address is also used for browsers to connect.',
+              ['--local_ip'],
+              [],
+              '127.0.0.1'),];
   }
 
 
@@ -447,7 +455,7 @@ Note: currently only implemented for dart2js.''',
         // with dart2js, we should remove it from here.
         validRuntimes = const ['d8', 'jsshell', 'drt', 'none', 'dartium',
                                'ff', 'chrome', 'safari', 'ie9', 'ie10',
-                               'opera'];
+                               'opera', 'chromeOnAndroid'];
         break;
       case 'dartc':
       case 'dartanalyzer':
@@ -615,7 +623,6 @@ Note: currently only implemented for dart2js.''',
           if (configuration['checked']) {
             timeout *= 2;
           }
-
           break;
         default:
           if (configuration['mode'] == 'debug') {

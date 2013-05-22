@@ -468,7 +468,7 @@ class StandardTestSuite extends TestSuite {
         recursive: true);
   }
 
-  Collection<Uri> get dart2JsBootstrapDependencies {
+  List<Uri> get dart2JsBootstrapDependencies {
     if (!useSdk) return [];
 
     var snapshotPath = TestUtils.absolutePath(new Path(buildDir).join(
@@ -853,7 +853,8 @@ class StandardTestSuite extends TestSuite {
       crossOriginPort = configuration['_servers_'].crossOriginPort;
     }
 
-    var url= 'http://127.0.0.1:$serverPort$pathComponent'
+    var local_ip = configuration['local_ip'];
+    var url= 'http://$local_ip:$serverPort$pathComponent'
         '?crossOriginPort=$crossOriginPort';
     if (info.optionsFromFile['isMultiHtmlTest'] && subtestNames.length > 0) {
       url= '${url}&group=${subtestNames[subtestIndex]}';
@@ -871,6 +872,7 @@ class StandardTestSuite extends TestSuite {
                                                 libraryPathComponent));
     dartWrapper.closeSync();
   }
+
 
   /**
    * The [StandardTestSuite] has support for tests that
@@ -974,6 +976,7 @@ class StandardTestSuite extends TestSuite {
           new File('$tempDir/$baseName.dart').writeAsStringSync(result);
         }
       }
+
 
       // Variables for browser multi-tests.
       List<String> subtestNames = info.optionsFromFile['subtestNames'];
@@ -1679,7 +1682,7 @@ class LastModifiedCache {
       _cache[uri.path] = file.existsSync() ? file.lastModifiedSync() : null;
       return _cache[uri.path];
     }
-    return new Date.now();
+    return new DateTime.now();
   }
 }
 
@@ -1812,7 +1815,8 @@ class TestUtils {
       'safari',
       'opera',
       'chrome',
-      'ff'
+      'ff',
+      'chromeOnAndroid',
     ];
     return BROWSERS.contains(runtime);
   }

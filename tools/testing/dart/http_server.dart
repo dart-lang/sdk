@@ -52,7 +52,7 @@ main() {
       help: 'Print this usage information.');
   parser.addOption('build-directory', help: 'The build directory to use.');
   parser.addOption('network', help: 'The network interface to use.',
-      defaultsTo: '127.0.0.1');
+      defaultsTo: '0.0.0.0');
   parser.addFlag('csp', help: 'Use Content Security Policy restrictions.',
       defaultsTo: false);
   parser.addOption('runtime', help: 'The runtime we are using (for csp flags).',
