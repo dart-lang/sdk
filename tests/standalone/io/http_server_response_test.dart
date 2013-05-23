@@ -12,7 +12,9 @@ import "dart:async";
 import "dart:io";
 import "dart:typed_data";
 
-void testServerRequest(void handler(server, request), {int bytes}) {
+void testServerRequest(void handler(server, request),
+                       {int bytes,
+                        bool closeClient}) {
   HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
       handler(server, request);
@@ -26,8 +28,16 @@ void testServerRequest(void handler(server, request), {int bytes}) {
       .then((request) => request.close())
       .then((response) {
         int received = 0;
-        response.listen(
-            (data) => received += data.length,
+        var subscription;
+        subscription = response.listen(
+            (data) {
+              if (closeClient == true) {
+                subscription.cancel();
+                client.close();
+              } else {
+                received += data.length;
+              }
+            },
             onDone: () {
               if (bytes != null) Expect.equals(received, bytes);
               client.close();
@@ -41,6 +51,7 @@ void testServerRequest(void handler(server, request), {int bytes}) {
       }, test: (e) => e is HttpParserException);
   });
 }
+
 
 void testResponseDone() {
   testServerRequest((server, request) {
@@ -66,6 +77,7 @@ void testResponseDone() {
     request.response.close();
   });
 }
+
 
 void testResponseAddStream() {
   int bytes = new File(new Options().script).lengthSync();
@@ -114,6 +126,70 @@ void testResponseAddStream() {
   });
 }
 
+
+void testResponseAddStreamClosed() {
+  testServerRequest((server, request) {
+    request.response.addStream(new File(new Options().script).openRead())
+        .then((response) {
+          response.close();
+          response.done.then((_) => server.close());
+        });
+  }, closeClient: true);
+
+  testServerRequest((server, request) {
+    int count = 0;
+    write() {
+      request.response.addStream(new File(new Options().script).openRead())
+          .then((response) {
+            request.response.write("sync data");
+            count++;
+            if (count < 1000) {
+              write();
+            } else {
+              response.close();
+              response.done.then((_) => server.close());
+            }
+          });
+    }
+    write();
+  }, closeClient: true);
+}
+
+
+void testResponseAddClosed() {
+  testServerRequest((server, request) {
+    request.response.add(new File(new Options().script).readAsBytesSync());
+    request.response.close();
+    request.response.done.then((_) => server.close());
+  }, closeClient: true);
+
+  testServerRequest((server, request) {
+    for (int i = 0; i < 1000; i++) {
+      request.response.add(new File(new Options().script).readAsBytesSync());
+    }
+    request.response.close();
+    request.response.done.then((_) => server.close());
+  }, closeClient: true);
+
+  testServerRequest((server, request) {
+    int count = 0;
+    write() {
+      request.response.add(new File(new Options().script).readAsBytesSync());
+      Timer.run(() {
+        count++;
+        if (count < 1000) {
+          write();
+        } else {
+          request.response.close();
+          request. response.done.then((_) => server.close());
+        }
+      });
+    }
+    write();
+  }, closeClient: true);
+}
+
+
 void testBadResponseAdd() {
   testServerRequest((server, request) {
     request.response.contentLength = 0;
@@ -146,6 +222,7 @@ void testBadResponseAdd() {
   });
 }
 
+
 void testBadResponseClose() {
   testServerRequest((server, request) {
     request.response.contentLength = 5;
@@ -165,9 +242,12 @@ void testBadResponseClose() {
   });
 }
 
+
 void main() {
   testResponseDone();
   testResponseAddStream();
+  testResponseAddStreamClosed();
+  testResponseAddClosed();
   testBadResponseAdd();
   testBadResponseClose();
 }
