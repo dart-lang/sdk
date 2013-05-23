@@ -763,13 +763,6 @@ static_field_test/02: fail
 static_field_test/03: fail
 static_final_field2_negative_test: fail
 static_final_field_negative_test: fail
-super_operator_index_test/01: fail
-super_operator_index_test/02: fail
-super_operator_index_test/03: fail
-super_operator_index_test/04: fail
-super_operator_index_test/05: fail
-super_operator_index_test/06: fail
-super_operator_index_test/07: fail
 switch_label2_test: fail
 syntax_test/28: fail
 syntax_test/29: fail
