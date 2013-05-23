@@ -6,11 +6,11 @@ import "package:expect/expect.dart";
 
 // TODO(floitsch): Test 0x85 when dart2js supports it.
 const WHITESPACE = const [
-  9,
-  10,
-  11,
-  12,
-  13,
+  0x09,
+  0x0A,
+  0x0B,
+  0x0C,
+  0x0D,
   0x20,
   0xA0,
   0x1680,
@@ -44,5 +44,6 @@ main() {
     Expect.equals("a", ("a" + c).trim());
     Expect.equals("a", (c + "a").trim());
     Expect.equals("a", (c + c + "a" + c + c).trim());
+    Expect.equals("a" + c + "a", (c + c + "a" + c + "a" + c + c).trim());
   }
 }

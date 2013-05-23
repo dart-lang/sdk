@@ -275,18 +275,22 @@ class Primitives {
     if (handleError == null) handleError = _throwFormatException;
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
-    // - NaN
+    // - [+/-]NaN
     // - [+/-]Infinity
     // - a Dart double literal
-    // We do not allow leading or trailing whitespace.
+    // We do allow leading or trailing whitespace.
     if (!JS('bool',
-            r'/^\s*(?:NaN|[+-]?(?:Infinity|'
-                r'(?:\.\d+|\d+(?:\.\d+)?)(?:[eE][+-]?\d+)?))\s*$/.test(#)',
+            r'/^\s*[+-]?(?:Infinity|NaN|'
+                r'(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(#)',
             source)) {
       return handleError(source);
     }
     var result = JS('num', r'parseFloat(#)', source);
-    if (result.isNaN && source != 'NaN') {
+    if (result.isNaN) {
+      var trimmed = source.trim();
+      if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
+        return result;
+      }
       return handleError(source);
     }
     return result;
