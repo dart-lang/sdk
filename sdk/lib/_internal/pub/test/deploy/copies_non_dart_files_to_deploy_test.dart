@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:pathos/path.dart' as path;
+
 import '../descriptor.dart' as d;
 import '../test_pub.dart';
 
@@ -26,8 +28,8 @@ main() {
     schedulePub(args: ["deploy"],
         output: '''
 Finding entrypoints...
-Copying   web/ => deploy/
-''',
+Copying   web| => deploy|
+'''.replaceAll('|', path.separator),
         exitCode: 0);
 
     d.dir(appPath, [

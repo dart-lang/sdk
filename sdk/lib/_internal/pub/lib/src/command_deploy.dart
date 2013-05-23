@@ -49,8 +49,8 @@ class DeployCommand extends PubCommand {
       _computeLogSize();
 
       cleanDir(target);
-      _logAction("Copying", "${path.relative(source)}/",
-          "${path.relative(target)}/");
+      _logAction("Copying", "${path.relative(source)}${path.separator}",
+          "${path.relative(target)}${path.separator}");
       copyFiles(files.where((file) => path.extension(file) != '.dart'),
           source, target);
 
@@ -105,7 +105,7 @@ class DeployCommand extends PubCommand {
         .map((verb) => verb.length).reduce(math.max);
     var sourceLengths = new List.from(
             _entrypoints.map((file) => path.relative(file).length))
-        ..add("${path.relative(source)}/".length);
+        ..add("${path.relative(source)}${path.separator}".length);
     if (_shouldAddDartJs) sourceLengths.add("package:browser/dart.js".length);
     _maxSourceLength = sourceLengths.reduce(math.max);
   }
