@@ -1565,6 +1565,7 @@ class CodeEmitterTask extends CompilerTask {
     }
     emitIsTests(classElement, builder);
 
+    // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
     if (!buffer.isEmpty) {
       buffer.write(',$n$n');
     }
@@ -1782,6 +1783,8 @@ class CodeEmitterTask extends CompilerTask {
   void emitStaticFunction(CodeBuffer buffer,
                           String name,
                           jsAst.Expression functionExpression) {
+    // TODO(ahe): This method (emitStaticFunction) should return a
+    // jsAst.Expression.
     if (!buffer.isEmpty) {
       buffer.write(',$n$n');
     }
@@ -1829,7 +1832,8 @@ class CodeEmitterTask extends CompilerTask {
     for (FunctionElement element in
              Elements.sortedByPosition(staticGetters.keys)) {
       Element closure = staticGetters[element];
-      // CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      // TODO(ahe): This should be emitted as a constant.  Currently,
+      // this breaks deferred loading.
       CodeBuffer buffer = eagerBuffer;
       String closureClass = namer.isolateAccess(closure);
       String name = namer.getStaticClosureName(element);
@@ -3213,22 +3217,32 @@ const String HOOKS_API_USAGE = """
 """;
 
 // TODO(ahe): This code should be integrated in finishClasses.
+// TODO(ahe): The uri field below is fake.
 const String REFLECTION_DATA_PARSER = r'''
 (function (reflectionData) {
+  if (!init.libraries) init.libraries = [];
+  var libraries = init.libraries;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
     var data = reflectionData[i];
     var name = data[0];
     var descriptor = data[1];
+    var classes = [];
+    var functions = [];
     for (var property in descriptor) {
       if (!hasOwnProperty.call(descriptor, property)) continue;
       var element = descriptor[property];
       if (typeof element === "function") {
         $[property] = element;
+        functions.push(property);
       } else {
         $$[property] = element;
+        classes.push(property);
+        classes.push(element[""]);
       }
     }
+    var uri = ".../library" + i + ".dart";
+    libraries.push([name, uri, classes, functions]);
   }
 })''';

@@ -203,8 +203,8 @@ mainWithArgument({bool isDart2js}) {
   test("Test reflective method invocation", () { testInvoke(mirrors); });
   test("Test instance field access", () { testInstanceFieldAccess(mirrors); });
   test('Test intercepted objects', () { testIntercepted(mirrors); });
-  if (isDart2js) return;
   test("Test field access", () { testFieldAccess(mirrors); });
+  if (isDart2js) return;
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
   test("Test reflect type", () { testReflectClass(mirrors); });
