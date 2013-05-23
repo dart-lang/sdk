@@ -1061,25 +1061,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     return null;
   }
 
-  bool isTargetFor(TypeMask receiverType, Selector selector, Element element) {
-    bool isReceiverDynamic = isDynamicType(receiverType);
-    assert(selector.mask == receiverType
-           || (selector.mask == null && isReceiverDynamic));
-    // TODO(ngeoffray) : The following noSuchMethod handling is a bit
-    // convoluted, we should make it easier to know what we are sure
-    // we cannot hit.
-    if (element.name != selector.name) {
-      assert(element.name == Compiler.NO_SUCH_METHOD);
-      return isReceiverDynamic
-          || (!receiverType.willHit(selector, compiler)
-              && receiverType.canHit(
-                    element, compiler.noSuchMethodSelector, compiler));
-    } else {
-      return isReceiverDynamic
-          || receiverType.canHit(element, selector, compiler);
-    }
-  }
-
   /**
    * Registers that [caller] calls an element matching [selector]
    * with the given [arguments].
@@ -1093,9 +1074,15 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                                   SideEffects sideEffects,
                                   bool inLoop) {
     TypeMask result;
-    iterateOverElements(selector.asUntyped, (Element element) {
-      assert(element.isImplementation);
-      if (isTargetFor(receiverType, selector, element)) {
+    Iterable<Element> untypedTargets =
+        compiler.world.allFunctions.filter(selector.asUntyped);
+    Iterable<Element> typedTargets =
+        compiler.world.allFunctions.filter(selector);
+    for (Element element in untypedTargets) {
+      element = element.implementation;
+      if (!typedTargets.contains(element.declaration)) {
+        unregisterCalledElement(node, selector, caller, element);
+      } else {
         registerCalledElement(
             node, selector, caller, element, arguments,
             constraint, sideEffects, inLoop);
@@ -1105,11 +1092,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
           if (type == null) type = typeOfElementWithSelector(element, selector);
           result = computeLUB(result, type);
         }
-      } else {
-        unregisterCalledElement(node, selector, caller, element);
       }
-      return true;
-    });
+    }
 
     if (result == null) {
       result = dynamicType;

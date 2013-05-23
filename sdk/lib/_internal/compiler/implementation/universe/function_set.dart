@@ -147,14 +147,14 @@ class FunctionSetNode {
     assert(selector.name == name);
     FunctionSetQuery result = cache[selector];
     if (result != null) return result;
-    List<Element> functions;
+    Set<Element> functions;
     for (Element element in elements) {
       if (selector.appliesUnnamed(element, compiler)) {
         if (functions == null) {
-          // Defer the allocation of the functions list until we are
+          // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
           // lists when the filtering produced no results.
-          functions = <Element>[];
+          functions = new Set<Element>();
         }
         functions.add(element);
       }
@@ -171,7 +171,7 @@ class FunctionSetNode {
           null);
       if (!noSuchMethodQuery.functions.isEmpty) {
         if (functions == null) {
-          functions = new List<Element>.from(noSuchMethodQuery.functions);
+          functions = new Set<Element>.from(noSuchMethodQuery.functions);
         } else {
           functions.addAll(noSuchMethodQuery.functions);
         }
@@ -183,7 +183,7 @@ class FunctionSetNode {
     return result;
   }
 
-  FunctionSetQuery newQuery(List<Element> functions,
+  FunctionSetQuery newQuery(Iterable<Element> functions,
                             Selector selector,
                             Compiler compiler) {
     return new FunctionSetQuery(functions);
@@ -191,6 +191,6 @@ class FunctionSetNode {
 }
 
 class FunctionSetQuery {
-  final List<Element> functions;
+  final Iterable<Element> functions;
   const FunctionSetQuery(this.functions);
 }

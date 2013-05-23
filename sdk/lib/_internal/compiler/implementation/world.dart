@@ -6,7 +6,7 @@ part of dart2js;
 
 class World {
   final Compiler compiler;
-  final FullFunctionSet allFunctions;
+  final FunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
@@ -44,11 +44,11 @@ class World {
   }
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
-    return _typesImplementedBySubclasses[cls];
+    return _typesImplementedBySubclasses[cls.declaration];
   }
 
   World(Compiler compiler)
-      : allFunctions = new FullFunctionSet(compiler),
+      : allFunctions = new FunctionSet(compiler),
         this.compiler = compiler;
 
   void populate() {
