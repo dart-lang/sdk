@@ -353,7 +353,7 @@ class ConcreteTypesEnvironment {
         new Map<Element, ConcreteType>.from(environment);
     other.environment.forEach((element, type) {
       ConcreteType currentType = newMap[element];
-      if (element == null) {
+      if (currentType == null) {
         newMap[element] = type;
       } else {
         newMap[element] = currentType.union(type);

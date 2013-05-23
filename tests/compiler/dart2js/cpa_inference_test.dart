@@ -312,6 +312,21 @@ testFor2() {
   result.checkNodeHasType('bar', [result.int]);
 }
 
+testFor3() {
+  final String source = r"""
+      main() {
+        var i = 1;
+        for(;;) {
+          var x = 2;
+          i = x;
+        }
+        i;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('i', [result.int]);
+}
+
 testToplevelVariable() {
   final String source = r"""
       final top = 'abc';
@@ -1333,6 +1348,7 @@ void main() {
   testWhile();
   testFor1();
   testFor2();
+  testFor3();
   testToplevelVariable();
   testNonRecusiveFunction();
   testRecusiveFunction();
