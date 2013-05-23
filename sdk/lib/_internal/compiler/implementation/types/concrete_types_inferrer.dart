@@ -622,6 +622,9 @@ class ConcreteTypesInferrer extends TypesInferrer {
   /** The empty concrete type */
   ConcreteType emptyConcreteType;
 
+  /** The null concrete type */
+  ConcreteType nullConcreteType;
+
   /** Creates a singleton concrete type containing [baseType]. */
   ConcreteType singletonConcreteType(BaseType baseType) {
     return new ConcreteType.singleton(compiler.maxConcreteTypeSize, baseTypes,
@@ -983,7 +986,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
       // TODO(polux): use default value whenever available
       // TODO(polux): add a marker to indicate whether an argument was provided
       //     in order to handle "?parameter" tests
-      result[parameter] = singletonConcreteType(const NullBaseType());
+      result[parameter] = nullConcreteType;
     }
 
     final Iterator<ConcreteType> remainingPositionalArguments =
@@ -1074,7 +1077,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     List typesReturned = nativeBehavior.typesReturned;
     if (typesReturned.isEmpty) return unknownConcreteType;
 
-    ConcreteType result = singletonConcreteType(const NullBaseType());
+    ConcreteType result = nullConcreteType;
     for (final type in typesReturned) {
       var concreteType;
 
@@ -1258,7 +1261,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
 
     // set uninitialized fields to null
     for (VariableElement field in uninitializedFields) {
-      augmentFieldType(field, singletonConcreteType(const NullBaseType()));
+      augmentFieldType(field, nullConcreteType);
     }
 
     // if no call to super or redirect has been found, call the default
@@ -1294,7 +1297,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
           listConstructor.functionSignature.optionalParameters;
       ConcreteType lengthType = environment.lookupType(parameters.head);
       if (lengthType.baseTypes.contains(baseTypes.intBaseType)) {
-        augmentListElementType(singletonConcreteType(const NullBaseType()));
+        augmentListElementType(nullConcreteType);
       }
       return singletonConcreteType(baseTypes.listBaseType);
     }
@@ -1317,6 +1320,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
                                   compiler.numClass]);
     emptyConcreteType = new ConcreteType.empty(compiler.maxConcreteTypeSize,
                                                baseTypes);
+    nullConcreteType = singletonConcreteType(const NullBaseType());
     listElementType = emptyConcreteType;
   }
 
@@ -1527,7 +1531,10 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       }
       return result;
     }
-    inferrer.fail(node, 'not yet implemented');
+    Element element = elements[node];
+    assert(element != null);
+    environment = environment.put(element, inferrer.nullConcreteType);
+    return inferrer.nullConcreteType;
   }
 
   ConcreteType visitIf(If node) {
@@ -1707,7 +1714,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralNull(LiteralNull node) {
-    return inferrer.singletonConcreteType(const NullBaseType());
+    return inferrer.nullConcreteType;
   }
 
   ConcreteType visitNewExpression(NewExpression node) {
@@ -1748,7 +1755,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   ConcreteType visitReturn(Return node) {
     final expression = node.expression;
     return (expression == null)
-        ? inferrer.singletonConcreteType(const NullBaseType())
+        ? inferrer.nullConcreteType
         : analyze(expression);
   }
 

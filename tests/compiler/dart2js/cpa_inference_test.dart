@@ -193,6 +193,20 @@ testDynamicBackDoor() {
   result.checkNodeHasUnknownType('x');
 }
 
+testVariableDeclaration() {
+  final String source = r"""
+      main() {
+        var v1;
+        var v2;
+        v2 = 1;
+        v1; v2;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('v1', [result.nullType]);
+  result.checkNodeHasType('v2', [result.int]);
+}
+
 testLiterals() {
   final String source = r"""
       main() {
@@ -1341,6 +1355,7 @@ testSelectors() {
 
 void main() {
   testDynamicBackDoor();
+  testVariableDeclaration();
   testLiterals();
   testRedefinition();
   testIfThenElse();
