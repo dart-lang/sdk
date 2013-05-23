@@ -1565,10 +1565,11 @@ class CodeEmitterTask extends CompilerTask {
     }
     emitIsTests(classElement, builder);
 
-    jsAst.Expression init =
-        js('$classesCollector.$className = #', builder.toObjectInitializer());
-    buffer.write(jsAst.prettyPrint(init, compiler));
-    buffer.write('$N$n');
+    if (!buffer.isEmpty) {
+      buffer.write(',$n$n');
+    }
+    buffer.write('$className:$_');
+    buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
@@ -1781,10 +1782,11 @@ class CodeEmitterTask extends CompilerTask {
   void emitStaticFunction(CodeBuffer buffer,
                           String name,
                           jsAst.Expression functionExpression) {
-    jsAst.Expression assignment =
-        js('$isolateProperties.$name = #', functionExpression);
-    buffer.write(jsAst.prettyPrint(assignment, compiler));
-    buffer.write('$N$n');
+    if (!buffer.isEmpty) {
+      buffer.write(',$n$n');
+    }
+    buffer.write('$name:$_');
+    buffer.write(jsAst.prettyPrint(functionExpression, compiler));
   }
 
   void emitStaticFunctions(CodeBuffer eagerBuffer) {
@@ -1798,15 +1800,8 @@ class CodeEmitterTask extends CompilerTask {
             .where(isStaticFunction)
             .toSet();
 
-    LibraryElement previousLibrary = null;
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
-      LibraryElement library = element.getLibrary();
-      if (library != previousLibrary) {
-        previousLibrary = library;
-        addComment(
-            'Library: ${library.getLibraryOrScriptName()}', buffer);
-      }
       jsAst.Expression code = backend.generatedCode[element];
       emitStaticFunction(buffer, namer.getName(element), code);
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
@@ -1834,7 +1829,8 @@ class CodeEmitterTask extends CompilerTask {
     for (FunctionElement element in
              Elements.sortedByPosition(staticGetters.keys)) {
       Element closure = staticGetters[element];
-      CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      // CodeBuffer buffer = bufferForElement(element, eagerBuffer);
+      CodeBuffer buffer = eagerBuffer;
       String closureClass = namer.isolateAccess(closure);
       String name = namer.getStaticClosureName(element);
       String staticName = namer.getName(element);
@@ -2973,16 +2969,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
       // Might create boundClosures.
       if (!regularClasses.isEmpty) {
-        addComment('Classes', mainBuffer);
-        LibraryElement previousLibrary = null;
         for (ClassElement element in regularClasses) {
-          LibraryElement library =  element.getLibrary();
-          if (library != previousLibrary) {
-            previousLibrary = library;
-            addComment(
-                'Library: ${library.getLibraryOrScriptName()}', mainBuffer);
-          }
-          generateClass(element, mainBuffer);
+          generateClass(element, bufferForElement(element, mainBuffer));
         }
       }
 
@@ -2999,18 +2987,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 
       // Might create boundClosures.
       if (!deferredClasses.isEmpty) {
-        emitDeferredPreambleWhenEmpty(deferredBuffer);
-        deferredBuffer.add('\$\$$_=$_{}$N');
-
         for (ClassElement element in deferredClasses) {
-          generateClass(element, deferredBuffer);
+          generateClass(element, bufferForElement(element, mainBuffer));
         }
-
-        deferredBuffer.add('$finishClassesName(\$\$,'
-                           '$_${namer.CURRENT_ISOLATE},'
-                           '$_$isolatePropertiesName)$N');
-        // Reset the map.
-        deferredBuffer.add("\$\$$_=${_}null$N$n");
       }
 
       emitStaticFunctionClosures();
@@ -3025,13 +3004,61 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         mainBuffer.add("$N$n");
       }
 
-      emitFinishClassesInvocationIfNecessary(mainBuffer);
-
       // After this assignment we will produce invalid JavaScript code if we use
       // the classesCollector variable.
       classesCollector = 'classesCollector should not be used from now on';
 
       emitStaticFunctions(mainBuffer);
+
+      if (!libraryBuffers.isEmpty) {
+        var oldClassesCollector = classesCollector;
+        classesCollector = r"$$";
+        if (compiler.enableMinification) {
+          mainBuffer.write(';');
+        }
+        mainBuffer
+            ..write(REFLECTION_DATA_PARSER)
+            ..write('([$n');
+        emitDeferredPreambleWhenEmpty(deferredBuffer);
+        deferredBuffer.add('\$\$$_=$_{};$n');
+
+        deferredBuffer
+            ..write(REFLECTION_DATA_PARSER)
+            ..write('([$n');
+        var sortedLibraries = Elements.sortedByPosition(libraryBuffers.keys);
+        for (LibraryElement library in sortedLibraries) {
+          List<CodeBuffer> buffers = libraryBuffers[library];
+          var buffer = buffers[0];
+          if (buffer != null) {
+            mainBuffer
+                ..write('["${library.getLibraryOrScriptName()}",$_{$n')
+                ..addBuffer(buffer)
+                ..write('}],$n');
+          }
+          buffer = buffers[1];
+          if (buffer != null) {
+            deferredBuffer
+                ..write('["${library.getLibraryOrScriptName()}",$_{$n')
+                ..addBuffer(buffer)
+                ..write('}],$n');
+          }
+          libraryBuffers[library] = const [];
+        }
+        mainBuffer.write('])$N');
+
+        deferredBuffer.write('])$N');
+        if (!deferredClasses.isEmpty) {
+          deferredBuffer.add('$finishClassesName(\$\$,'
+                             '$_${namer.CURRENT_ISOLATE},'
+                             '$_$isolatePropertiesName)$N');
+        }
+
+        // Reset the map.
+        deferredBuffer.add("\$\$$_=${_}null$N$n");
+        emitFinishClassesInvocationIfNecessary(mainBuffer);
+        classesCollector = oldClassesCollector;
+      }
+
       emitStaticFunctionGetters(mainBuffer);
 
       emitRuntimeTypeSupport(mainBuffer);
@@ -3067,10 +3094,20 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     return compiler.assembledCode;
   }
 
+  final Map<LibraryElement, List<CodeBuffer>> libraryBuffers =
+      new Map<LibraryElement, List<CodeBuffer>>();
+
   CodeBuffer bufferForElement(Element element, CodeBuffer eagerBuffer) {
-    if (!isDeferred(element)) return eagerBuffer;
-    emitDeferredPreambleWhenEmpty(deferredBuffer);
-    return deferredBuffer;
+    LibraryElement library = element.getLibrary();
+    List<CodeBuffer> buffers = libraryBuffers.putIfAbsent(
+        library, () => <CodeBuffer>[null, null]);
+    bool deferred = isDeferred(element);
+    int index = deferred ? 1 : 0;
+    CodeBuffer buffer = buffers[index];
+    if (buffer == null) {
+      buffer = buffers[index] = new CodeBuffer();
+    }
+    return buffer;
   }
 
   bool firstDeferredConstant = true;
@@ -3164,6 +3201,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 const String GENERATED_BY = """
 // Generated by dart2js, the Dart to JavaScript compiler.
 """;
+
 const String HOOKS_API_USAGE = """
 // The code supports the following hooks:
 // dartPrint(message)   - if this function is defined it is called
@@ -3173,3 +3211,24 @@ const String HOOKS_API_USAGE = """
 //                        Instead, a closure that will invoke [main] is
 //                        passed to [dartMainRunner].
 """;
+
+// TODO(ahe): This code should be integrated in finishClasses.
+const String REFLECTION_DATA_PARSER = r'''
+(function (reflectionData) {
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+  var length = reflectionData.length;
+  for (var i = 0; i < length; i++) {
+    var data = reflectionData[i];
+    var name = data[0];
+    var descriptor = data[1];
+    for (var property in descriptor) {
+      if (!hasOwnProperty.call(descriptor, property)) continue;
+      var element = descriptor[property];
+      if (typeof element === "function") {
+        $[property] = element;
+      } else {
+        $$[property] = element;
+      }
+    }
+  }
+})''';
