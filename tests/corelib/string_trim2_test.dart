@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 
-// TODO(floitsch): Test 0x85 when dart2js supports it.
 const WHITESPACE = const [
   0x09,
   0x0A,
@@ -12,6 +11,7 @@ const WHITESPACE = const [
   0x0C,
   0x0D,
   0x20,
+  0x85,
   0xA0,
   0x1680,
   0x180E,
