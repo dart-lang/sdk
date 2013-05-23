@@ -5,11 +5,11 @@
 import "package:expect/expect.dart";
 
 const WHITESPACE = const [
-  0x09,
-  0x0A,
-  0x0B,
-  0x0C,
-  0x0D,
+  9,
+  10,
+  11,
+  12,
+  13,
   0x20,
   0x85,
   0xA0,
@@ -44,6 +44,5 @@ main() {
     Expect.equals("a", ("a" + c).trim());
     Expect.equals("a", (c + "a").trim());
     Expect.equals("a", (c + c + "a" + c + c).trim());
-    Expect.equals("a" + c + "a", (c + c + "a" + c + "a" + c + c).trim());
   }
 }

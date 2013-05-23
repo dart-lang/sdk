@@ -198,24 +198,90 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
 
 DEFINE_NATIVE_ENTRY(Double_parse, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, value, arguments->NativeArgAt(0));
-
-  const intptr_t len = value.Length();
-
-  // The native function only accepts one-byte strings. The Dart side converts
-  // other types of strings to one-byte strings, if necessary.
-  if ((!value.IsOneByteString() && !value.IsExternalOneByteString())
-      || (len == 0)) {
-    return Object::null();
+  if (value.IsOneByteString()) {
+    // Quick conversion for unpadded doubles in strings.
+    const intptr_t len = value.Length();
+    if (len > 0) {
+      const char* cstr = value.ToCString();
+      ASSERT(cstr != NULL);
+      // Dart differences from strtod:
+      // a) '5.' is not a valid double (no digit after period).
+      // b) '+5.0' is not a valid double (leading plus).
+      if (cstr[0] != '+') {
+        bool dot_ok = true;
+        const char* tmp = cstr;
+        while (*tmp != '\0') {
+          const char ch = *tmp++;
+          if (ch == '.') {
+            const char nextCh = *tmp;
+            dot_ok = ('0' <= nextCh) && (nextCh <= '9');
+            break;
+          }
+        }
+        if (dot_ok) {
+          double double_value;
+          if (CStringToDouble(cstr, len, &double_value)) {
+            return Double::New(double_value);
+          }
+        }
+      }
+    }
   }
+  Scanner scanner(value, Symbols::Empty());
+  const Scanner::GrowableTokenStream& tokens = scanner.GetStream();
+  String* number_string;
+  bool is_positive;
+  if (Scanner::IsValidLiteral(tokens,
+                              Token::kDOUBLE,
+                              &is_positive,
+                              &number_string)) {
+    // Even if original string was two byte string the scanner should produce
+    // literal value that is represented as a one byte string because all
+    // characters in the double literal are Latin-1.
+    ASSERT(number_string->IsOneByteString());
+    const char* cstr = number_string->ToCString();
 
-  double double_value;
-  const char* cstr = value.ToCString();
-  ASSERT(cstr != NULL);
-  if (CStringToDouble(cstr, len, &double_value)) {
+    double double_value;
+    bool ok = CStringToDouble(cstr, number_string->Length(), &double_value);
+    ASSERT(ok);
+
+    if (!is_positive) {
+      double_value = -double_value;
+    }
     return Double::New(double_value);
-  } else {
-    return Object::null();
   }
+
+  if (Scanner::IsValidLiteral(tokens,
+                              Token::kINTEGER,
+                              &is_positive,
+                              &number_string)) {
+    Integer& res = Integer::Handle(Integer::New(*number_string));
+    if (is_positive) {
+      return Double::New(res.AsDoubleValue());
+    }
+    return Double::New(-res.AsDoubleValue());
+  }
+
+  // Infinity and nan.
+  if (Scanner::IsValidLiteral(tokens,
+                              Token::kIDENT,
+                              &is_positive,
+                              &number_string)) {
+    if (number_string->Equals("NaN")) {
+      return Double::New(NAN);
+    }
+    if (number_string->Equals("Infinity")) {
+      if (is_positive) {
+        return Double::New(INFINITY);
+      }
+      return Double::New(-INFINITY);
+    }
+  }
+
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, value);
+  Exceptions::ThrowByType(Exceptions::kFormat, args);
+  return Object::null();
 }
 
 
