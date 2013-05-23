@@ -677,7 +677,6 @@ implicit_this_test/01: fail
 implicit_this_test/04: fail
 implicit_this_test/none: fail
 import_combinators_negative_test: fail
-import_private_test/01: fail
 infinite_switch_label_test: fail
 inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
@@ -688,7 +687,6 @@ interface_cycle_negative_test: fail
 interface_inherit_field_test: fail
 interface_static_non_final_fields_negative_test: fail
 interface_test/00: fail
-internal_library_test/01: fail
 is_not_class2_negative_test: fail
 library_juxtaposition_test: fail
 licm_test: fail
