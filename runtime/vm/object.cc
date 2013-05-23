@@ -1558,12 +1558,11 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 
 
 intptr_t Class::NumTypeParameters() const {
-  const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
-  if (type_params.IsNull()) {
+  if (type_parameters() == TypeArguments::null()) {
     return 0;
-  } else {
-    return type_params.Length();
   }
+  const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
+  return type_params.Length();
 }
 
 
@@ -1579,10 +1578,10 @@ intptr_t Class::NumTypeArguments() const {
     }
   }
   intptr_t num_type_args = NumTypeParameters();
-  const Class& superclass = Class::Handle(cls.SuperClass());
+  cls = cls.SuperClass();
   // Object is its own super class during bootstrap.
-  if (!superclass.IsNull() && (superclass.raw() != raw())) {
-    num_type_args += superclass.NumTypeArguments();
+  if (!cls.IsNull() && (cls.raw() != raw())) {
+    num_type_args += cls.NumTypeArguments();
   }
   return num_type_args;
 }
@@ -3841,8 +3840,9 @@ bool Function::AreValidArguments(int num_arguments,
     return false;
   }
   // Verify that all argument names are valid parameter names.
-  String& argument_name = String::Handle();
-  String& parameter_name = String::Handle();
+  Isolate* isolate = Isolate::Current();
+  String& argument_name = String::Handle(isolate);
+  String& parameter_name = String::Handle(isolate);
   for (int i = 0; i < num_named_arguments; i++) {
     argument_name ^= argument_names.At(i);
     ASSERT(argument_name.IsSymbol());
@@ -4672,10 +4672,7 @@ const char* RedirectionData::ToCString() const {
 
 
 RawString* Field::GetterName(const String& field_name) {
-  String& str = String::Handle();
-  str = String::New(kGetterPrefix);
-  str = String::Concat(str, field_name);
-  return str.raw();
+  return String::Concat(Symbols::GetterPrefix(), field_name);
 }
 
 
@@ -4686,10 +4683,7 @@ RawString* Field::GetterSymbol(const String& field_name) {
 
 
 RawString* Field::SetterName(const String& field_name) {
-  String& str = String::Handle();
-  str = String::New(kSetterPrefix);
-  str = String::Concat(str, field_name);
-  return str.raw();
+  return String::Concat(Symbols::SetterPrefix(), field_name);
 }
 
 
@@ -4700,26 +4694,22 @@ RawString* Field::SetterSymbol(const String& field_name) {
 
 
 RawString* Field::NameFromGetter(const String& getter_name) {
-  String& str = String::Handle();
-  str = String::SubString(getter_name, strlen(kGetterPrefix));
-  return str.raw();
+  return String::SubString(getter_name, strlen(kGetterPrefix));
 }
 
 
 RawString* Field::NameFromSetter(const String& setter_name) {
-  String& str = String::Handle();
-  str = String::SubString(setter_name, strlen(kSetterPrefix));
-  return str.raw();
+  return String::SubString(setter_name, strlen(kSetterPrefix));
 }
 
 
 bool Field::IsGetterName(const String& function_name) {
-  return function_name.StartsWith(String::Handle(String::New(kGetterPrefix)));
+  return function_name.StartsWith(Symbols::GetterPrefix());
 }
 
 
 bool Field::IsSetterName(const String& function_name) {
-  return function_name.StartsWith(String::Handle(String::New(kSetterPrefix)));
+  return function_name.StartsWith(Symbols::SetterPrefix());
 }
 
 

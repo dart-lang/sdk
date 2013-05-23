@@ -8347,11 +8347,12 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
     Namespace& import = Namespace::Handle();
     intptr_t num_imports = library_.num_imports();
     Object& imported_obj = Object::Handle();
+    Library& lib = Library::Handle();
     for (int i = 0; i < num_imports; i++) {
       import = library_.ImportAt(i);
       imported_obj = LookupNameInImport(import, name);
       if (!imported_obj.IsNull()) {
-        const Library& lib = Library::Handle(import.library());
+        lib ^= import.library();
         // TODO(8474): Remove the "Expect" special casing.
         if (!first_lib_url.IsNull()
             && (strcmp(name.ToCString(), "Expect") != 0)

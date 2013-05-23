@@ -239,6 +239,8 @@ class ObjectPointerVisitor;
   V(TwoSpaces, "  ")                                                           \
   V(_instanceOf, "_instanceOf")                                                \
   V(_as, "_as")                                                                \
+  V(GetterPrefix, "get:")                                                      \
+  V(SetterPrefix, "set:")                                                      \
   V(PrivateGetterPrefix, "get:_")                                              \
   V(PrivateSetterPrefix, "set:_")                                              \
   V(_New, "_new")                                                              \
