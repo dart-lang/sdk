@@ -698,6 +698,31 @@ backtracking() {
     'baz': '0.0.0'
   }, maxTries: 100);
 
+  // If there's a disjoint constraint on a package, then selecting other
+  // versions of it is a waste of time: no possible versions can match. We need
+  // to jump past it to the most recent package that affected the constraint.
+  testResolve('backjump past failed package on disjoint constraint', {
+    'myapp 0.0.0': {
+      'a': 'any',
+      'foo': '>2.0.0'
+    },
+    'a 1.0.0': {
+      'foo': 'any' // ok
+    },
+    'a 2.0.0': {
+      'foo': '<1.0.0' // disjoint with myapp's constraint on foo
+    },
+    'foo 2.0.0': {},
+    'foo 2.0.1': {},
+    'foo 2.0.2': {},
+    'foo 2.0.3': {},
+    'foo 2.0.4': {}
+  }, result: {
+    'myapp from root': '0.0.0',
+    'a': '1.0.0',
+    'foo': '2.0.4'
+  }, maxTries: 2);
+
   // TODO(rnystrom): More tests. In particular:
   // - Tests that demonstrate backtracking for every case that can cause a
   //   solution to fail (no versions, disjoint, etc.)
