@@ -49,7 +49,7 @@ def LoadDatabase(database_dir, use_database_cache):
   return common_database
 
 def GenerateFromDatabase(common_database, dart2js_output_dir,
-                         dartium_output_dir):
+                         dartium_output_dir, update_dom_metadata=False):
   current_dir = os.path.dirname(__file__)
   auxiliary_dir = os.path.join(current_dir, '..', 'src')
   template_dir = os.path.join(current_dir, '..', 'templates')
@@ -140,7 +140,9 @@ def GenerateFromDatabase(common_database, dart2js_output_dir,
 
   _logger.info('Flush...')
   emitters.Flush()
-  metadata.Flush()
+
+  if update_dom_metadata:
+    metadata.Flush()
 
   monitored.FinishMonitoring(dart2js_output_dir)
 
@@ -175,6 +177,10 @@ def main():
                     default=False,
                     help='''Use the cached database from the previous run to
                     improve startup performance''')
+  parser.add_option('--update-dom-metadata', dest='update_dom_metadata',
+                    action='store_true',
+                    default=False,
+                    help='''Update the metadata list of DOM APIs''')
   (options, args) = parser.parse_args()
 
   current_dir = os.path.dirname(__file__)
@@ -199,7 +205,8 @@ def main():
   else:
     # Load the previously generated database.
     database = LoadDatabase(database_dir, options.use_database_cache)
-  GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir)
+  GenerateFromDatabase(database, dart2js_output_dir, dartium_output_dir,
+      options.update_dom_metadata)
 
   if 'htmldart2js' in systems:
     _logger.info('Generating dart2js single files.')
