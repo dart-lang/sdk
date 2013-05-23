@@ -33,7 +33,16 @@ var testRunner = window.testRunner || window.layoutTestController;
 
 var waitForDone = false;
 
-function sendDomToTestDriver() {
+function notifyStart() {
+  if (window.opener) {
+    window.opener.postMessage("STARTING", "*");
+  }
+}
+
+function notifyDone() {
+  if (testRunner) testRunner.notifyDone();
+  // To support in browser launching of tests we post back start and result
+  // messages to the window.opener.
   if (window.opener) {
     window.opener.postMessage(window.document.body.innerHTML, "*");
   }
@@ -42,8 +51,7 @@ function sendDomToTestDriver() {
 function processMessage(msg) {
   if (typeof msg != 'string') return;
   if (msg == 'unittest-suite-done') {
-    if (testRunner) testRunner.notifyDone();
-    sendDomToTestDriver();
+    notifyDone();
   } else if (msg == 'unittest-suite-wait-for-done') {
     waitForDone = true;
     if (testRunner) testRunner.startedDartTest = true;
@@ -55,8 +63,7 @@ function processMessage(msg) {
     }
   } else if (msg == 'unittest-suite-success') {
     dartPrint('PASS');
-    if (testRunner) testRunner.notifyDone();
-    sendDomToTestDriver();
+    notifyDone();
   } else if (msg == 'unittest-suite-fail') {
     showErrorAndExit('Some tests failed.');
   }
@@ -79,8 +86,7 @@ function showErrorAndExit(message) {
   // dart/tools/testing/run_selenium.py is looking for either PASS or
   // FAIL and will continue polling until one of these words show up.
   dartPrint('FAIL');
-  if (testRunner) testRunner.notifyDone();
-  sendDomToTestDriver();
+  notifyDone();
 }
 
 function onLoad(e) {
@@ -115,8 +121,7 @@ document.addEventListener('readystatechange', function () {
     // posted message.
     setTimeout(function() {
       if (testRunner && !testRunner.startedDartTest) {
-        testRunner.notifyDone();
-        sendDomToTestDriver();
+        notifyDone();
       }
     }, 0);
   }, 50);
@@ -141,6 +146,8 @@ function dartPrint(msg) {
 // dart2js will generate code to call this function instead of calling
 // Dart [main] directly. The argument is a closure that invokes main.
 function dartMainRunner(main) {
+  // We call notifyStart here to notify the encapsulating browser.
+  notifyStart();
   window.postMessage('dart-calling-main', '*');
   try {
     main();

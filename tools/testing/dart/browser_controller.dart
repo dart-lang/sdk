@@ -104,7 +104,7 @@ abstract class Browser {
 
 
     _logEvent("calling kill function");
-    if (killFunction()) {
+    if (process != null && killFunction()) {
       // We successfully sent the signal.
       _logEvent("killing signal sent");
     } else {
@@ -141,8 +141,7 @@ abstract class Browser {
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
-        _usageLog.add(
-            "An error occured in the process stdout handling: $error");
+        _logEvent("An error occured in the process stdout handling: $error");
       });
 
       process.stderr.transform(new StringDecoder()).listen((data) {
@@ -150,8 +149,7 @@ abstract class Browser {
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
-        _usageLog.add(
-            "An error occured in the process stderr handling: $error");
+        _logEvent("An error occured in the process stderr handling: $error");
       });
 
       process.exitCode.then((exitCode) {
@@ -596,8 +594,9 @@ class BrowserTestRunner {
       return new Chrome();
     } else if (browserName == "ff") {
       return new Firefox();
+    } else {
+      throw "Non supported browser for browser controller";
     }
-    throw "Non supported browser for browser controller";
   }
 }
 
@@ -715,9 +714,12 @@ class BrowserTestingServer {
   <title>Driving page</title>
   <script type='text/javascript'>
     var number_of_tests = 0;
-    var processed_ids = {};
     var current_id;
+    var last_reported_id;
     var testing_window;
+    // We use this to determine if we did actually get back a start event
+    // from the test we just loaded.
+    var did_start = false;
 
     function newTaskHandler() {
       if (this.readyState == this.DONE) {
@@ -733,15 +735,9 @@ class BrowserTestingServer {
             // URL#ID
             var split = this.responseText.split('#');
             var nextTask = split[0];
-            if (testing_window != undefined) {
-              testing_window.location = '_blank';
-            }
-            function doAfterEmptyEventLoop() {
-              current_id = split[1];
-              processed_ids[current_id] = 0;
-              run(nextTask);
-            }
-            setTimeout(doAfterEmptyEventLoop(), 0);
+            current_id = split[1];
+            did_start = false;
+            run(nextTask);
           }
         } else {
           // We are basically in trouble - do something clever.
@@ -767,17 +763,26 @@ class BrowserTestingServer {
     }
 
     function reportMessage(msg) {
+      if (msg == 'STARTING') {
+        did_start = true;
+        return;
+      }
       var client = new XMLHttpRequest();
       function handleReady() {
         if (this.readyState == this.DONE) {
-          if (processed_ids[current_id] == 0) {
+          if (last_reported_id != current_id && did_start) {
             getNextTask();
-            processed_ids[current_id] = 1;
+            last_reported_id = current_id;
           }
         }
       }
       client.onreadystatechange = handleReady;
-      client.open('POST', '$reportPath/${browserId}?id=' + current_id);
+      // If did_start is false it means that we did actually set the url on
+      // the testing_window, but this is a report left in the event loop or
+      // a callback because the page did not load yet.
+      // In both cases this is a double report from the last test.
+      var posting_id = did_start ? current_id : last_reported_id;
+      client.open('POST', '$reportPath/${browserId}?id=' + posting_id);
       client.setRequestHeader('Content-type',
                               'application/x-www-form-urlencoded');
       client.send(msg);
