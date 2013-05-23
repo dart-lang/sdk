@@ -52,15 +52,15 @@ abstract class Iterable<E> {
 
   /**
    * Returns a lazy [Iterable] with all elements that satisfy the
-   * predicate [f].
+   * predicate [test].
    *
    * This method returns a view of the mapped elements. As long as the
-   * returned [Iterable] is not iterated over, the supplied function [f] will
+   * returned [Iterable] is not iterated over, the supplied function [test] will
    * not be invoked. Iterating will not cache results, and thus iterating
    * multiple times over the the returned [Iterable] will invoke the supplied
-   * function [f] multiple times on the same element.
+   * function [test] multiple times on the same element.
    */
-  Iterable<E> where(bool f(E element));
+  Iterable<E> where(bool test(E element));
 
   /**
    * Expand each element of this [Iterable] into zero or more elements.
@@ -112,9 +112,9 @@ abstract class Iterable<E> {
 
   /**
    * Returns true if every elements of this collection satisify the
-   * predicate [f]. Returns `false` otherwise.
+   * predicate [test]. Returns `false` otherwise.
    */
-  bool every(bool f(E element));
+  bool every(bool test(E element));
 
   /**
    * Converts each element to a [String] and concatenates the strings.
@@ -131,9 +131,9 @@ abstract class Iterable<E> {
 
   /**
    * Returns true if one element of this collection satisfies the
-   * predicate [f]. Returns false otherwise.
+   * predicate [test]. Returns false otherwise.
    */
-  bool any(bool f(E element));
+  bool any(bool test(E element));
 
   /**
    * Creates a [List] containing the elements of this [Iterable].
@@ -226,28 +226,28 @@ abstract class Iterable<E> {
   E get single;
 
   /**
-   * Returns the first element that satisfies the given predicate [f].
+   * Returns the first element that satisfies the given predicate [test].
    *
    * If none matches, the result of invoking the [orElse] function is
    * returned. By default, when [orElse] is `null`, a [StateError] is
    * thrown.
    */
-  E firstWhere(bool test(E value), { E orElse() });
+  E firstWhere(bool test(E element), { E orElse() });
 
   /**
-   * Returns the last element that satisfies the given predicate [f].
+   * Returns the last element that satisfies the given predicate [test].
    *
    * If none matches, the result of invoking the [orElse] function is
    * returned. By default, when [orElse] is `null`, a [StateError] is
    * thrown.
    */
-  E lastWhere(bool test(E value), {E orElse()});
+  E lastWhere(bool test(E element), {E orElse()});
 
   /**
-   * Returns the single element that satisfies [f]. If no or more than one
+   * Returns the single element that satisfies [test]. If no or more than one
    * element match then a [StateError] is thrown.
    */
-  E singleWhere(bool test(E value));
+  E singleWhere(bool test(E element));
 
   /**
    * Returns the [index]th element.
