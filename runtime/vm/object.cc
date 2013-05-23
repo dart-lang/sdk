@@ -6088,32 +6088,6 @@ RawScript* Library::LookupScript(const String& url) const {
 }
 
 
-RawFunction* Library::LookupFunctionInSource(const String& script_url,
-                                             intptr_t line_number) const {
-  Script& script = Script::Handle(LookupScript(script_url));
-  if (script.IsNull()) {
-    // The given script url is not loaded into this library.
-    return Function::null();
-  }
-
-  // Determine token position at given line number.
-  intptr_t first_token_pos, last_token_pos;
-  script.TokenRangeAtLine(line_number, &first_token_pos, &last_token_pos);
-  if (first_token_pos < 0) {
-    // Script does not contain the given line number.
-    return Function::null();
-  }
-  Function& func = Function::Handle();
-  for (intptr_t pos = first_token_pos; pos <= last_token_pos; pos++) {
-    func = LookupFunctionInScript(script, pos);
-    if (!func.IsNull()) {
-      return func.raw();
-    }
-  }
-  return Function::null();
-}
-
-
 RawFunction* Library::LookupFunctionInScript(const Script& script,
                                              intptr_t token_pos) const {
   Class& cls = Class::Handle();

@@ -2163,8 +2163,6 @@ class Library : public Object {
   RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
 
-  RawFunction* LookupFunctionInSource(const String& script_url,
-                                      intptr_t line_number) const;
   RawFunction* LookupFunctionInScript(const Script& script,
                                       intptr_t token_pos) const;
 
