@@ -366,15 +366,13 @@ class FlatTypeMask implements TypeMask {
     return new TypeMask(null, EMPTY, isNullable && other.isNullable);
   }
 
-  Set<ClassElement> containedClasses(Compiler compiler) {
-    ClassElement element = base.element;
+  Iterable<ClassElement> containedClasses(Compiler compiler) {
+    Iterable<ClassElement> self = [ base.element ];
     if (isExact) {
-      return new Set<ClassElement>()..add(element);
-    } else if (isSubclass) {
-      return compiler.world.subclassesOf(element);
+      return self;
     } else {
-      assert(isSubtype);
-      return compiler.world.subtypesOf(element);
+      Set<ClassElement> subset = containedSubset(this, compiler);
+      return (subset == null) ? self : [ self, subset ].expand((x) => x);
     }
   }
 
@@ -545,9 +543,9 @@ class FlatTypeMask implements TypeMask {
   static Set<ClassElement> commonContainedClasses(FlatTypeMask x,
                                                   FlatTypeMask y,
                                                   Compiler compiler) {
-    Set<ClassElement> xSubset = x.containedClasses(compiler);
+    Set<ClassElement> xSubset = containedSubset(x, compiler);
     if (xSubset == null) return null;
-    Set<ClassElement> ySubset = y.containedClasses(compiler);
+    Set<ClassElement> ySubset = containedSubset(y, compiler);
     if (ySubset == null) return null;
     Set<ClassElement> smallSet, largeSet;
     if (xSubset.length <= ySubset.length) {
@@ -559,5 +557,17 @@ class FlatTypeMask implements TypeMask {
     }
     var result = smallSet.where((ClassElement each) => largeSet.contains(each));
     return result.toSet();
+  }
+
+  static Set<ClassElement> containedSubset(FlatTypeMask x, Compiler compiler) {
+    ClassElement element = x.base.element;
+    if (x.isExact) {
+      return null;
+    } else if (x.isSubclass) {
+      return compiler.world.subclassesOf(element);
+    } else {
+      assert(x.isSubtype);
+      return compiler.world.subtypesOf(element);
+    }
   }
 }

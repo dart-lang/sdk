@@ -160,7 +160,7 @@ class UnionTypeMask implements TypeMask {
     for (TypeMask current in disjointMasks) {
       if (other.isUnion) {
         for (FlatTypeMask flatOther in other.disjointMasks) {
-          intersections.add(current.intersection(flatOther, compiler)); 
+          intersections.add(current.intersection(flatOther, compiler));
         }
       } else {
         intersections.add(current.intersection(other, compiler));
@@ -215,10 +215,9 @@ class UnionTypeMask implements TypeMask {
 
   ClassElement singleClass(Compiler compiler) => null;
 
-  Set<ClassElement> containedClasses(Compiler compiler) {
-    Set<ClassElement> set = new Set<ClassElement>();
-    disjointMasks.forEach((e) => set.addAll(e.containedClasses(compiler)));
-    return set;
+  Iterable<ClassElement> containedClasses(Compiler compiler) {
+    return disjointMasks.expand(
+        (TypeMask mask) => mask.containedClasses(compiler));
   }
 
   /**

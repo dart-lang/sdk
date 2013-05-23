@@ -79,9 +79,9 @@ abstract class TypeMask {
   ClassElement singleClass(Compiler compiler);
 
   /**
-   * Returns the set of classes this type mask can be.
+   * Returns the classes this type mask can be.
    */
-  Set<ClassElement> containedClasses(Compiler compiler);
+  Iterable<ClassElement> containedClasses(Compiler compiler);
 
   /**
    * Returns a type mask representing the union of [this] and [other].
