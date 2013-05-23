@@ -579,17 +579,16 @@ class CallSiteInliner : public ValueObject {
       GraphInfoCollector info;
       info.Collect(*callee_graph);
       const intptr_t size = info.instruction_count();
+      const intptr_t call_site_count = info.call_site_count();
 
       function.set_optimized_instruction_count(size);
-      function.set_optimized_call_site_count(info.call_site_count());
+      function.set_optimized_call_site_count(call_site_count);
 
       // Use heuristics do decide if this call should be inlined.
-      if (!ShouldWeInline(size,
-                          info.call_site_count(),
-                          constants_count)) {
+      if (!ShouldWeInline(size, call_site_count, constants_count)) {
         // If size is larger than all thresholds, don't consider it again.
         if ((size > FLAG_inlining_size_threshold) &&
-            (size > FLAG_inlining_callee_call_sites_threshold) &&
+            (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
             (size > FLAG_inlining_constant_arguments_size_threshold)) {
           function.set_is_inlinable(false);
         }
@@ -600,7 +599,7 @@ class CallSiteInliner : public ValueObject {
                                  "call sites: %"Pd", "
                                  "const args: %"Pd"\n",
                                  size,
-                                 info.call_site_count(),
+                                 call_site_count,
                                  constants_count));
         return false;
       }
