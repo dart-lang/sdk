@@ -133,16 +133,32 @@ abstract class double extends num {
   /**
    * Parse [source] as an double literal and return its value.
    *
-   * Accepts the same format as double literals:
-   *   [: ['+'|'-'] [digit* '.'] digit+ [('e'|'E') ['+'|'-'] digit+] :]
+   * Accepts an optional sign (`+` or `-`) followed by either the characters
+   * "Infinity", the characters "NaN" or a floating-point representation.
+   * A floating-point representation is composed of a mantissa and an optional
+   * exponent part. The mantissa is either a decimal point (`.`) followed by a
+   * sequence of (decimal) digits, or a sequence of digits
+   * optionally followed by a decimal point and optionally more digits. The
+   * (optional) exponent part consists of the character "e" or "E", an optional
+   * sign, and one or more digits.
    *
-   * Also recognizes "NaN", "Infinity" and "-Infinity" as inputs and
-   * returns the corresponding double value.
+   * The input string is trimmed (see [String.trim]) before conversion.
    *
-   * If the [soure] is not a valid double literal, the [handleError]
+   * If the [source] is not a valid double literal, the [handleError]
    * is called with the [source] as argument, and its return value is
    * used instead. If no handleError is provided, a [FormatException]
    * is thrown.
+   *
+   * Examples of accepted strings:
+   *
+   *     "3.14"
+   *     "  3.14 \xA0"
+   *     "0."
+   *     ".0"
+   *     "-1.e3"
+   *     "1234E+7"
+   *     "+.12e-9"
+   *     "-NaN"
    */
   external static double parse(String source,
                                [double handleError(String source)]);
