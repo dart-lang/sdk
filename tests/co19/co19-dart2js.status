@@ -133,7 +133,6 @@ LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # TODO(ahe): Please tri
 LibTest/core/List/List_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/double/parse_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/toStringAsExponential_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/int/toStringAsExponential_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -529,6 +528,8 @@ LibTest/async/Completer/complete_A01_t03: Fail # Completer is now asynchronous. 
 LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. Issue TODO
 LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue TODO
 LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue TODO
+
+LibTest/core/double/parse_A02_t01: Fail # Issue 418
 
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 409
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 409
