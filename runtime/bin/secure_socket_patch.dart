@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 patch class SecureSocket {
+  /* patch */ factory SecureSocket._(RawSecureSocket rawSocket) =>
+      new _SecureSocket(rawSocket);
+
   /* patch */ static void initialize({String database,
                                       String password,
                                       bool useBuiltinRoots: true})
@@ -12,6 +15,25 @@ patch class SecureSocket {
 
 patch class _SecureFilter {
   /* patch */ factory _SecureFilter() => new _SecureFilterImpl();
+}
+
+
+class _SecureSocket extends _Socket implements SecureSocket {
+  _SecureSocket(RawSecureSocket raw) : super(raw);
+
+  void set onBadCertificate(bool callback(X509Certificate certificate)) {
+    if (_raw == null) {
+      throw new StateError("onBadCertificate called on destroyed SecureSocket");
+    }
+    _raw.onBadCertificate = callback;
+  }
+
+  X509Certificate get peerCertificate {
+    if (_raw == null) {
+     throw new StateError("peerCertificate called on destroyed SecureSocket");
+    }
+    return _raw.peerCertificate;
+  }
 }
 
 

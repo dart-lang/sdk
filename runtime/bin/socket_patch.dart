@@ -789,12 +789,6 @@ patch class Socket {
 }
 
 
-patch class SecureSocket {
-  /* patch */ factory SecureSocket._(RawSecureSocket rawSocket) =>
-      new _SecureSocket(rawSocket);
-}
-
-
 class _SocketStreamConsumer extends StreamConsumer<List<int>> {
   StreamSubscription subscription;
   final _Socket socket;
@@ -1080,24 +1074,5 @@ class _Socket extends Stream<List<int>> implements Socket {
         _disableWriteEvent();
       }
     }
-  }
-}
-
-
-class _SecureSocket extends _Socket implements SecureSocket {
-  _SecureSocket(RawSecureSocket raw) : super(raw);
-
-  void set onBadCertificate(bool callback(X509Certificate certificate)) {
-    if (_raw == null) {
-      throw new StateError("onBadCertificate called on destroyed SecureSocket");
-    }
-    _raw.onBadCertificate = callback;
-  }
-
-  X509Certificate get peerCertificate {
-    if (_raw == null) {
-     throw new StateError("peerCertificate called on destroyed SecureSocket");
-    }
-    return _raw.peerCertificate;
   }
 }
