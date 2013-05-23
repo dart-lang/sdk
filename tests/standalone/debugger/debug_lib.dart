@@ -428,11 +428,6 @@ class Debugger {
     }
   }
 
-  runScript(List entries) {
-    script = new DebugScript(entries);
-    openConnection();
-  }
-
   // Send a debugger command to the target VM.
   void sendMessage(Map<String,dynamic> msg) {
     if (msg["id"] != null) {
