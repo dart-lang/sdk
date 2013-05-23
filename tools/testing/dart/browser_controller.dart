@@ -298,12 +298,15 @@ class Firefox extends Browser {
   const String binary = "firefox";
 
   const String enablePopUp =
-      "user_pref(\"dom.disable_open_during_load\", false);";
+      'user_pref("dom.disable_open_during_load", false);';
+  const String disableDefaultCheck =
+      'user_pref("browser.shell.checkDefaultBrowser", false);';
 
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
     var randomFile = file.openSync(FileMode.WRITE);
     randomFile.writeStringSync(enablePopUp);
+    randomFile.writeStringSync(disableDefaultCheck);
     randomFile.close();
   }
 
