@@ -15,9 +15,6 @@ import "dart:json" as JSON;
 // Whether or not to print the debugger wire messages on the console.
 var verboseWire = false;
 
-// The number of attempts made to find an unused debugger port.
-var retries = 0;
-
 // Class to buffer wire protocol data from debug target and
 // break it down to individual json messages.
 class JsonBuffer {
@@ -297,7 +294,6 @@ class DebugScript {
 class Debugger {
   // Debug target process properties.
   Process targetProcess;
-  int portNumber;
   Socket socket;
   JsonBuffer responses = new JsonBuffer();
 
@@ -314,16 +310,18 @@ class Debugger {
   int isolateId = 0;
   bool isPaused = false;
 
-  Debugger(this.targetProcess, this.portNumber, this.script) {
-    stdin.listen((_) {});
+  Debugger(this.targetProcess, this.script) {
     var stdoutStringStream = targetProcess.stdout
         .transform(new StringDecoder())
         .transform(new LineTransformer());
     stdoutStringStream.listen((line) {
-      if (line == "Debugger initialized") {
-        openConnection();
-      }
       print("TARG: $line");
+      if (line.startsWith("Debugger listening")) {
+        RegExp portExpr = new RegExp(r"\d+");
+        var port = portExpr.stringMatch(line);
+        print("Debug target found listening at port '$port'");
+        openConnection(int.parse(port));
+      }
     });
 
     var stderrStringStream = targetProcess.stderr
@@ -455,7 +453,7 @@ class Debugger {
     errors.add(s);
   }
 
-  void openConnection() {
+  void openConnection(int portNumber) {
     Socket.connect("127.0.0.1", portNumber).then((s) {
         this.socket = s;
         var stringStream = socket.transform(new StringDecoder());
@@ -499,11 +497,14 @@ class Debugger {
         error("Error while closing socket: $error");
       });
     }
+    var targetPid = targetProcess.pid;
+    print("Sending kill signal to process $targetPid...");
     targetProcess.kill();
     // If the process was already dead exitCode is already
     // available and we call exit() in the next event loop cycle.
     // Otherwise this will wait for the process to exit.
     targetProcess.exitCode.then((exitCode) {
+      print("process $targetPid terminated with exit code $exitCode.");
       if (errorsDetected) {
         print("\n===== Errors detected: =====");
         for (int i = 0; i < errors.length; i++) print(errors[i]);
@@ -523,42 +524,16 @@ bool RunScript(List script) {
   }
   verboseWire = options.arguments.contains("--wire");
 
-  // Pick a port in the upper half of the port number range.
-  var seed = new DateTime.now().millisecondsSinceEpoch;
-  Random random = new Random(seed);
-  var debugPort = random.nextInt(32000) + 32000;
-  print('using debug port $debugPort ...');
-  ServerSocket.bind('127.0.0.1', debugPort).then((ServerSocket s) {
-      s.close();
-      var targetOpts = [ "--debug:$debugPort" ];
-      // --verbose_debug is necessary so the test knows when the debuggee
-      // is initialized.
-      targetOpts.add("--verbose_debug");
-      targetOpts.add(options.script);
-      targetOpts.add("--debuggee");
-      print('args: ${targetOpts.join(" ")}');
+  // Port number 0 means debug target picks a free port dynamically.
+  var targetOpts = [ "--debug:0" ];
+  targetOpts.add(options.script);
+  targetOpts.add("--debuggee");
+  print('args: ${targetOpts.join(" ")}');
 
-      Process.start(options.executable, targetOpts).then((Process process) {
-        print("Debug target process started");
-        process.stdin.close();
-        process.exitCode.then((int exitCode) {
-          if (exitCode != 0) throw "bad exit code: $exitCode";
-          print("Debug target process exited with exit code $exitCode");
-        });
-        var debugger =
-            new Debugger(process, debugPort, new DebugScript(script));
-      });
-    },
-    onError: (e) {
-      if (++retries >= 3) {
-        print('unable to find unused port: $e');
-        var trace = getAttachedStackTrace(e);
-        if (trace != null) print("StackTrace: $trace");
-        return -1;
-      } else {
-        // Retry with another random port.
-        RunScript(script);
-      }
-    });
+  Process.start(options.executable, targetOpts).then((Process process) {
+    print("Debug target process started, pid ${process.pid}.");
+    process.stdin.close();
+    var debugger = new Debugger(process, new DebugScript(script));
+  });
   return true;
 }

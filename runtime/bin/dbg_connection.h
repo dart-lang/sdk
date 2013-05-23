@@ -49,7 +49,7 @@ class DebuggerConnectionHandler {
   // Starts the native thread which listens for connections from
   // debugger clients, reads and dispatches debug command messages
   // from the client.
-  static void StartHandler(const char* address, int port_number);
+  static int StartHandler(const char* address, int port_number);
 
   // Called by Isolates when they need to wait for a connection
   // from debugger clients.

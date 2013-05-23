@@ -278,12 +278,13 @@ void DebuggerConnectionHandler::CloseDbgConnection() {
 }
 
 
-void DebuggerConnectionHandler::StartHandler(const char* address,
-                                             int port_number) {
+int DebuggerConnectionHandler::StartHandler(const char* address,
+                                            int port_number) {
   ASSERT(handler_lock_ != NULL);
   MonitorLocker ml(handler_lock_);
   if (listener_fd_ != -1) {
-    return;  // The debugger connection handler was already started.
+    // The debugger connection handler was already started.
+    return Socket::GetPort(listener_fd_);
   }
 
   // First setup breakpoint, exception and delayed breakpoint handlers.
@@ -298,12 +299,13 @@ void DebuggerConnectionHandler::StartHandler(const char* address,
   // listen, accept connections from debuggers, read and handle/dispatch
   // debugger commands received on these connections.
   ASSERT(listener_fd_ == -1);
-
   OSError *os_error;
   SocketAddresses* addresses = Socket::LookupAddress(address, -1, &os_error);
   listener_fd_ = ServerSocket::CreateBindListen(
       addresses->GetAt(0)->addr(), port_number, 1);
+  port_number = Socket::GetPort(listener_fd_);
   DebuggerConnectionImpl::StartHandler(port_number);
+  return port_number;
 }
 
 
