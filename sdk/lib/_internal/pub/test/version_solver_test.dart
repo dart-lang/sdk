@@ -825,7 +825,7 @@ _testResolve(void testFn(String description, Function body),
           // remote server.
           root = package;
         } else {
-          cache.sources[source].addPackage(name, package);
+          (cache.sources[source] as MockSource).addPackage(name, package);
         }
       });
     });

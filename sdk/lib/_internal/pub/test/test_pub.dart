@@ -104,8 +104,6 @@ void serve([List<d.Descriptor> contents]) {
           var response = request.response;
           try {
             var path = request.uri.path.replaceFirst("/", "");
-
-            if (_requestedPaths == null) _requestedPaths = <String>[];
             _requestedPaths.add(path);
 
             response.persistentConnection = false;
