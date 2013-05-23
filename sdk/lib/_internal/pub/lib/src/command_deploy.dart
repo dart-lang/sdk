@@ -136,6 +136,6 @@ class DeployCommand extends PubCommand {
   bool get _shouldAddDartJs {
     return !_entrypoints.isEmpty &&
         entrypoint.root.dependencies.any((dep) =>
-            dep.name == 'browser' && dep.source.name == 'hosted');
+            dep.name == 'browser' && dep.source == 'hosted');
   }
 }

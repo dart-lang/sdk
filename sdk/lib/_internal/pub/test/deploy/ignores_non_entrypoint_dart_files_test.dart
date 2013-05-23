@@ -35,7 +35,7 @@ Copying   web/ => deploy/
         d.nothing('file2.dart.js'),
         d.nothing('file2.dart'),
         d.nothing('file3.dart.js'),
-        d.nothing('file3.dart')
+        d.nothing('file3.dart'),
         d.nothing('file4.dart.js'),
         d.nothing('file4.dart')
       ])
