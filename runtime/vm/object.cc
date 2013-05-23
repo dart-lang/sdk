@@ -7083,7 +7083,7 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kFuncCall:      return "fn-call      ";
     case PcDescriptors::kClosureCall:   return "closure-call ";
     case PcDescriptors::kReturn:        return "return       ";
-    case PcDescriptors::kEqualNull:     return "equal-null   ";
+    case PcDescriptors::kRuntimeCall:   return "runtime-call ";
     case PcDescriptors::kOther:         return "other        ";
   }
   UNREACHABLE();

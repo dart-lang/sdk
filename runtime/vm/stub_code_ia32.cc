@@ -1708,25 +1708,23 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
-// ECX: ICData
-void StubCode::GenerateBreakpointEqNullStub(Assembler* assembler) {
+// EDX, EXC: May contain arguments to runtime stub.
+void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ EnterStubFrame();
+  // Save runtime args.
   __ pushl(ECX);
-  __ CallRuntime(kBreakpointEqualNullHandlerRuntimeEntry);
+  __ pushl(EDX);
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ pushl(raw_null);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry);
+  __ popl(EAX);  // Address of original stub.
+  __ popl(EDX);  // Restore arguments.
   __ popl(ECX);
   __ LeaveFrame();
-  __ jmp(&StubCode::EqualityWithNullArgLabel());
-}
-
-
-// EDX: Arguments descriptor array.
-void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ pushl(EDX);  // Push arguments descriptor.
-  __ CallRuntime(kBreakpointClosureHandlerRuntimeEntry);
-  __ popl(EDX);  // Restore arguments descriptor.
-  __ LeaveFrame();
-  __ jmp(&StubCode::CallClosureFunctionLabel());
+  __ jmp(EAX);   // Jump to original stub.
 }
 
 
@@ -1747,6 +1745,9 @@ void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
 
   // Now call the static function. The breakpoint handler function
   // ensures that the call target is compiled.
+  // Note that we can't just jump to the CallStatic function stub
+  // here since that stub would patch the call site with the
+  // static function address.
   __ movl(ECX, FieldAddress(EAX, Code::instructions_offset()));
   __ addl(ECX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ jmp(ECX);

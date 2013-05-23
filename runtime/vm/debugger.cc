@@ -588,7 +588,7 @@ static bool IsSafePoint(PcDescriptors::Kind kind) {
           (kind == PcDescriptors::kFuncCall) ||
           (kind == PcDescriptors::kClosureCall) ||
           (kind == PcDescriptors::kReturn) ||
-          (kind == PcDescriptors::kEqualNull));
+          (kind == PcDescriptors::kRuntimeCall));
 }
 
 
@@ -672,22 +672,14 @@ void CodeBreakpoint::PatchCode() {
                                      StubCode::BreakpointStaticEntryPoint());
       break;
     }
+    case PcDescriptors::kRuntimeCall:
     case PcDescriptors::kClosureCall: {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       saved_bytes_.target_address_ =
           CodePatcher::GetStaticCallTargetAt(pc_, code);
       CodePatcher::PatchStaticCallAt(pc_, code,
-                                     StubCode::BreakpointClosureEntryPoint());
-      break;
-    }
-    case PcDescriptors::kEqualNull: {
-      const Code& code =
-          Code::Handle(Function::Handle(function_).unoptimized_code());
-      saved_bytes_.target_address_ =
-          CodePatcher::GetStaticCallTargetAt(pc_, code);
-      CodePatcher::PatchStaticCallAt(pc_, code,
-                                     StubCode::BreakpointEqNullEntryPoint());
+                                     StubCode::BreakpointRuntimeEntryPoint());
       break;
     }
     case PcDescriptors::kReturn:
@@ -712,7 +704,7 @@ void CodeBreakpoint::RestoreCode() {
     }
     case PcDescriptors::kFuncCall:
     case PcDescriptors::kClosureCall:
-    case PcDescriptors::kEqualNull: {
+    case PcDescriptors::kRuntimeCall: {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       CodePatcher::PatchStaticCallAt(pc_, code,
@@ -1618,7 +1610,7 @@ void Debugger::SignalBpReached() {
         // to invoke the "call" method on the object if one exists.
         // TODO(hausner): find call method and intrument it for stepping.
       }
-    } else if (bpt->breakpoint_kind_ == PcDescriptors::kEqualNull) {
+    } else if (bpt->breakpoint_kind_ == PcDescriptors::kRuntimeCall) {
       // This is just a call to the runtime, not Dart code. Stepping
       // into not possible, just treat like StepOver.
       func_to_instrument = bpt->function();
@@ -1700,8 +1692,11 @@ void Debugger::NotifyCompilation(const Function& func) {
           OS::Print("Enable pending breakpoint for function '%s'\n",
                     String::Handle(lookup_function.name()).ToCString());
         }
+        const Script& script= Script::Handle(func.script());
+        intptr_t first_pos, last_pos;
+        script.TokenRangeAtLine(bpt->LineNumber(), &first_pos, &last_pos);
         intptr_t bp_pos =
-            ResolveBreakpointPos(func, bpt->token_pos(), func.end_token_pos());
+            ResolveBreakpointPos(func, bpt->token_pos(), last_pos);
         bpt->set_token_pos(bp_pos);
         MakeCodeBreakpointsAt(func, bp_pos, bpt);
         SignalBpResolved(bpt);
@@ -1721,6 +1716,16 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
     }
     bpt = bpt->next();
   }
+  return NULL;
+}
+
+
+uword Debugger::GetPatchedStubAddress(uword breakpoint_address) {
+  CodeBreakpoint* bpt = GetCodeBreakpoint(breakpoint_address);
+  if (bpt != NULL) {
+    return bpt->saved_bytes_.target_address_;
+  }
+  UNREACHABLE();
   return NULL;
 }
 

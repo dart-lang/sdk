@@ -427,7 +427,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     // Pass left in R1 and right in R0.
     compiler->GenerateCall(token_pos,
                            &StubCode::EqualityWithNullArgLabel(),
-                           PcDescriptors::kEqualNull,
+                           PcDescriptors::kRuntimeCall,
                            locs);
   }
   __ Bind(&check_ne);

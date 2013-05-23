@@ -310,6 +310,8 @@ class Debugger {
   void SignalExceptionThrown(const Instance& exc);
   static void SignalIsolateEvent(EventType type);
 
+  uword GetPatchedStubAddress(uword breakpoint_address);
+
  private:
   enum ResumeAction {
     kContinue,

@@ -807,24 +807,20 @@ static void CheckResultError(const Object& result) {
 }
 
 
-// Gets called from debug stub when code reaches a breakpoint before
-// calling a closure.
-DEFINE_RUNTIME_ENTRY(BreakpointClosureHandler, 0) {
-  ASSERT(arguments.ArgCount() ==
-         kBreakpointClosureHandlerRuntimeEntry.argument_count());
-  ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->SignalBpReached();
-}
-
-
 // Gets called from debug stub when code reaches a breakpoint
-// at the stub call to update the ic cache on equality comparison
-// with null.
-DEFINE_RUNTIME_ENTRY(BreakpointEqualNullHandler, 0) {
+// set on a runtime stub call.
+DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   ASSERT(arguments.ArgCount() ==
-         kBreakpointEqualNullHandlerRuntimeEntry.argument_count());
+         kBreakpointRuntimeHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  uword orig_stub =
+      isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
   isolate->debugger()->SignalBpReached();
+  ASSERT((orig_stub & kSmiTagMask) == kSmiTag);
+  arguments.SetReturn(Smi::Handle(reinterpret_cast<RawSmi*>(orig_stub)));
 }
 
 
