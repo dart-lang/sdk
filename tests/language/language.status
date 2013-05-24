@@ -430,8 +430,6 @@ argument_definition4_test: Skip # Not implemented. Fails in minified tests.
 const_var_test: Pass, Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-field1_negative_test: Fail, OK # Bad test: assumes eager loading.
-field6_negative_test: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # Common problems with dart2js.  In illegal family, invalid
 # declarations are simply not parsed.  In pseudo kw dart2js
@@ -448,13 +446,7 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
-field2_negative_test: Fail
-field4_negative_test: Fail
-field5_negative_test: Fail
-field6a_negative_test: Fail
 interface_factory_constructor_negative_test: Fail
-interface_static_method_negative_test: Fail
-non_const_super_negative_test: Fail
 method_override2_test/00: Fail
 method_override2_test/02: Fail
 method_override2_test/03: Fail
