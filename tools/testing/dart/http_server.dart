@@ -89,6 +89,16 @@ main() {
  * test framework, such as dealing with package-root.
  */
 class TestingServers {
+  static final _HARMLESS_REQUEST_PATH_ENDINGS = [
+    "/apple-touch-icon.png",
+    "/apple-touch-icon-precomposed.png",
+    "/favicon.ico",
+    "/foo",
+    "/bar",
+    "/NonExistingFile",
+    "/hahaURL",
+  ];
+
   List _serverList = [];
   Path _buildDirectory = null;
   final bool useContentSecurityPolicy;
@@ -349,10 +359,12 @@ class TestingServers {
   }
 
   void _sendNotFound(HttpRequest request, HttpResponse response) {
-    // NOTE: Since some tests deliberately try to access non-existent files.
-    // We might want to remove this warning (otherwise it will show
-    // up in the debug.log every time).
-    if (request.uri.path != "/favicon.ico") {
+    bool isHarmlessPath(String path) {
+      return _HARMLESS_REQUEST_PATH_ENDINGS.any((ending) {
+        return path.endsWith(ending);
+      });
+    }
+    if (!isHarmlessPath(request.uri.path)) {
       DebugLogger.warning('HttpServer: could not find file for request path: '
                           '"${request.uri.path}"');
     }
