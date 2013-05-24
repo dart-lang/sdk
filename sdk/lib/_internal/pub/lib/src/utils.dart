@@ -472,8 +472,8 @@ String yamlToString(data) {
     // TODO(nweiz): Serialize using the YAML library once it supports
     // serialization.
 
-    // Use indentation for maps.
-    if (data is Map) {
+    // Use indentation for (non-empty) maps.
+    if (data is Map && !data.isEmpty) {
       if (isMapValue) {
         buffer.writeln();
         indent += '  ';
