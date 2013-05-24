@@ -527,6 +527,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         __ LoadObject(result, Bool::False(), NegateCondition(cond));
       }
     } else {
+      __ PushList((1 << R0) | (1 << R1));
       const int kNumberOfArguments = 2;
       const Array& kNoArgumentNames = Array::Handle();
       compiler->GenerateStaticCall(deopt_id,
@@ -614,6 +615,25 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
+static Condition FlipCondition(Condition condition) {
+  switch (condition) {
+    case EQ: return EQ;
+    case NE: return NE;
+    case LT: return GT;
+    case LE: return GE;
+    case GT: return LT;
+    case GE: return LE;
+    case CC: return HI;
+    case LS: return CS;
+    case HI: return CC;
+    case CS: return LS;
+    default:
+      UNIMPLEMENTED();
+      return EQ;
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -626,7 +646,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 
   if (left.IsConstant()) {
     __ CompareObject(right.reg(), left.constant());
-    true_condition = FlowGraphCompiler::FlipCondition(true_condition);
+    true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
   } else {
@@ -2530,7 +2550,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Load receiver into R0.
-  __ ldr(R0, Address(SP, (instance_call()->ArgumentCount() - 1) * kWordSize));
+  __ LoadFromOffset(kLoadWord, R0, SP,
+                    (instance_call()->ArgumentCount() - 1) * kWordSize);
 
   LoadValueCid(compiler, R2, R0,
                (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);

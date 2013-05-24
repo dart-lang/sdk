@@ -1342,20 +1342,6 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
 }
 
 
-Condition FlowGraphCompiler::FlipCondition(Condition condition) {
-  UNIMPLEMENTED();
-  return condition;
-}
-
-
-bool FlowGraphCompiler::EvaluateCondition(Condition condition,
-                                          intptr_t left,
-                                          intptr_t right) {
-  UNIMPLEMENTED();
-  return false;
-}
-
-
 FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
                                                           intptr_t index_scale,
                                                           Register array,

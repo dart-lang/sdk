@@ -785,6 +785,25 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
+static Condition FlipCondition(Condition condition) {
+  switch (condition) {
+    case EQUAL:         return EQUAL;
+    case NOT_EQUAL:     return NOT_EQUAL;
+    case LESS:          return GREATER;
+    case LESS_EQUAL:    return GREATER_EQUAL;
+    case GREATER:       return LESS;
+    case GREATER_EQUAL: return LESS_EQUAL;
+    case BELOW:         return ABOVE;
+    case BELOW_EQUAL:   return ABOVE_EQUAL;
+    case ABOVE:         return BELOW;
+    case ABOVE_EQUAL:   return BELOW_EQUAL;
+    default:
+      UNIMPLEMENTED();
+      return EQUAL;
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -797,7 +816,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 
   if (left.IsConstant()) {
     __ CompareObject(right.reg(), left.constant());
-    true_condition = FlowGraphCompiler::FlipCondition(true_condition);
+    true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
   } else if (right.IsStackSlot()) {

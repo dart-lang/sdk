@@ -114,11 +114,13 @@ class SimulatorDebugger {
   bool GetFValue(char* desc, float* value);
   bool GetDValue(char* desc, double* value);
 
-  void PrintDartFrame(uword pc, uword fp, uword sp,
-                      const Function& function,
-                      intptr_t token_pos,
-                      bool is_optimized,
-                      bool is_inlined);
+  static intptr_t GetApproximateTokenIndex(const Code& code, uword pc);
+
+  static void PrintDartFrame(uword pc, uword fp, uword sp,
+                             const Function& function,
+                             intptr_t token_pos,
+                             bool is_optimized,
+                             bool is_inlined);
   void PrintBacktrace();
 
   // Set or delete a breakpoint. Returns true if successful.
@@ -262,6 +264,23 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
 }
 
 
+intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+                                                     uword pc) {
+  intptr_t token_pos = -1;
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  for (intptr_t i = 0; i < descriptors.Length(); i++) {
+    if (descriptors.PC(i) == pc) {
+      token_pos = descriptors.TokenPos(i);
+      break;
+    } else if ((token_pos <= 0) && (descriptors.PC(i) > pc)) {
+      token_pos = descriptors.TokenPos(i);
+    }
+  }
+  return token_pos;
+}
+
+
 void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        const Function& function,
                                        intptr_t token_pos,
@@ -313,7 +332,8 @@ void SimulatorDebugger::PrintBacktrace() {
           if (!it.Done()) {
             PrintDartFrame(unoptimized_pc, frame->fp(), frame->sp(),
                            inlined_function,
-                           unoptimized_code.GetTokenIndexOfPC(unoptimized_pc),
+                           GetApproximateTokenIndex(unoptimized_code,
+                                                    unoptimized_pc),
                            true, true);
           }
         }
@@ -321,7 +341,7 @@ void SimulatorDebugger::PrintBacktrace() {
       }
       PrintDartFrame(frame->pc(), frame->fp(), frame->sp(),
                      function,
-                     code.GetTokenIndexOfPC(frame->pc()),
+                     GetApproximateTokenIndex(code, frame->pc()),
                      code.is_optimized(), false);
     } else {
       OS::Print("pc=0x%"Px" fp=0x%"Px" sp=0x%"Px" %s frame\n",

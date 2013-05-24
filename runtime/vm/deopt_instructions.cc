@@ -73,7 +73,8 @@ void DeoptimizationContext::SetCallerFp(intptr_t caller_fp) {
 // Deoptimization instruction moving value from optimized frame at
 // 'from_index' to specified slots in the unoptimized frame.
 // 'from_index' represents the slot index of the frame (0 being first argument)
-// and accounts for saved return address, frame pointer and pc marker.
+// and accounts for saved return address, frame pointer, pool pointer and pc
+// marker.
 class DeoptStackSlotInstr : public DeoptInstr {
  public:
   explicit DeoptStackSlotInstr(intptr_t from_index)
@@ -515,7 +516,7 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     // Increment the deoptimization counter. This effectively increments each
     // function occurring in the optimized frame.
     function.set_deoptimization_counter(function.deoptimization_counter() + 1);
-    if (FLAG_trace_deoptimization) {
+    if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       OS::PrintErr("Deoptimizing %s (count %d)\n",
           function.ToFullyQualifiedCString(),
           function.deoptimization_counter());
@@ -863,7 +864,7 @@ intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
 intptr_t DeoptInfoBuilder::CalculateStackIndex(const Location& from_loc) const {
   return from_loc.stack_index() < 0 ?
             from_loc.stack_index() + num_args_ :
-            from_loc.stack_index() + num_args_ - kFirstLocalSlotFromFp + 1;
+            from_loc.stack_index() + num_args_ + kDartFrameFixedSize;
 }
 
 

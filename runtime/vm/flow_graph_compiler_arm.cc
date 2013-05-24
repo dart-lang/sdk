@@ -1290,7 +1290,65 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  UNIMPLEMENTED();
+  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
+  const String& name = String::Handle(ic_data.target_name());
+  const MegamorphicCache& cache =
+      MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
+  Label not_smi, load_cache;
+  __ LoadFromOffset(kLoadWord, R0, SP, (argument_count - 1) * kWordSize);
+  __ tst(R0, ShifterOperand(kSmiTagMask));
+  __ b(&not_smi, NE);
+  __ mov(R0, ShifterOperand(Smi::RawValue(kSmiCid)));
+  __ b(&load_cache);
+
+  __ Bind(&not_smi);
+  __ LoadClassId(R0, R0);
+  __ SmiTag(R0);
+
+  // R0: class ID of the receiver (smi).
+  __ Bind(&load_cache);
+  __ LoadObject(R1, cache);
+  __ ldr(R2, FieldAddress(R1, MegamorphicCache::buckets_offset()));
+  __ ldr(R1, FieldAddress(R1, MegamorphicCache::mask_offset()));
+  // R2: cache buckets array.
+  // R1: mask.
+  __ mov(R3, ShifterOperand(R0));
+
+  Label loop, update, call_target_function;
+  __ b(&loop);
+
+  __ Bind(&update);
+  __ add(R3, R3, ShifterOperand(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ and_(R3, R3, ShifterOperand(R1));
+  const intptr_t base = Array::data_offset();
+  // R3 is smi tagged, but table entries are two words, so LSL 2.
+  __ add(IP, R2, ShifterOperand(R3, LSL, 2));
+  __ ldr(R4, FieldAddress(IP, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ tst(R4, ShifterOperand(R4));
+  __ b(&call_target_function, EQ);
+  __ cmp(R4, ShifterOperand(R0));
+  __ b(&update, NE);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ add(IP, R2, ShifterOperand(R3, LSL, 2));
+  __ ldr(R0, FieldAddress(IP, base + kWordSize));
+  __ ldr(R0, FieldAddress(R0, Function::code_offset()));
+  __ ldr(R0, FieldAddress(R0, Code::instructions_offset()));
+  __ LoadObject(R5, ic_data);
+  __ LoadObject(R4, arguments_descriptor);
+  __ AddImmediate(R0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ blx(R0);
+  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
+  __ Drop(argument_count);
 }
 
 
@@ -1453,20 +1511,6 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
                                               FpuRegister right,
                                               Register result) {
   UNIMPLEMENTED();
-}
-
-
-Condition FlowGraphCompiler::FlipCondition(Condition condition) {
-  UNIMPLEMENTED();
-  return condition;
-}
-
-
-bool FlowGraphCompiler::EvaluateCondition(Condition condition,
-                                          intptr_t left,
-                                          intptr_t right) {
-  UNIMPLEMENTED();
-  return false;
 }
 
 

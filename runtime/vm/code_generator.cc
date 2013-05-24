@@ -1548,7 +1548,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(!deopt_info.IsNull());
 
   CopyFrame(optimized_code, *caller_frame);
-  if (FLAG_trace_deoptimization) {
+  if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     Function& function = Function::Handle(optimized_code.function());
     OS::PrintErr(
         "Deoptimizing (reason %"Pd" '%s') at pc %#"Px" '%s' (count %d)\n",
@@ -1714,7 +1714,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 
   // Since this is the only step where GC can occur during deoptimization,
   // use it to report the source line where deoptimization occured.
-  if (FLAG_trace_deoptimization) {
+  if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     DartFrameIterator iterator;
     StackFrame* top_frame = iterator.NextFrame();
     ASSERT(top_frame != NULL);

@@ -496,6 +496,12 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 }
 
 
+static Condition FlipCondition(Condition condition) {
+  UNIMPLEMENTED();
+  return condition;
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -509,7 +515,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 
   if (left.IsConstant()) {
     __ CompareObject(CMPRES, right.reg(), left.constant());
-    true_condition = FlowGraphCompiler::FlipCondition(true_condition);
+    true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(CMPRES, left.reg(), right.constant());
   } else {
