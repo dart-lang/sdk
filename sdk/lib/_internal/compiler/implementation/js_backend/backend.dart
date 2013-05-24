@@ -382,7 +382,7 @@ class FieldTypesRegistry {
     return result;
   }
 
-  void registerOptimizedFunction(FunctionElement element,
+  void registerOptimizedFunction(Element element,
                                  Element field,
                                  HType type) {
     assert(field.isField());
@@ -1508,7 +1508,7 @@ class JavaScriptBackend extends Backend {
         element, parameterTypes, defaultValueTypes);
   }
 
-  registerFieldTypesOptimization(FunctionElement element,
+  registerFieldTypesOptimization(Element element,
                                  Element field,
                                  HType type) {
     fieldTypes.registerOptimizedFunction(element, field, type);
