@@ -105,6 +105,7 @@ testFieldAccess(mirrors) {
 }
 
 testClosureMirrors(mirrors) {
+  // TODO(ahe): Test optional parameters (named or not).
   var closure = (x, y, z) { return x + y + z; };
 
   var mirror = reflect(closure);
@@ -204,8 +205,8 @@ mainWithArgument({bool isDart2js}) {
   test("Test instance field access", () { testInstanceFieldAccess(mirrors); });
   test('Test intercepted objects', () { testIntercepted(mirrors); });
   test("Test field access", () { testFieldAccess(mirrors); });
-  if (isDart2js) return;
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
+  if (isDart2js) return;
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
   test("Test reflect type", () { testReflectClass(mirrors); });
   test("Test simple and qualifiedName", () { testNames(mirrors); });

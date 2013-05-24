@@ -69,12 +69,12 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
   InstanceMirror setField(Symbol fieldName, Object arg) {
     // TODO(ahe): This is extremely dangerous!!!
     JS('void', r'$[#] = #', _n(fieldName), arg);
-    return new _InstanceMirror(arg);
+    return _reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
     // TODO(ahe): This is extremely dangerous!!!
-    return new _InstanceMirror(JS('', r'$[#]', _n(fieldName)));
+    return _reflect(JS('', r'$[#]', _n(fieldName)));
   }
 }
 
@@ -93,8 +93,15 @@ patch Future<MirrorSystem> mirrorSystemOf(SendPort port) {
   throw new UnsupportedError("MirrorSystem not implemented");
 }
 
-patch InstanceMirror reflect(Object reflectee) {
-  return new _InstanceMirror(reflectee);
+// TODO(ahe): This is a workaround for http://dartbug.com/10543
+patch InstanceMirror reflect(Object reflectee) => _reflect(reflectee);
+
+InstanceMirror _reflect(Object reflectee) {
+  if (reflectee is Closure) {
+    return new _ClosureMirror(reflectee);
+  } else {
+    return new _InstanceMirror(reflectee);
+  }
 }
 
 final Expando<ClassMirror> _classMirrors = new Expando<ClassMirror>();
@@ -131,7 +138,6 @@ abstract class _ObjectMirror implements ObjectMirror {
 }
 
 class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
-
   final reflectee;
 
   _InstanceMirror(this.reflectee);
@@ -174,13 +180,13 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     Invocation invocation = createInvocationMirror(
         _n(name), mangledName, type, arguments, argumentNames);
 
-    return new _InstanceMirror(delegate(invocation));
+    return _reflect(delegate(invocation));
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
     _invoke(
         fieldName, JSInvocationMirror.SETTER, 'set\$${_n(fieldName)}', [arg]);
-    return new _InstanceMirror(arg);
+    return _reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
@@ -216,12 +222,12 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
   InstanceMirror setField(Symbol fieldName, Object arg) {
     // TODO(ahe): This is extremely dangerous!!!
     JS('void', r'$[#] = #', '${_n(simpleName)}_${_n(fieldName)}', arg);
-    return new _InstanceMirror(arg);
+    return _reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
     // TODO(ahe): This is extremely dangerous!!!
-    return new _InstanceMirror(
+    return _reflect(
         JS('', r'$[#]', '${_n(simpleName)}_${_n(fieldName)}'));
   }
 
@@ -229,6 +235,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
 }
 
 class _VariableMirror implements VariableMirror {
+  // TODO(ahe): The values in these fields are virtually untested.
   final Symbol simpleName;
   final String _jsName;
   final bool _readOnly;
@@ -250,7 +257,7 @@ class _VariableMirror implements VariableMirror {
       accessorName = accessorName.substring(0, divider);
       jsName = accessorName.substring(divider + 1);
     }
-    bool readOnly = hasSetter;
+    bool readOnly = !hasSetter;
     return new _VariableMirror(_s(accessorName), jsName, readOnly);
   }
 
@@ -261,5 +268,52 @@ class _VariableMirror implements VariableMirror {
     if (code >= 123 && code <= 126) return code - 117;
     if (code >= 37 && code <= 43) return code - 27;
     return 0;
+  }
+}
+
+class _ClosureMirror extends _InstanceMirror implements ClosureMirror {
+  _ClosureMirror(reflectee) : super(reflectee);
+
+  MethodMirror get function {
+    // TODO(ahe): What about optional parameters (named or not).
+    var extractCallName = JS('', r'''
+function(reflectee) {
+  for (var property in reflectee) {
+    if ("call$" == property.substring(0, 5)) return property;
+  }
+  return null;
+}
+''');
+    String callName = JS('String|Null', '#(#)', extractCallName, reflectee);
+    if (callName == null) {
+      throw new RuntimeError('Cannot find callName on "$reflectee"');
+    }
+    var jsFunction = JS('', '#[#]', reflectee, callName);
+    int parameterCount = int.parse(callName.split(r'$')[1]);
+    return new _MethodMirror(jsFunction, parameterCount);
+  }
+
+  InstanceMirror apply(List positionalArguments,
+                       [Map<Symbol, dynamic> namedArguments]) {
+    return _reflect(
+        Function.apply(reflectee, positionalArguments, namedArguments));
+  }
+
+  Future<InstanceMirror> applyAsync(List positionalArguments,
+                                    [Map<Symbol, dynamic> namedArguments]) {
+    return new Future<InstanceMirror>(
+        () => apply(positionalArguments, namedArguments));
+  }
+}
+
+class _MethodMirror implements MethodMirror {
+  final _jsFunction;
+  final int _parameterCount;
+
+  _MethodMirror(this._jsFunction, this._parameterCount);
+
+  List<ParameterMirror> get parameters {
+    // TODO(ahe): Fill the list with parameter mirrors.
+    return new List<ParameterMirror>(_parameterCount);
   }
 }
