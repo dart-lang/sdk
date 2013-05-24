@@ -4,9 +4,6 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-[ $runtime == vm && $system == macos ]
-debugger/basic_debugger_test: Pass, Crash # Issue 10488.
-
 [ $runtime == vm && $system == windows ]
 debugger/*: Skip # Issue: 10791
 
