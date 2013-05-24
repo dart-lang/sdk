@@ -222,6 +222,17 @@ testIsCheck19(a) {
   return 42;
 }
 
+testIsCheck20() {
+  var c = topLevelGetter();
+  if (c != null && c is! bool && c is! int) {
+    return 42;
+  } else if (c is String) {
+    return c;
+  } else {
+    return 68;
+  }
+}
+
 returnAsString() {
   return topLevelGetter() as String;
 }
@@ -402,6 +413,7 @@ main() {
   testIsCheck17(topLevelGetter());
   testIsCheck18(topLevelGetter());
   testIsCheck19(topLevelGetter());
+  testIsCheck20();
   returnAsString();
   returnIntAsNum();
   returnAsTypedef();
@@ -487,6 +499,7 @@ void main() {
   checkReturn('testIsCheck17', intType);
   checkReturn('testIsCheck18', typesInferrer.dynamicType);
   checkReturn('testIsCheck19', typesInferrer.dynamicType);
+  checkReturn('testIsCheck20', typesInferrer.dynamicType.nonNullable());
   checkReturn('returnAsString',
       new TypeMask.subtype(compiler.stringClass.computeType(compiler)));
   checkReturn('returnIntAsNum', typesInferrer.intType);

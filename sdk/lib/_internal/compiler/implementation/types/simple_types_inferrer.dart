@@ -1485,6 +1485,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
   bool accumulateIsChecks = false;
+  bool conditionIsSimple = false;
+
   List<Send> isChecks;
   int loopLevel = 0;
   SideEffects sideEffects = new SideEffects.empty();
@@ -2104,6 +2106,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     if (const SourceString("[]") == op.source) {
       return visitDynamicSend(node);
     } else if (const SourceString("&&") == op.source) {
+      conditionIsSimple = false;
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = true;
       if (isChecks == null) isChecks = <Send>[];
@@ -2116,6 +2119,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       locals.merge(saved);
       return inferrer.boolType;
     } else if (const SourceString("||") == op.source) {
+      conditionIsSimple = false;
       visit(node.receiver);
       LocalsHandler saved = new LocalsHandler.from(locals);
       updateIsChecks(isChecks, usePositive: false);
@@ -2307,13 +2311,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitConditional(Conditional node) {
-    List<Send> tests = handleCondition(node.condition);
+    List<Send> tests = <Send>[];
+    bool simpleCondition = handleCondition(node.condition, tests);
     LocalsHandler saved = new LocalsHandler.from(locals);
     updateIsChecks(tests, usePositive: true);
     TypeMask firstType = visit(node.thenExpression);
     LocalsHandler thenLocals = locals;
     locals = saved;
-    updateIsChecks(tests, usePositive: false);
+    if (simpleCondition) updateIsChecks(tests, usePositive: false);
     TypeMask secondType = visit(node.elseExpression);
     locals.merge(thenLocals);
     TypeMask type = inferrer.computeLUB(firstType, secondType);
@@ -2335,26 +2340,30 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return inferrer.dynamicType;
   }
 
-  List<Send> handleCondition(Node node) {
+  bool handleCondition(Node node, List<Send> tests) {
+    bool oldConditionIsSimple = conditionIsSimple;
     bool oldAccumulateIsChecks = accumulateIsChecks;
     List<Send> oldIsChecks = isChecks;
-    List<Send> tests = <Send>[];
     accumulateIsChecks = true;
+    conditionIsSimple = true;
     isChecks = tests;
     visit(node);
+    bool simpleCondition = conditionIsSimple;
     accumulateIsChecks = oldAccumulateIsChecks;
     isChecks = oldIsChecks;
-    return tests;
+    conditionIsSimple = oldConditionIsSimple;
+    return simpleCondition;
   }
 
   TypeMask visitIf(If node) {
-    List<Send> tests = handleCondition(node.condition);
+    List<Send> tests = <Send>[];
+    bool simpleCondition = handleCondition(node.condition, tests);
     LocalsHandler saved = new LocalsHandler.from(locals);
     updateIsChecks(tests, usePositive: true);
     visit(node.thenPart);
     LocalsHandler thenLocals = locals;
     locals = saved;
-    updateIsChecks(tests, usePositive: false);
+    if (simpleCondition) updateIsChecks(tests, usePositive: false);
     visit(node.elsePart);
     locals.merge(thenLocals);
     return inferrer.dynamicType;
@@ -2409,7 +2418,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   TypeMask visitWhile(While node) {
     return handleLoop(node, () {
-      List<Send> tests = handleCondition(node.condition);
+      List<Send> tests = <Send>[];
+      handleCondition(node.condition, tests);
       updateIsChecks(tests, usePositive: true);
       visit(node.body);
     });
@@ -2418,7 +2428,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitDoWhile(DoWhile node) {
     return handleLoop(node, () {
       visit(node.body);
-      List<Send> tests = handleCondition(node.condition);
+      List<Send> tests = <Send>[];
+      handleCondition(node.condition, tests);
       updateIsChecks(tests, usePositive: true);
     });
   }
@@ -2426,7 +2437,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitFor(For node) {
     visit(node.initializer);
     return handleLoop(node, () {
-      List<Send> tests = handleCondition(node.condition);
+      List<Send> tests = <Send>[];
+      handleCondition(node.condition, tests);
       updateIsChecks(tests, usePositive: true);
       visit(node.body);
       visit(node.update);
