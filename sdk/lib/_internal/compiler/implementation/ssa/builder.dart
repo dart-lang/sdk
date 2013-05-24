@@ -1307,7 +1307,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         function, selector, argumentsNodes, providedArguments, currentNode);
 
     inlinedFrom(element, () {
-      FunctionSignature signature = element.computeSignature(compiler);
+      FunctionElement function = element;
+      FunctionSignature signature = function.computeSignature(compiler);
       signature.orderedForEachParameter((Element parameter) {
         HInstruction argument = localsHandler.readLocal(parameter);
         potentiallyCheckType(argument, parameter.computeType(compiler));
