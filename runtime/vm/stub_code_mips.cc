@@ -111,8 +111,22 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 }
 
 
+// Print the stop message.
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, const char* message) {
+  OS::Print("Stop message: %s\n", message);
+}
+END_LEAF_RUNTIME_ENTRY
+
+
+// Input parameters:
+//   A0 : stop message (const char*).
+// Must preserve all registers.
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ Unimplemented("PrintStopMessage stub");
+  __ EnterCallRuntimeFrame(0);
+  // Call the runtime leaf function. A0 already contains the parameter.
+  __ CallRuntime(kPrintStopMessageRuntimeEntry);
+  __ LeaveCallRuntimeFrame();
+  __ Ret();
 }
 
 
@@ -239,6 +253,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
+  __ TraceSimMsg("FixCallersTarget");
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -324,17 +339,6 @@ void StubCode::GenerateInstanceFunctionLookupStub(Assembler* assembler) {
   PushArgumentsArray(assembler);
   __ TraceSimMsg("InstanceFunctionLookupStub return");
 
-  // Stack:
-  // TOS + 0: argument array.
-  // TOS + 1: arguments descriptor array.
-  // TOS + 2: IC data object.
-  // TOS + 3: Receiver.
-  // TOS + 4: place for result from the call.
-  // TOS + 5: saved FP of previous frame.
-  // TOS + 6: dart code return address
-  // TOS + 7: pc marker (0 for stub).
-  // TOS + 8: last argument of caller.
-  // ....
   __ CallRuntime(kInstanceFunctionLookupRuntimeEntry);
 
   __ lw(V0, Address(SP, 4 * kWordSize));  // Get result into V0.
@@ -351,6 +355,8 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 
 
+
+
 // Used by eager and lazy deoptimization. Preserve result in V0 if necessary.
 // This stub translates optimized frame into unoptimized frame. The optimized
 // frame can contain values in registers and on stack, the unoptimized
@@ -364,42 +370,53 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // GC can occur only after frame is fully rewritten.
 // Stack after EnterFrame(...) below:
 //   +------------------+
-//   | Saved FP         | <- TOS
+//   | Saved PP         | <- TOS
 //   +------------------+
-//   | return-address   |  (deoptimization point)
+//   | Saved FP         | <- FP of stub
 //   +------------------+
-//   | optimized frame  |
-//   |  ...             |
+//   | Saved LR         |  (deoptimization point)
+//   +------------------+
+//   | PC marker        |
+//   +------------------+
+//   | ...              | <- SP of optimized frame
 //
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
+  __ TraceSimMsg("GenerateDeoptimizationSequence");
   const intptr_t kPushedRegistersSize =
       kNumberOfCpuRegisters * kWordSize +
-      2 * kWordSize +  // FP and RA.
+      4 * kWordSize +  // PP, FP, RA, PC marker.
       kNumberOfFRegisters * kWordSize;
 
+  // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
+  // is no need to set the correct PC marker or load PP, since they get patched.
   __ addiu(SP, SP, Immediate(-kPushedRegistersSize * kWordSize));
-  __ sw(RA, Address(SP, kPushedRegistersSize - 1 * kWordSize));
-  __ sw(FP, Address(SP, kPushedRegistersSize - 2 * kWordSize));
-  __ addiu(FP, SP, Immediate(kPushedRegistersSize - 2 * kWordSize));
-
+  __ sw(ZR, Address(SP, kPushedRegistersSize - 1 * kWordSize));
+  __ sw(RA, Address(SP, kPushedRegistersSize - 2 * kWordSize));
+  __ sw(FP, Address(SP, kPushedRegistersSize - 3 * kWordSize));
+  __ sw(PP, Address(SP, kPushedRegistersSize - 4 * kWordSize));
+  __ addiu(FP, SP, Immediate(kPushedRegistersSize - 3 * kWordSize));
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
-  const intptr_t saved_v0_offset_from_fp = -(kNumberOfCpuRegisters - V0);
+  const intptr_t saved_result_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - V0);
   // Result in V0 is preserved as part of pushing all registers below.
+
+  // TODO(regis): Should we align the stack before pushing the fpu registers?
+  // If we do, saved_result_slot_from_fp is not constant anymore.
 
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
   for (int i = 0; i < kNumberOfCpuRegisters; i++) {
-    const int slot = 2 + kNumberOfCpuRegisters - i;
+    const int slot = 4 + kNumberOfCpuRegisters - i;
     Register reg = static_cast<Register>(i);
     __ sw(reg, Address(SP, kPushedRegistersSize - slot * kWordSize));
   }
   for (int i = 0; i < kNumberOfFRegisters; i++) {
     // These go below the CPU registers.
-    const int slot = 2 + kNumberOfCpuRegisters + kNumberOfFRegisters - i;
+    const int slot = 4 + kNumberOfCpuRegisters + kNumberOfFRegisters - i;
     FRegister reg = static_cast<FRegister>(i);
     __ swc1(reg, Address(SP, kPushedRegistersSize - slot * kWordSize));
   }
@@ -411,38 +428,40 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   if (preserve_result) {
     // Restore result into T1 temporarily.
-    __ lw(T1, Address(FP, saved_v0_offset_from_fp * kWordSize));
+    __ lw(T1, Address(FP, saved_result_slot_from_fp * kWordSize));
   }
 
-  __ mov(SP, FP);
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-
+  __ addiu(SP, FP, Immediate(-kWordSize));
+  __ lw(RA, Address(SP, 2 * kWordSize));
+  __ lw(FP, Address(SP, 1 * kWordSize));
+  __ lw(PP, Address(SP, 0 * kWordSize));
   __ subu(SP, FP, V0);
 
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  // DeoptimizeFillFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
+  // is no need to set the correct PC marker or load PP, since they get patched.
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  __ sw(ZR, Address(SP, 3 * kWordSize));
+  __ sw(RA, Address(SP, 2 * kWordSize));
+  __ sw(FP, Address(SP, 1 * kWordSize));
+  __ sw(PP, Address(SP, 0 * kWordSize));
+  __ addiu(FP, SP, Immediate(kWordSize));
 
-  __ mov(A0, SP);  // Get last FP address.
+  __ mov(A0, FP);  // Get last FP address.
   if (preserve_result) {
-    __ Push(T1);  // Preserve result.
+    __ Push(T1);  // Preserve result as first local.
   }
   __ ReserveAlignedFrameSpace(0);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);  // Pass last FP in A0.
-  // Result (V0) is our FP.
   if (preserve_result) {
     // Restore result into T1.
-    __ lw(T1, Address(FP, -1 * kWordSize));
+    __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
-  __ mov(SP, FP);
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
-  __ mov(FP, V0);
+  __ addiu(SP, FP, Immediate(-kWordSize));
+  __ lw(RA, Address(SP, 2 * kWordSize));
+  __ lw(FP, Address(SP, 1 * kWordSize));
+  __ lw(PP, Address(SP, 0 * kWordSize));
+  __ addiu(SP, SP, Immediate(4 * kWordSize));
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
   // Materialize any objects that were deferred by FillFrame because they
@@ -456,20 +475,22 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Result tells stub how many bytes to remove from the expression stack
   // of the bottom-most frame. They were used as materialization arguments.
   __ Pop(T1);
-  __ SmiUntag(T1);
   if (preserve_result) {
     __ Pop(V0);  // Restore result.
   }
   __ LeaveStubFrame();
-
-  // Return.
-  __ jr(RA);
-  __ delay_slot()->addu(SP, SP, T1);  // Remove materialization arguments.
+  // Remove materialization arguments.
+  __ SmiUntag(T1);
+  __ addu(SP, SP, T1);
+  __ Ret();
 }
 
 
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
-  __ Unimplemented("DeoptimizeLazy stub");
+  // Correct return address to point just after the call that is being
+  // deoptimized.
+  __ AddImmediate(RA, -CallPattern::kFixedLengthInBytes);
+  GenerateDeoptimizationSequence(assembler, true);  // Preserve V0.
 }
 
 
@@ -480,6 +501,7 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ Unimplemented("MegamorphicMiss stub");
+  return;
 }
 
 
@@ -866,6 +888,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // Output:
 //   V0: new allocated RawContext object.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
+  __ TraceSimMsg("AllocateContext");
   if (FLAG_inline_alloc) {
     const Class& context_class = Class::ZoneHandle(Object::context_class());
     Label slow_case;
@@ -1757,6 +1780,7 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
+  __ TraceSimMsg("BreakpointDynamicStub");
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
@@ -2137,6 +2161,8 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler) {
   __ Bind(&reference_compare);
   __ subu(ret, left, right);
   __ Bind(&done);
+  // A branch or test after this comparison will check CMPRES == TMP1.
+  __ mov(TMP1, ZR);
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lw(T1, Address(SP, 1 * kWordSize));
   __ Ret();

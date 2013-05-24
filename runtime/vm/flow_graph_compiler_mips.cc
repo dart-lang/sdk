@@ -45,8 +45,96 @@ bool FlowGraphCompiler::SupportsUnboxedMints() {
 
 RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
                                                  DeoptInfoBuilder* builder) {
-  UNIMPLEMENTED();  // TODO(regis): Copy ARM version.
-  return NULL;
+  if (deopt_env_ == NULL) return DeoptInfo::null();
+
+  intptr_t stack_height = compiler->StackSize();
+  AllocateIncomingParametersRecursive(deopt_env_, &stack_height);
+
+  intptr_t slot_ix = 0;
+  Environment* current = deopt_env_;
+
+  // Emit all kMaterializeObject instructions describing objects to be
+  // materialized on the deoptimization as a prefix to the deoptimization info.
+  EmitMaterializations(deopt_env_, builder);
+
+  // The real frame starts here.
+  builder->MarkFrameStart();
+
+  // Current PP, FP, and PC.
+  builder->AddPp(current->function(), slot_ix++);
+  builder->AddCallerFp(slot_ix++);
+  builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
+
+  // Callee's PC marker is not used anymore. Pass Function::null() to set to 0.
+  builder->AddPcMarker(Function::Handle(), slot_ix++);
+
+  // Emit all values that are needed for materialization as a part of the
+  // expression stack for the bottom-most frame. This guarantees that GC
+  // will be able to find them during materialization.
+  slot_ix = builder->EmitMaterializationArguments(slot_ix);
+
+  // For the innermost environment, set outgoing arguments and the locals.
+  for (intptr_t i = current->Length() - 1;
+       i >= current->fixed_parameter_count();
+       i--) {
+    builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
+  }
+
+  Environment* previous = current;
+  current = current->outer();
+  while (current != NULL) {
+    // PP, FP, and PC.
+    builder->AddPp(current->function(), slot_ix++);
+    builder->AddCallerFp(slot_ix++);
+
+    // For any outer environment the deopt id is that of the call instruction
+    // which is recorded in the outer environment.
+    builder->AddReturnAddress(current->function(),
+                              Isolate::ToDeoptAfter(current->deopt_id()),
+                              slot_ix++);
+
+    // PC marker.
+    builder->AddPcMarker(previous->function(), slot_ix++);
+
+    // The values of outgoing arguments can be changed from the inlined call so
+    // we must read them from the previous environment.
+    for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+      builder->AddCopy(previous->ValueAt(i),
+                       previous->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // Set the locals, note that outgoing arguments are not in the environment.
+    for (intptr_t i = current->Length() - 1;
+         i >= current->fixed_parameter_count();
+         i--) {
+      builder->AddCopy(current->ValueAt(i),
+                       current->LocationAt(i),
+                       slot_ix++);
+    }
+
+    // Iterate on the outer environment.
+    previous = current;
+    current = current->outer();
+  }
+  // The previous pointer is now the outermost environment.
+  ASSERT(previous != NULL);
+
+  // For the outermost environment, set caller PC, caller PP, and caller FP.
+  builder->AddCallerPp(slot_ix++);
+  builder->AddCallerFp(slot_ix++);
+  builder->AddCallerPc(slot_ix++);
+
+  // PC marker.
+  builder->AddPcMarker(previous->function(), slot_ix++);
+
+  // For the outermost environment, set the incoming arguments.
+  for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
+    builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i), slot_ix++);
+  }
+
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(builder->CreateDeoptInfo());
+  return deopt_info.raw();
 }
 
 
@@ -78,8 +166,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_false) {
   __ TraceSimMsg("BoolToJump");
   Label fall_through;
-  __ BranchEqual(bool_register, reinterpret_cast<intptr_t>(Object::null()),
-                 &fall_through);
+  __ beq(bool_register, NULLREG, &fall_through);
   __ BranchEqual(bool_register, Bool::True(), is_true);
   __ b(is_false);
   __ Bind(&fall_through);
@@ -101,19 +188,14 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
   __ LoadObject(A2, type_test_cache);
-  intptr_t null = reinterpret_cast<intptr_t>(Object::null());
-  uint16_t null_lo = Utils::Low16Bits(null);
-  uint16_t null_hi = Utils::High16Bits(null);
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ lui(A1, Immediate(null_hi));
     __ BranchLink(&StubCode::Subtype1TestCacheLabel());
-    __ delay_slot()->ori(A1, A1, Immediate(null_lo));
+    __ delay_slot()->mov(A1, NULLREG);
   } else if (test_kind == kTestTypeTwoArgs) {
     ASSERT(type_arguments_reg == kNoRegister);
-    __ lui(A1, Immediate(null_hi));
     __ BranchLink(&StubCode::Subtype2TestCacheLabel());
-    __ delay_slot()->ori(A1, A1, Immediate(null_lo));
+    __ delay_slot()->mov(A1, NULLREG);
   } else if (test_kind == kTestTypeThreeArgs) {
     ASSERT(type_arguments_reg == A1);
     __ BranchLink(&StubCode::Subtype3TestCacheLabel());
@@ -247,8 +329,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     // Check if instance is a closure.
     __ LoadClassById(T1, kClassIdReg);
     __ lw(T1, FieldAddress(T1, Class::signature_function_offset()));
-    __ BranchNotEqual(T1, reinterpret_cast<int32_t>(Object::null()),
-                      is_instance_lbl);
+    __ bne(T1, NULLREG, is_instance_lbl);
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
@@ -315,8 +396,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ lw(A1, Address(SP, 0));  // Get instantiator type arguments.
     // A1: instantiator type arguments.
     // Check if type argument is dynamic.
-    __ BranchEqual(A1, reinterpret_cast<intptr_t>(Object::null()),
-                   is_instance_lbl);
+    __ beq(A1, NULLREG, is_instance_lbl);
     // Can handle only type arguments that are instances of TypeArguments.
     // (runtime checks canonicalize type arguments).
     Label fall_through;
@@ -327,8 +407,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // R2: concrete type of type.
     // Check if type argument is dynamic.
     __ BranchEqual(T2, Type::ZoneHandle(Type::DynamicType()), is_instance_lbl);
-    __ BranchEqual(T2, reinterpret_cast<intptr_t>(Object::null()),
-                   is_instance_lbl);
+    __ beq(T2, NULLREG, is_instance_lbl);
     const Type& object_type = Type::ZoneHandle(Type::ObjectType());
     __ BranchEqual(T2, object_type, is_instance_lbl);
 
@@ -487,7 +566,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
-  __ BranchEqual(A0, reinterpret_cast<int32_t>(Object::null()), &is_assignable);
+  __ beq(A0, NULLREG, &is_assignable);
   __ delay_slot()->sw(A1, Address(SP, 0 * kWordSize));
 
   if (!FLAG_eliminate_type_checks) {
@@ -726,8 +805,7 @@ void FlowGraphCompiler::CopyParameters() {
     delete[] opt_param_position;
     // Check that T0 now points to the null terminator in the array descriptor.
     __ lw(T3, Address(T0));
-    __ BranchEqual(T3, reinterpret_cast<int32_t>(Object::null()),
-                   &all_arguments_processed);
+    __ beq(T3, NULLREG, &all_arguments_processed);
   } else {
     ASSERT(num_opt_pos_params > 0);
     __ lw(T2,
@@ -804,8 +882,6 @@ void FlowGraphCompiler::CopyParameters() {
   // implicitly final, since garbage collecting the unmodified value is not
   // an issue anymore.
 
-  __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
-
   // S4 : arguments descriptor array.
   __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
   __ sll(T2, T2, 1);  // T2 is a Smi.
@@ -818,7 +894,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ addiu(T2, T2, Immediate(-kWordSize));
   __ addu(T3, T1, T2);
   __ bgtz(T2, &null_args_loop);
-  __ delay_slot()->sw(T0, Address(T3));
+  __ delay_slot()->sw(NULLREG, Address(T3));
   __ Bind(&null_args_loop_exit);
 }
 
@@ -841,12 +917,8 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ lw(T0, Address(SP, 1 * kWordSize));  // Receiver.
   __ lw(T1, Address(SP, 0 * kWordSize));  // Value.
   __ StoreIntoObject(T0, FieldAddress(T0, offset), T1);
-  intptr_t null = reinterpret_cast<intptr_t>(Object::null());
-  uint16_t null_lo = Utils::Low16Bits(null);
-  uint16_t null_hi = Utils::High16Bits(null);
-  __ lui(V0, Immediate(null_hi));
   __ Ret();
-  __ delay_slot()->ori(V0, V0, Immediate(null_lo));
+  __ delay_slot()->mov(V0, NULLREG);
 }
 
 
@@ -1039,10 +1111,9 @@ void FlowGraphCompiler::CompileGraph() {
     __ TraceSimMsg("Initialize spill slots");
     __ Comment("Initialize spill slots");
     const intptr_t slot_base = parsed_function().first_stack_local_index();
-    __ LoadImmediate(T0, reinterpret_cast<intptr_t>(Object::null()));
     for (intptr_t i = 0; i < num_locals; ++i) {
       // Subtract index i (locals lie at lower addresses than FP).
-      __ sw(T0, Address(FP, (slot_base - i) * kWordSize));
+      __ sw(NULLREG, Address(FP, (slot_base - i) * kWordSize));
     }
   }
 
@@ -1065,7 +1136,7 @@ void FlowGraphCompiler::CompileGraph() {
   AddCurrentDescriptor(PcDescriptors::kPatchCode,
                        Isolate::kNoDeoptId,
                        0);  // No token position.
-  __ Branch(&StubCode::FixCallersTargetLabel());
+  __ BranchPatchable(&StubCode::FixCallersTargetLabel());
   AddCurrentDescriptor(PcDescriptors::kLazyDeoptJump,
                        Isolate::kNoDeoptId,
                        0);  // No token position.
@@ -1229,7 +1300,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
     return;
   }
-  __ CompareObject(CMPRES, reg, obj);
+  __ CompareObject(CMPRES, TMP1, reg, obj);
 }
 
 
@@ -1252,7 +1323,8 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     __ lw(left, Address(SP, 1 * kWordSize));
     __ addiu(SP, SP, Immediate(2 * kWordSize));
   } else {
-    __ subu(CMPRES, left, right);
+    __ slt(CMPRES, left, right);
+    __ slt(TMP1, right, left);
   }
 }
 
@@ -1468,7 +1540,7 @@ void ParallelMoveResolver::EmitSwap(int index) {
            source.IsQuadStackSlot());
     bool double_width = destination.IsDoubleStackSlot() ||
                         source.IsDoubleStackSlot();
-    FRegister reg = source.IsFpuRegister() ? source.fpu_reg()
+    DRegister reg = source.IsFpuRegister() ? source.fpu_reg()
                                            : destination.fpu_reg();
     const Address& slot_address = source.IsFpuRegister()
         ? destination.ToStackSlotAddress()

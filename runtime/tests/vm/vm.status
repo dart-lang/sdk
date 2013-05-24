@@ -80,6 +80,11 @@ dart/byte_array_test: Skip
 dart/byte_array_optimized_test: Skip
 dart/inline_stack_frame_test: Skip
 
+# Bug in optimized code generation.
+cc/ExternalStringDeoptimize: Skip
+dart/inline_stack_frame_test: Skip
+dart/isolate_mirror_local_test: Skip
+
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]
 cc/CustomIsolates: Skip # Bug 6890

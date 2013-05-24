@@ -1762,6 +1762,20 @@ void Simulator::InstructionDecode(Instr* instr) {
       }
       break;
     }
+    case SLTI: {
+      // Format(instr, "slti 'rt, 'rs, 'imms");
+      int32_t rs_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      set_register(instr->RtField(), rs_val < imm_val ? 1 : 0);
+      break;
+    }
+    case SLTIU: {
+      // Format(instr, "slti 'rt, 'rs, 'immu");
+      uint32_t rs_val = get_register(instr->RsField());
+      uint32_t imm_val = instr->UImmField();
+      set_register(instr->RtField(), rs_val < imm_val ? 1 : 0);
+      break;
+    }
     case SDC1: {
       // Format(instr, "sdc1 'ft, 'imms('rs)");
       int32_t base_val = get_register(instr->RsField());
