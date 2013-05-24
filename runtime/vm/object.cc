@@ -3419,6 +3419,11 @@ void Function::set_unoptimized_code(const Code& value) const {
 }
 
 
+void Function::set_deopt_history(const Array& value) const {
+  StorePointer(&raw_ptr()->deopt_history_, value.raw());
+}
+
+
 RawContextScope* Function::context_scope() const {
   if (IsClosureFunction()) {
     const Object& obj = Object::Handle(raw_ptr()->data_);

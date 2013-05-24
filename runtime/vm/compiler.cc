@@ -498,6 +498,13 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                     Code::Handle(function.unoptimized_code()).EntryPoint());
         }
 
+        // If not yet present, allocate deoptimization history array.
+        Array& deopt_history = Array::Handle(function.deopt_history());
+        if (deopt_history.IsNull()) {
+          deopt_history = Array::New(FLAG_deoptimization_counter_threshold);
+          function.set_deopt_history(deopt_history);
+        }
+
         for (intptr_t i = 0; i < guarded_fields.length(); i++) {
           const Field& field = *guarded_fields[i];
           field.RegisterDependentCode(code);

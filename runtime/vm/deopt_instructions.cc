@@ -16,6 +16,7 @@ namespace dart {
 DEFINE_FLAG(bool, compress_deopt_info, true,
             "Compress the size of the deoptimization info for optimized code.");
 DECLARE_FLAG(bool, trace_deoptimization);
+DECLARE_FLAG(bool, trace_deoptimization_verbose);
 
 DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
                                              intptr_t to_frame_size,
@@ -281,6 +282,18 @@ class DeoptRetAddressInstr : public DeoptInstr {
       CodePatcher::GetInstanceCallAt(pc, code, &ic_data, NULL);
       if (!ic_data.IsNull()) {
         ic_data.set_deopt_reason(deopt_context->deopt_reason());
+      }
+    }
+
+    const Array& deopt_history = Array::Handle(function.deopt_history());
+    ASSERT(!deopt_history.IsNull());
+    intptr_t count = function.deoptimization_counter();
+    ASSERT(count > 0);
+    if (count <= deopt_history.Length()) {
+      deopt_history.SetAt(count - 1, Smi::Handle(Smi::New(deopt_id_)));
+      if (FLAG_trace_deoptimization_verbose) {
+        OS::Print("  adding id %"Pd" to history at %"Pd"\n",
+                  deopt_id_, count - 1);
       }
     }
   }

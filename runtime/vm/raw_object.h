@@ -605,6 +605,7 @@ class RawFunction : public RawObject {
   RawArray* parameter_names_;
   RawCode* code_;  // Compiled code for the function.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
+  RawArray* deopt_history_;  // Deopt Ids of past deoptimizations.
   RawObject* data_;  // Additional data specific to the function kind.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
@@ -615,7 +616,7 @@ class RawFunction : public RawObject {
   intptr_t usage_counter_;  // Incremented while function is running.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
-  uint16_t deoptimization_counter_;
+  int16_t deoptimization_counter_;
   uint16_t kind_tag_;
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;

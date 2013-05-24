@@ -1314,6 +1314,9 @@ class Function : public Object {
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
   inline bool HasCode() const;
 
+  RawArray* deopt_history() const { return raw_ptr()->deopt_history_; }
+  void set_deopt_history(const Array& value) const;
+
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
   bool HasBreakpoint() const;
