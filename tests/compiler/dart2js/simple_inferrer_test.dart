@@ -295,6 +295,14 @@ testSwitch3() {
   return b;
 }
 
+testSwitch4() {
+  switch(topLevelGetter) {
+    case 1: break;
+    default: break;
+  }
+  return 42;
+}
+
 testContinue1() {
   var a = 42;
   var b;
@@ -423,6 +431,7 @@ main() {
   testSwitch1();
   testSwitch2();
   testSwitch3();
+  testSwitch4();
   testContinue1();
   testBreak1();
   testContinue2();
@@ -511,6 +520,7 @@ void main() {
       .union(typesInferrer.doubleType, compiler).nullable().simplify(compiler));
   checkReturn('testSwitch2', typesInferrer.intType);
   checkReturn('testSwitch3', interceptorType.nullable());
+  checkReturn('testSwitch4', typesInferrer.intType);
   checkReturn('testContinue1', interceptorType.nullable());
   checkReturn('testBreak1', interceptorType.nullable());
   checkReturn('testContinue2', interceptorType.nullable());

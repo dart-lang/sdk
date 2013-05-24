@@ -2617,6 +2617,15 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       locals = result;
     }
     clearBreaksAndContinues(elements[node]);
+    // In case there is a default in the switch we discard the
+    // incoming localsHandler, because the types it holds do not need
+    // to be merged after the switch statement. This means that, if all
+    // cases, including the default, break or continue, the [result]
+    // handler may think it just aborts the current block. Therefore
+    // we set the current locals to not have any break or continue, so
+    // that the [visitBlock] method does not assume the code after the
+    // switch is dead code.
+    locals.seenBreakOrContinue = false;
     return inferrer.dynamicType;
   }
 }
