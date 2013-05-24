@@ -448,7 +448,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushl(raw_null);  // Space for the result of the runtime call.
   __ pushl(EAX);  // Pass receiver.
   __ pushl(ECX);  // Pass IC data.
-  __ pushl(EDX);  // Pass rguments descriptor.
+  __ pushl(EDX);  // Pass arguments descriptor.
   __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry);
   // Discard arguments.
   __ popl(EAX);
