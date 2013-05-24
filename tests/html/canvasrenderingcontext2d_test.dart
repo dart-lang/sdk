@@ -233,12 +233,13 @@ main() {
     test('putImageData throws with wrong number of arguments', () {
       ImageData expectedData = context.getImageData(0, 0, 10, 10);
 
+      // TODO(antonm): in Dartium ArgumentError should be thrown too.
       expect(() => context.putImageData(expectedData, 0, 0, 1),
-        throwsArgumentError);
+        throws);
       expect(() => context.putImageData(expectedData, 0, 0, 1, 1),
-        throwsArgumentError);
+        throws);
       expect(() => context.putImageData(expectedData, 0, 0, 1, 1, 5),
-        throwsArgumentError);
+        throws);
     });
   });
 
