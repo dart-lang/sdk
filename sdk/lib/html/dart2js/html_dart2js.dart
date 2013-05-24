@@ -1211,9 +1211,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
-    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-    _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-    return;
+    if (dirtyX != null && dirtyY != null && dirtyWidth != null && dirtyHeight != null) {
+      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+      _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('putImageData')
@@ -1306,9 +1308,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
       _putImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
-    var imagedata_2 = _convertDartToNative_ImageData(imagedata);
-    _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-    return;
+    if (dirtyX != null && dirtyY != null && dirtyWidth != null && dirtyHeight != null) {
+      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+      _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+      return;
+    }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('webkitPutImageDataHD')

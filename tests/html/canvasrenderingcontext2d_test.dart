@@ -159,20 +159,86 @@ main() {
     });
 
     test('putImageData', () {
+      context.fillStyle = 'green';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
       ImageData expectedData = context.getImageData(0, 0, 10, 10);
       expectedData.data[0] = 25;
       expectedData.data[1] = 65;
       expectedData.data[2] = 255;
       // Set alpha to 255 to make the pixels show up.
       expectedData.data[3] = 255;
-      context.fillStyle = 'green';
-      context.fillRect(0, 0, canvas.width, canvas.height);
 
       context.putImageData(expectedData, 0, 0);
 
       var resultingData = context.getImageData(0, 0, 10, 10);
       // Make sure that we read back what we wrote.
       expect(resultingData.data, expectedData.data);
+    });
+
+    test('putImageData dirty rectangle', () {
+      context.fillStyle = 'green';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      ImageData drawnData = context.getImageData(0, 0, 10, 10);
+      drawnData.data[0] = 25;
+      drawnData.data[1] = 65;
+      drawnData.data[2] = 255;
+      drawnData.data[3] = 255;
+
+      // Draw these pixels to the 2nd pixel.
+      drawnData.data[2 * 4 + 0] = 25;
+      drawnData.data[2 * 4 + 1] = 65;
+      drawnData.data[2 * 4 + 2] = 255;
+      drawnData.data[2 * 4 + 3] = 255;
+
+      // Draw these pixels to the 8th pixel.
+      drawnData.data[7 * 4 + 0] = 25;
+      drawnData.data[7 * 4 + 1] = 65;
+      drawnData.data[7 * 4 + 2] = 255;
+      drawnData.data[7 * 4 + 3] = 255;
+
+      // Use a dirty rectangle to limit what pixels are drawn.
+      context.putImageData(drawnData, 0, 0, 1, 0, 5, 5);
+
+      // Expect the data to be all green, as we skip all drawn pixels.
+      ImageData expectedData = context.createImageData(10, 10);
+      for (int i = 0; i < expectedData.data.length; i++) {
+        switch (i % 4) {
+          case 0:
+            expectedData.data[i] =  0;
+            break;
+          case 1:
+            expectedData.data[i] =  128;
+            break;
+          case 2:
+            expectedData.data[i] =  0;
+            break;
+          case 3:
+            expectedData.data[i] =  255;
+            break;
+        }
+      }
+      // Third pixel was copied.
+      expectedData.data[2 * 4 + 0] = 25;
+      expectedData.data[2 * 4 + 1] = 65;
+      expectedData.data[2 * 4 + 2] = 255;
+      expectedData.data[2 * 4 + 3] = 255;
+
+      // Make sure that our data is all green.
+      var resultingData = context.getImageData(0, 0, 10, 10);
+      expect(resultingData.data, expectedData.data);
+    });
+
+    test('putImageData throws with wrong number of arguments', () {
+      ImageData expectedData = context.getImageData(0, 0, 10, 10);
+
+      expect(() => context.putImageData(expectedData, 0, 0, 1),
+        throwsArgumentError);
+      expect(() => context.putImageData(expectedData, 0, 0, 1, 1),
+        throwsArgumentError);
+      expect(() => context.putImageData(expectedData, 0, 0, 1, 1, 5),
+        throwsArgumentError);
     });
   });
 
