@@ -87,7 +87,7 @@ class LishCommand extends PubCommand {
         // TODO(nweiz): the response may have XML-formatted information about
         // the error. Try to parse that out once we have an easily-accessible
         // XML parser.
-        throw new Exception('Failed to upload the package.');
+        throw new ApplicationException('Failed to upload the package.');
       } else if (urisEqual(Uri.parse(url.origin), Uri.parse(server.origin))) {
         handleJsonError(error.response);
       } else {
