@@ -92,10 +92,12 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
 
 
 void Intrinsifier::InitializeState() {
-  Library& lib = Library::Handle();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-  String& str = String::Handle();
+  Isolate* isolate = Isolate::Current();
+  Library& lib = Library::Handle(isolate);
+  Class& cls = Class::Handle(isolate);
+  Function& func = Function::Handle(isolate);
+  String& str = String::Handle(isolate);
+  Error& error = Error::Handle(isolate);
 
 #define SETUP_FUNCTION(class_name, function_name, destination, fp)             \
   if (strcmp(#class_name, "::") == 0) {                                        \
@@ -105,6 +107,8 @@ void Intrinsifier::InitializeState() {
     str = String::New(#class_name);                                            \
     cls = lib.LookupClassAllowPrivate(str);                                    \
     ASSERT(!cls.IsNull());                                                     \
+    error = cls.EnsureIsFinalized(isolate);                                    \
+    ASSERT(error.IsNull());                                                    \
     if (#function_name[0] == '.') {                                            \
       str = String::New(#class_name#function_name);                            \
     } else {                                                                   \

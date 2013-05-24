@@ -456,9 +456,9 @@ class RawObject {
 class RawClass : public RawObject {
  public:
   enum ClassState {
-    kAllocated,     // Initial state.
+    kAllocated = 0,  // Initial state.
     kPreFinalized,  // VM classes: size precomputed, but no checks done.
-    kFinalized,     // All checks completed, class ready for use.
+    kFinalized,     // Class parsed, finalized and ready for use.
   };
 
  private:
@@ -476,6 +476,7 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawType* mixin_;
+  RawClass* patch_class_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawArray* canonical_types_;  // Canonicalized types of this class.
@@ -491,7 +492,7 @@ class RawClass : public RawObject {
   intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
-  uint8_t state_bits_;  // state, is_const, is_implemented.
+  uint16_t state_bits_;  // state, is_[const|implemented|synthesized|abstract].
 
   friend class Instance;
   friend class Object;

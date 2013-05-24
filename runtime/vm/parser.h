@@ -143,13 +143,13 @@ class ParsedFunction : public ZoneAllocated {
 
 class Parser : public ValueObject {
  public:
-  Parser(const Script& script, const Library& library);
-  Parser(const Script& script, ParsedFunction* function, intptr_t token_pos);
-
   // Parse the top level of a whole script file and register declared classes
   // in the given library.
   static void ParseCompilationUnit(const Library& library,
                                    const Script& script);
+
+  // Parse top level of a class and register all functions/fields.
+  static void ParseClass(const Class& cls);
 
   static void ParseFunction(ParsedFunction* parsed_function);
 
@@ -184,6 +184,9 @@ class Parser : public ValueObject {
  private:
   struct Block;
   class TryBlocks;
+
+  Parser(const Script& script, const Library& library, intptr_t token_pos);
+  Parser(const Script& script, ParsedFunction* function, intptr_t token_pos);
 
   // The function for which we will generate code.
   const Function& current_function() const;
@@ -332,7 +335,8 @@ class Parser : public ValueObject {
 
   // Support for parsing of scripts.
   void ParseTopLevel();
-  void ParseClassDefinition(const GrowableObjectArray& pending_classes);
+  void ParseClassDeclaration(const GrowableObjectArray& pending_classes);
+  void ParseClassDefinition(const Class& cls);
   void ParseMixinTypedef(const GrowableObjectArray& pending_classes);
   void ParseTypedef(const GrowableObjectArray& pending_classes);
   void ParseTopLevelVariable(TopLevel* top_level);

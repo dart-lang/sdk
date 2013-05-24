@@ -605,6 +605,7 @@ class Class : public Object {
   void set_script(const Script& value) const;
 
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(intptr_t value) const;
 
   // This class represents the signature class of a closure function if
   // signature_function() is not null.
@@ -652,7 +653,7 @@ class Class : public Object {
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
   intptr_t type_arguments_field_offset() const {
-    ASSERT(is_finalized() || is_prefinalized());
+    ASSERT(is_type_finalized() || is_prefinalized());
     if (raw_ptr()->type_arguments_field_offset_in_words_ == kNoTypeArguments) {
       return kNoTypeArguments;
     }
@@ -689,6 +690,11 @@ class Class : public Object {
 
   RawType* mixin() const { return raw_ptr()->mixin_; }
   void set_mixin(const Type& value) const;
+
+  RawClass* patch_class() const {
+    return raw_ptr()->patch_class_;
+  }
+  void set_patch_class(const Class& patch_class) const;
 
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
@@ -808,6 +814,21 @@ class Class : public Object {
   }
   void set_is_abstract() const;
 
+  bool is_type_finalized() const {
+    return TypeFinalizedBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_type_finalized() const;
+
+  bool is_patch() const {
+    return PatchBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_patch() const;
+
+  bool is_synthesized_class() const {
+    return SynthesizedClassBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_synthesized_class() const;
+
   bool is_finalized() const {
     return StateBits::decode(raw_ptr()->state_bits_) == RawClass::kFinalized;
   }
@@ -818,6 +839,12 @@ class Class : public Object {
   }
 
   void set_is_prefinalized() const;
+
+  bool is_marked_for_parsing() const {
+    return MarkedForParsingBit::decode(raw_ptr()->state_bits_);
+  }
+  void set_is_marked_for_parsing() const;
+  void reset_is_marked_for_parsing() const;
 
   bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
@@ -842,6 +869,8 @@ class Class : public Object {
   void Finalize() const;
 
   const char* ApplyPatch(const Class& patch) const;
+
+  RawError* EnsureIsFinalized(Isolate* isolate) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
@@ -888,20 +917,27 @@ class Class : public Object {
 
  private:
   enum {
-    kConstBit = 1,
-    kImplementedBit = 2,
-    kAbstractBit = 3,
-    kStateTagBit = 4,
+    kConstBit = 0,
+    kImplementedBit = 1,
+    kAbstractBit = 2,
+    kPatchBit = 3,
+    kSynthesizedClassBit = 4,
+    kTypeFinalizedBit = 5,
+    kStateTagBit = 6,
     kStateTagSize = 2,
+    kMarkedForParsingBit = 8,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
+  class PatchBit : public BitField<bool, kPatchBit, 1> {};
+  class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
+  class TypeFinalizedBit : public BitField<bool, kTypeFinalizedBit, 1> {};
   class StateBits : public BitField<RawClass::ClassState,
                                     kStateTagBit, kStateTagSize> {};  // NOLINT
+  class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
 
   void set_name(const String& value) const;
-  void set_token_pos(intptr_t value) const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
   void set_class_state(RawClass::ClassState state) const;

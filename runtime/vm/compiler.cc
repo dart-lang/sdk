@@ -99,6 +99,131 @@ RawError* Compiler::Compile(const Library& library, const Script& script) {
 }
 
 
+static void AddRelatedClassesToList(const Class& cls,
+                                    const GrowableObjectArray& parse_list,
+                                    const GrowableObjectArray& patch_list) {
+  Isolate* isolate = Isolate::Current();
+  Class& parse_class = Class::Handle(isolate);
+  Type& interface_type = Type::Handle(isolate);
+  Array& interfaces = Array::Handle(isolate);
+
+  // Add all the interfaces implemented by the class that have not been
+  // already parsed to the parse list. Mark the interface as parsed so that
+  // we don't recursively add it back into the list.
+  interfaces ^= cls.interfaces();
+  for (intptr_t i = 0; i < interfaces.Length(); i++) {
+    interface_type ^= interfaces.At(i);
+    parse_class ^= interface_type.type_class();
+    if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
+      parse_list.Add(parse_class);
+      parse_class.set_is_marked_for_parsing();
+    }
+  }
+
+  // Walk up the super_class chain and add these classes to the list if they
+  // have not been already parsed to the parse list. Mark the class as parsed
+  // so that we don't recursively add it back into the list.
+  parse_class ^= cls.SuperClass();
+  while (!parse_class.IsNull()) {
+    if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
+      parse_list.Add(parse_class);
+      parse_class.set_is_marked_for_parsing();
+    }
+    parse_class ^= parse_class.SuperClass();
+  }
+
+  // Add patch classes if they exist to the parse list if they have not already
+  // been parsed and patched. Mark the class as parsed so that we don't
+  // recursively add it back into the list.
+  parse_class ^= cls.patch_class();
+  if (!parse_class.IsNull()) {
+    if (!parse_class.is_finalized() && !parse_class.is_marked_for_parsing()) {
+      patch_list.Add(parse_class);
+      parse_class.set_is_marked_for_parsing();
+    }
+  }
+}
+
+
+RawError* Compiler::CompileClass(const Class& cls) {
+  // If class is a top level class it is already parsed.
+  if (cls.IsTopLevel()) {
+    return Error::null();
+  }
+  // If the class is already marked for parsing return immediately.
+  if (cls.is_marked_for_parsing()) {
+    return Error::null();
+  }
+  // Parse the class and all the interfaces it implements and super classes.
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    if (FLAG_trace_compiler) {
+      OS::Print("Compiling Class %s '%s'\n", "", cls.ToCString());
+    }
+
+    Class& parse_class = Class::Handle();
+    const GrowableObjectArray& parse_list =
+        GrowableObjectArray::Handle(GrowableObjectArray::New(4));
+    const GrowableObjectArray& patch_list =
+        GrowableObjectArray::Handle(GrowableObjectArray::New(4));
+
+    // Add the primary class which needs to be parsed to the parse list.
+    // Mark the class as parsed so that we don't recursively add the same
+    // class back into the list.
+    parse_list.Add(cls);
+    cls.set_is_marked_for_parsing();
+
+    // Add all super classes, interface classes and patch class if one
+    // exists to the corresponding lists.
+    // NOTE: The parse_list array keeps growing as more classes are added
+    // to it by AddRelatedClassesToList. It is not OK to hoist
+    // parse_list.Length() into a local variable and iterate using the local
+    // variable.
+    for (intptr_t i = 0; i < parse_list.Length(); i++) {
+      parse_class ^= parse_list.At(i);
+      AddRelatedClassesToList(parse_class, parse_list, patch_list);
+    }
+
+    // Parse all the classes that have been added above.
+    for (intptr_t i = (parse_list.Length() - 1); i >=0 ; i--) {
+      parse_class ^= parse_list.At(i);
+      ASSERT(!parse_class.IsNull());
+      Parser::ParseClass(parse_class);
+    }
+
+    // Parse all the patch classes that have been added above.
+    for (intptr_t i = 0; i < patch_list.Length(); i++) {
+      parse_class ^= patch_list.At(i);
+      ASSERT(!parse_class.IsNull());
+      Parser::ParseClass(parse_class);
+    }
+
+    // Finalize these classes.
+    for (intptr_t i = (parse_list.Length() - 1); i >=0 ; i--) {
+      parse_class ^= parse_list.At(i);
+      ASSERT(!parse_class.IsNull());
+      ClassFinalizer::FinalizeClass(parse_class);
+      parse_class.reset_is_marked_for_parsing();
+    }
+
+    isolate->set_long_jump_base(base);
+    return Error::null();
+  } else {
+    Error& error = Error::Handle();
+    error = isolate->object_store()->sticky_error();
+    isolate->object_store()->clear_sticky_error();
+    isolate->set_long_jump_base(base);
+    return error.raw();
+  }
+  UNREACHABLE();
+  return Error::null();
+}
+
+
 static void InstallUnoptimizedCode(const Function& function) {
   // Disable optimized code.
   ASSERT(function.HasOptimizedCode());

@@ -15,12 +15,20 @@
 
 namespace dart {
 
+static RawClass* CreateDummyClass(const String& class_name,
+                                  const Script& script) {
+  const Class& cls = Class::Handle(
+      Class::New(class_name, script, Scanner::kDummyTokenIndex));
+  cls.set_is_synthesized_class();  // Dummy class for testing.
+  return cls.raw();
+}
+
+
 TEST_CASE(Class) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
-  const Class& cls = Class::Handle(
-      Class::New(class_name, script, Scanner::kDummyTokenIndex));
+  const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
 
   // Class has no fields.
   cls.SetFields(Object::empty_array());
@@ -70,8 +78,20 @@ TEST_CASE(Class) {
       true, false, false, false, cls, 0);
   functions.SetAt(5, function);
 
-  // Setup the functions in the class.
+  // Setup the functions and interfaces in the class.
   cls.SetFunctions(functions);
+  const Array& interfaces = Array::Handle(Array::New(2));
+  Class& interface = Class::Handle();
+  String& interface_name = String::Handle();
+  interface_name = Symbols::New("Harley");
+  interface = CreateDummyClass(interface_name, script);
+  interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
+  interface_name = Symbols::New("Norton");
+  interface = CreateDummyClass(interface_name, script);
+  interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
+  cls.set_interfaces(interfaces);
+  ClassFinalizer::FinalizeTypesInClass(cls);
+  cls.Finalize();
 
   function_name = String::New("Foo");
   function = cls.LookupDynamicFunction(function_name);
@@ -101,18 +121,6 @@ TEST_CASE(Class) {
   EXPECT(!function.IsNull());
   EXPECT_EQ(kNumFixedParameters, function.num_fixed_parameters());
   EXPECT_EQ(kNumOptionalParameters, function.NumOptionalParameters());
-
-  const Array& interfaces = Array::Handle(Array::New(2));
-  Class& interface = Class::Handle();
-  String& interface_name = String::Handle();
-  interface_name = Symbols::New("Harley");
-  interface = Class::New(interface_name, script, Scanner::kDummyTokenIndex);
-  interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface_name = Symbols::New("Norton");
-  interface = Class::New(interface_name, script, Scanner::kDummyTokenIndex);
-  interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
-  cls.set_interfaces(interfaces);
-  cls.Finalize();
 }
 
 
@@ -165,10 +173,11 @@ TEST_CASE(InstanceClass) {
   String& class_name = String::Handle(Symbols::New("EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+      Class::Handle(CreateDummyClass(class_name, script));
 
   // No functions and no super class for the EmptyClass.
   empty_class.SetFields(Object::empty_array());
+  ClassFinalizer::FinalizeTypesInClass(empty_class);
   empty_class.Finalize();
   EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
   Instance& instance = Instance::Handle(Instance::New(empty_class));
@@ -176,7 +185,7 @@ TEST_CASE(InstanceClass) {
 
   class_name = Symbols::New("OneFieldClass");
   const Class& one_field_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+      Class::Handle(CreateDummyClass(class_name, script));
 
   // No functions and no super class for the OneFieldClass.
   const Array& one_fields = Array::Handle(Array::New(1));
@@ -185,6 +194,7 @@ TEST_CASE(InstanceClass) {
        Field::New(field_name, false, false, false, one_field_class, 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
+  ClassFinalizer::FinalizeTypesInClass(one_field_class);
   one_field_class.Finalize();
   intptr_t header_size = sizeof(RawObject);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
@@ -2173,8 +2183,7 @@ TEST_CASE(Closure) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
-  const Class& cls =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+  const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
   const Array& functions = Array::Handle(Array::New(1));
 
   const Context& context = Context::Handle(Context::New(0));
@@ -2248,7 +2257,7 @@ static Function* CreateFunction(const char* name) {
   const String& class_name = String::Handle(Symbols::New("ownerClass"));
   const Script& script = Script::Handle();
   const Class& owner_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+      Class::Handle(CreateDummyClass(class_name, script));
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
@@ -2420,7 +2429,7 @@ TEST_CASE(PcDescriptors) {
 static RawClass* CreateTestClass(const char* name) {
   const String& class_name = String::Handle(Symbols::New(name));
   const Class& cls = Class::Handle(
-      Class::New(class_name, Script::Handle(), Scanner::kDummyTokenIndex));
+      CreateDummyClass(class_name, Script::Handle()));
   return cls.raw();
 }
 
@@ -2460,7 +2469,7 @@ TEST_CASE(ClassDictionaryIterator) {
 static RawFunction* GetDummyTarget(const char* name) {
   const String& function_name = String::Handle(Symbols::New(name));
   const Class& cls = Class::Handle(
-       Class::New(function_name, Script::Handle(), Scanner::kDummyTokenIndex));
+       CreateDummyClass(function_name, Script::Handle()));
   const bool is_static = false;
   const bool is_const = false;
   const bool is_abstract = false;
@@ -2533,7 +2542,7 @@ TEST_CASE(SubtypeTestCache) {
   String& class_name = String::Handle(Symbols::New("EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =
-      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
+      Class::Handle(CreateDummyClass(class_name, script));
   SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
   ASSERT(!cache.IsNull());
   EXPECT_EQ(0, cache.NumberOfChecks());

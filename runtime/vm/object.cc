@@ -29,6 +29,7 @@
 #include "vm/heap.h"
 #include "vm/intermediate_language.h"
 #include "vm/intrinsifier.h"
+#include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/runtime_entry.h"
@@ -363,6 +364,7 @@ void Object::InitOnce() {
     cls.set_id(Class::kClassId);
     cls.raw_ptr()->state_bits_ = 0;
     cls.set_is_finalized();
+    cls.set_is_type_finalized();
     cls.raw_ptr()->type_arguments_field_offset_in_words_ =
         Class::kNoTypeArguments;
     cls.raw_ptr()->num_native_fields_ = 0;
@@ -373,11 +375,13 @@ void Object::InitOnce() {
   // Allocate and initialize the null class.
   cls = Class::New<Instance>(kNullCid);
   cls.set_is_finalized();
+  cls.set_is_type_finalized();
   null_class_ = cls.raw();
 
   // Allocate and initialize the free list element class.
   cls = Class::New<FreeListElement::FakeInstance>(kFreeListElement);
   cls.set_is_finalized();
+  cls.set_is_type_finalized();
 
   // Allocate and initialize the sentinel values of Null class.
   {
@@ -398,6 +402,7 @@ void Object::InitOnce() {
 
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_finalized();
+  cls.set_is_type_finalized();
   cls.set_is_abstract();
   dynamic_class_ = cls.raw();
 
@@ -407,6 +412,7 @@ void Object::InitOnce() {
 
   cls = Class::New<Instance>(kVoidCid);
   cls.set_is_finalized();
+  cls.set_is_type_finalized();
   void_class_ = cls.raw();
 
   cls = Class::New<TypeArguments>();
@@ -994,6 +1000,7 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Instance>(kIllegalCid);
   cls.set_is_prefinalized();
   RegisterClass(cls, name, core_lib);
+  cls.set_is_prefinalized();
   pending_classes.Add(cls, Heap::kOld);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_string_type(type);
@@ -1543,7 +1550,7 @@ void Class::set_class_state(RawClass::ClassState state) const {
 
 
 void Class::set_state_bits(intptr_t bits) const {
-  raw_ptr()->state_bits_ = static_cast<uint8_t>(bits);
+  raw_ptr()->state_bits_ = static_cast<uint16_t>(bits);
 }
 
 
@@ -1588,7 +1595,7 @@ intptr_t Class::NumTypeArguments() const {
 
 
 bool Class::HasTypeArguments() const {
-  if (!IsSignatureClass() && (is_finalized() || is_prefinalized())) {
+  if (!IsSignatureClass() && (is_type_finalized() || is_prefinalized())) {
     // More efficient than calling NumTypeArguments().
     return type_arguments_field_offset() != kNoTypeArguments;
   } else {
@@ -1782,6 +1789,22 @@ const char* Class::ApplyPatch(const Class& patch) const {
 }
 
 
+// Ensure that top level parsing of the class has been done.
+RawError* Class::EnsureIsFinalized(Isolate* isolate) const {
+  // Finalized classes have already been parsed.
+  if (is_finalized()) {
+    return Error::null();
+  }
+  ASSERT(isolate != NULL);
+  const Error& error = Error::Handle(isolate, Compiler::CompileClass(*this));
+  if (!error.IsNull() && (isolate->long_jump_base() != NULL)) {
+    isolate->long_jump_base()->Jump(1, error);
+    UNREACHABLE();
+  }
+  return error.raw();
+}
+
+
 void Class::SetFields(const Array& value) const {
   ASSERT(!value.IsNull());
 #if defined(DEBUG)
@@ -1847,6 +1870,7 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_instance_size(Closure::InstanceSize());
   result.set_next_field_offset(Closure::InstanceSize());
   result.set_super_type(super_type);
+  result.set_is_synthesized_class();
   result.set_type_arguments_field_offset(Closure::type_arguments_offset());
   // Implements interface "Function".
   const Type& function_type = Type::Handle(Type::Function());
@@ -1907,6 +1931,7 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_next_field_offset(instance_size);
     cls.set_num_native_fields(field_count);
     cls.set_is_finalized();
+    cls.set_is_type_finalized();
     library.AddClass(cls);
     return cls.raw();
   } else {
@@ -1993,6 +2018,21 @@ void Class::set_is_abstract() const {
 }
 
 
+void Class::set_is_type_finalized() const {
+  set_state_bits(TypeFinalizedBit::update(true, raw_ptr()->state_bits_));
+}
+
+
+void Class::set_is_patch() const {
+  set_state_bits(PatchBit::update(true, raw_ptr()->state_bits_));
+}
+
+
+void Class::set_is_synthesized_class() const {
+  set_state_bits(SynthesizedClassBit::update(true, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_const() const {
   set_state_bits(ConstBit::update(true, raw_ptr()->state_bits_));
 }
@@ -2012,6 +2052,16 @@ void Class::set_is_prefinalized() const {
 }
 
 
+void Class::set_is_marked_for_parsing() const {
+  set_state_bits(MarkedForParsingBit::update(true, raw_ptr()->state_bits_));
+}
+
+
+void Class::reset_is_marked_for_parsing() const {
+  set_state_bits(MarkedForParsingBit::update(false, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_interfaces(const Array& value) const {
   // Verification and resolving of interfaces occurs in finalizer.
   ASSERT(!value.IsNull());
@@ -2023,6 +2073,12 @@ void Class::set_mixin(const Type& value) const {
   // Resolution and application of mixin type occurs in finalizer.
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->mixin_, value.raw());
+}
+
+
+void Class::set_patch_class(const Class& cls) const {
+  ASSERT(patch_class() == Class::null());
+  StorePointer(&raw_ptr()->patch_class_, cls.raw());
 }
 
 
@@ -2341,6 +2397,9 @@ static bool MatchesAccessorName(const String& name,
 
 RawFunction* Class::LookupFunction(const String& name) const {
   Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return Function::null();
+  }
   Array& funcs = Array::Handle(isolate, functions());
   if (funcs.IsNull()) {
     // This can occur, e.g., for Null classes.
@@ -2374,6 +2433,9 @@ RawFunction* Class::LookupFunction(const String& name) const {
 
 RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
   Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return Function::null();
+  }
   Array& funcs = Array::Handle(isolate, functions());
   if (funcs.IsNull()) {
     // This can occur, e.g., for Null classes.
@@ -2408,6 +2470,9 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
                                            intptr_t prefix_length,
                                            const String& name) const {
   Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return Function::null();
+  }
   Array& funcs = Array::Handle(isolate, functions());
   Function& function = Function::Handle(isolate, Function::null());
   String& function_name = String::Handle(isolate, String::null());
@@ -2428,12 +2493,16 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
 RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   // TODO(hausner): we can shortcut the negative case if we knew the
   // beginning and end token position of the class.
-  Function& func = Function::Handle();
+  Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return Function::null();
+  }
+  Function& func = Function::Handle(isolate);
   func = LookupClosureFunction(token_pos);
   if (!func.IsNull()) {
     return func.raw();
   }
-  Array& funcs = Array::Handle(functions());
+  Array& funcs = Array::Handle(isolate, functions());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     func ^= funcs.At(i);
@@ -2448,8 +2517,12 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
 
 
 RawField* Class::LookupInstanceField(const String& name) const {
+  Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return Field::null();
+  }
   ASSERT(is_finalized());
-  const Field& field = Field::Handle(LookupField(name));
+  const Field& field = Field::Handle(isolate, LookupField(name));
   if (!field.IsNull()) {
     if (field.is_static()) {
       // Name matches but it is not of the correct kind, return NULL.
@@ -2463,8 +2536,12 @@ RawField* Class::LookupInstanceField(const String& name) const {
 
 
 RawField* Class::LookupStaticField(const String& name) const {
+  Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return Field::null();
+  }
   ASSERT(is_finalized());
-  const Field& field = Field::Handle(LookupField(name));
+  const Field& field = Field::Handle(isolate, LookupField(name));
   if (!field.IsNull()) {
     if (!field.is_static()) {
       // Name matches but it is not of the correct kind, return NULL.
@@ -2479,6 +2556,9 @@ RawField* Class::LookupStaticField(const String& name) const {
 
 RawField* Class::LookupField(const String& name) const {
   Isolate* isolate = Isolate::Current();
+  if (EnsureIsFinalized(isolate) != Error::null()) {
+    return Field::null();
+  }
   const Array& flds = Array::Handle(isolate, fields());
   Field& field = Field::Handle(isolate, Field::null());
   String& field_name = String::Handle(isolate, String::null());
@@ -6860,6 +6940,10 @@ RawError* Library::CompileAll() {
     ClassDictionaryIterator it(lib);
     while (it.HasNext()) {
       cls = it.GetNextClass();
+      error = cls.EnsureIsFinalized(Isolate::Current());
+      if (!error.IsNull()) {
+        return error.raw();
+      }
       error = Compiler::CompileAllFunctions(cls);
       if (!error.IsNull()) {
         return error.raw();
@@ -9144,7 +9228,11 @@ bool Instance::IsCallable(Function* function, Context* context) const {
 
 
 RawInstance* Instance::New(const Class& cls, Heap::Space space) {
-  Instance& result = Instance::Handle();
+  Isolate* isolate = Isolate::Current();
+  if (cls.EnsureIsFinalized(isolate) != Error::null()) {
+    return Instance::null();
+  }
+  Instance& result = Instance::Handle(isolate);
   {
     intptr_t instance_size = cls.instance_size();
     ASSERT(instance_size > 0);
@@ -9348,7 +9436,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     } else {
       // The actual type argument vector can be longer than necessary, because
       // of type optimizations.
-      if (IsFinalized() && cls.is_finalized()) {
+      if (IsFinalized() && cls.is_type_finalized()) {
         first_type_param_index = cls.NumTypeArguments() - num_type_params;
       } else {
         first_type_param_index = num_args - num_type_params;

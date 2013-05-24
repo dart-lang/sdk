@@ -261,9 +261,9 @@ void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
 
 
 // For parsing a compilation unit.
-Parser::Parser(const Script& script, const Library& library)
+Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
     : script_(Script::Handle(script.raw())),
-      tokens_iterator_(TokenStream::Handle(script.tokens()), 0),
+      tokens_iterator_(TokenStream::Handle(script.tokens()), token_pos),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
@@ -352,7 +352,7 @@ void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
   ASSERT(Isolate::Current()->long_jump_base()->IsSafeToJump());
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
-  Parser parser(script, library);
+  Parser parser(script, library, 0);
   parser.ParseTopLevel();
 }
 
@@ -733,6 +733,19 @@ static bool HasReturnNode(SequenceNode* seq) {
     return HasReturnNode(seq->NodeAt(seq->length() - 1)->AsSequenceNode());
   } else {
     return seq->NodeAt(seq->length() - 1)->IsReturnNode();
+  }
+}
+
+
+void Parser::ParseClass(const Class& cls) {
+  if (!cls.is_synthesized_class()) {
+    TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
+    Isolate* isolate = Isolate::Current();
+    ASSERT(isolate->long_jump_base()->IsSafeToJump());
+    const Script& script = Script::Handle(isolate, cls.script());
+    const Library& lib = Library::Handle(isolate, cls.library());
+    Parser parser(script, lib, cls.token_pos());
+    parser.ParseClassDefinition(cls);
   }
 }
 
@@ -3201,8 +3214,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
 }
 
 
-void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
-  TRACE_PARSER("ParseClassDefinition");
+void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes) {
+  TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
   bool is_abstract = false;
   if (is_patch_source() &&
@@ -3214,7 +3227,6 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     is_abstract = true;
     ConsumeToken();
   }
-  const intptr_t class_pos = TokenPos();
   ExpectToken(Token::kCLASS);
   const intptr_t classname_pos = TokenPos();
   String& class_name = *ExpectUserDefinedTypeIdentifier("class name expected");
@@ -3257,6 +3269,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       }
       // Pre-registered classes need their scripts connected at this time.
       cls.set_script(script_);
+      cls.set_token_pos(classname_pos);
     }
   }
   ASSERT(!cls.IsNull());
@@ -3328,24 +3341,50 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     ParseInterfaceList(cls);
   }
 
-  ExpectToken(Token::kLBRACE);
+  if (is_abstract) {
+    cls.set_is_abstract();
+  }
+  if (is_patch) {
+    // Apply the changes to the patched class looked up above.
+    ASSERT(obj.raw() == library_.LookupLocalObject(class_name));
+    // The patched class must not be finalized yet.
+    const Class& orig_class = Class::Cast(obj);
+    ASSERT(!orig_class.is_finalized());
+    orig_class.set_patch_class(cls);
+    cls.set_is_patch();
+  }
+  pending_classes.Add(cls, Heap::kOld);
+
+  if (CurrentToken() != Token::kLBRACE) {
+    ErrorMsg("{ expected");
+  }
+  SkipBlock();
+}
+
+
+void Parser::ParseClassDefinition(const Class& cls) {
+  TRACE_PARSER("ParseClassDefinition");
+  set_current_class(cls);
+  is_top_level_ = true;
+  String& class_name = String::Handle(cls.Name());
+  const intptr_t class_pos = TokenPos();
   ClassDesc members(cls, class_name, false, class_pos);
+  while (CurrentToken() != Token::kLBRACE) {
+    ConsumeToken();
+  }
+  ExpectToken(Token::kLBRACE);
   while (CurrentToken() != Token::kRBRACE) {
     SkipMetadata();
     ParseClassMemberDefinition(&members);
   }
   ExpectToken(Token::kRBRACE);
 
-  if (is_abstract) {
-    cls.set_is_abstract();
-  }
-
   CheckConstructors(&members);
 
   // Need to compute this here since MakeArray() will clear the
   // functions array in members.
   const bool need_implicit_constructor =
-      !members.has_constructor() && !is_patch;
+      !members.has_constructor() && !cls.is_patch();
 
   Array& array = Array::Handle();
   array = Array::MakeArray(members.fields());
@@ -3361,16 +3400,15 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     AddImplicitConstructor(cls);
   }
 
-  if (!is_patch) {
-    pending_classes.Add(cls, Heap::kOld);
-  } else {
+  if (cls.is_patch()) {
     // Apply the changes to the patched class looked up above.
-    ASSERT(obj.raw() == library_.LookupLocalObject(class_name));
+    Object& obj = Object::Handle(library_.LookupLocalObject(class_name));
     // The patched class must not be finalized yet.
-    ASSERT(!Class::Cast(obj).is_finalized());
-    const char* err_msg = Class::Cast(obj).ApplyPatch(cls);
+    const Class& orig_class = Class::Cast(obj);
+    ASSERT(!orig_class.is_finalized());
+    const char* err_msg = orig_class.ApplyPatch(cls);
     if (err_msg != NULL) {
-      ErrorMsg(classname_pos, "applying patch failed with '%s'", err_msg);
+      ErrorMsg(class_pos, "applying patch failed with '%s'", err_msg);
     }
   }
 }
@@ -3495,6 +3533,7 @@ void Parser::ParseMixinTypedef(const GrowableObjectArray& pending_classes) {
   // TODO(hausner): treat the mixin application as an alias, not as a base
   // class whose super class is the mixin application!
   mixin_application.set_super_type(type);
+  mixin_application.set_is_synthesized_class();
 
   AddImplicitConstructor(mixin_application);
   if (CurrentToken() == Token::kIMPLEMENTS) {
@@ -3903,6 +3942,7 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     mixin_application.set_super_type(mixin_super_type);
     mixin_application.set_mixin(Type::Cast(mixin_type));
     mixin_application.set_library(library_);
+    mixin_application.set_is_synthesized_class();
     AddImplicitConstructor(mixin_application);
     // Add the mixin type to the interfaces that the mixin application
     // class implements. This is necessary so that type tests work.
@@ -4487,17 +4527,17 @@ void Parser::ParseTopLevel() {
     set_current_class(Class::Handle());  // No current class.
     SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
-      ParseClassDefinition(pending_classes);
+      ParseClassDeclaration(pending_classes);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
       ParseTypedef(pending_classes);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDefinition(pending_classes);
+      ParseClassDeclaration(pending_classes);
     } else if (is_patch_source() && IsLiteral("patch") &&
                (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDefinition(pending_classes);
+      ParseClassDeclaration(pending_classes);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
@@ -8023,7 +8063,7 @@ const Type* Parser::ReceiverType(intptr_t type_pos) const {
   }
   Type& type = Type::ZoneHandle(
       Type::New(current_class(), type_arguments, type_pos));
-  if (!is_top_level_) {
+  if (!is_top_level_ || current_class().is_type_finalized()) {
     type ^= ClassFinalizer::FinalizeType(
         current_class(), type, ClassFinalizer::kCanonicalizeWellFormed);
   }

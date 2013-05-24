@@ -24,11 +24,17 @@ DECLARE_RUNTIME_ENTRY(CompileFunction);
 
 class Compiler : public AllStatic {
  public:
-  // Extracts class, interface, function symbols from the script and populates
-  // the symbol tables and the class dictionary of the library.
+  // Extracts top level entities from the script and populates
+  // the class dictionary of the library.
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* Compile(const Library& library, const Script& script);
+
+  // Extracts function and field symbols from the class and populates
+  // the class.
+  //
+  // Returns Error::null() if there is no compilation error.
+  static RawError* CompileClass(const Class& cls);
 
   // Generates code for given function and sets its code field.
   //

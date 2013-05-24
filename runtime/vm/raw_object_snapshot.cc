@@ -65,7 +65,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_next_field_offset_in_words(reader->ReadIntptrValue());
     cls.set_num_native_fields(reader->ReadIntptrValue());
     cls.set_token_pos(reader->ReadIntptrValue());
-    cls.set_state_bits(reader->Read<uint8_t>());
+    cls.set_state_bits(reader->Read<uint16_t>());
 
     // Set all the object fields.
     // TODO(5411462): Need to assert No GC can happen here, even though
@@ -104,7 +104,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     writer->WriteIntptrValue(ptr()->next_field_offset_in_words_);
     writer->WriteIntptrValue(ptr()->num_native_fields_);
     writer->WriteIntptrValue(ptr()->token_pos_);
-    writer->Write<uint8_t>(ptr()->state_bits_);
+    writer->Write<uint16_t>(ptr()->state_bits_);
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer);

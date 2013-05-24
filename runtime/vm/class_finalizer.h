@@ -83,13 +83,15 @@ class ClassFinalizer : public AllStatic {
   // in the object store.
   static bool FinalizePendingClasses();
 
+  static void FinalizeTypesInClass(const Class& cls);
+
+  static void FinalizeClass(const Class& cls);
 
   // Verify that the classes have been properly prefinalized. This is
   // needed during bootstrapping where the classes have been preloaded.
   static void VerifyBootstrapClasses();
 
  private:
-  static void FinalizeClass(const Class& cls);
   static bool IsSuperCycleFree(const Class& cls);
   static bool IsAliasCycleFree(const Class& cls,
                                GrowableArray<intptr_t>* visited);
@@ -101,6 +103,7 @@ class ClassFinalizer : public AllStatic {
       const Function& factory,
       const GrowableObjectArray& visited_factories);
   static void CloneTypeParameters(const Class& mixapp_class);
+  static void ApplyMixinTypes(const Class& cls);
   static void ApplyMixin(const Class& cls);
   static void CollectTypeArguments(const Class& cls,
                                    const Type& type,

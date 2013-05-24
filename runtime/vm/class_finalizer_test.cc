@@ -42,10 +42,10 @@ TEST_CASE(ClassFinalizer) {
   pending_classes.Add(*classes_2[2]);
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   for (int i = 0; i < classes_1.length(); i++) {
-    EXPECT(classes_1[i]->is_finalized());
+    EXPECT(classes_1[i]->is_type_finalized());
   }
   for (int i = 0; i < classes_2.length(); i++) {
-    EXPECT(classes_2[i]->is_finalized());
+    EXPECT(classes_2[i]->is_type_finalized());
   }
   EXPECT(ClassFinalizer::AllClassesFinalized());
   EXPECT(ClassFinalizer::FinalizePendingClasses());
