@@ -1167,6 +1167,8 @@ class JavaScriptBackend extends Backend {
                             elements);
       world.registerStaticUse(
           compiler.findHelper(const SourceString('isJsIndexable')));
+      world.registerStaticUse(
+          compiler.findInterceptor(const SourceString('dispatchPropertyName')));
     }
 
     if (compiler.enableTypeAssertions) {
