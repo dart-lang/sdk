@@ -227,8 +227,6 @@ type_dartc_test: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mod
 
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 external_test/16: Fail, OK # Bad test: assumes eager loading.
-field1_negative_test: Fail, OK # Bad test: assumes eager loading.
-field6_negative_test: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 syntax_test/47: Fail, OK # Bad test: assumes eager loading.
 
@@ -253,21 +251,15 @@ duplicate_implements_test/01: Fail # Negative language test.
 duplicate_implements_test/02: Fail # Negative language test.
 duplicate_implements_test/03: Fail # Negative language test.
 duplicate_implements_test/04: Fail # Negative language test.
-field2_negative_test: Fail # Negative language test.
 field3_negative_test: Fail # Negative language test.
-field4_negative_test: Fail # Negative language test.
-field5_negative_test: Fail # Negative language test.
-field6a_negative_test: Fail # Negative language test.
 final_for_in_variable_test/01: Fail # Negative language test
 instantiate_type_variable_negative_test: Pass  # For the wrong reason.
 interface_factory3_negative_test: Fail # Negative language test.
 interface_factory_constructor_negative_test: Fail # Negative language test.
-interface_static_method_negative_test: Fail # Negative language test.
 list_literal1_negative_test: Fail # Negative language test.
 list_literal2_negative_test: Fail # Negative language test.
 map_literal1_negative_test: Fail # Negative language test.
 map_literal2_negative_test: Fail # Negative language test.
-non_const_super_negative_test: Fail # Negative language test.
 number_identifier_negative_test: Fail # Negative language test.
 operator1_negative_test: Fail # Negative language test.
 prefix23_negative_test: Fail # Negative language test.
