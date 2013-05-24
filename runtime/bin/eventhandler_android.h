@@ -11,6 +11,7 @@
 #endif
 
 #include <unistd.h>
+#include <sys/epoll.h>
 #include <sys/socket.h>
 
 #include "platform/hashmap.h"
@@ -98,7 +99,7 @@ class EventHandlerImplementation {
   // descriptor. Creates a new one if one is not found.
   SocketData* GetSocketData(intptr_t fd);
   void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
-  void Start();
+  void Start(EventHandler* handler);
   void Shutdown();
 
  private:

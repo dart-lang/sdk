@@ -229,7 +229,6 @@ static bool ListRecursively(PathBuffer* path,
                                 path,
                                 recursive,
                                 follow_links,
-                                seen,
                                 &current_link,
                                 listing) && success;
             break;
@@ -479,7 +478,7 @@ char* Directory::CreateTemp(const char* const_template) {
     if (stat(ANDROID_TEMP_DIR, &st) != 0) {
       mkdir(ANDROID_TEMP_DIR, 0777);
     }
-    path->Add(ANDROID_TEMP_DIR "/tmp/temp_dir1_");
+    path.Add(ANDROID_TEMP_DIR "/tmp/temp_dir1_");
   } else if ((path.data)[path.length - 1] == '/') {
     path.Add("temp_dir_");
   }
@@ -489,7 +488,7 @@ char* Directory::CreateTemp(const char* const_template) {
   }
   char* result;
   do {
-    result = MakeTempDirectory(path->data);
+    result = MakeTempDirectory(path.data);
   } while (result == NULL && errno == EINTR);
   if (result == NULL) {
     return NULL;
