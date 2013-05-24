@@ -1254,7 +1254,6 @@ class CodeEmitterTask extends CompilerTask {
       String holder = namer.isolateAccess(backend.getImplementationClass(cls));
       for (TypeCheck check in typeChecks[cls]) {
         ClassElement cls = check.cls;
-        buffer.write('$holder.${namer.operatorIs(check.cls)}$_=${_}true$N');
         buffer.write('$holder.${namer.operatorIs(cls)}$_=${_}true$N');
         Substitution substitution = check.substitution;
         if (substitution != null) {
