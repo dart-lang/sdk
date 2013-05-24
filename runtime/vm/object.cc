@@ -8559,6 +8559,9 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
                               count);
     }
   }
+  // Copy deoptimization reason.
+  result.set_deopt_reason(this->deopt_reason());
+
   return result.raw();
 }
 

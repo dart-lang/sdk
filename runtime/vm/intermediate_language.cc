@@ -438,6 +438,18 @@ void Instruction::InsertAfter(Instruction* prev) {
 }
 
 
+Instruction* Instruction::AppendInstruction(Instruction* tail) {
+  LinkTo(tail);
+  // Update def-use chains whenever instructions are added to the graph
+  // after initial graph construction.
+  for (intptr_t i = tail->InputCount() - 1; i >= 0; --i) {
+    Value* input = tail->InputAt(i);
+    input->definition()->AddInputUse(input);
+  }
+  return tail;
+}
+
+
 BlockEntryInstr* Instruction::GetBlock() const {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.

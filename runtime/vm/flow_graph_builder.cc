@@ -129,16 +129,13 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
   // block entries as a side effect).
   SortExits();
   intptr_t num_exits = exits_.length();
-  if (num_exits == 0) {
-    // TODO(zerny): Add support for non-local exits, such as throw.
-    UNREACHABLE();
-    return NULL;
-  } else if (num_exits == 1) {
+  if (num_exits == 1) {
     ReturnAt(0)->UnuseAllInputs();
     *exit_block = ExitBlockAt(0);
     *last_instruction = LastInstructionAt(0);
     return call_->HasUses() ? ValueAt(0)->definition() : NULL;
   } else {
+    ASSERT(num_exits > 1);
     // Create a join of the returns.
     intptr_t join_id = caller_graph_->max_block_id() + 1;
     caller_graph_->set_max_block_id(join_id);
@@ -237,67 +234,101 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
   // Insert the callee graph into the caller graph.
   BlockEntryInstr* callee_exit = NULL;
   Instruction* callee_last_instruction = NULL;
-  Definition* callee_result = JoinReturns(&callee_exit,
-                                          &callee_last_instruction);
-  if (callee_result != NULL) {
-    call_->ReplaceUsesWith(callee_result);
-  }
-  if (callee_last_instruction == callee_entry) {
-    // There are no instructions in the inlined function (e.g., it might be
-    // a return of a parameter or a return of a constant defined in the
-    // initial definitions).
-    call_->previous()->LinkTo(call_->next());
+
+  if (exits_.length() == 0) {
+    // Handle the case when there are no normal return exits from the callee
+    // (i.e. the callee unconditionally throws) by inserting an artificial
+    // branch (true === true).
+    // The true successor is the inlined body, the false successor
+    // goes to the rest of the caller graph. It is removed as unreachable code
+    // by the constant propagation.
+    TargetEntryInstr* false_block =
+        new TargetEntryInstr(caller_graph_->allocate_block_id(),
+                             call_block->try_index());
+    false_block->InheritDeoptTargetAfter(call_);
+    false_block->LinkTo(call_->next());
+    call_block->ReplaceAsPredecessorWith(false_block);
+
+    ConstantInstr* true_const = caller_graph_->GetConstant(Bool::True());
+    BranchInstr* branch =
+        new BranchInstr(new StrictCompareInstr(Token::kEQ_STRICT,
+                                               new Value(true_const),
+                                               new Value(true_const)));
+    branch->InheritDeoptTarget(call_);
+    *branch->true_successor_address() = callee_entry;
+    *branch->false_successor_address() = false_block;
+
+    call_->previous()->AppendInstruction(branch);
+    call_block->set_last_instruction(branch);
+
+    // Update dominator tree.
+    call_block->AddDominatedBlock(callee_entry);
+    call_block->AddDominatedBlock(false_block);
+
   } else {
-    call_->previous()->LinkTo(callee_entry->next());
-    callee_last_instruction->LinkTo(call_->next());
-  }
-  if (callee_exit != callee_entry) {
-    // In case of control flow, locally update the predecessors, phis and
-    // dominator tree.
-    //
-    // Pictorially, the graph structure is:
-    //
-    //   Bc : call_block      Bi : callee_entry
-    //     before_call          inlined_head
-    //     call               ... other blocks ...
-    //     after_call         Be : callee_exit
-    //                          inlined_foot
-    // And becomes:
-    //
-    //   Bc : call_block
-    //     before_call
-    //     inlined_head
-    //   ... other blocks ...
-    //   Be : callee_exit
-    //    inlined_foot
-    //    after_call
-    //
-    // For successors of 'after_call', the call block (Bc) is replaced as a
-    // predecessor by the callee exit (Be).
-    call_block->ReplaceAsPredecessorWith(callee_exit);
-    // For successors of 'inlined_head', the callee entry (Bi) is replaced
-    // as a predecessor by the call block (Bc).
-    callee_entry->ReplaceAsPredecessorWith(call_block);
-
-    // The callee exit is now the immediate dominator of blocks whose
-    // immediate dominator was the call block.
-    ASSERT(callee_exit->dominated_blocks().is_empty());
-    for (intptr_t i = 0; i < call_block->dominated_blocks().length(); ++i) {
-      BlockEntryInstr* block = call_block->dominated_blocks()[i];
-      callee_exit->AddDominatedBlock(block);
+    Definition* callee_result = JoinReturns(&callee_exit,
+                                            &callee_last_instruction);
+    if (callee_result != NULL) {
+      call_->ReplaceUsesWith(callee_result);
     }
-    // The call block is now the immediate dominator of blocks whose
-    // immediate dominator was the callee entry.
-    call_block->ClearDominatedBlocks();
-    for (intptr_t i = 0; i < callee_entry->dominated_blocks().length(); ++i) {
-      BlockEntryInstr* block = callee_entry->dominated_blocks()[i];
-      call_block->AddDominatedBlock(block);
+    if (callee_last_instruction == callee_entry) {
+      // There are no instructions in the inlined function (e.g., it might be
+      // a return of a parameter or a return of a constant defined in the
+      // initial definitions).
+      call_->previous()->LinkTo(call_->next());
+    } else {
+      call_->previous()->LinkTo(callee_entry->next());
+      callee_last_instruction->LinkTo(call_->next());
     }
-  }
+    if (callee_exit != callee_entry) {
+      // In case of control flow, locally update the predecessors, phis and
+      // dominator tree.
+      //
+      // Pictorially, the graph structure is:
+      //
+      //   Bc : call_block      Bi : callee_entry
+      //     before_call          inlined_head
+      //     call               ... other blocks ...
+      //     after_call         Be : callee_exit
+      //                          inlined_foot
+      // And becomes:
+      //
+      //   Bc : call_block
+      //     before_call
+      //     inlined_head
+      //   ... other blocks ...
+      //   Be : callee_exit
+      //    inlined_foot
+      //    after_call
+      //
+      // For successors of 'after_call', the call block (Bc) is replaced as a
+      // predecessor by the callee exit (Be).
+      call_block->ReplaceAsPredecessorWith(callee_exit);
+      // For successors of 'inlined_head', the callee entry (Bi) is replaced
+      // as a predecessor by the call block (Bc).
+      callee_entry->ReplaceAsPredecessorWith(call_block);
 
-  // Neither call nor callee entry nor the graph entry (if present) are in the
+      // The callee exit is now the immediate dominator of blocks whose
+      // immediate dominator was the call block.
+      ASSERT(callee_exit->dominated_blocks().is_empty());
+      for (intptr_t i = 0; i < call_block->dominated_blocks().length(); ++i) {
+        BlockEntryInstr* block = call_block->dominated_blocks()[i];
+        callee_exit->AddDominatedBlock(block);
+      }
+      // The call block is now the immediate dominator of blocks whose
+      // immediate dominator was the callee entry.
+      call_block->ClearDominatedBlocks();
+      for (intptr_t i = 0; i < callee_entry->dominated_blocks().length(); ++i) {
+        BlockEntryInstr* block = callee_entry->dominated_blocks()[i];
+        call_block->AddDominatedBlock(block);
+      }
+    }
+
+    // Callee entry in not in the graph anymore. Remove it from use lists.
+    callee_entry->UnuseAllInputs();
+  }
+  // Neither call nor the graph entry (if present) are in the
   // graph at this point. Remove them from use lists.
-  callee_entry->UnuseAllInputs();
   if (callee_entry->PredecessorCount() > 0) {
     callee_entry->PredecessorAt(0)->AsGraphEntry()->UnuseAllInputs();
   }
@@ -3293,9 +3324,6 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
 
 
 void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
-  // TODO(kmillikin) non-local control flow is not handled correctly
-  // by the inliner.
-  InlineBailout("EffectGraphVisitor::BuildThrowNode (exception)");
   ValueGraphVisitor for_exception(owner(), temp_index());
   node->exception()->Visit(&for_exception);
   Append(for_exception);

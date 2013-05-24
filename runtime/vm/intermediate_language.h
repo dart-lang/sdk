@@ -798,6 +798,11 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   // Insert this instruction after 'prev' after use lists are computed.
   void InsertAfter(Instruction* prev);
 
+  // Append an instruction to the current one and return the tail.
+  // This function updated def-use chains of the newly appended
+  // instruction.
+  Instruction* AppendInstruction(Instruction* tail);
+
   // Returns true if CSE and LICM are allowed for this instruction.
   virtual bool AllowsCSE() const {
     return false;
