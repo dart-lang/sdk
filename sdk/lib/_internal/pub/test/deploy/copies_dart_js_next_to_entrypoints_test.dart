@@ -14,6 +14,10 @@ main() {
   initConfig();
 
   integration("compiles dart.js next to entrypoints", () {
+    // Dart2js can take a long time to compile dart code, so we increase the
+    // timeout to cope with that.
+    currentSchedule.timeout *= 3;
+
     serve([
       d.dir('packages', [
         d.file('browser.json', json.stringify({'versions': ['1.0.0']})),

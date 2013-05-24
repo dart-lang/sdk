@@ -12,6 +12,10 @@ main() {
   initConfig();
 
   integration("compiles Dart entrypoints to Dart and JS", () {
+    // Dart2js can take a long time to compile dart code, so we increase the
+    // timeout to cope with that.
+    currentSchedule.timeout *= 3;
+
     d.dir(appPath, [
       d.appPubspec([]),
       d.dir('web', [
