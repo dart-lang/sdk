@@ -21,8 +21,7 @@ main() {
 
     d.appDir([{"git": "../foo.git"}]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(cachePath, [
       d.dir('git', [
@@ -42,8 +41,7 @@ main() {
       d.libPubspec('foo', '1.0.0')
     ]).commit();
 
-    schedulePub(args: ['update'],
-        output: new RegExp(r"Dependencies updated!$"));
+    pubUpdate();
 
     // When we download a new version of the git package, we should re-use the
     // git/cache directory but create a new git/ directory.

@@ -24,8 +24,7 @@ main() {
 
       d.appDir([{"git": "../foo.git/"}]).create();
 
-      schedulePub(args: ['install'],
-          output: new RegExp(r"Dependencies installed!$"));
+      pubInstall();
 
       d.dir(cachePath, [
         d.dir('git', [

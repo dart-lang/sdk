@@ -45,8 +45,7 @@ main() {
       ])
     ]).create();
 
-    schedulePub(args: ["install"],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     schedulePub(args: ["deploy"],
         output: '''

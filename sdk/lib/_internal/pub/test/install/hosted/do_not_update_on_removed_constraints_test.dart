@@ -22,8 +22,7 @@ main() {
 
     d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.packagesDir({
       "foo": "1.0.0",
@@ -33,8 +32,7 @@ main() {
 
     d.appDir([dependencyMap("foo")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.packagesDir({
       "foo": "1.0.0",

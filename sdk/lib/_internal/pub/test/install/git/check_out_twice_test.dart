@@ -21,8 +21,7 @@ main() {
 
     d.appDir([{"git": "../foo.git"}]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(cachePath, [
       d.dir('git', [
@@ -39,7 +38,6 @@ main() {
 
     // Verify that nothing breaks if we install a Git revision that's already
     // in the cache.
-    schedulePub(args: ['update'],
-        output: new RegExp(r"Dependencies updated!$"));
+    pubUpdate();
   });
 }

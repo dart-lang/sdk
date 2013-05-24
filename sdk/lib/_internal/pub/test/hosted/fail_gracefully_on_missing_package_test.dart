@@ -18,8 +18,8 @@ main() {
 
       d.appDir([dependencyMap("foo", "1.2.3")]).create();
 
-      pubCommand(command, error:
-          new RegExp('Could not find package "foo" at http://localhost:'));
+      pubCommand(command, error: new RegExp(
+          r'Could not find package "foo" at http://localhost:\d+\.$'));
     });
   });
 }

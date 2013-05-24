@@ -22,8 +22,7 @@ main() {
 
     d.appDir([{"git": "../foo.git"}]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir('foo', [
@@ -38,8 +37,7 @@ main() {
 
     d.appDir([{"git": "../foo.git", "version": ">=1.0.0"}]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir('foo', [

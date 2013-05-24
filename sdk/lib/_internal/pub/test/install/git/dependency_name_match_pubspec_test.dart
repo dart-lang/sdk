@@ -29,12 +29,8 @@ main() {
       })
     ]).create();
 
-    // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
-    // fixed.
-    schedulePub(args: ['install'],
-        error: new RegExp(r'^The name you specified for your dependency, '
-            '"weirdname", doesn\'t match the name "foo" in its '
-            r'pubspec\.'),
-        exitCode: 1);
+    pubInstall(error:
+        'The name you specified for your dependency, "weirdname", doesn\'t '
+        'match the name "foo" in its pubspec.');
   });
 }

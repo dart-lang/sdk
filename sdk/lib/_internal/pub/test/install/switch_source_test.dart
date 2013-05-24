@@ -19,17 +19,13 @@ main() {
 
     d.appDir([{"path": "../foo"}]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp("Dependencies installed!\$"));
+    pubInstall();
 
     d.packagesDir({"foo": "0.0.1"}).validate();
-
     servePackages([packageMap("foo", "1.2.3")]);
-
     d.appDir([dependencyMap("foo", "any")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp("Dependencies installed!\$"));
+    pubInstall();
 
     d.packagesDir({"foo": "1.2.3"}).validate();
   });

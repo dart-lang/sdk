@@ -23,8 +23,7 @@ main() {
     // Create a broken "packages" symlink in "bin".
     scheduleSymlink("nonexistent", path.join(appPath, "packages"));
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(appPath, [
       d.dir("bin", [
@@ -47,8 +46,7 @@ main() {
     // Create a broken "packages" symlink in "bin".
     scheduleSymlink("nonexistent", path.join(appPath, "bin", "packages"));
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(appPath, [
       d.dir("bin", [

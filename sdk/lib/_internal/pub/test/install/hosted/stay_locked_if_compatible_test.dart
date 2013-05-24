@@ -17,8 +17,7 @@ main() {
 
     d.appDir([dependencyMap("foo")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.packagesDir({"foo": "1.0.0"}).validate();
 
@@ -26,8 +25,7 @@ main() {
 
     d.appDir([dependencyMap("foo", ">=1.0.0")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.packagesDir({"foo": "1.0.0"}).validate();
   });

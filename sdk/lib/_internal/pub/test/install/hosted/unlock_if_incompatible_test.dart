@@ -17,17 +17,13 @@ main() {
 
     d.appDir([dependencyMap("foo")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.packagesDir({"foo": "1.0.0"}).validate();
-
     servePackages([packageMap("foo", "1.0.1")]);
-
     d.appDir([dependencyMap("foo", ">1.0.0")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.packagesDir({"foo": "1.0.1"}).validate();
   });

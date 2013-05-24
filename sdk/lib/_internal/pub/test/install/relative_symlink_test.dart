@@ -25,8 +25,7 @@ main() {
       d.libDir('foo')
     ]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     scheduleRename(appPath, "moved");
 
@@ -46,8 +45,7 @@ main() {
       d.dir("bin")
     ]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     scheduleRename(appPath, "moved");
 

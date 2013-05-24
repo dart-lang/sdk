@@ -44,8 +44,7 @@ main() {
     d.dir("link").create();
     scheduleSymlink("shared", path.join("link", "shared"));
 
-    schedulePub(args: ["install"],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir("foo", [d.file("foo.dart", 'main() => "foo";')]),

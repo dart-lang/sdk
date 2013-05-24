@@ -22,8 +22,7 @@ main() {
 
     d.appDir([{"git": "../foo.git"}]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir('foo', [
@@ -34,10 +33,7 @@ main() {
     repo.runGit(['rm', 'pubspec.yaml']);
     repo.runGit(['commit', '-m', 'delete']);
 
-    schedulePub(args: ['update'],
-        error: new RegExp(r'Package "foo" doesn' "'" r't have a '
-            r'pubspec.yaml file.'),
-        exitCode: 1);
+    pubUpdate(error: 'Package "foo" doesn\'t have a pubspec.yaml file.');
 
     d.dir(packagesPath, [
       d.dir('foo', [

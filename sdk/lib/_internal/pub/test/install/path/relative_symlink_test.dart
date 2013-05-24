@@ -34,8 +34,7 @@ main() {
       })
     ]).create();
 
-    schedulePub(args: ["install"],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir("moved").create();
 

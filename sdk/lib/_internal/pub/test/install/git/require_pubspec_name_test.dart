@@ -24,9 +24,8 @@ main() {
 
     // TODO(nweiz): clean up this RegExp when either issue 4706 or 4707 is
     // fixed.
-    schedulePub(args: ['install'],
-        error: new RegExp(r'^Package "foo"' "'" 's pubspec.yaml file is '
-            r'missing the required "name" field \(e\.g\. "name: foo"\)\.'),
-        exitCode: 1);
+    pubInstall(error:
+        'Package "foo"\'s pubspec.yaml file is '
+        'missing the required "name" field (e.g. "name: foo").');
   });
 }
