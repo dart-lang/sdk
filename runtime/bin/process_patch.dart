@@ -69,7 +69,8 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
                String this._workingDirectory,
                Map<String, String> environment,
                bool runInShell) {
-    if (identical(runInShell, true)) {
+    runInShell = identical(runInShell, true);
+    if (runInShell) {
       arguments = _getShellArguments(path, arguments);
       path = _getShellCommand();
     }
@@ -91,7 +92,8 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       }
       _arguments[i] = arguments[i];
       if (Platform.operatingSystem == 'windows') {
-        _arguments[i] = _windowsArgumentEscape(_arguments[i]);
+        _arguments[i] = _windowsArgumentEscape(_arguments[i],
+                                               shellEscape: runInShell);
       }
     }
 
@@ -156,11 +158,12 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     return shellArguments;
   }
 
-  String _windowsArgumentEscape(String argument) {
+  String _windowsArgumentEscape(String argument, { bool shellEscape: false }) {
     var result = argument;
     if (argument.contains('\t') ||
         argument.contains(' ') ||
-        argument.contains('"')) {
+        // TODO(ajohnsen): Remove shellEscape.
+        (shellEscape && argument.contains('"'))) {
       // Produce something that the C runtime on Windows will parse
       // back as this string.
 
