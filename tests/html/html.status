@@ -16,7 +16,7 @@ postmessage_structured_test/typed_arrays: Fail
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
-[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || $runtime == drt || $runtime == dartium)]
+[ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == opera || $runtime == drt || $runtime == dartium)]
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 
 [ $compiler == dart2js && $runtime == ie10 ]
@@ -41,10 +41,10 @@ postmessage_structured_test/primitives: Fail # Issue 10097
 [ $runtime == chrome ]
 touchevent_test/supported: Fail
 
-[ $runtime == chrome || $runtime == drt ]
+[ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt ]
 audiocontext_test: Skip # Issue 9322
 
-[$runtime == drt || $runtime == dartium || $runtime == chrome]
+[$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid]
 webgl_1_test: Pass, Fail # Issue 8219
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
@@ -366,7 +366,7 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 [ $compiler == dart2js && $runtime == drt && $unchecked ]
 #indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
 
-[ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome) ]
+[ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).
 js_interop_2_test: Fail, OK        # Test cannot run under CSP restrictions.
 js_interop_3_test: Skip            # Test cannot run under CSP restrictions (times out).
