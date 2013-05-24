@@ -234,30 +234,24 @@ class HtmlDartGenerator(object):
       generate_call(stmts_emitter, call_emitter,
           version[0], signature_index, argument_count)
 
-    def IsDartTypeNullable(type_signature):
-      return type_signature not in ['int', 'double', 'num', 'bool']
-
     def GenerateChecksAndCall(signature_index, argument_count):
       checks = []
       for i in range(0, argument_count):
         argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
-        nullable = argument.type.nullable
 
         if test_type in ['dynamic', 'Object']:
           checks.append('?%s' % parameter_name)
         elif not can_omit_type_check(test_type, i):
-          nullable = True
           checks.append('(%s is %s || %s == null)' % (
               parameter_name, test_type, parameter_name))
-
-        if not nullable and not IsDartTypeNullable(test_type):
+        else:
           for signature in signatures:
             if (len(signature) <= i or signature[i].id not in
                 parameter_name.split('_OR_')):
 
-              checks.append('%s != null' % parameter_name)
+              checks.append('?%s' % parameter_name)
               break
 
       # There can be multiple presence checks.  We need them all since a later

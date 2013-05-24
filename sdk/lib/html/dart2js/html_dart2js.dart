@@ -1211,7 +1211,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
-    if (dirtyX != null && dirtyY != null && dirtyWidth != null && dirtyHeight != null) {
+    if (?dirtyX && ?dirtyY && ?dirtyWidth && ?dirtyHeight) {
       var imagedata_2 = _convertDartToNative_ImageData(imagedata);
       _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
@@ -1308,7 +1308,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
       _putImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
-    if (dirtyX != null && dirtyY != null && dirtyWidth != null && dirtyHeight != null) {
+    if (?dirtyX && ?dirtyY && ?dirtyWidth && ?dirtyHeight) {
       var imagedata_2 = _convertDartToNative_ImageData(imagedata);
       _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
