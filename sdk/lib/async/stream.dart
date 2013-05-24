@@ -499,6 +499,20 @@ abstract class Stream<T> {
   }
 
   /**
+   * Discards all data on the stream, but signals when it's done or an error
+   * occured.
+   *
+   * When subscribing using [drain], cancelOnError will be true. This means
+   * that the future will complete with the first error on the stream and then
+   * cancel the subscription.
+   *
+   * In case of a `done` event the future completes with the given
+   * [futureValue].
+   */
+  Future drain([var futureValue]) => listen(null, cancelOnError: true)
+      .asFuture(futureValue);
+
+  /**
    * Provides at most the first [n] values of this stream.
    *
    * Forwards the first [n] data events of this stream, and all error

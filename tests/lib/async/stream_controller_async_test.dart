@@ -295,6 +295,22 @@ testExtraMethods() {
     f.catchError(expectAsync1((error) { Expect.isTrue(error is StateError); }));
     sentEvents.replay(c);
   });
+
+  test("drain", () {
+    StreamController c = new StreamController();
+    Future f = c.stream.drain();
+    f.then(expectAsync1((v) { Expect.equals(null, v);}));
+    sentEvents.replay(c);
+  });
+
+  test("drain error", () {
+    StreamController c = new StreamController();
+    Future f = c.stream.drain();
+    f.catchError(expectAsync1((error) { Expect.equals("error", error); }));
+    Events errorEvents = new Events()..error("error")..error("error2")..close();
+    errorEvents.replay(c);
+  });
+
 }
 
 testPause() {
@@ -459,6 +475,7 @@ testRethrow() {
   testFuture("any", (s, act) => s.any(act));
   testFuture("reduce", (s, act) => s.reduce((a,b) => act(b)));
   testFuture("fold", (s, act) => s.fold(0, (a,b) => act(b)));
+  testFuture("drain", (s, act) => s.drain().then(act));
 }
 
 main() {
