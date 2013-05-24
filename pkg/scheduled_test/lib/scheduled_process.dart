@@ -151,8 +151,7 @@ class ScheduledProcess {
                              arguments,
                              workingDirectory: workingDirectory,
                              environment: environment).then((process) {
-          // TODO(nweiz): enable this when issue 9020 is fixed.
-          // process.stdin.encoding = Encoding.UTF_8;
+          process.stdin.encoding = Encoding.UTF_8;
           return process;
         });
       });
