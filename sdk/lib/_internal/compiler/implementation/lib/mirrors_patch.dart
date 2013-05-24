@@ -231,6 +231,30 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
         JS('', r'$[#]', '${_n(simpleName)}_${_n(fieldName)}'));
   }
 
+  InstanceMirror newInstance(Symbol constructorName,
+                             List positionalArguments,
+                             [Map<Symbol,dynamic> namedArguments]) {
+    if (namedArguments != null && !namedArguments.isEmpty) {
+      throw new UnsupportedError('Named arguments are not implemented');
+    }
+    String constructorName = '${_n(simpleName)}\$${_n(constructorName)}';
+    return _reflect(JS('', r'$[#].apply($, #)', constructorName,
+                       new List.from(positionalArguments)));
+  }
+
+  Future<InstanceMirror> newInstanceAsync(
+      Symbol constructorName,
+      List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments]) {
+    if (namedArguments != null && !namedArguments.isEmpty) {
+      throw new UnsupportedError('Named arguments are not implemented');
+    }
+    return new Future<InstanceMirror>(
+        () => newInstance(
+            constructorName, positionalArguments, namedArguments));
+  }
+
+
   String toString() => 'ClassMirror(${_n(simpleName)})';
 }
 

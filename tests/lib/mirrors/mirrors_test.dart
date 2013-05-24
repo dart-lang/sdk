@@ -206,8 +206,8 @@ mainWithArgument({bool isDart2js}) {
   test('Test intercepted objects', () { testIntercepted(mirrors); });
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
-  if (isDart2js) return;
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
+  if (isDart2js) return;
   test("Test reflect type", () { testReflectClass(mirrors); });
   test("Test simple and qualifiedName", () { testNames(mirrors); });
   test("Test current library uri", () {
