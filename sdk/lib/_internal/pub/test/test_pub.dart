@@ -235,6 +235,69 @@ final String packagesPath = "$appPath/packages";
 /// Set to true when the current batch of scheduled events should be aborted.
 bool _abortScheduled = false;
 
+/// Enum identifying a pub command that can be run with a well-defined success
+/// output.
+class RunCommand {
+  static final install = new RunCommand('install',
+      new RegExp("Dependencies installed!\$"));
+
+  static final update = new RunCommand('update',
+      new RegExp("Dependencies updated!\$"));
+
+  final String name;
+  final RegExp success;
+  RunCommand(this.name, this.success);
+}
+
+/// Many tests validate behavior that is the same between pub install and
+/// update have the same behavior. Instead of duplicating those tests, this
+/// takes a callback that defines install/update agnostic tests and runs them
+/// with both commands.
+void forBothPubInstallAndUpdate(void callback(RunCommand command)) {
+  group(RunCommand.install.name, () => callback(RunCommand.install));
+  group(RunCommand.update.name, () => callback(RunCommand.update));
+}
+
+/// Schedules an invocation of pub [command] and validates that it completes
+/// in an expected way.
+///
+/// By default, this validates that the command completes successfully and
+/// understands the normal output of a successful pub command. If [warning] is
+/// given, it expects the command to complete successfully *and* print
+/// [warning] to stderr. If [error] is given, it expects the command to *only*
+/// print [error] to stderr.
+// TODO(rnystrom): Clean up other tests to call this when possible.
+void pubCommand(RunCommand command, {Iterable<String> args, Pattern error,
+    Pattern warning}) {
+  if (error != null && warning != null) {
+    throw new ArgumentError("Cannot pass both 'error' and 'warning'.");
+  }
+
+  var allArgs = [command.name];
+  if (args != null) allArgs.addAll(args);
+
+  var output = command.success;
+
+  var exitCode = null;
+  if (error != null) exitCode = 1;
+
+  // No success output on an error.
+  if (error != null) output = null;
+  if (warning != null) error = warning;
+
+  schedulePub(args: allArgs, output: output, error: error, exitCode: exitCode);
+}
+
+void pubInstall({Iterable<String> args, Pattern error,
+    Pattern warning}) {
+  pubCommand(RunCommand.install, args: args, error: error, warning: warning);
+}
+
+void pubUpdate({Iterable<String> args, Pattern error,
+    Pattern warning}) {
+  pubCommand(RunCommand.update, args: args, error: error, warning: warning);
+}
+
 /// Defines an integration test. The [body] should schedule a series of
 /// operations which will be run asynchronously.
 void integration(String description, void body()) =>
