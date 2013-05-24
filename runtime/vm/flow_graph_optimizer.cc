@@ -1397,7 +1397,8 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
 
   ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
   StrictCompareInstr* compare =
-      new StrictCompareInstr(Token::kEQ_STRICT,
+      new StrictCompareInstr(call->token_pos(),
+                             Token::kEQ_STRICT,
                              new Value(load),
                              new Value(zero));
   ReplaceCall(call, compare);
@@ -2607,7 +2608,8 @@ bool FlowGraphOptimizer::StrictifyEqualityCompare(
     Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
         Token::kEQ_STRICT : Token::kNE_STRICT;
     StrictCompareInstr* strict_comp =
-        new StrictCompareInstr(strict_kind,
+        new StrictCompareInstr(compare->token_pos(),
+                               strict_kind,
                                compare->left()->CopyWithType(),
                                compare->right()->CopyWithType());
     current_instruction->ReplaceWith(strict_comp, current_iterator());
@@ -6011,7 +6013,10 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
   ComparisonInstr* comparison = branch->comparison();
   ComparisonInstr* new_comparison = NULL;
   if (comparison->IsStrictCompare()) {
-    new_comparison = new StrictCompareInstr(comparison->kind(), left, right);
+    new_comparison = new StrictCompareInstr(comparison->token_pos(),
+                                            comparison->kind(),
+                                            left,
+                                            right);
   } else if (comparison->IsEqualityCompare()) {
     EqualityCompareInstr* equality_compare = comparison->AsEqualityCompare();
     EqualityCompareInstr* new_equality_compare =

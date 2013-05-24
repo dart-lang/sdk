@@ -1440,7 +1440,8 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 
 void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
-                                                    bool needs_number_check) {
+                                                    bool needs_number_check,
+                                                    intptr_t token_pos) {
   if (needs_number_check) {
     if (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()) {
       needs_number_check = false;
@@ -1457,6 +1458,9 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     __ pushl(reg);
     __ PushObject(obj);
     __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                         Isolate::kNoDeoptId,
+                         token_pos);
     __ popl(reg);  // Discard constant.
     __ popl(reg);  // Restore 'reg'.
     return;
@@ -1468,11 +1472,15 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 
 void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   Register right,
-                                                  bool needs_number_check) {
+                                                  bool needs_number_check,
+                                                  intptr_t token_pos) {
   if (needs_number_check) {
     __ pushl(left);
     __ pushl(right);
     __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                         Isolate::kNoDeoptId,
+                         token_pos);
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ popl(right);
     __ popl(left);

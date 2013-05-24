@@ -1585,10 +1585,11 @@ void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-StrictCompareInstr::StrictCompareInstr(Token::Kind kind,
+StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
+                                       Token::Kind kind,
                                        Value* left,
                                        Value* right)
-    : ComparisonInstr(kind, left, right),
+    : ComparisonInstr(token_pos, kind, left, right),
       needs_number_check_(FLAG_new_identity_spec) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }

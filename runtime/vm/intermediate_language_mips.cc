@@ -2738,15 +2738,18 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (left.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(right.reg(),
                                           left.constant(),
-                                          needs_number_check());
+                                          needs_number_check(),
+                                          token_pos());
   } else if (right.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(left.reg(),
                                           right.constant(),
-                                          needs_number_check());
+                                          needs_number_check(),
+                                          token_pos());
   } else {
     compiler->EmitEqualityRegRegCompare(left.reg(),
                                        right.reg(),
-                                       needs_number_check());
+                                       needs_number_check(),
+                                       token_pos());
   }
 
   Register result = locs()->out().reg();
@@ -2782,15 +2785,18 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   if (left.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(right.reg(),
                                           left.constant(),
-                                          needs_number_check());
+                                          needs_number_check(),
+                                          token_pos());
   } else if (right.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(left.reg(),
                                           right.constant(),
-                                          needs_number_check());
+                                          needs_number_check(),
+                                          token_pos());
   } else {
     compiler->EmitEqualityRegRegCompare(left.reg(),
                                         right.reg(),
-                                        needs_number_check());
+                                        needs_number_check(),
+                                        token_pos());
   }
 
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQ : NE;

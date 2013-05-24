@@ -1242,6 +1242,11 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
                 script_url.ToCString(), line_number);
     }
     return NULL;
+  } else if (last_token_idx < 0) {
+    // Line does not contain any tokens. first_token_index is the first
+    // token after the given line. We check whether that token is
+    // part of a function.
+    last_token_idx = first_token_idx;
   }
 
   Function& func = Function::Handle(isolate_);

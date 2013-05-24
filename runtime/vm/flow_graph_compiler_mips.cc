@@ -1213,13 +1213,17 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 
 void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
-                                                    bool needs_number_check) {
+                                                    bool needs_number_check,
+                                                    intptr_t token_pos) {
   if (needs_number_check &&
       (obj.IsMint() || obj.IsDouble() || obj.IsBigint())) {
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(reg, Address(SP, 1 * kWordSize));
     __ LoadObject(TMP1, obj);
     __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                         Isolate::kNoDeoptId,
+                         token_pos);
     __ delay_slot()->sw(TMP1, Address(SP, 0 * kWordSize));
     __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
@@ -1231,12 +1235,16 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 
 void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   Register right,
-                                                  bool needs_number_check) {
+                                                  bool needs_number_check,
+                                                  intptr_t token_pos) {
   __ TraceSimMsg("EqualityRegRegCompare");
   if (needs_number_check) {
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
     __ sw(left, Address(SP, 1 * kWordSize));
     __ BranchLink(&StubCode::IdenticalWithNumberCheckLabel());
+    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                         Isolate::kNoDeoptId,
+                         token_pos);
     __ delay_slot()->sw(right, Address(SP, 0 * kWordSize));
     __ TraceSimMsg("EqualityRegRegCompare return");
     // Stub returns result in CMPRES. If it is 0, then left and right are equal.

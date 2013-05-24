@@ -251,7 +251,8 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
 
     ConstantInstr* true_const = caller_graph_->GetConstant(Bool::True());
     BranchInstr* branch =
-        new BranchInstr(new StrictCompareInstr(Token::kEQ_STRICT,
+        new BranchInstr(new StrictCompareInstr(call_block->start_pos(),
+                                               Token::kEQ_STRICT,
                                                new Value(true_const),
                                                new Value(true_const)));
     branch->InheritDeoptTarget(call_);
@@ -651,7 +652,10 @@ void TestGraphVisitor::ReturnValue(Value* value) {
   }
   Value* constant_true = Bind(new ConstantInstr(Bool::True()));
   StrictCompareInstr* comp =
-      new StrictCompareInstr(Token::kEQ_STRICT, value, constant_true);
+      new StrictCompareInstr(condition_token_pos(),
+                             Token::kEQ_STRICT,
+                             value,
+                             constant_true);
   BranchInstr* branch = new BranchInstr(comp);
   AddInstruction(branch);
   CloseFragment();
@@ -664,13 +668,15 @@ void TestGraphVisitor::ReturnValue(Value* value) {
 void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
   ControlInstruction* branch;
   if (Token::IsStrictEqualityOperator(comp->kind())) {
-    branch = new BranchInstr(new StrictCompareInstr(comp->kind(),
+    branch = new BranchInstr(new StrictCompareInstr(comp->token_pos(),
+                                                    comp->kind(),
                                                     comp->left(),
                                                     comp->right()));
   } else if (Token::IsEqualityOperator(comp->kind()) &&
              (comp->left()->BindsToConstantNull() ||
               comp->right()->BindsToConstantNull())) {
     branch = new BranchInstr(new StrictCompareInstr(
+        comp->token_pos(),
         (comp->kind() == Token::kEQ) ? Token::kEQ_STRICT : Token::kNE_STRICT,
         comp->left(),
         comp->right()));
@@ -688,7 +694,10 @@ void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
   ASSERT(!FLAG_enable_type_checks);
   Value* constant_true = Bind(new ConstantInstr(Bool::True()));
   BranchInstr* branch = new BranchInstr(
-      new StrictCompareInstr(Token::kNE_STRICT, neg->value(), constant_true));
+      new StrictCompareInstr(condition_token_pos(),
+                             Token::kNE_STRICT,
+                             neg->value(),
+                             constant_true));
   AddInstruction(branch);
   CloseFragment();
   true_successor_addresses_.Add(branch->true_successor_address());
@@ -990,7 +999,8 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     }
     Value* constant_true = for_right.Bind(new ConstantInstr(Bool::True()));
     Value* compare =
-        for_right.Bind(new StrictCompareInstr(Token::kEQ_STRICT,
+        for_right.Bind(new StrictCompareInstr(node->token_pos(),
+                                              Token::kEQ_STRICT,
                                               right_value,
                                               constant_true));
     for_right.Do(BuildStoreExprTemp(compare));
@@ -1300,8 +1310,10 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     ValueGraphVisitor for_right_value(owner(), temp_index());
     node->right()->Visit(&for_right_value);
     Append(for_right_value);
-    StrictCompareInstr* comp = new StrictCompareInstr(
-        node->kind(), for_left_value.value(), for_right_value.value());
+    StrictCompareInstr* comp = new StrictCompareInstr(node->token_pos(),
+                                                      node->kind(),
+                                                      for_left_value.value(),
+                                                      for_right_value.value());
     ReturnDefinition(comp);
     return;
   }

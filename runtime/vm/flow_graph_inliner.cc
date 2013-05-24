@@ -1155,7 +1155,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       cid_constant->set_ssa_temp_index(
           owner_->caller_graph()->alloc_ssa_temp_index());
       StrictCompareInstr* compare =
-          new StrictCompareInstr(Token::kEQ_STRICT,
+          new StrictCompareInstr(call_->instance_call()->token_pos(),
+                                 Token::kEQ_STRICT,
                                  new Value(load_cid),
                                  new Value(cid_constant));
       BranchInstr* branch = new BranchInstr(compare);

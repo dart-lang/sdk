@@ -2709,8 +2709,11 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0> {
 
 class ComparisonInstr : public TemplateDefinition<2> {
  public:
-  ComparisonInstr(Token::Kind kind, Value* left, Value* right)
-      : kind_(kind) {
+  ComparisonInstr(intptr_t token_pos,
+                  Token::Kind kind,
+                  Value* left,
+                  Value* right)
+      : token_pos_(token_pos), kind_(kind) {
     SetInputAt(0, left);
     SetInputAt(1, right);
   }
@@ -2720,6 +2723,7 @@ class ComparisonInstr : public TemplateDefinition<2> {
 
   virtual ComparisonInstr* AsComparison() { return this; }
 
+  intptr_t token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
 
   virtual void EmitBranchCode(FlowGraphCompiler* compiler,
@@ -2730,6 +2734,7 @@ class ComparisonInstr : public TemplateDefinition<2> {
   }
 
  protected:
+  intptr_t token_pos_;
   Token::Kind kind_;
 };
 
@@ -2796,7 +2801,10 @@ inline bool BranchInstr::MayThrow() const {
 
 class StrictCompareInstr : public ComparisonInstr {
  public:
-  StrictCompareInstr(Token::Kind kind, Value* left, Value* right);
+  StrictCompareInstr(intptr_t token_pos,
+                     Token::Kind kind,
+                     Value* left,
+                     Value* right);
 
   DECLARE_INSTRUCTION(StrictCompare)
   virtual CompileType ComputeType() const;
@@ -2842,9 +2850,8 @@ class EqualityCompareInstr : public ComparisonInstr {
                        Value* left,
                        Value* right,
                        const Array& ic_data_array)
-      : ComparisonInstr(kind, left, right),
+      : ComparisonInstr(token_pos, kind, left, right),
         ic_data_(GetICData(ic_data_array)),
-        token_pos_(token_pos),
         receiver_class_id_(kIllegalCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
@@ -2858,8 +2865,6 @@ class EqualityCompareInstr : public ComparisonInstr {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
   void set_ic_data(const ICData* value) { ic_data_ = value; }
-
-  intptr_t token_pos() const { return token_pos_; }
 
   // Receiver class id is computed from collected ICData.
   void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
@@ -2907,7 +2912,6 @@ class EqualityCompareInstr : public ComparisonInstr {
 
  private:
   const ICData* ic_data_;
-  const intptr_t token_pos_;
   intptr_t receiver_class_id_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareInstr);
@@ -2921,9 +2925,8 @@ class RelationalOpInstr : public ComparisonInstr {
                     Value* left,
                     Value* right,
                     const Array& ic_data_array)
-      : ComparisonInstr(kind, left, right),
+      : ComparisonInstr(token_pos, kind, left, right),
         ic_data_(GetICData(ic_data_array)),
-        token_pos_(token_pos),
         operands_class_id_(kIllegalCid) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
@@ -2937,8 +2940,6 @@ class RelationalOpInstr : public ComparisonInstr {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
   void set_ic_data(const ICData* value) { ic_data_ = value; }
-
-  intptr_t token_pos() const { return token_pos_; }
 
   // TODO(srdjan): instead of class-id pass an enum that can differentiate
   // between boxed and unboxed doubles and integers.
@@ -2983,7 +2984,6 @@ class RelationalOpInstr : public ComparisonInstr {
 
  private:
   const ICData* ic_data_;
-  const intptr_t token_pos_;
   intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(RelationalOpInstr);
