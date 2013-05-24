@@ -8,8 +8,8 @@ library status_expression;
  * Parse and evaluate expressions in a .status file for Dart and V8.
  * There are set expressions and Boolean expressions in a .status file.
  * The grammar is:
- *   BooleanExpression := $variableName == value | $variableName |
- *                        (BooleanExpression) |
+ *   BooleanExpression := $variableName == value | $variableName != value |
+ *                        $variableName | (BooleanExpression) |
  *                        BooleanExpression && BooleanExpression |
  *                        BooleanExpression || BooleanExpression
  *
@@ -37,6 +37,7 @@ class Token {
   static const String DOLLAR_SYMBOL = r"$";
   static const String UNION = ",";
   static const String EQUALS = "==";
+  static const String NOT_EQUALS = "!=";
   static const String AND = "&&";
   static const String OR = "||";
 }
@@ -49,10 +50,10 @@ class Tokenizer {
   Tokenizer(String this.expression)
     : tokens = new List<String>();
 
-  //  Tokens are : "(", ")", "$", ",", "&&", "||", "==", and (maximal) \w+.
+  // Tokens are : "(", ")", "$", ",", "&&", "||", "==", "!=", and (maximal) \w+.
   static final testRegexp =
-      new RegExp(r"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=))+$");
-  static final regexp = new RegExp(r"[()$,]|(\&\&)|(\|\|)|(\=\=)|\w+");
+      new RegExp(r"^([()$\w\s,]|(\&\&)|(\|\|)|(\=\=)|(\!\=))+$");
+  static final regexp = new RegExp(r"[()$,]|(\&\&)|(\|\|)|(\=\=)|(\!\=)|\w+");
 
   List<String> tokenize() {
     if (!testRegexp.hasMatch(expression)) {
@@ -77,12 +78,17 @@ abstract class SetExpression {
 class Comparison implements BooleanExpression {
   TermVariable left;
   TermConstant right;
+  bool negate;
 
-  Comparison(this.left, this.right);
+  Comparison(this.left, this.right, this.negate);
 
-  bool evaluate(environment) =>
-      left.termValue(environment) == right.termValue(environment);
-  String toString() => "(\$${left.name} == ${right.value})";
+  bool evaluate(environment) {
+    return
+        negate != (left.termValue(environment) == right.termValue(environment));
+  }
+
+  String toString() =>
+      "(\$${left.name} ${negate ? '!=' : '=='} ${right.value})";
 }
 
 
@@ -290,7 +296,9 @@ class ExpressionParser {
     }
     TermVariable left = new TermVariable(scanner.current);
     scanner.advance();
-    if (scanner.current == Token.EQUALS) {
+    if (scanner.current == Token.EQUALS ||
+        scanner.current == Token.NOT_EQUALS) {
+      bool negate = scanner.current == Token.NOT_EQUALS;
       scanner.advance();
       if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
         throw new RuntimeError(
@@ -298,7 +306,7 @@ class ExpressionParser {
       }
       TermConstant right = new TermConstant(scanner.current);
       scanner.advance();
-      return new Comparison(left, right);
+      return new Comparison(left, right, negate);
     } else {
       return new BooleanVariable(left);
     }
