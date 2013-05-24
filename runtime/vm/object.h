@@ -917,6 +917,13 @@ class Class : public Object {
 
  private:
   enum {
+    kAny = 0,
+    kStatic,
+    kInstance,
+    kConstructor,
+    kFactory,
+  };
+  enum {
     kConstBit = 0,
     kImplementedBit = 1,
     kAbstractBit = 2,
@@ -952,6 +959,12 @@ class Class : public Object {
 
   // Assigns empty array to all raw class array fields.
   void InitEmptyFields();
+
+  static RawFunction* CheckFunctionType(const Function& func, intptr_t type);
+  RawFunction* LookupFunction(const String& name, intptr_t type) const;
+  RawFunction* LookupFunctionAllowPrivate(const String& name,
+                                          intptr_t type) const;
+  RawField* LookupField(const String& name, intptr_t type) const;
 
   RawFunction* LookupAccessorFunction(const char* prefix,
                                       intptr_t prefix_length,

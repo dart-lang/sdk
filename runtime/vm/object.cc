@@ -2299,74 +2299,53 @@ bool Class::TypeTest(
 
 
 bool Class::IsTopLevel() const {
-  return String::Handle(Name()).Equals("::");
+  return Name() == Symbols::TopLevel().raw();
 }
 
 
 RawFunction* Class::LookupDynamicFunction(const String& name) const {
-  Function& function = Function::Handle(LookupFunction(name));
-  if (function.IsNull() || !function.IsDynamicFunction()) {
-    return Function::null();
-  }
-  return function.raw();
+  return LookupFunction(name, kInstance);
 }
 
 
 RawFunction* Class::LookupDynamicFunctionAllowPrivate(
     const String& name) const {
-  Function& function = Function::Handle(LookupFunctionAllowPrivate(name));
-  if (function.IsNull() || !function.IsDynamicFunction()) {
-    return Function::null();
-  }
-  return function.raw();
+  return LookupFunctionAllowPrivate(name, kInstance);
 }
 
 
 RawFunction* Class::LookupStaticFunction(const String& name) const {
-  Function& function = Function::Handle(LookupFunction(name));
-  if (function.IsNull() || !function.IsStaticFunction()) {
-    return Function::null();
-  }
-  return function.raw();
+  return LookupFunction(name, kStatic);
 }
 
 
 RawFunction* Class::LookupStaticFunctionAllowPrivate(const String& name) const {
-  Function& function = Function::Handle(LookupFunctionAllowPrivate(name));
-  if (function.IsNull() || !function.IsStaticFunction()) {
-    return Function::null();
-  }
-  return function.raw();
+  return LookupFunctionAllowPrivate(name, kStatic);
 }
 
 
 RawFunction* Class::LookupConstructor(const String& name) const {
-  Function& function = Function::Handle(LookupFunction(name));
-  if (function.IsNull() || !function.IsConstructor()) {
-    return Function::null();
-  }
-  ASSERT(!function.is_static());
-  return function.raw();
+  return LookupFunction(name, kConstructor);
 }
 
 
 RawFunction* Class::LookupConstructorAllowPrivate(const String& name) const {
-  Function& function = Function::Handle(LookupFunctionAllowPrivate(name));
-  if (function.IsNull() || !function.IsConstructor()) {
-    return Function::null();
-  }
-  ASSERT(!function.is_static());
-  return function.raw();
+  return LookupFunctionAllowPrivate(name, kConstructor);
 }
 
 
 RawFunction* Class::LookupFactory(const String& name) const {
-  Function& function = Function::Handle(LookupFunction(name));
-  if (function.IsNull() || !function.IsFactory()) {
-    return Function::null();
-  }
-  ASSERT(function.is_static());
-  return function.raw();
+  return LookupFunction(name, kFactory);
+}
+
+
+RawFunction* Class::LookupFunction(const String& name) const {
+  return LookupFunction(name, kAny);
+}
+
+
+RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
+  return LookupFunctionAllowPrivate(name, kAny);
 }
 
 
@@ -2395,7 +2374,33 @@ static bool MatchesAccessorName(const String& name,
 }
 
 
-RawFunction* Class::LookupFunction(const String& name) const {
+RawFunction* Class::CheckFunctionType(const Function& func, intptr_t type) {
+  if (type == kInstance) {
+    if (func.IsDynamicFunction()) {
+      return func.raw();
+    }
+  } else if (type == kStatic) {
+    if (func.IsStaticFunction()) {
+      return func.raw();
+    }
+  } else if (type == kConstructor) {
+    if (func.IsConstructor()) {
+      ASSERT(!func.is_static());
+      return func.raw();
+    }
+  } else if (type == kFactory) {
+    if (func.IsFactory()) {
+      ASSERT(func.is_static());
+      return func.raw();
+    }
+  } else if (type == kAny) {
+    return func.raw();
+  }
+  return Function::null();
+}
+
+
+RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
@@ -2405,7 +2410,7 @@ RawFunction* Class::LookupFunction(const String& name) const {
     // This can occur, e.g., for Null classes.
     return Function::null();
   }
-  Function& function = Function::Handle(isolate, Function::null());
+  Function& function = Function::Handle(isolate);
   const intptr_t len = funcs.Length();
   if (name.IsSymbol()) {
     // Quick Symbol compare.
@@ -2413,16 +2418,16 @@ RawFunction* Class::LookupFunction(const String& name) const {
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       if (function.name() == name.raw()) {
-        return function.raw();
+        return CheckFunctionType(function, type);
       }
     }
   } else {
-    String& function_name = String::Handle(isolate, String::null());
+    String& function_name = String::Handle(isolate);
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       function_name ^= function.name();
       if (function_name.Equals(name)) {
-        return function.raw();
+        return CheckFunctionType(function, type);
       }
     }
   }
@@ -2431,7 +2436,8 @@ RawFunction* Class::LookupFunction(const String& name) const {
 }
 
 
-RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
+RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
+                                               intptr_t type) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
@@ -2441,14 +2447,14 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name) const {
     // This can occur, e.g., for Null classes.
     return Function::null();
   }
-  Function& function = Function::Handle(isolate, Function::null());
-  String& function_name = String::Handle(isolate, String::null());
+  Function& function = Function::Handle(isolate);
+  String& function_name = String::Handle(isolate);
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
     if (String::EqualsIgnoringPrivateKey(function_name, name)) {
-        return function.raw();
+      return CheckFunctionType(function, type);
     }
   }
   // No function found.
@@ -2517,44 +2523,21 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
 
 
 RawField* Class::LookupInstanceField(const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
-    return Field::null();
-  }
-  ASSERT(is_finalized());
-  const Field& field = Field::Handle(isolate, LookupField(name));
-  if (!field.IsNull()) {
-    if (field.is_static()) {
-      // Name matches but it is not of the correct kind, return NULL.
-      return Field::null();
-    }
-    return field.raw();
-  }
-  // No field found.
-  return Field::null();
+  return LookupField(name, kInstance);
 }
 
 
 RawField* Class::LookupStaticField(const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  if (EnsureIsFinalized(isolate) != Error::null()) {
-    return Field::null();
-  }
-  ASSERT(is_finalized());
-  const Field& field = Field::Handle(isolate, LookupField(name));
-  if (!field.IsNull()) {
-    if (!field.is_static()) {
-      // Name matches but it is not of the correct kind, return NULL.
-      return Field::null();
-    }
-    return field.raw();
-  }
-  // No field found.
-  return Field::null();
+  return LookupField(name, kStatic);
 }
 
 
 RawField* Class::LookupField(const String& name) const {
+  return LookupField(name, kAny);
+}
+
+
+RawField* Class::LookupField(const String& name, intptr_t type) const {
   Isolate* isolate = Isolate::Current();
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Field::null();
@@ -2567,7 +2550,18 @@ RawField* Class::LookupField(const String& name) const {
     field ^= flds.At(i);
     field_name ^= field.name();
     if (String::EqualsIgnoringPrivateKey(field_name, name)) {
-      return field.raw();
+      if (type == kInstance) {
+        if (!field.is_static()) {
+          return field.raw();
+        }
+      } else if (type == kStatic) {
+        if (field.is_static()) {
+          return field.raw();
+        }
+      } else if (type == kAny) {
+        return field.raw();
+      }
+      return Field::null();
     }
   }
   // No field found.
