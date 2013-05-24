@@ -77,7 +77,6 @@ String typeNameInIE(obj) {
 
 String constructorNameFallback(object) {
   if (object == null) return 'Null';
-  object = getInterceptor(object);
   var constructor = JS('var', "#.constructor", object);
   if (identical(JS('String', "typeof(#)", constructor), 'function')) {
     var name = JS('var', r'#.builtin$cls', constructor);
