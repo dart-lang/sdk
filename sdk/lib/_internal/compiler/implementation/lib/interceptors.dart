@@ -98,6 +98,9 @@ makeDispatchRecord(interceptor, proto, extension) {
   //
   // [extension] is used for irregular cases.
   //
+  // [indexability] is used to cache whether or not the object
+  // implements JavaScriptIndexingBehavior.
+  //
   //     proto  interceptor extension action
   //     -----  ----------- --------- ------
   //     false  I                     use interceptor I
@@ -105,12 +108,21 @@ makeDispatchRecord(interceptor, proto, extension) {
   //     P      I                     if object's prototype is P, use I
   //     F      -           P         if object's prototype is P, call F
 
-  return JS('', '{i: #, p: #, e: #}', interceptor, proto, extension);
+  // TODO(kasperl): Remove this hack. It is needed to avoid inlining
+  // this method because inlining gives us multiple allocation points
+  // for records which is bad because it leads to polymorphic access.
+  if (false) return null;
+  return JS('', '{i: #, p: #, e: #, x: null}', interceptor, proto, extension);
 }
 
 dispatchRecordInterceptor(record) => JS('', '#.i', record);
 dispatchRecordProto(record) => JS('', '#.p', record);
 dispatchRecordExtension(record) => JS('', '#.e', record);
+
+dispatchRecordIndexability(record) => JS('bool|Null', '#.x', record);
+setDispatchRecordIndexability(record, bool value) {
+  JS('void', '#.x = #', record, value);
+}
 
 /**
  * Returns the interceptor for a native class instance. Used by

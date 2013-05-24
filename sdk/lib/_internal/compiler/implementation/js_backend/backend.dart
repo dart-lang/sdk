@@ -1165,6 +1165,8 @@ class JavaScriptBackend extends Backend {
     if (jsIndexingBehaviorInterface != null) {
       world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler),
                             elements);
+      world.registerStaticUse(
+          compiler.findHelper(const SourceString('isJsIndexable')));
     }
 
     if (compiler.enableTypeAssertions) {
