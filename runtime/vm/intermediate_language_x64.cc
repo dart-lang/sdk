@@ -284,7 +284,8 @@ LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
 
 
 LocationSummary* LoadLocalInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
+  const intptr_t kNumInputs = 0;
+  return LocationSummary::Make(kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -297,7 +298,8 @@ void LoadLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreLocalInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
                                Location::SameAsFirstInput(),
                                LocationSummary::kNoCall);
 }
@@ -312,7 +314,8 @@ void StoreLocalInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ConstantInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
+  const intptr_t kNumInputs = 0;
+  return LocationSummary::Make(kNumInputs,
                                Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
@@ -449,9 +452,10 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_in(0, Location::RegisterOrConstant(left()));
     // Only one input can be a constant operand. The case of two constant
     // operands should be handled by constant propagation.
+    // Only right can be a stack slot.
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
-                        : Location::RegisterOrConstant(right()));
+                        : Location::AnyOrConstant(right()));
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
@@ -559,7 +563,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
     __ LoadObject(ic_data_reg, equality_ic_data);
     compiler->GenerateCall(token_pos,
                            &StubCode::EqualityWithNullArgLabel(),
-                           PcDescriptors::kEqualNull,
+                           PcDescriptors::kRuntimeCall,
                            locs);
     __ Drop(2);
   }
@@ -796,6 +800,8 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
     true_condition = FlowGraphCompiler::FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
+  } else if (right.IsStackSlot()) {
+    __ cmpq(left.reg(), right.ToStackSlotAddress());
   } else {
     __ cmpq(left.reg(), right.reg());
   }
@@ -949,7 +955,7 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
     // operands should be handled by constant propagation.
     summary->set_in(1, summary->in(0).IsConstant()
                            ? Location::RequiresRegister()
-                           : Location::RegisterOrConstant(right()));
+                           : Location::AnyOrConstant(right()));
     summary->set_out(Location::RequiresRegister());
     return summary;
   }
@@ -4152,15 +4158,18 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (left.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(right.reg(),
                                           left.constant(),
-                                          needs_number_check());
+                                          needs_number_check(),
+                                          token_pos());
   } else if (right.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(left.reg(),
                                           right.constant(),
-                                          needs_number_check());
+                                          needs_number_check(),
+                                          token_pos());
   } else {
     compiler->EmitEqualityRegRegCompare(left.reg(),
                                        right.reg(),
-                                       needs_number_check());
+                                       needs_number_check(),
+                                       token_pos());
   }
 
   Register result = locs()->out().reg();
@@ -4191,15 +4200,18 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   if (left.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(right.reg(),
                                           left.constant(),
-                                          needs_number_check());
+                                          needs_number_check(),
+                                          token_pos());
   } else if (right.IsConstant()) {
     compiler->EmitEqualityRegConstCompare(left.reg(),
                                           right.constant(),
-                                          needs_number_check());
+                                          needs_number_check(),
+                                          token_pos());
   } else {
     compiler->EmitEqualityRegRegCompare(left.reg(),
                                         right.reg(),
-                                        needs_number_check());
+                                        needs_number_check(),
+                                        token_pos());
   }
 
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;

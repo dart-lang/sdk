@@ -622,11 +622,6 @@ class LibraryElementX extends ElementX implements LibraryElement {
   void addImport(Element element, DiagnosticListener listener) {
     Element existing = importScope[element.name];
     if (existing != null) {
-      // TODO(8474): Remove the "Expect" special casing.
-      if (element.name == const SourceString("Expect") ||
-          element.name == const SourceString("ExpectException")) {
-        return;
-      }
       // TODO(johnniwinther): Provide access to the import tags from which
       // the elements came.
       importScope[element.name] = new AmbiguousElementX(

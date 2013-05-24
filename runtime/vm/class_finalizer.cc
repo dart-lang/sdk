@@ -147,7 +147,7 @@ bool ClassFinalizer::FinalizePendingClasses() {
     // Finalize all classes.
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
-      FinalizeClass(cls);
+      FinalizeTypesInClass(cls);
     }
     if (FLAG_print_classes) {
       for (intptr_t i = 0; i < class_array.Length(); i++) {
@@ -504,7 +504,7 @@ void ClassFinalizer::FinalizeTypeArguments(
     FinalizationKind finalization,
     Error* bound_error) {
   ASSERT(arguments.Length() >= cls.NumTypeArguments());
-  if (!cls.is_finalized()) {
+  if (!cls.is_type_finalized()) {
     FinalizeTypeParameters(cls);
     ResolveUpperBounds(cls);
   }
@@ -573,7 +573,7 @@ void ClassFinalizer::CheckTypeArgumentBounds(
     const Class& cls,
     const AbstractTypeArguments& arguments,
     Error* bound_error) {
-  if (!cls.is_finalized()) {
+  if (!cls.is_type_finalized()) {
     FinalizeUpperBounds(cls);
   }
   // Note that when finalizing a type, we need to verify the bounds in both
@@ -683,7 +683,9 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   ASSERT(finalization >= kFinalize);
 
   if (FLAG_trace_type_finalization) {
-    OS::Print("Finalize type '%s'\n", String::Handle(type.Name()).ToCString());
+    OS::Print("Finalize type '%s' for class '%s'\n",
+              String::Handle(type.Name()).ToCString(),
+              cls.ToCString());
   }
 
   if (type.IsTypeParameter()) {
@@ -726,7 +728,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   // Also, the interfaces of the type class must be resolved and the type
   // parameters of the type class must be finalized.
   Class& type_class = Class::Handle(parameterized_type.type_class());
-  if (!type_class.is_finalized()) {
+  if (!type_class.is_type_finalized()) {
     FinalizeTypeParameters(type_class);
     ResolveUpperBounds(type_class);
   }
@@ -859,7 +861,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   if (type_class.IsSignatureClass()) {
     // The class may be created while parsing a function body, after all
     // pending classes have already been finalized.
-    FinalizeClass(type_class);
+    FinalizeTypesInClass(type_class);
   }
 
   // If a bound error occurred, return a BoundedType with a malformed bound.
@@ -1253,14 +1255,14 @@ void ClassFinalizer::CloneTypeParameters(const Class& mixapp_class) {
 }
 
 
-void ClassFinalizer::ApplyMixin(const Class& cls) {
+void ClassFinalizer::ApplyMixinTypes(const Class& cls) {
   const Type& mixin_type = Type::Handle(cls.mixin());
   ASSERT(!mixin_type.IsNull());
   ASSERT(mixin_type.HasResolvedTypeClass());
   const Class& mixin_cls = Class::Handle(mixin_type.type_class());
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("Applying mixin '%s' to '%s' at pos %"Pd"\n",
+    OS::Print("Applying mixin type '%s' to '%s' at pos %"Pd"\n",
               String::Handle(mixin_cls.Name()).ToCString(),
               cls.ToCString(),
               cls.token_pos());
@@ -1281,10 +1283,34 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
   // Copy type parameters to mixin application class.
   CloneTypeParameters(cls);
 
+  if (FLAG_trace_class_finalization) {
+    OS::Print("done mixin type appl %s %s extending '%s'\n",
+              String::Handle(cls.Name()).ToCString(),
+              TypeArguments::Handle(cls.type_parameters()).ToCString(),
+              AbstractType::Handle(cls.super_type()).ToCString());
+  }
+}
+
+
+void ClassFinalizer::ApplyMixin(const Class& cls) {
+  Isolate* isolate = Isolate::Current();
+  const Type& mixin_type = Type::Handle(isolate, cls.mixin());
+  ASSERT(!mixin_type.IsNull());
+  ASSERT(mixin_type.HasResolvedTypeClass());
+  const Class& mixin_cls = Class::Handle(isolate, mixin_type.type_class());
+  mixin_cls.EnsureIsFinalized(isolate);
+
+  if (FLAG_trace_class_finalization) {
+    OS::Print("Applying mixin '%s' to '%s' at pos %"Pd"\n",
+              String::Handle(mixin_cls.Name()).ToCString(),
+              cls.ToCString(),
+              cls.token_pos());
+  }
+
   const GrowableObjectArray& cloned_funcs =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  Array& functions = Array::Handle();
-  Function& func = Function::Handle();
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+  Array& functions = Array::Handle(isolate);
+  Function& func = Function::Handle(isolate);
   // The parser creates the mixin application class and adds just
   // one function, the implicit constructor.
   functions = cls.functions();
@@ -1300,10 +1326,10 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
     if (func.IsConstructor()) {
       // A mixin class must not have explicit constructors.
       if (!func.IsImplicitConstructor()) {
-        const Script& script = Script::Handle(cls.script());
+        const Script& script = Script::Handle(isolate, cls.script());
         ReportError(script, cls.token_pos(),
                     "mixin class %s must not have constructors\n",
-                    String::Handle(mixin_cls.Name()).ToCString());
+                    String::Handle(isolate, mixin_cls.Name()).ToCString());
       }
       continue;  // Skip the implicit constructor.
     }
@@ -1318,10 +1344,10 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
   // Now clone the fields from the mixin class. There should be no
   // existing fields in the mixin application class.
   ASSERT(Array::Handle(cls.fields()).Length() == 0);
-  Array& fields = Array::Handle(mixin_cls.fields());
-  Field& field = Field::Handle();
+  Array& fields = Array::Handle(isolate, mixin_cls.fields());
+  Field& field = Field::Handle(isolate);
   const GrowableObjectArray& cloned_fields =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
   const intptr_t num_fields = fields.Length();
   for (int i = 0; i < num_fields; i++) {
     field ^= fields.At(i);
@@ -1334,7 +1360,7 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
   cls.SetFields(fields);
 
   if (FLAG_trace_class_finalization) {
-    OS::Print("done mixin appl %s %s extending %s\n",
+    OS::Print("done mixin appl '%s' '%s' extending '%s'\n",
               String::Handle(cls.Name()).ToCString(),
               TypeArguments::Handle(cls.type_parameters()).ToCString(),
               AbstractType::Handle(cls.super_type()).ToCString());
@@ -1342,9 +1368,9 @@ void ClassFinalizer::ApplyMixin(const Class& cls) {
 }
 
 
-void ClassFinalizer::FinalizeClass(const Class& cls) {
+void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   HANDLESCOPE(Isolate::Current());
-  if (cls.is_finalized()) {
+  if (cls.is_type_finalized()) {
     return;
   }
   if (FLAG_trace_class_finalization) {
@@ -1360,13 +1386,11 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   // Finalize super class.
   const Class& super_class = Class::Handle(cls.SuperClass());
   if (!super_class.IsNull()) {
-    FinalizeClass(super_class);
+    FinalizeTypesInClass(super_class);
   }
   if (cls.mixin() != Type::null()) {
-    // Copy instance methods and fields from the mixin class.
-    // This has to happen before the check whether the methods of
-    // the class conflict with inherited methods.
-    ApplyMixin(cls);
+    // Copy the type parameters to the mixin application.
+    ApplyMixinTypes(cls);
   }
   // Finalize type parameters before finalizing the super type.
   FinalizeTypeParameters(cls);
@@ -1393,7 +1417,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
                   "typedef '%s' illegally refers to itself",
                   name.ToCString());
     }
-    cls.Finalize();
+    cls.set_is_type_finalized();
     // Signature classes extend Object. No need to add this class to the direct
     // subclasses of Object.
     ASSERT(super_type.IsNull() || super_type.IsObjectType());
@@ -1423,8 +1447,8 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     // this check until the super type and interface types are finalized,
     // so that we can use Type::Equals() for the test.
     ASSERT(interface_type.IsFinalized());
-    ASSERT(super_type.IsFinalized());
-    if (interface_type.Equals(super_type)) {
+    ASSERT(super_type.IsNull() || super_type.IsFinalized());
+    if (!super_type.IsNull() && interface_type.Equals(super_type)) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_pos(),
                   "super type '%s' may not be listed in "
@@ -1445,22 +1469,43 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
       }
     }
   }
-  // Mark as finalized before resolving type parameter upper bounds and member
-  // types in order to break cycles.
-  cls.Finalize();
+  // Mark as type finalized before resolving type parameter upper bounds
+  // in order to break cycles.
+  cls.set_is_type_finalized();
   // Finalize bounds even if running in production mode, so that a snapshot
   // contains them.
   FinalizeUpperBounds(cls);
-  ResolveAndFinalizeMemberTypes(cls);
-  // Run additional checks after all types are finalized.
-  if (cls.is_const()) {
-    CheckForLegalConstClass(cls);
-  }
   // Add this class to the direct subclasses of the superclass, unless the
   // superclass is Object.
   if (!super_type.IsNull() && !super_type.IsObjectType()) {
     ASSERT(!super_class.IsNull());
     super_class.AddDirectSubclass(cls);
+  }
+  // Top level classes are parsed eagerly so just finalize it.
+  if (cls.IsTopLevel()) {
+    ClassFinalizer::FinalizeClass(cls);
+  }
+}
+
+
+void ClassFinalizer::FinalizeClass(const Class& cls) {
+  HANDLESCOPE(Isolate::Current());
+  if (cls.is_finalized()) {
+    return;
+  }
+  if (cls.mixin() != Type::null()) {
+    // Copy instance methods and fields from the mixin class.
+    // This has to happen before the check whether the methods of
+    // the class conflict with inherited methods.
+    ApplyMixin(cls);
+  }
+  // Mark as parsed and finalized.
+  cls.Finalize();
+  // Resolve and finalize all member types.
+  ResolveAndFinalizeMemberTypes(cls);
+  // Run additional checks after all types are finalized.
+  if (cls.is_const()) {
+    CheckForLegalConstClass(cls);
   }
 }
 
@@ -1470,8 +1515,8 @@ bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
   Class& test2 = Class::Handle(cls.SuperClass());
   // A finalized class has been checked for cycles.
   // Using the hare and tortoise algorithm for locating cycles.
-  while (!test1.is_finalized() &&
-         !test2.IsNull() && !test2.is_finalized()) {
+  while (!test1.is_type_finalized() &&
+         !test2.IsNull() && !test2.is_type_finalized()) {
     if (test1.raw() == test2.raw()) {
       // Found a cycle.
       return false;
@@ -1491,7 +1536,7 @@ bool ClassFinalizer::IsSuperCycleFree(const Class& cls) {
 bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
                                       GrowableArray<intptr_t>* visited) {
   ASSERT(cls.IsSignatureClass());
-  ASSERT(!cls.is_finalized());
+  ASSERT(!cls.is_type_finalized());
   ASSERT(visited != NULL);
   const intptr_t cls_index = cls.id();
   for (int i = 0; i < visited->length(); i++) {
@@ -1509,7 +1554,7 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
   ResolveType(cls, type, kCanonicalize);
   if (type.IsType() && !type.IsMalformed()) {
     const Class& type_class = Class::Handle(type.type_class());
-    if (!type_class.is_finalized() &&
+    if (!type_class.is_type_finalized() &&
         type_class.IsSignatureClass() &&
         !IsAliasCycleFree(type_class, visited)) {
       return false;
@@ -1522,7 +1567,7 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
     ResolveType(cls, type, kCanonicalize);
     if (type.IsType() && !type.IsMalformed()) {
       const Class& type_class = Class::Handle(type.type_class());
-      if (!type_class.is_finalized() &&
+      if (!type_class.is_type_finalized() &&
           type_class.IsSignatureClass() &&
           !IsAliasCycleFree(type_class, visited)) {
         return false;
@@ -1946,18 +1991,22 @@ void ClassFinalizer::ReportError(const char* format, ...) {
 
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG
-  const ClassTable& class_table = *(Isolate::Current()->class_table());
-  Class& cls = Class::Handle();
-  Array& fields_array = Array::Handle();
-  Field& field = Field::Handle();
-  String& name = String::Handle();
-  String& expected_name = String::Handle();
+  Isolate* isolate = Isolate::Current();
+  const ClassTable& class_table = *(isolate->class_table());
+  Class& cls = Class::Handle(isolate);
+  Array& fields_array = Array::Handle(isolate);
+  Field& field = Field::Handle(isolate);
+  String& name = String::Handle(isolate);
+  String& expected_name = String::Handle(isolate);
+  Error& error = Error::Handle(isolate);
 
   // First verify field offsets of all the TypedDataView classes.
   for (intptr_t cid = kTypedDataInt8ArrayViewCid;
        cid <= kTypedDataFloat32x4ArrayViewCid;
        cid++) {
     cls = class_table.At(cid);  // Get the TypedDataView class.
+    error = cls.EnsureIsFinalized(isolate);
+    ASSERT(error.IsNull());
     cls = cls.SuperClass();  // Get it's super class '_TypedListView'.
     fields_array ^= cls.fields();
     ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
@@ -1978,6 +2027,8 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
 
   // Now verify field offsets of '_ByteDataView' class.
   cls = class_table.At(kByteDataViewCid);
+  error = cls.EnsureIsFinalized(isolate);
+  ASSERT(error.IsNull());
   fields_array ^= cls.fields();
   ASSERT(fields_array.Length() == TypedDataView::NumberOfFields());
   field ^= fields_array.At(0);

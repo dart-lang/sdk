@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:crypto';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:json' as json;
 import 'dart:mirrors';
 import 'dart:uri';
 
@@ -455,6 +456,68 @@ Future resetStack(fn()) {
     runAsync(() => completer.completeError(err));
   });
   return completer.future;
+}
+
+/// The subset of strings that don't need quoting in YAML. This pattern does
+/// not strictly follow the plain scalar grammar of YAML, which means some
+/// strings may be unnecessarily quoted, but it's much simpler.
+final _unquotableYamlString = new RegExp(r"^[a-zA-Z_-][a-zA-Z_0-9-]*$");
+
+/// Converts [data], which is a parsed YAML object, to a pretty-printed string,
+/// using indentation for maps.
+String yamlToString(data) {
+  var buffer = new StringBuffer();
+
+  _stringify(bool isMapValue, String indent, data) {
+    // TODO(nweiz): Serialize using the YAML library once it supports
+    // serialization.
+
+    // Use indentation for maps.
+    if (data is Map) {
+      if (isMapValue) {
+        buffer.writeln();
+        indent += '  ';
+      }
+
+      // Sort the keys. This minimizes deltas in diffs.
+      var keys = data.keys.toList();
+      keys.sort((a, b) => a.toString().compareTo(b.toString()));
+
+      var first = true;
+      for (var key in keys) {
+        if (!first) buffer.writeln();
+        first = false;
+
+        var keyString = key;
+        if (key is! String || !_unquotableYamlString.hasMatch(key)) {
+          keyString = json.stringify(key);
+        }
+
+        buffer.write('$indent$keyString:');
+        _stringify(true, indent, data[key]);
+      }
+
+      return;
+    }
+
+    // Everything else we just stringify using JSON to handle escapes in
+    // strings and number formatting.
+    var string = data;
+
+    // Don't quote plain strings if not needed.
+    if (data is! String || !_unquotableYamlString.hasMatch(data)) {
+      string = json.stringify(data);
+    }
+
+    if (isMapValue) {
+      buffer.write(' $string');
+    } else {
+      buffer.write('$indent$string');
+    }
+  }
+
+  _stringify(false, '', data);
+  return buffer.toString();
 }
 
 /// An exception class for exceptions that are intended to be seen by the user.

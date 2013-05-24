@@ -38,11 +38,13 @@ DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 DEFINE_FLAG(int, optimization_counter_threshold, 3000,
     "Function's usage-counter value before it is optimized, -1 means never");
 #else
-// TODO(regis): Enable optimization on ARM and MIPS.
+// TODO(regis): Enable optimization on MIPS.
 DEFINE_FLAG(int, optimization_counter_threshold, -1,
     "Function's usage-counter value before it is optimized, -1 means never");
 #endif
@@ -805,24 +807,20 @@ static void CheckResultError(const Object& result) {
 }
 
 
-// Gets called from debug stub when code reaches a breakpoint before
-// calling a closure.
-DEFINE_RUNTIME_ENTRY(BreakpointClosureHandler, 0) {
-  ASSERT(arguments.ArgCount() ==
-         kBreakpointClosureHandlerRuntimeEntry.argument_count());
-  ASSERT(isolate->debugger() != NULL);
-  isolate->debugger()->SignalBpReached();
-}
-
-
 // Gets called from debug stub when code reaches a breakpoint
-// at the stub call to update the ic cache on equality comparison
-// with null.
-DEFINE_RUNTIME_ENTRY(BreakpointEqualNullHandler, 0) {
+// set on a runtime stub call.
+DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   ASSERT(arguments.ArgCount() ==
-         kBreakpointEqualNullHandlerRuntimeEntry.argument_count());
+         kBreakpointRuntimeHandlerRuntimeEntry.argument_count());
   ASSERT(isolate->debugger() != NULL);
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  uword orig_stub =
+      isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
   isolate->debugger()->SignalBpReached();
+  ASSERT((orig_stub & kSmiTagMask) == kSmiTag);
+  arguments.SetReturn(Smi::Handle(reinterpret_cast<RawSmi*>(orig_stub)));
 }
 
 
@@ -1469,6 +1467,7 @@ void DeoptimizeIfOwner(const GrowableArray<intptr_t>& classes) {
 
 // Copy saved registers into the isolate buffer.
 static void CopySavedRegisters(uword saved_registers_address) {
+  ASSERT(sizeof(fpu_register_t) == kFpuRegisterSize);
   fpu_register_t* fpu_registers_copy =
       new fpu_register_t[kNumberOfFpuRegisters];
   ASSERT(fpu_registers_copy != NULL);
@@ -1479,6 +1478,7 @@ static void CopySavedRegisters(uword saved_registers_address) {
   }
   Isolate::Current()->set_deopt_fpu_registers_copy(fpu_registers_copy);
 
+  ASSERT(sizeof(intptr_t) == kWordSize);
   intptr_t* cpu_registers_copy = new intptr_t[kNumberOfCpuRegisters];
   ASSERT(cpu_registers_copy != NULL);
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
@@ -1727,6 +1727,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
     String& line_string = String::Handle(script.GetLine(line));
     OS::PrintErr("  Function: %s\n", top_function.ToFullyQualifiedCString());
     OS::PrintErr("  Line %"Pd": '%s'\n", line, line_string.ToCString());
+    OS::PrintErr("  Deopt args: %"Pd"\n", deopt_arguments);
   }
 }
 

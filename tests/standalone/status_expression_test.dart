@@ -16,6 +16,7 @@ class StatusExpressionTest {
     test4();
     test5();
     test6();
+    test7();
   }
 
   static void test1() {
@@ -144,6 +145,33 @@ class StatusExpressionTest {
     Expect.isFalse(ast.evaluate(environment));
     environment["checked"] = true;
     Expect.isFalse(ast.evaluate(environment));
+  }
+
+  static void test7() {
+    // Test the != operator.
+    Tokenizer tokenizer =
+        new Tokenizer(r"$compiler == dart2js && $runtime != ie9");
+    tokenizer.tokenize();
+    ExpressionParser parser =
+        new ExpressionParser(new Scanner(tokenizer.tokens));
+    BooleanExpression ast = parser.parseBooleanExpression();
+    Expect.equals(r"(($compiler == dart2js) && ($runtime != ie9))",
+                  ast.toString());
+
+    // Test BooleanExpression.evaluate().
+    Map environment = new Map();
+
+    environment["compiler"] = "none";
+    environment["runtime"] = "ie9";
+    Expect.isFalse(ast.evaluate(environment));
+    environment["runtime"] = "chrome";
+    Expect.isFalse(ast.evaluate(environment));
+
+    environment["compiler"] = "dart2js";
+    environment["runtime"] = "ie9";
+    Expect.isFalse(ast.evaluate(environment));
+    environment["runtime"] = "chrome";
+    Expect.isTrue(ast.evaluate(environment));
   }
 }
 

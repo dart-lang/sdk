@@ -459,12 +459,14 @@
       "getPropertyPriority": {},
       "getPropertyShorthand": {
         "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
-        "support_level": "nonstandard"
+        "dart_action": "suppress",
+        "support_level": "deprecated"
       },
       "getPropertyValue": {},
       "isPropertyImplicit": {
         "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
-        "support_level": "nonstandard"
+        "dart_action": "suppress",
+        "support_level": "deprecated"
       },
       "item": {},
       "length": {},
@@ -614,9 +616,7 @@
       "globalAlpha": {},
       "globalCompositeOperation": {},
       "isPointInPath": {},
-      "isPointInStroke": {
-        "support_level": "nonstandard"
-      },
+      "isPointInStroke": {},
       "lineCap": {},
       "lineDashOffset": {},
       "lineJoin": {},
@@ -1435,19 +1435,19 @@
       "onsuspend": {},
       "ontimeupdate": {},
       "ontouchcancel": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchend": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchmove": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchstart": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontransitionend": {},
@@ -1828,11 +1828,11 @@
       "createRange": {},
       "createTextNode": {},
       "createTouch": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "createTouchList": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "createTreeWalker": {},
@@ -1942,19 +1942,19 @@
       "onselectstart": {},
       "onsubmit": {},
       "ontouchcancel": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchend": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchmove": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchstart": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "onwebkitfullscreenchange": {
@@ -2323,27 +2323,27 @@
       },
       "onsubmit": {},
       "ontouchcancel": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchend": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchenter": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchleave": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchmove": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "ontouchstart": {
-        "comment": "http://www.w3.org/TR/touch-events/",
+        "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
       "onwebkitTransitionEnd": {
@@ -2366,7 +2366,7 @@
       "querySelector": {},
       "querySelectorAll": {},
       "remove": {
-        "dart_action": "suppress",
+        "dart_action": "stable",
         "support_level": "nonstandard"
       },
       "removeAttribute": {},
@@ -2970,10 +2970,6 @@
     },
     "support_level": "experimental"
   },
-  "FormData": {
-    "members": {},
-    "support_level": "untriaged"
-  },
   "GainNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#GainNode",
     "members": {
@@ -3045,8 +3041,7 @@
         "support_level": "deprecated"
       },
       "download": {
-        "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/links.html#attr-hyperlink-download",
-        "support_level": "experimental"
+        "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/links.html#attr-hyperlink-download"
       },
       "hash": {},
       "host": {},
@@ -3953,10 +3948,7 @@
         "support_level": "deprecated"
       },
       "sheet": {},
-      "sizes": {
-        "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/links.html#rel-icon",
-        "support_level": "experimental"
-      },
+      "sizes": {},
       "target": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLLinkElement-partial",
         "dart_action": "suppress",
@@ -4324,12 +4316,8 @@
     "members": {
       "length": {},
       "namedItem": {},
-      "numericIndexGetter": {
-        "support_level": "untriaged"
-      },
-      "numericIndexSetter": {
-        "support_level": "untriaged"
-      },
+      "numericIndexGetter": {},
+      "numericIndexSetter": {},
       "remove": {},
       "selectedIndex": {}
     },
@@ -5190,29 +5178,6 @@
     },
     "support_level": "stable"
   },
-  "JavaScriptCallFrame": {
-    "dart_action": "suppress",
-    "members": {
-      "CATCH_SCOPE": {},
-      "CLOSURE_SCOPE": {},
-      "GLOBAL_SCOPE": {},
-      "LOCAL_SCOPE": {},
-      "WITH_SCOPE": {},
-      "caller": {},
-      "column": {},
-      "evaluate": {},
-      "functionName": {},
-      "line": {},
-      "restart": {},
-      "scopeChain": {},
-      "scopeType": {},
-      "setVariableValue": {},
-      "sourceID": {},
-      "thisObject": {},
-      "type": {}
-    },
-    "support_level": "nonstandard"
-  },
   "KeyboardEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#events-KeyboardEvent",
     "members": {
@@ -5296,6 +5261,10 @@
         "support_level": "untriaged"
       }
     },
+    "support_level": "untriaged"
+  },
+  "MIDIErrorCallback": {
+    "members": {},
     "support_level": "untriaged"
   },
   "MIDIInput": {
@@ -5668,7 +5637,6 @@
   },
   "MutationEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents",
-    "dart_action": "experimental",
     "members": {
       "ADDITION": {},
       "MODIFICATION": {},
@@ -5787,7 +5755,7 @@
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorid"
       },
       "plugins": {
-        "dart_action": "unstable",
+        "dart_action": "suppress",
         "support_level": "nonstandard"
       },
       "product": {
@@ -10483,7 +10451,7 @@
     "support_level": "stable"
   },
   "Touch": {
-    "comment": "http://www.w3.org/TR/touch-events/",
+    "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
     "members": {
       "clientX": {},
       "clientY": {},
@@ -10509,7 +10477,7 @@
     "support_level": "experimental"
   },
   "TouchEvent": {
-    "comment": "http://www.w3.org/TR/touch-events/",
+    "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
     "members": {
       "altKey": {},
       "changedTouches": {},
@@ -10523,7 +10491,7 @@
     "support_level": "experimental"
   },
   "TouchList": {
-    "comment": "http://www.w3.org/TR/touch-events/",
+    "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
     "members": {
       "item": {},
       "length": {}

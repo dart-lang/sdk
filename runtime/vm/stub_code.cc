@@ -96,7 +96,10 @@ bool StubCode::InInvocationStub(uword pc) {
 
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
-  Code& stub = Code::Handle(cls.allocation_stub());
+  Isolate* isolate = Isolate::Current();
+  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  ASSERT(error.IsNull());
+  Code& stub = Code::Handle(isolate, cls.allocation_stub());
   if (stub.IsNull()) {
     Assembler assembler;
     const char* name = cls.ToCString();

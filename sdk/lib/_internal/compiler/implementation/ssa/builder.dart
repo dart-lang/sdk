@@ -1129,7 +1129,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    *
    * Invariant: [function] must be an implementation element.
    */
-  InliningState enterInlinedMethod(PartialFunctionElement function,
+  InliningState enterInlinedMethod(FunctionElement function,
                                    Selector selector,
                                    Link<Node> argumentsNodes,
                                    List<HInstruction> providedArguments,
@@ -1139,7 +1139,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<HInstruction> compiledArguments;
     bool isInstanceMember = function.isInstanceMember();
 
-    if (isInstanceMember) {
+    if (isInstanceMember && !function.isGenerativeConstructorBody()) {
       assert(providedArguments != null);
       compiledArguments = new List<HInstruction>();
       compiledArguments.add(providedArguments[0]);
@@ -1186,35 +1186,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                    compiledArguments[argumentIndex++]);
     }
 
-    if (function.isConstructor()) {
-      ClassElement enclosing = function.getEnclosingClass();
-      if (backend.needsRti(enclosing)) {
-        assert(currentNode is NewExpression);
-        InterfaceType type = elements.getType(currentNode);
-        Link<DartType> typeVariable = enclosing.typeVariables;
-        type.typeArguments.forEach((DartType argument) {
-          HInstruction instruction =
-              analyzeTypeArgument(argument, currentNode);
-          newLocalsHandler.updateLocal(typeVariable.head.element, instruction);
-          typeVariable = typeVariable.tail;
-        });
-        while (!typeVariable.isEmpty) {
-          newLocalsHandler.updateLocal(typeVariable.head.element,
-                                       graph.addConstantNull(constantSystem));
-          typeVariable = typeVariable.tail;
-        }
-      }
-    }
-
-    // Check the type of the arguments.  This must be done after setting up the
-    // type variables in the [localsHandler] because the checked types may
-    // contain type variables.
     FunctionSignature signature = function.computeSignature(compiler);
     signature.orderedForEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[argumentIndex++];
       newLocalsHandler.updateLocal(parameter, argument);
-      potentiallyCheckType(argument, parameter.computeType(compiler));
     });
+
+    ClassElement enclosing = function.getEnclosingClass();
+    if ((function.isConstructor() || function.isGenerativeConstructorBody())
+        && backend.needsRti(enclosing)) {
+      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+        HInstruction argument = compiledArguments[argumentIndex++];
+        newLocalsHandler.updateLocal(typeVariable.element, argument);
+      });
+    }
+    assert(argumentIndex == compiledArguments.length);
 
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new ElementX(const SourceString("result"),
@@ -1262,14 +1248,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (compiler.disableInlining) return false;
     // Ensure that [element] is an implementation element.
     element = element.implementation;
-    // TODO(floitsch): we should be able to inline inside lazy initializers.
-    if (!currentElement.isFunction()) return false;
     // TODO(floitsch): find a cleaner way to know if the element is a function
     // containing nodes.
     // [PartialFunctionElement]s are [FunctionElement]s that have [Node]s.
-    if (element is !PartialFunctionElement) return false;
-    // TODO(ngeoffray): try to inline generative constructors. They
-    // don't have any body, which make it more difficult.
+    if (element is !PartialFunctionElement
+        && !element.isGenerativeConstructorBody()) {
+      return false;
+    }
     if (inliningStack.length > MAX_INLINING_DEPTH) return false;
     // Don't inline recursive calls. We use the same elements for the inlined
     // functions and would thus clobber our local variables.
@@ -1279,10 +1264,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (inliningStack[i].function == element) return false;
     }
 
-    PartialFunctionElement function = element;
+    FunctionElement function = element;
     bool canBeInlined = backend.canBeInlined[function];
     if (canBeInlined == false) return false;
-    assert(selector != null || Elements.isStaticOrTopLevel(element));
+    assert(selector != null
+           || Elements.isStaticOrTopLevel(element)
+           || element.isGenerativeConstructorBody());
     if (selector != null && !selector.applies(function, compiler)) return false;
 
     // Don't inline operator== methods if the parameter can be null.
@@ -1306,31 +1293,31 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!canBeInlined) return false;
     }
 
-    // We cannot inline methods with type variables in the signature in checked
-    // mode, because we currently do not have access to the type variables
-    // through the locals.
-    // TODO(karlklose): remove this and enable inlining of these methods.
-    if (compiler.enableTypeAssertions &&
-        element.computeType(compiler).containsTypeVariables) {
-      return false;
-    }
-
     assert(canBeInlined);
     // Add an explicit null check on the receiver before doing the
     // inlining. We use [element] to get the same name in the NoSuchMethodError
     // message as if we had called it.
     if (element.isInstanceMember()
+        && !element.isGenerativeConstructorBody()
         && (selector.mask == null || selector.mask.isNullable)) {
       addWithPosition(
           new HFieldGet(element, providedArguments[0]), currentNode);
     }
     InliningState state = enterInlinedMethod(
         function, selector, argumentsNodes, providedArguments, currentNode);
+
     inlinedFrom(element, () {
+      FunctionElement function = element;
+      FunctionSignature signature = function.computeSignature(compiler);
+      signature.orderedForEachParameter((Element parameter) {
+        HInstruction argument = localsHandler.readLocal(parameter);
+        potentiallyCheckType(argument, parameter.computeType(compiler));
+      });
       element.isGenerativeConstructor()
           ? buildFactory(element)
           : functionExpression.body.accept(this);
     });
+
     leaveInlinedMethod(state);
     return true;
   }
@@ -1686,10 +1673,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
       }
 
-      HInvokeConstructorBody invoke =
-          new HInvokeConstructorBody(body, bodyCallInputs);
-      invoke.sideEffects = compiler.world.getSideEffectsOfElement(constructor);
-      add(invoke);
+      if (tryInlineMethod(body, null, null, bodyCallInputs, function)) {
+        pop();
+      } else {
+        HInvokeConstructorBody invoke =
+            new HInvokeConstructorBody(body, bodyCallInputs);
+        invoke.sideEffects =
+            compiler.world.getSideEffectsOfElement(constructor);
+        add(invoke);
+      }
     }
     if (inliningStack.isEmpty) {
       closeAndGotoExit(new HReturn(newObject));
@@ -3514,7 +3506,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                        HType.STRING);
       pushInvokeStatic(node,
                        backend.getCreateRuntimeType(),
-                       [pop(), value]);
+                       [pop()]);
     } else {
       internalError('unexpected element kind $element', node: node);
     }
@@ -5145,7 +5137,7 @@ class InliningState {
    *
    * Invariant: [function] must be an implementation element.
    */
-  final PartialFunctionElement function;
+  final FunctionElement function;
   final Element oldReturnElement;
   final DartType oldReturnType;
   final TreeElements oldElements;

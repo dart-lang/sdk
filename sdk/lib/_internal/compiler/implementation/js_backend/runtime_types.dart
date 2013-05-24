@@ -70,13 +70,17 @@ class RuntimeTypes {
     // If there are no classes that use their variables in checks, there is
     // nothing to do.
     if (classesUsingChecks.isEmpty) return;
+    Set<DartType> instantiatedTypes = universe.instantiatedTypes;
     if (universe.usingFactoryWithTypeArguments) {
-      for (DartType type in universe.instantiatedTypes) {
+      for (DartType type in instantiatedTypes) {
         if (type.kind != TypeKind.INTERFACE) continue;
         InterfaceType interface = type;
-        for (DartType argument in interface.typeArguments) {
-          universe.isChecks.add(argument);
-        }
+        do {
+          for (DartType argument in interface.typeArguments) {
+            universe.isChecks.add(argument);
+          }
+          interface = interface.element.supertype;
+        } while (interface != null && !instantiatedTypes.contains(interface));
       }
     } else {
       // Find all instantiated types that are a subtype of a class that uses
@@ -84,19 +88,22 @@ class RuntimeTypes {
       // set of is-checks.
       // TODO(karlklose): replace this with code that uses a subtype lookup
       // datastructure in the world.
-      for (DartType type in universe.instantiatedTypes) {
+      for (DartType type in instantiatedTypes) {
         if (type.kind != TypeKind.INTERFACE) continue;
         InterfaceType classType = type;
         for (ClassElement cls in classesUsingChecks) {
-          // We need the type as instance of its superclass anyway, so we just
-          // try to compute the substitution; if the result is [:null:], the
-          // classes are not related.
-          InterfaceType instance = classType.asInstanceOf(cls);
-          if (instance == null) continue;
-          Link<DartType> typeArguments = instance.typeArguments;
-          for (DartType argument in typeArguments) {
-            universe.isChecks.add(argument);
-          }
+          InterfaceType current = classType;
+          do {
+            // We need the type as instance of its superclass anyway, so we just
+            // try to compute the substitution; if the result is [:null:], the
+            // classes are not related.
+            InterfaceType instance = current.asInstanceOf(cls);
+            if (instance == null) break;
+            for (DartType argument in instance.typeArguments) {
+              universe.isChecks.add(argument);
+            }
+            current = current.element.supertype;
+          } while (current != null && !instantiatedTypes.contains(current));
         }
       }
     }

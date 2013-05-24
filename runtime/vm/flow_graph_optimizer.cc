@@ -1397,7 +1397,8 @@ void FlowGraphOptimizer::InlineStringIsEmptyGetter(InstanceCallInstr* call) {
 
   ConstantInstr* zero = flow_graph()->GetConstant(Smi::Handle(Smi::New(0)));
   StrictCompareInstr* compare =
-      new StrictCompareInstr(Token::kEQ_STRICT,
+      new StrictCompareInstr(call->token_pos(),
+                             Token::kEQ_STRICT,
                              new Value(load),
                              new Value(zero));
   ReplaceCall(call, compare);
@@ -2607,7 +2608,8 @@ bool FlowGraphOptimizer::StrictifyEqualityCompare(
     Token::Kind strict_kind = (compare->kind() == Token::kEQ) ?
         Token::kEQ_STRICT : Token::kNE_STRICT;
     StrictCompareInstr* strict_comp =
-        new StrictCompareInstr(strict_kind,
+        new StrictCompareInstr(compare->token_pos(),
+                               strict_kind,
                                compare->left()->CopyWithType(),
                                compare->right()->CopyWithType());
     current_instruction->ReplaceWith(strict_comp, current_iterator());
@@ -3415,8 +3417,6 @@ LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
-  // TODO(fschneider): Avoid repeated deoptimization when
-  // speculatively hoisting checks.
   if (FLAG_trace_optimization) {
     OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
               current->DebugName(),
@@ -3472,7 +3472,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   }
 
   // Host CheckSmi instruction and make this phi smi one.
-  Hoist(it, pre_header, current);
+  if (MayHoist(current, pre_header)) Hoist(it, pre_header, current);
 
   // Replace value we are checking with phi's input.
   current->value()->BindTo(phi->InputAt(non_smi_input)->definition());
@@ -3488,6 +3488,31 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
       instr->HasExprId() &&
       ((*sets)[loop_header_index] != NULL) &&
       (*sets)[loop_header_index]->Contains(instr->expr_id());
+}
+
+
+bool LICM::MayHoist(Instruction* instr, BlockEntryInstr* pre_header) {
+  // TODO(fschneider): Enable hoisting of Assert-instructions
+  // if it safe to do.
+  if (instr->IsAssertAssignable()) return false;
+  if (instr->IsAssertBoolean()) return false;
+
+  if (instr->CanDeoptimize()) {
+    intptr_t target_deopt_id =
+        pre_header->last_instruction()->AsGoto()->GetDeoptId();
+    const Function& function = flow_graph_->parsed_function().function();
+    const Array& deopt_history = Array::Handle(function.deopt_history());
+    if (deopt_history.IsNull()) return true;
+
+    Smi& deopt_id = Smi::Handle();
+    for (intptr_t i = 0; i < deopt_history.Length(); ++i) {
+      deopt_id ^= deopt_history.At(i);
+      if (!deopt_id.IsNull() && (deopt_id.Value() == target_deopt_id)) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 
@@ -3525,11 +3550,7 @@ void LICM::Optimize() {
               break;
             }
           }
-          if (inputs_loop_invariant &&
-              !current->IsAssertAssignable() &&
-              !current->IsAssertBoolean()) {
-            // TODO(fschneider): Enable hoisting of Assert-instructions
-            // if it safe to do.
+          if (inputs_loop_invariant && MayHoist(current, pre_header)) {
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {
@@ -5338,50 +5359,67 @@ void ConstantPropagator::VisitCloneContext(CloneContextInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
-  const Object& left = instr->left()->definition()->constant_value();
-  const Object& right = instr->right()->definition()->constant_value();
+void ConstantPropagator::HandleBinaryOp(Definition* instr,
+                                        Token::Kind op_kind,
+                                        const Value& left_val,
+                                        const Value& right_val) {
+  const Object& left = left_val.definition()->constant_value();
+  const Object& right = right_val.definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
+    // TODO(srdjan): Add arithemtic simplifications, e.g, add with 0.
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    if (left.IsSmi() && right.IsSmi()) {
-      const Smi& left_smi = Smi::Cast(left);
-      const Smi& right_smi = Smi::Cast(right);
-      switch (instr->op_kind()) {
+    if (left.IsInteger() && right.IsInteger()) {
+      const Integer& left_int = Integer::Cast(left);
+      const Integer& right_int = Integer::Cast(right);
+      switch (op_kind) {
         case Token::kADD:
         case Token::kSUB:
         case Token::kMUL:
         case Token::kTRUNCDIV:
         case Token::kMOD: {
-          const Object& result = Integer::ZoneHandle(
-              left_smi.ArithmeticOp(instr->op_kind(), right_smi));
+          Instance& result = Integer::ZoneHandle(
+              left_int.ArithmeticOp(op_kind, right_int));
+          result = result.Canonicalize();
           SetValue(instr, result);
           break;
         }
         case Token::kSHL:
-        case Token::kSHR: {
-          const Object& result = Integer::ZoneHandle(
-              left_smi.ShiftOp(instr->op_kind(), right_smi));
-          SetValue(instr, result);
+        case Token::kSHR:
+          if (left.IsSmi() && right.IsSmi()) {
+            Instance& result = Integer::ZoneHandle(
+                Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
+            result = result.Canonicalize();
+            SetValue(instr, result);
+          } else {
+            SetValue(instr, non_constant_);
+          }
           break;
-        }
         case Token::kBIT_AND:
         case Token::kBIT_OR:
         case Token::kBIT_XOR: {
-          const Object& result = Integer::ZoneHandle(
-              left_smi.BitOp(instr->op_kind(), right_smi));
+          Instance& result = Integer::ZoneHandle(
+              left_int.BitOp(op_kind, right_int));
+          result = result.Canonicalize();
           SetValue(instr, result);
           break;
         }
-        default:
-          // TODO(kmillikin): support other smi operations.
+        case Token::kDIV:
           SetValue(instr, non_constant_);
+          break;
+        default:
+          UNREACHABLE();
       }
     } else {
       // TODO(kmillikin): support other types.
       SetValue(instr, non_constant_);
     }
   }
+}
+
+
+void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
@@ -5399,15 +5437,13 @@ void ConstantPropagator::VisitUnboxInteger(UnboxIntegerInstr* instr) {
 
 void ConstantPropagator::VisitBinaryMintOp(
     BinaryMintOpInstr* instr) {
-  // TODO(kmillikin): Handle binary operations.
-  SetValue(instr, non_constant_);
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
 void ConstantPropagator::VisitShiftMintOp(
     ShiftMintOpInstr* instr) {
-  // TODO(kmillikin): Handle shift operations.
-  SetValue(instr, non_constant_);
+  HandleBinaryOp(instr, instr->op_kind(), *instr->left(), *instr->right());
 }
 
 
@@ -5977,7 +6013,10 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
   ComparisonInstr* comparison = branch->comparison();
   ComparisonInstr* new_comparison = NULL;
   if (comparison->IsStrictCompare()) {
-    new_comparison = new StrictCompareInstr(comparison->kind(), left, right);
+    new_comparison = new StrictCompareInstr(comparison->token_pos(),
+                                            comparison->kind(),
+                                            left,
+                                            right);
   } else if (comparison->IsEqualityCompare()) {
     EqualityCompareInstr* equality_compare = comparison->AsEqualityCompare();
     EqualityCompareInstr* new_equality_compare =

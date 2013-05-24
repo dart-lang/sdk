@@ -69,18 +69,19 @@ class ScheduledProcess {
   /// Whether the process is expected to terminate at this point.
   var _endExpected = false;
 
-  /// Schedules a process to start. [executable], [arguments], and [options]
-  /// have the same meaning as for [Process.start]. [description] is a string
-  /// description of this process; it defaults to the command-line invocation.
-  /// [encoding] is the [Encoding] that will be used for the process's input and
-  /// output.
+  /// Schedules a process to start. [executable], [arguments],
+  /// [workingDirectory], and [environment] have the same meaning as for
+  /// [Process.start]. [description] is a string description of this process; it
+  /// defaults to the command-line invocation. [encoding] is the [Encoding] that
+  /// will be used for the process's input and output.
   ///
-  /// [executable], [arguments], and [options] may be either a [Future] or a
-  /// concrete value. If any are [Future]s, the process won't start until the
-  /// [Future]s have completed. In addition, [arguments] may be a [List]
-  /// containing a mix of strings and [Future]s.
+  /// [executable], [arguments], [workingDirectory], and [environment] may be
+  /// either a [Future] or a concrete value. If any are [Future]s, the process
+  /// won't start until the [Future]s have completed. In addition, [arguments]
+  /// may be a [List] containing a mix of strings and [Future]s.
   ScheduledProcess.start(executable, arguments,
-      {options, String description, Encoding encoding: Encoding.UTF_8})
+      {workingDirectory, environment, String description,
+       Encoding encoding: Encoding.UTF_8})
       : _encoding = encoding,
         _explicitDescription = description != null,
         _description = description {
@@ -88,7 +89,7 @@ class ScheduledProcess {
 
     _updateDescription(executable, arguments);
 
-    _scheduleStartProcess(executable, arguments, options);
+    _scheduleStartProcess(executable, arguments, workingDirectory, environment);
 
     _scheduleExceptionCleanup();
 
@@ -120,7 +121,10 @@ class ScheduledProcess {
   }
 
   /// Schedules the process to start and sets [_process].
-  void _scheduleStartProcess(executable, arguments, options) {
+  void _scheduleStartProcess(executable,
+                             arguments,
+                             workingDirectory,
+                             environment) {
     var exitCodeCompleter = new Completer();
     _exitCode = new ValueFuture(exitCodeCompleter.future);
 
@@ -135,13 +139,18 @@ class ScheduledProcess {
       return Future.wait([
         new Future.sync(() => executable),
         awaitObject(arguments),
-        new Future.sync(() => options)
+        new Future.sync(() => workingDirectory),
+        new Future.sync(() => environment)
       ]).then((results) {
         executable = results[0];
         arguments = results[1];
-        options = results[2];
+        workingDirectory = results[2];
+        environment = results[3];
         _updateDescription(executable, arguments);
-        return Process.start(executable, arguments, options).then((process) {
+        return Process.start(executable,
+                             arguments,
+                             workingDirectory: workingDirectory,
+                             environment: environment).then((process) {
           // TODO(nweiz): enable this when issue 9020 is fixed.
           // process.stdin.encoding = Encoding.UTF_8;
           return process;

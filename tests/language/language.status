@@ -312,6 +312,14 @@ final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
 gc_test: Skip # Issue 1487
+field5_negative_test: Fail # Issue 10839
+field4_negative_test: Fail # Issue 10839
+field6_negative_test: Fail # Issue 10839
+non_const_super_negative_test: Fail # Issue 10839
+field2_negative_test: Fail # Issue 10839
+interface_static_method_negative_test: Fail # Issue 10839
+field1_negative_test: Fail # Issue 10839
+field6a_negative_test: Fail # Issue 10839
 
 
 [ $runtime == dartium ]
@@ -607,7 +615,6 @@ compile_time_constant8_test: fail
 compile_time_constant_arguments_test/01: fail
 compile_time_constant_arguments_test/02: fail
 compile_time_constant_arguments_test/03: fail
-compile_time_constant_arguments_test/04: fail
 compile_time_constant_arguments_test/05: fail
 compile_time_constant_arguments_test/06: fail
 compile_time_constant_b_test: fail
@@ -678,7 +685,6 @@ implicit_this_test/01: fail
 implicit_this_test/04: fail
 implicit_this_test/none: fail
 import_combinators_negative_test: fail
-import_private_test/01: fail
 infinite_switch_label_test: fail
 inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
@@ -689,7 +695,6 @@ interface_cycle_negative_test: fail
 interface_inherit_field_test: fail
 interface_static_non_final_fields_negative_test: fail
 interface_test/00: fail
-internal_library_test/01: fail
 is_not_class2_negative_test: fail
 library_juxtaposition_test: fail
 licm_test: fail
@@ -716,7 +721,6 @@ mixin_type_parameters_errors_test/04: fail
 mixin_type_parameters_errors_test/05: fail
 named_parameters2_test: fail
 named_parameters_aggregated_test/03: fail
-named_parameters_aggregated_test/04: fail
 named_parameters_aggregated_test/05: fail
 new_expression_type_args_test/00: fail
 new_expression_type_args_test/01: fail
@@ -765,13 +769,6 @@ static_field_test/02: fail
 static_field_test/03: fail
 static_final_field2_negative_test: fail
 static_final_field_negative_test: fail
-super_operator_index_test/01: fail
-super_operator_index_test/02: fail
-super_operator_index_test/03: fail
-super_operator_index_test/04: fail
-super_operator_index_test/05: fail
-super_operator_index_test/06: fail
-super_operator_index_test/07: fail
 switch_label2_test: fail
 syntax_test/28: fail
 syntax_test/29: fail

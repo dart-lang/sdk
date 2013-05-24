@@ -15,6 +15,7 @@ import 'command.dart';
 import 'entrypoint.dart';
 import 'exit_codes.dart' as exit_codes;
 import 'http.dart';
+import 'hosted_source.dart';
 import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
@@ -26,20 +27,16 @@ class UploaderCommand extends PubCommand {
   final usage = "pub uploader [options] {add/remove} <email>";
   final requiresEntrypoint = false;
 
-  ArgParser get commandParser {
-    var parser = new ArgParser();
-    // TODO(nweiz): Use HostedSource.defaultUrl as the default value once we use
-    // dart:io for HTTPS requests.
-    parser.addOption('server', defaultsTo: 'https://pub.dartlang.org',
-        help: 'The package server on which the package is hosted.');
-    parser.addOption('package', help: 'The package whose uploaders will be '
-        'modified.\n'
-        '(defaults to the current package)');
-    return parser;
-  }
-
   /// The URL of the package hosting server.
   Uri get server => Uri.parse(commandOptions['server']);
+
+  UploaderCommand() {
+    commandParser.addOption('server', defaultsTo: HostedSource.DEFAULT_URL,
+        help: 'The package server on which the package is hosted.');
+    commandParser.addOption('package',
+        help: 'The package whose uploaders will be modified.\n'
+              '(defaults to the current package)');
+  }
 
   Future onRun() {
     if (commandOptions.rest.isEmpty) {

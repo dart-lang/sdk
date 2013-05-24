@@ -483,6 +483,7 @@
         'libdart_withcore',
         'libdart_builtin',
         'libdart_io',
+        'generate_snapshot_file#host',
         'generate_snapshot_test_dat_file',
       ],
       'include_dirs': [
@@ -491,11 +492,12 @@
       ],
       'sources': [
         'run_vm_tests.cc',
-        'builtin.cc',
         'builtin_natives.cc',
+        'builtin_nolib.cc',
         'builtin.h',
         'io_natives.h',
         # Include generated source files.
+        '<(snapshot_cc_file)',
         '<(builtin_cc_file)',
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
@@ -512,7 +514,7 @@
       'sources/': [
         ['exclude', '\\.(cc|h)$'],
         ['include', 'run_vm_tests.cc'],
-        ['include', 'builtin.cc'],
+        ['include', 'builtin_nolib.cc'],
         ['include', 'builtin_natives.cc'],
         ['include', '_gen\\.cc$'],
         ['include', '_test\\.(cc|h)$'],

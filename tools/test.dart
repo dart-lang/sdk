@@ -130,7 +130,7 @@ void testConfigurations(List<Map> configurations) {
       var servers = new TestingServers(new Path(TestUtils.buildDir(conf)),
                                        useContentSecurityPolicy,
                                        conf['runtime']);
-      serverFutures.add(servers.startServers('127.0.0.1'));
+      serverFutures.add(servers.startServers(conf['local_ip']));
       conf['_servers_'] = servers;
     }
 

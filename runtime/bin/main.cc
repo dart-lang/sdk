@@ -47,7 +47,7 @@ static bool start_debugger = false;
 static const int DEFAULT_DEBUG_PORT = 5858;
 static const char* DEFAULT_DEBUG_IP = "127.0.0.1";
 static const char* debug_ip = DEFAULT_DEBUG_IP;
-static int debug_port = 0;
+static int debug_port = -1;
 
 // Global state that defines the VmStats web server port and root directory.
 static int vmstats_port = -1;
@@ -148,7 +148,7 @@ static bool ProcessDebugOption(const char* port) {
   // TODO(hausner): Add support for specifying an IP address on which
   // the debugger should listen.
   ASSERT(port != NULL);
-  debug_port = 0;
+  debug_port = -1;
   if (*port == '\0') {
     debug_port = DEFAULT_DEBUG_PORT;
   } else {
@@ -156,7 +156,7 @@ static bool ProcessDebugOption(const char* port) {
       debug_port = atoi(port + 1);
     }
   }
-  if (debug_port == 0) {
+  if (debug_port < 0) {
     Log::PrintErr("unrecognized --debug option syntax. "
                     "Use --debug[:<port number>]\n");
     return false;
@@ -725,10 +725,11 @@ int main(int argc, char** argv) {
 
   // Start the debugger wire protocol handler if necessary.
   if (start_debugger) {
-    ASSERT(debug_port != 0);
-    DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
-    if (verbose_debug_seen) {
-      Log::Print("Debugger initialized\n");
+    ASSERT(debug_port >= 0);
+    bool print_msg = verbose_debug_seen || (debug_port == 0);
+    debug_port = DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
+    if (print_msg) {
+      Log::Print("Debugger listening on port %d\n", debug_port);
     }
   }
   VmStats::Start(vmstats_port, vmstats_root, verbose_debug_seen);

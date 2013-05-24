@@ -133,7 +133,6 @@ LibTest/collection/Queue/iterator_moveNext_A01_t02: Fail # TODO(ahe): Please tri
 LibTest/core/List/List_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/double/parse_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/double/toStringAsExponential_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/int/toStringAsExponential_A02_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/pow_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -201,7 +200,7 @@ LibTest/isolate/ReceivePort/toSendPort_A01_t02: Pass, Fail # Issue: 8920
 
 # These tests are passing with 'runtime == ie9' but are either skipped or fail
 # on other configurations
-[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == drt || $runtime == safari || $runtime == opera || $runtime == d8 || $runtime == jsshell) ]
+[ $compiler == dart2js && ($runtime == ie10 || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari || $runtime == opera || $runtime == d8 || $runtime == jsshell) ]
 LibTest/math/exp_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/sin_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/math/tan_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -525,10 +524,12 @@ LibTest/async/Completer/completeError_A01_t01: Fail # No AsyncError anymore. Iss
 LibTest/async/Future/Future.immediateError_A01_t01: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Future/catchError_A02_t01: Fail # No AsyncError anymore. Issue 407
 
-LibTest/async/Completer/complete_A01_t03: Fail # Completer is now asynchronous. Issue TODO
-LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. Issue TODO
-LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue TODO
-LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue TODO
+LibTest/async/Completer/complete_A01_t03: Fail # Completer is now asynchronous. Issue 419
+LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. Issue 419
+LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue 419
+LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue 419
+
+LibTest/core/double/parse_A02_t01: Fail # Issue 418
 
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 409
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 409

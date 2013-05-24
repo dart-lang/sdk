@@ -4,6 +4,7 @@
 
 import 'dart:json' as json;
 
+import 'package:pathos/path.dart' as path;
 import 'package:scheduled_test/scheduled_test.dart';
 
 import '../descriptor.dart' as d;
@@ -13,6 +14,10 @@ main() {
   initConfig();
 
   integration("compiles dart.js next to entrypoints", () {
+    // Dart2js can take a long time to compile dart code, so we increase the
+    // timeout to cope with that.
+    currentSchedule.timeout *= 3;
+
     serve([
       d.dir('packages', [
         d.file('browser.json', json.stringify({'versions': ['1.0.0']})),
@@ -46,14 +51,14 @@ main() {
     schedulePub(args: ["deploy"],
         output: '''
 Finding entrypoints...
-Copying   web/                    => deploy/
-Compiling web/file.dart           => deploy/file.dart.js
-Compiling web/file.dart           => deploy/file.dart
-Copying   package:browser/dart.js => deploy/packages/browser/dart.js
-Compiling web/subdir/subfile.dart => deploy/subdir/subfile.dart.js
-Compiling web/subdir/subfile.dart => deploy/subdir/subfile.dart
-Copying   package:browser/dart.js => deploy/subdir/packages/browser/dart.js
-''',
+Copying   web|                    => deploy|
+Compiling web|file.dart           => deploy|file.dart.js
+Compiling web|file.dart           => deploy|file.dart
+Copying   package:browser/dart.js => deploy|packages|browser|dart.js
+Compiling web|subdir|subfile.dart => deploy|subdir|subfile.dart.js
+Compiling web|subdir|subfile.dart => deploy|subdir|subfile.dart
+Copying   package:browser/dart.js => deploy|subdir|packages|browser|dart.js
+'''.replaceAll('|', path.separator),
         exitCode: 0);
 
     d.dir(appPath, [

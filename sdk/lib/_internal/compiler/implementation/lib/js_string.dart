@@ -97,8 +97,99 @@ class JSString extends Interceptor implements String, JSIndexable {
     return JS('String', r'#.toUpperCase()', this);
   }
 
+  // Characters with Whitespace property (Unicode 6.2).
+  // 0009..000D    ; White_Space # Cc       <control-0009>..<control-000D>
+  // 0020          ; White_Space # Zs       SPACE
+  // 0085          ; White_Space # Cc       <control-0085>
+  // 00A0          ; White_Space # Zs       NO-BREAK SPACE
+  // 1680          ; White_Space # Zs       OGHAM SPACE MARK
+  // 180E          ; White_Space # Zs       MONGOLIAN VOWEL SEPARATOR
+  // 2000..200A    ; White_Space # Zs       EN QUAD..HAIR SPACE
+  // 2028          ; White_Space # Zl       LINE SEPARATOR
+  // 2029          ; White_Space # Zp       PARAGRAPH SEPARATOR
+  // 202F          ; White_Space # Zs       NARROW NO-BREAK SPACE
+  // 205F          ; White_Space # Zs       MEDIUM MATHEMATICAL SPACE
+  // 3000          ; White_Space # Zs       IDEOGRAPHIC SPACE
+  //
+  // BOM: 0xFEFF
+  static bool _isWhitespace(int codeUnit) {
+    // Most codeUnits should be less than 256. Special case with a smaller
+    // switch.
+    if (codeUnit < 256) {
+      switch (codeUnit) {
+        case 0x09:
+        case 0x0A:
+        case 0x0B:
+        case 0x0C:
+        case 0x0D:
+        case 0x20:
+        case 0x85:
+        case 0xA0:
+          return true;
+        default:
+          return false;
+      }
+    }
+    switch (codeUnit) {
+      case 0x1680:
+      case 0x180E:
+      case 0x2000:
+      case 0x2001:
+      case 0x2002:
+      case 0x2003:
+      case 0x2004:
+      case 0x2005:
+      case 0x2006:
+      case 0x2007:
+      case 0x2008:
+      case 0x2009:
+      case 0x200A:
+      case 0x2028:
+      case 0x2029:
+      case 0x202F:
+      case 0x205F:
+      case 0x3000:
+      case 0xFEFF:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  // Dart2js can't use JavaScript trim, because JavaScript does not trim
+  // the NEXT LINE character (0x85) and BOMs (0xFEFF).
   String trim() {
-    return JS('String', r'#.trim()', this);
+    const int CARRIAGE_RETURN = 0x0D;
+    const int SPACE = 0x20;
+
+    int startIndex = 0;
+    while (startIndex < this.length) {
+      int codeUnit = this.codeUnitAt(startIndex);
+      if (codeUnit == SPACE ||
+          codeUnit == CARRIAGE_RETURN ||
+          _isWhitespace(codeUnit)) {
+        startIndex++;
+      } else {
+        break;
+      }
+    }
+    if (startIndex == this.length) return "";
+
+    int endIndex = this.length;
+    // We know that there is at least one character that is non-whitespace.
+    // Therefore we don't need to verify that endIndex > startIndex.
+    while (true) {
+      int codeUnit = this.codeUnitAt(endIndex - 1);
+      if (codeUnit == SPACE ||
+          codeUnit == CARRIAGE_RETURN ||
+          _isWhitespace(codeUnit)) {
+        endIndex--;
+      } else {
+        break;
+      }
+    }
+    if (startIndex == 0 && endIndex == this.length) return this;
+    return JS('String', r'#.substring(#, #)', this, startIndex, endIndex);
   }
 
   List<int> get codeUnits => new _CodeUnits(this);

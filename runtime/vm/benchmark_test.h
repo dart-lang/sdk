@@ -19,6 +19,12 @@ namespace dart {
 DECLARE_FLAG(int, code_heap_size);
 DECLARE_FLAG(int, heap_growth_space_ratio);
 
+// snapshot_buffer points to a snapshot if we link in a snapshot otherwise
+// it is initialized to NULL.
+namespace bin {
+extern const uint8_t* snapshot_buffer;
+}
+
 // The BENCHMARK macro is used for benchmarking a specific functionality
 // of the VM
 #define BENCHMARK(name)                                                        \
@@ -64,7 +70,7 @@ class Benchmark {
   intptr_t score() const { return score_; }
   Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
 
-  Dart_Isolate CreateIsolate(uint8_t* buffer) {
+  Dart_Isolate CreateIsolate(const uint8_t* buffer) {
     char* err = NULL;
     isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, &err);
     EXPECT(isolate_ != NULL);
@@ -97,7 +103,7 @@ class Benchmark {
 class BenchmarkIsolateScope {
  public:
   explicit BenchmarkIsolateScope(Benchmark* benchmark) : benchmark_(benchmark) {
-    benchmark_->CreateIsolate(NULL);
+    benchmark_->CreateIsolate(bin::snapshot_buffer);
     Dart_EnterScope();  // Create a Dart API scope for unit benchmarks.
   }
   ~BenchmarkIsolateScope() {

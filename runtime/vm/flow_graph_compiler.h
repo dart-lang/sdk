@@ -377,10 +377,12 @@ class FlowGraphCompiler : public ValueObject {
 
   void EmitEqualityRegConstCompare(Register reg,
                                    const Object& obj,
-                                   bool needs_number_check);
+                                   bool needs_number_check,
+                                   intptr_t token_pos);
   void EmitEqualityRegRegCompare(Register left,
                                  Register right,
-                                 bool needs_number_check);
+                                 bool needs_number_check,
+                                 intptr_t token_pos);
   // Implement equality: if any of the arguments is null do identity check.
   // Fallthrough calls super equality.
   void EmitSuperEqualityCallPrologue(Register result, Label* skip_call);

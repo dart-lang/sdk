@@ -25,12 +25,11 @@ main() {
 """);
   var nonAsciiTxtFile = new File('${nonAsciiDir.path}/æøå.txt');
   nonAsciiTxtFile.writeAsStringSync('æøå');
-  var options = new ProcessOptions();
-  options.workingDirectory = nonAsciiDir.path;
   var script = nonAsciiFile.path;
-  Process.run(executable, [script], options).then((result) {
-    Expect.equals(0, result.exitCode);
-    tempDir.deleteSync(recursive: true);
-    port.close();
-  });
+  Process.run(executable, [script], workingDirectory: nonAsciiDir.path)
+      .then((result) {
+        Expect.equals(0, result.exitCode);
+        tempDir.deleteSync(recursive: true);
+        port.close();
+      });
 }

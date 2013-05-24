@@ -65,14 +65,14 @@ main() {
 
 twoClasses() {
   String generated = compileAll(TEST_ONE);
-  Expect.isTrue(generated.contains('\$.A = {"": "Object;"'));
-  Expect.isTrue(generated.contains('\$.B = {"": "Object;"'));
+  Expect.isTrue(generated.contains('A: {"": "Object;"'));
+  Expect.isTrue(generated.contains('B: {"": "Object;"'));
 }
 
 subClass() {
   checkOutput(String generated) {
-    Expect.isTrue(generated.contains('\$.A = {"": "Object;"'));
-    Expect.isTrue(generated.contains('\$.B = {"": "A;"'));
+    Expect.isTrue(generated.contains('A: {"": "Object;"'));
+    Expect.isTrue(generated.contains('B: {"": "A;"'));
   }
 
   checkOutput(compileAll(TEST_TWO));
@@ -81,7 +81,7 @@ subClass() {
 
 fieldTest() {
   String generated = compileAll(TEST_FOUR);
-  Expect.isTrue(generated.contains(r"""$.B = {"": "A;y,z,x"}"""));
+  Expect.isTrue(generated.contains(r"""B: {"": "A;y,z,x"}"""));
 }
 
 constructor1() {

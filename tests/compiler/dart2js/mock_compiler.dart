@@ -63,7 +63,8 @@ const String DEFAULT_HELPERLIB = r'''
   S() {}
   throwExpression(e) {}
   unwrapException(e) {}
-  assertHelper(a){}
+  assertHelper(a) {}
+  isJsIndexable(a, b) {}
   createRuntimeType(a) {}
   createInvocationMirror(a0, a1, a2, a3, a4, a5) {}
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
@@ -138,6 +139,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   getInterceptor(x) {}
   getNativeInterceptor(x) {}
+  var dispatchPropertyName;
   getDispatchProperty(o) {}
   initializeDispatchProperty(f,p,i) {}
   initializeDispatchPropertyCSP(f,p,i) {}

@@ -209,6 +209,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
     ASSERT(!library_.IsNull());
     str_ ^= ReadObjectImpl();
     cls = library_.LookupClass(str_);
+    cls.EnsureIsFinalized(isolate());
   }
   ASSERT(!cls.IsNull());
   return cls.raw();

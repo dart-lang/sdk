@@ -193,6 +193,20 @@ testDynamicBackDoor() {
   result.checkNodeHasUnknownType('x');
 }
 
+testVariableDeclaration() {
+  final String source = r"""
+      main() {
+        var v1;
+        var v2;
+        v2 = 1;
+        v1; v2;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('v1', [result.nullType]);
+  result.checkNodeHasType('v2', [result.int]);
+}
+
 testLiterals() {
   final String source = r"""
       main() {
@@ -310,6 +324,21 @@ testFor2() {
   result.checkNodeHasType('foo', [result.base('A'), result.base('B')]);
   // Check that the condition is evaluated.
   result.checkNodeHasType('bar', [result.int]);
+}
+
+testFor3() {
+  final String source = r"""
+      main() {
+        var i = 1;
+        for(;;) {
+          var x = 2;
+          i = x;
+        }
+        i;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('i', [result.int]);
 }
 
 testToplevelVariable() {
@@ -1326,6 +1355,7 @@ testSelectors() {
 
 void main() {
   testDynamicBackDoor();
+  testVariableDeclaration();
   testLiterals();
   testRedefinition();
   testIfThenElse();
@@ -1333,6 +1363,7 @@ void main() {
   testWhile();
   testFor1();
   testFor2();
+  testFor3();
   testToplevelVariable();
   testNonRecusiveFunction();
   testRecusiveFunction();

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Check fails because const class extends from non const class.
+// VMOptions=--compile_all
 
 class Base {
   Base() {}

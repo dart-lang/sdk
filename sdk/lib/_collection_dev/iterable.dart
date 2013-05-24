@@ -283,10 +283,11 @@ class ListIterator<E> implements Iterator<E> {
   E get current => _current;
 
   bool moveNext() {
-    if (_length != _iterable.length) {
+    int length = _iterable.length;
+    if (_length != length) {
       throw new ConcurrentModificationError(_iterable);
     }
-    if (_index == _length) {
+    if (_index >= length) {
       _current = null;
       return false;
     }

@@ -1061,25 +1061,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     return null;
   }
 
-  bool isTargetFor(TypeMask receiverType, Selector selector, Element element) {
-    bool isReceiverDynamic = isDynamicType(receiverType);
-    assert(selector.mask == receiverType
-           || (selector.mask == null && isReceiverDynamic));
-    // TODO(ngeoffray) : The following noSuchMethod handling is a bit
-    // convoluted, we should make it easier to know what we are sure
-    // we cannot hit.
-    if (element.name != selector.name) {
-      assert(element.name == Compiler.NO_SUCH_METHOD);
-      return isReceiverDynamic
-          || (!receiverType.willHit(selector, compiler)
-              && receiverType.canHit(
-                    element, compiler.noSuchMethodSelector, compiler));
-    } else {
-      return isReceiverDynamic
-          || receiverType.canHit(element, selector, compiler);
-    }
-  }
-
   /**
    * Registers that [caller] calls an element matching [selector]
    * with the given [arguments].
@@ -1093,9 +1074,15 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                                   SideEffects sideEffects,
                                   bool inLoop) {
     TypeMask result;
-    iterateOverElements(selector.asUntyped, (Element element) {
-      assert(element.isImplementation);
-      if (isTargetFor(receiverType, selector, element)) {
+    Iterable<Element> untypedTargets =
+        compiler.world.allFunctions.filter(selector.asUntyped);
+    Iterable<Element> typedTargets =
+        compiler.world.allFunctions.filter(selector);
+    for (Element element in untypedTargets) {
+      element = element.implementation;
+      if (!typedTargets.contains(element.declaration)) {
+        unregisterCalledElement(node, selector, caller, element);
+      } else {
         registerCalledElement(
             node, selector, caller, element, arguments,
             constraint, sideEffects, inLoop);
@@ -1105,11 +1092,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
           if (type == null) type = typeOfElementWithSelector(element, selector);
           result = computeLUB(result, type);
         }
-      } else {
-        unregisterCalledElement(node, selector, caller, element);
       }
-      return true;
-    });
+    }
 
     if (result == null) {
       result = dynamicType;
@@ -1501,6 +1485,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
   bool accumulateIsChecks = false;
+  bool conditionIsSimple = false;
+
   List<Send> isChecks;
   int loopLevel = 0;
   SideEffects sideEffects = new SideEffects.empty();
@@ -2120,6 +2106,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     if (const SourceString("[]") == op.source) {
       return visitDynamicSend(node);
     } else if (const SourceString("&&") == op.source) {
+      conditionIsSimple = false;
       bool oldAccumulateIsChecks = accumulateIsChecks;
       accumulateIsChecks = true;
       if (isChecks == null) isChecks = <Send>[];
@@ -2132,6 +2119,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       locals.merge(saved);
       return inferrer.boolType;
     } else if (const SourceString("||") == op.source) {
+      conditionIsSimple = false;
       visit(node.receiver);
       LocalsHandler saved = new LocalsHandler.from(locals);
       updateIsChecks(isChecks, usePositive: false);
@@ -2323,13 +2311,14 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitConditional(Conditional node) {
-    List<Send> tests = handleCondition(node.condition);
+    List<Send> tests = <Send>[];
+    bool simpleCondition = handleCondition(node.condition, tests);
     LocalsHandler saved = new LocalsHandler.from(locals);
     updateIsChecks(tests, usePositive: true);
     TypeMask firstType = visit(node.thenExpression);
     LocalsHandler thenLocals = locals;
     locals = saved;
-    updateIsChecks(tests, usePositive: false);
+    if (simpleCondition) updateIsChecks(tests, usePositive: false);
     TypeMask secondType = visit(node.elseExpression);
     locals.merge(thenLocals);
     TypeMask type = inferrer.computeLUB(firstType, secondType);
@@ -2351,26 +2340,30 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return inferrer.dynamicType;
   }
 
-  List<Send> handleCondition(Node node) {
+  bool handleCondition(Node node, List<Send> tests) {
+    bool oldConditionIsSimple = conditionIsSimple;
     bool oldAccumulateIsChecks = accumulateIsChecks;
     List<Send> oldIsChecks = isChecks;
-    List<Send> tests = <Send>[];
     accumulateIsChecks = true;
+    conditionIsSimple = true;
     isChecks = tests;
     visit(node);
+    bool simpleCondition = conditionIsSimple;
     accumulateIsChecks = oldAccumulateIsChecks;
     isChecks = oldIsChecks;
-    return tests;
+    conditionIsSimple = oldConditionIsSimple;
+    return simpleCondition;
   }
 
   TypeMask visitIf(If node) {
-    List<Send> tests = handleCondition(node.condition);
+    List<Send> tests = <Send>[];
+    bool simpleCondition = handleCondition(node.condition, tests);
     LocalsHandler saved = new LocalsHandler.from(locals);
     updateIsChecks(tests, usePositive: true);
     visit(node.thenPart);
     LocalsHandler thenLocals = locals;
     locals = saved;
-    updateIsChecks(tests, usePositive: false);
+    if (simpleCondition) updateIsChecks(tests, usePositive: false);
     visit(node.elsePart);
     locals.merge(thenLocals);
     return inferrer.dynamicType;
@@ -2425,7 +2418,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   TypeMask visitWhile(While node) {
     return handleLoop(node, () {
-      List<Send> tests = handleCondition(node.condition);
+      List<Send> tests = <Send>[];
+      handleCondition(node.condition, tests);
       updateIsChecks(tests, usePositive: true);
       visit(node.body);
     });
@@ -2434,7 +2428,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitDoWhile(DoWhile node) {
     return handleLoop(node, () {
       visit(node.body);
-      List<Send> tests = handleCondition(node.condition);
+      List<Send> tests = <Send>[];
+      handleCondition(node.condition, tests);
       updateIsChecks(tests, usePositive: true);
     });
   }
@@ -2442,7 +2437,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask visitFor(For node) {
     visit(node.initializer);
     return handleLoop(node, () {
-      List<Send> tests = handleCondition(node.condition);
+      List<Send> tests = <Send>[];
+      handleCondition(node.condition, tests);
       updateIsChecks(tests, usePositive: true);
       visit(node.body);
       visit(node.update);
@@ -2621,6 +2617,15 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       locals = result;
     }
     clearBreaksAndContinues(elements[node]);
+    // In case there is a default in the switch we discard the
+    // incoming localsHandler, because the types it holds do not need
+    // to be merged after the switch statement. This means that, if all
+    // cases, including the default, break or continue, the [result]
+    // handler may think it just aborts the current block. Therefore
+    // we set the current locals to not have any break or continue, so
+    // that the [visitBlock] method does not assume the code after the
+    // switch is dead code.
+    locals.seenBreakOrContinue = false;
     return inferrer.dynamicType;
   }
 }

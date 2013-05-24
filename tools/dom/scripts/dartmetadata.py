@@ -392,6 +392,8 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   ],
 })
 
+# TODO(blois): minimize noise and enable by default.
+_monitor_type_metadata = False
 
 class DartMetadata(object):
   def __init__(self, api_status_path, doc_comments_path):
@@ -403,6 +405,20 @@ class DartMetadata(object):
     comments_file = open(doc_comments_path, 'r+')
     self._doc_comments = json.load(comments_file)
     comments_file.close()
+
+    if _monitor_type_metadata:
+      monitored_interfaces = {}
+      for interface_id, interface_data in self._types.iteritems():
+        monitored_interface = interface_data.copy()
+        monitored_interface['members'] = monitored.Dict(
+            'dartmetadata.%s' % interface_id, interface_data['members'])
+
+        monitored_interfaces[interface_id] = monitored_interface
+
+      self._monitored_types = monitored.Dict('dartmetadata._monitored_types',
+          monitored_interfaces)
+    else:
+      self._monitored_types = self._types
 
   def GetFormattedMetadata(self, library_name, interface, member_id=None,
       indentation=''):
@@ -473,8 +489,12 @@ class DartMetadata(object):
     if source_member_name:
       member_name = source_member_name
 
-    # TODO(blois): Emit support level annotations
-    self._GetSupportLevelAnnotation(interface.id, member_name)
+    support_annotations = self._GetSupportLevelAnnotations(
+        interface.id, member_name)
+
+    for annotation in support_annotations:
+      if annotation not in annotations:
+        annotations.append(annotation)
 
     return annotations
 
@@ -534,12 +554,12 @@ class DartMetadata(object):
     ann2 = _dart2js_annotations.get(idl_type)
     return ann2
 
-  def _GetSupportLevel(self, interface_id, member_id=None):
+  def _GetSupportInfo(self, interface_id, member_id=None):
     """ Looks up the interface or member in the DOM status list and returns the
     support level for it.
     """
-    if interface_id in self._types:
-      type_info = self._types[interface_id]
+    if interface_id in self._monitored_types:
+      type_info = self._monitored_types[interface_id]
     else:
       type_info = {
         'members': {},
@@ -548,7 +568,7 @@ class DartMetadata(object):
       self._types[interface_id] = type_info
 
     if not member_id:
-      return type_info.get('support_level')
+      return type_info
 
     members = type_info['members']
 
@@ -561,27 +581,59 @@ class DartMetadata(object):
         member_info = {'support_level': 'untriaged'}
       members[member_id] = member_info
 
-    support_level = member_info.get('support_level')
-    # If unset then it inherits from the type.
-    if not support_level:
-      support_level = type_info.get('support_level')
-    return support_level
+    return member_info
 
-  def _GetSupportLevelAnnotation(self, interface_id, member_id=None):
-    support_level = self._GetSupportLevel(interface_id, member_id)
+  def _GetSupportLevelAnnotations(self, interface_id, member_id=None):
+    """ Gets annotations for API support status.
+    """
+    support_info = self._GetSupportInfo(interface_id, member_id)
 
-    if support_level == 'untriaged':
-      return '@Experimental'
+    dart_action = support_info.get('dart_action')
+    support_level = support_info.get('support_level')
+    comment = support_info.get('comment')
+    annotations = []
+    # TODO(blois): should add an annotation for the comment, but keeping out
+    # to keep the initial diff a bit more localized.
+    #if comment:
+    #  annotations.append('// %s' % comment)
+
+    if dart_action:
+      if dart_action == 'unstable':
+        annotations.append('@Unstable')
+      elif dart_action == 'experimental':
+        if comment:
+          annotations.append('// %s' % comment)
+        annotations.append('@Experimental // %s' % support_level)
+      elif dart_action == 'suppress':
+        if comment:
+          annotations.append('// %s' % comment)
+        annotations.append('@deprecated // %s' % support_level)
+        # TODO (blois): suppress generation of these APIs as a separate CL.
+        pass
+      else:
+        _logger.warn('Unknown dart_action - %s:%s' % (interface_id, member_id))
+    elif support_level == 'untriaged':
+      annotations.append('@Experimental // untriaged')
     elif support_level == 'experimental':
-      return '@Experimental'
+      if comment:
+        annotations.append('// %s' % comment)
+      annotations.append('@Experimental')
     elif support_level == 'nonstandard':
-      return '@Experimental'
+      if comment:
+        annotations.append('// %s' % comment)
+      annotations.append('@Experimental // non-standard')
     elif support_level == 'stable':
-      return
+      pass
     elif support_level == 'deprecated':
-      return '@Deprecated'
+      if comment:
+        annotations.append('// %s' % comment)
+      annotations.append('@deprecated')
+    elif support_level is None:
+      pass
     else:
       _logger.warn('Unknown support_level - %s:%s' % (interface_id, member_id))
+
+    return annotations
 
   def Flush(self):
     json_file = open(self._api_status_path, 'w+')

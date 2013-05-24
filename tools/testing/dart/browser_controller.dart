@@ -7,9 +7,11 @@ import "dart:async";
 import "dart:core";
 import "dart:io";
 
+import 'android.dart';
+import 'utils.dart';
 
 /** Class describing the interface for communicating with browsers. */
-class Browser {
+abstract class Browser {
   // Browsers actually takes a while to cleanup after itself when closing
   // Give it sufficient time to do that.
   static final Duration killRepeatInternal = const Duration(seconds: 10);
@@ -103,7 +105,7 @@ class Browser {
 
 
     _logEvent("calling kill function");
-    if (killFunction()) {
+    if (process != null && killFunction()) {
       // We successfully sent the signal.
       _logEvent("killing signal sent");
     } else {
@@ -140,8 +142,7 @@ class Browser {
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
-        _usageLog.add(
-            "An error occured in the process stdout handling: $error");
+        _logEvent("An error occured in the process stdout handling: $error");
       });
 
       process.stderr.transform(new StringDecoder()).listen((data) {
@@ -149,8 +150,7 @@ class Browser {
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
-        _usageLog.add(
-            "An error occured in the process stderr handling: $error");
+        _logEvent("An error occured in the process stderr handling: $error");
       });
 
       process.exitCode.then((exitCode) {
@@ -161,7 +161,7 @@ class Browser {
       });
       return true;
     }).catchError((error) {
-      _logEvent("Running $binary $arguments failed with $error");
+      _logEvent("Running $command $arguments failed with $error");
       return false;
     });
   }
@@ -177,7 +177,6 @@ class Browser {
   /** Starts the browser loading the given url */
   Future<bool> start(String url);
 }
-
 
 class Chrome extends Browser {
   /**
@@ -215,6 +214,82 @@ class Chrome extends Browser {
   String toString() => "Chrome";
 }
 
+class AndroidChrome extends Browser {
+  const String viewAction = 'android.intent.action.VIEW';
+  const String mainAction = 'android.intent.action.MAIN';
+  const String chromePackage = 'com.android.chrome';
+  const String browserPackage = 'com.android.browser';
+  const String firefoxPackage = 'org.mozilla.firefox';
+  const String turnScreenOnPackage = 'com.google.dart.turnscreenon';
+
+  AndroidEmulator _emulator;
+  AdbDevice _adbDevice;
+
+  AndroidChrome(this._adbDevice);
+
+  Future<bool> start(String url) {
+    var browserIntent = new Intent(
+        viewAction, browserPackage, '.BrowserActivity', url);
+    var chromeIntent = new Intent(viewAction, chromePackage, '.Main', url);
+    var firefoxIntent = new Intent(viewAction, firefoxPackage, '.App', url);
+    var turnScreenOnIntent =
+        new Intent(mainAction, turnScreenOnPackage, '.Main');
+
+    // FIXME(kustermann): Remove this hack as soon as we've got a v8 mirror in
+    // golo
+    var testing_resources_dir =
+        new Path('third_party/android_testing_resources');
+    var testing_resources_dir_tmp = 
+        new Path('/tmp/android_testing_resources');
+    if (!new Directory.fromPath(testing_resources_dir).existsSync()) {
+      DebugLogger.warning("$testing_resources_dir doesn't exist, "
+                          "trying to use $testing_resources_dir_tmp");
+      testing_resources_dir = testing_resources_dir_tmp;
+      if (!new Directory.fromPath(testing_resources_dir).existsSync()) {
+        DebugLogger.error("$testing_resources_dir_tmp doesn't exist either. "
+                          " This is a fatal error. Exiting now.");
+        exit(1);
+      }
+    }
+
+    var chromeAPK = testing_resources_dir.append('com.android.chrome-1.apk');
+    var turnScreenOnAPK = testing_resources_dir.append('TurnScreenOn.apk');
+    var chromeConfDir = testing_resources_dir.append('chrome_configuration');
+    var chromeConfDirRemote = new Path('/data/user/0/com.android.chrome/');
+
+    return _adbDevice.waitForBootCompleted().then((_) {
+      return _adbDevice.forceStop(chromeIntent.package);
+    }).then((_) {
+      return _adbDevice.killAll();
+    }).then((_) {
+      return _adbDevice.adbRoot();
+    }).then((_) {
+      return _adbDevice.installApk(turnScreenOnAPK);
+    }).then((_) {
+      return _adbDevice.installApk(chromeAPK);
+    }).then((_) {
+      return _adbDevice.pushData(chromeConfDir, chromeConfDirRemote);
+    }).then((_) {
+      return _adbDevice.chmod('777', chromeConfDirRemote);
+    }).then((_) {
+      return _adbDevice.startActivity(turnScreenOnIntent).then((_) => true);
+    }).then((_) {
+      return _adbDevice.startActivity(chromeIntent).then((_) => true);
+    });
+  }
+
+  Future<bool> close() {
+    if (_adbDevice != null) {
+      return _adbDevice.forceStop(chromePackage).then((_) {
+        return _adbDevice.killAll().then((_) => true);
+      });
+    }
+    return new Future.immediate(true);
+  }
+
+  String toString() => "chromeOnAndroid";
+}
+
 class Firefox extends Browser {
   /**
    * The binary used to run firefox - changing this can be nececcary for
@@ -223,12 +298,15 @@ class Firefox extends Browser {
   const String binary = "firefox";
 
   const String enablePopUp =
-      "user_pref(\"dom.disable_open_during_load\", false);";
+      'user_pref("dom.disable_open_during_load", false);';
+  const String disableDefaultCheck =
+      'user_pref("browser.shell.checkDefaultBrowser", false);';
 
   Future _createPreferenceFile(var path) {
     var file = new File("${path.toString()}/user.js");
     var randomFile = file.openSync(FileMode.WRITE);
     randomFile.writeStringSync(enablePopUp);
+    randomFile.writeStringSync(disableDefaultCheck);
     randomFile.close();
   }
 
@@ -269,7 +347,6 @@ class Firefox extends Browser {
 class BrowserTestingStatus {
 // TODO(ricow): Add prefetching to the browsers. We spend a lot of time waiting
 // for the next test. Handling timeouts is the hard part of this!
-
 
   Browser browser;
   BrowserTest currentTest;
@@ -312,14 +389,17 @@ class BrowserTest {
  * whenever a test completes.
  */
 class BrowserTestRunner {
-  int maxNumBrowsers;
+  String local_ip;
   String browserName;
+  int maxNumBrowsers;
 
   bool underTermination = false;
 
   List<BrowserTest> testQueue = new List<BrowserTest>();
   Map<String, BrowserTestingStatus> browserStatus =
       new Map<String, BrowserTestingStatus>();
+
+  var adbDeviceMapping = new Map<String, AdbDevice>();
   // This cache is used to guarantee that we never see double reporting.
   // If we do we need to provide developers with this information.
   // We don't add urls to the cache until we have run it.
@@ -328,32 +408,66 @@ class BrowserTestRunner {
 
   BrowserTestingServer testingServer;
 
-  BrowserTestRunner(String this.browserName, int this.maxNumBrowsers);
+  BrowserTestRunner(this.local_ip, this.browserName, this.maxNumBrowsers);
 
   Future<bool> start() {
-    testingServer = new BrowserTestingServer();
+    testingServer = new BrowserTestingServer(local_ip);
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
       testingServer.nextTestCallBack = getNextTest;
-      var futures = [];
-      for (int i = 0; i < maxNumBrowsers; i++) {
-        var browser = getInstance();
-        var id = "BROWSER$i";
-        // We store this in case we need to kill the browser.
-        browser.id = id;
-        var future =
-            browser.start(testingServer.getDriverUrl(id)).then((success) {
-              if (success) {
-                browserStatus[id] = new BrowserTestingStatus(browser);
-              }
-              return success;
-            });
-        futures.add(future);
-      }
-      return Future.wait(futures).then((values) {
-        return !values.contains(false);
+      return getBrowsers().then((browsers) {
+        var futures = [];
+        for (var browser in browsers) {
+          var url = testingServer.getDriverUrl(browser.id);
+          var future = browser.start(url).then((success) {
+            if (success) {
+              browserStatus[browser.id] = new BrowserTestingStatus(browser);
+            }
+            return success;
+          });
+          futures.add(future);
+        }
+        return Future.wait(futures).then((values) {
+          return !values.contains(false);
+        });
       });
     });
+  }
+
+  Future<List<Browser>> getBrowsers() {
+    // TODO(kustermann): This is a hackisch way to accomplish it and should
+    // be encapsulated
+    var browsersCompleter = new Completer();
+    if (browserName == 'chromeOnAndroid') {
+      AdbHelper.listDevices().then((deviceIds) {
+        if (deviceIds.length > 0) {
+          var browsers = [];
+          for (int i = 0; i < deviceIds.length; i++) {
+            var id = "BROWSER$i";
+            var device = new AdbDevice(deviceIds[i]);
+            adbDeviceMapping[id] = device;
+            var browser = new AndroidChrome(device);
+            browsers.add(browser);
+            // We store this in case we need to kill the browser.
+            browser.id = id;
+          }
+          browsersCompleter.complete(browsers);
+        } else {
+          throw new StateError("No android devices found.");
+        }
+      });
+    } else {
+      var browsers = [];
+      for (int i = 0; i < maxNumBrowsers; i++) {
+        var id = "BROWSER$i";
+        var browser = getInstance();
+        browsers.add(browser);
+        // We store this in case we need to kill the browser.
+        browser.id = id;
+      }
+      browsersCompleter.complete(browsers);
+    }
+    return browsersCompleter.future;
   }
 
   var timedOut = [];
@@ -404,8 +518,12 @@ class BrowserTestRunner {
         print("could not kill browser $id");
         return;
       }
-      // Start the new browser first
-      var browser = getInstance();
+      var browser;
+      if (browserName == 'chromeOnAndroid') {
+        browser = new AndroidChrome(adbDeviceMapping[id]);
+      } else {
+        browser = getInstance();
+      }
       browser.start(testingServer.getDriverUrl(id)).then((success) {
         // We may have started terminating in the mean time.
         if (underTermination) {
@@ -493,14 +611,13 @@ class BrowserTestRunner {
       return new Chrome();
     } else if (browserName == "ff") {
       return new Firefox();
+    } else {
+      throw "Non supported browser for browser controller";
     }
-    throw "Non supported browser for browser controller";
   }
 }
 
 class BrowserTestingServer {
-  const String server = "127.0.0.1";
-
   /// Interface of the testing server:
   ///
   /// GET /driver/BROWSER_ID -- This will get the driver page to fetch
@@ -513,6 +630,7 @@ class BrowserTestingServer {
   /// POST /report/BROWSER_ID?id=NUM -- sends back the dom of the executed
   ///                                   test
 
+  final String local_ip;
 
   const String driverPath = "/driver";
   const String nextTestPath = "/next_test";
@@ -527,8 +645,10 @@ class BrowserTestingServer {
   Function testDoneCallBack;
   Function nextTestCallBack;
 
+  BrowserTestingServer(this.local_ip);
+
   Future start() {
-    return HttpServer.bind(server, 0).then((createdServer) {
+    return HttpServer.bind(local_ip, 0).then((createdServer) {
       httpServer = createdServer;
       void handler(HttpRequest request) {
         if (request.uri.path.startsWith(reportPath)) {
@@ -600,7 +720,7 @@ class BrowserTestingServer {
       exit(1);
       // This should never happen - exit immediately;
     }
-    return "http://$server:${httpServer.port}/driver/$browserId";
+    return "http://$local_ip:${httpServer.port}/driver/$browserId";
   }
 
 
@@ -612,8 +732,11 @@ class BrowserTestingServer {
   <script type='text/javascript'>
     var number_of_tests = 0;
     var current_id;
-    var testing_window;
     var last_reported_id;
+    var testing_window;
+    // We use this to determine if we did actually get back a start event
+    // from the test we just loaded.
+    var did_start = false;
 
     function newTaskHandler() {
       if (this.readyState == this.DONE) {
@@ -630,6 +753,7 @@ class BrowserTestingServer {
             var split = this.responseText.split('#');
             var nextTask = split[0];
             current_id = split[1];
+            did_start = false;
             run(nextTask);
           }
         } else {
@@ -656,17 +780,26 @@ class BrowserTestingServer {
     }
 
     function reportMessage(msg) {
+      if (msg == 'STARTING') {
+        did_start = true;
+        return;
+      }
       var client = new XMLHttpRequest();
       function handleReady() {
         if (this.readyState == this.DONE) {
-          if (current_id != last_reported_id) {
+          if (last_reported_id != current_id && did_start) {
             getNextTask();
             last_reported_id = current_id;
           }
         }
       }
       client.onreadystatechange = handleReady;
-      client.open('POST', '$reportPath/${browserId}?id=' + current_id);
+      // If did_start is false it means that we did actually set the url on
+      // the testing_window, but this is a report left in the event loop or
+      // a callback because the page did not load yet.
+      // In both cases this is a double report from the last test.
+      var posting_id = did_start ? current_id : last_reported_id;
+      client.open('POST', '$reportPath/${browserId}?id=' + posting_id);
       client.setRequestHeader('Content-type',
                               'application/x-www-form-urlencoded');
       client.send(msg);

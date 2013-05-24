@@ -4,6 +4,7 @@
 
 [ $runtime == vm ]
 Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # http://dartbug.com/9597
+Language/07_Classes/6_Constructors_A02_t01: Skip # co19 issue 415.
 
 [ $compiler == none && $runtime == vm && $unchecked ]
 Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -176,7 +177,7 @@ Language/13_Libraries_and_Scripts/5_URIs_A01_t15: Fail # Dart issue 7317
 Language/13_Libraries_and_Scripts/5_URIs_A01_t21: Fail # Dart issue 6352
 Language/14_Types/5_Function_Types_A01_t10: Fail # co19 issue 392
 Language/14_Types/5_Function_Types_A02_t06: Fail # co19 issue 392
-LibTest/core/double/parse_A02_t01: Fail # Dart issue 1929
+LibTest/core/double/parse_A02_t01: Fail # co19 issue 418
 LibTest/math/pow_A01_t01: Fail # Dart issue 7318
 LibTest/math/pow_A11_t01: Fail # Dart issue 449
 LibTest/math/pow_A13_t01: Fail # Dart issue 449
@@ -484,10 +485,10 @@ LibTest/async/Completer/completeError_A01_t01: Fail # No AsyncError anymore. Iss
 LibTest/async/Future/Future.immediateError_A01_t01: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Future/catchError_A02_t01: Fail # No AsyncError anymore. Issue 407
 
-LibTest/async/Completer/complete_A01_t03: Fail # Completer is now asynchronous. Issue TODO
-LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. Issue TODO
-LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue TODO
-LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue TODO
+LibTest/async/Completer/complete_A01_t03: Fail # Completer is now asynchronous. Issue 419
+LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. Issue 419
+LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue 419
+LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue 419
 
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390

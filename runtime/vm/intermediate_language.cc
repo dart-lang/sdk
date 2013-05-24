@@ -4,6 +4,7 @@
 
 #include "vm/intermediate_language.h"
 
+#include "vm/bigint_operations.h"
 #include "vm/bit_vector.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph_allocator.h"
@@ -201,6 +202,16 @@ bool LoadIndexedInstr::AttributesEqual(Instruction* other) const {
   LoadIndexedInstr* other_load = other->AsLoadIndexed();
   ASSERT(other_load != NULL);
   return class_id() == other_load->class_id();
+}
+
+
+ConstantInstr::ConstantInstr(const Object& value) : value_(value) {
+  // Check that the value is not an incorrect Integer representation.
+  ASSERT(!value.IsBigint() ||
+         !BigintOperations::FitsIntoSmi(Bigint::Cast(value)));
+  ASSERT(!value.IsBigint() ||
+         !BigintOperations::FitsIntoInt64(Bigint::Cast(value)));
+  ASSERT(!value.IsMint() || !Smi::IsValid64(Mint::Cast(value).AsInt64Value()));
 }
 
 
@@ -424,6 +435,18 @@ void Instruction::InsertAfter(Instruction* prev) {
     Value* input = InputAt(i);
     input->definition()->AddInputUse(input);
   }
+}
+
+
+Instruction* Instruction::AppendInstruction(Instruction* tail) {
+  LinkTo(tail);
+  // Update def-use chains whenever instructions are added to the graph
+  // after initial graph construction.
+  for (intptr_t i = tail->InputCount() - 1; i >= 0; --i) {
+    Value* input = tail->InputAt(i);
+    input->definition()->AddInputUse(input);
+  }
+  return tail;
 }
 
 
@@ -1562,10 +1585,11 @@ void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-StrictCompareInstr::StrictCompareInstr(Token::Kind kind,
+StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
+                                       Token::Kind kind,
                                        Value* left,
                                        Value* right)
-    : ComparisonInstr(kind, left, right),
+    : ComparisonInstr(token_pos, kind, left, right),
       needs_number_check_(FLAG_new_identity_spec) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }

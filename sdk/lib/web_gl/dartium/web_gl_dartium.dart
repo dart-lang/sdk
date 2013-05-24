@@ -324,6 +324,7 @@ const int ZERO = RenderingContext.ZERO;
 
 @DocsEditable
 @DomName('WebGLActiveInfo')
+@Unstable
 class ActiveInfo extends NativeFieldWrapperClass1 {
   ActiveInfo.internal();
 
@@ -349,6 +350,7 @@ class ActiveInfo extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLBuffer')
+@Unstable
 class Buffer extends NativeFieldWrapperClass1 {
   Buffer.internal();
 
@@ -362,6 +364,8 @@ class Buffer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLCompressedTextureATC')
+// http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
+@Experimental
 class CompressedTextureAtc extends NativeFieldWrapperClass1 {
   CompressedTextureAtc.internal();
 
@@ -387,6 +391,8 @@ class CompressedTextureAtc extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLCompressedTexturePVRTC')
+// http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_pvrtc/
+@Experimental // experimental
 class CompressedTexturePvrtc extends NativeFieldWrapperClass1 {
   CompressedTexturePvrtc.internal();
 
@@ -416,6 +422,8 @@ class CompressedTexturePvrtc extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLCompressedTextureS3TC')
+// http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_s3tc/
+@Experimental // experimental
 class CompressedTextureS3TC extends NativeFieldWrapperClass1 {
   CompressedTextureS3TC.internal();
 
@@ -445,6 +453,7 @@ class CompressedTextureS3TC extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLContextAttributes')
+@Unstable
 class ContextAttributes extends NativeFieldWrapperClass1 {
   ContextAttributes.internal();
 
@@ -506,6 +515,7 @@ class ContextAttributes extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLContextEvent')
+@Unstable
 class ContextEvent extends Event {
   ContextEvent.internal() : super.internal();
 
@@ -523,6 +533,8 @@ class ContextEvent extends Event {
 
 @DocsEditable
 @DomName('WebGLDebugRendererInfo')
+// http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_renderer_info/
+@Experimental // experimental
 class DebugRendererInfo extends NativeFieldWrapperClass1 {
   DebugRendererInfo.internal();
 
@@ -544,6 +556,8 @@ class DebugRendererInfo extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLDebugShaders')
+// http://www.khronos.org/registry/webgl/extensions/WEBGL_debug_shaders/
+@Experimental // experimental
 class DebugShaders extends NativeFieldWrapperClass1 {
   DebugShaders.internal();
 
@@ -561,6 +575,8 @@ class DebugShaders extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLDepthTexture')
+// http://www.khronos.org/registry/webgl/extensions/WEBGL_depth_texture/
+@Experimental // experimental
 class DepthTexture extends NativeFieldWrapperClass1 {
   DepthTexture.internal();
 
@@ -578,6 +594,8 @@ class DepthTexture extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('EXTDrawBuffers')
+// http://www.khronos.org/registry/webgl/specs/latest/
+@Experimental // stable
 class ExtDrawBuffers extends NativeFieldWrapperClass1 {
   ExtDrawBuffers.internal();
 
@@ -727,6 +745,8 @@ class ExtDrawBuffers extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('EXTTextureFilterAnisotropic')
+// http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
+@Experimental
 class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
   ExtTextureFilterAnisotropic.internal();
 
@@ -748,6 +768,7 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLFramebuffer')
+@Unstable
 class Framebuffer extends NativeFieldWrapperClass1 {
   Framebuffer.internal();
 
@@ -761,6 +782,8 @@ class Framebuffer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLLoseContext')
+// http://www.khronos.org/registry/webgl/extensions/WEBGL_lose_context/
+@Experimental
 class LoseContext extends NativeFieldWrapperClass1 {
   LoseContext.internal();
 
@@ -782,6 +805,8 @@ class LoseContext extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('OESElementIndexUint')
+// http://www.khronos.org/registry/webgl/extensions/OES_element_index_uint/
+@Experimental // experimental
 class OesElementIndexUint extends NativeFieldWrapperClass1 {
   OesElementIndexUint.internal();
 
@@ -795,6 +820,8 @@ class OesElementIndexUint extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('OESStandardDerivatives')
+// http://www.khronos.org/registry/webgl/extensions/OES_standard_derivatives/
+@Experimental // experimental
 class OesStandardDerivatives extends NativeFieldWrapperClass1 {
   OesStandardDerivatives.internal();
 
@@ -812,6 +839,8 @@ class OesStandardDerivatives extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('OESTextureFloat')
+// http://www.khronos.org/registry/webgl/extensions/OES_texture_float/
+@Experimental // experimental
 class OesTextureFloat extends NativeFieldWrapperClass1 {
   OesTextureFloat.internal();
 
@@ -825,11 +854,14 @@ class OesTextureFloat extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('OESTextureHalfFloat')
+// http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/
+@Experimental // experimental
 class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
   OesTextureHalfFloat.internal();
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
   @DocsEditable
+  @Experimental // untriaged
   static const int HALF_FLOAT_OES = 0x8D61;
 
 }
@@ -842,6 +874,8 @@ class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('OESVertexArrayObject')
+// http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
+@Experimental // experimental
 class OesVertexArrayObject extends NativeFieldWrapperClass1 {
   OesVertexArrayObject.internal();
 
@@ -875,6 +909,7 @@ class OesVertexArrayObject extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLProgram')
+@Unstable
 class Program extends NativeFieldWrapperClass1 {
   Program.internal();
 
@@ -888,6 +923,7 @@ class Program extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLRenderbuffer')
+@Unstable
 class Renderbuffer extends NativeFieldWrapperClass1 {
   Renderbuffer.internal();
 
@@ -904,6 +940,7 @@ class Renderbuffer extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @Experimental
+@Unstable
 class RenderingContext extends CanvasRenderingContext {
   RenderingContext.internal() : super.internal();
 
@@ -2806,6 +2843,8 @@ class UniformLocation extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebGLVertexArrayObjectOES')
+// http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
+@Experimental // experimental
 class VertexArrayObject extends NativeFieldWrapperClass1 {
   VertexArrayObject.internal();
 

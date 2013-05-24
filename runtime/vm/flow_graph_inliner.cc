@@ -579,17 +579,16 @@ class CallSiteInliner : public ValueObject {
       GraphInfoCollector info;
       info.Collect(*callee_graph);
       const intptr_t size = info.instruction_count();
+      const intptr_t call_site_count = info.call_site_count();
 
       function.set_optimized_instruction_count(size);
-      function.set_optimized_call_site_count(info.call_site_count());
+      function.set_optimized_call_site_count(call_site_count);
 
       // Use heuristics do decide if this call should be inlined.
-      if (!ShouldWeInline(size,
-                          info.call_site_count(),
-                          constants_count)) {
+      if (!ShouldWeInline(size, call_site_count, constants_count)) {
         // If size is larger than all thresholds, don't consider it again.
         if ((size > FLAG_inlining_size_threshold) &&
-            (size > FLAG_inlining_callee_call_sites_threshold) &&
+            (call_site_count > FLAG_inlining_callee_call_sites_threshold) &&
             (size > FLAG_inlining_constant_arguments_size_threshold)) {
           function.set_is_inlinable(false);
         }
@@ -600,7 +599,7 @@ class CallSiteInliner : public ValueObject {
                                  "call sites: %"Pd", "
                                  "const args: %"Pd"\n",
                                  size,
-                                 info.call_site_count(),
+                                 call_site_count,
                                  constants_count));
         return false;
       }
@@ -612,6 +611,14 @@ class CallSiteInliner : public ValueObject {
 
       // Add the function to the cache.
       if (!in_cache) function_cache_.Add(parsed_function);
+
+      // Functions can be inlined before they are optimized.
+      // If not yet present, allocate deoptimization history array.
+      Array& deopt_history = Array::Handle(function.deopt_history());
+      if (deopt_history.IsNull()) {
+        deopt_history = Array::New(FLAG_deoptimization_counter_threshold);
+        function.set_deopt_history(deopt_history);
+      }
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;
@@ -1148,7 +1155,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
       cid_constant->set_ssa_temp_index(
           owner_->caller_graph()->alloc_ssa_temp_index());
       StrictCompareInstr* compare =
-          new StrictCompareInstr(Token::kEQ_STRICT,
+          new StrictCompareInstr(call_->instance_call()->token_pos(),
+                                 Token::kEQ_STRICT,
                                  new Value(load_cid),
                                  new Value(cid_constant));
       BranchInstr* branch = new BranchInstr(compare);

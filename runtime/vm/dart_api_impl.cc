@@ -3051,6 +3051,10 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
 
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
+    const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+    if (!error.IsNull()) {
+      return Api::NewHandle(isolate, error.raw());
+    }
     const Array& func_array = Array::Handle(cls.functions());
 
     // Some special types like 'dynamic' have a null functions list.
@@ -3391,6 +3395,10 @@ DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
 
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
+    const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+    if (!error.IsNull()) {
+      return Api::NewHandle(isolate, error.raw());
+    }
     const Array& field_array = Array::Handle(cls.fields());
 
     // Some special types like 'dynamic' have a null fields list.

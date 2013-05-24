@@ -499,6 +499,20 @@ abstract class Stream<T> {
   }
 
   /**
+   * Discards all data on the stream, but signals when it's done or an error
+   * occured.
+   *
+   * When subscribing using [drain], cancelOnError will be true. This means
+   * that the future will complete with the first error on the stream and then
+   * cancel the subscription.
+   *
+   * In case of a `done` event the future completes with the given
+   * [futureValue].
+   */
+  Future drain([var futureValue]) => listen(null, cancelOnError: true)
+      .asFuture(futureValue);
+
+  /**
    * Provides at most the first [n] values of this stream.
    *
    * Forwards the first [n] data events of this stream, and all error
@@ -519,7 +533,7 @@ abstract class Stream<T> {
    * when either this stream is done, or when this stream first provides
    * a value that [test] doesn't accept.
    */
-  Stream<T> takeWhile(bool test(T value)) {
+  Stream<T> takeWhile(bool test(T element)) {
     return new _TakeWhileStream(this, test);
   }
 
@@ -538,7 +552,7 @@ abstract class Stream<T> {
    * Starting with the first data event where [test] returns true for the
    * event data, the returned stream will have the same events as this stream.
    */
-  Stream<T> skipWhile(bool test(T value)) {
+  Stream<T> skipWhile(bool test(T element)) {
     return new _SkipWhileStream(this, test);
   }
 
@@ -659,7 +673,7 @@ abstract class Stream<T> {
    * with no [defaultValue] function provided, the future will receive an
    * error.
    */
-  Future<T> firstWhere(bool test(T value), {T defaultValue()}) {
+  Future<T> firstWhere(bool test(T element), {T defaultValue()}) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     StreamSubscription subscription;
     subscription = this.listen(
@@ -696,7 +710,7 @@ abstract class Stream<T> {
    * That means that the result cannot be provided before this stream
    * is done.
    */
-  Future<T> lastWhere(bool test(T value), {T defaultValue()}) {
+  Future<T> lastWhere(bool test(T element), {T defaultValue()}) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     T result = null;
     bool foundResult = false;
@@ -738,7 +752,7 @@ abstract class Stream<T> {
    * Like [lastMatch], except that it is an error if more than one
    * matching element occurs in the stream.
    */
-  Future<T> singleWhere(bool test(T value)) {
+  Future<T> singleWhere(bool test(T element)) {
     _FutureImpl<T> future = new _FutureImpl<T>();
     T result = null;
     bool foundResult = false;

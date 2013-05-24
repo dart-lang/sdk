@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to catch error reporting bugs in class fields declarations.
 // Should be an error because we have a field overriding a function name.
+// VMOptions=--compile_all
 
 class A {
   int a() {

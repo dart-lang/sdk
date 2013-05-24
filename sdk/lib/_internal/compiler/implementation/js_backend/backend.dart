@@ -321,7 +321,7 @@ class FieldTypesRegistry {
     registerFieldType(fieldConstructorTypeMap, field, type);
   }
 
-  void registerFieldSetter(FunctionElement element, Element field, HType type) {
+  void registerFieldSetter(Element element, Element field, HType type) {
     HType initializerType = fieldInitializerTypeMap[field];
     HType constructorType = fieldConstructorTypeMap[field];
     HType setterType = fieldTypeMap[field];
@@ -382,7 +382,7 @@ class FieldTypesRegistry {
     return result;
   }
 
-  void registerOptimizedFunction(FunctionElement element,
+  void registerOptimizedFunction(Element element,
                                  Element field,
                                  HType type) {
     assert(field.isField());
@@ -1165,6 +1165,10 @@ class JavaScriptBackend extends Backend {
     if (jsIndexingBehaviorInterface != null) {
       world.registerIsCheck(jsIndexingBehaviorInterface.computeType(compiler),
                             elements);
+      world.registerStaticUse(
+          compiler.findHelper(const SourceString('isJsIndexable')));
+      world.registerStaticUse(
+          compiler.findInterceptor(const SourceString('dispatchPropertyName')));
     }
 
     if (compiler.enableTypeAssertions) {
@@ -1506,7 +1510,7 @@ class JavaScriptBackend extends Backend {
         element, parameterTypes, defaultValueTypes);
   }
 
-  registerFieldTypesOptimization(FunctionElement element,
+  registerFieldTypesOptimization(Element element,
                                  Element field,
                                  HType type) {
     fieldTypes.registerOptimizedFunction(element, field, type);
@@ -1569,7 +1573,7 @@ class JavaScriptBackend extends Backend {
     fieldTypes.registerFieldConstructor(field, type);
   }
 
-  void registerFieldSetter(FunctionElement element, Element field, HType type) {
+  void registerFieldSetter(Element element, Element field, HType type) {
     fieldTypes.registerFieldSetter(element, field, type);
   }
 

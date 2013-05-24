@@ -4,6 +4,7 @@
 // Dart test to catch error reporting bugs in class fields declarations.
 // Should be an error because we have setter/getter functions and fields
 // in the class.
+// VMOptions=--compile_all
 
 class C {
   var a;

@@ -6,15 +6,45 @@
 // VM implementation of double.
 
 patch class double {
-  static double _parse(String string) native "Double_parse";
+
+  static double _native_parse(_OneByteString string) native "Double_parse";
+
+  static double _parse(var str) {
+    str = str.trim();
+
+    if (str.length == 0) return null;
+
+    final ccid = str._cid;
+    _OneByteString oneByteString;
+    // TODO(floitsch): Allow _ExternalOneByteStrings. As of May 2013 they don't
+    // have any _classId.
+    if (ccid != _OneByteString._classId) {
+      int length = str.length;
+      var s = _OneByteString._allocate(length);
+      for (int i = 0; i < length; i++) {
+        int currentUnit = str.codeUnitAt(i);
+        // All valid trimmed double strings must be ASCII.
+        if (currentUnit < 128) {
+          s._setAt(i, currentUnit);
+        } else {
+          return null;
+        }
+      }
+      oneByteString = s;
+    } else {
+      oneByteString = str;
+    }
+
+    return _native_parse(oneByteString);
+  }
 
   /* patch */ static double parse(String str,
                                   [double handleError(String str)]) {
-    if (handleError == null) return _parse(str);
-    try {
-      return _parse(str);
-    } on FormatException {
+    var result = _parse(str);
+    if (result == null) {
+      if (handleError == null) throw new FormatException(str);
       return handleError(str);
     }
+    return result;
   }
 }

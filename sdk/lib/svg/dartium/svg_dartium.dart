@@ -62,6 +62,7 @@ class _SvgSvgElementFactoryProvider {
 
 @DocsEditable
 @DomName('SVGAElement')
+@Unstable
 class AElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   AElement.internal() : super.internal();
 
@@ -154,6 +155,7 @@ class AElement extends StyledElement implements UriReference, Tests, Transformab
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class AltGlyphElement extends TextPositioningElement implements UriReference {
   AltGlyphElement.internal() : super.internal();
 
@@ -194,6 +196,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 
 @DocsEditable
 @DomName('SVGAngle')
+@Unstable
 class Angle extends NativeFieldWrapperClass1 {
   Angle.internal();
 
@@ -266,6 +269,7 @@ class Angle extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class AnimateElement extends AnimationElement {
   AnimateElement.internal() : super.internal();
 
@@ -289,6 +293,7 @@ class AnimateElement extends AnimationElement {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class AnimateMotionElement extends AnimationElement {
   AnimateMotionElement.internal() : super.internal();
 
@@ -312,6 +317,7 @@ class AnimateMotionElement extends AnimationElement {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class AnimateTransformElement extends AnimationElement {
   AnimateTransformElement.internal() : super.internal();
 
@@ -332,6 +338,7 @@ class AnimateTransformElement extends AnimationElement {
 
 @DocsEditable
 @DomName('SVGAnimatedAngle')
+@Unstable
 class AnimatedAngle extends NativeFieldWrapperClass1 {
   AnimatedAngle.internal();
 
@@ -353,6 +360,7 @@ class AnimatedAngle extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedBoolean')
+@Unstable
 class AnimatedBoolean extends NativeFieldWrapperClass1 {
   AnimatedBoolean.internal();
 
@@ -378,6 +386,7 @@ class AnimatedBoolean extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedEnumeration')
+@Unstable
 class AnimatedEnumeration extends NativeFieldWrapperClass1 {
   AnimatedEnumeration.internal();
 
@@ -403,6 +412,7 @@ class AnimatedEnumeration extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedInteger')
+@Unstable
 class AnimatedInteger extends NativeFieldWrapperClass1 {
   AnimatedInteger.internal();
 
@@ -428,6 +438,7 @@ class AnimatedInteger extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedLength')
+@Unstable
 class AnimatedLength extends NativeFieldWrapperClass1 {
   AnimatedLength.internal();
 
@@ -449,6 +460,7 @@ class AnimatedLength extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedLengthList')
+@Unstable
 class AnimatedLengthList extends NativeFieldWrapperClass1 {
   AnimatedLengthList.internal();
 
@@ -470,6 +482,7 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedNumber')
+@Unstable
 class AnimatedNumber extends NativeFieldWrapperClass1 {
   AnimatedNumber.internal();
 
@@ -495,6 +508,7 @@ class AnimatedNumber extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedNumberList')
+@Unstable
 class AnimatedNumberList extends NativeFieldWrapperClass1 {
   AnimatedNumberList.internal();
 
@@ -516,6 +530,7 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedPreserveAspectRatio')
+@Unstable
 class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
   AnimatedPreserveAspectRatio.internal();
 
@@ -537,6 +552,7 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedRect')
+@Unstable
 class AnimatedRect extends NativeFieldWrapperClass1 {
   AnimatedRect.internal();
 
@@ -558,6 +574,7 @@ class AnimatedRect extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedString')
+@Unstable
 class AnimatedString extends NativeFieldWrapperClass1 {
   AnimatedString.internal();
 
@@ -583,6 +600,7 @@ class AnimatedString extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimatedTransformList')
+@Unstable
 class AnimatedTransformList extends NativeFieldWrapperClass1 {
   AnimatedTransformList.internal();
 
@@ -604,6 +622,7 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGAnimationElement')
+@Unstable
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired {
   AnimationElement.internal() : super.internal();
 
@@ -673,6 +692,7 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 
 @DocsEditable
 @DomName('SVGCircleElement')
+@Unstable
 class CircleElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   CircleElement.internal() : super.internal();
 
@@ -766,6 +786,7 @@ class CircleElement extends StyledElement implements Transformable, Tests, Exter
 
 @DocsEditable
 @DomName('SVGClipPathElement')
+@Unstable
 class ClipPathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   ClipPathElement.internal() : super.internal();
 
@@ -851,6 +872,7 @@ class ClipPathElement extends StyledElement implements Transformable, Tests, Ext
 
 @DocsEditable
 @DomName('SVGDefsElement')
+@Unstable
 class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   DefsElement.internal() : super.internal();
 
@@ -932,6 +954,7 @@ class DefsElement extends StyledElement implements Transformable, Tests, Externa
 
 @DocsEditable
 @DomName('SVGDescElement')
+@Unstable
 class DescElement extends StyledElement implements LangSpace {
   DescElement.internal() : super.internal();
 
@@ -965,6 +988,7 @@ class DescElement extends StyledElement implements LangSpace {
 
 @DocsEditable
 @DomName('SVGElementInstance')
+@Unstable
 class ElementInstance extends EventTarget {
   ElementInstance.internal() : super.internal();
 
@@ -1110,6 +1134,8 @@ class ElementInstance extends EventTarget {
 
   @DomName('SVGElementInstance.searchEvent')
   @DocsEditable
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
   @DomName('SVGElementInstance.selectEvent')
@@ -1302,6 +1328,8 @@ class ElementInstance extends EventTarget {
 
   @DomName('SVGElementInstance.onsearch')
   @DocsEditable
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental
   Stream<Event> get onSearch => searchEvent.forTarget(this);
 
   @DomName('SVGElementInstance.onselect')
@@ -1330,6 +1358,7 @@ class ElementInstance extends EventTarget {
 
 @DocsEditable
 @DomName('ElementTimeControl')
+@Unstable
 class ElementTimeControl extends NativeFieldWrapperClass1 {
   ElementTimeControl.internal();
 
@@ -1359,6 +1388,7 @@ class ElementTimeControl extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGEllipseElement')
+@Unstable
 class EllipseElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   EllipseElement.internal() : super.internal();
 
@@ -1456,6 +1486,7 @@ class EllipseElement extends StyledElement implements Transformable, Tests, Exte
 
 @DocsEditable
 @DomName('SVGExternalResourcesRequired')
+@Unstable
 class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
   ExternalResourcesRequired.internal();
 
@@ -1480,6 +1511,7 @@ class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEBlendElement.internal() : super.internal();
 
@@ -1560,6 +1592,7 @@ class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAtt
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEColorMatrixElement.internal() : super.internal();
 
@@ -1636,6 +1669,7 @@ class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStand
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEComponentTransferElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEComponentTransferElement.internal() : super.internal();
 
@@ -1680,6 +1714,7 @@ class FEComponentTransferElement extends StyledElement implements FilterPrimitiv
 
 @DocsEditable
 @DomName('SVGFECompositeElement')
+@Unstable
 class FECompositeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FECompositeElement.internal() : super.internal();
 
@@ -1773,6 +1808,7 @@ class FECompositeElement extends StyledElement implements FilterPrimitiveStandar
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEConvolveMatrixElement.internal() : super.internal();
 
@@ -1881,6 +1917,7 @@ class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveSt
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEDiffuseLightingElement.internal() : super.internal();
 
@@ -1945,6 +1982,7 @@ class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveS
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEDisplacementMapElement.internal() : super.internal();
 
@@ -2029,6 +2067,7 @@ class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveS
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEDistantLightElement extends SvgElement {
   FEDistantLightElement.internal() : super.internal();
 
@@ -2061,6 +2100,7 @@ class FEDistantLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEFloodElement.internal() : super.internal();
 
@@ -2105,6 +2145,7 @@ class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAtt
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEFuncAElement extends _SVGComponentTransferFunctionElement {
   FEFuncAElement.internal() : super.internal();
 
@@ -2129,6 +2170,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEFuncBElement extends _SVGComponentTransferFunctionElement {
   FEFuncBElement.internal() : super.internal();
 
@@ -2153,6 +2195,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEFuncGElement extends _SVGComponentTransferFunctionElement {
   FEFuncGElement.internal() : super.internal();
 
@@ -2177,6 +2220,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEFuncRElement extends _SVGComponentTransferFunctionElement {
   FEFuncRElement.internal() : super.internal();
 
@@ -2201,6 +2245,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEGaussianBlurElement.internal() : super.internal();
 
@@ -2261,6 +2306,7 @@ class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStan
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace {
   FEImageElement.internal() : super.internal();
 
@@ -2333,6 +2379,7 @@ class FEImageElement extends StyledElement implements FilterPrimitiveStandardAtt
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEMergeElement.internal() : super.internal();
 
@@ -2377,6 +2424,7 @@ class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAtt
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEMergeNodeElement extends SvgElement {
   FEMergeNodeElement.internal() : super.internal();
 
@@ -2405,6 +2453,7 @@ class FEMergeNodeElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEMorphologyElement.internal() : super.internal();
 
@@ -2474,6 +2523,7 @@ class FEMorphologyElement extends StyledElement implements FilterPrimitiveStanda
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FEOffsetElement.internal() : super.internal();
 
@@ -2530,6 +2580,7 @@ class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAt
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FEPointLightElement extends SvgElement {
   FEPointLightElement.internal() : super.internal();
 
@@ -2566,6 +2617,7 @@ class FEPointLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FESpecularLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FESpecularLightingElement.internal() : super.internal();
 
@@ -2626,6 +2678,7 @@ class FESpecularLightingElement extends StyledElement implements FilterPrimitive
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FESpotLightElement extends SvgElement {
   FESpotLightElement.internal() : super.internal();
 
@@ -2682,6 +2735,7 @@ class FESpotLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FETileElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FETileElement.internal() : super.internal();
 
@@ -2730,6 +2784,7 @@ class FETileElement extends StyledElement implements FilterPrimitiveStandardAttr
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FETurbulenceElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   FETurbulenceElement.internal() : super.internal();
 
@@ -2822,6 +2877,7 @@ class FETurbulenceElement extends StyledElement implements FilterPrimitiveStanda
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace {
   FilterElement.internal() : super.internal();
 
@@ -2902,6 +2958,7 @@ class FilterElement extends StyledElement implements UriReference, ExternalResou
 
 @DocsEditable
 @DomName('SVGFilterPrimitiveStandardAttributes')
+@Unstable
 class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 {
   FilterPrimitiveStandardAttributes.internal();
 
@@ -2935,6 +2992,7 @@ class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGFitToViewBox')
+@Unstable
 class FitToViewBox extends NativeFieldWrapperClass1 {
   FitToViewBox.internal();
 
@@ -2959,6 +3017,7 @@ class FitToViewBox extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class ForeignObjectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   ForeignObjectElement.internal() : super.internal();
 
@@ -3059,6 +3118,7 @@ class ForeignObjectElement extends StyledElement implements Transformable, Tests
 
 @DocsEditable
 @DomName('SVGGElement')
+@Unstable
 class GElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   GElement.internal() : super.internal();
 
@@ -3140,6 +3200,7 @@ class GElement extends StyledElement implements Transformable, Tests, ExternalRe
 
 @DocsEditable
 @DomName('SVGImageElement')
+@Unstable
 class ImageElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   ImageElement.internal() : super.internal();
 
@@ -3245,6 +3306,7 @@ class ImageElement extends StyledElement implements UriReference, Tests, Transfo
 
 @DocsEditable
 @DomName('SVGLangSpace')
+@Unstable
 class LangSpace extends NativeFieldWrapperClass1 {
   LangSpace.internal();
 
@@ -3277,6 +3339,7 @@ class LangSpace extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGLength')
+@Unstable
 class Length extends NativeFieldWrapperClass1 {
   Length.internal();
 
@@ -3370,6 +3433,7 @@ class Length extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGLengthList')
+@Unstable
 class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
   LengthList.internal();
 
@@ -3462,6 +3526,7 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
 
 @DocsEditable
 @DomName('SVGLineElement')
+@Unstable
 class LineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   LineElement.internal() : super.internal();
 
@@ -3559,6 +3624,7 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 
 @DocsEditable
 @DomName('SVGLinearGradientElement')
+@Unstable
 class LinearGradientElement extends _GradientElement {
   LinearGradientElement.internal() : super.internal();
 
@@ -3592,6 +3658,7 @@ class LinearGradientElement extends _GradientElement {
 
 @DocsEditable
 @DomName('SVGLocatable')
+@Unstable
 class Locatable extends NativeFieldWrapperClass1 {
   Locatable.internal();
 
@@ -3629,6 +3696,7 @@ class Locatable extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGMarkerElement')
+@Unstable
 class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
   MarkerElement.internal() : super.internal();
 
@@ -3734,6 +3802,7 @@ class MarkerElement extends StyledElement implements FitToViewBox, ExternalResou
 
 @DocsEditable
 @DomName('SVGMaskElement')
+@Unstable
 class MaskElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
   MaskElement.internal() : super.internal();
 
@@ -3811,6 +3880,7 @@ class MaskElement extends StyledElement implements Tests, ExternalResourcesRequi
 
 @DocsEditable
 @DomName('SVGMatrix')
+@Unstable
 class Matrix extends NativeFieldWrapperClass1 {
   Matrix.internal();
 
@@ -3916,6 +3986,7 @@ class Matrix extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGMetadataElement')
+@Unstable
 class MetadataElement extends SvgElement {
   MetadataElement.internal() : super.internal();
 
@@ -3929,6 +4000,7 @@ class MetadataElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGNumber')
+@Unstable
 class Number extends NativeFieldWrapperClass1 {
   Number.internal();
 
@@ -3950,6 +4022,7 @@ class Number extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGNumberList')
+@Unstable
 class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
   NumberList.internal();
 
@@ -4042,6 +4115,7 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
 
 @DocsEditable
 @DomName('SVGPathElement')
+@Unstable
 class PathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   PathElement.internal() : super.internal();
 
@@ -4231,6 +4305,7 @@ class PathElement extends StyledElement implements Transformable, Tests, Externa
 
 @DocsEditable
 @DomName('SVGPathSeg')
+@Unstable
 class PathSeg extends NativeFieldWrapperClass1 {
   PathSeg.internal();
 
@@ -4332,6 +4407,7 @@ class PathSeg extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGPathSegArcAbs')
+@Unstable
 class PathSegArcAbs extends PathSeg {
   PathSegArcAbs.internal() : super.internal();
 
@@ -4401,6 +4477,7 @@ class PathSegArcAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegArcRel')
+@Unstable
 class PathSegArcRel extends PathSeg {
   PathSegArcRel.internal() : super.internal();
 
@@ -4470,6 +4547,7 @@ class PathSegArcRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegClosePath')
+@Unstable
 class PathSegClosePath extends PathSeg {
   PathSegClosePath.internal() : super.internal();
 
@@ -4483,6 +4561,7 @@ class PathSegClosePath extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegCurvetoCubicAbs')
+@Unstable
 class PathSegCurvetoCubicAbs extends PathSeg {
   PathSegCurvetoCubicAbs.internal() : super.internal();
 
@@ -4544,6 +4623,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegCurvetoCubicRel')
+@Unstable
 class PathSegCurvetoCubicRel extends PathSeg {
   PathSegCurvetoCubicRel.internal() : super.internal();
 
@@ -4605,6 +4685,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegCurvetoCubicSmoothAbs')
+@Unstable
 class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   PathSegCurvetoCubicSmoothAbs.internal() : super.internal();
 
@@ -4650,6 +4731,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegCurvetoCubicSmoothRel')
+@Unstable
 class PathSegCurvetoCubicSmoothRel extends PathSeg {
   PathSegCurvetoCubicSmoothRel.internal() : super.internal();
 
@@ -4695,6 +4777,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegCurvetoQuadraticAbs')
+@Unstable
 class PathSegCurvetoQuadraticAbs extends PathSeg {
   PathSegCurvetoQuadraticAbs.internal() : super.internal();
 
@@ -4740,6 +4823,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegCurvetoQuadraticRel')
+@Unstable
 class PathSegCurvetoQuadraticRel extends PathSeg {
   PathSegCurvetoQuadraticRel.internal() : super.internal();
 
@@ -4785,6 +4869,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegCurvetoQuadraticSmoothAbs')
+@Unstable
 class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
   PathSegCurvetoQuadraticSmoothAbs.internal() : super.internal();
 
@@ -4814,6 +4899,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegCurvetoQuadraticSmoothRel')
+@Unstable
 class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
   PathSegCurvetoQuadraticSmoothRel.internal() : super.internal();
 
@@ -4843,6 +4929,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegLinetoAbs')
+@Unstable
 class PathSegLinetoAbs extends PathSeg {
   PathSegLinetoAbs.internal() : super.internal();
 
@@ -4872,6 +4959,7 @@ class PathSegLinetoAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegLinetoHorizontalAbs')
+@Unstable
 class PathSegLinetoHorizontalAbs extends PathSeg {
   PathSegLinetoHorizontalAbs.internal() : super.internal();
 
@@ -4893,6 +4981,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegLinetoHorizontalRel')
+@Unstable
 class PathSegLinetoHorizontalRel extends PathSeg {
   PathSegLinetoHorizontalRel.internal() : super.internal();
 
@@ -4914,6 +5003,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegLinetoRel')
+@Unstable
 class PathSegLinetoRel extends PathSeg {
   PathSegLinetoRel.internal() : super.internal();
 
@@ -4943,6 +5033,7 @@ class PathSegLinetoRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegLinetoVerticalAbs')
+@Unstable
 class PathSegLinetoVerticalAbs extends PathSeg {
   PathSegLinetoVerticalAbs.internal() : super.internal();
 
@@ -4964,6 +5055,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegLinetoVerticalRel')
+@Unstable
 class PathSegLinetoVerticalRel extends PathSeg {
   PathSegLinetoVerticalRel.internal() : super.internal();
 
@@ -4985,6 +5077,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegList')
+@Unstable
 class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
   PathSegList.internal();
 
@@ -5077,6 +5170,7 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
 
 @DocsEditable
 @DomName('SVGPathSegMovetoAbs')
+@Unstable
 class PathSegMovetoAbs extends PathSeg {
   PathSegMovetoAbs.internal() : super.internal();
 
@@ -5106,6 +5200,7 @@ class PathSegMovetoAbs extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPathSegMovetoRel')
+@Unstable
 class PathSegMovetoRel extends PathSeg {
   PathSegMovetoRel.internal() : super.internal();
 
@@ -5135,6 +5230,7 @@ class PathSegMovetoRel extends PathSeg {
 
 @DocsEditable
 @DomName('SVGPatternElement')
+@Unstable
 class PatternElement extends StyledElement implements FitToViewBox, UriReference, Tests, ExternalResourcesRequired, LangSpace {
   PatternElement.internal() : super.internal();
 
@@ -5228,6 +5324,7 @@ class PatternElement extends StyledElement implements FitToViewBox, UriReference
 
 @DocsEditable
 @DomName('SVGPoint')
+@Unstable
 class Point extends NativeFieldWrapperClass1 {
   Point.internal();
 
@@ -5261,6 +5358,7 @@ class Point extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGPointList')
+@Unstable
 class PointList extends NativeFieldWrapperClass1 {
   PointList.internal();
 
@@ -5306,6 +5404,7 @@ class PointList extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGPolygonElement')
+@Unstable
 class PolygonElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   PolygonElement.internal() : super.internal();
 
@@ -5395,6 +5494,7 @@ class PolygonElement extends StyledElement implements Transformable, Tests, Exte
 
 @DocsEditable
 @DomName('SVGPolylineElement')
+@Unstable
 class PolylineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   PolylineElement.internal() : super.internal();
 
@@ -5484,6 +5584,7 @@ class PolylineElement extends StyledElement implements Transformable, Tests, Ext
 
 @DocsEditable
 @DomName('SVGPreserveAspectRatio')
+@Unstable
 class PreserveAspectRatio extends NativeFieldWrapperClass1 {
   PreserveAspectRatio.internal();
 
@@ -5569,6 +5670,7 @@ class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGRadialGradientElement')
+@Unstable
 class RadialGradientElement extends _GradientElement {
   RadialGradientElement.internal() : super.internal();
 
@@ -5610,6 +5712,7 @@ class RadialGradientElement extends _GradientElement {
 
 @DocsEditable
 @DomName('SVGRect')
+@Unstable
 class Rect extends NativeFieldWrapperClass1 {
   Rect.internal();
 
@@ -5655,6 +5758,7 @@ class Rect extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGRectElement')
+@Unstable
 class RectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   RectElement.internal() : super.internal();
 
@@ -5760,6 +5864,7 @@ class RectElement extends StyledElement implements Transformable, Tests, Externa
 
 @DocsEditable
 @DomName('SVGRenderingIntent')
+@Unstable
 class RenderingIntent extends NativeFieldWrapperClass1 {
   RenderingIntent.internal();
 
@@ -5797,6 +5902,7 @@ class RenderingIntent extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGScriptElement')
+@Unstable
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired {
   ScriptElement.internal() : super.internal();
 
@@ -5833,6 +5939,7 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class SetElement extends AnimationElement {
   SetElement.internal() : super.internal();
 
@@ -5853,6 +5960,7 @@ class SetElement extends AnimationElement {
 
 @DocsEditable
 @DomName('SVGStopElement')
+@Unstable
 class StopElement extends StyledElement {
   StopElement.internal() : super.internal();
 
@@ -5874,6 +5982,7 @@ class StopElement extends StyledElement {
 
 @DocsEditable
 @DomName('SVGStringList')
+@Unstable
 class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   StringList.internal();
 
@@ -5966,6 +6075,8 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
 
 @DocsEditable
 @DomName('SVGStyleElement')
+// http://www.w3.org/TR/SVG/types.html#InterfaceSVGStylable
+@Experimental // nonstandard
 class StyleElement extends SvgElement implements LangSpace {
   StyleElement.internal() : super.internal();
 
@@ -6031,6 +6142,7 @@ class StyleElement extends SvgElement implements LangSpace {
 
 @DocsEditable
 @DomName('SVGStyledElement')
+@Unstable
 class StyledElement extends SvgElement {
   StyledElement.internal() : super.internal();
 
@@ -6052,6 +6164,7 @@ class StyledElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGDocument')
+@Unstable
 class SvgDocument extends Document {
   SvgDocument.internal() : super.internal();
 
@@ -6096,6 +6209,7 @@ class _AttributeClassSet extends CssClassSetImpl {
 }
 
 @DomName('SVGElement')
+@Unstable
 class SvgElement extends Element {
   factory SvgElement.tag(String tag) =>
       _SvgElementFactoryProvider.createSvgElement_tag(tag);
@@ -6211,6 +6325,7 @@ class SvgElement extends Element {
 
 @DocsEditable
 @DomName('SVGException')
+@Unstable
 class SvgException extends NativeFieldWrapperClass1 {
   SvgException.internal();
 
@@ -6232,10 +6347,12 @@ class SvgException extends NativeFieldWrapperClass1 {
 
   @DomName('SVGException.message')
   @DocsEditable
+  @Experimental // nonstandard
   String get message native "SVGException_message_Getter";
 
   @DomName('SVGException.name')
   @DocsEditable
+  @Experimental // nonstandard
   String get name native "SVGException_name_Getter";
 
   @DomName('SVGException.toString')
@@ -6249,6 +6366,7 @@ class SvgException extends NativeFieldWrapperClass1 {
 
 
 @DomName('SVGSVGElement')
+@Unstable
 class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable, Tests, ExternalResourcesRequired, ZoomAndPan, LangSpace {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
@@ -6508,6 +6626,7 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
 
 @DocsEditable
 @DomName('SVGSwitchElement')
+@Unstable
 class SwitchElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
   SwitchElement.internal() : super.internal();
 
@@ -6589,6 +6708,7 @@ class SwitchElement extends StyledElement implements Transformable, Tests, Exter
 
 @DocsEditable
 @DomName('SVGSymbolElement')
+@Unstable
 class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
   SymbolElement.internal() : super.internal();
 
@@ -6634,6 +6754,7 @@ class SymbolElement extends StyledElement implements FitToViewBox, ExternalResou
 
 @DocsEditable
 @DomName('SVGTSpanElement')
+@Unstable
 class TSpanElement extends TextPositioningElement {
   TSpanElement.internal() : super.internal();
 
@@ -6651,6 +6772,7 @@ class TSpanElement extends TextPositioningElement {
 
 @DocsEditable
 @DomName('SVGTests')
+@Unstable
 class Tests extends NativeFieldWrapperClass1 {
   Tests.internal();
 
@@ -6680,6 +6802,7 @@ class Tests extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGTextContentElement')
+@Unstable
 class TextContentElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
   TextContentElement.internal() : super.internal();
 
@@ -6785,6 +6908,7 @@ class TextContentElement extends StyledElement implements Tests, ExternalResourc
 
 @DocsEditable
 @DomName('SVGTextElement')
+@Unstable
 class TextElement extends TextPositioningElement implements Transformable {
   TextElement.internal() : super.internal();
 
@@ -6830,6 +6954,7 @@ class TextElement extends TextPositioningElement implements Transformable {
 
 @DocsEditable
 @DomName('SVGTextPathElement')
+@Unstable
 class TextPathElement extends TextContentElement implements UriReference {
   TextPathElement.internal() : super.internal();
 
@@ -6883,6 +7008,7 @@ class TextPathElement extends TextContentElement implements UriReference {
 
 @DocsEditable
 @DomName('SVGTextPositioningElement')
+@Unstable
 class TextPositioningElement extends TextContentElement {
   TextPositioningElement.internal() : super.internal();
 
@@ -6916,6 +7042,7 @@ class TextPositioningElement extends TextContentElement {
 
 @DocsEditable
 @DomName('SVGTitleElement')
+@Unstable
 class TitleElement extends StyledElement implements LangSpace {
   TitleElement.internal() : super.internal();
 
@@ -6949,6 +7076,7 @@ class TitleElement extends StyledElement implements LangSpace {
 
 @DocsEditable
 @DomName('SVGTransform')
+@Unstable
 class Transform extends NativeFieldWrapperClass1 {
   Transform.internal();
 
@@ -7026,6 +7154,7 @@ class Transform extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGTransformList')
+@Unstable
 class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
   TransformList.internal();
 
@@ -7126,6 +7255,7 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
 
 @DocsEditable
 @DomName('SVGTransformable')
+@Unstable
 class Transformable extends NativeFieldWrapperClass1 implements Locatable {
   Transformable.internal();
 
@@ -7167,6 +7297,7 @@ class Transformable extends NativeFieldWrapperClass1 implements Locatable {
 
 @DocsEditable
 @DomName('SVGUnitTypes')
+@Unstable
 class UnitTypes extends NativeFieldWrapperClass1 {
   UnitTypes.internal();
 
@@ -7192,6 +7323,7 @@ class UnitTypes extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGURIReference')
+@Unstable
 class UriReference extends NativeFieldWrapperClass1 {
   UriReference.internal();
 
@@ -7209,6 +7341,7 @@ class UriReference extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGUseElement')
+@Unstable
 class UseElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
   UseElement.internal() : super.internal();
 
@@ -7318,6 +7451,7 @@ class UseElement extends StyledElement implements UriReference, Tests, Transform
 
 @DocsEditable
 @DomName('SVGViewElement')
+@Unstable
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan {
   ViewElement.internal() : super.internal();
 
@@ -7359,11 +7493,13 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
 
 @DocsEditable
 @DomName('SVGViewSpec')
+@Unstable
 class ViewSpec extends NativeFieldWrapperClass1 {
   ViewSpec.internal();
 
   @DomName('SVGViewSpec.preserveAspectRatio')
   @DocsEditable
+  @Experimental // nonstandard
   AnimatedPreserveAspectRatio get preserveAspectRatio native "SVGViewSpec_preserveAspectRatio_Getter";
 
   @DomName('SVGViewSpec.preserveAspectRatioString')
@@ -7380,6 +7516,7 @@ class ViewSpec extends NativeFieldWrapperClass1 {
 
   @DomName('SVGViewSpec.viewBox')
   @DocsEditable
+  @Experimental // nonstandard
   AnimatedRect get viewBox native "SVGViewSpec_viewBox_Getter";
 
   @DomName('SVGViewSpec.viewBoxString')
@@ -7396,10 +7533,12 @@ class ViewSpec extends NativeFieldWrapperClass1 {
 
   @DomName('SVGViewSpec.zoomAndPan')
   @DocsEditable
+  @Experimental // nonstandard
   int get zoomAndPan native "SVGViewSpec_zoomAndPan_Getter";
 
   @DomName('SVGViewSpec.zoomAndPan')
   @DocsEditable
+  @Experimental // nonstandard
   void set zoomAndPan(int value) native "SVGViewSpec_zoomAndPan_Setter";
 
 }
@@ -7412,6 +7551,7 @@ class ViewSpec extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGZoomAndPan')
+@Unstable
 class ZoomAndPan extends NativeFieldWrapperClass1 {
   ZoomAndPan.internal();
 
@@ -7445,6 +7585,7 @@ class ZoomAndPan extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SVGZoomEvent')
+@Unstable
 class ZoomEvent extends UIEvent {
   ZoomEvent.internal() : super.internal();
 
@@ -7478,6 +7619,7 @@ class ZoomEvent extends UIEvent {
 
 @DocsEditable
 @DomName('SVGElementInstanceList')
+@Unstable
 class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> {
   _ElementInstanceList.internal();
 
@@ -7544,6 +7686,7 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
 
 @DocsEditable
 @DomName('SVGGradientElement')
+@Unstable
 class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
   _GradientElement.internal() : super.internal();
 
@@ -7593,6 +7736,7 @@ class _GradientElement extends StyledElement implements UriReference, ExternalRe
 
 @DocsEditable
 @DomName('SVGAltGlyphDefElement')
+@Unstable
 abstract class _SVGAltGlyphDefElement extends SvgElement {
   _SVGAltGlyphDefElement.internal() : super.internal();
 
@@ -7606,6 +7750,7 @@ abstract class _SVGAltGlyphDefElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGAltGlyphItemElement')
+@Unstable
 abstract class _SVGAltGlyphItemElement extends SvgElement {
   _SVGAltGlyphItemElement.internal() : super.internal();
 
@@ -7619,6 +7764,7 @@ abstract class _SVGAltGlyphItemElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGAnimateColorElement')
+@Unstable
 abstract class _SVGAnimateColorElement extends AnimationElement {
   _SVGAnimateColorElement.internal() : super.internal();
 
@@ -7632,6 +7778,7 @@ abstract class _SVGAnimateColorElement extends AnimationElement {
 // type entirely but can't.
 @DocsEditable
 @DomName('SVGColor')
+@Unstable
 class _SVGColor {
   _SVGColor.internal();
 }
@@ -7644,6 +7791,7 @@ class _SVGColor {
 
 @DocsEditable
 @DomName('SVGComponentTransferFunctionElement')
+@Unstable
 abstract class _SVGComponentTransferFunctionElement extends SvgElement {
   _SVGComponentTransferFunctionElement.internal() : super.internal();
 
@@ -7657,6 +7805,7 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGCursorElement')
+@Unstable
 abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
   _SVGCursorElement.internal() : super.internal();
 
@@ -7677,6 +7826,7 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
 
 @DocsEditable
 @DomName('SVGFEDropShadowElement')
+@Experimental // nonstandard
 abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
   _SVGFEDropShadowElement.internal() : super.internal();
 
@@ -7690,6 +7840,7 @@ abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPr
 
 @DocsEditable
 @DomName('SVGFontElement')
+@Unstable
 abstract class _SVGFontElement extends SvgElement {
   _SVGFontElement.internal() : super.internal();
 
@@ -7703,6 +7854,7 @@ abstract class _SVGFontElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceElement')
+@Unstable
 abstract class _SVGFontFaceElement extends SvgElement {
   _SVGFontFaceElement.internal() : super.internal();
 
@@ -7716,6 +7868,7 @@ abstract class _SVGFontFaceElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceFormatElement')
+@Unstable
 abstract class _SVGFontFaceFormatElement extends SvgElement {
   _SVGFontFaceFormatElement.internal() : super.internal();
 
@@ -7729,6 +7882,7 @@ abstract class _SVGFontFaceFormatElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceNameElement')
+@Unstable
 abstract class _SVGFontFaceNameElement extends SvgElement {
   _SVGFontFaceNameElement.internal() : super.internal();
 
@@ -7742,6 +7896,7 @@ abstract class _SVGFontFaceNameElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceSrcElement')
+@Unstable
 abstract class _SVGFontFaceSrcElement extends SvgElement {
   _SVGFontFaceSrcElement.internal() : super.internal();
 
@@ -7755,6 +7910,7 @@ abstract class _SVGFontFaceSrcElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGFontFaceUriElement')
+@Unstable
 abstract class _SVGFontFaceUriElement extends SvgElement {
   _SVGFontFaceUriElement.internal() : super.internal();
 
@@ -7768,6 +7924,7 @@ abstract class _SVGFontFaceUriElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGGlyphElement')
+@Unstable
 abstract class _SVGGlyphElement extends SvgElement {
   _SVGGlyphElement.internal() : super.internal();
 
@@ -7785,6 +7942,7 @@ abstract class _SVGGlyphElement extends SvgElement {
 
 @DocsEditable
 @DomName('SVGGlyphRefElement')
+@Unstable
 abstract class _SVGGlyphRefElement extends StyledElement implements UriReference {
   _SVGGlyphRefElement.internal() : super.internal();
 
@@ -7798,6 +7956,7 @@ abstract class _SVGGlyphRefElement extends StyledElement implements UriReference
 
 @DocsEditable
 @DomName('SVGHKernElement')
+@Unstable
 abstract class _SVGHKernElement extends SvgElement {
   _SVGHKernElement.internal() : super.internal();
 
@@ -7832,6 +7991,7 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference, Exte
 
 @DocsEditable
 @DomName('SVGMissingGlyphElement')
+@Unstable
 abstract class _SVGMissingGlyphElement extends StyledElement {
   _SVGMissingGlyphElement.internal() : super.internal();
 
@@ -7845,6 +8005,7 @@ abstract class _SVGMissingGlyphElement extends StyledElement {
 
 @DocsEditable
 @DomName('SVGPaint')
+@Unstable
 abstract class _SVGPaint extends _SVGColor {
   _SVGPaint.internal() : super.internal();
 
@@ -7858,6 +8019,7 @@ abstract class _SVGPaint extends _SVGColor {
 
 @DocsEditable
 @DomName('SVGTRefElement')
+@Unstable
 abstract class _SVGTRefElement extends TextPositioningElement implements UriReference {
   _SVGTRefElement.internal() : super.internal();
 
@@ -7875,6 +8037,7 @@ abstract class _SVGTRefElement extends TextPositioningElement implements UriRefe
 
 @DocsEditable
 @DomName('SVGVKernElement')
+@Unstable
 abstract class _SVGVKernElement extends SvgElement {
   _SVGVKernElement.internal() : super.internal();
 

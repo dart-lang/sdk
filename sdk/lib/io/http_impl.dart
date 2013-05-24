@@ -542,38 +542,38 @@ class _HttpOutboundConsumer implements StreamConsumer {
   StreamSubscription _subscription;
   Completer _closeCompleter = new Completer();
   Completer _completer;
+  bool _socketError = false;
 
   _HttpOutboundConsumer(_HttpOutboundMessage this._outbound);
 
-  void _onPause() {
-    if (_controller.isPaused) {
-      _subscription.pause();
-    } else {
-      _subscription.resume();
-    }
-  }
-
-  void _onListen() {
-    if (!_controller.hasListener && _subscription != null) {
+  void _cancel() {
+    if (_subscription != null) {
       _subscription.cancel();
     }
   }
 
   _ensureController() {
     if (_controller != null) return;
-    _controller = new StreamController(onPause: _onPause,
-                                       onResume: _onPause,
-                                       onListen: _onListen,
-                                       onCancel: _onListen);
+    _controller = new StreamController(onPause: () => _subscription.pause(),
+                                       onResume: () => _subscription.resume(),
+                                       onCancel: _cancel);
     _outbound._addStream(_controller.stream)
         .then((_) {
-                _onListen();  // Make sure we unsubscribe.
+                _cancel();
                 _done();
                 _closeCompleter.complete(_outbound);
               },
               onError: (error) {
-                if (!_done(error)) {
-                  _closeCompleter.completeError(error);
+                _socketError = true;
+                if (error is SocketIOException &&
+                    _outbound is HttpResponse) {
+                  _cancel();
+                  _done();
+                  _closeCompleter.complete(_outbound);
+                } else {
+                  if (!_done(error)) {
+                    _closeCompleter.completeError(error);
+                  }
                 }
               });
   }
@@ -590,7 +590,12 @@ class _HttpOutboundConsumer implements StreamConsumer {
   }
 
   Future addStream(var stream) {
-    _ensureController();
+    // If we saw a socket error subscribe and then cancel, to ignore any data
+    // on the stream.
+    if (_socketError) {
+      stream.listen(null).cancel();
+      return new Future.value(_outbound);
+    }
     _completer = new Completer();
     _subscription = stream.listen(
         (data) {
@@ -603,11 +608,13 @@ class _HttpOutboundConsumer implements StreamConsumer {
           _done(error);
         },
         cancelOnError: true);
+    _ensureController();
     return _completer.future;
   }
 
   Future close() {
     Future closeOutbound() {
+      if (_socketError) return new Future.value(_outbound);
       return _outbound._close().then((_) => _outbound);
     }
     if (_controller == null) return closeOutbound();
@@ -1759,7 +1766,7 @@ class _HttpConnection {
           destroy();
         },
         onError: (error) {
-          _httpServer._handleError(error);
+          // Ignore failed requests that was closed before headers was received.
           destroy();
         });
   }

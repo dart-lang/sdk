@@ -240,11 +240,20 @@ class HtmlDartGenerator(object):
         argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
+
         if test_type in ['dynamic', 'Object']:
           checks.append('?%s' % parameter_name)
         elif not can_omit_type_check(test_type, i):
           checks.append('(%s is %s || %s == null)' % (
               parameter_name, test_type, parameter_name))
+        else:
+          for signature in signatures:
+            if (len(signature) <= i or signature[i].id not in
+                parameter_name.split('_OR_')):
+
+              checks.append('?%s' % parameter_name)
+              break
+
       # There can be multiple presence checks.  We need them all since a later
       # optional argument could have been passed by name, leaving 'holes'.
       checks.extend(['!?%s' % name for name in parameter_names[argument_count:]])

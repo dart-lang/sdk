@@ -61,6 +61,28 @@ main() {
     schedulePub(args: ['-h'], output: USAGE_STRING);
   });
 
+  integration('running pub with --help after command shows command usage', () {
+    schedulePub(args: ['install', '--help'],
+        output: '''
+          Install the current package's dependencies.
+
+          Usage: pub install
+          -h, --help            Print usage information for this command.
+              --[no-]offline    Use cached packages instead of accessing the network.
+    ''');
+  });
+
+  integration('running pub with -h after command shows command usage', () {
+    schedulePub(args: ['install', '-h'],
+        output: '''
+          Install the current package's dependencies.
+
+          Usage: pub install
+          -h, --help            Print usage information for this command.
+              --[no-]offline    Use cached packages instead of accessing the network.
+    ''');
+  });
+
   integration('running pub with just --version displays version', () {
     schedulePub(args: ['--version'], output: VERSION_STRING);
   });
@@ -89,7 +111,7 @@ main() {
     schedulePub(args: ['version', '--blorf'],
         error: '''
         Could not find an option named "blorf".
-        Use "pub help" for more information.
+        Run "pub help" to see available options.
         ''',
         exitCode: 64);
   });
@@ -101,7 +123,8 @@ main() {
             Install the current package's dependencies.
 
             Usage: pub install
-            --[no-]offline    Use cached packages instead of accessing the network.
+            -h, --help            Print usage information for this command.
+                --[no-]offline    Use cached packages instead of accessing the network.
             ''');
     });
 
@@ -111,6 +134,7 @@ main() {
             Publish the current package to pub.dartlang.org.
 
             Usage: pub publish [options]
+            -h, --help       Print usage information for this command.
             -n, --dry-run    Validate but do not publish the package.
             -f, --force      Publish without confirmation if there are no errors.
                 --server     The package server to which to upload this package.

@@ -110,6 +110,7 @@ static RawBool* CopyData(const Instance& dst, const Instance& src,
   return Bool::True().raw();
 }
 
+
 DEFINE_NATIVE_ENTRY(TypedData_setRange, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, dst, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, dst_start, arguments->NativeArgAt(1));
@@ -255,13 +256,7 @@ DEFINE_NATIVE_ENTRY(TypedData_##getter, 2) {                                   \
     args.SetAt(0, error);                                                      \
     Exceptions::ThrowByType(Exceptions::kArgument, args);                      \
   }                                                                            \
-  Integer& result = Integer::Handle();                                         \
-  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {                        \
-    result = BigintOperations::NewFromUint64(value);                           \
-  } else {                                                                     \
-    result = Integer::New(value);                                              \
-  }                                                                            \
-  return result.raw();                                                         \
+  return Integer::NewFromUint64(value);                                        \
 }                                                                              \
 
 
@@ -405,10 +400,7 @@ DEFINE_NATIVE_ENTRY(ByteData_ToEndianUint64, 2) {
   } else {
     value = Utils::HostToBigEndian64(value);
   }
-  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
-    return BigintOperations::NewFromUint64(value);
-  }
-  return Integer::New(value);
+  return Integer::NewFromUint64(value);
 }
 
 

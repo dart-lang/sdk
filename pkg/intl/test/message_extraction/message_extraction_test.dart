@@ -103,9 +103,6 @@ Future<ProcessResult> run(ProcessResult previousResult, List<String> filenames)
       ..add(filesInTheRightDirectory.first)
       ..addAll(["--output-dir=${dir()}"])
       ..addAll(filesInTheRightDirectory.skip(1));
-  var options = new ProcessOptions()
-      ..stdoutEncoding=Encoding.UTF_8
-      ..stderrEncoding=Encoding.UTF_8;
   var result = Process.run(dart, args);
   return result;
 }

@@ -10,10 +10,11 @@ Dart2js buildbot steps
 Runs tests for the  dart2js compiler.
 """
 
-import platform
 import os
+import platform
 import re
 import shutil
+import socket
 import subprocess
 import sys
 
@@ -22,7 +23,7 @@ import bot
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ff|safari|chrome|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
+    r'dart2js-(ie9|ie10|ff|safari|chrome|chromeOnAndroid|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
 
 
 def GetBuildInfo(builder_name, is_buildbot):
@@ -145,7 +146,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 
     # TODO(ricow): temporary hack to run on fyi with --use_browser_controller
     if (os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and
-        (runtime == 'chrome' or runtime == 'ff')):
+        runtime in ['chrome', 'ff', 'chromeOnAndroid']):
       cmd.append('--use_browser_controller')
 
     global IsFirstTestStepCall
@@ -296,6 +297,29 @@ def GetHasHardCodedCheckedMode(build_info):
   return False
 
 
+def GetLocalIPAddress():
+  hostname = socket.gethostname()
+  # '$ host chromeperf02' results for example in
+  # 'chromeperf02.perf.chromium.org has address 172.22.28.55'
+  output = subprocess.check_output(["host", hostname])
+  match = re.match(r'.*\s+([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\s+.*', output)
+  if not match:
+    raise Exception("Could not determine local ip address "
+                    "(hostname: '%s', host command output: '%s')."
+                    % (hostname, output))
+  return match.group(1)
+
+def AddAndroidToolsToPath():
+  par_dir = os.path.pardir
+  join = os.path.join
+
+  dart_dir = join(os.path.dirname(__file__), par_dir, par_dir)
+  android_sdk = join(dart_dir, 'third_party', 'android_tools', 'sdk')
+  tools_dir = os.path.abspath(join(android_sdk, 'tools'))
+  platform_tools_dir = os.path.abspath(join(android_sdk, 'platform-tools'))
+  os.environ['PATH'] = os.pathsep.join(
+      [os.environ['PATH'], tools_dir, platform_tools_dir])
+
 def RunCompilerTests(build_info):
   test_flags = []
   if build_info.shard_index:
@@ -309,6 +333,12 @@ def RunCompilerTests(build_info):
   if build_info.minified: test_flags += ['--minified']
 
   if build_info.csp: test_flags += ['--csp']
+
+  if build_info.runtime == 'chromeOnAndroid':
+    test_flags.append('--local_ip=%s' % GetLocalIPAddress())
+    # test.py expects the android tools directories to be in PATH
+    # (they contain for example 'adb')
+    AddAndroidToolsToPath()
 
   TestCompiler(build_info.runtime, build_info.mode, build_info.system,
                list(test_flags), build_info.is_buildbot, build_info.test_set)

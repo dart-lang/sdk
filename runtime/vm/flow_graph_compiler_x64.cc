@@ -66,9 +66,7 @@ RawDeoptInfo* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   // Current FP and PC.
   builder->AddCallerFp(slot_ix++);
-  builder->AddReturnAddress(current->function(),
-                            deopt_id(),
-                            slot_ix++);
+  builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -1439,7 +1437,8 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 
 void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
-                                                    bool needs_number_check) {
+                                                    bool needs_number_check,
+                                                    intptr_t token_pos) {
   if (needs_number_check) {
     if (!obj.IsMint() && !obj.IsDouble() && !obj.IsBigint()) {
       needs_number_check = false;
@@ -1456,6 +1455,9 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
     __ pushq(reg);
     __ PushObject(obj);
     __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                         Isolate::kNoDeoptId,
+                         token_pos);
     __ popq(reg);  // Discard constant.
     __ popq(reg);  // Restore 'reg'.
     return;
@@ -1467,11 +1469,15 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
 
 void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
                                                   Register right,
-                                                  bool needs_number_check) {
+                                                  bool needs_number_check,
+                                                  intptr_t token_pos) {
   if (needs_number_check) {
     __ pushq(left);
     __ pushq(right);
     __ call(&StubCode::IdenticalWithNumberCheckLabel());
+    AddCurrentDescriptor(PcDescriptors::kRuntimeCall,
+                         Isolate::kNoDeoptId,
+                         token_pos);
     // Stub returns result in flags (result of a cmpl, we need ZF computed).
     __ popq(right);
     __ popq(left);

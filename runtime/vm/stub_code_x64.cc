@@ -1685,27 +1685,24 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
-//  RBX: ICData.
+//  RBX, R10: May contain arguments to runtime stub.
 //  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointEqNullStub(Assembler* assembler) {
+void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ pushq(RBX);  // Preserve ICData.
-  __ CallRuntime(kBreakpointClosureHandlerRuntimeEntry);
-  __ popq(RBX);  // Restore arguments descriptor.
+  // Preserve runtime args.
+  __ pushq(RBX);
+  __ pushq(R10);
+  // Room for result. Debugger stub returns address of the
+  // unpatched runtime stub.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ pushq(raw_null);  // Room for result.
+  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry);
+  __ popq(RAX);  // Address of original.
+  __ popq(R10);  // Restore arguments.
+  __ popq(RBX);
   __ LeaveFrame();
-  __ jmp(&StubCode::EqualityWithNullArgLabel());
-}
-
-
-//  R10: Arguments descriptor array.
-//  TOS(0): return address (Dart code).
-void StubCode::GenerateBreakpointClosureStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  __ pushq(R10);       // Preserve arguments descriptor.
-  __ CallRuntime(kBreakpointClosureHandlerRuntimeEntry);
-  __ popq(R10);  // Restore arguments descriptor.
-  __ LeaveFrame();
-  __ jmp(&StubCode::CallClosureFunctionLabel());
+  __ jmp(RAX);   // Jump to original stub.
 }
 
 

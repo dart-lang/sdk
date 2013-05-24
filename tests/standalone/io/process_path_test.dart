@@ -18,7 +18,6 @@ main() {
     args = ['/C', 'echo', '"ok"'];
   }
 
-  var options = new ProcessOptions();
   Process.run(executable, args).then((result) {
     Expect.equals(0, result.exitCode);
   });

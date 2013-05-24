@@ -105,7 +105,6 @@ void main() {
   // Bad keyword.
   testError('var typeof = 42', "Expected ALPHA");
   // Malformed decimal/hex.
-  testError('var x = 42.', "Unparseable number");
   testError('var x = 1.1.1', "Unparseable number");
   testError('var x = 0xabcdefga', "Unparseable number");
   testError('var x = 0xabcdef\$a', "Unparseable number");

@@ -456,9 +456,9 @@ class RawObject {
 class RawClass : public RawObject {
  public:
   enum ClassState {
-    kAllocated,     // Initial state.
+    kAllocated = 0,  // Initial state.
     kPreFinalized,  // VM classes: size precomputed, but no checks done.
-    kFinalized,     // All checks completed, class ready for use.
+    kFinalized,     // Class parsed, finalized and ready for use.
   };
 
  private:
@@ -476,6 +476,7 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawType* mixin_;
+  RawClass* patch_class_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawArray* canonical_types_;  // Canonicalized types of this class.
@@ -491,7 +492,7 @@ class RawClass : public RawObject {
   intptr_t next_field_offset_in_words_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
-  uint8_t state_bits_;  // state, is_const, is_implemented.
+  uint16_t state_bits_;  // state, is_[const|implemented|synthesized|abstract].
 
   friend class Instance;
   friend class Object;
@@ -604,6 +605,7 @@ class RawFunction : public RawObject {
   RawArray* parameter_names_;
   RawCode* code_;  // Compiled code for the function.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
+  RawArray* deopt_history_;  // Deopt Ids of past deoptimizations.
   RawObject* data_;  // Additional data specific to the function kind.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
@@ -614,7 +616,7 @@ class RawFunction : public RawObject {
   intptr_t usage_counter_;  // Incremented while function is running.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
-  uint16_t deoptimization_counter_;
+  int16_t deoptimization_counter_;
   uint16_t kind_tag_;
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;

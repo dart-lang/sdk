@@ -30,8 +30,6 @@ const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 const int CRASHING_BROWSER_EXITCODE = -10;
 
-const int NUMBER_OF_BROWSERCONTROLLER_BROWSERS = 4;
-
 typedef void TestCaseEvent(TestCase testCase);
 typedef void ExitCodeEvent(int exitCode);
 typedef void EnqueueMoreWork(ProcessQueue queue);
@@ -1117,7 +1115,6 @@ class BatchRunnerProcess {
   String _status;
   DateTime _startTime;
   Timer _timer;
-
   bool _isWebDriver;
 
   BatchRunnerProcess(TestCase testCase) {
@@ -1264,9 +1261,7 @@ class BatchRunnerProcess {
         } else if (line.startsWith('>>> BATCH')) {
           // ignore
         } else if (line.startsWith('>>> ')) {
-          throw new Exception(
-              'Unexpected command from ${testCase.configuration['compiler']} '
-              'batch runner.');
+          throw new Exception("Unexpected command from batch runner: '$line'.");
         } else {
           _testStdout.addAll(encodeUtf8(line));
           _testStdout.addAll("\n".codeUnits);
@@ -1601,17 +1596,19 @@ class ProcessQueue {
   }
 
   Future<BrowserTestRunner> _getBrowserTestRunner(TestCase test) {
+    var local_ip = test.configuration['local_ip'];
     var runtime = test.configuration['runtime'];
+    var num_browsers = test.configuration['tasks'];
     if (_browserTestRunners[runtime] == null) {
       var testRunner =
-        new BrowserTestRunner(runtime, NUMBER_OF_BROWSERCONTROLLER_BROWSERS);
+        new BrowserTestRunner(local_ip, runtime, num_browsers);
       _browserTestRunners[runtime] = testRunner;
       return testRunner.start().then((started) {
         if (started) {
           return testRunner;
         }
         print("Issue starting browser test runner");
-        exit(1);
+        io.exit(1);
       });
     }
     return new Future.immediate(_browserTestRunners[runtime]);
@@ -1719,7 +1716,6 @@ class ProcessQueue {
           _tryRunTest();
         };
         test.completedHandler = testCompleted;
-
         if (test.usesBrowserController) {
           _startBrowserControllerTest(test);
         } else {

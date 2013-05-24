@@ -148,9 +148,7 @@ public class TopLevelElementBuilder {
         String name = element.getName();
         if (libraryImport.isVisible(name)) {
           Element oldElement = scopeForImport.declareElement(name, element);
-          // TODO(8474): Remove the "Expect" special casing.
-          if (oldElement != null
-              && !name.equals("Expect") && !name.equals("ExpectException")) {
+          if (oldElement != null) {
             scopeForImport.declareElement(name,
                 Elements.createDuplicateElement(oldElement, element));
           }

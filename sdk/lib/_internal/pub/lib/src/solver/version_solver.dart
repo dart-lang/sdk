@@ -221,7 +221,9 @@ abstract class SolveFailure implements ApplicationException {
   }
 
   /// A message describing the specific kind of solve failure.
-  String get _message;
+  String get _message {
+    throw new UnimplementedError("Must override _message or toString().");
+  }
 
   /// Describes a dependencie's reference in the output message. Override this
   /// to highlight which aspect of [dep] led to the failure.

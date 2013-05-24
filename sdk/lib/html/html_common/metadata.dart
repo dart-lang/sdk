@@ -42,7 +42,7 @@ class Experimental {}
 
 
 /**
- * Metadata that specifies the DOM name associated with the element.
+ * Annotation that specifies that a member is editable through generate files.
  *
  * This is used for API generation.
  *
@@ -54,6 +54,15 @@ class DomName {
 }
 
 
-/// Metadata that specifies that that member is editable through generated
-/// files.
+/**
+ * Metadata that specifies that that member is editable through generated
+ * files.
+ */
 class DocsEditable {}
+
+
+/**
+ * Annotation that indicates that an API is not expected to change but has
+ * not undergone enough testing to be considered stable.
+ */
+class Unstable {}

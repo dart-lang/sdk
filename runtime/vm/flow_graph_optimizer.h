@@ -200,6 +200,8 @@ class LICM : public ValueObject {
  private:
   FlowGraph* flow_graph() const { return flow_graph_; }
 
+  bool MayHoist(Instruction* instr, BlockEntryInstr* pre_header);
+
   void Hoist(ForwardInstructionIterator* it,
              BlockEntryInstr* pre_header,
              Instruction* current);
@@ -266,6 +268,11 @@ class ConstantPropagator : public FlowGraphVisitor {
   bool IsConstant(const Object& value) {
     return !IsNonConstant(value) && !IsUnknown(value);
   }
+
+  void HandleBinaryOp(Definition* instr,
+                      Token::Kind op_kind,
+                      const Value& left,
+                      const Value& right);
 
   virtual void VisitBlocks() { UNREACHABLE(); }
 

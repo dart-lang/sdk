@@ -53,7 +53,7 @@ source_maps/test/vlq_test: Fail # A VLQ test checks for large numbers that
                                 # 32 bits where we do bitwise operations).
 
 # Skip tests that use local file access if we're running in any browser
-[ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == drt  || $runtime == jsshell]
+[ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == safari || $runtime == drt  || $runtime == jsshell]
 http/test/*: Skip
 oauth2/test/*: Skip
 pathos/test/*: Skip

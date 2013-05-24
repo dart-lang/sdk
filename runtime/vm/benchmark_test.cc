@@ -4,6 +4,7 @@
 
 #include "vm/benchmark_test.h"
 
+#include "bin/builtin.h"
 #include "bin/file.h"
 
 #include "platform/assert.h"
@@ -34,6 +35,8 @@ void Benchmark::RunAll(const char* executable) {
 // Measure compile of all functions in dart core lib classes.
 //
 BENCHMARK(CorelibCompileAll) {
+  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   Timer timer(true, "Compile all of Core lib benchmark");
   timer.Start();
   const Error& error = Error::Handle(benchmark->isolate(),
@@ -265,6 +268,8 @@ static Dart_NativeFunction NativeResolver(Dart_Handle name,
 
 
 BENCHMARK(Dart2JSCompileAll) {
+  bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+  bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
   char* dart_root = ComputeDart2JSPath(Benchmark::Executable());
   char* script = NULL;
   if (dart_root != NULL) {
