@@ -10446,6 +10446,15 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 }
 
 
+RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
+  if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
+    return BigintOperations::NewFromUint64(value);
+  } else {
+    return Integer::New(value);
+  }
+}
+
+
 double Integer::AsDoubleValue() const {
   UNIMPLEMENTED();
   return 0.0;

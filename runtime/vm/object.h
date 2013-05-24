@@ -3958,6 +3958,8 @@ class Number : public Instance {
 class Integer : public Number {
  public:
   static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
+  static RawInteger* NewFromUint64(
+      uint64_t value, Heap::Space space = Heap::kNew);
 
   // Returns a canonical Integer object allocated in the old gen space.
   static RawInteger* NewCanonical(const String& str);

@@ -304,6 +304,7 @@ DEFINE_NATIVE_ENTRY(Smi_bitNegate, 1) {
   return Smi::New(result);
 }
 
+
 // Mint natives.
 
 DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
@@ -315,6 +316,7 @@ DEFINE_NATIVE_ENTRY(Mint_bitNegate, 1) {
   int64_t result = ~operand.value();
   return Integer::New(result);
 }
+
 
 // Bigint natives.
 
