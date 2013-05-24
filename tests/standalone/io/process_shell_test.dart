@@ -55,6 +55,7 @@ void testBadRunShell() {
           }
         });
   }
+  test("'\"'");
   test("'\$HOME'");
 }
 

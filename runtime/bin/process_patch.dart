@@ -140,7 +140,6 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       shellArguments.add('/c');
       shellArguments.add(executable);
       for (var arg in arguments) {
-        arg = arg.replaceAll('"', r'\"');
         shellArguments.add(arg);
       }
     } else {
@@ -159,7 +158,9 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 
   String _windowsArgumentEscape(String argument) {
     var result = argument;
-    if (argument.contains('\t') || argument.contains(' ')) {
+    if (argument.contains('\t') ||
+        argument.contains(' ') ||
+        argument.contains('"')) {
       // Produce something that the C runtime on Windows will parse
       // back as this string.
 
