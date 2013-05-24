@@ -1063,7 +1063,7 @@ public class DartCompiler {
         });
       } else {
         System.out.println("WARNING: This command is now deprecated, please use dartanalyzer instead.");
-        System.out.println("For more info, see www.dartlang.org/analyzer.");
+        System.out.println("For more info, see www.dartlang.org/tools/analyzer.");
         System.out.println();
         
         result = compilerMain(topCompilerOptions);
