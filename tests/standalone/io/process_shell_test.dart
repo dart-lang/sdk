@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
+import "dart:isolate";
 
 void testRunShell() {
   test(args) {
     var options = new Options();
     var path = new Path(options.script);
     path = path.directoryPath.join(new Path("process_echo_util.dart"));
-    Process.runShell(options.executable, [path.toString()]..addAll(args))
+    Process.run(options.executable,
+                [path.toString()]..addAll(args),
+                runInShell: true)
         .then((result) {
           if (Platform.operatingSystem == "windows") {
             result = result.stdout.split("\r\n");
@@ -29,44 +32,35 @@ void testRunShell() {
   test(["\""]);
   test(["a b"]);
   test(["'"]);
+  test(["'", "'"]);
   test(["'\"\"'\"'\"'"]);
   test(["'\"\"'", "\"'\"'"]);
+  test(["'\\\"\\\"'\\", "\"\\'\"'"]);
   test(["'\$HOME'"]);
   test(["'\$tmp'"]);
+  test(["arg'"]);
+  test(["arg\\'", "'\\arg"]);
 }
 
-void testShell() {
-  test(args, expected) {
+void testBadRunShell() {
+  test(exe, [args = const []]) {
     var options = new Options();
     var path = new Path(options.script);
     path = path.directoryPath.join(new Path("process_echo_util.dart"));
-    var command = "${options.executable} $path $args";
-    Process.runShell(command, [])
+    Process.run(exe, args, runInShell: true)
         .then((result) {
-          if (Platform.operatingSystem == "windows") {
-            result = result.stdout.split("\r\n");
-          } else {
-            result = result.stdout.split("\n");
-          }
-          if (result.length - 1 != expected.length) {
-            throw "wrong number of args: $expected vs $result";
-          }
-          for (int i = 0; i < expected.length; i++) {
-            if (expected[i] != result[i]) {
-              throw "bad result at $i: ${expected[i]} vs ${result[i]}";
-            }
+          port.close();
+          if (result.exitCode == 0) {
+            throw "error expected";
           }
         });
   }
-  test("arg", ["arg"]);
-  test("arg1 arg2", ["arg1", "arg2"]);
-  if (Platform.operatingSystem != 'windows') {
-    test("arg1 arg2 > /dev/null", []);
-  }
+  test("\"");
+  test("'\$HOME'");
 }
 
 void main() {
   testRunShell();
-  testShell();
+  testBadRunShell();
 }
 

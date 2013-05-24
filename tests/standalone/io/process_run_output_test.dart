@@ -29,21 +29,18 @@ test(scriptFile, encoding, stream) {
     enc = Encoding.UTF_8;
   }
 
-  var options = new ProcessOptions();
   if (stream == 'stdout') {
-    options.stdoutEncoding = enc;
     Process.run(new Options().executable,
                 [scriptFile, encoding, stream],
-                options). then((result) {
+                stdoutEncoding: enc). then((result) {
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stderr, '');
       checkOutput(encoding, result.stdout);
     });
   } else {
-    options.stderrEncoding = enc;
     Process.run(new Options().executable,
                 [scriptFile, encoding, stream],
-                options).then((result) {
+                stderrEncoding: enc).then((result) {
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stdout, '');
       checkOutput(encoding, result.stderr);

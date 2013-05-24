@@ -592,19 +592,12 @@ Future _doProcess(Function fn, String executable, List<String> args,
     executable = "cmd";
   }
 
-  final options = new ProcessOptions();
-  if (workingDir != null) {
-    options.workingDirectory = workingDir;
-  }
-
-  if (environment != null) {
-    options.environment = new Map.from(Platform.environment);
-    environment.forEach((key, value) => options.environment[key] = value);
-  }
-
   log.process(executable, args);
 
-  return fn(executable, args, options);
+  return fn(executable,
+            args,
+            workingDirectory: workingDir,
+            environment: environment);
 }
 
 /// Wraps [input] to provide a timeout. If [input] completes before

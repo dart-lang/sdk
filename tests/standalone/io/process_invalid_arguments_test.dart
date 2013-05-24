@@ -14,24 +14,15 @@ void main() {
                 (e) => e is ArgumentError);
   Expect.throws(() => Process.start("true", ["asdf", 1]),
                 (e) => e is ArgumentError);
-  Expect.throws(() => Process.run(["true"], [], null),
+;
+  Expect.throws(() => Process.start("true", [], workingDirectory: 23),
                 (e) => e is ArgumentError);
-  Expect.throws(() => Process.run("true", "asdf", null),
+  Expect.throws(() => Process.run("true", [], workingDirectory: 23),
                 (e) => e is ArgumentError);
-  Expect.throws(() => Process.run("true", ["asdf", 1], null),
-                (e) => e is ArgumentError);
-  var options = new ProcessOptions();
-  options.workingDirectory = 23;
-  Expect.throws(() => Process.start("true", [], options),
-                (e) => e is ArgumentError);
-  Expect.throws(() => Process.run("true", [], options),
-                (e) => e is ArgumentError);
-  options = new ProcessOptions();
-  options.stdoutEncoding = 23;
-  Expect.throws(() => Process.run("true", [], options),
-                (e) => e is ArgumentError);
-  options = new ProcessOptions();
-  options.stderrEncoding = 23;
-  Expect.throws(() => Process.run("true", [], options),
-                (e) => e is ArgumentError);
+
+  Process.run("true", [], stdoutEncoding: 23)
+      .then((_) => Expect.fail("expected error"), onError: (_) {});
+
+  Process.run("true", [], stderrEncoding: 23)
+      .then((_) => Expect.fail("expected error"), onError: (_) {});
 }

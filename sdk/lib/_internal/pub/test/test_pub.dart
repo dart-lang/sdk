@@ -369,22 +369,21 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
   dartArgs.addAll(args);
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
-  var optionsFuture = tokenEndpoint.then((tokenEndpoint) {
-    var options = new ProcessOptions();
-    options.workingDirectory = pathInSandbox(appPath);
+  var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
     // TODO(nweiz): remove this when issue 9294 is fixed.
-    options.environment = new Map.from(Platform.environment);
-    options.environment['_PUB_TESTING'] = 'true';
-    options.environment['PUB_CACHE'] = pathInSandbox(cachePath);
-    options.environment['DART_SDK'] = pathInSandbox(sdkPath);
+    var environment = new Map.from(Platform.environment);
+    environment['_PUB_TESTING'] = 'true';
+    environment['PUB_CACHE'] = pathInSandbox(cachePath);
+    environment['DART_SDK'] = pathInSandbox(sdkPath);
     if (tokenEndpoint != null) {
-      options.environment['_PUB_TEST_TOKEN_ENDPOINT'] =
+      environment['_PUB_TEST_TOKEN_ENDPOINT'] =
         tokenEndpoint.toString();
     }
-    return options;
+    return environment;
   });
 
-  return new PubProcess.start(dartBin, dartArgs, options: optionsFuture,
+  return new PubProcess.start(dartBin, dartArgs, environment: environmentFuture,
+      workingDirectory: pathInSandbox(appPath),
       description: args.isEmpty ? 'pub' : 'pub ${args.first}');
 }
 
@@ -397,9 +396,11 @@ class PubProcess extends ScheduledProcess {
   Stream<String> _stderr;
 
   PubProcess.start(executable, arguments,
-      {options, String description, Encoding encoding: Encoding.UTF_8})
+      {workingDirectory, environment, String description,
+       Encoding encoding: Encoding.UTF_8})
     : super.start(executable, arguments,
-        options: options,
+        workingDirectory: workingDirectory,
+        environment: environment,
         description: description,
         encoding: encoding);
 

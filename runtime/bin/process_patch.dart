@@ -15,17 +15,35 @@ patch class _WindowsCodePageEncoder {
 
 
 patch class Process {
-  /* patch */ static Future<Process> start(String executable,
-                                           List<String> arguments,
-                                           [ProcessOptions options]) {
-    _ProcessImpl process = new _ProcessImpl(executable, arguments, options);
+  /* patch */ static Future<Process> start(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool runInShell}) {
+    _ProcessImpl process = new _ProcessImpl(executable,
+                                            arguments,
+                                            workingDirectory,
+                                            environment,
+                                            runInShell);
     return process._start();
   }
 
-  /* patch */ static Future<ProcessResult> run(String executable,
-                                               List<String> arguments,
-                                               [ProcessOptions options]) {
-    return _runNonInteractiveProcess(executable, arguments, options);
+  /* patch */ static Future<ProcessResult> run(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool runInShell,
+       Encoding stdoutEncoding: Encoding.SYSTEM,
+       Encoding stderrEncoding: Encoding.SYSTEM}) {
+    return _runNonInteractiveProcess(executable,
+                                     arguments,
+                                     workingDirectory,
+                                     environment,
+                                     runInShell,
+                                     stdoutEncoding,
+                                     stderrEncoding);
   }
 }
 
@@ -46,7 +64,16 @@ class _ProcessStartStatus {
 
 
 class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
-  _ProcessImpl(String path, List<String> arguments, ProcessOptions options) {
+  _ProcessImpl(String path,
+               List<String> arguments,
+               String this._workingDirectory,
+               Map<String, String> environment,
+               bool runInShell) {
+    if (identical(runInShell, true)) {
+      arguments = _getShellArguments(path, arguments);
+      path = _getShellCommand();
+    }
+
     if (path is !String) {
       throw new ArgumentError("Path is not a String: $path");
     }
@@ -68,16 +95,13 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
       }
     }
 
-    if (options != null && options.workingDirectory != null) {
-      _workingDirectory = options.workingDirectory;
-      if (_workingDirectory is !String) {
-        throw new ArgumentError(
-            "WorkingDirectory is not a String: $_workingDirectory");
-      }
+    if (_workingDirectory != null && _workingDirectory is !String) {
+      throw new ArgumentError(
+          "WorkingDirectory is not a String: $_workingDirectory");
     }
 
-    if (options != null && options.environment != null) {
-      var env = options.environment;
+    if (environment != null) {
+      var env = environment;
       if (env is !Map) {
         throw new ArgumentError("Environment is not a map: $env");
       }
@@ -100,6 +124,37 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
     _exitHandler = new _Socket._readPipe();
     _ended = false;
     _started = false;
+  }
+
+  static String _getShellCommand() {
+    if (Platform.operatingSystem == 'windows') {
+      return 'cmd.exe';
+    }
+    return '/bin/sh';
+  }
+
+  static List<String> _getShellArguments(String executable,
+                                         List<String> arguments) {
+    List<String> shellArguments = [];
+    if (Platform.operatingSystem == 'windows') {
+      shellArguments.add('/c');
+      shellArguments.add(executable);
+      for (var arg in arguments) {
+        arg = arg.replaceAll('"', r'\"');
+        shellArguments.add(arg);
+      }
+    } else {
+      var commandLine = new StringBuffer();
+      executable = executable.replaceAll("'", "'\"'\"'");
+      commandLine.write("'$executable'");
+      shellArguments.add("-c");
+      for (var arg in arguments) {
+        arg = arg.replaceAll("'", "'\"'\"'");
+        commandLine.write(" '$arg'");
+      }
+      shellArguments.add(commandLine.toString());
+    }
+    return shellArguments;
   }
 
   String _windowsArgumentEscape(String argument) {
@@ -272,29 +327,21 @@ class _ProcessImpl extends NativeFieldWrapperClass1 implements Process {
 // method.
 Future<ProcessResult> _runNonInteractiveProcess(String path,
                                                 List<String> arguments,
-                                                ProcessOptions options) {
+                                                String workingDirectory,
+                                                Map<String, String> environment,
+                                                bool runInShell,
+                                                Encoding stdoutEncoding,
+                                                Encoding stderrEncoding) {
   // Extract output encoding options and verify arguments.
-  var stdoutEncoding = Encoding.SYSTEM;
-  var stderrEncoding = Encoding.SYSTEM;
-  if (options != null) {
-    if (options.stdoutEncoding != null) {
-      stdoutEncoding = options.stdoutEncoding;
-      if (stdoutEncoding is !Encoding) {
-        throw new ArgumentError(
-            'stdoutEncoding option is not an encoding: $stdoutEncoding');
-      }
-    }
-    if (options.stderrEncoding != null) {
-      stderrEncoding = options.stderrEncoding;
-      if (stderrEncoding is !Encoding) {
-        throw new ArgumentError(
-            'stderrEncoding option is not an encoding: $stderrEncoding');
-      }
-    }
-  }
+  if (stdoutEncoding == null) stdoutEncoding = Encoding.SYSTEM;
+  if (stderrEncoding == null) stderrEncoding = Encoding.SYSTEM;
 
   // Start the underlying process.
-  return Process.start(path, arguments, options).then((Process p) {
+  return Process.start(path,
+                       arguments,
+                       workingDirectory: workingDirectory,
+                       environment: environment,
+                       runInShell: runInShell).then((Process p) {
     int pid = p.pid;
 
     // Make sure the process stdin is closed.

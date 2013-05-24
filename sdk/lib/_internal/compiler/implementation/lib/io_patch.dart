@@ -186,15 +186,23 @@ patch class _ProcessUtils {
 }
 
 patch class Process {
-  patch static Future<Process> start(String executable,
-                                     List<String> arguments,
-                                     [ProcessOptions options]) {
+  patch static Future<Process> start(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool runInShell: false}) {
     throw new UnsupportedError("Process.start");
   }
 
-  patch static Future<ProcessResult> run(String executable,
-                                         List<String> arguments,
-                                         [ProcessOptions options]) {
+  patch static Future<ProcessResult> run(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool runInShell: false,
+       Encoding stdoutEncoding: Encoding.SYSTEM,
+       Encoding stderrEncoding: Encoding.SYSTEM}) {
     throw new UnsupportedError("Process.run");
   }
 }

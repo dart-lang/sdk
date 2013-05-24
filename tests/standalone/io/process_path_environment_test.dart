@@ -18,11 +18,10 @@ main() {
     args = ['/C', 'echo', '"ok"'];
   }
 
-  var options = new ProcessOptions();
-  options.environment = new Map.from(Platform.environment);
-  options.environment['whatever'] = 'something';
+  var environment = new Map.from(Platform.environment);
+  environment['whatever'] = 'something';
 
-  Process.run(executable, args, options).then((result) {
+  Process.run(executable, args, environment: environment).then((result) {
     Expect.equals(0, result.exitCode);
   });
 }

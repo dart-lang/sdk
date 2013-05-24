@@ -34,11 +34,10 @@ main() {
   });
 }
 """);
-  ProcessOptions options = new ProcessOptions();
-  options.workingDirectory = temp.path;
   String executable = new File(new Options().executable).fullPathSync();
-  Process.run(executable, ['script.dart'], options).then((result) {
-    temp.deleteSync(recursive: true);
-    Expect.equals(0, result.exitCode);
-  });
+  Process.run(executable, ['script.dart'], workingDirectory: temp.path)
+      .then((result) {
+        temp.deleteSync(recursive: true);
+        Expect.equals(0, result.exitCode);
+      });
 }

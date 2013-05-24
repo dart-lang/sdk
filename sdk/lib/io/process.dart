@@ -72,83 +72,67 @@ abstract class Process {
    * process. If the process cannot be started the returned [Future]
    * completes with an exception.
    *
-   * An optional [ProcessOptions] object can be passed to specify
-   * options other than the executable and the arguments.
+   * Use [workingDirectory] to set the working directory for the process. Note
+   * that the change of directory occurs before executing the process on some
+   * platforms, which may have impact when using relative paths for the
+   * executable and the arguments.
+   *
+   * Use [environment] to set the environment variables for the process. If not
+   * set the environment of the parent process is inherited. Currently, only
+   * US-ASCII environment variables are supported and errors are likely to occur
+   * if an environment variable with code-points outside the US-ASCII range is
+   * passed in.
+   *
+   * If [runInShell] is true, the process will be spawned through a system
+   * shell. On Linux and Mac OS, [:/bin/sh:] is used, while
+   * [:%WINDIR%\system32\cmd.exe:] is used on Windows.
    *
    * Users must read all data coming on the [stdout] and [stderr]
    * streams of processes started with [:Process.start:]. If the user
    * does not read all data on the streams the underlying system
    * resources will not be freed since there is still pending data.
    */
-  external static Future<Process> start(String executable,
-                                        List<String> arguments,
-                                        [ProcessOptions options]);
+  external static Future<Process> start(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool runInShell: false});
 
   /**
    * Starts a process and runs it non-interactively to completion. The
    * process run is [executable] with the specified [arguments].
    *
-   * An optional [ProcessOptions] object can be passed to specify
-   * options other than the executable and the arguments.
+   * Use [workingDirectory] to set the working directory for the process. Note
+   * that the change of directory occurs before executing the process on some
+   * platforms, which may have impact when using relative paths for the
+   * executable and the arguments.
+   *
+   * Use [environment] to set the environment variables for the process. If not
+   * set the environment of the parent process is inherited. Currently, only
+   * US-ASCII environment variables are supported and errors are likely to occur
+   * if an environment variable with code-points outside the US-ASCII range is
+   * passed in.
+   *
+   * If [runInShell] is true, the process will be spawned through a system
+   * shell. On Linux and Mac OS, [:/bin/sh:] is used, while
+   * [:%WINDIR%\system32\cmd.exe:] is used on Windows.
+   *
+   * The encoding used for text on stdout and stderr can be set by changing
+   * [stdoutEncoding] and [stderrEncoding]. The default encoding is SYSTEM.
    *
    * Returns a [:Future<ProcessResult>:] that completes with the
    * result of running the process, i.e., exit code, standard out and
    * standard in.
    */
-  external static Future<ProcessResult> run(String executable,
-                                            List<String> arguments,
-                                            [ProcessOptions options]);
-
-  /**
-   * Starts a process in the system shell and runs it non-interactively to
-   * completion.
-   *
-   * On Linux and Mac OS, [:/bin/sh:] is used to execute the [executable].
-   * On Windows, [:%WINDIR%\system32\cmd.exe:] is used.
-   *
-   * An optional [ProcessOptions] object can be passed to specify
-   * options other than the executable and the arguments.
-   *
-   * Returns a [:Future<ProcessResult>:] that completes with the
-   * result of running the process, i.e., exit code, standard out and
-   * standard in.
-   */
-  static Future<ProcessResult> runShell(String executable,
-                                        List<String> arguments,
-                                        [ProcessOptions options])
-      => run(_getShellCommand(),
-             _getShellArguments(executable, arguments),
-             options);
-
-  static String _getShellCommand() {
-    if (Platform.operatingSystem == 'windows') {
-      return 'cmd.exe';
-    }
-    return '/bin/sh';
-  }
-
-  static List<String> _getShellArguments(String executable,
-                                         List<String> arguments) {
-    List<String> shellArguments = [];
-    if (Platform.operatingSystem == 'windows') {
-      shellArguments.add('/c');
-      shellArguments.add(executable);
-      for (var arg in arguments) {
-        arg = arg.replaceAll('"', r'\"');
-        shellArguments.add(arg);
-      }
-    } else {
-      var commandLine = new StringBuffer();
-      commandLine.write(executable);
-      shellArguments.add("-c");
-      for (var arg in arguments) {
-        arg = arg.replaceAll("'", "'\"'\"'");
-        commandLine.write(" '$arg'");
-      }
-      shellArguments.add(commandLine.toString());
-    }
-    return shellArguments;
-  }
+  external static Future<ProcessResult> run(
+      String executable,
+      List<String> arguments,
+      {String workingDirectory,
+       Map<String, String> environment,
+       bool runInShell: false,
+       Encoding stdoutEncoding: Encoding.SYSTEM,
+       Encoding stderrEncoding: Encoding.SYSTEM});
 
   /**
    * Returns the standard output stream of the process as a [:Stream:].
@@ -231,52 +215,6 @@ abstract class ProcessResult {
   int get pid;
 }
 
-
-/**
- * [ProcessOptions] represents the options that can be supplied when
- * starting a process.
- */
-class ProcessOptions {
-  /**
-   * The working directory from which the process is started.  Note
-   * that the change of directory occurs before executing the process
-   * on some platforms, which may have impact when using relative
-   * paths for the executable and the arguments.
-   */
-  String workingDirectory;
-
-  /**
-   * The encoding used for text on stdout when starting a
-   * non-interactive process with [:Process.run:].
-   *
-   * This option is ignored for interactive processes started with
-   * [:Process.start:].
-   *
-   * The default stdoutEncoding is SYSTEM.
-   */
-  Encoding stdoutEncoding;
-
-  /**
-   * The encoding used for text on stderr when starting a
-   * non-interactive process with [:Process.run:].
-   *
-   * This option is ignored for interactive processes started with
-   * [:Process.start:].
-   *
-   * The default stderrEncoding is SYSTEM.
-   */
-  Encoding stderrEncoding;
-
-  /**
-   * Provides the environment variables for the process. If not set
-   * the environment of the parent process is inherited.
-   *
-   * Currently, only ASCII environment variables are supported and
-   * errors are likely to occur if an environment variables with
-   * code-points outside the ASCII range is passed in.
-   */
-  Map<String, String> environment;
-}
 
 /**
  * On Posix systems, [ProcessSignal] is used to send a specific signal

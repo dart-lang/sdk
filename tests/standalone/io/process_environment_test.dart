@@ -9,16 +9,17 @@ import "process_test_util.dart";
 
 runEnvironmentProcess(Map environment, name, callback) {
   var dartExecutable = new Options().executable;
-  var options = new ProcessOptions();
-  options.environment = environment;
   var printEnv = 'tests/standalone/io/print_env.dart';
   if (!new File(printEnv).existsSync()) {
     printEnv = '../$printEnv';
   }
-  Process.run(dartExecutable, [printEnv, name], options).then((result) {
-    Expect.equals(0, result.exitCode);
-    callback(result.stdout);
-  });
+  Process.run(dartExecutable,
+              [printEnv, name],
+              environment: environment)
+      .then((result) {
+        Expect.equals(0, result.exitCode);
+        callback(result.stdout);
+      });
 }
 
 testEnvironment() {

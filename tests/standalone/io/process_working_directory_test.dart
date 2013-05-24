@@ -21,39 +21,36 @@ class ProcessWorkingDirectoryTest {
     Directory directory = new Directory("").createTempSync();
     Expect.isTrue(directory.existsSync());
 
-    var options = new ProcessOptions();
-    options.workingDirectory = directory.path;
-    var processFuture =
-        Process.start(fullTestFilePath, const ["0", "0", "99", "0"], options);
-    processFuture.then((process) {
-      process.exitCode.then((int exitCode) {
-        Expect.equals(exitCode, 99);
-        directory.deleteSync();
-      });
-      process.stdout.listen((_) {});
-      process.stderr.listen((_) {});
-    }).catchError((error) {
-      directory.deleteSync();
-      Expect.fail("Couldn't start process");
-    });
+    Process.start(fullTestFilePath,
+                  const ["0", "0", "99", "0"],
+                  workingDirectory: directory.path)
+        .then((process) {
+          process.exitCode.then((int exitCode) {
+            Expect.equals(exitCode, 99);
+            directory.deleteSync();
+          });
+          process.stdout.listen((_) {});
+          process.stderr.listen((_) {});
+        }).catchError((error) {
+          directory.deleteSync();
+          Expect.fail("Couldn't start process");
+        });
   }
 
   static void testInvalidDirectory() {
     Directory directory = new Directory("").createTempSync();
     Expect.isTrue(directory.existsSync());
 
-    var options = new ProcessOptions();
-    options.workingDirectory = directory.path + "/subPath";
-    var future = Process.start(fullTestFilePath,
-                               const ["0", "0", "99", "0"],
-                               options);
-    future.then((process) {
-      Expect.fail("bad process completed");
-      directory.deleteSync();
-    }).catchError((e) {
-      Expect.isNotNull(e);
-      directory.deleteSync();
-    });
+    Process.start(fullTestFilePath,
+                  const ["0", "0", "99", "0"],
+                  workingDirectory: directory.path + "/subPath")
+        .then((process) {
+          Expect.fail("bad process completed");
+          directory.deleteSync();
+        }).catchError((e) {
+          Expect.isNotNull(e);
+          directory.deleteSync();
+        });
   }
 }
 
