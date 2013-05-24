@@ -451,8 +451,11 @@ class HtmlDartInterfaceGenerator(object):
         self._library_name)
     code.Emit(self._template_loader.Load('callback.darttemplate'))
 
-    code.Emit('typedef void $NAME($PARAMS);\n',
-              LIBRARYNAME='dart.dom.%s' % self._library_name,
+    annotations = self._metadata.GetFormattedMetadata(self._library_name,
+        self._interface)
+
+    code.Emit('$(ANNOTATIONS)typedef void $NAME($PARAMS);\n',
+              ANNOTATIONS=annotations,
               NAME=typedef_name,
               PARAMS=info.ParametersDeclaration(self._DartType))
     self._backend.GenerateCallback(info)

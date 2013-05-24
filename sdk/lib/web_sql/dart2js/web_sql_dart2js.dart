@@ -32,6 +32,9 @@ import 'dart:_interceptors' show Interceptor;
 // WARNING: Do not edit - generated code.
 
 
+@DomName('SQLStatementCallback')
+// http://www.w3.org/TR/webdatabase/#sqlstatementcallback
+@Experimental // deprecated
 typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40,6 +43,9 @@ typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resul
 // WARNING: Do not edit - generated code.
 
 
+@DomName('SQLStatementErrorCallback')
+// http://www.w3.org/TR/webdatabase/#sqlstatementerrorcallback
+@Experimental // deprecated
 typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -48,6 +54,9 @@ typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError erro
 // WARNING: Do not edit - generated code.
 
 
+@DomName('SQLTransactionCallback')
+// http://www.w3.org/TR/webdatabase/#sqltransactioncallback
+@Experimental // deprecated
 typedef void SqlTransactionCallback(SqlTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -56,6 +65,9 @@ typedef void SqlTransactionCallback(SqlTransaction transaction);
 // WARNING: Do not edit - generated code.
 
 
+@DomName('SQLTransactionErrorCallback')
+// http://www.w3.org/TR/webdatabase/#sqltransactionerrorcallback
+@Experimental // deprecated
 typedef void SqlTransactionErrorCallback(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -67,6 +79,8 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/webdatabase/#asynchronous-database-api
+@Experimental // deprecated
 class SqlDatabase native "Database" {
 
   /// Checks if this type is supported on the current platform.
@@ -107,6 +121,8 @@ class SqlDatabase native "Database" {
 
 @DocsEditable
 @DomName('SQLError')
+// http://www.w3.org/TR/webdatabase/#sqlerror
+@Experimental // deprecated
 class SqlError native "SQLError" {
 
   @DomName('SQLError.CONSTRAINT_ERR')
@@ -156,6 +172,8 @@ class SqlError native "SQLError" {
 
 @DocsEditable
 @DomName('SQLException')
+// http://www.w3.org/TR/webdatabase/#sqlexception
+@Experimental // deprecated
 class SqlException native "SQLException" {
 
   @DomName('SQLException.CONSTRAINT_ERR')
@@ -205,6 +223,8 @@ class SqlException native "SQLException" {
 
 @DocsEditable
 @DomName('SQLResultSet')
+// http://www.w3.org/TR/webdatabase/#sqlresultset
+@Experimental // deprecated
 class SqlResultSet native "SQLResultSet" {
 
   @DomName('SQLResultSet.insertId')
@@ -226,6 +246,8 @@ class SqlResultSet native "SQLResultSet" {
 
 @DocsEditable
 @DomName('SQLResultSetRowList')
+// http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
+@Experimental // deprecated
 class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
 
   @DomName('SQLResultSetRowList.length')
@@ -298,6 +320,8 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/webdatabase/#sqltransaction
+@deprecated // deprecated
 class SqlTransaction native "SQLTransaction" {
 
   @DomName('SQLTransaction.executeSql')
@@ -314,5 +338,7 @@ class SqlTransaction native "SQLTransaction" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/webdatabase/#sqltransactionsync
+@Experimental // deprecated
 abstract class _SQLTransactionSync native "SQLTransactionSync" {
 }

@@ -175,14 +175,20 @@ class AnchorElement extends _Element_Merged {
 
   @DomName('HTMLAnchorElement.name')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAnchorElement-partial
+  @deprecated // deprecated
   String get name native "HTMLAnchorElement_name_Getter";
 
   @DomName('HTMLAnchorElement.name')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAnchorElement-partial
+  @deprecated // deprecated
   void set name(String value) native "HTMLAnchorElement_name_Setter";
 
   @DomName('HTMLAnchorElement.origin')
   @DocsEditable
+  // WebKit only
+  @deprecated // nonstandard
   String get origin native "HTMLAnchorElement_origin_Getter";
 
   @DomName('HTMLAnchorElement.pathname')
@@ -195,10 +201,14 @@ class AnchorElement extends _Element_Merged {
 
   @DomName('HTMLAnchorElement.ping')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/text-level-semantics.html#the-a-element
+  @deprecated // deprecated
   String get ping native "HTMLAnchorElement_ping_Getter";
 
   @DomName('HTMLAnchorElement.ping')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/text-level-semantics.html#the-a-element
+  @deprecated // deprecated
   void set ping(String value) native "HTMLAnchorElement_ping_Setter";
 
   @DomName('HTMLAnchorElement.port')
@@ -292,6 +302,7 @@ class AnimationEvent extends Event {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.OPERA)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class ApplicationCache extends EventTarget {
   ApplicationCache.internal() : super.internal();
 
@@ -483,10 +494,14 @@ class AreaElement extends _Element_Merged {
 
   @DomName('HTMLAreaElement.ping')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAreaElement-partial
+  @deprecated // deprecated
   String get ping native "HTMLAreaElement_ping_Getter";
 
   @DomName('HTMLAreaElement.ping')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLAreaElement-partial
+  @deprecated // deprecated
   void set ping(String value) native "HTMLAreaElement_ping_Setter";
 
   @DomName('HTMLAreaElement.port')
@@ -562,6 +577,8 @@ class AudioElement extends MediaElement {
 
 @DocsEditable
 @DomName('AutocompleteErrorEvent')
+// http://wiki.whatwg.org/wiki/RequestAutocomplete
+@Experimental
 class AutocompleteErrorEvent extends Event {
   AutocompleteErrorEvent.internal() : super.internal();
 
@@ -596,6 +613,8 @@ class BRElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('BarInfo')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop (Rename to BarProp?)
+@Experimental // non-standard
 class BarInfo extends NativeFieldWrapperClass1 {
   BarInfo.internal();
 
@@ -646,6 +665,7 @@ class BaseElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('BeforeLoadEvent')
+@Experimental
 class BeforeLoadEvent extends Event {
   BeforeLoadEvent.internal() : super.internal();
 
@@ -889,6 +909,7 @@ class ButtonElement extends _Element_Merged {
 
   @DomName('HTMLButtonElement.labels')
   @DocsEditable
+  @Unstable
   List<Node> get labels native "HTMLButtonElement_labels_Getter";
 
   @DomName('HTMLButtonElement.name')
@@ -945,6 +966,8 @@ class ButtonElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('CDATASection')
+// http://dom.spec.whatwg.org/#cdatasection
+@deprecated // deprecated
 class CDataSection extends Text {
   CDataSection.internal() : super.internal();
 
@@ -958,15 +981,18 @@ class CDataSection extends Text {
 
 @DocsEditable
 @DomName('Canvas2DContextAttributes')
+@Experimental // untriaged
 class Canvas2DContextAttributes extends NativeFieldWrapperClass1 {
   Canvas2DContextAttributes.internal();
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable
+  @Experimental // untriaged
   bool get alpha native "Canvas2DContextAttributes_alpha_Getter";
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable
+  @Experimental // untriaged
   void set alpha(bool value) native "Canvas2DContextAttributes_alpha_Setter";
 
 }
@@ -1213,10 +1239,14 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
+  @Experimental
   Path get currentPath native "CanvasRenderingContext2D_currentPath_Getter";
 
   @DomName('CanvasRenderingContext2D.currentPath')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
+  @Experimental
   void set currentPath(Path value) native "CanvasRenderingContext2D_currentPath_Setter";
 
   @DomName('CanvasRenderingContext2D.fillStyle')
@@ -1525,6 +1555,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.getContextAttributes')
   @DocsEditable
+  @Experimental // untriaged
   Canvas2DContextAttributes getContextAttributes() native "CanvasRenderingContext2D_getContextAttributes_Callback";
 
   @DomName('CanvasRenderingContext2D.getImageData')
@@ -1975,15 +2006,18 @@ class Comment extends CharacterData {
 
 @DocsEditable
 @DomName('Composition')
+@Experimental // untriaged
 class Composition extends NativeFieldWrapperClass1 {
   Composition.internal();
 
   @DomName('Composition.caret')
   @DocsEditable
+  @Experimental // untriaged
   Range get caret native "Composition_caret_Getter";
 
   @DomName('Composition.text')
   @DocsEditable
+  @Experimental // untriaged
   Node get text native "Composition_text_Getter";
 
 }
@@ -2031,26 +2065,32 @@ class Console extends NativeFieldWrapperClass1 {
 
   @DomName('Console.memory')
   @DocsEditable
+  @Experimental
   MemoryInfo get memory native "Console_memory_Getter";
 
   @DomName('Console.profiles')
   @DocsEditable
+  @Experimental
   List<ScriptProfile> get profiles native "Console_profiles_Getter";
 
   @DomName('Console.assertCondition')
   @DocsEditable
+  @Experimental
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
   @DomName('Console.clear')
   @DocsEditable
+  @Experimental
   void clear(Object arg) native "Console_clear_Callback";
 
   @DomName('Console.count')
   @DocsEditable
+  @Experimental
   void count(Object arg) native "Console_count_Callback";
 
   @DomName('Console.debug')
   @DocsEditable
+  @deprecated // deprecated
   void debug(Object arg) native "Console_debug_Callback";
 
   @DomName('Console.dir')
@@ -2059,6 +2099,7 @@ class Console extends NativeFieldWrapperClass1 {
 
   @DomName('Console.dirxml')
   @DocsEditable
+  @Experimental
   void dirxml(Object arg) native "Console_dirxml_Callback";
 
   @DomName('Console.error')
@@ -2087,18 +2128,22 @@ class Console extends NativeFieldWrapperClass1 {
 
   @DomName('Console.markTimeline')
   @DocsEditable
+  @Experimental
   void markTimeline(Object arg) native "Console_markTimeline_Callback";
 
   @DomName('Console.profile')
   @DocsEditable
+  @Experimental
   void profile(String title) native "Console_profile_Callback";
 
   @DomName('Console.profileEnd')
   @DocsEditable
+  @Experimental
   void profileEnd(String title) native "Console_profileEnd_Callback";
 
   @DomName('Console.table')
   @DocsEditable
+  @Experimental
   void table(Object arg) native "Console_table_Callback";
 
   @DomName('Console.time')
@@ -2111,6 +2156,7 @@ class Console extends NativeFieldWrapperClass1 {
 
   @DomName('Console.timeStamp')
   @DocsEditable
+  @Experimental
   void timeStamp(Object arg) native "Console_timeStamp_Callback";
 
   @DomName('Console.trace')
@@ -2133,6 +2179,7 @@ class Console extends NativeFieldWrapperClass1 {
 @DomName('HTMLContentElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
+// https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#content-element
 class ContentElement extends _Element_Merged {
   ContentElement.internal() : super.internal();
 
@@ -2217,6 +2264,7 @@ class Coordinates extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/WebCryptoAPI/
 class Crypto extends NativeFieldWrapperClass1 {
   Crypto.internal();
 
@@ -2237,6 +2285,7 @@ class Crypto extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('CSS')
+@Experimental // untriaged
 class Css extends NativeFieldWrapperClass1 {
   Css.internal();
 
@@ -2264,6 +2313,8 @@ class Css extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('CSSCharsetRule')
+// http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface
+@Experimental
 class CssCharsetRule extends CssRule {
   CssCharsetRule.internal() : super.internal();
 
@@ -2288,6 +2339,7 @@ class CssCharsetRule extends CssRule {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/filter-effects/
 class CssFilterRule extends CssRule {
   CssFilterRule.internal() : super.internal();
 
@@ -2305,6 +2357,8 @@ class CssFilterRule extends CssRule {
 
 @DocsEditable
 @DomName('CSSFontFaceLoadEvent')
+// http://www.w3.org/TR/css3-fonts/
+@Experimental
 class CssFontFaceLoadEvent extends Event {
   CssFontFaceLoadEvent.internal() : super.internal();
 
@@ -2345,6 +2399,7 @@ class CssFontFaceRule extends CssRule {
 @DomName('CSSHostRule')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
+// https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#css-host-rule-interface
 class CssHostRule extends CssRule {
   CssHostRule.internal() : super.internal();
 
@@ -2398,6 +2453,7 @@ class CssImportRule extends CssRule {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
 class CssKeyframeRule extends CssRule {
   CssKeyframeRule.internal() : super.internal();
 
@@ -2426,6 +2482,7 @@ class CssKeyframeRule extends CssRule {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/css3-animations/#csskeyframesrule
 class CssKeyframesRule extends CssRule {
   CssKeyframesRule.internal() : super.internal();
 
@@ -2520,6 +2577,7 @@ class CssPageRule extends CssRule {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://dev.w3.org/csswg/css-regions/#region-style-rule-interface
 class CssRegionRule extends CssRule {
   CssRegionRule.internal() : super.internal();
 
@@ -2550,6 +2608,8 @@ class CssRule extends NativeFieldWrapperClass1 {
 
   @DomName('CSSRule.HOST_RULE')
   @DocsEditable
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-css-rule-host-rule
+  @Experimental
   static const int HOST_RULE = 1001;
 
   @DomName('CSSRule.IMPORT_RULE')
@@ -2570,26 +2630,37 @@ class CssRule extends NativeFieldWrapperClass1 {
 
   @DomName('CSSRule.SUPPORTS_RULE')
   @DocsEditable
+  @Experimental // untriaged
   static const int SUPPORTS_RULE = 12;
 
   @DomName('CSSRule.UNKNOWN_RULE')
   @DocsEditable
+  // http://dev.w3.org/csswg/cssom/#changes-from-dom2
+  @deprecated // deprecated
   static const int UNKNOWN_RULE = 0;
 
   @DomName('CSSRule.WEBKIT_FILTER_RULE')
   @DocsEditable
+  // http://www.w3.org/TR/filter-effects/
+  @Experimental
   static const int WEBKIT_FILTER_RULE = 17;
 
   @DomName('CSSRule.WEBKIT_KEYFRAMES_RULE')
   @DocsEditable
+  // http://www.w3.org/TR/css3-animations/#cssrule
+  @Experimental
   static const int WEBKIT_KEYFRAMES_RULE = 7;
 
   @DomName('CSSRule.WEBKIT_KEYFRAME_RULE')
   @DocsEditable
+  // http://www.w3.org/TR/css3-animations/#cssrule
+  @Experimental
   static const int WEBKIT_KEYFRAME_RULE = 8;
 
   @DomName('CSSRule.WEBKIT_REGION_RULE')
   @DocsEditable
+  // http://dev.w3.org/csswg/css-regions/#region-style-rule-interface
+  @Experimental
   static const int WEBKIT_REGION_RULE = 16;
 
   @DomName('CSSRule.cssText')
@@ -2648,6 +2719,8 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   @DomName('CSSStyleDeclaration.getPropertyShorthand')
   @DocsEditable
+  // http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
+  @deprecated // deprecated
   String getPropertyShorthand(String propertyName) native "CSSStyleDeclaration_getPropertyShorthand_Callback";
 
   @DomName('CSSStyleDeclaration.getPropertyValue')
@@ -2656,6 +2729,8 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
 
   @DomName('CSSStyleDeclaration.isPropertyImplicit')
   @DocsEditable
+  // http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
+  @deprecated // deprecated
   bool isPropertyImplicit(String propertyName) native "CSSStyleDeclaration_isPropertyImplicit_Callback";
 
   @DomName('CSSStyleDeclaration.item')
@@ -5895,6 +5970,7 @@ class CssStyleSheet extends StyleSheet {
 
   @DomName('CSSStyleSheet.rules')
   @DocsEditable
+  @Experimental // non-standard
   List<CssRule> get rules native "CSSStyleSheet_rules_Getter";
 
   int addRule(String selector, String style, [int index]) {
@@ -5918,6 +5994,7 @@ class CssStyleSheet extends StyleSheet {
 
   @DomName('CSSStyleSheet.removeRule')
   @DocsEditable
+  @Experimental // non-standard
   void removeRule(int index) native "CSSStyleSheet_removeRule_Callback";
 
 }
@@ -5930,23 +6007,28 @@ class CssStyleSheet extends StyleSheet {
 
 @DocsEditable
 @DomName('CSSSupportsRule')
+@Experimental // untriaged
 class CssSupportsRule extends CssRule {
   CssSupportsRule.internal() : super.internal();
 
   @DomName('CSSSupportsRule.conditionText')
   @DocsEditable
+  @Experimental // untriaged
   String get conditionText native "CSSSupportsRule_conditionText_Getter";
 
   @DomName('CSSSupportsRule.cssRules')
   @DocsEditable
+  @Experimental // untriaged
   List<CssRule> get cssRules native "CSSSupportsRule_cssRules_Getter";
 
   @DomName('CSSSupportsRule.deleteRule')
   @DocsEditable
+  @Experimental // untriaged
   void deleteRule(int index) native "CSSSupportsRule_deleteRule_Callback";
 
   @DomName('CSSSupportsRule.insertRule')
   @DocsEditable
+  @Experimental // untriaged
   int insertRule(String rule, int index) native "CSSSupportsRule_insertRule_Callback";
 
 }
@@ -5959,6 +6041,8 @@ class CssSupportsRule extends CssRule {
 
 @DocsEditable
 @DomName('CSSUnknownRule')
+// http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
+@deprecated // deprecated
 class CssUnknownRule extends CssRule {
   CssUnknownRule.internal() : super.internal();
 
@@ -5972,6 +6056,8 @@ class CssUnknownRule extends CssRule {
 
 @DocsEditable
 @DomName('CustomElementConstructor')
+// https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-constructor-generation
+@Experimental
 class CustomElementConstructor extends NativeFieldWrapperClass1 {
   CustomElementConstructor.internal();
 
@@ -6131,6 +6217,8 @@ class DataTransfer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('DataTransferItem')
+// http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface
+@Experimental
 class DataTransferItem extends NativeFieldWrapperClass1 {
   DataTransferItem.internal();
 
@@ -6174,6 +6262,8 @@ class DataTransferItem extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('DataTransferItemList')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-datatransferitemlist-interface
+@Experimental
 class DataTransferItemList extends NativeFieldWrapperClass1 {
   DataTransferItemList.internal();
 
@@ -6213,6 +6303,9 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('DatabaseCallback')
+// http://www.w3.org/TR/webdatabase/#databasecallback
+@Experimental // deprecated
 typedef void DatabaseCallback(database);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6254,6 +6347,8 @@ class DetailsElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('DeviceAcceleration')
+// http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
+@Experimental
 class DeviceAcceleration extends NativeFieldWrapperClass1 {
   DeviceAcceleration.internal();
 
@@ -6279,6 +6374,8 @@ class DeviceAcceleration extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('DeviceMotionEvent')
+// http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
+@Experimental
 class DeviceMotionEvent extends Event {
   DeviceMotionEvent.internal() : super.internal();
 
@@ -6306,6 +6403,8 @@ class DeviceMotionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 @DomName('DeviceOrientationEvent')
+// http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
+@Experimental
 
 class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent(String type,
@@ -6348,6 +6447,8 @@ class DeviceOrientationEvent extends Event {
 
 @DocsEditable
 @DomName('DeviceRotationRate')
+// http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
+@Experimental
 class DeviceRotationRate extends NativeFieldWrapperClass1 {
   DeviceRotationRate.internal();
 
@@ -6373,6 +6474,7 @@ class DeviceRotationRate extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLDialogElement')
+@Unstable
 class DialogElement extends _Element_Merged {
   DialogElement.internal() : super.internal();
 
@@ -6403,6 +6505,8 @@ class DialogElement extends _Element_Merged {
 
 
 @DomName('DirectoryEntry')
+// http://www.w3.org/TR/file-system-api/#the-directoryentry-interface
+@Experimental
 class DirectoryEntry extends Entry {
   
   /**
@@ -6494,6 +6598,8 @@ class DirectoryEntry extends Entry {
 
 @DocsEditable
 @DomName('DirectoryReader')
+// http://www.w3.org/TR/file-system-api/#the-directoryreader-interface
+@Experimental
 class DirectoryReader extends NativeFieldWrapperClass1 {
   DirectoryReader.internal();
 
@@ -6574,6 +6680,8 @@ class Document extends Node
 
   @DomName('Document.securitypolicyviolationEvent')
   @DocsEditable
+  // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#widl-Document-onsecuritypolicyviolation
+  @Experimental
   static const EventStreamProvider<SecurityPolicyViolationEvent> securityPolicyViolationEvent = const EventStreamProvider<SecurityPolicyViolationEvent>('securitypolicyviolation');
 
   @DomName('Document.selectionchangeEvent')
@@ -6585,6 +6693,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockchange
   static const EventStreamProvider<Event> pointerLockChangeEvent = const EventStreamProvider<Event>('webkitpointerlockchange');
 
   @DomName('Document.webkitpointerlockerrorEvent')
@@ -6592,6 +6701,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror
   static const EventStreamProvider<Event> pointerLockErrorEvent = const EventStreamProvider<Event>('webkitpointerlockerror');
 
   /// Moved to [HtmlDocument].
@@ -6606,10 +6716,12 @@ class Document extends Node
 
   @DomName('Document.charset')
   @DocsEditable
+  @deprecated // nonstandard
   String get charset native "Document_charset_Getter";
 
   @DomName('Document.charset')
   @DocsEditable
+  @deprecated // nonstandard
   void set charset(String value) native "Document_charset_Setter";
 
   @DomName('Document.cookie')
@@ -6634,6 +6746,8 @@ class Document extends Node
 
   @DomName('Document.fontloader')
   @DocsEditable
+  // http://www.w3.org/TR/css3-fonts/#document-fontloader
+  @Experimental
   FontLoader get fontloader native "Document_fontloader_Getter";
 
   /// Moved to [HtmlDocument].
@@ -6665,6 +6779,8 @@ class Document extends Node
 
   @DomName('Document.securityPolicy')
   @DocsEditable
+  // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#idl-def-SecurityPolicy
+  @Experimental
   SecurityPolicy get securityPolicy native "Document_securityPolicy_Getter";
 
   @DomName('Document.selectedStylesheetSet')
@@ -6696,6 +6812,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenelement
   Element get $dom_webkitFullscreenElement native "Document_webkitFullscreenElement_Getter";
 
   /// Moved to [HtmlDocument].
@@ -6704,6 +6821,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-fullscreenenabled
   bool get $dom_webkitFullscreenEnabled native "Document_webkitFullscreenEnabled_Getter";
 
   /// Moved to [HtmlDocument].
@@ -6712,6 +6830,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#document
   bool get $dom_webkitHidden native "Document_webkitHidden_Getter";
 
   /// Moved to [HtmlDocument].
@@ -6720,6 +6839,8 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @deprecated // deprecated
   bool get $dom_webkitIsFullScreen native "Document_webkitIsFullScreen_Getter";
 
   /// Moved to [HtmlDocument].
@@ -6728,6 +6849,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-pointerLockElement
   Element get $dom_webkitPointerLockElement native "Document_webkitPointerLockElement_Getter";
 
   @DomName('Document.webkitVisibilityState')
@@ -6735,15 +6857,20 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#dom-document-visibilitystate
   String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
   /// Use the [Range] constructor instead.
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable
+  // http://www.w3.org/TR/2009/WD-cssom-view-20090804/#dom-documentview-caretrangefrompoint
+  @Experimental
   Range $dom_caretRangeFromPoint(int x, int y) native "Document_caretRangeFromPoint_Callback";
 
   @DomName('Document.createCDATASection')
   @DocsEditable
+  // http://dom.spec.whatwg.org/#dom-document-createcdatasection
+  @deprecated // deprecated
   CDataSection createCDataSection(String data) native "Document_createCDATASection_Callback";
 
   @DomName('Document.createDocumentFragment')
@@ -6784,6 +6911,7 @@ class Document extends Node
 
   @DomName('Document.createNodeIterator')
   @DocsEditable
+  @Unstable
   NodeIterator $dom_createNodeIterator(Node root, int whatToShow, NodeFilter filter, bool expandEntityReferences) native "Document_createNodeIterator_Callback";
 
   @DomName('Document.createRange')
@@ -6796,11 +6924,15 @@ class Document extends Node
 
   @DomName('Document.createTouch')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Touch $dom_createTouch(Window window, EventTarget target, int identifier, int pageX, int pageY, int screenX, int screenY, int webkitRadiusX, int webkitRadiusY, num webkitRotationAngle, num webkitForce) native "Document_createTouch_Callback";
 
   /// Use the [TouchList] constructor instead.
   @DomName('Document.createTouchList')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   TouchList $dom_createTouchList() native "Document_createTouchList_Callback";
 
   @DomName('Document.createTreeWalker')
@@ -6818,6 +6950,8 @@ class Document extends Node
   /// Moved to [HtmlDocument].
   @DomName('Document.getCSSCanvasContext')
   @DocsEditable
+  // https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html
+  @Experimental // non-standard
   CanvasRenderingContext $dom_getCssCanvasContext(String contextId, String name, int width, int height) native "Document_getCSSCanvasContext_Callback";
 
   @DomName('Document.getElementById')
@@ -6886,6 +7020,8 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @deprecated // deprecated
   void $dom_webkitCancelFullScreen() native "Document_webkitCancelFullScreen_Callback";
 
   /// Moved to [HtmlDocument].
@@ -6894,6 +7030,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
   void $dom_webkitExitFullscreen() native "Document_webkitExitFullscreen_Callback";
 
   /// Moved to [HtmlDocument].
@@ -6902,6 +7039,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-exitPointerLock-void
   void $dom_webkitExitPointerLock() native "Document_webkitExitPointerLock_Callback";
 
   @DomName('Document.webkitGetNamedFlows')
@@ -6909,6 +7047,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.w3.org/TR/css3-regions/#dom-named-flow-collection
   NamedFlowCollection getNamedFlows() native "Document_webkitGetNamedFlows_Callback";
 
   @DomName('Document.webkitRegister')
@@ -6916,6 +7055,7 @@ class Document extends Node
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-document-register
   CustomElementConstructor register(String name, [Map options]) native "Document_webkitRegister_Callback";
 
   @DomName('Document.onabort')
@@ -7064,10 +7204,14 @@ class Document extends Node
 
   @DomName('Document.onsearch')
   @DocsEditable
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
   @DomName('Document.onsecuritypolicyviolation')
   @DocsEditable
+  // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#widl-Document-onsecuritypolicyviolation
+  @Experimental
   Stream<SecurityPolicyViolationEvent> get onSecurityPolicyViolation => securityPolicyViolationEvent.forTarget(this);
 
   @DomName('Document.onselect')
@@ -7088,34 +7232,50 @@ class Document extends Node
 
   @DomName('Document.ontouchcancel')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
   @DomName('Document.ontouchend')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
   @DomName('Document.ontouchmove')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
   @DomName('Document.ontouchstart')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
   @DomName('Document.onwebkitfullscreenchange')
   @DocsEditable
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental
   Stream<Event> get onFullscreenChange => Element.fullscreenChangeEvent.forTarget(this);
 
   @DomName('Document.onwebkitfullscreenerror')
   @DocsEditable
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental
   Stream<Event> get onFullscreenError => Element.fullscreenErrorEvent.forTarget(this);
 
   @DomName('Document.onwebkitpointerlockchange')
   @DocsEditable
+  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockchange
+  @Experimental
   Stream<Event> get onPointerLockChange => pointerLockChangeEvent.forTarget(this);
 
   @DomName('Document.onwebkitpointerlockerror')
   @DocsEditable
+  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Document-onpointerlockerror
+  @Experimental
   Stream<Event> get onPointerLockError => pointerLockErrorEvent.forTarget(this);
 
 
@@ -7230,6 +7390,8 @@ class DocumentFragment extends Node {
 
 @DocsEditable
 @DomName('DocumentType')
+// http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-412266927
+@deprecated // stable
 class DocumentType extends Node {
   DocumentType.internal() : super.internal();
 
@@ -7257,6 +7419,7 @@ class DomError extends NativeFieldWrapperClass1 {
 
 
 @DomName('DOMException')
+@Unstable
 class DomException extends NativeFieldWrapperClass1 {
 
   static const String INDEX_SIZE = 'IndexSizeError';
@@ -7310,6 +7473,7 @@ class DomImplementation extends NativeFieldWrapperClass1 {
 
   @DomName('DOMImplementation.createCSSStyleSheet')
   @DocsEditable
+  @Experimental // non-standard
   CssStyleSheet createCssStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
 
   @DomName('DOMImplementation.createDocument')
@@ -8356,6 +8520,8 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.mousewheelEvent')
   @DocsEditable
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
+  @Experimental // non-standard
   static const EventStreamProvider<WheelEvent> mouseWheelEvent = const EventStreamProvider<WheelEvent>('mousewheel');
 
   @DomName('Element.pasteEvent')
@@ -8372,6 +8538,8 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.searchEvent')
   @DocsEditable
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental
   static const EventStreamProvider<Event> searchEvent = const EventStreamProvider<Event>('search');
 
   @DomName('Element.selectEvent')
@@ -8380,6 +8548,7 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.selectstartEvent')
   @DocsEditable
+  @Experimental // nonstandard
   static const EventStreamProvider<Event> selectStartEvent = const EventStreamProvider<Event>('selectstart');
 
   @DomName('Element.submitEvent')
@@ -8388,26 +8557,38 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.touchcancelEvent')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   static const EventStreamProvider<TouchEvent> touchCancelEvent = const EventStreamProvider<TouchEvent>('touchcancel');
 
   @DomName('Element.touchendEvent')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   static const EventStreamProvider<TouchEvent> touchEndEvent = const EventStreamProvider<TouchEvent>('touchend');
 
   @DomName('Element.touchenterEvent')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   static const EventStreamProvider<TouchEvent> touchEnterEvent = const EventStreamProvider<TouchEvent>('touchenter');
 
   @DomName('Element.touchleaveEvent')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   static const EventStreamProvider<TouchEvent> touchLeaveEvent = const EventStreamProvider<TouchEvent>('touchleave');
 
   @DomName('Element.touchmoveEvent')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   static const EventStreamProvider<TouchEvent> touchMoveEvent = const EventStreamProvider<TouchEvent>('touchmove');
 
   @DomName('Element.touchstartEvent')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
 
   @DomName('Element.webkitTransitionEndEvent')
@@ -8415,6 +8596,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @deprecated
   static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
 
   @DomName('Element.webkitfullscreenchangeEvent')
@@ -8422,6 +8604,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   static const EventStreamProvider<Event> fullscreenChangeEvent = const EventStreamProvider<Event>('webkitfullscreenchange');
 
   @DomName('Element.webkitfullscreenerrorEvent')
@@ -8429,6 +8612,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
   HtmlCollection get $dom_children;
@@ -8471,6 +8655,8 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.ALLOW_KEYBOARD_INPUT')
   @DocsEditable
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
+  @deprecated // deprecated
   static const int ALLOW_KEYBOARD_INPUT = 1;
 
   @DomName('Element.attributes')
@@ -8578,6 +8764,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=21067
   Node get insertionParent native "Element_webkitInsertionParent_Getter";
 
   @DomName('Element.webkitPseudo')
@@ -8585,6 +8772,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   String get pseudo native "Element_webkitPseudo_Getter";
 
   @DomName('Element.webkitPseudo')
@@ -8592,6 +8780,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   void set pseudo(String value) native "Element_webkitPseudo_Setter";
 
   @DomName('Element.webkitRegionOverset')
@@ -8599,6 +8788,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://dev.w3.org/csswg/css-regions/#dom-region-regionoverset
   String get regionOverset native "Element_webkitRegionOverset_Getter";
 
   @DomName('Element.webkitShadowRoot')
@@ -8606,6 +8796,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
   ShadowRoot get shadowRoot native "Element_webkitShadowRoot_Getter";
 
   @DomName('Element.blur')
@@ -8731,6 +8922,7 @@ abstract class Element extends Node implements ElementTraversal {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
   @Experimental
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-aware-create-shadow-root
   ShadowRoot createShadowRoot() native "Element_webkitCreateShadowRoot_Callback";
 
   @DomName('Element.webkitGetRegionFlowRanges')
@@ -8738,11 +8930,14 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://dev.w3.org/csswg/css-regions/#dom-region-getregionflowranges
   List<Range> getRegionFlowRanges() native "Element_webkitGetRegionFlowRanges_Callback";
 
   @DomName('Element.webkitMatchesSelector')
   @DocsEditable
   @Experimental()
+  // http://dev.w3.org/2006/webapi/selectors-api2/#matches
+  @Experimental
   bool matches(String selectors) native "Element_webkitMatchesSelector_Callback";
 
   @DomName('Element.webkitRequestFullScreen')
@@ -8750,6 +8945,8 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
+  @deprecated // deprecated
   void requestFullScreen(int flags) native "Element_webkitRequestFullScreen_Callback";
 
   @DomName('Element.webkitRequestFullscreen')
@@ -8757,6 +8954,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-element-requestfullscreen
   void requestFullscreen() native "Element_webkitRequestFullscreen_Callback";
 
   @DomName('Element.webkitRequestPointerLock')
@@ -8764,6 +8962,7 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/pointerlock/raw-file/default/index.html#widl-Element-requestPointerLock-void
   void requestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
   @DomName('Element.onabort')
@@ -8892,6 +9091,8 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.onmousewheel')
   @DocsEditable
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-wheelevents
+  @Experimental // non-standard
   Stream<WheelEvent> get onMouseWheel => mouseWheelEvent.forTarget(this);
 
   @DomName('Element.onpaste')
@@ -8908,6 +9109,8 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.onsearch')
   @DocsEditable
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental
   Stream<Event> get onSearch => searchEvent.forTarget(this);
 
   @DomName('Element.onselect')
@@ -8916,6 +9119,7 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.onselectstart')
   @DocsEditable
+  @Experimental // nonstandard
   Stream<Event> get onSelectStart => selectStartEvent.forTarget(this);
 
   @DomName('Element.onsubmit')
@@ -8924,26 +9128,38 @@ abstract class Element extends Node implements ElementTraversal {
 
   @DomName('Element.ontouchcancel')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchCancel => touchCancelEvent.forTarget(this);
 
   @DomName('Element.ontouchend')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchEnd => touchEndEvent.forTarget(this);
 
   @DomName('Element.ontouchenter')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchEnter => touchEnterEvent.forTarget(this);
 
   @DomName('Element.ontouchleave')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchLeave => touchLeaveEvent.forTarget(this);
 
   @DomName('Element.ontouchmove')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchMove => touchMoveEvent.forTarget(this);
 
   @DomName('Element.ontouchstart')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
 
   @DomName('Element.onwebkitTransitionEnd')
@@ -8952,14 +9168,19 @@ abstract class Element extends Node implements ElementTraversal {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
+  @deprecated
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
   @DocsEditable
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental
   Stream<Event> get onFullscreenChange => fullscreenChangeEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenerror')
   @DocsEditable
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @Experimental
   Stream<Event> get onFullscreenError => fullscreenErrorEvent.forTarget(this);
 
 }
@@ -9109,6 +9330,7 @@ class ScrollAlignment {
 
 @DocsEditable
 @DomName('ElementTraversal')
+@Unstable
 class ElementTraversal extends NativeFieldWrapperClass1 {
   ElementTraversal.internal();
 
@@ -9145,6 +9367,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class EmbedElement extends _Element_Merged {
   EmbedElement.internal() : super.internal();
 
@@ -9157,10 +9380,14 @@ class EmbedElement extends _Element_Merged {
 
   @DomName('HTMLEmbedElement.align')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLEmbedElement-partial
+  @deprecated // deprecated
   String get align native "HTMLEmbedElement_align_Getter";
 
   @DomName('HTMLEmbedElement.align')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLEmbedElement-partial
+  @deprecated // deprecated
   void set align(String value) native "HTMLEmbedElement_align_Setter";
 
   @DomName('HTMLEmbedElement.height')
@@ -9211,6 +9438,9 @@ class EmbedElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('EntriesCallback')
+// http://www.w3.org/TR/file-system-api/#the-entriescallback-interface
+@Experimental
 typedef void _EntriesCallback(List<Entry> entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9221,6 +9451,8 @@ typedef void _EntriesCallback(List<Entry> entries);
 
 @DocsEditable
 @DomName('Entry')
+// http://www.w3.org/TR/file-system-api/#the-entry-interface
+@Experimental
 class Entry extends NativeFieldWrapperClass1 {
   Entry.internal();
 
@@ -9334,6 +9566,9 @@ class Entry extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('EntryCallback')
+// http://www.w3.org/TR/file-system-api/#the-entrycallback-interface
+@Experimental
 typedef void _EntryCallback(Entry entry);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9342,6 +9577,9 @@ typedef void _EntryCallback(Entry entry);
 // WARNING: Do not edit - generated code.
 
 
+@DomName('ErrorCallback')
+// http://www.w3.org/TR/file-system-api/#the-errorcallback-interface
+@Experimental
 typedef void _ErrorCallback(FileError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9352,6 +9590,7 @@ typedef void _ErrorCallback(FileError error);
 
 @DocsEditable
 @DomName('ErrorEvent')
+@Unstable
 class ErrorEvent extends Event {
   ErrorEvent.internal() : super.internal();
 
@@ -9411,6 +9650,8 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.BLUR')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int BLUR = 8192;
 
   @DomName('Event.BUBBLING_PHASE')
@@ -9423,66 +9664,98 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.CHANGE')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int CHANGE = 32768;
 
   @DomName('Event.CLICK')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int CLICK = 64;
 
   @DomName('Event.DBLCLICK')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int DBLCLICK = 128;
 
   @DomName('Event.DRAGDROP')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int DRAGDROP = 2048;
 
   @DomName('Event.FOCUS')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int FOCUS = 4096;
 
   @DomName('Event.KEYDOWN')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int KEYDOWN = 256;
 
   @DomName('Event.KEYPRESS')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int KEYPRESS = 1024;
 
   @DomName('Event.KEYUP')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int KEYUP = 512;
 
   @DomName('Event.MOUSEDOWN')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int MOUSEDOWN = 1;
 
   @DomName('Event.MOUSEDRAG')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int MOUSEDRAG = 32;
 
   @DomName('Event.MOUSEMOVE')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int MOUSEMOVE = 16;
 
   @DomName('Event.MOUSEOUT')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int MOUSEOUT = 8;
 
   @DomName('Event.MOUSEOVER')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int MOUSEOVER = 4;
 
   @DomName('Event.MOUSEUP')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int MOUSEUP = 2;
 
   @DomName('Event.NONE')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int NONE = 0;
 
   @DomName('Event.SELECT')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.captureEvents
+  @deprecated // deprecated
   static const int SELECT = 16384;
 
   @DomName('Event.bubbles')
@@ -9491,10 +9764,14 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.cancelBubble')
   @DocsEditable
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-event-type-stopPropagation
+  @deprecated // deprecated
   bool get cancelBubble native "Event_cancelBubble_Getter";
 
   @DomName('Event.cancelBubble')
   @DocsEditable
+  // http://www.w3.org/TR/DOM-Level-3-Events/#events-event-type-stopPropagation
+  @deprecated // deprecated
   void set cancelBubble(bool value) native "Event_cancelBubble_Setter";
 
   @DomName('Event.cancelable')
@@ -9506,6 +9783,8 @@ class Event extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // Part of copy/paste
+  @Experimental // nonstandard
   DataTransfer get clipboardData native "Event_clipboardData_Getter";
 
   @DomName('Event.currentTarget')
@@ -9558,6 +9837,7 @@ class Event extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('EventException')
+@Unstable
 class EventException extends NativeFieldWrapperClass1 {
   EventException.internal();
 
@@ -9575,10 +9855,12 @@ class EventException extends NativeFieldWrapperClass1 {
 
   @DomName('EventException.message')
   @DocsEditable
+  @deprecated // nonstandard
   String get message native "EventException_message_Getter";
 
   @DomName('EventException.name')
   @DocsEditable
+  @deprecated // nonstandard
   String get name native "EventException_name_Getter";
 
   @DomName('EventException.toString')
@@ -9592,6 +9874,8 @@ class EventException extends NativeFieldWrapperClass1 {
 
 
 @DomName('EventSource')
+// http://www.w3.org/TR/eventsource/#the-eventsource-interface
+@Experimental // stable
 class EventSource extends EventTarget {
   factory EventSource(String title, {withCredentials: false}) {
     var parsedOptions = {
@@ -9766,6 +10050,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLFieldSetElement')
+@Unstable
 class FieldSetElement extends _Element_Merged {
   FieldSetElement.internal() : super.internal();
 
@@ -9847,6 +10132,7 @@ class File extends Blob {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://plus.sandbox.google.com/+AddyOsmani/posts/Dk5UhZ6zfF3
   String get relativePath native "File_webkitRelativePath_Getter";
 
 }
@@ -9857,6 +10143,9 @@ class File extends Blob {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('FileCallback')
+// http://www.w3.org/TR/file-system-api/#the-filecallback-interface
+@Experimental
 typedef void _FileCallback(File file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9867,6 +10156,8 @@ typedef void _FileCallback(File file);
 
 @DocsEditable
 @DomName('FileEntry')
+// http://www.w3.org/TR/file-system-api/#the-fileentry-interface
+@Experimental
 class FileEntry extends Entry {
   FileEntry.internal() : super.internal();
 
@@ -9904,6 +10195,8 @@ class FileEntry extends Entry {
 
 @DocsEditable
 @DomName('FileError')
+// http://dev.w3.org/2009/dap/file-system/pub/FileSystem/
+@Experimental
 class FileError extends NativeFieldWrapperClass1 {
   FileError.internal();
 
@@ -9969,6 +10262,8 @@ class FileError extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('FileException')
+// http://dev.w3.org/2009/dap/file-system/pub/FileSystem/
+@Experimental
 class FileException extends NativeFieldWrapperClass1 {
   FileException.internal();
 
@@ -10190,6 +10485,8 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.readAsBinaryString')
   @DocsEditable
+  // http://blog.whatwg.org/weekly-stream-autocomplete
+  @deprecated // deprecated
   void readAsBinaryString(Blob blob) native "FileReader_readAsBinaryString_Callback";
 
   @DomName('FileReader.readAsDataURL')
@@ -10249,6 +10546,7 @@ class FileReader extends EventTarget {
 @DomName('DOMFileSystem')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://www.w3.org/TR/file-system-api/
 class FileSystem extends NativeFieldWrapperClass1 {
   FileSystem.internal();
 
@@ -10271,6 +10569,9 @@ class FileSystem extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('FileSystemCallback')
+// http://www.w3.org/TR/file-system-api/#the-filesystemcallback-interface
+@Experimental
 typedef void _FileSystemCallback(FileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10281,6 +10582,8 @@ typedef void _FileSystemCallback(FileSystem fileSystem);
 
 @DocsEditable
 @DomName('FileWriter')
+// http://www.w3.org/TR/file-writer-api/#the-filewriter-interface
+@Experimental
 class FileWriter extends EventTarget {
   FileWriter.internal() : super.internal();
 
@@ -10396,6 +10699,9 @@ class FileWriter extends EventTarget {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('FileWriterCallback')
+// http://www.w3.org/TR/file-writer-api/#idl-def-FileWriter
+@Experimental
 typedef void _FileWriterCallback(FileWriter fileWriter);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10423,6 +10729,8 @@ class FocusEvent extends UIEvent {
 
 @DocsEditable
 @DomName('FontLoader')
+// http://www.w3.org/TR/css3-fonts/#document-fontloader
+@Experimental
 class FontLoader extends EventTarget {
   FontLoader.internal() : super.internal();
 
@@ -10537,10 +10845,14 @@ class FormElement extends _Element_Merged {
 
   @DomName('HTMLFormElement.autocompleteEvent')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
+  @Experimental
   static const EventStreamProvider<Event> autocompleteEvent = const EventStreamProvider<Event>('autocomplete');
 
   @DomName('HTMLFormElement.autocompleteerrorEvent')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
+  @Experimental
   static const EventStreamProvider<AutocompleteErrorEvent> autocompleteErrorEvent = const EventStreamProvider<AutocompleteErrorEvent>('autocompleteerror');
 
   @DomName('HTMLFormElement.HTMLFormElement')
@@ -10565,10 +10877,14 @@ class FormElement extends _Element_Merged {
 
   @DomName('HTMLFormElement.autocomplete')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
+  @Experimental
   String get autocomplete native "HTMLFormElement_autocomplete_Getter";
 
   @DomName('HTMLFormElement.autocomplete')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
+  @Experimental
   void set autocomplete(String value) native "HTMLFormElement_autocomplete_Setter";
 
   @DomName('HTMLFormElement.encoding')
@@ -10629,6 +10945,8 @@ class FormElement extends _Element_Merged {
 
   @DomName('HTMLFormElement.requestAutocomplete')
   @DocsEditable
+  // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
+  @Experimental
   void requestAutocomplete() native "HTMLFormElement_requestAutocomplete_Callback";
 
   @DomName('HTMLFormElement.reset')
@@ -10641,10 +10959,14 @@ class FormElement extends _Element_Merged {
 
   @DomName('HTMLFormElement.onautocomplete')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
+  @Experimental
   Stream<Event> get onAutocomplete => autocompleteEvent.forTarget(this);
 
   @DomName('HTMLFormElement.onautocompleteerror')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
+  @Experimental
   Stream<AutocompleteErrorEvent> get onAutocompleteError => autocompleteErrorEvent.forTarget(this);
 
 }
@@ -10657,6 +10979,8 @@ class FormElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('Gamepad')
+// https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html#gamepad-interface
+@Experimental
 class Gamepad extends NativeFieldWrapperClass1 {
   Gamepad.internal();
 
@@ -10688,6 +11012,7 @@ class Gamepad extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('Geolocation')
+@Unstable
 class Geolocation extends NativeFieldWrapperClass1 {
 
   @DomName('Geolocation.getCurrentPosition')
@@ -10786,6 +11111,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('Geoposition')
+@Unstable
 class Geoposition extends NativeFieldWrapperClass1 {
   Geoposition.internal();
 
@@ -10828,6 +11154,7 @@ class HRElement extends _Element_Merged {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 
 class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
@@ -10974,6 +11301,8 @@ class History extends NativeFieldWrapperClass1 implements HistoryBase {
 
 @DocsEditable
 @DomName('HTMLAllCollection')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
+@deprecated // deprecated
 class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   HtmlAllCollection.internal();
 
@@ -11673,6 +12002,7 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.upload')
   @DocsEditable
+  @Unstable
   HttpRequestUpload get upload native "XMLHttpRequest_upload_Getter";
 
   /**
@@ -11726,6 +12056,7 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.getAllResponseHeaders')
   @DocsEditable
+  @Unstable
   String getAllResponseHeaders() native "XMLHttpRequest_getAllResponseHeaders_Callback";
 
   /**
@@ -11736,6 +12067,7 @@ class HttpRequest extends EventTarget {
    */
   @DomName('XMLHttpRequest.getResponseHeader')
   @DocsEditable
+  @Unstable
   String getResponseHeader(String header) native "XMLHttpRequest_getResponseHeader_Callback";
 
   /**
@@ -11866,6 +12198,7 @@ class HttpRequest extends EventTarget {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+@Experimental // nonstandard
 class HttpRequestProgressEvent extends ProgressEvent {
   HttpRequestProgressEvent.internal() : super.internal();
 
@@ -11890,6 +12223,8 @@ class HttpRequestProgressEvent extends ProgressEvent {
 
 @DocsEditable
 @DomName('XMLHttpRequestUpload')
+// http://xhr.spec.whatwg.org/#xmlhttprequestupload
+@Experimental
 class HttpRequestUpload extends EventTarget {
   HttpRequestUpload.internal() : super.internal();
 
@@ -12091,10 +12426,12 @@ class ImageElement extends _Element_Merged implements CanvasImageSource {
 
   @DomName('HTMLImageElement.border')
   @DocsEditable
+  @deprecated // deprecated
   String get border native "HTMLImageElement_border_Getter";
 
   @DomName('HTMLImageElement.border')
   @DocsEditable
+  @deprecated // deprecated
   void set border(String value) native "HTMLImageElement_border_Setter";
 
   @DomName('HTMLImageElement.complete')
@@ -12127,10 +12464,12 @@ class ImageElement extends _Element_Merged implements CanvasImageSource {
 
   @DomName('HTMLImageElement.lowsrc')
   @DocsEditable
+  @deprecated // deprecated
   String get lowsrc native "HTMLImageElement_lowsrc_Getter";
 
   @DomName('HTMLImageElement.lowsrc')
   @DocsEditable
+  @deprecated // deprecated
   void set lowsrc(String value) native "HTMLImageElement_lowsrc_Setter";
 
   @DomName('HTMLImageElement.naturalHeight')
@@ -12167,10 +12506,12 @@ class ImageElement extends _Element_Merged implements CanvasImageSource {
 
   @DomName('HTMLImageElement.x')
   @DocsEditable
+  @deprecated // deprecated
   int get x native "HTMLImageElement_x_Getter";
 
   @DomName('HTMLImageElement.y')
   @DocsEditable
+  @deprecated // deprecated
   int get y native "HTMLImageElement_y_Getter";
 
 }
@@ -12275,6 +12616,7 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements
   static const EventStreamProvider<Event> speechChangeEvent = const EventStreamProvider<Event>('webkitSpeechChange');
 
   @DomName('HTMLInputElement.accept')
@@ -12411,10 +12753,14 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.incremental')
   @DocsEditable
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental
   bool get incremental native "HTMLInputElement_incremental_Getter";
 
   @DomName('HTMLInputElement.incremental')
   @DocsEditable
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental
   void set incremental(bool value) native "HTMLInputElement_incremental_Setter";
 
   @DomName('HTMLInputElement.indeterminate')
@@ -12563,10 +12909,14 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.useMap')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLInputElement-partial
+  @deprecated // deprecated
   String get useMap native "HTMLInputElement_useMap_Getter";
 
   @DomName('HTMLInputElement.useMap')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLInputElement-partial
+  @deprecated // deprecated
   void set useMap(String value) native "HTMLInputElement_useMap_Setter";
 
   @DomName('HTMLInputElement.validationMessage')
@@ -12606,6 +12956,7 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
   List<Entry> get entries native "HTMLInputElement_webkitEntries_Getter";
 
   @DomName('HTMLInputElement.webkitGrammar')
@@ -12613,6 +12964,7 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-grammar
   bool get grammar native "HTMLInputElement_webkitGrammar_Getter";
 
   @DomName('HTMLInputElement.webkitGrammar')
@@ -12620,6 +12972,7 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-grammar
   void set grammar(bool value) native "HTMLInputElement_webkitGrammar_Setter";
 
   @DomName('HTMLInputElement.webkitSpeech')
@@ -12627,6 +12980,7 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-speech
   bool get speech native "HTMLInputElement_webkitSpeech_Getter";
 
   @DomName('HTMLInputElement.webkitSpeech')
@@ -12634,6 +12988,7 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-speech
   void set speech(bool value) native "HTMLInputElement_webkitSpeech_Setter";
 
   @DomName('HTMLInputElement.webkitdirectory')
@@ -12641,6 +12996,7 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://plus.sandbox.google.com/+AddyOsmani/posts/Dk5UhZ6zfF3
   bool get directory native "HTMLInputElement_webkitdirectory_Getter";
 
   @DomName('HTMLInputElement.webkitdirectory')
@@ -12648,6 +13004,7 @@ class InputElement extends _Element_Merged implements
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://plus.sandbox.google.com/+AddyOsmani/posts/Dk5UhZ6zfF3
   void set directory(bool value) native "HTMLInputElement_webkitdirectory_Setter";
 
   @DomName('HTMLInputElement.width')
@@ -12722,6 +13079,8 @@ class InputElement extends _Element_Merged implements
 
   @DomName('HTMLInputElement.onwebkitSpeechChange')
   @DocsEditable
+  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#extending_html_elements
+  @Experimental
   Stream<Event> get onSpeechChange => speechChangeEvent.forTarget(this);
 
 }
@@ -13290,39 +13649,48 @@ abstract class ButtonInputElement implements InputElementBase {
 
 @DocsEditable
 @DomName('InputMethodContext')
+@Experimental // untriaged
 class InputMethodContext extends NativeFieldWrapperClass1 {
   InputMethodContext.internal();
 
   @DomName('InputMethodContext.composition')
   @DocsEditable
+  @Experimental // untriaged
   Composition get composition native "InputMethodContext_composition_Getter";
 
   @DomName('InputMethodContext.enabled')
   @DocsEditable
+  @Experimental // untriaged
   bool get enabled native "InputMethodContext_enabled_Getter";
 
   @DomName('InputMethodContext.enabled')
   @DocsEditable
+  @Experimental // untriaged
   void set enabled(bool value) native "InputMethodContext_enabled_Setter";
 
   @DomName('InputMethodContext.locale')
   @DocsEditable
+  @Experimental // untriaged
   String get locale native "InputMethodContext_locale_Getter";
 
   @DomName('InputMethodContext.confirmComposition')
   @DocsEditable
+  @Experimental // untriaged
   void confirmComposition() native "InputMethodContext_confirmComposition_Callback";
 
   @DomName('InputMethodContext.open')
   @DocsEditable
+  @Experimental // untriaged
   bool open() native "InputMethodContext_open_Callback";
 
   @DomName('InputMethodContext.setCaretRectangle')
   @DocsEditable
+  @Experimental // untriaged
   void setCaretRectangle(Node anchor, int x, int y, int w, int h) native "InputMethodContext_setCaretRectangle_Callback";
 
   @DomName('InputMethodContext.setExclusionRectangle')
   @DocsEditable
+  @Experimental // untriaged
   void setExclusionRectangle(Node anchor, int x, int y, int w, int h) native "InputMethodContext_setExclusionRectangle_Callback";
 
 }
@@ -13357,6 +13725,7 @@ class KeyboardEvent extends UIEvent {
 
   @DomName('KeyboardEvent.altGraphKey')
   @DocsEditable
+  @Experimental // nonstandard
   bool get altGraphKey native "KeyboardEvent_altGraphKey_Getter";
 
   @DomName('KeyboardEvent.altKey')
@@ -13369,10 +13738,12 @@ class KeyboardEvent extends UIEvent {
 
   @DomName('KeyboardEvent.keyIdentifier')
   @DocsEditable
+  @Experimental // nonstandard
   String get $dom_keyIdentifier native "KeyboardEvent_keyIdentifier_Getter";
 
   @DomName('KeyboardEvent.keyLocation')
   @DocsEditable
+  @Experimental // nonstandard
   int get keyLocation native "KeyboardEvent_keyLocation_Getter";
 
   @DomName('KeyboardEvent.metaKey')
@@ -13400,6 +13771,7 @@ class KeyboardEvent extends UIEvent {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#the-keygen-element
 class KeygenElement extends _Element_Merged {
   KeygenElement.internal() : super.internal();
 
@@ -13448,6 +13820,7 @@ class KeygenElement extends _Element_Merged {
 
   @DomName('HTMLKeygenElement.labels')
   @DocsEditable
+  @Unstable
   List<Node> get labels native "HTMLKeygenElement_labels_Getter";
 
   @DomName('HTMLKeygenElement.name')
@@ -13501,10 +13874,14 @@ class LIElement extends _Element_Merged {
 
   @DomName('HTMLLIElement.type')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLLIElement-partial
+  @deprecated // deprecated
   String get type native "HTMLLIElement_type_Getter";
 
   @DomName('HTMLLIElement.type')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLLIElement-partial
+  @deprecated // deprecated
   void set type(String value) native "HTMLLIElement_type_Setter";
 
   @DomName('HTMLLIElement.value')
@@ -13659,6 +14036,7 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 
   @DomName('Location.ancestorOrigins')
   @DocsEditable
+  @Experimental // nonstandard
   List<String> get ancestorOrigins native "Location_ancestorOrigins_Getter";
 
   @DomName('Location.hash')
@@ -13695,6 +14073,8 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 
   @DomName('Location.origin')
   @DocsEditable
+  // http://url.spec.whatwg.org/#urlutils Webkit Only
+  @Experimental // non-standard
   String get origin native "Location_origin_Getter";
 
   @DomName('Location.pathname')
@@ -13747,6 +14127,7 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 
   @DomName('Location.valueOf')
   @DocsEditable
+  @Experimental // nonstandard
   Object valueOf() native "Location_valueOf_Callback";
 
 
@@ -13758,6 +14139,8 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('MIDIErrorCallback')
+@Experimental // untriaged
 typedef void MidiErrorCallback(DomError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13797,6 +14180,8 @@ class MapElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('MediaController')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#mediacontroller
+@Experimental
 class MediaController extends EventTarget {
   MediaController.internal() : super.internal();
 
@@ -13907,6 +14292,7 @@ class MediaController extends EventTarget {
 
 @DocsEditable
 @DomName('HTMLMediaElement')
+@Unstable
 class MediaElement extends _Element_Merged {
   MediaElement.internal() : super.internal();
 
@@ -13972,6 +14358,8 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.showEvent')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-media-loadstart
+  @Experimental
   static const EventStreamProvider<Event> showEvent = const EventStreamProvider<Event>('show');
 
   @DomName('HTMLMediaElement.stalledEvent')
@@ -13999,6 +14387,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
 
   @DomName('HTMLMediaElement.webkitkeyerrorEvent')
@@ -14006,6 +14395,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
 
   @DomName('HTMLMediaElement.webkitkeymessageEvent')
@@ -14013,6 +14403,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
 
   @DomName('HTMLMediaElement.webkitneedkeyEvent')
@@ -14020,6 +14411,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
   @DomName('HTMLMediaElement.HAVE_CURRENT_DATA')
@@ -14128,6 +14520,8 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.initialTime')
   @DocsEditable
+  // http://www.w3.org/TR/2011/WD-html5-20110113/video.html#dom-media-initialtime
+  @Experimental
   num get initialTime native "HTMLMediaElement_initialTime_Getter";
 
   @DomName('HTMLMediaElement.loop')
@@ -14204,10 +14598,13 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.startTime')
   @DocsEditable
+  @Experimental // non-standard
   num get startTime native "HTMLMediaElement_startTime_Getter";
 
   @DomName('HTMLMediaElement.textTracks')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#dom-media-texttracks
+  @Experimental
   TextTrackList get textTracks native "HTMLMediaElement_textTracks_Getter";
 
   @DomName('HTMLMediaElement.volume')
@@ -14223,6 +14620,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   int get audioDecodedByteCount native "HTMLMediaElement_webkitAudioDecodedByteCount_Getter";
 
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
@@ -14230,6 +14628,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   bool get closedCaptionsVisible native "HTMLMediaElement_webkitClosedCaptionsVisible_Getter";
 
   @DomName('HTMLMediaElement.webkitClosedCaptionsVisible')
@@ -14237,6 +14636,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   void set closedCaptionsVisible(bool value) native "HTMLMediaElement_webkitClosedCaptionsVisible_Setter";
 
   @DomName('HTMLMediaElement.webkitHasClosedCaptions')
@@ -14244,6 +14644,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   bool get hasClosedCaptions native "HTMLMediaElement_webkitHasClosedCaptions_Getter";
 
   @DomName('HTMLMediaElement.webkitPreservesPitch')
@@ -14251,6 +14652,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   bool get preservesPitch native "HTMLMediaElement_webkitPreservesPitch_Getter";
 
   @DomName('HTMLMediaElement.webkitPreservesPitch')
@@ -14258,6 +14660,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   void set preservesPitch(bool value) native "HTMLMediaElement_webkitPreservesPitch_Setter";
 
   @DomName('HTMLMediaElement.webkitVideoDecodedByteCount')
@@ -14265,6 +14668,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // nonstandard
   int get videoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
   TextTrack addTextTrack(String kind, [String label, String language]) {
@@ -14317,6 +14721,7 @@ class MediaElement extends _Element_Merged {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#extensions
   void cancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
   void generateKeyRequest(String keySystem, [Uint8List initData]) {
@@ -14394,6 +14799,8 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.onshow')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#event-media-loadstart
+  @Experimental
   Stream<Event> get onShow => showEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onstalled')
@@ -14418,18 +14825,26 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.onwebkitkeyadded')
   @DocsEditable
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
+  @Experimental
   Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitkeyerror')
   @DocsEditable
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
+  @Experimental
   Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitkeymessage')
   @DocsEditable
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
+  @Experimental
   Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
 
   @DomName('HTMLMediaElement.onwebkitneedkey')
   @DocsEditable
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-keyadded
+  @Experimental
   Stream<MediaKeyEvent> get onNeedKey => needKeyEvent.forTarget(this);
 
 }
@@ -14442,6 +14857,7 @@ class MediaElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('MediaError')
+@Unstable
 class MediaError extends NativeFieldWrapperClass1 {
   MediaError.internal();
 
@@ -14455,6 +14871,8 @@ class MediaError extends NativeFieldWrapperClass1 {
 
   @DomName('MediaError.MEDIA_ERR_ENCRYPTED')
   @DocsEditable
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#error-codes
+  @Experimental
   static const int MEDIA_ERR_ENCRYPTED = 5;
 
   @DomName('MediaError.MEDIA_ERR_NETWORK')
@@ -14479,6 +14897,8 @@ class MediaError extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('MediaKeyError')
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#error-codes
+@Experimental
 class MediaKeyError extends NativeFieldWrapperClass1 {
   MediaKeyError.internal();
 
@@ -14520,6 +14940,8 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('MediaKeyEvent')
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#event-definitions
+@Experimental
 class MediaKeyEvent extends Event {
   MediaKeyEvent.internal() : super.internal();
 
@@ -14561,6 +14983,7 @@ class MediaKeyEvent extends Event {
 
 @DocsEditable
 @DomName('MediaList')
+@Unstable
 class MediaList extends NativeFieldWrapperClass1 {
   MediaList.internal();
 
@@ -14598,6 +15021,7 @@ class MediaList extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('MediaQueryList')
+@Unstable
 class MediaQueryList extends NativeFieldWrapperClass1 {
   MediaQueryList.internal();
 
@@ -14627,6 +15051,7 @@ class MediaQueryList extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('MediaQueryListListener')
+@Unstable
 class MediaQueryListListener extends NativeFieldWrapperClass1 {
   MediaQueryListListener.internal();
 
@@ -14644,6 +15069,8 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('MediaSource')
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource
+@Experimental
 class MediaSource extends EventTarget {
   MediaSource.internal() : super.internal();
 
@@ -14713,6 +15140,7 @@ class MediaSource extends EventTarget {
 @DomName('MediaStream')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://dev.w3.org/2011/webrtc/editor/getusermedia.html#mediastream
 class MediaStream extends EventTarget {
   MediaStream.internal() : super.internal();
 
@@ -14762,6 +15190,7 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.label')
   @DocsEditable
+  @Experimental // non-standard
   String get label native "MediaStream_label_Getter";
 
   @DomName('MediaStream.addEventListener')
@@ -14798,6 +15227,7 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.stop')
   @DocsEditable
+  @Experimental // untriaged
   void stop() native "MediaStream_stop_Callback";
 
   @DomName('MediaStream.onaddtrack')
@@ -14833,6 +15263,7 @@ class MediaStream extends EventTarget {
 @DomName('MediaStreamEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://dev.w3.org/2011/webrtc/editor/getusermedia.html
 class MediaStreamEvent extends Event {
   MediaStreamEvent.internal() : super.internal();
 
@@ -14855,6 +15286,7 @@ class MediaStreamEvent extends Event {
 @DomName('MediaStreamTrack')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://dev.w3.org/2011/webrtc/editor/getusermedia.html#mediastreamtrack
 class MediaStreamTrack extends EventTarget {
   MediaStreamTrack.internal() : super.internal();
 
@@ -14930,6 +15362,7 @@ class MediaStreamTrack extends EventTarget {
 @DomName('MediaStreamTrackEvent')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://dev.w3.org/2011/webrtc/editor/getusermedia.html
 class MediaStreamTrackEvent extends Event {
   MediaStreamTrackEvent.internal() : super.internal();
 
@@ -14950,6 +15383,7 @@ class MediaStreamTrackEvent extends Event {
 
 @DocsEditable
 @DomName('MemoryInfo')
+@Experimental // nonstandard
 class MemoryInfo extends NativeFieldWrapperClass1 {
   MemoryInfo.internal();
 
@@ -15002,6 +15436,7 @@ class MenuElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('MessageChannel')
+@Unstable
 class MessageChannel extends NativeFieldWrapperClass1 {
   MessageChannel.internal();
   factory MessageChannel() => _create();
@@ -15047,6 +15482,7 @@ class MessageEvent extends Event {
 
   @DomName('MessageEvent.lastEventId')
   @DocsEditable
+  @Unstable
   String get lastEventId native "MessageEvent_lastEventId_Getter";
 
   @DomName('MessageEvent.origin')
@@ -15055,6 +15491,7 @@ class MessageEvent extends Event {
 
   @DomName('MessageEvent.ports')
   @DocsEditable
+  @Unstable
   List get ports native "MessageEvent_ports_Getter";
 
   @DomName('MessageEvent.source')
@@ -15075,6 +15512,7 @@ class MessageEvent extends Event {
 
 @DocsEditable
 @DomName('MessagePort')
+@Unstable
 class MessagePort extends EventTarget {
   MessagePort.internal() : super.internal();
 
@@ -15157,6 +15595,8 @@ class MetaElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('Metadata')
+// http://www.w3.org/TR/file-system-api/#the-metadata-interface
+@Experimental
 class Metadata extends NativeFieldWrapperClass1 {
   Metadata.internal();
 
@@ -15176,6 +15616,9 @@ class Metadata extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('MetadataCallback')
+// http://www.w3.org/TR/file-system-api/#idl-def-MetadataCallback
+@Experimental
 typedef void MetadataCallback(Metadata metadata);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15189,6 +15632,7 @@ typedef void MetadataCallback(Metadata metadata);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class MeterElement extends _Element_Merged {
   MeterElement.internal() : super.internal();
 
@@ -15209,6 +15653,7 @@ class MeterElement extends _Element_Merged {
 
   @DomName('HTMLMeterElement.labels')
   @DocsEditable
+  @Unstable
   List<Node> get labels native "HTMLMeterElement_labels_Getter";
 
   @DomName('HTMLMeterElement.low')
@@ -15261,11 +15706,13 @@ class MeterElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('MIDIConnectionEvent')
+@Experimental // untriaged
 class MidiConnectionEvent extends Event {
   MidiConnectionEvent.internal() : super.internal();
 
   @DomName('MIDIConnectionEvent.port')
   @DocsEditable
+  @Experimental // untriaged
   MidiPort get port native "MIDIConnectionEvent_port_Getter";
 
 }
@@ -15278,6 +15725,7 @@ class MidiConnectionEvent extends Event {
 
 @DocsEditable
 @DomName('MIDIInput')
+@Experimental // untriaged
 class MidiInput extends MidiPort implements EventTarget {
   MidiInput.internal() : super.internal();
 
@@ -15291,15 +15739,18 @@ class MidiInput extends MidiPort implements EventTarget {
 
 @DocsEditable
 @DomName('MIDIMessageEvent')
+@Experimental // untriaged
 class MidiMessageEvent extends Event {
   MidiMessageEvent.internal() : super.internal();
 
   @DomName('MIDIMessageEvent.data')
   @DocsEditable
+  @Experimental // untriaged
   Uint8List get data native "MIDIMessageEvent_data_Getter";
 
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable
+  @Experimental // untriaged
   num get receivedTime native "MIDIMessageEvent_receivedTime_Getter";
 
 }
@@ -15312,47 +15763,58 @@ class MidiMessageEvent extends Event {
 
 @DocsEditable
 @DomName('MIDIPort')
+@Experimental // untriaged
 class MidiPort extends EventTarget {
   MidiPort.internal() : super.internal();
 
   @DomName('MIDIPort.disconnectEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
   @DomName('MIDIPort.id')
   @DocsEditable
+  @Experimental // untriaged
   String get id native "MIDIPort_id_Getter";
 
   @DomName('MIDIPort.manufacturer')
   @DocsEditable
+  @Experimental // untriaged
   String get manufacturer native "MIDIPort_manufacturer_Getter";
 
   @DomName('MIDIPort.name')
   @DocsEditable
+  @Experimental // untriaged
   String get name native "MIDIPort_name_Getter";
 
   @DomName('MIDIPort.type')
   @DocsEditable
+  @Experimental // untriaged
   String get type native "MIDIPort_type_Getter";
 
   @DomName('MIDIPort.version')
   @DocsEditable
+  @Experimental // untriaged
   String get version native "MIDIPort_version_Getter";
 
   @DomName('MIDIPort.addEventListener')
   @DocsEditable
+  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_addEventListener_Callback";
 
   @DomName('MIDIPort.dispatchEvent')
   @DocsEditable
+  @Experimental // untriaged
   bool dispatchEvent(Event event) native "MIDIPort_dispatchEvent_Callback";
 
   @DomName('MIDIPort.removeEventListener')
   @DocsEditable
+  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_removeEventListener_Callback";
 
   @DomName('MIDIPort.ondisconnect')
   @DocsEditable
+  @Experimental // untriaged
   Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
 
 }
@@ -15365,6 +15827,7 @@ class MidiPort extends EventTarget {
 
 @DocsEditable
 @DomName('MimeType')
+@Experimental // non-standard
 class MimeType extends NativeFieldWrapperClass1 {
   MimeType.internal();
 
@@ -15394,6 +15857,7 @@ class MimeType extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('MimeTypeArray')
+@Experimental // non-standard
 class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
   MimeTypeArray.internal();
 
@@ -15464,6 +15928,7 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
 
 @DocsEditable
 @DomName('HTMLModElement')
+@Unstable
 class ModElement extends _Element_Merged {
   ModElement.internal() : super.internal();
 
@@ -15532,10 +15997,12 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.dataTransfer')
   @DocsEditable
+  @Unstable
   DataTransfer get dataTransfer native "MouseEvent_dataTransfer_Getter";
 
   @DomName('MouseEvent.fromElement')
   @DocsEditable
+  @Experimental // nonstandard
   Node get fromElement native "MouseEvent_fromElement_Getter";
 
   @DomName('MouseEvent.metaKey')
@@ -15544,10 +16011,12 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.offsetX')
   @DocsEditable
+  @Unstable
   int get $dom_offsetX native "MouseEvent_offsetX_Getter";
 
   @DomName('MouseEvent.offsetY')
   @DocsEditable
+  @Unstable
   int get $dom_offsetY native "MouseEvent_offsetY_Getter";
 
   @DomName('MouseEvent.relatedTarget')
@@ -15568,6 +16037,7 @@ class MouseEvent extends UIEvent {
 
   @DomName('MouseEvent.toElement')
   @DocsEditable
+  @Experimental // nonstandard
   Node get toElement native "MouseEvent_toElement_Getter";
 
   @DomName('MouseEvent.webkitMovementX')
@@ -15637,6 +16107,7 @@ class MouseEvent extends UIEvent {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('MutationCallback')
 typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15644,6 +16115,8 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 
 
 @DomName('MutationEvent')
+// http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
+@deprecated
 class MutationEvent extends Event {
   factory MutationEvent(String type,
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
@@ -15842,6 +16315,7 @@ class MutationRecord extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/css3-regions/#dom-named-flow-collection
 class NamedFlow extends EventTarget {
   NamedFlow.internal() : super.internal();
 
@@ -15894,6 +16368,7 @@ class NamedFlow extends EventTarget {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://dev.w3.org/csswg/css-regions/#dom-named-flow-collection
 class NamedFlowCollection extends NativeFieldWrapperClass1 {
   NamedFlowCollection.internal();
 
@@ -15978,6 +16453,7 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.appCodeName')
   @DocsEditable
+  @Experimental // non-standard
   String get appCodeName native "Navigator_appCodeName_Getter";
 
   @DomName('Navigator.appName')
@@ -15990,14 +16466,18 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.cookieEnabled')
   @DocsEditable
+  @Unstable
   bool get cookieEnabled native "Navigator_cookieEnabled_Getter";
 
   @DomName('Navigator.doNotTrack')
   @DocsEditable
+  // http://www.w3.org/2011/tracking-protection/drafts/tracking-dnt.html#js-dom
+  @Experimental // experimental
   String get doNotTrack native "Navigator_doNotTrack_Getter";
 
   @DomName('Navigator.geolocation')
   @DocsEditable
+  @Unstable
   Geolocation get geolocation native "Navigator_geolocation_Getter";
 
   @DomName('Navigator.language')
@@ -16006,10 +16486,12 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.mimeTypes')
   @DocsEditable
+  @Experimental // nonstandard
   MimeTypeArray get mimeTypes native "Navigator_mimeTypes_Getter";
 
   @DomName('Navigator.onLine')
   @DocsEditable
+  @Unstable
   bool get onLine native "Navigator_onLine_Getter";
 
   @DomName('Navigator.platform')
@@ -16018,14 +16500,17 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.plugins')
   @DocsEditable
+  @deprecated // nonstandard
   PluginArray get plugins native "Navigator_plugins_Getter";
 
   @DomName('Navigator.product')
   @DocsEditable
+  @Unstable
   String get product native "Navigator_product_Getter";
 
   @DomName('Navigator.productSub')
   @DocsEditable
+  @Unstable
   String get productSub native "Navigator_productSub_Getter";
 
   @DomName('Navigator.userAgent')
@@ -16034,10 +16519,12 @@ class Navigator extends NativeFieldWrapperClass1 {
 
   @DomName('Navigator.vendor')
   @DocsEditable
+  @Unstable
   String get vendor native "Navigator_vendor_Getter";
 
   @DomName('Navigator.vendorSub')
   @DocsEditable
+  @Unstable
   String get vendorSub native "Navigator_vendorSub_Getter";
 
   @DomName('Navigator.webkitPersistentStorage')
@@ -16045,6 +16532,7 @@ class Navigator extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.w3.org/TR/quota-api/#accessing-storagequota
   StorageQuota get persistentStorage native "Navigator_webkitPersistentStorage_Getter";
 
   @DomName('Navigator.webkitTemporaryStorage')
@@ -16052,18 +16540,23 @@ class Navigator extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.w3.org/TR/quota-api/#accessing-storagequota
   StorageQuota get temporaryStorage native "Navigator_webkitTemporaryStorage_Getter";
 
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils
+  @Experimental
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
 
   @DomName('Navigator.javaEnabled')
   @DocsEditable
+  @deprecated // nonstandard
   bool javaEnabled() native "Navigator_javaEnabled_Callback";
 
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable
+  @Unstable
   void registerProtocolHandler(String scheme, String url, String title) native "Navigator_registerProtocolHandler_Callback";
 
   @DomName('Navigator.webkitGetGamepads')
@@ -16071,10 +16564,13 @@ class Navigator extends NativeFieldWrapperClass1 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html#widl-Navigator-getGamepads-Gamepad
   List<Gamepad> getGamepads() native "Navigator_webkitGetGamepads_Callback";
 
   @DomName('Navigator.webkitGetUserMedia')
   @DocsEditable
+  // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermedia
+  @Experimental
   void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, [_NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
 }
@@ -16087,15 +16583,19 @@ class Navigator extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('NavigatorUserMediaError')
+// http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaError
+@Experimental
 class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
   NavigatorUserMediaError.internal();
 
   @DomName('NavigatorUserMediaError.PERMISSION_DENIED')
   @DocsEditable
+  @Experimental // nonstandard
   static const int PERMISSION_DENIED = 1;
 
   @DomName('NavigatorUserMediaError.code')
   @DocsEditable
+  @Experimental // nonstandard
   int get code native "NavigatorUserMediaError_code_Getter";
 
 }
@@ -16106,6 +16606,9 @@ class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('NavigatorUserMediaErrorCallback')
+// http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaErrorCallback
+@Experimental
 typedef void _NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16114,6 +16617,9 @@ typedef void _NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
 // WARNING: Do not edit - generated code.
 
 
+@DomName('NavigatorUserMediaSuccessCallback')
+// http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaSuccessCallback
+@Experimental
 typedef void _NavigatorUserMediaSuccessCallback(MediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16441,10 +16947,14 @@ class Node extends EventTarget {
 
   @DomName('Node.localName')
   @DocsEditable
+  // http://dom.spec.whatwg.org/#dom-node-localname
+  @deprecated // deprecated
   String get localName native "Node_localName_Getter";
 
   @DomName('Node.namespaceURI')
   @DocsEditable
+  // http://dom.spec.whatwg.org/#dom-node-namespaceuri
+  @deprecated // deprecated
   String get $dom_namespaceUri native "Node_namespaceURI_Getter";
 
   @DomName('Node.nextSibling')
@@ -16542,6 +17052,7 @@ class Node extends EventTarget {
 
 @DocsEditable
 @DomName('NodeFilter')
+@Unstable
 class NodeFilter extends NativeFieldWrapperClass1 {
   NodeFilter.internal();
 
@@ -16563,10 +17074,12 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 
   @DomName('NodeFilter.SHOW_ATTRIBUTE')
   @DocsEditable
+  @deprecated // deprecated
   static const int SHOW_ATTRIBUTE = 0x00000002;
 
   @DomName('NodeFilter.SHOW_CDATA_SECTION')
   @DocsEditable
+  @deprecated // deprecated
   static const int SHOW_CDATA_SECTION = 0x00000008;
 
   @DomName('NodeFilter.SHOW_COMMENT')
@@ -16591,14 +17104,17 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 
   @DomName('NodeFilter.SHOW_ENTITY')
   @DocsEditable
+  @deprecated // deprecated
   static const int SHOW_ENTITY = 0x00000020;
 
   @DomName('NodeFilter.SHOW_ENTITY_REFERENCE')
   @DocsEditable
+  @deprecated // deprecated
   static const int SHOW_ENTITY_REFERENCE = 0x00000010;
 
   @DomName('NodeFilter.SHOW_NOTATION')
   @DocsEditable
+  @deprecated // deprecated
   static const int SHOW_NOTATION = 0x00000800;
 
   @DomName('NodeFilter.SHOW_PROCESSING_INSTRUCTION')
@@ -16616,6 +17132,7 @@ class NodeFilter extends NativeFieldWrapperClass1 {
 
 
 @DomName('NodeIterator')
+@Unstable
 class NodeIterator extends NativeFieldWrapperClass1 {
   factory NodeIterator(Node root, int whatToShow) {
     return document.$dom_createNodeIterator(root, whatToShow, null, false);
@@ -16726,6 +17243,8 @@ class NodeList extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableL
 
 @DocsEditable
 @DomName('Notation')
+// http://dom.spec.whatwg.org/#notation
+@deprecated // deprecated
 class Notation extends Node {
   Notation.internal() : super.internal();
 
@@ -16744,6 +17263,8 @@ class Notation extends Node {
 
 
 @DomName('Notification')
+// http://www.w3.org/TR/notifications/#notification
+@Experimental // experimental
 class Notification extends EventTarget {
 
   factory Notification(String title, {String titleDir: null, String body: null, 
@@ -16770,6 +17291,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.displayEvent')
   @DocsEditable
+  @Experimental // nonstandard
   static const EventStreamProvider<Event> displayEvent = const EventStreamProvider<Event>('display');
 
   @DomName('Notification.errorEvent')
@@ -16791,10 +17313,12 @@ class Notification extends EventTarget {
 
   @DomName('Notification.dir')
   @DocsEditable
+  @Experimental // nonstandard
   String get dir native "Notification_dir_Getter";
 
   @DomName('Notification.dir')
   @DocsEditable
+  @Experimental // nonstandard
   void set dir(String value) native "Notification_dir_Setter";
 
   @DomName('Notification.permission')
@@ -16803,18 +17327,22 @@ class Notification extends EventTarget {
 
   @DomName('Notification.replaceId')
   @DocsEditable
+  @Experimental // nonstandard
   String get replaceId native "Notification_replaceId_Getter";
 
   @DomName('Notification.replaceId')
   @DocsEditable
+  @Experimental // nonstandard
   void set replaceId(String value) native "Notification_replaceId_Setter";
 
   @DomName('Notification.tag')
   @DocsEditable
+  @Experimental // nonstandard
   String get tag native "Notification_tag_Getter";
 
   @DomName('Notification.tag')
   @DocsEditable
+  @Experimental // nonstandard
   void set tag(String value) native "Notification_tag_Setter";
 
   @DomName('Notification.addEventListener')
@@ -16823,6 +17351,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.cancel')
   @DocsEditable
+  @Experimental // nonstandard
   void cancel() native "Notification_cancel_Callback";
 
   @DomName('Notification.close')
@@ -16850,6 +17379,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.show')
   @DocsEditable
+  @Experimental // nonstandard
   void show() native "Notification_show_Callback";
 
   @DomName('Notification.onclick')
@@ -16862,6 +17392,7 @@ class Notification extends EventTarget {
 
   @DomName('Notification.ondisplay')
   @DocsEditable
+  @Experimental // nonstandard
   Stream<Event> get onDisplay => displayEvent.forTarget(this);
 
   @DomName('Notification.onerror')
@@ -16885,6 +17416,8 @@ class Notification extends EventTarget {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/notifications/#showing-a-notification
+@deprecated // deprecated
 class NotificationCenter extends NativeFieldWrapperClass1 {
   NotificationCenter.internal();
 
@@ -16922,6 +17455,9 @@ class NotificationCenter extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('NotificationPermissionCallback')
+// http://www.w3.org/TR/notifications/#notificationpermissioncallback
+@Experimental
 typedef void _NotificationPermissionCallback(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16976,6 +17512,7 @@ class OListElement extends _Element_Merged {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class ObjectElement extends _Element_Merged {
   ObjectElement.internal() : super.internal();
 
@@ -16988,10 +17525,14 @@ class ObjectElement extends _Element_Merged {
 
   @DomName('HTMLObjectElement.code')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLObjectElement-partial
+  @deprecated // deprecated
   String get code native "HTMLObjectElement_code_Getter";
 
   @DomName('HTMLObjectElement.code')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLObjectElement-partial
+  @deprecated // deprecated
   void set code(String value) native "HTMLObjectElement_code_Setter";
 
   @DomName('HTMLObjectElement.data')
@@ -17210,6 +17751,7 @@ class OutputElement extends _Element_Merged {
 
   @DomName('HTMLOutputElement.labels')
   @DocsEditable
+  @Unstable
   List<Node> get labels native "HTMLOutputElement_labels_Getter";
 
   @DomName('HTMLOutputElement.name')
@@ -17262,6 +17804,7 @@ class OutputElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('OverflowEvent')
+@Experimental // nonstandard
 class OverflowEvent extends Event {
   OverflowEvent.internal() : super.internal();
 
@@ -17299,6 +17842,8 @@ class OverflowEvent extends Event {
 
 @DocsEditable
 @DomName('PageTransitionEvent')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#pagetransitionevent
+@Experimental
 class PageTransitionEvent extends Event {
   PageTransitionEvent.internal() : super.internal();
 
@@ -17333,6 +17878,7 @@ class ParagraphElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLParamElement')
+@Unstable
 class ParamElement extends _Element_Merged {
   ParamElement.internal() : super.internal();
 
@@ -17366,6 +17912,8 @@ class ParamElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('Path')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
+@Experimental
 class Path extends NativeFieldWrapperClass1 {
   Path.internal();
 
@@ -17446,6 +17994,7 @@ class Performance extends EventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
 
   /// Checks if this type is supported on the current platform.
@@ -17453,6 +18002,7 @@ class Performance extends EventTarget {
 
   @DomName('Performance.memory')
   @DocsEditable
+  @Experimental // nonstandard
   MemoryInfo get memory native "Performance_memory_Getter";
 
   @DomName('Performance.navigation')
@@ -17465,30 +18015,37 @@ class Performance extends EventTarget {
 
   @DomName('Performance.clearMarks')
   @DocsEditable
+  @Experimental // untriaged
   void clearMarks(String markName) native "Performance_clearMarks_Callback";
 
   @DomName('Performance.clearMeasures')
   @DocsEditable
+  @Experimental // untriaged
   void clearMeasures(String measureName) native "Performance_clearMeasures_Callback";
 
   @DomName('Performance.getEntries')
   @DocsEditable
+  @Experimental // untriaged
   List<PerformanceEntry> getEntries() native "Performance_getEntries_Callback";
 
   @DomName('Performance.getEntriesByName')
   @DocsEditable
+  @Experimental // untriaged
   List<PerformanceEntry> getEntriesByName(String name, String entryType) native "Performance_getEntriesByName_Callback";
 
   @DomName('Performance.getEntriesByType')
   @DocsEditable
+  @Experimental // untriaged
   List<PerformanceEntry> getEntriesByType(String entryType) native "Performance_getEntriesByType_Callback";
 
   @DomName('Performance.mark')
   @DocsEditable
+  @Experimental // untriaged
   void mark(String markName) native "Performance_mark_Callback";
 
   @DomName('Performance.measure')
   @DocsEditable
+  @Experimental // untriaged
   void measure(String measureName, String startMark, String endMark) native "Performance_measure_Callback";
 
   @DomName('Performance.now')
@@ -17500,6 +18057,7 @@ class Performance extends EventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   void clearResourceTimings() native "Performance_webkitClearResourceTimings_Callback";
 
   @DomName('Performance.webkitSetResourceTimingBufferSize')
@@ -17507,10 +18065,13 @@ class Performance extends EventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
   void setResourceTimingBufferSize(int maxSize) native "Performance_webkitSetResourceTimingBufferSize_Callback";
 
   @DomName('Performance.onwebkitresourcetimingbufferfull')
   @DocsEditable
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  @Experimental
   Stream<Event> get onResourceTimingBufferFull => resourceTimingBufferFullEvent.forTarget(this);
 
 }
@@ -17523,6 +18084,8 @@ class Performance extends EventTarget {
 
 @DocsEditable
 @DomName('PerformanceEntry')
+// http://www.w3.org/TR/performance-timeline/#sec-PerformanceEntry-interface
+@Experimental
 class PerformanceEntry extends NativeFieldWrapperClass1 {
   PerformanceEntry.internal();
 
@@ -17552,6 +18115,8 @@ class PerformanceEntry extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('PerformanceMark')
+// http://www.w3.org/TR/user-timing/#performancemark
+@Experimental
 class PerformanceMark extends PerformanceEntry {
   PerformanceMark.internal() : super.internal();
 
@@ -17565,6 +18130,8 @@ class PerformanceMark extends PerformanceEntry {
 
 @DocsEditable
 @DomName('PerformanceMeasure')
+// http://www.w3.org/TR/user-timing/#performancemeasure
+@Experimental
 class PerformanceMeasure extends PerformanceEntry {
   PerformanceMeasure.internal() : super.internal();
 
@@ -17578,6 +18145,7 @@ class PerformanceMeasure extends PerformanceEntry {
 
 @DocsEditable
 @DomName('PerformanceNavigation')
+@Unstable
 class PerformanceNavigation extends NativeFieldWrapperClass1 {
   PerformanceNavigation.internal();
 
@@ -17615,6 +18183,8 @@ class PerformanceNavigation extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('PerformanceResourceTiming')
+// http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming
+@Experimental
 class PerformanceResourceTiming extends PerformanceEntry {
   PerformanceResourceTiming.internal() : super.internal();
 
@@ -17652,14 +18222,17 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
   @DomName('PerformanceResourceTiming.requestStart')
   @DocsEditable
+  @Experimental // nonstandard
   num get requestStart native "PerformanceResourceTiming_requestStart_Getter";
 
   @DomName('PerformanceResourceTiming.responseEnd')
   @DocsEditable
+  @Experimental // nonstandard
   num get responseEnd native "PerformanceResourceTiming_responseEnd_Getter";
 
   @DomName('PerformanceResourceTiming.responseStart')
   @DocsEditable
+  @Experimental // nonstandard
   num get responseStart native "PerformanceResourceTiming_responseStart_Getter";
 
   @DomName('PerformanceResourceTiming.secureConnectionStart')
@@ -17676,6 +18249,7 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
 @DocsEditable
 @DomName('PerformanceTiming')
+@Unstable
 class PerformanceTiming extends NativeFieldWrapperClass1 {
   PerformanceTiming.internal();
 
@@ -17773,6 +18347,7 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('Plugin')
+@Experimental // non-standard
 class Plugin extends NativeFieldWrapperClass1 {
   Plugin.internal();
 
@@ -17810,6 +18385,7 @@ class Plugin extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('PluginArray')
+@Experimental // non-standard
 class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
   PluginArray.internal();
 
@@ -17903,6 +18479,8 @@ class PopStateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('PositionCallback')
+@Unstable
 typedef void _PositionCallback(Geoposition position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17913,6 +18491,7 @@ typedef void _PositionCallback(Geoposition position);
 
 @DocsEditable
 @DomName('PositionError')
+@Unstable
 class PositionError extends NativeFieldWrapperClass1 {
   PositionError.internal();
 
@@ -17944,6 +18523,8 @@ class PositionError extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('PositionErrorCallback')
+@Unstable
 typedef void _PositionErrorCallback(PositionError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17963,10 +18544,12 @@ class PreElement extends _Element_Merged {
 
   @DomName('HTMLPreElement.wrap')
   @DocsEditable
+  @deprecated // deprecated
   bool get wrap native "HTMLPreElement_wrap_Getter";
 
   @DomName('HTMLPreElement.wrap')
   @DocsEditable
+  @deprecated // deprecated
   void set wrap(bool value) native "HTMLPreElement_wrap_Setter";
 
 }
@@ -17979,19 +18562,23 @@ class PreElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('ProcessingInstruction')
+@Unstable
 class ProcessingInstruction extends Node {
   ProcessingInstruction.internal() : super.internal();
 
   @DomName('ProcessingInstruction.data')
   @DocsEditable
+  @Experimental // non-standard
   String get data native "ProcessingInstruction_data_Getter";
 
   @DomName('ProcessingInstruction.data')
   @DocsEditable
+  @Experimental // non-standard
   void set data(String value) native "ProcessingInstruction_data_Setter";
 
   @DomName('ProcessingInstruction.sheet')
   @DocsEditable
+  @Experimental // non-standard
   StyleSheet get sheet native "ProcessingInstruction_sheet_Getter";
 
   @DomName('ProcessingInstruction.target')
@@ -18024,6 +18611,7 @@ class ProgressElement extends _Element_Merged {
 
   @DomName('HTMLProgressElement.labels')
   @DocsEditable
+  @Unstable
   List<Node> get labels native "HTMLProgressElement_labels_Getter";
 
   @DomName('HTMLProgressElement.max')
@@ -18100,6 +18688,9 @@ class QuoteElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('RTCErrorCallback')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#rtcerror
+@Experimental
 typedef void _RtcErrorCallback(String errorInformation);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18108,6 +18699,9 @@ typedef void _RtcErrorCallback(String errorInformation);
 // WARNING: Do not edit - generated code.
 
 
+@DomName('RTCSessionDescriptionCallback')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCSessionDescription
+@Experimental
 typedef void _RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18116,6 +18710,9 @@ typedef void _RtcSessionDescriptionCallback(RtcSessionDescription sdp);
 // WARNING: Do not edit - generated code.
 
 
+@DomName('RTCStatsCallback')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCStatsCallback
+@Experimental
 typedef void RtcStatsCallback(RtcStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18125,6 +18722,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 
 
 @DomName('Range')
+@Unstable
 class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
 
@@ -18140,18 +18738,22 @@ class Range extends NativeFieldWrapperClass1 {
 
   @DomName('Range.NODE_AFTER')
   @DocsEditable
+  @Experimental // nonstandard
   static const int NODE_AFTER = 1;
 
   @DomName('Range.NODE_BEFORE')
   @DocsEditable
+  @Experimental // nonstandard
   static const int NODE_BEFORE = 0;
 
   @DomName('Range.NODE_BEFORE_AND_AFTER')
   @DocsEditable
+  @Experimental // nonstandard
   static const int NODE_BEFORE_AND_AFTER = 2;
 
   @DomName('Range.NODE_INSIDE')
   @DocsEditable
+  @Experimental // nonstandard
   static const int NODE_INSIDE = 3;
 
   @DomName('Range.START_TO_END')
@@ -18200,6 +18802,7 @@ class Range extends NativeFieldWrapperClass1 {
 
   @DomName('Range.compareNode')
   @DocsEditable
+  @deprecated // deprecated
   int compareNode(Node refNode) native "Range_compareNode_Callback";
 
   @DomName('Range.comparePoint')
@@ -18220,6 +18823,7 @@ class Range extends NativeFieldWrapperClass1 {
 
   @DomName('Range.expand')
   @DocsEditable
+  @Experimental // non-standard
   void expand(String unit) native "Range_expand_Callback";
 
   @DomName('Range.extractContents')
@@ -18240,6 +18844,7 @@ class Range extends NativeFieldWrapperClass1 {
 
   @DomName('Range.intersectsNode')
   @DocsEditable
+  @deprecated // deprecated
   bool intersectsNode(Node refNode) native "Range_intersectsNode_Callback";
 
   @DomName('Range.isPointInRange')
@@ -18303,6 +18908,7 @@ class Range extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('RequestAnimationFrameCallback')
 typedef void RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18313,6 +18919,8 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 
 @DocsEditable
 @DomName('RTCDataChannel')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDataChannel
+@Experimental
 class RtcDataChannel extends EventTarget {
   RtcDataChannel.internal() : super.internal();
 
@@ -18426,6 +19034,8 @@ class RtcDataChannel extends EventTarget {
 
 @DocsEditable
 @DomName('RTCDataChannelEvent')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#rtcdatachannelevent
+@Experimental
 class RtcDataChannelEvent extends Event {
   RtcDataChannelEvent.internal() : super.internal();
 
@@ -18443,6 +19053,8 @@ class RtcDataChannelEvent extends Event {
 
 @DocsEditable
 @DomName('RTCDTMFSender')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDTMFSender
+@Experimental
 class RtcDtmfSender extends EventTarget {
   RtcDtmfSender.internal() : super.internal();
 
@@ -18515,6 +19127,8 @@ class RtcDtmfSender extends EventTarget {
 
 @DocsEditable
 @DomName('RTCDTMFToneChangeEvent')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDTMFToneChangeEvent
+@Experimental
 class RtcDtmfToneChangeEvent extends Event {
   RtcDtmfToneChangeEvent.internal() : super.internal();
 
@@ -18534,6 +19148,7 @@ class RtcDtmfToneChangeEvent extends Event {
 @DomName('RTCIceCandidate')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCIceCandidate
 class RtcIceCandidate extends NativeFieldWrapperClass1 {
   RtcIceCandidate.internal();
 
@@ -18568,6 +19183,8 @@ class RtcIceCandidate extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('RTCIceCandidateEvent')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#rtcicecandidate-type
+@Experimental
 class RtcIceCandidateEvent extends Event {
   RtcIceCandidateEvent.internal() : super.internal();
 
@@ -18584,6 +19201,7 @@ class RtcIceCandidateEvent extends Event {
 @DomName('RTCPeerConnection')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCPeerConnection
 class RtcPeerConnection extends EventTarget {
 
   /**
@@ -18795,6 +19413,7 @@ class RtcPeerConnection extends EventTarget {
 @DomName('RTCSessionDescription')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCSessionDescription
 class RtcSessionDescription extends NativeFieldWrapperClass1 {
   RtcSessionDescription.internal();
 
@@ -18833,6 +19452,8 @@ class RtcSessionDescription extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('RTCStatsReport')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCStatsReport
+@Experimental
 class RtcStatsReport extends NativeFieldWrapperClass1 {
   RtcStatsReport.internal();
 
@@ -18874,6 +19495,8 @@ class RtcStatsReport extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('RTCStatsResponse')
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#widl-RTCStatsReport-RTCStats-getter-DOMString-id
+@Experimental
 class RtcStatsResponse extends NativeFieldWrapperClass1 {
   RtcStatsResponse.internal();
 
@@ -18909,10 +19532,12 @@ class Screen extends NativeFieldWrapperClass1 {
 
   @DomName('Screen.availLeft')
   @DocsEditable
+  @Experimental // nonstandard
   int get $dom_availLeft native "Screen_availLeft_Getter";
 
   @DomName('Screen.availTop')
   @DocsEditable
+  @Experimental // nonstandard
   int get $dom_availTop native "Screen_availTop_Getter";
 
   @DomName('Screen.availWidth')
@@ -18969,10 +19594,14 @@ class ScriptElement extends _Element_Merged {
 
   @DomName('HTMLScriptElement.crossOrigin')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/scripting-1.html#attr-script-crossorigin
+  @Experimental
   String get crossOrigin native "HTMLScriptElement_crossOrigin_Getter";
 
   @DomName('HTMLScriptElement.crossOrigin')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/scripting-1.html#attr-script-crossorigin
+  @Experimental
   void set crossOrigin(String value) native "HTMLScriptElement_crossOrigin_Setter";
 
   @DomName('HTMLScriptElement.defer')
@@ -18985,26 +19614,38 @@ class ScriptElement extends _Element_Merged {
 
   @DomName('HTMLScriptElement.event')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
+  @deprecated // deprecated
   String get event native "HTMLScriptElement_event_Getter";
 
   @DomName('HTMLScriptElement.event')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
+  @deprecated // deprecated
   void set event(String value) native "HTMLScriptElement_event_Setter";
 
   @DomName('HTMLScriptElement.htmlFor')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
+  @deprecated // deprecated
   String get htmlFor native "HTMLScriptElement_htmlFor_Getter";
 
   @DomName('HTMLScriptElement.htmlFor')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLScriptElement-partial
+  @deprecated // deprecated
   void set htmlFor(String value) native "HTMLScriptElement_htmlFor_Setter";
 
   @DomName('HTMLScriptElement.nonce')
   @DocsEditable
+  // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#interaction-with-the-script-src-directive
+  @Experimental
   String get nonce native "HTMLScriptElement_nonce_Getter";
 
   @DomName('HTMLScriptElement.nonce')
   @DocsEditable
+  // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#interaction-with-the-script-src-directive
+  @Experimental
   void set nonce(String value) native "HTMLScriptElement_nonce_Setter";
 
   @DomName('HTMLScriptElement.src')
@@ -19033,6 +19674,7 @@ class ScriptElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('ScriptProfile')
+@deprecated // nonstandard
 class ScriptProfile extends NativeFieldWrapperClass1 {
   ScriptProfile.internal();
 
@@ -19062,6 +19704,7 @@ class ScriptProfile extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('ScriptProfileNode')
+@deprecated // nonstandard
 class ScriptProfileNode extends NativeFieldWrapperClass1 {
   ScriptProfileNode.internal();
 
@@ -19111,6 +19754,8 @@ class ScriptProfileNode extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SecurityPolicy')
+// https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicy
+@Experimental
 class SecurityPolicy extends NativeFieldWrapperClass1 {
   SecurityPolicy.internal();
 
@@ -19184,6 +19829,8 @@ class SecurityPolicy extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SecurityPolicyViolationEvent')
+// https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicyviolationevent-events
+@Experimental
 class SecurityPolicyViolationEvent extends Event {
   SecurityPolicyViolationEvent.internal() : super.internal();
 
@@ -19193,6 +19840,7 @@ class SecurityPolicyViolationEvent extends Event {
 
   @DomName('SecurityPolicyViolationEvent.columnNumber')
   @DocsEditable
+  @Experimental // untriaged
   int get columnNumber native "SecurityPolicyViolationEvent_columnNumber_Getter";
 
   @DomName('SecurityPolicyViolationEvent.documentURI')
@@ -19259,6 +19907,7 @@ class SelectElement extends _Element_Merged {
 
   @DomName('HTMLSelectElement.labels')
   @DocsEditable
+  @Unstable
   List<Node> get labels native "HTMLSelectElement_labels_Getter";
 
   @DomName('HTMLSelectElement.length')
@@ -19389,18 +20038,22 @@ class Selection extends NativeFieldWrapperClass1 {
 
   @DomName('Selection.baseNode')
   @DocsEditable
+  @Experimental // non-standard
   Node get baseNode native "DOMSelection_baseNode_Getter";
 
   @DomName('Selection.baseOffset')
   @DocsEditable
+  @Experimental // non-standard
   int get baseOffset native "DOMSelection_baseOffset_Getter";
 
   @DomName('Selection.extentNode')
   @DocsEditable
+  @Experimental // non-standard
   Node get extentNode native "DOMSelection_extentNode_Getter";
 
   @DomName('Selection.extentOffset')
   @DocsEditable
+  @Experimental // non-standard
   int get extentOffset native "DOMSelection_extentOffset_Getter";
 
   @DomName('Selection.focusNode')
@@ -19421,6 +20074,7 @@ class Selection extends NativeFieldWrapperClass1 {
 
   @DomName('Selection.type')
   @DocsEditable
+  @Experimental // non-standard
   String get type native "DOMSelection_type_Getter";
 
   @DomName('Selection.addRange')
@@ -19441,6 +20095,7 @@ class Selection extends NativeFieldWrapperClass1 {
 
   @DomName('Selection.containsNode')
   @DocsEditable
+  @Experimental // non-standard
   bool containsNode(Node node, bool allowPartial) native "DOMSelection_containsNode_Callback";
 
   @DomName('Selection.deleteFromDocument')
@@ -19449,6 +20104,7 @@ class Selection extends NativeFieldWrapperClass1 {
 
   @DomName('Selection.empty')
   @DocsEditable
+  @Experimental // non-standard
   void empty() native "DOMSelection_empty_Callback";
 
   @DomName('Selection.extend')
@@ -19461,6 +20117,7 @@ class Selection extends NativeFieldWrapperClass1 {
 
   @DomName('Selection.modify')
   @DocsEditable
+  @Experimental // non-standard
   void modify(String alter, String direction, String granularity) native "DOMSelection_modify_Callback";
 
   @DomName('Selection.removeAllRanges')
@@ -19473,10 +20130,12 @@ class Selection extends NativeFieldWrapperClass1 {
 
   @DomName('Selection.setBaseAndExtent')
   @DocsEditable
+  @Experimental // non-standard
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "DOMSelection_setBaseAndExtent_Callback";
 
   @DomName('Selection.setPosition')
   @DocsEditable
+  @Experimental // non-standard
   void setPosition(Node node, int offset) native "DOMSelection_setPosition_Callback";
 
   @DomName('Selection.toString')
@@ -19495,6 +20154,7 @@ class Selection extends NativeFieldWrapperClass1 {
 @DomName('HTMLShadowElement')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
+// https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#shadow-element
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal() : super.internal();
 
@@ -19524,6 +20184,7 @@ class ShadowElement extends _Element_Merged {
 @DomName('ShadowRoot')
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
+// https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-root
 class ShadowRoot extends DocumentFragment {
   ShadowRoot.internal() : super.internal();
 
@@ -19590,6 +20251,8 @@ class ShadowRoot extends DocumentFragment {
 
 @DocsEditable
 @DomName('SourceBuffer')
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer
+@Experimental
 class SourceBuffer extends NativeFieldWrapperClass1 {
   SourceBuffer.internal();
 
@@ -19611,6 +20274,7 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
   @DomName('SourceBuffer.append')
   @DocsEditable
+  @Experimental // non-standard
   void append(Uint8List data) native "SourceBuffer_append_Callback";
 
 }
@@ -19623,6 +20287,8 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SourceBufferList')
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
+@Experimental
 class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements List<SourceBuffer> {
   SourceBufferList.internal() : super.internal();
 
@@ -19759,6 +20425,8 @@ class SpanElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('SpeechGrammar')
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammar
+@Experimental
 class SpeechGrammar extends NativeFieldWrapperClass1 {
   SpeechGrammar.internal();
 
@@ -19797,6 +20465,8 @@ class SpeechGrammar extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SpeechGrammarList')
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
+@Experimental
 class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
   SpeechGrammarList.internal();
 
@@ -19898,6 +20568,8 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
 
 @DocsEditable
 @DomName('SpeechInputEvent')
+// http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_event_interface
+@Experimental
 class SpeechInputEvent extends Event {
   SpeechInputEvent.internal() : super.internal();
 
@@ -19915,6 +20587,8 @@ class SpeechInputEvent extends Event {
 
 @DocsEditable
 @DomName('SpeechInputResult')
+// http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_interface
+@Experimental
 class SpeechInputResult extends NativeFieldWrapperClass1 {
   SpeechInputResult.internal();
 
@@ -19938,6 +20612,7 @@ class SpeechInputResult extends NativeFieldWrapperClass1 {
 @DomName('SpeechRecognition')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechreco-section
 class SpeechRecognition extends EventTarget {
   SpeechRecognition.internal() : super.internal();
 
@@ -20117,6 +20792,7 @@ class SpeechRecognition extends EventTarget {
 @DomName('SpeechRecognitionAlternative')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionalternative
 class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
   SpeechRecognitionAlternative.internal();
 
@@ -20140,6 +20816,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass1 {
 @DomName('SpeechRecognitionError')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechreco-error
 class SpeechRecognitionError extends Event {
   SpeechRecognitionError.internal() : super.internal();
 
@@ -20163,6 +20840,7 @@ class SpeechRecognitionError extends Event {
 @DomName('SpeechRecognitionEvent')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechreco-event
 class SpeechRecognitionEvent extends Event {
   SpeechRecognitionEvent.internal() : super.internal();
 
@@ -20194,6 +20872,7 @@ class SpeechRecognitionEvent extends Event {
 @DomName('SpeechRecognitionResult')
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresult
 class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
   SpeechRecognitionResult.internal();
 
@@ -20219,39 +20898,48 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SpeechSynthesis')
+@Experimental // untriaged
 class SpeechSynthesis extends NativeFieldWrapperClass1 {
   SpeechSynthesis.internal();
 
   @DomName('SpeechSynthesis.paused')
   @DocsEditable
+  @Experimental // untriaged
   bool get paused native "SpeechSynthesis_paused_Getter";
 
   @DomName('SpeechSynthesis.pending')
   @DocsEditable
+  @Experimental // untriaged
   bool get pending native "SpeechSynthesis_pending_Getter";
 
   @DomName('SpeechSynthesis.speaking')
   @DocsEditable
+  @Experimental // untriaged
   bool get speaking native "SpeechSynthesis_speaking_Getter";
 
   @DomName('SpeechSynthesis.cancel')
   @DocsEditable
+  @Experimental // untriaged
   void cancel() native "SpeechSynthesis_cancel_Callback";
 
   @DomName('SpeechSynthesis.getVoices')
   @DocsEditable
+  @Experimental // untriaged
   List<SpeechSynthesisVoice> getVoices() native "SpeechSynthesis_getVoices_Callback";
 
   @DomName('SpeechSynthesis.pause')
   @DocsEditable
+  @Experimental // untriaged
   void pause() native "SpeechSynthesis_pause_Callback";
 
   @DomName('SpeechSynthesis.resume')
   @DocsEditable
+  @Experimental // untriaged
   void resume() native "SpeechSynthesis_resume_Callback";
 
   @DomName('SpeechSynthesis.speak')
   @DocsEditable
+  @Experimental // untriaged
   void speak(SpeechSynthesisUtterance utterance) native "SpeechSynthesis_speak_Callback";
 
 }
@@ -20264,19 +20952,23 @@ class SpeechSynthesis extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SpeechSynthesisEvent')
+@Experimental // untriaged
 class SpeechSynthesisEvent extends Event {
   SpeechSynthesisEvent.internal() : super.internal();
 
   @DomName('SpeechSynthesisEvent.charIndex')
   @DocsEditable
+  @Experimental // untriaged
   int get charIndex native "SpeechSynthesisEvent_charIndex_Getter";
 
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable
+  @Experimental // untriaged
   num get elapsedTime native "SpeechSynthesisEvent_elapsedTime_Getter";
 
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable
+  @Experimental // untriaged
   String get name native "SpeechSynthesisEvent_name_Getter";
 
 }
@@ -20289,35 +20981,43 @@ class SpeechSynthesisEvent extends Event {
 
 @DocsEditable
 @DomName('SpeechSynthesisUtterance')
+@Experimental // untriaged
 class SpeechSynthesisUtterance extends EventTarget {
   SpeechSynthesisUtterance.internal() : super.internal();
 
   @DomName('SpeechSynthesisUtterance.boundaryEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> boundaryEvent = const EventStreamProvider<SpeechSynthesisEvent>('boundary');
 
   @DomName('SpeechSynthesisUtterance.endEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> endEvent = const EventStreamProvider<SpeechSynthesisEvent>('end');
 
   @DomName('SpeechSynthesisUtterance.errorEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('SpeechSynthesisUtterance.markEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> markEvent = const EventStreamProvider<SpeechSynthesisEvent>('mark');
 
   @DomName('SpeechSynthesisUtterance.pauseEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
 
   @DomName('SpeechSynthesisUtterance.resumeEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> resumeEvent = const EventStreamProvider<SpeechSynthesisEvent>('resume');
 
   @DomName('SpeechSynthesisUtterance.startEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> startEvent = const EventStreamProvider<SpeechSynthesisEvent>('start');
 
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
@@ -20331,78 +21031,97 @@ class SpeechSynthesisUtterance extends EventTarget {
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable
+  @Experimental // untriaged
   String get lang native "SpeechSynthesisUtterance_lang_Getter";
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable
+  @Experimental // untriaged
   void set lang(String value) native "SpeechSynthesisUtterance_lang_Setter";
 
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable
+  @Experimental // untriaged
   num get pitch native "SpeechSynthesisUtterance_pitch_Getter";
 
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable
+  @Experimental // untriaged
   void set pitch(num value) native "SpeechSynthesisUtterance_pitch_Setter";
 
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable
+  @Experimental // untriaged
   num get rate native "SpeechSynthesisUtterance_rate_Getter";
 
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable
+  @Experimental // untriaged
   void set rate(num value) native "SpeechSynthesisUtterance_rate_Setter";
 
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable
+  @Experimental // untriaged
   String get text native "SpeechSynthesisUtterance_text_Getter";
 
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable
+  @Experimental // untriaged
   void set text(String value) native "SpeechSynthesisUtterance_text_Setter";
 
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable
+  @Experimental // untriaged
   SpeechSynthesisVoice get voice native "SpeechSynthesisUtterance_voice_Getter";
 
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable
+  @Experimental // untriaged
   void set voice(SpeechSynthesisVoice value) native "SpeechSynthesisUtterance_voice_Setter";
 
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable
+  @Experimental // untriaged
   num get volume native "SpeechSynthesisUtterance_volume_Getter";
 
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable
+  @Experimental // untriaged
   void set volume(num value) native "SpeechSynthesisUtterance_volume_Setter";
 
   @DomName('SpeechSynthesisUtterance.onboundary')
   @DocsEditable
+  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onend')
   @DocsEditable
+  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onEnd => endEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onerror')
   @DocsEditable
+  @Experimental // untriaged
   Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onmark')
   @DocsEditable
+  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onMark => markEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onpause')
   @DocsEditable
+  @Experimental // untriaged
   Stream<Event> get onPause => pauseEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onresume')
   @DocsEditable
+  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onResume => resumeEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onstart')
   @DocsEditable
+  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onStart => startEvent.forTarget(this);
 
 }
@@ -20415,27 +21134,33 @@ class SpeechSynthesisUtterance extends EventTarget {
 
 @DocsEditable
 @DomName('SpeechSynthesisVoice')
+@Experimental // untriaged
 class SpeechSynthesisVoice extends NativeFieldWrapperClass1 {
   SpeechSynthesisVoice.internal();
 
   @DomName('SpeechSynthesisVoice.default')
   @DocsEditable
+  @Experimental // untriaged
   bool get defaultValue native "SpeechSynthesisVoice_default_Getter";
 
   @DomName('SpeechSynthesisVoice.lang')
   @DocsEditable
+  @Experimental // untriaged
   String get lang native "SpeechSynthesisVoice_lang_Getter";
 
   @DomName('SpeechSynthesisVoice.localService')
   @DocsEditable
+  @Experimental // untriaged
   bool get localService native "SpeechSynthesisVoice_localService_Getter";
 
   @DomName('SpeechSynthesisVoice.name')
   @DocsEditable
+  @Experimental // untriaged
   String get name native "SpeechSynthesisVoice_name_Getter";
 
   @DomName('SpeechSynthesisVoice.voiceURI')
   @DocsEditable
+  @Experimental // untriaged
   String get voiceUri native "SpeechSynthesisVoice_voiceURI_Getter";
 
 }
@@ -20470,6 +21195,7 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass1 {
  * section of the library tour.
  */
 @DomName('Storage')
+@Unstable
 class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
      {
 
@@ -20553,6 +21279,9 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
 // WARNING: Do not edit - generated code.
 
 
+@DomName('StorageErrorCallback')
+// http://www.w3.org/TR/quota-api/#storageerrorcallback-callback
+@Experimental
 typedef void StorageErrorCallback(DomException error);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20562,6 +21291,7 @@ typedef void StorageErrorCallback(DomException error);
 
 
 @DomName('StorageEvent')
+@Unstable
 class StorageEvent extends Event {
   factory StorageEvent(String type,
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
@@ -20605,6 +21335,8 @@ class StorageEvent extends Event {
 
 
 @DomName('StorageInfo')
+// http://www.w3.org/TR/file-system-api/
+@Experimental
 class StorageInfo extends NativeFieldWrapperClass1 {
   StorageInfo.internal();
 
@@ -20662,6 +21394,8 @@ class StorageInfoUsage {
 
 @DocsEditable
 @DomName('StorageQuota')
+// http://www.w3.org/TR/quota-api/#idl-def-StorageQuota
+@Experimental
 class StorageQuota extends NativeFieldWrapperClass1 {
   StorageQuota.internal();
 
@@ -20681,6 +21415,9 @@ class StorageQuota extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('StorageQuotaCallback')
+// http://www.w3.org/TR/quota-api/#idl-def-StorageQuotaCallback
+@Experimental
 typedef void StorageQuotaCallback(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20689,6 +21426,9 @@ typedef void StorageQuotaCallback(int grantedQuotaInBytes);
 // WARNING: Do not edit - generated code.
 
 
+@DomName('StorageUsageCallback')
+// http://www.w3.org/TR/quota-api/#idl-def-StorageUsageCallback
+@Experimental
 typedef void StorageUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20697,6 +21437,9 @@ typedef void StorageUsageCallback(int currentUsageInBytes, int currentQuotaInByt
 // WARNING: Do not edit - generated code.
 
 
+@DomName('StringCallback')
+// http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface
+@Experimental
 typedef void _StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20760,6 +21503,8 @@ class StyleElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('StyleMedia')
+// http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html
+@Experimental // nonstandard
 class StyleMedia extends NativeFieldWrapperClass1 {
   StyleMedia.internal();
 
@@ -20940,10 +21685,14 @@ class TableElement extends _Element_Merged {
 
   @DomName('HTMLTableElement.border')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLTableElement-partial
+  @deprecated // deprecated
   String get border native "HTMLTableElement_border_Getter";
 
   @DomName('HTMLTableElement.border')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLTableElement-partial
+  @deprecated // deprecated
   void set border(String value) native "HTMLTableElement_border_Setter";
 
   @DomName('HTMLTableElement.caption')
@@ -21103,6 +21852,7 @@ class TableSectionElement extends _Element_Merged {
 @DomName('HTMLTemplateElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#template-element
 class TemplateElement extends _Element_Merged {
   TemplateElement.internal() : super.internal();
 
@@ -21258,6 +22008,7 @@ class Text extends CharacterData {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=21067
   Node get insertionParent native "Text_webkitInsertionParent_Getter";
 
   @DomName('Text.wholeText')
@@ -21266,6 +22017,8 @@ class Text extends CharacterData {
 
   @DomName('Text.replaceWholeText')
   @DocsEditable
+  // http://dom.spec.whatwg.org/#dom-text-replacewholetext
+  @deprecated // deprecated
   Text replaceWholeText(String content) native "Text_replaceWholeText_Callback";
 
   @DomName('Text.splitText')
@@ -21350,10 +22103,14 @@ class TextAreaElement extends _Element_Merged {
 
   @DomName('HTMLTextAreaElement.dirName')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#dom-textarea-dirname
+  @Experimental
   String get dirName native "HTMLTextAreaElement_dirName_Getter";
 
   @DomName('HTMLTextAreaElement.dirName')
   @DocsEditable
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#dom-textarea-dirname
+  @Experimental
   void set dirName(String value) native "HTMLTextAreaElement_dirName_Setter";
 
   @DomName('HTMLTextAreaElement.disabled')
@@ -21370,6 +22127,7 @@ class TextAreaElement extends _Element_Merged {
 
   @DomName('HTMLTextAreaElement.labels')
   @DocsEditable
+  @Unstable
   List<Node> get labels native "HTMLTextAreaElement_labels_Getter";
 
   @DomName('HTMLTextAreaElement.maxLength')
@@ -21530,6 +22288,7 @@ class TextAreaElement extends _Element_Merged {
 
 
 @DomName('TextEvent')
+@Unstable
 class TextEvent extends UIEvent {
   factory TextEvent(String type,
     {bool canBubble: false, bool cancelable: false, Window view, String data}) {
@@ -21577,6 +22336,8 @@ class TextMetrics extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('TextTrack')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrack
+@Experimental
 class TextTrack extends EventTarget {
   TextTrack.internal() : super.internal();
 
@@ -21646,6 +22407,8 @@ class TextTrack extends EventTarget {
 
 @DocsEditable
 @DomName('TextTrackCue')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcue
+@Experimental
 class TextTrackCue extends EventTarget {
   TextTrackCue.internal() : super.internal();
 
@@ -21668,10 +22431,12 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.align')
   @DocsEditable
+  @Experimental // nonstandard
   String get align native "TextTrackCue_align_Getter";
 
   @DomName('TextTrackCue.align')
   @DocsEditable
+  @Experimental // nonstandard
   void set align(String value) native "TextTrackCue_align_Setter";
 
   @DomName('TextTrackCue.endTime')
@@ -21692,10 +22457,12 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.line')
   @DocsEditable
+  @Experimental // nonstandard
   int get line native "TextTrackCue_line_Getter";
 
   @DomName('TextTrackCue.line')
   @DocsEditable
+  @Experimental // nonstandard
   void set line(int value) native "TextTrackCue_line_Setter";
 
   @DomName('TextTrackCue.pauseOnExit')
@@ -21708,26 +22475,32 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.position')
   @DocsEditable
+  @Experimental // nonstandard
   int get position native "TextTrackCue_position_Getter";
 
   @DomName('TextTrackCue.position')
   @DocsEditable
+  @Experimental // nonstandard
   void set position(int value) native "TextTrackCue_position_Setter";
 
   @DomName('TextTrackCue.size')
   @DocsEditable
+  @Experimental // nonstandard
   int get size native "TextTrackCue_size_Getter";
 
   @DomName('TextTrackCue.size')
   @DocsEditable
+  @Experimental // nonstandard
   void set size(int value) native "TextTrackCue_size_Setter";
 
   @DomName('TextTrackCue.snapToLines')
   @DocsEditable
+  @Experimental // nonstandard
   bool get snapToLines native "TextTrackCue_snapToLines_Getter";
 
   @DomName('TextTrackCue.snapToLines')
   @DocsEditable
+  @Experimental // nonstandard
   void set snapToLines(bool value) native "TextTrackCue_snapToLines_Setter";
 
   @DomName('TextTrackCue.startTime')
@@ -21740,10 +22513,12 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.text')
   @DocsEditable
+  @Experimental // nonstandard
   String get text native "TextTrackCue_text_Getter";
 
   @DomName('TextTrackCue.text')
   @DocsEditable
+  @Experimental // nonstandard
   void set text(String value) native "TextTrackCue_text_Setter";
 
   @DomName('TextTrackCue.track')
@@ -21752,10 +22527,12 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.vertical')
   @DocsEditable
+  @Experimental // nonstandard
   String get vertical native "TextTrackCue_vertical_Getter";
 
   @DomName('TextTrackCue.vertical')
   @DocsEditable
+  @Experimental // nonstandard
   void set vertical(String value) native "TextTrackCue_vertical_Setter";
 
   @DomName('TextTrackCue.addEventListener')
@@ -21768,6 +22545,7 @@ class TextTrackCue extends EventTarget {
 
   @DomName('TextTrackCue.getCueAsHTML')
   @DocsEditable
+  @Experimental // nonstandard
   DocumentFragment getCueAsHtml() native "TextTrackCue_getCueAsHTML_Callback";
 
   @DomName('TextTrackCue.removeEventListener')
@@ -21792,6 +22570,8 @@ class TextTrackCue extends EventTarget {
 
 @DocsEditable
 @DomName('TextTrackCueList')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
+@Experimental
 class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
   TextTrackCueList.internal();
 
@@ -21862,6 +22642,8 @@ class TextTrackCueList extends NativeFieldWrapperClass1 with ListMixin<TextTrack
 
 @DocsEditable
 @DomName('TextTrackList')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttracklist
+@Experimental
 class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements List<TextTrack> {
   TextTrackList.internal() : super.internal();
 
@@ -21948,6 +22730,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 
 @DocsEditable
 @DomName('TimeRanges')
+@Unstable
 class TimeRanges extends NativeFieldWrapperClass1 {
   TimeRanges.internal();
 
@@ -21971,6 +22754,7 @@ class TimeRanges extends NativeFieldWrapperClass1 {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('TimeoutHandler')
 typedef void TimeoutHandler();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21996,6 +22780,8 @@ class TitleElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('Touch')
+// http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+@Experimental
 class Touch extends NativeFieldWrapperClass1 {
   Touch.internal();
 
@@ -22080,6 +22866,8 @@ class Touch extends NativeFieldWrapperClass1 {
 
 
 @DomName('TouchEvent')
+// http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+@Experimental
 class TouchEvent extends UIEvent {
   factory TouchEvent(TouchList touches, TouchList targetTouches,
       TouchList changedTouches, String type,
@@ -22150,6 +22938,8 @@ class TouchEvent extends UIEvent {
 
 
 @DomName('TouchList')
+// http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+@Experimental
 class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
@@ -22226,6 +23016,8 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#the-track-element
+@Experimental
 class TrackElement extends _Element_Merged {
   TrackElement.internal() : super.internal();
 
@@ -22310,6 +23102,7 @@ class TrackElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('TrackEvent')
+@Unstable
 class TrackEvent extends Event {
   TrackEvent.internal() : super.internal();
 
@@ -22349,6 +23142,7 @@ class TransitionEvent extends Event {
 
 
 @DomName('TreeWalker')
+@Unstable
 class TreeWalker extends NativeFieldWrapperClass1 {
   factory TreeWalker(Node root, int whatToShow) {
     return document.$dom_createTreeWalker(root, whatToShow, null, false);
@@ -22365,6 +23159,8 @@ class TreeWalker extends NativeFieldWrapperClass1 {
 
   @DomName('TreeWalker.expandEntityReferences')
   @DocsEditable
+  // http://dom.spec.whatwg.org/#dom-traversal
+  @deprecated // deprecated
   bool get expandEntityReferences native "TreeWalker_expandEntityReferences_Getter";
 
   @DomName('TreeWalker.filter')
@@ -22437,6 +23233,7 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.charCode')
   @DocsEditable
+  @Unstable
   int get $dom_charCode native "UIEvent_charCode_Getter";
 
   @DomName('UIEvent.detail')
@@ -22445,22 +23242,31 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.keyCode')
   @DocsEditable
+  @Unstable
   int get $dom_keyCode native "UIEvent_keyCode_Getter";
 
   @DomName('UIEvent.layerX')
   @DocsEditable
+  // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
+  @Experimental // nonstandard
   int get $dom_layerX native "UIEvent_layerX_Getter";
 
   @DomName('UIEvent.layerY')
   @DocsEditable
+  // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
+  @Experimental // nonstandard
   int get $dom_layerY native "UIEvent_layerY_Getter";
 
   @DomName('UIEvent.pageX')
   @DocsEditable
+  // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
+  @Experimental // nonstandard
   int get $dom_pageX native "UIEvent_pageX_Getter";
 
   @DomName('UIEvent.pageY')
   @DocsEditable
+  // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
+  @Experimental // nonstandard
   int get $dom_pageY native "UIEvent_pageY_Getter";
 
   @DomName('UIEvent.view')
@@ -22469,6 +23275,7 @@ class UIEvent extends Event {
 
   @DomName('UIEvent.which')
   @DocsEditable
+  @Unstable
   int get which native "UIEvent_which_Getter";
 
   @DomName('UIEvent.initUIEvent')
@@ -22662,6 +23469,8 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @deprecated // deprecated
   bool get displayingFullscreen native "HTMLVideoElement_webkitDisplayingFullscreen_Getter";
 
   @DomName('HTMLVideoElement.webkitDroppedFrameCount')
@@ -22676,6 +23485,8 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @deprecated // deprecated
   bool get supportsFullscreen native "HTMLVideoElement_webkitSupportsFullscreen_Getter";
 
   @DomName('HTMLVideoElement.width')
@@ -22691,6 +23502,8 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
+  @deprecated // deprecated
   void enterFullScreen() native "HTMLVideoElement_webkitEnterFullScreen_Callback";
 
   @DomName('HTMLVideoElement.webkitEnterFullscreen')
@@ -22698,6 +23511,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html
   void enterFullscreen() native "HTMLVideoElement_webkitEnterFullscreen_Callback";
 
   @DomName('HTMLVideoElement.webkitExitFullScreen')
@@ -22705,6 +23519,8 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
+  @deprecated // deprecated
   void exitFullScreen() native "HTMLVideoElement_webkitExitFullScreen_Callback";
 
   @DomName('HTMLVideoElement.webkitExitFullscreen')
@@ -22712,6 +23528,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
   void exitFullscreen() native "HTMLVideoElement_webkitExitFullscreen_Callback";
 
 }
@@ -22722,6 +23539,9 @@ class VideoElement extends MediaElement implements CanvasImageSource {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('VoidCallback')
+// http://www.w3.org/TR/file-system-api/#the-voidcallback-interface
+@Experimental
 typedef void VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22770,6 +23590,7 @@ typedef void VoidCallback();
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@Unstable
 class WebSocket extends EventTarget {
   WebSocket.internal() : super.internal();
 
@@ -22834,6 +23655,7 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.URL')
   @DocsEditable
+  @deprecated // deprecated
   String get Url native "WebSocket_URL_Getter";
 
   @DomName('WebSocket.binaryType')
@@ -22982,14 +23804,17 @@ class WheelEvent extends MouseEvent {
 
   @DomName('WheelEvent.wheelDeltaX')
   @DocsEditable
+  @Experimental // non-standard
   int get _wheelDeltaX native "WheelEvent_wheelDeltaX_Getter";
 
   @DomName('WheelEvent.wheelDeltaY')
   @DocsEditable
+  @Experimental // non-standard
   int get _wheelDeltaY native "WheelEvent_wheelDeltaY_Getter";
 
   @DomName('WheelEvent.initWebKitWheelEvent')
   @DocsEditable
+  @Experimental
   void $dom_initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
 
@@ -23127,14 +23952,19 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.DOMContentLoadedEvent')
   @DocsEditable
+  @Experimental // untriaged
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
   @DomName('Window.devicemotionEvent')
   @DocsEditable
+  // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
+  @Experimental
   static const EventStreamProvider<DeviceMotionEvent> deviceMotionEvent = const EventStreamProvider<DeviceMotionEvent>('devicemotion');
 
   @DomName('Window.deviceorientationEvent')
   @DocsEditable
+  // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
+  @Experimental
   static const EventStreamProvider<DeviceOrientationEvent> deviceOrientationEvent = const EventStreamProvider<DeviceOrientationEvent>('deviceorientation');
 
   @DomName('Window.hashchangeEvent')
@@ -23182,6 +24012,7 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
   @DomName('Window.webkitAnimationIterationEvent')
@@ -23189,6 +24020,7 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
   @DomName('Window.webkitAnimationStartEvent')
@@ -23196,18 +24028,24 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
   @DomName('Window.PERSISTENT')
   @DocsEditable
+  // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
+  @Experimental
   static const int PERSISTENT = 1;
 
   @DomName('Window.TEMPORARY')
   @DocsEditable
+  // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
+  @Experimental
   static const int TEMPORARY = 0;
 
   @DomName('Window.CSS')
   @DocsEditable
+  @Experimental // untriaged
   Css get css native "DOMWindow_CSS_Getter";
 
   @DomName('Window.applicationCache')
@@ -23224,6 +24062,8 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.crypto')
   @DocsEditable
+  // http://www.w3.org/TR/WebCryptoAPI/
+  @Experimental
   Crypto get crypto native "DOMWindow_crypto_Getter";
 
   @DomName('Window.defaultStatus')
@@ -23236,14 +24076,18 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.defaultstatus')
   @DocsEditable
+  @Experimental // non-standard
   String get defaultstatus native "DOMWindow_defaultstatus_Getter";
 
   @DomName('Window.defaultstatus')
   @DocsEditable
+  @Experimental // non-standard
   void set defaultstatus(String value) native "DOMWindow_defaultstatus_Setter";
 
   @DomName('Window.devicePixelRatio')
   @DocsEditable
+  // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
+  @Experimental // non-standard
   num get devicePixelRatio native "DOMWindow_devicePixelRatio_Getter";
 
   @DomName('Window.document')
@@ -23252,6 +24096,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.event')
   @DocsEditable
+  @deprecated // deprecated
   Event get event native "DOMWindow_event_Getter";
 
   @DomName('Window.history')
@@ -23308,6 +24153,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.offscreenBuffering')
   @DocsEditable
+  @Experimental // non-standard
   bool get offscreenBuffering native "DOMWindow_offscreenBuffering_Getter";
 
   @DomName('Window.opener')
@@ -23343,6 +24189,8 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.personalbar')
   @DocsEditable
+  // https://developer.mozilla.org/en-US/docs/DOM/window.personalbar
+  @deprecated // deprecated
   BarInfo get personalbar native "DOMWindow_personalbar_Getter";
 
   @DomName('Window.screen')
@@ -23387,6 +24235,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.speechSynthesis')
   @DocsEditable
+  @Experimental // untriaged
   SpeechSynthesis get speechSynthesis native "DOMWindow_speechSynthesis_Getter";
 
   @DomName('Window.status')
@@ -23403,6 +24252,8 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.styleMedia')
   @DocsEditable
+  // http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html
+  @Experimental // nonstandard
   StyleMedia get styleMedia native "DOMWindow_styleMedia_Getter";
 
   @DomName('Window.toolbar')
@@ -23418,6 +24269,8 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // https://plus.sandbox.google.com/u/0/+GoogleChromeDevelopers/posts/8vWo8hq4pDm?e=Showroom
+  @deprecated // deprecated
   NotificationCenter get notifications native "DOMWindow_webkitNotifications_Getter";
 
   @DomName('Window.webkitStorageInfo')
@@ -23425,6 +24278,8 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.w3.org/TR/file-system-api/
+  @deprecated // deprecated
   StorageInfo get storageInfo native "DOMWindow_webkitStorageInfo_Getter";
 
   @DomName('Window.window')
@@ -23453,6 +24308,8 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.captureEvents')
   @DocsEditable
+  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
+  @deprecated // deprecated
   void captureEvents() native "DOMWindow_captureEvents_Callback";
 
   @DomName('Window.clearInterval')
@@ -23477,6 +24334,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.find')
   @DocsEditable
+  @Experimental // non-standard
   bool find(String string, bool caseSensitive, bool backwards, bool wrap, bool wholeWord, bool searchInFrames, bool showDialog) native "DOMWindow_find_Callback";
 
   @DomName('Window.getComputedStyle')
@@ -23485,6 +24343,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable
+  @Experimental // non-standard
   List<CssRule> getMatchedCssRules(Element element, String pseudoElement) native "DOMWindow_getMatchedCSSRules_Callback";
 
   @DomName('Window.getSelection')
@@ -23512,6 +24371,8 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.w3.org/TR/webdatabase/
+  @Experimental // deprecated
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
   @DomName('Window.postMessage')
@@ -23524,6 +24385,8 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.releaseEvents')
   @DocsEditable
+  // http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture
+  @deprecated // deprecated
   void releaseEvents() native "DOMWindow_releaseEvents_Callback";
 
   @DomName('Window.removeEventListener')
@@ -23579,6 +24442,7 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
   _DomPoint _convertPointFromNodeToPage(Node node, _DomPoint p) native "DOMWindow_webkitConvertPointFromNodeToPage_Callback";
 
   @DomName('Window.webkitConvertPointFromPageToNode')
@@ -23586,12 +24450,14 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
   _DomPoint _convertPointFromPageToNode(Node node, _DomPoint p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
   @DomName('Window.webkitRequestFileSystem')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
+  // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
   void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
   Future<FileSystem> _requestFileSystem(int type, int size) {
@@ -23606,6 +24472,7 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @Experimental
+  // http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem
   void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
   Future<Entry> resolveLocalFileSystemUrl(String url) {
@@ -23618,6 +24485,7 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.onDOMContentLoaded')
   @DocsEditable
+  @Experimental // untriaged
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
   @DomName('Window.onabort')
@@ -23646,10 +24514,14 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.ondevicemotion')
   @DocsEditable
+  // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
+  @Experimental
   Stream<DeviceMotionEvent> get onDeviceMotion => deviceMotionEvent.forTarget(this);
 
   @DomName('Window.ondeviceorientation')
   @DocsEditable
+  // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
+  @Experimental
   Stream<DeviceOrientationEvent> get onDeviceOrientation => deviceOrientationEvent.forTarget(this);
 
   @DomName('Window.ondrag')
@@ -23778,6 +24650,8 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.onsearch')
   @DocsEditable
+  // http://www.w3.org/TR/html-markup/input.search.html
+  @Experimental
   Stream<Event> get onSearch => Element.searchEvent.forTarget(this);
 
   @DomName('Window.onselect')
@@ -23794,18 +24668,26 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.ontouchcancel')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchCancel => Element.touchCancelEvent.forTarget(this);
 
   @DomName('Window.ontouchend')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchEnd => Element.touchEndEvent.forTarget(this);
 
   @DomName('Window.ontouchmove')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchMove => Element.touchMoveEvent.forTarget(this);
 
   @DomName('Window.ontouchstart')
   @DocsEditable
+  // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
+  @Experimental
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
   @DomName('Window.onunload')
@@ -23814,18 +24696,22 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.onwebkitAnimationEnd')
   @DocsEditable
+  @Experimental // untriaged
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
   @DomName('Window.onwebkitAnimationIteration')
   @DocsEditable
+  @Experimental // untriaged
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
   @DomName('Window.onwebkitAnimationStart')
   @DocsEditable
+  @Experimental // untriaged
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
   @DomName('Window.onwebkitTransitionEnd')
   @DocsEditable
+  @deprecated
   Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 
@@ -23901,6 +24787,8 @@ class _BeforeUnloadEventStreamProvider implements
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#worker
+@Experimental // stable
 class Worker extends AbstractWorker {
   Worker.internal() : super.internal();
 
@@ -23942,6 +24830,8 @@ class Worker extends AbstractWorker {
 
 @DocsEditable
 @DomName('XPathEvaluator')
+// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
+@deprecated // experimental
 class XPathEvaluator extends NativeFieldWrapperClass1 {
   XPathEvaluator.internal();
 
@@ -23976,6 +24866,8 @@ class XPathEvaluator extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('XPathException')
+// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathException
+@deprecated // experimental
 class XPathException extends NativeFieldWrapperClass1 {
   XPathException.internal();
 
@@ -23993,10 +24885,12 @@ class XPathException extends NativeFieldWrapperClass1 {
 
   @DomName('XPathException.message')
   @DocsEditable
+  @Experimental // non-standard
   String get message native "XPathException_message_Getter";
 
   @DomName('XPathException.name')
   @DocsEditable
+  @Experimental // non-standard
   String get name native "XPathException_name_Getter";
 
   @DomName('XPathException.toString')
@@ -24013,6 +24907,8 @@ class XPathException extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('XPathExpression')
+// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
+@deprecated // experimental
 class XPathExpression extends NativeFieldWrapperClass1 {
   XPathExpression.internal();
 
@@ -24030,6 +24926,8 @@ class XPathExpression extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('XPathNSResolver')
+// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
+@deprecated // experimental
 class XPathNSResolver extends NativeFieldWrapperClass1 {
   XPathNSResolver.internal();
 
@@ -24047,6 +24945,8 @@ class XPathNSResolver extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('XPathResult')
+// http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
+@deprecated // experimental
 class XPathResult extends NativeFieldWrapperClass1 {
   XPathResult.internal();
 
@@ -24136,6 +25036,8 @@ class XPathResult extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('XMLSerializer')
+// http://domparsing.spec.whatwg.org/#the-xmlserializer-interface
+@deprecated // stable
 class XmlSerializer extends NativeFieldWrapperClass1 {
   XmlSerializer.internal();
 
@@ -24165,6 +25067,7 @@ class XmlSerializer extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
+@deprecated // nonstandard
 class XsltProcessor extends NativeFieldWrapperClass1 {
   XsltProcessor.internal();
 
@@ -24222,6 +25125,8 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('CSSPrimitiveValue')
+// http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
+@deprecated // deprecated
 abstract class _CSSPrimitiveValue extends _CSSValue {
   _CSSPrimitiveValue.internal() : super.internal();
 
@@ -24235,6 +25140,8 @@ abstract class _CSSPrimitiveValue extends _CSSValue {
 
 @DocsEditable
 @DomName('CSSValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 abstract class _CSSValue extends NativeFieldWrapperClass1 {
   _CSSValue.internal();
 
@@ -24440,6 +25347,8 @@ class _ClientRectList extends NativeFieldWrapperClass1 with ListMixin<Rect>, Imm
 
 @DocsEditable
 @DomName('Counter')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 abstract class _Counter extends NativeFieldWrapperClass1 {
   _Counter.internal();
 
@@ -24519,6 +25428,8 @@ class _CssRuleList extends NativeFieldWrapperClass1 with ListMixin<CssRule>, Imm
 
 @DocsEditable
 @DomName('CSSValueList')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
   _CssValueList.internal() : super.internal();
 
@@ -24587,6 +25498,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 @DomName('DOMFileSystemSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
+// http://www.w3.org/TR/file-system-api/#the-filesystemsync-interface
 abstract class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
   _DOMFileSystemSync.internal();
 
@@ -24603,6 +25515,8 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/webdatabase/#databasesync
+@deprecated // deprecated
 abstract class _DatabaseSync extends NativeFieldWrapperClass1 {
   _DatabaseSync.internal();
 
@@ -24616,6 +25530,8 @@ abstract class _DatabaseSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('DedicatedWorkerContext')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html
+@Experimental
 abstract class _DedicatedWorkerContext extends _WorkerContext {
   _DedicatedWorkerContext.internal() : super.internal();
 
@@ -24629,6 +25545,8 @@ abstract class _DedicatedWorkerContext extends _WorkerContext {
 
 @DocsEditable
 @DomName('DirectoryEntrySync')
+// http://www.w3.org/TR/file-system-api/#the-directoryentrysync-interface
+@Experimental
 abstract class _DirectoryEntrySync extends _EntrySync {
   _DirectoryEntrySync.internal() : super.internal();
 
@@ -24642,6 +25560,8 @@ abstract class _DirectoryEntrySync extends _EntrySync {
 
 @DocsEditable
 @DomName('DirectoryReaderSync')
+// http://www.w3.org/TR/file-system-api/#idl-def-DirectoryReaderSync
+@Experimental
 abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
   _DirectoryReaderSync.internal();
 
@@ -24658,6 +25578,8 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
+@Experimental // non-standard
 class _DomPoint extends NativeFieldWrapperClass1 {
   _DomPoint.internal();
   factory _DomPoint(num x, num y) => _create(x, y);
@@ -24767,10 +25689,14 @@ class _Element_Merged extends Element {
 
   @DomName('HTMLElement.spellcheck')
   @DocsEditable
+  // http://blog.whatwg.org/the-road-to-html-5-spellchecking
+  @Experimental // nonstandard
   bool get spellcheck native "HTMLElement_spellcheck_Getter";
 
   @DomName('HTMLElement.spellcheck')
   @DocsEditable
+  // http://blog.whatwg.org/the-road-to-html-5-spellchecking
+  @Experimental // nonstandard
   void set spellcheck(bool value) native "HTMLElement_spellcheck_Setter";
 
   @DomName('HTMLElement.tabIndex')
@@ -24802,6 +25728,7 @@ class _Element_Merged extends Element {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
   String get dropzone native "HTMLElement_webkitdropzone_Getter";
 
   @DomName('HTMLElement.webkitdropzone')
@@ -24809,6 +25736,7 @@ class _Element_Merged extends Element {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
   void set dropzone(String value) native "HTMLElement_webkitdropzone_Setter";
 
   @DomName('HTMLElement.click')
@@ -24817,6 +25745,7 @@ class _Element_Merged extends Element {
 
   @DomName('HTMLElement.insertAdjacentElement')
   @DocsEditable
+  @Experimental // non-standard
   Element insertAdjacentElement(String where, Element element) native "HTMLElement_insertAdjacentElement_Callback";
 
   @DomName('HTMLElement.insertAdjacentHTML')
@@ -24825,6 +25754,7 @@ class _Element_Merged extends Element {
 
   @DomName('HTMLElement.insertAdjacentText')
   @DocsEditable
+  @Experimental // non-standard
   void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
 
 }
@@ -24837,6 +25767,7 @@ class _Element_Merged extends Element {
 
 @DocsEditable
 @DomName('EntityReference')
+@deprecated // deprecated
 abstract class _EntityReference extends Node {
   _EntityReference.internal() : super.internal();
 
@@ -24850,6 +25781,8 @@ abstract class _EntityReference extends Node {
 
 @DocsEditable
 @DomName('EntryArray')
+// http://www.w3.org/TR/file-system-api/#the-entry-interface
+@Experimental
 class _EntryArray extends NativeFieldWrapperClass1 with ListMixin<Entry>, ImmutableListMixin<Entry> implements List<Entry> {
   _EntryArray.internal();
 
@@ -24916,6 +25849,8 @@ class _EntryArray extends NativeFieldWrapperClass1 with ListMixin<Entry>, Immuta
 
 @DocsEditable
 @DomName('EntryArraySync')
+// http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
+@Experimental
 class _EntryArraySync extends NativeFieldWrapperClass1 with ListMixin<_EntrySync>, ImmutableListMixin<_EntrySync> implements List<_EntrySync> {
   _EntryArraySync.internal();
 
@@ -24982,6 +25917,8 @@ class _EntryArraySync extends NativeFieldWrapperClass1 with ListMixin<_EntrySync
 
 @DocsEditable
 @DomName('EntrySync')
+// http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
+@Experimental
 abstract class _EntrySync extends NativeFieldWrapperClass1 {
   _EntrySync.internal();
 
@@ -24995,6 +25932,8 @@ abstract class _EntrySync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('FileEntrySync')
+// http://www.w3.org/TR/file-system-api/#the-fileentrysync-interface
+@Experimental
 abstract class _FileEntrySync extends _EntrySync {
   _FileEntrySync.internal() : super.internal();
 
@@ -25008,6 +25947,8 @@ abstract class _FileEntrySync extends _EntrySync {
 
 @DocsEditable
 @DomName('FileReaderSync')
+// http://www.w3.org/TR/FileAPI/#FileReaderSync
+@Experimental
 abstract class _FileReaderSync extends NativeFieldWrapperClass1 {
   _FileReaderSync.internal();
 
@@ -25030,6 +25971,8 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('FileWriterSync')
+// http://www.w3.org/TR/file-writer-api/#idl-def-FileWriterSync
+@Experimental
 abstract class _FileWriterSync extends NativeFieldWrapperClass1 {
   _FileWriterSync.internal();
 
@@ -25043,6 +25986,8 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('GamepadList')
+// https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
+@Experimental
 class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
   _GamepadList.internal();
 
@@ -25109,6 +26054,8 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
 
 @DocsEditable
 @DomName('HTMLAppletElement')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
+@deprecated // deprecated
 abstract class _HTMLAppletElement extends _Element_Merged {
   _HTMLAppletElement.internal() : super.internal();
 
@@ -25122,6 +26069,8 @@ abstract class _HTMLAppletElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLBaseFontElement')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#basefont
+@deprecated // deprecated
 abstract class _HTMLBaseFontElement extends _Element_Merged {
   _HTMLBaseFontElement.internal() : super.internal();
 
@@ -25135,6 +26084,8 @@ abstract class _HTMLBaseFontElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLDirectoryElement')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
+@deprecated // deprecated
 abstract class _HTMLDirectoryElement extends _Element_Merged {
   _HTMLDirectoryElement.internal() : super.internal();
 
@@ -25148,6 +26099,8 @@ abstract class _HTMLDirectoryElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLFontElement')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlfontelement
+@deprecated // deprecated
 abstract class _HTMLFontElement extends _Element_Merged {
   _HTMLFontElement.internal() : super.internal();
 
@@ -25161,6 +26114,8 @@ abstract class _HTMLFontElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLFrameElement')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlframeelement
+@deprecated // deprecated
 abstract class _HTMLFrameElement extends _Element_Merged {
   _HTMLFrameElement.internal() : super.internal();
 
@@ -25174,6 +26129,8 @@ abstract class _HTMLFrameElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLFrameSetElement')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#frameset
+@deprecated // deprecated
 abstract class _HTMLFrameSetElement extends _Element_Merged {
   _HTMLFrameSetElement.internal() : super.internal();
 
@@ -25187,6 +26144,8 @@ abstract class _HTMLFrameSetElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLMarqueeElement')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-marquee-element
+@deprecated // deprecated
 abstract class _HTMLMarqueeElement extends _Element_Merged {
   _HTMLMarqueeElement.internal() : super.internal();
 
@@ -25200,6 +26159,8 @@ abstract class _HTMLMarqueeElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('NamedNodeMap')
+// http://dom.spec.whatwg.org/#namednodemap
+@deprecated // deprecated
 class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   _NamedNodeMap.internal();
 
@@ -25290,6 +26251,7 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
 
 @DocsEditable
 @DomName('PagePopupController')
+@deprecated // nonstandard
 abstract class _PagePopupController extends NativeFieldWrapperClass1 {
   _PagePopupController.internal();
 
@@ -25303,6 +26265,8 @@ abstract class _PagePopupController extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('RGBColor')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 abstract class _RGBColor extends NativeFieldWrapperClass1 {
   _RGBColor.internal();
 
@@ -25326,6 +26290,8 @@ class _RadioNodeList extends NodeList {
 
 @DocsEditable
 @DomName('Rect')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 abstract class _Rect extends NativeFieldWrapperClass1 {
   _Rect.internal();
 
@@ -25339,6 +26305,8 @@ abstract class _Rect extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SharedWorker')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#shared-workers-and-the-sharedworker-interface
+@Experimental
 abstract class _SharedWorker extends AbstractWorker {
   _SharedWorker.internal() : super.internal();
 
@@ -25361,6 +26329,8 @@ abstract class _SharedWorker extends AbstractWorker {
 
 @DocsEditable
 @DomName('SharedWorkerContext')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#shared-workers-and-the-sharedworkerglobalscope-interface
+@Experimental // nonstandard
 abstract class _SharedWorkerContext extends _WorkerContext {
   _SharedWorkerContext.internal() : super.internal();
 
@@ -25374,6 +26344,8 @@ abstract class _SharedWorkerContext extends _WorkerContext {
 
 @DocsEditable
 @DomName('SpeechInputResultList')
+// http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_list_interface
+@Experimental
 class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements List<SpeechInputResult> {
   _SpeechInputResultList.internal();
 
@@ -25440,6 +26412,8 @@ class _SpeechInputResultList extends NativeFieldWrapperClass1 with ListMixin<Spe
 
 @DocsEditable
 @DomName('SpeechRecognitionResultList')
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
+@Experimental
 class _SpeechRecognitionResultList extends NativeFieldWrapperClass1 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
   _SpeechRecognitionResultList.internal();
 
@@ -25572,6 +26546,8 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
 
 @DocsEditable
 @DomName('WebKitCSSFilterValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 abstract class _WebKitCSSFilterValue extends _CssValueList {
   _WebKitCSSFilterValue.internal() : super.internal();
 
@@ -25588,6 +26564,8 @@ abstract class _WebKitCSSFilterValue extends _CssValueList {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass1 {
   _WebKitCSSMatrix.internal();
 
@@ -25610,6 +26588,8 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebKitCSSMixFunctionValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
   _WebKitCSSMixFunctionValue.internal() : super.internal();
 
@@ -25623,6 +26603,8 @@ abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
 
 @DocsEditable
 @DomName('WebKitCSSTransformValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 abstract class _WebKitCSSTransformValue extends _CssValueList {
   _WebKitCSSTransformValue.internal() : super.internal();
 
@@ -25636,6 +26618,8 @@ abstract class _WebKitCSSTransformValue extends _CssValueList {
 
 @DocsEditable
 @DomName('WorkerContext')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#WorkerGlobalScope-partial
+@Experimental // stable
 abstract class _WorkerContext extends EventTarget {
   _WorkerContext.internal() : super.internal();
 
@@ -25649,6 +26633,8 @@ abstract class _WorkerContext extends EventTarget {
 
 @DocsEditable
 @DomName('WorkerLocation')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation
+@Experimental
 abstract class _WorkerLocation extends NativeFieldWrapperClass1 {
   _WorkerLocation.internal();
 
@@ -25662,6 +26648,8 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WorkerNavigator')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
+@Experimental
 abstract class _WorkerNavigator extends NativeFieldWrapperClass1 {
   _WorkerNavigator.internal();
 

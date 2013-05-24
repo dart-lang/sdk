@@ -39,6 +39,7 @@ class _KeyRangeFactoryProvider {
 
 
 @DomName('IDBCursor')
+@Unstable
 class Cursor extends NativeFieldWrapperClass1 {
   @DomName('IDBCursor.delete')
   Future delete() {
@@ -86,6 +87,7 @@ class Cursor extends NativeFieldWrapperClass1 {
 
   @DomName('IDBCursor.next')
   @DocsEditable
+  @Experimental // non-standard
   void next([Object key]) native "IDBCursor_next_Callback";
 
   @DomName('IDBCursor.update')
@@ -102,6 +104,7 @@ class Cursor extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('IDBCursorWithValue')
+@Unstable
 class CursorWithValue extends Cursor {
   CursorWithValue.internal() : super.internal();
 
@@ -121,6 +124,7 @@ class CursorWithValue extends Cursor {
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental
+@Unstable
 class Database extends EventTarget {
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable
@@ -229,6 +233,7 @@ class Database extends EventTarget {
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental
+@Unstable
 class IdbFactory extends NativeFieldWrapperClass1 {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
@@ -353,6 +358,7 @@ Future _completeRequest(Request request) {
 
 
 @DomName('IDBIndex')
+@Unstable
 class Index extends NativeFieldWrapperClass1 {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
@@ -544,6 +550,7 @@ class Index extends NativeFieldWrapperClass1 {
 
 
 @DomName('IDBKeyRange')
+@Unstable
 class KeyRange extends NativeFieldWrapperClass1 {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
@@ -583,18 +590,22 @@ class KeyRange extends NativeFieldWrapperClass1 {
 
   @DomName('IDBKeyRange.bound_')
   @DocsEditable
+  @Experimental // non-standard
   static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) native "IDBKeyRange_bound__Callback";
 
   @DomName('IDBKeyRange.lowerBound_')
   @DocsEditable
+  @Experimental // non-standard
   static KeyRange lowerBound_(Object bound, [bool open]) native "IDBKeyRange_lowerBound__Callback";
 
   @DomName('IDBKeyRange.only_')
   @DocsEditable
+  @Experimental // non-standard
   static KeyRange only_(Object value) native "IDBKeyRange_only__Callback";
 
   @DomName('IDBKeyRange.upperBound_')
   @DocsEditable
+  @Experimental // non-standard
   static KeyRange upperBound_(Object bound, [bool open]) native "IDBKeyRange_upperBound__Callback";
 
 }
@@ -604,6 +615,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
 
 
 @DomName('IDBObjectStore')
+@Unstable
 class ObjectStore extends NativeFieldWrapperClass1 {
 
   @DomName('IDBObjectStore.add')
@@ -888,6 +900,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('IDBOpenDBRequest')
+@Unstable
 class OpenDBRequest extends Request implements EventTarget {
   OpenDBRequest.internal() : super.internal();
 
@@ -917,6 +930,7 @@ class OpenDBRequest extends Request implements EventTarget {
 
 @DocsEditable
 @DomName('IDBRequest')
+@Unstable
 class Request extends EventTarget {
   Request.internal() : super.internal();
 
@@ -982,6 +996,7 @@ class Request extends EventTarget {
 
 
 @DomName('IDBTransaction')
+@Unstable
 class Transaction extends EventTarget {
 
   /**
@@ -1084,6 +1099,7 @@ class Transaction extends EventTarget {
 
 @DocsEditable
 @DomName('IDBVersionChangeEvent')
+@Unstable
 class VersionChangeEvent extends Event {
   VersionChangeEvent.internal() : super.internal();
 
@@ -1105,6 +1121,7 @@ class VersionChangeEvent extends Event {
 
 @DocsEditable
 @DomName('IDBAny')
+@deprecated // nonstandard
 abstract class _IDBAny extends NativeFieldWrapperClass1 {
   _IDBAny.internal();
 

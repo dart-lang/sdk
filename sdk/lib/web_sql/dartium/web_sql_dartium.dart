@@ -30,6 +30,9 @@ import 'dart:nativewrappers';
 // WARNING: Do not edit - generated code.
 
 
+@DomName('SQLStatementCallback')
+// http://www.w3.org/TR/webdatabase/#sqlstatementcallback
+@Experimental // deprecated
 typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resultSet);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38,6 +41,9 @@ typedef void SqlStatementCallback(SqlTransaction transaction, SqlResultSet resul
 // WARNING: Do not edit - generated code.
 
 
+@DomName('SQLStatementErrorCallback')
+// http://www.w3.org/TR/webdatabase/#sqlstatementerrorcallback
+@Experimental // deprecated
 typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -46,6 +52,9 @@ typedef void SqlStatementErrorCallback(SqlTransaction transaction, SqlError erro
 // WARNING: Do not edit - generated code.
 
 
+@DomName('SQLTransactionCallback')
+// http://www.w3.org/TR/webdatabase/#sqltransactioncallback
+@Experimental // deprecated
 typedef void SqlTransactionCallback(SqlTransaction transaction);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -54,6 +63,9 @@ typedef void SqlTransactionCallback(SqlTransaction transaction);
 // WARNING: Do not edit - generated code.
 
 
+@DomName('SQLTransactionErrorCallback')
+// http://www.w3.org/TR/webdatabase/#sqltransactionerrorcallback
+@Experimental // deprecated
 typedef void SqlTransactionErrorCallback(SqlError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -67,6 +79,8 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/webdatabase/#asynchronous-database-api
+@Experimental // deprecated
 class SqlDatabase extends NativeFieldWrapperClass1 {
   SqlDatabase.internal();
 
@@ -111,6 +125,8 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SQLError')
+// http://www.w3.org/TR/webdatabase/#sqlerror
+@Experimental // deprecated
 class SqlError extends NativeFieldWrapperClass1 {
   SqlError.internal();
 
@@ -164,6 +180,8 @@ class SqlError extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SQLException')
+// http://www.w3.org/TR/webdatabase/#sqlexception
+@Experimental // deprecated
 class SqlException extends NativeFieldWrapperClass1 {
   SqlException.internal();
 
@@ -217,6 +235,8 @@ class SqlException extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SQLResultSet')
+// http://www.w3.org/TR/webdatabase/#sqlresultset
+@Experimental // deprecated
 class SqlResultSet extends NativeFieldWrapperClass1 {
   SqlResultSet.internal();
 
@@ -242,6 +262,8 @@ class SqlResultSet extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SQLResultSetRowList')
+// http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
+@Experimental // deprecated
 class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
   SqlResultSetRowList.internal();
 
@@ -311,6 +333,8 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/webdatabase/#sqltransaction
+@deprecated // deprecated
 class SqlTransaction extends NativeFieldWrapperClass1 {
   SqlTransaction.internal();
 
@@ -331,6 +355,8 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
+// http://www.w3.org/TR/webdatabase/#sqltransactionsync
+@Experimental // deprecated
 abstract class _SQLTransactionSync extends NativeFieldWrapperClass1 {
   _SQLTransactionSync.internal();
 

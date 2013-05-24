@@ -23,6 +23,8 @@ import 'dart:_interceptors' show Interceptor;
 
 @DocsEditable
 @DomName('AnalyserNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AnalyserNode
+@Experimental
 class AnalyserNode extends AudioNode native "AnalyserNode" {
 
   @DomName('AnalyserNode.fftSize')
@@ -64,6 +66,8 @@ class AnalyserNode extends AudioNode native "AnalyserNode" {
 
 @DocsEditable
 @DomName('AudioBuffer')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
+@Experimental
 class AudioBuffer native "AudioBuffer" {
 
   @DomName('AudioBuffer.duration')
@@ -97,6 +101,9 @@ class AudioBuffer native "AudioBuffer" {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('AudioBufferCallback')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
+@Experimental
 typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -104,6 +111,8 @@ typedef void AudioBufferCallback(AudioBuffer audioBuffer);
 
 
 @DomName('AudioBufferSourceNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBufferSourceNode-section
+@Experimental
 class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNode" {
 
   // TODO(efortuna): Remove these methods when Chrome stable also uses start
@@ -182,14 +191,17 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
   @DocsEditable
+  @Experimental // untriaged
   void noteGrainOn(num when, num grainOffset, num grainDuration) native;
 
   @DomName('AudioBufferSourceNode.noteOff')
   @DocsEditable
+  @Experimental // untriaged
   void noteOff(num when) native;
 
   @DomName('AudioBufferSourceNode.noteOn')
   @DocsEditable
+  @Experimental // untriaged
   void noteOn(num when) native;
 
 }
@@ -199,6 +211,8 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
 
 
 @DomName('AudioContext')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section
+@Experimental
 class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.completeEvent')
@@ -262,6 +276,7 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.createDelayNode')
   @DocsEditable
+  @Experimental // untriaged
   DelayNode createDelayNode([num maxDelayTime]) native;
 
   @DomName('AudioContext.createDynamicsCompressor')
@@ -270,10 +285,12 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.createGainNode')
   @DocsEditable
+  @Experimental // untriaged
   GainNode createGainNode() native;
 
   @DomName('AudioContext.createJavaScriptNode')
   @DocsEditable
+  @Experimental // untriaged
   ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   @DomName('AudioContext.createMediaElementSource')
@@ -350,6 +367,8 @@ class AudioContext extends EventTarget native "AudioContext" {
 
 @DocsEditable
 @DomName('AudioDestinationNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioDestinationNode-section
+@Experimental
 class AudioDestinationNode extends AudioNode native "AudioDestinationNode" {
 
   @DomName('AudioDestinationNode.maxChannelCount')
@@ -363,6 +382,8 @@ class AudioDestinationNode extends AudioNode native "AudioDestinationNode" {
 
 @DocsEditable
 @DomName('AudioListener')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioListener-section
+@Experimental
 class AudioListener native "AudioListener" {
 
   @DomName('AudioListener.dopplerFactor')
@@ -392,6 +413,8 @@ class AudioListener native "AudioListener" {
 
 @DocsEditable
 @DomName('AudioNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
+@Experimental
 class AudioNode native "AudioNode" {
 
   @DomName('AudioNode.channelCount')
@@ -433,6 +456,8 @@ class AudioNode native "AudioNode" {
 
 @DocsEditable
 @DomName('AudioParam')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioParam
+@Experimental
 class AudioParam native "AudioParam" {
 
   @DomName('AudioParam.defaultValue')
@@ -477,6 +502,7 @@ class AudioParam native "AudioParam" {
 
   @DomName('AudioParam.setTargetValueAtTime')
   @DocsEditable
+  @Experimental // untriaged
   void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
 
   @DomName('AudioParam.setValueAtTime')
@@ -494,6 +520,8 @@ class AudioParam native "AudioParam" {
 
 @DocsEditable
 @DomName('AudioProcessingEvent')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioProcessingEvent-section
+@Experimental
 class AudioProcessingEvent extends Event native "AudioProcessingEvent" {
 
   @DomName('AudioProcessingEvent.inputBuffer')
@@ -511,6 +539,8 @@ class AudioProcessingEvent extends Event native "AudioProcessingEvent" {
 
 @DocsEditable
 @DomName('AudioSourceNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html
+@Experimental
 class AudioSourceNode extends AudioNode native "AudioSourceNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -520,6 +550,8 @@ class AudioSourceNode extends AudioNode native "AudioSourceNode" {
 
 @DocsEditable
 @DomName('BiquadFilterNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#BiquadFilterNode-section
+@Experimental
 class BiquadFilterNode extends AudioNode native "BiquadFilterNode" {
 
   @DomName('BiquadFilterNode.ALLPASS')
@@ -585,6 +617,8 @@ class BiquadFilterNode extends AudioNode native "BiquadFilterNode" {
 
 @DocsEditable
 @DomName('ChannelMergerNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ChannelMergerNode-section
+@Experimental
 class ChannelMergerNode extends AudioNode native "ChannelMergerNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -594,6 +628,8 @@ class ChannelMergerNode extends AudioNode native "ChannelMergerNode" {
 
 @DocsEditable
 @DomName('ChannelSplitterNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ChannelSplitterNode-section
+@Experimental
 class ChannelSplitterNode extends AudioNode native "ChannelSplitterNode" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -603,6 +639,8 @@ class ChannelSplitterNode extends AudioNode native "ChannelSplitterNode" {
 
 @DocsEditable
 @DomName('ConvolverNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ConvolverNode
+@Experimental
 class ConvolverNode extends AudioNode native "ConvolverNode" {
 
   @DomName('ConvolverNode.buffer')
@@ -620,6 +658,8 @@ class ConvolverNode extends AudioNode native "ConvolverNode" {
 
 @DocsEditable
 @DomName('DelayNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DelayNode
+@Experimental
 class DelayNode extends AudioNode native "DelayNode" {
 
   @DomName('DelayNode.delayTime')
@@ -633,6 +673,8 @@ class DelayNode extends AudioNode native "DelayNode" {
 
 @DocsEditable
 @DomName('DynamicsCompressorNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DynamicsCompressorNode
+@Experimental
 class DynamicsCompressorNode extends AudioNode native "DynamicsCompressorNode" {
 
   @DomName('DynamicsCompressorNode.attack')
@@ -666,6 +708,8 @@ class DynamicsCompressorNode extends AudioNode native "DynamicsCompressorNode" {
 
 @DocsEditable
 @DomName('GainNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#GainNode
+@Experimental
 class GainNode extends AudioNode native "GainNode" {
 
   @DomName('GainNode.gain')
@@ -679,10 +723,13 @@ class GainNode extends AudioNode native "GainNode" {
 
 @DocsEditable
 @DomName('MediaElementAudioSourceNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaElementAudioSourceNode
+@Experimental
 class MediaElementAudioSourceNode extends AudioSourceNode native "MediaElementAudioSourceNode" {
 
   @DomName('MediaElementAudioSourceNode.mediaElement')
   @DocsEditable
+  @Experimental // non-standard
   final MediaElement mediaElement;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -692,6 +739,8 @@ class MediaElementAudioSourceNode extends AudioSourceNode native "MediaElementAu
 
 @DocsEditable
 @DomName('MediaStreamAudioDestinationNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioDestinationNode
+@Experimental
 class MediaStreamAudioDestinationNode extends AudioSourceNode native "MediaStreamAudioDestinationNode" {
 
   @DomName('MediaStreamAudioDestinationNode.stream')
@@ -705,6 +754,8 @@ class MediaStreamAudioDestinationNode extends AudioSourceNode native "MediaStrea
 
 @DocsEditable
 @DomName('MediaStreamAudioSourceNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#MediaStreamAudioSourceNode
+@Experimental
 class MediaStreamAudioSourceNode extends AudioSourceNode native "MediaStreamAudioSourceNode" {
 
   @DomName('MediaStreamAudioSourceNode.mediaStream')
@@ -718,6 +769,8 @@ class MediaStreamAudioSourceNode extends AudioSourceNode native "MediaStreamAudi
 
 @DocsEditable
 @DomName('OfflineAudioCompletionEvent')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioCompletionEvent-section
+@Experimental
 class OfflineAudioCompletionEvent extends Event native "OfflineAudioCompletionEvent" {
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
@@ -731,6 +784,8 @@ class OfflineAudioCompletionEvent extends Event native "OfflineAudioCompletionEv
 
 @DocsEditable
 @DomName('OfflineAudioContext')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#OfflineAudioContext-section
+@Experimental
 class OfflineAudioContext extends AudioContext implements EventTarget native "OfflineAudioContext" {
 
   @DomName('OfflineAudioContext.OfflineAudioContext')
@@ -747,10 +802,14 @@ class OfflineAudioContext extends AudioContext implements EventTarget native "Of
 
 @DocsEditable
 @DomName('OscillatorNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-OscillatorNode
+@Experimental
 class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 
   @DomName('OscillatorNode.CUSTOM')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int CUSTOM = 4;
 
   @DomName('OscillatorNode.FINISHED_STATE')
@@ -763,6 +822,8 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 
   @DomName('OscillatorNode.SAWTOOTH')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int SAWTOOTH = 2;
 
   @DomName('OscillatorNode.SCHEDULED_STATE')
@@ -771,14 +832,20 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 
   @DomName('OscillatorNode.SINE')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int SINE = 0;
 
   @DomName('OscillatorNode.SQUARE')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int SQUARE = 1;
 
   @DomName('OscillatorNode.TRIANGLE')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int TRIANGLE = 3;
 
   @DomName('OscillatorNode.UNSCHEDULED_STATE')
@@ -803,10 +870,12 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 
   @DomName('OscillatorNode.noteOff')
   @DocsEditable
+  @Experimental // untriaged
   void noteOff(num when) native;
 
   @DomName('OscillatorNode.noteOn')
   @DocsEditable
+  @Experimental // untriaged
   void noteOn(num when) native;
 
   @DomName('OscillatorNode.setWaveTable')
@@ -828,30 +897,44 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 
 @DocsEditable
 @DomName('PannerNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#PannerNode
+@Experimental
 class PannerNode extends AudioNode native "PannerNode" {
 
   @DomName('PannerNode.EQUALPOWER')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int EQUALPOWER = 0;
 
   @DomName('PannerNode.EXPONENTIAL_DISTANCE')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int EXPONENTIAL_DISTANCE = 2;
 
   @DomName('PannerNode.HRTF')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int HRTF = 1;
 
   @DomName('PannerNode.INVERSE_DISTANCE')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int INVERSE_DISTANCE = 1;
 
   @DomName('PannerNode.LINEAR_DISTANCE')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int LINEAR_DISTANCE = 0;
 
   @DomName('PannerNode.SOUNDFIELD')
   @DocsEditable
+  // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AlternateNames
+  @deprecated // deprecated
   static const int SOUNDFIELD = 2;
 
   @DomName('PannerNode.coneInnerAngle')
@@ -904,6 +987,8 @@ class PannerNode extends AudioNode native "PannerNode" {
 
 
 @DomName('ScriptProcessorNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#ScriptProcessorNode
+@Experimental
 class ScriptProcessorNode extends AudioNode native "ScriptProcessorNode" {
   Stream<AudioProcessingEvent> _eventStream;
 
@@ -950,6 +1035,8 @@ class ScriptProcessorNode extends AudioNode native "ScriptProcessorNode" {
 
 @DocsEditable
 @DomName('WaveShaperNode')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-WaveShaperNode
+@Experimental
 class WaveShaperNode extends AudioNode native "WaveShaperNode" {
 
   @DomName('WaveShaperNode.curve')
@@ -963,5 +1050,7 @@ class WaveShaperNode extends AudioNode native "WaveShaperNode" {
 
 @DocsEditable
 @DomName('WaveTable')
+// https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#WaveTable-section
+@Experimental
 class WaveTable native "WaveTable" {
 }

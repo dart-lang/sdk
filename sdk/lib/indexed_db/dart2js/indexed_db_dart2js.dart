@@ -138,6 +138,7 @@ const _annotation_Returns_IDBKey = const Returns(_idbKey);
 
 
 @DomName('IDBCursor')
+@Unstable
 class Cursor native "IDBCursor" {
   @DomName('IDBCursor.delete')
   Future delete() {
@@ -209,6 +210,7 @@ class Cursor native "IDBCursor" {
 
 @DocsEditable
 @DomName('IDBCursorWithValue')
+@Unstable
 class CursorWithValue extends Cursor native "IDBCursorWithValue" {
 
   dynamic get value => _convertNativeToDart_IDBAny(this._get_value);
@@ -230,6 +232,7 @@ class CursorWithValue extends Cursor native "IDBCursorWithValue" {
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental
+@Unstable
 class Database extends EventTarget native "IDBDatabase" {
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable
@@ -352,6 +355,7 @@ class Database extends EventTarget native "IDBDatabase" {
 @SupportedBrowser(SupportedBrowser.FIREFOX, '15')
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental
+@Unstable
 class IdbFactory native "IDBFactory" {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
@@ -481,6 +485,7 @@ Future _completeRequest(Request request) {
 
 
 @DomName('IDBIndex')
+@Unstable
 class Index native "IDBIndex" {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
@@ -639,6 +644,7 @@ class Index native "IDBIndex" {
 
 
 @DomName('IDBKeyRange')
+@Unstable
 class KeyRange native "IDBKeyRange" {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
@@ -702,6 +708,7 @@ class KeyRange native "IDBKeyRange" {
 
 
 @DomName('IDBObjectStore')
+@Unstable
 class ObjectStore native "IDBObjectStore" {
 
   @DomName('IDBObjectStore.add')
@@ -1030,6 +1037,7 @@ class ObjectStore native "IDBObjectStore" {
 
 @DocsEditable
 @DomName('IDBOpenDBRequest')
+@Unstable
 class OpenDBRequest extends Request implements EventTarget native "IDBOpenDBRequest" {
 
   @DomName('IDBOpenDBRequest.blockedEvent')
@@ -1055,6 +1063,7 @@ class OpenDBRequest extends Request implements EventTarget native "IDBOpenDBRequ
 
 @DocsEditable
 @DomName('IDBRequest')
+@Unstable
 class Request extends EventTarget native "IDBRequest" {
 
   @DomName('IDBRequest.errorEvent')
@@ -1125,6 +1134,7 @@ class Request extends EventTarget native "IDBRequest" {
 
 
 @DomName('IDBTransaction')
+@Unstable
 class Transaction extends EventTarget native "IDBTransaction" {
 
   /**
@@ -1227,6 +1237,7 @@ class Transaction extends EventTarget native "IDBTransaction" {
 
 @DocsEditable
 @DomName('IDBVersionChangeEvent')
+@Unstable
 class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
 
   @DomName('IDBVersionChangeEvent.newVersion')
@@ -1244,5 +1255,6 @@ class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
 
 @DocsEditable
 @DomName('IDBAny')
+@deprecated // nonstandard
 abstract class _IDBAny native "IDBAny" {
 }
