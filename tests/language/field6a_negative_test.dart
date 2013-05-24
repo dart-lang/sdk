@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test to catch error reporting bugs in class fields declarations.
 // Should be an error because we have a function overriding a getter.
-// VMOptions=--compile_all
 
 class A {
   int get a {
@@ -16,6 +15,7 @@ class A {
 
 class Field6aNegativeTest {
   static testMain() {
+    var a = new A();
   }
 }
 

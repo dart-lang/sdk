@@ -312,14 +312,6 @@ final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
 gc_test: Skip # Issue 1487
-field5_negative_test: Fail # Issue 10839
-field4_negative_test: Fail # Issue 10839
-field6_negative_test: Fail # Issue 10839
-non_const_super_negative_test: Fail # Issue 10839
-field2_negative_test: Fail # Issue 10839
-interface_static_method_negative_test: Fail # Issue 10839
-field1_negative_test: Fail # Issue 10839
-field6a_negative_test: Fail # Issue 10839
 
 
 [ $runtime == dartium ]
