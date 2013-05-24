@@ -1186,30 +1186,21 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                    compiledArguments[argumentIndex++]);
     }
 
-    ClassElement enclosing = function.getEnclosingClass();
     FunctionSignature signature = function.computeSignature(compiler);
-    int parameterCount = signature.parameterCount;
-    // If [function] is a generative constructor body, we need to add
-    // 1 for the new instance.
-    int typeArgumentIndex = parameterCount + (isInstanceMember ? 1 : 0);
-    if ((function.isConstructor() || function.isGenerativeConstructorBody())
-        && backend.needsRti(enclosing)) {
-      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
-        HInstruction argument = compiledArguments[typeArgumentIndex++];
-        newLocalsHandler.updateLocal(typeVariable.element, argument);
-      });
-    }
-    assert(typeArgumentIndex == compiledArguments.length);
-
-    // Check the type of the arguments.  This must be done after setting up the
-    // type variables in the [localsHandler] because the checked types may
-    // contain type variables.
     signature.orderedForEachParameter((Element parameter) {
       HInstruction argument = compiledArguments[argumentIndex++];
       newLocalsHandler.updateLocal(parameter, argument);
-      potentiallyCheckType(argument, parameter.computeType(compiler));
     });
-    assert(argumentIndex == parameterCount + (isInstanceMember ? 1 : 0));
+
+    ClassElement enclosing = function.getEnclosingClass();
+    if ((function.isConstructor() || function.isGenerativeConstructorBody())
+        && backend.needsRti(enclosing)) {
+      enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
+        HInstruction argument = compiledArguments[argumentIndex++];
+        newLocalsHandler.updateLocal(typeVariable.element, argument);
+      });
+    }
+    assert(argumentIndex == compiledArguments.length);
 
     // TODO(kasperl): Bad smell. We shouldn't be constructing elements here.
     returnElement = new ElementX(const SourceString("result"),
@@ -1257,8 +1248,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (compiler.disableInlining) return false;
     // Ensure that [element] is an implementation element.
     element = element.implementation;
-    // TODO(floitsch): we should be able to inline inside lazy initializers.
-    if (currentElement.isField()) return false;
     // TODO(floitsch): find a cleaner way to know if the element is a function
     // containing nodes.
     // [PartialFunctionElement]s are [FunctionElement]s that have [Node]s.
@@ -1304,16 +1293,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (!canBeInlined) return false;
     }
 
-    // We cannot inline methods with type variables in the signature in checked
-    // mode, because we currently do not have access to the type variables
-    // through the locals.
-    // TODO(karlklose): remove this and enable inlining of these methods.
-    if (compiler.enableTypeAssertions
-        && !element.isGenerativeConstructorBody()
-        && element.computeType(compiler).containsTypeVariables) {
-      return false;
-    }
-
     assert(canBeInlined);
     // Add an explicit null check on the receiver before doing the
     // inlining. We use [element] to get the same name in the NoSuchMethodError
@@ -1326,11 +1305,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     InliningState state = enterInlinedMethod(
         function, selector, argumentsNodes, providedArguments, currentNode);
+
     inlinedFrom(element, () {
+      FunctionSignature signature = element.computeSignature(compiler);
+      signature.orderedForEachParameter((Element parameter) {
+        HInstruction argument = localsHandler.readLocal(parameter);
+        potentiallyCheckType(argument, parameter.computeType(compiler));
+      });
       element.isGenerativeConstructor()
           ? buildFactory(element)
           : functionExpression.body.accept(this);
     });
+
     leaveInlinedMethod(state);
     return true;
   }

@@ -321,7 +321,7 @@ class FieldTypesRegistry {
     registerFieldType(fieldConstructorTypeMap, field, type);
   }
 
-  void registerFieldSetter(FunctionElement element, Element field, HType type) {
+  void registerFieldSetter(Element element, Element field, HType type) {
     HType initializerType = fieldInitializerTypeMap[field];
     HType constructorType = fieldConstructorTypeMap[field];
     HType setterType = fieldTypeMap[field];
@@ -1569,7 +1569,7 @@ class JavaScriptBackend extends Backend {
     fieldTypes.registerFieldConstructor(field, type);
   }
 
-  void registerFieldSetter(FunctionElement element, Element field, HType type) {
+  void registerFieldSetter(Element element, Element field, HType type) {
     fieldTypes.registerFieldSetter(element, field, type);
   }
 
