@@ -319,7 +319,7 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
   }
 
   void setAll(int index, Iterable<E> iterable) {
-    elements.setAll(iterable);
+    elements.setAll(index, iterable);
   }
 
   void sort([int compare(E a, E b)]) {
@@ -462,11 +462,13 @@ bool javaBooleanOr(bool a, bool b) {
 class JavaStringBuilder {
   StringBuffer sb = new StringBuffer();
   String toString() => sb.toString();
-  void append(x) {
+  JavaStringBuilder append(x) {
     sb.write(x);
+    return this;
   }
-  void appendChar(int c) {
+  JavaStringBuilder appendChar(int c) {
     sb.writeCharCode(c);
+    return this;
   }
   int get length => sb.length;
   void set length(int newLength) {

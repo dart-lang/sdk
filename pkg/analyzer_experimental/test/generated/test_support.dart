@@ -669,6 +669,9 @@ class TestSource implements Source {
   Source resolveRelative(Uri uri) {
     throw new UnsupportedOperationException();
   }
+  UriKind get uriKind {
+    throw new UnsupportedOperationException();
+  }
 }
 
 /**

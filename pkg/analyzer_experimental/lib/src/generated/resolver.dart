@@ -1994,7 +1994,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
         } else if (identifier.inGetterContext()) {
           _resolver.reportError(StaticWarningCode.UNDEFINED_GETTER, identifier, [identifier.name, targetType.name]);
         } else {
-          System.out.println("two ${identifier.name}");
+          print("two ${identifier.name}");
           _resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, identifier, [identifier.name]);
         }
       }
