@@ -796,11 +796,34 @@ unresolved_top_level_method_negative_test: fail
 unresolved_top_level_var_negative_test: fail
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
-block_scope_test: fail
-lazy_static3_test: fail
+block_scope_test: fail, OK
+lazy_static3_test: fail, OK
 
 # test issue 10752, there are 'implicit' scopes for 'if', 'while' and 'do-while'
 implicit_scope_test: fail, OK
+
+[ $compiler == dartanalyzer && $checked ]
+factory1_test/00: fail
+factory1_test/01: fail
+field_type_check2_test/01: fail
+factory_implementation_test/00: fail
+factory_redirection_test/08: fail
+factory_redirection_test/09: fail
+factory_redirection_test/10: fail
+factory_redirection_test/11: fail
+factory_redirection_test/12: fail
+factory_redirection_test/13: fail
+factory_redirection_test/14: fail
+getters_setters2_test/03: fail
+type_variable_bounds3_test/00: fail
+type_variable_bounds2_test/05: fail
+type_variable_scope_test/00: fail
+type_variable_scope_test/01: fail
+type_variable_scope_test/02: fail
+type_variable_scope_test/03: fail
+type_variable_scope_test/04: fail
+type_variable_scope_test/05: fail
+
 
 [ $arch == arm ]
 *: Skip
