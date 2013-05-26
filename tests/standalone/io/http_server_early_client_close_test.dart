@@ -18,10 +18,10 @@ Future sendData(List<int> data, int port) {
         Expect.fail("No data response was expected");
       });
     socket.add(data);
-    socket.done.then((_) {
-      socket.destroy();
-    });
-    return socket.close();
+    return socket.close()
+        .then((_) {
+          socket.destroy();
+        });
   });
 }
 
@@ -38,6 +38,7 @@ class EarlyCloseTest {
       bool calledOnError = false;
       bool calledOnDone = false;
       ReceivePort port = new ReceivePort();
+      var requestCompleter = new Completer();
       server.listen(
           (request) {
             Expect.isTrue(expectRequest);
@@ -46,13 +47,15 @@ class EarlyCloseTest {
             calledOnRequest = true;
             request.listen(
                 (_) {},
+                onDone: () {
+                  requestCompleter.complete();
+                },
                 onError: (error) {
                   Expect.isFalse(calledOnError);
                   Expect.equals(exception, error.message);
                   calledOnError = true;
                   if (exception != null) port.close();
                 });
-            server.close();
           },
           onDone: () {
             Expect.equals(expectRequest, calledOnRequest);
@@ -67,7 +70,8 @@ class EarlyCloseTest {
       if (d == null) Expect.fail("Invalid data");
       sendData(d, server.port)
          .then((_) {
-            if (!expectRequest) server.close();
+            if (!expectRequest) requestCompleter.complete();
+            requestCompleter.future.then((_) => server.close());
           });
 
       return c.future;
