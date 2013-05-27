@@ -1151,7 +1151,7 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
         case _STATE_EXTRA_ERROR:
           Object prefetch = _futureOrPrefetch;
           _clear();
-          return new _FutureImpl<bool>.error(prefetch);
+          return new _FutureImpl<bool>.immediateError(prefetch);
         case _STATE_EXTRA_DONE:
           _clear();
           return new _FutureImpl<bool>.immediate(false);
