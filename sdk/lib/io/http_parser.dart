@@ -578,7 +578,9 @@ class _HttpParser
           if (_connectionUpgrade) {
             _incoming.upgraded = true;
             _parserCalled = false;
-            _controller.add(_incoming);
+            var tmp = _incoming;
+            _closeIncoming();
+            _controller.add(tmp);
             return;
           }
           if (_transferLength == 0 ||

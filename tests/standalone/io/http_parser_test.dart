@@ -74,7 +74,6 @@ class HttpParserTest {
               bytesReceived += data.length;
             },
             onDone: () {
-              Expect.isFalse(upgraded);
               port2.close();
               Expect.equals(expectedMethod, method);
               Expect.stringEquals(expectedUri, uri.toString());
@@ -101,7 +100,6 @@ class HttpParserTest {
 
         incoming.dataDone.then((_) {
           port1.close();
-          Expect.isFalse(upgraded);
         });
       });
 
