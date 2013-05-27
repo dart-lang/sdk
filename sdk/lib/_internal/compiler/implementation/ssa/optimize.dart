@@ -50,13 +50,14 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaDeadPhiEliminator(),
           new SsaConstantFolder(constantSystem, backend, work),
           new SsaNonSpeculativeTypePropagator(compiler),
+          new SsaReceiverSpecialization(compiler),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
           // Previous optimizations may have generated new
           // opportunities for constant folding.
           new SsaConstantFolder(constantSystem, backend, work),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work),
+          new SsaSimplifyInterceptors(constantSystem),
           new SsaDeadCodeEliminator()];
       runPhases(graph, phases);
       if (!speculative) {
@@ -71,7 +72,6 @@ class SsaOptimizerTask extends CompilerTask {
       return false;
     }
     JavaScriptItemCompilationContext context = work.compilationContext;
-    ConstantSystem constantSystem = compiler.backend.constantSystem;
     return measure(() {
       SsaTypeGuardInserter inserter = new SsaTypeGuardInserter(compiler, work);
 
@@ -82,10 +82,7 @@ class SsaOptimizerTask extends CompilerTask {
           // Then run the [SsaCheckInserter] because the type propagator also
           // propagated types non-speculatively. For example, it might have
           // propagated the type array for a call to the List constructor.
-          new SsaCheckInserter(backend, work, context.boundsChecked),
-          // Run the simplified interceptor phase because some
-          // interceptors might now just be useless.
-          new SsaSimplifyInterceptors(compiler, constantSystem, work)];
+          new SsaCheckInserter(backend, work, context.boundsChecked)];
       runPhases(graph, phases);
 
       if (work.guards.isEmpty && inserter.hasInsertedChecks) {
@@ -799,8 +796,140 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
+  HInstruction visitInterceptor(HInterceptor node) {
+    if (node.isConstant()) return node;
+    // If the intercepted object does not need to be intercepted, just
+    // return the object (the [:getInterceptor:] method would have
+    // returned the object).
+    HType type = node.receiver.instructionType;
+    if (canUseSelfForInterceptor(type, node.interceptedClasses)) {
+      return node.receiver;
+    }
+    HInstruction constant = tryComputeConstantInterceptor(
+        node.inputs[0], node.interceptedClasses);
+    if (constant == null) return node;
+
+    return constant;
+  }
+
+  bool canUseSelfForInterceptor(HType receiverType,
+                                Set<ClassElement> interceptedClasses) {
+    if (receiverType.canBePrimitive(compiler)) {
+      // Primitives always need interceptors.
+      return false;
+    }
+    if (receiverType.canBeNull()
+        && interceptedClasses.contains(backend.jsNullClass)) {
+      // Need the JSNull interceptor.
+      return false;
+    }
+
+    // [interceptedClasses] is sparse - it is just the classes that define some
+    // intercepted method.  Their subclasses (that inherit the method) are
+    // implicit, so we have to extend them.
+
+    TypeMask receiverMask = receiverType.computeMask(compiler);
+    return interceptedClasses
+        .where((cls) => cls != compiler.objectClass)
+        .map((cls) => backend.classesMixedIntoNativeClasses.contains(cls)
+            ? new TypeMask.subtype(cls.rawType)
+            : new TypeMask.subclass(cls.rawType))
+        .every((mask) => receiverMask.intersection(mask, compiler).isEmpty);
+  }
+
+  HInstruction tryComputeConstantInterceptor(HInstruction input,
+                                             Set<ClassElement> intercepted) {
+    if (input == graph.explicitReceiverParameter) {
+      // If `explicitReceiverParameter` is set it means the current method is an
+      // interceptor method, and `this` is the interceptor.  The caller just did
+      // `getInterceptor(foo).currentMethod(foo)` to enter the current method.
+      return graph.thisInstruction;
+    }
+
+    HType type = input.instructionType;
+    ClassElement constantInterceptor;
+    if (type.isInteger()) {
+      constantInterceptor = backend.jsIntClass;
+    } else if (type.isDouble()) {
+      constantInterceptor = backend.jsDoubleClass;
+    } else if (type.isBoolean()) {
+      constantInterceptor = backend.jsBoolClass;
+    } else if (type.isString()) {
+      constantInterceptor = backend.jsStringClass;
+    } else if (type.isArray()) {
+      constantInterceptor = backend.jsArrayClass;
+    } else if (type.isNull()) {
+      constantInterceptor = backend.jsNullClass;
+    } else if (type.isNumber()) {
+      // If the method being intercepted is not defined in [int] or [double] we
+      // can safely use the number interceptor.  This is because none of the
+      // [int] or [double] methods are called from a method defined on [num].
+      if (!intercepted.contains(backend.jsIntClass)
+          && !intercepted.contains(backend.jsDoubleClass)) {
+        constantInterceptor = backend.jsNumberClass;
+      }
+    } else {
+      // Try to find constant interceptor for a native class.  If the receiver
+      // is constrained to a leaf native class, we can use the class's
+      // interceptor directly.
+
+      // TODO(sra): Key DOM classes like Node, Element and Event are not leaf
+      // classes.  When the receiver type is not a leaf class, we might still be
+      // able to use the receiver class as a constant interceptor.  It is
+      // usually the case that methods defined on a non-leaf class don't test
+      // for a subclass or call methods defined on a subclass.  Provided the
+      // code is completely insensitive to the specific instance subclasses, we
+      // can use the non-leaf class directly.
+
+      if (!type.canBeNull()) {
+        ClassElement element = type.computeMask(compiler).singleClass(compiler);
+        if (element != null && element.isNative()) {
+          constantInterceptor = element;
+        }
+      }
+    }
+
+    if (constantInterceptor == null) return null;
+    if (constantInterceptor == work.element.getEnclosingClass()) {
+      return graph.thisInstruction;
+    }
+
+    Constant constant = new InterceptorConstant(
+        constantInterceptor.computeType(compiler));
+    return graph.addConstant(constant);
+  }
+
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
-    return handleInterceptedCall(node);
+    HInstruction newInstruction = handleInterceptedCall(node);
+    if (newInstruction != node) return newInstruction;
+
+    HInstruction constant = tryComputeConstantInterceptor(
+        node.inputs[1], node.interceptedClasses);
+
+    if (constant == null) return node;
+
+    Selector selector = node.selector;
+    // TODO(ngeoffray): make one shot interceptors know whether
+    // they have side effects.
+    if (selector.isGetter()) {
+      HInstruction res = new HInvokeDynamicGetter(
+          selector,
+          node.element,
+          <HInstruction>[constant, node.inputs[1]],
+          false);
+      return res;
+    } else if (node.selector.isSetter()) {
+      HInstruction res = new HInvokeDynamicSetter(
+          selector,
+          node.element,
+          <HInstruction>[constant, node.inputs[1], node.inputs[2]],
+          false);
+      return res;
+    } else {
+      List<HInstruction> inputs = new List<HInstruction>.from(node.inputs);
+      inputs[0] = constant;
+      return new HInvokeDynamicMethod(selector, inputs, true);
+    }
   }
 }
 
@@ -1492,5 +1621,102 @@ class SsaConstructionFieldTypes
     allSetters.forEach((Element element) {
       backend.registerFieldConstructor(element, HType.UNKNOWN);
     });
+  }
+}
+
+/**
+ * This phase specializes dominated uses of a call, where the call
+ * can give us some type information of what the receiver might be.
+ * For example, after a call to [:a.foo():], if [:foo:] is only
+ * in class [:A:], a can be of type [:A:].
+ */
+class SsaReceiverSpecialization extends HBaseVisitor
+    implements OptimizationPhase {
+  final String name = "SsaReceiverSpecialization";
+  final Compiler compiler;
+
+  SsaReceiverSpecialization(this.compiler);
+
+  void visitGraph(HGraph graph) {
+    visitDominatorTree(graph);
+  }
+
+  void visitInterceptor(HInterceptor interceptor) {
+    HInstruction receiver = interceptor.receiver;
+    JavaScriptBackend backend = compiler.backend;
+    for (var user in receiver.usedBy) {
+      if (user is HInterceptor && interceptor.dominates(user)) {
+        Set<ClassElement> otherIntercepted = user.interceptedClasses;
+        // If the dominated interceptor intercepts the int class or
+        // the double class, we make sure these classes are also being
+        // intercepted by the dominating interceptor. Otherwise, the
+        // dominating interceptor could just intercept the number
+        // class and therefore not implement the methods in the int or
+        // double class.
+        if (otherIntercepted.contains(backend.jsIntClass)
+            || otherIntercepted.contains(backend.jsDoubleClass)) {
+          // We cannot modify the intercepted classes set without
+          // copying because it may be shared by multiple interceptors
+          // because of caching in the backend.
+          Set<ClassElement> copy = interceptor.interceptedClasses.toSet();
+          copy.addAll(user.interceptedClasses);
+          interceptor.interceptedClasses = copy;
+        }
+        user.interceptedClasses = interceptor.interceptedClasses;
+      }
+    }
+  }
+
+  // TODO(ngeoffray): Also implement it for non-intercepted calls.
+}
+
+/**
+ * This phase replaces all interceptors that are used only once with
+ * one-shot interceptors. It saves code size and makes the receiver of
+ * an intercepted call a candidate for being generated at use site.
+ */
+class SsaSimplifyInterceptors extends HBaseVisitor
+    implements OptimizationPhase {
+  final String name = "SsaSimplifyInterceptors";
+  final ConstantSystem constantSystem;
+  HGraph graph;
+
+  SsaSimplifyInterceptors(this.constantSystem);
+
+  void visitGraph(HGraph graph) {
+    this.graph = graph;
+    visitDominatorTree(graph);
+  }
+
+  void visitInterceptor(HInterceptor node) {
+    if (node.usedBy.length != 1) return;
+    // [HBailoutTarget] instructions might have the interceptor as
+    // input. In such situation we let the dead code analyzer find out
+    // the interceptor is not needed.
+    if (node.usedBy[0] is !HInvokeDynamic) return;
+
+    HInvokeDynamic user = node.usedBy[0];
+
+    // If [node] was loop hoisted, we keep the interceptor.
+    if (!user.hasSameLoopHeaderAs(node)) return;
+
+    // Replace the user with a [HOneShotInterceptor].
+    HConstant nullConstant = graph.addConstantNull(constantSystem);
+    List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
+    inputs[0] = nullConstant;
+    HOneShotInterceptor interceptor = new HOneShotInterceptor(
+        user.selector, inputs, node.interceptedClasses);
+    interceptor.sourcePosition = user.sourcePosition;
+    interceptor.sourceElement = user.sourceElement;
+    interceptor.instructionType = user.instructionType;
+
+    HBasicBlock block = user.block;
+    block.addAfter(user, interceptor);
+    block.rewrite(user, interceptor);
+    block.remove(user);
+
+    // The interceptor will be removed in the dead code elimination
+    // phase. Note that removing it here would not work because of how
+    // the [visitBasicBlock] is implemented.
   }
 }

@@ -828,10 +828,6 @@ class JavaScriptBackend extends Backend {
     return interceptedElements[name] != null;
   }
 
-  bool isInterceptedSelector(Selector selector) {
-    return interceptedElements[selector.name] != null;
-  }
-
   final Map<SourceString, Set<ClassElement>> interceptedClassesCache =
       new Map<SourceString, Set<ClassElement>>();
 
