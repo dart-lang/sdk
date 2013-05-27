@@ -18,7 +18,6 @@ typed_data/*: Skip
 math/*: Skip
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
-mirrors/library_uri_package_test: Fail # dart:mirrors not fully implemented.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 
