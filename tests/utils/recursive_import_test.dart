@@ -26,6 +26,7 @@ class Closure {}
 class Dynamic_ {}
 class Type {}
 class Null {}
+class StackTrace {}
 class LinkedHashMap {}
 getRuntimeTypeInfo(o) {}
 setRuntimeTypeInfo(o, i) {}
