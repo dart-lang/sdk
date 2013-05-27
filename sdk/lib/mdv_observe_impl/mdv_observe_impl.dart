@@ -63,38 +63,23 @@ typedef ObservableBase = Object with ObservableMixin;
  * call [notifyPropertyChange]. See that method for an example.
  */
 abstract class ObservableMixin implements Observable {
-  Set<StreamController<List<ChangeRecord>>> _observers;
-  Stream<List<ChangeRecord>> _stream;
+  StreamController _multiplexController;
   List<ChangeRecord> _changes;
 
   Stream<List<ChangeRecord>> get changes {
-    if (_observers == null) {
-      _observers = new Set<StreamController<List<ChangeRecord>>>();
+    if (_multiplexController == null) {
+      _multiplexController =
+          new StreamController<List<ChangeRecord>>.multiplex();
     }
-    StreamController controller;
-    controller = new StreamController(
-      onListen: () {
-        _observers.add(controller);
-      },
-      onCancel: () {
-        _observers.remove(controller);
-      }
-    );
-    return controller.stream;
+    return _multiplexController.stream;
   }
 
   void _deliverChanges() {
     var changes = _changes;
     _changes = null;
     if (hasObservers && changes != null) {
-      var observers =
-          _observers.toList();
-      for (var observer in observers) {
-        if (_observers.contains(observer)) {
-          // TODO(jmesserly): make "changes" immutable
-          observer.add(changes);
-        }
-      }
+      // TODO(jmesserly): make "changes" immutable
+      _multiplexController.add(changes);
     }
   }
 
@@ -102,7 +87,8 @@ abstract class ObservableMixin implements Observable {
    * True if this object has any observers, and should call
    * [notifyPropertyChange] for changes.
    */
-  bool get hasObservers => _observers != null && !_observers.isEmpty;
+  bool get hasObservers => _multiplexController != null &&
+                           _multiplexController.hasListener;
 
   /**
    * Notify that the field [name] of this object has been changed.

@@ -429,10 +429,66 @@ testRethrow() {
   testFuture("drain", (s, act) => s.drain().then(act));
 }
 
+void testMultiplex() {
+  test("multiplex-basic", () {
+    StreamController<int> c = new StreamController.multiplex(
+      onListen: expectAsync0(() {}),
+      onCancel: expectAsync0(() {})
+    );
+    Stream<int> s = c.stream;
+    s.listen(expectAsync1((x) { expect(x, equals(42)); }));
+    c.add(42);
+    c.close();
+  });
+
+  test("multiplex-listen-twice", () {
+    StreamController<int> c = new StreamController.multiplex(
+      onListen: expectAsync0(() {}),
+      onCancel: expectAsync0(() {})
+    );
+    c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }, count: 2));
+    c.add(42);
+    c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
+    c.add(42);
+    c.close();
+  });
+
+  test("multiplex-listen-twice-non-overlap", () {
+    StreamController<int> c = new StreamController.multiplex(
+      onListen: expectAsync0(() {}, count: 2),
+      onCancel: expectAsync0(() {}, count: 2)
+    );
+    var sub = c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
+    c.add(42);
+    sub.cancel();
+    c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
+    c.add(42);
+    c.close();
+  });
+
+  test("multiplex-individual-pause", () {
+    StreamController<int> c = new StreamController.multiplex(
+      onListen: expectAsync0(() {}),
+      onCancel: expectAsync0(() {})
+    );
+    var sub1 = c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
+    var sub2 = c.stream.listen(expectAsync1((x) { expect(x, equals(42)); },
+                                            count: 3));
+    c.add(42);
+    sub1.pause();
+    c.add(42);
+    sub1.cancel();
+    var sub3 = c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
+    c.add(42);
+    c.close();
+  });
+}
+
 main() {
   testController();
   testSingleController();
   testExtraMethods();
   testPause();
   testRethrow();
+  testMultiplex();
 }
