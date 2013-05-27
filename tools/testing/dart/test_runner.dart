@@ -24,6 +24,7 @@ import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";
 import "utils.dart";
+import 'record_and_replay.dart';
 
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
@@ -1337,6 +1338,10 @@ class ProcessQueue {
   int _numFailedTests = 0;
   bool _allTestsWereEnqueued = false;
 
+  // Support for recording and replaying test commands.
+  TestCaseRecorder _testCaseRecorder;
+  TestCaseOutputArchive _testCaseOutputArchive;
+
   /** The number of tests we allow to actually fail before we stop retrying. */
   int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
@@ -1380,7 +1385,9 @@ class ProcessQueue {
                this._eventListener,
                this._allDone,
                [bool verbose = false,
-                bool listTests = false])
+                bool listTests = false,
+                this._testCaseRecorder,
+                this._testCaseOutputArchive])
       : _verbose = verbose,
         _listTests = listTests,
         _tests = new Queue<TestCase>(),
@@ -1411,6 +1418,47 @@ class ProcessQueue {
   }
 
   void _runTests(List<TestSuite> testSuites) {
+    var newTest;
+    var allTestsKnown;
+
+    if (_testCaseRecorder != null) {
+      // Mode: recording.
+      newTest = _testCaseRecorder.nextTestCase;
+      allTestsKnown = () {
+        // We don't call any event*() methods, so test_progress.dart will not be
+        // notified (that's fine, since we're not running any tests).
+        _testCaseRecorder.finish();
+        _allDone();
+      };
+    } else {
+      if (_testCaseOutputArchive != null) {
+        // Mode: replaying.
+        newTest = (TestCase testCase) {
+          // We're doing this asynchronously to emulate the normal behaviour.
+          eventTestAdded(testCase);
+          Timer.run(() {
+            var output = _testCaseOutputArchive.outputOf(testCase);
+            testCase.completed();
+            eventFinishedTestCase(testCase);
+          });
+        };
+        allTestsKnown = () {
+          // If we're replaying commands, we need to call [_cleanupAndMarkDone]
+          // manually. We're putting it at the end of the event queue to make
+          // sure all the previous events were fired.
+          Timer.run(() => _cleanupAndMarkDone());
+        };
+      } else {
+        // Mode: none (we're not recording/replaying).
+        newTest = (TestCase testCase) {
+          _tests.add(testCase);
+          eventTestAdded(testCase);
+          _runTest(testCase);
+        };
+        allTestsKnown = _checkDone;
+      }
+    }
+
     // FIXME: For some reason we cannot call this method on all test suites
     // in parallel.
     // If we do, not all tests get enqueued (if --arch=all was specified,
@@ -1420,10 +1468,10 @@ class ProcessQueue {
     void enqueueNextSuite() {
       if (!iterator.moveNext()) {
         _allTestsWereEnqueued = true;
+        allTestsKnown();
         eventAllTestsKnown();
-        _checkDone();
       } else {
-        iterator.current.forEachTest(_runTest, _testCache, enqueueNextSuite);
+        iterator.current.forEachTest(newTest, _testCache, enqueueNextSuite);
       }
     }
     enqueueNextSuite();
@@ -1495,8 +1543,6 @@ class ProcessQueue {
       browserUsed = test.configuration['runtime'];
       if (_needsSelenium) _ensureSeleniumServerRunning();
     }
-    eventTestAdded(test);
-    _tests.add(test);
     _tryRunTest();
   }
 

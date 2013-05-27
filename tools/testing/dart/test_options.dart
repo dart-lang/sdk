@@ -318,7 +318,21 @@ Note: currently only implemented for dart2js.''',
               'This address is also used for browsers to connect.',
               ['--local_ip'],
               [],
-              '127.0.0.1'),];
+              '127.0.0.1'),
+          new _TestOptionSpecification(
+              'record_to_file',
+              'Records all the commands that need to be executed and writes it '
+              'out to a file.',
+              ['--record_to_file'],
+              [],
+              null),
+          new _TestOptionSpecification(
+              'replay_from_file',
+              'Records all the commands that need to be executed and writes it '
+              'out to a file.',
+              ['--replay_from_file'],
+              [],
+              null),];
   }
 
 
