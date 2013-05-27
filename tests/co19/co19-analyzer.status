@@ -68,12 +68,6 @@ Language/11_Expressions/05_Strings_A02_t48: fail
 Language/11_Expressions/06_Lists_A03_t01: fail
 Language/11_Expressions/06_Lists_A06_t01: fail
 Language/11_Expressions/07_Maps_A02_t02: fail
-Language/11_Expressions/08_Throw_A06_t01: fail
-Language/11_Expressions/08_Throw_A06_t02: fail
-Language/11_Expressions/08_Throw_A06_t03: fail
-Language/11_Expressions/08_Throw_A06_t04: fail
-Language/11_Expressions/08_Throw_A06_t05: fail
-Language/11_Expressions/08_Throw_A06_t06: fail
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t02: fail
@@ -198,6 +192,10 @@ Language/03_Overview/1_Scoping_A02_t11: fail, OK
 Language/03_Overview/1_Scoping_A02_t12: fail, OK
 Language/03_Overview/1_Scoping_A02_t16: fail, OK
 
+# co19 issue #420, 'throw' without exception; deprecated; rethrow should be used
+Language/11_Expressions/08_Throw_A05_t01: fail, OK
+Language/11_Expressions/08_Throw_A05_t02: fail, OK
+Language/11_Expressions/08_Throw_A05_t03: fail, OK
 
 
 [ $runtime == drt && $compiler == none ]
