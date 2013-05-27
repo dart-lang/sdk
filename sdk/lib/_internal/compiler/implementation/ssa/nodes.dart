@@ -2044,9 +2044,10 @@ class HStatic extends HInstruction {
 }
 
 class HInterceptor extends HInstruction {
+  // This field should originally be null to allow GVN'ing all
+  // [HInterceptor] on the same input.
   Set<ClassElement> interceptedClasses;
-  HInterceptor(this.interceptedClasses, HInstruction receiver)
-      : super(<HInstruction>[receiver]) {
+  HInterceptor(HInstruction receiver) : super(<HInstruction>[receiver]) {
     sideEffects.clearAllSideEffects();
     setUseGvn();
   }

@@ -2711,9 +2711,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  HInstruction invokeInterceptor(Set<ClassElement> intercepted,
-                                 HInstruction receiver) {
-    HInterceptor interceptor = new HInterceptor(intercepted, receiver);
+  HInstruction invokeInterceptor(HInstruction receiver) {
+    HInterceptor interceptor = new HInterceptor(receiver);
     add(interceptor);
     return interceptor;
   }
@@ -3717,13 +3716,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     HInstruction receiver = arguments[0];
-    Set<ClassElement> interceptedClasses =
-        backend.getInterceptedClassesOn(selector.name);
     List<HInstruction> inputs = <HInstruction>[];
-    bool isIntercepted = interceptedClasses != null;
+    bool isIntercepted = backend.isInterceptedSelector(selector);
     if (isIntercepted) {
-      assert(!interceptedClasses.isEmpty);
-      inputs.add(invokeInterceptor(interceptedClasses, receiver));
+      inputs.add(invokeInterceptor(receiver));
     }
     inputs.addAll(arguments);
     if (selector.isGetter()) {
@@ -3781,10 +3777,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     List<HInstruction> inputs = <HInstruction>[];
-    Set<ClassElement> interceptedClasses =
-        backend.getInterceptedClassesOn(selector.name);
-    if (interceptedClasses != null) {
-      inputs.add(invokeInterceptor(interceptedClasses, receiver));
+    if (backend.isInterceptedSelector(selector)) {
+      inputs.add(invokeInterceptor(receiver));
     }
     inputs.add(receiver);
     inputs.addAll(arguments);
