@@ -680,6 +680,20 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     }
   }
 
+  /// Returns the first type in the list or [:dynamic:] if the list is empty.
+  DartType firstType(Link<DartType> link) {
+    return link.isEmpty ? types.dynamicType : link.head;
+  }
+
+  /**
+   * Returns the second type in the list or [:dynamic:] if the list is too
+   * short.
+   */
+  DartType secondType(Link<DartType> link) {
+    return link.isEmpty || link.tail.isEmpty
+        ? types.dynamicType : link.tail.head;
+  }
+
   /**
    * Checks [: target o= value :] for some operator o, and returns the type
    * of the result. This method also handles increment/decrement expressions
@@ -701,7 +715,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
       FunctionType operatorType = operator;
       // [result] is the type of target o value.
       DartType result = operatorType.returnType;
-      DartType operatorArgument = operatorType.parameterTypes.head;
+      DartType operatorArgument = firstType(operatorType.parameterTypes);
       // Check target o value.
       bool validValue = checkAssignable(valueNode, value, operatorArgument);
       if (validValue || !(node.isPrefix || node.isPostfix)) {
@@ -732,7 +746,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
         node, base, const SourceString('[]'), MemberKind.OPERATOR);
     if (indexGet is FunctionType) {
       FunctionType indexGetType = indexGet;
-      DartType indexGetKey = indexGetType.parameterTypes.head;
+      DartType indexGetKey = firstType(indexGetType.parameterTypes);
       // Check base[key].
       bool validKey = checkAssignable(keyNode, key, indexGetKey);
 
@@ -745,7 +759,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
         FunctionType operatorType = operator;
 
         // Check base[key] o value.
-        DartType operatorArgument = operatorType.parameterTypes.head;
+        DartType operatorArgument = firstType(operatorType.parameterTypes);
         bool validValue = checkAssignable(valueNode, value, operatorArgument);
 
         // [result] is the type of base[key] o value.
@@ -756,9 +770,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
             node, base, const SourceString('[]='), MemberKind.OPERATOR);
         if (indexSet is FunctionType) {
           FunctionType indexSetType = indexSet;
-          DartType indexSetKey = indexSetType.parameterTypes.head;
-          DartType indexSetValue =
-              indexSetType.parameterTypes.tail.head;
+          DartType indexSetKey = firstType(indexSetType.parameterTypes);
+          DartType indexSetValue = secondType(indexSetType.parameterTypes);
 
           if (validKey || indexGetKey != indexSetKey) {
             // Only check base[key] on []= if base[key] was valid for [] or
@@ -793,9 +806,9 @@ class TypeCheckerVisitor implements Visitor<DartType> {
             node, base, const SourceString('[]='), MemberKind.OPERATOR);
         if (indexSet is FunctionType) {
           FunctionType indexSetType = indexSet;
-          DartType indexSetKey = indexSetType.parameterTypes.head;
+          DartType indexSetKey = firstType(indexSetType.parameterTypes);
           checkAssignable(keyNode, key, indexSetKey);
-          DartType indexSetValue = indexSetType.parameterTypes.tail.head;
+          DartType indexSetValue = secondType(indexSetType.parameterTypes);
           checkAssignable(node.assignmentOperator, value, indexSetValue);
         }
         return value;
@@ -899,7 +912,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   DartType visitLiteralList(LiteralList node) {
     InterfaceType listType = elements.getType(node);
-    DartType listElementType = listType.typeArguments.head;
+    DartType listElementType = firstType(listType.typeArguments);
     for (Link<Node> link = node.elements.nodes;
          !link.isEmpty;
          link = link.tail) {
@@ -1087,8 +1100,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   visitLiteralMap(LiteralMap node) {
     InterfaceType mapType = elements.getType(node);
-    DartType mapKeyType = mapType.typeArguments.head;
-    DartType mapValueType = mapType.typeArguments.tail.head;
+    DartType mapKeyType = firstType(mapType.typeArguments);
+    DartType mapValueType = secondType(mapType.typeArguments);
     for (Link<Node> link = node.entries.nodes;
          !link.isEmpty;
          link = link.tail) {
@@ -1122,7 +1135,15 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   visitTryStatement(TryStatement node) {
-    return unhandledStatement();
+    // TODO(johnniwinther): Use reachability information of try-block,
+    // catch-blocks and finally-block to compute the whether the try statement
+    // is returning.
+    analyze(node.tryBlock);
+    for (CatchBlock catchBlock in node.catchBlocks) {
+      analyze(catchBlock);
+    }
+    analyzeWithDefault(node.finallyBlock, null);
+    return StatementType.NOT_RETURNING;
   }
 
   visitScriptTag(ScriptTag node) {
@@ -1130,7 +1151,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   visitCatchBlock(CatchBlock node) {
-    return unhandledStatement();
+    return analyze(node.block);
   }
 
   visitTypedef(Typedef node) {

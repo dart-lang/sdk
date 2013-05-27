@@ -2975,17 +2975,25 @@ class ResolverVisitor extends MappingVisitor<Element> {
     compiler.backend.registerCatchStatement(world, mapping);
     // Check that if catch part is present, then
     // it has one or two formal parameters.
+    VariableDefinitions exceptionDefinition;
+    VariableDefinitions stackTraceDefinition;
     if (node.formals != null) {
-      if (node.formals.isEmpty) {
+      Link<Node> formalsToProcess = node.formals.nodes;
+      if (formalsToProcess.isEmpty) {
         error(node, MessageKind.EMPTY_CATCH_DECLARATION);
-      }
-      if (!node.formals.nodes.tail.isEmpty) {
-        if (!node.formals.nodes.tail.tail.isEmpty) {
-          for (Node extra in node.formals.nodes.tail.tail) {
-            error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
+      } else {
+        exceptionDefinition = formalsToProcess.head;
+        formalsToProcess = formalsToProcess.tail;
+        if (!formalsToProcess.isEmpty) {
+          stackTraceDefinition = formalsToProcess.head;
+          formalsToProcess = formalsToProcess.tail;
+          if (!formalsToProcess.isEmpty) {
+            for (Node extra in formalsToProcess) {
+              error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
+            }
           }
+          compiler.backend.registerStackTraceInCatch(mapping);
         }
-        compiler.backend.registerStackTraceInCatch(mapping);
       }
 
       // Check that the formals aren't optional and that they have no
@@ -3021,6 +3029,19 @@ class ResolverVisitor extends MappingVisitor<Element> {
     inCatchBlock = true;
     visitIn(node.block, blockScope);
     inCatchBlock = oldInCatchBlock;
+
+    if (node.type != null && exceptionDefinition != null) {
+      DartType exceptionType = mapping.getType(node.type);
+      Node exceptionVariable = exceptionDefinition.definitions.nodes.head;
+      VariableElementX exceptionElement = mapping[exceptionVariable];
+      exceptionElement.variables.type = exceptionType;
+    }
+    if (stackTraceDefinition != null) {
+      Node stackTraceVariable = stackTraceDefinition.definitions.nodes.head;
+      VariableElementX stackTraceElement = mapping[stackTraceVariable];
+      world.registerInstantiatedClass(compiler.stackTraceClass, mapping);
+      stackTraceElement.variables.type = compiler.stackTraceClass.rawType;
+    }
   }
 
   visitTypedef(Typedef node) {

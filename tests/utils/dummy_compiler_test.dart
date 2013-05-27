@@ -32,6 +32,7 @@ Future<String> provider(Uri uri) {
                   class Closure {}
                   class Dynamic_ {}
                   class Null {}
+                  class StackTrace {}
                   class LinkedHashMap {}
                   identical(a, b) => true;
                   getRuntimeTypeInfo(o) {}

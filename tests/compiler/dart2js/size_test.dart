@@ -18,6 +18,7 @@ const String DEFAULT_CORELIB_WITH_LIST = r'''
   class Function {}
   class Type {}
   class Map {}
+  class StackTrace {}
   identical(a, b) => true;
 ''';
 

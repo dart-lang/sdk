@@ -160,6 +160,7 @@ const String DEFAULT_CORELIB = r'''
     String toString() { return null; }
     noSuchMethod(im) { throw im; }
   }
+  abstract class StackTrace {}
   class Type {}
   class Function {}
   class List<E> {}

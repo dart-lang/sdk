@@ -31,6 +31,7 @@ main() {
                 testReturn,
                 testFor,
                 testWhile,
+                testTry,
                 testOperators,
                 testConstructorInvocationArgumentCount,
                 testConstructorInvocationArgumentTypes,
@@ -105,6 +106,21 @@ testWhile() {
   analyze("do {} while ('');", MessageKind.NOT_ASSIGNABLE);
   analyze("do { int i = 0.5; } while (true);", MessageKind.NOT_ASSIGNABLE);
   analyze("do { int i = 0.5; } while (null);", MessageKind.NOT_ASSIGNABLE);
+}
+
+testTry() {
+  analyze("try {} finally {}");
+  analyze("try {} catch (e) { int i = e;} finally {}");
+  analyze("try {} catch (e, s) { int i = e; StackTrace j = s; } finally {}");
+  analyze("try {} on String catch (e) {} finally {}");
+  analyze("try { int i = ''; } finally {}", MessageKind.NOT_ASSIGNABLE);
+  analyze("try {} finally { int i = ''; }", MessageKind.NOT_ASSIGNABLE);
+  analyze("try {} on String catch (e) { int i = e; } finally {}",
+      MessageKind.NOT_ASSIGNABLE);
+  analyze("try {} catch (e, s) { int i = e; int j = s; } finally {}",
+      MessageKind.NOT_ASSIGNABLE);
+  analyze("try {} on String catch (e, s) { int i = e; int j = s; } finally {}",
+      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
 }
 
 testOperators() {

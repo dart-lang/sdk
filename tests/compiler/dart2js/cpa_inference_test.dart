@@ -167,6 +167,7 @@ const String CORELIB = r'''
   class Closure {}
   class Null {}
   class Type {}
+  class StackTrace {}
   class Dynamic_ {}
   bool identical(Object a, Object b) {}''';
 

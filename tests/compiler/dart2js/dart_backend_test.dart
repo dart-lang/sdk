@@ -29,6 +29,7 @@ class Dynamic_ {}
 class Null {}
 class TypeError {}
 class Type {}
+class StackTrace {}
 class LinkedHashMap {}
 class Math {
   static double parseDouble(String s) => 1.0;
