@@ -9,7 +9,6 @@ import "dart:async";
 import "dart:collection";
 
 class StreamProtocolTest {
-  bool trace = false;
   StreamController _controller;
   Stream _controllerStream;
   StreamSubscription _subscription;
@@ -21,8 +20,9 @@ class StreamProtocolTest {
     _controller = new StreamController(
           onListen: _onSubcription,
           onPause: _onPause,
-          onResume: _onResume,
-          onCancel: _onCancel);
+          onResume: _onPause,
+          onCancel: _onSubcription);
+    // TODO(lrn): Make it work with multiple subscribers too.
     if (broadcast) {
       _controllerStream = _controller.stream.asBroadcastStream();
     } else {
@@ -54,7 +54,7 @@ class StreamProtocolTest {
     _subscription.pause(resumeSignal);
   }
 
-  void resume() {
+  void resume([Future resumeSignal]) {
     if (_subscription == null) throw new StateError("Not subscribed");
     _subscription.resume();
   }
@@ -67,7 +67,6 @@ class StreamProtocolTest {
 
   // Handling of stream events.
   void _onData(var data) {
-    if (trace) print("[Data : $data]");
     _withNextExpectation((Event expect) {
       if (!expect.matchData(data)) {
         _fail("Expected: $expect\n"
@@ -77,17 +76,15 @@ class StreamProtocolTest {
   }
 
   void _onError(error) {
-    if (trace) print("[Error : $error]");
     _withNextExpectation((Event expect) {
       if (!expect.matchError(error)) {
         _fail("Expected: $expect\n"
-              "Found   : [Error: ${error}]");
+              "Found   : [Data: ${error}]");
       }
     });
   }
 
   void _onDone() {
-    if (trace) print("[Done]");
     _subscription = null;
     _withNextExpectation((Event expect) {
       if (!expect.matchDone()) {
@@ -98,41 +95,20 @@ class StreamProtocolTest {
   }
 
   void _onPause() {
-    if (trace) print("[Pause]");
     _withNextExpectation((Event expect) {
-      if (!expect.matchPause()) {
+      if (!expect.matchPauseChange(_controller)) {
         _fail("Expected: $expect\n"
-              "Found   : [Paused]");
-      }
-    });
-  }
-
-  void _onResume() {
-    if (trace) print("[Resumed]");
-    _withNextExpectation((Event expect) {
-      if (!expect.matchResume()) {
-        _fail("Expected: $expect\n"
-              "Found   : [Resumed]");
+              "Found   : [Paused:${_controller.isPaused}]");
       }
     });
   }
 
   void _onSubcription() {
-    if (trace) print("[Subscribed]");
     _withNextExpectation((Event expect) {
-      if (!expect.matchSubscribe()) {
+      if (!expect.matchSubscriptionChange(_controller)) {
         _fail("Expected: $expect\n"
-              "Found: [Subscribed]");
-      }
-    });
-  }
-
-  void _onCancel() {
-    if (trace) print("[Cancelled]");
-    _withNextExpectation((Event expect) {
-      if (!expect.matchCancel()) {
-        _fail("Expected: $expect\n"
-              "Found: [Cancelled]");
+              "Found: [Has listener:${_controller.hasListener}, "
+                      "Paused:${_controller.isPaused}]");
       }
     });
   }
@@ -141,10 +117,9 @@ class StreamProtocolTest {
     if (_nextExpectationIndex == _expectations.length) {
       action(new MismatchEvent());
     } else {
-      Event next = _expectations[_nextExpectationIndex];
+      Event next = _expectations[_nextExpectationIndex++];
       action(next);
     }
-    _nextExpectationIndex++;
     _checkDone();
   }
 
@@ -180,31 +155,18 @@ class StreamProtocolTest {
     }
     _expectations.add(new DoneEvent(action));
   }
-  void expectPause([void action()]) {
+  void expectPause(bool isPaused, [void action()]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
-    _expectations.add(new PauseCallbackEvent(action));
+    _expectations.add(new PauseCallbackEvent(isPaused, action));
   }
-  void expectResume([void action()]) {
-    if (_onComplete == null) {
-      _fail("Adding expectation after completing");
-    }
-    _expectations.add(new ResumeCallbackEvent(action));
-  }
-  void expectSubscription([void action()]) {
+  void expectSubscription(bool hasListener, bool isPaused, [void action()]) {
     if (_onComplete == null) {
       _fail("Adding expectation after completing");
     }
     _expectations.add(
-          new SubscriptionCallbackEvent(action));
-  }
-  void expectCancel([void action()]) {
-    if (_onComplete == null) {
-      _fail("Adding expectation after completing");
-    }
-    _expectations.add(
-          new CancelCallbackEvent(action));
+          new SubscriptionCallbackEvent(hasListener, isPaused, action));
   }
 
   void _fail(String message) {
@@ -214,6 +176,11 @@ class StreamProtocolTest {
     throw "Unexpected event:\n$message\nMatched so far:\n"
           " ${_expectations.take(_nextExpectationIndex).join("\n ")}";
   }
+}
+
+class EventCollector {
+  final Queue<Event> events = new Queue<Event>();
+
 }
 
 class Event {
@@ -235,23 +202,13 @@ class Event {
     if (_action != null) _action();
     return true;
   }
-  bool matchPause() {
-    if (!_testPause()) return false;
+  bool matchPauseChange(StreamController c) {
+    if (!_testPause(c)) return false;
     if (_action != null) _action();
     return true;
   }
-  bool matchResume() {
-    if (!_testResume()) return false;
-    if (_action != null) _action();
-    return true;
-  }
-  bool matchSubscribe() {
-    if (!_testSubscribe()) return false;
-    if (_action != null) _action();
-    return true;
-  }
-  bool matchCancel() {
-    if (!_testCancel()) return false;
+  bool matchSubscriptionChange(StreamController c) {
+    if (!_testSubscribe(c)) return false;
     if (_action != null) _action();
     return true;
   }
@@ -259,10 +216,8 @@ class Event {
   bool _testData(_) => false;
   bool _testError(_) => false;
   bool _testDone() => false;
-  bool _testPause() => false;
-  bool _testResume() => false;
-  bool _testSubscribe() => false;
-  bool _testCancel() => false;
+  bool _testPause(_) => false;
+  bool _testSubscribe(_) => false;
 }
 
 class MismatchEvent extends Event {
@@ -291,27 +246,22 @@ class DoneEvent extends Event {
 }
 
 class PauseCallbackEvent extends Event {
-  PauseCallbackEvent(void action()) : super(action);
-  bool _testPause() => true;
-  String toString() => "[Paused]";
-}
-
-class ResumeCallbackEvent extends Event {
-  ResumeCallbackEvent(void action()) : super(action);
-  bool _testResume() => true;
-  String toString() => "[Resumed]";
+  final bool isPaused;
+  PauseCallbackEvent(this.isPaused, void action())
+      : super(action);
+  bool _testPause(StreamController c) => isPaused == c.isPaused;
+  String toString() => "[Paused:$isPaused]";
 }
 
 class SubscriptionCallbackEvent extends Event {
-  SubscriptionCallbackEvent(void action()) : super(action);
-  bool _testSubscribe() => true;
-  String toString() => "[Subscribed]";
-}
-
-class CancelCallbackEvent extends Event {
-  CancelCallbackEvent(void action()) : super(action);
-  bool _testCancel() => true;
-  String toString() => "[Cancelled]";
+  final bool hasListener;
+  final bool isPaused;
+  SubscriptionCallbackEvent(this.hasListener, this.isPaused, void action())
+      : super(action);
+  bool _testSubscribe(StreamController c) {
+    return hasListener == c.hasListener && isPaused == c.isPaused;
+  }
+  String toString() => "[Has listener:$hasListener, Paused:$isPaused]";
 }
 
 
@@ -330,20 +280,12 @@ class LogAnyEvent extends Event {
     _actual = "*[Done]";
     return true;
   }
-  bool _testPause() {
-    _actual = "*[Paused]";
+  bool _testPause(StreamController c) {
+    _actual = "*[Paused:${c.isPaused}]";
     return true;
   }
-  bool _testResume() {
-    _actual = "*[Resumed]";
-    return true;
-  }
-  bool _testSubcribe() {
-    _actual = "*[Subscribed]";
-    return true;
-  }
-  bool _testCancel() {
-    _actual = "*[Cancelled]";
+  bool _testSubcribe(StreamController c) {
+    _actual = "*[Has listener:${c.hasListener}, Paused:${c.isPaused}]";
     return true;
   }
 

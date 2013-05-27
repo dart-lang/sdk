@@ -101,10 +101,11 @@ class MimeMultipartTransformer
 
   Stream<MimeMultipart> bind(Stream<List<int>> stream) {
     _controller = new StreamController(
-        onPause: _pauseStream,
-        onResume:_resumeStream,
-        onCancel: () {
-          _subscription.cancel();
+        onPause: () {
+          _pauseStream();
+        },
+        onResume: () {
+          _resumeStream();
         },
         onListen: () {
           _subscription = stream.listen(
@@ -125,6 +126,9 @@ class MimeMultipartTransformer
               onError: (error) {
                 _controller.addError(error);
               });
+        },
+        onCancel: () {
+          _subscription.cancel();
         });
     return _controller.stream;
   }

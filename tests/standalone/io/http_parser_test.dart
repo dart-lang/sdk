@@ -204,24 +204,6 @@ class HttpParserTest {
       controller = new StreamController();
       var port = new ReceivePort();
       controller.stream.pipe(httpParser);
-      int doneCallCount = 0;
-      // Called when done parsing entire message and done parsing body.
-      // Only executed when both are done.
-      void whenDone() {
-        doneCallCount++;
-        if (doneCallCount < 2) return;
-        Expect.equals(expectedVersion, headers.protocolVersion);
-        Expect.equals(expectedStatusCode, statusCode);
-        Expect.equals(expectedReasonPhrase, reasonPhrase);
-        Expect.isTrue(headersCompleteCalled);
-        Expect.equals(expectedBytesReceived, bytesReceived);
-        if (!upgrade) {
-          Expect.isTrue(dataEndCalled);
-          if (close) Expect.isTrue(dataEndClose);
-          Expect.equals(dataEndClose, connectionClose);
-        }
-      };
-
       var subscription = httpParser.listen((incoming) {
         port.close();
         statusCode = incoming.statusCode;
@@ -248,9 +230,21 @@ class HttpParserTest {
             onDone: () {
               dataEndCalled = true;
               dataEndClose = close;
-              whenDone();
             });
-      }, onDone: whenDone);
+      });
+
+      subscription.onDone(() {
+        Expect.equals(expectedVersion, headers.protocolVersion);
+        Expect.equals(expectedStatusCode, statusCode);
+        Expect.equals(expectedReasonPhrase, reasonPhrase);
+        Expect.isTrue(headersCompleteCalled);
+        Expect.equals(expectedBytesReceived, bytesReceived);
+        if (!upgrade) {
+          Expect.isTrue(dataEndCalled);
+          if (close) Expect.isTrue(dataEndClose);
+          Expect.equals(dataEndClose, connectionClose);
+        }
+      });
 
       headersCompleteCalled = false;
       dataEndCalled = false;

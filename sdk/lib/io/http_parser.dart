@@ -928,6 +928,14 @@ class _HttpParser
   }
 
   void _pauseStateChanged() {
+    void update(bool pause) {
+      if (pause && !_socketSubscription.isPaused) {
+        _socketSubscription.pause();
+      } else if (!pause && _socketSubscription.isPaused) {
+        _socketSubscription.resume();
+      }
+    }
+
     if (_incoming != null) {
       if (!_bodyPaused && !_parserCalled) {
         _parse();

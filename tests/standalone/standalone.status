@@ -111,6 +111,7 @@ byte_array_test: Fail, OK # ByteArray
 deoptimization_test: Fail, OK # Requires bigint.
 out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
 io/options_test: Fail, OK # Cannot pass options to d8.
+io/http_parser_test: Fail, OK # Cancelling a Timer not implemented in d8/jsshell.
 
 [ $compiler == dart2js && $runtime == none ]
 io/options_test: Fail

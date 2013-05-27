@@ -70,8 +70,7 @@ class ObservableList<E> extends _ListBaseWorkaround with ObservableMixin
   void operator []=(int index, E value) {
     var oldValue = _list[index];
     if (hasObservers) {
-      _recordChange(new ListChangeRecord(index, addedCount: 1,
-                                                removedCount: 1));
+      _recordChange(new ListChangeRecord(index, addedCount: 1, removedCount: 1));
     }
     _list[index] = value;
   }

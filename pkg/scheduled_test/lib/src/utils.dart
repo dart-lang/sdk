@@ -94,38 +94,27 @@ Stream futureStream(Future<Stream> future) {
   return controller.stream;
 }
 
-/// Returns the first element of a [StreamIterator].
-///
-/// If the [StreamIterator] has no elements, the result is a state error.
-Future<String> streamIteratorFirst(StreamIterator<String> streamIterator) {
-  StackTrace stackTrace = new Trace.current();
-  return streamIterator.moveNext().then((hasNext) {
-    if (hasNext) {
-      return streamIterator.current;
-    } else {
-      return new Future.error(new StateError("No elements"), stackTrace);
-    }
-  });
-}
-
-/// Collects all remaining lines from a [StreamIterator] of lines.
-///
-/// Returns the concatenation of the collected lines joined by newlines.
-Future<String> concatRest(StreamIterator<String> streamIterator) {
-  var completer = new Completer<String>();
-  var buffer = new StringBuffer();
-  void collectAll() {
-    streamIterator.moveNext().then((hasNext) {
-      if (hasNext) {
-        if (!buffer.isEmpty) buffer.write('\n');
-        buffer.write(streamIterator.current);
-        collectAll();
-      } else {
-        completer.complete(buffer.toString());
-      }
-    }, onError: completer.completeError);
+// TODO(nweiz): remove this when issue 7964 is fixed.
+/// Returns a [Future] that will complete to the first element of [stream].
+/// Unlike [Stream.first], this is safe to use with single-subscription streams.
+Future streamFirst(Stream stream) {
+  var stackTrace;
+  try {
+    throw '';
+  } catch (_, thrownStackTrace) {
+    stackTrace = thrownStackTrace;
   }
-  collectAll();
+
+  var completer = new Completer();
+  var subscription;
+  subscription = stream.listen((value) {
+    subscription.cancel();
+    completer.complete(value);
+  }, onError: (e) {
+    completer.completeError(e);
+  }, onDone: () {
+    completer.completeError(new StateError("No elements"), stackTrace);
+  }, cancelOnError: true);
   return completer.future;
 }
 

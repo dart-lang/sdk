@@ -548,9 +548,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
 
   void _cancel() {
     if (_subscription != null) {
-      StreamSubscription subscription = _subscription;
-      _subscription = null;
-      subscription.cancel();
+      _subscription.cancel();
     }
   }
 

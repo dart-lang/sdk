@@ -129,7 +129,7 @@ class ErrorGroup {
 
     _isDone = true;
     _done._signalError(error);
-    if (!caught && !_done._hasListeners) runAsync((){ throw error; });
+    if (!caught && !_done._hasListeners) error.throwDelayed();
   }
 
   /// Notifies [this] that one of its member [Future]s is complete.
