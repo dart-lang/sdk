@@ -190,7 +190,7 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
     }
   }
 
-  HType visitInvokeDynamicMethod(HInvokeDynamicMethod instruction) {
+  HType visitInvokeDynamic(HInvokeDynamic instruction) {
     // Update the pending optimizations map based on the potentially
     // new types of the operands. If the operand types no longer allow
     // us to optimize, we remove the pending optimization.
@@ -208,7 +208,7 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
         pendingOptimizations.remove(instruction);
       }
     }
-    return super.visitInvokeDynamicMethod(instruction);
+    return super.visitInvokeDynamic(instruction);
   }
 }
 
