@@ -1885,35 +1885,33 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
-  if (!type_arguments().IsUninstantiatedIdentity() &&
-      !type_arguments().CanShareInstantiatorTypeArguments(
-          instantiator_class())) {
-    // If the instantiator is null and if the type argument vector
-    // instantiated from null becomes a vector of dynamic, then use null as
-    // the type arguments.
-    Label type_arguments_instantiated;
-    const intptr_t len = type_arguments().Length();
-    if (type_arguments().IsRawInstantiatedRaw(len)) {
-      const Immediate& raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ cmpq(instantiator_reg, raw_null);
-      __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-    }
-    // Instantiate non-null type arguments.
-    // A runtime call to instantiate the type arguments is required.
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ PushObject(type_arguments());
-    __ pushq(instantiator_reg);  // Push instantiator type arguments.
-    compiler->GenerateCallRuntime(token_pos(),
-                                  deopt_id(),
-                                  kInstantiateTypeArgumentsRuntimeEntry,
-                                  locs());
-    __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
-    __ popq(result_reg);  // Pop instantiated type arguments.
-    __ Bind(&type_arguments_instantiated);
+  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
+         !type_arguments().CanShareInstantiatorTypeArguments(
+             instantiator_class()));
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpq(instantiator_reg, raw_null);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   }
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(type_arguments());
+  __ pushq(instantiator_reg);  // Push instantiator type arguments.
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kInstantiateTypeArgumentsRuntimeEntry,
+                                locs());
+  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
+  __ popq(result_reg);  // Pop instantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
-  // 'result_reg': Instantiated type arguments.
 }
 
 

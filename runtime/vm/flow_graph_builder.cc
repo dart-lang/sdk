@@ -2299,10 +2299,16 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
       owner()->parsed_function().function().Owner());
   Value* instantiator_value =
       BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
-  return Bind(new InstantiateTypeArgumentsInstr(token_pos,
-                                                type_arguments,
-                                                instantiator_class,
-                                                instantiator_value));
+  const bool use_instantiator_type_args =
+      type_arguments.IsUninstantiatedIdentity() ||
+      type_arguments.CanShareInstantiatorTypeArguments(
+          instantiator_class);
+  return use_instantiator_type_args
+      ? instantiator_value
+      : Bind(new InstantiateTypeArgumentsInstr(token_pos,
+                                               type_arguments,
+                                               instantiator_class,
+                                               instantiator_value));
 }
 
 

@@ -1605,39 +1605,37 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
-  if (!type_arguments().IsUninstantiatedIdentity() &&
-      !type_arguments().CanShareInstantiatorTypeArguments(
-          instantiator_class())) {
-    // If the instantiator is null and if the type argument vector
-    // instantiated from null becomes a vector of dynamic, then use null as
-    // the type arguments.
-    Label type_arguments_instantiated;
-    const intptr_t len = type_arguments().Length();
-    if (type_arguments().IsRawInstantiatedRaw(len)) {
-      __ beq(instantiator_reg, NULLREG, &type_arguments_instantiated);
-    }
-    // Instantiate non-null type arguments.
-    // A runtime call to instantiate the type arguments is required.
-    __ addiu(SP, SP, Immediate(-3 * kWordSize));
-    __ LoadObject(TMP1, Object::ZoneHandle());
-    __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
-    __ LoadObject(TMP1, type_arguments());
-    __ sw(TMP1, Address(SP, 1 * kWordSize));
-    // Push instantiator type arguments.
-    __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
-
-    compiler->GenerateCallRuntime(token_pos(),
-                                  deopt_id(),
-                                  kInstantiateTypeArgumentsRuntimeEntry,
-                                  locs());
-    // Pop instantiated type arguments.
-    __ lw(result_reg, Address(SP, 2 * kWordSize));
-    // Drop instantiator and uninstantiated type arguments.
-    __ addiu(SP, SP, Immediate(3 * kWordSize));
-    __ Bind(&type_arguments_instantiated);
+  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
+         !type_arguments().CanShareInstantiatorTypeArguments(
+             instantiator_class()));
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    __ beq(instantiator_reg, NULLREG, &type_arguments_instantiated);
   }
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ LoadObject(TMP1, Object::ZoneHandle());
+  __ sw(TMP1, Address(SP, 2 * kWordSize));  // Make room for the result.
+  __ LoadObject(TMP1, type_arguments());
+  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  // Push instantiator type arguments.
+  __ sw(instantiator_reg, Address(SP, 0 * kWordSize));
+
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kInstantiateTypeArgumentsRuntimeEntry,
+                                locs());
+  // Pop instantiated type arguments.
+  __ lw(result_reg, Address(SP, 2 * kWordSize));
+  // Drop instantiator and uninstantiated type arguments.
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
+  __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
-  // 'result_reg': Instantiated type arguments.
 }
 
 
