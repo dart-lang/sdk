@@ -22,7 +22,7 @@ async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 
 [ $csp ]
-mirrors/library_uri_package_test: Fail # Issue 6490
+mirrors/library_uri_package_test: Fail, Pass # Issue 6490
 
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.
