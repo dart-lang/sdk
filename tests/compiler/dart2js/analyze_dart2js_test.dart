@@ -5,8 +5,7 @@
 library analyze_api;
 
 import "package:expect/expect.dart";
-import 'dart:uri';
-import '../../../sdk/lib/_internal/libraries.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import 'analyze_helper.dart';
 
 /**
@@ -20,21 +19,11 @@ import 'analyze_helper.dart';
  */
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
-const Map<String, List<String>> WHITE_LIST = const {
-  'html_dart2js.dart':
-      const ['Warning: Using "new Symbol"', // Issue 10565.
-             // Issue 10688:
-             'Warning: no property named',
-             "Warning: 'UnsupportedError' is not callable",
-             "Warning: no operator [] in class Iterable"],
+const Map<String,List<String>> WHITE_LIST = const {
 };
 
 void main() {
-  var uriList = new List<Uri>();
-  LIBRARIES.forEach((String name, LibraryInfo info) {
-    if (info.documented) {
-      uriList.add(new Uri.fromComponents(scheme: 'dart', path: name));
-    }
-  });
-  analyze(uriList, WHITE_LIST);
+  var uri = currentDirectory.resolve(
+      'sdk/lib/_internal/compiler/implementation/dart2js.dart');
+  analyze([uri], WHITE_LIST);
 }

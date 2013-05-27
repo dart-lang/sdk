@@ -1741,7 +1741,8 @@ class CodeEmitterTask extends CompilerTask {
     List<Constant> constants = handler.getConstantsForEmission();
     for (Constant constant in constants) {
       if (constant is InterceptorConstant) {
-        needed.add(constant.dispatchedType.element);
+        InterceptorConstant inceptorConstant = constant;
+        needed.add(inceptorConstant.dispatchedType.element);
       }
     }
 

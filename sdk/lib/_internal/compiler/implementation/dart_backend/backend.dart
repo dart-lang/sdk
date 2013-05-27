@@ -77,8 +77,10 @@ class FunctionBodyRewriter extends CloningVisitor {
   visitBlock(Block block) {
     shouldOmit(Statement statement) {
       if (statement is EmptyStatement) return true;
-      if (statement is ExpressionStatement) {
-        Send send = statement.expression.asSend();
+      ExpressionStatement expressionStatement =
+          statement.asExpressionStatement();
+      if (expressionStatement != null) {
+        Send send = expressionStatement.expression.asSend();
         if (send != null) {
           Element element = originalTreeElements[send];
           if (stripAsserts && identical(element, compiler.assertMethod)) {
@@ -90,8 +92,9 @@ class FunctionBodyRewriter extends CloningVisitor {
     }
 
     rewriteStatement(Statement statement) {
-      if (statement is Block) {
-        Link statements = statement.statements.nodes;
+      Block block = statement.asBlock();
+      if (block != null) {
+        Link statements = block.statements.nodes;
         if (!statements.isEmpty && statements.tail.isEmpty) {
           Statement single = statements.head;
           bool isDeclaration =
@@ -150,7 +153,8 @@ class DartBackend extends Backend {
       if (typeArguments == null) return;
       for (Node typeArgument in typeArguments.nodes) {
         if (typeArgument is TypeVariable) {
-          typeArgument = typeArgument.bound;
+          TypeVariable typeVariable = typeArgument;
+          typeArgument = typeVariable.bound;
         }
         if (typeArgument == null) continue;
         assert(typeArgument is TypeAnnotation);

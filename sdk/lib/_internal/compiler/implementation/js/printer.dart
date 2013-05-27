@@ -161,7 +161,8 @@ class Printer implements NodeVisitor {
 
   void blockOutWithoutBraces(Node node) {
     if (node is Block) {
-      node.statements.forEach(blockOutWithoutBraces);
+      Block block = node;
+      block.statements.forEach(blockOutWithoutBraces);
     } else {
       visit(node);
     }

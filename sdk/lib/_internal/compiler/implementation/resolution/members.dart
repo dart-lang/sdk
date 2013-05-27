@@ -41,8 +41,9 @@ class TreeElementMapping implements TreeElements {
 
   operator []=(Node node, Element element) {
     assert(invariant(node, () {
-      if (node is FunctionExpression) {
-        return !node.modifiers.isExternal();
+      FunctionExpression functionExpression = node.asFunctionExpression();
+      if (functionExpression != null) {
+        return !functionExpression.modifiers.isExternal();
       }
       return true;
     }));

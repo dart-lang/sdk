@@ -37,7 +37,8 @@ class Environment {
     // for parameters that are not 'this', which is always passed as
     // the receiver.
     if (instruction is HCheck) {
-      add(instruction.checkedInput);
+      HCheck check = instruction;
+      add(check.checkedInput);
     } else if (!instruction.isCodeMotionInvariant()
                || (instruction is HParameterValue && instruction is !HThis)) {
       lives.add(instruction);

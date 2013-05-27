@@ -604,7 +604,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // argument.
     bool needsAssignment = true;
     if (instruction is HTypeConversion) {
-      String inputName = variableNames.getName(instruction.checkedInput);
+      HTypeConversion typeConversion = instruction;
+      String inputName = variableNames.getName(typeConversion.checkedInput);
       if (variableNames.getName(instruction) == inputName) {
         needsAssignment = false;
       }
@@ -805,7 +806,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               // go away.
               List<js.Expression> expressions;
               if (jsInitialization is js.Sequence) {
-                expressions = jsInitialization.expressions;
+                js.Sequence sequence = jsInitialization;
+                expressions = sequence.expressions;
               } else {
                 expressions = <js.Expression>[jsInitialization];
               }
@@ -1848,7 +1850,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (input is HIs) {
       emitIs(input, '!==');
     } else if (input is HIdentity && generateAtUseSite) {
-      emitIdentityComparison(input.left, input.right, true);
+      HIdentity identity = input;
+      emitIdentityComparison(identity.left, identity.right, true);
     } else if (input is HBoolify && generateAtUseSite) {
       use(input.inputs[0]);
       push(new js.Binary("!==", pop(), newLiteralBool(true)), input);
@@ -2724,7 +2727,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   // find the name of its checked input. Note that there must be a
   // name, otherwise the instruction would not be in the live
   // environment.
-  HInstruction unwrap(HInstruction argument) {
+  HInstruction unwrap(var argument) {
     while (argument is HCheck && !variableNames.hasName(argument)) {
       argument = argument.checkedInput;
     }

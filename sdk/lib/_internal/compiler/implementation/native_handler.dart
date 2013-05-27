@@ -286,7 +286,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     return compiler.withCurrentElement(element, () {
       Node node = element.parseNode(compiler);
       if (node is! FunctionExpression) return false;
-      node = node.body;
+      FunctionExpression functionExpression = node;
+      node = functionExpression.body;
       Token token = node.getBeginToken();
       if (identical(token.stringValue, 'native')) return true;
       return false;
@@ -783,10 +784,11 @@ class NativeBehavior {
   void _escape(DartType type, Compiler compiler) {
     type = type.unalias(compiler);
     if (type is FunctionType) {
+      FunctionType functionType = type;
       // A function might be called from native code, passing us novel
       // parameters.
-      _escape(type.returnType, compiler);
-      for (Link<DartType> parameters = type.parameterTypes;
+      _escape(functionType.returnType, compiler);
+      for (Link<DartType> parameters = functionType.parameterTypes;
            !parameters.isEmpty;
            parameters = parameters.tail) {
         _capture(parameters.head, compiler);
@@ -800,8 +802,9 @@ class NativeBehavior {
   void _capture(DartType type, Compiler compiler) {
     type = type.unalias(compiler);
     if (type is FunctionType) {
-      _capture(type.returnType, compiler);
-      for (Link<DartType> parameters = type.parameterTypes;
+      FunctionType functionType = type;
+      _capture(functionType.returnType, compiler);
+      for (Link<DartType> parameters = functionType.parameterTypes;
            !parameters.isEmpty;
            parameters = parameters.tail) {
         _escape(parameters.head, compiler);
