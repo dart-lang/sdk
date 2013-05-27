@@ -4285,14 +4285,6 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!compiler->is_optimizing()) {
-    // Add deoptimization descriptor for deoptimizing instructions that may
-    // be inserted before this instruction.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   GetDeoptId(),
-                                   0);  // No token position.
-  }
-
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

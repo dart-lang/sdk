@@ -649,12 +649,8 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
       AddCurrentDescriptor(PcDescriptors::kDeopt,
                            assert->deopt_id(),
                            assert->token_pos());
-    } else if (instr->IsGuardField()) {
-      GuardFieldInstr* guard = instr->AsGuardField();
-      AddCurrentDescriptor(PcDescriptors::kDeopt,
-                           guard->deopt_id(),
-                           Scanner::kDummyTokenIndex);
-    } else if (instr->CanBeDeoptimizationTarget()) {
+    } else if (instr->IsGuardField() ||
+               instr->CanBecomeDeoptimizationTarget()) {
       AddCurrentDescriptor(PcDescriptors::kDeopt,
                            instr->deopt_id(),
                            Scanner::kDummyTokenIndex);
