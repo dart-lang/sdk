@@ -197,15 +197,11 @@ Future<HttpServer> setupServer() {
         (HttpRequest request, HttpResponse response) {
           request.listen((_) {}, onDone: () {
             Expect.equals("POST", request.method);
-            request.listen(
-                (_) {},
-                onDone: () {
-                  response.headers.set(
-                      HttpHeaders.LOCATION,
-                      "http://127.0.0.1:${server.port}/303target");
-                  response.statusCode = HttpStatus.SEE_OTHER;
-                  response.close();
-                });
+            response.headers.set(
+                HttpHeaders.LOCATION,
+                "http://127.0.0.1:${server.port}/303target");
+            response.statusCode = HttpStatus.SEE_OTHER;
+            response.close();
           });
         });
     addRequestHandler(

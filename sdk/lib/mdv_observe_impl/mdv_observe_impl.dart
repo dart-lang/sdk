@@ -63,24 +63,38 @@ typedef ObservableBase = Object with ObservableMixin;
  * call [notifyPropertyChange]. See that method for an example.
  */
 abstract class ObservableMixin implements Observable {
-  StreamController<List<ChangeRecord>> _observers;
+  Set<StreamController<List<ChangeRecord>>> _observers;
   Stream<List<ChangeRecord>> _stream;
   List<ChangeRecord> _changes;
 
   Stream<List<ChangeRecord>> get changes {
     if (_observers == null) {
-      _observers = new StreamController<List<ChangeRecord>>();
-      _stream = _observers.stream.asBroadcastStream();
+      _observers = new Set<StreamController<List<ChangeRecord>>>();
     }
-    return _stream;
+    StreamController controller;
+    controller = new StreamController(
+      onListen: () {
+        _observers.add(controller);
+      },
+      onCancel: () {
+        _observers.remove(controller);
+      }
+    );
+    return controller.stream;
   }
 
   void _deliverChanges() {
     var changes = _changes;
     _changes = null;
     if (hasObservers && changes != null) {
-      // TODO(jmesserly): make "changes" immutable
-      _observers.add(changes);
+      var observers =
+          _observers.toList();
+      for (var observer in observers) {
+        if (_observers.contains(observer)) {
+          // TODO(jmesserly): make "changes" immutable
+          observer.add(changes);
+        }
+      }
     }
   }
 
@@ -88,7 +102,7 @@ abstract class ObservableMixin implements Observable {
    * True if this object has any observers, and should call
    * [notifyPropertyChange] for changes.
    */
-  bool get hasObservers => _observers != null && _observers.hasListener;
+  bool get hasObservers => _observers != null && !_observers.isEmpty;
 
   /**
    * Notify that the field [name] of this object has been changed.

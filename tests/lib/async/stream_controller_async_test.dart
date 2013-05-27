@@ -53,28 +53,6 @@ testSingleController() {
     c.add(42);
   });
 
-  test("Single-subscription StreamController subscription changes", () {
-    StreamController c = new StreamController();
-    EventSink sink = c.sink;
-    Stream stream = c.stream;
-    int counter = 0;
-    var subscription;
-    subscription = stream.listen((data) {
-      counter += data;
-      Expect.throws(() => stream.listen(null), (e) => e is StateError);
-      subscription.cancel();
-      stream.listen((data) {
-        counter += data * 10;
-      },
-      onDone: expectAsync0(() {
-        Expect.equals(1 + 20, counter);
-      }));
-    });
-    sink.add(1);
-    sink.add(2);
-    sink.close();
-  });
-
   test("Single-subscription StreamController events are buffered when"
        " there is no subscriber",
        () {
@@ -92,33 +70,6 @@ testSingleController() {
       onDone: expectAsync0(() {
         Expect.equals(3, counter);
       }));
-  });
-
-  // Test subscription changes while firing.
-  test("Single-subscription StreamController subscription changes while firing",
-       () {
-    StreamController c = new StreamController();
-    EventSink sink = c.sink;
-    Stream stream = c.stream;
-    int counter = 0;
-    var subscription = stream.listen(null);
-    subscription.onData(expectAsync1((data) {
-      counter += data;
-      subscription.cancel();
-      stream.listen((data) {
-        counter += 10 * data;
-      },
-      onDone: expectAsync0(() {
-        Expect.equals(1 + 20 + 30 + 40 + 50, counter);
-      }));
-      Expect.throws(() => stream.listen(null), (e) => e is StateError);
-    }));
-    sink.add(1); // seen by stream 1
-    sink.add(2); // seen by stream 10 and 100
-    sink.add(3); // -"-
-    sink.add(4); // -"-
-    sink.add(5); // seen by stream 10
-    sink.close();
   });
 }
 

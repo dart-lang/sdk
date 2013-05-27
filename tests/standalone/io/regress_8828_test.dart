@@ -26,7 +26,7 @@ void main() {
           return request.close();
         })
         .then((HttpClientResponse response) {
-            List<int> body = new List();
+          List<int> body = new List();
           response.listen(body.addAll,
                           onDone: () {
                             Expect.equals("first line\nsecond line\n",

@@ -44,27 +44,43 @@ class Clock {
   int get time => _time;
   int _time = 0;
 
-  /// The stream of millisecond ticks of the clock.
-  Stream<int> get onTick {
-    if (_onTickControllerStream == null) {
-      _onTickControllerStream = _onTickController.stream.asBroadcastStream();
-    }
-    return _onTickControllerStream;
-  }
-
-  final _onTickController = new StreamController<int>();
-  Stream<int> _onTickControllerStream;
+  /// Collection of controllers of all subscribed listeners.
+  ///
+  /// [StreamController] is not overriding [Object.operator==], so this is
+  /// effectively an identity map.
+  Set<StreamController> _subscriptions = new Set<StreamController>();
 
   Clock._();
+
+  /// The stream of millisecond ticks of the clock.
+  Stream<int> get onTick {
+    StreamController<int> controller;
+    controller = new StreamController<int>(
+        onListen: () {
+          _subscriptions.add(controller);
+        },
+        onCancel: () {
+          _subscriptions.remove(controller);
+        });
+    return controller.stream;
+  }
+
 
   /// Advances the clock forward by [milliseconds]. This works like synchronous
   /// code that takes [milliseconds] to execute; any [Timer]s that are scheduled
   /// to fire during the interval will do so asynchronously once control returns
   /// to the event loop.
-  void tick([int milliseconds=1]) {
+  void tick([int milliseconds = 1]) {
     for (var i = 0; i < milliseconds; i++) {
       var tickTime = ++_time;
-      new Future.value().then((_) => _onTickController.add(tickTime));
+      runAsync(() {
+        List<StreamController> controllers = _subscriptions.toList();
+        for (StreamController controller in controllers) {
+          if (_subscriptions.contains(controller)) {
+            controller.add(tickTime);
+          }
+        }
+      });
     }
   }
 
@@ -74,7 +90,7 @@ class Clock {
   /// code runs before the next tick.
   void run() {
     pumpEventQueue().then((_) {
-      if (!_onTickController.hasListener) return;
+      if (_subscriptions.isEmpty) return;
       tick();
       return run();
     });

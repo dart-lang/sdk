@@ -39,7 +39,7 @@ class ScheduledProcess {
   Stream<String> _stdoutLog;
 
   /// A line-by-line view of the standard output stream of the process.
-  Stream<String> _stdout;
+  StreamIterator<String> _stdout;
 
   /// A canceller that controls both [_stdout] and [_stdoutLog].
   StreamCanceller _stdoutCanceller;
@@ -49,7 +49,7 @@ class ScheduledProcess {
   Stream<String> _stderrLog;
 
   /// A line-by-line view of the standard error stream of the process.
-  Stream<String> _stderr;
+  StreamIterator<String> _stderr;
 
   /// A canceller that controls both [_stderr] and [_stderrLog].
   StreamCanceller _stderrCanceller;
@@ -103,8 +103,8 @@ class ScheduledProcess {
     _stderrCanceller = stderrWithCanceller.last;
     _stderrLog = stderrWithCanceller.first;
 
-    _stdout = stdoutStream();
-    _stderr = stderrStream();
+    _stdout = new StreamIterator<String>(stdoutStream());
+    _stderr = new StreamIterator<String>(stderrStream());
   }
 
   /// Updates [_description] to reflect [executable] and [arguments], which are
@@ -248,11 +248,11 @@ class ScheduledProcess {
   }
 
   /// Reads the next line of stdout from the process.
-  Future<String> nextLine() => schedule(() => streamFirst(_stdout),
+  Future<String> nextLine() => schedule(() => streamIteratorFirst(_stdout),
       "reading the next stdout line from process '$description'");
 
   /// Reads the next line of stderr from the process.
-  Future<String> nextErrLine() => schedule(() => streamFirst(_stderr),
+  Future<String> nextErrLine() => schedule(() => streamIteratorFirst(_stderr),
       "reading the next stderr line from process '$description'");
 
   /// Reads the remaining stdout from the process. This should only be called
@@ -262,8 +262,7 @@ class ScheduledProcess {
       throw new StateError("remainingStdout() should only be called after "
           "kill() or shouldExit().");
     }
-
-    return schedule(() => _stdout.toList().then((lines) => lines.join("\n")),
+    return schedule(() => concatRest(_stdout),
         "reading the remaining stdout from process '$description'");
   }
 
@@ -275,7 +274,7 @@ class ScheduledProcess {
           "kill() or shouldExit().");
     }
 
-    return schedule(() => _stderr.toList().then((lines) => lines.join("\n")),
+    return schedule(() => concatRest(_stderr),
         "reading the remaining stderr from process '$description'");
   }
 
