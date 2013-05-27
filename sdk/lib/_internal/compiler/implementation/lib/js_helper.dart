@@ -13,15 +13,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_OPERATOR_IS_PREFIX,
                                    JS_OPERATOR_AS_PREFIX,
                                    RAW_DART_FUNCTION_REF;
-import 'dart:_interceptors' show getInterceptor,
-                                 interceptedNames,
-                                 makeDispatchRecord,
-                                 getDispatchProperty,
-                                 dispatchRecordIndexability,
-                                 setDispatchRecordIndexability,
-                                 Interceptor,
-                                 JSMutableIndexable,
-                                 JSUnknown;
+import 'dart:_interceptors';
 import "dart:_collection-dev" as _symbol_dev;
 
 part 'constant_map.dart';
@@ -600,6 +592,14 @@ class Primitives {
   }
 
   static getConstructor(String className) {
+    // TODO(ahe): Generalize this and improve test coverage of
+    // reflecting on intercepted classes.
+    if (JS('bool', '# == "String"', className)) return const JSString();
+    if (JS('bool', '# == "int"', int)) return const JSInt();
+    if (JS('bool', '# == "double"', int)) return const JSDouble();
+    if (JS('bool', '# == "num"', int)) return const JSNumber();
+    if (JS('bool', '# == "bool"', int)) return const JSBool();
+    if (JS('bool', '# == "List"', int)) return const JSArray();
     // TODO(ahe): How to safely access $?
     return JS('var', r'$[#]', className);
   }

@@ -4040,9 +4040,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       native.handleSsaNative(this, node.expression);
       return;
     }
-    assert(invariant(node, !node.isRedirectingFactoryBody));
     HInstruction value;
-    if (node.expression == null) {
+    if (node.isRedirectingFactoryBody) {
+      // TODO(ahe): This is only for reflection, and it is not correct yet.
+      value = graph.addConstantNull(constantSystem);
+    } else if (node.expression == null) {
       value = graph.addConstantNull(constantSystem);
     } else {
       visit(node.expression);

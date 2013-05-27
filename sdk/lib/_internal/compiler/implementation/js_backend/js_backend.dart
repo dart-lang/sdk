@@ -25,6 +25,7 @@ import '../types/types.dart';
 import '../universe/universe.dart' hide js; // TODO(ahe): VM bug, see above.
 import '../util/characters.dart';
 import '../util/util.dart';
+import '../util/uri_extras.dart' show relativize;
 
 part 'backend.dart';
 part 'constant_emitter.dart';

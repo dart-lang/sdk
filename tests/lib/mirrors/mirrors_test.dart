@@ -207,9 +207,6 @@ mainWithArgument({bool isDart2js}) {
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
-  if (isDart2js) return;
-  test("Test reflect type", () { testReflectClass(mirrors); });
-  test("Test simple and qualifiedName", () { testNames(mirrors); });
   test("Test current library uri", () {
     testLibraryUri(new Class(),
       (Uri uri) => uri.path.endsWith('/mirrors_test.dart'));
@@ -217,6 +214,9 @@ mainWithArgument({bool isDart2js}) {
   test("Test dart library uri", () {
     testLibraryUri("test", (Uri uri) => uri == Uri.parse('dart:core'));
   });
+  if (isDart2js) return;
+  test("Test reflect type", () { testReflectClass(mirrors); });
+  test("Test simple and qualifiedName", () { testNames(mirrors); });
 }
 
 main() {

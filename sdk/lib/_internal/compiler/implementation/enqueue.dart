@@ -23,7 +23,11 @@ class EnqueueTask extends CompilerTask {
       if (element.isLibrary()) {
         LibraryElementX library = element;
         Uri uri = library.canonicalUri;
-        if (uri.scheme != 'dart' && !uri.path.startsWith('_')) {
+        // Don't include private implementation libraries.  These
+        // libraries contain special classes that cause problems
+        // in other parts of the resolver (in particular Null and Void).
+        // TODO(ahe): Consider lifting this restriction.
+        if (uri.scheme != 'dart' || !uri.path.startsWith('_')) {
           members = library.localMembers;
           // TODO(ahe): Is this right?  Is this necessary?
           name = library.getLibraryOrScriptName();

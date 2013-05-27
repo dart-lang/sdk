@@ -7,7 +7,7 @@
 import 'dart:_foreign_helper' show JS;
 import 'dart:_collection-dev' as _symbol_dev;
 import 'dart:_js_helper' show createInvocationMirror;
-import 'dart:_interceptors' show getInterceptor;
+import 'dart:_interceptors' show Interceptor;
 
 patch class MirrorSystem {
   patch static String getName(Symbol symbol) => _n(symbol);
@@ -61,7 +61,9 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
     var result = new Map<Symbol, ClassMirror>();
     for (int i = 0; i < _classes.length; i += 2) {
       Symbol symbol = _s(_classes[i]);
-      result[symbol] = _reflectClass(symbol, _classes[i + 1]);
+      _ClassMirror cls = _reflectClass(symbol, _classes[i + 1]);
+      result[symbol] = cls;
+      cls._owner = this;
     }
     return result;
   }
@@ -205,6 +207,8 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
   final Symbol simpleName;
   final _jsConstructor;
   final String _fields;
+  // Set as side-effect of accessing _LibraryMirror.classes.
+  _LibraryMirror _owner;
 
   _ClassMirror(this.simpleName, this._jsConstructor, this._fields);
 
@@ -254,6 +258,26 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
             constructorName, positionalArguments, namedArguments));
   }
 
+  DeclarationMirror get owner {
+    if (_owner == null) {
+      if (_jsConstructor is Interceptor) {
+        _owner = __reflectClass(Object).owner;
+      } else {
+        for (var list in _MirrorSystem.librariesByName.values) {
+          for (_LibraryMirror library in list) {
+            // This will set _owner field on all clasess as a side
+            // effect.  This gives us a fast path to reflect on a
+            // class without parsing reflection data.
+            library.classes;
+          }
+        }
+      }
+      if (_owner == null) {
+        throw new StateError('Class "${_n(simpleName)}" has no owner');
+      }
+    }
+    return _owner;
+  }
 
   String toString() => 'ClassMirror(${_n(simpleName)})';
 }
