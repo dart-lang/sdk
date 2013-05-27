@@ -1954,8 +1954,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   visitIf(If node) {
     visit(node.condition);
-    visit(node.thenPart);
-    visit(node.elsePart);
+    visitIn(node.thenPart, new BlockScope(scope));
+    visitIn(node.elsePart, new BlockScope(scope));
   }
 
   static bool isLogicalOperator(Identifier op) {

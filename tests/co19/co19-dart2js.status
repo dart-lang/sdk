@@ -611,7 +611,6 @@ LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Fail # compiler cancelled: cannot resolve type T
 
 Language/03_Overview/1_Scoping_A02_t07: Fail # duplicate definition of f(var f){f();}
-Language/03_Overview/1_Scoping_A02_t12: Fail # duplicate definition of x=42
 Language/03_Overview/2_Privacy_A01_t06: Fail # cannot resolve type _inaccessibleFuncType
 
 Language/11_Expressions/01_Constants_A12_t01: Fail # internal error: CompileTimeConstantEvaluator not implemented
