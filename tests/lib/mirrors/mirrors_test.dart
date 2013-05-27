@@ -161,7 +161,7 @@ testReflectClass(mirrors) {
   expect(objectMirror.reflectee.field, equals(1234));
 }
 
-testNames(mirrors) {
+testNames(mirrors, isDart2js) {
   var libMirror = mirrors.findLibrary(const Symbol("MirrorsTest")).single;
   var classMirror = libMirror.classes[const Symbol('Class')];
   var typedefMirror = libMirror.members[const Symbol('Typedef')];
@@ -174,14 +174,16 @@ testNames(mirrors) {
   expect(classMirror.simpleName, equals(const Symbol('Class')));
   expect(classMirror.qualifiedName, equals(const Symbol('MirrorsTest.Class')));
 
-  TypeVariableMirror typeVariable = classMirror.typeVariables.values.single;
-  expect(typeVariable.simpleName, equals(const Symbol('T')));
-  expect(typeVariable.qualifiedName,
-         equals(const Symbol('MirrorsTest.Class.T')));
+  if (!isDart2js) { // TODO(ahe): Implement this in dart2js.
+    TypeVariableMirror typeVariable = classMirror.typeVariables.values.single;
+    expect(typeVariable.simpleName, equals(const Symbol('T')));
+    expect(typeVariable.qualifiedName,
+           equals(const Symbol('MirrorsTest.Class.T')));
 
-  expect(typedefMirror.simpleName, equals(const Symbol('Typedef')));
-  expect(typedefMirror.qualifiedName,
-         equals(const Symbol('MirrorsTest.Typedef')));
+    expect(typedefMirror.simpleName, equals(const Symbol('Typedef')));
+    expect(typedefMirror.qualifiedName,
+           equals(const Symbol('MirrorsTest.Typedef')));
+  }
 
   expect(methodMirror.simpleName, equals(const Symbol('testNames')));
   expect(methodMirror.qualifiedName,
@@ -214,9 +216,9 @@ mainWithArgument({bool isDart2js}) {
   test("Test dart library uri", () {
     testLibraryUri("test", (Uri uri) => uri == Uri.parse('dart:core'));
   });
-  if (isDart2js) return;
+  test("Test simple and qualifiedName", () { testNames(mirrors, isDart2js); });
+  if (isDart2js) return; // TODO(ahe): Remove this line.
   test("Test reflect type", () { testReflectClass(mirrors); });
-  test("Test simple and qualifiedName", () { testNames(mirrors); });
 }
 
 main() {
