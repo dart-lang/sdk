@@ -1147,14 +1147,14 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
           _current = _futureOrPrefetch;
           _futureOrPrefetch = null;
           _subscription.resume();
-          return new FutureImpl<bool>.immediate(true);
+          return new _FutureImpl<bool>.immediate(true);
         case _STATE_EXTRA_ERROR:
           Object prefetch = _futureOrPrefetch;
           _cancel();
-          return new FutureImpl<bool>.error(prefetch);
+          return new _FutureImpl<bool>.error(prefetch);
         case _STATE_EXTRA_DONE:
           _cancel();
-          return new FutureImpl<bool>.immediate(false);
+          return new _FutureImpl<bool>.immediate(false);
       }
     }
   }
