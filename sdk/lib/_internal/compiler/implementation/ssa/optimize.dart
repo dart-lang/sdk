@@ -488,6 +488,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       return graph.addConstantBool(false, constantSystem);
     }
 
+    if (left.isNull() && right.isNull()) {
+      return graph.addConstantBool(true, constantSystem);
+    }
+
     if (left.isConstantBoolean() && right.isBoolean()) {
       HConstant constant = left;
       if (constant.constant.isTrue()) {
