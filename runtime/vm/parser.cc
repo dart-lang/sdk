@@ -1573,8 +1573,9 @@ AstNode* Parser::ParseSuperOperator() {
     ASSERT(!super_class.IsNull());
     super_op =
         new LoadIndexedNode(operator_pos, receiver, index_expr, super_class);
-  } else if (Token::CanBeOverloaded(CurrentToken()) ||
-             (CurrentToken() == Token::kNE)) {
+  } else {
+    ASSERT(Token::CanBeOverloaded(CurrentToken()) ||
+           (CurrentToken() == Token::kNE));
     Token::Kind op = CurrentToken();
     ConsumeToken();
 
@@ -1656,27 +1657,23 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
         String::ZoneHandle(Field::SetterName(field_name));
     const Function& super_setter = Function::ZoneHandle(
         Resolver::ResolveDynamicAnyArgs(super_class, setter_name));
-    if (!super_setter.IsNull()) {
-      return new StaticGetterNode(
-          field_pos, implicit_argument, true, super_class, field_name);
+    if (super_setter.IsNull()) {
+      // Check if this is an access to an implicit closure using 'super'.
+      // If a function exists of the specified field_name then try
+      // accessing it as a getter, at runtime we will handle this by
+      // creating an implicit closure of the function and returning it.
+      const Function& super_function = Function::ZoneHandle(
+          Resolver::ResolveDynamicAnyArgs(super_class, field_name));
+      if (!super_function.IsNull()) {
+        // In case CreateAssignmentNode is called later on this
+        // CreateImplicitClosureNode, it will be replaced by a StaticSetterNode.
+        return CreateImplicitClosureNode(super_function,
+                                         field_pos,
+                                         implicit_argument);
+      }
+      // No function or field exists of the specified field_name.
+      // Emit a StaticGetterNode anyway, so that noSuchMethod gets called.
     }
-  }
-  if (super_getter.IsNull()) {
-    // Check if this is an access to an implicit closure using 'super'.
-    // If a function exists of the specified field_name then try
-    // accessing it as a getter, at runtime we will handle this by
-    // creating an implicit closure of the function and returning it.
-    const Function& super_function = Function::ZoneHandle(
-        Resolver::ResolveDynamicAnyArgs(super_class, field_name));
-    if (!super_function.IsNull()) {
-      // In case CreateAssignmentNode is called later on this
-      // CreateImplicitClosureNode, it will be replaced by a StaticSetterNode.
-      return CreateImplicitClosureNode(super_function,
-                                       field_pos,
-                                       implicit_argument);
-    }
-    // No function or field exists of the specified field_name.
-    // Emit a StaticGetterNode anyway, so that noSuchMethod gets called.
   }
   return new StaticGetterNode(
       field_pos, implicit_argument, true, super_class, field_name);
