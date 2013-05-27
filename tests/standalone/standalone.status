@@ -4,9 +4,6 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-[ $runtime == vm && $system == windows ]
-debugger/*: Skip # Issue: 10791
-
 [ $runtime == vm ]
 # Fails because checked-in dart executable is not up to date.
 io/test_runner_test: Fail
