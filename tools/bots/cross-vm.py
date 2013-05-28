@@ -156,4 +156,7 @@ def main():
     raise Exception("Unknown builder name %s" % name)
 
 if __name__ == '__main__':
-  sys.exit(main())
+  try:
+    sys.exit(main())
+  except OSError as e:
+    sys.exit(e.errno)
