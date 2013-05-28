@@ -4,6 +4,8 @@
 
 library dart.async;
 
+import "dart:collection";
+
 part 'async_error.dart';
 part 'deferred_load.dart';
 part 'event_loop.dart';

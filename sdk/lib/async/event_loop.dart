@@ -7,31 +7,18 @@ part of dart.async;
 typedef void _AsyncCallback();
 
 bool _callbacksAreEnqueued = false;
-List<_AsyncCallback> _asyncCallbacks = <_AsyncCallback>[];
+Queue<_AsyncCallback> _asyncCallbacks = new Queue<_AsyncCallback>();
 
 void _asyncRunCallback() {
   // As long as we are iterating over the registered callbacks we don't
   // unset the [_callbacksAreEnqueued] boolean.
   while (!_asyncCallbacks.isEmpty) {
-    List callbacks = _asyncCallbacks;
-    // The callbacks we execute can register new callbacks. This means that
-    // the for-loop below could grow the list if we don't replace it here.
-    _asyncCallbacks = <_AsyncCallback>[];
-    for (int i = 0; i < callbacks.length; i++) {
-      Function callback = callbacks[i];
-      callbacks[i] = null;
-      try {
-        callback();
-      } catch (e) {
-        i++;  // Skip current callback.
-        List remainingCallbacks = callbacks.sublist(i);
-        List newCallbacks = _asyncCallbacks;
-        _asyncCallbacks = <_AsyncCallback>[];
-        _asyncCallbacks.addAll(remainingCallbacks);
-        _asyncCallbacks.addAll(newCallbacks);
-        _AsyncRun._enqueueImmediate(_asyncRunCallback);
-        throw;
-      }
+    Function callback = _asyncCallbacks.removeFirst();
+    try {
+      callback();
+    } catch (e) {
+      _AsyncRun._enqueueImmediate(_asyncRunCallback);
+      throw;
     }
   }
   // Any new callback must register a callback function now.
