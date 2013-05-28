@@ -9,13 +9,13 @@ import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     show MessageKind;
 
-final libraryUri = new Uri('test:library.dart');
+final libraryUri = Uri.parse('test:library.dart');
 const String LIBRARY_SOURCE = '''
 library foo;
 part 'part.dart';
 ''';
 
-final partUri = new Uri('test:part.dart');
+final partUri = Uri.parse('test:part.dart');
 const String PART_SOURCE = '''
 part of bar;
 ''';

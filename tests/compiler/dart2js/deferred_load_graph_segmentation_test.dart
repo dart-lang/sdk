@@ -27,7 +27,7 @@ void main() {
                                    libraryRoot,
                                    packageRoot,
                                    ['--analyze-only']);
-  compiler.run(new Uri('memory:main.dart'));
+  compiler.run(Uri.parse('memory:main.dart'));
   var main = compiler.mainApp.find(dart2js.Compiler.MAIN);
   Expect.isNotNull(main, 'Could not find "main"');
   compiler.deferredLoadTask.onResolutionComplete(main);

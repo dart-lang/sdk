@@ -23,7 +23,7 @@ Map<String, String> generate(String code, [List<String> options = const []]) {
                                    libraryRoot,
                                    packageRoot,
                                    options);
-  Uri uri = new Uri('memory:main.dart');
+  Uri uri = Uri.parse('memory:main.dart');
   Expect.isTrue(compiler.run(uri));
   Map<String, String> result = new Map<String, String>();
   for (var element in compiler.backend.generatedCode.keys) {

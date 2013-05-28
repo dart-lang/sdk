@@ -6,7 +6,7 @@ import 'compiler_helper.dart';
 import "package:expect/expect.dart";
 
 compile(String source) {
-  Uri uri = new Uri('test:code');
+  Uri uri = Uri.parse('test:code');
   var compiler = compilerFor(source, uri);
   compiler.runCompiler(uri);
   return compiler;

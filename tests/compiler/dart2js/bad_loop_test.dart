@@ -37,7 +37,7 @@ main() {
                                    libraryRoot,
                                    packageRoot,
                                    ['--analyze-only']);
-  compiler.run(new Uri('memory:main.dart'));
+  compiler.run(Uri.parse('memory:main.dart'));
   Expect.isTrue(compiler.compilationFailed);
   Expect.equals(5, errorCount);
   Expect.equals(1, warningCount);
