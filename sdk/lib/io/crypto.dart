@@ -180,7 +180,7 @@ abstract class _HashBase {
   // Update the hasher with more data.
   add(List<int> data) {
     if (_digestCalled) {
-      throw new ArgumentError(
+      throw new StateError(
           'Hash update method called after digest was retrieved');
     }
     _lengthInBytes += data.length;
