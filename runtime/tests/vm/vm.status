@@ -61,7 +61,6 @@ cc/CorelibCompileAll: Skip
 cc/ParsePatchLibrary: Skip
 dart/byte_array_test: Skip
 dart/byte_array_optimized_test: Skip
-dart/inline_stack_frame_test: Skip
 
 [ $arch == mips ]
 *: Skip

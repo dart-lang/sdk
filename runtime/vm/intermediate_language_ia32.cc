@@ -2198,11 +2198,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
         __ j(NEGATIVE, deopt);
         return;
       }
-      intptr_t tmp = (left_int > 0) ? left_int : ~left_int;
-      intptr_t max_right = kSmiBits;
-      while ((tmp >>= 1) != 0) {
-        max_right--;
-      }
+      const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
           (right_range == NULL) ||
           !right_range->IsWithin(0, max_right - 1);
