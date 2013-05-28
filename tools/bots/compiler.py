@@ -81,14 +81,14 @@ def GetBuildInfo(builder_name, is_buildbot):
     return None
 
   # We have both win7 and win8 bots, functionality is the same.
-  if system.startsWith('win'):
+  if system.startswith('win'):
     system = 'windows'
 
   # We have both 10.8 and 10.7 bots, functionality is the same.
   if system == 'mac10.8' or system == 'mac10.7':
     system = 'mac'
 
-  if (system == 'win7' and platform.system() != 'Windows') or (
+  if (system == 'windows' and platform.system() != 'Windows') or (
       system == 'mac' and platform.system() != 'Darwin') or (
       system == 'linux' and platform.system() != 'Linux'):
     print ('Error: You cannot emulate a buildbot with a platform different '
@@ -188,7 +188,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
    Args:
      - runtime: either 'd8', 'jsshell', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
-     - system: either 'linux', 'mac', 'win7', or 'win8'
+     - system: either 'linux', 'mac', 'windows'
      - flags: extra flags to pass to test.dart
      - is_buildbot: true if we are running on a real buildbot instead of
        emulating one.
@@ -218,9 +218,9 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     # Print out browser version numbers if we're running on the buildbot (where
     # we know the paths to these browser installations).
     version_query_string = '"%s" --version' % GetPath(runtime)
-    if runtime == 'ff' and system.startswith('win'):
+    if runtime == 'ff' and system == 'windows':
       version_query_string += '| more'
-    elif runtime == 'chrome' and system.startswith('win'):
+    elif runtime == 'chrome' and system == 'windows':
       version_query_string = ('''reg query "HKCU\\Software\\Microsoft\\''' +
           '''Windows\\CurrentVersion\\Uninstall\\Google Chrome" /v Version''')
     p = subprocess.Popen(version_query_string,
@@ -243,7 +243,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
              unit_test_flags)
 
-  if system.startswith('win') and runtime.startswith('ie10'):
+  if system == 'windows' and runtime == 'ie10':
     TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
   else:
     # Run the default set of test suites.
@@ -285,10 +285,10 @@ def CleanUpTemporaryFiles(system, browser):
   behavior has not been reproduced outside of the buildbots.
 
   Args:
-     - system: either 'linux', 'mac', 'win7', or 'win8'
+     - system: either 'linux', 'mac', 'windows'
      - browser: one of the browsers, see GetBuildInfo
   """
-  if system.startswith('win'):
+  if system == 'windows':
     temp_dir = 'C:\\Users\\chrome-bot\\AppData\\Local\\Temp'
     for name in os.listdir(temp_dir):
       fullname = os.path.join(temp_dir, name)
