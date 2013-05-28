@@ -17913,7 +17913,7 @@ class RtcIceCandidateEvent extends Event native "RTCIceCandidateEvent" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCPeerConnection
-class RtcPeerConnection extends EventTarget native "RTCPeerConnection" {
+class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeerConnection" {
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
         '${Device.propertyPrefix}RTCPeerConnection');
