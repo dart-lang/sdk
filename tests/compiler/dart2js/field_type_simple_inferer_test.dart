@@ -334,11 +334,13 @@ const String TEST_19 = r"""
 const String TEST_20 = r"""
   class A {
     var f;
-    A(x) {
-      for (var i in this) {
+    A() {
+      for (f in this) {
       }
-      f = 42;
     }
+    get iterator => this;
+    get current => 42;
+    bool moveNext() => false;
   }
   main() {
     new A();
@@ -508,7 +510,7 @@ void test() {
   runTest(TEST_19, {'f1': (inferrer) => inferrer.intType,
                     'f2': (inferrer) => inferrer.stringType,
                     'f3': (inferrer) => inferrer.dynamicType});
-  runTest(TEST_20, {'f': (inferrer) => inferrer.intType});
+  runTest(TEST_20, {'f': (inferrer) => inferrer.intType.nullable()});
   runTest(TEST_21, {'f': (inferrer) => inferrer.intType.nullable()});
 
   runTest(TEST_22, {'f1': (inferrer) => inferrer.intType,

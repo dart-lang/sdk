@@ -20,6 +20,9 @@ abstract class TreeElements {
   void setSelector(Node node, Selector selector);
   void setGetterSelectorInComplexSendSet(SendSet node, Selector selector);
   void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector);
+  Selector getIteratorSelector(ForIn node);
+  Selector getMoveNextSelector(ForIn node);
+  Selector getCurrentSelector(ForIn node);
 
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
@@ -98,6 +101,34 @@ class TreeElementMapping implements TreeElements {
 
   Selector getOperatorSelectorInComplexSendSet(SendSet node) {
     return selectors[node.assignmentOperator];
+  }
+
+  // The following methods set selectors on the "for in" node. Since	
+  // we're using three selectors, we need to use children of the node,	
+  // and we arbitrarily choose which ones.	
+ 
+  Selector setIteratorSelector(ForIn node, Selector selector) {
+    selectors[node] = selector;
+  }
+
+  Selector getIteratorSelector(ForIn node) {
+    return selectors[node];
+  }
+
+  Selector setMoveNextSelector(ForIn node, Selector selector) {
+    selectors[node.forToken] = selector;
+  }
+	
+  Selector getMoveNextSelector(ForIn node) {
+    return selectors[node.forToken];
+  }
+
+  Selector setCurrentSelector(ForIn node, Selector selector) {
+    selectors[node.inToken] = selector;
+  }
+
+  Selector getCurrentSelector(ForIn node) {
+    return selectors[node.inToken];
   }
 
   bool isParameterChecked(Element element) {
@@ -2755,10 +2786,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   visitForIn(ForIn node) {
     LibraryElement library = enclosingElement.getLibrary();
+    mapping.setIteratorSelector(node, compiler.iteratorSelector);
     world.registerDynamicGetter(compiler.iteratorSelector.name,
                                 compiler.iteratorSelector);
+    mapping.setCurrentSelector(node, compiler.currentSelector);
     world.registerDynamicGetter(compiler.currentSelector.name,
                                 compiler.currentSelector);
+    mapping.setMoveNextSelector(node, compiler.moveNextSelector);
     world.registerDynamicInvocation(compiler.moveNextSelector.name,
                                     compiler.moveNextSelector);
 

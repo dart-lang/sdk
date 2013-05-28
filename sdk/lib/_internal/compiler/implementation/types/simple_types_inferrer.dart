@@ -961,23 +961,23 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     }
   }
 
-  void unregisterCalledElement(Send send,
+  void unregisterCalledElement(Node node,
                                Selector selector,
                                Element caller,
                                Element callee) {
     if (callee.isField()) {
       if (selector.isSetter()) {
         Map<Node, TypeMask> types = typeOfFields[callee];
-        if (types == null || !types.containsKey(send)) return;
-        types.remove(send);
+        if (types == null || !types.containsKey(node)) return;
+        types.remove(node);
         if (hasAnalyzedAll) updateNonFinalFieldType(callee);
       }
     } else if (callee.isGetter()) {
       return;
     } else {
       Map<Node, ArgumentsTypes> types = typeOfArguments[callee];
-      if (types == null || !types.containsKey(send)) return;
-      types.remove(send);
+      if (types == null || !types.containsKey(node)) return;
+      types.remove(node);
       if (hasAnalyzedAll) enqueueAgain(callee);
     }
   }
@@ -2224,9 +2224,18 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         assert(selector.isOperator());
         elements.setOperatorSelectorInComplexSendSet(node, selector);
       }
-    } else {
-      assert(node.asSend() != null);
+    } else if (node.asSend() != null) {
       elements.setSelector(node, selector);
+    } else {
+      assert(node.asForIn() != null);
+      if (selector.asUntyped == compiler.iteratorSelector) {
+        elements.setIteratorSelector(node, selector);
+      } else if (selector.asUntyped == compiler.currentSelector) {
+        elements.setCurrentSelector(node, selector);
+      } else {
+        assert(selector.asUntyped == compiler.moveNextSelector);
+        elements.setMoveNextSelector(node, selector);
+      }
     }
   }
 
@@ -2447,22 +2456,41 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   TypeMask visitForIn(ForIn node) {
     bool changed = false;
-    visit(node.expression);
-    if (!isThisExposed && node.expression.isThis()) {
-      Selector iteratorSelector = compiler.iteratorSelector;
-      checkIfExposesThis(new TypedSelector(thisType, iteratorSelector));
-      TypeMask iteratorType = inferrer.typeOfSelector(iteratorSelector);
+    TypeMask expressionType = visit(node.expression);
+    Selector iteratorSelector = elements.getIteratorSelector(node);
+    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector moveNextSelector = elements.getMoveNextSelector(node);
 
-      checkIfExposesThis(
-          new TypedSelector(iteratorType, compiler.moveNextSelector));
-      checkIfExposesThis(
-          new TypedSelector(iteratorType, compiler.currentSelector));
+    TypeMask iteratorType =
+        handleDynamicSend(node, iteratorSelector, expressionType, null);
+    handleDynamicSend(node, moveNextSelector,
+                      iteratorType, new ArgumentsTypes([], null));
+    TypeMask currentType =
+        handleDynamicSend(node, currentSelector, iteratorType, null);
+
+    // We nullify the type in case there is no element in the
+    // iterable.
+    currentType = currentType.nullable();
+
+    if (node.expression.isThis()) {
+      // Any reasonable implementation of an iterator would expose
+      // this, so we play it safe and assume it will.
+      isThisExposed = true;
     }
+
     Node identifier = node.declaredIdentifier;
-    Element variable = elements[identifier];
+    Element element = elements[identifier];
     Selector selector = elements.getSelector(identifier);
-    handlePlainAssignment(identifier, variable, selector,
-                          inferrer.dynamicType, inferrer.dynamicType,
+
+    TypeMask receiverType;
+    if (element != null && element.isInstanceMember()) {
+      receiverType = thisType;
+    } else {
+      receiverType = inferrer.dynamicType;
+    }
+
+    handlePlainAssignment(identifier, element, selector,
+                          receiverType, currentType,
                           node.expression);
     return handleLoop(node, () {
       visit(node.body);

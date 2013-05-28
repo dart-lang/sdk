@@ -1131,7 +1131,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   InliningState enterInlinedMethod(FunctionElement function,
                                    Selector selector,
-                                   Link<Node> argumentsNodes,
                                    List<HInstruction> providedArguments,
                                    Node currentNode) {
     assert(invariant(function, function.isImplementation));
@@ -1139,7 +1138,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<HInstruction> compiledArguments;
     bool isInstanceMember = function.isInstanceMember();
 
-    if (isInstanceMember && !function.isGenerativeConstructorBody()) {
+    if (currentNode == null
+        || currentNode.asForIn() != null
+        || !isInstanceMember
+        || function.isGenerativeConstructorBody()) {
+      // For these cases, the provided arguments must match the
+      // expected parameters.
+      assert(providedArguments != null);
+      compiledArguments = providedArguments;
+    } else {
+      Send send = currentNode.asSend();
       assert(providedArguments != null);
       compiledArguments = new List<HInstruction>();
       compiledArguments.add(providedArguments[0]);
@@ -1148,7 +1156,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // call [Selector.addArgumentsToList] only for getting the
       // default values of the optional parameters.
       bool succeeded = selector.addArgumentsToList(
-          argumentsNodes,
+          send.isPropertyAccess ? null : send.arguments,
           compiledArguments,
           function,
           (node) => null,
@@ -1167,9 +1175,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // The caller of [enterInlinedMethod] has ensured the selector
       // matches the element.
       assert(succeeded);
-    } else {
-      assert(providedArguments != null);
-      compiledArguments = providedArguments;
     }
 
     // Create the inlining state after evaluating the arguments, that
@@ -1236,7 +1241,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   bool tryInlineMethod(Element element,
                        Selector selector,
-                       Link<Node> argumentsNodes,
                        List<HInstruction> providedArguments,
                        Node currentNode) {
     // We cannot inline a method from a deferred library into a method
@@ -1244,26 +1248,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // TODO(ahe): But we should still inline into the same
     // connected-component of the deferred library.
     if (compiler.deferredLoadTask.isDeferred(element)) return false;
-
     if (compiler.disableInlining) return false;
+    if (inliningStack.length > MAX_INLINING_DEPTH) return false;
+
     // Ensure that [element] is an implementation element.
     element = element.implementation;
-    // TODO(floitsch): find a cleaner way to know if the element is a function
-    // containing nodes.
-    // [PartialFunctionElement]s are [FunctionElement]s that have [Node]s.
-    if (element is !PartialFunctionElement
-        && !element.isGenerativeConstructorBody()) {
-      return false;
-    }
-    if (inliningStack.length > MAX_INLINING_DEPTH) return false;
-    // Don't inline recursive calls. We use the same elements for the inlined
-    // functions and would thus clobber our local variables.
-    // Use [:element.declaration:] since [work.element] is always a declaration.
-    if (currentElement == element.declaration) return false;
-    for (int i = 0; i < inliningStack.length; i++) {
-      if (inliningStack[i].function == element) return false;
-    }
-
     FunctionElement function = element;
     bool canBeInlined = backend.canBeInlined[function];
     if (canBeInlined == false) return false;
@@ -1304,7 +1293,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           new HFieldGet(element, providedArguments[0]), currentNode);
     }
     InliningState state = enterInlinedMethod(
-        function, selector, argumentsNodes, providedArguments, currentNode);
+        function, selector, providedArguments, currentNode);
 
     inlinedFrom(element, () {
       FunctionElement function = element;
@@ -1673,7 +1662,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         bodyCallInputs.add(localsHandler.readLocal(scopeData.boxElement));
       }
 
-      if (tryInlineMethod(body, null, null, bodyCallInputs, function)) {
+      if (tryInlineMethod(body, null, bodyCallInputs, function)) {
         pop();
       } else {
         HInvokeConstructorBody invoke =
@@ -3685,7 +3674,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
 
-    bool isOptimizableOperation(Send node, Selector selector, Element element) {
+    bool isOptimizableOperation(Selector selector, Element element) {
       ClassElement cls = element.getEnclosingClass();
       if (isOptimizableOperationOnIndexable(selector, element)) return true;
       if (!backend.interceptedClasses.contains(cls)) return false;
@@ -3703,14 +3692,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     Element element = compiler.world.locateSingleElement(selector);
     if (element != null
-        // TODO(ngeoffray): Handle non-send nodes.
-        && (node.asSend() != null)
+        && !element.isField()
         && !(element.isGetter() && selector.isCall())
         && !(element.isFunction() && selector.isGetter())
-        && !isOptimizableOperation(node, selector, element)) {
-      Send send = node.asSend();
-      Link<Node> nodes = send.isPropertyAccess ? null : send.arguments;
-      if (tryInlineMethod(element, selector, nodes, arguments, node)) {
+        && !isOptimizableOperation(selector, element)) {
+      if (tryInlineMethod(element, selector, arguments, node)) {
         return;
       }
     }
@@ -3743,7 +3729,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                         Element element,
                         List<HInstruction> arguments,
                         [HType type = null]) {
-    if (tryInlineMethod(element, null, null, arguments, location)) {
+    if (tryInlineMethod(element, null, arguments, location)) {
       return;
     }
 
@@ -4195,19 +4181,19 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // The iterator is shared between initializer, condition and body.
     HInstruction iterator;
     void buildInitializer() {
-      Selector selector = compiler.iteratorSelector;
+      Selector selector = elements.getIteratorSelector(node);
       visit(node.expression);
       HInstruction receiver = pop();
       pushInvokeDynamic(node, selector, [receiver]);
       iterator = pop();
     }
     HInstruction buildCondition() {
-      Selector selector = compiler.moveNextSelector;
+      Selector selector = elements.getMoveNextSelector(node);
       pushInvokeDynamic(node, selector, [iterator]);
       return popBoolified();
     }
     void buildBody() {
-      Selector call = compiler.currentSelector;
+      Selector call = elements.getCurrentSelector(node);
       pushInvokeDynamic(node, call, [iterator]);
 
       Node identifier = node.declaredIdentifier;
