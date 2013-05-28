@@ -1517,13 +1517,7 @@ AstNode* Parser::ParseSuperCall(const String& function_name) {
 
 // Simple test if a node is side effect free.
 static bool IsSimpleLocalOrLiteralNode(AstNode* node) {
-  if (node->IsLiteralNode()) {
-    return true;
-  }
-  if (node->IsLoadLocalNode() && !node->AsLoadLocalNode()->HasPseudo()) {
-    return true;
-  }
-  return false;
+  return node->IsLiteralNode() || node->IsLoadLocalNode();
 }
 
 
@@ -5417,7 +5411,7 @@ void Parser::ParseStatementSequence() {
     // Do not add statements with no effect (e.g., LoadLocalNode).
     if ((statement != NULL) && statement->IsLoadLocalNode()) {
       // Skip load local.
-      statement = statement->AsLoadLocalNode()->pseudo();
+      continue;
     }
     if (statement != NULL) {
       if (!dead_code_allowed && abrupt_completing_seen) {
@@ -6883,7 +6877,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
 
 
 bool Parser::IsAssignableExpr(AstNode* expr) {
-  return (expr->IsLoadLocalNode() && !expr->AsLoadLocalNode()->HasPseudo()
+  return (expr->IsLoadLocalNode()
           && (!expr->AsLoadLocalNode()->local().is_final()))
       || expr->IsLoadStaticFieldNode()
       || expr->IsStaticGetterNode()
@@ -7176,7 +7170,10 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
   }
   // The result is a pair of the (side effects of the) cascade sequence
   // followed by the (value of the) receiver temp variable load.
-  return new LoadLocalNode(cascade_pos, cascade_receiver_var, cascade);
+  return new CommaNode(
+      cascade_pos,
+      cascade,
+      new LoadLocalNode(cascade_pos, cascade_receiver_var));
 }
 
 
@@ -7787,9 +7784,10 @@ AstNode* Parser::ParsePostfixExpr() {
     AstNode* store = CreateAssignmentNode(left_expr, add);
     // The result is a pair of the (side effects of the) store followed by
     // the (value of the) initial value temp variable load.
-    LoadLocalNode* load_res =
-        new LoadLocalNode(postfix_expr_pos, temp, store);
-    return load_res;
+    return new CommaNode(
+        postfix_expr_pos,
+        store,
+        new LoadLocalNode(postfix_expr_pos, temp));
   }
   return postfix_expr;
 }

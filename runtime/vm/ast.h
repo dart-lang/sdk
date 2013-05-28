@@ -55,6 +55,7 @@ namespace dart {
   V(LoadIndexedNode, "load indexed")                                           \
   V(StoreIndexedNode, "store indexed")                                         \
   V(SequenceNode, "seq")                                                       \
+  V(CommaNode, "comma")                                                        \
   V(CatchClauseNode, "catch clause block")                                     \
   V(TryCatchNode, "try catch block")                                           \
   V(ThrowNode, "throw")                                                        \
@@ -177,6 +178,35 @@ class SequenceNode : public AstNode {
   SourceLabel* label_;
 
   DISALLOW_COPY_AND_ASSIGN(SequenceNode);
+};
+
+
+// Comma node represents a pair of expressions evaluated in sequence
+// and return the value of the second expression.
+class CommaNode : public AstNode {
+ public:
+  CommaNode(intptr_t token_pos,
+            AstNode* first,
+            AstNode* second)
+      : AstNode(token_pos),
+        first_(first),
+        second_(second) { }
+
+  AstNode* first() const { return first_; }
+  AstNode* second() const { return second_; }
+
+  void VisitChildren(AstNodeVisitor* visitor) const {
+    first_->Visit(visitor);
+    second_->Visit(visitor);
+  }
+
+  DECLARE_COMMON_NODE_FUNCTIONS(CommaNode);
+
+ private:
+  AstNode* first_;
+  AstNode* second_;
+
+  DISALLOW_COPY_AND_ASSIGN(CommaNode);
 };
 
 
@@ -962,29 +992,13 @@ class JumpNode : public AstNode {
 class LoadLocalNode : public AstNode {
  public:
   LoadLocalNode(intptr_t token_pos, const LocalVariable* local)
-      : AstNode(token_pos), local_(*local), pseudo_(NULL) {
-    ASSERT(local != NULL);
-  }
-
-  // A local variable load can optionally be a pair of an arbitrary 'pseudo'
-  // AST node followed by the load.  The pseudo node is evaluated for its
-  // side-effects and the value of the expression is the value of the local
-  // load after evaluating the pseudo node.  Pseudo nodes are used, e.g., in
-  // the desugaring of postincrement and cascade expressions.
-  LoadLocalNode(intptr_t token_pos, const LocalVariable* local, AstNode* pseudo)
-      : AstNode(token_pos), local_(*local), pseudo_(pseudo) {
+      : AstNode(token_pos), local_(*local) {
     ASSERT(local != NULL);
   }
 
   const LocalVariable& local() const { return local_; }
-  AstNode* pseudo() const { return pseudo_; }  // Can be NULL.
-  bool HasPseudo() const { return pseudo_ != NULL; }
 
-  virtual void VisitChildren(AstNodeVisitor* visitor) const {
-    if (HasPseudo()) {
-      pseudo()->Visit(visitor);
-    }
-  }
+  virtual void VisitChildren(AstNodeVisitor* visitor) const { }
 
   virtual const Instance* EvalConstExpr() const;
   virtual AstNode* MakeAssignmentNode(AstNode* rhs);
@@ -993,7 +1007,6 @@ class LoadLocalNode : public AstNode {
 
  private:
   const LocalVariable& local_;
-  AstNode* pseudo_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(LoadLocalNode);
 };

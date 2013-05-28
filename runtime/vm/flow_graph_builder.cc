@@ -2647,16 +2647,11 @@ void EffectGraphVisitor::VisitPrimaryNode(PrimaryNode* node) {
 
 // <Expression> ::= LoadLocal { local: LocalVariable }
 void EffectGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
-  if (node->HasPseudo()) {
-    EffectGraphVisitor for_pseudo(owner(), temp_index());
-    node->pseudo()->Visit(&for_pseudo);
-    Append(for_pseudo);
-  }
+  // Nothing to do.
 }
 
 
 void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
-  EffectGraphVisitor::VisitLoadLocalNode(node);
   Definition* load = BuildLoadLocal(node->local());
   ReturnDefinition(load);
 }
@@ -3144,6 +3139,29 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   EffectGraphVisitor for_catch(owner(), temp_index());
   node->VisitChildren(&for_catch);
   Append(for_catch);
+}
+
+
+void EffectGraphVisitor::VisitCommaNode(CommaNode* node) {
+  EffectGraphVisitor for_effect_first(owner(), temp_index());
+  node->first()->Visit(&for_effect_first);
+  Append(for_effect_first);
+
+  EffectGraphVisitor for_effect_second(owner(), temp_index());
+  node->second()->Visit(&for_effect_second);
+  Append(for_effect_second);
+}
+
+
+void ValueGraphVisitor::VisitCommaNode(CommaNode* node) {
+  EffectGraphVisitor for_effect(owner(), temp_index());
+  node->first()->Visit(&for_effect);
+  Append(for_effect);
+
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->second()->Visit(&for_value);
+  Append(for_value);
+  ReturnValue(for_value.value());
 }
 
 
