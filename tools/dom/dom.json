@@ -115,6 +115,7 @@
   "AudioContext": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioContext-section",
     "members": {
+      "AudioContext": {},
       "activeSourceCount": {},
       "createAnalyser": {},
       "createBiquadFilter": {},
@@ -280,6 +281,7 @@
   "Blob": {
     "comment": "http://www.w3.org/TR/FileAPI/#dfn-Blob",
     "members": {
+      "Blob": {},
       "size": {},
       "slice": {},
       "type": {}
@@ -1062,6 +1064,9 @@
     "comment": "http://www.w3.org/TR/XMLHttpRequest2/#interface-formdata",
     "members": {
       "DOMFormData": {},
+      "FormData": {
+        "support_level": "untriaged"
+      },
       "append": {}
     },
     "support_level": "stable"
@@ -1151,6 +1156,9 @@
     "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
     "members": {
       "DOMPoint": {},
+      "_DomPoint": {
+        "support_level": "untriaged"
+      },
       "x": {},
       "y": {}
     },
@@ -5653,6 +5661,7 @@
   "MutationObserver": {
     "comment": "http://www.w3.org/TR/domcore/#interface-mutationobserver",
     "members": {
+      "MutationObserver": {},
       "_observe": {},
       "disconnect": {},
       "observe": {},
@@ -11593,6 +11602,9 @@
     "members": {
       "DONE": {},
       "HEADERS_RECEIVED": {},
+      "HttpRequest": {
+        "support_level": "untriaged"
+      },
       "LOADING": {},
       "OPENED": {},
       "UNSENT": {},

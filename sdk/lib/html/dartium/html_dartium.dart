@@ -682,6 +682,9 @@ class BeforeLoadEvent extends Event {
 @DomName('Blob')
 class Blob extends NativeFieldWrapperClass1 {
   Blob.internal();
+
+  @DomName('Blob.Blob')
+  @DocsEditable
   factory Blob(List blobParts, [String type, String endings]) => _create(blobParts, type, endings);
 
   @DocsEditable
@@ -10818,6 +10821,9 @@ class FontLoader extends EventTarget {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 class FormData extends NativeFieldWrapperClass1 {
   FormData.internal();
+
+  @DomName('FormData.DOMFormData')
+  @DocsEditable
   factory FormData([FormElement form]) => _create(form);
 
   @DocsEditable
@@ -11858,6 +11864,23 @@ class HttpRequest extends EventTarget {
   @DomName('XMLHttpRequest.readystatechangeEvent')
   @DocsEditable
   static const EventStreamProvider<ProgressEvent> readyStateChangeEvent = const EventStreamProvider<ProgressEvent>('readystatechange');
+
+  /**
+   * General constructor for any type of request (GET, POST, etc).
+   *
+   * This call is used in conjunction with [open]:
+   *
+   *     var request = new HttpRequest();
+   *     request.open('GET', 'http://dartlang.org')
+   *     request.onLoad.add((event) => print('Request complete'));
+   *
+   * is the (more verbose) equivalent of
+   *
+   *     HttpRequest.getString('http://dartlang.org').then(
+   *         (result) => print('Request complete: $result'));
+   */
+  @DomName('XMLHttpRequest.XMLHttpRequest')
+  @DocsEditable
   factory HttpRequest() => _create();
 
   @DocsEditable
@@ -15439,6 +15462,9 @@ class MenuElement extends _Element_Merged {
 @Unstable
 class MessageChannel extends NativeFieldWrapperClass1 {
   MessageChannel.internal();
+
+  @DomName('MessageChannel.MessageChannel')
+  @DocsEditable
   factory MessageChannel() => _create();
 
   @DocsEditable
@@ -16181,6 +16207,9 @@ class MutationEvent extends Event {
 @Experimental
 class MutationObserver extends NativeFieldWrapperClass1 {
   MutationObserver.internal();
+
+  @DomName('MutationObserver.MutationObserver')
+  @DocsEditable
   factory MutationObserver(MutationCallback callback) => _create(callback);
 
   @DocsEditable
@@ -25582,6 +25611,9 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass1 {
 @Experimental // non-standard
 class _DomPoint extends NativeFieldWrapperClass1 {
   _DomPoint.internal();
+
+  @DomName('WebKitPoint.DOMPoint')
+  @DocsEditable
   factory _DomPoint(num x, num y) => _create(x, y);
 
   @DocsEditable

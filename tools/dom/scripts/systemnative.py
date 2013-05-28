@@ -241,8 +241,12 @@ class DartiumBackend(HtmlDartGenerator):
     if 'CustomConstructor' not in self._interface.ext_attrs:
         return False
 
+    annotations = self._metadata.GetFormattedMetadata(self._library_name,
+        self._interface, self._interface.id, '  ')
+
     self._members_emitter.Emit(
-        '  factory $CTOR($PARAMS) => _create($FACTORY_PARAMS);\n',
+        '\n  $(ANNOTATIONS)factory $CTOR($PARAMS) => _create($FACTORY_PARAMS);\n',
+        ANNOTATIONS=annotations,
         CTOR=constructor_info._ConstructorFullName(self._DartType),
         PARAMS=constructor_info.ParametersDeclaration(self._DartType),
         FACTORY_PARAMS= \
