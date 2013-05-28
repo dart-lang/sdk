@@ -61,6 +61,7 @@ cc/CorelibCompileAll: Skip
 cc/ParsePatchLibrary: Skip
 dart/byte_array_test: Skip
 dart/byte_array_optimized_test: Skip
+dart/inline_stack_frame_test: Skip
 
 # Bug in optimized code generation.
 dart/isolate_mirror_local_test: Skip
