@@ -165,8 +165,6 @@ LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
 
 Language/07_Classes/6_Constructors/2_Factories_A01_t05: Fail # Partially implemented rediriecting constructors makes this fail.
 
-Language/09_Generics/09_Generics_A04_t03: Fail # dart2js does not treat 2.0 as a double; dartbug.com/1533
-
 [ $compiler == dart2js && $runtime == ie9 ]
 Language/11_Expressions/03_Numbers_A01_t06: Fail # Issue: 8920
 Language/11_Expressions/03_Numbers_A01_t09: Fail # Issue: 8920
@@ -273,7 +271,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbu
 
 Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.com/5022
 
-Language/09_Generics/09_Generics_A04_t01: Fail, OK # 1.0 is an int in dart2js; dartbug.com/1533.
 
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 405

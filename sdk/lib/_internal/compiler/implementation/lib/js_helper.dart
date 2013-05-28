@@ -309,7 +309,7 @@ class Primitives {
 
   /// Returns the type of [object] as a string (including type arguments).
   static String objectTypeName(Object object) {
-    String name = constructorNameFallback(object);
+    String name = constructorNameFallback(getInterceptor(object));
     if (name == 'Object') {
       // Try to decompile the constructor by turning it into a string
       // and get the name out of that. If the decompiled name is a
