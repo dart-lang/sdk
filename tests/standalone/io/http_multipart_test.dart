@@ -116,7 +116,6 @@ Content of file\r
                               'Content of file',
                               contentType: 'text/plain',
                               filename: 'file1.txt')]);
-
   // Similar test using Chrome posting.
   message = [
       45, 45, 45, 45, 45, 45, 87, 101, 98, 75, 105, 116, 70, 111, 114, 109, 66,

@@ -24,28 +24,28 @@ mainTest(bool broadcast) {
 
   test("$p-sub-data/pause/resume/pause/resume-done", () {
     var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription(true, false)
+    t..expectSubscription()
      ..expectData(42, () {
          t.pause();
        })
-     ..expectPause(true, () { t.resume(); })
-     ..expectPause(false, () { t.pause(); })
-     ..expectPause(true, () { t.resume(); })
-     ..expectPause(false, () { t.close(); })
+     ..expectPause(() { t.resume(); })
+     ..expectResume(() { t.pause(); })
+     ..expectPause(() { t.resume(); })
+     ..expectResume(() { t.close(); })
      ..expectDone()
-     ..expectSubscription(false, false);
+     ..expectCancel();
     t..subscribe()..add(42);
   });
 
   test("$p-sub-data/pause-done", () {
     var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription(true, false)
+    t..expectSubscription()
      ..expectData(42, () {
          t.pause(new Future.delayed(ms5, () => null));
        })
-     ..expectPause(true)
+     ..expectPause()
      ..expectDone()
-     ..expectSubscription(false, false);
+     ..expectCancel();
      // We are calling "close" while the controller is actually paused,
      // and it will stay paused until the pending events are sent.
     t..subscribe()..add(42)..close();
@@ -53,20 +53,20 @@ mainTest(bool broadcast) {
 
   test("$p-sub-data/pause-resume/done", () {
     var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription(true, false)
+    t..expectSubscription()
      ..expectData(42, () {
          t.pause(new Future.delayed(ms5, () => null));
        })
-     ..expectPause(true)
-     ..expectPause(false, () { t.close(); })
+     ..expectPause()
+     ..expectResume(t.close)
      ..expectDone()
-     ..expectSubscription(false, false);
+     ..expectCancel();
     t..subscribe()..add(42);
   });
 
   test("$p-sub-data/data+pause-data-resume-done", () {
     var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription(true, false)
+    t..expectSubscription()
      ..expectData(42, () {
          t.add(43);
          t.pause(new Future.delayed(ms5, () => null));
@@ -74,30 +74,30 @@ mainTest(bool broadcast) {
          // After that, the controller stays paused until the pending queue
          // is empty.
        })
-     ..expectPause(true)
+     ..expectPause()
      ..expectData(43)
-     ..expectPause(false, () { t.close(); })
+     ..expectResume(t.close)
      ..expectDone()
-     ..expectSubscription(false, false);
+     ..expectCancel();
     t..subscribe()..add(42);
   });
-
+return;
   test("$p-pause-during-callback", () {
     var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription(true, false)
+    t..expectSubscription()
      ..expectData(42, () {
        t.pause();
      })
-     ..expectPause(true, () {
+     ..expectPause(() {
        t.resume();
      })
-     ..expectPause(false, () {
+     ..expectResume(() {
        t.pause();
        t.resume();
        t.close();
      })
      ..expectDone()
-     ..expectSubscription(false, false);
+     ..expectCancel();
     t..subscribe()
      ..add(42);
   });

@@ -700,7 +700,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   void set readEventsEnabled(bool value) {
     if (value != _readEventsEnabled) {
       _readEventsEnabled = value;
-      if (!_controller.isPaused) _resume();
+      if (_controller.hasListener && !_controller.isPaused) _resume();
     }
   }
 
@@ -708,7 +708,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   void set writeEventsEnabled(bool value) {
     if (value != _writeEventsEnabled) {
       _writeEventsEnabled = value;
-      if (!_controller.isPaused) _resume();
+      if (_controller.hasListener && !_controller.isPaused) _resume();
     }
   }
 
@@ -837,11 +837,6 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
       if (offset < buffer.length) {
         if (!paused) {
           paused = true;
-          // TODO(ajohnsen): It would be nice to avoid this check.
-          // Some info: socket._write can emit an event, if it fails to write.
-          // If the user closes the socket in that event, stop() will be called
-          // before we get a change to pause.
-          if (subscription == null) return;
           subscription.pause();
         }
         socket._enableWriteEvent();
@@ -874,6 +869,7 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
     if (subscription == null) return;
     subscription.cancel();
     subscription = null;
+    paused = false;
     socket._disableWriteEvent();
   }
 }
