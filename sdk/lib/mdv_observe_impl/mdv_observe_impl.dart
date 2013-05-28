@@ -69,7 +69,7 @@ abstract class ObservableMixin implements Observable {
   Stream<List<ChangeRecord>> get changes {
     if (_multiplexController == null) {
       _multiplexController =
-          new StreamController<List<ChangeRecord>>.multiplex();
+          new StreamController<List<ChangeRecord>>.broadcast();
     }
     return _multiplexController.stream;
   }

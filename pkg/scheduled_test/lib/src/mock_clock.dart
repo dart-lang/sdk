@@ -46,7 +46,7 @@ class Clock {
 
   /// Controller providing streams for listening.
   StreamController<int> _multiplexController =
-      new StreamController<int>.multiplex();
+      new StreamController<int>.broadcast();
 
   Clock._();
 

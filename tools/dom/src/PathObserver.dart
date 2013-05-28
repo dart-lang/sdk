@@ -72,7 +72,7 @@ class PathObserver {
     // TODO(jmesserly): if the path is empty, or the object is! Observable, we
     // can optimize the PathObserver to be more lightweight.
 
-    _values = new StreamController.multiplex(onListen: _observe,
+    _values = new StreamController.broadcast(onListen: _observe,
                                              onCancel: _unobserve);
 
     if (_isValid) {

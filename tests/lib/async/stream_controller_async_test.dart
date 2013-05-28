@@ -429,9 +429,9 @@ testRethrow() {
   testFuture("drain", (s, act) => s.drain().then(act));
 }
 
-void testMultiplex() {
-  test("multiplex-basic", () {
-    StreamController<int> c = new StreamController.multiplex(
+void testBroadcastController() {
+  test("broadcast-controller-basic", () {
+    StreamController<int> c = new StreamController.broadcast(
       onListen: expectAsync0(() {}),
       onCancel: expectAsync0(() {})
     );
@@ -441,8 +441,8 @@ void testMultiplex() {
     c.close();
   });
 
-  test("multiplex-listen-twice", () {
-    StreamController<int> c = new StreamController.multiplex(
+  test("broadcast-controller-listen-twice", () {
+    StreamController<int> c = new StreamController.broadcast(
       onListen: expectAsync0(() {}),
       onCancel: expectAsync0(() {})
     );
@@ -453,8 +453,8 @@ void testMultiplex() {
     c.close();
   });
 
-  test("multiplex-listen-twice-non-overlap", () {
-    StreamController<int> c = new StreamController.multiplex(
+  test("broadcast-controller-listen-twice-non-overlap", () {
+    StreamController<int> c = new StreamController.broadcast(
       onListen: expectAsync0(() {}, count: 2),
       onCancel: expectAsync0(() {}, count: 2)
     );
@@ -466,8 +466,8 @@ void testMultiplex() {
     c.close();
   });
 
-  test("multiplex-individual-pause", () {
-    StreamController<int> c = new StreamController.multiplex(
+  test("broadcast-controller-individual-pause", () {
+    StreamController<int> c = new StreamController.broadcast(
       onListen: expectAsync0(() {}),
       onCancel: expectAsync0(() {})
     );
@@ -490,5 +490,5 @@ main() {
   testExtraMethods();
   testPause();
   testRethrow();
-  testMultiplex();
+  testBroadcastController();
 }

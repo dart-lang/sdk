@@ -73,16 +73,26 @@ abstract class StreamController<T> implements EventSink<T> {
       => new _StreamControllerImpl<T>(onListen, onPause, onResume, onCancel);
 
   /**
-   * A controller where [stream] creates new stream each time it is read.
+   * A controller where [stream] can be listened to more than once.
    *
-   * The controller distributes any events to all currently subscribed streams.
+   * The [Stream] returned by [stream] is a broadcast stream. It can be listened
+   * to more than once.
+   *
+   * The controller distributes any events to all currently subscribed
+   * listeners.
+   * It is not allowed to call [add], [addError], or [close] before a previous
+   * call has returned.
+   *
+   * Each listener is handled independently, and if they pause, only the pausing
+   * listener is affected. A paused listener will buffer events internally until
+   * unpaused or canceled.
    *
    * The [onListen] callback is called when the first listener is subscribed,
-   * and the [onCancel] is called when there is no longer any active listeners.
+   * and the [onCancel] is called when there are no longer any active listeners.
    * If a listener is added again later, after the [onCancel] was called,
    * the [onListen] will be called again.
    */
-  factory StreamController.multiplex({void onListen(), void onCancel()}) {
+  factory StreamController.broadcast({void onListen(), void onCancel()}) {
     return new _MultiplexStreamController<T>(onListen, onCancel);
   }
 
@@ -318,28 +328,102 @@ class _ControllerSubscription<T> extends _BufferingStreamSubscription<T> {
   }
 }
 
+class _MultiplexStream<T> extends _StreamImpl<T> {
+  _MultiplexStreamController _controller;
+
+  _MultiplexStream(this._controller);
+
+  bool get isBroadcast => true;
+
+  StreamSubscription<T> _createSubscription(
+      void onData(T data),
+      void onError(Object error),
+      void onDone(),
+      bool cancelOnError) {
+    return new _MultiplexSubscription<T>(
+        _controller, onData, onError, onDone, cancelOnError);
+  }
+
+  void _onListen(_BufferingStreamSubscription subscription) {
+    _controller._recordListen(subscription);
+  }
+}
+
+abstract class _MultiplexSubscriptionLink {
+  _MultiplexSubscriptionLink _next;
+  _MultiplexSubscriptionLink _previous;
+}
+
+class _MultiplexSubscription<T> extends _ControllerSubscription<T>
+                                implements _MultiplexSubscriptionLink {
+  static const int _STATE_EVENT_ID = 1;
+  static const int _STATE_FIRING = 2;
+  static const int _STATE_REMOVE_AFTER_FIRING = 4;
+  int _eventState;
+
+  _MultiplexSubscriptionLink _next;
+  _MultiplexSubscriptionLink _previous;
+
+  _MultiplexSubscription(_StreamControllerLifecycle controller,
+                         void onData(T data),
+                         void onError(Object error),
+                         void onDone(),
+                         bool cancelOnError)
+      : super(controller, onData, onError, onDone, cancelOnError) {
+    _next = _previous = this;
+  }
+
+  _MultiplexStreamController get _controller => super._controller;
+
+  bool _expectsEvent(int eventId) {
+    return (_eventState & _STATE_EVENT_ID) == eventId;
+  }
+
+  void _toggleEventId() {
+    _eventState ^= _STATE_EVENT_ID;
+  }
+
+  bool get _isFiring => (_eventState & _STATE_FIRING) != 0;
+
+  bool _setRemoveAfterFiring() {
+    assert(_isFiring);
+    _eventState |= _STATE_REMOVE_AFTER_FIRING;
+  }
+
+  bool get _removeAfterFiring =>
+      (_eventState & _STATE_REMOVE_AFTER_FIRING) != 0;
+}
+
+
 class _MultiplexStreamController<T> implements StreamController<T>,
-                                               _StreamControllerLifecycle<T> {
+                                               _StreamControllerLifecycle<T>,
+                                               _MultiplexSubscriptionLink {
+  static const int _STATE_INITIAL = 0;
+  static const int _STATE_EVENT_ID = 1;
+  static const int _STATE_FIRING = 2;
+  static const int _STATE_CLOSED = 4;
+
   final _NotificationHandler _onListen;
   final _NotificationHandler _onCancel;
-  /** Set when the [close] method is called. */
-  bool _isClosed = false;
 
-  // TODO(lrn): Make a more efficient implementation of these subscriptions,
-  // e.g., the traditional double-linked list with concurrent add and remove
-  // while firing.
-  Set<_BufferingStreamSubscription<T>> _streams;
+  // State of the controller.
+  int _state = _STATE_INITIAL;
 
-  _MultiplexStreamController(this._onListen, this._onCancel)
-      : _streams = new Set<_BufferingStreamSubscription<T>>();
+  // Double-linked list of active listeners.
+  _MultiplexSubscriptionLink _next;
+  _MultiplexSubscriptionLink _previous;
+
+  _MultiplexStreamController(this._onListen, this._onCancel) {
+    _next = _previous = this;
+  }
 
   // StreamController interface.
 
-  Stream<T> get stream => new _ControllerStream<T>(this);
+  Stream<T> get stream => new _MultiplexStream<T>(this);
 
   EventSink<T> get sink => new _EventSinkView<T>(this);
 
-  bool get isClosed => _isClosed;
+  bool get isClosed => (_state & _STATE_CLOSED) != 0;
 
   /**
    * A multiplex controller is never paused.
@@ -350,22 +434,50 @@ class _MultiplexStreamController<T> implements StreamController<T>,
   bool get isPaused => false;
 
   /** Whether there are currently a subscriber on the [Stream]. */
-  bool get hasListener => !_streams.isEmpty;
+  bool get hasListener => !_isEmpty;
+
+  // Linked list helpers
+
+  bool get _isEmpty => identical(_next, this);
+
+  /** Adds subscription to linked list of active listeners. */
+  void _addListener(_MultiplexSubscription<T> subscription) {
+    _MultiplexSubscriptionLink previous = _previous;
+    previous._next = subscription;
+    _previous = subscription._previous;
+    subscription._previous._next = this;
+    subscription._previous = previous;
+    subscription._eventState = (_state & _STATE_EVENT_ID);
+  }
+
+  void _removeListener(_MultiplexSubscription<T> subscription) {
+    assert(identical(subscription._controller, this));
+    assert(!identical(subscription._next, subscription));
+    subscription._previous._next = subscription._next;
+    subscription._next._previous = subscription._previous;
+    subscription._next = subscription._previous = subscription;
+  }
 
   // _StreamControllerLifecycle interface.
 
-  void _recordListen(_BufferingStreamSubscription<T> subscription) {
-    bool isFirst = _streams.isEmpty;
-    _streams.add(subscription);
-    if (isFirst) {
+  void _recordListen(_MultiplexSubscription<T> subscription) {
+    _addListener(subscription);
+    if (identical(_next, _previous)) {
+      // Only one listener, so it must be the first listener.
       _runGuarded(_onListen);
     }
   }
 
-  void _recordCancel(_BufferingStreamSubscription<T> subscription) {
-    _streams.remove(subscription);
-    if (_streams.isEmpty) {
-      _runGuarded(_onCancel);
+  void _recordCancel(_MultiplexSubscription<T> subscription) {
+    if (subscription._isFiring) {
+      subscription._setRemoveAfterFiring();
+    } else {
+      _removeListener(subscription);
+      // If we are currently firing an event, the empty-check is performed at
+      // the end of the listener loop instead of here.
+      if ((_state & _STATE_FIRING) == 0 && _isEmpty) {
+        _runGuarded(_onCancel);
+      }
     }
   }
 
@@ -375,36 +487,69 @@ class _MultiplexStreamController<T> implements StreamController<T>,
   // EventSink interface.
 
   void add(T data) {
-    if (_streams.isEmpty) return;
+    assert(!isClosed);
+    if (_isEmpty) return;
     _forEachListener((_BufferingStreamSubscription<T> subscription) {
       subscription._add(data);
     });
   }
 
   void addError(Object error, [Object stackTrace]) {
-    if (_streams.isEmpty) return;
+    assert(!isClosed);
+    if (_isEmpty) return;
     _forEachListener((_BufferingStreamSubscription<T> subscription) {
       subscription._addError(error);
     });
   }
 
   void close() {
-    _isClosed = true;
-    if (_streams.isEmpty) return;
-    _forEachListener((_BufferingStreamSubscription<T> subscription) {
-      _streams.remove(subscription);
+    assert(!isClosed);
+    _state |= _STATE_CLOSED;
+    if (_isEmpty) return;
+    _forEachListener((_MultiplexSubscription<T> subscription) {
       subscription._close();
+      subscription._eventState |=
+          _MultiplexSubscription._STATE_REMOVE_AFTER_FIRING;
     });
   }
 
   void _forEachListener(
       void action(_BufferingStreamSubscription<T> subscription)) {
-    List<_BufferingStreamSubscription<T>> subscriptions = _streams.toList();
-    for (_BufferingStreamSubscription<T> subscription in subscriptions) {
-      if (_streams.contains(subscription)) {
+    if ((_state & _STATE_FIRING) != 0) {
+      throw new StateError(
+          "Cannot fire new event. Controller is already firing an event");
+    }
+    if (_isEmpty) return;
+
+    // Get event id of this event.
+    int id = (_state & _STATE_EVENT_ID);
+    // Start firing (set the _STATE_FIRING bit). We don't do [_onCancel]
+    // callbacks while firing, and we prevent reentrancy of this function.
+    //
+    // Set [_state]'s event id to the next event's id.
+    // Any listeners added while firing this event will expect the next event,
+    // not this one, and won't get notified.
+    _state ^= _STATE_EVENT_ID | _STATE_FIRING;
+    _MultiplexSubscriptionLink link = _next;
+    while (!identical(link, this)) {
+      _MultiplexSubscription<T> subscription = link;
+      if (subscription._expectsEvent(id)) {
+        subscription._eventState |= _MultiplexSubscription._STATE_FIRING;
         action(subscription);
+        subscription._toggleEventId();
+        link = subscription._next;
+        if (subscription._removeAfterFiring) {
+          _removeListener(subscription);
+        }
+        subscription._eventState &= ~_MultiplexSubscription._STATE_FIRING;
+      } else {
+        link = subscription._next;
       }
+    }
+    _state &= ~_STATE_FIRING;
+
+    if (_isEmpty) {
+      _runGuarded(_onCancel);
     }
   }
 }
-
