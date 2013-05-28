@@ -2047,10 +2047,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStaticStore(HStaticStore node) {
     world.registerStaticUse(node.element);
-    js.VariableUse variableUse =
-        new js.VariableUse(backend.namer.isolateAccess(node.element));
+    js.VariableUse isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    // Create a property access to make sure expressions and variable
+    // declarations recognizers don't see this assignment as a local
+    // assignment.
+    js.Node variable = new js.PropertyAccess.field(
+        isolate, backend.namer.getName(node.element));
     use(node.inputs[0]);
-    push(new js.Assignment(variableUse, pop()), node);
+    push(new js.Assignment(variable, pop()), node);
   }
 
   void visitStringConcat(HStringConcat node) {
