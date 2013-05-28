@@ -18,6 +18,7 @@ mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
+async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
 
 [ $csp ]
 mirrors/library_uri_package_test: Fail, Pass # Issue 6490
@@ -84,7 +85,6 @@ async/timer_isolate_test: Skip # See Issue 4997
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
-async/run_async4_test: Pass, Fail # http://dartbug.com/9013
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997

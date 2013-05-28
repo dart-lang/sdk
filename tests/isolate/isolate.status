@@ -11,8 +11,6 @@ compute_this_script_browser_test: Skip # browser specific test
 compute_this_script_browser_stream_test: Skip # browser specific test
 ports_compilation_browser_test: Skip # browser specific test
 unresolved_ports_negative_test: Skip # See Issue 6839
-global_error_handler_test: Fail, Pass # See Issue 9013.
-global_error_handler_stream_test: Fail # See Issue 9013.
 isolate_stress_test: Fail # TODO(ahe): This should be able to pass when we have wrapper-less tests.
 
 

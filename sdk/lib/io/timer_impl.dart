@@ -158,8 +158,8 @@ class _Timer implements Timer {
         }
       } finally {
         _handling_callbacks = false;
+        _notifyEventHandler();
       }
-      _notifyEventHandler();
     }
 
     if(_receivePort == null) {
