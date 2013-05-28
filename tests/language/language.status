@@ -575,23 +575,6 @@ class_cycle_negative_test: fail
 class_cycle_test/00: fail
 class_cycle_test/01: fail
 class_cycle_test/03: fail
-class_literal_test/02: fail
-class_literal_test/05: fail
-class_literal_test/07: fail
-class_literal_test/10: fail
-class_literal_test/11: fail
-class_literal_test/12: fail
-class_literal_test/14: fail
-class_literal_test/17: fail
-class_literal_test/18: fail
-class_literal_test/19: fail
-class_literal_test/22: fail
-class_literal_test/23: fail
-class_literal_test/24: fail
-class_literal_test/27: fail
-class_literal_test/28: fail
-class_literal_test/29: fail
-class_literal_test/none: fail
 closure_call_wrong_argument_count_negative_test: fail
 compile_time_constant10_test/none: fail
 compile_time_constant8_test: fail
@@ -809,6 +792,25 @@ try_catch3_test: fail, OK
 try_catch_on_syntax_test/01: fail, OK
 try_catch_on_syntax_test/07: fail, OK
 try_catch_syntax_test/08: fail, OK
+
+# test issue 10899; it is static warning, not error, to call methods of class literal
+class_literal_test/02: fail, OK
+class_literal_test/05: fail, OK
+class_literal_test/07: fail, OK
+class_literal_test/10: fail, OK
+class_literal_test/11: fail, OK
+class_literal_test/12: fail, OK
+class_literal_test/14: fail, OK
+class_literal_test/17: fail, OK
+class_literal_test/18: fail, OK
+class_literal_test/19: fail, OK
+class_literal_test/22: fail, OK
+class_literal_test/23: fail, OK
+class_literal_test/24: fail, OK
+class_literal_test/27: fail, OK
+class_literal_test/28: fail, OK
+class_literal_test/29: fail, OK
+class_literal_test/none: fail, OK
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
