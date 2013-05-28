@@ -404,7 +404,14 @@ class IdbFactory native "IDBFactory" {
       if (onBlocked != null) {
         request.onBlocked.listen(onBlocked);
       }
-      return _completeRequest(request);
+      var completer = new Completer.sync();
+      request.onSuccess.listen((e) {
+        completer.complete(this);
+      });
+      request.onError.listen((e) {
+        completer.completeError(e);
+      });
+      return completer.future;
     } catch (e, stacktrace) {
       return new Future.error(e, stacktrace);
     }
