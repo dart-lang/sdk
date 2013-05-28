@@ -6,7 +6,6 @@ library command_uploader;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 
 import 'package:args/args.dart';
 import 'package:pathos/path.dart' as path;
@@ -64,12 +63,12 @@ class UploaderCommand extends PubCommand {
       var uploader = commandOptions.rest[0];
       return oauth2.withClient(cache, (client) {
         if (command == 'add') {
-          var url = server.resolve("/packages/${encodeUriComponent(package)}"
+          var url = server.resolve("/packages/${Uri.encodeComponent(package)}"
               "/uploaders.json");
           return client.post(url, fields: {"email": uploader});
         } else { // command == 'remove'
-          var url = server.resolve("/packages/${encodeUriComponent(package)}"
-              "/uploaders/${encodeUriComponent(uploader)}.json");
+          var url = server.resolve("/packages/${Uri.encodeComponent(package)}"
+              "/uploaders/${Uri.encodeComponent(uploader)}.json");
           return client.delete(url);
         }
       });

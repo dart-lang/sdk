@@ -55,7 +55,7 @@ main() {
 
 
 void main() {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   compiler.runCompiler(uri);
   var typesInferrer = compiler.typesTask.typesInferrer;

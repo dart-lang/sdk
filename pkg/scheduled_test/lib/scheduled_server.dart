@@ -7,7 +7,6 @@ library scheduled_test.scheduled_server;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
-import 'dart:uri';
 
 import 'scheduled_test.dart';
 import 'src/utils.dart';

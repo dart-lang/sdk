@@ -408,7 +408,7 @@ class MirrorRule extends NamedObjectRule {
     // So follow one or the other path depending if it has a colon, which we
     // assume is in any URI and can't be in a Symbol.
     if (name.contains(":")) {
-      var uri = new Uri(name);
+      var uri = Uri.parse(name);
       var libMirror = currentMirrorSystem().libraries[uri];
       return libMirror.classes[new Symbol(type)];
     } else {

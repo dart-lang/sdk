@@ -8,7 +8,7 @@ import 'parser_helper.dart';
 
 void compileAndFind(String code, String name,
                     check(compiler, element)) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
   compiler.runCompiler(uri);
   var element = findElement(compiler, name);

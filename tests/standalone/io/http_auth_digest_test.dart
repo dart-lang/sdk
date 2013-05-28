@@ -7,7 +7,6 @@ import 'dart:async';
 import 'dart:crypto';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:uri';
 import 'dart:utf';
 
 class Server {

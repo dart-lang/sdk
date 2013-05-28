@@ -5,7 +5,6 @@
 import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';

@@ -6,7 +6,6 @@ import "package:expect/expect.dart";
 import "dart:async";
 import 'dart:crypto';
 import "dart:io";
-import "dart:uri";
 import 'dart:utf';
 
 class Server {

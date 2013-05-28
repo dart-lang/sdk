@@ -5,7 +5,6 @@ library engine.source.io;
 
 import 'source.dart';
 import 'dart:io';
-import 'dart:uri';
 import 'java_core.dart';
 import 'java_io.dart';
 import 'sdk.dart' show DartSdk;

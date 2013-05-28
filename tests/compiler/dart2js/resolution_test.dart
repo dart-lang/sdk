@@ -92,7 +92,7 @@ main() {
 """;
 
 void test(String code, void check(Compiler compiler)) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
   compiler.runCompiler(uri);
   check(compiler);

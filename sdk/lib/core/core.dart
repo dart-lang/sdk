@@ -7,6 +7,7 @@ library dart.core;
 import "dart:collection";
 import "dart:_collection-dev" hide Symbol;
 import "dart:_collection-dev" as _collection_dev;
+import "dart:utf" show codepointsToUtf8, decodeUtf8;
 
 part "bool.dart";
 part "comparable.dart";
@@ -37,3 +38,4 @@ part "string_buffer.dart";
 part "string_sink.dart";
 part "symbol.dart";
 part "type.dart";
+part "uri.dart";

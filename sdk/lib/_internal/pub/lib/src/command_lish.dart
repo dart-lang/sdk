@@ -7,7 +7,6 @@ library command_lish;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json';
-import 'dart:uri';
 
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;

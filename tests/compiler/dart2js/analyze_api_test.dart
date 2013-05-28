@@ -5,7 +5,6 @@
 library analyze_api;
 
 import "package:expect/expect.dart";
-import 'dart:uri';
 import '../../../sdk/lib/_internal/libraries.dart';
 import 'analyze_helper.dart';
 
@@ -33,7 +32,7 @@ void main() {
   var uriList = new List<Uri>();
   LIBRARIES.forEach((String name, LibraryInfo info) {
     if (info.documented) {
-      uriList.add(new Uri.fromComponents(scheme: 'dart', path: name));
+      uriList.add(new Uri(scheme: 'dart', path: name));
     }
   });
   analyze(uriList, WHITE_LIST);

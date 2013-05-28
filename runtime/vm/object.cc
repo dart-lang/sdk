@@ -6717,11 +6717,6 @@ RawLibrary* Library::TypedDataLibrary() {
 }
 
 
-RawLibrary* Library::UriLibrary() {
-  return Isolate::Current()->object_store()->uri_library();
-}
-
-
 RawLibrary* Library::UtfLibrary() {
   return Isolate::Current()->object_store()->utf_library();
 }

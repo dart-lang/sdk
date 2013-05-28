@@ -74,10 +74,6 @@ static bootstrap_lib_props bootstrap_libraries[] = {
                utf,
                Bootstrap::utf_source_paths_,
                NULL),
-  INIT_LIBRARY(ObjectStore::kUri,
-               uri,
-               Bootstrap::uri_source_paths_,
-               NULL),
 
   { ObjectStore::kNone, NULL, NULL, NULL, NULL }
 };

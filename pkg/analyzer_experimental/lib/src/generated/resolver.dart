@@ -4,7 +4,6 @@
 library engine.resolver;
 
 import 'dart:collection';
-import 'dart:uri' show Uri;
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'instrumentation.dart';
@@ -880,7 +879,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
         ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
         if (scriptSourcePath != null) {
           try {
-            new Uri(scriptSourcePath);
+            Uri.parse(scriptSourcePath);
             Source scriptSource = _context.sourceFactory.resolveUri(htmlSource, scriptSourcePath);
             script.scriptSource = scriptSource;
             if (!scriptSource.exists()) {

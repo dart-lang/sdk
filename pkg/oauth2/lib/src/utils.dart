@@ -5,7 +5,6 @@
 library utils;
 
 import 'dart:async';
-import 'dart:uri';
 import 'dart:isolate';
 import 'dart:crypto';
 
@@ -35,8 +34,10 @@ Map<String, String> queryToMap(String queryList) {
 String mapToQuery(Map<String, String> map) {
   var pairs = <List<String>>[];
   map.forEach((key, value) {
-    key = encodeUriComponent(key);
-    value = (value == null || value.isEmpty) ? null : encodeUriComponent(value);
+    key = Uri.encodeQueryComponent(key);
+    value = (value == null || value.isEmpty)
+            ? null
+            : Uri.encodeQueryComponent(value);
     pairs.add([key, value]);
   });
   return pairs.map((pair) {
@@ -50,10 +51,10 @@ String mapToQuery(Map<String, String> map) {
 void mapAddAll(Map destination, Map source) =>
   source.forEach((key, value) => destination[key] = value);
 
-/// Decode a URL-encoded string. Unlike [decodeUriComponent], this includes
+/// Decode a URL-encoded string. Unlike [Uri.decodeComponent], this includes
 /// replacing `+` with ` `.
 String urlDecode(String encoded) =>
-  decodeUriComponent(encoded.replaceAll("+", " "));
+  Uri.decodeComponent(encoded.replaceAll("+", " "));
 
 /// Like [String.split], but only splits on the first occurrence of the pattern.
 /// This will always return a list of two elements or fewer.

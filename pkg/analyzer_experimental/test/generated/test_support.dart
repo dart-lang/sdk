@@ -4,7 +4,6 @@
 library engine.test_support;
 
 import 'dart:collection';
-import 'dart:uri';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
 import 'package:analyzer_experimental/src/generated/java_engine.dart';
 import 'package:analyzer_experimental/src/generated/java_junit.dart';

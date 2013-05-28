@@ -5,7 +5,6 @@
 library parser_helper;
 
 import "package:expect/expect.dart";
-import "dart:uri";
 
 import "../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
@@ -43,7 +42,7 @@ Node parseBodyCode(String text, Function parseMethod,
   if (diagnosticHandler == null) diagnosticHandler = new LoggerCanceler();
   Script script =
       new Script(
-          new Uri.fromComponents(scheme: "source"),
+          new Uri(scheme: "source"),
           new MockFile(text));
   LibraryElement library = new LibraryElementX(script);
   library.canUseNative = true;
@@ -84,8 +83,7 @@ Link<Element> parseUnit(String text, Compiler compiler,
                         LibraryElement library,
                         [void registerSource(Uri uri, String source)]) {
   Token tokens = scan(text);
-  Uri uri =
-      new Uri.fromComponents(scheme: "source", path: '${++sourceCounter}');
+  Uri uri = new Uri(scheme: "source", path: '${++sourceCounter}');
   if (registerSource != null) {
     registerSource(uri, text);
   }

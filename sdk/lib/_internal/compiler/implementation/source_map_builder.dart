@@ -4,7 +4,6 @@
 
 library source_map_builder;
 
-import 'dart:uri';
 
 import 'util/util.dart';
 import 'scanner/scannerlib.dart' show Token;

@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 import "dart:io";
-import "dart:uri";
 
 expect(expected, String uri, environment) {
   Expect.equals(expected,

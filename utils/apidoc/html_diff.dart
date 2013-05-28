@@ -10,7 +10,6 @@ library html_diff;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 
 import 'lib/metadata.dart';
 

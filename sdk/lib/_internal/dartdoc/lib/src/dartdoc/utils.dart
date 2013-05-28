@@ -6,7 +6,6 @@
 library utils;
 
 import 'dart:io';
-import 'dart:uri';
 import 'dart:math' as math;
 
 import 'package:pathos/path.dart' as pathos;

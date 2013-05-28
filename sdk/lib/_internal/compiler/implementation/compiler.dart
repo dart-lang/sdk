@@ -744,7 +744,7 @@ abstract class Compiler implements DiagnosticListener {
     invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
 
     if (preserveComments) {
-      var uri = new Uri.fromComponents(scheme: 'dart', path: 'mirrors');
+      var uri = new Uri(scheme: 'dart', path: 'mirrors');
       LibraryElement libraryElement =
           libraryLoader.loadLibrary(uri, null, uri);
       documentClass = libraryElement.find(const SourceString('Comment'));

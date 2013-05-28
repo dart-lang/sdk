@@ -7,7 +7,6 @@ library base_request;
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:uri';
 
 import 'byte_stream.dart';
 import 'client.dart';

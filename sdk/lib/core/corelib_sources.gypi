@@ -35,5 +35,6 @@
     'string_sink.dart',
     'symbol.dart',
     'type.dart',
+    'uri.dart',
   ],
 }

@@ -28,7 +28,6 @@ class Bootstrap : public AllStatic {
   static const char* math_source_paths_[];
   static const char* mirrors_source_paths_[];
   static const char* typed_data_source_paths_[];
-  static const char* uri_source_paths_[];
   static const char* utf_source_paths_[];
 
   // Source path mapping for patch URI and 'parts'.

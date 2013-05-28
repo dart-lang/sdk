@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:uri';
 import 'parser_helper.dart';
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/compiler.dart';
@@ -88,7 +87,7 @@ testDart2DartWithLibrary(
     String srcMain, String srcLibrary,
     {void continuation(String s), bool minify: false,
     bool stripTypes: false}) {
-  fileUri(path) => new Uri.fromComponents(scheme: 'file', path: path);
+  fileUri(path) => new Uri(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
   final libUri = fileUri('mylib.dart');

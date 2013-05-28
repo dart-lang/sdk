@@ -3,7 +3,6 @@
 
 library engine.source;
 
-import 'dart:uri';
 import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext;
@@ -55,7 +54,7 @@ class SourceFactory {
    */
   Source forUri(String absoluteUri) {
     try {
-      Uri uri = new Uri(absoluteUri);
+      Uri uri = Uri.parse(absoluteUri);
       if (uri.isAbsolute) {
         return resolveUri2(null, uri);
       }
@@ -79,7 +78,7 @@ class SourceFactory {
       throw new IllegalArgumentException("Invalid source kind in encoding: ${kind}");
     }
     try {
-      Uri uri = new Uri(encoding.substring(1));
+      Uri uri = Uri.parse(encoding.substring(1));
       for (UriResolver resolver in _resolvers) {
         Source result = resolver.fromEncoding(_contentCache, kind, uri);
         if (result != null) {
@@ -126,7 +125,7 @@ class SourceFactory {
    */
   Source resolveUri(Source containingSource, String containedUri) {
     try {
-      return resolveUri2(containingSource, new Uri(containedUri));
+      return resolveUri2(containingSource, Uri.parse(containedUri));
     } on URISyntaxException catch (exception) {
       return null;
     }

@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:uri";
 import "dart:isolate";
 
 const HOST_NAME = "localhost";

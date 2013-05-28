@@ -5,8 +5,6 @@
 library dart2js.test.memory_source_file_helper;
 
 import 'dart:async' show Future;
-import 'dart:uri' show Uri;
-export 'dart:uri' show Uri;
 import 'dart:io';
 export 'dart:io' show Options;
 

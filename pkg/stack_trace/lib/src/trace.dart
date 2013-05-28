@@ -5,7 +5,6 @@
 library trace;
 
 import 'dart:collection';
-import 'dart:uri';
 import 'dart:math' as math;
 
 import 'frame.dart';

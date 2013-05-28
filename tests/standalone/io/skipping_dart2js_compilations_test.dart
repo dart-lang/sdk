@@ -17,7 +17,6 @@
 import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 import '../../../tools/testing/dart/test_suite.dart' as suite;
 import '../../../tools/testing/dart/test_runner.dart' as runner;
 import '../../../tools/testing/dart/test_options.dart' as options;
@@ -153,7 +152,7 @@ runner.TestCase makeTestCase(String testName, FileUtils fileUtils) {
   var executable = new Options().executable;
   var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
   var bootstrapDeps = [
-      new Uri("file://${fileUtils.testSnapshotFilePath}")];
+      Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
   var commands = [new runner.CompilationCommand(
       fileUtils.testJsFilePath.toNativePath(),
       false,

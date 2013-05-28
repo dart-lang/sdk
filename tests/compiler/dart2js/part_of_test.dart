@@ -5,7 +5,6 @@
 library part_of_test;
 
 import "package:expect/expect.dart";
-import 'dart:uri';
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
     show MessageKind;

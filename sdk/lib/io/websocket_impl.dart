@@ -660,13 +660,13 @@ class _WebSocketImpl extends Stream implements WebSocket {
     }
     String nonce = _CryptoUtils.bytesToBase64(nonceData);
 
-    uri = new Uri.fromComponents(scheme: uri.scheme == "wss" ? "https" : "http",
-                                 userInfo: uri.userInfo,
-                                 domain: uri.domain,
-                                 port: uri.port,
-                                 path: uri.path,
-                                 query: uri.query,
-                                 fragment: uri.fragment);
+    uri = new Uri(scheme: uri.scheme == "wss" ? "https" : "http",
+                  userInfo: uri.userInfo,
+                  host: uri.host,
+                  port: uri.port,
+                  path: uri.path,
+                  query: uri.query,
+                  fragment: uri.fragment);
     return _httpClient.openUrl("GET", uri)
       .then((request) {
         // Setup the initial handshake.

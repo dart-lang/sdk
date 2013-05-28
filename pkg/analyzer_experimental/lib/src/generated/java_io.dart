@@ -1,7 +1,6 @@
 library java.io;
 
 import "dart:io";
-import "dart:uri";
 
 class JavaSystemIO {
   static Map<String, String> _properties = new Map();
@@ -84,7 +83,7 @@ class JavaFile {
   bool isDirectory() {
     return _newDirectory().existsSync();
   }
-  Uri toURI() => new Uri.fromComponents(path: _path.toString());
+  Uri toURI() => new Uri(path: _path.toString());
   String readAsStringSync() => _newFile().readAsStringSync();
   int lastModified() => _newFile().lastModifiedSync().millisecondsSinceEpoch;
   File _newFile() => new File.fromPath(_path);

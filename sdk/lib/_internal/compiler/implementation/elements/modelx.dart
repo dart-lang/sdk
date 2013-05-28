@@ -4,7 +4,6 @@
 
 library elements.modelx;
 
-import 'dart:uri';
 import 'dart:collection' show LinkedHashMap;
 
 import 'elements.dart';

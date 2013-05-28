@@ -7,7 +7,6 @@ library FormDataTest;
 import '../../pkg/unittest/lib/unittest.dart';
 import '../../pkg/unittest/lib/html_individual_config.dart';
 import 'dart:html';
-import 'dart:uri';
 
 void fail(message) {
   guardAsync(() {

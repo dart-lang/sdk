@@ -5,7 +5,6 @@
 library frame_test;
 
 import 'dart:io';
-import 'dart:uri';
 
 import 'package:pathos/path.dart' as path;
 import 'package:stack_trace/src/utils.dart';
@@ -42,7 +41,7 @@ void main() {
     // TODO(nweiz): use URL-style paths when such a thing exists.
     var builder = new path.Builder(style: path.Style.posix);
     expect(builder.basename(frame.uri.path), equals('frame_test.dart'));
-    expect(frame.line, equals(17));
+    expect(frame.line, equals(16));
     expect(frame.column, equals(5));
     expect(frame.member, equals('getStackFrame'));
   });

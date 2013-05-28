@@ -2230,7 +2230,7 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
   void fail_prefixCollidesWithTopLevelMembers() {
-    Source source = addSource(EngineTestCase.createSource(["import 'dart:uri' as uri;", "var uri = null;"]));
+    Source source = addSource(EngineTestCase.createSource(["import 'dart:uft' as utf;", "var utf = null;"]));
     resolve(source, []);
     assertErrors([CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
     verify([source]);

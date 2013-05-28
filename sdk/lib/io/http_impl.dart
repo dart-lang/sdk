@@ -946,7 +946,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         // For the connect method the request URI is the host:port of
         // the requested destination of the tunnel (see RFC 2817
         // section 5.2)
-        return "${uri.domain}:${uri.port}";
+        return "${uri.host}:${uri.port}";
       } else {
         if (_httpClientConnection._proxyTunnel) {
           return uriStartingFromPath();
@@ -1155,7 +1155,7 @@ class _HttpClientConnection {
                                          proxy,
                                          _httpClient,
                                          this);
-    request.headers.host = uri.domain;
+    request.headers.host = uri.host;
     request.headers.port = port;
     request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
     if (proxy.isAuthenticated) {
@@ -1278,7 +1278,7 @@ class _HttpClientConnection {
 
   Future<_HttpClientConnection> createProxyTunnel(host, port, proxy) {
     _HttpClientRequest request =
-        send(new Uri.fromComponents(domain: host, port: port),
+        send(new Uri(host: host, port: port),
              port,
              "CONNECT",
              proxy);
@@ -1371,8 +1371,8 @@ class _HttpClient implements HttpClient {
                                  String path) {
     // TODO(sgjesse): The path set here can contain both query and
     // fragment. They should be cracked and set correctly.
-    return _openUrl(method, new Uri.fromComponents(
-        scheme: "http", domain: host, port: port, path: path));
+    return _openUrl(method, new Uri(
+        scheme: "http", host: host, port: port, path: path));
   }
 
   Future<HttpClientRequest> openUrl(String method, Uri url) {
@@ -1449,7 +1449,7 @@ class _HttpClient implements HttpClient {
       throw new ArgumentError(method);
     }
     if (method != "CONNECT") {
-      if (uri.domain.isEmpty ||
+      if (uri.host.isEmpty ||
           (uri.scheme != "http" && uri.scheme != "https")) {
         throw new ArgumentError("Unsupported scheme '${uri.scheme}' in $uri");
       }
@@ -1473,7 +1473,7 @@ class _HttpClient implements HttpClient {
         return new Future.error(error, stackTrace);
       }
     }
-    return _getConnection(uri.domain, port, proxyConf, isSecure)
+    return _getConnection(uri.host, port, proxyConf, isSecure)
         .then((info) {
           send(info) {
             return info.connection.send(uri,
@@ -1484,7 +1484,7 @@ class _HttpClient implements HttpClient {
           // If the connection was closed before the request was sent, create
           // and use another connection.
           if (info.connection.closed) {
-            return _getConnection(uri.domain, port, proxyConf, isSecure)
+            return _getConnection(uri.host, port, proxyConf, isSecure)
                 .then(send);
           }
           return send(info);
@@ -1497,19 +1497,19 @@ class _HttpClient implements HttpClient {
     // If the new URI is relative (to either '/' or some sub-path),
     // construct a full URI from the previous one.
     // See http://tools.ietf.org/html/rfc3986#section-4.2
-    replaceComponents({scheme, domain, port, path}) {
-      uri = new Uri.fromComponents(
+    replaceComponents({scheme, host, port, path}) {
+      uri = new Uri(
           scheme: scheme != null ? scheme : uri.scheme,
-          domain: domain != null ? domain : uri.domain,
+          host: host != null ? host : uri.host,
           port: port != null ? port : uri.port,
           path: path != null ? path : uri.path,
           query: uri.query,
           fragment: uri.fragment);
     }
-    if (uri.domain == '') {
-      replaceComponents(domain: previous.uri.domain, port: previous.uri.port);
+    if (uri.host.isEmpty) {
+      replaceComponents(host: previous.uri.host, port: previous.uri.port);
     }
-    if (uri.scheme == '') {
+    if (uri.scheme.isEmpty) {
       replaceComponents(scheme: previous.uri.scheme);
     }
     if (!uri.path.startsWith('/') && previous.uri.path.startsWith('/')) {
@@ -1676,7 +1676,7 @@ class _HttpClient implements HttpClient {
       if (option == null) return null;
       Iterator<String> names = option.split(",").map((s) => s.trim()).iterator;
       while (names.moveNext()) {
-        if (url.domain.endsWith(names.current)) {
+        if (url.host.endsWith(names.current)) {
           return "DIRECT";
         }
       }
@@ -2172,7 +2172,7 @@ class _SiteCredentials extends _Credentials {
 
   bool applies(Uri uri, _AuthenticationScheme scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
-    if (uri.domain != this.uri.domain) return false;
+    if (uri.host != this.uri.host) return false;
     int thisPort =
         this.uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : this.uri.port;
     int otherPort = uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : uri.port;

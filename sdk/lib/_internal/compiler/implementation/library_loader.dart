@@ -337,7 +337,7 @@ class LibraryLoaderTask extends LibraryLoader {
    */
   LibraryElement loadCoreLibrary(LibraryDependencyHandler handler) {
     if (compiler.coreLibrary == null) {
-      Uri coreUri = new Uri.fromComponents(scheme: 'dart', path: 'core');
+      Uri coreUri = new Uri(scheme: 'dart', path: 'core');
       compiler.coreLibrary
           = createLibrary(handler, null, coreUri, null, coreUri);
     }

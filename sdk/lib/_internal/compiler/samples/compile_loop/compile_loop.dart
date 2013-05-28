@@ -7,7 +7,6 @@
 library sample.compile_loop;
 
 import 'dart:async';
-import 'dart:uri';
 
 import '../../compiler.dart' as compiler;
 

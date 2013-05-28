@@ -5,7 +5,6 @@
 library authorization_code_grant;
 
 import 'dart:async';
-import 'dart:uri';
 
 import 'package:http/http.dart' as http;
 

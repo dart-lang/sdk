@@ -101,9 +101,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
         category: "Client",
         dart2jsPath: "svg/dart2js/svg_dart2js.dart"),
 
-  "uri": const LibraryInfo(
-      "uri/uri.dart"),
-
   "utf": const LibraryInfo(
       "utf/utf.dart"),
 

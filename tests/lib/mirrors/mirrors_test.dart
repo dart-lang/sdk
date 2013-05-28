@@ -8,7 +8,6 @@
 library MirrorsTest;
 import "dart:mirrors";
 import "../../../pkg/unittest/lib/unittest.dart";
-import 'dart:uri';
 
 var topLevelField;
 

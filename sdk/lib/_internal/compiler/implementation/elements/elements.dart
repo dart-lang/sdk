@@ -4,7 +4,6 @@
 
 library elements;
 
-import 'dart:uri';
 
 import 'modelx.dart';
 import '../tree/tree.dart';

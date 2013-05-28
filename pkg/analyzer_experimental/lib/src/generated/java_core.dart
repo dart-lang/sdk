@@ -1,7 +1,6 @@
 library java.core;
 
 import "dart:math" as math;
-import "dart:uri";
 import "dart:collection" show ListBase;
 
 class JavaSystem {

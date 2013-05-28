@@ -5,7 +5,6 @@
 library scanner;
 
 import 'dart:collection' show LinkedHashMap, IterableBase;
-import 'dart:uri';
 
 import 'scanner_implementation.dart';
 import '../elements/elements.dart';

@@ -6,7 +6,6 @@
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:uri";
 
 void testHttp10Close(bool closeRequest) {
   HttpServer.bind("127.0.0.1", 0).then((server) {

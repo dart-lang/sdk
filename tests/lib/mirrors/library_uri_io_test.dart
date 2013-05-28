@@ -8,7 +8,6 @@ library MirrorsTest;
 
 import 'dart:mirrors';
 import 'dart:io';
-import 'dart:uri';
 import '../../../pkg/unittest/lib/unittest.dart';
 
 class Class {
@@ -25,7 +24,7 @@ main() {
   var mirrors = currentMirrorSystem();
   test("Test current library uri", () {
     String appendSlash(String path) => path.endsWith('/') ? path : '$path/';
-    Uri cwd = new Uri.fromComponents(
+    Uri cwd = new Uri(
         scheme: 'file',
         path: appendSlash(new Path(new File('.').fullPathSync()).toString()));
     Uri uri = cwd.resolve(new Path(new Options().script).toString());

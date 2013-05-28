@@ -5,7 +5,6 @@
 library source_file_provider;
 
 import 'dart:async';
-import 'dart:uri';
 import 'dart:io';
 import 'dart:utf';
 

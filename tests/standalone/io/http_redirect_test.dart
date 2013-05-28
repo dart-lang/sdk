@@ -6,7 +6,6 @@
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
-import "dart:uri";
 
 Future<HttpServer> setupServer() {
   Completer completer = new Completer();

@@ -10,7 +10,6 @@ import 'dart:collection';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:json';
-import 'dart:uri';
 
 import 'package:pathos/path.dart' as path;
 import 'package:http/http.dart' show ByteStream;

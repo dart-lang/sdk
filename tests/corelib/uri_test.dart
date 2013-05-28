@@ -6,30 +6,34 @@ library uriTest;
 
 import "package:expect/expect.dart";
 import 'dart:utf';
-import 'dart:uri';
 
 testUri(String uri, bool isAbsolute) {
   Expect.equals(isAbsolute, Uri.parse(uri).isAbsolute);
-  Expect.equals(isAbsolute, new Uri(uri).isAbsolute);
   Expect.stringEquals(uri, Uri.parse(uri).toString());
-  Expect.stringEquals(uri, new Uri(uri).toString());
 
   // Test equals and hashCode members.
-  Expect.equals(new Uri(uri), new Uri(uri));
-  Expect.equals(new Uri(uri).hashCode, new Uri(uri).hashCode);
+  Expect.equals(Uri.parse(uri), Uri.parse(uri));
+  Expect.equals(Uri.parse(uri).hashCode, Uri.parse(uri).hashCode);
 }
 
 testEncodeDecode(String orig, String encoded) {
-  var e = encodeUri(orig);
+  var e = Uri.encodeFull(orig);
   Expect.stringEquals(encoded, e);
-  var d = decodeUri(encoded);
+  var d = Uri.decodeFull(encoded);
   Expect.stringEquals(orig, d);
 }
 
 testEncodeDecodeComponent(String orig, String encoded) {
-  var e = encodeUriComponent(orig);
+  var e = Uri.encodeComponent(orig);
   Expect.stringEquals(encoded, e);
-  var d = decodeUriComponent(encoded);
+  var d = Uri.decodeComponent(encoded);
+  Expect.stringEquals(orig, d);
+}
+
+testEncodeDecodeQueryComponent(String orig, String encoded) {
+  var e = Uri.encodeQueryComponent(orig);
+  Expect.stringEquals(encoded, e);
+  var d = Uri.decodeQueryComponent(encoded);
   Expect.stringEquals(orig, d);
 }
 
@@ -89,48 +93,56 @@ testUriPerRFCs(Uri base) {
                       base.resolve("../g;p/h;s").toString());
 }
 
+void testResolvePath(String expected, String path) {
+  Expect.equals(expected, new Uri().resolveUri(new Uri(path: path)).path);
+  Expect.equals(
+      "http://localhost$expected",
+      Uri.parse("http://localhost").resolveUri(new Uri(path: path)).toString());
+}
+
 main() {
   testUri("http:", true);
   testUri("file://", true);
   testUri("file", false);
-  testUri("http://user@example.com:80/fisk?query=89&hest=silas", true);
-  testUri("http://user@example.com:80/fisk?query=89&hest=silas#fragment",
+  testUri("http://user@example.com:8080/fisk?query=89&hest=silas", true);
+  testUri("http://user@example.com:8080/fisk?query=89&hest=silas#fragment",
           false);
-  Expect.stringEquals("http://user@example.com:80/a/b/c?query#fragment",
-                      const Uri.fromComponents(
+  Expect.stringEquals("http://user@example.com/a/b/c?query#fragment",
+                      new Uri(
                           scheme: "http",
                           userInfo: "user",
-                          domain: "example.com",
+                          host: "example.com",
                           port: 80,
                           path: "/a/b/c",
                           query: "query",
                           fragment: "fragment").toString());
-  Expect.stringEquals("null://null@null/a/b/c/?null#null",
-                      const Uri.fromComponents(
+  Expect.stringEquals("//null@null/a/b/c/",
+                      new Uri(
                           scheme: null,
                           userInfo: null,
-                          domain: null,
+                          host: null,
                           port: 0,
                           path: "/a/b/c/",
                           query: null,
                           fragment: null).toString());
   Expect.stringEquals("file://", Uri.parse("file:").toString());
-  Expect.stringEquals("file://", new Uri("file:").toString());
-  Expect.stringEquals("/a/g", removeDotSegments("/a/b/c/./../../g"));
-  Expect.stringEquals("mid/6", removeDotSegments("mid/content=5/../6"));
-  Expect.stringEquals("a/b/e", removeDotSegments("a/b/c/d/../../e"));
-  Expect.stringEquals("a/b/e", removeDotSegments("../a/b/c/d/../../e"));
-  Expect.stringEquals("a/b/e", removeDotSegments("./a/b/c/d/../../e"));
-  Expect.stringEquals("a/b/e", removeDotSegments("../a/b/./c/d/../../e"));
-  Expect.stringEquals("a/b/e", removeDotSegments("./a/b/./c/d/../../e"));
-  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/."));
-  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/./."));
-  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/././."));
+
+  testResolvePath("/a/g", "/a/b/c/./../../g");
+  testResolvePath("/a/g", "/a/b/c/./../../g");
+  testResolvePath("/mid/6", "mid/content=5/../6");
+  testResolvePath("/a/b/e", "a/b/c/d/../../e");
+  testResolvePath("/a/b/e", "../a/b/c/d/../../e");
+  testResolvePath("/a/b/e", "./a/b/c/d/../../e");
+  testResolvePath("/a/b/e", "../a/b/./c/d/../../e");
+  testResolvePath("/a/b/e", "./a/b/./c/d/../../e");
+  testResolvePath("/a/b/e/", "./a/b/./c/d/../../e/.");
+  testResolvePath("/a/b/e/", "./a/b/./c/d/../../e/./.");
+  testResolvePath("/a/b/e/", "./a/b/./c/d/../../e/././.");
 
   final urisSample = "http://a/b/c/d;p?q";
   Uri baseFromString = Uri.parse(urisSample);
   testUriPerRFCs(baseFromString);
-  Uri base = new Uri(urisSample);
+  Uri base = Uri.parse(urisSample);
   testUriPerRFCs(base);
 
   Expect.stringEquals(
@@ -147,48 +159,48 @@ main() {
       Uri.parse("https://example.com:1234/a/b/c").origin);
   Expect.throws(
       () => Uri.parse("http:").origin,
-      (e) { return e is ArgumentError; },
-      "origin for uri with empty domain should fail");
+      (e) { return e is StateError; },
+      "origin for uri with empty host should fail");
   Expect.throws(
-      () => const Uri.fromComponents(
+      () => new Uri(
           scheme: "http",
           userInfo: null,
-          domain: "",
+          host: "",
           port: 80,
           path: "/a/b/c",
           query: "query",
           fragment: "fragment").origin,
-      (e) { return e is ArgumentError; },
-      "origin for uri with empty domain should fail");
+      (e) { return e is StateError; },
+      "origin for uri with empty host should fail");
   Expect.throws(
-      () => const Uri.fromComponents(
+      () => new Uri(
           scheme: null,
           userInfo: null,
-          domain: "",
+          host: "",
           port: 80,
           path: "/a/b/c",
           query: "query",
           fragment: "fragment").origin,
-      (e) { return e is ArgumentError; },
+      (e) { return e is StateError; },
       "origin for uri with empty scheme should fail");
   Expect.throws(
-      () => const Uri.fromComponents(
+      () => new Uri(
           scheme: "http",
           userInfo: null,
-          domain: null,
+          host: null,
           port: 80,
           path: "/a/b/c",
           query: "query",
           fragment: "fragment").origin,
-      (e) { return e is ArgumentError; },
-      "origin for uri with empty domain should fail");
+      (e) { return e is StateError; },
+      "origin for uri with empty host should fail");
   Expect.throws(
       () => Uri.parse("http://:80").origin,
-      (e) { return e is ArgumentError; },
-      "origin for uri with empty domain should fail");
+      (e) { return e is StateError; },
+      "origin for uri with empty host should fail");
   Expect.throws(
       () => Uri.parse("file://localhost/test.txt").origin,
-      (e) { return e is ArgumentError; },
+      (e) { return e is StateError; },
       "origin for non-http/https uri should fail");
 
   // URI encode tests
@@ -197,7 +209,7 @@ main() {
 
   Expect.stringEquals("\u{10000}", s);
 
-  testEncodeDecode("A + B", "A+%2B+B");
+  testEncodeDecode("A + B", "A%20%2B%20B");
   testEncodeDecode("\uFFFE", "%EF%BF%BE");
   testEncodeDecode("\uFFFF", "%EF%BF%BF");
   testEncodeDecode("\uFFFE", "%EF%BF%BE");
@@ -207,6 +219,7 @@ main() {
   testEncodeDecode("\u0800", "%E0%A0%80");
   testEncodeDecode(":/@',;?&=+\$", ":/@',;?&=%2B\$");
   testEncodeDecode(s, "%F0%90%80%80");
+  testEncodeDecodeComponent("A + B", "A%20%2B%20B");
   testEncodeDecodeComponent("\uFFFE", "%EF%BF%BE");
   testEncodeDecodeComponent("\uFFFF", "%EF%BF%BF");
   testEncodeDecodeComponent("\uFFFE", "%EF%BF%BE");
@@ -216,4 +229,5 @@ main() {
   testEncodeDecodeComponent("\u0800", "%E0%A0%80");
   testEncodeDecodeComponent(":/@',;?&=+\$", "%3A%2F%40'%2C%3B%3F%26%3D%2B%24");
   testEncodeDecodeComponent(s, "%F0%90%80%80");
+  testEncodeDecodeQueryComponent("A + B", "A+%2B+B");
 }

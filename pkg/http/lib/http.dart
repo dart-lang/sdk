@@ -69,7 +69,6 @@ library http;
 
 import 'dart:async';
 import 'dart:typed_data';
-import 'dart:uri';
 
 import 'src/client.dart';
 import 'src/response.dart';

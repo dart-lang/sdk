@@ -267,7 +267,6 @@ class ObjectStore {
   RawLibrary* math_library() const { return math_library_; }
   RawLibrary* mirrors_library() const { return mirrors_library_; }
   RawLibrary* typed_data_library() const { return typed_data_library_; }
-  RawLibrary* uri_library() const { return uri_library_; }
   RawLibrary* utf_library() const { return utf_library_; }
   void set_bootstrap_library(intptr_t index, const Library& value) {
     switch (index) {
@@ -303,9 +302,6 @@ class ObjectStore {
         break;
       case kUtf:
         utf_library_ = value.raw();
-        break;
-      case kUri:
-        uri_library_ = value.raw();
         break;
       default:
         UNREACHABLE();
@@ -471,7 +467,6 @@ class ObjectStore {
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
   RawLibrary* typed_data_library_;
-  RawLibrary* uri_library_;
   RawLibrary* utf_library_;
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;

@@ -172,7 +172,7 @@ const String CORELIB = r'''
   bool identical(Object a, Object b) {}''';
 
 AnalysisResult analyze(String code, {int maxConcreteTypeSize: 1000}) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = new MockCompiler(
       coreSource: CORELIB,
       enableConcreteTypeInference: true,

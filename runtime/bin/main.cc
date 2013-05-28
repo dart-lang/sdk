@@ -454,9 +454,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   // Prepare builtin and its dependent libraries for use to resolve URIs.
   // The builtin library is part of the core snapshot and would already be
   // available here in the case of script snapshot loading.
-  Dart_Handle uri_url = DartUtils::NewString(DartUtils::kUriLibURL);
-  Dart_Handle uri_lib = Dart_LookupLibrary(uri_url);
-  CHECK_RESULT(uri_lib);
   Dart_Handle builtin_lib =
       Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
   CHECK_RESULT(builtin_lib);

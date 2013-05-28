@@ -114,7 +114,6 @@
 
 library patchparser;
 
-import "dart:uri";
 import "tree/tree.dart" as tree;
 import "dart2jslib.dart" as leg;  // CompilerTask, Compiler.
 import "apiimpl.dart";

@@ -6,7 +6,6 @@ library handle_access_token_response_test;
 
 import 'dart:io';
 import 'dart:json' as JSON;
-import 'dart:uri';
 
 import 'package:http/http.dart' as http;
 import 'package:oauth2/oauth2.dart' as oauth2;

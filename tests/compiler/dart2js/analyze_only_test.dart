@@ -7,7 +7,6 @@ library analyze_only;
 
 import "package:expect/expect.dart";
 import 'dart:async';
-import 'dart:uri';
 
 import '../../utils/dummy_compiler_test.dart' as dummy;
 import '../../../sdk/lib/_internal/compiler/compiler.dart';
@@ -36,9 +35,9 @@ runCompiler(String main, List<String> options,
   print('main source:\n$main');
   print('options: $options\n');
   Future<String> result =
-      compile(new Uri.fromComponents(scheme: 'main'),
-              new Uri.fromComponents(scheme: 'lib', path: '/'),
-              new Uri.fromComponents(scheme: 'package', path: '/'),
+      compile(new Uri(scheme: 'main'),
+              new Uri(scheme: 'lib', path: '/'),
+              new Uri(scheme: 'package', path: '/'),
               localProvider, localHandler, options);
   result.then((String code) {
     onValue(code, errors, warnings);

@@ -6,7 +6,6 @@ library mock_compiler;
 
 import "package:expect/expect.dart";
 import 'dart:collection';
-import 'dart:uri';
 
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart';
@@ -247,7 +246,7 @@ class MockCompiler extends Compiler {
    * is fixed to export its top-level declarations.
    */
   LibraryElement createLibrary(String name, String source) {
-    Uri uri = new Uri.fromComponents(scheme: "dart", path: name);
+    Uri uri = new Uri(scheme: "dart", path: name);
     var script = new Script(uri, new MockFile(source));
     var library = new LibraryElementX(script);
     parseScript(source, library);
@@ -402,7 +401,7 @@ void importLibrary(LibraryElement target, LibraryElement imported,
 }
 
 LibraryElement mockLibrary(Compiler compiler, String source) {
-  Uri uri = new Uri.fromComponents(scheme: "source");
+  Uri uri = new Uri(scheme: "source");
   var library = new LibraryElementX(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;

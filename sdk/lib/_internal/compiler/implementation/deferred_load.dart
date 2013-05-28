@@ -4,9 +4,6 @@
 
 library deferred_load;
 
-import 'dart:uri'
-       show Uri;
-
 import 'dart:collection'
        show LinkedHashMap,
             LinkedHashSet;
@@ -65,7 +62,7 @@ class DeferredLoadTask extends CompilerTask {
   }
 
   ClassElement findDeferredLibraryClass() {
-    var uri = new Uri.fromComponents(scheme: 'dart', path: 'async');
+    var uri = new Uri(scheme: 'dart', path: 'async');
     LibraryElement asyncLibrary =
         compiler.libraryLoader.loadLibrary(uri, null, uri);
     var element = asyncLibrary.find(const SourceString('DeferredLibrary'));

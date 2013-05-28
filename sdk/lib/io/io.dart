@@ -20,7 +20,6 @@ import 'dart:collection' show Queue,
 import 'dart:isolate';
 import 'dart:json' as JSON;
 import 'dart:math';
-import 'dart:uri';
 import 'dart:utf';
 import 'dart:typed_data';
 

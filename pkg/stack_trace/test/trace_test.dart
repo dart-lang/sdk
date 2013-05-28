@@ -5,7 +5,6 @@
 library trace_test;
 
 import 'dart:io';
-import 'dart:uri';
 
 import 'package:pathos/path.dart' as path;
 import 'package:stack_trace/src/utils.dart';

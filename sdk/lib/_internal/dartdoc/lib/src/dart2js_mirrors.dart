@@ -6,7 +6,6 @@ library dart2js_util;
 
 import 'dart:async' show Future;
 import 'dart:io' show Path;
-import 'dart:uri';
 
 import '../../../compiler/compiler.dart' as api;
 import '../../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js

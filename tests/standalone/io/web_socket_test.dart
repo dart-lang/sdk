@@ -12,7 +12,6 @@ import "dart:async";
 import "dart:io";
 import "dart:isolate";
 import "dart:typed_data";
-import "dart:uri";
 
 const String CERT_NAME = 'localhost_cert';
 const String HOST_NAME = 'localhost';

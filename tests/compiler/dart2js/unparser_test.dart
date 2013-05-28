@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'dart:uri';
 import 'parser_helper.dart';
 import 'mock_compiler.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart';

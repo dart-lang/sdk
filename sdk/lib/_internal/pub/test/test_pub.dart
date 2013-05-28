@@ -13,7 +13,6 @@ import 'dart:collection' show Queue;
 import 'dart:io' hide sleep;
 import 'dart:json' as json;
 import 'dart:math';
-import 'dart:uri';
 import 'dart:utf';
 
 import 'package:http/testing.dart';
