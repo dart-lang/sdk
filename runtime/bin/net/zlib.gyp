@@ -24,6 +24,7 @@
     {
       'target_name': 'zlib_dart',  # Added by Dart (the _dart postfix)
       'type': 'static_library',
+      'toolsets':['host','target'],
       # Changed by Dart: '<(zlib_directory)/' added to all paths.
       'sources': [
         '<(zlib_path)/adler32.c',

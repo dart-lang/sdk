@@ -180,6 +180,7 @@
     {
       'target_name': 'libdart_io',
       'type': 'static_library',
+      'toolsets':['host', 'target'],
       'include_dirs': [
         '..',
       ],
@@ -479,6 +480,59 @@
     {
       'target_name': 'run_vm_tests',
       'type': 'executable',
+      'toolsets':['target'],
+      'dependencies': [
+        'libdart_withcore',
+        'libdart_builtin',
+        'libdart_io',
+        'generate_snapshot_file#host',
+        'generate_snapshot_test_dat_file',
+      ],
+      'include_dirs': [
+        '..',
+        '<(gen_source_dir)',
+      ],
+      'sources': [
+        'run_vm_tests.cc',
+        'builtin_natives.cc',
+        'builtin_nolib.cc',
+        'builtin.h',
+        'io_natives.h',
+        # Include generated source files.
+        '<(snapshot_cc_file)',
+        '<(builtin_cc_file)',
+        '<(io_cc_file)',
+        '<(io_patch_cc_file)',
+      ],
+      'includes': [
+        'builtin_impl_sources.gypi',
+        '../platform/platform_sources.gypi',
+        '../vm/vm_sources.gypi',
+      ],
+      'defines': [
+        'TESTING',
+      ],
+      # Only include _test.[cc|h] files.
+      'sources/': [
+        ['exclude', '\\.(cc|h)$'],
+        ['include', 'run_vm_tests.cc'],
+        ['include', 'builtin_nolib.cc'],
+        ['include', 'builtin_natives.cc'],
+        ['include', '_gen\\.cc$'],
+        ['include', '_test\\.(cc|h)$'],
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'link_settings': {
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
+          },
+        }],
+      ],
+    },
+    {
+      'target_name': 'run_vm_tests.host',
+      'type': 'executable',
+      'toolsets':['host'],
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
