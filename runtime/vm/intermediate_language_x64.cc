@@ -2320,7 +2320,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+    ConstantInstr* constant = right()->definition()->AsConstant();
+    if (constant != NULL) {
+      summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+    } else {
+      summary->set_in(1, Location::PrefersRegister());
+    }
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   }
@@ -2444,8 +2449,51 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
     }
     return;
-  }
+  }  // locs()->in(1).IsConstant().
 
+
+  if (locs()->in(1).IsStackSlot()) {
+    const Address& right = locs()->in(1).ToStackSlotAddress();
+    switch (op_kind()) {
+      case Token::kADD: {
+        __ addq(left, right);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kSUB: {
+        __ subq(left, right);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kMUL: {
+        __ SmiUntag(left);
+        __ imulq(left, right);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kBIT_AND: {
+        // No overflow check.
+        __ andq(left, right);
+        break;
+      }
+      case Token::kBIT_OR: {
+        // No overflow check.
+        __ orq(left, right);
+        break;
+      }
+      case Token::kBIT_XOR: {
+        // No overflow check.
+        __ xorq(left, right);
+        break;
+      }
+      default:
+        UNREACHABLE();
+        break;
+    }
+    return;
+  }  // locs()->in(1).IsStackSlot().
+
+  // if locs()->in(1).IsRegister.
   Register right = locs()->in(1).reg();
   switch (op_kind()) {
     case Token::kADD: {
