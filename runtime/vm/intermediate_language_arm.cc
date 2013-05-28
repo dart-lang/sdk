@@ -356,9 +356,6 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
 }
 
 
-// R1: left.
-// R0: right.
-// Uses R5 to load ic_call_data.
 static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
@@ -376,6 +373,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
 
   Label check_identity;
   __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  __ ldm(IA, SP, (1 << R0) | (1 << R1));
   __ cmp(R1, ShifterOperand(IP));
   __ b(&check_identity, EQ);
   __ cmp(R0, ShifterOperand(IP));
@@ -397,7 +395,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
-  __ PushList((1 << R0) | (1 << R1));
   compiler->GenerateInstanceCall(deopt_id,
                                  token_pos,
                                  kNumberOfArguments,
@@ -411,6 +408,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   Label equality_done;
   if (compiler->is_optimizing()) {
     // No need to update IC data.
+    __ PopList((1 << R0) | (1 << R1));
     __ cmp(R0, ShifterOperand(R1));
     __ LoadObject(R0, (kind == Token::kEQ) ? Bool::False() : Bool::True(), NE);
     __ LoadObject(R0, (kind == Token::kEQ) ? Bool::True() : Bool::False(), EQ);
@@ -429,6 +427,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                            &StubCode::EqualityWithNullArgLabel(),
                            PcDescriptors::kRuntimeCall,
                            locs);
+    __ Drop(2);
   }
   __ Bind(&check_ne);
   if (kind == Token::kNE) {
@@ -479,8 +478,8 @@ static Condition NegateCondition(Condition condition) {
 }
 
 
-// R1: left.
-// R0: right.
+// R1: left, also on stack.
+// R0: right, also on stack.
 static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                           const ICData& orig_ic_data,
                                           LocationSummary* locs,
@@ -518,6 +517,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     if (target.Owner() == object_store->object_class()) {
       // Object.== is same as ===.
+      __ Drop(2);
       __ cmp(left, ShifterOperand(right));
       if (branch != NULL) {
         branch->EmitBranchOnCondition(compiler, cond);
@@ -527,7 +527,6 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
         __ LoadObject(result, Bool::False(), NegateCondition(cond));
       }
     } else {
-      __ PushList((1 << R0) | (1 << R1));
       const int kNumberOfArguments = 2;
       const Array& kNoArgumentNames = Array::Handle();
       compiler->GenerateStaticCall(deopt_id,
@@ -609,6 +608,7 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   __ Bind(&non_null_compare);  // Receiver is not null.
   ASSERT(left == R1);
   ASSERT(right == R0);
+  __ PushList((1 << R0) | (1 << R1));
   EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
                                 deopt_id, token_pos);
   __ Bind(&done);
@@ -718,6 +718,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register right = locs()->in(1).reg();
   ASSERT(left == R1);
   ASSERT(right == R0);
+  __ PushList((1 << R0) | (1 << R1));
   EmitEqualityAsInstanceCall(compiler,
                              deopt_id(),
                              token_pos(),
@@ -760,6 +761,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   Register right = locs()->in(1).reg();
   ASSERT(left == R1);
   ASSERT(right == R0);
+  __ PushList((1 << R0) | (1 << R1));
   EmitEqualityAsInstanceCall(compiler,
                              deopt_id(),
                              token_pos(),
