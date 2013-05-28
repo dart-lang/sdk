@@ -557,14 +557,15 @@ class DartiumBackend(HtmlDartGenerator):
       if not is_custom:
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name)
     else:
-      self._GenerateDispatcher(info.operations, dart_declaration, [info.name for info in info.param_infos])
+      self._GenerateDispatcher(info, info.operations, dart_declaration)
 
-  def _GenerateDispatcher(self, operations, dart_declaration, parameter_names):
+  def _GenerateDispatcher(self, info, operations, dart_declaration):
 
     def GenerateCall(
         stmts_emitter, call_emitter, version, operation, argument_count):
       overload_name = '_%s_%s' % (operation.id, version)
-      argument_list = ', '.join(parameter_names[:argument_count])
+      argument_list = ', '.join(
+          [p.name for p in info.param_infos[:argument_count]])
       call_emitter.Emit('$NAME($ARGS)', NAME=overload_name, ARGS=argument_list)
 
       dart_declaration = '%s%s %s(%s)' % (
@@ -577,8 +578,8 @@ class DartiumBackend(HtmlDartGenerator):
       self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     self._GenerateDispatcherBody(
+        info,
         operations,
-        parameter_names,
         dart_declaration,
         GenerateCall,
         self._IsArgumentOptionalInWebCore)

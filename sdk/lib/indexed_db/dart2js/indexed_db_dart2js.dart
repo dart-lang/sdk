@@ -911,7 +911,7 @@ class ObjectStore native "IDBObjectStore" {
       List keyPath_1 = convertDartToNative_StringArray(keyPath);
       return _$dom_createIndex_1(name, keyPath_1);
     }
-    if ((keyPath is List<String> || keyPath == null)) {
+    if ((keyPath is List<String> || keyPath == null) && ?options) {
       List keyPath_2 = convertDartToNative_StringArray(keyPath);
       var options_3 = convertDartToNative_Dictionary(options);
       return _$dom_createIndex_2(name, keyPath_2, options_3);
@@ -919,7 +919,7 @@ class ObjectStore native "IDBObjectStore" {
     if ((keyPath is String || keyPath == null) && !?options) {
       return _$dom_createIndex_3(name, keyPath);
     }
-    if ((keyPath is String || keyPath == null)) {
+    if ((keyPath is String || keyPath == null) && ?options) {
       var options_4 = convertDartToNative_Dictionary(options);
       return _$dom_createIndex_4(name, keyPath, options_4);
     }

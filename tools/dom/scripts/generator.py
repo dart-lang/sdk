@@ -357,6 +357,12 @@ class OperationInfo(object):
           right_bracket)
     return ', '.join(argtexts)
 
+  def NumberOfRequiredInDart(self):
+    """ Returns a number of required arguments in Dart declaration of
+    the operation.
+    """
+    return len(filter(lambda i: not i.is_optional, self.param_infos))
+
   def ParametersAsArgumentList(self, parameter_count=None):
     """Returns a string of the parameter names suitable for passing the
     parameters as arguments.
