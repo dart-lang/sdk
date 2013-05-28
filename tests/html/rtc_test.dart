@@ -17,16 +17,20 @@ main() {
   });
 
   group('functionality', () {
-    // TODO(efortuna): More thorough testing of this API requires the user to
+    // More thorough testing of this API requires the user to
     // explicitly click "allow this site to access my camera and/or microphone."
     // or particularly allow that site to always have those permission on each
-    // computer the test is run. Contact WebKit and/or Chrome people to
-    // determine how they test with this issue.
+    // computer the test is run. For more through tests, see
+    // interactive_test.dart.
     if (RtcPeerConnection.supported) {
       test('peer connection', () {
         var pc = new RtcPeerConnection(
-            {'iceServers': [ {'url':'stun:foo.com:19302'}]});
+            {'iceServers': [ {'url':'stun:216.93.246.18:3478'}]});
         expect(pc is RtcPeerConnection, isTrue);
+        // TODO(efortuna): Uncomment this test when RTCPeerConnection correctly
+        // implements EventListener in Firefox (works correctly in nightly, so
+        // it's coming!).
+        //pc.onIceCandidate.listen((candidate) {});
       });
 
       test('ice candidate', () {

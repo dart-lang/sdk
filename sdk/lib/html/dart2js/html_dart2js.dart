@@ -17866,7 +17866,13 @@ class RtcDtmfToneChangeEvent extends Event native "RTCDTMFToneChangeEvent" {
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCIceCandidate
 class RtcIceCandidate native "RTCIceCandidate" {
   factory RtcIceCandidate(Map dictionary) {
-    return JS('RtcIceCandidate', 'new RTCIceCandidate(#)',
+    // TODO(efortuna): Remove this check if when you can actually construct with
+    // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
+    // but one can't be used as a constructor).
+    var constructorName = JS('', 'window[#]',
+        Device.isFirefox ? '${Device.propertyPrefix}RTCIceCandidate' : 
+        'RTCIceCandidate');
+    return JS('RtcIceCandidate', 'new #(#)', constructorName,
         convertDartToNative_SerializedScriptValue(dictionary));
   }
 
@@ -17929,11 +17935,12 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection" {
     // Currently in Firefox some of the RTC elements are defined but throw an
     // error unless the user has specifically enabled them in their
     // about:config. So we have to construct an element to actually test if RTC
-    // is supported at at the given time.
+    // is supported at the given time. 
     try {
-      var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
-      return c is RtcPeerConnection;
-    } catch (_) {}
+      new RtcPeerConnection(
+          {"iceServers": [ {"url":"stun:localhost"}]});
+      return true;
+    } catch (_) { return false;}
     return false;
   }
   Future<RtcSessionDescription> createOffer([Map mediaConstraints]) {
@@ -18216,8 +18223,6 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection" {
   Stream<Event> get onSignalingStateChange => signalingStateChangeEvent.forTarget(this);
 
 }
-
-
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18229,7 +18234,14 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection" {
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCSessionDescription
 class RtcSessionDescription native "RTCSessionDescription" {
   factory RtcSessionDescription(Map dictionary) {
-    return JS('RtcSessionDescription', 'new RTCSessionDescription(#)',
+    // TODO(efortuna): Remove this check if when you can actually construct with
+    // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
+    // but one can't be used as a constructor).
+    var constructorName = JS('', 'window[#]',
+        Device.isFirefox ? '${Device.propertyPrefix}RTCSessionDescription' : 
+       'RTCSessionDescription');
+    return JS('RtcSessionDescription', 
+        'new #(#)', constructorName,
         convertDartToNative_SerializedScriptValue(dictionary));
   }
 
