@@ -586,17 +586,13 @@ compile_time_constant_arguments_test/06: fail
 compile_time_constant_b_test: fail
 compile_time_constant_c_test/01: fail
 compile_time_constant_c_test/02: fail
-compile_time_constant_checked2_test/01: fail
 compile_time_constant_checked2_test/02: fail
 compile_time_constant_checked2_test/03: fail
 compile_time_constant_checked2_test/04: fail
-compile_time_constant_checked2_test/05: fail
 compile_time_constant_checked2_test/06: fail
-compile_time_constant_checked3_test/01: fail
 compile_time_constant_checked3_test/02: fail
 compile_time_constant_checked3_test/03: fail
 compile_time_constant_checked3_test/04: fail
-compile_time_constant_checked3_test/05: fail
 compile_time_constant_checked3_test/06: fail
 compile_time_constant_d_test: fail
 compile_time_constant_e_test: fail
