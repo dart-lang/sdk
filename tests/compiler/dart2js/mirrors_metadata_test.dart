@@ -12,7 +12,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.
 import 'mock_compiler.dart';
 
 const String SOURCE = 'source';
-const Uri SOURCE_URI = const Uri.fromComponents(scheme: SOURCE, path: SOURCE);
+Uri SOURCE_URI = new Uri(scheme: SOURCE, path: SOURCE);
 
 MirrorSystem createMirrorSystem(String source) {
   MockCompiler compiler = new MockCompiler(

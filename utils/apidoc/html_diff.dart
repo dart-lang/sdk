@@ -24,11 +24,11 @@ import '../../sdk/lib/html/html_common/metadata.dart';
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax
 // changes. We should only need to look at the library 'html'.
-const List<Uri> HTML_LIBRARY_URIS = const [
-    const Uri.fromComponents(scheme: 'dart', path: 'html'),
-    const Uri.fromComponents(scheme: 'dart', path: 'indexed_db'),
-    const Uri.fromComponents(scheme: 'dart', path: 'svg'),
-    const Uri.fromComponents(scheme: 'dart', path: 'web_audio')];
+List<Uri> HTML_LIBRARY_URIS = [
+    new Uri(scheme: 'dart', path: 'html'),
+    new Uri(scheme: 'dart', path: 'indexed_db'),
+    new Uri(scheme: 'dart', path: 'svg'),
+    new Uri(scheme: 'dart', path: 'web_audio')];
 
 /**
  * A class for computing a many-to-many mapping between the types and
