@@ -23,6 +23,9 @@ abstract class TreeElements {
   Selector getIteratorSelector(ForIn node);
   Selector getMoveNextSelector(ForIn node);
   Selector getCurrentSelector(ForIn node);
+  Selector setIteratorSelector(ForIn node, Selector selector);
+  Selector setMoveNextSelector(ForIn node, Selector selector);
+  Selector setCurrentSelector(ForIn node, Selector selector);
 
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
