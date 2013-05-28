@@ -80,8 +80,9 @@ def GetBuildInfo(builder_name, is_buildbot):
   else :
     return None
 
-  if system == 'windows':
-    system = 'win7'
+  # We have both win7 and win8 bots, functionality is the same.
+  if system.startsWith('win'):
+    system = 'windows'
 
   # We have both 10.8 and 10.7 bots, functionality is the same.
   if system == 'mac10.8' or system == 'mac10.7':
