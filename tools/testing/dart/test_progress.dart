@@ -309,6 +309,9 @@ class LeftOverTempDirPrinter extends EventListener {
         (FileSystemEntity fse) {
           if (fse is Directory) count++;
         },
+        onError: (error) {
+          DebugLogger.warning("Could not list temp directories, got: $error");
+        },
         onDone: () {
           if (count > MIN_NUMBER_OF_TEMP_DIRS) {
             DebugLogger.warning("There are ${count} directories "
