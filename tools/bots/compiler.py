@@ -108,6 +108,31 @@ def TestStepName(name, flags):
   flags = [x for x in flags if not '=' in x]
   return ('%s tests %s' % (name, ' '.join(flags))).strip()
 
+# TODO(ricow): remove this once we have browser controller drivers for all
+# supported platforms.
+def UseBrowserController(runtime, system):
+  supported_platforms = {
+    'linux': ['ff', 'chromeOnAndroid', 'chrome'],
+    'mac': [],
+    'windows': []
+  }
+  # Platforms that we run on the fyi waterfall only.
+  fyi_supported_platforms = {
+    'linux': [],
+    'mac': ['safari'],
+    'windows': []
+  }
+
+  if (runtime in supported_platforms[system]):
+    return True
+
+  if (os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and
+      runtime in fyi_supported_platforms[system]):
+    return True
+
+  return False
+
+
 IsFirstTestStepCall = True
 def TestStep(name, mode, system, compiler, runtime, targets, flags):
   step_name = TestStepName(name, flags)
@@ -140,9 +165,7 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
     else:
       cmd.extend(['--progress=buildbot', '-v'])
 
-    # TODO(ricow): temporary hack to run on fyi with --use_browser_controller
-    if (os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and
-        runtime in ['chrome', 'ff', 'chromeOnAndroid']):
+    if UseBrowserController(runtime, system):
       cmd.append('--use_browser_controller')
 
     global IsFirstTestStepCall
