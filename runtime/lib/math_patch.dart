@@ -49,7 +49,11 @@ patch class Random {
     do {
       seed = (seed + 0x5A17) & _Random._MASK_64;
     } while (seed == 0);
-    return new _Random._internal(seed);
+    // Crank a couple of times to distribute the seed bits a bit further.
+    return new _Random._internal(seed).._nextState()
+                                      .._nextState()
+                                      .._nextState()
+                                      .._nextState();
   }
 }
 
