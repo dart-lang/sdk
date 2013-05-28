@@ -73,7 +73,7 @@ class _HttpSessionManager {
   String createSessionId() {
     const int _KEY_LENGTH = 16;  // 128 bits.
     var data = _IOCrypto.getRandomBytes(_KEY_LENGTH);
-    return CryptoUtils.bytesToHex(data);
+    return _CryptoUtils.bytesToHex(data);
   }
 
   _HttpSession getSession(String id) {

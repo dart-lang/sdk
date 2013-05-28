@@ -406,9 +406,9 @@ class _WebSocketTransformerImpl implements WebSocketTransformer {
     response.headers.add(HttpHeaders.CONNECTION, "Upgrade");
     response.headers.add(HttpHeaders.UPGRADE, "websocket");
     String key = request.headers.value("Sec-WebSocket-Key");
-    SHA1 sha1 = new SHA1();
+    _SHA1 sha1 = new _SHA1();
     sha1.add("$key$_webSocketGUID".codeUnits);
-    String accept = CryptoUtils.bytesToBase64(sha1.close());
+    String accept = _CryptoUtils.bytesToBase64(sha1.close());
     response.headers.add("Sec-WebSocket-Accept", accept);
     response.headers.contentLength = 0;
     return response.detachSocket()
@@ -658,7 +658,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
-    String nonce = CryptoUtils.bytesToBase64(nonceData);
+    String nonce = _CryptoUtils.bytesToBase64(nonceData);
 
     uri = new Uri.fromComponents(scheme: uri.scheme == "wss" ? "https" : "http",
                                  userInfo: uri.userInfo,
@@ -696,10 +696,10 @@ class _WebSocketImpl extends Stream implements WebSocket {
         if (accept == null) {
           error("Response did not contain a 'Sec-WebSocket-Accept' header");
         }
-        SHA1 sha1 = new SHA1();
+        _SHA1 sha1 = new _SHA1();
         sha1.add("$nonce$_webSocketGUID".codeUnits);
         List<int> expectedAccept = sha1.close();
-        List<int> receivedAccept = CryptoUtils.base64StringToBytes(accept);
+        List<int> receivedAccept = _CryptoUtils.base64StringToBytes(accept);
         if (expectedAccept.length != receivedAccept.length) {
           error("Reasponse header 'Sec-WebSocket-Accept' is the wrong length");
         }

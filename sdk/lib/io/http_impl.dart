@@ -1161,7 +1161,7 @@ class _HttpClientConnection {
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = CryptoUtils.bytesToBase64(
+      String auth = _CryptoUtils.bytesToBase64(
           _encodeString("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
     } else if (!proxy.isDirect && _httpClient._proxyCredentials.length > 0) {
@@ -1174,7 +1174,7 @@ class _HttpClientConnection {
       // If the URL contains user information use that for basic
       // authorization.
       String auth =
-          CryptoUtils.bytesToBase64(_encodeString(uri.userInfo));
+          _CryptoUtils.bytesToBase64(_encodeString(uri.userInfo));
       request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
     } else {
       // Look for credentials.
@@ -1285,7 +1285,7 @@ class _HttpClientConnection {
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = CryptoUtils.bytesToBase64(
+      String auth = _CryptoUtils.bytesToBase64(
           _encodeString("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
     }
@@ -2149,13 +2149,13 @@ abstract class _Credentials {
       // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
       // now always use UTF-8 encoding.
       _HttpClientDigestCredentials creds = credentials;
-      var hasher = new MD5();
+      var hasher = new _MD5();
       hasher.add(_encodeString(creds.username));
       hasher.add([_CharCode.COLON]);
       hasher.add(realm.codeUnits);
       hasher.add([_CharCode.COLON]);
       hasher.add(_encodeString(creds.password));
-      ha1 = CryptoUtils.bytesToHex(hasher.close());
+      ha1 = _CryptoUtils.bytesToHex(hasher.close());
     }
   }
 
@@ -2243,7 +2243,7 @@ class _HttpClientBasicCredentials
     // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
     // now always use UTF-8 encoding.
     String auth =
-        CryptoUtils.bytesToBase64(_encodeString("$username:$password"));
+        _CryptoUtils.bytesToBase64(_encodeString("$username:$password"));
     return "Basic $auth";
   }
 
@@ -2270,22 +2270,22 @@ class _HttpClientDigestCredentials
 
   String authorization(_Credentials credentials, _HttpClientRequest request) {
     String requestUri = request._requestUri();
-    MD5 hasher = new MD5();
+    _MD5 hasher = new _MD5();
     hasher.add(request.method.codeUnits);
     hasher.add([_CharCode.COLON]);
     hasher.add(requestUri.codeUnits);
-    var ha2 = CryptoUtils.bytesToHex(hasher.close());
+    var ha2 = _CryptoUtils.bytesToHex(hasher.close());
 
     String qop;
     String cnonce;
     String nc;
     var x;
-    hasher = new MD5();
+    hasher = new _MD5();
     hasher.add(credentials.ha1.codeUnits);
     hasher.add([_CharCode.COLON]);
     if (credentials.qop == "auth") {
       qop = credentials.qop;
-      cnonce = CryptoUtils.bytesToHex(_IOCrypto.getRandomBytes(4));
+      cnonce = _CryptoUtils.bytesToHex(_IOCrypto.getRandomBytes(4));
       ++credentials.nonceCount;
       nc = credentials.nonceCount.toRadixString(16);
       nc = "00000000".substring(0, 8 - nc.length + 1) + nc;
@@ -2303,7 +2303,7 @@ class _HttpClientDigestCredentials
       hasher.add([_CharCode.COLON]);
       hasher.add(ha2.codeUnits);
     }
-    var response = CryptoUtils.bytesToHex(hasher.close());
+    var response = _CryptoUtils.bytesToHex(hasher.close());
 
     StringBuffer buffer = new StringBuffer();
     buffer.write('Digest ');
