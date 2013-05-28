@@ -23,7 +23,7 @@ import bot
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ff|safari|chrome|chromeOnAndroid|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
+    r'dart2js-(ie9|ie10|ff|safari|chrome|chromeOnAndroid|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
 
 
 def GetBuildInfo(builder_name, is_buildbot):
@@ -120,10 +120,6 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 
     user_test = os.environ.get('USER_TEST', 'no')
 
-    # TODO(ricow): temporary hack to run on fyi with --use_browser_controller
-    if os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and runtime == 'drt':
-      runtime = 'chrome'
-
     cmd.extend([sys.executable,
                 os.path.join(os.curdir, 'tools', 'test.py'),
                 '--step_name=' + step_name,
@@ -194,10 +190,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
           'Local', 'Google', 'Chrome', 'Application', 'chrome.exe')}
     return path_dict[runtime]
 
-  if system == 'linux' and runtime == 'chrome':
-    # TODO(ngeoffray): We should install selenium on the buildbot.
-    runtime = 'drt'
-  elif (runtime == 'ff' or runtime == 'chrome') and is_buildbot:
+  if (runtime == 'ff' or runtime == 'chrome') and is_buildbot:
     # Print out browser version numbers if we're running on the buildbot (where
     # we know the paths to these browser installations).
     version_query_string = '"%s" --version' % GetPath(runtime)
