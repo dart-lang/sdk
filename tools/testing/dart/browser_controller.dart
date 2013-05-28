@@ -262,7 +262,7 @@ class Safari extends Browser {
       if (!success) {
         return new Future.immediate(false);
       }
-      return .getVersion().then((version) {
+      return getVersion().then((version) {
         _logEvent("Got version: $version");
         var args = ["'$url'"];
         return new Directory('').createTemp().then((userDir) {
