@@ -407,13 +407,14 @@ class _MultiplexStreamController<T> implements StreamController<T>,
   final _NotificationHandler _onCancel;
 
   // State of the controller.
-  int _state = _STATE_INITIAL;
+  int _state;
 
   // Double-linked list of active listeners.
   _MultiplexSubscriptionLink _next;
   _MultiplexSubscriptionLink _previous;
 
-  _MultiplexStreamController(this._onListen, this._onCancel) {
+  _MultiplexStreamController(this._onListen, this._onCancel)
+      : _state = _STATE_INITIAL {
     _next = _previous = this;
   }
 
