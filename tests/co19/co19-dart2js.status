@@ -273,8 +273,6 @@ Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbu
 
 Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.com/5022
 
-LibTest/core/List/operator_subscript_A03_t01: Fail # http://dartbug.com/9228
-LibTest/core/List/operator_subscripted_assignment_A03_t01: Fail # http://dartbug.com/9228
 Language/09_Generics/09_Generics_A04_t01: Fail, OK # 1.0 is an int in dart2js; dartbug.com/1533.
 
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405

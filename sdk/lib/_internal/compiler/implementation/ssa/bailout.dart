@@ -295,7 +295,10 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
         receiverSelectorOnThrow = selector;
         willThrow = true;
       }
-    } else if (willThrowArgumentError(selector, receiver, speculativeType)) {
+    // We need to call the actual method in checked mode to get
+    // the right type error.
+    } else if (!compiler.enableTypeAssertions
+               && willThrowArgumentError(selector, receiver, speculativeType)) {
       willThrow = true;
     }
 

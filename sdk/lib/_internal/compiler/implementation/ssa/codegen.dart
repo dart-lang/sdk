@@ -1762,13 +1762,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitForeignNew(HForeignNew node) {
     String jsClassReference = backend.namer.isolateAccess(node.element);
-    List<HInstruction> inputs = node.inputs;
-    // We can't use 'visitArguments', since our arguments start at input[0].
-    List<js.Expression> arguments = <js.Expression>[];
-    for (int i = 0; i < inputs.length; i++) {
-      use(inputs[i]);
-      arguments.add(pop());
-    }
+    List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
     // as if it was a string.
     push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
@@ -1996,7 +1990,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerStaticUse(helper);
     js.VariableUse jsHelper =
         new js.VariableUse(backend.namer.isolateAccess(helper));
-    js.Call value = new js.Call(jsHelper, visitArguments([null, argument]));
+    use(argument);
+    js.Call value = new js.Call(jsHelper, [pop()]);
     attachLocation(value, argument);
     // BUG(4906): Using throw here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that

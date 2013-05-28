@@ -197,7 +197,11 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
     if (instruction.specializer is BinaryArithmeticSpecializer) {
       HInstruction left = instruction.inputs[1];
       HInstruction right = instruction.inputs[2];
-      if (left.isNumber() && !right.isNumber()) {
+      if (left.isNumber()
+          && !right.isNumber()
+          // We need to call the actual method in checked mode to get
+          // the right type error.
+          && !compiler.enableTypeAssertions) {
         pendingOptimizations[instruction] = () {
           // This callback function is invoked after we're done
           // propagating types. The types shouldn't have changed.

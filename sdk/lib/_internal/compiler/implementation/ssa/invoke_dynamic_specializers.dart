@@ -100,6 +100,10 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     if (instruction.inputs[1].isMutableIndexable(compiler)) {
+      if (!instruction.inputs[2].isInteger() && compiler.enableTypeAssertions) {
+        // We want the right checked mode error.
+        return null;
+      }
       return new HIndexAssign(instruction.inputs[1],
                               instruction.inputs[2],
                               instruction.inputs[3],
@@ -130,6 +134,10 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
     if (instruction.inputs[1].isIndexable(compiler)) {
+      if (!instruction.inputs[2].isInteger() && compiler.enableTypeAssertions) {
+        // We want the right checked mode error.
+        return null;
+      }
       HInstruction index = new HIndex(
           instruction.inputs[1], instruction.inputs[2], instruction.selector);
       index.instructionType =
