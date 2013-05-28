@@ -584,13 +584,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       } else {
         return graph.addConstantBool(false, constantSystem);
       }
-    } else if (expressionType.isArray()) {
-      if (identical(element, compiler.listClass)
-          || Elements.isListSupertype(element, compiler)) {
-        return graph.addConstantBool(true, constantSystem);
-      } else {
-        return graph.addConstantBool(false, constantSystem);
-      }
     // We need the [:hasTypeArguments:] check because we don't have
     // the notion of generics in the backend. For example, [:this:] in
     // a class [:A<T>:], is currently always considered to have the

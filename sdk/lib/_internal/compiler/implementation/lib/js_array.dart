@@ -13,8 +13,20 @@ part of _interceptors;
 class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   const JSArray();
 
+  checkMutable(reason) {
+    if (this is !JSMutableArray) { 
+      throw new UnsupportedError(reason);
+    }
+  }
+
+  checkGrowable(reason) {
+    if (this is !JSExtendableArray) {
+      throw new UnsupportedError(reason);
+    }
+  }
+
   void add(E value) {
-    checkGrowable(this, 'add');
+    checkGrowable('add');
     JS('void', r'#.push(#)', this, value);
   }
 
@@ -23,7 +35,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (index < 0 || index >= length) {
       throw new RangeError.value(index);
     }
-    checkGrowable(this, 'removeAt');
+    checkGrowable('removeAt');
     return JS('var', r'#.splice(#, 1)[0]', this, index);
   }
 
@@ -32,28 +44,28 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     if (index < 0 || index > length) {
       throw new RangeError.value(index);
     }
-    checkGrowable(this, 'insert');
+    checkGrowable('insert');
     JS('void', r'#.splice(#, 0, #)', this, index, value);
   }
 
   void insertAll(int index, Iterable<E> iterable) {
-    checkGrowable(this, 'insertAll');
+    checkGrowable('insertAll');
     IterableMixinWorkaround.insertAllList(this, index, iterable);
   }
 
   void setAll(int index, Iterable<E> iterable) {
-    checkMutable(this, 'setAll');
+    checkMutable('setAll');
     IterableMixinWorkaround.setAllList(this, index, iterable);
   }
 
   E removeLast() {
-    checkGrowable(this, 'removeLast');
+    checkGrowable('removeLast');
     if (length == 0) throw new RangeError.value(-1);
     return JS('var', r'#.pop()', this);
   }
 
   bool remove(Object element) {
-    checkGrowable(this, 'remove');
+    checkGrowable('remove');
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         JS('var', r'#.splice(#, 1)', this, i);
@@ -188,7 +200,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void removeRange(int start, int end) {
-    checkGrowable(this, 'removeRange');
+    checkGrowable('removeRange');
     int receiverLength = this.length;
     if (start < 0 || start > receiverLength) {
       throw new RangeError.range(start, 0, receiverLength);
@@ -205,17 +217,17 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    checkMutable(this, 'set range');
+    checkMutable('set range');
     IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
   }
 
   void fillRange(int start, int end, [E fillValue]) {
-    checkMutable(this, 'fill range');
+    checkMutable('fill range');
     IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   void replaceRange(int start, int end, Iterable<E> iterable) {
-    checkGrowable(this, 'removeRange');
+    checkGrowable('removeRange');
     IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
   }
 
@@ -226,7 +238,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   Iterable<E> get reversed => IterableMixinWorkaround.reversedList(this);
 
   void sort([int compare(E a, E b)]) {
-    checkMutable(this, 'sort');
+    checkMutable('sort');
     IterableMixinWorkaround.sortList(this, compare);
   }
 
@@ -263,7 +275,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   void set length(int newLength) {
     if (newLength is !int) throw new ArgumentError(newLength);
     if (newLength < 0) throw new RangeError.value(newLength);
-    checkGrowable(this, 'set length');
+    checkGrowable('set length');
     JS('void', r'#.length = #', this, newLength);
   }
 
@@ -274,7 +286,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   void operator []=(int index, E value) {
-    checkMutable(this, 'indexed set');
+    checkMutable('indexed set');
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     JS('void', r'#[#] = #', this, index, value);

@@ -2185,12 +2185,22 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Prefix('!', new js.Prefix('!', field)));
   }
 
+  void checkFieldDoesNotExist(HInstruction input, String fieldName) {
+    use(input);
+    js.PropertyAccess field = new js.PropertyAccess.field(pop(), fieldName);
+    push(new js.Prefix('!', field));
+  }
+
   void checkImmutableArray(HInstruction input) {
     checkFieldExists(input, 'immutable\$list');
   }
 
+  void checkMutableArray(HInstruction input) {
+    checkFieldDoesNotExist(input, 'immutable\$list');
+  }
+
   void checkExtendableArray(HInstruction input) {
-    checkFieldExists(input, 'fixed\$length');
+    checkFieldDoesNotExist(input, 'fixed\$length');
   }
 
   void checkFixedArray(HInstruction input) {
@@ -2236,8 +2246,33 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkType(HInstruction input, DartType type, {bool negative: false}) {
     assert(invariant(input, !type.isMalformed,
                      message: 'Attempt to check malformed type $type'));
-    world.registerIsCheck(type, work.resolutionTree);
     Element element = type.element;
+
+    if (element == backend.jsArrayClass) {
+      checkArray(input, negative ? '!==': '===');
+      return;
+    } else if (element == backend.jsMutableArrayClass) {
+      if (negative) {
+        checkImmutableArray(input);
+      } else {
+        checkMutableArray(input);
+      }
+      return;
+    } else if (element == backend.jsExtendableArrayClass) {
+      if (negative) {
+        checkFixedArray(input);
+      } else {
+        checkExtendableArray(input);
+      }
+      return;
+    } else if (element == backend.jsFixedArrayClass) {
+      if (negative) {
+        checkExtendableArray(input);
+      } else {
+        checkFixedArray(input);
+      }
+      return;
+    }
     use(input);
 
     // Hack in interceptor.  Ideally the interceptor would occur at the
@@ -2250,24 +2285,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(jsPropertyCall(isolate, interceptorName, arguments));
     backend.registerUseInterceptor(world);
-
-    // TODO(9586): If a static function can have the type, the type info is
-    // sitting on the function.  So generate:
-    //
-    //   (typeof x == "function" ? x : getInterceptor(x)).$isFoo
-    //
-    if (type.unalias(compiler) is FunctionType) {
-      js.Expression whenNotFunction = pop();
-      use(input);
-      js.Expression whenFunction = pop();
-      use(input);
-      push(new js.Conditional(
-          new js.Binary('==',
-              new js.Prefix("typeof", pop()),
-              js.string('function')),
-          whenFunction,
-          whenNotFunction));
-    }
+    world.registerIsCheck(type, work.resolutionTree);
 
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), backend.namer.operatorIs(element));
@@ -2402,7 +2420,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         checkType(input, type, negative: negative);
         push(new js.Binary(negative ? '||' : '&&', nullTest, pop()));
         attachLocationToLast(node);
-      } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
+      } else if ((input.canBePrimitive(compiler)
+                  && !input.canBePrimitiveArray(compiler))
+                 || input.canBeNull()) {
         checkObject(input, relation);
         js.Expression objectTest = pop();
         checkType(input, type, negative: negative);
@@ -2522,12 +2542,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     assert(node.isCheckedModeCheck || node.isCastTypeCheck);
     DartType type = node.typeExpression;
-      if (type.kind == TypeKind.FUNCTION) {
-        // TODO(5022): We currently generate $isFunction checks for
-        // function types.
-        world.registerIsCheck(
-            compiler.functionClass.computeType(compiler), work.resolutionTree);
-      }
+    if (type.kind == TypeKind.FUNCTION) {
+      // TODO(5022): We currently generate $isFunction checks for
+      // function types.
+      world.registerIsCheck(
+          compiler.functionClass.computeType(compiler), work.resolutionTree);
+    }
     world.registerIsCheck(type, work.resolutionTree);
 
     FunctionElement helperElement;

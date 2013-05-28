@@ -842,6 +842,8 @@ abstract class HInstruction implements Spannable {
   bool canBeNull() => instructionType.canBeNull();
   bool canBePrimitive(Compiler compiler) =>
       instructionType.canBePrimitive(compiler);
+  bool canBePrimitiveArray(Compiler compiler) =>
+      instructionType.canBePrimitiveArray(compiler);
 
   bool isIndexable(Compiler compiler) =>
       instructionType.isIndexable(compiler);

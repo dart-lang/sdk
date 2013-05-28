@@ -47,18 +47,6 @@ bool isJsIndexableSlow(var object) {
   return result;
 }
 
-checkMutable(list, reason) {
-  if (JS('bool', r'!!(#.immutable$list)', list)) {
-    throw new UnsupportedError(reason);
-  }
-}
-
-checkGrowable(list, reason) {
-  if (JS('bool', r'!!(#.fixed$length)', list)) {
-    throw new UnsupportedError(reason);
-  }
-}
-
 String S(value) {
   if (value is String) return value;
   if (value is num) {
