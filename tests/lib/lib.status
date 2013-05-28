@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-async/stream_periodic4_test: Fail, Pass # floitsch: Marking as flaky while collection debug information. http://dartbug.com/9619
-
 # The typed_data library is not supported by dart2js or dart2dart yet.
 [ $compiler == dart2js  || $compiler == dart2dart ]
 typed_data/*: Fail
