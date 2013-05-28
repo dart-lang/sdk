@@ -94,9 +94,6 @@ async/timer_not_available_test: Skip # only meant to test when there is no way t
                                      # implement timer (currently only in d8)
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
 
-[ $arch == arm ]
-*: Skip
-
 [ $arch == simarm ]
 *: Skip
 

@@ -833,9 +833,6 @@ type_variable_scope_test/04: fail
 type_variable_scope_test/05: fail
 
 
-[ $arch == arm ]
-*: Skip
-
 [ $arch == simarm ]
 *: Skip
 

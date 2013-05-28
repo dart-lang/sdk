@@ -54,9 +54,6 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == arm ]
-*: Skip
-
 [ $arch == simarm ]
 # Tests missing code generation support.
 cc/Dart2JSCompileAll: Skip

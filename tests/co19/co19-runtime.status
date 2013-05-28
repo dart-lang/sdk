@@ -514,10 +514,6 @@ LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issu
 *: Skip
 
 
-[ $compiler == none && $arch == arm ]
-*: Skip
-
-
 [ $compiler == none && $arch == simmips ]
 *: Skip
 
