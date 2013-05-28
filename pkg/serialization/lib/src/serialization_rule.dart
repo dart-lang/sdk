@@ -529,6 +529,7 @@ class _LazyMap implements Map {
 
   int get length => _raw.length;
   bool get isEmpty => _raw.isEmpty;
+  bool get isNotEmpty => _raw.isNotEmpty;
   Iterable get keys => _raw.keys;
   bool containsKey(x) => _raw.containsKey(x);
 

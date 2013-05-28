@@ -167,6 +167,7 @@ class CoreRuntimeTypesTest {
   static testStringMethods() {
     var s = "abcdef";
     assertEquals(s.isEmpty, false);
+    assertEquals(s.isNotEmpty, true);
     assertEquals(s.startsWith("abc"), true);
     assertEquals(s.endsWith("def"), true);
     assertEquals(s.startsWith("aa"), false);

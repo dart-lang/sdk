@@ -40,6 +40,8 @@ class ConstantMap<V> implements Map<String, V> {
 
   bool get isEmpty => length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   String toString() => Maps.mapToString(this);
 
   _throwUnmodifiable() {

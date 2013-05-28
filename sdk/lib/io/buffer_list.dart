@@ -83,6 +83,11 @@ class _BufferList {
   bool get isEmpty => _length == 0;
 
   /**
+   * Returns whether the buffer list is not empty.
+   */
+  bool get isNotEmpty => !isEmpty;
+
+  /**
    * Clears the content of the buffer list.
    */
   void clear() {

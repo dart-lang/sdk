@@ -21245,6 +21245,8 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
   int get length => $dom_length;
 
   bool get isEmpty => $dom_key(0) == null;
+
+  bool get isNotEmpty => !isEmpty;
   Storage.internal();
 
   @DomName('Storage.length')
@@ -26725,6 +26727,11 @@ abstract class _AttributeMap implements Map<String, String> {
   }
 
   /**
+   * Returns true if there is at least one {key, value} pair in the map.
+   */
+  bool get isNotEmpty => !isEmpty;
+
+  /**
    * Checks to see if the node should be included in this map.
    */
   bool _matches(Node node);
@@ -26870,6 +26877,8 @@ class _DataAttributeMap implements Map<String, String> {
 
   // TODO: Use lazy iterator when it is available on Map.
   bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
 
   // Helpers.
   String _attr(String key) => 'data-$key';
@@ -31038,6 +31047,7 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   Iterable<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
+  bool get isNotEmpty => Maps.isNotEmpty(this);
 }
 
 final Future<SendPort> __HELPER_ISOLATE_PORT =

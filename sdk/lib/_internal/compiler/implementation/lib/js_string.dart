@@ -227,6 +227,8 @@ class JSString extends Interceptor implements String, JSIndexable {
 
   bool get isEmpty => length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   int compareTo(String other) {
     if (other is !String) throw new ArgumentError(other);
     return this == other ? 0

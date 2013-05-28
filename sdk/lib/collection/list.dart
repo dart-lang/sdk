@@ -45,6 +45,8 @@ abstract class ListMixin<E> implements List<E> {
 
   bool get isEmpty => length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   E get first {
     if (length == 0) throw new StateError("No elements");
     return this[0];

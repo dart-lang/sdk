@@ -58,6 +58,8 @@ class Maps {
 
   static bool isEmpty(Map map) => map.keys.isEmpty;
 
+  static bool isNotEmpty(Map map) => map.keys.isNotEmpty;
+
   /**
    * Returns a string representing the specified map. The returned string
    * looks like this: [:'{key0: value0, key1: value1, ... keyN: valueN}':].

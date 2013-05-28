@@ -259,6 +259,8 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   bool get isEmpty => length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   String toString() => ToString.iterableToString(this);
 
   List<E> toList({ bool growable: true }) =>

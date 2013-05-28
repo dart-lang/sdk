@@ -23,6 +23,12 @@ class StringBuffer implements StringSink {
   /** Returns whether the buffer is empty. This is a constant-time operation. */
   bool get isEmpty => length == 0;
 
+  /**
+   * Returns whether the buffer is not empty. This is a constant-time
+   * operation.
+   */
+  bool get isNotEmpty => !isEmpty;
+
   /// Adds the contents of [obj], converted to a string, to the buffer.
   external void write(Object obj);
 

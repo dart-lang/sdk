@@ -19771,6 +19771,8 @@ class Storage implements Map<String, String>
 
   bool get isEmpty => $dom_key(0) == null;
 
+  bool get isNotEmpty => !isEmpty;
+
   @JSName('length')
   @DomName('Storage.length')
   @DocsEditable
@@ -24869,6 +24871,11 @@ abstract class _AttributeMap implements Map<String, String> {
   }
 
   /**
+   * Returns true if there is at least one {key, value} pair in the map.
+   */
+  bool get isNotEmpty => !isEmpty;
+
+  /**
    * Checks to see if the node should be included in this map.
    */
   bool _matches(Node node);
@@ -25014,6 +25021,8 @@ class _DataAttributeMap implements Map<String, String> {
 
   // TODO: Use lazy iterator when it is available on Map.
   bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
 
   // Helpers.
   String _attr(String key) => 'data-$key';

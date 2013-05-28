@@ -324,6 +324,8 @@ class _GrowableObjectArray<T> implements List<T> {
     return this.length == 0;
   }
 
+  bool get isNotEmpty => !isEmpty;
+
   void clear() {
     this.length = 0;
   }

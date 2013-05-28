@@ -8,10 +8,10 @@ import "package:expect/expect.dart";
 
 void testConstructor() {
   StringBuffer bf = new StringBuffer("");
-  Expect.equals(true, bf.isEmpty);
+  testBufferLength(0, bf);
 
   bf = new StringBuffer("abc");
-  Expect.equals(3, bf.length);
+  testBufferLength(3, bf);
   Expect.equals("abc", bf.toString());
 
   bf = new StringBuffer("\x00");
@@ -22,7 +22,7 @@ void testWrite() {
   Expect.equals(true, bf.isEmpty);
 
   bf.write("a");
-  Expect.equals(1, bf.length);
+  testBufferLength(1, bf);
   Expect.equals("a", bf.toString());
 
   bf = new StringBuffer("");
@@ -70,13 +70,13 @@ void testWrite() {
 
 void testLength() {
   StringBuffer bf = new StringBuffer("");
-  Expect.equals(0, bf.length);
+  testBufferLength(0, bf);
   bf.write("foo");
-  Expect.equals(3, bf.length);
+  testBufferLength(3, bf);
   bf.write("bar");
-  Expect.equals(6, bf.length);
+  testBufferLength(6, bf);
   bf.write("");
-  Expect.equals(6, bf.length);
+  testBufferLength(6, bf);
 }
 
 void testIsEmpty() {
@@ -103,14 +103,14 @@ void testClear() {
   bf.write("foo");
   bf.clear();
   Expect.equals("", bf.toString());
-  Expect.equals(0, bf.length);
+  testBufferLength(0, bf);
 
   bf.write("bar");
   Expect.equals("bar", bf.toString());
-  Expect.equals(3, bf.length);
+  testBufferLength(3, bf);
   bf.clear();
   Expect.equals("", bf.toString());
-  Expect.equals(0, bf.length);
+  testBufferLength(0, bf);
 }
 
 void testToString() {
@@ -170,6 +170,12 @@ void testWriteCharCode() {
   // Out-of-range character codes are not allowed.
   Expect.throws(() { bf2.writeCharCode(-1); });
   Expect.throws(() { bf2.writeCharCode(0x110000); });
+}
+
+void testBufferLength(int length, StringBuffer bf) {
+  Expect.equals(length, bf.length);
+  (length == 0 ? Expect.isTrue : Expect.isFalse)(bf.isEmpty);
+  (length != 0 ? Expect.isTrue : Expect.isFalse)(bf.isNotEmpty);
 }
 
 void main() {

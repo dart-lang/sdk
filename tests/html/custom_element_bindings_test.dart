@@ -283,4 +283,5 @@ class AttributeMapWrapper<K, V> implements Map<K, V> {
   Iterable<V> get values => _map.values;
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => _map.isNotEmpty;
 }

@@ -358,6 +358,7 @@ abstract class _TypedListBase {
     return this.length == 0;
   }
 
+  bool get isNotEmpty => !isEmpty;
 
   // Method(s) implementing the List interface.
 

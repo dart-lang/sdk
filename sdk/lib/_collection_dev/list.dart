@@ -238,6 +238,7 @@ class ListMapView<E> implements Map<int, E> {
   Iterable<int> get keys => new _ListIndicesIterable(_values);
 
   bool get isEmpty => _values.isEmpty;
+  bool get isNotEmpty => _values.isNotEmpty;
   bool containsValue(E value) => _values.contains(value);
   bool containsKey(int key) => key is int && key >= 0 && key < length;
 

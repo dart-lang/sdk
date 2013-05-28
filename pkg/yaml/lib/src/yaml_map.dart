@@ -36,6 +36,7 @@ class YamlMap implements Map {
   Iterable get values => _map.values;
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => map.isNotEmpty;
   String toString() => _map.toString();
 
   int get hashCode => hashCodeFor(_map);

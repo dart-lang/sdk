@@ -70,6 +70,8 @@ class _StringBase {
     return this.length == 0;
   }
 
+  bool get isNotEmpty => !isEmpty;
+
   String operator +(String other) native "String_concat";
 
   String concat(String other) => this + other;

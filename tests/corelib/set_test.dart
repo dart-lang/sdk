@@ -10,29 +10,29 @@ import "dart:collection";
 
 void testMain(Set create()) {
   Set set = create();
-  Expect.equals(0, set.length);
+  testLength(0, set);
   set.add(1);
-  Expect.equals(1, set.length);
+  testLength(1, set);
   Expect.isTrue(set.contains(1));
 
   set.add(1);
-  Expect.equals(1, set.length);
+  testLength(1, set);
   Expect.isTrue(set.contains(1));
 
   set.remove(1);
-  Expect.equals(0, set.length);
+  testLength(0, set);
   Expect.isFalse(set.contains(1));
 
   for (int i = 0; i < 10; i++) {
     set.add(i);
   }
 
-  Expect.equals(10, set.length);
+  testLength(10, set);
   for (int i = 0; i < 10; i++) {
     Expect.isTrue(set.contains(i));
   }
 
-  Expect.equals(10, set.length);
+  testLength(10, set);
 
   for (int i = 10; i < 20; i++) {
     Expect.isFalse(set.contains(i));
@@ -160,14 +160,14 @@ void testMain(Set create()) {
     list[i] = i + 10;
   }
   set.addAll(list);
-  Expect.equals(20, set.length);
+  testLength(20, set);
   for (int i = 0; i < 20; i++) {
     Expect.isTrue(set.contains(i));
   }
 
   // Test Set.removeAll
   set.removeAll(list);
-  Expect.equals(10, set.length);
+  testLength(10, set);
   for (int i = 0; i < 10; i++) {
     Expect.isTrue(set.contains(i));
   }
@@ -177,9 +177,15 @@ void testMain(Set create()) {
 
   // Test Set.clear.
   set.clear();
-  Expect.equals(0, set.length);
+  testLength(0, set);
   set.add(11);
-  Expect.equals(1, set.length);
+  testLength(1, set);
+}
+
+void testLength(int length, Set set) {
+  Expect.equals(length, set.length);
+  (length == 0 ? Expect.isTrue : Expect.isFalse)(set.isEmpty);
+  (length != 0 ? Expect.isTrue : Expect.isFalse)(set.isNotEmpty);
 }
 
 main() {

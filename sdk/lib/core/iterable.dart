@@ -162,6 +162,11 @@ abstract class Iterable<E> {
   bool get isEmpty;
 
   /**
+   * Returns true if there is at least one element in this collection.
+   */
+  bool get isNotEmpty;
+
+  /**
    * Returns an [Iterable] with at most [n] elements.
    *
    * The returned [Iterable] may contain fewer than [n] elements, if `this`

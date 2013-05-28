@@ -20,6 +20,8 @@ class CodeBuffer implements StringBuffer {
     return buffer.isEmpty;
   }
 
+  bool get isNotEmpty => !isEmpty;
+
   CodeBuffer add(var object) {
     write(object);
     return this;
