@@ -83,14 +83,14 @@ def cross_compiling_builder(arch, mode):
         run([GSUTIL, 'setacl', 'public-read', uri])
     elif num_run == 2:
       with bot.BuildStep('tests'):
-        uri = "%s/%s" % (GCS_BUCKET, recording)
-        run([GSUTIL, 'cp', uri, recording])
+        uri = "%s/%s" % (GCS_BUCKET, recording_out)
+        run([GSUTIL, 'cp', uri, recording_out])
         run(test_args + ['--mode=' + mode, '--arch=' + arch,
                          '--replay_from_file=' + recording_out])
 
       with bot.BuildStep('checked_tests'):
-        uri = "%s/%s" % (GCS_BUCKET, checked_recording)
-        run([GSUTIL, 'cp', uri, checked_recording])
+        uri = "%s/%s" % (GCS_BUCKET, checked_recording_out)
+        run([GSUTIL, 'cp', uri, checked_recording_out])
         run(test_args + ['--mode=' + mode, '--arch=' + arch, '--checked',
                          '--replay_from_file=' + checked_recording_out])
     else:
