@@ -2982,10 +2982,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
       if (formalsToProcess.isEmpty) {
         error(node, MessageKind.EMPTY_CATCH_DECLARATION);
       } else {
-        exceptionDefinition = formalsToProcess.head;
+        exceptionDefinition = formalsToProcess.head.asVariableDefinitions();
         formalsToProcess = formalsToProcess.tail;
         if (!formalsToProcess.isEmpty) {
-          stackTraceDefinition = formalsToProcess.head;
+          stackTraceDefinition = formalsToProcess.head.asVariableDefinitions();
           formalsToProcess = formalsToProcess.tail;
           if (!formalsToProcess.isEmpty) {
             for (Node extra in formalsToProcess) {
