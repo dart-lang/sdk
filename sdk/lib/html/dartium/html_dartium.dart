@@ -27355,6 +27355,9 @@ class EventStreamProvider<T extends Event> {
   /**
    * Gets a [Stream] for this event type, on the specified target.
    *
+   * This will always return a broadcast stream so multiple listeners can be
+   * used simultaneously.
+   *
    * This may be used to capture DOM events:
    *
    *     Element.keyDownEvent.forTarget(element, useCapture: true).listen(...);
