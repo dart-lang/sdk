@@ -1119,7 +1119,12 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   visitNamedArgument(NamedArgument node) {
-    return unhandledExpression();
+    // Named arguments are visited as part of analyzing invocations of
+    // unresolved methods. For instance [: foo(a: 42); :] where 'foo' is neither
+    // found in the enclosing scope nor through lookup on 'this' or
+    // [: x.foo(b: 42); :] where 'foo' cannot be not found through lookup on
+    // the static type of 'x'.
+    return analyze(node.expression);
   }
 
   visitSwitchStatement(SwitchStatement node) {

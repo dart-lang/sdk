@@ -202,209 +202,224 @@ void testConstructorInvocationArgumentTypes() {
 
 void testMethodInvocationArgumentCount() {
   compiler.parseScript(CLASS_WITH_METHODS);
-  final String header = "{ ClassWithMethods c; ";
-  analyze("${header}c.untypedNoArgumentMethod(1); }",
-          MessageKind.ADDITIONAL_ARGUMENT);
-  analyze("${header}c.untypedOneArgumentMethod(); }",
-          MessageKind.MISSING_ARGUMENT);
-  analyze("${header}c.untypedOneArgumentMethod(1, 1); }",
-          MessageKind.ADDITIONAL_ARGUMENT);
-  analyze("${header}c.untypedTwoArgumentMethod(); }",
-          MessageKind.MISSING_ARGUMENT);
-  analyze("${header}c.untypedTwoArgumentMethod(1, 2, 3); }",
-          MessageKind.ADDITIONAL_ARGUMENT);
-  analyze("${header}c.intNoArgumentMethod(1); }",
-          MessageKind.ADDITIONAL_ARGUMENT);
-  analyze("${header}c.intOneArgumentMethod(); }",
-          MessageKind.MISSING_ARGUMENT);
-  analyze("${header}c.intOneArgumentMethod(1, 1); }",
-          MessageKind.ADDITIONAL_ARGUMENT);
-  analyze("${header}c.intTwoArgumentMethod(); }",
-          MessageKind.MISSING_ARGUMENT);
-  analyze("${header}c.intTwoArgumentMethod(1, 2, 3); }",
-          MessageKind.ADDITIONAL_ARGUMENT);
-  // analyze("${header}c.untypedField(); }");
 
-  analyze("${header}c.intOneArgumentOneOptionalMethod(); }",
-          [MessageKind.MISSING_ARGUMENT]);
-  analyze("${header}c.intOneArgumentOneOptionalMethod(0); }");
-  analyze("${header}c.intOneArgumentOneOptionalMethod(0, 1); }");
-  analyze("${header}c.intOneArgumentOneOptionalMethod(0, 1, 2); }",
-          [MessageKind.ADDITIONAL_ARGUMENT]);
-  analyze("${header}c.intOneArgumentOneOptionalMethod(0, 1, c: 2); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intOneArgumentOneOptionalMethod(0, b: 1); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intOneArgumentOneOptionalMethod(a: 0, b: 1); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND,
-           MessageKind.NAMED_ARGUMENT_NOT_FOUND,
-           MessageKind.MISSING_ARGUMENT]);
+  check(String text, [expectedWarnings]) {
+    analyze("{ ClassWithMethods c; $text }", expectedWarnings);
+  }
 
-  analyze("${header}c.intTwoOptionalMethod(); }");
-  analyze("${header}c.intTwoOptionalMethod(0); }");
-  analyze("${header}c.intTwoOptionalMethod(0, 1); }");
-  analyze("${header}c.intTwoOptionalMethod(0, 1, 2); }",
-          [MessageKind.ADDITIONAL_ARGUMENT]);
-  analyze("${header}c.intTwoOptionalMethod(a: 0); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intTwoOptionalMethod(0, b: 1); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.untypedNoArgumentMethod(1);", MessageKind.ADDITIONAL_ARGUMENT);
+  check("c.untypedOneArgumentMethod();", MessageKind.MISSING_ARGUMENT);
+  check("c.untypedOneArgumentMethod(1, 1);", MessageKind.ADDITIONAL_ARGUMENT);
+  check("c.untypedTwoArgumentMethod();", MessageKind.MISSING_ARGUMENT);
+  check("c.untypedTwoArgumentMethod(1, 2, 3);",
+        MessageKind.ADDITIONAL_ARGUMENT);
+  check("c.intNoArgumentMethod(1);", MessageKind.ADDITIONAL_ARGUMENT);
+  check("c.intOneArgumentMethod();", MessageKind.MISSING_ARGUMENT);
+  check("c.intOneArgumentMethod(1, 1);", MessageKind.ADDITIONAL_ARGUMENT);
+  check("c.intTwoArgumentMethod();", MessageKind.MISSING_ARGUMENT);
+  check("c.intTwoArgumentMethod(1, 2, 3);", MessageKind.ADDITIONAL_ARGUMENT);
+  // check("c.untypedField();");
 
-  analyze("${header}c.intOneArgumentOneNamedMethod(); }",
-          [MessageKind.MISSING_ARGUMENT]);
-  analyze("${header}c.intOneArgumentOneNamedMethod(0); }");
-  analyze("${header}c.intOneArgumentOneNamedMethod(0, b: 1); }");
-  analyze("${header}c.intOneArgumentOneNamedMethod(b: 1); }",
-          [MessageKind.MISSING_ARGUMENT]);
-  analyze("${header}c.intOneArgumentOneNamedMethod(0, b: 1, c: 2); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intOneArgumentOneNamedMethod(0, 1); }",
-          [MessageKind.ADDITIONAL_ARGUMENT]);
-  analyze("${header}c.intOneArgumentOneNamedMethod(0, 1, c: 2); }",
-          [MessageKind.ADDITIONAL_ARGUMENT,
-           MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intOneArgumentOneNamedMethod(a: 1, b: 1); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND,
-           MessageKind.MISSING_ARGUMENT]);
+  check("c.intOneArgumentOneOptionalMethod();", [MessageKind.MISSING_ARGUMENT]);
+  check("c.intOneArgumentOneOptionalMethod(0);");
+  check("c.intOneArgumentOneOptionalMethod(0, 1);");
+  check("c.intOneArgumentOneOptionalMethod(0, 1, 2);",
+        [MessageKind.ADDITIONAL_ARGUMENT]);
+  check("c.intOneArgumentOneOptionalMethod(0, 1, c: 2);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intOneArgumentOneOptionalMethod(0, b: 1);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intOneArgumentOneOptionalMethod(a: 0, b: 1);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+         MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+         MessageKind.MISSING_ARGUMENT]);
 
-  analyze("${header}c.intTwoNamedMethod(); }");
-  analyze("${header}c.intTwoNamedMethod(a: 0); }");
-  analyze("${header}c.intTwoNamedMethod(b: 1); }");
-  analyze("${header}c.intTwoNamedMethod(a: 0, b: 1); }");
-  analyze("${header}c.intTwoNamedMethod(b: 1, a: 0); }");
-  analyze("${header}c.intTwoNamedMethod(0); }",
-          [MessageKind.ADDITIONAL_ARGUMENT]);
-  analyze("${header}c.intTwoNamedMethod(c: 2); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intTwoNamedMethod(a: 0, c: 2); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intTwoNamedMethod(a: 0, b: 1, c: 2); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intTwoNamedMethod(c: 2, b: 1, a: 0); }",
-          [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
-  analyze("${header}c.intTwoNamedMethod(0, b: 1); }",
-          [MessageKind.ADDITIONAL_ARGUMENT]);
-  analyze("${header}c.intTwoNamedMethod(0, 1); }",
-          [MessageKind.ADDITIONAL_ARGUMENT,
-           MessageKind.ADDITIONAL_ARGUMENT]);
-  analyze("${header}c.intTwoNamedMethod(0, c: 2); }",
-          [MessageKind.ADDITIONAL_ARGUMENT,
-           MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intTwoOptionalMethod();");
+  check("c.intTwoOptionalMethod(0);");
+  check("c.intTwoOptionalMethod(0, 1);");
+  check("c.intTwoOptionalMethod(0, 1, 2);", [MessageKind.ADDITIONAL_ARGUMENT]);
+  check("c.intTwoOptionalMethod(a: 0);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intTwoOptionalMethod(0, b: 1);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
 
+  check("c.intOneArgumentOneNamedMethod();", [MessageKind.MISSING_ARGUMENT]);
+  check("c.intOneArgumentOneNamedMethod(0);");
+  check("c.intOneArgumentOneNamedMethod(0, b: 1);");
+  check("c.intOneArgumentOneNamedMethod(b: 1);",
+        [MessageKind.MISSING_ARGUMENT]);
+  check("c.intOneArgumentOneNamedMethod(0, b: 1, c: 2);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intOneArgumentOneNamedMethod(0, 1);",
+        [MessageKind.ADDITIONAL_ARGUMENT]);
+  check("c.intOneArgumentOneNamedMethod(0, 1, c: 2);",
+        [MessageKind.ADDITIONAL_ARGUMENT,
+         MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intOneArgumentOneNamedMethod(a: 1, b: 1);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND,
+         MessageKind.MISSING_ARGUMENT]);
+
+  check("c.intTwoNamedMethod();");
+  check("c.intTwoNamedMethod(a: 0);");
+  check("c.intTwoNamedMethod(b: 1);");
+  check("c.intTwoNamedMethod(a: 0, b: 1);");
+  check("c.intTwoNamedMethod(b: 1, a: 0);");
+  check("c.intTwoNamedMethod(0);", [MessageKind.ADDITIONAL_ARGUMENT]);
+  check("c.intTwoNamedMethod(c: 2);", [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intTwoNamedMethod(a: 0, c: 2);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intTwoNamedMethod(a: 0, b: 1, c: 2);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intTwoNamedMethod(c: 2, b: 1, a: 0);",
+        [MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
+  check("c.intTwoNamedMethod(0, b: 1);", [MessageKind.ADDITIONAL_ARGUMENT]);
+  check("c.intTwoNamedMethod(0, 1);",
+        [MessageKind.ADDITIONAL_ARGUMENT,
+         MessageKind.ADDITIONAL_ARGUMENT]);
+  check("c.intTwoNamedMethod(0, c: 2);",
+        [MessageKind.ADDITIONAL_ARGUMENT,
+         MessageKind.NAMED_ARGUMENT_NOT_FOUND]);
 }
 
 void testMethodInvocations() {
   compiler.parseScript(CLASS_WITH_METHODS);
-  final String header = """{
-      ClassWithMethods c;
-      SubClass d;
-      var e;
-      int i;
-      int j;
-      int localMethod(String str) { return 0; }
-      """;
 
-  analyze("${header}int k = c.untypedNoArgumentMethod(); }");
-  analyze("${header}ClassWithMethods x = c.untypedNoArgumentMethod(); }");
-  analyze("${header}ClassWithMethods x = d.untypedNoArgumentMethod(); }");
-  analyze("${header}int k = d.intMethod(); }");
-  analyze("${header}int k = c.untypedOneArgumentMethod(c); }");
-  analyze("${header}ClassWithMethods x = c.untypedOneArgumentMethod(1); }");
-  analyze("${header}int k = c.untypedOneArgumentMethod('string'); }");
-  analyze("${header}int k = c.untypedOneArgumentMethod(i); }");
-  analyze("${header}int k = d.untypedOneArgumentMethod(d); }");
-  analyze("${header}ClassWithMethods x = d.untypedOneArgumentMethod(1); }");
-  analyze("${header}int k = d.untypedOneArgumentMethod('string'); }");
-  analyze("${header}int k = d.untypedOneArgumentMethod(i); }");
+  check(String text, [expectedWarnings]){
+    analyze("""{
+               ClassWithMethods c;
+               SubClass d;
+               var e;
+               int i;
+               int j;
+               int localMethod(String str) { return 0; }
+               $text
+               }
+               """, expectedWarnings);
+  }
 
-  analyze("${header}int k = c.untypedTwoArgumentMethod(1, 'string'); }");
-  analyze("${header}int k = c.untypedTwoArgumentMethod(i, j); }");
-  analyze("${header}ClassWithMethods x = c.untypedTwoArgumentMethod(i, c); }");
-  analyze("${header}int k = d.untypedTwoArgumentMethod(1, 'string'); }");
-  analyze("${header}int k = d.untypedTwoArgumentMethod(i, j); }");
-  analyze("${header}ClassWithMethods x = d.untypedTwoArgumentMethod(i, d); }");
+  check("int k = c.untypedNoArgumentMethod();");
+  check("ClassWithMethods x = c.untypedNoArgumentMethod();");
+  check("ClassWithMethods x = d.untypedNoArgumentMethod();");
+  check("int k = d.intMethod();");
+  check("int k = c.untypedOneArgumentMethod(c);");
+  check("ClassWithMethods x = c.untypedOneArgumentMethod(1);");
+  check("int k = c.untypedOneArgumentMethod('string');");
+  check("int k = c.untypedOneArgumentMethod(i);");
+  check("int k = d.untypedOneArgumentMethod(d);");
+  check("ClassWithMethods x = d.untypedOneArgumentMethod(1);");
+  check("int k = d.untypedOneArgumentMethod('string');");
+  check("int k = d.untypedOneArgumentMethod(i);");
 
-  analyze("${header}int k = c.intNoArgumentMethod(); }");
-  analyze("${header}ClassWithMethods x = c.intNoArgumentMethod(); }",
-          MessageKind.NOT_ASSIGNABLE);
+  check("int k = c.untypedTwoArgumentMethod(1, 'string');");
+  check("int k = c.untypedTwoArgumentMethod(i, j);");
+  check("ClassWithMethods x = c.untypedTwoArgumentMethod(i, c);");
+  check("int k = d.untypedTwoArgumentMethod(1, 'string');");
+  check("int k = d.untypedTwoArgumentMethod(i, j);");
+  check("ClassWithMethods x = d.untypedTwoArgumentMethod(i, d);");
 
-  analyze("${header}int k = c.intOneArgumentMethod(c); }",
-          MessageKind.NOT_ASSIGNABLE);
-  analyze("${header}ClassWithMethods x = c.intOneArgumentMethod(1); }",
-          MessageKind.NOT_ASSIGNABLE);
-  analyze("${header}int k = c.intOneArgumentMethod('string'); }",
-          MessageKind.NOT_ASSIGNABLE);
-  analyze("${header}int k = c.intOneArgumentMethod(i); }");
+  check("int k = c.intNoArgumentMethod();");
+  check("ClassWithMethods x = c.intNoArgumentMethod();",
+        MessageKind.NOT_ASSIGNABLE);
 
-  analyze("${header}int k = c.intTwoArgumentMethod(1, 'string'); }",
-          MessageKind.NOT_ASSIGNABLE);
-  analyze("${header}int k = c.intTwoArgumentMethod(i, j); }");
-  analyze("${header}ClassWithMethods x = c.intTwoArgumentMethod(i, j); }",
-          MessageKind.NOT_ASSIGNABLE);
+  check("int k = c.intOneArgumentMethod(c);", MessageKind.NOT_ASSIGNABLE);
+  check("ClassWithMethods x = c.intOneArgumentMethod(1);",
+        MessageKind.NOT_ASSIGNABLE);
+  check("int k = c.intOneArgumentMethod('string');",
+        MessageKind.NOT_ASSIGNABLE);
+  check("int k = c.intOneArgumentMethod(i);");
 
-  analyze("${header}c.functionField(); }");
-  analyze("${header}d.functionField(); }");
-  analyze("${header}c.functionField(1); }");
-  analyze("${header}d.functionField('string'); }");
+  check("int k = c.intTwoArgumentMethod(1, 'string');",
+        MessageKind.NOT_ASSIGNABLE);
+  check("int k = c.intTwoArgumentMethod(i, j);");
+  check("ClassWithMethods x = c.intTwoArgumentMethod(i, j);",
+        MessageKind.NOT_ASSIGNABLE);
 
-  analyze("${header}c.intField(); }", MessageKind.NOT_CALLABLE);
-  analyze("${header}d.intField(); }", MessageKind.NOT_CALLABLE);
+  check("c.functionField();");
+  check("d.functionField();");
+  check("c.functionField(1);");
+  check("d.functionField('string');");
 
-  analyze("${header}c.untypedField(); }");
-  analyze("${header}d.untypedField(); }");
-  analyze("${header}c.untypedField(1); }");
-  analyze("${header}d.untypedField('string'); }");
+  check("c.intField();", MessageKind.NOT_CALLABLE);
+  check("d.intField();", MessageKind.NOT_CALLABLE);
+
+  check("c.untypedField();");
+  check("d.untypedField();");
+  check("c.untypedField(1);");
+  check("d.untypedField('string');");
+
+
+  check("c.intOneArgumentOneOptionalMethod('');",
+        MessageKind.NOT_ASSIGNABLE);
+  check("c.intOneArgumentOneOptionalMethod('', '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("c.intTwoOptionalMethod('');", MessageKind.NOT_ASSIGNABLE);
+  check("c.intTwoOptionalMethod('', '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("c.intOneArgumentOneNamedMethod('');",
+        MessageKind.NOT_ASSIGNABLE);
+  check("c.intOneArgumentOneNamedMethod('', b: '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check("c.intTwoNamedMethod(a: '');", MessageKind.NOT_ASSIGNABLE);
+  check("c.intTwoNamedMethod(b: '');", MessageKind.NOT_ASSIGNABLE);
+  check("c.intTwoNamedMethod(a: '', b: '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+  check("c.intTwoNamedMethod(b: '', a: '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
 
   // Invocation of dynamic variable.
-  analyze("${header}e(); }");
-  analyze("${header}e(1); }");
-  analyze("${header}e('string'); }");
+  check("e();");
+  check("e(1);");
+  check("e('string');");
 
   // Invocation on local method.
-  analyze("${header}localMethod(); }", MessageKind.MISSING_ARGUMENT);
-  analyze("${header}localMethod(1); }", MessageKind.NOT_ASSIGNABLE);
-  analyze("${header}localMethod('string'); }");
-  analyze("${header}int k = localMethod('string'); }");
-  analyze("${header}String k = localMethod('string'); }",
-      MessageKind.NOT_ASSIGNABLE);
+  check("localMethod();", MessageKind.MISSING_ARGUMENT);
+  check("localMethod(1);", MessageKind.NOT_ASSIGNABLE);
+  check("localMethod('string');");
+  check("int k = localMethod('string');");
+  check("String k = localMethod('string');", MessageKind.NOT_ASSIGNABLE);
 
   // Invocation on parenthesized expressions.
-  analyze("${header}(e)(); }");
-  analyze("${header}(e)(1); }");
-  analyze("${header}(e)('string'); }");
-  analyze("${header}(foo)(); }");
-  analyze("${header}(foo)(1); }");
-  analyze("${header}(foo)('string'); }");
+  check("(e)();");
+  check("(e)(1);");
+  check("(e)('string');");
+  check("(foo)();");
+  check("(foo)(1);");
+  check("(foo)('string');");
 
   // Invocations on function expressions.
-  analyze("${header}(foo){}(); }", MessageKind.MISSING_ARGUMENT);
-  analyze("${header}(foo){}(1); }");
-  analyze("${header}(foo){}('string'); }");
-  analyze("${header}(int foo){}('string'); }", MessageKind.NOT_ASSIGNABLE);
-  analyze("${header}(String foo){}('string'); }");
-  analyze("${header}int k = int bar(String foo){ return 0; }('string'); }");
-  analyze("${header}int k = String bar(String foo){ return foo; }('string'); }",
-      MessageKind.NOT_ASSIGNABLE);
+  check("(foo){}();", MessageKind.MISSING_ARGUMENT);
+  check("(foo){}(1);");
+  check("(foo){}('string');");
+  check("(int foo){}('string');", MessageKind.NOT_ASSIGNABLE);
+  check("(String foo){}('string');");
+  check("int k = int bar(String foo){ return 0; }('string');");
+  check("int k = String bar(String foo){ return foo; }('string');",
+        MessageKind.NOT_ASSIGNABLE);
 
   // Static invocations.
-  analyze("${header}ClassWithMethods.staticMethod(); }",
-      MessageKind.MISSING_ARGUMENT);
-  analyze("${header}ClassWithMethods.staticMethod(1); }",
-      MessageKind.NOT_ASSIGNABLE);
-  analyze("${header}ClassWithMethods.staticMethod('string'); }");
-  analyze("${header}int k = ClassWithMethods.staticMethod('string'); }");
-  analyze("${header}String k = ClassWithMethods.staticMethod('string'); }",
-      MessageKind.NOT_ASSIGNABLE);
+  check("ClassWithMethods.staticMethod();",
+        MessageKind.MISSING_ARGUMENT);
+  check("ClassWithMethods.staticMethod(1);",
+        MessageKind.NOT_ASSIGNABLE);
+  check("ClassWithMethods.staticMethod('string');");
+  check("int k = ClassWithMethods.staticMethod('string');");
+  check("String k = ClassWithMethods.staticMethod('string');",
+        MessageKind.NOT_ASSIGNABLE);
 
   // Invocation on dynamic variable.
-  analyze("${header}e.foo(); }");
-  analyze("${header}e.foo(1); }");
-  analyze("${header}e.foo('string'); }");
+  check("e.foo();");
+  check("e.foo(1);");
+  check("e.foo('string');");
 
   // Invocation on unresolved variable.
-  analyze("${header}foo(); }");
-  analyze("${header}foo(1); }");
-  analyze("${header}foo('string'); }");
+  check("foo();");
+  check("foo(1);");
+  check("foo('string');");
+  check("foo(a: 'string');");
+  check("foo(a: localMethod(1));", MessageKind.NOT_ASSIGNABLE);
 
   // TODO(johnniwinther): Add tests of invocations using implicit this.
 }
