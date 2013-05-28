@@ -24,7 +24,7 @@ import '../../sdk/lib/html/html_common/metadata.dart';
 // TODO(amouravski): There is currently magic that looks at dart:* libraries
 // rather than the declared library names. This changed due to recent syntax
 // changes. We should only need to look at the library 'html'.
-List<Uri> HTML_LIBRARY_URIS = [
+final List<Uri> HTML_LIBRARY_URIS = [
     new Uri(scheme: 'dart', path: 'html'),
     new Uri(scheme: 'dart', path: 'indexed_db'),
     new Uri(scheme: 'dart', path: 'svg'),
