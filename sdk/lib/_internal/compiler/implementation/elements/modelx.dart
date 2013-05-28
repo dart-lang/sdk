@@ -1582,15 +1582,17 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
    * When called on the implementation element both members declared in the
    * origin and the patch class are returned.
    */
-  Element lookupSelector(Selector selector) {
-    return internalLookupSelector(selector, false);
+  Element lookupSelector(Selector selector, Compiler compiler) {
+    return internalLookupSelector(selector, compiler, false);
   }
 
-  Element lookupSuperSelector(Selector selector) {
-    return internalLookupSelector(selector, true);
+  Element lookupSuperSelector(Selector selector, Compiler compiler) {
+    return internalLookupSelector(selector, compiler, true);
   }
 
-  Element internalLookupSelector(Selector selector, bool isSuperLookup) {
+  Element internalLookupSelector(Selector selector,
+                                 Compiler compiler,
+                                 bool isSuperLookup) {
     SourceString name = selector.name;
     bool isPrivate = name.isPrivate();
     LibraryElement library = selector.library;
@@ -1616,12 +1618,14 @@ abstract class BaseClassElementX extends ElementX implements ClassElement {
         FunctionElement getter = field.getter;
         FunctionElement setter = field.setter;
         if (selector.isSetter()) {
-          if (setter != null) return setter;
+          // Abstract members can be defined in a super class.
+          if (setter != null && !setter.isAbstract(compiler)) return setter;
         } else {
           assert(selector.isGetter() || selector.isCall());
-          if (getter != null) return getter;
+          if (getter != null && !getter.isAbstract(compiler)) return getter;
         }
-      } else {
+      // Abstract members can be defined in a super class.
+      } else if (!member.isAbstract(compiler)) {
         return member;
       }
     }

@@ -2051,7 +2051,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       // TODO(johnniwinther): Ensure correct behavior if currentClass is a
       // patch.
-      target = currentClass.lookupSuperSelector(selector);
+      target = currentClass.lookupSuperSelector(selector, compiler);
       // [target] may be null which means invoking noSuchMethod on
       // super.
       if (target == null) {
@@ -2384,7 +2384,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       registerSend(getterSelector, getter);
       mapping.setGetterSelectorInComplexSendSet(node, getterSelector);
       if (node.isSuperCall) {
-        getter = currentClass.lookupSuperSelector(getterSelector);
+        getter = currentClass.lookupSuperSelector(getterSelector, compiler);
         if (getter == null) {
           target = warnAndCreateErroneousElement(
               node, selector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
