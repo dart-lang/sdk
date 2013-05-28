@@ -22,7 +22,7 @@ main() {
     var origin = window.location.origin;
 
     // We build up the origin from Uri, then make sure that it matches.
-    var uri = new Uri(window.location.href);
+    var uri = Uri.parse(window.location.href);
     var reconstructedOrigin = '${uri.scheme}://${uri.host}';
     if (uri.port != 0) {
       reconstructedOrigin = '$reconstructedOrigin:${uri.port}';
