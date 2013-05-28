@@ -303,7 +303,7 @@ def GetHasHardCodedCheckedMode(build_info):
   # on the slow (all) IE windows bots. This is a hack and we should use the
   # normal sharding and checked splitting functionality when we get more
   # vms for testing this.
-  if (build_info.system == 'linux' and build_info.runtime == 'chrome'):
+  if (build_info.system == 'linux' and build_info.runtime == 'drt'):
     return True
   if build_info.runtime.startswith('ie') and build_info.test_set == 'all':
     return True
