@@ -198,6 +198,22 @@ class Safari extends Browser {
    */
   const String versionFile = "/Applications/Safari.app/Contents/version.plist";
 
+
+  Future<bool> allowPopUps() {
+    var command = "defaults";
+    var args = ["write", "com.apple.safari",
+                "com.apple.Safari.ContentPageGroupIdentifier."
+                "WebKit2JavaScriptCanOpenWindowsAutomatically",
+                "1"];
+    return Process.run(command, args).then((result) {
+        if (result.exitCode != 0) {
+          _logEvent("Could not disable pop-up blocking for safari");
+          return false;
+        }
+        return true;
+    });
+  }
+
   Future<String> getVersion() {
     /**
      * Example of the file:
@@ -242,18 +258,23 @@ class Safari extends Browser {
   Future<bool> start(String url) {
     _logEvent("Starting Safari browser on: $url");
     // Get the version and log that.
-    return getVersion().then((version) {
-      _logEvent("Got version: $version");
-      var args = ["'$url'"];
-      return new Directory('').createTemp().then((userDir) {
-        _cleanup = () { userDir.delete(recursive: true); };
-	_createLaunchHTML(userDir.path, url);
-        var args = ["${userDir.path}/launch.html"];
-        return startBrowser(binary, args);
+    return allowPopUps().then((success) {
+      if (!success) {
+        return new Future.immediate(false);
+      }
+      return .getVersion().then((version) {
+        _logEvent("Got version: $version");
+        var args = ["'$url'"];
+        return new Directory('').createTemp().then((userDir) {
+          _cleanup = () { userDir.delete(recursive: true); };
+          _createLaunchHTML(userDir.path, url);
+          var args = ["${userDir.path}/launch.html"];
+          return startBrowser(binary, args);
+        });
+      }).catchError((e) {
+        _logEvent("Running $binary --version failed with $e");
+        return false;
       });
-    }).catchError((e) {
-      _logEvent("Running $binary --version failed with $e");
-      return false;
     });
   }
 
