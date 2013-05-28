@@ -27,12 +27,12 @@ import 'backtracking_solver.dart';
 /// packages.
 Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
     {LockFile lockFile, List<String> useLatest}) {
-  log.message('Resolving dependencies...');
-
   if (lockFile == null) lockFile = new LockFile.empty();
   if (useLatest == null) useLatest = [];
 
-  return new BacktrackingSolver(sources, root, lockFile, useLatest).solve();
+  return log.progress('Resolving dependencies', () {
+    return new BacktrackingSolver(sources, root, lockFile, useLatest).solve();
+  });
 }
 
 /// The result of a version resolution.

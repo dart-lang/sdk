@@ -51,34 +51,36 @@ class LishCommand extends PubCommand {
   Future _publish(packageBytes) {
     var cloudStorageUrl;
     return oauth2.withClient(cache, (client) {
-      // TODO(nweiz): Cloud Storage can provide an XML-formatted error. We
-      // should report that error and exit.
-      var newUri = server.resolve("/packages/versions/new.json");
-      return client.get(newUri).then((response) {
-        var parameters = parseJsonResponse(response);
+      return log.progress('Uploading', () {
+        // TODO(nweiz): Cloud Storage can provide an XML-formatted error. We
+        // should report that error and exit.
+        var newUri = server.resolve("/packages/versions/new.json");
+        return client.get(newUri).then((response) {
+          var parameters = parseJsonResponse(response);
 
-        var url = _expectField(parameters, 'url', response);
-        if (url is! String) invalidServerResponse(response);
-        cloudStorageUrl = Uri.parse(url);
-        var request = new http.MultipartRequest('POST', cloudStorageUrl);
+          var url = _expectField(parameters, 'url', response);
+          if (url is! String) invalidServerResponse(response);
+          cloudStorageUrl = Uri.parse(url);
+          var request = new http.MultipartRequest('POST', cloudStorageUrl);
 
-        var fields = _expectField(parameters, 'fields', response);
-        if (fields is! Map) invalidServerResponse(response);
-        fields.forEach((key, value) {
-          if (value is! String) invalidServerResponse(response);
-          request.fields[key] = value;
-        });
+          var fields = _expectField(parameters, 'fields', response);
+          if (fields is! Map) invalidServerResponse(response);
+          fields.forEach((key, value) {
+            if (value is! String) invalidServerResponse(response);
+            request.fields[key] = value;
+          });
 
-        request.followRedirects = false;
-        request.files.add(new http.MultipartFile.fromBytes(
-            'file', packageBytes, filename: 'package.tar.gz'));
-        return client.send(request);
-      }).then(http.Response.fromStream).then((response) {
-        var location = response.headers['location'];
-        if (location == null) throw new PubHttpException(response);
-        return location;
-      }).then((location) => client.get(location))
-        .then(handleJsonSuccess);
+          request.followRedirects = false;
+          request.files.add(new http.MultipartFile.fromBytes(
+              'file', packageBytes, filename: 'package.tar.gz'));
+          return client.send(request);
+        }).then(http.Response.fromStream).then((response) {
+          var location = response.headers['location'];
+          if (location == null) throw new PubHttpException(response);
+          return location;
+        }).then((location) => client.get(location))
+          .then(handleJsonSuccess);
+      });
     }).catchError((error) {
       if (error is! PubHttpException) throw error;
       var url = error.response.request.url;

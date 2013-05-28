@@ -18,6 +18,13 @@ final Map<Level, LogFn> _loggers = new Map<Level, LogFn>();
 /// [recordTranscript()] is called.
 List<Entry> _transcript;
 
+/// The timer used to write "..." during a progress log.
+Timer _progressTimer;
+
+/// The progress message as it's being incrementally appended. When the
+/// progress is done, a single entry will be added to the log for it.
+String _progressMessage;
+
 /// An enum type for defining the different logging levels. By default, [ERROR]
 /// and [WARNING] messages are printed to sterr. [MESSAGE] messages are printed
 /// to stdout, and others are ignored.
@@ -178,6 +185,40 @@ void dumpTranscript() {
   stderr.writeln('---- End log transcript ----');
 }
 
+/// Prints [message] then slowly prints additional "..." after it until the
+/// future returned by [callback] completes. If anything else is logged during
+/// this, it cancels the progress.
+Future progress(String message, Future callback()) {
+  if (_progressTimer != null) throw new StateError("Already in progress.");
+
+  _progressMessage = '$message...';
+  stdout.write(_progressMessage);
+
+  _progressTimer = new Timer.periodic(new Duration(milliseconds: 500), (_) {
+    stdout.write('.');
+    _progressMessage += '.';
+  });
+
+  return callback().whenComplete(_stopProgress);
+}
+
+/// Stops the running progress indicator, if currently running.
+_stopProgress() {
+  if (_progressTimer == null) return;
+
+  // Stop the timer.
+  _progressTimer.cancel();
+  _progressTimer = null;
+  stdout.writeln();
+
+  // Add the progress message to the transcript.
+  if (_transcript != null) {
+    _transcript.add(new Entry(Level.MESSAGE, [_progressMessage]));
+  }
+
+  _progressMessage = null;
+}
+
 /// Sets the verbosity to "normal", which shows errors, warnings, and messages.
 void showNormal() {
   _loggers[Level.ERROR]   = _logToStderr;
@@ -241,6 +282,8 @@ void _logToStderrWithLabel(Entry entry) {
 }
 
 void _logToStream(IOSink sink, Entry entry, {bool showLabel}) {
+  _stopProgress();
+
   bool firstLine = true;
   for (var line in entry.lines) {
     if (showLabel) {
