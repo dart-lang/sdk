@@ -677,7 +677,7 @@ bool Intrinsifier::Integer_mul(Assembler* assembler) {
 // EAX: Tagged left (dividend).
 // EBX: Tagged right (divisor).
 // EDX: Untagged result (remainder).
-void EmitRemainderOperation(Assembler* assembler) {
+static void EmitRemainderOperation(Assembler* assembler) {
   Label return_zero, modulo;
   // Check for quick zero results.
   __ cmpl(EAX, Immediate(0));
@@ -1632,7 +1632,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   __ pushl(EDI);  // Preserve length.
   __ SmiUntag(EDI);
   const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
-  __ leal(EDI, Address(EDI, TIMES_1, fixed_size));  // EDI is a Smi.
+  __ leal(EDI, Address(EDI, TIMES_1, fixed_size));  // EDI is untagged.
   __ andl(EDI, Immediate(-kObjectAlignment));
 
   Isolate* isolate = Isolate::Current();

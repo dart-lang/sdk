@@ -1684,6 +1684,32 @@ void Simulator::DecodeType01(Instr* instr) {
             }
             break;
           }
+          case 7: {
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
+            int32_t rd_lo_val = get_register(rd);
+            int32_t rd_hi_val = get_register(rn);
+            int64_t left_op  = static_cast<int32_t>(rm_val);
+            int64_t right_op = static_cast<int32_t>(rs_val);
+            uint32_t accum_lo = static_cast<uint32_t>(rd_lo_val);
+            int32_t accum_hi = static_cast<int32_t>(rd_hi_val);
+            int64_t accum = Utils::LowHighTo64Bits(accum_lo, accum_hi);
+            int64_t result = accum + left_op * right_op;
+            int32_t hi_res = Utils::High32Bits(result);
+            int32_t lo_res = Utils::Low32Bits(result);
+            set_register(rd, lo_res);
+            set_register(rn, hi_res);
+            if (instr->HasS()) {
+              if (lo_res != 0) {
+                // Collapse bits 0..31 into bit 32 so that 32-bit Z check works.
+                hi_res |= 1;
+              }
+              ASSERT((result == 0) == (hi_res == 0));  // Z bit
+              ASSERT(((result & (1LL << 63)) != 0) == (hi_res < 0));  // N bit
+              SetNZFlags(hi_res);
+            }
+            break;
+          }
           default: {
             UnimplementedInstruction(instr);
             break;

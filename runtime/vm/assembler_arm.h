@@ -382,6 +382,7 @@ class Assembler : public ValueObject {
   void movs(Register rd, ShifterOperand so, Condition cond = AL);
 
   void bic(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
+  void bics(Register rd, Register rn, ShifterOperand so, Condition cond = AL);
 
   void mvn(Register rd, ShifterOperand so, Condition cond = AL);
   void mvns(Register rd, ShifterOperand so, Condition cond = AL);
@@ -401,6 +402,8 @@ class Assembler : public ValueObject {
   void smull(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
   void umull(Register rd_lo, Register rd_hi, Register rn, Register rm,
+             Condition cond = AL);
+  void smlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
              Condition cond = AL);
 
   // Division instructions.
@@ -668,7 +671,6 @@ class Assembler : public ValueObject {
   // Only the tags field of the object is initialized.
   void TryAllocate(const Class& cls,
                    Label* failure,
-                   bool near_jump,
                    Register instance_reg);
 
   // Emit data (e.g encoded instruction or immediate) in instruction stream.

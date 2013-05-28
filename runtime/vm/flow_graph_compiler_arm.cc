@@ -1510,15 +1510,17 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
 }
 
 
+// Do not impelement or use this function.
 FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
                                                           intptr_t index_scale,
                                                           Register array,
                                                           intptr_t index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 
 
+// Do not implement or use this function.
 FieldAddress FlowGraphCompiler::ElementAddressForRegIndex(intptr_t cid,
                                                           intptr_t index_scale,
                                                           Register array,

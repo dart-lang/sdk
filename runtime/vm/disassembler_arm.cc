@@ -643,6 +643,11 @@ void ARMDecoder::DecodeType01(Instr* instr) {
             Format(instr, "smull'cond's 'rd, 'rn, 'rm, 'rs");
             break;
           }
+          case 7: {
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
+            break;
+          }
           default: {
             Unknown(instr);  // Not used.
             break;

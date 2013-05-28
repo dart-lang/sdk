@@ -17,7 +17,7 @@ namespace dart {
 
 ASSEMBLER_TEST_GENERATE(Simple, assembler) {
   __ mov(R0, ShifterOperand(42));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -29,7 +29,7 @@ ASSEMBLER_TEST_RUN(Simple, test) {
 
 ASSEMBLER_TEST_GENERATE(MoveNegated, assembler) {
   __ mvn(R0, ShifterOperand(42));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -46,7 +46,7 @@ ASSEMBLER_TEST_GENERATE(MoveRotImm, assembler) {
   __ mov(R0, shifter_op);
   EXPECT(ShifterOperand::CanHold(0x30000003, &shifter_op));
   __ add(R0, R0, shifter_op);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -60,7 +60,7 @@ ASSEMBLER_TEST_RUN(MoveRotImm, test) {
 ASSEMBLER_TEST_GENERATE(MovImm16, assembler) {
   __ movw(R0, 0x5678);
   __ movt(R0, 0x1234);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -76,7 +76,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediate, assembler) {
   __ cmp(R0, ShifterOperand(0));
   __ LoadImmediate(R0, 0x12345678, EQ);
   __ LoadImmediate(R0, 0x87654321, NE);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -99,7 +99,7 @@ ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
   __ vmovsr(S7, R1);  // S7 = R1, S6:S7 == 41:43
   __ vmovrrd(R0, R1, D3);  // R0:R1 = D3, R0:R1 == 41:43
   __ sub(R0, R1, ShifterOperand(R0));  // 43-41
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -118,7 +118,7 @@ ASSEMBLER_TEST_GENERATE(SingleVLoadStore, assembler) {
   __ vadds(S0, S0, S0);
   __ vstrs(S0, Address(R2, (-kWordSize * 30)));
   __ ldr(R0, Address(SP, (kWordSize * 30), Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -143,7 +143,7 @@ ASSEMBLER_TEST_GENERATE(SingleVShiftLoadStore, assembler) {
   // Expressing __ldr(R0, Address(SP, (kWordSize * 32), Address::PostIndex));
   // as:
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -167,7 +167,7 @@ ASSEMBLER_TEST_GENERATE(DoubleVLoadStore, assembler) {
   __ vstrd(D0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(R2, (-kWordSize * 29)));
   __ ldr(R0, Address(SP, (kWordSize * 30), Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -190,7 +190,7 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
   __ vdivs(S0, S0, S1);  // 14.7f
   __ vsqrts(S0, S0);  // 3.8340579f
   __ vmovrs(R0, S0);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -213,7 +213,7 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
   __ vdivd(D0, D0, D1);  // 14.7
   __ vsqrtd(D0, D0);  // 3.8340579
   __ vmovrrd(R0, R1, D0);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -225,12 +225,31 @@ ASSEMBLER_TEST_RUN(DoubleFPOperations, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
+  // Check that sqrt of a negative double gives NaN.
+  __ LoadDImmediate(D1, -1.0, R0);
+  __ vsqrtd(D0, D1);
+  __ vcmpd(D0, D0);
+  __ vmstat();
+  __ mov(R0, ShifterOperand(1), VS);
+  __ mov(R0, ShifterOperand(0), VC);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
+  EXPECT(test != NULL);
+  typedef double (*DoubleFPOperations)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleFPOperations, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
   __ mov(R3, ShifterOperand(6));
   __ vmovsr(S3, R3);
   __ vcvtdi(D1, S3);
   __ vmovrrd(R0, R1, D1);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -254,7 +273,7 @@ ASSEMBLER_TEST_GENERATE(LongToDoubleConversion, assembler) {
   __ LoadDImmediate(D2, 1.0 * (1LL << 32), R0);
   __ vmlad(D0, D1, D2);
   __ vmovrrd(R0, R1, D0);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -272,7 +291,7 @@ ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
   __ vmovsr(S3, R3);
   __ vcvtsi(S1, S3);
   __ vmovrs(R0, S1);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -288,7 +307,7 @@ ASSEMBLER_TEST_GENERATE(FloatToIntConversion, assembler) {
   __ vmovsr(S1, R0);
   __ vcvtis(S0, S1);
   __ vmovrs(R0, S0);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -311,7 +330,7 @@ ASSEMBLER_TEST_GENERATE(DoubleToIntConversion, assembler) {
   __ vmovdrr(D1, R0, R1);
   __ vcvtid(S0, D1);
   __ vmovrs(R0, S0);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -334,7 +353,7 @@ ASSEMBLER_TEST_GENERATE(FloatToDoubleConversion, assembler) {
   __ LoadSImmediate(S1, 12.8f);
   __ vcvtds(D2, S1);
   __ vmovrrd(R0, R1, D2);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -351,7 +370,7 @@ ASSEMBLER_TEST_GENERATE(DoubleToFloatConversion, assembler) {
   __ LoadDImmediate(D1, 12.8, R0);
   __ vcvtsd(S3, D1);
   __ vmovrs(R0, S3);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -387,7 +406,7 @@ ASSEMBLER_TEST_GENERATE(FloatCompare, assembler) {
   __ add(R0, R0, ShifterOperand(16), VC);  // Error if not unordered (not Nan).
 
   // R0 is 0 if all tests passed.
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -421,7 +440,7 @@ ASSEMBLER_TEST_GENERATE(DoubleCompare, assembler) {
   __ add(R0, R0, ShifterOperand(16), VC);  // Error if not unordered (not Nan).
 
   // R0 is 0 if all tests passed.
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -440,7 +459,7 @@ ASSEMBLER_TEST_GENERATE(Loop, assembler) {
   __ mov(R0, ShifterOperand(R0, LSL, 1));
   __ movs(R1, ShifterOperand(R1, LSR, 1));
   __ b(&loop_entry, NE);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -457,7 +476,7 @@ ASSEMBLER_TEST_GENERATE(ForwardBranch, assembler) {
   __ b(&skip);
   __ mov(R0, ShifterOperand(11));
   __ Bind(&skip);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -472,7 +491,7 @@ ASSEMBLER_TEST_GENERATE(LoadStore, assembler) {
   __ mov(R1, ShifterOperand(123));
   __ Push(R1);
   __ Pop(R0);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -489,7 +508,7 @@ ASSEMBLER_TEST_GENERATE(AddSub, assembler) {
   __ add(R0, R1, ShifterOperand(4));
   __ rsbs(R0, R0, ShifterOperand(100));
   __ rsc(R0, R0, ShifterOperand(100));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -511,7 +530,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
   __ tst(IP, ShifterOperand(0));
   __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
   __ Pop(R0);  // 42
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -531,7 +550,7 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
   __ strex(IP, R1, SP);  // IP == 1, failure
   __ Pop(R0);  // 40
   __ add(R0, R0, ShifterOperand(IP));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -548,7 +567,7 @@ ASSEMBLER_TEST_GENERATE(AndOrr, assembler) {
   __ and_(R1, R2, ShifterOperand(R1));
   __ mov(R3, ShifterOperand(42));
   __ orr(R0, R1, ShifterOperand(R3));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -563,11 +582,11 @@ ASSEMBLER_TEST_GENERATE(Orrs, assembler) {
   __ mov(R0, ShifterOperand(0));
   __ tst(R0, ShifterOperand(R1));  // Set zero-flag.
   __ orrs(R0, R0, ShifterOperand(1));  // Clear zero-flag.
-  __ mov(PC, ShifterOperand(LR), EQ);
+  __ bx(LR, EQ);
   __ mov(R0, ShifterOperand(42));
-  __ mov(PC, ShifterOperand(LR), NE);  // Only this return should fire.
+  __ bx(LR, NE);  // Only this return should fire.
   __ mov(R0, ShifterOperand(2));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -583,7 +602,7 @@ ASSEMBLER_TEST_GENERATE(Multiply, assembler) {
   __ mov(R2, ShifterOperand(40));
   __ mul(R3, R2, R1);
   __ mov(R0, ShifterOperand(R3));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -603,7 +622,7 @@ ASSEMBLER_TEST_GENERATE(QuotientRemainder, assembler) {
   __ vcvtid(S0, D0);
   __ vmovrs(R1, S0);  // r1 = r0/r2
   __ mls(R0, R1, R2, R0);  // r0 = r0 - r1*r2
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -624,7 +643,7 @@ ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
   __ mla(R2, IP, R3, R4);
   __ add(R1, R2, ShifterOperand(R1));
   __ Pop(R4);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -638,7 +657,7 @@ ASSEMBLER_TEST_RUN(Multiply64To64, test) {
 
 ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
   __ smull(R0, R1, R0, R2);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -646,6 +665,20 @@ ASSEMBLER_TEST_RUN(Multiply32To64, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Multiply32To64)(int64_t operand0, int64_t operand1);
   EXPECT_EQ(6,
+            EXECUTE_TEST_CODE_INT64_LL(Multiply32To64, test->entry(), -3, -2));
+}
+
+
+ASSEMBLER_TEST_GENERATE(MultiplyAccum32To64, assembler) {
+  __ smlal(R0, R1, R0, R2);
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(MultiplyAccum32To64, test) {
+  EXPECT(test != NULL);
+  typedef int64_t (*Multiply32To64)(int64_t operand0, int64_t operand1);
+  EXPECT_EQ(3,
             EXECUTE_TEST_CODE_INT64_LL(Multiply32To64, test->entry(), -3, -2));
 }
 
@@ -670,10 +703,10 @@ ASSEMBLER_TEST_GENERATE(Clz, assembler) {
   __ cmp(R1, ShifterOperand(3));
   __ b(&error, NE);
   __ mov(R0, ShifterOperand(0));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
   __ Bind(&error);
   __ mov(R0, ShifterOperand(1));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -693,7 +726,7 @@ ASSEMBLER_TEST_GENERATE(Tst, assembler) {
   __ b(&skip, NE);
   __ mov(R0, ShifterOperand(0));
   __ Bind(&skip);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -711,7 +744,7 @@ ASSEMBLER_TEST_GENERATE(Lsl, assembler) {
   __ mov(R0, ShifterOperand(R0, LSL, 1));
   __ mov(R1, ShifterOperand(1));
   __ mov(R0, ShifterOperand(R0, LSL, R1));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -729,7 +762,7 @@ ASSEMBLER_TEST_GENERATE(Lsr, assembler) {
   __ mov(R0, ShifterOperand(R0, LSR, 1));
   __ mov(R1, ShifterOperand(1));
   __ mov(R0, ShifterOperand(R0, LSR, R1));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -746,7 +779,7 @@ ASSEMBLER_TEST_GENERATE(Lsr1, assembler) {
   __ mov(R0, ShifterOperand(1));
   __ Lsl(R0, R0, 31);
   __ Lsr(R0, R0, 31);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -763,7 +796,7 @@ ASSEMBLER_TEST_GENERATE(Asr1, assembler) {
   __ mov(R0, ShifterOperand(1));
   __ Lsl(R0, R0, 31);
   __ Asr(R0, R0, 31);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -777,7 +810,7 @@ ASSEMBLER_TEST_RUN(Asr1, test) {
 ASSEMBLER_TEST_GENERATE(Rsb, assembler) {
   __ mov(R3, ShifterOperand(10));
   __ rsb(R0, R3, ShifterOperand(42));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -823,7 +856,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh, assembler) {
   __ mov(R0, ShifterOperand(0));
   __ Bind(&Done);
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -840,7 +873,7 @@ ASSEMBLER_TEST_GENERATE(Ldrsb, assembler) {
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrsb(R0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -857,7 +890,7 @@ ASSEMBLER_TEST_GENERATE(Ldrb, assembler) {
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrb(R0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -874,7 +907,7 @@ ASSEMBLER_TEST_GENERATE(Ldrsh, assembler) {
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrsh(R0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -891,7 +924,7 @@ ASSEMBLER_TEST_GENERATE(Ldrh1, assembler) {
   __ str(R1, Address(SP, (-kWordSize * 30), Address::PreIndex));
   __ ldrh(R0, Address(R2, (-kWordSize * 30)));
   __ ldr(R1, Address(SP, (kWordSize * 30), Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -910,7 +943,7 @@ ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
   __ ldrd(R0, Address(SP, (kWordSize * 30), Address::PostIndex));
   __ sub(R0, R0, ShifterOperand(R2));
   __ add(R1, R1, ShifterOperand(R3));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -954,7 +987,7 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ Pop(R5);  // Restore R5.
   __ Pop(R5);  // Restore R5.
   __ Pop(R5);  // Restore R5.
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -970,7 +1003,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLSL1NegOffset, assembler) {
   __ mov(R1, ShifterOperand(kWordSize));
   __ str(R2, Address(SP, R1, LSL, 1, Address::NegOffset));
   __ ldr(R0, Address(SP, (-kWordSize * 2), Address::Offset));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -986,7 +1019,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSL5NegOffset, assembler) {
   __ mov(R1, ShifterOperand(kWordSize));
   __ str(R2, Address(SP, (-kWordSize * 32), Address::Offset));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::NegOffset));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1002,7 +1035,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLRS1NegOffset, assembler) {
   __ mov(R1, ShifterOperand(kWordSize * 2));
   __ str(R2, Address(SP, R1, LSR, 1, Address::NegOffset));
   __ ldr(R0, Address(SP, -kWordSize, Address::Offset));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1018,7 +1051,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLRS1NegOffset, assembler) {
   __ mov(R1, ShifterOperand(kWordSize * 2));
   __ str(R2, Address(SP, -kWordSize, Address::Offset));
   __ ldr(R0, Address(SP, R1, LSR, 1, Address::NegOffset));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1036,7 +1069,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftStrLSLNegPreIndex, assembler) {
   __ str(R2, Address(SP, R1, LSL, 5, Address::NegPreIndex));
   __ ldr(R0, Address(R3, (-kWordSize * 32), Address::Offset));
   __ mov(SP, ShifterOperand(R3));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1052,7 +1085,7 @@ ASSEMBLER_TEST_GENERATE(AddressShiftLdrLSLNegPreIndex, assembler) {
   __ mov(R1, ShifterOperand(kWordSize));
   __ str(R2, Address(SP, (-kWordSize * 32), Address::PreIndex));
   __ ldr(R0, Address(SP, R1, LSL, 5, Address::PostIndex));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1106,7 +1139,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd, assembler) {
   __ vmstat();
   __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
 
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1159,7 +1192,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms, assembler) {
   __ vmstat();
   __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
 
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1211,7 +1244,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd1, assembler) {
   __ vmstat();
   __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
 
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1262,7 +1295,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms1, assembler) {
   __ vmstat();
   __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
 
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1319,7 +1352,7 @@ ASSEMBLER_TEST_GENERATE(VstmdVldmd_off, assembler) {
   __ vmstat();
   __ mov(R0, ShifterOperand(0), NE);  // Put failure into R0 if NE
 
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1374,7 +1407,7 @@ ASSEMBLER_TEST_GENERATE(VstmsVldms_off, assembler) {
   __ vmstat();
   __ mov(R0, ShifterOperand(0), NE);  // Put failure value into R0 if NE
 
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1395,7 +1428,7 @@ ASSEMBLER_TEST_GENERATE(MrcHaveDiv, assembler) {
   // available both in Thumb and in the ARM instruction set.
   __ Lsr(R0, R0, 24);
   __ and_(R0, R0, ShifterOperand(0xf));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1413,7 +1446,7 @@ ASSEMBLER_TEST_GENERATE(MrcNoDiv, assembler) {
   __ mrc(R0, 15, 0, 0, 2, 0);
   __ Lsr(R0, R0, 24);
   __ and_(R0, R0, ShifterOperand(0xf));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1431,7 +1464,7 @@ ASSEMBLER_TEST_GENERATE(MrcReal, assembler) {
   __ mrc(R0, 15, 0, 0, 2, 0);
   __ Lsr(R0, R0, 24);
   __ and_(R0, R0, ShifterOperand(0xf));
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1458,7 +1491,7 @@ ASSEMBLER_TEST_GENERATE(Udiv, assembler) {
   } else {
     __ mov(R0, ShifterOperand(3));
   }
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1478,7 +1511,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv, assembler) {
   } else {
     __ LoadImmediate(R0, -3);
   }
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1498,7 +1531,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_zero, assembler) {
   } else {
     __ LoadImmediate(R0, 0);
   }
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1518,7 +1551,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_zero, assembler) {
   } else {
     __ LoadImmediate(R0, 0);
   }
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1538,7 +1571,7 @@ ASSEMBLER_TEST_GENERATE(Udiv_corner, assembler) {
   } else {
     __ LoadImmediate(R0, 0);
   }
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1558,7 +1591,7 @@ ASSEMBLER_TEST_GENERATE(Sdiv_corner, assembler) {
   } else {
     __ LoadImmediate(R0, 0x80000000);
   }
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
@@ -1575,7 +1608,7 @@ ASSEMBLER_TEST_GENERATE(Muls, assembler) {
   __ LoadImmediate(R1, -9);
   __ muls(R2, R0, R1);
   __ mov(R0, ShifterOperand(42), MI);
-  __ mov(PC, ShifterOperand(LR));
+  __ bx(LR);
 }
 
 
