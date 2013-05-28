@@ -10,13 +10,13 @@ import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dar
     show Element,
          LibraryElement;
 
-final exportingLibraryUri = new Uri('exporting.dart');
+final exportingLibraryUri = Uri.parse('exporting.dart');
 const String EXPORTING_LIBRARY_SOURCE = '''
 library exporting;
 var foo;
 ''';
 
-final reexportingLibraryUri = new Uri('reexporting.dart');
+final reexportingLibraryUri = Uri.parse('reexporting.dart');
 const String REEXPORTING_LIBRARY_SOURCE = '''
 library reexporting;
 export 'exporting.dart';
