@@ -48,6 +48,9 @@ abstract class Browser {
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
   bool debugPrint = true;
 
+  // We use this to gracefully handle double calls to close.
+  bool underTermination = false;
+
   void _logEvent(String event) {
     String toLog = "$this ($id) - ${new DateTime.now()}: $event \n";
     if (debugPrint) print("usageLog: $toLog");
@@ -119,6 +122,11 @@ abstract class Browser {
   /** Close the browser */
   Future<bool> close() {
     _logEvent("Close called on browser");
+    if (underTermination) {
+      _logEvent("Browser already under termination.");
+      return new Future.immediate(true);
+    }
+    underTermination = true;
     if (process == null) {
       _logEvent("No process open, nothing to kill.");
       return new Future.immediate(true);
@@ -177,6 +185,81 @@ abstract class Browser {
   /** Starts the browser loading the given url */
   Future<bool> start(String url);
 }
+
+class Safari extends Browser {
+  /**
+   * The binary used to run safari - changing this can be nececcary for
+   * testing or using non standard safari installation.
+   */
+  const String binary = "/Applications/Safari.app/Contents/MacOS/Safari";
+
+  /**
+   * We get the safari version by parsing a version file
+   */
+  const String versionFile = "/Applications/Safari.app/Contents/version.plist";
+
+  Future<String> getVersion() {
+    /**
+     * Example of the file:
+     * <?xml version="1.0" encoding="UTF-8"?>
+     * <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+     * <plist version="1.0">
+     * <dict>
+     *	     <key>BuildVersion</key>
+     * 	     <string>2</string>
+     * 	     <key>CFBundleShortVersionString</key>
+     * 	     <string>6.0.4</string>
+     * 	     <key>CFBundleVersion</key>
+     * 	     <string>8536.29.13</string>
+     * 	     <key>ProjectName</key>
+     * 	     <string>WebBrowser</string>
+     * 	     <key>SourceVersion</key>
+     * 	     <string>7536029013000000</string>
+     * </dict>
+     * </plist>
+     */
+    File f = new File(versionFile);
+    return f.readAsLines().then((content) {
+      bool versionOnNextLine = false;
+      for (var line in content) {
+        if (versionOnNextLine) return line;
+        if (line.contains("CFBundleShortVersionString")) {
+          versionOnNextLine = true;
+        }
+      }
+      return null;
+    });
+  }
+
+  void _createLaunchHTML(var path, var url) {
+    var file = new File("${path}/launch.html");
+    var randomFile = file.openSync(FileMode.WRITE);
+    var content = '<script language="JavaScript">location = "$url"</script>';
+    randomFile.writeStringSync(content);
+    randomFile.close();
+  }
+
+  Future<bool> start(String url) {
+    _logEvent("Starting Safari browser on: $url");
+    // Get the version and log that.
+    return getVersion().then((version) {
+      _logEvent("Got version: $version");
+      var args = ["'$url'"];
+      return new Directory('').createTemp().then((userDir) {
+        _cleanup = () { userDir.delete(recursive: true); };
+	_createLaunchHTML(userDir.path, url);
+        var args = ["${userDir.path}/launch.html"];
+        return startBrowser(binary, args);
+      });
+    }).catchError((e) {
+      _logEvent("Running $binary --version failed with $e");
+      return false;
+    });
+  }
+
+  String toString() => "Safari";
+}
+
 
 class Chrome extends Browser {
   /**
@@ -518,6 +601,9 @@ class BrowserTestRunner {
         print("could not kill browser $id");
         return;
       }
+      // We don't want to start a new browser if we are terminating.
+      if (underTermination) return;
+
       var browser;
       if (browserName == 'chromeOnAndroid') {
         browser = new AndroidChrome(adbDeviceMapping[id]);
@@ -611,6 +697,8 @@ class BrowserTestRunner {
       return new Chrome();
     } else if (browserName == "ff") {
       return new Firefox();
+    } else if (browserName == "safari") {
+      return new Safari();
     } else {
       throw "Non supported browser for browser controller";
     }
@@ -673,11 +761,11 @@ class BrowserTestingServer {
         request.response.write(textResponse);
         request.listen((_) {}, onDone: request.response.close);
         request.response.done.catchError((error) {
-        if (!underTermination) {
-          print("URI ${request.uri}");
-          print("Textresponse $textResponse");
-          throw("Error returning content to browser: $error");
-        }
+          if (!underTermination) {
+            print("URI ${request.uri}");
+            print("Textresponse $textResponse");
+            throw "Error returning content to browser: $error";
+          }
       });
       }
       void errorHandler(e) {

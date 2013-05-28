@@ -1700,7 +1700,9 @@ class ProcessQueue {
         print(fields.join('\t'));
         return;
       }
-      if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable ||
+
+      if (test.usesWebDriver && _needsSelenium && !test.usesBrowserController
+          && !_isSeleniumAvailable ||
           (test is BrowserTestCase && test.waitingForOtherTest)) {
         // The test is not yet ready to run. Put the test back in
         // the queue.  Avoid spin-polling by using a timeout.
