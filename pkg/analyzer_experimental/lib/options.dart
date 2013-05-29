@@ -37,6 +37,9 @@ class CommandLineOptions {
   /** The path to the dart SDK */
   final String dartSdkPath;
 
+  /** The path to the package root */
+  final String packageRootPath;
+
   /** The source files to analyze */
   final List<String> sourceFiles;
 
@@ -45,12 +48,13 @@ class CommandLineOptions {
    */
   CommandLineOptions._fromArgs(ArgResults args)
     : shouldBatch = args['batch'],
-      machineFormat = args['machine_format'],
-      ignoreUnrecognizedFlags = args['ignore_unrecognized_flags'],
-      showPackageWarnings = args['show_package_warnings'],
-      showSdkWarnings = args['show_sdk_warnings'],
-      warningsAreFatal = args['fatal_warnings'],
-      dartSdkPath = args['dart_sdk'],
+      machineFormat = args['machine-format'],
+      ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
+      showPackageWarnings = args['show-package-warnings'],
+      showSdkWarnings = args['show-sdk-warnings'],
+      warningsAreFatal = args['fatal-warnings'],
+      dartSdkPath = args['dart-sdk'],
+      packageRootPath = args['package-root'],
       sourceFiles = args.rest;
 
   /**
@@ -81,18 +85,19 @@ class CommandLineOptions {
     var parser = new _CommandLineParser()
       ..addFlag('batch', abbr: 'b', help: 'Run in batch mode',
           defaultsTo: false, negatable: false)
-      ..addOption('dart_sdk', help: 'Specify path to the Dart sdk')
-      ..addFlag('machine_format', help: 'Specify whether errors '
+      ..addOption('dart-sdk', help: 'The path to the Dart SDK')
+      ..addOption('package-root', help: 'The path to the package root')
+      ..addFlag('machine-format', help: 'Specify whether errors '
         'should be in machine format',
           defaultsTo: false, negatable: false)
-      ..addFlag('ignore_unrecognized_flags',
+      ..addFlag('ignore-unrecognized-flags',
           help: 'Ignore unrecognized command line flags',
           defaultsTo: false, negatable: false)
-      ..addFlag('fatal_warnings', help: 'Treat non-type warnings as fatal',
+      ..addFlag('fatal-warnings', help: 'Treat non-type warnings as fatal',
           defaultsTo: false, negatable: false)
-      ..addFlag('show_package_warnings', help: 'Show warnings from package: imports',
+      ..addFlag('show-package-warnings', help: 'Show warnings from package: imports',
          defaultsTo: false, negatable: false)
-      ..addFlag('show_sdk_warnings', help: 'Show warnings from SDK imports',
+      ..addFlag('show-sdk-warnings', help: 'Show warnings from SDK imports',
          defaultsTo: false, negatable: false)
       ..addFlag('help', abbr: 'h', help: 'Display this help message',
          defaultsTo: false, negatable: false);
