@@ -393,7 +393,8 @@ class BrowserTestCase extends TestCase {
   List<BrowserTestCase> observers;
 
   BrowserTestCase(displayName, commands, configuration, completedHandler,
-      expectedOutcomes, info, isNegative, [this.waitingForOtherTest = false])
+                  expectedOutcomes, info, isNegative, this._testingUrl,
+                  [this.waitingForOtherTest = false])
     : super(displayName, commands, configuration, completedHandler,
         expectedOutcomes, isNegative: isNegative, info: info) {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
@@ -405,6 +406,8 @@ class BrowserTestCase extends TestCase {
   List<String> get batchRunnerArguments => [_lastArguments[0], '--batch'];
 
   List<String> get batchTestArguments => _lastArguments.sublist(1);
+
+  String _testingUrl;
 
   /** Add a test case to listen for when this current test has completed. */
   void addObserver(BrowserTestCase testCase) {
@@ -420,6 +423,8 @@ class BrowserTestCase extends TestCase {
       testCase.waitingForOtherTest = false;
     }
   }
+
+  String get testingUrl => _testingUrl;
 }
 
 
@@ -1662,13 +1667,8 @@ class ProcessQueue {
   }
 
   void _startBrowserControllerTest(var test) {
-    // Get the url.
-    // TODO(ricow): This is not needed when we have eliminated selenium.
-    var nextCommandIndex = test.commandOutputs.keys.length;
-    var url = test.commands[nextCommandIndex].toString().split("--out=")[1];
-    // Remove trailing "
-    url = url.split('"')[0];
     var callback = (var output) {
+      var nextCommandIndex = test.commandOutputs.keys.length;
       new CommandOutput.fromCase(test,
                                  test.commands[nextCommandIndex],
                                  0,
@@ -1680,7 +1680,9 @@ class ProcessQueue {
                                  false);
       test.completedHandler(test);
     };
-    BrowserTest browserTest = new BrowserTest(url, callback, test.timeout);
+    BrowserTest browserTest = new BrowserTest(test.testingUrl,
+                                              callback,
+                                              test.timeout);
     _getBrowserTestRunner(test).then((testRunner) {
       testRunner.queueTest(browserTest);
     });

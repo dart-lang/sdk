@@ -997,6 +997,7 @@ class StandardTestSuite extends TestSuite {
                                                  subtestNames, subtestIndex);
 
         List<String> args = <String>[];
+
         if (TestUtils.usesWebDriver(runtime)) {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
@@ -1054,18 +1055,20 @@ class StandardTestSuite extends TestSuite {
           testCase = new BrowserTestCase(testDisplayName,
               commandSet, configuration, completeHandler,
               expectations['$testName/${subtestNames[subtestIndex]}'],
-              info, info.hasCompileError || info.hasRuntimeError,
+              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath,
               subtestIndex != 0);
         } else {
           testCase = new BrowserTestCase(testDisplayName,
               commandSet, configuration, completeHandler, expectations,
-              info, info.hasCompileError || info.hasRuntimeError, false);
+              info, info.hasCompileError || info.hasRuntimeError, fullHtmlPath,
+              false);
         }
         if (subtestIndex == 0) {
           multitestParentTest = testCase;
         } else {
           multitestParentTest.addObserver(testCase);
         }
+
         doTest(testCase);
         subtestIndex++;
       } while(subtestIndex < subtestNames.length);
