@@ -45,7 +45,7 @@ Window get window => JS('Window', 'window');
 HtmlDocument get document => JS('HtmlDocument', 'document');
 
 Element query(String selector) => document.query(selector);
-List<Element> queryAll(String selector) => document.queryAll(selector);
+ElementList queryAll(String selector) => document.queryAll(selector);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
