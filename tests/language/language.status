@@ -328,7 +328,6 @@ call_test: Fail # Issue 1604
 
 [ $compiler == dart2dart ]
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
-const_factory_redirection_test: Fail # http://dartbug.com/6894
 compile_time_constant_h_test: Fail
 constructor_redirect2_test/03: Fail
 constructor_initializer_test: Fail # VM issue
