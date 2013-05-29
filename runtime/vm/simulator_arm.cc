@@ -2826,14 +2826,6 @@ void Simulator::DecodeType7(Instr* instr) {
         UnimplementedInstruction(instr);
       }
     }
-  } else if (instr->IsMrcIdIsar0()) {
-    // mrc of ID_ISAR0.
-    Register rd = instr->RdField();
-    if (CPUFeatures::integer_division_supported()) {
-      set_register(rd, 0x02100010);  // sim has sdiv, udiv, bkpt and clz.
-    } else {
-      set_register(rd, 0x00100010);  // simulator has only bkpt and clz.
-    }
   } else {
     UnimplementedInstruction(instr);
   }

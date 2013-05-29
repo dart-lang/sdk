@@ -1243,29 +1243,6 @@ void Assembler::blx(Register rm, Condition cond) {
 }
 
 
-void Assembler::mrc(Register rd, int32_t coproc, int32_t opc1,
-                    int32_t crn, int32_t crm, int32_t opc2, Condition cond) {
-  ASSERT(rd != kNoRegister);
-  ASSERT(cond != kNoCondition);
-
-  // This is all the simulator and disassembler know about.
-  ASSERT(coproc == 15);
-  ASSERT(opc1 == 0);
-  ASSERT(crn == 0);
-  ASSERT(crm == 2);
-  ASSERT(opc2 == 0);
-  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B27 | B26 | B25 | B20 | B4 |
-                     ((opc1 & 0x7) << kOpc1Shift) |
-                     ((crn & 0xf) << kCRnShift) |
-                     ((coproc & 0xf) << kCoprocShift) |
-                     ((opc2 & 0x7) << kOpc2Shift) |
-                     ((crm & 0xf) << kCRmShift) |
-                     (static_cast<int32_t>(rd) << kRdShift);
-  Emit(encoding);
-}
-
-
 void Assembler::MarkExceptionHandler(Label* label) {
   EmitType01(AL, 1, TST, 1, PC, R0, ShifterOperand(0));
   Label l;

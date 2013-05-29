@@ -514,10 +514,6 @@ class Assembler : public ValueObject {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  // Move to ARM core register from Coprocessor.
-  void mrc(Register rd, int32_t coproc, int32_t opc1,
-           int32_t crn, int32_t crm, int32_t opc2, Condition cond = AL);
-
   // Macros.
   // Branch to an entry address. Call sequence is never patched.
   void Branch(const ExternalLabel* label, Condition cond = AL);
