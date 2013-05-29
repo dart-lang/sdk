@@ -500,6 +500,50 @@ main() {
       expect(el.children.getRange(1, 2).length, 1);
     });
 
+    test('retainWhere', () {
+      var el = makeElementWithChildren();
+      expect(el.children.length, 3);
+      el.children.retainWhere((e) => true);
+      expect(el.children.length, 3);
+
+      el = makeElementWithChildren();
+      expect(el.children.length, 3);
+      el.children.retainWhere((e) => false);
+      expect(el.children.length, 0);
+
+      el = makeElementWithChildren();
+      expect(el.children.length, 3);
+      el.children.retainWhere((e) => e.localName == 'input');
+      expect(el.children.length, 1);
+
+      el = makeElementWithChildren();
+      expect(el.children.length, 3);
+      el.children.retainWhere((e) => e.localName == 'br');
+      expect(el.children.length, 1);
+    });
+
+    test('removeWhere', () {
+      var el = makeElementWithChildren();
+      expect(el.children.length, 3);
+      el.children.removeWhere((e) => true);
+      expect(el.children.length, 0);
+
+      el = makeElementWithChildren();
+      expect(el.children.length, 3);
+      el.children.removeWhere((e) => false);
+      expect(el.children.length, 3);
+
+      el = makeElementWithChildren();
+      expect(el.children.length, 3);
+      el.children.removeWhere((e) => e.localName == 'input');
+      expect(el.children.length, 2);
+
+      el = makeElementWithChildren();
+      expect(el.children.length, 3);
+      el.children.removeWhere((e) => e.localName == 'br');
+      expect(el.children.length, 2);
+    });
+
     testUnsupported('sort', () {
       var l = makeElementWithChildren().children;
       l.sort();
