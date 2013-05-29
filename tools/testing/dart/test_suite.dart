@@ -304,7 +304,8 @@ void ccTestLister() {
  */
 class CCTestSuite extends TestSuite {
   final String testPrefix;
-  String runnerPath;
+  String targetRunnerPath;
+  String hostRunnerPath;
   final String dartDir;
   List<String> statusFilePaths;
   TestCaseEvent doTest;
@@ -319,7 +320,18 @@ class CCTestSuite extends TestSuite {
               {this.testPrefix: ''})
       : super(configuration, suiteName),
         dartDir = TestUtils.dartDir().toNativePath() {
-    runnerPath = '$buildDir/$runnerName';
+    // For running the tests we use the given '$runnerName' binary
+    targetRunnerPath = '$buildDir/$runnerName';
+
+    // For listing the tests we use the '$runnerName.host' binary if it exists
+    // and use '$runnerName' if it doesn't.
+    var binarySuffix = Platform.operatingSystem == 'windows' ? '.exe' : '';
+    var hostBinary = '$targetRunnerPath.host$binarySuffix';
+    if (new File(hostBinary).existsSync()) {
+      hostRunnerPath = hostBinary;
+    } else {
+      hostRunnerPath = targetRunnerPath;
+    }
   }
 
   void testNameHandler(String testName, ignore) {
@@ -347,7 +359,7 @@ class CCTestSuite extends TestSuite {
       args.add(testName);
 
       doTest(new TestCase(constructedName,
-                          [new Command(runnerPath, args)],
+                          [new Command(targetRunnerPath, args)],
                           configuration,
                           completeHandler,
                           expectations));
@@ -364,7 +376,7 @@ class CCTestSuite extends TestSuite {
       if (filesRead == statusFilePaths.length) {
         receiveTestName = new ReceivePort();
         var port = spawnFunction(ccTestLister);
-        port.send(runnerPath, receiveTestName.toSendPort());
+        port.send(hostRunnerPath, receiveTestName.toSendPort());
         receiveTestName.receive(testNameHandler);
       }
     }

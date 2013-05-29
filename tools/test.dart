@@ -167,16 +167,9 @@ void testConfigurations(List<Map> configurations) {
       if (key == 'co19') {
         testSuites.add(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
-        // TODO(kustermann): Currently we don't support running VM unittest
-        // tests (i.e. run_vm_tests) on ARM because:
-        //   a) we currently use record&replay [test.dart cannot be used on ARM]
-        //   b) we cannot easily determine all the VM test names
-        //      [we would need to run 'run_vm_tests --list' on ARM]
-        if (!['arm', 'mips'].contains(conf['arch'])) {
-          // vm tests contain both cc tests (added here) and dart tests (added
-          // in [TEST_SUITE_DIRECTORIES]).
-          testSuites.add(new VMTestSuite(conf));
-        }
+        // vm tests contain both cc tests (added here) and dart tests (added
+        // in [TEST_SUITE_DIRECTORIES]).
+        testSuites.add(new VMTestSuite(conf));
       } else if (conf['analyzer']) {
         if (key == 'dartc' && conf['compiler'] == 'dartc') {
           testSuites.add(new JUnitDartcTestSuite(conf));
