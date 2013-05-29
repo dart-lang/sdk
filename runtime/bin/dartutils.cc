@@ -269,7 +269,7 @@ static uint8_t* SocketReadUntilEOF(intptr_t socket, intptr_t* response_len) {
   ASSERT(buffer != NULL);
   intptr_t buffer_cursor = 0;
   do {
-    ssize_t bytes_read = Socket::Read(socket, &buffer[buffer_cursor],
+    int bytes_read = Socket::Read(socket, &buffer[buffer_cursor],
                                       buffer_size - buffer_cursor - 1);
     if (bytes_read < 0) {
       free(buffer);

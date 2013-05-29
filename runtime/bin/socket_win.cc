@@ -142,13 +142,11 @@ intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   SOCKET s = handle->socket();
   SocketAddress::SetAddrPort(&addr, port);
-  status = connect(
-      s,
-      &addr.addr,
-      SocketAddress::GetAddrLength(addr));
+  int status = connect(s, &addr.addr, SocketAddress::GetAddrLength(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
-    handle->close();
+    ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
+    client_socket->Close();
     SetLastError(rc);
     return -1;
   }
