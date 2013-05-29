@@ -7725,6 +7725,24 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
+  void removeWhere(bool test(Element element)) {
+    _filter(test, false);
+  }
+
+  void retainWhere(bool test(Element element)) {
+    _filter(test, true);
+  }
+
+  void _filter(bool test(var element), bool retainMatching) {
+    var removed;
+    if (retainMatching) {
+      removed = _element.children.where((e) => !test(e));
+    } else {
+      removed = _element.children.where(test);
+    }
+    for (var e in removed) e.remove();
+  }
+
   void setRange(int start, int end, Iterable<Element> iterable,
                 [int skipCount = 0]) {
     throw new UnimplementedError();
