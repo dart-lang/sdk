@@ -251,7 +251,6 @@ class ObjectPointerVisitor;
   V(DartCore, "dart:core")                                                     \
   V(DartCollection, "dart:collection")                                         \
   V(DartCollectionDev, "dart:_collection-dev")                                 \
-  V(DartCrypto, "dart:crypto")                                                 \
   V(DartIsolate, "dart:isolate")                                               \
   V(DartJson, "dart:json")                                                     \
   V(DartMath, "dart:math")                                                     \

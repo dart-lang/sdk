@@ -6,7 +6,7 @@
 library hmac_md5_test;
 
 import "package:expect/expect.dart";
-import 'dart:crypto';
+import "package:crypto/crypto.dart";
 
 // Data from http://tools.ietf.org/html/rfc2202.
 var hmac_md5_inputs =

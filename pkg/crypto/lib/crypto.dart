@@ -6,12 +6,12 @@ library dart.crypto;
 
 import 'dart:math';
 
-part 'crypto_utils.dart';
-part 'hash_utils.dart';
-part 'hmac.dart';
-part 'md5.dart';
-part 'sha1.dart';
-part 'sha256.dart';
+part 'src/crypto_utils.dart';
+part 'src/hash_utils.dart';
+part 'src/hmac.dart';
+part 'src/md5.dart';
+part 'src/sha1.dart';
+part 'src/sha256.dart';
 
 /**
  * Interface for cryptographic hash functions.

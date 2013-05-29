@@ -25,14 +25,12 @@ class ObjectStore {
     kCore,
     kCollection,
     kCollectionDev,
-    kCrypto,
     kIsolate,
     kJson,
     kMath,
     kMirrors,
     kTypedData,
     kUtf,
-    kUri,
   };
 
   ~ObjectStore();
@@ -261,7 +259,6 @@ class ObjectStore {
   RawLibrary* collection_dev_library() const {
     return collection_dev_library_;
   }
-  RawLibrary* crypto_library() const { return crypto_library_; }
   RawLibrary* isolate_library() const { return isolate_library_; }
   RawLibrary* json_library() const { return json_library_; }
   RawLibrary* math_library() const { return math_library_; }
@@ -281,9 +278,6 @@ class ObjectStore {
         break;
       case kCollectionDev:
         collection_dev_library_ = value.raw();
-        break;
-      case kCrypto:
-        crypto_library_ = value.raw();
         break;
       case kIsolate:
         isolate_library_ = value.raw();
@@ -459,7 +453,6 @@ class ObjectStore {
   RawLibrary* core_library_;
   RawLibrary* collection_library_;
   RawLibrary* collection_dev_library_;
-  RawLibrary* crypto_library_;
   RawLibrary* isolate_library_;
   RawLibrary* json_library_;
   RawLibrary* math_library_;

@@ -38,9 +38,6 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       "core/core.dart",
       dart2jsPatchPath: "_internal/compiler/implementation/lib/core_patch.dart"),
 
-  "crypto": const LibraryInfo(
-      "crypto/crypto.dart"),
-
   "html": const LibraryInfo(
       "html/dartium/html_dartium.dart",
       category: "Client",

@@ -50,7 +50,6 @@ ObjectStore::ObjectStore()
     async_library_(Library::null()),
     builtin_library_(Library::null()),
     core_library_(Library::null()),
-    crypto_library_(Library::null()),
     isolate_library_(Library::null()),
     json_library_(Library::null()),
     math_library_(Library::null()),

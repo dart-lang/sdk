@@ -5,10 +5,11 @@
 library utils;
 
 import 'dart:async';
-import 'dart:crypto';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:utf';
+
+import "package:crypto/crypto.dart";
 
 import 'byte_stream.dart';
 

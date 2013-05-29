@@ -6,7 +6,7 @@
 library hmac_sha256_test;
 
 import "package:expect/expect.dart";
-import 'dart:crypto';
+import "package:crypto/crypto.dart";
 
 part 'hmac_sha256_test_vectors.dart';
 

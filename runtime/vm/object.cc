@@ -6682,11 +6682,6 @@ RawLibrary* Library::CollectionDevLibrary() {
 }
 
 
-RawLibrary* Library::CryptoLibrary() {
-  return Isolate::Current()->object_store()->crypto_library();
-}
-
-
 RawLibrary* Library::IsolateLibrary() {
   return Isolate::Current()->object_store()->isolate_library();
 }

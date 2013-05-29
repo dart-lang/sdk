@@ -6,7 +6,7 @@
 library base64_test;
 
 import "package:expect/expect.dart";
-import 'dart:crypto';
+import "package:crypto/crypto.dart";
 import 'dart:math';
 
 // Data from http://tools.ietf.org/html/rfc4648.

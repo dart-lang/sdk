@@ -22,7 +22,6 @@ class Bootstrap : public AllStatic {
   static const char* corelib_source_paths_[];
   static const char* collection_source_paths_[];
   static const char* collection_dev_source_paths_[];
-  static const char* crypto_source_paths_[];
   static const char* isolate_source_paths_[];
   static const char* json_source_paths_[];
   static const char* math_source_paths_[];
