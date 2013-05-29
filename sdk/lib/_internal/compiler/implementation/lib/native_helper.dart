@@ -303,9 +303,11 @@ lookupDispatchRecord(obj) {
   var isLeaf =
       (leafTags != null) && JS('bool', '(#[#]) === true', leafTags, tag);
   if (isLeaf) {
-    return makeDispatchRecord(interceptor, false, null);
+    var fieldName = JS_IS_INDEXABLE_FIELD_NAME();
+    bool indexability = JS('bool', r'!!#[#]', interceptor, fieldName);
+    return makeDispatchRecord(interceptor, false, null, indexability);
   } else {
     var proto = JS('', 'Object.getPrototypeOf(#)', obj);
-    return makeDispatchRecord(interceptor, proto, null);
+    return makeDispatchRecord(interceptor, proto, null, null);
   }
 }

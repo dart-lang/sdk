@@ -157,3 +157,9 @@ String JS_OPERATOR_IS_PREFIX() {}
  * Returns the prefix used for generated type argument substitutions on classes.
  */
 String JS_OPERATOR_AS_PREFIX() {}
+
+/**
+ * Returns the field name used for determining if an object or its
+ * interceptor has JavaScript indexing behavior.
+ */
+String JS_IS_INDEXABLE_FIELD_NAME() {}

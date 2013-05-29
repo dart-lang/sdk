@@ -12,6 +12,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_DART_OBJECT_CONSTRUCTOR,
                                    JS_OPERATOR_IS_PREFIX,
                                    JS_OPERATOR_AS_PREFIX,
+                                   JS_IS_INDEXABLE_FIELD_NAME,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import "dart:_collection-dev" as _symbol_dev;
@@ -31,20 +32,7 @@ bool isJsIndexable(var object, var record) {
     var result = dispatchRecordIndexability(record);
     if (result != null) return result;
   }
-  return isJsIndexableSlow(object);
-}
-
-// We keep the slow path of the indexability check in a separate method
-// to get better code generated for the fast path and to increase the
-// chance of having it inlined.
-bool isJsIndexableSlow(var object) {
-  bool result = object is JavaScriptIndexingBehavior;
-  var record = getDispatchProperty(object);
-  if (record == null) return result;
-  // This is intentionally written to have two return points, so we
-  // will not inline the slow path function into the fast one.
-  setDispatchRecordIndexability(record, result);
-  return result;
+  return object is JavaScriptIndexingBehavior;
 }
 
 String S(value) {

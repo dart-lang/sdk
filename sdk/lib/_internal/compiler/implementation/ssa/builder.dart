@@ -3118,6 +3118,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       stack.add(addConstantString(node, backend.namer.operatorAsPrefix()));
     } else if (name == const SourceString('JS_DART_OBJECT_CONSTRUCTOR')) {
       handleForeignDartObjectJsConstructorFunction(node);
+    } else if (name == const SourceString('JS_IS_INDEXABLE_FIELD_NAME')) {
+      Element element = compiler.findHelper(
+          const SourceString('JavaScriptIndexingBehavior'));
+      stack.add(addConstantString(node, backend.namer.operatorIs(element)));
     } else {
       throw "Unknown foreign: ${selector}";
     }

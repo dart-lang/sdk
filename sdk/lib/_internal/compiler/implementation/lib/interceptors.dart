@@ -80,7 +80,7 @@ setDispatchProperty(object, value) {
   defineProperty(object, dispatchPropertyName, value);
 }
 
-makeDispatchRecord(interceptor, proto, extension) {
+makeDispatchRecord(interceptor, proto, extension, indexability) {
   // Dispatch records are stored in the prototype chain, and in some cases, on
   // instances.
   //
@@ -109,21 +109,18 @@ makeDispatchRecord(interceptor, proto, extension) {
   //     P      I                     if object's prototype is P, use I
   //     F      -           P         if object's prototype is P, call F
 
-  // TODO(kasperl): Remove this hack. It is needed to avoid inlining
-  // this method because inlining gives us multiple allocation points
-  // for records which is bad because it leads to polymorphic access.
+  // BUG(10903): Remove this hack. It is needed to avoid inlining this
+  // method because inlining gives us multiple allocation points for
+  // records which is bad because it leads to polymorphic access.
   if (false) return null;
-  return JS('', '{i: #, p: #, e: #, x: null}', interceptor, proto, extension);
+  return JS('', '{i: #, p: #, e: #, x: #}',
+            interceptor, proto, extension, indexability);
 }
 
 dispatchRecordInterceptor(record) => JS('', '#.i', record);
 dispatchRecordProto(record) => JS('', '#.p', record);
 dispatchRecordExtension(record) => JS('', '#.e', record);
-
 dispatchRecordIndexability(record) => JS('bool|Null', '#.x', record);
-setDispatchRecordIndexability(record, bool value) {
-  JS('void', '#.x = #', record, value);
-}
 
 /**
  * Returns the interceptor for a native class instance. Used by
@@ -202,7 +199,7 @@ void initializeDispatchProperty(
       JS('void', '#(#)', setGetDispatchPropertyFn, getter);
       setDispatchProperty(
           objectProto,
-          makeDispatchRecord(jsObjectInterceptor, objectProto, null));
+          makeDispatchRecord(jsObjectInterceptor, objectProto, null, null));
       return;
     }
   }
@@ -234,7 +231,7 @@ void initializeDispatchPropertyCSP(
       }
       setDispatchProperty(
           objectProto,
-          makeDispatchRecord(jsObjectInterceptor, objectProto, null));
+          makeDispatchRecord(jsObjectInterceptor, objectProto, null, null));
       return;
     }
   }
