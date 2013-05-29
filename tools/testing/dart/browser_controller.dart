@@ -57,7 +57,7 @@ abstract class Browser {
 
   factory Browser.byName(String name) {
     if (name == 'ff' || name == 'firefox') {
-      return new FireFox();
+      return new Firefox();
     } else if (name == 'chrome') {
       return new Chrome();
     } else if (name == 'safari') {
