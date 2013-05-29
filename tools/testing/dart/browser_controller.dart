@@ -70,7 +70,7 @@ abstract class Browser {
   static const List<String> SUPPORTED_BROWSERS = 
       const ['safari', 'ff', 'firefox', 'chrome'];
 
-  # TODO(kustermann): add standard support for chrome on android
+  // TODO(kustermann): add standard support for chrome on android
   static bool supportedBrowser(String name) {
     return SUPPORTED_BROWSERS.contains(name);
   }
