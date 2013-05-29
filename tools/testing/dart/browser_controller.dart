@@ -52,6 +52,28 @@ abstract class Browser {
 
   // We use this to gracefully handle double calls to close.
   bool underTermination = false;
+  
+  Browser();
+
+  factory Browser.byName(String name) {
+    if (name == 'ff' || name == 'firefox') {
+      return new FireFox();
+    } else if (name == 'chrome') {
+      return new Chrome();
+    } else if (name == 'safari') {
+      return new Safari();
+    } else {
+      throw "Non supported browser";
+    }
+  }
+
+  static const List<String> SUPPORTED_BROWSERS = 
+      const ['safari', 'ff', 'firefox', 'chrome'];
+
+  # TODO(kustermann): add standard support for chrome on android
+  static bool supportedBrowser(String name) {
+    return SUPPORTED_BROWSERS.contains(name);
+  }
 
   void _logEvent(String event) {
     String toLog = "$this ($id) - ${new DateTime.now()}: $event \n";
@@ -709,16 +731,7 @@ class BrowserTestRunner {
   }
 
   Browser getInstance() {
-    var browser;
-    if (browserName == "chrome") {
-      browser = new Chrome();
-    } else if (browserName == "ff") {
-      browser = new Firefox();
-    } else if (browserName == "safari") {
-      browser = new Safari();
-    } else {
-      throw "Non supported browser for browser controller";
-    }
+    var browser = new Browser.byName(browserName);
     browser.logger = logger;
     return browser;
   }
