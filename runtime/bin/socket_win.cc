@@ -113,7 +113,8 @@ bool Socket::GetRemotePeer(intptr_t fd, char *host, intptr_t *port) {
   return true;
 }
 
-intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
+
+intptr_t Socket::Create(RawAddr addr) {
   SOCKET s = socket(addr.ss.ss_family, SOCK_STREAM, 0);
   if (s == INVALID_SOCKET) {
     return -1;
@@ -131,6 +132,15 @@ intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
     FATAL("Failed setting SO_LINGER on socket");
   }
 
+  ClientSocket* client_socket = new ClientSocket(s);
+  return reinterpret_cast<intptr_t>(client_socket);
+}
+
+
+intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
+  ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
+  SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
+  SOCKET s = handle->socket();
   SocketAddress::SetAddrPort(&addr, port);
   status = connect(
       s,
@@ -138,13 +148,21 @@ intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
       SocketAddress::GetAddrLength(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
-    closesocket(s);
+    handle->close();
     SetLastError(rc);
     return -1;
   }
+  return fd;
+}
 
-  ClientSocket* client_socket = new ClientSocket(s);
-  return reinterpret_cast<intptr_t>(client_socket);
+
+intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
+  intptr_t fd = Socket::Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+
+  return Socket::Connect(fd, addr, port);
 }
 
 

@@ -130,6 +130,8 @@ class Socket {
   static intptr_t Available(intptr_t fd);
   static int Read(intptr_t fd, void* buffer, intptr_t num_bytes);
   static int Write(intptr_t fd, const void* buffer, intptr_t num_bytes);
+  static intptr_t Create(RawAddr addr);
+  static intptr_t Connect(intptr_t fd, RawAddr addr, const intptr_t port);
   static intptr_t CreateConnect(RawAddr addr,
                                 const intptr_t port);
   static intptr_t GetPort(intptr_t fd);
