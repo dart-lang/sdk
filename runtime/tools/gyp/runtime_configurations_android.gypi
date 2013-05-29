@@ -7,6 +7,9 @@
 # http://src.chromium.org/viewvc/chrome/trunk/src/build/common.gypi
 
 {
+  'variables': {
+    'dart_io_support': 0,
+  },
   'target_defaults': {
     'cflags': [
       '-Wno-abi',

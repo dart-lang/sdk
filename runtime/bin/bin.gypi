@@ -180,7 +180,7 @@
     {
       'target_name': 'libdart_io',
       'type': 'static_library',
-      'toolsets':['host', 'target'],
+      'toolsets':['target', 'host'],
       'include_dirs': [
         '..',
       ],
@@ -188,13 +188,18 @@
         'io_natives.h',
         'io_natives.cc',
       ],
-      'includes': [
-        'io_impl_sources.gypi',
-      ],
       'conditions': [
         [ 'dart_io_support==1', {
           'dependencies': [
             'bin/net/ssl.gyp:libssl_dart',
+          ],
+          'includes': [
+            'io_impl_sources.gypi',
+          ],
+        },
+        {
+          'includes': [
+            'io_impl_sources_no_nss.gypi',
           ],
         }],
         ['OS=="win"', {
@@ -337,6 +342,7 @@
     {
       'target_name': 'generate_resources_cc_file',
       'type': 'none',
+      'toolsets':['target', 'host'],
       'includes': [
         'vmstats_sources.gypi',
       ],
@@ -365,12 +371,13 @@
       # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
       'type': 'executable',
+      'toolsets':['target'],
       'dependencies': [
         'libdart',
         'libdart_builtin',
         'libdart_io',
         'generate_snapshot_file#host',
-        'generate_resources_cc_file',
+        'generate_resources_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -412,17 +419,34 @@
             '-rdynamic',
           ],
         }],
+        ['OS=="android"', {
+          'link_settings': {
+            'ldflags': [
+              '-z',
+              'muldefs',
+            ],
+            'ldflags!': [
+              '-Wl,--exclude-libs=ALL,-shared',
+            ],
+            'libraries': [
+              '-llog',
+              '-lc',
+              '-lz',
+            ],
+          },
+        }],
       ],
     },
     {
       # dart binary without any snapshot built in.
       'target_name': 'dart_no_snapshot',
       'type': 'executable',
+      'toolsets':['target'],
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
         'libdart_io',
-        'generate_resources_cc_file',
+        'generate_resources_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -467,6 +491,23 @@
           'ldflags': [
             '-rdynamic',
           ],
+        }],
+
+        ['OS=="android"', {
+          'link_settings': {
+            'ldflags': [
+              '-z',
+              'muldefs',
+            ],
+            'ldflags!': [
+              '-Wl,--exclude-libs=ALL,-shared',
+            ],
+            'libraries': [
+              '-llog',
+              '-lc',
+              '-lz',
+            ],
+          },
         }],
       ],
     },
@@ -527,6 +568,25 @@
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
         }],
+        ['OS=="android"', {
+
+          'link_settings': {
+            'ldflags': [
+              '-z',
+              'muldefs',
+            ],
+            'ldflags!': [
+              '-Wl,--exclude-libs=ALL,-shared',
+            ],
+            'libraries': [
+              '-Wl,--start-group',
+              '-Wl,--end-group',
+              '-llog',
+              '-lc',
+              '-lz',
+            ],
+          },
+        }],
       ],
     },
     {
@@ -581,44 +641,50 @@
         }],
       ],
     },
-    {
-      'target_name': 'test_extension',
-      'type': 'shared_library',
-      'dependencies': [
-        'dart',
-      ],
-      'include_dirs': [
-        '..',
-      ],
-      'sources': [
-        'test_extension.cc',
-        'test_extension_dllmain_win.cc',
-      ],
-      'defines': [
-        # The only effect of DART_SHARED_LIB is to export the Dart API entries.
-        'DART_SHARED_LIB',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'msvs_settings': {
-            'VCLinkerTool': {
-              'AdditionalDependencies': [ 'dart.lib' ],
-              'AdditionalLibraryDirectories': [ '<(PRODUCT_DIR)' ],
-            },
-          },
-        }],
-        ['OS=="mac"', {
-          'xcode_settings': {
-            'OTHER_LDFLAGS': [ '-undefined', 'dynamic_lookup' ],
-          },
-        }],
-        ['OS=="linux"', {
-          'cflags': [
-            '-fPIC',
+  ],
+  'conditions': [
+    ['OS!="android"', {
+      'targets': [
+        {
+          'target_name': 'test_extension',
+          'type': 'shared_library',
+          'dependencies': [
+            'dart',
           ],
-        }],
+          'include_dirs': [
+            '..',
+          ],
+          'sources': [
+            'test_extension.cc',
+            'test_extension_dllmain_win.cc',
+          ],
+          'defines': [
+            # The only effect of DART_SHARED_LIB is to export the Dart API.
+            'DART_SHARED_LIB',
+          ],
+          'conditions': [
+            ['OS=="win"', {
+              'msvs_settings': {
+                'VCLinkerTool': {
+                  'AdditionalDependencies': [ 'dart.lib' ],
+                  'AdditionalLibraryDirectories': [ '<(PRODUCT_DIR)' ],
+                },
+              },
+            }],
+            ['OS=="mac"', {
+              'xcode_settings': {
+                'OTHER_LDFLAGS': [ '-undefined', 'dynamic_lookup' ],
+              },
+            }],
+            ['OS=="linux"', {
+              'cflags': [
+                '-fPIC',
+              ],
+            }],
+          ],
+        },
       ],
-    },
+    }],
   ],
 }
 
