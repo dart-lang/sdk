@@ -367,9 +367,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitInvokeConstructorBody(HInvokeConstructorBody invoke) {
     String target = invoke.element.name.slowToString();
-    int offset = HInvoke.ARGUMENTS_OFFSET + 1;
-    List arguments = invoke.inputs.sublist(offset);
-    return visitGenericInvoke("Invoke constructor body", target, arguments);
+    return visitGenericInvoke("Invoke constructor body", target, invoke.inputs);
   }
 
   String visitForeign(HForeign foreign) {
@@ -553,8 +551,12 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeConversion(HTypeConversion node) {
+    assert(node.inputs.length <= 2);
+    String otherInput = (node.inputs.length == 2)
+        ? temporaryId(node.inputs[1])
+        : '';
     return "TypeConversion: ${temporaryId(node.checkedInput)} to "
-      "${node.instructionType}";
+      "${node.instructionType} $otherInput";
   }
 
   String visitRangeConversion(HRangeConversion node) {

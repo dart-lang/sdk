@@ -734,7 +734,10 @@ class SsaBailoutPropagator extends HBaseVisitor {
     }
 
     if (blocks.isEmpty) {
-      if (firstBailoutTarget == null) {
+      // If [currentBlockInformation] is not null, we are in the
+      // middle of a loop/labeled block and this is too complex to handle for
+      // now.
+      if (firstBailoutTarget == null && currentBlockInformation == null) {
         firstBailoutTarget = target;
       } else {
         hasComplexBailoutTargets = true;
