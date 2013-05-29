@@ -1481,8 +1481,9 @@ bool Address::CanHoldLoadOffset(LoadOperandType type,
     }
     case kLoadSWord:
     case kLoadDWord: {
-      *offset_mask = 0x3ff;
-      return Utils::IsAbsoluteUint(10, offset);  // VFP addressing mode.
+      *offset_mask = 0x3fc;  // Multiple of 4.
+      // VFP addressing mode.
+      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
     }
     default: {
       UNREACHABLE();
@@ -1508,8 +1509,9 @@ bool Address::CanHoldStoreOffset(StoreOperandType type,
     }
     case kStoreSWord:
     case kStoreDWord: {
-      *offset_mask = 0x3ff;
-      return Utils::IsAbsoluteUint(10, offset);  // VFP addressing mode.
+      *offset_mask = 0x3fc;  // Multiple of 4.
+      // VFP addressing mode.
+      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
     }
     default: {
       UNREACHABLE();
@@ -1539,7 +1541,7 @@ void Assembler::PopList(RegList regs, Condition cond) {
 }
 
 
-void Assembler::Mov(Register rd, Register rm, Condition cond) {
+void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   if (rd != rm) {
     mov(rd, ShifterOperand(rm), cond);
   }

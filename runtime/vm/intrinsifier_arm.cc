@@ -1231,7 +1231,6 @@ bool Intrinsifier::Double_div(Assembler* assembler) {
 // Left is double right is integer (Bigint, Mint or Smi)
 bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
-  __ Untested("Intrinsifier::Double_mulFromInteger");
   // Only Smi-s allowed.
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ tst(R0, ShifterOperand(kSmiTagMask));
@@ -1241,14 +1240,12 @@ bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ vmovsr(S0, R0);
   __ vcvtdi(D1, S0);
   __ ldr(R0, Address(SP, 1 * kWordSize));
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D0, Address(R0));
+  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   __ vmuld(D0, D0, D1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, R0);  // Result register.
-  __ AddImmediate(R1, R0, Double::value_offset() - kHeapObjectTag);
-  __ vstrd(D0, Address(R1));
+  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   __ Ret();
   __ Bind(&fall_through);
   return false;
@@ -1278,14 +1275,13 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 
 bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   Label is_true;
-  __ Untested("Intrinsifier::Double_getIsNaN");
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
   __ vldrd(D0, Address(R0));
   __ vcmpd(D0, D0);
   __ vmstat();
-  __ LoadObject(R0, Bool::False(), VS);
-  __ LoadObject(R0, Bool::True(), VC);
+  __ LoadObject(R0, Bool::False(), VC);
+  __ LoadObject(R0, Bool::True(), VS);
   __ Ret();
   return true;
 }

@@ -1416,9 +1416,20 @@ void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
 
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t fpu_registers = locs->live_registers()->fpu_registers();
-  if (fpu_registers > 0) {
-    UNIMPLEMENTED();
+  const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();
+  if (fpu_regs_count > 0) {
+    __ AddImmediate(SP, -(fpu_regs_count * kFpuRegisterSize));
+    // Store fpu registers with the lowest register number at the lowest
+    // address.
+    intptr_t offset = 0;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
+      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+      if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
+        __ vstrd(fpu_reg, Address(SP, offset));
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 
   // Store general purpose registers with the lowest register number at the
@@ -1440,9 +1451,19 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     __ PopList(cpu_registers);
   }
 
-  const intptr_t fpu_registers = locs->live_registers()->fpu_registers();
-  if (fpu_registers > 0) {
-    UNIMPLEMENTED();
+  const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();
+  if (fpu_regs_count > 0) {
+    // Fpu registers have the lowest register number at the lowest address.
+    intptr_t offset = 0;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
+      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+      if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
+        __ vldrd(fpu_reg, Address(SP, offset));
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
+    __ AddImmediate(SP, offset);
   }
 }
 

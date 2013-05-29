@@ -613,7 +613,7 @@ class Assembler : public ValueObject {
   void PushList(RegList regs, Condition cond = AL);
   void PopList(RegList regs, Condition cond = AL);
 
-  void Mov(Register rd, Register rm, Condition cond = AL);
+  void MoveRegister(Register rd, Register rm, Condition cond = AL);
 
   // Convenience shift instructions. Use mov instruction with shifter operand
   // for variants setting the status flags or using a register shift count.
