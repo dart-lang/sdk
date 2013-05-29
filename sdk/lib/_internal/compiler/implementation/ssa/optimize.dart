@@ -1437,6 +1437,11 @@ class SsaConstructionFieldTypes
   }
 
   visitForeignNew(HForeignNew node) {
+    if (!work.element.isGenerativeConstructor()) return;
+    // Check if this is the new object allocated by this generative
+    // constructor. Inlining might add other [HForeignNew]
+    // instructions in the graph.
+    if (!node.usedBy.any((user) => user is HReturn)) return;
     // The HForeignNew instruction is used in the generative constructor to
     // initialize all fields in newly created objects. The fields are
     // initialized to the value present in the initializer list or set to null
