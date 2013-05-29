@@ -85,6 +85,7 @@ is 'dart file.dart' and you specify special command
               ['-c', '--compiler'],
               ['none', 'dart2dart', 'dart2js', 'dartc', 'dartanalyzer'],
               'none'),
+          // TODO(antonm): fix the option drt.
           new _TestOptionSpecification(
               'runtime',
               '''Where the tests should be run.
@@ -95,7 +96,7 @@ is 'dart file.dart' and you specify special command
     jsshell: Run JavaScript from the command line using firefox js-shell.
 
     drt: Run Dart or JavaScript in the headless version of Chrome,
-         DumpRenderTree.
+         Content shell.
 
     dartium: Run Dart or JavaScript in Dartium.
 
@@ -252,8 +253,8 @@ is 'dart file.dart' and you specify special command
               [],
               ''),
           new _TestOptionSpecification(
-              'drt',
-              'Path to DumpRenderTree executable',
+              'drt', // TODO(antonm): fix the option name.
+              'Path to content shell executable',
               ['--drt'],
               [],
               ''),

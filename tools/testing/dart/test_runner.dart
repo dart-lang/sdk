@@ -181,20 +181,20 @@ class CompilationCommand extends Command {
   }
 }
 
-class DumpRenderTreeCommand extends Command {
+class ContentShellCommand extends Command {
   /**
-   * If [expectedOutputPath] is set, the output of DumpRenderTree is compared
+   * If [expectedOutputPath] is set, the output of content shell is compared
    * with the content of [expectedOutputPath].
    * This is used for example for pixel tests, where [expectedOutputPath] points
    * to a *png file.
    */
   io.Path expectedOutputPath;
 
-  DumpRenderTreeCommand(String executable,
-                        String htmlFile,
-                        List<String> options,
-                        List<String> dartFlags,
-                        io.Path this.expectedOutputPath)
+  ContentShellCommand(String executable,
+                      String htmlFile,
+                      List<String> options,
+                      List<String> dartFlags,
+                      io.Path this.expectedOutputPath)
       : super(executable,
               _getArguments(options, htmlFile),
               _getEnvironment(dartFlags));
@@ -646,7 +646,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     }
 
     if (command.expectedOutputFile != null) {
-      // We are either doing a pixel test or a layout test with DumpRenderTree
+      // We are either doing a pixel test or a layout test with content shell
       return _failedBecauseOfUnexpectedDRTOutput;
     }
     return _browserTestFailure;
@@ -654,10 +654,10 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
   bool get _failedBecauseOfMissingXDisplay {
     // Browser case:
-    // If the browser test failed, it may have been because DumpRenderTree
-    // and the virtual framebuffer X server didn't hook up, or DRT crashed with
-    // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
-    // so we have to do this check first.
+    // If the browser test failed, it may have been because content shell
+    // and the virtual framebuffer X server didn't hook up, or it crashed with
+    // a core dump. Sometimes content shell crashes after it has set the stdout
+    // to PASS, so we have to do this check first.
     var stderrLines = decodeUtf8(super.stderr).split("\n");
     for (String line in stderrLines) {
       // TODO(kustermann,ricow): Issue: 7564
@@ -678,7 +678,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
   bool get _failedBecauseOfUnexpectedDRTOutput {
     /*
-     * The output of DumpRenderTree is different for pixel tests than for
+     * The output of content shell is different for pixel tests than for
      * layout tests.
      *
      * On a pixel test, the DRT output has the following format

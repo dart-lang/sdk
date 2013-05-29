@@ -4,7 +4,7 @@
 
 /**
  * Test controller logic - used by unit test harness to embed tests in
- * DumpRenderTree.
+ * conent shell.
  */
 
 // Clear the console before every test run - this is Firebug specific code.
@@ -27,7 +27,7 @@ if (navigator.webkitStartDart) {
   navigator.webkitStartDart();
 }
 
-// testRunner is provided by DRT or WebKit's layout tests.
+// testRunner is provided by content shell.
 // It is not available in selenium tests.
 var testRunner = window.testRunner || window.layoutTestController;
 

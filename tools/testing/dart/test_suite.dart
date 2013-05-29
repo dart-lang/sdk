@@ -517,7 +517,7 @@ class StandardTestSuite extends TestSuite {
   }
 
   /**
-   * If DumpRenderTree/Dartium is required, and not yet updated, waits for
+   * If Content shell/Dartium is required, and not yet updated, waits for
    * the update then completes. Otherwise completes immediately.
    */
   Future updateDartium() {
@@ -1018,9 +1018,10 @@ class StandardTestSuite extends TestSuite {
           }
 
           var dartFlags = [];
-          var dumpRenderTreeOptions = [];
+          var contentShellOptions = [];
 
-          dumpRenderTreeOptions.add('--no-timeout');
+          contentShellOptions.add('--no-timeout');
+          contentShellOptions.add('--dump-render-tree');
 
           if (compiler == 'none' || compiler == 'dart2dart') {
             dartFlags.add('--ignore-unrecognized-flags');
@@ -1034,15 +1035,15 @@ class StandardTestSuite extends TestSuite {
           if (expectedOutput != null) {
             if (expectedOutput.toNativePath().endsWith('.png')) {
               // pixel tests are specified by running DRT "foo.html'-p"
-              dumpRenderTreeOptions.add('--notree');
+              contentShellOptions.add('--notree');
               fullHtmlPath = "${fullHtmlPath}'-p";
             }
           }
-          commandSet.add(new DumpRenderTreeCommand(dumpRenderTreeFilename,
-                                                   fullHtmlPath,
-                                                   dumpRenderTreeOptions,
-                                                   dartFlags,
-                                                   expectedOutput));
+          commandSet.add(new ContentShellCommand(contentShellFilename,
+                                                 fullHtmlPath,
+                                                 contentShellOptions,
+                                                 dartFlags,
+                                                 expectedOutput));
         }
 
         // Create BrowserTestCase and queue it.
@@ -1172,15 +1173,15 @@ class StandardTestSuite extends TestSuite {
     }
   }
 
-  String get dumpRenderTreeFilename {
+  String get contentShellFilename {
     if (configuration['drt'] != '') {
       return configuration['drt'];
     }
     if (Platform.operatingSystem == 'macos') {
-      return dartDir.append('/client/tests/drt/DumpRenderTree.app/Contents/'
-                            'MacOS/DumpRenderTree').toNativePath();
+      return dartDir.append('/client/tests/drt/Content Shell.app/Contents/'
+                            'MacOS/Content Shell').toNativePath();
     }
-    return dartDir.append('client/tests/drt/DumpRenderTree').toNativePath();
+    return dartDir.append('client/tests/drt/content_shell').toNativePath();
   }
 
   String get dartiumFilename {

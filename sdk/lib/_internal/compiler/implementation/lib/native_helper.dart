@@ -163,6 +163,7 @@ Function getFunctionForTypeNameOf() {
   if (!identical(JS('String', 'typeof(navigator)'), 'object')) return typeNameInChrome;
 
   String userAgent = JS('String', "navigator.userAgent");
+  // TODO(antonm): remove a reference to DumpRenderTree.
   if (contains(userAgent, 'Chrome') || contains(userAgent, 'DumpRenderTree')) {
     return typeNameInChrome;
   } else if (contains(userAgent, 'Firefox')) {

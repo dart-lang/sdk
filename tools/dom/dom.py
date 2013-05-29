@@ -183,7 +183,8 @@ commands = {
   'test_docs': [test_docs, 'Tests docs.dart'],
   'test_chrome': [test_chrome, 'Run tests in checked mode in Chrome.\n'
       '\t\tOptionally provide name of test to run.'],
-  'test_drt': [test_drt, 'Run tests in checked mode in DumpRenderTree.\n'
+  # TODO(antonm): fix option name.
+  'test_drt': [test_drt, 'Run tests in checked mode in content shell.\n'
       '\t\tOptionally provide name of test to run.'],
   'test_ff': [test_ff, 'Run tests in checked mode in Firefox.\n'
       '\t\tOptionally provide name of test to run.'],

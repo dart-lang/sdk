@@ -4,7 +4,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Gets or updates a DumpRenderTree (a nearly headless build of chrome). This is
+# Gets or updates a content shell (a nearly headless build of chrome). This is
 # used for running browser tests of client applications.
 
 import json
@@ -113,7 +113,7 @@ def EnsureConfig():
   if not HasBotoConfig():
     print >>sys.stderr, '''
 *******************************************************************************
-* WARNING: Can't download DumpRenderTree! This is required to test client apps.
+* WARNING: Can't download content shell! This is required to test client apps.
 * You need to do a one-time configuration step to access Google Storage.
 * Please run this command and follow the instructions:
 *     %s config
@@ -347,7 +347,7 @@ def main():
     GetSdkRevision('sdk', SDK_DIR, SDK_VERSION, SDK_LATEST_PATTERN,
         SDK_PERMANENT, args.revision)
   elif positional[0] == 'drt':
-    GetDartiumRevision('DumpRenderTree', DRT_DIR, DRT_VERSION,
+    GetDartiumRevision('content_shell', DRT_DIR, DRT_VERSION,
                          DRT_LATEST_PATTERN, DRT_PERMANENT_PATTERN,
                          args.revision)
     CopyDrtFont(DRT_DIR)
