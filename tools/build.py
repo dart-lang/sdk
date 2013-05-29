@@ -120,11 +120,6 @@ def SetTools(arch, toolchainprefix):
   toolsOverride = None
   if arch == 'arm' and toolchainprefix == None:
     toolchainprefix = DEFAULT_ARM_CROSS_COMPILER_PATH + "/bin/arm-linux-gnueabi"
-  # If the 'TARGET_TOOLCHAIN_PREFIX' environment variable is set, we use it
-  # instead. (We use it currently on our buildbots to override the default
-  # toolchain).
-  if 'TARGET_TOOLCHAIN_PREFIX' in os.environ:
-    toolchainprefix = os.environ['TARGET_TOOLCHAIN_PREFIX']
   if toolchainprefix:
     toolsOverride = {
       "CC.target"  :  toolchainprefix + "-gcc",

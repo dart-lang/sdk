@@ -49,10 +49,6 @@ def cross_compiling_builder(arch, mode):
   try:
     num_run = int(os.environ['BUILDBOT_ANNOTATED_STEPS_RUN'])
     if num_run == 1:
-      # FIXME(kustermann/ricow): Remove this hack as soon as our bots are
-      # running on precise (i.e. then we can install the normal crosscompiler)
-      os.environ['TARGET_TOOLCHAIN_PREFIX'] = ('/home/chrome-bot/codesourcery'
-                                               '/bin/arm-none-linux-gnueabi')
       with bot.BuildStep('Build %s %s' % (arch, mode)):
         args = [sys.executable, build_py,
                 '-m%s' % mode, '--arch=%s' % arch, 'runtime']
