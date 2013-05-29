@@ -17864,7 +17864,7 @@ class RtcDtmfToneChangeEvent extends Event native "RTCDTMFToneChangeEvent" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCIceCandidate
-class RtcIceCandidate native "RTCIceCandidate" {
+class RtcIceCandidate native "RTCIceCandidate,mozRTCIceCandidate" {
   factory RtcIceCandidate(Map dictionary) {
     // TODO(efortuna): Remove this check if when you can actually construct with
     // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
@@ -18232,7 +18232,7 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCSessionDescription
-class RtcSessionDescription native "RTCSessionDescription" {
+class RtcSessionDescription native "RTCSessionDescription,mozRTCSessionDescription" {
   factory RtcSessionDescription(Map dictionary) {
     // TODO(efortuna): Remove this check if when you can actually construct with
     // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
