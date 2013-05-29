@@ -342,21 +342,11 @@ class AndroidChrome extends Browser {
     var turnScreenOnIntent =
         new Intent(mainAction, turnScreenOnPackage, '.Main');
 
-    // FIXME(kustermann): Remove this hack as soon as we've got a v8 mirror in
-    // golo
     var testing_resources_dir =
         new Path('third_party/android_testing_resources');
-    var testing_resources_dir_tmp = 
-        new Path('/tmp/android_testing_resources');
     if (!new Directory.fromPath(testing_resources_dir).existsSync()) {
-      DebugLogger.warning("$testing_resources_dir doesn't exist, "
-                          "trying to use $testing_resources_dir_tmp");
-      testing_resources_dir = testing_resources_dir_tmp;
-      if (!new Directory.fromPath(testing_resources_dir).existsSync()) {
-        DebugLogger.error("$testing_resources_dir_tmp doesn't exist either. "
-                          " This is a fatal error. Exiting now.");
-        exit(1);
-      }
+      DebugLogger.error("$testing_resources_dir doesn't exist. Exiting now.");
+      exit(1);
     }
 
     var chromeAPK = testing_resources_dir.append('com.android.chrome-1.apk');
