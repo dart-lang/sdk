@@ -204,26 +204,25 @@ const int _CREATE_REQUEST = 1;
 const int _DELETE_REQUEST = 2;
 const int _OPEN_REQUEST = 3;
 const int _FULL_PATH_REQUEST = 4;
-const int _DIRECTORY_REQUEST = 5;
-const int _CLOSE_REQUEST = 6;
-const int _POSITION_REQUEST = 7;
-const int _SET_POSITION_REQUEST = 8;
-const int _TRUNCATE_REQUEST = 9;
-const int _LENGTH_REQUEST = 10;
-const int _LENGTH_FROM_PATH_REQUEST = 11;
-const int _LAST_MODIFIED_REQUEST = 12;
-const int _FLUSH_REQUEST = 13;
-const int _READ_BYTE_REQUEST = 14;
-const int _WRITE_BYTE_REQUEST = 15;
-const int _READ_REQUEST = 16;
-const int _READ_LIST_REQUEST = 17;
-const int _WRITE_LIST_REQUEST = 18;
-const int _CREATE_LINK_REQUEST = 19;
-const int _DELETE_LINK_REQUEST = 20;
-const int _LINK_TARGET_REQUEST = 21;
-const int _TYPE_REQUEST = 22;
-const int _IDENTICAL_REQUEST = 23;
-const int _STAT_REQUEST = 24;
+const int _CLOSE_REQUEST = 5;
+const int _POSITION_REQUEST = 6;
+const int _SET_POSITION_REQUEST = 7;
+const int _TRUNCATE_REQUEST = 8;
+const int _LENGTH_REQUEST = 9;
+const int _LENGTH_FROM_PATH_REQUEST = 10;
+const int _LAST_MODIFIED_REQUEST = 11;
+const int _FLUSH_REQUEST = 12;
+const int _READ_BYTE_REQUEST = 13;
+const int _WRITE_BYTE_REQUEST = 14;
+const int _READ_REQUEST = 15;
+const int _READ_LIST_REQUEST = 16;
+const int _WRITE_LIST_REQUEST = 17;
+const int _CREATE_LINK_REQUEST = 18;
+const int _DELETE_LINK_REQUEST = 19;
+const int _LINK_TARGET_REQUEST = 20;
+const int _TYPE_REQUEST = 21;
+const int _IDENTICAL_REQUEST = 22;
+const int _STAT_REQUEST = 23;
 
 // TODO(ager): The only reason for this class is that the patching
 // mechanism doesn't seem to like patching a private top level
@@ -313,27 +312,9 @@ class _File implements File {
     throwIfError(result, "Cannot delete file '$_path'");
   }
 
-  Future<Directory> directory() {
-    _ensureFileService();
-    List request = new List(2);
-    request[0] = _DIRECTORY_REQUEST;
-    request[1] = _path;
-    return _fileService.call(request).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-                                     "Cannot retrieve directory for "
-                                     "file '$_path'");
-      }
-      return new Directory(response);
-    });
-  }
-
-  external static _directory(String path);
-
-  Directory directorySync() {
-    var result = _directory(path);
-    throwIfError(result, "Cannot retrieve directory for file '$_path'");
-    return new Directory(result);
+  Directory get directory {
+    Path path = new Path(_path).directoryPath;
+    return new Directory.fromPath(path);
   }
 
   Future<RandomAccessFile> open({FileMode mode: FileMode.READ}) {

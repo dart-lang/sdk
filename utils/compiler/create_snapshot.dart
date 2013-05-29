@@ -82,10 +82,9 @@ void main() {
   if (!args.containsKey("dart2js_main")) throw "Please specify dart2js_main";
   if (!args.containsKey("output_dir")) throw "Please specify output_dir";
 
-  var scriptFile = new File(options.script);
-  var path = new Path(scriptFile.directorySync().path);
+  var scriptFile = new File(new File(options.script).fullPathSync());
+  var path = new Path(scriptFile.directory.path);
   var rootPath = path.directoryPath.directoryPath;
-
   getSnapshotGenerationFile(options, args, rootPath).then((result) {
     var wrapper = "${args['output_dir']}/utils_wrapper.dart";
     writeSnapshotFile(wrapper, result);

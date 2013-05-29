@@ -52,7 +52,6 @@ namespace bin {
   V(File_LinkTarget, 1)                                                        \
   V(File_Delete, 1)                                                            \
   V(File_DeleteLink, 1)                                                        \
-  V(File_Directory, 1)                                                         \
   V(File_FullPath, 1)                                                          \
   V(File_OpenStdio, 1)                                                         \
   V(File_GetStdioHandleType, 1)                                                \

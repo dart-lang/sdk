@@ -506,25 +506,6 @@ void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(File_Directory)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  const char* str =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
-  char* str_copy = strdup(str);
-  char* path = File::GetContainingDirectory(str_copy);
-  free(str_copy);
-  if (path != NULL) {
-    Dart_SetReturnValue(args, DartUtils::NewString(path));
-    free(path);
-  } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
-  }
-  Dart_ExitScope();
-}
-
-
 void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* str =
@@ -732,24 +713,6 @@ static CObject* FileFullPathRequest(const CObjectArray& request) {
     }
   }
   return CObject::IllegalArgumentError();
-}
-
-
-static CObject* FileDirectoryRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[1]->IsString()) {
-    CObjectString filename(request[1]);
-    char* str_copy = strdup(filename.CString());
-    char* path = File::GetContainingDirectory(str_copy);
-    free(str_copy);
-    if (path != NULL) {
-      CObject* result = new CObjectString(CObject::NewString(path));
-      free(path);
-      return result;
-    } else {
-      return CObject::NewOSError();
-    }
-  }
-  return CObject::Null();
 }
 
 
@@ -1197,9 +1160,6 @@ static void FileService(Dart_Port dest_port_id,
           break;
         case File::kFullPathRequest:
           response = FileFullPathRequest(request);
-          break;
-        case File::kDirectoryRequest:
-          response = FileDirectoryRequest(request);
           break;
         case File::kCloseRequest:
           response = FileCloseRequest(request);

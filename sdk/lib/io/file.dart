@@ -94,18 +94,9 @@ abstract class File extends FileSystemEntity {
 
   /**
    * Get a [Directory] object for the directory containing this
-   * file. Returns a [:Future<Directory>:] that completes with the
-   * directory.
+   * file.
    */
-  Future<Directory> directory();
-
-  /**
-   * Synchronously get a [Directory] object for the directory containing
-   * this file.
-   *
-   * Throws a [FileIOException] if the operation fails.
-   */
-  Directory directorySync();
+  Directory get directory;
 
   /**
    * Get the length of the file. Returns a [:Future<int>:] that

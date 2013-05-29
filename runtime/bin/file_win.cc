@@ -458,39 +458,6 @@ char* File::GetCanonicalPath(const char* pathname) {
 }
 
 
-char* File::GetContainingDirectory(char* pathname) {
-  struct _stat st;
-  wchar_t* system_name = StringUtils::Utf8ToWide(pathname);
-  int stat_status = _wstat(system_name, &st);
-  if (stat_status == 0) {
-    if ((st.st_mode & S_IFMT) != S_IFREG) {
-      SetLastError(ERROR_FILE_NOT_FOUND);
-      free(system_name);
-      return NULL;
-    }
-  } else {
-    SetLastError(ERROR_FILE_NOT_FOUND);
-    free(system_name);
-    return NULL;
-  }
-  int required_size = GetFullPathNameW(system_name, 0, NULL, NULL);
-  wchar_t* path =
-      static_cast<wchar_t*>(malloc(required_size * sizeof(wchar_t)));
-  wchar_t* file_part = NULL;
-  int written =
-    GetFullPathNameW(system_name, required_size, path, &file_part);
-  free(system_name);
-  ASSERT(written == (required_size - 1));
-  ASSERT(file_part != NULL);
-  ASSERT(file_part > path);
-  ASSERT(file_part[-1] == L'\\');
-  file_part[-1] = '\0';
-  char* result = StringUtils::WideToUtf8(path);
-  free(path);
-  return result;
-}
-
-
 const char* File::PathSeparator() {
   // This is already UTF-8 encoded.
   return "\\";
