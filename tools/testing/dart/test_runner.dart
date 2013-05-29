@@ -1682,8 +1682,6 @@ class ProcessQueue {
     };
     BrowserTest browserTest = new BrowserTest(url, callback, test.timeout);
     _getBrowserTestRunner(test).then((testRunner) {
-      print("BatchRunnerArguments ${test.batchRunnerArguments}");
-      print("Batchtestarguments ${test.batchTestArguments}");
       testRunner.queueTest(browserTest);
     });
   }
