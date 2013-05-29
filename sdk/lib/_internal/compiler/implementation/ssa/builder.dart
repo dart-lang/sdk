@@ -1106,8 +1106,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         bodyElement.origin.patch = bodyElement;
         classElement.origin.addBackendMember(bodyElement.origin);
       }
-      compiler.enqueuer.codegen.addToWorkList(bodyElement.declaration,
-                                              treeElements);
+      // Set the [TreeElements] of the generative constructor body to
+      // be the same as the generative constructor.
+      compiler.enqueuer.resolution.ensureCachedElements(
+          bodyElement.declaration,
+          treeElements);
     }
     assert(bodyElement.isGenerativeConstructorBody());
     return bodyElement;
@@ -1667,7 +1670,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         pop();
       } else {
         HInvokeConstructorBody invoke =
-            new HInvokeConstructorBody(body, bodyCallInputs);
+            new HInvokeConstructorBody(body.declaration, bodyCallInputs);
         invoke.sideEffects =
             compiler.world.getSideEffectsOfElement(constructor);
         add(invoke);

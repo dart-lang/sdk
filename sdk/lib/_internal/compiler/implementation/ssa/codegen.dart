@@ -1525,6 +1525,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String methodName = backend.namer.getName(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs);
     push(jsPropertyCall(object, methodName, arguments), node);
+    world.registerStaticUse(node.element);
   }
 
   void visitOneShotInterceptor(HOneShotInterceptor node) {
