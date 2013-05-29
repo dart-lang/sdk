@@ -1329,6 +1329,8 @@ class Function : public Object {
 
   RawArray* deopt_history() const { return raw_ptr()->deopt_history_; }
   void set_deopt_history(const Array& value) const;
+  // If not yet present, allocate deoptimization history array.
+  void EnsureDeoptHistory() const;
 
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
