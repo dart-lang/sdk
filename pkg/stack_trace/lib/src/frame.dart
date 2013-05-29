@@ -4,7 +4,6 @@
 
 library frame;
 
-import 'dart:uri';
 
 import 'package:pathos/path.dart' as path;
 

@@ -6,8 +6,6 @@
 library compiler_helper;
 
 import "package:expect/expect.dart";
-import 'dart:uri';
-export 'dart:uri' show Uri;
 
 import '../../../sdk/lib/_internal/compiler/implementation/elements/elements.dart'
        as lego;
@@ -90,7 +88,7 @@ MockCompiler compilerFor(String code, Uri uri,
 }
 
 String compileAll(String code, {String coreSource: DEFAULT_CORELIB}) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri, coreSource: coreSource);
   compiler.runCompiler(uri);
   Expect.isFalse(compiler.compilationFailed,
@@ -101,7 +99,7 @@ String compileAll(String code, {String coreSource: DEFAULT_CORELIB}) {
 dynamic compileAndCheck(String code,
                         String name,
                         check(MockCompiler compiler, lego.Element element)) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(code, uri);
   compiler.runCompiler(uri);
   lego.Element element = findElement(compiler, name);
@@ -110,7 +108,7 @@ dynamic compileAndCheck(String code,
 
 compileSources(Map<String, String> sources,
                check(MockCompiler compiler)) {
-  Uri base = new Uri.fromComponents(scheme: 'source');
+  Uri base = new Uri(scheme: 'source');
   Uri mainUri = base.resolve('main.dart');
   String mainCode = sources['main.dart'];
   Expect.isNotNull(mainCode, 'No source code found for "main.dart"');

@@ -93,7 +93,7 @@ main() {
 """;
 
 main() {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
 
   var compiler = compilerFor(TEST1, uri);
   compiler.runCompiler(uri);

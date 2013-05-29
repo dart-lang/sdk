@@ -129,12 +129,38 @@ enum FRegister {
   kNoFRegister = -1,
 };
 
+// The double precision floating point registers are concatenated pairs of the
+// single precision registers, e.g. D0 is F1:F0, D1 is F3:F2, etc.. We only
+// tell the architecture generic code about the double precision registers, then
+// convert to the single precision registers when needed in the mips-specific
+// code.
+enum DRegister {
+  D0  =  0,
+  D1  =  1,
+  D2  =  2,
+  D3  =  3,
+  D4  =  4,
+  D5  =  5,
+  D6  =  6,
+  D7  =  7,
+  D8  =  8,
+  D9  =  9,
+  D10 = 10,
+  D11 = 11,
+  D12 = 12,
+  D13 = 13,
+  D14 = 14,
+  D15 = 15,
+  D16 = 16,
+  kNumberOfDRegisters = 16,
+  kNoDRegister = -1,
+};
 
 // Architecture independent aliases.
-typedef FRegister FpuRegister;
-const FpuRegister FpuTMP = F0;
-const int kNumberOfFpuRegisters = kNumberOfFRegisters;
-const FpuRegister kNoFpuRegister = kNoFRegister;
+typedef DRegister FpuRegister;
+const FpuRegister FpuTMP = D0;
+const int kNumberOfFpuRegisters = kNumberOfDRegisters;
+const FpuRegister kNoFpuRegister = kNoDRegister;
 
 
 // Register aliases.

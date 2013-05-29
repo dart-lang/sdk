@@ -5,7 +5,6 @@ library engine.source.io;
 
 import 'source.dart';
 import 'dart:io';
-import 'dart:uri';
 import 'java_core.dart';
 import 'java_io.dart';
 import 'sdk.dart' show DartSdk;
@@ -195,7 +194,7 @@ class PackageUriResolver extends UriResolver {
     } on IOException catch (e) {
       AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
     }
-    return new JavaFile.relative(pkgDir, relPath.replaceAll(0x2F, JavaFile.separatorChar));
+    return new JavaFile.relative(pkgDir, relPath.replaceAll('/', JavaFile.separatorChar));
   }
 }
 /**

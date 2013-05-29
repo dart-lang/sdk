@@ -28,7 +28,7 @@ main() {
 
   AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
   context.sourceFactory = new SourceFactory.con2([new DartUriResolver(sdk), new FileUriResolver()]);
-  Source source = new FileBasedSource.con1(context.sourceFactory, new JavaFile(args[1]));
+  Source source = new FileBasedSource.con1(context.sourceFactory.contentCache, new JavaFile(args[1]));
   //
   ChangeSet changeSet = new ChangeSet();
   changeSet.added(source);

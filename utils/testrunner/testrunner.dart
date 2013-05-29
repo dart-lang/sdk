@@ -41,16 +41,18 @@
  * The three runtimes are:
  *
  *   vm - run native Dart in the VM; i.e. using $DARTSDK/dart-sdk/bin/dart.
- *   drt-dart - run native Dart in DumpRenderTree, the headless version of
- *       Dartium, which is located in $DARTSDK/chromium/DumpRenderTree, if
+ *   TODO(antonm): fix the option name.
+ *   drt-dart - run native Dart in content shell, the headless version of
+ *       Dartium, which is located in $DARTSDK/chromium/content_shell, if
  *       you installed the SDK that is bundled with the editor, or available
  *       from http://gsdview.appspot.com/dartium-archive/continuous/
  *       otherwise.
  *
- *   drt-js - run Dart compiled to Javascript in DumpRenderTree.
+ *   TODO(antonm): fix the option name.
+ *   drt-js - run Dart compiled to Javascript in content shell.
  *
  * testrunner supports simple DOM render tests. These can use expected values
- * for the render output from DumpRenderTree, either are textual DOM
+ * for the render output from content shell, either are textual DOM
  * descriptions (`--layout-tests`) or pixel renderings (`--pixel-tests`).
  * When running layout tests, testrunner will see if there is a file with
  * a .png or a .txt extension in a directory with the same name as the
@@ -357,19 +359,19 @@ void sanitizeConfig(Map config, ArgParser parser) {
     config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart';
     config['pub'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}pub';
     config['drt'] = 
-      '$dartsdk/chromium/DumpRenderTree.app/Contents/MacOS/DumpRenderTree';
+      '$dartsdk/chromium/Content Shell.app/Contents/MacOS/Content Shell';
   } else if (Platform.operatingSystem == 'linux') {
     config['dart2js'] =
         '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart2js';
     config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart';
     config['pub'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}pub';
-    config['drt'] = '$dartsdk${pathSep}chromium${pathSep}DumpRenderTree';
+    config['drt'] = '$dartsdk${pathSep}chromium${pathSep}content_shell';
   } else {
     config['dart2js'] =
         '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart2js.bat';
     config['dart'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}dart.exe';
     config['pub'] = '$dartsdk${pathSep}dart-sdk${pathSep}bin${pathSep}pub.bat';
-    config['drt'] = '$dartsdk${pathSep}chromium${pathSep}DumpRenderTree.exe';
+    config['drt'] = '$dartsdk${pathSep}chromium${pathSep}content_shell.exe';
   }
 
   for (var prog in [ 'drt', 'dart', 'pub', 'dart2js' ]) {

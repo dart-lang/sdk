@@ -6,7 +6,6 @@ library oauth2.utils;
 
 import 'dart:io';
 import 'dart:json' as json;
-import 'dart:uri';
 
 import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_process.dart';
@@ -27,7 +26,7 @@ void authorizePub(ScheduledProcess pub, ScheduledServer server,
         .firstMatch(line);
     expect(match, isNotNull);
 
-    var redirectUrl = Uri.parse(decodeUriComponent(match.group(1)));
+    var redirectUrl = Uri.parse(Uri.decodeComponent(match.group(1)));
     redirectUrl = addQueryParameters(redirectUrl, {'code': 'access code'});
     return (new http.Request('GET', redirectUrl)..followRedirects = false)
       .send();

@@ -4,16 +4,6 @@
 
 part of dart.utf;
 
-class _HelperStreamController<T> extends StreamController<T> {
-  final Function onPauseChanged;
-
-  _HelperStreamController(this.onPauseChanged);
-
-  void onPauseStateChange() {
-    onPauseChanged();
-  }
-}
-
 abstract class _StringDecoder
     extends StreamEventTransformer<List<int>, String> {
   List<int> _carry;

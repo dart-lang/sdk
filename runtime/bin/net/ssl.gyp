@@ -44,6 +44,7 @@
     {
       'target_name': 'libssl_dart',  # Added by Dart (the _dart postfix)
       'type': 'static_library',
+      'toolsets':['host','target'],
       # Changed by Dart: '<(ssl_directory)/' added to all paths.
       'sources': [
         '<(ssl_directory)/ssl/authcert.c',

@@ -265,12 +265,13 @@ class PlaceholderCollector extends Visitor {
   }
 
   void makeTypePlaceholder(Node node, DartType type) {
-    if (node is Send) {
+    Send send = node.asSend();
+    if (send != null) {
       // Prefix.
-      assert(node.receiver is Identifier);
-      assert(node.selector is Identifier);
-      makeNullPlaceholder(node.receiver);
-      node = node.selector;
+      assert(send.receiver is Identifier);
+      assert(send.selector is Identifier);
+      makeNullPlaceholder(send.receiver);
+      node = send.selector;
     }
     makeElementPlaceholder(node, type.element);
   }
@@ -497,20 +498,21 @@ class PlaceholderCollector extends Visitor {
       // TODO(smok): Fix this when resolver correctly deals with
       // such cases.
       if (definitionElement == null) continue;
-      if (definition is Send) {
+      Send send = definition.asSend();
+      if (send != null) {
         // May get FunctionExpression here in definition.selector
         // in case of A(int this.f());
-        if (definition.selector is Identifier) {
+        if (send.selector is Identifier) {
           if (identical(definitionElement.kind, ElementKind.FIELD_PARAMETER)) {
-            tryMakeMemberPlaceholder(definition.selector);
+            tryMakeMemberPlaceholder(send.selector);
           } else {
-            tryMakeLocalPlaceholder(definitionElement, definition.selector);
+            tryMakeLocalPlaceholder(definitionElement, send.selector);
           }
         } else {
-          assert(definition.selector is FunctionExpression);
+          assert(send.selector is FunctionExpression);
           if (identical(definitionElement.kind, ElementKind.FIELD_PARAMETER)) {
             tryMakeMemberPlaceholder(
-                definition.selector.asFunctionExpression().name);
+                send.selector.asFunctionExpression().name);
           }
         }
       } else if (definition is Identifier) {

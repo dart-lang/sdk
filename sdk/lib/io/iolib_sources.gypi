@@ -6,6 +6,7 @@
   'sources': [
     'buffer_list.dart',
     'common.dart',
+    'crypto.dart',
     'data_transformer.dart',
     'directory.dart',
     'directory_impl.dart',

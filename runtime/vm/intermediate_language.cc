@@ -1455,12 +1455,12 @@ LocationSummary* JoinEntryInstr::MakeLocationSummary() const {
 
 
 void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kDummyTokenIndex);
   }
-  __ Bind(compiler->GetJumpLabel(this));
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -1474,12 +1474,12 @@ LocationSummary* TargetEntryInstr::MakeLocationSummary() const {
 
 
 void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id_,
                                    Scanner::kDummyTokenIndex);
   }
-  __ Bind(compiler->GetJumpLabel(this));
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

@@ -30,8 +30,7 @@ main() {
       })
     ]).create();
 
-    schedulePub(args: ["install"],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir("foo", [
@@ -65,8 +64,7 @@ main() {
       })
     ]).create();
 
-    schedulePub(args: ["install"],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir("foo", [
@@ -104,8 +102,7 @@ main() {
       })
     ]).create();
 
-    schedulePub(args: ["install"],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir("foo", [

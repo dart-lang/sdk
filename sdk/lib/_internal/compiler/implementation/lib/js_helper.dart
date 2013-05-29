@@ -12,16 +12,9 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_DART_OBJECT_CONSTRUCTOR,
                                    JS_OPERATOR_IS_PREFIX,
                                    JS_OPERATOR_AS_PREFIX,
+                                   JS_IS_INDEXABLE_FIELD_NAME,
                                    RAW_DART_FUNCTION_REF;
-import 'dart:_interceptors' show getInterceptor,
-                                 interceptedNames,
-                                 makeDispatchRecord,
-                                 getDispatchProperty,
-                                 dispatchRecordIndexability,
-                                 setDispatchRecordIndexability,
-                                 Interceptor,
-                                 JSMutableIndexable,
-                                 JSUnknown;
+import 'dart:_interceptors';
 import "dart:_collection-dev" as _symbol_dev;
 
 part 'constant_map.dart';
@@ -39,32 +32,7 @@ bool isJsIndexable(var object, var record) {
     var result = dispatchRecordIndexability(record);
     if (result != null) return result;
   }
-  return isJsIndexableSlow(object);
-}
-
-// We keep the slow path of the indexability check in a separate method
-// to get better code generated for the fast path and to increase the
-// chance of having it inlined.
-bool isJsIndexableSlow(var object) {
-  bool result = object is JavaScriptIndexingBehavior;
-  var record = getDispatchProperty(object);
-  if (record == null) return result;
-  // This is intentionally written to have two return points, so we
-  // will not inline the slow path function into the fast one.
-  setDispatchRecordIndexability(record, result);
-  return result;
-}
-
-checkMutable(list, reason) {
-  if (JS('bool', r'!!(#.immutable$list)', list)) {
-    throw new UnsupportedError(reason);
-  }
-}
-
-checkGrowable(list, reason) {
-  if (JS('bool', r'!!(#.fixed$length)', list)) {
-    throw new UnsupportedError(reason);
-  }
+  return object is JavaScriptIndexingBehavior;
 }
 
 String S(value) {
@@ -329,7 +297,7 @@ class Primitives {
 
   /// Returns the type of [object] as a string (including type arguments).
   static String objectTypeName(Object object) {
-    String name = constructorNameFallback(object);
+    String name = constructorNameFallback(getInterceptor(object));
     if (name == 'Object') {
       // Try to decompile the constructor by turning it into a string
       // and get the name out of that. If the decompiled name is a
@@ -600,6 +568,14 @@ class Primitives {
   }
 
   static getConstructor(String className) {
+    // TODO(ahe): Generalize this and improve test coverage of
+    // reflecting on intercepted classes.
+    if (JS('bool', '# == "String"', className)) return const JSString();
+    if (JS('bool', '# == "int"', int)) return const JSInt();
+    if (JS('bool', '# == "double"', int)) return const JSDouble();
+    if (JS('bool', '# == "num"', int)) return const JSNumber();
+    if (JS('bool', '# == "bool"', int)) return const JSBool();
+    if (JS('bool', '# == "List"', int)) return const JSArray();
     // TODO(ahe): How to safely access $?
     return JS('var', r'$[#]', className);
   }

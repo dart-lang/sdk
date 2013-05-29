@@ -30,6 +30,7 @@ patch class HashMap<K, V> {
 
   patch int get length => _length;
   patch bool get isEmpty => _length == 0;
+  patch bool get isNotEmpty => !isEmpty;
 
   patch Iterable<K> get keys {
     return new HashMapKeyIterable<K>(this);
@@ -391,6 +392,8 @@ patch class LinkedHashMap<K, V> {
 
   patch int get length => _length;
   patch bool get isEmpty => _length == 0;
+  patch bool get isNotEmpty => !isEmpty;
+
 
   patch Iterable<K> get keys {
     return new LinkedHashMapKeyIterable<K>(this);
@@ -744,6 +747,7 @@ patch class HashSet<E> {
 
   patch int get length => _length;
   patch bool get isEmpty => _length == 0;
+  patch bool get isNotEmpty => !isEmpty;
 
   patch bool contains(Object object) {
     if (_isStringElement(object)) {
@@ -1038,6 +1042,7 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
 
   patch int get length => _length;
   patch bool get isEmpty => _length == 0;
+  patch bool get isNotEmpty => !isEmpty;
 
   patch bool contains(Object object) {
     if (_isStringElement(object)) {

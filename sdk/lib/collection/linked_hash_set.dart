@@ -19,6 +19,8 @@ class LinkedHashSet<E> extends _HashSetBase<E> {
 
   external bool get isEmpty;
 
+  external bool get isNotEmpty;
+
   external bool contains(Object object);
 
   external void forEach(void action(E element));

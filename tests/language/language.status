@@ -34,7 +34,6 @@ mixin_super_constructor_multiple_test: Fail
 closure_type_variable_test: Fail # Type variable used as expression (dartbug.com/6282)
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
-gc_test: Pass, Fail # Issue 1487
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 method_override2_test/00: Fail # Issue 7076.
 method_override2_test/02: Fail # Issue 7076.
@@ -86,12 +85,6 @@ super_operator_index7_test: Fail # Issue 8918
 
 execute_finally10_test: Fail # Issue 430
 execute_finally11_test: Fail # Issue 430
-
-[ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
-gc_test: Skip  # Issue 1487, flaky.
-
-[ $compiler == none && $mode == debug ]
-gc_test: Skip  # Takes too long.
 
 [ $compiler == none && $unchecked ]
 
@@ -311,15 +304,6 @@ final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
-gc_test: Skip # Issue 1487
-field5_negative_test: Fail # Issue 10839
-field4_negative_test: Fail # Issue 10839
-field6_negative_test: Fail # Issue 10839
-non_const_super_negative_test: Fail # Issue 10839
-field2_negative_test: Fail # Issue 10839
-interface_static_method_negative_test: Fail # Issue 10839
-field1_negative_test: Fail # Issue 10839
-field6a_negative_test: Fail # Issue 10839
 
 
 [ $runtime == dartium ]
@@ -344,17 +328,12 @@ call_test: Fail # Issue 1604
 
 [ $compiler == dart2dart ]
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
-const_factory_redirection_test: Fail # http://dartbug.com/6894
-compile_time_constant_h_test: Fail
 constructor_redirect2_test/03: Fail
 constructor_initializer_test: Fail # VM issue
-factory_implementation_test/none: Fail
-factory_implementation_test/00:Fail
 factory2_test: Fail
 factory3_test: Fail
 factory5_test/none: Fail
 factory5_test/00: Fail
-factory_implementation_test/00: Fail
 type_checks_in_factory_method_test: Fail
 default_factory2_test/01: Fail # type arguments on redirecting factory not implemented
 default_factory3_test: Fail # type arguments on redirecting factory not implemented
@@ -438,8 +417,6 @@ argument_definition4_test: Skip # Not implemented. Fails in minified tests.
 const_var_test: Pass, Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-field1_negative_test: Fail, OK # Bad test: assumes eager loading.
-field6_negative_test: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # Common problems with dart2js.  In illegal family, invalid
 # declarations are simply not parsed.  In pseudo kw dart2js
@@ -456,13 +433,7 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
-field2_negative_test: Fail
-field4_negative_test: Fail
-field5_negative_test: Fail
-field6a_negative_test: Fail
 interface_factory_constructor_negative_test: Fail
-interface_static_method_negative_test: Fail
-non_const_super_negative_test: Fail
 method_override2_test/00: Fail
 method_override2_test/02: Fail
 method_override2_test/03: Fail
@@ -485,7 +456,6 @@ function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail
 function_type_alias7_test/00: Fail
-implicit_scope_test: Fail
 instanceof3_test: Fail
 parameter_initializer6_negative_test: Fail # Issue 3502
 syntax_test/47: Fail
@@ -493,7 +463,6 @@ syntax_test/47: Fail
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
-gc_test: Pass,Fail
 super_first_constructor_test: Fail
 # VM specific tests.
 disable_privacy_test: Pass, Fail, Ok
@@ -592,23 +561,6 @@ class_cycle_negative_test: fail
 class_cycle_test/00: fail
 class_cycle_test/01: fail
 class_cycle_test/03: fail
-class_literal_test/02: fail
-class_literal_test/05: fail
-class_literal_test/07: fail
-class_literal_test/10: fail
-class_literal_test/11: fail
-class_literal_test/12: fail
-class_literal_test/14: fail
-class_literal_test/17: fail
-class_literal_test/18: fail
-class_literal_test/19: fail
-class_literal_test/22: fail
-class_literal_test/23: fail
-class_literal_test/24: fail
-class_literal_test/27: fail
-class_literal_test/28: fail
-class_literal_test/29: fail
-class_literal_test/none: fail
 closure_call_wrong_argument_count_negative_test: fail
 compile_time_constant10_test/none: fail
 compile_time_constant8_test: fail
@@ -620,17 +572,13 @@ compile_time_constant_arguments_test/06: fail
 compile_time_constant_b_test: fail
 compile_time_constant_c_test/01: fail
 compile_time_constant_c_test/02: fail
-compile_time_constant_checked2_test/01: fail
 compile_time_constant_checked2_test/02: fail
 compile_time_constant_checked2_test/03: fail
 compile_time_constant_checked2_test/04: fail
-compile_time_constant_checked2_test/05: fail
 compile_time_constant_checked2_test/06: fail
-compile_time_constant_checked3_test/01: fail
 compile_time_constant_checked3_test/02: fail
 compile_time_constant_checked3_test/03: fail
 compile_time_constant_checked3_test/04: fail
-compile_time_constant_checked3_test/05: fail
 compile_time_constant_checked3_test/06: fail
 compile_time_constant_d_test: fail
 compile_time_constant_e_test: fail
@@ -778,11 +726,6 @@ syntax_test/32: fail
 syntax_test/33: fail
 ternary_test: fail
 throw7_negative_test: fail
-try_catch_on_syntax_test/01: fail
-try_catch_on_syntax_test/07: fail
-try_catch_syntax_test/08: fail
-try_catch_syntax_test/16: fail
-try_catch_syntax_test/17: fail
 type_error_test: fail
 type_parameter_test/01: fail
 type_parameter_test/02: fail
@@ -812,14 +755,67 @@ unresolved_top_level_method_negative_test: fail
 unresolved_top_level_var_negative_test: fail
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
-block_scope_test: fail
-lazy_static3_test: fail
+block_scope_test: fail, OK
+lazy_static3_test: fail, OK
 
 # test issue 10752, there are 'implicit' scopes for 'if', 'while' and 'do-while'
 implicit_scope_test: fail, OK
 
-[ $arch == arm ]
-*: Skip
+# test issue 10889, "throw" requires expression, "rethrow" should be used instead
+execute_finally10_test: fail, OK
+execute_finally11_test: fail, OK
+final_used_in_try_test: fail, OK
+full_stacktrace2_test: fail, OK
+stack_trace_test: fail, OK
+throw3_test: fail, OK
+try_catch3_test: fail, OK
+
+# test issue 10890; on-catch UnknownType is a static warning, not error
+try_catch_on_syntax_test/01: fail, OK
+try_catch_on_syntax_test/07: fail, OK
+try_catch_syntax_test/08: fail, OK
+
+# test issue 10899; it is static warning, not error, to call methods of class literal
+class_literal_test/02: fail, OK
+class_literal_test/05: fail, OK
+class_literal_test/07: fail, OK
+class_literal_test/10: fail, OK
+class_literal_test/11: fail, OK
+class_literal_test/12: fail, OK
+class_literal_test/14: fail, OK
+class_literal_test/17: fail, OK
+class_literal_test/18: fail, OK
+class_literal_test/19: fail, OK
+class_literal_test/22: fail, OK
+class_literal_test/23: fail, OK
+class_literal_test/24: fail, OK
+class_literal_test/27: fail, OK
+class_literal_test/28: fail, OK
+class_literal_test/29: fail, OK
+class_literal_test/none: fail, OK
+
+[ $compiler == dartanalyzer && $checked ]
+factory1_test/00: fail
+factory1_test/01: fail
+field_type_check2_test/01: fail
+factory_implementation_test/00: fail
+factory_redirection_test/08: fail
+factory_redirection_test/09: fail
+factory_redirection_test/10: fail
+factory_redirection_test/11: fail
+factory_redirection_test/12: fail
+factory_redirection_test/13: fail
+factory_redirection_test/14: fail
+getters_setters2_test/03: fail
+type_variable_bounds3_test/00: fail
+type_variable_bounds2_test/05: fail
+type_variable_scope_test/00: fail
+type_variable_scope_test/01: fail
+type_variable_scope_test/02: fail
+type_variable_scope_test/03: fail
+type_variable_scope_test/04: fail
+type_variable_scope_test/05: fail
+
 
 [ $arch == simarm ]
 *: Skip

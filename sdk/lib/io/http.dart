@@ -721,6 +721,10 @@ abstract class HttpRequest implements Stream<List<int>> {
   /**
    * Gets the [HttpResponse] object, used for sending back the response to the
    * client.
+   *
+   * If the [contentLength] of the body isn't 0, and the body isn't being read,
+   * any write calls on the [HttpResponse] will automatically drain the request
+   * body.
    */
   HttpResponse get response;
 }

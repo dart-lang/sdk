@@ -23,7 +23,7 @@ import bot
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)(-(jsshell))?-(debug|release)(-(checked|host-checked))?(-(host-checked))?(-(minified))?-?(\d*)-?(\d*)')
 WEB_BUILDER = (
-    r'dart2js-(ie9|ie10|ff|safari|chrome|chromeOnAndroid|opera)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
+    r'dart2js-(ie9|ie10|ff|safari|chrome|chromeOnAndroid|opera|drt)-(win7|win8|mac10\.8|mac10\.7|linux)(-(all|html))?(-(csp))?(-(\d+)-(\d+))?')
 
 
 def GetBuildInfo(builder_name, is_buildbot):
@@ -80,14 +80,15 @@ def GetBuildInfo(builder_name, is_buildbot):
   else :
     return None
 
-  if system == 'windows':
-    system = 'win7'
+  # We have both win7 and win8 bots, functionality is the same.
+  if system.startswith('win'):
+    system = 'windows'
 
   # We have both 10.8 and 10.7 bots, functionality is the same.
   if system == 'mac10.8' or system == 'mac10.7':
     system = 'mac'
 
-  if (system == 'win7' and platform.system() != 'Windows') or (
+  if (system == 'windows' and platform.system() != 'Windows') or (
       system == 'mac' and platform.system() != 'Darwin') or (
       system == 'linux' and platform.system() != 'Linux'):
     print ('Error: You cannot emulate a buildbot with a platform different '
@@ -108,6 +109,31 @@ def TestStepName(name, flags):
   flags = [x for x in flags if not '=' in x]
   return ('%s tests %s' % (name, ' '.join(flags))).strip()
 
+# TODO(ricow): remove this once we have browser controller drivers for all
+# supported platforms.
+def UseBrowserController(runtime, system):
+  supported_platforms = {
+    'linux': ['ff', 'chromeOnAndroid', 'chrome'],
+    'mac': [],
+    'windows': []
+  }
+  # Platforms that we run on the fyi waterfall only.
+  fyi_supported_platforms = {
+    'linux': [],
+    'mac': ['safari'],
+    'windows': []
+  }
+
+  if (runtime in supported_platforms[system]):
+    return True
+
+  if (os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and
+      runtime in fyi_supported_platforms[system]):
+    return True
+
+  return False
+
+
 IsFirstTestStepCall = True
 def TestStep(name, mode, system, compiler, runtime, targets, flags):
   step_name = TestStepName(name, flags)
@@ -120,10 +146,6 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 
     user_test = os.environ.get('USER_TEST', 'no')
 
-    # TODO(ricow): temporary hack to run on fyi with --use_browser_controller
-    if os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and runtime == 'drt':
-      runtime = 'chrome'
-
     cmd.extend([sys.executable,
                 os.path.join(os.curdir, 'tools', 'test.py'),
                 '--step_name=' + step_name,
@@ -135,18 +157,12 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
                 '--report',
                 '--write-debug-log'])
 
-    # TODO(ricow/kustermann): Issue 7339
-    if runtime == "safari":
-      cmd.append('--nobatch')
-
     if user_test == 'yes':
       cmd.append('--progress=color')
     else:
       cmd.extend(['--progress=buildbot', '-v'])
 
-    # TODO(ricow): temporary hack to run on fyi with --use_browser_controller
-    if (os.environ.get('BUILDBOT_SCHEDULER') == "fyi-main" and
-        runtime in ['chrome', 'ff', 'chromeOnAndroid']):
+    if UseBrowserController(runtime, system):
       cmd.append('--use_browser_controller')
 
     global IsFirstTestStepCall
@@ -168,7 +184,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
    Args:
      - runtime: either 'd8', 'jsshell', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
-     - system: either 'linux', 'mac', 'win7', or 'win8'
+     - system: either 'linux', 'mac', 'windows'
      - flags: extra flags to pass to test.dart
      - is_buildbot: true if we are running on a real buildbot instead of
        emulating one.
@@ -194,16 +210,13 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
           'Local', 'Google', 'Chrome', 'Application', 'chrome.exe')}
     return path_dict[runtime]
 
-  if system == 'linux' and runtime == 'chrome':
-    # TODO(ngeoffray): We should install selenium on the buildbot.
-    runtime = 'drt'
-  elif (runtime == 'ff' or runtime == 'chrome') and is_buildbot:
+  if (runtime == 'ff' or runtime == 'chrome') and is_buildbot:
     # Print out browser version numbers if we're running on the buildbot (where
     # we know the paths to these browser installations).
     version_query_string = '"%s" --version' % GetPath(runtime)
-    if runtime == 'ff' and system.startswith('win'):
+    if runtime == 'ff' and system == 'windows':
       version_query_string += '| more'
-    elif runtime == 'chrome' and system.startswith('win'):
+    elif runtime == 'chrome' and system == 'windows':
       version_query_string = ('''reg query "HKCU\\Software\\Microsoft\\''' +
           '''Windows\\CurrentVersion\\Uninstall\\Google Chrome" /v Version''')
     p = subprocess.Popen(version_query_string,
@@ -226,7 +239,7 @@ def TestCompiler(runtime, mode, system, flags, is_buildbot, test_set):
     TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'],
              unit_test_flags)
 
-  if system.startswith('win') and runtime.startswith('ie10'):
+  if system == 'windows' and runtime == 'ie10':
     TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
   else:
     # Run the default set of test suites.
@@ -268,10 +281,10 @@ def CleanUpTemporaryFiles(system, browser):
   behavior has not been reproduced outside of the buildbots.
 
   Args:
-     - system: either 'linux', 'mac', 'win7', or 'win8'
+     - system: either 'linux', 'mac', 'windows'
      - browser: one of the browsers, see GetBuildInfo
   """
-  if system.startswith('win'):
+  if system == 'windows':
     temp_dir = 'C:\\Users\\chrome-bot\\AppData\\Local\\Temp'
     for name in os.listdir(temp_dir):
       fullname = os.path.join(temp_dir, name)
@@ -290,7 +303,7 @@ def GetHasHardCodedCheckedMode(build_info):
   # on the slow (all) IE windows bots. This is a hack and we should use the
   # normal sharding and checked splitting functionality when we get more
   # vms for testing this.
-  if (build_info.system == 'linux' and build_info.runtime == 'chrome'):
+  if (build_info.system == 'linux' and build_info.runtime == 'drt'):
     return True
   if build_info.runtime.startswith('ie') and build_info.test_set == 'all':
     return True

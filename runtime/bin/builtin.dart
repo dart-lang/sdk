@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library builtin;
-import 'dart:uri';
 
 // Corelib 'print' implementation.
 void _print(arg) {
@@ -58,9 +57,8 @@ String _resolveScriptUri(String cwd, String scriptName, bool isWindows) {
     _logResolution("## scriptName: $scriptName");
   }
   var base =
-      new Uri.fromComponents(
-          scheme: "file",
-          path: cwd.endsWith("/") ? cwd : "$cwd/");
+      new Uri(scheme: "file",
+              path: cwd.endsWith("/") ? cwd : "$cwd/");
   _entrypoint = base.resolve(scriptName);
   _logResolution("# Resolved script to: $_entrypoint");
 
@@ -84,7 +82,7 @@ String _resolveUri(String base, String userString) {
       // package URI path part.
       path = _filePathFromPackageUri(resolved);
     }
-    resolved = new Uri.fromComponents(scheme: "dart-ext", path: path);
+    resolved = new Uri(scheme: "dart-ext", path: path);
   } else {
     resolved = baseUri.resolve(userString);
   }
@@ -127,8 +125,8 @@ String _filePathFromUri(String userUri, bool isWindows) {
 }
 
 String _filePathFromFileUri(Uri uri) {
-  if (uri.domain != '') {
-    throw "URIs using the 'file:' scheme may not contain a domain.";
+  if (!uri.host.isEmpty) {
+    throw "URIs using the 'file:' scheme may not contain a host.";
   }
 
   _logResolution("# Path: ${uri.path}");
@@ -136,8 +134,8 @@ String _filePathFromFileUri(Uri uri) {
 }
 
 String _filePathFromOtherUri(Uri uri) {
-  if (uri.domain != '') {
-    throw "URIs whose paths are used as file paths may not contain a domain.";
+  if (!uri.host.isEmpty) {
+    throw "URIs whose paths are used as file paths may not contain a host.";
   }
 
   _logResolution("# Path: ${uri.path}");
@@ -145,8 +143,8 @@ String _filePathFromOtherUri(Uri uri) {
 }
 
 String _filePathFromPackageUri(Uri uri) {
-  if (uri.domain != '') {
-    var path = (uri.path != '') ? '${uri.domain}${uri.path}' : uri.domain;
+  if (!uri.host.isEmpty) {
+    var path = (uri.path != '') ? '${uri.host}${uri.path}' : uri.host;
     var right = 'package:$path';
     var wrong = 'package://$path';
 

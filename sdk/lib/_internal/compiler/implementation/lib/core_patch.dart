@@ -6,7 +6,6 @@
 import 'dart:_interceptors';
 import 'dart:_js_helper' show checkNull,
                               getRuntimeType,
-                              isJsArray,
                               JSSyntaxRegExp,
                               Primitives,
                               stringJoinUnchecked;
@@ -213,7 +212,7 @@ patch class List<E> {
 
 patch class String {
   patch factory String.fromCharCodes(Iterable<int> charCodes) {
-    if (!isJsArray(charCodes)) {
+    if (charCodes is! JSArray) {
       charCodes = new List.from(charCodes);
     }
     return Primitives.stringFromCharCodes(charCodes);

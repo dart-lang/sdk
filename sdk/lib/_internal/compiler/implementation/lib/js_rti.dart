@@ -5,7 +5,7 @@
 part of _js_helper;
 
 setRuntimeTypeInfo(target, typeInfo) {
-  assert(typeInfo == null || isJsArray(typeInfo));
+  assert(typeInfo == null || typeInfo is JSArray);
   // We have to check for null because factories may return null.
   if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, typeInfo);
 }
@@ -49,7 +49,7 @@ String getConstructorName(type) => JS('String', r'#.builtin$cls', type);
 String runtimeTypeToString(type) {
   if (type == null) {
     return 'dynamic';
-  } else if (isJsArray(type)) {
+  } else if (type is JSArray) {
     // A list representing a type with arguments.
     return getRuntimeTypeAsString(type);
   } else {
@@ -79,7 +79,7 @@ String joinArguments(var types, int startIndex) {
 }
 
 String getRuntimeTypeString(var object) {
-  String className = isJsArray(object) ? 'List' : getClassName(object);
+  String className = object is JSArray ? 'List' : getClassName(object);
   var typeInfo = JS('var', r'#.$builtinTypeInfo', object);
   return "$className${joinArguments(typeInfo, 0)}";
 }
@@ -98,7 +98,7 @@ Object invoke(function, arguments) {
 Object call(target, name) => JS('var', r'#[#]()', target, name);
 
 substitute(var substitution, var arguments) {
-  if (isJsArray(substitution)) {
+  if (substitution is JSArray) {
     arguments = substitution;
   } else if (isJsFunction(substitution)) {
     arguments = invoke(substitution, arguments);
@@ -176,8 +176,8 @@ bool areSubtypes(List s, List t) {
   // [:null:] means a raw type.
   if (s == null || t == null) return true;
 
-  assert(isJsArray(s));
-  assert(isJsArray(t));
+  assert(s is JSArray);
+  assert(t is JSArray);
   assert(s.length == t.length);
 
   int len = s.length;
@@ -190,7 +190,7 @@ bool areSubtypes(List s, List t) {
 }
 
 getArguments(var type) {
-  return isJsArray(type) ? JS('var', r'#.slice(1)', type) : null;
+  return type is JSArray ? JS('var', r'#.slice(1)', type) : null;
 }
 
 getField(var object, var name) => JS('var', r'#[#]', object, name);
@@ -205,9 +205,7 @@ bool checkSubtypeOfRuntimeType(Object o, var t) {
   // Get the runtime type information from the object here, because we may
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
-  // Check for native objects and use the interceptor instead of the object.
-  // TODO(9586): Move type info for static functions onto an interceptor.
-  o = isJsFunction(o) ? o : getInterceptor(o);
+  o = getInterceptor(o);
   // We can use the object as its own type representation because we install
   // the subtype flags and the substitution on the prototype, so they are
   // properties of the object in JS.
@@ -263,8 +261,8 @@ bool isSubtype(var s, var t) {
   if (JS('bool', '# === #', s, t)) return true;
   // Get the object describing the class and check for the subtyping flag
   // constructed from the type of [t].
-  var typeOfS = isJsArray(s) ? s[0] : s;
-  var typeOfT = isJsArray(t) ? t[0] : t;
+  var typeOfS = s is JSArray ? s[0] : s;
+  var typeOfT = t is JSArray ? t[0] : t;
   // TODO(johnniwinther): replace this with the real function subtype test.
   if (JS('bool', '#.func', s) == true || JS('bool', '#.func', t) == true ) {
     return true;
@@ -282,8 +280,8 @@ bool isSubtype(var s, var t) {
   // arguments and no substitution, it is used as raw type.  If [t] has no
   // type arguments, it used as a raw type.  In both cases, [s] is a subtype
   // of [t].
-  if ((!isJsArray(s) && JS('bool', '# == null', substitution)) ||
-      !isJsArray(t)) {
+  if ((s is! JSArray && JS('bool', '# == null', substitution)) ||
+      t is! JSArray) {
     return true;
   }
   // Recursively check the type arguments.

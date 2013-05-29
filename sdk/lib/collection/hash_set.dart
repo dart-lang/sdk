@@ -70,6 +70,8 @@ class HashSet<E> extends _HashSetBase<E> {
 
   external bool get isEmpty;
 
+  external bool get isNotEmpty;
+
   external bool contains(Object object);
 
   // Collection.

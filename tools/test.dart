@@ -26,11 +26,12 @@ library test;
 
 import "dart:async";
 import "dart:io";
-import "testing/dart/test_runner.dart";
-import "testing/dart/test_options.dart";
-import "testing/dart/test_suite.dart";
-import "testing/dart/test_progress.dart";
 import "testing/dart/http_server.dart";
+import "testing/dart/record_and_replay.dart";
+import "testing/dart/test_options.dart";
+import "testing/dart/test_progress.dart";
+import "testing/dart/test_runner.dart";
+import "testing/dart/test_suite.dart";
 import "testing/dart/utils.dart";
 
 import "../compiler/tests/dartc/test_config.dart";
@@ -86,6 +87,27 @@ void testConfigurations(List<Map> configurations) {
   var verbose = firstConf['verbose'];
   var printTiming = firstConf['time'];
   var listTests = firstConf['list'];
+
+  var recordingPath = firstConf['record_to_file'];
+  var recordingOutputPath = firstConf['replay_from_file'];
+
+  if (recordingPath != null && recordingOutputPath != null) {
+    print("Fatal: Can't have the '--record_to_file' and '--replay_from_file'"
+          "at the same time. Exiting ...");
+    exit(1);
+  }
+
+  var testCaseRecorder;
+  if (recordingPath != null) {
+    testCaseRecorder = new TestCaseRecorder(new Path(recordingPath));
+  }
+
+  var testCaseOutputArchive;
+  if (recordingOutputPath != null) {
+      testCaseOutputArchive = new TestCaseOutputArchive();
+      testCaseOutputArchive.loadFromPath(new Path(recordingOutputPath));
+  }
+
 
   if (!firstConf['append_logs'])  {
     var file = new File(TestUtils.flakyFileName());
@@ -145,9 +167,16 @@ void testConfigurations(List<Map> configurations) {
       if (key == 'co19') {
         testSuites.add(new Co19TestSuite(conf));
       } else if (conf['runtime'] == 'vm' && key == 'vm') {
-        // vm tests contain both cc tests (added here) and dart tests (added in
-        // [TEST_SUITE_DIRECTORIES]).
-        testSuites.add(new VMTestSuite(conf));
+        // TODO(kustermann): Currently we don't support running VM unittest
+        // tests (i.e. run_vm_tests) on ARM because:
+        //   a) we currently use record&replay [test.dart cannot be used on ARM]
+        //   b) we cannot easily determine all the VM test names
+        //      [we would need to run 'run_vm_tests --list' on ARM]
+        if (!['arm', 'mips'].contains(conf['arch'])) {
+          // vm tests contain both cc tests (added here) and dart tests (added
+          // in [TEST_SUITE_DIRECTORIES]).
+          testSuites.add(new VMTestSuite(conf));
+        }
       } else if (conf['analyzer']) {
         if (key == 'dartc' && conf['compiler'] == 'dartc') {
           testSuites.add(new JUnitDartcTestSuite(conf));
@@ -216,6 +245,7 @@ void testConfigurations(List<Map> configurations) {
   }
   eventListener.add(new ExitCodeSetter());
 
+
   void startProcessQueue() {
     // Start process queue.
     new ProcessQueue(maxProcesses,
@@ -225,7 +255,9 @@ void testConfigurations(List<Map> configurations) {
                      eventListener,
                      allTestsFinished,
                      verbose,
-                     listTests);
+                     listTests,
+                     testCaseRecorder,
+                     testCaseOutputArchive);
   }
 
   // Start all the HTTP servers required before starting the process queue.

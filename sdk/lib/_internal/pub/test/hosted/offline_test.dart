@@ -50,7 +50,7 @@ main() {
       ]).create();
 
       pubCommand(command, args: ['--offline'],
-          error: new RegExp('Could not find package "foo" in cache'));
+          error: 'Could not find package "foo" in cache.');
     });
 
     integration('fails gracefully no cached versions match', () {
@@ -65,8 +65,9 @@ main() {
         dependencyMap("foo", ">2.0.0")
       ]).create();
 
-      pubCommand(command, args: ['--offline'],
-          error: new RegExp("Package 'foo' has no versions that match >2.0.0"));
+      pubCommand(command, args: ['--offline'], error:
+          "Package 'foo' has no versions that match >2.0.0 derived from:\n"
+          "- 'myapp' depends on version >2.0.0");
     });
   });
 }

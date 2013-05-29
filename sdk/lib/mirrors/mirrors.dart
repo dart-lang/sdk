@@ -16,7 +16,6 @@ library dart.mirrors;
 
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:uri';
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of

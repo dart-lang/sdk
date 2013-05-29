@@ -14,7 +14,7 @@ void compileAndFind(String code,
                     String memberName,
                     bool disableInlining,
                     check(compiler, element)) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
   compiler.disableInlining = disableInlining;
   compiler.runCompiler(uri);

@@ -92,6 +92,8 @@ class ObservableMap<K, V> extends ObservableBase implements Map<K, V> {
 
   bool get isEmpty => length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   bool containsValue(V value) => _map.containsValue(value);
 
   bool containsKey(K key) => _map.containsKey(key);

@@ -134,11 +134,11 @@ and include the results in a bug report on http://dartbug.com/new.
       return commandFuture;
     }).whenComplete(() => cache.deleteTempDir()).catchError((e) {
       if (e is PubspecNotFoundException && e.name == null) {
-        e = 'Could not find a file named "pubspec.yaml" in the directory '
-          '${path.current}.';
+        e = new ApplicationException('Could not find a file named '
+            '"pubspec.yaml" in the directory ${path.current}.');
       } else if (e is PubspecHasNoNameException && e.name == null) {
-        e = 'pubspec.yaml is missing the required "name" field (e.g. "name: '
-          '${path.basename(path.current)}").';
+        e = new ApplicationException('pubspec.yaml is missing the required '
+            '"name" field (e.g. "name: ${path.basename(path.current)}").');
       }
 
       handleError(e);

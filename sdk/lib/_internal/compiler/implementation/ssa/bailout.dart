@@ -37,7 +37,8 @@ class Environment {
     // for parameters that are not 'this', which is always passed as
     // the receiver.
     if (instruction is HCheck) {
-      add(instruction.checkedInput);
+      HCheck check = instruction;
+      add(check.checkedInput);
     } else if (!instruction.isCodeMotionInvariant()
                || (instruction is HParameterValue && instruction is !HThis)) {
       lives.add(instruction);
@@ -294,7 +295,10 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
         receiverSelectorOnThrow = selector;
         willThrow = true;
       }
-    } else if (willThrowArgumentError(selector, receiver, speculativeType)) {
+    // We need to call the actual method in checked mode to get
+    // the right type error.
+    } else if (!compiler.enableTypeAssertions
+               && willThrowArgumentError(selector, receiver, speculativeType)) {
       willThrow = true;
     }
 
@@ -730,7 +734,10 @@ class SsaBailoutPropagator extends HBaseVisitor {
     }
 
     if (blocks.isEmpty) {
-      if (firstBailoutTarget == null) {
+      // If [currentBlockInformation] is not null, we are in the
+      // middle of a loop/labeled block and this is too complex to handle for
+      // now.
+      if (firstBailoutTarget == null && currentBlockInformation == null) {
         firstBailoutTarget = target;
       } else {
         hasComplexBailoutTargets = true;

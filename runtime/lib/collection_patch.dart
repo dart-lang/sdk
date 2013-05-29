@@ -109,6 +109,8 @@ patch class HashMap<K, V> {
   /* patch */ int get length => _hashTable._elementCount;
 
   /* patch */ bool get isEmpty => _hashTable._elementCount == 0;
+
+  /* patch */ bool get isNotEmpty => !isEmpty;
 }
 
 patch class HashSet<E> {
@@ -129,6 +131,8 @@ patch class HashSet<E> {
   /* patch */ int get length => _table._elementCount;
 
   /* patch */ bool get isEmpty => _table._elementCount == 0;
+
+  /* patch */ bool get isNotEmpty => !isEmpty;
 
   /* patch */ bool contains(Object object) => _table._get(object) >= 0;
 
@@ -300,6 +304,8 @@ patch class LinkedHashMap<K, V> {
   /* patch */ int get length => _hashTable._elementCount;
 
   /* patch */ bool get isEmpty => _hashTable._elementCount == 0;
+
+  /* patch */ bool get isNotEmpty => !isEmpty;
 }
 
 patch class LinkedHashSet<E> extends _HashSetBase<E> {
@@ -319,6 +325,8 @@ patch class LinkedHashSet<E> extends _HashSetBase<E> {
   /* patch */ int get length => _table._elementCount;
 
   /* patch */ bool get isEmpty => _table._elementCount == 0;
+
+  /* patch */ bool get isNotEmpty => !isEmpty;
 
   /* patch */ bool contains(Object object) => _table._get(object) >= 0;
 

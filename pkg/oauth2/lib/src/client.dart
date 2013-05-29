@@ -5,7 +5,6 @@
 library oauth2_client;
 
 import 'dart:async';
-import 'dart:uri';
 
 import 'package:http/http.dart' as http;
 

@@ -80,5 +80,12 @@ no: 1
 null: null
 true: bool"""));
     });
+
+    test('handles empty maps', () {
+      expect(yamlToString({}), equals("{}"));
+      expect(yamlToString({'a': {}, 'b': {}}), equals("""
+a: {}
+b: {}"""));
+    });
   });
 }

@@ -210,7 +210,6 @@ import 'src/serialization_helpers.dart';
 import 'dart:async';
 import 'dart:json' as json;
 import 'dart:collection';
-import 'dart:uri';
 
 part 'src/reader_writer.dart';
 part 'src/serialization_rule.dart';

@@ -190,14 +190,18 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
     }
   }
 
-  HType visitInvokeDynamicMethod(HInvokeDynamicMethod instruction) {
+  HType visitInvokeDynamic(HInvokeDynamic instruction) {
     // Update the pending optimizations map based on the potentially
     // new types of the operands. If the operand types no longer allow
     // us to optimize, we remove the pending optimization.
     if (instruction.specializer is BinaryArithmeticSpecializer) {
       HInstruction left = instruction.inputs[1];
       HInstruction right = instruction.inputs[2];
-      if (left.isNumber() && !right.isNumber()) {
+      if (left.isNumber()
+          && !right.isNumber()
+          // We need to call the actual method in checked mode to get
+          // the right type error.
+          && !compiler.enableTypeAssertions) {
         pendingOptimizations[instruction] = () {
           // This callback function is invoked after we're done
           // propagating types. The types shouldn't have changed.
@@ -208,7 +212,7 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
         pendingOptimizations.remove(instruction);
       }
     }
-    return super.visitInvokeDynamicMethod(instruction);
+    return super.visitInvokeDynamic(instruction);
   }
 }
 

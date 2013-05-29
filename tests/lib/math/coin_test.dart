@@ -27,4 +27,36 @@ main() {
         "Tails: $tails\n"
         "Ratio: ${heads/tails}\n");
   Expect.approxEquals(1.0, heads/tails, 0.1);
+
+  heads = 0;
+  tails = 0;
+  for (var i = 0; i < 10000; i++) {
+    rnd = new Random(i);
+    if (rnd.nextBool()) {
+      heads++;
+    } else {
+      tails++;
+    }
+  }
+  print("Heads: $heads\n"
+        "Tails: $tails\n"
+        "Ratio: ${heads/tails}\n");
+  Expect.approxEquals(1.0, heads/tails, 0.1);
+
+  // A sequence of newly allocated Random number generators should have fair
+  // initial tosses.
+  heads = 0;
+  tails = 0;
+  for (var i = 0; i < 10000; i++) {
+    rnd = new Random();
+    if (rnd.nextBool()) {
+      heads++;
+    } else {
+      tails++;
+    }
+  }
+  print("Heads: $heads\n"
+        "Tails: $tails\n"
+        "Ratio: ${heads/tails}\n");
+  Expect.approxEquals(1.0, heads/tails, 0.1);
 }

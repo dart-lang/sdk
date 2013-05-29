@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-import 'dart:uri';
 
 import "../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart";
 import '../../../sdk/lib/_internal/compiler/implementation/source_file.dart';
@@ -12,7 +11,7 @@ import 'parser_helper.dart';
 
 CodeBuffer compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler();
-  Uri uri = new Uri.fromComponents(path: sourceFile.filename);
+  Uri uri = new Uri(path: sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
   compiler.runCompiler(uri);
   return compiler.backend.emitter.mainBuffer;

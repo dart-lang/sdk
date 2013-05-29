@@ -1012,8 +1012,8 @@ class Dart2JSBackend(HtmlDartGenerator):
         html_name,
         info.ParametersDeclaration(InputType))
     self._GenerateDispatcherBody(
+        info,
         operations,
-        parameter_names,
         declaration,
         GenerateCall,
         lambda _, argument: IsOptional(argument),

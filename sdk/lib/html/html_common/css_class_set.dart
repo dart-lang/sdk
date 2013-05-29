@@ -56,6 +56,8 @@ abstract class CssClassSetImpl implements CssClassSet {
 
   bool get isEmpty => readClasses().isEmpty;
 
+  bool get isNotEmpty => readClasses().isNotEmpty;
+
   int get length => readClasses().length;
 
   String reduce(String combine(String value, String element)) {

@@ -219,6 +219,7 @@ const String DEFAULT_CORELIB_WITH_LIST_INTERFACE = r'''
   class Closure {}
   class Null {}
   class Dynamic_ {}
+  class StackTrace {}
   bool identical(Object a, Object b) {}''';
 
 const String INTERCEPTORSLIB_WITH_MEMBERS = r'''

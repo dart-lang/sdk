@@ -759,6 +759,7 @@ testInitializers() {
          class Map {}
          class Closure {}
          class Null {}
+         class StackTrace {}
          class Dynamic_ {}
          class Type {}
          class Object { Object() : super(); }''';
@@ -783,7 +784,7 @@ List<String> asSortedStrings(Link link) {
 }
 
 compileScript(String source) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler = compilerFor(source, uri);
   compiler.runCompiler(uri);
   return compiler;

@@ -29,11 +29,12 @@ $if DART2JS
     // Currently in Firefox some of the RTC elements are defined but throw an
     // error unless the user has specifically enabled them in their
     // about:config. So we have to construct an element to actually test if RTC
-    // is supported at at the given time.
+    // is supported at the given time. 
     try {
-      var c = new RtcPeerConnection({"iceServers": [ {"url":"stun:foo.com"}]});
-      return c is RtcPeerConnection;
-    } catch (_) {}
+      new RtcPeerConnection(
+          {"iceServers": [ {"url":"stun:localhost"}]});
+      return true;
+    } catch (_) { return false;}
     return false;
   }
 $else
@@ -56,5 +57,3 @@ $endif
   }
 $!MEMBERS
 }
-
-

@@ -5,7 +5,6 @@
 library leap;
 
 import 'dart:isolate';
-import 'dart:uri';
 
 import 'dart:html' as html;
 import 'request_cache.dart';

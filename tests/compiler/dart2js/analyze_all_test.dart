@@ -27,7 +27,7 @@ main() {
 """;
 
 main() {
-  Uri uri = new Uri('test:code');
+  Uri uri = Uri.parse('test:code');
   var compiler = compilerFor(SOURCE, uri, analyzeAll: false);
   compiler.runCompiler(uri);
   Expect.isFalse(compiler.compilationFailed);

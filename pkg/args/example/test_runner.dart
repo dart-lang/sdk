@@ -40,8 +40,9 @@ main() {
       allowedHelp: {
         'vm': 'Run Dart code on the standalone dart vm.',
         'd8': 'Run JavaScript from the command line using v8.',
+        // TODO(antonm): rename flag.
         'drt': 'Run Dart or JavaScript in the headless version of Chrome,\n'
-          'DumpRenderTree.',
+          'content shell.',
         'dartium': 'Run Dart or JavaScript in Dartium.',
         'ff': 'Run JavaScript in Firefox',
         'chrome': 'Run JavaScript in Chrome',
@@ -116,7 +117,8 @@ is 'dart file.dart' and you specify special command
       defaultsTo: false);
 
   parser.addOption('dart',    help: 'Path to dart executable');
-  parser.addOption('drt',     help: 'Path to DumpRenderTree executable');
+  // TODO(antonm): rename the option.
+  parser.addOption('drt',     help: 'Path to content shell executable');
   parser.addOption('dartium', help: 'Path to Dartium Chrome executable');
 
   parser.addFlag('batch', abbr: 'b',

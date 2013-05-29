@@ -26,7 +26,6 @@ const char* DartUtils::kBuiltinLibURL = "dart:builtin";
 const char* DartUtils::kCoreLibURL = "dart:core";
 const char* DartUtils::kIOLibURL = "dart:io";
 const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
-const char* DartUtils::kUriLibURL = "dart:uri";
 
 const char* DartUtils::kIdFieldName = "_id";
 

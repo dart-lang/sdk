@@ -7,7 +7,6 @@ library authorization_code_grant_test;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as JSON;
-import 'dart:uri';
 
 import 'package:unittest/unittest.dart';
 import 'package:http/http.dart' as http;

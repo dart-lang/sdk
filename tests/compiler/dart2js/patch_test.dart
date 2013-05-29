@@ -9,12 +9,11 @@ import "../../../sdk/lib/_internal/compiler/implementation/tree/tree.dart";
 import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
-import "dart:uri";
 
 Compiler applyPatch(String script, String patch) {
   String core = "$DEFAULT_CORELIB\n$script";
   MockCompiler compiler = new MockCompiler(coreSource: core);
-  var uri = new Uri("core.dartp");
+  var uri = Uri.parse("core.dartp");
   compiler.sourceFiles[uri.toString()] = new MockFile(patch);
   var handler = new LibraryDependencyHandler(compiler);
   compiler.patchParser.patchLibrary(handler, uri, compiler.coreLibrary);

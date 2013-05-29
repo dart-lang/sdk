@@ -5,7 +5,6 @@
 library filenames;
 
 import 'dart:io';
-import 'dart:uri';
 
 // TODO(ahe): This library should be replaced by a general
 // path-munging library.
@@ -21,7 +20,7 @@ String uriPathToNative(String path) {
   return new Path(path).toNativePath();
 }
 
-final Uri currentDirectory = new Uri.fromComponents(
+final Uri currentDirectory = new Uri(
     scheme: 'file',
     path: appendSlash(nativeToUriPath(new File('.').fullPathSync())));
 

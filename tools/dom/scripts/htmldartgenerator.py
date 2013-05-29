@@ -198,13 +198,16 @@ class HtmlDartGenerator(object):
       self.EmitOperation(info, method_name)
 
   def _GenerateOverloadDispatcher(self,
+      info,
       signatures,
       is_void,
-      parameter_names,
       declaration,
       generate_call,
       is_optional,
       can_omit_type_check=lambda type, pos: False):
+
+    parameter_names = [p.name for p in info.param_infos]
+    number_of_required_in_dart = info.NumberOfRequiredInDart()
 
     body_emitter = self._members_emitter.Emit(
         '\n'
@@ -246,13 +249,8 @@ class HtmlDartGenerator(object):
         elif not can_omit_type_check(test_type, i):
           checks.append('(%s is %s || %s == null)' % (
               parameter_name, test_type, parameter_name))
-        else:
-          for signature in signatures:
-            if (len(signature) <= i or signature[i].id not in
-                parameter_name.split('_OR_')):
-
-              checks.append('?%s' % parameter_name)
-              break
+        elif i >= number_of_required_in_dart:
+          checks.append('?%s' % parameter_name)
 
       # There can be multiple presence checks.  We need them all since a later
       # optional argument could have been passed by name, leaving 'holes'.
@@ -307,8 +305,8 @@ class HtmlDartGenerator(object):
       GenerateCall(0, argument_count, [])
 
   def _GenerateDispatcherBody(self,
+      info,
       operations,
-      parameter_names,
       declaration,
       generate_call,
       is_optional,
@@ -324,9 +322,9 @@ class HtmlDartGenerator(object):
       return is_optional(operations[signature_index], argument)
 
     self._GenerateOverloadDispatcher(
+        info,
         [operation.arguments for operation in operations],
         operations[0].type.id == 'void',
-        parameter_names,
         declaration,
         GenerateCall,
         IsOptional,
@@ -437,9 +435,9 @@ class HtmlDartGenerator(object):
       constructor_full_name = constructor_info._ConstructorFullName(
           self._DartType)
       self._GenerateOverloadDispatcher(
+          constructor_info,
           constructor_info.idl_args,
           False,
-          [info.name for info in constructor_info.param_infos],
           emitter.Format('$(METADATA)$FACTORY_KEYWORD $CTOR($PARAMS)',
             FACTORY_KEYWORD=('factory' if not custom_factory_ctr else
                 'static %s' % constructor_full_name),

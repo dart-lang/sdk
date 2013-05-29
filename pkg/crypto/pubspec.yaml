@@ -1,0 +1,5 @@
+name: crypto
+author: "Dart Team <misc@dartlang.org>"
+homepage: http://www.dartlang.org
+description: >
+ Library of cryptographic functions.

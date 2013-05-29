@@ -4,18 +4,14 @@
 
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
-[ $runtime == vm && $system == macos ]
-debugger/basic_debugger_test: Pass, Crash # Issue 10488.
-
-[ $runtime == vm && $system == windows ]
-debugger/*: Skip # Issue: 10791
-
 [ $runtime == vm ]
 # Fails because checked-in dart executable is not up to date.
 io/test_runner_test: Fail
 # Fails because checked-in dart executable is not up to date.
 # Skip this because it is leaving temp directories behind when it fails.
 io/skipping_dart2js_compilations_test: Skip
+
+io/http_content_length_test: Pass, Fail # Issue 10934
 
 [ $runtime == vm && ( $system == windows ) ]
 io/raw_socket_test: Pass, Fail # Issue 8901
@@ -66,6 +62,8 @@ debugger/*: Skip # Do not run standalone debugger tests in browser.
 # package test issue 7392
 package/package1_test: Fail
 package/package_test: Fail
+io/test_runner_test: Fail # Library dart:uri removed.
+io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
 
 
 # The dart:io library is created at build time from separate files, and
@@ -110,6 +108,8 @@ package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issu
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
+io/test_runner_test: Fail # Library dart:uri removed.
+io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
@@ -117,7 +117,6 @@ byte_array_test: Fail, OK # ByteArray
 deoptimization_test: Fail, OK # Requires bigint.
 out_of_memory_test: Fail, OK # d8 handles much larger arrays than Dart VM.
 io/options_test: Fail, OK # Cannot pass options to d8.
-io/http_parser_test: Fail, OK # Cancelling a Timer not implemented in d8/jsshell.
 
 [ $compiler == dart2js && $runtime == none ]
 io/options_test: Fail
@@ -132,9 +131,6 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
-*: Skip
-
-[ $arch == arm ]
 *: Skip
 
 [ $arch == simarm ]

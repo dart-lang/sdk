@@ -34,7 +34,6 @@
 /// that the library is being used by a server-side application.
 ///
 ///     import 'dart:io'
-///     import 'dart:uri'
 ///     import 'package:oauth2/oauth2.dart' as oauth2;
 ///
 ///     // These URLs are endpoints that are provided by the authorization

@@ -16,10 +16,12 @@ ArgParser getOptionParser() {
       allowed: ['vm', 'drt-dart', 'drt-js'],
       allowedHelp: {
         'vm': 'Run Dart code natively on the standalone dart vm.',
+        // TODO(antonm): fix option name.
         'drt-dart': 'Run Dart code natively in the headless version of\n'
-          'Chrome, DumpRenderTree.',
+          'Chrome, Content shell.',
+        // TODO(antonm): fix option name.
         'drt-js': 'Run Dart compiled to JavaScript in the headless version\n'
-            'of Chrome, DumpRenderTree.'
+            'of Chrome, Content shell.'
       });
 
   parser.addFlag('checked', defaultsTo: false,

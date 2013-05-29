@@ -143,15 +143,15 @@ void testLibraryTags() {
   void compileAndCheckLibrary(
       String source,
       Link<MetadataAnnotation> extractMetadata(LibraryElement element)) {
-    Uri partUri = new Uri.fromComponents(scheme: 'source', path: 'part.dart');
+    Uri partUri = new Uri(scheme: 'source', path: 'part.dart');
     String partSource = '@native part of foo;';
 
-    Uri libUri = new Uri.fromComponents(scheme: 'source', path: 'lib.dart');
+    Uri libUri = new Uri(scheme: 'source', path: 'lib.dart');
     String libSource = 'library lib;';
 
-    Uri uri = new Uri.fromComponents(scheme: 'source', path: 'main.dart');
+    Uri uri = new Uri(scheme: 'source', path: 'main.dart');
 
-    Uri async = new Uri.fromComponents(scheme: 'dart', path: 'async');
+    Uri async = new Uri(scheme: 'dart', path: 'async');
 
     var compiler = compilerFor(source, uri)
         ..registerSource(partUri, partSource)

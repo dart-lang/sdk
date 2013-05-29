@@ -265,10 +265,17 @@ bool File::IsAbsolutePath(const char* pathname) {
 char* File::GetCanonicalPath(const char* pathname) {
   char* abs_path = NULL;
   if (pathname != NULL) {
+    // A null second argument to realpath crashes Android.  Fixed in Mar 2013,
+    // but not in earlier releases of Android.
+    char* resolved = reinterpret_cast<char*>(malloc(PATH_MAX));
+    if (resolved == NULL) return NULL;
     do {
-      abs_path = realpath(pathname, NULL);
+      abs_path = realpath(pathname, resolved);
     } while (abs_path == NULL && errno == EINTR);
     ASSERT(abs_path == NULL || IsAbsolutePath(abs_path));
+    if (abs_path != resolved) {
+      free(resolved);
+    }
   }
   return abs_path;
 }

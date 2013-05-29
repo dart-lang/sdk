@@ -28,8 +28,7 @@ main() {
         })
       ]).create();
 
-      pubCommand(command, error:
-        new RegExp('Could not resolve URL "http://pub.invalid".'));
+      pubCommand(command, error: 'Could not resolve URL "http://pub.invalid".');
     });
   });
 }

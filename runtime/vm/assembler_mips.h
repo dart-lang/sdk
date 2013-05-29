@@ -230,10 +230,11 @@ class Assembler : public ValueObject {
   }
 
   // CPU instructions in alphabetical order.
-  void addd(FRegister fd, FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fd));
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void addd(DRegister dd, DRegister ds, DRegister dt) {
+    // DRegisters start at the even FRegisters.
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_ADD);
   }
 
@@ -378,58 +379,58 @@ class Assembler : public ValueObject {
   }
 
   // FPU compare, always false.
-  void cfd(FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void cfd(DRegister ds, DRegister dt) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_F);
   }
 
   // FPU compare, true if unordered, i.e. one is NaN.
-  void cund(FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void cund(DRegister ds, DRegister dt) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_UN);
   }
 
   // FPU compare, true if equal.
-  void ceqd(FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void ceqd(DRegister ds, DRegister dt) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_EQ);
   }
 
   // FPU compare, true if unordered or equal.
-  void cueqd(FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void cueqd(DRegister ds, DRegister dt) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_UEQ);
   }
 
   // FPU compare, true if less than.
-  void coltd(FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void coltd(DRegister ds, DRegister dt) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_OLT);
   }
 
   // FPU compare, true if unordered or less than.
-  void cultd(FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void cultd(DRegister ds, DRegister dt) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_ULT);
   }
 
   // FPU compare, true if less or equal.
-  void coled(FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void coled(DRegister ds, DRegister dt) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_OLE);
   }
 
   // FPU compare, true if unordered or less or equal.
-  void culed(FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void culed(DRegister ds, DRegister dt) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, F0, COP1_C_ULE);
   }
 
@@ -442,21 +443,20 @@ class Assembler : public ValueObject {
   }
 
   // Converts a 32-bit signed int in fs to a double in fd.
-  void cvtdw(FRegister fd, FRegister fs) {
-    ASSERT(EvenFPURegister(fd));
+  void cvtdw(DRegister dd, FRegister fs) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
     EmitFpuRType(COP1, FMT_W, F0, fs, fd, COP1_CVT_D);
   }
 
   // Converts a 64-bit signed int in fs to a double in fd.
-  void cvtdl(FRegister fd, FRegister fs) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(fd));
+  void cvtdl(DRegister dd, DRegister ds) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister fd = static_cast<FRegister>(dd * 2);
     EmitFpuRType(COP1, FMT_L, F0, fs, fd, COP1_CVT_D);
   }
 
-  void cvtwd(FRegister fd, FRegister fs) {
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(fd));
+  void cvtwd(FRegister fd, DRegister ds) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
     EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_W);
   }
 
@@ -464,10 +464,10 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, R0, 0, DIV);
   }
 
-  void divd(FRegister fd, FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fd));
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void divd(DRegister dd, DRegister ds, DRegister dt) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_DIV);
   }
 
@@ -496,8 +496,8 @@ class Assembler : public ValueObject {
     EmitLoadStore(LBU, rt, addr);
   }
 
-  void ldc1(FRegister ft, const Address& addr) {
-    ASSERT(EvenFPURegister(ft));
+  void ldc1(DRegister dt, const Address& addr) {
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuLoadStore(LDC1, ft, addr);
   }
 
@@ -542,9 +542,9 @@ class Assembler : public ValueObject {
     or_(rd, rs, ZR);
   }
 
-  void movd(FRegister fd, FRegister fs) {
-    ASSERT(EvenFPURegister(fd));
-    ASSERT(EvenFPURegister(fs));
+  void movd(DRegister dd, DRegister ds) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    FRegister fs = static_cast<FRegister>(ds * 2);
     EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_MOV);
   }
 
@@ -567,10 +567,10 @@ class Assembler : public ValueObject {
          fs << kFsShift);
   }
 
-  void muld(FRegister fd, FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fd));
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void muld(DRegister dd, DRegister ds, DRegister dt) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_MUL);
   }
 
@@ -604,8 +604,8 @@ class Assembler : public ValueObject {
     EmitLoadStore(SB, rt, addr);
   }
 
-  void sdc1(FRegister ft, const Address& addr) {
-    ASSERT(EvenFPURegister(ft));
+  void sdc1(DRegister dt, const Address& addr) {
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuLoadStore(SDC1, ft, addr);
   }
 
@@ -625,13 +625,25 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, rd, 0, SLT);
   }
 
+  void slti(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsInt(kImmBits, imm.value()));
+    int16_t imm_value = static_cast<int16_t>(imm.value());
+    EmitIType(SLTI, rs, rt, imm_value);
+  }
+
+  void sltiu(Register rt, Register rs, const Immediate& imm) {
+    ASSERT(Utils::IsUint(kImmBits, imm.value()));
+    uint16_t imm_value = static_cast<uint16_t>(imm.value());
+    EmitIType(SLTIU, rs, rt, imm_value);
+  }
+
   void sltu(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, SLTU);
   }
 
-  void sqrtd(FRegister fd, FRegister fs) {
-    ASSERT(EvenFPURegister(fd));
-    ASSERT(EvenFPURegister(fs));
+  void sqrtd(DRegister dd, DRegister ds) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    FRegister fs = static_cast<FRegister>(ds * 2);
     EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_SQRT);
   }
 
@@ -651,10 +663,10 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, rd, 0, SRLV);
   }
 
-  void subd(FRegister fd, FRegister fs, FRegister ft) {
-    ASSERT(EvenFPURegister(fd));
-    ASSERT(EvenFPURegister(fs));
-    ASSERT(EvenFPURegister(ft));
+  void subd(DRegister dd, DRegister ds, DRegister dt) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuRType(COP1, FMT_D, ft, fs, fd, COP1_SUB);
   }
 
@@ -760,23 +772,23 @@ class Assembler : public ValueObject {
     }
   }
 
-  void LoadImmediate(FRegister rd, double value) {
-    ASSERT(EvenFPURegister(rd));
+  void LoadImmediate(DRegister rd, double value) {
+    FRegister frd = static_cast<FRegister>(rd * 2);
     const int64_t ival = bit_cast<uint64_t, double>(value);
     const int32_t low = Utils::Low32Bits(ival);
     const int32_t high = Utils::High32Bits(ival);
     if (low != 0) {
       LoadImmediate(TMP1, low);
-      mtc1(TMP1, rd);
+      mtc1(TMP1, frd);
     } else {
-      mtc1(ZR, rd);
+      mtc1(ZR, frd);
     }
 
     if (high != 0) {
       LoadImmediate(TMP1, high);
-      mtc1(TMP1, static_cast<FRegister>(rd + 1));
+      mtc1(TMP1, static_cast<FRegister>(frd + 1));
     } else {
-      mtc1(ZR, static_cast<FRegister>(rd + 1));
+      mtc1(ZR, static_cast<FRegister>(frd + 1));
     }
   }
 
@@ -853,8 +865,13 @@ class Assembler : public ValueObject {
   }
 
   void BranchSignedGreaterEqual(Register rd, int32_t value, Label* l) {
-    LoadImmediate(CMPRES, value);
-    BranchSignedGreaterEqual(rd, CMPRES, l);
+    if (Utils::IsInt(kImmBits, value)) {
+      slti(CMPRES, rd, Immediate(value));
+      beq(CMPRES, ZR, l);
+    } else {
+      LoadImmediate(CMPRES, value);
+      BranchSignedGreaterEqual(rd, CMPRES, l);
+    }
   }
 
   void BranchUnsignedGreaterEqual(Register rd, Register rs, Label* l) {
@@ -863,8 +880,13 @@ class Assembler : public ValueObject {
   }
 
   void BranchUnsignedGreaterEqual(Register rd, int32_t value, Label* l) {
-    LoadImmediate(CMPRES, value);
-    BranchUnsignedGreaterEqual(rd, CMPRES, l);
+    if (Utils::IsUint(kImmBits, value)) {
+      sltiu(CMPRES, rd, Immediate(value));
+      beq(CMPRES, ZR, l);
+    } else {
+      LoadImmediate(CMPRES, value);
+      BranchUnsignedGreaterEqual(rd, CMPRES, l);
+    }
   }
 
   void BranchSignedLess(Register rd, Register rs, Label* l) {
@@ -872,8 +894,13 @@ class Assembler : public ValueObject {
   }
 
   void BranchSignedLess(Register rd, int32_t value, Label* l) {
-    LoadImmediate(CMPRES, value);
-    BranchSignedGreater(CMPRES, rd, l);
+    if (Utils::IsInt(kImmBits, value)) {
+      slti(CMPRES, rd, Immediate(value));
+      bne(CMPRES, ZR, l);
+    } else {
+      LoadImmediate(CMPRES, value);
+      BranchSignedGreater(CMPRES, rd, l);
+    }
   }
 
   void BranchUnsignedLess(Register rd, Register rs, Label* l) {
@@ -881,8 +908,13 @@ class Assembler : public ValueObject {
   }
 
   void BranchUnsignedLess(Register rd, int32_t value, Label* l) {
-    LoadImmediate(CMPRES, value);
-    BranchUnsignedGreater(CMPRES, rd, l);
+    if (Utils::IsUint(kImmBits, value)) {
+      sltiu(CMPRES, rd, Immediate(value));
+      bne(CMPRES, ZR, l);
+    } else {
+      LoadImmediate(CMPRES, value);
+      BranchUnsignedGreater(CMPRES, rd, l);
+    }
   }
 
   void BranchSignedLessEqual(Register rd, Register rs, Label* l) {
@@ -937,9 +969,11 @@ class Assembler : public ValueObject {
   void LoadObject(Register rd, const Object& object);
   void PushObject(const Object& object);
 
-  // Sets register rd to zero if the object is equal to register rn,
-  // sets it to non-zero otherwise.
-  void CompareObject(Register rd, Register rn, const Object& object);
+  // Compares rn with the object. Returns results in rd1 and rd2.
+  // rd1 is 1 if rn < object. rd2 is 1 if object < rn. Since both cannot be
+  // 1, rd1 == rd2 (== 0) iff rn == object.
+  void CompareObject(Register rd1, Register rd2,
+                     Register rn, const Object& object);
 
   void LoadClassId(Register result, Register object);
   void LoadClassById(Register result, Register class_id);
@@ -992,10 +1026,6 @@ class Assembler : public ValueObject {
   };
 
   GrowableArray<CodeComment*> comments_;
-
-  bool EvenFPURegister(FRegister reg) {
-    return (static_cast<int>(reg) & 1) == 0;
-  }
 
   void Emit(int32_t value) {
     // Emitting an instruction clears the delay slot state.

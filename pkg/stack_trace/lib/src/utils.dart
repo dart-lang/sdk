@@ -5,7 +5,6 @@
 library utils;
 
 import 'dart:io';
-import 'dart:uri';
 
 import 'package:pathos/path.dart' as path;
 

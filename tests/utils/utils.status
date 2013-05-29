@@ -23,9 +23,6 @@ dart2js_test: Skip # Uses dart:io.
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == arm ]
-*: Skip
-
 [ $arch == simarm ]
 *: Skip
 

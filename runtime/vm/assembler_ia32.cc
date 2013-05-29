@@ -1271,6 +1271,13 @@ void Assembler::andl(Register dst, const Immediate& imm) {
 }
 
 
+void Assembler::andl(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x23);
+  EmitOperand(dst, address);
+}
+
+
 void Assembler::orl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x0B);
@@ -1284,6 +1291,13 @@ void Assembler::orl(Register dst, const Immediate& imm) {
 }
 
 
+void Assembler::orl(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x0B);
+  EmitOperand(dst, address);
+}
+
+
 void Assembler::xorl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x33);
@@ -1294,6 +1308,13 @@ void Assembler::xorl(Register dst, Register src) {
 void Assembler::xorl(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitComplex(6, Operand(dst), imm);
+}
+
+
+void Assembler::xorl(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x33);
+  EmitOperand(dst, address);
 }
 
 

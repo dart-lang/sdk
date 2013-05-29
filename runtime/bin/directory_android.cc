@@ -478,7 +478,7 @@ char* Directory::CreateTemp(const char* const_template) {
     if (stat(ANDROID_TEMP_DIR, &st) != 0) {
       mkdir(ANDROID_TEMP_DIR, 0777);
     }
-    path.Add(ANDROID_TEMP_DIR "/tmp/temp_dir1_");
+    path.Add(ANDROID_TEMP_DIR "/temp_dir1_");
   } else if ((path.data)[path.length - 1] == '/') {
     path.Add("temp_dir_");
   }

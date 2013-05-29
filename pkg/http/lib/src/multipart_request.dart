@@ -7,7 +7,6 @@ library multipart_request;
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:uri';
 import 'dart:utf';
 
 import 'base_request.dart';
@@ -138,7 +137,8 @@ class MultipartRequest extends BaseRequest {
     // http://tools.ietf.org/html/rfc2388 mandates some complex encodings for
     // field names and file names, but in practice user agents seem to just
     // URL-encode them so we do the same.
-    var header = 'content-disposition: form-data; name="${encodeUri(name)}"';
+    var header =
+        'content-disposition: form-data; name="${Uri.encodeFull(name)}"';
     if (!isPlainAscii(value)) {
       header = '$header\r\ncontent-type: text/plain; charset=utf-8';
     }
@@ -149,10 +149,10 @@ class MultipartRequest extends BaseRequest {
   /// contain only ASCII characters.
   String _headerForFile(MultipartFile file) {
     var header = 'content-type: ${file.contentType}\r\n'
-      'content-disposition: form-data; name="${encodeUri(file.field)}"';
+      'content-disposition: form-data; name="${Uri.encodeFull(file.field)}"';
 
     if (file.filename != null) {
-      header = '$header; filename="${encodeUri(file.filename)}"';
+      header = '$header; filename="${Uri.encodeFull(file.filename)}"';
     }
     return '$header\r\n\r\n';
   }

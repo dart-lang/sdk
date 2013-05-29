@@ -139,6 +139,7 @@ class _DOMStringMap extends NativeFieldWrapperClass1 implements Map<String, Stri
   Iterable<String> get values => Maps.getValues(this);
   int get length => Maps.length(this);
   bool get isEmpty => Maps.isEmpty(this);
+  bool get isNotEmpty => Maps.isNotEmpty(this);
 }
 
 final Future<SendPort> __HELPER_ISOLATE_PORT =

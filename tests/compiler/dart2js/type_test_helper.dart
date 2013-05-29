@@ -23,7 +23,7 @@ class TypeEnvironment {
   final MockCompiler compiler;
 
   factory TypeEnvironment(String source) {
-    var uri = new Uri.fromComponents(scheme: 'source');
+    var uri = new Uri(scheme: 'source');
     MockCompiler compiler = compilerFor('''
         main() {}
         $source''',

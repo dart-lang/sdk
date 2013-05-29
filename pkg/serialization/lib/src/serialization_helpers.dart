@@ -248,6 +248,7 @@ class IdentityMap<K, V> implements Map<K, V> {
     values.clear();
   }
   bool get isEmpty => keys.isEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   // Note that this is doing an equality comparison.
   bool containsValue(x) => values.contains(x);

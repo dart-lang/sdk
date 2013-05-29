@@ -114,11 +114,13 @@ class SimulatorDebugger {
   bool GetFValue(char* desc, float* value);
   bool GetDValue(char* desc, double* value);
 
-  void PrintDartFrame(uword pc, uword fp, uword sp,
-                      const Function& function,
-                      intptr_t token_pos,
-                      bool is_optimized,
-                      bool is_inlined);
+  static intptr_t GetApproximateTokenIndex(const Code& code, uword pc);
+
+  static void PrintDartFrame(uword pc, uword fp, uword sp,
+                             const Function& function,
+                             intptr_t token_pos,
+                             bool is_optimized,
+                             bool is_inlined);
   void PrintBacktrace();
 
   // Set or delete a breakpoint. Returns true if successful.
@@ -262,6 +264,23 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
 }
 
 
+intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+                                                     uword pc) {
+  intptr_t token_pos = -1;
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  for (intptr_t i = 0; i < descriptors.Length(); i++) {
+    if (descriptors.PC(i) == pc) {
+      token_pos = descriptors.TokenPos(i);
+      break;
+    } else if ((token_pos <= 0) && (descriptors.PC(i) > pc)) {
+      token_pos = descriptors.TokenPos(i);
+    }
+  }
+  return token_pos;
+}
+
+
 void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        const Function& function,
                                        intptr_t token_pos,
@@ -313,7 +332,8 @@ void SimulatorDebugger::PrintBacktrace() {
           if (!it.Done()) {
             PrintDartFrame(unoptimized_pc, frame->fp(), frame->sp(),
                            inlined_function,
-                           unoptimized_code.GetTokenIndexOfPC(unoptimized_pc),
+                           GetApproximateTokenIndex(unoptimized_code,
+                                                    unoptimized_pc),
                            true, true);
           }
         }
@@ -321,7 +341,7 @@ void SimulatorDebugger::PrintBacktrace() {
       }
       PrintDartFrame(frame->pc(), frame->fp(), frame->sp(),
                      function,
-                     code.GetTokenIndexOfPC(frame->pc()),
+                     GetApproximateTokenIndex(code, frame->pc()),
                      code.is_optimized(), false);
     } else {
       OS::Print("pc=0x%"Px" fp=0x%"Px" sp=0x%"Px" %s frame\n",
@@ -1649,6 +1669,32 @@ void Simulator::DecodeType01(Instr* instr) {
             int64_t left_op  = static_cast<int32_t>(rm_val);
             int64_t right_op = static_cast<int32_t>(rs_val);
             int64_t result = left_op * right_op;
+            int32_t hi_res = Utils::High32Bits(result);
+            int32_t lo_res = Utils::Low32Bits(result);
+            set_register(rd, lo_res);
+            set_register(rn, hi_res);
+            if (instr->HasS()) {
+              if (lo_res != 0) {
+                // Collapse bits 0..31 into bit 32 so that 32-bit Z check works.
+                hi_res |= 1;
+              }
+              ASSERT((result == 0) == (hi_res == 0));  // Z bit
+              ASSERT(((result & (1LL << 63)) != 0) == (hi_res < 0));  // N bit
+              SetNZFlags(hi_res);
+            }
+            break;
+          }
+          case 7: {
+            // Registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+            // Format(instr, "smlal'cond's 'rd, 'rn, 'rm, 'rs");
+            int32_t rd_lo_val = get_register(rd);
+            int32_t rd_hi_val = get_register(rn);
+            int64_t left_op  = static_cast<int32_t>(rm_val);
+            int64_t right_op = static_cast<int32_t>(rs_val);
+            uint32_t accum_lo = static_cast<uint32_t>(rd_lo_val);
+            int32_t accum_hi = static_cast<int32_t>(rd_hi_val);
+            int64_t accum = Utils::LowHighTo64Bits(accum_lo, accum_hi);
+            int64_t result = accum + left_op * right_op;
             int32_t hi_res = Utils::High32Bits(result);
             int32_t lo_res = Utils::Low32Bits(result);
             set_register(rd, lo_res);

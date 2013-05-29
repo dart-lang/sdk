@@ -6,7 +6,6 @@ library credentials;
 
 import 'dart:async';
 import 'dart:json' as JSON;
-import 'dart:uri';
 
 import 'package:http/http.dart' as http;
 

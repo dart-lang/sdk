@@ -84,6 +84,12 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'NodeList': 'NodeList,RadioNodeList',
 
+    'RTCPeerConnection': 'RTCPeerConnection,mozRTCPeerConnection',
+
+    'RTCIceCandidate': 'RTCIceCandidate,mozRTCIceCandidate',
+
+    'RTCSessionDescription': 'RTCSessionDescription,mozRTCSessionDescription',
+
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
 
     'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',
@@ -356,6 +362,12 @@ class OperationInfo(object):
           ', '.join(map(FormatParam, optional)) +
           right_bracket)
     return ', '.join(argtexts)
+
+  def NumberOfRequiredInDart(self):
+    """ Returns a number of required arguments in Dart declaration of
+    the operation.
+    """
+    return len(filter(lambda i: not i.is_optional, self.param_infos))
 
   def ParametersAsArgumentList(self, parameter_count=None):
     """Returns a string of the parameter names suitable for passing the

@@ -9,7 +9,6 @@
 
 import "package:expect/expect.dart";
 import "dart:io";
-import "dart:uri";
 
 void main() {
   final int REQUEST_COUNT = 100;

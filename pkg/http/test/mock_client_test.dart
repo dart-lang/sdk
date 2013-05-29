@@ -7,7 +7,6 @@ library mock_client_test;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
-import 'dart:uri';
 
 import 'package:http/http.dart' as http;
 import 'package:http/src/utils.dart';

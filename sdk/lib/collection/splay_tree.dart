@@ -313,6 +313,8 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
     return (_root == null);
   }
 
+  bool get isNotEmpty => !isEmpty;
+
   void forEach(void f(K key, V value)) {
     Iterator<_SplayTreeNode<K>> nodes =
         new _SplayTreeNodeIterator<K>(this);

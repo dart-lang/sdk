@@ -16,8 +16,7 @@ main() {
 
     d.appDir([dependencyMap("foo", "1.2.3")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp("Dependencies installed!\$"));
+    pubInstall();
 
     d.cacheDir({"foo": "1.2.3"}).validate();
     d.packagesDir({"foo": "1.2.3"}).validate();
@@ -28,9 +27,7 @@ main() {
 
     d.appDir([dependencyMap("bad name!", "1.2.3")]).create();
 
-    schedulePub(args: ['install'],
-        error: new RegExp('Could not find package "bad name!" at '
-                          'http://localhost:'),
-        exitCode: 1);
+    pubInstall(error: new RegExp(
+        r'Could not find package "bad name!" at http://localhost:\d+\.$'));
   });
 }

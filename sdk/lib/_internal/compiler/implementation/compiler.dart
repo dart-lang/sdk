@@ -318,6 +318,7 @@ abstract class Compiler implements DiagnosticListener {
   ClassElement typeClass;
   ClassElement mapClass;
   ClassElement symbolClass;
+  ClassElement stackTraceClass;
 
   // Initialized after mirrorSystemClass has been resolved.
   FunctionElement symbolConstructor;
@@ -579,7 +580,8 @@ abstract class Compiler implements DiagnosticListener {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      return spanFromTokens(node.beginToken, node.endToken);
+      MetadataAnnotation annotation = node;
+      return spanFromTokens(annotation.beginToken, annotation.endToken);
     } else {
       throw 'No error location.';
     }
@@ -679,6 +681,7 @@ abstract class Compiler implements DiagnosticListener {
     listClass = lookupCoreClass('List');
     typeClass = lookupCoreClass('Type');
     mapClass = lookupCoreClass('Map');
+    stackTraceClass = lookupCoreClass('StackTrace');
     if (!missingCoreClasses.isEmpty) {
       internalErrorOnElement(coreLibrary,
           'dart:core library does not contain required classes: '
@@ -741,7 +744,7 @@ abstract class Compiler implements DiagnosticListener {
     invokeOnMethod = jsInvocationMirrorClass.lookupLocalMember(INVOKE_ON);
 
     if (preserveComments) {
-      var uri = new Uri.fromComponents(scheme: 'dart', path: 'mirrors');
+      var uri = new Uri(scheme: 'dart', path: 'mirrors');
       LibraryElement libraryElement =
           libraryLoader.loadLibrary(uri, null, uri);
       documentClass = libraryElement.find(const SourceString('Comment'));
@@ -1108,7 +1111,9 @@ abstract class Compiler implements DiagnosticListener {
     if (Elements.isErroneousElement(element)) {
       element = element.enclosingElement;
     }
-    if (element.position() == null && !element.isCompilationUnit()) {
+    if (element.position() == null &&
+        !element.isLibrary() &&
+        !element.isCompilationUnit()) {
       // Sometimes, the backend fakes up elements that have no
       // position. So we use the enclosing element instead. It is
       // not a good error location, but cancel really is "internal

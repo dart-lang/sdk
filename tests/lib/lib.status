@@ -2,8 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-async/stream_periodic4_test: Fail, Pass # floitsch: Marking as flaky while collection debug information. http://dartbug.com/9619
-
 # The typed_data library is not supported by dart2js or dart2dart yet.
 [ $compiler == dart2js  || $compiler == dart2dart ]
 typed_data/*: Fail
@@ -18,9 +16,15 @@ typed_data/*: Skip
 math/*: Skip
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
 mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
-mirrors/library_uri_package_test: Fail # dart:mirrors not fully implemented.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
+async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
+
+[ $compiler == dart2js && $minified ]
+mirrors/mirrors_resolve_fields_test: Fail # Issue 6490
+
+[ $csp ]
+mirrors/library_uri_package_test: Fail, Pass # Issue 6490
 
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.
@@ -84,16 +88,13 @@ async/timer_isolate_test: Skip # See Issue 4997
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
-async/run_async4_test: Pass, Fail # http://dartbug.com/9013
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997
 async/timer_not_available_test: Skip # only meant to test when there is no way to
                                      # implement timer (currently only in d8)
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
-
-[ $arch == arm ]
-*: Skip
+async/run_async6_test: Fail # Issue 10910
 
 [ $arch == simarm ]
 *: Skip

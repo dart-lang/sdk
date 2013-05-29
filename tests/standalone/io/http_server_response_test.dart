@@ -243,6 +243,34 @@ void testBadResponseClose() {
 }
 
 
+void testIgnoreRequestData() {
+  HttpServer.bind("127.0.0.1", 0)
+      .then((server) {
+        server.listen((request) {
+          // Ignore request data.
+          request.response.write("all-okay");
+          request.response.close();
+        });
+
+        var client = new HttpClient();
+        client.get("127.0.0.1", server.port, "/")
+            .then((request) {
+              request.contentLength = 1024 * 1024;
+              request.add(new Uint8List(1024 * 1024));
+              return request.close();
+            })
+            .then((response) {
+              response
+                  .fold(0, (s, b) => s + b.length)
+                  .then((bytes) {
+                    Expect.equals(8, bytes);
+                    server.close();
+                  });
+            });
+      });
+}
+
+
 void main() {
   testResponseDone();
   testResponseAddStream();
@@ -250,4 +278,5 @@ void main() {
   testResponseAddClosed();
   testBadResponseAdd();
   testBadResponseClose();
+  testIgnoreRequestData();
 }

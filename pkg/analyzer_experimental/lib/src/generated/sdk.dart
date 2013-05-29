@@ -3,7 +3,6 @@
 
 library engine.sdk;
 
-import 'dart:uri';
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'source.dart' show ContentCache, Source, UriKind;

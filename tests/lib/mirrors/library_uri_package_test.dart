@@ -7,7 +7,6 @@
 library MirrorsTest;
 
 import 'dart:mirrors';
-import 'dart:uri';
 import 'package:args/args.dart';
 import '../../../pkg/unittest/lib/unittest.dart';
 

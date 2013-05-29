@@ -578,7 +578,9 @@ class _HttpParser
           if (_connectionUpgrade) {
             _incoming.upgraded = true;
             _parserCalled = false;
-            _controller.add(_incoming);
+            var tmp = _incoming;
+            _closeIncoming();
+            _controller.add(tmp);
             return;
           }
           if (_transferLength == 0 ||
@@ -928,14 +930,6 @@ class _HttpParser
   }
 
   void _pauseStateChanged() {
-    void update(bool pause) {
-      if (pause && !_socketSubscription.isPaused) {
-        _socketSubscription.pause();
-      } else if (!pause && _socketSubscription.isPaused) {
-        _socketSubscription.resume();
-      }
-    }
-
     if (_incoming != null) {
       if (!_bodyPaused && !_parserCalled) {
         _parse();

@@ -46,10 +46,6 @@ static bootstrap_lib_props bootstrap_libraries[] = {
                _collection-dev,
                Bootstrap::collection_dev_source_paths_,
                Bootstrap::collection_dev_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kCrypto,
-               crypto,
-               Bootstrap::crypto_source_paths_,
-               NULL),
   INIT_LIBRARY(ObjectStore::kIsolate,
                isolate,
                Bootstrap::isolate_source_paths_,
@@ -73,10 +69,6 @@ static bootstrap_lib_props bootstrap_libraries[] = {
   INIT_LIBRARY(ObjectStore::kUtf,
                utf,
                Bootstrap::utf_source_paths_,
-               NULL),
-  INIT_LIBRARY(ObjectStore::kUri,
-               uri,
-               Bootstrap::uri_source_paths_,
                NULL),
 
   { ObjectStore::kNone, NULL, NULL, NULL, NULL }

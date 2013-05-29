@@ -7,7 +7,6 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import '../../sdk/lib/_internal/compiler/compiler.dart';
-import 'dart:uri';
 
 const CORE_LIB = """
 library core;
@@ -26,6 +25,7 @@ class Closure {}
 class Dynamic_ {}
 class Type {}
 class Null {}
+class StackTrace {}
 class LinkedHashMap {}
 getRuntimeTypeInfo(o) {}
 setRuntimeTypeInfo(o, i) {}
@@ -103,9 +103,9 @@ main() {
   }
 
   Future<String> result =
-      compile(new Uri.fromComponents(scheme: 'main'),
-              new Uri.fromComponents(scheme: 'lib', path: '/'),
-              new Uri.fromComponents(scheme: 'package', path: '/'),
+      compile(new Uri(scheme: 'main'),
+              new Uri(scheme: 'lib', path: '/'),
+              new Uri(scheme: 'package', path: '/'),
               provider, handler);
   result.then((String code) {
     Expect.isNull(code);

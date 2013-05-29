@@ -356,9 +356,6 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
 }
 
 
-// R1: left.
-// R0: right.
-// Uses R5 to load ic_call_data.
 static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        intptr_t deopt_id,
                                        intptr_t token_pos,
@@ -376,6 +373,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
 
   Label check_identity;
   __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  __ ldm(IA, SP, (1 << R0) | (1 << R1));
   __ cmp(R1, ShifterOperand(IP));
   __ b(&check_identity, EQ);
   __ cmp(R0, ShifterOperand(IP));
@@ -397,7 +395,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
-  __ PushList((1 << R0) | (1 << R1));
   compiler->GenerateInstanceCall(deopt_id,
                                  token_pos,
                                  kNumberOfArguments,
@@ -411,6 +408,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   Label equality_done;
   if (compiler->is_optimizing()) {
     // No need to update IC data.
+    __ PopList((1 << R0) | (1 << R1));
     __ cmp(R0, ShifterOperand(R1));
     __ LoadObject(R0, (kind == Token::kEQ) ? Bool::False() : Bool::True(), NE);
     __ LoadObject(R0, (kind == Token::kEQ) ? Bool::True() : Bool::False(), EQ);
@@ -429,6 +427,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                            &StubCode::EqualityWithNullArgLabel(),
                            PcDescriptors::kRuntimeCall,
                            locs);
+    __ Drop(2);
   }
   __ Bind(&check_ne);
   if (kind == Token::kNE) {
@@ -479,8 +478,8 @@ static Condition NegateCondition(Condition condition) {
 }
 
 
-// R1: left.
-// R0: right.
+// R1: left, also on stack.
+// R0: right, also on stack.
 static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                           const ICData& orig_ic_data,
                                           LocationSummary* locs,
@@ -518,6 +517,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     if (target.Owner() == object_store->object_class()) {
       // Object.== is same as ===.
+      __ Drop(2);
       __ cmp(left, ShifterOperand(right));
       if (branch != NULL) {
         branch->EmitBranchOnCondition(compiler, cond);
@@ -608,9 +608,29 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   __ Bind(&non_null_compare);  // Receiver is not null.
   ASSERT(left == R1);
   ASSERT(right == R0);
+  __ PushList((1 << R0) | (1 << R1));
   EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
                                 deopt_id, token_pos);
   __ Bind(&done);
+}
+
+
+static Condition FlipCondition(Condition condition) {
+  switch (condition) {
+    case EQ: return EQ;
+    case NE: return NE;
+    case LT: return GT;
+    case LE: return GE;
+    case GT: return LT;
+    case GE: return LE;
+    case CC: return HI;
+    case LS: return CS;
+    case HI: return CC;
+    case CS: return LS;
+    default:
+      UNIMPLEMENTED();
+      return EQ;
+  }
 }
 
 
@@ -626,7 +646,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 
   if (left.IsConstant()) {
     __ CompareObject(right.reg(), left.constant());
-    true_condition = FlowGraphCompiler::FlipCondition(true_condition);
+    true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
   } else {
@@ -698,6 +718,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register right = locs()->in(1).reg();
   ASSERT(left == R1);
   ASSERT(right == R0);
+  __ PushList((1 << R0) | (1 << R1));
   EmitEqualityAsInstanceCall(compiler,
                              deopt_id(),
                              token_pos(),
@@ -740,6 +761,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   Register right = locs()->in(1).reg();
   ASSERT(left == R1);
   ASSERT(right == R0);
+  __ PushList((1 << R0) | (1 << R1));
   EmitEqualityAsInstanceCall(compiler,
                              deopt_id(),
                              token_pos(),
@@ -1697,34 +1719,32 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
-  if (!type_arguments().IsUninstantiatedIdentity() &&
-      !type_arguments().CanShareInstantiatorTypeArguments(
-          instantiator_class())) {
-    // If the instantiator is null and if the type argument vector
-    // instantiated from null becomes a vector of dynamic, then use null as
-    // the type arguments.
-    Label type_arguments_instantiated;
-    const intptr_t len = type_arguments().Length();
-    if (type_arguments().IsRawInstantiatedRaw(len)) {
-      __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
-      __ cmp(instantiator_reg, ShifterOperand(IP));
-      __ b(&type_arguments_instantiated, EQ);
-    }
-    // Instantiate non-null type arguments.
-    // A runtime call to instantiate the type arguments is required.
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ PushObject(type_arguments());
-    __ Push(instantiator_reg);  // Push instantiator type arguments.
-    compiler->GenerateCallRuntime(token_pos(),
-                                  deopt_id(),
-                                  kInstantiateTypeArgumentsRuntimeEntry,
-                                  locs());
-    __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
-    __ Pop(result_reg);  // Pop instantiated type arguments.
-    __ Bind(&type_arguments_instantiated);
+  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
+         !type_arguments().CanShareInstantiatorTypeArguments(
+             instantiator_class()));
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+    __ cmp(instantiator_reg, ShifterOperand(IP));
+    __ b(&type_arguments_instantiated, EQ);
   }
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(type_arguments());
+  __ Push(instantiator_reg);  // Push instantiator type arguments.
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kInstantiateTypeArgumentsRuntimeEntry,
+                                locs());
+  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
+  __ Pop(result_reg);  // Pop instantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
-  // 'result_reg': Instantiated type arguments.
 }
 
 
@@ -1925,6 +1945,115 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
+                             BinarySmiOpInstr* shift_left) {
+  const bool is_truncating = shift_left->is_truncating();
+  const LocationSummary& locs = *shift_left->locs();
+  Register left = locs.in(0).reg();
+  Register result = locs.out().reg();
+  Label* deopt = shift_left->CanDeoptimize() ?
+      compiler->AddDeoptStub(shift_left->deopt_id(), kDeoptBinarySmiOp) : NULL;
+  if (locs.in(1).IsConstant()) {
+    const Object& constant = locs.in(1).constant();
+    ASSERT(constant.IsSmi());
+    // Immediate shift operation takes 5 bits for the count.
+    const intptr_t kCountLimit = 0x1F;
+    const intptr_t value = Smi::Cast(constant).Value();
+    if (value == 0) {
+      // No code needed.
+    } else if ((value < 0) || (value >= kCountLimit)) {
+      // This condition may not be known earlier in some cases because
+      // of constant propagation, inlining, etc.
+      if ((value >=kCountLimit) && is_truncating) {
+        __ mov(result, ShifterOperand(0));
+      } else {
+        // Result is Mint or exception.
+        __ b(deopt);
+      }
+    } else {
+      if (!is_truncating) {
+        // Check for overflow (preserve left).
+        __ Lsl(IP, left, value);
+        __ cmp(left, ShifterOperand(IP, ASR, value));
+        __ b(deopt, NE);  // Overflow.
+      }
+      // Shift for result now we know there is no overflow.
+      __ Lsl(result, left, value);
+    }
+    return;
+  }
+
+  // Right (locs.in(1)) is not constant.
+  Register right = locs.in(1).reg();
+  Range* right_range = shift_left->right()->definition()->range();
+  if (shift_left->left()->BindsToConstant() && !is_truncating) {
+    // TODO(srdjan): Implement code below for is_truncating().
+    // If left is constant, we know the maximal allowed size for right.
+    const Object& obj = shift_left->left()->BoundConstant();
+    if (obj.IsSmi()) {
+      const intptr_t left_int = Smi::Cast(obj).Value();
+      if (left_int == 0) {
+        __ cmp(right, ShifterOperand(0));
+        __ b(deopt, MI);
+        return;
+      }
+      const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
+      const bool right_needs_check =
+          (right_range == NULL) ||
+          !right_range->IsWithin(0, max_right - 1);
+      if (right_needs_check) {
+        __ cmp(right,
+               ShifterOperand(reinterpret_cast<int32_t>(Smi::New(max_right))));
+        __ b(deopt, CS);
+      }
+      __ SmiUntag(right);
+      __ Lsl(result, left, right);
+    }
+    return;
+  }
+
+  const bool right_needs_check =
+      (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+  if (is_truncating) {
+    if (right_needs_check) {
+      const bool right_may_be_negative =
+          (right_range == NULL) ||
+          !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+      if (right_may_be_negative) {
+        ASSERT(shift_left->CanDeoptimize());
+        __ cmp(right, ShifterOperand(0));
+        __ b(deopt, MI);
+      }
+      Label done, is_not_zero;
+      __ cmp(right,
+             ShifterOperand(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
+      __ mov(result, ShifterOperand(0), CS);
+      __ SmiUntag(right, CC);
+      __ Lsl(result, left, right, CC);
+    } else {
+      __ SmiUntag(right);
+      __ Lsl(result, left, right);
+    }
+  } else {
+    if (right_needs_check) {
+      ASSERT(shift_left->CanDeoptimize());
+      __ cmp(right,
+             ShifterOperand(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
+      __ b(deopt, CS);
+    }
+    // Left is not a constant.
+    // Check if count too large for handling it inlined.
+    __ SmiUntag(right);
+    // Overflow test (preserve left and right);
+    __ Lsl(IP, left, right);
+    __ cmp(left, ShifterOperand(IP, ASR, right));
+    __ b(deopt, NE);  // Overflow.
+    // Shift for result now we know there is no overflow.
+    __ Lsl(result, left, right);
+  }
+}
+
+
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (op_kind() == Token::kTRUNCDIV) {
@@ -1946,7 +2075,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
 
 void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (op_kind() == Token::kSHL) {
-    UNIMPLEMENTED();
+    EmitSmiShiftLeft(compiler, this);
     return;
   }
 
@@ -2040,7 +2169,24 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       }
       case Token::kSHR: {
-        UNIMPLEMENTED();
+        // sarl operation masks the count to 5 bits.
+        const intptr_t kCountLimit = 0x1F;
+        intptr_t value = Smi::Cast(constant).Value();
+
+        if (value == 0) {
+          // TODO(vegorov): should be handled outside.
+          break;
+        } else if (value < 0) {
+          // TODO(vegorov): should be handled outside.
+          __ b(deopt);
+          break;
+        }
+
+        value = value + kSmiTagSize;
+        if (value >= kCountLimit) value = kCountLimit;
+
+        __ Asr(result, left, value);
+        __ SmiTag(result);
         break;
       }
 
@@ -2530,7 +2676,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   // Load receiver into R0.
-  __ ldr(R0, Address(SP, (instance_call()->ArgumentCount() - 1) * kWordSize));
+  __ LoadFromOffset(kLoadWord, R0, SP,
+                    (instance_call()->ArgumentCount() - 1) * kWordSize);
 
   LoadValueCid(compiler, R2, R0,
                (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
@@ -2772,14 +2919,6 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!compiler->is_optimizing()) {
-    // Add deoptimization descriptor for deoptimizing instructions that may
-    // be inserted before this instruction.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   GetDeoptId(),
-                                   0);  // No token position.
-  }
-
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

@@ -340,14 +340,23 @@ ASSEMBLER_TEST_RUN(MoveExtendMemory, test) {
 ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
   __ movl(ECX, Immediate(42));
   __ xorl(ECX, ECX);
-  __ orl(ECX, Immediate(256));
-  __ movl(EAX, Immediate(4));
-  __ orl(ECX, EAX);
+  __ orl(ECX, Immediate(0x100));
+  __ movl(EAX, Immediate(0x648));
+  __ orl(ECX, EAX);  // 0x748.
   __ movl(EAX, Immediate(0xfff0));
-  __ andl(ECX, EAX);
+  __ andl(ECX, EAX);  // 0x740.
+  __ pushl(Immediate(0xF6FF));
+  __ andl(ECX, Address(ESP, 0));  // 0x640.
+  __ popl(EAX);  // Discard.
   __ movl(EAX, Immediate(1));
-  __ orl(ECX, EAX);
-  __ xorl(ECX, Immediate(0));
+  __ orl(ECX, EAX);  // 0x641.
+  __ pushl(Immediate(0x7));
+  __ orl(ECX, Address(ESP, 0));  // 0x647.
+  __ popl(EAX);  // Discard.
+  __ xorl(ECX, Immediate(0));  // 0x647.
+  __ pushl(Immediate(0x1C));
+  __ xorl(ECX, Address(ESP, 0));  // 0x65B.
+  __ popl(EAX);  // Discard.
   __ movl(EAX, ECX);
   __ ret();
 }
@@ -355,7 +364,7 @@ ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
 
 ASSEMBLER_TEST_RUN(Bitwise, test) {
   typedef int (*Bitwise)();
-  EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise>(test->entry())());
+  EXPECT_EQ(0x65B, reinterpret_cast<Bitwise>(test->entry())());
 }
 
 

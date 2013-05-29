@@ -24,6 +24,14 @@ class StringTest {
     testCharCodes();
   }
 
+  static void testLength() {
+    String str = "";
+    for (var i = 0; i < 20; i++) {
+      testStringLength(i, str);
+      str += " ";
+    }
+  }
+
   static void testOutOfRange() {
     String a = "Hello";
     bool exception_caught = false;
@@ -53,7 +61,7 @@ class StringTest {
     String str = "string";
     for (int i = 0; i < str.length; i++) {
       Expect.equals(true, str[i] is String);
-      Expect.equals(1, str[i].length);
+      testStringLength(1, str[i]);
     }
   }
 
@@ -68,7 +76,7 @@ class StringTest {
     var a = "One";
     var b = "Four";
     var c = a + b;
-    Expect.equals(7, c.length);
+    testStringLength(7, c);
     Expect.equals("OneFour", c);
   }
 
@@ -284,6 +292,12 @@ class StringTest {
     test("");
     test(" ");
   }
+}
+
+void testStringLength(int length, String str) {
+  Expect.equals(length, str.length);
+  (length == 0 ? Expect.isTrue : Expect.isFalse)(str.isEmpty);
+  (length != 0 ? Expect.isTrue : Expect.isFalse)(str.isNotEmpty);
 }
 
 main() {

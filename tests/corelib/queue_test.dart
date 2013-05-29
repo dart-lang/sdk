@@ -124,7 +124,7 @@ abstract class QueueTest {
   }
 
   void checkQueue(Queue queue, int expectedSize, int expectedSum) {
-    Expect.equals(expectedSize, queue.length);
+    testLength(expectedSize, queue);
     int sum = 0;
     void sumElements(int value) {
       sum += value;
@@ -136,6 +136,7 @@ abstract class QueueTest {
   testLength(int length, Queue queue) {
     Expect.equals(length, queue.length);
     ((length == 0) ? Expect.isTrue : Expect.isFalse)(queue.isEmpty);
+    ((length != 0) ? Expect.isTrue : Expect.isFalse)(queue.isNotEmpty);
   }
 
   void testAddAll() {

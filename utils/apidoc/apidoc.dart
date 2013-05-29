@@ -17,7 +17,6 @@ library apidoc;
 import 'dart:async';
 import 'dart:io';
 import 'dart:json' as json;
-import 'dart:uri';
 
 import 'html_diff.dart';
 

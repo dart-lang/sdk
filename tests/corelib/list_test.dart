@@ -49,6 +49,7 @@ void main() {
 void testLength(int length, List list) {
   Expect.equals(length, list.length);
   (length == 0 ? Expect.isTrue : Expect.isFalse)(list.isEmpty);
+  (length != 0 ? Expect.isTrue : Expect.isFalse)(list.isNotEmpty);
 }
 
 void testTypedLengthInvariantOperations(List list) {

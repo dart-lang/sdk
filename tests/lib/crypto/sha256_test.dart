@@ -6,7 +6,7 @@
 library sha256_test;
 
 import "package:expect/expect.dart";
-import 'dart:crypto';
+import "package:crypto/crypto.dart";
 
 part 'sha256_long_test_vectors.dart';
 part 'sha256_short_test_vectors.dart';

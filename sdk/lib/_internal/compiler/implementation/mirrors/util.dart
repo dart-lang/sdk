@@ -58,6 +58,7 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
   }
 
   bool get isEmpty => length == 0;
+  bool get isNotEmpty => !isEmpty;
   V putIfAbsent(K key, V ifAbsent()) {
     if (!containsKey(key)) {
       V value = this[key];

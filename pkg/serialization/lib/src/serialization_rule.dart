@@ -408,7 +408,7 @@ class MirrorRule extends NamedObjectRule {
     // So follow one or the other path depending if it has a colon, which we
     // assume is in any URI and can't be in a Symbol.
     if (name.contains(":")) {
-      var uri = new Uri(name);
+      var uri = Uri.parse(name);
       var libMirror = currentMirrorSystem().libraries[uri];
       return libMirror.classes[new Symbol(type)];
     } else {
@@ -529,6 +529,7 @@ class _LazyMap implements Map {
 
   int get length => _raw.length;
   bool get isEmpty => _raw.isEmpty;
+  bool get isNotEmpty => _raw.isNotEmpty;
   Iterable get keys => _raw.keys;
   bool containsKey(x) => _raw.containsKey(x);
 

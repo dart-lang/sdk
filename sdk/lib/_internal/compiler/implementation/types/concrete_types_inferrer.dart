@@ -33,7 +33,7 @@ class ClassBaseType implements BaseType {
 
   ClassBaseType(this.element);
 
-  bool operator ==(BaseType other) {
+  bool operator ==(var other) {
     if (identical(this, other)) return true;
     if (other is! ClassBaseType) return false;
     return element == other.element;

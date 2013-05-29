@@ -4,7 +4,6 @@
 library engine;
 
 import 'dart:collection' show HasNextIterator;
-import 'dart:uri' show Uri;
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'instrumentation.dart';
@@ -2828,7 +2827,7 @@ class RecursiveXmlVisitor_6 extends RecursiveXmlVisitor<Object> {
       for (XmlAttributeNode attribute in node.attributes) {
         if (javaStringEqualsIgnoreCase(attribute.name.lexeme, AnalysisContextImpl._ATTRIBUTE_SRC)) {
           try {
-            Uri uri = new Uri.fromComponents(path: attribute.text);
+            Uri uri = new Uri(path: attribute.text);
             String fileName = uri.path;
             if (AnalysisEngine.isDartFileName(fileName)) {
               Source librarySource = AnalysisContextImpl_this._sourceFactory.resolveUri(htmlSource, fileName);

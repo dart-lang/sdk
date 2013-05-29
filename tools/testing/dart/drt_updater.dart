@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(antonm): rename to something like test_runner_updater.
+
 library drt_updater;
 
 import "dart:async";
@@ -60,18 +62,18 @@ class _DartiumUpdater {
   }
 }
 
-_DartiumUpdater _dumpRenderTreeUpdater;
+_DartiumUpdater _contentShellUpdater;
 _DartiumUpdater _dartiumUpdater;
 
 _DartiumUpdater runtimeUpdater(Map configuration) {
   String runtime = configuration['runtime'];
   if (runtime == 'drt' && configuration['drt'] == '') {
-    // Download the default DumpRenderTree from Google Storage.
-    if (_dumpRenderTreeUpdater == null) {
-      _dumpRenderTreeUpdater = new _DartiumUpdater('DumpRenderTree',
-                                                   'get_archive.py', 'drt');
+    // Download the default content shell from Google Storage.
+    if (_contentShellUpdater == null) {
+      _contentShellUpdater = new _DartiumUpdater('Content Shell',
+                                                 'get_archive.py', 'drt');
     }
-    return _dumpRenderTreeUpdater;
+    return _contentShellUpdater;
   } else if (runtime == 'dartium' && configuration['dartium'] == '') {
     // Download the default Dartium from Google Storage.
     if (_dartiumUpdater == null) {

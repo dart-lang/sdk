@@ -68,7 +68,7 @@ void testSessions(int sessionCount) {
 void testTimeout(int sessionCount) {
   var client = new HttpClient();
   HttpServer.bind("127.0.0.1", 0).then((server) {
-    server.sessionTimeout = 0;
+    server.sessionTimeout = 1;
     var timeouts = [];
     server.listen((request) {
       var c = new Completer();

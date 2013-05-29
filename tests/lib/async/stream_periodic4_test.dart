@@ -8,13 +8,7 @@ library dart.test.stream_from_iterable;
 import "dart:async";
 import '../../../pkg/unittest/lib/unittest.dart';
 
-int iteration = 0;
-
 void runTest(period, maxElapsed, pauseDuration) {
-  print("Iteration: $iteration");
-  var myIteration = iteration;
-  iteration++;
-
   Function done = expectAsync0(() { });
 
   Stopwatch watch = new Stopwatch()..start();
@@ -29,10 +23,8 @@ void runTest(period, maxElapsed, pauseDuration) {
         expect(true, false);
       } else {
         subscription.cancel();
-        print("Cancelling subscription of iteration: $myIteration");
         // Call 'done' ourself, since it won't be invoked in the onDone handler.
         runTest(period * 2, maxElapsed * 2, pauseDuration * 2);
-        print("Invoking done of iteration inside listener: $myIteration");
         done();
         return;
       }
@@ -46,10 +38,7 @@ void runTest(period, maxElapsed, pauseDuration) {
         subscription.resume();
       });
     }
-  }, onDone: () {
-    print("Invoking done of iteration: $myIteration");
-    done();
-  });
+  }, onDone: done);
 }
 
 main() {

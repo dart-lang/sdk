@@ -78,5 +78,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS implements Map<String, String>
   int get length => $dom_length;
 
   bool get isEmpty => $dom_key(0) == null;
+
+  bool get isNotEmpty => !isEmpty;
 $!MEMBERS
 }

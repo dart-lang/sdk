@@ -31,6 +31,8 @@ main() {
       request.response.close();
     });
 
+    expect(pub.nextLine(), completion(matches(r'Uploading\.\.\.+')));
+
     expect(pub.nextLine(),
         completion(equals('Package test_pkg 1.0.0 uploaded!')));
     pub.shouldExit(0);

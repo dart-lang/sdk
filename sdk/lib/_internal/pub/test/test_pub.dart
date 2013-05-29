@@ -13,7 +13,6 @@ import 'dart:collection' show Queue;
 import 'dart:io' hide sleep;
 import 'dart:json' as json;
 import 'dart:math';
-import 'dart:uri';
 import 'dart:utf';
 
 import 'package:http/testing.dart';
@@ -238,15 +237,13 @@ bool _abortScheduled = false;
 /// Enum identifying a pub command that can be run with a well-defined success
 /// output.
 class RunCommand {
-  static final install = new RunCommand('install',
-      new RegExp("Dependencies installed!\$"));
-
-  static final update = new RunCommand('update',
-      new RegExp("Dependencies updated!\$"));
+  static final install = new RunCommand('install', 'installed');
+  static final update = new RunCommand('update', 'updated');
 
   final String name;
   final RegExp success;
-  RunCommand(this.name, this.success);
+  RunCommand(this.name, String verb)
+      : success = new RegExp("Dependencies $verb!\$");
 }
 
 /// Many tests validate behavior that is the same between pub install and

@@ -52,12 +52,13 @@ void testList(List list, n) {
 void testLength(var lengthable, int size) {
   print(lengthable.runtimeType);  // Show what hangs the test.
   int length = 0;
-  // If length or isEmpty is not a constant-time (or very fast) operation,
-  // this will timeout.
+  // If length, isEmpty or isNotEmpty is not a constant-time (or very fast)
+  // operation, this will timeout.
   for (int i = 0; i < 100000; i++) {
     if (!lengthable.isEmpty) length += lengthable.length;
+    if (lengthable.isNotEmpty) length += lengthable.length;
   }
-  if (length != size * 100000) throw "Bad length: $length / size: $size";
+  if (length != size * 200000) throw "Bad length: $length / size: $size";
 }
 
 

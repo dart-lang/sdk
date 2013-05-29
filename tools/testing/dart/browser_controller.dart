@@ -37,6 +37,8 @@ abstract class Browser {
    */
   Process process;
 
+  Function logger;
+
   /**
    * Id of the browser
    */
@@ -46,11 +48,15 @@ abstract class Browser {
   Function onClose;
 
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
-  bool debugPrint = true;
+  bool debugPrint = false;
+
+  // We use this to gracefully handle double calls to close.
+  bool underTermination = false;
 
   void _logEvent(String event) {
     String toLog = "$this ($id) - ${new DateTime.now()}: $event \n";
     if (debugPrint) print("usageLog: $toLog");
+    if (logger != null) logger(toLog);
     _usageLog.write(toLog);
   }
 
@@ -119,6 +125,11 @@ abstract class Browser {
   /** Close the browser */
   Future<bool> close() {
     _logEvent("Close called on browser");
+    if (underTermination) {
+      _logEvent("Browser already under termination.");
+      return new Future.immediate(true);
+    }
+    underTermination = true;
     if (process == null) {
       _logEvent("No process open, nothing to kill.");
       return new Future.immediate(true);
@@ -178,6 +189,102 @@ abstract class Browser {
   Future<bool> start(String url);
 }
 
+class Safari extends Browser {
+  /**
+   * The binary used to run safari - changing this can be nececcary for
+   * testing or using non standard safari installation.
+   */
+  const String binary = "/Applications/Safari.app/Contents/MacOS/Safari";
+
+  /**
+   * We get the safari version by parsing a version file
+   */
+  const String versionFile = "/Applications/Safari.app/Contents/version.plist";
+
+
+  Future<bool> allowPopUps() {
+    var command = "defaults";
+    var args = ["write", "com.apple.safari",
+                "com.apple.Safari.ContentPageGroupIdentifier."
+                "WebKit2JavaScriptCanOpenWindowsAutomatically",
+                "1"];
+    return Process.run(command, args).then((result) {
+        if (result.exitCode != 0) {
+          _logEvent("Could not disable pop-up blocking for safari");
+          return false;
+        }
+        return true;
+    });
+  }
+
+  Future<String> getVersion() {
+    /**
+     * Example of the file:
+     * <?xml version="1.0" encoding="UTF-8"?>
+     * <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+     * <plist version="1.0">
+     * <dict>
+     *	     <key>BuildVersion</key>
+     * 	     <string>2</string>
+     * 	     <key>CFBundleShortVersionString</key>
+     * 	     <string>6.0.4</string>
+     * 	     <key>CFBundleVersion</key>
+     * 	     <string>8536.29.13</string>
+     * 	     <key>ProjectName</key>
+     * 	     <string>WebBrowser</string>
+     * 	     <key>SourceVersion</key>
+     * 	     <string>7536029013000000</string>
+     * </dict>
+     * </plist>
+     */
+    File f = new File(versionFile);
+    return f.readAsLines().then((content) {
+      bool versionOnNextLine = false;
+      for (var line in content) {
+        if (versionOnNextLine) return line;
+        if (line.contains("CFBundleShortVersionString")) {
+          versionOnNextLine = true;
+        }
+      }
+      return null;
+    });
+  }
+
+  void _createLaunchHTML(var path, var url) {
+    var file = new File("${path}/launch.html");
+    var randomFile = file.openSync(FileMode.WRITE);
+    var content = '<script language="JavaScript">location = "$url"</script>';
+    randomFile.writeStringSync(content);
+    randomFile.close();
+  }
+
+  Future<bool> start(String url) {
+    _logEvent("Starting Safari browser on: $url");
+    // Get the version and log that.
+    return allowPopUps().then((success) {
+      if (!success) {
+        return new Future.immediate(false);
+      }
+      return getVersion().then((version) {
+        _logEvent("Got version: $version");
+        var args = ["'$url'"];
+        return new Directory('').createTemp().then((userDir) {
+          _cleanup = () { userDir.delete(recursive: true); };
+          _createLaunchHTML(userDir.path, url);
+          var args = ["${userDir.path}/launch.html"];
+          return startBrowser(binary, args);
+        });
+      }).catchError((e) {
+        _logEvent("Running $binary --version failed with $e");
+        return false;
+      });
+    });
+  }
+
+  String toString() => "Safari";
+}
+
+
 class Chrome extends Browser {
   /**
    * The binary used to run chrome - changing this can be nececcary for
@@ -235,21 +342,11 @@ class AndroidChrome extends Browser {
     var turnScreenOnIntent =
         new Intent(mainAction, turnScreenOnPackage, '.Main');
 
-    // FIXME(kustermann): Remove this hack as soon as we've got a v8 mirror in
-    // golo
     var testing_resources_dir =
         new Path('third_party/android_testing_resources');
-    var testing_resources_dir_tmp = 
-        new Path('/tmp/android_testing_resources');
     if (!new Directory.fromPath(testing_resources_dir).existsSync()) {
-      DebugLogger.warning("$testing_resources_dir doesn't exist, "
-                          "trying to use $testing_resources_dir_tmp");
-      testing_resources_dir = testing_resources_dir_tmp;
-      if (!new Directory.fromPath(testing_resources_dir).existsSync()) {
-        DebugLogger.error("$testing_resources_dir_tmp doesn't exist either. "
-                          " This is a fatal error. Exiting now.");
-        exit(1);
-      }
+      DebugLogger.error("$testing_resources_dir doesn't exist. Exiting now.");
+      exit(1);
     }
 
     var chromeAPK = testing_resources_dir.append('com.android.chrome-1.apk');
@@ -392,6 +489,8 @@ class BrowserTestRunner {
   String local_ip;
   String browserName;
   int maxNumBrowsers;
+  // Used to send back logs from the browser (start, stop etc)
+  Function logger;
 
   bool underTermination = false;
 
@@ -518,6 +617,9 @@ class BrowserTestRunner {
         print("could not kill browser $id");
         return;
       }
+      // We don't want to start a new browser if we are terminating.
+      if (underTermination) return;
+
       var browser;
       if (browserName == 'chromeOnAndroid') {
         browser = new AndroidChrome(adbDeviceMapping[id]);
@@ -607,13 +709,18 @@ class BrowserTestRunner {
   }
 
   Browser getInstance() {
+    var browser;
     if (browserName == "chrome") {
-      return new Chrome();
+      browser = new Chrome();
     } else if (browserName == "ff") {
-      return new Firefox();
+      browser = new Firefox();
+    } else if (browserName == "safari") {
+      browser = new Safari();
     } else {
       throw "Non supported browser for browser controller";
     }
+    browser.logger = logger;
+    return browser;
   }
 }
 
@@ -673,11 +780,11 @@ class BrowserTestingServer {
         request.response.write(textResponse);
         request.listen((_) {}, onDone: request.response.close);
         request.response.done.catchError((error) {
-        if (!underTermination) {
-          print("URI ${request.uri}");
-          print("Textresponse $textResponse");
-          throw("Error returning content to browser: $error");
-        }
+          if (!underTermination) {
+            print("URI ${request.uri}");
+            print("Textresponse $textResponse");
+            throw "Error returning content to browser: $error";
+          }
       });
       }
       void errorHandler(e) {

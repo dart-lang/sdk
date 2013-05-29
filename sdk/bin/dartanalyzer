@@ -29,16 +29,16 @@ done
 
 DART_SDK=""
 if [ $FOUND_SDK = 0 ] ; then
-  if [ -f $DART_ANALYZER_HOME/lib/core/core.dart ] ; then
-    DART_SDK="--dart-sdk $DART_ANALYZER_HOME"
+  if [ -f "$DART_ANALYZER_HOME/lib/core/core.dart" ] ; then
+    DART_SDK=(--dart-sdk "$DART_ANALYZER_HOME")
   else
-    DART_SDK_HOME=$(dirname $DART_ANALYZER_HOME)/dart-sdk
-    if [ -d $DART_SDK_HOME ] ; then
-      DART_SDK="--dart-sdk $DART_SDK_HOME"
+    DART_SDK_HOME=$(dirname "$DART_ANALYZER_HOME")/dart-sdk
+    if [ -d "$DART_SDK_HOME" ] ; then
+      DART_SDK=(--dart-sdk "$DART_SDK_HOME")
     else
-      DART_SDK_HOME=$(dirname $DART_SDK_HOME)/dart-sdk
-      if [ -d $DART_SDK_HOME ] ; then
-        DART_SDK="--dart-sdk $DART_SDK_HOME"
+      DART_SDK_HOME=$(dirname "$DART_SDK_HOME")/dart-sdk
+      if [ -d "$DART_SDK_HOME" ] ; then
+        DART_SDK=(--dart-sdk "$DART_SDK_HOME")
       else
         echo "Couldn't find Dart SDK. Specify with --dart-sdk cmdline argument"
       fi
@@ -46,9 +46,9 @@ if [ $FOUND_SDK = 0 ] ; then
   fi
 fi
 
-if [ -f $DART_SDK_HOME/util/dartanalyzer/dartanalyzer.jar ] ; then
+if [ -f "$DART_SDK_HOME/util/dartanalyzer/dartanalyzer.jar" ] ; then
   DART_ANALYZER_LIBS=$DART_SDK_HOME/util/dartanalyzer
-elif [ -f $DART_ANALYZER_HOME/util/dartanalyzer/dartanalyzer.jar ] ; then
+elif [ -f "$DART_ANALYZER_HOME/util/dartanalyzer/dartanalyzer.jar" ] ; then
   DART_ANALYZER_LIBS=$DART_ANALYZER_HOME/util/dartanalyzer
 else
   echo "Configuration problem. Couldn't find dartanalyzer.jar."
@@ -76,4 +76,4 @@ else
 fi
 
 exec java $EXTRA_JVMARGS $DART_JVMARGS -ea -jar \
-  "$DART_ANALYZER_LIBS/dartanalyzer.jar" ${DART_SDK} $@
+  "$DART_ANALYZER_LIBS/dartanalyzer.jar" "${DART_SDK[@]}" $@

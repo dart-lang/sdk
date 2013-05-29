@@ -13,6 +13,8 @@ patch class int {
       ((9 <= codePoint) && (codePoint <= 13)); // CR, LF, TAB, etc.
   }
 
+  static bool is64Bit() => 1 << 32 is _Smi;
+
   static int _tryParseSmi(String str) {
     if (str.isEmpty) return null;
     var ix = 0;
@@ -40,7 +42,8 @@ patch class int {
         return null;  // Empty.
       }
     }
-    if ((endIx - ix) >= 9) {
+    int smiLimit = is64Bit() ? 18 : 9;
+    if ((endIx - ix) >= smiLimit) {
       return null;  // May not fit into a Smi.
     }
     var result = 0;

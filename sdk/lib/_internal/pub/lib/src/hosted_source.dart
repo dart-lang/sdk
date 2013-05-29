@@ -7,7 +7,6 @@ library hosted_source;
 import 'dart:async';
 import 'dart:io' as io;
 import 'dart:json' as json;
-import 'dart:uri';
 
 import 'package:http/http.dart' as http;
 import 'package:pathos/path.dart' as path;
@@ -214,8 +213,8 @@ String _getSourceDirectory(String url) {
 Uri _makeUrl(description, String pattern(String server, String package)) {
   var parsed = _parseDescription(description);
   var server = parsed.last;
-  var package = encodeUriComponent(parsed.first);
-  return new Uri(pattern(server, package));
+  var package = Uri.encodeComponent(parsed.first);
+  return Uri.parse(pattern(server, package));
 }
 
 /// Parses [id] into its server, package name, and version components, then
@@ -225,9 +224,9 @@ Uri _makeVersionUrl(PackageId id,
     String pattern(String server, String package, String version)) {
   var parsed = _parseDescription(id.description);
   var server = parsed.last;
-  var package = encodeUriComponent(parsed.first);
-  var version = encodeUriComponent(id.version.toString());
-  return new Uri(pattern(server, package, version));
+  var package = Uri.encodeComponent(parsed.first);
+  var version = Uri.encodeComponent(id.version.toString());
+  return Uri.parse(pattern(server, package, version));
 }
 
 /// Parses the description for a package.

@@ -13,7 +13,6 @@ import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
-import 'dart:uri';
 
 ReceivePort exit_port;
 Set expectedTests;

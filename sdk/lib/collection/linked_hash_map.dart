@@ -39,5 +39,7 @@ class LinkedHashMap<K, V> implements Map<K, V> {
 
   external bool get isEmpty;
 
+  external bool get isNotEmpty;
+
   String toString() => Maps.mapToString(this);
 }

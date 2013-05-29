@@ -28,6 +28,7 @@ main() {
         .create();
 
     var pub = startPublish(server);
+
     confirmPublish(pub);
 
     server.handle('POST', '/token', (request) {
@@ -41,6 +42,7 @@ main() {
       });
     });
 
+    expect(pub.nextLine(), completion(matches(r'Uploading\.\.\.+')));
     authorizePub(pub, server, 'new access token');
 
     server.handle('GET', '/packages/versions/new.json', (request) {

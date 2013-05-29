@@ -1395,7 +1395,7 @@ abstract class AnalysisErrorListener {
   /**
    * An error listener that ignores errors that are reported to it.
    */
-  AnalysisErrorListener _NULL_LISTENER = new AnalysisErrorListener_4();
+  static AnalysisErrorListener _NULL_LISTENER = new AnalysisErrorListener_4();
   /**
    * This method is invoked when an error has been found by the analysis engine.
    * @param error the error that was just found (not {@code null})

@@ -9,7 +9,6 @@
 library export_map;
 
 import 'dart:io';
-import 'dart:uri';
 
 import 'package:analyzer_experimental/analyzer.dart';
 import 'package:pathos/path.dart' as pathos;

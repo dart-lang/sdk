@@ -24,15 +24,6 @@ main() {
       })
     ]).create();
 
-    // TODO(rnystrom): The "\" in a Windows path gets treated like a regex
-    // character, so hack escape. A better fix is to use a literal string
-    // instead of a RegExp to validate, but that requires us to move the
-    // stack traces out of the stderr when we invoke pub. See also: #4706.
-    var escapePath = badPath.replaceAll(r"\", r"\\");
-
-    schedulePub(args: ['install'],
-        error:
-            new RegExp("Could not find package 'foo' at '$escapePath'."),
-        exitCode: 1);
+    pubInstall(error: "Could not find package 'foo' at '$badPath'.");
   });
 }

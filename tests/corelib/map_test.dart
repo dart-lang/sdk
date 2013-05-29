@@ -47,7 +47,7 @@ void testLinkedHashMap() {
   Expect.equals(false, map.containsKey(1));
   map[1] = 1;
   map[1] = 2;
-  Expect.equals(1, map.length);
+  testLength(1, map);
 }
 
 void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
@@ -60,20 +60,20 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   int value7 = 70;
   int value8 = 80;
 
-  Expect.equals(0, map.length);
+  testLength(0, map);
 
   map[key1] = value1;
   Expect.equals(value1, map[key1]);
   map[key1] = value2;
   Expect.equals(false, map.containsKey(key2));
-  Expect.equals(1, map.length);
+  testLength(1, map);
 
   map[key1] = value1;
   Expect.equals(value1, map[key1]);
   // Add enough entries to make sure the table grows.
   map[key2] = value2;
   Expect.equals(value2, map[key2]);
-  Expect.equals(2, map.length);
+  testLength(2, map);
   map[key3] = value3;
   Expect.equals(value2, map[key2]);
   Expect.equals(value3, map[key3]);
@@ -98,15 +98,15 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   Expect.equals(value6, map[key6]);
   Expect.equals(value7, map[key7]);
   Expect.equals(value8, map[key8]);
-  Expect.equals(8, map.length);
+  testLength(8, map);
 
   map.remove(key4);
   Expect.equals(false, map.containsKey(key4));
-  Expect.equals(7, map.length);
+  testLength(7, map);
 
   // Test clearing the table.
   map.clear();
-  Expect.equals(0, map.length);
+  testLength(0, map);
   Expect.equals(false, map.containsKey(key1));
   Expect.equals(false, map.containsKey(key2));
   Expect.equals(false, map.containsKey(key3));
@@ -119,34 +119,34 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   // Test adding and removing again.
   map[key1] = value1;
   Expect.equals(value1, map[key1]);
-  Expect.equals(1, map.length);
+  testLength(1, map);
   map[key2] = value2;
   Expect.equals(value2, map[key2]);
-  Expect.equals(2, map.length);
+  testLength(2, map);
   map[key3] = value3;
   Expect.equals(value3, map[key3]);
   map.remove(key3);
-  Expect.equals(2, map.length);
+  testLength(2, map);
   map[key4] = value4;
   Expect.equals(value4, map[key4]);
   map.remove(key4);
-  Expect.equals(2, map.length);
+  testLength(2, map);
   map[key5] = value5;
   Expect.equals(value5, map[key5]);
   map.remove(key5);
-  Expect.equals(2, map.length);
+  testLength(2, map);
   map[key6] = value6;
   Expect.equals(value6, map[key6]);
   map.remove(key6);
-  Expect.equals(2, map.length);
+  testLength(2, map);
   map[key7] = value7;
   Expect.equals(value7, map[key7]);
   map.remove(key7);
-  Expect.equals(2, map.length);
+  testLength(2, map);
   map[key8] = value8;
   Expect.equals(value8, map[key8]);
   map.remove(key8);
-  Expect.equals(2, map.length);
+  testLength(2, map);
 
   Expect.equals(true, map.containsKey(key1));
   Expect.equals(true, map.containsValue(value1));
@@ -213,11 +213,11 @@ void testDeletedElement(Map map) {
   map.clear();
   for (int i = 0; i < 100; i++) {
     map[1] = 2;
-    Expect.equals(1, map.length);
+    testLength(1, map);
     map.remove(1);
-    Expect.equals(0, map.length);
+    testLength(0, map);
   }
-  Expect.equals(0, map.length);
+  testLength(0, map);
 }
 
 void testMapLiteral() {
@@ -347,15 +347,15 @@ void testNumericKeys(Map map) {
   map[nan] = 'value:0';
   Expect.isFalse(map.containsKey(nan));
   Expect.equals(null, map[nan]);
-  Expect.equals(1, map.length);
+  testLength(1, map);
 
   map[nan] = 'value:1';
   Expect.isFalse(map.containsKey(nan));
   Expect.equals(null, map[nan]);
-  Expect.equals(2, map.length);
+  testLength(2, map);
 
   Expect.equals(null, map.remove(nan));
-  Expect.equals(2, map.length);
+  testLength(2, map);
 
   var count = 0;
   map.forEach((key, value) {
@@ -365,4 +365,10 @@ void testNumericKeys(Map map) {
 
   map.clear();
   Expect.isTrue(map.isEmpty);
+}
+
+void testLength(int length, Map map) {
+  Expect.equals(length, map.length);
+  (length == 0 ? Expect.isTrue : Expect.isFalse)(map.isEmpty);
+  (length != 0 ? Expect.isTrue : Expect.isFalse)(map.isNotEmpty);
 }

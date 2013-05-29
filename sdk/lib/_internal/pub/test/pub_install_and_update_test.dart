@@ -20,7 +20,8 @@ main() {
         d.dir(appPath, []).create();
 
         pubCommand(command,
-            error: new RegExp(r'^Could not find a file named "pubspec.yaml"'));
+            error: new RegExp(r'^Could not find a file named "pubspec.yaml" '
+                r'in the directory .*\.$'));
       });
 
       integration('a pubspec with a "name" key', () {
@@ -28,9 +29,9 @@ main() {
           d.pubspec({"dependencies": {"foo": null}})
         ]).create();
 
-        pubCommand(command, error: new RegExp(
-            r'^pubspec.yaml is missing the required "name" field '
-            r'\(e\.g\. "name: myapp"\)\.'));
+        pubCommand(command, error:
+            'pubspec.yaml is missing the required "name" field '
+            '(e.g. "name: myapp").');
       });
     });
 
@@ -112,7 +113,7 @@ main() {
       ]).create();
 
       pubCommand(command,
-          error: new RegExp(r"^Incompatible dependencies on 'baz':"));
+          error: new RegExp("^Incompatible dependencies on 'baz':\n"));
     });
   });
 }

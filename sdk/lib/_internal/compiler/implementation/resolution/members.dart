@@ -20,6 +20,12 @@ abstract class TreeElements {
   void setSelector(Node node, Selector selector);
   void setGetterSelectorInComplexSendSet(SendSet node, Selector selector);
   void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector);
+  Selector getIteratorSelector(ForIn node);
+  Selector getMoveNextSelector(ForIn node);
+  Selector getCurrentSelector(ForIn node);
+  Selector setIteratorSelector(ForIn node, Selector selector);
+  Selector setMoveNextSelector(ForIn node, Selector selector);
+  Selector setCurrentSelector(ForIn node, Selector selector);
 
   /// Register additional dependencies required by [currentElement].
   /// For example, elements that are used by a backend.
@@ -41,8 +47,9 @@ class TreeElementMapping implements TreeElements {
 
   operator []=(Node node, Element element) {
     assert(invariant(node, () {
-      if (node is FunctionExpression) {
-        return !node.modifiers.isExternal();
+      FunctionExpression functionExpression = node.asFunctionExpression();
+      if (functionExpression != null) {
+        return !functionExpression.modifiers.isExternal();
       }
       return true;
     }));
@@ -97,6 +104,34 @@ class TreeElementMapping implements TreeElements {
 
   Selector getOperatorSelectorInComplexSendSet(SendSet node) {
     return selectors[node.assignmentOperator];
+  }
+
+  // The following methods set selectors on the "for in" node. Since	
+  // we're using three selectors, we need to use children of the node,	
+  // and we arbitrarily choose which ones.	
+ 
+  Selector setIteratorSelector(ForIn node, Selector selector) {
+    selectors[node] = selector;
+  }
+
+  Selector getIteratorSelector(ForIn node) {
+    return selectors[node];
+  }
+
+  Selector setMoveNextSelector(ForIn node, Selector selector) {
+    selectors[node.forToken] = selector;
+  }
+	
+  Selector getMoveNextSelector(ForIn node) {
+    return selectors[node.forToken];
+  }
+
+  Selector setCurrentSelector(ForIn node, Selector selector) {
+    selectors[node.inToken] = selector;
+  }
+
+  Selector getCurrentSelector(ForIn node) {
+    return selectors[node.inToken];
   }
 
   bool isParameterChecked(Element element) {
@@ -1953,8 +1988,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   visitIf(If node) {
     visit(node.condition);
-    visit(node.thenPart);
-    visit(node.elsePart);
+    visitIn(node.thenPart, new BlockScope(scope));
+    visitIn(node.elsePart, new BlockScope(scope));
   }
 
   static bool isLogicalOperator(Identifier op) {
@@ -2016,7 +2051,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       // TODO(johnniwinther): Ensure correct behavior if currentClass is a
       // patch.
-      target = currentClass.lookupSuperSelector(selector);
+      target = currentClass.lookupSuperSelector(selector, compiler);
       // [target] may be null which means invoking noSuchMethod on
       // super.
       if (target == null) {
@@ -2349,7 +2384,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       registerSend(getterSelector, getter);
       mapping.setGetterSelectorInComplexSendSet(node, getterSelector);
       if (node.isSuperCall) {
-        getter = currentClass.lookupSuperSelector(getterSelector);
+        getter = currentClass.lookupSuperSelector(getterSelector, compiler);
         if (getter == null) {
           target = warnAndCreateErroneousElement(
               node, selector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
@@ -2554,13 +2589,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (cls.isAbstract(compiler)) {
       compiler.backend.registerAbstractClassInstantiation(mapping);
     }
-    // [cls] might be the declaration element and we want to include injected
-    // members.
-    cls.implementation.forEachInstanceField(
-        (ClassElement enclosingClass, Element member) {
-          world.addToWorkList(member);
-        },
-        includeSuperAndInjectedMembers: true);
 
     if (isSymbolConstructor) {
       if (node.isConst()) {
@@ -2754,10 +2782,13 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   visitForIn(ForIn node) {
     LibraryElement library = enclosingElement.getLibrary();
+    mapping.setIteratorSelector(node, compiler.iteratorSelector);
     world.registerDynamicGetter(compiler.iteratorSelector.name,
                                 compiler.iteratorSelector);
+    mapping.setCurrentSelector(node, compiler.currentSelector);
     world.registerDynamicGetter(compiler.currentSelector.name,
                                 compiler.currentSelector);
+    mapping.setMoveNextSelector(node, compiler.moveNextSelector);
     world.registerDynamicInvocation(compiler.moveNextSelector.name,
                                     compiler.moveNextSelector);
 
@@ -2974,17 +3005,25 @@ class ResolverVisitor extends MappingVisitor<Element> {
     compiler.backend.registerCatchStatement(world, mapping);
     // Check that if catch part is present, then
     // it has one or two formal parameters.
+    VariableDefinitions exceptionDefinition;
+    VariableDefinitions stackTraceDefinition;
     if (node.formals != null) {
-      if (node.formals.isEmpty) {
+      Link<Node> formalsToProcess = node.formals.nodes;
+      if (formalsToProcess.isEmpty) {
         error(node, MessageKind.EMPTY_CATCH_DECLARATION);
-      }
-      if (!node.formals.nodes.tail.isEmpty) {
-        if (!node.formals.nodes.tail.tail.isEmpty) {
-          for (Node extra in node.formals.nodes.tail.tail) {
-            error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
+      } else {
+        exceptionDefinition = formalsToProcess.head.asVariableDefinitions();
+        formalsToProcess = formalsToProcess.tail;
+        if (!formalsToProcess.isEmpty) {
+          stackTraceDefinition = formalsToProcess.head.asVariableDefinitions();
+          formalsToProcess = formalsToProcess.tail;
+          if (!formalsToProcess.isEmpty) {
+            for (Node extra in formalsToProcess) {
+              error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
+            }
           }
+          compiler.backend.registerStackTraceInCatch(mapping);
         }
-        compiler.backend.registerStackTraceInCatch(mapping);
       }
 
       // Check that the formals aren't optional and that they have no
@@ -3020,6 +3059,19 @@ class ResolverVisitor extends MappingVisitor<Element> {
     inCatchBlock = true;
     visitIn(node.block, blockScope);
     inCatchBlock = oldInCatchBlock;
+
+    if (node.type != null && exceptionDefinition != null) {
+      DartType exceptionType = mapping.getType(node.type);
+      Node exceptionVariable = exceptionDefinition.definitions.nodes.head;
+      VariableElementX exceptionElement = mapping[exceptionVariable];
+      exceptionElement.variables.type = exceptionType;
+    }
+    if (stackTraceDefinition != null) {
+      Node stackTraceVariable = stackTraceDefinition.definitions.nodes.head;
+      VariableElementX stackTraceElement = mapping[stackTraceVariable];
+      world.registerInstantiatedClass(compiler.stackTraceClass, mapping);
+      stackTraceElement.variables.type = compiler.stackTraceClass.rawType;
+    }
   }
 
   visitTypedef(Typedef node) {

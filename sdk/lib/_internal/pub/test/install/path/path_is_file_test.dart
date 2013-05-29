@@ -10,7 +10,7 @@ import '../../test_pub.dart';
 
 main() {
   initConfig();
-  integration('path dependency when path is a d.file', () {
+  integration('path dependency when path is a file', () {
     d.dir('foo', [
       d.libDir('foo'),
       d.libPubspec('foo', '0.0.1')
@@ -28,15 +28,7 @@ main() {
       })
     ]).create();
 
-    // TODO(rnystrom): The "\" in a Windows path gets treated like a regex
-    // character, so hack escape. A better fix is to use a literal string
-    // instead of a RegExp to validate, but that requires us to move the
-    // stack traces out of the stderr when we invoke pub. See also: #4706.
-    var escapePath = dummyPath.replaceAll(r"\", r"\\");
-
-    schedulePub(args: ['install'],
-        error: new RegExp("Path dependency for package 'foo' must refer to a "
-                          "directory, not a file. Was '$escapePath'."),
-        exitCode: 1);
+    pubInstall(error: "Path dependency for package 'foo' must refer to a "
+                      "directory, not a file. Was '$dummyPath'.");
   });
 }

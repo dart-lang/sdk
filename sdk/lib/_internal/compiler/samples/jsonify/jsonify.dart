@@ -4,7 +4,6 @@
 
 import 'dart:io';
 import 'dart:json';
-import 'dart:uri';
 
 // TODO(ahe): Should be dart:mirrors.
 import '../../implementation/mirrors/mirrors.dart';

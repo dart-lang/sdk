@@ -6,7 +6,6 @@
 library dummy_compiler;
 
 import 'dart:async';
-import 'dart:uri';
 
 import '../../sdk/lib/_internal/compiler/compiler.dart';
 
@@ -32,6 +31,7 @@ Future<String> provider(Uri uri) {
                   class Closure {}
                   class Dynamic_ {}
                   class Null {}
+                  class StackTrace {}
                   class LinkedHashMap {}
                   identical(a, b) => true;
                   getRuntimeTypeInfo(o) {}
@@ -93,9 +93,9 @@ void handler(Uri uri, int begin, int end, String message, Diagnostic kind) {
 
 main() {
   Future<String> result =
-      compile(new Uri.fromComponents(scheme: 'main'),
-              new Uri.fromComponents(scheme: 'lib', path: '/'),
-              new Uri.fromComponents(scheme: 'package', path: '/'),
+      compile(new Uri(scheme: 'main'),
+              new Uri(scheme: 'lib', path: '/'),
+              new Uri(scheme: 'package', path: '/'),
               provider, handler);
   result.then((String code) {
     if (code == null) {

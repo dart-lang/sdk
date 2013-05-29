@@ -129,6 +129,11 @@ abstract class String implements Comparable<String>, Pattern {
   bool get isEmpty;
 
   /**
+   * Returns whether this string is not empty.
+   */
+  bool get isNotEmpty;
+
+  /**
    * Creates a new string by concatenating this string with [other].
    *
    * A sequence of strings can be concatenated by using [Iterable.join]:

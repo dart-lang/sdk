@@ -6,7 +6,14 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME(Map dictionary) {
-    return JS('RtcSessionDescription', 'new RTCSessionDescription(#)',
+    // TODO(efortuna): Remove this check if when you can actually construct with
+    // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
+    // but one can't be used as a constructor).
+    var constructorName = JS('', 'window[#]',
+        Device.isFirefox ? '${Device.propertyPrefix}RTCSessionDescription' : 
+       'RTCSessionDescription');
+    return JS('RtcSessionDescription', 
+        'new #(#)', constructorName,
         convertDartToNative_SerializedScriptValue(dictionary));
   }
 $!MEMBERS

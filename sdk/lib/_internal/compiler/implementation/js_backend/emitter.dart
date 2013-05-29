@@ -1254,7 +1254,6 @@ class CodeEmitterTask extends CompilerTask {
       String holder = namer.isolateAccess(backend.getImplementationClass(cls));
       for (TypeCheck check in typeChecks[cls]) {
         ClassElement cls = check.cls;
-        buffer.write('$holder.${namer.operatorIs(check.cls)}$_=${_}true$N');
         buffer.write('$holder.${namer.operatorIs(cls)}$_=${_}true$N');
         Substitution substitution = check.substitution;
         if (substitution != null) {
@@ -1741,7 +1740,8 @@ class CodeEmitterTask extends CompilerTask {
     List<Constant> constants = handler.getConstantsForEmission();
     for (Constant constant in constants) {
       if (constant is InterceptorConstant) {
-        needed.add(constant.dispatchedType.element);
+        InterceptorConstant inceptorConstant = constant;
+        needed.add(inceptorConstant.dispatchedType.element);
       }
     }
 
@@ -3033,16 +3033,28 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         for (LibraryElement library in sortedLibraries) {
           List<CodeBuffer> buffers = libraryBuffers[library];
           var buffer = buffers[0];
+          var uri = library.canonicalUri;
+          if (uri.scheme == 'file' && compiler.sourceMapUri != null) {
+            // TODO(ahe): It is a hack to use compiler.sourceMapUri
+            // here.  It should be relative to the main JavaScript
+            // output file.
+            uri = relativize(
+                compiler.sourceMapUri, library.canonicalUri, false);
+          }
           if (buffer != null) {
             mainBuffer
-                ..write('["${library.getLibraryOrScriptName()}",$_{$n')
+                ..write('["${library.getLibraryOrScriptName()}",$_')
+                ..write('"${uri}",$_')
+                ..write('{$n')
                 ..addBuffer(buffer)
                 ..write('}],$n');
           }
           buffer = buffers[1];
           if (buffer != null) {
             deferredBuffer
-                ..write('["${library.getLibraryOrScriptName()}",$_{$n')
+                ..write('["${library.getLibraryOrScriptName()}",$_')
+                ..write('"${uri}",$_')
+                ..write('{$n')
                 ..addBuffer(buffer)
                 ..write('}],$n');
           }
@@ -3227,7 +3239,8 @@ const String REFLECTION_DATA_PARSER = r'''
   for (var i = 0; i < length; i++) {
     var data = reflectionData[i];
     var name = data[0];
-    var descriptor = data[1];
+    var uri = data[1];
+    var descriptor = data[2];
     var classes = [];
     var functions = [];
     for (var property in descriptor) {
@@ -3242,7 +3255,6 @@ const String REFLECTION_DATA_PARSER = r'''
         classes.push(element[""]);
       }
     }
-    var uri = ".../library" + i + ".dart";
     libraries.push([name, uri, classes, functions]);
   }
 })''';

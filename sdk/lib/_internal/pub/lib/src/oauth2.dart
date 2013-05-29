@@ -6,7 +6,6 @@ library oauth2;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 
 import 'package:oauth2/oauth2.dart';
 import 'package:pathos/path.dart' as path;

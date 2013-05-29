@@ -4,7 +4,6 @@
 library engine.resolver;
 
 import 'dart:collection';
-import 'dart:uri' show Uri;
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'instrumentation.dart';
@@ -880,7 +879,7 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
         ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
         if (scriptSourcePath != null) {
           try {
-            new Uri(scriptSourcePath);
+            Uri.parse(scriptSourcePath);
             Source scriptSource = _context.sourceFactory.resolveUri(htmlSource, scriptSourcePath);
             script.scriptSource = scriptSource;
             if (!scriptSource.exists()) {
@@ -1994,7 +1993,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
         } else if (identifier.inGetterContext()) {
           _resolver.reportError(StaticWarningCode.UNDEFINED_GETTER, identifier, [identifier.name, targetType.name]);
         } else {
-          System.out.println("two ${identifier.name}");
+          print("two ${identifier.name}");
           _resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, identifier, [identifier.name]);
         }
       }

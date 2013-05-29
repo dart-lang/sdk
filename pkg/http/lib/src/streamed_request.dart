@@ -6,7 +6,6 @@ library streamed_request;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 
 import 'byte_stream.dart';
 import 'base_request.dart';

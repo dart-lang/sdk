@@ -51,7 +51,6 @@ class PipeServerGame {
       String srcFileName =
           getDataFilename("tests/standalone/io/readline_test1.dat");
       Stream fileInput = new File(srcFileName).openRead();
-
       fileInput.pipe(_socket).then((_) {
         var tempDir = new Directory('').createTempSync();
         var dstFileName = tempDir.path + "/readline_test1.dat";

@@ -150,7 +150,8 @@ class HValidator extends HInstructionVisitor {
       bool inBasicBlock = instruction.isInBasicBlock();
       return everyInstruction(instruction.inputs, (input, count) {
         if (inBasicBlock) {
-          return countInstruction(input.usedBy, instruction) == count;
+          return input.isInBasicBlock()
+              && countInstruction(input.usedBy, instruction) == count;
         } else {
           return countInstruction(input.usedBy, instruction) == 0;
         }
@@ -161,7 +162,8 @@ class HValidator extends HInstructionVisitor {
     bool hasCorrectUses() {
       if (!instruction.isInBasicBlock()) return true;
       return everyInstruction(instruction.usedBy, (use, count) {
-        return countInstruction(use.inputs, instruction) == count;
+        return use.isInBasicBlock()
+            && countInstruction(use.inputs, instruction) == count;
       });
     }
 

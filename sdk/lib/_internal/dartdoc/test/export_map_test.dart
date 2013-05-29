@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:uri';
 
 import 'package:pathos/path.dart' as pathos;
 import 'package:unittest/unittest.dart';

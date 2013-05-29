@@ -437,13 +437,9 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Push arguments descriptor array.
   __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
   __ PushList((1 << R4) | (1 << R5) | (1 << R6) | (1 << IP));
-
-  // R2: Smi-tagged arguments array length.
-  PushArgumentsArray(assembler);
-
   __ CallRuntime(kMegamorphicCacheMissHandlerRuntimeEntry);
   // Remove arguments.
-  __ Drop(4);
+  __ Drop(3);
   __ Pop(R0);  // Get result into R0.
 
   // Restore IC data and arguments descriptor.

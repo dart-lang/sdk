@@ -6,13 +6,12 @@
 library utils;
 
 import 'dart:async';
-import 'dart:crypto';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:json' as json;
 import 'dart:mirrors';
-import 'dart:uri';
 
+import "package:crypto/crypto.dart";
 import 'package:pathos/path.dart' as path;
 
 /// A pair of values.
@@ -321,8 +320,9 @@ Map<String, String> queryToMap(String queryList) {
 String mapToQuery(Map<String, String> map) {
   var pairs = <List<String>>[];
   map.forEach((key, value) {
-    key = encodeUriComponent(key);
-    value = (value == null || value.isEmpty) ? null : encodeUriComponent(value);
+    key = Uri.encodeQueryComponent(key);
+    value = (value == null || value.isEmpty)
+       ? null : Uri.encodeQueryComponent(value);
     pairs.add([key, value]);
   });
   return pairs.map((pair) {
@@ -339,13 +339,6 @@ bool urisEqual(Uri uri1, Uri uri2) =>
 
 /// Return [uri] with redundant port information removed.
 Uri canonicalizeUri(Uri uri) {
-  if (uri == null) return null;
-
-  var sansPort = new Uri.fromComponents(
-      scheme: uri.scheme, userInfo: uri.userInfo, domain: uri.domain,
-      path: uri.path, query: uri.query, fragment: uri.fragment);
-  if (uri.scheme == 'http' && uri.port == 80) return sansPort;
-  if (uri.scheme == 'https' && uri.port == 443) return sansPort;
   return uri;
 }
 
@@ -354,10 +347,10 @@ Uri canonicalizeUri(Uri uri) {
 void mapAddAll(Map destination, Map source) =>
   source.forEach((key, value) => destination[key] = value);
 
-/// Decodes a URL-encoded string. Unlike [decodeUriComponent], this includes
+/// Decodes a URL-encoded string. Unlike [Uri.decodeComponent], this includes
 /// replacing `+` with ` `.
 String urlDecode(String encoded) =>
-  decodeUriComponent(encoded.replaceAll("+", " "));
+  Uri.decodeComponent(encoded.replaceAll("+", " "));
 
 /// Takes a simple data structure (composed of [Map]s, [Iterable]s, scalar
 /// objects, and [Future]s) and recursively resolves all the [Future]s contained
@@ -472,8 +465,8 @@ String yamlToString(data) {
     // TODO(nweiz): Serialize using the YAML library once it supports
     // serialization.
 
-    // Use indentation for maps.
-    if (data is Map) {
+    // Use indentation for (non-empty) maps.
+    if (data is Map && !data.isEmpty) {
       if (isMapValue) {
         buffer.writeln();
         indent += '  ';

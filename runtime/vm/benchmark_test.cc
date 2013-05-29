@@ -434,10 +434,8 @@ BENCHMARK(StandaloneSnapshotSize) {
       "import 'dart:isolate';\n"
       "import 'dart:mirrors';\n"
       "import 'dart:typed_data';\n"
-      "import 'dart:uri';\n"
       "import 'dart:utf';\n"
       "import 'dart:json';\n"
-      "import 'dart:crypto';\n"
       "import 'dart:builtin';\n"
       "import 'dart:io';\n"
       "\n";

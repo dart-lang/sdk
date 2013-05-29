@@ -15,7 +15,6 @@
     'collection_patch_cc_file': '<(gen_source_dir)/collection_patch_gen.cc',
     'collection_dev_cc_file': '<(gen_source_dir)/collection_dev_gen.cc',
     'collection_dev_patch_cc_file': '<(gen_source_dir)/collection_dev_patch_gen.cc',
-    'crypto_cc_file': '<(gen_source_dir)/crypto_gen.cc',
     'math_cc_file': '<(gen_source_dir)/math_gen.cc',
     'math_patch_cc_file': '<(gen_source_dir)/math_patch_gen.cc',
     'mirrors_cc_file': '<(gen_source_dir)/mirrors_gen.cc',
@@ -26,7 +25,6 @@
     'json_patch_cc_file': '<(gen_source_dir)/json_patch_gen.cc',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
     'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
-    'uri_cc_file': '<(gen_source_dir)/uri_gen.cc',
     'utf_cc_file': '<(gen_source_dir)/utf_gen.cc',
     'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
@@ -103,7 +101,6 @@
         'generate_collection_patch_cc_file',
         'generate_collection_dev_cc_file',
         'generate_collection_dev_patch_cc_file',
-        'generate_crypto_cc_file',
         'generate_math_cc_file',
         'generate_math_patch_cc_file',
         'generate_isolate_cc_file',
@@ -114,7 +111,6 @@
         'generate_mirrors_patch_cc_file',
         'generate_typed_data_cc_file',
         'generate_typed_data_patch_cc_file',
-        'generate_uri_cc_file',
         'generate_utf_cc_file',
       ],
       'includes': [
@@ -137,7 +133,6 @@
         '<(collection_patch_cc_file)',
         '<(collection_dev_cc_file)',
         '<(collection_dev_patch_cc_file)',
-        '<(crypto_cc_file)',
         '<(math_cc_file)',
         '<(math_patch_cc_file)',
         '<(isolate_cc_file)',
@@ -148,7 +143,6 @@
         '<(mirrors_patch_cc_file)',
         '<(typed_data_cc_file)',
         '<(typed_data_patch_cc_file)',
-        '<(uri_cc_file)',
         '<(utf_cc_file)',
       ],
       'include_dirs': [
@@ -411,39 +405,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(collection_dev_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_crypto_cc_file',
-      'type': 'none',
-      'toolsets':['host', 'target'],
-      'includes': [
-        # Load the shared crypto sources.
-        '../../sdk/lib/crypto/crypto_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_crypto_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(crypto_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(crypto_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::crypto_source_paths_',
-            '--library_name', 'dart:crypto',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(crypto_cc_file)'' file.'
         },
       ]
     },
@@ -917,39 +878,6 @@
             '<@(_sources)',
           ],
           'message': 'Generating ''<(typed_data_patch_cc_file)'' file.'
-        },
-      ]
-    },
-    {
-      'target_name': 'generate_uri_cc_file',
-      'type': 'none',
-      'toolsets':['host', 'target'],
-      'includes': [
-        # Load the shared uri sources.
-        '../../sdk/lib/uri/uri_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_uri_cc',
-          'inputs': [
-            '../tools/gen_library_src_paths.py',
-            '<(libgen_in_cc_file)',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(uri_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/gen_library_src_paths.py',
-            '--output', '<(uri_cc_file)',
-            '--input_cc', '<(libgen_in_cc_file)',
-            '--include', 'vm/bootstrap.h',
-            '--var_name', 'dart::Bootstrap::uri_source_paths_',
-            '--library_name', 'dart:uri',
-            '<@(_sources)',
-          ],
-          'message': 'Generating ''<(uri_cc_file)'' file.'
         },
       ]
     },

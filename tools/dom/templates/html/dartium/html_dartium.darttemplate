@@ -80,7 +80,7 @@ HtmlDocument get document {
 
 
 Element query(String selector) => document.query(selector);
-List<Element> queryAll(String selector) => document.queryAll(selector);
+ElementList queryAll(String selector) => document.queryAll(selector);
 
 int _getNewIsolateId() => _Utils._getNewIsolateId();
 

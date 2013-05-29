@@ -264,7 +264,14 @@ class JSNumber extends Interceptor implements num {
   }
 }
 
-class JSInt extends JSNumber implements int {
+/**
+ * The interceptor class for [int]s.
+ *
+ * This class implements double since in JavaScript all numbers are doubles, so
+ * while we want to treat `2.0` as an integer for some operations, its
+ * interceptor should answer `true` to `is double`.
+ */
+class JSInt extends JSNumber implements int, double {
   const JSInt();
 
   bool get isEven => (this & 1) == 0;

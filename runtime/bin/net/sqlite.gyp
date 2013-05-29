@@ -39,6 +39,7 @@
   'targets': [
     {
       'target_name': 'sqlite_dart',  # Added by Dart (the _dart postfix)
+      'toolsets':['host','target'],
       'conditions': [
         [ 'chromeos==1' , {
             'defines': [

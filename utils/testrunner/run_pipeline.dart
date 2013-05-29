@@ -157,7 +157,6 @@ wrapStage() {
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
-import 'dart:uri';
 part '${normalizePath('${config["runnerDir"]}/layout_test_controller.dart')}';
     ''';
     extras = '''
@@ -241,7 +240,6 @@ library layout_test;
 import 'dart:math';
 import 'dart:isolate';
 import 'dart:html';
-import 'dart:uri';
 import 'package:unittest/unittest.dart' as unittest;
 import '${normalizePath('$testFile')}' as test;
 part '${normalizePath('${config["runnerDir"]}/layout_test_runner.dart')}';

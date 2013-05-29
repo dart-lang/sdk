@@ -10,7 +10,7 @@
  * testing.
  *
  * We have taken great care to ensure AST nodes can be cached between
- * compiler instances.  Part of this is requires that we always access
+ * compiler instances.  Part of this requires that we always access
  * resolution results through TreeElements.
  *
  * So please, do not add additional elements to this library, and do

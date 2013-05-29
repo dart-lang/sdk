@@ -21,8 +21,7 @@ main() {
 
     d.appDir([dependencyMap("foo"), dependencyMap("bar")]).create();
 
-    schedulePub(args: ['update'],
-        output: new RegExp(r"Dependencies updated!$"));
+    pubUpdate();
 
     d.packagesDir({
       "foo": "1.0.0",
@@ -32,8 +31,7 @@ main() {
 
     d.appDir([dependencyMap("foo")]).create();
 
-    schedulePub(args: ['update'],
-        output: new RegExp(r"Dependencies updated!$"));
+    pubUpdate();
 
     d.packagesDir({
       "foo": "1.0.0",

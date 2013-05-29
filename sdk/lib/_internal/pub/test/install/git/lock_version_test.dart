@@ -26,8 +26,7 @@ main() {
     d.appDir([{"git": "../foo.git"}]).create();
 
     // This install should lock the foo.git dependency to the current revision.
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir('foo', [
@@ -44,8 +43,7 @@ main() {
     ]).commit();
 
     // This install shouldn't update the foo.git dependency due to the lockfile.
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir('foo', [

@@ -4,7 +4,6 @@
 
 library elements;
 
-import 'dart:uri';
 
 import 'modelx.dart';
 import '../tree/tree.dart';
@@ -827,8 +826,8 @@ abstract class ClassElement extends TypeDeclarationElement
   void reverseBackendMembers();
 
   Element lookupMember(SourceString memberName);
-  Element lookupSelector(Selector selector);
-  Element lookupSuperSelector(Selector selector);
+  Element lookupSelector(Selector selector, Compiler compiler);
+  Element lookupSuperSelector(Selector selector, Compiler compiler);
 
   Element lookupLocalMember(SourceString memberName);
   Element lookupBackendMember(SourceString memberName);

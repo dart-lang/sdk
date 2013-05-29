@@ -17,8 +17,8 @@ main() {
     integration('fails gracefully on a dependency from an unknown source', () {
       d.appDir([{"bad": "foo"}]).create();
 
-      pubCommand(command, error: new RegExp(
-          "Package 'myapp' depends on 'foo' from unknown source 'bad'.\$"));
+      pubCommand(command, error:
+          "Package 'myapp' depends on 'foo' from unknown source 'bad'.");
     });
 
     integration('fails gracefully on transitive dependency from an unknown '
@@ -30,8 +30,8 @@ main() {
 
       d.appDir([{"path": "../foo"}]).create();
 
-      pubCommand(command, error: new RegExp(
-          "Package 'foo' depends on 'bar' from unknown source 'bad'.\$"));
+      pubCommand(command, error:
+          "Package 'foo' depends on 'bar' from unknown source 'bad'.");
     });
 
     integration('ignores unknown source in lockfile', () {

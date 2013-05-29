@@ -20,8 +20,7 @@ main() {
     d.appDir([dependencyMap("foo", "1.2.3")]).create();
 
     // Run install once so it gets cached.
-    schedulePub(args: ['install'],
-        output: new RegExp("Dependencies installed!\$"));
+    pubInstall();
 
     // Clear the cache. We don't care about anything that was served during
     // the initial install.
@@ -31,8 +30,7 @@ main() {
     d.packagesDir({"foo": "1.2.3"}).validate();
 
     // Run the solver again now that it's cached.
-    schedulePub(args: ['install'],
-        output: new RegExp("Dependencies installed!\$"));
+    pubInstall();
 
     // The update should not have requested the pubspec since it's installed
     // locally already.

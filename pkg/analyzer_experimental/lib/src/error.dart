@@ -98,8 +98,8 @@ class _ContentReceiver implements Source_ContentReceiver {
 
   String get result => _buffer.toString();
 
-  void accept1(CharBuffer contents, _) =>
-    _buffer.write(contents.subSequence(0, contents.length));
+  void accept(CharBuffer contents, _) =>
+    _buffer.write(contents.subSequence(0, contents.length()));
 
   void accept2(String contents, _) => _buffer.write(contents);
 }

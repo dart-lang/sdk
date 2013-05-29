@@ -7,7 +7,7 @@
 import 'dart:_foreign_helper' show JS;
 import 'dart:_collection-dev' as _symbol_dev;
 import 'dart:_js_helper' show createInvocationMirror;
-import 'dart:_interceptors' show getInterceptor;
+import 'dart:_interceptors' show Interceptor;
 
 patch class MirrorSystem {
   patch static String getName(Symbol symbol) => _n(symbol);
@@ -38,7 +38,7 @@ class _MirrorSystem implements MirrorSystem {
       List<String> classes = data[2];
       List<String> functions = data[3];
       var libraries = result.putIfAbsent(name, () => <LibraryMirror>[]);
-      libraries.add(new _LibraryMirror(name, uri, classes, functions));
+      libraries.add(new _LibraryMirror(_s(name), uri, classes, functions));
     }
     return result;
   }
@@ -50,18 +50,22 @@ class _TypeMirror implements TypeMirror {
 }
 
 class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
-  final String _name;
+  final Symbol simpleName;
   final Uri uri;
   final List<String> _classes;
   final List<String> _functions;
 
-  _LibraryMirror(this._name, this.uri, this._classes, this._functions);
+  _LibraryMirror(this.simpleName, this.uri, this._classes, this._functions);
+
+  Symbol get qualifiedName => simpleName;
 
   Map<Symbol, ClassMirror> get classes {
     var result = new Map<Symbol, ClassMirror>();
     for (int i = 0; i < _classes.length; i += 2) {
       Symbol symbol = _s(_classes[i]);
-      result[symbol] = _reflectClass(symbol, _classes[i + 1]);
+      _ClassMirror cls = _reflectClass(symbol, _classes[i + 1]);
+      result[symbol] = cls;
+      cls._owner = this;
     }
     return result;
   }
@@ -75,6 +79,53 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
   InstanceMirror getField(Symbol fieldName) {
     // TODO(ahe): This is extremely dangerous!!!
     return _reflect(JS('', r'$[#]', _n(fieldName)));
+  }
+
+  Map<Symbol, MethodMirror> get functions {
+    var result = new Map<Symbol, MethodMirror>();
+    for (int i = 0; i < _functions.length; i++) {
+      String name = _functions[i];
+      Symbol symbol = _s(name);
+      int parameterCount = null; // TODO(ahe): Compute this.
+      _MethodMirror mirror =
+          // TODO(ahe): Create accessor for accessing $.  It is also
+          // used in js_helper.
+          new _MethodMirror(symbol, JS('', r'$[#]', name), parameterCount);
+      // TODO(ahe): Cache mirrors.
+      result[symbol] = mirror;
+      mirror._owner = this;
+    }
+    return result;
+  }
+
+  Map<Symbol, MethodMirror> get getters {
+    var result = new Map<Symbol, MethodMirror>();
+    // TODO(ahe): Implement this.
+    return result;
+  }
+
+  Map<Symbol, MethodMirror> get setters {
+    var result = new Map<Symbol, MethodMirror>();
+    // TODO(ahe): Implement this.
+    return result;
+  }
+
+  Map<Symbol, VariableMirror> get variables {
+    var result = new Map<Symbol, VariableMirror>();
+    // TODO(ahe): Implement this.
+    return result;
+  }
+
+  Map<Symbol, Mirror> get members {
+    Map<Symbol, Mirror> result = new Map<Symbol, Mirror>.from(classes);
+    addToResult(Symbol key, Mirror value) {
+      result[key] = value;
+    }
+    functions.forEach(addToResult);
+    getters.forEach(addToResult);
+    setters.forEach(addToResult);
+    variables.forEach(addToResult);
+    return result;
   }
 }
 
@@ -205,17 +256,51 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
   final Symbol simpleName;
   final _jsConstructor;
   final String _fields;
+  // Set as side-effect of accessing _LibraryMirror.classes.
+  _LibraryMirror _owner;
 
   _ClassMirror(this.simpleName, this._jsConstructor, this._fields);
 
-  Map<Symbol, Mirror> get members {
-    var result = new Map<Symbol, Mirror>();
+  Symbol get qualifiedName => _computeQualifiedName(owner, simpleName);
+
+  Map<Symbol, MethodMirror> get functions {
+    var result = new Map<Symbol, MethodMirror>();
+    // TODO(ahe): Implement this.
+    return result;
+  }
+
+  Map<Symbol, MethodMirror> get getters {
+    var result = new Map<Symbol, MethodMirror>();
+    // TODO(ahe): Implement this.
+    return result;
+  }
+
+  Map<Symbol, MethodMirror> get setters {
+    var result = new Map<Symbol, MethodMirror>();
+    // TODO(ahe): Implement this.
+    return result;
+  }
+
+  Map<Symbol, VariableMirror> get variables {
+    var result = new Map<Symbol, VariableMirror>();
     var s = _fields.split(";");
     var fields = s[1] == "" ? [] : s[1].split(",");
     for (String field in fields) {
       _VariableMirror mirror = new _VariableMirror.from(field);
       result[mirror.simpleName] = mirror;
+      mirror._owner = this;
     }
+    return result;
+  }
+
+  Map<Symbol, Mirror> get members {
+    Map<Symbol, Mirror> result = new Map<Symbol, Mirror>.from(functions);
+    addToResult(Symbol key, Mirror value) {
+      result[key] = value;
+    }
+    getters.forEach(addToResult);
+    setters.forEach(addToResult);
+    variables.forEach(addToResult);
     return result;
   }
 
@@ -254,6 +339,26 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
             constructorName, positionalArguments, namedArguments));
   }
 
+  DeclarationMirror get owner {
+    if (_owner == null) {
+      if (_jsConstructor is Interceptor) {
+        _owner = __reflectClass(Object).owner;
+      } else {
+        for (var list in _MirrorSystem.librariesByName.values) {
+          for (_LibraryMirror library in list) {
+            // This will set _owner field on all clasess as a side
+            // effect.  This gives us a fast path to reflect on a
+            // class without parsing reflection data.
+            library.classes;
+          }
+        }
+      }
+      if (_owner == null) {
+        throw new StateError('Class "${_n(simpleName)}" has no owner');
+      }
+    }
+    return _owner;
+  }
 
   String toString() => 'ClassMirror(${_n(simpleName)})';
 }
@@ -263,6 +368,7 @@ class _VariableMirror implements VariableMirror {
   final Symbol simpleName;
   final String _jsName;
   final bool _readOnly;
+  DeclarationMirror _owner;
 
   _VariableMirror(this.simpleName, this._jsName, this._readOnly);
 
@@ -286,6 +392,10 @@ class _VariableMirror implements VariableMirror {
   }
 
   TypeMirror get type => _MirrorSystem._dynamicType;
+
+  DeclarationMirror get owner => _owner;
+
+  Symbol get qualifiedName => _computeQualifiedName(owner, simpleName);
 
   static int fieldCode(int code) {
     if (code >= 60 && code <= 64) return code - 59;
@@ -314,7 +424,7 @@ function(reflectee) {
     }
     var jsFunction = JS('', '#[#]', reflectee, callName);
     int parameterCount = int.parse(callName.split(r'$')[1]);
-    return new _MethodMirror(jsFunction, parameterCount);
+    return new _MethodMirror(_s(callName), jsFunction, parameterCount);
   }
 
   InstanceMirror apply(List positionalArguments,
@@ -331,13 +441,26 @@ function(reflectee) {
 }
 
 class _MethodMirror implements MethodMirror {
+  final Symbol simpleName;
   final _jsFunction;
   final int _parameterCount;
+  DeclarationMirror _owner;
 
-  _MethodMirror(this._jsFunction, this._parameterCount);
+  _MethodMirror(this.simpleName, this._jsFunction, this._parameterCount);
 
   List<ParameterMirror> get parameters {
     // TODO(ahe): Fill the list with parameter mirrors.
     return new List<ParameterMirror>(_parameterCount);
   }
+
+  DeclarationMirror get owner => _owner;
+
+  Symbol get qualifiedName => _computeQualifiedName(owner, simpleName);
+}
+
+Symbol _computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
+  if (owner == null) return simpleName;
+  String ownerName = _n(owner.qualifiedName);
+  if (ownerName == '') return simpleName;
+  return _s('$ownerName.${_n(simpleName)}');
 }

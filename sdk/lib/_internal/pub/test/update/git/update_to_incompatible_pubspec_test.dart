@@ -21,8 +21,7 @@ main() {
 
     d.appDir([{"git": "../foo.git"}]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir('foo', [
@@ -35,10 +34,8 @@ main() {
       d.libPubspec('zoo', '1.0.0')
     ]).commit();
 
-    schedulePub(args: ['update'],
-        error: new RegExp(r'The name you specified for your dependency, '
-            r'"foo", doesn' "'" r't match the name "zoo" in its pubspec.'),
-        exitCode: 1);
+    pubUpdate(error: 'The name you specified for your dependency, '
+                     '"foo", doesn\'t match the name "zoo" in its pubspec.');
 
     d.dir(packagesPath, [
       d.dir('foo', [

@@ -204,10 +204,14 @@ void Assembler::PushObject(const Object& object) {
 }
 
 
-void Assembler::CompareObject(Register rd, Register rn, const Object& object) {
+void Assembler::CompareObject(Register rd1, Register rd2,
+                              Register rn, const Object& object) {
   ASSERT(rn != TMP1);
+  ASSERT(rd1 != TMP1);
+  ASSERT(rd1 != rd2);
   LoadObject(TMP1, object);
-  subu(rd, rn, TMP1);
+  slt(rd1, rn, TMP1);
+  slt(rd2, TMP1, rn);
 }
 
 

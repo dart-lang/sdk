@@ -10,7 +10,6 @@
 
 library lazy_locale_data;
 import 'dart:async';
-import 'dart:uri';
 import 'intl_helpers.dart';
 import 'dart:json' as json;
 

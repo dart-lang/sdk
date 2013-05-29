@@ -642,7 +642,7 @@ class Instruction : public ZoneAllocated {
   virtual Tag tag() const = 0;
 
   intptr_t deopt_id() const {
-    ASSERT(CanDeoptimize() || CanBeDeoptimizationTarget());
+    ASSERT(CanDeoptimize() || CanBecomeDeoptimizationTarget());
     return deopt_id_;
   }
 
@@ -846,10 +846,10 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   virtual void InheritDeoptTarget(Instruction* other);
 
   bool NeedsEnvironment() const {
-    return CanDeoptimize() || CanBeDeoptimizationTarget();
+    return CanDeoptimize() || CanBecomeDeoptimizationTarget();
   }
 
-  virtual bool CanBeDeoptimizationTarget() const {
+  virtual bool CanBecomeDeoptimizationTarget() const {
     return false;
   }
 
@@ -1152,7 +1152,7 @@ class BlockEntryInstr : public Instruction {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  virtual bool CanBeDeoptimizationTarget() const {
+  virtual bool CanBecomeDeoptimizationTarget() const {
     // BlockEntry environment is copied to Goto and Branch instructions
     // when we insert new blocks targeting this block.
     return true;
@@ -1860,7 +1860,7 @@ class ReturnInstr : public TemplateInstruction<1> {
   intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
-  virtual bool CanBeDeoptimizationTarget() const {
+  virtual bool CanBecomeDeoptimizationTarget() const {
     // Return instruction might turn into a Goto instruction after inlining.
     // Every Goto must have an environment.
     return true;
@@ -1940,7 +1940,7 @@ class GotoInstr : public TemplateInstruction<0> {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  virtual bool CanBeDeoptimizationTarget() const {
+  virtual bool CanBecomeDeoptimizationTarget() const {
     // Goto instruction can be used as a deoptimization target when LICM
     // hoists instructions out of the loop.
     return true;
@@ -2016,7 +2016,7 @@ class BranchInstr : public ControlInstruction {
   intptr_t InputCount() const;
   Value* InputAt(intptr_t i) const;
   virtual bool CanDeoptimize() const;
-  virtual bool CanBeDeoptimizationTarget() const;
+  virtual bool CanBecomeDeoptimizationTarget() const;
 
   virtual EffectSet Effects() const;
 
@@ -2762,8 +2762,8 @@ inline bool BranchInstr::CanDeoptimize() const {
 }
 
 
-inline bool BranchInstr::CanBeDeoptimizationTarget() const {
-  return comparison()->CanBeDeoptimizationTarget();
+inline bool BranchInstr::CanBecomeDeoptimizationTarget() const {
+  return comparison()->CanBecomeDeoptimizationTarget();
 }
 
 
@@ -2811,7 +2811,7 @@ class StrictCompareInstr : public ComparisonInstr {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanBeDeoptimizationTarget() const {
+  virtual bool CanBecomeDeoptimizationTarget() const {
     // StrictCompare can be merged into Branch and thus needs an environment.
     return true;
   }

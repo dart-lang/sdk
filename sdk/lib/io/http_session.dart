@@ -60,6 +60,7 @@ class _HttpSession implements HttpSession {
   Iterable get values => _data.values;
   int get length => _data.length;
   bool get isEmpty => _data.isEmpty;
+  bool get isNotEmpty => _data.isNotEmpty;
 }
 
 // Private class used to manage all the active sessions. The sessions are stored
@@ -73,7 +74,7 @@ class _HttpSessionManager {
   String createSessionId() {
     const int _KEY_LENGTH = 16;  // 128 bits.
     var data = _IOCrypto.getRandomBytes(_KEY_LENGTH);
-    return CryptoUtils.bytesToHex(data);
+    return _CryptoUtils.bytesToHex(data);
   }
 
   _HttpSession getSession(String id) {

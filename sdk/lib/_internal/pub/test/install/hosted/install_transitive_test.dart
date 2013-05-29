@@ -21,8 +21,7 @@ main() {
 
     d.appDir([dependencyMap("foo", "1.2.3")]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp("Dependencies installed!\$"));
+    pubInstall();
 
     d.cacheDir({"foo": "1.2.3", "bar": "2.0.4"}).validate();
     d.packagesDir({"foo": "1.2.3", "bar": "2.0.4"}).validate();

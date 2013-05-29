@@ -260,6 +260,9 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.completeEvent')
   @DocsEditable
   static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
+
+  @DomName('AudioContext.AudioContext')
+  @DocsEditable
   factory AudioContext() => _create();
 
   @DocsEditable

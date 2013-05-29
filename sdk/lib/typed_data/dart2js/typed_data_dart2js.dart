@@ -314,6 +314,8 @@ class Float32List extends TypedData implements JavaScriptIndexingBehavior, List<
 
   bool get isEmpty => this.length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<num> takeWhile(bool test(num value)) {
@@ -533,6 +535,8 @@ class Float64List extends TypedData implements JavaScriptIndexingBehavior, List<
   Set<num> toSet() => new Set<num>.from(this);
 
   bool get isEmpty => this.length == 0;
+
+  bool get isNotEmpty => !isEmpty;
 
   Iterable<num> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
@@ -754,6 +758,8 @@ class Int16List extends TypedData implements JavaScriptIndexingBehavior, List<in
 
   bool get isEmpty => this.length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
@@ -973,6 +979,8 @@ class Int32List extends TypedData implements JavaScriptIndexingBehavior, List<in
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
+
+  bool get isNotEmpty => !isEmpty;
 
   Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
@@ -1194,6 +1202,8 @@ class Int8List extends TypedData implements JavaScriptIndexingBehavior, List<int
 
   bool get isEmpty => this.length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
@@ -1413,6 +1423,8 @@ class Uint16List extends TypedData implements JavaScriptIndexingBehavior, List<i
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
+
+  bool get isNotEmpty => !isEmpty;
 
   Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
@@ -1634,6 +1646,8 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
 
   bool get isEmpty => this.length == 0;
 
+  bool get isNotEmpty => !isEmpty;
+
   Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
   Iterable<int> takeWhile(bool test(int value)) {
@@ -1852,6 +1866,8 @@ class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, 
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
+
+  bool get isNotEmpty => !isEmpty;
 
   Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 
@@ -2072,6 +2088,8 @@ class Uint8List extends TypedData implements JavaScriptIndexingBehavior, List<in
   Set<int> toSet() => new Set<int>.from(this);
 
   bool get isEmpty => this.length == 0;
+
+  bool get isNotEmpty => !isEmpty;
 
   Iterable<int> take(int n) => IterableMixinWorkaround.takeList(this, n);
 

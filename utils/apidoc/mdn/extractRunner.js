@@ -116,11 +116,11 @@ function parseFile(type, onDone, entry, file, searchResultIndex) {
 
   /*
   // TODO(jacobr): Make this run on platforms other than OS X.
-  var cmd = '../../../client/tests/drt/DumpRenderTree.app/Contents/MacOS/' +
-      'DumpRenderTree ' + absoluteDumpFileName;
+  var cmd = '../../../client/tests/drt/Content Shell.app/Contents/MacOS/' +
+      Content Shell' + absoluteDumpFileName;
   */
   // TODO(eub): Make this run on platforms other than Linux.
-  var cmd = '../../../client/tests/drt/DumpRenderTree ' + absoluteDumpFileName;
+  var cmd = '../../../client/tests/drt/content_shell ' + absoluteDumpFileName;
   console.log(cmd);
   exec(cmd,
     function (error, stdout, stderr) {

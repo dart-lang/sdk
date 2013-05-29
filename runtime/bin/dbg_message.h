@@ -255,7 +255,7 @@ class DbgMsgQueueList {
   static DbgMsgQueue* GetIsolateMsgQueueLocked(Dart_IsolateId isolate_id);
 
   static DbgMsgQueue* list_;
-  static dart::Mutex msg_queue_list_lock_;
+  static dart::Mutex* msg_queue_list_lock_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(DbgMsgQueueList);

@@ -23,7 +23,11 @@ class EnqueueTask extends CompilerTask {
       if (element.isLibrary()) {
         LibraryElementX library = element;
         Uri uri = library.canonicalUri;
-        if (uri.scheme != 'dart' && !uri.path.startsWith('_')) {
+        // Don't include private implementation libraries.  These
+        // libraries contain special classes that cause problems
+        // in other parts of the resolver (in particular Null and Void).
+        // TODO(ahe): Consider lifting this restriction.
+        if (uri.scheme != 'dart' || !uri.path.startsWith('_')) {
           members = library.localMembers;
           // TODO(ahe): Is this right?  Is this necessary?
           name = library.getLibraryOrScriptName();
@@ -278,6 +282,12 @@ abstract class Enqueuer {
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue) {
+          // Only the resolution queue needs to operate on individual
+          // fields. The codegen enqueuer inlines the potential field
+          // intializations in the constructor.
+          cls.implementation.forEachInstanceField((_, Element field) {
+            addToWorkList(field);
+          }, includeSuperAndInjectedMembers: true);
           compiler.resolver.checkClass(cls);
         }
       }

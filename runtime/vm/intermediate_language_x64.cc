@@ -785,6 +785,25 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
+static Condition FlipCondition(Condition condition) {
+  switch (condition) {
+    case EQUAL:         return EQUAL;
+    case NOT_EQUAL:     return NOT_EQUAL;
+    case LESS:          return GREATER;
+    case LESS_EQUAL:    return GREATER_EQUAL;
+    case GREATER:       return LESS;
+    case GREATER_EQUAL: return LESS_EQUAL;
+    case BELOW:         return ABOVE;
+    case BELOW_EQUAL:   return ABOVE_EQUAL;
+    case ABOVE:         return BELOW;
+    case ABOVE_EQUAL:   return BELOW_EQUAL;
+    default:
+      UNIMPLEMENTED();
+      return EQUAL;
+  }
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -797,7 +816,7 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 
   if (left.IsConstant()) {
     __ CompareObject(right.reg(), left.constant());
-    true_condition = FlowGraphCompiler::FlipCondition(true_condition);
+    true_condition = FlipCondition(true_condition);
   } else if (right.IsConstant()) {
     __ CompareObject(left.reg(), right.constant());
   } else if (right.IsStackSlot()) {
@@ -1866,35 +1885,33 @@ void InstantiateTypeArgumentsInstr::EmitNativeCode(
 
   // 'instantiator_reg' is the instantiator AbstractTypeArguments object
   // (or null).
-  if (!type_arguments().IsUninstantiatedIdentity() &&
-      !type_arguments().CanShareInstantiatorTypeArguments(
-          instantiator_class())) {
-    // If the instantiator is null and if the type argument vector
-    // instantiated from null becomes a vector of dynamic, then use null as
-    // the type arguments.
-    Label type_arguments_instantiated;
-    const intptr_t len = type_arguments().Length();
-    if (type_arguments().IsRawInstantiatedRaw(len)) {
-      const Immediate& raw_null =
-          Immediate(reinterpret_cast<intptr_t>(Object::null()));
-      __ cmpq(instantiator_reg, raw_null);
-      __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
-    }
-    // Instantiate non-null type arguments.
-    // A runtime call to instantiate the type arguments is required.
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ PushObject(type_arguments());
-    __ pushq(instantiator_reg);  // Push instantiator type arguments.
-    compiler->GenerateCallRuntime(token_pos(),
-                                  deopt_id(),
-                                  kInstantiateTypeArgumentsRuntimeEntry,
-                                  locs());
-    __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
-    __ popq(result_reg);  // Pop instantiated type arguments.
-    __ Bind(&type_arguments_instantiated);
+  ASSERT(!type_arguments().IsUninstantiatedIdentity() &&
+         !type_arguments().CanShareInstantiatorTypeArguments(
+             instantiator_class()));
+  // If the instantiator is null and if the type argument vector
+  // instantiated from null becomes a vector of dynamic, then use null as
+  // the type arguments.
+  Label type_arguments_instantiated;
+  const intptr_t len = type_arguments().Length();
+  if (type_arguments().IsRawInstantiatedRaw(len)) {
+    const Immediate& raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ cmpq(instantiator_reg, raw_null);
+    __ j(EQUAL, &type_arguments_instantiated, Assembler::kNearJump);
   }
+  // Instantiate non-null type arguments.
+  // A runtime call to instantiate the type arguments is required.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ PushObject(type_arguments());
+  __ pushq(instantiator_reg);  // Push instantiator type arguments.
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kInstantiateTypeArgumentsRuntimeEntry,
+                                locs());
+  __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
+  __ popq(result_reg);  // Pop instantiated type arguments.
+  __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
-  // 'result_reg': Instantiated type arguments.
 }
 
 
@@ -2167,11 +2184,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
         __ j(NEGATIVE, deopt);
         return;
       }
-      intptr_t tmp = (left_int > 0) ? left_int : ~left_int;
-      intptr_t max_right = kSmiBits;
-      while ((tmp >>= 1) != 0) {
-        max_right--;
-      }
+      const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
       const bool right_needs_check =
           (right_range == NULL) ||
           !right_range->IsWithin(0, max_right - 1);
@@ -2303,7 +2316,12 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+    ConstantInstr* constant = right()->definition()->AsConstant();
+    if (constant != NULL) {
+      summary->set_in(1, Location::RegisterOrSmiConstant(right()));
+    } else {
+      summary->set_in(1, Location::PrefersRegister());
+    }
     summary->set_out(Location::SameAsFirstInput());
     return summary;
   }
@@ -2427,8 +2445,51 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
     }
     return;
-  }
+  }  // locs()->in(1).IsConstant().
 
+
+  if (locs()->in(1).IsStackSlot()) {
+    const Address& right = locs()->in(1).ToStackSlotAddress();
+    switch (op_kind()) {
+      case Token::kADD: {
+        __ addq(left, right);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kSUB: {
+        __ subq(left, right);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kMUL: {
+        __ SmiUntag(left);
+        __ imulq(left, right);
+        if (deopt != NULL) __ j(OVERFLOW, deopt);
+        break;
+      }
+      case Token::kBIT_AND: {
+        // No overflow check.
+        __ andq(left, right);
+        break;
+      }
+      case Token::kBIT_OR: {
+        // No overflow check.
+        __ orq(left, right);
+        break;
+      }
+      case Token::kBIT_XOR: {
+        // No overflow check.
+        __ xorq(left, right);
+        break;
+      }
+      default:
+        UNREACHABLE();
+        break;
+    }
+    return;
+  }  // locs()->in(1).IsStackSlot().
+
+  // if locs()->in(1).IsRegister.
   Register right = locs()->in(1).reg();
   switch (op_kind()) {
     case Token::kADD: {
@@ -4069,14 +4130,6 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!compiler->is_optimizing()) {
-    // Add deoptimization descriptor for deoptimizing instructions that may
-    // be inserted before this instruction.
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   GetDeoptId(),
-                                   0);  // No token position.
-  }
-
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }

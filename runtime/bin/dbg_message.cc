@@ -1053,7 +1053,7 @@ void DbgMsgQueue::SendIsolateEvent(Dart_IsolateId isolate_id,
 
 
 DbgMsgQueue* DbgMsgQueueList::list_ = NULL;
-dart::Mutex DbgMsgQueueList::msg_queue_list_lock_;
+dart::Mutex* DbgMsgQueueList::msg_queue_list_lock_ = new dart::Mutex();
 
 
 void DbgMsgQueueList::Initialize() {
@@ -1085,7 +1085,7 @@ bool DbgMsgQueueList::AddIsolateMessage(Dart_IsolateId isolate_id,
                                         const char* start,
                                         const char* end,
                                         int debug_fd) {
-  MutexLocker ml(&msg_queue_list_lock_);
+  MutexLocker ml(msg_queue_list_lock_);
   DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueueLocked(isolate_id);
   if (queue != NULL) {
     queue->AddMessage(cmd_idx, start, end, debug_fd);
@@ -1096,7 +1096,7 @@ bool DbgMsgQueueList::AddIsolateMessage(Dart_IsolateId isolate_id,
 
 
 bool DbgMsgQueueList::InterruptIsolate(Dart_IsolateId isolate_id) {
-  MutexLocker ml(&msg_queue_list_lock_);
+  MutexLocker ml(msg_queue_list_lock_);
   DbgMsgQueue* queue = DbgMsgQueueList::GetIsolateMsgQueueLocked(isolate_id);
   if (queue != NULL) {
     queue->InterruptIsolate();
@@ -1107,7 +1107,7 @@ bool DbgMsgQueueList::InterruptIsolate(Dart_IsolateId isolate_id) {
 
 
 DbgMsgQueue* DbgMsgQueueList::AddIsolateMsgQueue(Dart_IsolateId isolate_id) {
-  MutexLocker ml(&msg_queue_list_lock_);
+  MutexLocker ml(msg_queue_list_lock_);
 
   DbgMsgQueue* queue = new DbgMsgQueue(isolate_id, list_);
   ASSERT(queue != NULL);
@@ -1117,7 +1117,7 @@ DbgMsgQueue* DbgMsgQueueList::AddIsolateMsgQueue(Dart_IsolateId isolate_id) {
 
 
 DbgMsgQueue* DbgMsgQueueList::GetIsolateMsgQueue(Dart_IsolateId isolate_id) {
-  MutexLocker ml(&msg_queue_list_lock_);
+  MutexLocker ml(msg_queue_list_lock_);
   ASSERT(Dart_GetIsolate(isolate_id) == Dart_CurrentIsolate());
   return GetIsolateMsgQueueLocked(isolate_id);
 }
@@ -1138,7 +1138,7 @@ DbgMsgQueue* DbgMsgQueueList::GetIsolateMsgQueueLocked(Dart_IsolateId id) {
 
 
 void DbgMsgQueueList::RemoveIsolateMsgQueue(Dart_IsolateId isolate_id) {
-  MutexLocker ml(&msg_queue_list_lock_);
+  MutexLocker ml(msg_queue_list_lock_);
   if (list_ == NULL) {
     return;  // No items in the list.
   }
@@ -1165,7 +1165,7 @@ void DbgMsgQueueList::RemoveIsolateMsgQueue(Dart_IsolateId isolate_id) {
 
 
 void DbgMsgQueueList::ListIsolateIds(dart::TextBuffer* msg) {
-  MutexLocker ml(&msg_queue_list_lock_);
+  MutexLocker ml(msg_queue_list_lock_);
   if (list_ == NULL) {
     return;  // No items in the list.
   }

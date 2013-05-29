@@ -614,11 +614,7 @@ class CallSiteInliner : public ValueObject {
 
       // Functions can be inlined before they are optimized.
       // If not yet present, allocate deoptimization history array.
-      Array& deopt_history = Array::Handle(function.deopt_history());
-      if (deopt_history.IsNull()) {
-        deopt_history = Array::New(FLAG_deoptimization_counter_threshold);
-        function.set_deopt_history(deopt_history);
-      }
+      function.EnsureDeoptHistory();
 
       // Build succeeded so we restore the bailout jump.
       inlined_ = true;

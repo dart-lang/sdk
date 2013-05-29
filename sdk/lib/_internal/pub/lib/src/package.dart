@@ -11,6 +11,7 @@ import 'package:pathos/path.dart' as path;
 import 'io.dart';
 import 'pubspec.dart';
 import 'source_registry.dart';
+import 'utils.dart';
 import 'version.dart';
 
 final _README_REGEXP = new RegExp(r"^README($|\.)", caseSensitive: false);
@@ -190,29 +191,30 @@ class PackageDep extends _PackageName {
   }
 }
 
-class PubspecNotFoundException implements Exception {
+class PubspecNotFoundException extends ApplicationException {
   final String name;
 
-  PubspecNotFoundException(this.name);
-
-  String toString() => 'Package "$name" doesn\'t have a pubspec.yaml file.';
+  PubspecNotFoundException(String name)
+      : name = name,
+        super('Package "$name" doesn\'t have a pubspec.yaml file.');
 }
 
-class PubspecHasNoNameException implements Exception {
+class PubspecHasNoNameException extends ApplicationException {
   final String name;
 
-  PubspecHasNoNameException(this.name);
-
-  String toString() => 'Package "$name"\'s pubspec.yaml file is missing the '
-    'required "name" field (e.g. "name: $name").';
+  PubspecHasNoNameException(String name)
+      : name = name,
+        super('Package "$name"\'s pubspec.yaml file is missing the '
+              'required "name" field (e.g. "name: $name").');
 }
 
-class PubspecNameMismatchException implements Exception {
+class PubspecNameMismatchException extends ApplicationException {
   final String expectedName;
   final String actualName;
 
-  PubspecNameMismatchException(this.expectedName, this.actualName);
-
-  String toString() => 'The name you specified for your dependency, '
-    '"$expectedName", doesn\'t match the name "$actualName" in its pubspec.';
+  PubspecNameMismatchException(String expectedName, String actualName)
+      : expectedName = expectedName,
+        actualName = actualName,
+        super('The name you specified for your dependency, "$expectedName", '
+              'doesn\'t match the name "$actualName" in its pubspec.');
 }

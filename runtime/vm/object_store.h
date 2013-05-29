@@ -25,14 +25,12 @@ class ObjectStore {
     kCore,
     kCollection,
     kCollectionDev,
-    kCrypto,
     kIsolate,
     kJson,
     kMath,
     kMirrors,
     kTypedData,
     kUtf,
-    kUri,
   };
 
   ~ObjectStore();
@@ -261,13 +259,11 @@ class ObjectStore {
   RawLibrary* collection_dev_library() const {
     return collection_dev_library_;
   }
-  RawLibrary* crypto_library() const { return crypto_library_; }
   RawLibrary* isolate_library() const { return isolate_library_; }
   RawLibrary* json_library() const { return json_library_; }
   RawLibrary* math_library() const { return math_library_; }
   RawLibrary* mirrors_library() const { return mirrors_library_; }
   RawLibrary* typed_data_library() const { return typed_data_library_; }
-  RawLibrary* uri_library() const { return uri_library_; }
   RawLibrary* utf_library() const { return utf_library_; }
   void set_bootstrap_library(intptr_t index, const Library& value) {
     switch (index) {
@@ -282,9 +278,6 @@ class ObjectStore {
         break;
       case kCollectionDev:
         collection_dev_library_ = value.raw();
-        break;
-      case kCrypto:
-        crypto_library_ = value.raw();
         break;
       case kIsolate:
         isolate_library_ = value.raw();
@@ -303,9 +296,6 @@ class ObjectStore {
         break;
       case kUtf:
         utf_library_ = value.raw();
-        break;
-      case kUri:
-        uri_library_ = value.raw();
         break;
       default:
         UNREACHABLE();
@@ -463,7 +453,6 @@ class ObjectStore {
   RawLibrary* core_library_;
   RawLibrary* collection_library_;
   RawLibrary* collection_dev_library_;
-  RawLibrary* crypto_library_;
   RawLibrary* isolate_library_;
   RawLibrary* json_library_;
   RawLibrary* math_library_;
@@ -471,7 +460,6 @@ class ObjectStore {
   RawLibrary* native_wrappers_library_;
   RawLibrary* root_library_;
   RawLibrary* typed_data_library_;
-  RawLibrary* uri_library_;
   RawLibrary* utf_library_;
   RawGrowableObjectArray* libraries_;
   RawGrowableObjectArray* pending_classes_;

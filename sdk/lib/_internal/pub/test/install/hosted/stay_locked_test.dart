@@ -22,8 +22,7 @@ main() {
     d.appDir([dependencyMap("foo")]).create();
 
     // This install should lock the foo dependency to version 1.0.0.
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.packagesDir({"foo": "1.0.0"}).validate();
 
@@ -34,8 +33,7 @@ main() {
     servePackages([packageMap("foo", "1.0.1")]);
 
     // This install shouldn't update the foo dependency due to the lockfile.
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.packagesDir({"foo": "1.0.0"}).validate();
   });

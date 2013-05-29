@@ -27,12 +27,12 @@ import 'backtracking_solver.dart';
 /// packages.
 Future<SolveResult> resolveVersions(SourceRegistry sources, Package root,
     {LockFile lockFile, List<String> useLatest}) {
-  log.message('Resolving dependencies...');
-
   if (lockFile == null) lockFile = new LockFile.empty();
   if (useLatest == null) useLatest = [];
 
-  return new BacktrackingSolver(sources, root, lockFile, useLatest).solve();
+  return log.progress('Resolving dependencies', () {
+    return new BacktrackingSolver(sources, root, lockFile, useLatest).solve();
+  });
 }
 
 /// The result of a version resolution.
@@ -176,29 +176,6 @@ abstract class SolveFailure implements ApplicationException {
   SolveFailure(this.package, Iterable<Dependency> dependencies)
       : dependencies = dependencies != null ? dependencies : <Dependency>[];
 
-  /// Writes [dependencies] to [buffer] as a bullet list. If [describe] is
-  /// passed, it will be called for each dependency and the result will be
-  /// written next to the dependency.
-  void writeDependencies(StringBuffer buffer,
-      [String describe(PackageDep dep)]) {
-    var map = {};
-    for (var dep in dependencies) {
-      map[dep.depender] = dep.dep;
-    }
-
-    var names = map.keys.toList();
-    names.sort();
-
-    for (var name in names) {
-      buffer.writeln("- '$name' ");
-      if (describe != null) {
-        buffer.writeln(describe(map[name]));
-      } else {
-        buffer.writeln("depends on version ${map[name].constraint}");
-      }
-    }
-  }
-
   String toString() {
     if (dependencies.isEmpty) return _message;
 
@@ -213,9 +190,8 @@ abstract class SolveFailure implements ApplicationException {
     var names = map.keys.toList();
     names.sort();
 
-    for (var name in names) {
-      buffer.writeln("- '$name' ${_describeDependency(map[name])}");
-    }
+    buffer.writeAll(names.map(
+        (name) => "- '$name' ${_describeDependency(map[name])}"), '\n');
 
     return buffer.toString();
   }

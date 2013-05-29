@@ -9,12 +9,14 @@
 #include <stdio.h>  // NOLINT
 #include <stdlib.h>  // NOLINT
 #include <string.h>  // NOLINT
+#include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #include <netinet/tcp.h>  // NOLINT
 
-#include "bin/socket.h"
 #include "bin/fdutils.h"
+#include "bin/file.h"
 #include "bin/log.h"
+#include "bin/socket.h"
 
 
 namespace dart {
@@ -149,6 +151,17 @@ void Socket::GetError(intptr_t fd, OSError* os_error) {
              reinterpret_cast<void*>(&errorNumber),
              &len);
   os_error->SetCodeAndMessage(OSError::kSystem, errorNumber);
+}
+
+
+int Socket::GetType(intptr_t fd) {
+  struct stat buf;
+  int result = fstat(fd, &buf);
+  if (result == -1) return -1;
+  if (S_ISCHR(buf.st_mode)) return File::kTerminal;
+  if (S_ISFIFO(buf.st_mode)) return File::kPipe;
+  if (S_ISREG(buf.st_mode)) return File::kFile;
+  return File::kOther;
 }
 
 

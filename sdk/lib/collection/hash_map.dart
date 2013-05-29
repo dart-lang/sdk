@@ -13,6 +13,7 @@ class HashMap<K, V> implements Map<K, V> {
 
   external int get length;
   external bool get isEmpty;
+  external bool get isNotEmpty;
 
   external Iterable<K> get keys;
   external Iterable<V> get values;

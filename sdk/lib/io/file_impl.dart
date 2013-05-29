@@ -534,7 +534,7 @@ class _File implements File {
       IOSink sink = openWrite(mode: mode);
       sink.add(bytes);
       sink.close();
-      return sink.done.then((_) => this);;
+      return sink.done.then((_) => this);
     } catch (e) {
       return new Future.error(e);
     }

@@ -4,7 +4,6 @@
 
 library leg_apiimpl;
 
-import 'dart:uri';
 import 'dart:async';
 
 import '../compiler.dart' as api;
@@ -136,7 +135,7 @@ class Compiler extends leg.Compiler {
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(lookupLibraryPath(path));
-    Uri canonicalUri = new Uri.fromComponents(scheme: "dart", path: path);
+    Uri canonicalUri = new Uri(scheme: "dart", path: path);
     elements.LibraryElement library =
         libraryLoader.loadLibrary(uri, null, canonicalUri);
     return library;

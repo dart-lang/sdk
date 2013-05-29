@@ -7,7 +7,6 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:isolate';
-import 'dart:uri';
 
 part '../../../sdk/lib/io/io_sink.dart';
 part '../../../sdk/lib/io/http.dart';
@@ -74,7 +73,6 @@ class HttpParserTest {
               bytesReceived += data.length;
             },
             onDone: () {
-              Expect.isFalse(upgraded);
               port2.close();
               Expect.equals(expectedMethod, method);
               Expect.stringEquals(expectedUri, uri.toString());
@@ -101,7 +99,6 @@ class HttpParserTest {
 
         incoming.dataDone.then((_) {
           port1.close();
-          Expect.isFalse(upgraded);
         });
       });
 
@@ -204,6 +201,24 @@ class HttpParserTest {
       controller = new StreamController();
       var port = new ReceivePort();
       controller.stream.pipe(httpParser);
+      int doneCallCount = 0;
+      // Called when done parsing entire message and done parsing body.
+      // Only executed when both are done.
+      void whenDone() {
+        doneCallCount++;
+        if (doneCallCount < 2) return;
+        Expect.equals(expectedVersion, headers.protocolVersion);
+        Expect.equals(expectedStatusCode, statusCode);
+        Expect.equals(expectedReasonPhrase, reasonPhrase);
+        Expect.isTrue(headersCompleteCalled);
+        Expect.equals(expectedBytesReceived, bytesReceived);
+        if (!upgrade) {
+          Expect.isTrue(dataEndCalled);
+          if (close) Expect.isTrue(dataEndClose);
+          Expect.equals(dataEndClose, connectionClose);
+        }
+      };
+
       var subscription = httpParser.listen((incoming) {
         port.close();
         statusCode = incoming.statusCode;
@@ -230,21 +245,9 @@ class HttpParserTest {
             onDone: () {
               dataEndCalled = true;
               dataEndClose = close;
+              whenDone();
             });
-      });
-
-      subscription.onDone(() {
-        Expect.equals(expectedVersion, headers.protocolVersion);
-        Expect.equals(expectedStatusCode, statusCode);
-        Expect.equals(expectedReasonPhrase, reasonPhrase);
-        Expect.isTrue(headersCompleteCalled);
-        Expect.equals(expectedBytesReceived, bytesReceived);
-        if (!upgrade) {
-          Expect.isTrue(dataEndCalled);
-          if (close) Expect.isTrue(dataEndClose);
-          Expect.equals(dataEndClose, connectionClose);
-        }
-      });
+      }, onDone: whenDone);
 
       headersCompleteCalled = false;
       dataEndCalled = false;

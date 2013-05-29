@@ -11,8 +11,6 @@ compute_this_script_browser_test: Skip # browser specific test
 compute_this_script_browser_stream_test: Skip # browser specific test
 ports_compilation_browser_test: Skip # browser specific test
 unresolved_ports_negative_test: Skip # See Issue 6839
-global_error_handler_test: Fail, Pass # See Issue 9013.
-global_error_handler_stream_test: Fail # See Issue 9013.
 isolate_stress_test: Fail # TODO(ahe): This should be able to pass when we have wrapper-less tests.
 
 
@@ -46,6 +44,10 @@ spawn_function_negative_test: fail
 spawn_uri_negative_test: fail
 spawn_uri_vm_negative_test: fail
 unresolved_ports_negative_test: fail
+
+# test issue 10888
+global_error_handler_stream_test: fail, OK
+global_error_handler_test: fail, OK
 
 [ $compiler == dart2js && ($runtime == d8 || $jscl) ]
 illegal_msg_stream_test: Fail # Issue 6750
@@ -126,9 +128,6 @@ mandel_isolate_stream_test: Pass, Fail, Timeout # Issue 7952
 
 [ $compiler == dart2js && ( $runtime == ff || $runtime == safari ) ]
 isolate_stress_test: Pass, Timeout # http://dartbug.com/10697
-
-[ $arch == arm ]
-*: Skip
 
 [ $arch == simarm ]
 *: Skip

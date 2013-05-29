@@ -18,7 +18,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
-
+DECLARE_FLAG(bool, inline_alloc);
 
 bool CPUFeatures::integer_division_supported_ = false;
 #if defined(DEBUG)
@@ -414,6 +414,12 @@ void Assembler::bic(Register rd, Register rn, ShifterOperand so,
 }
 
 
+void Assembler::bics(Register rd, Register rn, ShifterOperand so,
+                     Condition cond) {
+  EmitType01(cond, so.type(), BIC, 1, rn, rd, so);
+}
+
+
 void Assembler::mvn(Register rd, ShifterOperand so, Condition cond) {
   EmitType01(cond, so.type(), MVN, 0, R0, rd, so);
 }
@@ -514,6 +520,13 @@ void Assembler::umull(Register rd_lo, Register rd_hi,
                       Register rn, Register rm, Condition cond) {
   // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
   EmitMulOp(cond, B23, rd_lo, rd_hi, rn, rm);
+}
+
+
+void Assembler::smlal(Register rd_lo, Register rd_hi,
+                      Register rn, Register rm, Condition cond) {
+  // Assembler registers rd_lo, rd_hi, rn, rm are encoded as rd, rn, rm, rs.
+  EmitMulOp(cond, B23 | B22 | B21, rd_lo, rd_hi, rn, rm);
 }
 
 
@@ -2060,9 +2073,39 @@ void Assembler::LeaveStubFrame(bool uses_pp) {
 
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
-                            bool near_jump,
                             Register instance_reg) {
-  UNIMPLEMENTED();
+  ASSERT(failure != NULL);
+  if (FLAG_inline_alloc) {
+    Heap* heap = Isolate::Current()->heap();
+    const intptr_t instance_size = cls.instance_size();
+    LoadImmediate(instance_reg, heap->TopAddress());
+    ldr(instance_reg, Address(instance_reg, 0));
+    AddImmediate(instance_reg, instance_size);
+
+    // instance_reg: potential next object start.
+    LoadImmediate(TMP, heap->EndAddress());
+    ldr(TMP, Address(TMP, 0));
+    cmp(TMP, ShifterOperand(instance_reg));
+    // fail if heap end unsigned less than or equal to instance_reg.
+    b(failure, LS);
+
+    // Successfully allocated the object, now update top to point to
+    // next object start and store the class in the class field of object.
+    LoadImmediate(TMP, heap->TopAddress());
+    str(instance_reg, Address(TMP, 0));
+
+    ASSERT(instance_size >= kHeapObjectTag);
+    AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
+
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    ASSERT(cls.id() != kIllegalCid);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    LoadImmediate(TMP, tags);
+    str(TMP, FieldAddress(instance_reg, Object::tags_offset()));
+  } else {
+    b(failure);
+  }
 }
 
 

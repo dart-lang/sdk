@@ -71,7 +71,12 @@ class AnalyzerImpl {
     List<UriResolver> resolvers = [new DartUriResolver(sdk), new FileUriResolver()];
     // may be add package resolver
     {
-      var packageDirectory = getPackageDirectoryFor(sourceFile);
+      JavaFile packageDirectory;
+      if (options.packageRootPath != null) {
+        packageDirectory = new JavaFile(options.packageRootPath);
+      } else {
+        packageDirectory = getPackageDirectoryFor(sourceFile);
+      }
       if (packageDirectory != null) {
         resolvers.add(new PackageUriResolver([packageDirectory]));
       }
@@ -138,11 +143,18 @@ class AnalyzerImpl {
   }
 
   static JavaFile getPackageDirectoryFor(JavaFile sourceFile) {
-    JavaFile sourceFolder = sourceFile.getParentFile();
-    JavaFile packagesFolder = new JavaFile.relative(sourceFolder, "packages");
-    if (packagesFolder.exists()) {
-      return packagesFolder;
+    // we are going to ask parent file, so get absolute path
+    sourceFile = sourceFile.getAbsoluteFile();
+    // look in the containing directories
+    JavaFile dir = sourceFile.getParentFile();
+    while (dir != null) {
+      JavaFile packagesDir = new JavaFile.relative(dir, "packages");
+      if (packagesDir.exists()) {
+        return packagesDir;
+      }
+      dir = dir.getParentFile();
     }
+    // not found
     return null;
   }
 }

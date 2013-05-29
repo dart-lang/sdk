@@ -442,10 +442,6 @@ class FlowGraphCompiler : public ValueObject {
 
   bool may_reoptimize() const { return may_reoptimize_; }
 
-  static Condition FlipCondition(Condition condition);
-
-  static bool EvaluateCondition(Condition condition, intptr_t l, intptr_t r);
-
   // Array/list element address computations.
   static intptr_t DataOffsetFor(intptr_t cid);
   static intptr_t ElementSizeFor(intptr_t cid);

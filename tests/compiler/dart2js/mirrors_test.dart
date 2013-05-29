@@ -11,10 +11,8 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart'
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 
 import 'dart:io';
-import 'dart:uri';
 
-const Uri DART_MIRRORS_URI =
-  const Uri.fromComponents(scheme: 'dart', path: 'mirrors');
+final Uri DART_MIRRORS_URI = new Uri(scheme: 'dart', path: 'mirrors');
 
 int count(Iterable iterable) {
   var count = 0;

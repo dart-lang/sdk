@@ -27,8 +27,7 @@ main() {
 
     d.appDir([{"git": "../foo.git"}]).create();
 
-    schedulePub(args: ['install'],
-        output: new RegExp(r"Dependencies installed!$"));
+    pubInstall();
 
     d.dir(packagesPath, [
       d.dir('foo', [
@@ -49,8 +48,7 @@ main() {
       d.libPubspec('foo-dep', '1.0.0')
     ]).commit();
 
-    schedulePub(args: ['update', 'foo'],
-        output: new RegExp(r"Dependencies updated!$"));
+    pubUpdate(args: ['foo']);
 
     d.dir(packagesPath, [
       d.dir('foo', [

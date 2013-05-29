@@ -1186,9 +1186,9 @@ ASSEMBLER_TEST_RUN(Mtc1Mfc1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Addd, assembler) {
-  __ LoadImmediate(F0, 1.0);
-  __ LoadImmediate(F2, 2.0);
-  __ addd(F4, F0, F2);
+  __ LoadImmediate(D0, 1.0);
+  __ LoadImmediate(D1, 2.0);
+  __ addd(D2, D0, D1);
   __ mfc1(V0, F4);
   __ mfc1(V1, F5);
   __ Ret();
@@ -1204,8 +1204,8 @@ ASSEMBLER_TEST_RUN(Addd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movd, assembler) {
-  __ LoadImmediate(F0, 1.0);
-  __ movd(F2, F0);
+  __ LoadImmediate(D0, 1.0);
+  __ movd(D1, D0);
   __ mfc1(V0, F2);
   __ mfc1(V1, F3);
   __ Ret();
@@ -1224,9 +1224,9 @@ ASSEMBLER_TEST_GENERATE(Sdc1Ldc1, assembler) {
   __ AddImmediate(SP, -8 * kWordSize);
   __ LoadImmediate(T1, ~(8 - 1));
   __ and_(T0, SP, T1);  // Need 8 byte alignment.
-  __ LoadImmediate(F0, 1.0);
-  __ sdc1(F0, Address(T0));
-  __ ldc1(F2, Address(T0));
+  __ LoadImmediate(D0, 1.0);
+  __ sdc1(D0, Address(T0));
+  __ ldc1(D1, Address(T0));
   __ mfc1(V0, F2);
   __ mfc1(V1, F3);
   __ Ret();
@@ -1242,12 +1242,12 @@ ASSEMBLER_TEST_RUN(Sdc1Ldc1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Addd_NaN, assembler) {
-  __ LoadImmediate(F0, 1.0);
+  __ LoadImmediate(D0, 1.0);
   // Double non-signaling NaN is 0x7FF8000000000000.
   __ LoadImmediate(T0, 0x7FF80000);
   __ mtc1(ZR, F2);  // Load upper bits of NaN.
   __ mtc1(T0, F3);  // Load lower bits of NaN.
-  __ addd(F4, F0, F2);
+  __ addd(D2, D0, D1);
   __ mfc1(V0, F4);
   __ mfc1(V1, F5);
   __ Ret();
@@ -1263,11 +1263,11 @@ ASSEMBLER_TEST_RUN(Addd_NaN, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Addd_Inf, assembler) {
-  __ LoadImmediate(F0, 1.0f);
+  __ LoadImmediate(D0, 1.0);
   __ LoadImmediate(T0, 0x7FF00000);  // +inf
   __ mtc1(ZR, F2);
   __ mtc1(T0, F3);
-  __ addd(F4, F0, F2);
+  __ addd(D2, D0, D1);
   __ mfc1(V0, F4);
   __ mfc1(V1, F5);
   __ Ret();
@@ -1283,9 +1283,9 @@ ASSEMBLER_TEST_RUN(Addd_Inf, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Subd, assembler) {
-  __ LoadImmediate(F0, 2.5);
-  __ LoadImmediate(F2, 1.5);
-  __ subd(F4, F0, F2);
+  __ LoadImmediate(D0, 2.5);
+  __ LoadImmediate(D1, 1.5);
+  __ subd(D2, D0, D1);
   __ mfc1(V0, F4);
   __ mfc1(V1, F5);
   __ Ret();
@@ -1301,9 +1301,9 @@ ASSEMBLER_TEST_RUN(Subd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Muld, assembler) {
-  __ LoadImmediate(F0, 6.0);
-  __ LoadImmediate(F2, 7.0);
-  __ muld(F4, F0, F2);
+  __ LoadImmediate(D0, 6.0);
+  __ LoadImmediate(D1, 7.0);
+  __ muld(D2, D0, D1);
   __ mfc1(V0, F4);
   __ mfc1(V1, F5);
   __ Ret();
@@ -1319,9 +1319,9 @@ ASSEMBLER_TEST_RUN(Muld, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Divd, assembler) {
-  __ LoadImmediate(F0, 42.0);
-  __ LoadImmediate(F2, 7.0);
-  __ divd(F4, F0, F2);
+  __ LoadImmediate(D0, 42.0);
+  __ LoadImmediate(D1, 7.0);
+  __ divd(D2, D0, D1);
   __ mfc1(V0, F4);
   __ mfc1(V1, F5);
   __ Ret();
@@ -1337,8 +1337,8 @@ ASSEMBLER_TEST_RUN(Divd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sqrtd, assembler) {
-  __ LoadImmediate(F0, 36.0);
-  __ sqrtd(F4, F0);
+  __ LoadImmediate(D0, 36.0);
+  __ sqrtd(D2, D0);
   __ mfc1(V0, F4);
   __ mfc1(V1, F5);
   __ Ret();
@@ -1356,12 +1356,12 @@ ASSEMBLER_TEST_RUN(Sqrtd, test) {
 ASSEMBLER_TEST_GENERATE(Cop1CUN, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.0);
+  __ LoadImmediate(D0, 42.0);
   __ LoadImmediate(T0, 0x7FF80000);
   __ mtc1(ZR, F2);
   __ mtc1(T0, F3);
   __ LoadImmediate(V0, 42);
-  __ cund(F0, F2);
+  __ cund(D0, D1);
   __ bc1t(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1378,10 +1378,10 @@ ASSEMBLER_TEST_RUN(Cop1CUN, test) {
 ASSEMBLER_TEST_GENERATE(Cop1CUN_not_taken, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.0);
-  __ LoadImmediate(F2, 42.0);
+  __ LoadImmediate(D0, 42.0);
+  __ LoadImmediate(D1, 42.0);
   __ LoadImmediate(V0, 42);
-  __ cund(F0, F2);
+  __ cund(D0, D1);
   __ bc1t(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1398,10 +1398,10 @@ ASSEMBLER_TEST_RUN(Cop1CUN_not_taken, test) {
 ASSEMBLER_TEST_GENERATE(Cop1CEq, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.5);
-  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(D0, 42.5);
+  __ LoadImmediate(D1, 42.5);
   __ LoadImmediate(V0, 42);
-  __ ceqd(F0, F2);
+  __ ceqd(D0, D1);
   __ bc1t(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1418,10 +1418,10 @@ ASSEMBLER_TEST_RUN(Cop1CEq, test) {
 ASSEMBLER_TEST_GENERATE(Cop1CEq_not_taken, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.0);
-  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(D0, 42.0);
+  __ LoadImmediate(D1, 42.5);
   __ LoadImmediate(V0, 42);
-  __ ceqd(F0, F2);
+  __ ceqd(D0, D1);
   __ bc1t(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1438,10 +1438,10 @@ ASSEMBLER_TEST_RUN(Cop1CEq_not_taken, test) {
 ASSEMBLER_TEST_GENERATE(Cop1CEq_false, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.0);
-  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(D0, 42.0);
+  __ LoadImmediate(D1, 42.5);
   __ LoadImmediate(V0, 42);
-  __ ceqd(F0, F2);
+  __ ceqd(D0, D1);
   __ bc1f(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1458,10 +1458,10 @@ ASSEMBLER_TEST_RUN(Cop1CEq_false, test) {
 ASSEMBLER_TEST_GENERATE(Cop1CEq_false_not_taken, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.5);
-  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(D0, 42.5);
+  __ LoadImmediate(D1, 42.5);
   __ LoadImmediate(V0, 42);
-  __ ceqd(F0, F2);
+  __ ceqd(D0, D1);
   __ bc1f(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1478,10 +1478,10 @@ ASSEMBLER_TEST_RUN(Cop1CEq_false_not_taken, test) {
 ASSEMBLER_TEST_GENERATE(Cop1COLT, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.0);
-  __ LoadImmediate(F2, 42.5);
+  __ LoadImmediate(D0, 42.0);
+  __ LoadImmediate(D1, 42.5);
   __ LoadImmediate(V0, 42);
-  __ coltd(F0, F2);
+  __ coltd(D0, D1);
   __ bc1t(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1498,10 +1498,10 @@ ASSEMBLER_TEST_RUN(Cop1COLT, test) {
 ASSEMBLER_TEST_GENERATE(Cop1COLT_not_taken, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.5);
-  __ LoadImmediate(F2, 42.0);
+  __ LoadImmediate(D0, 42.5);
+  __ LoadImmediate(D1, 42.0);
   __ LoadImmediate(V0, 42);
-  __ coltd(F0, F2);
+  __ coltd(D0, D1);
   __ bc1t(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1518,10 +1518,10 @@ ASSEMBLER_TEST_RUN(Cop1COLT_not_taken, test) {
 ASSEMBLER_TEST_GENERATE(Cop1COLE, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.0);
-  __ LoadImmediate(F2, 42.0);
+  __ LoadImmediate(D0, 42.0);
+  __ LoadImmediate(D1, 42.0);
   __ LoadImmediate(V0, 42);
-  __ coled(F0, F2);
+  __ coled(D0, D1);
   __ bc1t(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1538,10 +1538,10 @@ ASSEMBLER_TEST_RUN(Cop1COLE, test) {
 ASSEMBLER_TEST_GENERATE(Cop1COLE_not_taken, assembler) {
   Label is_true;
 
-  __ LoadImmediate(F0, 42.5);
-  __ LoadImmediate(F2, 42.0);
+  __ LoadImmediate(D0, 42.5);
+  __ LoadImmediate(D1, 42.0);
   __ LoadImmediate(V0, 42);
-  __ coled(F0, F2);
+  __ coled(D0, D1);
   __ bc1t(&is_true);
   __ mov(V0, ZR);
   __ Bind(&is_true);
@@ -1558,7 +1558,7 @@ ASSEMBLER_TEST_RUN(Cop1COLE_not_taken, test) {
 ASSEMBLER_TEST_GENERATE(Cop1CvtDW, assembler) {
   __ LoadImmediate(T0, 42);
   __ mtc1(T0, F0);
-  __ cvtdw(F2, F0);
+  __ cvtdw(D1, F0);
   __ mfc1(V0, F2);
   __ mfc1(V1, F3);
   __ Ret();
@@ -1576,7 +1576,7 @@ ASSEMBLER_TEST_RUN(Cop1CvtDW, test) {
 ASSEMBLER_TEST_GENERATE(Cop1CvtDW_neg, assembler) {
   __ LoadImmediate(T0, -42);
   __ mtc1(T0, F0);
-  __ cvtdw(F2, F0);
+  __ cvtdw(D1, F0);
   __ mfc1(V0, F2);
   __ mfc1(V1, F3);
   __ Ret();
@@ -1595,7 +1595,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtDL, assembler) {
   __ LoadImmediate(T0, 0x1);
   __ mtc1(ZR, F0);
   __ mtc1(T0, F1);  // D0 <- 0x100000000 = 4294967296
-  __ cvtdl(F2, F0);
+  __ cvtdl(D1, D0);
   __ mfc1(V0, F2);
   __ mfc1(V1, F3);
   __ Ret();
@@ -1614,7 +1614,7 @@ ASSEMBLER_TEST_GENERATE(Cop1CvtDL_neg, assembler) {
   __ LoadImmediate(T0, 0xffffffff);
   __ mtc1(T0, F0);
   __ mtc1(T0, F1);  // D0 <- 0xffffffffffffffff = -1
-  __ cvtdl(F2, F0);
+  __ cvtdl(D1, D0);
   __ mfc1(V0, F2);
   __ mfc1(V1, F3);
   __ Ret();
@@ -1630,8 +1630,8 @@ ASSEMBLER_TEST_RUN(Cop1CvtDL_neg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtWD, assembler) {
-  __ LoadImmediate(F0, 42.0);
-  __ cvtwd(F2, F0);
+  __ LoadImmediate(D0, 42.0);
+  __ cvtwd(F2, D0);
   __ mfc1(V0, F2);
   __ Ret();
 }
@@ -1645,8 +1645,8 @@ ASSEMBLER_TEST_RUN(Cop1CvtWD, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtWD_neg, assembler) {
-  __ LoadImmediate(F0, -42.0);
-  __ cvtwd(F2, F0);
+  __ LoadImmediate(D0, -42.0);
+  __ cvtwd(F2, D0);
   __ mfc1(V0, F2);
   __ Ret();
 }

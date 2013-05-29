@@ -5,7 +5,6 @@
 library uri_extras;
 
 import 'dart:math';
-import 'dart:uri';
 
 String relativize(Uri base, Uri uri, bool isWindows) {
   if (!base.path.startsWith('/')) {
@@ -31,7 +30,7 @@ String relativize(Uri base, Uri uri, bool isWindows) {
   if (equalsNCS(base.scheme, 'file') &&
       equalsNCS(base.scheme, uri.scheme) &&
       base.userInfo == uri.userInfo &&
-      equalsNCS(base.domain, uri.domain) &&
+      equalsNCS(base.host, uri.host) &&
       base.port == uri.port &&
       uri.query == "" && uri.fragment == "") {
     if (normalize(uri.path).startsWith(normalize(base.path))) {

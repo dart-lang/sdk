@@ -17,16 +17,15 @@ import 'dart:collection' show Queue,
                               LinkedHashSet,
                               DoubleLinkedQueue,
                               DoubleLinkedQueueEntry;
-import 'dart:crypto';
 import 'dart:isolate';
 import 'dart:json' as JSON;
 import 'dart:math';
-import 'dart:uri';
 import 'dart:utf';
 import 'dart:typed_data';
 
 part 'buffer_list.dart';
 part 'common.dart';
+part 'crypto.dart';
 part 'data_transformer.dart';
 part 'directory.dart';
 part 'directory_impl.dart';

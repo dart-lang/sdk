@@ -4,7 +4,6 @@
 //
 
 import "dart:io";
-import "dart:uri";
 
 main() {
   bool serverOnClosed = false;

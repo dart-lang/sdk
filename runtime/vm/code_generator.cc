@@ -38,16 +38,8 @@ DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM)
 DEFINE_FLAG(int, optimization_counter_threshold, 3000,
     "Function's usage-counter value before it is optimized, -1 means never");
-#else
-// TODO(regis): Enable optimization on MIPS.
-DEFINE_FLAG(int, optimization_counter_threshold, -1,
-    "Function's usage-counter value before it is optimized, -1 means never");
-#endif
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
@@ -1548,7 +1540,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(!deopt_info.IsNull());
 
   CopyFrame(optimized_code, *caller_frame);
-  if (FLAG_trace_deoptimization) {
+  if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     Function& function = Function::Handle(optimized_code.function());
     OS::PrintErr(
         "Deoptimizing (reason %"Pd" '%s') at pc %#"Px" '%s' (count %d)\n",
@@ -1714,7 +1706,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 
   // Since this is the only step where GC can occur during deoptimization,
   // use it to report the source line where deoptimization occured.
-  if (FLAG_trace_deoptimization) {
+  if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     DartFrameIterator iterator;
     StackFrame* top_frame = iterator.NextFrame();
     ASSERT(top_frame != NULL);

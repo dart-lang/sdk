@@ -21,8 +21,8 @@ standalone/io/stdout_bad_argument_test: Fail
 standalone/io/raw_secure_server_socket_argument_test: Fail
 
 # Test runner does not use the latest VM.
-standalone/io/test_runner_test: Fail
-standalone/io/skipping_dart2js_compilations_test: Fail
+standalone/io/test_runner_test: Skip
+standalone/io/skipping_dart2js_compilations_test: Skip
 
 # Implicit downcast.
 standalone/typed_data_view_test: Fail

@@ -6,7 +6,6 @@ library testrunner_test;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 import 'package:unittest/unittest.dart';
 
 main() {

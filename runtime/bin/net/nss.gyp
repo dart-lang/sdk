@@ -91,6 +91,7 @@
       'target_name': 'nspr_dart',  # Added by Dart (the _dart postfix)
       'product_name': 'crnspr',
       'type': '<(component)',
+      'toolsets':['host','target'],
       # Changed by Dart: '<(nss_directory)/' added to all paths.
       'sources': [
         # Added by Dart.
@@ -458,6 +459,7 @@
       'target_name': 'nss_dart',  # Added by Dart (the _dart postfix)
       'product_name': 'crnss',
       'type': '<(component)',
+      'toolsets':['host','target'],
       'dependencies': [
         'nss_static_dart',  # Added by Dart (the _dart postfix)
       ],
@@ -509,6 +511,7 @@
       'target_name': 'nssckbi_dart',  # Added by Dart (the _dart postfix)
       'product_name': 'crnssckbi',
       'type': 'static_library',
+      'toolsets':['host','target'],
       # This target is an implementation detail - the public dependencies
       # should be on 'nss'.
       'suppress_wildcard': 1,
@@ -571,6 +574,7 @@
     {
       'target_name': 'nss_static_dart',  # Added by Dart (the _dart postfix)
       'type': 'static_library',
+      'toolsets':['host','target'],
       # This target is an implementation detail - the public dependencies
       # should be on 'nss'.
       'suppress_wildcard': 1,

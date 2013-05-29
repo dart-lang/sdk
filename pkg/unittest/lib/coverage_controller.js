@@ -4,7 +4,7 @@
 
 /**
  * Coverage controller logic - used by coverage test harness to embed tests in
- * DumpRenderTree and extract coverage information.
+ * content shell and extract coverage information.
  */
 
 var LONG_LINE = 60000;
@@ -13,7 +13,7 @@ function onReceive(e) {
   if (e.data == 'unittest-suite-done') {
     var s = JSON.stringify(top._$jscoverage);
     var res = '';
-    // DumpRenderTree has a bug on lines longer than 2^16, so we split them
+    // conent shell has a bug on lines longer than 2^16, so we split them
     while (s.length > LONG_LINE) {
       res += s.substr(0, LONG_LINE) + '<br>\n';
       s = s.substr(LONG_LINE);

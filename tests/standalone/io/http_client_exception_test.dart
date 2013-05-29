@@ -6,7 +6,6 @@
 import "package:expect/expect.dart";
 import "dart:io";
 import "dart:isolate";
-import "dart:uri";
 
 void testInvalidUrl() {
   HttpClient client = new HttpClient();

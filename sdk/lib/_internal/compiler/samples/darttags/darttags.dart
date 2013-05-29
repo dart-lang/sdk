@@ -24,7 +24,6 @@
 // Where DART_LOCATION is the gclient directory where you found .gclient.
 
 import 'dart:io';
-import 'dart:uri';
 
 // TODO(ahe): Should be dart:mirrors.
 import '../../implementation/mirrors/mirrors.dart';

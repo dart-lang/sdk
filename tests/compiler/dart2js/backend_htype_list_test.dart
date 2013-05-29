@@ -29,7 +29,7 @@ List<HType> III;
 FunctionSignature compileAndFindSignature(String code,
                                           String className,
                                           String memberName) {
-  Uri uri = new Uri.fromComponents(scheme: 'source');
+  Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
   compiler.runCompiler(uri);
   var cls = findElement(compiler, className);

@@ -838,9 +838,12 @@ abstract class HInstruction implements Spannable {
   bool isNumberOrNull() => instructionType.isNumberOrNull();
   bool isString() => instructionType.isString();
   bool isPrimitive() => instructionType.isPrimitive();
+  bool isNull() => instructionType.isNull();
   bool canBeNull() => instructionType.canBeNull();
   bool canBePrimitive(Compiler compiler) =>
       instructionType.canBePrimitive(compiler);
+  bool canBePrimitiveArray(Compiler compiler) =>
+      instructionType.canBePrimitiveArray(compiler);
 
   bool isIndexable(Compiler compiler) =>
       instructionType.isIndexable(compiler);
@@ -2044,9 +2047,10 @@ class HStatic extends HInstruction {
 }
 
 class HInterceptor extends HInstruction {
+  // This field should originally be null to allow GVN'ing all
+  // [HInterceptor] on the same input.
   Set<ClassElement> interceptedClasses;
-  HInterceptor(this.interceptedClasses, HInstruction receiver)
-      : super(<HInstruction>[receiver]) {
+  HInterceptor(HInstruction receiver) : super(<HInstruction>[receiver]) {
     sideEffects.clearAllSideEffects();
     setUseGvn();
   }

@@ -4,7 +4,6 @@
 
 import "package:expect/expect.dart";
 import "dart:io";
-import "dart:uri";
 import "dart:isolate";
 import "dart:async";
 

@@ -24,6 +24,7 @@ import "status_file_parser.dart";
 import "test_progress.dart";
 import "test_suite.dart";
 import "utils.dart";
+import 'record_and_replay.dart';
 
 const int NO_TIMEOUT = 0;
 const int SLOW_TIMEOUT_MULTIPLIER = 4;
@@ -180,20 +181,20 @@ class CompilationCommand extends Command {
   }
 }
 
-class DumpRenderTreeCommand extends Command {
+class ContentShellCommand extends Command {
   /**
-   * If [expectedOutputPath] is set, the output of DumpRenderTree is compared
+   * If [expectedOutputPath] is set, the output of content shell is compared
    * with the content of [expectedOutputPath].
    * This is used for example for pixel tests, where [expectedOutputPath] points
    * to a *png file.
    */
   io.Path expectedOutputPath;
 
-  DumpRenderTreeCommand(String executable,
-                        String htmlFile,
-                        List<String> options,
-                        List<String> dartFlags,
-                        io.Path this.expectedOutputPath)
+  ContentShellCommand(String executable,
+                      String htmlFile,
+                      List<String> options,
+                      List<String> dartFlags,
+                      io.Path this.expectedOutputPath)
       : super(executable,
               _getArguments(options, htmlFile),
               _getEnvironment(dartFlags));
@@ -392,7 +393,8 @@ class BrowserTestCase extends TestCase {
   List<BrowserTestCase> observers;
 
   BrowserTestCase(displayName, commands, configuration, completedHandler,
-      expectedOutcomes, info, isNegative, [this.waitingForOtherTest = false])
+                  expectedOutcomes, info, isNegative, this._testingUrl,
+                  [this.waitingForOtherTest = false])
     : super(displayName, commands, configuration, completedHandler,
         expectedOutcomes, isNegative: isNegative, info: info) {
     numRetries = 2; // Allow two retries to compensate for flaky browser tests.
@@ -404,6 +406,8 @@ class BrowserTestCase extends TestCase {
   List<String> get batchRunnerArguments => [_lastArguments[0], '--batch'];
 
   List<String> get batchTestArguments => _lastArguments.sublist(1);
+
+  String _testingUrl;
 
   /** Add a test case to listen for when this current test has completed. */
   void addObserver(BrowserTestCase testCase) {
@@ -419,6 +423,8 @@ class BrowserTestCase extends TestCase {
       testCase.waitingForOtherTest = false;
     }
   }
+
+  String get testingUrl => _testingUrl;
 }
 
 
@@ -645,7 +651,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
     }
 
     if (command.expectedOutputFile != null) {
-      // We are either doing a pixel test or a layout test with DumpRenderTree
+      // We are either doing a pixel test or a layout test with content shell
       return _failedBecauseOfUnexpectedDRTOutput;
     }
     return _browserTestFailure;
@@ -653,10 +659,10 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
   bool get _failedBecauseOfMissingXDisplay {
     // Browser case:
-    // If the browser test failed, it may have been because DumpRenderTree
-    // and the virtual framebuffer X server didn't hook up, or DRT crashed with
-    // a core dump. Sometimes DRT crashes after it has set the stdout to PASS,
-    // so we have to do this check first.
+    // If the browser test failed, it may have been because content shell
+    // and the virtual framebuffer X server didn't hook up, or it crashed with
+    // a core dump. Sometimes content shell crashes after it has set the stdout
+    // to PASS, so we have to do this check first.
     var stderrLines = decodeUtf8(super.stderr).split("\n");
     for (String line in stderrLines) {
       // TODO(kustermann,ricow): Issue: 7564
@@ -677,7 +683,7 @@ class BrowserCommandOutputImpl extends CommandOutputImpl {
 
   bool get _failedBecauseOfUnexpectedDRTOutput {
     /*
-     * The output of DumpRenderTree is different for pixel tests than for
+     * The output of content shell is different for pixel tests than for
      * layout tests.
      *
      * On a pixel test, the DRT output has the following format
@@ -1337,6 +1343,10 @@ class ProcessQueue {
   int _numFailedTests = 0;
   bool _allTestsWereEnqueued = false;
 
+  // Support for recording and replaying test commands.
+  TestCaseRecorder _testCaseRecorder;
+  TestCaseOutputArchive _testCaseOutputArchive;
+
   /** The number of tests we allow to actually fail before we stop retrying. */
   int _MAX_FAILED_NO_RETRY = 4;
   bool _verbose;
@@ -1380,7 +1390,9 @@ class ProcessQueue {
                this._eventListener,
                this._allDone,
                [bool verbose = false,
-                bool listTests = false])
+                bool listTests = false,
+                this._testCaseRecorder,
+                this._testCaseOutputArchive])
       : _verbose = verbose,
         _listTests = listTests,
         _tests = new Queue<TestCase>(),
@@ -1411,6 +1423,47 @@ class ProcessQueue {
   }
 
   void _runTests(List<TestSuite> testSuites) {
+    var newTest;
+    var allTestsKnown;
+
+    if (_testCaseRecorder != null) {
+      // Mode: recording.
+      newTest = _testCaseRecorder.nextTestCase;
+      allTestsKnown = () {
+        // We don't call any event*() methods, so test_progress.dart will not be
+        // notified (that's fine, since we're not running any tests).
+        _testCaseRecorder.finish();
+        _allDone();
+      };
+    } else {
+      if (_testCaseOutputArchive != null) {
+        // Mode: replaying.
+        newTest = (TestCase testCase) {
+          // We're doing this asynchronously to emulate the normal behaviour.
+          eventTestAdded(testCase);
+          Timer.run(() {
+            var output = _testCaseOutputArchive.outputOf(testCase);
+            testCase.completed();
+            eventFinishedTestCase(testCase);
+          });
+        };
+        allTestsKnown = () {
+          // If we're replaying commands, we need to call [_cleanupAndMarkDone]
+          // manually. We're putting it at the end of the event queue to make
+          // sure all the previous events were fired.
+          Timer.run(() => _cleanupAndMarkDone());
+        };
+      } else {
+        // Mode: none (we're not recording/replaying).
+        newTest = (TestCase testCase) {
+          _tests.add(testCase);
+          eventTestAdded(testCase);
+          _runTest(testCase);
+        };
+        allTestsKnown = _checkDone;
+      }
+    }
+
     // FIXME: For some reason we cannot call this method on all test suites
     // in parallel.
     // If we do, not all tests get enqueued (if --arch=all was specified,
@@ -1420,10 +1473,10 @@ class ProcessQueue {
     void enqueueNextSuite() {
       if (!iterator.moveNext()) {
         _allTestsWereEnqueued = true;
+        allTestsKnown();
         eventAllTestsKnown();
-        _checkDone();
       } else {
-        iterator.current.forEachTest(_runTest, _testCache, enqueueNextSuite);
+        iterator.current.forEachTest(newTest, _testCache, enqueueNextSuite);
       }
     }
     enqueueNextSuite();
@@ -1495,8 +1548,6 @@ class ProcessQueue {
       browserUsed = test.configuration['runtime'];
       if (_needsSelenium) _ensureSeleniumServerRunning();
     }
-    eventTestAdded(test);
-    _tests.add(test);
     _tryRunTest();
   }
 
@@ -1598,10 +1649,11 @@ class ProcessQueue {
   Future<BrowserTestRunner> _getBrowserTestRunner(TestCase test) {
     var local_ip = test.configuration['local_ip'];
     var runtime = test.configuration['runtime'];
-    var num_browsers = test.configuration['tasks'];
+    var num_browsers = 1;//test.configuration['tasks'];
     if (_browserTestRunners[runtime] == null) {
       var testRunner =
         new BrowserTestRunner(local_ip, runtime, num_browsers);
+      testRunner.logger = DebugLogger.info;
       _browserTestRunners[runtime] = testRunner;
       return testRunner.start().then((started) {
         if (started) {
@@ -1615,13 +1667,8 @@ class ProcessQueue {
   }
 
   void _startBrowserControllerTest(var test) {
-    // Get the url.
-    // TODO(ricow): This is not needed when we have eliminated selenium.
-    var nextCommandIndex = test.commandOutputs.keys.length;
-    var url = test.commands[nextCommandIndex].toString().split("--out=")[1];
-    // Remove trailing "
-    url = url.split('"')[0];
     var callback = (var output) {
+      var nextCommandIndex = test.commandOutputs.keys.length;
       new CommandOutput.fromCase(test,
                                  test.commands[nextCommandIndex],
                                  0,
@@ -1633,7 +1680,9 @@ class ProcessQueue {
                                  false);
       test.completedHandler(test);
     };
-    BrowserTest browserTest = new BrowserTest(url, callback, test.timeout);
+    BrowserTest browserTest = new BrowserTest(test.testingUrl,
+                                              callback,
+                                              test.timeout);
     _getBrowserTestRunner(test).then((testRunner) {
       testRunner.queueTest(browserTest);
     });
@@ -1654,7 +1703,9 @@ class ProcessQueue {
         print(fields.join('\t'));
         return;
       }
-      if (test.usesWebDriver && _needsSelenium && !_isSeleniumAvailable ||
+
+      if (test.usesWebDriver && _needsSelenium && !test.usesBrowserController
+          && !_isSeleniumAvailable ||
           (test is BrowserTestCase && test.waitingForOtherTest)) {
         // The test is not yet ready to run. Put the test back in
         // the queue.  Avoid spin-polling by using a timeout.

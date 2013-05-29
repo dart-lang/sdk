@@ -6,7 +6,6 @@ library safe_http_server;
 
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 
 // TODO(nweiz): remove this when issue 9140 is fixed.
 /// A wrapper around [HttpServer] that swallows errors caused by requests

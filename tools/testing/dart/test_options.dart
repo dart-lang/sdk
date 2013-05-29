@@ -85,6 +85,7 @@ is 'dart file.dart' and you specify special command
               ['-c', '--compiler'],
               ['none', 'dart2dart', 'dart2js', 'dartc', 'dartanalyzer'],
               'none'),
+          // TODO(antonm): fix the option drt.
           new _TestOptionSpecification(
               'runtime',
               '''Where the tests should be run.
@@ -95,7 +96,7 @@ is 'dart file.dart' and you specify special command
     jsshell: Run JavaScript from the command line using firefox js-shell.
 
     drt: Run Dart or JavaScript in the headless version of Chrome,
-         DumpRenderTree.
+         Content shell.
 
     dartium: Run Dart or JavaScript in Dartium.
 
@@ -113,7 +114,7 @@ is 'dart file.dart' and you specify special command
               'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'simarm', 'simmips'],
+              ['all', 'ia32', 'x64', 'simarm', 'simmips', 'arm'],
               'ia32'),
           new _TestOptionSpecification(
               'system',
@@ -252,8 +253,8 @@ is 'dart file.dart' and you specify special command
               [],
               ''),
           new _TestOptionSpecification(
-              'drt',
-              'Path to DumpRenderTree executable',
+              'drt', // TODO(antonm): fix the option name.
+              'Path to content shell executable',
               ['--drt'],
               [],
               ''),
@@ -318,7 +319,21 @@ Note: currently only implemented for dart2js.''',
               'This address is also used for browsers to connect.',
               ['--local_ip'],
               [],
-              '127.0.0.1'),];
+              '127.0.0.1'),
+          new _TestOptionSpecification(
+              'record_to_file',
+              'Records all the commands that need to be executed and writes it '
+              'out to a file.',
+              ['--record_to_file'],
+              [],
+              null),
+          new _TestOptionSpecification(
+              'replay_from_file',
+              'Records all the commands that need to be executed and writes it '
+              'out to a file.',
+              ['--replay_from_file'],
+              [],
+              null),];
   }
 
 

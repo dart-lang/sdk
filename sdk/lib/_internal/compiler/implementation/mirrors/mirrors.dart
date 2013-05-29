@@ -5,7 +5,6 @@
 library mirrors;
 
 import 'dart:async';
-import 'dart:uri';
 
 /**
  * The main interface for the whole mirror system.

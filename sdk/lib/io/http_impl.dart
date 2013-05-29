@@ -23,6 +23,8 @@ class _HttpIncoming extends Stream<List<int>> {
   String method;
   Uri uri;
 
+  bool hasSubscriber = false;
+
   // The transfer length if the length of the message body as it
   // appears in the message (RFC 2616 section 4.4). This can be -1 if
   // the length of the massage body is not known due to transfer
@@ -38,6 +40,7 @@ class _HttpIncoming extends Stream<List<int>> {
                                        {void onError(error),
                                         void onDone(),
                                         bool cancelOnError}) {
+    hasSubscriber = true;
     return _stream.listen(onData,
                           onError: onError,
                           onDone: onDone,
@@ -49,6 +52,7 @@ class _HttpIncoming extends Stream<List<int>> {
 
   void close(bool closing) {
     fullBodyRead = true;
+    hasSubscriber = true;
     _dataCompleter.complete(closing);
   }
 }
@@ -274,7 +278,7 @@ class _HttpClientResponse
   Future<HttpClientResponse> _authenticate(bool proxyAuth) {
     Future<HttpClientResponse> retry() {
       // Drain body and retry.
-      return fold(null, (x, y) {}).then((_) {
+      return drain().then((_) {
           return _httpClient._openUrlFromRequest(_httpRequest.method,
                                                  _httpRequest.uri,
                                                  _httpRequest)
@@ -470,45 +474,56 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
 
   Future<T> get done => _dataSink.done;
 
-  void _writeHeaders() {
-    if (_headersWritten) return;
+  Future _writeHeaders({drainRequest: true}) {
+    if (_headersWritten) return new Future.value();
     _headersWritten = true;
     headers._synchronize();  // Be sure the 'chunked' option is updated.
     bool isServerSide = this is _HttpResponse;
-    if (isServerSide && headers.chunkedTransferEncoding) {
+    if (isServerSide) {
       var response = this;
-      List acceptEncodings =
-          response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
-      List contentEncoding = headers[HttpHeaders.CONTENT_ENCODING];
-      if (acceptEncodings != null &&
-          acceptEncodings
-              .expand((list) => list.split(","))
-              .any((encoding) => encoding.trim().toLowerCase() == "gzip") &&
-          contentEncoding == null) {
-        headers.set(HttpHeaders.CONTENT_ENCODING, "gzip");
-        _asGZip = true;
+      if (headers.chunkedTransferEncoding) {
+        List acceptEncodings =
+            response._httpRequest.headers[HttpHeaders.ACCEPT_ENCODING];
+        List contentEncoding = headers[HttpHeaders.CONTENT_ENCODING];
+        if (acceptEncodings != null &&
+            acceptEncodings
+                .expand((list) => list.split(","))
+                .any((encoding) => encoding.trim().toLowerCase() == "gzip") &&
+            contentEncoding == null) {
+          headers.set(HttpHeaders.CONTENT_ENCODING, "gzip");
+          _asGZip = true;
+        }
+      }
+      if (drainRequest && !response._httpRequest._incoming.hasSubscriber) {
+        return response._httpRequest.drain()
+            // TODO(ajohnsen): Timeout on drain?
+            .catchError((_) {})  // Ignore errors.
+            .then((_) => _writeHeader());
       }
     }
-    _writeHeader();
+    return new Future.sync(_writeHeader);
   }
 
   Future _addStream(Stream<List<int>> stream) {
-    _writeHeaders();
-    int contentLength = headers.contentLength;
-    if (_ignoreBody) {
-      stream.fold(null, (x, y) {}).catchError((_) {});
-      return _headersSink.close();
-    }
-    stream = stream.transform(new _BufferTransformer());
-    if (headers.chunkedTransferEncoding) {
-      if (_asGZip) {
-        stream = stream.transform(new ZLibDeflater(gzip: true, level: 6));
-      }
-      stream = stream.transform(new _ChunkedTransformer());
-    } else if (contentLength >= 0) {
-      stream = stream.transform(new _ContentLengthValidator(contentLength));
-    }
-    return _headersSink.addStream(stream);
+    return _writeHeaders()
+        .then((_) {
+          int contentLength = headers.contentLength;
+          if (_ignoreBody) {
+            stream.drain().catchError((_) {});
+            return _headersSink.close();
+          }
+          stream = stream.transform(new _BufferTransformer());
+          if (headers.chunkedTransferEncoding) {
+            if (_asGZip) {
+              stream = stream.transform(new ZLibDeflater(gzip: true, level: 6));
+            }
+            stream = stream.transform(new _ChunkedTransformer());
+          } else if (contentLength >= 0) {
+            stream = stream.transform(
+                new _ContentLengthValidator(contentLength));
+          }
+          return _headersSink.addStream(stream);
+        });
   }
 
   Future _close() {
@@ -528,8 +543,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
             " than 0: ${headers.contentLength}."));
       }
     }
-    _writeHeaders();
-    return _headersSink.close();
+    return _writeHeaders().then((_) => _headersSink.close());
   }
 
   void _writeHeader();  // TODO(ajohnsen): Better name.
@@ -548,7 +562,9 @@ class _HttpOutboundConsumer implements StreamConsumer {
 
   void _cancel() {
     if (_subscription != null) {
-      _subscription.cancel();
+      StreamSubscription subscription = _subscription;
+      _subscription = null;
+      subscription.cancel();
     }
   }
 
@@ -556,6 +572,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
     if (_controller != null) return;
     _controller = new StreamController(onPause: () => _subscription.pause(),
                                        onResume: () => _subscription.resume(),
+                                       onListen: () => _subscription.resume(),
                                        onCancel: _cancel);
     _outbound._addStream(_controller.stream)
         .then((_) {
@@ -608,6 +625,8 @@ class _HttpOutboundConsumer implements StreamConsumer {
           _done(error);
         },
         cancelOnError: true);
+    // Pause the first request.
+    if (_controller == null) _subscription.pause();
     _ensureController();
     return _completer.future;
   }
@@ -682,8 +701,8 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
 
   Future<Socket> detachSocket() {
     if (_headersWritten) throw new StateError("Headers already sent");
-    _writeHeaders();
     var future = _httpRequest._httpConnection.detachSocket();
+    _writeHeaders(drainRequest: false).then((_) => close());
     // Close connection so the socket is 'free'.
     close();
     done.catchError((_) {
@@ -878,11 +897,11 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     if (followRedirects && response.isRedirect) {
       if (response.redirects.length < maxRedirects) {
         // Redirect and drain response.
-        future = response.fold(null, (x, y) {})
+        future = response.drain()
           .then((_) => response.redirect());
       } else {
         // End with exception, too many redirects.
-        future = response.fold(null, (x, y) {})
+        future = response.drain()
             .then((_) => new Future.error(
                 new RedirectLimitExceededException(response.redirects)));
       }
@@ -927,7 +946,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         // For the connect method the request URI is the host:port of
         // the requested destination of the tunnel (see RFC 2817
         // section 5.2)
-        return "${uri.domain}:${uri.port}";
+        return "${uri.host}:${uri.port}";
       } else {
         if (_httpClientConnection._proxyTunnel) {
           return uriStartingFromPath();
@@ -1136,13 +1155,13 @@ class _HttpClientConnection {
                                          proxy,
                                          _httpClient,
                                          this);
-    request.headers.host = uri.domain;
+    request.headers.host = uri.host;
     request.headers.port = port;
     request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = CryptoUtils.bytesToBase64(
+      String auth = _CryptoUtils.bytesToBase64(
           _encodeString("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
     } else if (!proxy.isDirect && _httpClient._proxyCredentials.length > 0) {
@@ -1155,7 +1174,7 @@ class _HttpClientConnection {
       // If the URL contains user information use that for basic
       // authorization.
       String auth =
-          CryptoUtils.bytesToBase64(_encodeString(uri.userInfo));
+          _CryptoUtils.bytesToBase64(_encodeString(uri.userInfo));
       request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
     } else {
       // Look for credentials.
@@ -1259,14 +1278,14 @@ class _HttpClientConnection {
 
   Future<_HttpClientConnection> createProxyTunnel(host, port, proxy) {
     _HttpClientRequest request =
-        send(new Uri.fromComponents(domain: host, port: port),
+        send(new Uri(host: host, port: port),
              port,
              "CONNECT",
              proxy);
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
-      String auth = CryptoUtils.bytesToBase64(
+      String auth = _CryptoUtils.bytesToBase64(
           _encodeString("${proxy.username}:${proxy.password}"));
       request.headers.set(HttpHeaders.PROXY_AUTHORIZATION, "Basic $auth");
     }
@@ -1352,8 +1371,8 @@ class _HttpClient implements HttpClient {
                                  String path) {
     // TODO(sgjesse): The path set here can contain both query and
     // fragment. They should be cracked and set correctly.
-    return _openUrl(method, new Uri.fromComponents(
-        scheme: "http", domain: host, port: port, path: path));
+    return _openUrl(method, new Uri(
+        scheme: "http", host: host, port: port, path: path));
   }
 
   Future<HttpClientRequest> openUrl(String method, Uri url) {
@@ -1430,7 +1449,7 @@ class _HttpClient implements HttpClient {
       throw new ArgumentError(method);
     }
     if (method != "CONNECT") {
-      if (uri.domain.isEmpty ||
+      if (uri.host.isEmpty ||
           (uri.scheme != "http" && uri.scheme != "https")) {
         throw new ArgumentError("Unsupported scheme '${uri.scheme}' in $uri");
       }
@@ -1454,7 +1473,7 @@ class _HttpClient implements HttpClient {
         return new Future.error(error, stackTrace);
       }
     }
-    return _getConnection(uri.domain, port, proxyConf, isSecure)
+    return _getConnection(uri.host, port, proxyConf, isSecure)
         .then((info) {
           send(info) {
             return info.connection.send(uri,
@@ -1465,7 +1484,7 @@ class _HttpClient implements HttpClient {
           // If the connection was closed before the request was sent, create
           // and use another connection.
           if (info.connection.closed) {
-            return _getConnection(uri.domain, port, proxyConf, isSecure)
+            return _getConnection(uri.host, port, proxyConf, isSecure)
                 .then(send);
           }
           return send(info);
@@ -1478,19 +1497,19 @@ class _HttpClient implements HttpClient {
     // If the new URI is relative (to either '/' or some sub-path),
     // construct a full URI from the previous one.
     // See http://tools.ietf.org/html/rfc3986#section-4.2
-    replaceComponents({scheme, domain, port, path}) {
-      uri = new Uri.fromComponents(
+    replaceComponents({scheme, host, port, path}) {
+      uri = new Uri(
           scheme: scheme != null ? scheme : uri.scheme,
-          domain: domain != null ? domain : uri.domain,
+          host: host != null ? host : uri.host,
           port: port != null ? port : uri.port,
           path: path != null ? path : uri.path,
           query: uri.query,
           fragment: uri.fragment);
     }
-    if (uri.domain == '') {
-      replaceComponents(domain: previous.uri.domain, port: previous.uri.port);
+    if (uri.host.isEmpty) {
+      replaceComponents(host: previous.uri.host, port: previous.uri.port);
     }
-    if (uri.scheme == '') {
+    if (uri.scheme.isEmpty) {
       replaceComponents(scheme: previous.uri.scheme);
     }
     if (!uri.path.startsWith('/') && previous.uri.path.startsWith('/')) {
@@ -1657,7 +1676,7 @@ class _HttpClient implements HttpClient {
       if (option == null) return null;
       Iterator<String> names = option.split(",").map((s) => s.trim()).iterator;
       while (names.moveNext()) {
-        if (url.domain.endsWith(names.current)) {
+        if (url.host.endsWith(names.current)) {
           return "DIRECT";
         }
       }
@@ -2130,13 +2149,13 @@ abstract class _Credentials {
       // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
       // now always use UTF-8 encoding.
       _HttpClientDigestCredentials creds = credentials;
-      var hasher = new MD5();
+      var hasher = new _MD5();
       hasher.add(_encodeString(creds.username));
       hasher.add([_CharCode.COLON]);
       hasher.add(realm.codeUnits);
       hasher.add([_CharCode.COLON]);
       hasher.add(_encodeString(creds.password));
-      ha1 = CryptoUtils.bytesToHex(hasher.close());
+      ha1 = _CryptoUtils.bytesToHex(hasher.close());
     }
   }
 
@@ -2153,7 +2172,7 @@ class _SiteCredentials extends _Credentials {
 
   bool applies(Uri uri, _AuthenticationScheme scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
-    if (uri.domain != this.uri.domain) return false;
+    if (uri.host != this.uri.host) return false;
     int thisPort =
         this.uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : this.uri.port;
     int otherPort = uri.port == 0 ? HttpClient.DEFAULT_HTTP_PORT : uri.port;
@@ -2224,7 +2243,7 @@ class _HttpClientBasicCredentials
     // http://tools.ietf.org/html/draft-reschke-basicauth-enc-06. For
     // now always use UTF-8 encoding.
     String auth =
-        CryptoUtils.bytesToBase64(_encodeString("$username:$password"));
+        _CryptoUtils.bytesToBase64(_encodeString("$username:$password"));
     return "Basic $auth";
   }
 
@@ -2251,22 +2270,22 @@ class _HttpClientDigestCredentials
 
   String authorization(_Credentials credentials, _HttpClientRequest request) {
     String requestUri = request._requestUri();
-    MD5 hasher = new MD5();
+    _MD5 hasher = new _MD5();
     hasher.add(request.method.codeUnits);
     hasher.add([_CharCode.COLON]);
     hasher.add(requestUri.codeUnits);
-    var ha2 = CryptoUtils.bytesToHex(hasher.close());
+    var ha2 = _CryptoUtils.bytesToHex(hasher.close());
 
     String qop;
     String cnonce;
     String nc;
     var x;
-    hasher = new MD5();
+    hasher = new _MD5();
     hasher.add(credentials.ha1.codeUnits);
     hasher.add([_CharCode.COLON]);
     if (credentials.qop == "auth") {
       qop = credentials.qop;
-      cnonce = CryptoUtils.bytesToHex(_IOCrypto.getRandomBytes(4));
+      cnonce = _CryptoUtils.bytesToHex(_IOCrypto.getRandomBytes(4));
       ++credentials.nonceCount;
       nc = credentials.nonceCount.toRadixString(16);
       nc = "00000000".substring(0, 8 - nc.length + 1) + nc;
@@ -2284,7 +2303,7 @@ class _HttpClientDigestCredentials
       hasher.add([_CharCode.COLON]);
       hasher.add(ha2.codeUnits);
     }
-    var response = CryptoUtils.bytesToHex(hasher.close());
+    var response = _CryptoUtils.bytesToHex(hasher.close());
 
     StringBuffer buffer = new StringBuffer();
     buffer.write('Digest ');

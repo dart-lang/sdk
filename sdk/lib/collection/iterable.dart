@@ -95,6 +95,8 @@ abstract class IterableMixin<E> implements Iterable<E> {
 
   bool get isEmpty => !iterator.moveNext();
 
+  bool get isNotEmpty => !isEmpty;
+
   Iterable<E> take(int n) {
     return new TakeIterable<E>(this, n);
   }
@@ -286,6 +288,8 @@ abstract class IterableBase<E> implements Iterable<E> {
   }
 
   bool get isEmpty => !iterator.moveNext();
+
+  bool get isNotEmpty => !isEmpty;
 
   Iterable<E> take(int n) {
     return new TakeIterable<E>(this, n);

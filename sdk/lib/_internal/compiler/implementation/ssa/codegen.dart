@@ -604,7 +604,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // argument.
     bool needsAssignment = true;
     if (instruction is HTypeConversion) {
-      String inputName = variableNames.getName(instruction.checkedInput);
+      HTypeConversion typeConversion = instruction;
+      String inputName = variableNames.getName(typeConversion.checkedInput);
       if (variableNames.getName(instruction) == inputName) {
         needsAssignment = false;
       }
@@ -805,7 +806,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               // go away.
               List<js.Expression> expressions;
               if (jsInitialization is js.Sequence) {
-                expressions = jsInitialization.expressions;
+                js.Sequence sequence = jsInitialization;
+                expressions = sequence.expressions;
               } else {
                 expressions = <js.Expression>[jsInitialization];
               }
@@ -1523,6 +1525,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String methodName = backend.namer.getName(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs);
     push(jsPropertyCall(object, methodName, arguments), node);
+    world.registerStaticUse(node.element);
   }
 
   void visitOneShotInterceptor(HOneShotInterceptor node) {
@@ -1760,13 +1763,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitForeignNew(HForeignNew node) {
     String jsClassReference = backend.namer.isolateAccess(node.element);
-    List<HInstruction> inputs = node.inputs;
-    // We can't use 'visitArguments', since our arguments start at input[0].
-    List<js.Expression> arguments = <js.Expression>[];
-    for (int i = 0; i < inputs.length; i++) {
-      use(inputs[i]);
-      arguments.add(pop());
-    }
+    List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
     // as if it was a string.
     push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
@@ -1848,7 +1845,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (input is HIs) {
       emitIs(input, '!==');
     } else if (input is HIdentity && generateAtUseSite) {
-      emitIdentityComparison(input.left, input.right, true);
+      HIdentity identity = input;
+      emitIdentityComparison(identity.left, identity.right, true);
     } else if (input is HBoolify && generateAtUseSite) {
       use(input.inputs[0]);
       push(new js.Binary("!==", pop(), newLiteralBool(true)), input);
@@ -1993,7 +1991,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerStaticUse(helper);
     js.VariableUse jsHelper =
         new js.VariableUse(backend.namer.isolateAccess(helper));
-    js.Call value = new js.Call(jsHelper, visitArguments([null, argument]));
+    use(argument);
+    js.Call value = new js.Call(jsHelper, [pop()]);
     attachLocation(value, argument);
     // BUG(4906): Using throw here adds to the size of the generated code
     // but it has the advantage of explicitly telling the JS engine that
@@ -2044,10 +2043,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStaticStore(HStaticStore node) {
     world.registerStaticUse(node.element);
-    js.VariableUse variableUse =
-        new js.VariableUse(backend.namer.isolateAccess(node.element));
+    js.VariableUse isolate = new js.VariableUse(backend.namer.CURRENT_ISOLATE);
+    // Create a property access to make sure expressions and variable
+    // declarations recognizers don't see this assignment as a local
+    // assignment.
+    js.Node variable = new js.PropertyAccess.field(
+        isolate, backend.namer.getName(node.element));
     use(node.inputs[0]);
-    push(new js.Assignment(variableUse, pop()), node);
+    push(new js.Assignment(variable, pop()), node);
   }
 
   void visitStringConcat(HStringConcat node) {
@@ -2182,12 +2185,22 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(new js.Prefix('!', new js.Prefix('!', field)));
   }
 
+  void checkFieldDoesNotExist(HInstruction input, String fieldName) {
+    use(input);
+    js.PropertyAccess field = new js.PropertyAccess.field(pop(), fieldName);
+    push(new js.Prefix('!', field));
+  }
+
   void checkImmutableArray(HInstruction input) {
     checkFieldExists(input, 'immutable\$list');
   }
 
+  void checkMutableArray(HInstruction input) {
+    checkFieldDoesNotExist(input, 'immutable\$list');
+  }
+
   void checkExtendableArray(HInstruction input) {
-    checkFieldExists(input, 'fixed\$length');
+    checkFieldDoesNotExist(input, 'fixed\$length');
   }
 
   void checkFixedArray(HInstruction input) {
@@ -2233,8 +2246,33 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkType(HInstruction input, DartType type, {bool negative: false}) {
     assert(invariant(input, !type.isMalformed,
                      message: 'Attempt to check malformed type $type'));
-    world.registerIsCheck(type, work.resolutionTree);
     Element element = type.element;
+
+    if (element == backend.jsArrayClass) {
+      checkArray(input, negative ? '!==': '===');
+      return;
+    } else if (element == backend.jsMutableArrayClass) {
+      if (negative) {
+        checkImmutableArray(input);
+      } else {
+        checkMutableArray(input);
+      }
+      return;
+    } else if (element == backend.jsExtendableArrayClass) {
+      if (negative) {
+        checkFixedArray(input);
+      } else {
+        checkExtendableArray(input);
+      }
+      return;
+    } else if (element == backend.jsFixedArrayClass) {
+      if (negative) {
+        checkExtendableArray(input);
+      } else {
+        checkFixedArray(input);
+      }
+      return;
+    }
     use(input);
 
     // Hack in interceptor.  Ideally the interceptor would occur at the
@@ -2247,24 +2285,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = <js.Expression>[pop()];
     push(jsPropertyCall(isolate, interceptorName, arguments));
     backend.registerUseInterceptor(world);
-
-    // TODO(9586): If a static function can have the type, the type info is
-    // sitting on the function.  So generate:
-    //
-    //   (typeof x == "function" ? x : getInterceptor(x)).$isFoo
-    //
-    if (type.unalias(compiler) is FunctionType) {
-      js.Expression whenNotFunction = pop();
-      use(input);
-      js.Expression whenFunction = pop();
-      use(input);
-      push(new js.Conditional(
-          new js.Binary('==',
-              new js.Prefix("typeof", pop()),
-              js.string('function')),
-          whenFunction,
-          whenNotFunction));
-    }
+    world.registerIsCheck(type, work.resolutionTree);
 
     js.PropertyAccess field =
         new js.PropertyAccess.field(pop(), backend.namer.operatorIs(element));
@@ -2399,7 +2420,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         checkType(input, type, negative: negative);
         push(new js.Binary(negative ? '||' : '&&', nullTest, pop()));
         attachLocationToLast(node);
-      } else if (input.canBePrimitive(compiler) || input.canBeNull()) {
+      } else if ((input.canBePrimitive(compiler)
+                  && !input.canBePrimitiveArray(compiler))
+                 || input.canBeNull()) {
         checkObject(input, relation);
         js.Expression objectTest = pop();
         checkType(input, type, negative: negative);
@@ -2519,12 +2542,12 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     assert(node.isCheckedModeCheck || node.isCastTypeCheck);
     DartType type = node.typeExpression;
-      if (type.kind == TypeKind.FUNCTION) {
-        // TODO(5022): We currently generate $isFunction checks for
-        // function types.
-        world.registerIsCheck(
-            compiler.functionClass.computeType(compiler), work.resolutionTree);
-      }
+    if (type.kind == TypeKind.FUNCTION) {
+      // TODO(5022): We currently generate $isFunction checks for
+      // function types.
+      world.registerIsCheck(
+          compiler.functionClass.computeType(compiler), work.resolutionTree);
+    }
     world.registerIsCheck(type, work.resolutionTree);
 
     FunctionElement helperElement;
@@ -2724,7 +2747,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   // find the name of its checked input. Note that there must be a
   // name, otherwise the instruction would not be in the live
   // environment.
-  HInstruction unwrap(HInstruction argument) {
+  HInstruction unwrap(var argument) {
     while (argument is HCheck && !variableNames.hasName(argument)) {
       argument = argument.checkedInput;
     }

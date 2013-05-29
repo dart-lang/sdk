@@ -5,7 +5,6 @@
 import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:io';
-import 'dart:uri';
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart';
@@ -13,7 +12,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.
 import 'mock_compiler.dart';
 
 const String SOURCE = 'source';
-const Uri SOURCE_URI = const Uri.fromComponents(scheme: SOURCE, path: SOURCE);
+Uri SOURCE_URI = new Uri(scheme: SOURCE, path: SOURCE);
 
 MirrorSystem createMirrorSystem(String source) {
   MockCompiler compiler = new MockCompiler(
