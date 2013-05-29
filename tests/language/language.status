@@ -34,7 +34,6 @@ mixin_super_constructor_multiple_test: Fail
 closure_type_variable_test: Fail # Type variable used as expression (dartbug.com/6282)
 built_in_identifier_prefix_test: Fail # http://dartbug.com/6970
 library_juxtaposition_test: Fail # Issue 6877
-gc_test: Pass, Fail # Issue 1487
 pseudo_kw_illegal_test/14: Fail  # Issue 356
 method_override2_test/00: Fail # Issue 7076.
 method_override2_test/02: Fail # Issue 7076.
@@ -86,12 +85,6 @@ super_operator_index7_test: Fail # Issue 8918
 
 execute_finally10_test: Fail # Issue 430
 execute_finally11_test: Fail # Issue 430
-
-[ $compiler == none && ($system == macos || $system == linux) && $arch == ia32 && $checked ]
-gc_test: Skip  # Issue 1487, flaky.
-
-[ $compiler == none && $mode == debug ]
-gc_test: Skip  # Takes too long.
 
 [ $compiler == none && $unchecked ]
 
@@ -311,7 +304,6 @@ final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
-gc_test: Skip # Issue 1487
 
 
 [ $runtime == dartium ]
@@ -476,7 +468,6 @@ syntax_test/47: Fail
 constructor5_test: Fail
 constructor6_test: Fail
 closure_in_initializer_test: Fail
-gc_test: Pass,Fail
 super_first_constructor_test: Fail
 # VM specific tests.
 disable_privacy_test: Pass, Fail, Ok
