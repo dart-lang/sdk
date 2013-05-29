@@ -158,7 +158,7 @@ abstract class Stream<T> {
    */
   Stream<T> asBroadcastStream() {
     if (isBroadcast) return this;
-    return new _SingleStreamMultiplexer<T>(this);
+    return new _AsBroadcastStream<T>(this);
   }
 
   /**

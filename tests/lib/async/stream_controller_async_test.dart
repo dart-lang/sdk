@@ -482,6 +482,25 @@ void testBroadcastController() {
     c.add(42);
     c.close();
   });
+
+  test("broadcast-controller-add-in-callback", () {
+    StreamController<int> c;
+    c = new StreamController(
+      onListen: expectAsync0(() {}),
+      onCancel: expectAsync0(() {
+        c.add(42);
+      })
+    );
+    var sub;
+    sub = c.stream.asBroadcastStream().listen(expectAsync1((v) {
+      Expect.equals(37, v);
+      c.add(21);
+      sub.cancel();
+    }));
+    c.add(37);  // Triggers listener, which adds 21 and removes itself.
+    // Removing listener triggers onCancel which adds another 42.
+    // Both 21 and 42 are lost because there are no listeners.
+  });
 }
 
 main() {
