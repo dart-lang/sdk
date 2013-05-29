@@ -86,7 +86,6 @@ void compile(List<String> argv) {
   List<String> options = new List<String>();
   bool explicitOut = false;
   bool wantHelp = false;
-  bool wantVersion = false;
   String outputLanguage = 'JavaScript';
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
@@ -198,7 +197,6 @@ void compile(List<String> argv) {
                       (_) => diagnosticHandler.showWarnings = false),
     new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
     new OptionHandler('--verbose', setVerbose),
-    new OptionHandler('--version', (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
     new OptionHandler('--out=.+|-o.+', setOutput),
     new OptionHandler('--allow-mock-compilation', passThrough),
@@ -237,9 +235,7 @@ void compile(List<String> argv) {
   ];
 
   parseCommandLine(handlers, argv);
-  if (wantHelp || wantVersion) {
-    helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
-  }
+  if (wantHelp) helpAndExit(diagnosticHandler.verbose);
 
   if (outputLanguage != OUTPUT_LANGUAGE_DART && stripArgumentSet) {
     helpAndFail('Error: --force-strip may only be used with '
@@ -417,9 +413,6 @@ Supported options:
   -v, --verbose
     Display verbose information.
 
-  --version
-    Display version information.
-
   -p<path>, --package-root=<path>
     Where to find packages, that is, "package:..." imports.
 
@@ -494,19 +487,11 @@ be removed in a future version:
 '''.trim());
 }
 
-void helpAndExit(bool wantHelp, bool wantVersion, bool verbose) {
-  if (wantVersion) {
-    var version = (BUILD_ID == null)
-        ? '<non-SDK build>'
-        : BUILD_ID;
-    print('Dart-to-JavaScript compiler (dart2js) version: $version');
-  }
-  if (wantHelp) {
-    if (verbose) {
-      verboseHelp();
-    } else {
-      help();
-    }
+void helpAndExit(bool verbose) {
+  if (verbose) {
+    verboseHelp();
+  } else {
+    help();
   }
   exit(0);
 }

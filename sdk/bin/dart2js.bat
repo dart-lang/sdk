@@ -29,6 +29,7 @@ if _%DART2JS_DEVELOPER_MODE%_ == _1_ (
 )
 
 if exist "%SNAPSHOT%" (
+  echo Using snapshot "%SNAPSHOT%" >&2
   set EXTRA_OPTIONS=%EXTRA_OPTIONS% "--library-root=%SDK_DIR%"
 )
 
