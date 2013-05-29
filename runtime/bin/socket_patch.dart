@@ -700,7 +700,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   void set readEventsEnabled(bool value) {
     if (value != _readEventsEnabled) {
       _readEventsEnabled = value;
-      if (_controller.hasListener && !_controller.isPaused) _resume();
+      if (!_controller.isPaused) _resume();
     }
   }
 
@@ -708,7 +708,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   void set writeEventsEnabled(bool value) {
     if (value != _writeEventsEnabled) {
       _writeEventsEnabled = value;
-      if (_controller.hasListener && !_controller.isPaused) _resume();
+      if (!_controller.isPaused) _resume();
     }
   }
 

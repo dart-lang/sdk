@@ -109,7 +109,17 @@ abstract class StreamController<T> implements EventSink<T> {
    */
   bool get isClosed;
 
-  /** Whether the subscription is active and paused. */
+  /**
+   * Whether the subscription would need to buffer events.
+   *
+   * This is the case if the controller's stream has a listener and it is
+   * paused, or if it has not received a listener yet. In that case, the
+   * controller is considered paused as well.
+   *
+   * A broadcast stream controller is never considered paused. It always
+   * forwards its events to all uncanceled listeners, if any, and let them
+   * handle their own pausing.
+   */
   bool get isPaused;
 
   /** Whether there is a subscriber on the [Stream]. */
@@ -181,7 +191,8 @@ class _StreamControllerImpl<T> implements StreamController<T>,
 
   bool get isClosed => (_state & _STATE_CLOSED) != 0;
 
-  bool get isPaused => _subscription != null && _subscription._isInputPaused;
+  bool get isPaused => hasListener ? _subscription._isInputPaused
+                                   : !_isCancelled;
 
   bool get hasListener => _subscription != null;
 
