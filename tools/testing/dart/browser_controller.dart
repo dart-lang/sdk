@@ -37,6 +37,8 @@ abstract class Browser {
    */
   Process process;
 
+  Function logger;
+
   /**
    * Id of the browser
    */
@@ -46,7 +48,7 @@ abstract class Browser {
   Function onClose;
 
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
-  bool debugPrint = true;
+  bool debugPrint = false;
 
   // We use this to gracefully handle double calls to close.
   bool underTermination = false;
@@ -54,6 +56,7 @@ abstract class Browser {
   void _logEvent(String event) {
     String toLog = "$this ($id) - ${new DateTime.now()}: $event \n";
     if (debugPrint) print("usageLog: $toLog");
+    if (logger != null) logger(toLog);
     _usageLog.write(toLog);
   }
 
@@ -496,6 +499,8 @@ class BrowserTestRunner {
   String local_ip;
   String browserName;
   int maxNumBrowsers;
+  // Used to send back logs from the browser (start, stop etc)
+  Function logger;
 
   bool underTermination = false;
 
@@ -714,15 +719,18 @@ class BrowserTestRunner {
   }
 
   Browser getInstance() {
+    var browser;
     if (browserName == "chrome") {
-      return new Chrome();
+      browser = new Chrome();
     } else if (browserName == "ff") {
-      return new Firefox();
+      browser = new Firefox();
     } else if (browserName == "safari") {
-      return new Safari();
+      browser = new Safari();
     } else {
       throw "Non supported browser for browser controller";
     }
+    browser.logger = logger;
+    return browser;
   }
 }
 

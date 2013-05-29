@@ -1644,10 +1644,11 @@ class ProcessQueue {
   Future<BrowserTestRunner> _getBrowserTestRunner(TestCase test) {
     var local_ip = test.configuration['local_ip'];
     var runtime = test.configuration['runtime'];
-    var num_browsers = test.configuration['tasks'];
+    var num_browsers = 1;//test.configuration['tasks'];
     if (_browserTestRunners[runtime] == null) {
       var testRunner =
         new BrowserTestRunner(local_ip, runtime, num_browsers);
+      testRunner.logger = DebugLogger.info;
       _browserTestRunners[runtime] = testRunner;
       return testRunner.start().then((started) {
         if (started) {
@@ -1681,6 +1682,8 @@ class ProcessQueue {
     };
     BrowserTest browserTest = new BrowserTest(url, callback, test.timeout);
     _getBrowserTestRunner(test).then((testRunner) {
+      print("BatchRunnerArguments ${test.batchRunnerArguments}");
+      print("Batchtestarguments ${test.batchTestArguments}");
       testRunner.queueTest(browserTest);
     });
   }
