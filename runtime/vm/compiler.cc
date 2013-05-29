@@ -242,6 +242,9 @@ static void InstallUnoptimizedCode(const Function& function) {
 // Return false if bailed out.
 static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                                         bool optimized) {
+  if (optimized && !parsed_function.function().is_optimizable()) {
+    return false;
+  }
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
@@ -281,6 +284,11 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       flow_graph = builder.BuildGraph();
     }
 
+    if (FLAG_print_flow_graph ||
+        (optimized && FLAG_print_flow_graph_optimized)) {
+      FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
+    }
+
     if (optimized) {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::ssa_timer,
@@ -288,12 +296,11 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       // Transform to SSA (virtual register 0 and no inlining arguments).
       flow_graph->ComputeSSA(0, NULL);
       DEBUG_ASSERT(flow_graph->VerifyUseLists());
+      if (FLAG_print_flow_graph || FLAG_print_flow_graph_optimized) {
+        FlowGraphPrinter::PrintGraph("After SSA", flow_graph);
+      }
     }
 
-    if (FLAG_print_flow_graph ||
-        (optimized && FLAG_print_flow_graph_optimized)) {
-      FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
-    }
 
     // Collect all instance fields that are loaded in the graph and
     // have non-generic type feedback attached to them that can

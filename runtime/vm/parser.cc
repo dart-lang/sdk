@@ -8118,6 +8118,10 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       if (const_value.IsError()) {
         const Error& error = Error::Cast(const_value);
         if (error.IsUnhandledException()) {
+          // An exception may not occur in every parse attempt, i.e., the
+          // generated AST is not deterministic. Therefore mark the function as
+          // not optimizable.
+          current_function().set_is_optimizable(false);
           field.set_value(Instance::Handle());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
@@ -8181,6 +8185,10 @@ RawObject* Parser::EvaluateConstConstructorCall(
                                                arg_values,
                                                arg_descriptor));
   if (result.IsError()) {
+      // An exception may not occur in every parse attempt, i.e., the
+      // generated AST is not deterministic. Therefore mark the function as
+      // not optimizable.
+      current_function().set_is_optimizable(false);
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {
