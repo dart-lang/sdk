@@ -2589,13 +2589,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (cls.isAbstract(compiler)) {
       compiler.backend.registerAbstractClassInstantiation(mapping);
     }
-    // [cls] might be the declaration element and we want to include injected
-    // members.
-    cls.implementation.forEachInstanceField(
-        (ClassElement enclosingClass, Element member) {
-          world.addToWorkList(member);
-        },
-        includeSuperAndInjectedMembers: true);
 
     if (isSymbolConstructor) {
       if (node.isConst()) {

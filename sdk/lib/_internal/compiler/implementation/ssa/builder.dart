@@ -44,6 +44,7 @@ class SsaBuilderTask extends CompilerTask {
                  kind == ElementKind.SETTER) {
         graph = builder.buildMethod(element);
       } else if (kind == ElementKind.FIELD) {
+        assert(!element.isInstanceMember());
         graph = builder.buildLazyInitializer(element);
       } else {
         compiler.internalErrorOnElement(element,

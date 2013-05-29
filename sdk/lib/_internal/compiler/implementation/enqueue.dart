@@ -282,6 +282,12 @@ abstract class Enqueuer {
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue) {
+          // Only the resolution queue needs to operate on individual
+          // fields. The codegen enqueuer inlines the potential field
+          // intializations in the constructor.
+          cls.implementation.forEachInstanceField((_, Element field) {
+            addToWorkList(field);
+          }, includeSuperAndInjectedMembers: true);
           compiler.resolver.checkClass(cls);
         }
       }
