@@ -99,7 +99,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       constantInterceptor = backend.jsBoolClass;
     } else if (type.isString()) {
       constantInterceptor = backend.jsStringClass;
-    } else if (type.isArray()) {
+    } else if (type.isArray(compiler)) {
       constantInterceptor = backend.jsArrayClass;
     } else if (type.isNull()) {
       constantInterceptor = backend.jsNullClass;

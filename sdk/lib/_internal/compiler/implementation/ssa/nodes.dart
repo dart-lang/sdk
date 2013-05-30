@@ -826,11 +826,16 @@ abstract class HInstruction implements Spannable {
   bool isControlFlow() => false;
 
   // All isFunctions work on the propagated types.
-  bool isArray() => instructionType.isArray();
-  bool isReadableArray() => instructionType.isReadableArray();
-  bool isMutableArray() => instructionType.isMutableArray();
-  bool isExtendableArray() => instructionType.isExtendableArray();
-  bool isFixedArray() => instructionType.isFixedArray();
+  bool isArray(Compiler compiler) =>
+      instructionType.isArray(compiler);
+  bool isReadableArray(Compiler compiler) =>
+      instructionType.isReadableArray(compiler);
+  bool isMutableArray(Compiler compiler) =>
+      instructionType.isMutableArray(compiler);
+  bool isExtendableArray(Compiler compiler) =>
+      instructionType.isExtendableArray(compiler);
+  bool isFixedArray(Compiler compiler) =>
+      instructionType.isFixedArray(compiler);
   bool isBoolean() => instructionType.isBoolean();
   bool isInteger() => instructionType.isInteger();
   bool isIntegerOrNull() => instructionType.isIntegerOrNull();
@@ -854,7 +859,8 @@ abstract class HInstruction implements Spannable {
       instructionType.isMutableIndexable(compiler);
 
   // TODO(kasperl): Get rid of this one.
-  bool isIndexablePrimitive() => instructionType.isIndexablePrimitive();
+  bool isIndexablePrimitive(Compiler compiler) =>
+      instructionType.isIndexablePrimitive(compiler);
 
   /**
    * Type of the unstruction.
@@ -1335,11 +1341,11 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
   String toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 
-  bool isIndexOperatorOnIndexablePrimitive() {
+  bool isIndexOperatorOnIndexablePrimitive(Compiler compiler) {
     return isInterceptedCall
         && selector.kind == SelectorKind.INDEX
         && selector.name == const SourceString('[]')
-        && inputs[1].isIndexablePrimitive();
+        && inputs[1].isIndexablePrimitive(compiler);
   }
 }
 

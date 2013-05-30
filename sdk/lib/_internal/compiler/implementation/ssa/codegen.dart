@@ -2462,7 +2462,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // input is !string
       checkString(input, '!==');
       test = pop();
-    } else if (node.isExtendableArray()) {
+    } else if (node.isExtendableArray(compiler)) {
       // input is !Object || input is !Array || input.isFixed
       checkObject(input, '!==');
       js.Expression objectTest = pop();
@@ -2471,7 +2471,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkFixedArray(input);
       test = new js.Binary('||', objectTest, arrayTest);
       test = new js.Binary('||', test, pop());
-    } else if (node.isMutableArray()) {
+    } else if (node.isMutableArray(compiler)) {
       // input is !Object
       // || ((input is !Array || input.isImmutable)
       //     && input is !JsIndexingBehavior)
@@ -2484,7 +2484,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkIndexingBehavior(input, negative: true);
       js.Binary notIndexing = new js.Binary('&&', notArrayOrImmutable, pop());
       test = new js.Binary('||', objectTest, notIndexing);
-    } else if (node.isReadableArray()) {
+    } else if (node.isReadableArray(compiler)) {
       // input is !Object
       // || (input is !Array && input is !JsIndexingBehavior)
       checkObject(input, '!==');
@@ -2494,7 +2494,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkIndexingBehavior(input, negative: true);
       js.Expression notIndexing = new js.Binary('&&', arrayTest, pop());
       test = new js.Binary('||', objectTest, notIndexing);
-    } else if (node.isIndexablePrimitive()) {
+    } else if (node.isIndexablePrimitive(compiler)) {
       // input is !String
       // && (input is !Object
       //     || (input is !Array && input is !JsIndexingBehavior))

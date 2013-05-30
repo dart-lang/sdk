@@ -245,7 +245,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         return graph.addConstantInt(constant.length, constantSystem);
       }
       Element element = backend.jsIndexableLength;
-      bool isAssignable = !actualReceiver.isFixedArray() &&
+      bool isAssignable = !actualReceiver.isFixedArray(compiler) &&
           !actualReceiver.isString();
       HFieldGet result = new HFieldGet(
           element, actualReceiver, isAssignable: isAssignable);
@@ -279,7 +279,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     if (selector.isCall()) {
       Element target;
-      if (input.isExtendableArray()) {
+      if (input.isExtendableArray(compiler)) {
         if (selector.applies(backend.jsArrayRemoveLast, compiler)) {
           target = backend.jsArrayRemoveLast;
         } else if (selector.applies(backend.jsArrayAdd, compiler)) {
@@ -826,7 +826,8 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HBoundsCheck insertBoundsCheck(HInstruction indexNode,
                                  HInstruction array,
                                  HInstruction indexArgument) {
-    bool isAssignable = !array.isFixedArray() && !array.isString();
+    bool isAssignable =
+        !array.isFixedArray(backend.compiler) && !array.isString();
     HFieldGet length = new HFieldGet(
         backend.jsIndexableLength, array, isAssignable: isAssignable);
     length.instructionType = HType.INTEGER;

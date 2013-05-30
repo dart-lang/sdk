@@ -557,11 +557,11 @@ class EqualsSpecializer extends RelationalSpecializer {
       return right.instructionType;
     }
     // String equality testing is much more common than array equality testing.
-    if (input == left && left.isIndexablePrimitive()) {
+    if (input == left && left.isIndexablePrimitive(compiler)) {
       return HType.READABLE_ARRAY;
     }
     // String equality testing is much more common than array equality testing.
-    if (input == right && right.isIndexablePrimitive()) {
+    if (input == right && right.isIndexablePrimitive(compiler)) {
       return HType.STRING;
     }
     return HType.UNKNOWN;
