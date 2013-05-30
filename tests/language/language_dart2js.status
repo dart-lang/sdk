@@ -42,9 +42,7 @@ stacktrace_test: Pass, Fail # Assumes stack trace string ends in newline.
 function_type_alias6_test: Crash # dartbug.com/9792
 
 prefix16_test: Fail # dartbug.com/7354
-default_factory2_test/01: Pass # For the wrong reasons.
-type_variable_scope_test/none: Fail
-redirecting_factory_infinite_steps_test/01: Fail
+default_factory2_test/01: Fail
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail
@@ -62,17 +60,11 @@ prefix15_test: Fail # Issue 5022
 local_function2_test: Fail # Issue 5022
 
 [ $compiler == dart2js && $unchecked ]
-default_factory2_test/01: Fail # type arguments on redirecting factory not implemented
-type_variable_scope_test: Fail # type arguments on redirecting factory not implemented
+factory_redirection_test/14: Fail # redirecting to redirecting factory
+type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
+
 assertion_test: Fail
 type_variable_bounds_test/07: Fail # Wrongly reports compile-time error.
-factory_redirection_test/08: Fail
-factory_redirection_test/09: Fail
-factory_redirection_test/10: Fail
-factory_redirection_test/11: Fail
-factory_redirection_test/12: Fail
-factory_redirection_test/13: Fail
-factory_redirection_test/14: Fail
 
 double_to_string_as_exponential2_test: Fail # toStringAsExponential doesn't check if argument is an integer.
 double_to_string_as_fixed2_test: Fail # toStringAsFixed doesn't check if argument is an integer.
@@ -108,7 +100,6 @@ double_int_to_string_test: Fail # Issue 1533 (double/integer distinction)
 mint_arithmetic_test: Fail # Issue 1533 (big integer arithmetic).
 left_shift_test: Fail # Issue 1533
 factory_redirection_test/01: Fail
-factory_redirection_test/05: Fail
 factory_redirection_test/07: Fail
 final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
@@ -141,17 +132,12 @@ named_parameters_type_test: Fail
 positional_parameters_type_test: Fail
 
 # Compilation errors.
-default_factory3_test: Fail # type arguments on redirecting factory not implemented
-non_parameterized_factory_test: Fail # type arguments on redirecting factory not implemented
-non_parameterized_factory2_test: Fail # type arguments on redirecting factory not implemented
 const_var_test: Fail # Map literals take 2 type arguments.
 map_literal3_test: Fail # Map literals take 2 type arguments.
 ct_const_test: Fail # We don't take the generic type into account yet.
 dynamic_test: Fail # cannot resolve type F1
 constructor_redirect2_test/03: Fail # redirecting ctor with initializing formal
-factory2_test: Fail # internal error: visitIs for type variables not implemented
 factory3_test: Fail # internal error: visitIs for type variables not implemented
-factory5_test: Fail # internal error: visitIs for type variables not implemented
 function_type_alias2_test: Fail # cannot resolve type f1
 function_type_alias3_test: Fail # cannot resolve type F
 function_type_alias4_test: Fail # cannot resolve type F
@@ -221,7 +207,6 @@ instanceof4_test: Fail # Expect.isTrue(false) fails.
 list_literal4_test: Fail # Illegal argument(s): 0 -- checked mode test.
 map_literal4_test: Fail # Attempt to modify an immutable object -- checked mode test.
 named_parameters_type_test: Fail # Expect.equals(expected: <111>, actual: <0>) fails. -- checked mode test.
-type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actual: <false>) fails. -- checked mode test.
 type_dartc_test: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mode test.
 
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.

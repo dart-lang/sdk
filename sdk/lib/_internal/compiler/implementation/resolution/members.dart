@@ -2503,10 +2503,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
           enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
     Element redirectionTarget = resolveRedirectingFactory(node);
-    var type = mapping.getType(node.expression);
-    if (type is InterfaceType && !type.isRaw) {
-      unimplemented(node.expression, 'type arguments on redirecting factory');
-    }
     useElement(node.expression, redirectionTarget);
     FunctionElement constructor = enclosingElement;
     if (constructor.modifiers.isConst() &&
@@ -2514,7 +2510,36 @@ class ResolverVisitor extends MappingVisitor<Element> {
       error(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
     constructor.defaultImplementation = redirectionTarget;
-    if (Elements.isUnresolved(redirectionTarget)) return;
+    if (Elements.isUnresolved(redirectionTarget)) {
+      compiler.backend.registerThrowNoSuchMethod(mapping);
+      return;
+    }
+
+    // Compute the signature of the target method taking into account the
+    // type arguments that are specified in the redirection, and store it on
+    // the return node.
+    ClassElement targetClass = redirectionTarget.getEnclosingClass();
+    InterfaceType type = mapping.getType(node.expression)
+        .subst(currentClass.typeVariables, targetClass.typeVariables);
+    mapping.setType(node, type);
+
+    // Check that the target constructor is type compatible with the
+    // redirecting constructor.
+    FunctionType targetType = redirectionTarget.computeType(compiler)
+        .subst(type.typeArguments, targetClass.typeVariables);
+    FunctionType constructorType = constructor.computeType(compiler);
+    if (!compiler.types.isSubtype(targetType, constructorType)) {
+      warning(node, MessageKind.NOT_ASSIGNABLE,
+              {'fromType': targetType, 'toType': constructorType});
+    }
+
+    FunctionSignature targetSignature =
+        redirectionTarget.computeSignature(compiler);
+    FunctionSignature constructorSignature =
+        constructor.computeSignature(compiler);
+    if (!targetSignature.isCompatibleWith(constructorSignature)) {
+      compiler.backend.registerThrowNoSuchMethod(mapping);
+    }
 
     // TODO(ahe): Check that this doesn't lead to a cycle.  For now,
     // just make sure that the redirection target isn't itself a
@@ -2524,7 +2549,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       FunctionExpression function = targetImplementation.parseNode(compiler);
       if (function.body != null && function.body.asReturn() != null
           && function.body.asReturn().isRedirectingFactoryBody) {
-        unimplemented(node.expression, 'redirecing to redirecting factory');
+        unimplemented(node.expression, 'redirecting to redirecting factory');
       }
     }
     world.registerStaticUse(redirectionTarget);

@@ -721,6 +721,8 @@ abstract class FunctionSignature {
   void forEachOptionalParameter(void function(Element parameter));
 
   void orderedForEachParameter(void function(Element parameter));
+
+  bool isCompatibleWith(FunctionSignature constructorSignature);
 }
 
 abstract class FunctionElement extends Element {
@@ -732,6 +734,8 @@ abstract class FunctionElement extends Element {
 
   FunctionElement get patch;
   FunctionElement get origin;
+
+  bool get isRedirectingFactory;
 
   // TODO(kasperl): These are bit fishy. Do we really need them?
   void set patch(FunctionElement value);

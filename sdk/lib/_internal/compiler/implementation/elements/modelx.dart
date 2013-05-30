@@ -317,6 +317,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   get origin => unsupported();
   get defaultImplementation => unsupported();
 
+  bool get isRedirectingFactory => unsupported();
   bool get isPatched => unsupported();
   bool get isPatch => unsupported();
 
@@ -1102,6 +1103,38 @@ class FunctionSignatureX implements FunctionSignature {
   }
 
   int get parameterCount => requiredParameterCount + optionalParameterCount;
+
+  /**
+   * Check whether a function with this signature can be used instead of a
+   * function with signature [signature] without causing a `noSuchMethod`
+   * exception/call.
+   */
+  bool isCompatibleWith(FunctionSignature signature) {
+    if (optionalParametersAreNamed != signature.optionalParametersAreNamed) {
+      return false;
+    }
+    if (optionalParametersAreNamed) {
+      if (requiredParameterCount != signature.requiredParameterCount) {
+        return false;
+      }
+      for (Element namedParameter in signature.optionalParameters) {
+        if (!optionalParameters.contains(namedParameter)) {
+          return false;
+        }
+      }
+    } else {
+      // There must be at least as many arguments as in the other signature, but
+      // this signature must not have more required parameters.  Having more
+      // optional parameters is not a problem, they simply are never provided
+      // by call sites of a call to a method with the other signature.
+      if (requiredParameterCount > signature.requiredParameterCount ||
+          requiredParameterCount < signature.parameterCount ||
+          parameterCount < signature.parameterCount) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 class FunctionElementX extends ElementX implements FunctionElement {
@@ -1160,6 +1193,8 @@ class FunctionElementX extends ElementX implements FunctionElement {
 
   bool get isPatched => patch != null;
   bool get isPatch => origin != null;
+
+  bool get isRedirectingFactory => defaultImplementation != this;
 
   FunctionElement get redirectionTarget {
     if (this == defaultImplementation) return this;

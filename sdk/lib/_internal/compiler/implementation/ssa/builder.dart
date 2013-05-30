@@ -3389,6 +3389,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     FunctionElement functionElement = constructor;
     constructor = functionElement.redirectionTarget;
+
     final bool isSymbolConstructor =
         functionElement == compiler.symbolConstructor;
 
@@ -3399,6 +3400,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       selector = compiler.symbolValidatedConstructorSelector;
       assert(invariant(send, selector != null,
                        message: 'Constructor Symbol.validated is missing'));
+    }
+
+    bool isRedirected = functionElement.isRedirectingFactory;
+    DartType expectedType = type;
+    if (isRedirected) {
+      FunctionExpression functionNode = functionElement.parseNode(compiler);
+      if (functionNode.isRedirectingFactory) {
+        // Lookup the type used in the redirection.
+        Return redirectionNode = functionNode.body;
+        TreeElements treeElements =
+            compiler.enqueuer.resolution.getCachedElements(
+                functionElement.declaration);
+        ClassElement targetClass = functionElement.getEnclosingClass();
+        type = treeElements.getType(redirectionNode)
+            .subst(type.typeArguments, targetClass.typeVariables);
+      }
+      functionElement = functionElement.redirectionTarget;
     }
 
     var inputs = <HInstruction>[];
@@ -3444,6 +3462,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // the 'new' is done.
     if (isListConstructor && backend.needsRti(compiler.listClass)) {
       handleListConstructor(type, send, newInstance);
+    }
+
+    // Finally, if we called a redirecting factory constructor, check the type.
+    if (isRedirected) {
+      HInstruction checked = potentiallyCheckType(newInstance, expectedType);
+      if (checked != newInstance) {
+        pop();
+        stack.add(checked);
+      }
     }
   }
 
