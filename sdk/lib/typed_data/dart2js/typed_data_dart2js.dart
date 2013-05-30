@@ -123,22 +123,12 @@ class TypedData native "ArrayBufferView" {
 }
 
 class ByteData extends TypedData native "DataView" {
-  factory ByteData(int length) => JS('ByteData', 'new DataView(#)', length);
+  factory ByteData(int length) =>
+      _TypedArrayFactoryProvider.createByteData(length);
 
-  factory ByteData.view(ByteBuffer buffer, [int byteOffset, int byteLength]) {
-    if (?byteLength) {
-      return ByteData._create_1(buffer, byteOffset, byteLength);
-    }
-    if (?byteOffset) {
-      return ByteData._create_2(buffer, byteOffset);
-    }
-    return ByteData._create_3(buffer);
-  }
-
-  static ByteData _create_1(buffer, byteOffset, byteLength) =>
-    JS('ByteData', 'new DataView(#,#,#)', buffer, byteOffset, byteLength);
-  static ByteData _create_2(buffer, byteOffset) => JS('ByteData', 'new DataView(#,#)', buffer, byteOffset);
-  static ByteData _create_3(buffer) => JS('ByteData', 'new DataView(#)', buffer);
+  factory ByteData.view(ByteBuffer buffer, [int byteOffset, int byteLength]) =>
+      _TypedArrayFactoryProvider.createByteData_fromBuffer(
+          buffer, byteOffset, byteLength);
 
   num getFloat32(int byteOffset, [Endianness endian=Endianness.BIG_ENDIAN]) =>
       _getFloat32(byteOffset, endian._littleEndian);
@@ -2280,7 +2270,7 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
   }
 
   factory Float32x4List.view(ByteBuffer buffer,
-			     [int offsetInBytes = 0, int length]) {
+                             [int offsetInBytes = 0, int length]) {
     throw new UnsupportedError("Float32x4List not supported by dart2js.");
   }
 

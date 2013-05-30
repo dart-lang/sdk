@@ -2,16 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# The typed_data library is not supported by dart2js or dart2dart yet.
-[ $compiler == dart2js  || $compiler == dart2dart ]
-typed_data/*: Fail
-
-
-# The typed_data library is not supported by dart2js or dart2dart yet.
-[ $compiler == dart2js  || $compiler == dart2dart ]
-typed_data/*: Skip
-
-
 [ $compiler == dart2js ]
 math/*: Skip
 mirrors/mirrors_test: Fail # TODO(ahe): I'm working on fixing this.
@@ -19,6 +9,15 @@ mirrors/library_uri_io_test: Skip # Not intended for dart2js as it uses dart:io.
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9002
 async/run_async4_test: Pass, Fail # no global exception handler in isolates. http://dartbug.com/9012
 async/run_async6_test: Fail # global error handling is not supported. http://dartbug.com/5958
+
+# SIMD is unsupported on dart2js.
+typed_data/float32x4_test: Fail, OK
+typed_data/float32x4_list_test: Fail, OK
+typed_data/float32x4_unbox_phi_test: Fail, OK
+typed_data/float32x4_unbox_regress_test: Fail, OK
+
+[ $compiler == dart2js && $runtime == d8 ]
+typed_data/byte_data_test: Fail, OK # d8 doesn't support DataView
 
 [ $compiler == dart2js && $minified ]
 mirrors/mirrors_resolve_fields_test: Fail # Issue 6490
@@ -59,11 +58,6 @@ crypto/sha256_test: Slow, Pass
 crypto/sha1_test: Slow, Pass
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                          # implement timer (currently only in d8)
-
-[ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
-
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
 crypto/hmac_md5_test: Fail, Pass
