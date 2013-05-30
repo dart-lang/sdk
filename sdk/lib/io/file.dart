@@ -46,19 +46,6 @@ abstract class File extends FileSystemEntity {
   factory File.fromPath(Path path) => new _File.fromPath(path);
 
   /**
-   * Check if the file exists. Returns a
-   * [:Future<bool>:] that completes when the answer is known.
-   */
-  Future<bool> exists();
-
-  /**
-   * Synchronously check if the file exists.
-   *
-   * Throws a [FileIOException] if the operation fails.
-   */
-  bool existsSync();
-
-  /**
    * Create the file. Returns a [:Future<File>:] that completes with
    * the file when it has been created.
    *
