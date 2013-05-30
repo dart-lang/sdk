@@ -26,9 +26,9 @@ class IsolateData {
   }
 
   EventHandler* event_handler;
-  Dart_Handle object_array_class;
-  Dart_Handle growable_object_array_class;
-  Dart_Handle immutable_array_class;
+  Dart_PersistentHandle object_array_class;
+  Dart_PersistentHandle growable_object_array_class;
+  Dart_PersistentHandle immutable_array_class;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateData);

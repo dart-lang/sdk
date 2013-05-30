@@ -272,10 +272,15 @@ void SSLFilter::Init(Dart_Handle dart_this) {
   if (!library_initialized_) {
     InitializeLibrary(NULL, "", true, false);
   }
-  string_start_ = ThrowIfError(
-      Dart_NewPersistentHandle(DartUtils::NewString("start")));
-  string_length_ = ThrowIfError(
-      Dart_NewPersistentHandle(DartUtils::NewString("length")));
+  ASSERT(string_start_ == NULL);
+  string_start_ = Dart_NewPersistentHandle(DartUtils::NewString("start"));
+  ASSERT(string_start_ != NULL);
+  ASSERT(string_length_ == NULL);
+  string_length_ = Dart_NewPersistentHandle(DartUtils::NewString("length"));
+  ASSERT(string_length_ != NULL);
+  ASSERT(bad_certificate_callback_ == NULL);
+  bad_certificate_callback_ = Dart_NewPersistentHandle(Dart_Null());
+  ASSERT(bad_certificate_callback_ != NULL);
 
   InitializeBuffers(dart_this);
   filter_ = memio_CreateIOLayer(kMemioBufferSize);
@@ -313,29 +318,32 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   Dart_Handle data_identifier = DartUtils::NewString("data");
   for (int i = 0; i < kNumBuffers; ++i) {
     int size = isEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
-    dart_buffer_objects_[i] = ThrowIfError(
-        Dart_NewPersistentHandle(Dart_ListGetAt(dart_buffers_object, i)));
+    dart_buffer_objects_[i] =
+        Dart_NewPersistentHandle(Dart_ListGetAt(dart_buffers_object, i));
+    ASSERT(dart_buffer_objects_[i] != NULL);
     buffers_[i] = new uint8_t[size];
     Dart_Handle data = ThrowIfError(
-        Dart_NewExternalTypedData(kUint8, buffers_[i], size, NULL, NULL));
-    ThrowIfError(Dart_SetField(dart_buffer_objects_[i],
-                               data_identifier,
-                               data));
+        Dart_NewExternalTypedData(kUint8, buffers_[i], size));
+    ThrowIfError(
+        Dart_SetField(Dart_HandleFromPersistent(dart_buffer_objects_[i]),
+                      data_identifier,
+                      data));
   }
 }
 
 
 void SSLFilter::RegisterHandshakeCompleteCallback(Dart_Handle complete) {
   ASSERT(NULL == handshake_complete_);
-  handshake_complete_ = ThrowIfError(Dart_NewPersistentHandle(complete));
+  handshake_complete_ = Dart_NewPersistentHandle(complete);
+  ASSERT(handshake_complete_ != NULL);
 }
 
 
 void SSLFilter::RegisterBadCertificateCallback(Dart_Handle callback) {
-  if (NULL != bad_certificate_callback_) {
-    Dart_DeletePersistentHandle(bad_certificate_callback_);
-  }
-  bad_certificate_callback_ = ThrowIfError(Dart_NewPersistentHandle(callback));
+  ASSERT(bad_certificate_callback_ != NULL);
+  Dart_DeletePersistentHandle(bad_certificate_callback_);
+  bad_certificate_callback_ = Dart_NewPersistentHandle(callback);
+  ASSERT(bad_certificate_callback_ != NULL);
 }
 
 static const char* builtin_roots_module =
@@ -427,7 +435,7 @@ char* PasswordCallback(PK11SlotInfo* slot, PRBool retry, void* arg) {
 SECStatus BadCertificateCallback(void* filter, PRFileDesc* fd) {
   SSLFilter* ssl_filter = static_cast<SSLFilter*>(filter);
   Dart_Handle callback = ssl_filter->bad_certificate_callback();
-  if (callback == NULL || Dart_IsNull(callback)) return SECFailure;
+  if (Dart_IsNull(callback)) return SECFailure;
 
   Dart_EnterScope();
   Dart_Handle x509_object = ssl_filter->PeerCertificate();
@@ -582,7 +590,8 @@ void SSLFilter::Handshake() {
   SECStatus status = SSL_ForceHandshake(filter_);
   if (status == SECSuccess) {
     if (in_handshake_) {
-      ThrowIfError(Dart_InvokeClosure(handshake_complete_, 0, NULL));
+      ThrowIfError(Dart_InvokeClosure(
+          Dart_HandleFromPersistent(handshake_complete_), 0, NULL));
       in_handshake_ = false;
     }
   } else {
@@ -610,9 +619,7 @@ void SSLFilter::Destroy() {
   Dart_DeletePersistentHandle(string_start_);
   Dart_DeletePersistentHandle(string_length_);
   Dart_DeletePersistentHandle(handshake_complete_);
-  if (bad_certificate_callback_ != NULL) {
-    Dart_DeletePersistentHandle(bad_certificate_callback_);
-  }
+  Dart_DeletePersistentHandle(bad_certificate_callback_);
   free(client_certificate_name_);
 
   PR_Close(filter_);
@@ -621,11 +628,12 @@ void SSLFilter::Destroy() {
 
 intptr_t SSLFilter::ProcessBuffer(int buffer_index) {
   int size = isEncrypted(buffer_index) ? encrypted_buffer_size_ : buffer_size_;
-  Dart_Handle buffer_object = dart_buffer_objects_[buffer_index];
+  Dart_Handle buffer_object =
+      Dart_HandleFromPersistent(dart_buffer_objects_[buffer_index]);
   Dart_Handle start_object = ThrowIfError(
-      Dart_GetField(buffer_object, string_start_));
+      Dart_GetField(buffer_object, Dart_HandleFromPersistent(string_start_)));
   Dart_Handle length_object = ThrowIfError(
-      Dart_GetField(buffer_object, string_length_));
+      Dart_GetField(buffer_object, Dart_HandleFromPersistent(string_length_)));
   int64_t unsafe_start = DartUtils::GetIntegerValue(start_object);
   int64_t unsafe_length = DartUtils::GetIntegerValue(length_object);
   ASSERT(unsafe_start >= 0);

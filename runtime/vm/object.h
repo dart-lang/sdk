@@ -2052,7 +2052,7 @@ class TokenStream : public Object {
   void SetPrivateKey(const String& value) const;
 
   static RawTokenStream* New();
-  static void DataFinalizer(Dart_Handle handle, void *peer);
+  static void DataFinalizer(Dart_WeakPersistentHandle handle, void *peer);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
   friend class Class;
@@ -4753,7 +4753,7 @@ class ExternalOneByteString : public AllStatic {
     raw_ptr(str)->external_data_ = data;
   }
 
-  static void Finalize(Dart_Handle handle, void* peer);
+  static void Finalize(Dart_WeakPersistentHandle handle, void* peer);
 
   static RawExternalOneByteString* ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,
@@ -4819,7 +4819,7 @@ class ExternalTwoByteString : public AllStatic {
     raw_ptr(str)->external_data_ = data;
   }
 
-  static void Finalize(Dart_Handle handle, void* peer);
+  static void Finalize(Dart_WeakPersistentHandle handle, void* peer);
 
   static RawExternalTwoByteString* ReadFrom(SnapshotReader* reader,
                                             intptr_t object_id,

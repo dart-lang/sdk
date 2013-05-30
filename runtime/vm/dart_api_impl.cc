@@ -36,6 +36,9 @@ namespace dart {
 DECLARE_FLAG(bool, print_class_table);
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
+Dart_Handle Api::true_handle_ = NULL;
+Dart_Handle Api::false_handle_ = NULL;
+Dart_Handle Api::null_handle_ = NULL;
 
 
 const char* CanonicalFunction(const char* func) {
@@ -95,9 +98,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ASSERT(state->IsValidLocalHandle(object) ||
-         state->IsValidPersistentHandle(object) ||
-         state->IsValidWeakPersistentHandle(object) ||
-         state->IsValidPrologueWeakPersistentHandle(object));
+         Dart::vm_isolate()->api_state()->IsValidLocalHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
          PersistentHandle::raw_offset() == 0 &&
          LocalHandle::raw_offset() == 0);
@@ -118,32 +119,23 @@ CLASS_LIST_FOR_HANDLES(DEFINE_UNWRAP)
 #undef DEFINE_UNWRAP
 
 
-LocalHandle* Api::UnwrapAsLocalHandle(const ApiState& state,
-                                      Dart_Handle object) {
-  ASSERT(state.IsValidLocalHandle(object));
-  return reinterpret_cast<LocalHandle*>(object);
-}
-
-
-PersistentHandle* Api::UnwrapAsPersistentHandle(const ApiState& state,
-                                                Dart_Handle object) {
-  ASSERT(state.IsValidPersistentHandle(object));
+PersistentHandle* Api::UnwrapAsPersistentHandle(Dart_PersistentHandle object) {
+  ASSERT(Isolate::Current()->api_state()->IsValidPersistentHandle(object));
   return reinterpret_cast<PersistentHandle*>(object);
 }
 
 
 FinalizablePersistentHandle* Api::UnwrapAsWeakPersistentHandle(
-    const ApiState& state,
-    Dart_Handle object) {
-  ASSERT(state.IsValidWeakPersistentHandle(object));
+    Dart_WeakPersistentHandle object) {
+  ASSERT(Isolate::Current()->api_state()->IsValidWeakPersistentHandle(object));
   return reinterpret_cast<FinalizablePersistentHandle*>(object);
 }
 
 
 FinalizablePersistentHandle* Api::UnwrapAsPrologueWeakPersistentHandle(
-    const ApiState& state,
-    Dart_Handle object) {
-  ASSERT(state.IsValidPrologueWeakPersistentHandle(object));
+    Dart_WeakPersistentHandle object) {
+  ASSERT(Isolate::Current()->api_state()->IsValidPrologueWeakPersistentHandle(
+      object));
   return reinterpret_cast<FinalizablePersistentHandle*>(object);
 }
 
@@ -151,7 +143,7 @@ FinalizablePersistentHandle* Api::UnwrapAsPrologueWeakPersistentHandle(
 Dart_Handle Api::CheckIsolateState(Isolate* isolate) {
   if (ClassFinalizer::FinalizePendingClasses() &&
       isolate->object_store()->PreallocateObjects()) {
-    return Api::Success(isolate);
+    return Api::Success();
   }
   ASSERT(isolate->object_store()->sticky_error() != Object::null());
   return Api::NewHandle(isolate, isolate->object_store()->sticky_error());
@@ -160,15 +152,6 @@ Dart_Handle Api::CheckIsolateState(Isolate* isolate) {
 
 Dart_Isolate Api::CastIsolate(Isolate* isolate) {
   return reinterpret_cast<Dart_Isolate>(isolate);
-}
-
-
-Dart_Handle Api::Success(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  PersistentHandle* true_handle = state->True();
-  return reinterpret_cast<Dart_Handle>(true_handle);
 }
 
 
@@ -210,30 +193,18 @@ Dart_Handle Api::AcquiredError(Isolate* isolate) {
 }
 
 
-Dart_Handle Api::Null(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  PersistentHandle* null_handle = state->Null();
-  return reinterpret_cast<Dart_Handle>(null_handle);
+Dart_Handle Api::Null() {
+  return null_handle_;
 }
 
 
-Dart_Handle Api::True(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  PersistentHandle* true_handle = state->True();
-  return reinterpret_cast<Dart_Handle>(true_handle);
+Dart_Handle Api::True() {
+  return true_handle_;
 }
 
 
-Dart_Handle Api::False(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  PersistentHandle* false_handle = state->False();
-  return reinterpret_cast<Dart_Handle>(false_handle);
+Dart_Handle Api::False() {
+  return false_handle_;
 }
 
 
@@ -251,6 +222,23 @@ void Api::InitOnce() {
   ASSERT(api_native_key_ == Thread::kUnsetThreadLocalKey);
   api_native_key_ = Thread::CreateThreadLocal();
   ASSERT(api_native_key_ != Thread::kUnsetThreadLocalKey);
+}
+
+
+void Api::InitHandles() {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  ASSERT(isolate == Dart::vm_isolate());
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  ASSERT(true_handle_ == NULL);
+  true_handle_ = Api::NewHandle(isolate, Bool::True().raw());
+
+  ASSERT(false_handle_ == NULL);
+  false_handle_ = Api::NewHandle(isolate, Bool::False().raw());
+
+  ASSERT(null_handle_ == NULL);
+  null_handle_ = Api::NewHandle(isolate, Object::null());
 }
 
 
@@ -524,7 +512,32 @@ DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
+DART_EXPORT Dart_Handle Dart_HandleFromPersistent(
+    Dart_PersistentHandle object) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  ASSERT(state->IsValidPersistentHandle(object));
+  return Api::NewHandle(isolate,
+                        reinterpret_cast<PersistentHandle*>(object)->raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_HandleFromWeakPersistent(
+    Dart_WeakPersistentHandle object) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  ASSERT(state->IsValidWeakPersistentHandle(object) ||
+         state->IsValidPrologueWeakPersistentHandle(object));
+  return Api::NewHandle(
+      isolate, reinterpret_cast<FinalizablePersistentHandle*>(object)->raw());
+}
+
+
+DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   ApiState* state = isolate->api_state();
@@ -532,10 +545,10 @@ DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object) {
   const Object& old_ref = Object::Handle(isolate, Api::UnwrapHandle(object));
   PersistentHandle* new_ref = state->persistent_handles().AllocateHandle();
   new_ref->set_raw(old_ref);
-  return reinterpret_cast<Dart_Handle>(new_ref);
+  return reinterpret_cast<Dart_PersistentHandle>(new_ref);
 }
 
-static Dart_Handle AllocateFinalizableHandle(
+static Dart_WeakPersistentHandle AllocateFinalizableHandle(
     Isolate* isolate,
     FinalizablePersistentHandles* handles,
     Dart_Handle object,
@@ -546,11 +559,11 @@ static Dart_Handle AllocateFinalizableHandle(
   finalizable_ref->set_raw(ref);
   finalizable_ref->set_peer(peer);
   finalizable_ref->set_callback(callback);
-  return reinterpret_cast<Dart_Handle>(finalizable_ref);
+  return reinterpret_cast<Dart_WeakPersistentHandle>(finalizable_ref);
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
+DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
@@ -566,7 +579,7 @@ DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewPrologueWeakPersistentHandle(
+DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
@@ -582,24 +595,12 @@ DART_EXPORT Dart_Handle Dart_NewPrologueWeakPersistentHandle(
 }
 
 
-DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
+DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  if (state->IsValidPrologueWeakPersistentHandle(object)) {
-    FinalizablePersistentHandle* prologue_weak_ref =
-        Api::UnwrapAsPrologueWeakPersistentHandle(*state, object);
-    state->prologue_weak_persistent_handles().FreeHandle(prologue_weak_ref);
-    return;
-  }
-  if (state->IsValidWeakPersistentHandle(object)) {
-    FinalizablePersistentHandle* weak_ref =
-        Api::UnwrapAsWeakPersistentHandle(*state, object);
-    state->weak_persistent_handles().FreeHandle(weak_ref);
-    return;
-  }
-  PersistentHandle* ref = Api::UnwrapAsPersistentHandle(*state, object);
+  PersistentHandle* ref = Api::UnwrapAsPersistentHandle(object);
   ASSERT(!state->IsProtectedHandle(ref));
   if (!state->IsProtectedHandle(ref)) {
     state->persistent_handles().FreeHandle(ref);
@@ -607,16 +608,27 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object) {
 }
 
 
-DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object) {
+DART_EXPORT void Dart_DeleteWeakPersistentHandle(
+    Dart_WeakPersistentHandle object) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  return state->IsValidWeakPersistentHandle(object);
+  if (state->IsValidPrologueWeakPersistentHandle(object)) {
+    FinalizablePersistentHandle* prologue_weak_ref =
+        Api::UnwrapAsPrologueWeakPersistentHandle(object);
+    state->prologue_weak_persistent_handles().FreeHandle(prologue_weak_ref);
+    return;
+  }
+  FinalizablePersistentHandle* weak_ref =
+      Api::UnwrapAsWeakPersistentHandle(object);
+  state->weak_persistent_handles().FreeHandle(weak_ref);
+  return;
 }
 
 
-DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(Dart_Handle object) {
+DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(
+    Dart_WeakPersistentHandle object) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
@@ -653,7 +665,7 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
   WeakReferenceSet* reference_set = new WeakReferenceSet(keys, num_keys,
                                                          values, num_values);
   state->DelayWeakReferenceSet(reference_set);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -672,7 +684,7 @@ DART_EXPORT Dart_Handle Dart_AddGcPrologueCallback(
         CURRENT_FUNC);
   }
   callbacks.Add(callback);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -687,7 +699,7 @@ DART_EXPORT Dart_Handle Dart_RemoveGcPrologueCallback(
         CURRENT_FUNC);
   }
   callbacks.Remove(callback);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -703,7 +715,7 @@ DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
         CURRENT_FUNC);
   }
   callbacks.Add(callback);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -718,7 +730,7 @@ DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
         CURRENT_FUNC);
   }
   callbacks.Remove(callback);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -730,7 +742,7 @@ DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_FileWriteCallback callback,
     RETURN_NULL_ERROR(callback);
   }
   isolate->heap()->Profile(callback, stream);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 // --- Initialization and Globals ---
@@ -898,7 +910,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   FullSnapshotWriter writer(buffer, ApiReallocate);
   writer.WriteFullSnapshot();
   *size = writer.BytesWritten();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -927,7 +939,7 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   ScriptSnapshotWriter writer(buffer, ApiReallocate);
   writer.WriteScriptSnapshot(library);
   *size = writer.BytesWritten();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1003,7 +1015,7 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   if (FLAG_print_class_table) {
     isolate->class_table()->Print();
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1017,7 +1029,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
     isolate->object_store()->clear_sticky_error();
     return error;
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1198,7 +1210,7 @@ DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size) {
 DART_EXPORT Dart_Handle Dart_Null() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE_SCOPE(isolate);
-  return Api::Null(isolate);
+  return Api::Null();
 }
 
 
@@ -1220,7 +1232,7 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
       Object::Handle(isolate, DartLibraryCalls::Equals(expected, actual));
   if (result.IsBool()) {
     *value = Bool::Cast(result).value();
-    return Api::Success(isolate);
+    return Api::Success();
   } else if (result.IsError()) {
     return Api::NewHandle(isolate, result.raw());
   } else {
@@ -1267,7 +1279,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
   } else {
     *value = false;
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1318,7 +1330,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   intptr_t class_id = Api::ClassId(integer);
   if (class_id == kSmiCid || class_id == kMintCid) {
     *fits = true;
-    return Api::Success(isolate);
+    return Api::Success();
   }
   // Slow path for Mints and Bigints.
   DARTSCOPE(isolate);
@@ -1328,7 +1340,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   }
   ASSERT(!BigintOperations::FitsIntoInt64(Bigint::Cast(int_obj)));
   *fits = false;
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1339,7 +1351,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
   CHECK_ISOLATE(isolate);
   if (Api::IsSmi(integer)) {
     *fits = (Api::SmiValue(integer) >= 0);
-    return Api::Success(isolate);
+    return Api::Success();
   }
   // Slow path for Mints and Bigints.
   DARTSCOPE(isolate);
@@ -1353,7 +1365,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoUint64(Dart_Handle integer,
   } else {
     *fits = BigintOperations::FitsIntoUint64(Bigint::Cast(int_obj));
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1388,7 +1400,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
   CHECK_ISOLATE(isolate);
   if (Api::IsSmi(integer)) {
     *value = Api::SmiValue(integer);
-    return Api::Success(isolate);
+    return Api::Success();
   }
   // Slow path for Mints and Bigints.
   DARTSCOPE(isolate);
@@ -1399,12 +1411,12 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
   ASSERT(!int_obj.IsSmi());
   if (int_obj.IsMint()) {
     *value = int_obj.AsInt64Value();
-    return Api::Success(isolate);
+    return Api::Success();
   } else {
     const Bigint& bigint = Bigint::Cast(int_obj);
     if (BigintOperations::FitsIntoInt64(bigint)) {
       *value = BigintOperations::ToInt64(bigint);
-      return Api::Success(isolate);
+      return Api::Success();
     }
   }
   return Api::NewError("%s: Integer %s cannot be represented as an int64_t.",
@@ -1421,7 +1433,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
     intptr_t smi_value = Api::SmiValue(integer);
     if (smi_value >= 0) {
       *value = smi_value;
-      return Api::Success(isolate);
+      return Api::Success();
     }
   }
   // Slow path for Mints and Bigints.
@@ -1433,12 +1445,12 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
   ASSERT(!int_obj.IsSmi());
   if (int_obj.IsMint() && !int_obj.IsNegative()) {
     *value = int_obj.AsInt64Value();
-    return Api::Success(isolate);
+    return Api::Success();
   } else {
     const Bigint& bigint = Bigint::Cast(int_obj);
     if (BigintOperations::FitsIntoUint64(bigint)) {
       *value = BigintOperations::ToUint64(bigint);
-      return Api::Success(isolate);
+      return Api::Success();
     }
   }
   return Api::NewError("%s: Integer %s cannot be represented as a uint64_t.",
@@ -1467,7 +1479,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
     *value = BigintOperations::ToHexCString(Bigint::Cast(int_obj),
                                             BigintAllocate);
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1477,14 +1489,14 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
 DART_EXPORT Dart_Handle Dart_True() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE_SCOPE(isolate);
-  return Api::True(isolate);
+  return Api::True();
 }
 
 
 DART_EXPORT Dart_Handle Dart_False() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE_SCOPE(isolate);
-  return Api::False(isolate);
+  return Api::False();
 }
 
 
@@ -1496,7 +1508,7 @@ DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewBoolean(bool value) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE_SCOPE(isolate);
-  return value ? Api::True(isolate) : Api::False(isolate);
+  return value ? Api::True() : Api::False();
 }
 
 
@@ -1509,7 +1521,7 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
     RETURN_TYPE_ERROR(isolate, boolean_obj, Bool);
   }
   *value = obj.value();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1538,7 +1550,7 @@ DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
     RETURN_TYPE_ERROR(isolate, double_obj, Double);
   }
   *value = obj.value();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1563,7 +1575,7 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* len) {
     RETURN_TYPE_ERROR(isolate, str, String);
   }
   *len = str_obj.Length();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1633,7 +1645,7 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
   }
 
   if (Api::ExternalStringGetPeerHelper(object, peer)) {
-    return Api::Success(Isolate::Current());
+    return Api::Success();
   }
 
   // It's not an external string, return appropriate error.
@@ -1701,7 +1713,7 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
   memmove(res, string_value, string_length + 1);
   ASSERT(res[string_length] == '\0');
   *cstr = res;
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1727,7 +1739,7 @@ DART_EXPORT Dart_Handle Dart_StringToUTF8(Dart_Handle str,
   }
   str_obj.ToUTF8(*utf8_array, str_len);
   *length = str_len;
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1755,7 +1767,7 @@ DART_EXPORT Dart_Handle Dart_StringToLatin1(Dart_Handle str,
     latin1_array[i] = str_obj.CharAt(i);
   }
   *length = copy_len;
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1774,7 +1786,7 @@ DART_EXPORT Dart_Handle Dart_StringToUTF16(Dart_Handle str,
     utf16_array[i] = static_cast<uint16_t>(str_obj.CharAt(i));
   }
   *length = copy_len;
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1790,7 +1802,7 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str,
     RETURN_NULL_ERROR(size);
   }
   *size = (str_obj.Length() * str_obj.CharSize());
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -1839,7 +1851,7 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
         utf16_array[i] = static_cast<uint16_t>(str_obj.CharAt(i));
       }
     }
-    return Api::Null(isolate);
+    return Api::Null();
   }
   return Api::NewHandle(isolate,
                         str_obj.MakeExternal(array, length, peer, cback));
@@ -1893,7 +1905,7 @@ DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   type& array = type::Handle(isolate);                                         \
   array ^= obj.raw();                                                          \
   *len = array.Length();                                                       \
-  return Api::Success(isolate);                                                \
+  return Api::Success();                                                       \
 
 
 DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
@@ -1938,7 +1950,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
     Object::Handle(isolate, DartEntry::InvokeFunction(function, args));
   if (retval.IsSmi()) {
     *len = Smi::Cast(retval).Value();
-    return Api::Success(isolate);
+    return Api::Success();
   } else if (retval.IsMint() || retval.IsBigint()) {
     if (retval.IsMint()) {
       int64_t mint_value = Mint::Cast(retval).value();
@@ -2017,7 +2029,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   }                                                                            \
   if ((index >= 0) && (index < array.Length())) {                              \
     array.SetAt(index, value_obj);                                             \
-    return Api::Success(isolate);                                              \
+    return Api::Success();                                                     \
   }                                                                            \
   return Api::NewError("Invalid index passed in to set list element");         \
 
@@ -2166,7 +2178,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
       native_array[i] = static_cast<uint8_t>(integer.AsInt64Value() & 0xff);   \
       ASSERT(integer.AsInt64Value() <= 0xff);                                  \
     }                                                                          \
-    return Api::Success(isolate);                                              \
+    return Api::Success();                                                     \
   }                                                                            \
   return Api::NewError("Invalid length passed in to access array elements");   \
 
@@ -2186,7 +2198,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
         memmove(native_array,
                 reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
                 length);
-        return Api::Success(isolate);
+        return Api::Success();
       }
       return Api::NewError("Invalid length passed in to access list elements");
     }
@@ -2243,7 +2255,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
         native_array[i] =
             static_cast<uint8_t>(integer_result.AsInt64Value() & 0xff);
       }
-      return Api::Success(isolate);
+      return Api::Success();
     }
   }
   return Api::NewError("Object does not implement the 'List' interface");
@@ -2259,7 +2271,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
       integer = Integer::New(native_array[i]);                                 \
       array.SetAt(offset + i, integer);                                        \
     }                                                                          \
-    return Api::Success(isolate);                                              \
+    return Api::Success();                                                     \
   }                                                                            \
   return Api::NewError("Invalid length passed in to set array elements");      \
 
@@ -2279,7 +2291,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
         memmove(reinterpret_cast<uint8_t*>(array.DataAddr(offset)),
                 native_array,
                 length);
-        return Api::Success(isolate);
+        return Api::Success();
       }
       return Api::NewError("Invalid length passed in to access list elements");
     }
@@ -2334,7 +2346,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
           return Api::NewHandle(isolate, result.raw());
         }
       }
-      return Api::Success(isolate);
+      return Api::Success();
     }
   }
   return Api::NewError("Object does not implement the 'List' interface");
@@ -2488,32 +2500,19 @@ static Dart_Handle NewTypedData(Isolate* isolate,
 
 
 static Dart_Handle NewExternalTypedData(
-    Isolate* isolate,
-    intptr_t cid,
-    void* data,
-    intptr_t length,
-    void* peer,
-    Dart_WeakPersistentHandleFinalizer callback) {
+    Isolate* isolate, intptr_t cid, void* data, intptr_t length) {
   CHECK_LENGTH(length, ExternalTypedData::MaxElements(cid));
   const ExternalTypedData& result = ExternalTypedData::Handle(
       isolate,
       ExternalTypedData::New(cid, reinterpret_cast<uint8_t*>(data), length));
-  result.AddFinalizer(peer, callback);
   return Api::NewHandle(isolate, result.raw());
 }
 
 
-static Dart_Handle NewExternalByteData(Isolate* isolate,
-                                       void* data,
-                                       intptr_t length,
-                                       void* peer,
-                                       Dart_WeakPersistentHandleFinalizer cb) {
-  Dart_Handle ext_data = NewExternalTypedData(isolate,
-                                              kExternalTypedDataUint8ArrayCid,
-                                              data,
-                                              length,
-                                              peer,
-                                              cb);
+static Dart_Handle NewExternalByteData(
+    Isolate* isolate, void* data, intptr_t length) {
+  Dart_Handle ext_data = NewExternalTypedData(
+      isolate, kExternalTypedDataUint8ArrayCid, data, length);
   if (::Dart_IsError(ext_data)) {
     return ext_data;
   }
@@ -2582,16 +2581,14 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
                            CURRENT_FUNC);
   }
   UNREACHABLE();
-  return Api::Null(isolate);
+  return Api::Null();
 }
 
 
 DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
     Dart_TypedData_Type type,
     void* data,
-    intptr_t length,
-    void* peer,
-    Dart_WeakPersistentHandleFinalizer callback) {
+    intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (data == NULL && length != 0) {
@@ -2600,114 +2597,73 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
   CHECK_CALLBACK_STATE(isolate);
   switch (type) {
     case kByteData:
-      return NewExternalByteData(isolate, data, length, peer, callback);
+      return NewExternalByteData(isolate, data, length);
     case kInt8:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataInt8ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kUint8:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint8ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kUint8Clamped:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint8ClampedArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kInt16:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataInt16ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kUint16:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint16ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kInt32:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataInt32ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kUint32:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint32ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kInt64:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataInt64ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kUint64:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint64ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kFloat32:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataFloat32ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kFloat64:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataFloat64ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     case kFloat32x4:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataFloat32x4ArrayCid,
                                   data,
-                                  length,
-                                  peer,
-                                  callback);
+                                  length);
     default:
       return Api::NewError("%s expects argument 'type' to be of"
                            " 'external TypedData'", CURRENT_FUNC);
   }
   UNREACHABLE();
-  return Api::Null(isolate);
-}
-
-
-DART_EXPORT Dart_Handle Dart_ExternalTypedDataGetPeer(Dart_Handle object,
-                                                      void** peer) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const ExternalTypedData& array =
-      Api::UnwrapExternalTypedDataHandle(isolate, object);
-  if (array.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, object, ExternalTypedData);
-  }
-  if (peer == NULL) {
-    RETURN_NULL_ERROR(peer);
-  }
-  *peer = array.GetPeer();
-  return Api::Success(isolate);
+  return Api::Null();
 }
 
 
@@ -2770,7 +2726,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
       *data = data_obj.DataAddr(offset_in_bytes);
     }
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -2787,7 +2743,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object) {
     isolate->DecrementNoGCScopeDepth();
     END_NO_CALLBACK_SCOPE(isolate);
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -2923,7 +2879,7 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
   } else {
     *count = interface_types.Length();
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -3234,7 +3190,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsAbstract(Dart_Handle function,
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
   *is_abstract = func.is_abstract();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -3250,7 +3206,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
   *is_static = func.is_static();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -3266,7 +3222,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsConstructor(Dart_Handle function,
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
   *is_constructor = func.kind() == RawFunction::kConstructor;
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -3282,7 +3238,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsGetter(Dart_Handle function,
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
   *is_getter = func.IsGetterFunction();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -3298,7 +3254,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
   *is_setter = (func.kind() == RawFunction::kSetterFunction);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -3352,7 +3308,7 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
   ASSERT(*fixed_param_count >= 0);
   ASSERT(*opt_param_count >= 0);
 
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -3488,7 +3444,7 @@ DART_EXPORT Dart_Handle Dart_VariableIsStatic(Dart_Handle variable,
     RETURN_TYPE_ERROR(isolate, variable, Field);
   }
   *is_static = var.is_static();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -3504,7 +3460,7 @@ DART_EXPORT Dart_Handle Dart_VariableIsFinal(Dart_Handle variable,
     RETURN_TYPE_ERROR(isolate, variable, Field);
   }
   *is_final = var.is_final();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -4135,7 +4091,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       if (result.IsError()) {
         return Api::NewHandle(isolate, result.raw());
       } else {
-        return Api::Success(isolate);
+        return Api::Success();
       }
     } else if (!field.IsNull()) {
       if (field.is_final()) {
@@ -4143,7 +4099,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
                              CURRENT_FUNC, field_name.ToCString());
       } else {
         field.set_value(value_instance);
-        return Api::Success(isolate);
+        return Api::Success();
       }
     } else {
       return Api::NewError("%s: did not find static field '%s'.",
@@ -4172,7 +4128,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       if (result.IsError()) {
         return Api::NewHandle(isolate, result.raw());
       } else {
-        return Api::Success(isolate);
+        return Api::Success();
       }
     } else if (!field.IsNull()) {
       if (field.is_final()) {
@@ -4180,7 +4136,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
                              CURRENT_FUNC, field_name.ToCString());
       } else {
         field.set_value(value_instance);
-        return Api::Success(isolate);
+        return Api::Success();
       }
     } else {
       return Api::NewError("%s: did not find top-level variable '%s'.",
@@ -4237,7 +4193,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceFieldCount(Dart_Handle obj,
   }
   const Class& cls = Class::Handle(isolate, instance.clazz());
   *count = cls.num_native_fields();
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -4256,7 +4212,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
         CURRENT_FUNC, index);
   }
   *value = instance.GetNativeField(isolate, index);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -4275,7 +4231,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
         CURRENT_FUNC, index);
   }
   instance.SetNativeField(index, value);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -4399,7 +4355,7 @@ DART_EXPORT Dart_Handle Dart_SetLibraryTagHandler(
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   isolate->set_library_tag_handler(handler);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -4535,7 +4491,7 @@ static void CompileAll(Isolate* isolate, Dart_Handle* result) {
   ASSERT(isolate != NULL);
   const Error& error = Error::Handle(isolate, Library::CompileAll());
   if (error.IsNull()) {
-    *result = Api::Success(isolate);
+    *result = Api::Success();
   } else {
     *result = Api::NewHandle(isolate, error.raw());
   }
@@ -4758,7 +4714,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
       library_vm.AddObject(library_prefix, prefix_symbol);
     }
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -4828,7 +4784,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     RETURN_TYPE_ERROR(isolate, library, Library);
   }
   lib.set_native_entry_resolver(resolver);
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -4865,7 +4821,7 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
     RawObject* raw_obj = obj.raw();
     *peer = isolate->heap()->GetPeer(raw_obj);
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 
@@ -4883,7 +4839,7 @@ DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer) {
     RawObject* raw_obj = obj.raw();
     isolate->heap()->SetPeer(raw_obj, peer);
   }
-  return Api::Success(isolate);
+  return Api::Success();
 }
 
 }  // namespace dart

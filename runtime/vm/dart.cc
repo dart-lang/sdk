@@ -128,6 +128,12 @@ const char* Dart::InitOnce(Dart_IsolateCreateCallback create,
     vm_isolate_->heap()->IterateOldObjects(&premarker);
     vm_isolate_->heap()->WriteProtect(true);
   }
+  // There is a planned and known asymmetry here: We enter one scope for the VM
+  // isolate so that we can allocate the "persistent" scoped handles for the
+  // predefined API values (such as Dart_True, Dart_False and Dart_Null).
+  Dart_EnterScope();
+  Api::InitHandles();
+
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
   Isolate::SetInterruptCallback(interrupt);
