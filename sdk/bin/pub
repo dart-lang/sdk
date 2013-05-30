@@ -1,11 +1,46 @@
 #!/bin/bash
-# Run pub.dart on the Dart VM. This script assumes the Dart SDK's directory
-# structure.
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
 
-# Setting BIN_DIR this way is ugly, but is needed to handle the case where
-# dart-sdk/bin has been symlinked to. On MacOS, readlink doesn't work
-# with this case.
-BIN_DIR="$(cd "${0%/*}" ; pwd -P)"
-DART_SDK="$(cd "${BIN_DIR%/*}" ; pwd -P)"
+function follow_links() {
+  while [ -h "$1" ]; do
+    # On Mac OS, readlink -f doesn't work.
+    1="$(readlink "$1")"
+  done
+  echo "$1"
+}
 
-exec "$BIN_DIR"/dart "$DART_SDK"/bin/snapshots/pub.dart.snapshot $@
+# Unlike $0, $BASH_SOURCE points to the absolute path of this file.
+PROG_NAME="$(follow_links "$BASH_SOURCE")"
+
+# Handle the case where dart-sdk/bin has been symlinked to.
+BIN_DIR="$(follow_links "$(cd "${PROG_NAME%/*}" ; pwd -P)")"
+
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+
+DART="$BIN_DIR/dart"
+
+SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
+
+if test -f "$SNAPSHOT"; then
+  # We are running the snapshot in the built SDK.
+  exec "$DART" "--checked" "$SNAPSHOT" "$@"
+else
+  # We are running pub from source in the development repo.
+  if [ -z "$DART_CONFIGURATION" ];
+  then
+    DART_CONFIGURATION="ReleaseIA32"
+  fi
+
+  if [[ `uname` == 'Darwin' ]];
+  then
+    PACKAGES_DIR="$SDK_DIR"/../xcodebuild/$DART_CONFIGURATION/packages/
+  else
+    PACKAGES_DIR="$SDK_DIR"/../out/$DART_CONFIGURATION/packages/
+  fi
+
+  PUB="$SDK_DIR/lib/_internal/pub/bin/pub.dart"
+
+  exec "$DART" "--checked" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
+fi
