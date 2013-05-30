@@ -48,7 +48,6 @@ class BitVector: public ZoneAllocated {
       : length_(length),
         data_length_(SizeFor(length)),
         data_(Isolate::Current()->current_zone()->Alloc<uword>(data_length_)) {
-    ASSERT(length > 0);
     Clear();
   }
 

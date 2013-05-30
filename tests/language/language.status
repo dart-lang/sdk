@@ -84,7 +84,6 @@ mixin_illegal_object_test/02: Crash # Issue 10952
 type_variable_field_initializer_closure_test: Crash # issue 8847
 
 super_getter_setter_test: Fail # Issue 8917
-super_operator_index7_test: Fail # Issue 8918
 
 execute_finally10_test: Fail # Issue 430
 execute_finally11_test: Fail # Issue 430
@@ -518,7 +517,6 @@ type_parameter_literal_test: Fail
 type_variable_field_initializer_closure_test: Crash # VM bug: issue 8847
 
 super_getter_setter_test: Fail # VM bug: issue 8917
-super_operator_index7_test: Fail # VM bug: issue 8918
 
 execute_finally10_test: Fail # VM bug: issue 430
 execute_finally11_test: Fail # VM bug: issue 430

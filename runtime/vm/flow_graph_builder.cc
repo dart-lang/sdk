@@ -57,7 +57,8 @@ FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
-    graph_entry_(NULL) { }
+    graph_entry_(NULL),
+    args_pushed_(0) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
@@ -356,6 +357,7 @@ Value* EffectGraphVisitor::Bind(Definition* definition) {
   DeallocateTempIndex(definition->InputCount());
   definition->set_use_kind(Definition::kValue);
   definition->set_temp_index(AllocateTempIndex());
+  owner_->add_args_pushed(-definition->ArgumentCount());
   if (is_empty()) {
     entry_ = definition;
   } else {
@@ -370,6 +372,7 @@ void EffectGraphVisitor::Do(Definition* definition) {
   ASSERT(is_open());
   DeallocateTempIndex(definition->InputCount());
   definition->set_use_kind(Definition::kEffect);
+  owner_->add_args_pushed(-definition->ArgumentCount());
   if (is_empty()) {
     entry_ = definition;
   } else {
@@ -384,6 +387,7 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(instruction->IsPushArgument() || !instruction->IsDefinition());
   ASSERT(!instruction->IsBlockEntry());
   DeallocateTempIndex(instruction->InputCount());
+  owner_->add_args_pushed(-instruction->ArgumentCount());
   if (is_empty()) {
     entry_ = exit_ = instruction;
   } else {
@@ -503,6 +507,7 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
 
 
 PushArgumentInstr* EffectGraphVisitor::PushArgument(Value* value) {
+  owner_->add_args_pushed(1);
   PushArgumentInstr* result = new PushArgumentInstr(value);
   AddInstruction(result);
   return result;
@@ -1824,6 +1829,93 @@ void EffectGraphVisitor::VisitArgumentDefinitionTestNode(
 }
 
 
+intptr_t EffectGraphVisitor::GetCurrentTempLocalIndex() const {
+  return kFirstLocalSlotFromFp
+      - owner()->num_stack_locals()
+      - owner()->num_copied_params()
+      - owner()->args_pushed()
+      - temp_index() + 1;
+}
+
+
+class TempLocalScope : public ValueObject {
+ public:
+  TempLocalScope(EffectGraphVisitor* visitor, Value* value)
+      : visitor_(visitor) {
+    ASSERT(value->definition()->temp_index() == visitor->temp_index() - 1);
+    intptr_t index = visitor->GetCurrentTempLocalIndex();
+    char name[64];
+    OS::SNPrint(name, 64, ":tmp_local%"Pd, index);
+    var_ = new LocalVariable(0, String::ZoneHandle(Symbols::New(name)),
+                             Type::ZoneHandle(Type::DynamicType()));
+    var_->set_index(index);
+    visitor->Do(new PushTempInstr(value));
+    visitor->AllocateTempIndex();
+  }
+
+  LocalVariable* var() const { return var_; }
+
+  ~TempLocalScope() {
+    Value* result = visitor_->Bind(new LoadLocalInstr(*var_));
+    visitor_->DeallocateTempIndex(1);
+    visitor_->ReturnDefinition(new DropTempsInstr(1, result));
+  }
+
+ private:
+  EffectGraphVisitor* visitor_;
+  Value* value_;
+  LocalVariable* var_;
+};
+
+
+void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
+  intptr_t num_temps = node->num_temps();
+  for (intptr_t i = 0; i < num_temps; ++i) {
+    ValueGraphVisitor for_value(owner(), temp_index());
+    node->InitializerAt(i)->Visit(&for_value);
+    Append(for_value);
+    Value* temp_val = for_value.value();
+    node->TempAt(i)->set_index(GetCurrentTempLocalIndex());
+    Do(new PushTempInstr(temp_val));
+    AllocateTempIndex();
+  }
+}
+
+
+void EffectGraphVisitor::VisitLetNode(LetNode* node) {
+  BuildLetTempExpressions(node);
+  intptr_t num_temps = node->num_temps();
+
+  // TODO(fschneider): Generate better code for effect context by visiting the
+  // body for effect. Currently, the value of the body expression is
+  // materialized and then dropped. This also requires changing DropTempsInstr
+  // to have zero or one inputs.
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->body()->Visit(&for_value);
+  Append(for_value);
+  Value* result_value = for_value.value();
+  DeallocateTempIndex(num_temps);
+  Do(new DropTempsInstr(num_temps, result_value));
+}
+
+
+void ValueGraphVisitor::VisitLetNode(LetNode* node) {
+  BuildLetTempExpressions(node);
+
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->body()->Visit(&for_value);
+  Append(for_value);
+  Value* result_value = for_value.value();
+  intptr_t num_temps = node->num_temps();
+  if (num_temps > 0) {
+    DeallocateTempIndex(num_temps);
+    ReturnDefinition(new DropTempsInstr(num_temps, result_value));
+  } else {
+    ReturnValue(result_value);
+  }
+}
+
+
 void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   const AbstractTypeArguments& type_args =
       AbstractTypeArguments::ZoneHandle(node->type().arguments());
@@ -1834,31 +1926,28 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
                                                   node->type(),
                                                   element_type);
   Value* array_val = Bind(create);
-  Definition* store = BuildStoreTemp(node->temp_local(), array_val);
-  Do(store);
 
-  const intptr_t class_id = create->Type()->ToCid();
-  const intptr_t deopt_id = Isolate::kNoDeoptId;
-  for (int i = 0; i < node->length(); ++i) {
-    Value* array = Bind(
-        new LoadLocalInstr(node->temp_local()));
-    Value* index = Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(i))));
-    ValueGraphVisitor for_value(owner(), temp_index());
-    node->ElementAt(i)->Visit(&for_value);
-    Append(for_value);
-    // No store barrier needed for constants.
-    const StoreBarrierType emit_store_barrier =
-        for_value.value()->BindsToConstant()
-            ? kNoStoreBarrier
-            : kEmitStoreBarrier;
-    intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id);
-    StoreIndexedInstr* store = new StoreIndexedInstr(
-        array, index, for_value.value(),
-        emit_store_barrier, index_scale, class_id, deopt_id);
-    Do(store);
+  { TempLocalScope tmp(this, array_val);
+    const intptr_t class_id = create->Type()->ToCid();
+    const intptr_t deopt_id = Isolate::kNoDeoptId;
+    for (int i = 0; i < node->length(); ++i) {
+      Value* array = Bind(new LoadLocalInstr(*tmp.var()));
+      Value* index = Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(i))));
+      ValueGraphVisitor for_value(owner(), temp_index());
+      node->ElementAt(i)->Visit(&for_value);
+      Append(for_value);
+      // No store barrier needed for constants.
+      const StoreBarrierType emit_store_barrier =
+          for_value.value()->BindsToConstant()
+              ? kNoStoreBarrier
+              : kEmitStoreBarrier;
+      intptr_t index_scale = FlowGraphCompiler::ElementSizeFor(class_id);
+      StoreIndexedInstr* store = new StoreIndexedInstr(
+          array, index, for_value.value(),
+          emit_store_barrier, index_scale, class_id, deopt_id);
+      Do(store);
+    }
   }
-
-  ReturnDefinition(new LoadLocalInstr(node->temp_local()));
 }
 
 
@@ -2332,7 +2421,6 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   // The type arguments are uninstantiated. We use expression_temp_var to save
   // the instantiator type arguments because they have two uses.
   ASSERT(owner()->parsed_function().expression_temp_var() != NULL);
-  const LocalVariable& temp = *owner()->parsed_function().expression_temp_var();
   const Class& instantiator_class = Class::Handle(
       owner()->parsed_function().function().Owner());
   Value* type_arguments_val = BuildInstantiatorTypeArguments(
@@ -2347,7 +2435,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     const intptr_t len = node->type_arguments().Length();
     if (node->type_arguments().IsRawInstantiatedRaw(len)) {
       type_arguments_val =
-          Bind(BuildStoreTemp(temp, type_arguments_val));
+          Bind(BuildStoreExprTemp(type_arguments_val));
       type_arguments_val = Bind(
           new ExtractConstructorTypeArgumentsInstr(
               node->token_pos(),
@@ -2355,7 +2443,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
               instantiator_class,
               type_arguments_val));
     } else {
-      Do(BuildStoreTemp(temp, type_arguments_val));
+      Do(BuildStoreExprTemp(type_arguments_val));
       type_arguments_val = Bind(new ConstantInstr(node->type_arguments()));
     }
   }
@@ -2363,7 +2451,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
 
   Value* instantiator_val = NULL;
   if (!use_instantiator_type_args) {
-    instantiator_val = Bind(BuildLoadLocal(temp));
+    instantiator_val = Bind(BuildLoadExprTemp());
     const intptr_t len = node->type_arguments().Length();
     if (node->type_arguments().IsRawInstantiatedRaw(len)) {
       instantiator_val =
@@ -2395,15 +2483,11 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   tn       <- LoadLocal(temp)
 
   Value* allocate = BuildObjectAllocation(node);
-  Value* allocated_value = Bind(BuildStoreTemp(
-      node->allocated_object_var(),
-      allocate));
-  PushArgumentInstr* push_allocated_value = PushArgument(allocated_value);
-  BuildConstructorCall(node, push_allocated_value);
-  Definition* load_allocated = BuildLoadLocal(
-      node->allocated_object_var());
-  allocated_value = Bind(load_allocated);
-  ReturnValue(allocated_value);
+  { TempLocalScope tmp(this, allocate);
+    Value* allocated_tmp = Bind(new LoadLocalInstr(*tmp.var()));
+    PushArgumentInstr* push_allocated_value = PushArgument(allocated_tmp);
+    BuildConstructorCall(node, push_allocated_value);
+  }
 }
 
 
@@ -3270,8 +3354,7 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   // including the receiver.
   ArrayNode* args_array = new ArrayNode(
       args_pos,
-      Type::ZoneHandle(Type::ArrayType()),
-      *owner()->parsed_function().array_literal_var());
+      Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 0; i < method_arguments->length(); i++) {
     args_array->AddElement(method_arguments->NodeAt(i));
   }

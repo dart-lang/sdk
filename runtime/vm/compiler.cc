@@ -854,9 +854,6 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     parsed_function->set_expression_temp_var(
         ParsedFunction::CreateExpressionTempVar(0));
     fragment->scope()->AddVariable(parsed_function->expression_temp_var());
-    parsed_function->set_array_literal_var(
-        ParsedFunction::CreateArrayLiteralVar(0));
-    fragment->scope()->AddVariable(parsed_function->array_literal_var());
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.

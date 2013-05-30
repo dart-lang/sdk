@@ -127,6 +127,11 @@ void AstPrinter::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
 }
 
 
+void AstPrinter::VisitLetNode(LetNode* node) {
+  VisitGenericAstNode(node);
+}
+
+
 void AstPrinter::VisitArrayNode(ArrayNode* node) {
   VisitGenericAstNode(node);
 }

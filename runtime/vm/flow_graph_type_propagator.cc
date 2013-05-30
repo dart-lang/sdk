@@ -857,6 +857,16 @@ CompileType LoadLocalInstr::ComputeType() const {
 }
 
 
+CompileType PushTempInstr::ComputeType() const {
+  return CompileType::Dynamic();
+}
+
+
+CompileType DropTempsInstr::ComputeType() const {
+  return CompileType::Dynamic();
+}
+
+
 CompileType* StoreLocalInstr::ComputeInitialType() const {
   // Returns stored value.
   return value()->Type();

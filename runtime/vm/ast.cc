@@ -73,6 +73,34 @@ void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
 }
 
 
+LetNode::LetNode(intptr_t token_pos)
+  : AstNode(token_pos),
+    vars_(1),
+    initializers_(1),
+    body_(NULL) { }
+
+
+LocalVariable* LetNode::AddInitializer(AstNode* node) {
+  initializers_.Add(node);
+  char name[64];
+  OS::SNPrint(name, sizeof(name), ":lt%"Pd"_%d", token_pos(), vars_.length());
+  LocalVariable* temp_var =
+      new LocalVariable(token_pos(),
+                        String::ZoneHandle(Symbols::New(name)),
+                        Type::ZoneHandle(Type::DynamicType()));
+  vars_.Add(temp_var);
+  return temp_var;
+}
+
+
+void LetNode::VisitChildren(AstNodeVisitor* visitor) const {
+  for (intptr_t i = 0; i < num_temps(); ++i) {
+    initializers_[i]->Visit(visitor);
+  }
+  body_->Visit(visitor);
+}
+
+
 void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
     ElementAt(i)->Visit(visitor);

@@ -116,13 +116,6 @@ LocalVariable* ParsedFunction::CreateExpressionTempVar(intptr_t token_pos) {
 }
 
 
-LocalVariable* ParsedFunction::CreateArrayLiteralVar(intptr_t token_pos) {
-  return new LocalVariable(token_pos,
-                           Symbols::ArrayLiteralVar(),
-                           Type::ZoneHandle(Type::ArrayType()));
-}
-
-
 void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
   ASSERT(node_sequence_ == NULL);
   ASSERT(node_sequence != NULL);
@@ -788,10 +781,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
       UNREACHABLE();
   }
 
-  parsed_function->set_array_literal_var(
-      ParsedFunction::CreateArrayLiteralVar(func.token_pos()));
-  node_sequence->scope()->AddVariable(parsed_function->array_literal_var());
-
   if (!HasReturnNode(node_sequence)) {
     // Add implicit return node.
     node_sequence->Add(new ReturnNode(func.end_token_pos()));
@@ -1409,18 +1398,6 @@ static const String& PrivateCoreLibName(const String& str) {
 }
 
 
-LocalVariable* Parser::BuildArrayTempLocal(intptr_t token_pos) {
-  char name[64];
-  OS::SNPrint(name, 64, ":arrlit%"Pd, token_pos);
-  LocalVariable* temp =
-      new LocalVariable(token_pos,
-                        String::ZoneHandle(Symbols::New(name)),
-                        Type::ZoneHandle(Type::ArrayType()));
-  current_block_->scope->AddVariable(temp);
-  return temp;
-}
-
-
 StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     intptr_t call_pos,
     const String& function_name,
@@ -1438,9 +1415,8 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   arguments->Add(new LiteralNode(args_pos, args_descriptor));
   // The third argument is an array containing the original function arguments,
   // including the receiver.
-  ArrayNode* args_array = new ArrayNode(
-      args_pos, Type::ZoneHandle(Type::ArrayType()),
-      *BuildArrayTempLocal(call_pos));
+  ArrayNode* args_array =
+      new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 0; i < function_args.length(); i++) {
     args_array->AddElement(function_args.NodeAt(i));
   }
@@ -7028,71 +7004,42 @@ AstNode* Parser::FoldConstExpr(intptr_t expr_pos, AstNode* expr) {
 }
 
 
-// A compound assignment consists of a store and a load part. In order
-// to control inputs with potential side effects, the store part stores any
-// side effect creating inputs into locals. The load part reads then from
-// those locals. If expr may have side effects, it will be split into two new
-// left and right nodes. 'expr' becomes the right node, left node is returned as
-// result.
-AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
+LetNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
   AstNode* node = *expr;
+  intptr_t token_pos = node->token_pos();
+  LetNode* result = new LetNode(token_pos);
   if (node->IsLoadIndexedNode()) {
-    LoadIndexedNode* left_node = node->AsLoadIndexedNode();
-    LoadIndexedNode* right_node = left_node;
-    intptr_t token_pos = node->token_pos();
-    node = NULL;  // Do not use it.
-    if (!IsSimpleLocalOrLiteralNode(left_node->array())) {
-      LocalVariable* temp =
-          CreateTempConstVariable(token_pos, "lia");
-      StoreLocalNode* save =
-          new StoreLocalNode(token_pos, temp, left_node->array());
-      left_node = new LoadIndexedNode(token_pos,
-                                      save,
-                                      left_node->index_expr(),
-                                      left_node->super_class());
-      right_node = new LoadIndexedNode(token_pos,
-                                       new LoadLocalNode(token_pos, temp),
-                                       right_node->index_expr(),
-                                       right_node->super_class());
+    LoadIndexedNode* load_indexed = node->AsLoadIndexedNode();
+    AstNode* array = load_indexed->array();
+    AstNode* index = load_indexed->index_expr();
+    if (!IsSimpleLocalOrLiteralNode(load_indexed->array())) {
+      LocalVariable* t0 = result->AddInitializer(load_indexed->array());
+      array = new LoadLocalNode(token_pos, t0);
     }
-    if (!IsSimpleLocalOrLiteralNode(left_node->index_expr())) {
-      LocalVariable* temp =
-          CreateTempConstVariable(token_pos, "lix");
-      StoreLocalNode* save =
-          new StoreLocalNode(token_pos, temp, left_node->index_expr());
-      left_node = new LoadIndexedNode(token_pos,
-                                      left_node->array(),
-                                      save,
-                                      left_node->super_class());
-      right_node = new LoadIndexedNode(token_pos,
-                                       right_node->array(),
-                                       new LoadLocalNode(token_pos, temp),
-                                       right_node->super_class());
+    if (!IsSimpleLocalOrLiteralNode(load_indexed->index_expr())) {
+      LocalVariable* t1 = result->AddInitializer(
+          load_indexed->index_expr());
+      index = new LoadLocalNode(token_pos, t1);
     }
-    *expr = right_node;
-    return left_node;
+    *expr = new LoadIndexedNode(token_pos,
+                                array,
+                                index,
+                                load_indexed->super_class());
+    return result;
   }
   if (node->IsInstanceGetterNode()) {
-    InstanceGetterNode* left_node = node->AsInstanceGetterNode();
-    InstanceGetterNode* right_node = left_node;
-    intptr_t token_pos = node->token_pos();
-    node = NULL;  // Do not use it.
-    if (!IsSimpleLocalOrLiteralNode(left_node->receiver())) {
-      LocalVariable* temp =
-          CreateTempConstVariable(token_pos, "igr");
-      StoreLocalNode* save =
-          new StoreLocalNode(token_pos, temp, left_node->receiver());
-      left_node = new InstanceGetterNode(token_pos,
-                                         save,
-                                         left_node->field_name());
-      right_node = new InstanceGetterNode(token_pos,
-                                          new LoadLocalNode(token_pos, temp),
-                                          right_node->field_name());
+    InstanceGetterNode* getter = node->AsInstanceGetterNode();
+    AstNode* receiver = getter->receiver();
+    if (!IsSimpleLocalOrLiteralNode(getter->receiver())) {
+      LocalVariable* t0 = result->AddInitializer(getter->receiver());
+      receiver = new LoadLocalNode(token_pos, t0);
     }
-    *expr = right_node;
-    return left_node;
+    *expr = new InstanceGetterNode(token_pos,
+                                   receiver,
+                                   getter->field_name());
+    return result;
   }
-  return *expr;
+  return result;
 }
 
 
@@ -7123,12 +7070,12 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
 
 AstNode* Parser::ParseCascades(AstNode* expr) {
   intptr_t cascade_pos = TokenPos();
-  LocalVariable* cascade_receiver_var =
-      CreateTempConstVariable(cascade_pos, "casc");
+  LetNode* result = new LetNode(cascade_pos);
+  LocalVariable* cascade_receiver_var = result->AddInitializer(expr);
+  // TODO(fschneider): Make LetNode support more than one body node and
+  // replace the SequenceNode here and CommaNode here and in postfix
+  // expressions.
   SequenceNode* cascade = new SequenceNode(cascade_pos, NULL);
-  StoreLocalNode* save_cascade =
-      new StoreLocalNode(cascade_pos, cascade_receiver_var, expr);
-  cascade->Add(save_cascade);
   while (CurrentToken() == Token::kCASCADE) {
     cascade_pos = TokenPos();
     LoadLocalNode* load_cascade_receiver =
@@ -7150,30 +7097,42 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
       const intptr_t assignment_pos = TokenPos();
       ConsumeToken();
       AstNode* right_expr = ParseExpr(kAllowConst, kNoCascades);
-      AstNode* left_expr = expr;
       if (assignment_op != Token::kASSIGN) {
         // Compound assignment: store inputs with side effects into
         // temporary locals.
-        left_expr = PrepareCompoundAssignmentNodes(&expr);
+        LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
+        right_expr =
+            ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
+        AstNode* assign_expr = CreateAssignmentNode(expr, right_expr);
+        if (assign_expr == NULL) {
+          ErrorMsg(assignment_pos,
+                   "left hand side of '%s' is not assignable",
+                   Token::Str(assignment_op));
+        }
+        let_expr->set_body(assign_expr);
+        expr = let_expr;
+      } else {
+        right_expr =
+            ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
+        AstNode* assign_expr = CreateAssignmentNode(expr, right_expr);
+        if (assign_expr == NULL) {
+          ErrorMsg(assignment_pos,
+                   "left hand side of '%s' is not assignable",
+                   Token::Str(assignment_op));
+        }
+        expr = assign_expr;
       }
-      right_expr =
-          ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-      AstNode* assign_expr = CreateAssignmentNode(left_expr, right_expr);
-      if (assign_expr == NULL) {
-        ErrorMsg(assignment_pos,
-                 "left hand side of '%s' is not assignable",
-                 Token::Str(assignment_op));
-      }
-      expr = assign_expr;
     }
     cascade->Add(expr);
   }
   // The result is a pair of the (side effects of the) cascade sequence
   // followed by the (value of the) receiver temp variable load.
-  return new CommaNode(
+  CommaNode* body = new CommaNode(
       cascade_pos,
       cascade,
       new LoadLocalNode(cascade_pos, cascade_receiver_var));
+  result->set_body(body);
+  return result;
 }
 
 
@@ -7207,20 +7166,30 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
     ErrorMsg(right_expr_pos, "expression must be a compile-time constant");
   }
   AstNode* right_expr = ParseExpr(require_compiletime_const, consume_cascades);
-  AstNode* left_expr = expr;
   if (assignment_op != Token::kASSIGN) {
     // Compound assignment: store inputs with side effects into temp. locals.
-    left_expr = PrepareCompoundAssignmentNodes(&expr);
+    LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
+    AstNode* assigned_value =
+        ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
+    AstNode* assign_expr = CreateAssignmentNode(expr, assigned_value);
+    if (assign_expr == NULL) {
+      ErrorMsg(assignment_pos,
+               "left hand side of '%s' is not assignable",
+               Token::Str(assignment_op));
+    }
+    let_expr->set_body(assign_expr);
+    return let_expr;
+  } else {
+    AstNode* assigned_value =
+        ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
+    AstNode* assign_expr = CreateAssignmentNode(expr, assigned_value);
+    if (assign_expr == NULL) {
+      ErrorMsg(assignment_pos,
+               "left hand side of '%s' is not assignable",
+               Token::Str(assignment_op));
+    }
+    return assign_expr;
   }
-  right_expr =
-      ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
-  AstNode* assign_expr = CreateAssignmentNode(left_expr, right_expr);
-  if (assign_expr == NULL) {
-    ErrorMsg(assignment_pos,
-             "left hand side of '%s' is not assignable",
-             Token::Str(assignment_op));
-  }
-  return assign_expr;
 }
 
 
@@ -7278,7 +7247,7 @@ AstNode* Parser::ParseUnaryExpr() {
       ErrorMsg("expression is not assignable");
     }
     // Is prefix.
-    AstNode* left_expr = PrepareCompoundAssignmentNodes(&expr);
+    LetNode* let_expr = PrepareCompoundAssignmentNodes(&expr);
     Token::Kind binary_op =
         (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
     BinaryOpNode* add = new BinaryOpNode(
@@ -7286,9 +7255,10 @@ AstNode* Parser::ParseUnaryExpr() {
         binary_op,
         expr,
         new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
-    AstNode* store = CreateAssignmentNode(left_expr, add);
+    AstNode* store = CreateAssignmentNode(expr, add);
     ASSERT(store != NULL);
-    expr = store;
+    let_expr->set_body(store);
+    expr = let_expr;
   } else {
     expr = ParsePostfixExpr();
   }
@@ -7770,24 +7740,24 @@ AstNode* Parser::ParsePostfixExpr() {
     }
     ConsumeToken();
     // Not prefix.
-    AstNode* left_expr = PrepareCompoundAssignmentNodes(&postfix_expr);
-    const LocalVariable* temp = GetIncrementTempLocal();
-    AstNode* save =
-        new StoreLocalNode(postfix_expr_pos, temp, postfix_expr);
+    LetNode* let_expr = PrepareCompoundAssignmentNodes(&postfix_expr);
+    LocalVariable* temp = let_expr->AddInitializer(postfix_expr);
     Token::Kind binary_op =
         (incr_op == Token::kINCR) ? Token::kADD : Token::kSUB;
     BinaryOpNode* add = new BinaryOpNode(
         postfix_expr_pos,
         binary_op,
-        save,
+        new LoadLocalNode(postfix_expr_pos, temp),
         new LiteralNode(postfix_expr_pos, Smi::ZoneHandle(Smi::New(1))));
-    AstNode* store = CreateAssignmentNode(left_expr, add);
+    AstNode* store = CreateAssignmentNode(postfix_expr, add);
+    ASSERT(store != NULL);
     // The result is a pair of the (side effects of the) store followed by
     // the (value of the) initial value temp variable load.
-    return new CommaNode(
+    let_expr->set_body(new CommaNode(
         postfix_expr_pos,
         store,
-        new LoadLocalNode(postfix_expr_pos, temp));
+        new LoadLocalNode(postfix_expr_pos, temp)));
+    return let_expr;
   }
   return postfix_expr;
 }
@@ -8870,9 +8840,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
           new LiteralNode(TokenPos(), empty_array);
       factory_param->Add(empty_array_literal);
     } else {
-      const LocalVariable& temp_local = *BuildArrayTempLocal(type_pos);
-      ArrayNode* list =
-          new ArrayNode(TokenPos(), type, temp_local, element_list);
+      ArrayNode* list = new ArrayNode(TokenPos(), type, element_list);
       factory_param->Add(list);
     }
     return CreateConstructorCallNode(literal_pos,
@@ -8891,13 +8859,10 @@ ConstructorCallNode* Parser::CreateConstructorCallNode(
   if (!type_arguments.IsNull() && !type_arguments.IsInstantiated()) {
     EnsureExpressionTemp();
   }
-  LocalVariable* allocated =
-      CreateTempConstVariable(token_pos, "alloc");
   return new ConstructorCallNode(token_pos,
                                  type_arguments,
                                  constructor,
-                                 arguments,
-                                 allocated);
+                                 arguments);
 }
 
 
@@ -9095,7 +9060,6 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     ArrayNode* kv_pairs = new ArrayNode(
         TokenPos(),
         Type::ZoneHandle(Type::ArrayType()),
-        *BuildArrayTempLocal(type_pos),
         kv_pairs_list);
     factory_param->Add(kv_pairs);
     return CreateConstructorCallNode(literal_pos,
@@ -9482,7 +9446,6 @@ AstNode* Parser::ParseStringLiteral() {
     ArrayNode* values = new ArrayNode(
         TokenPos(),
         Type::ZoneHandle(Type::ArrayType()),
-        *BuildArrayTempLocal(TokenPos()),
         values_list);
     interpolate_arg->Add(values);
     primary = MakeStaticCall(Symbols::StringBase(),

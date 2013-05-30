@@ -58,7 +58,6 @@ class ObjectPointerVisitor;
   V(SavedTryContextVar, ":saved_try_context_var")                              \
   V(ExceptionVar, ":exception_var")                                            \
   V(StacktraceVar, ":stacktrace_var")                                          \
-  V(ArrayLiteralVar, ":array_literal_var")                                     \
   V(ListLiteralElement, "list literal element")                                \
   V(ForInIter, ":for-in-iter")                                                 \
   V(Library, "library")                                                        \

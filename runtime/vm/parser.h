@@ -39,7 +39,6 @@ class ParsedFunction : public ZoneAllocated {
         saved_current_context_var_(NULL),
         saved_entry_context_var_(NULL),
         expression_temp_var_(NULL),
-        array_literal_var_(NULL),
         first_parameter_index_(0),
         first_stack_local_index_(0),
         num_copied_params_(0),
@@ -102,17 +101,6 @@ class ParsedFunction : public ZoneAllocated {
   }
   static LocalVariable* CreateExpressionTempVar(intptr_t token_pos);
 
-  void set_array_literal_var(LocalVariable* local) {
-    ASSERT((local != NULL) &&  (array_literal_var_ == NULL));
-    array_literal_var_ = local;
-  }
-  LocalVariable* array_literal_var() const {
-    ASSERT(array_literal_var_ != NULL);
-    return array_literal_var_;
-  }
-
-  static LocalVariable* CreateArrayLiteralVar(intptr_t token_pos);
-
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
   int num_copied_params() const { return num_copied_params_; }
@@ -128,9 +116,6 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* saved_current_context_var_;
   LocalVariable* saved_entry_context_var_;
   LocalVariable* expression_temp_var_;
-  // TODO(hausner): Remove once ArrayNode creation is removed from flow
-  // graph builder.
-  LocalVariable* array_literal_var_;
 
   int first_parameter_index_;
   int first_stack_local_index_;
@@ -600,7 +585,7 @@ class Parser : public ValueObject {
                               Token::Kind assignment_op,
                               AstNode* lhs,
                               AstNode* rhs);
-  AstNode* PrepareCompoundAssignmentNodes(AstNode** expr);
+  LetNode* PrepareCompoundAssignmentNodes(AstNode** expr);
   LocalVariable* CreateTempConstVariable(intptr_t token_pos, const char* s);
 
   static bool IsAssignableExpr(AstNode* expr);
@@ -635,8 +620,6 @@ class Parser : public ValueObject {
       const AbstractTypeArguments& type_arguments,
       const Function& constructor,
       ArgumentListNode* arguments);
-
-  LocalVariable* BuildArrayTempLocal(intptr_t token_pos);
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

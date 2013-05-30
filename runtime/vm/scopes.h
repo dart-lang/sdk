@@ -32,7 +32,7 @@ class LocalVariable : public ZoneAllocated {
       is_final_(false),
       is_captured_(false),
       is_invisible_(false),
-      index_(LocalVariable::kUnitializedIndex) {
+      index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle());
     ASSERT(type.IsFinalized());
   }
@@ -54,7 +54,7 @@ class LocalVariable : public ZoneAllocated {
   void set_is_captured() { is_captured_ = true; }
 
   bool HasIndex() const {
-    return index_ != kUnitializedIndex;
+    return index_ != kUninitializedIndex;
   }
   int index() const {
     ASSERT(HasIndex());
@@ -63,8 +63,7 @@ class LocalVariable : public ZoneAllocated {
 
   // Assign an index to a local.
   void set_index(int index) {
-    ASSERT(!HasIndex());
-    ASSERT(index != kUnitializedIndex);
+    ASSERT(index != kUninitializedIndex);
     index_ = index;
   }
 
@@ -95,7 +94,7 @@ class LocalVariable : public ZoneAllocated {
   int BitIndexIn(intptr_t var_count) const;
 
  private:
-  static const int kUnitializedIndex = INT_MIN;
+  static const int kUninitializedIndex = INT_MIN;
 
   const intptr_t token_pos_;
   const String& name_;

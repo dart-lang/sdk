@@ -350,11 +350,10 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   String& function_bar_name = String::ZoneHandle(Symbols::New("bar"));
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
-  const LocalVariable* allocated = test->CreateTempConstVariable("alloc");
   InstanceCallNode* call_bar = new InstanceCallNode(
       kPos,
       new ConstructorCallNode(
-          kPos, no_type_arguments, constructor, no_arguments, allocated),
+          kPos, no_type_arguments, constructor, no_arguments),
       function_bar_name,
       no_arguments);
 
@@ -535,9 +534,8 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
 
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
-  const LocalVariable* allocated = test->CreateTempConstVariable("alloc");
   test->node_sequence()->Add(new ReturnNode(kPos, new ConstructorCallNode(
-      kPos, no_type_arguments, constructor, no_arguments, allocated)));
+      kPos, no_type_arguments, constructor, no_arguments)));
 }
 
 
