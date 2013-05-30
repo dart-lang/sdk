@@ -138,7 +138,7 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
     return result;
   }
 
-  List<InstanceMirror> get metadata => _metadata.map(reflect);
+  List<InstanceMirror> get metadata => _metadata.map(reflect).toList();
 }
 
 String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
