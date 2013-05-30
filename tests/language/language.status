@@ -595,7 +595,6 @@ factory2_test: fail
 factory5_test/00: fail
 factory_implementation_test/none: fail
 factory_redirection2_test/01: fail
-factory_redirection_test/07: fail
 fauxverride_test/03: fail
 fauxverride_test/05: fail
 field_method4_negative_test: fail
