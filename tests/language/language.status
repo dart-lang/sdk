@@ -332,16 +332,8 @@ call_test: Fail # Issue 1604
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 constructor_redirect2_test/03: Fail
 constructor_initializer_test: Fail # VM issue
-factory2_test: Fail
 factory3_test: Fail
-factory5_test/none: Fail
-factory5_test/00: Fail
 type_checks_in_factory_method_test: Fail
-default_factory2_test/01: Fail # type arguments on redirecting factory not implemented
-default_factory3_test: Fail # type arguments on redirecting factory not implemented
-non_parameterized_factory_test: Fail # type arguments on redirecting factory not implemented
-non_parameterized_factory2_test: Fail # type arguments on redirecting factory not implemented
-type_variable_scope_test: Fail # type arguments on redirecting factory not implemented
 
 many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
