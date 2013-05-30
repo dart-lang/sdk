@@ -29,13 +29,19 @@ const String OUTPUT_LANGUAGE_DART = 'Dart';
  */
 String BUILD_ID = null;
 
-typedef void HandleOption(String option);
+/**
+ * The data passed to the [HandleOption] callback is either a single
+ * string argument, or the arguments iterator for multiple arguments
+ * handlers.
+ */
+typedef void HandleOption(data);
 
 class OptionHandler {
-  String pattern;
-  HandleOption handle;
+  final String pattern;
+  final HandleOption handle;
+  final bool multipleArguments;
 
-  OptionHandler(this.pattern, this.handle);
+  OptionHandler(this.pattern, this.handle, {this.multipleArguments: false});
 }
 
 /**
@@ -64,12 +70,20 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
     patterns.add(handler.pattern);
   }
   var pattern = new RegExp('^(${patterns.join(")\$|(")})\$');
-  OUTER: for (String argument in argv) {
+
+  Iterator<String> arguments = argv.iterator;
+  OUTER: while (arguments.moveNext()) {
+    String argument = arguments.current;
     Match match = pattern.firstMatch(argument);
     assert(match.groupCount == handlers.length);
     for (int i = 0; i < handlers.length; i++) {
       if (match[i + 1] != null) {
-        handlers[i].handle(argument);
+        OptionHandler handler = handlers[i];
+        if (handler.multipleArguments) {
+          handler.handle(arguments);
+        } else {
+          handler.handle(argument);
+        }
         continue OUTER;
       }
     }
@@ -108,9 +122,18 @@ void compile(List<String> argv) {
     packageRoot = currentDirectory.resolve(extractPath(argument));
   }
 
-  setOutput(String argument) {
+  setOutput(Iterator<String> arguments) {
+    String path;
+    if (arguments.current == '-o') {
+      if (!arguments.moveNext()) {
+        helpAndFail('Error: Missing file after -o option.');
+      }
+      path = arguments.current;
+    } else {
+      path = extractParameter(arguments.current);
+    }
     explicitOut = true;
-    out = currentDirectory.resolve(nativeToUriPath(extractParameter(argument)));
+    out = currentDirectory.resolve(nativeToUriPath(path));
     sourceMapOut = Uri.parse('$out.map');
   }
 
@@ -208,7 +231,7 @@ void compile(List<String> argv) {
     new OptionHandler('--verbose', setVerbose),
     new OptionHandler('--version', (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
-    new OptionHandler('--out=.+|-o.+', setOutput),
+    new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--minify', passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
@@ -402,9 +425,9 @@ Usage: dart2js [options] dartfile
 Compiles Dart to JavaScript.
 
 Common options:
-  -o<file> Generate the output into <file>.
-  -c       Insert runtime type checks and enable assertions (checked mode).
-  -h       Display this message (add -v for information about all options).''');
+  -o <file> Generate the output into <file>.
+  -c        Insert runtime type checks and enable assertions (checked mode).
+  -h        Display this message (add -v for information about all options).''');
 }
 
 void verboseHelp() {
@@ -414,7 +437,7 @@ Usage: dart2js [options] dartfile
 Compiles Dart to JavaScript.
 
 Supported options:
-  -o<file>, --out=<file>
+  -o <file>, --out=<file>
     Generate the output into <file>.
 
   -c, --enable-checked-mode, --checked
