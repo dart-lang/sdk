@@ -5564,7 +5564,7 @@ class CssUnknownRule extends CssRule native "CSSUnknownRule" {
 @DocsEditable
 @DomName('CustomElementConstructor')
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-constructor-generation
-@Experimental
+@deprecated // experimental
 class CustomElementConstructor native "CustomElementConstructor" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

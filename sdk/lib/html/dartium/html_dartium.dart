@@ -6047,7 +6047,7 @@ class CssUnknownRule extends CssRule {
 @DocsEditable
 @DomName('CustomElementConstructor')
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-constructor-generation
-@Experimental
+@deprecated // experimental
 class CustomElementConstructor extends NativeFieldWrapperClass1 {
   CustomElementConstructor.internal();
 
