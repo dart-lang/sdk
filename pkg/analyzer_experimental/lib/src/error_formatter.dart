@@ -124,18 +124,10 @@ class ErrorFormatter {
       out.write('|');
       out.writeln(escapePipe(error.message));
     } else {
-      // [warning] 'foo' is not a method or function (/Users/devoncarew/temp/foo.dart:-1:-1)
-      out.write('[');
-      out.write(severity.displayName);
-      out.write('] ');
-      out.write(error.message);
-      out.write(' (');
-      out.write(source.fullName);
-      out.write(':');
-      out.write(location.lineNumber);
-      out.write(':');
-      out.write(location.columnNumber);
-      out.writeln(')');
+      // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
+      out.write('[${severity.displayName}] ${error.message} ');
+      out.write('(${source.fullName}');
+      out.write(', line ${location.lineNumber}, col ${location.columnNumber})');
     }
   }
 
