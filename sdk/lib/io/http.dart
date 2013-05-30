@@ -666,14 +666,10 @@ abstract class HttpRequest implements Stream<List<int>> {
   String get method;
 
   /**
-   * Returns the URI for the request.
+   * Returns the URI for the request. This provides access to the
+   * path, query string and fragment identifier for the request.
    */
   Uri get uri;
-
-  /**
-   * Returns the parsed query string.
-   */
-  Map<String, String> get queryParameters;
 
   /**
    * Returns the request headers.

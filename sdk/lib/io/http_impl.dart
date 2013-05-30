@@ -78,9 +78,6 @@ abstract class _HttpInboundMessage extends Stream<List<int>> {
 class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   final HttpResponse response;
 
-  // Lazy initialized parsed query parameters.
-  Map<String, String> _queryParameters;
-
   final _HttpServer _httpServer;
 
   final _HttpConnection _httpConnection;
@@ -117,13 +114,6 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
                             onError: onError,
                             onDone: onDone,
                             cancelOnError: cancelOnError);
-  }
-
-  Map<String, String> get queryParameters {
-    if (_queryParameters == null) {
-      _queryParameters = _HttpUtils.splitQueryString(uri.query);
-    }
-    return _queryParameters;
   }
 
   Uri get uri => _incoming.uri;

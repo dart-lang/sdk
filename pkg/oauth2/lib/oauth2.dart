@@ -96,7 +96,7 @@
 ///         // Once the user is redirected to `redirectUrl`, pass the query
 ///         // parameters to the AuthorizationCodeGrant. It will validate them
 ///         // and extract the authorization code to create a new Client.
-///         return grant.handleAuthorizationResponse(request.queryParameters);
+///         return grant.handleAuthorizationResponse(request.uri.queryParameters);
 ///       })
 ///     }).then((client) {
 ///       // Once you have a Client, you can use it just like any other HTTP
