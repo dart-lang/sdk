@@ -42,6 +42,13 @@ void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+uword VMHandles::AllocateHandle(Isolate* isolate) {
+  return Handles<kVMHandleSizeInWords,
+                 kVMHandlesPerChunk,
+                 kOffsetOfRawPtr>::AllocateHandle(isolate);
+}
+
+
 uword VMHandles::AllocateZoneHandle(Isolate* isolate) {
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
