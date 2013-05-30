@@ -2933,13 +2933,19 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Expression buildMetadataFunction(Element element) {
-    if (compiler.mirrorSystemClass == null) return new jsAst.LiteralString('');
+    if (compiler.mirrorSystemClass == null) {
+      // Since the string is not quoted, this just becomes an empty
+      // node.  Since the result is added to a list, this implicitly
+      // makes the value undefined.
+      return new jsAst.LiteralString('');
+    }
     var metadata = [];
-    for (Link link = element.metadata;
-         // TODO(ahe): Why is metadata sometimes null?
-         link != null && !link.isEmpty;
-         link = link.tail) {
-      metadata.add(constantReference(link.head.value));
+    Link link = element.metadata;
+    // TODO(ahe): Why is metadata sometimes null?
+    if (link != null) {
+      for (; !link.isEmpty; link = link.tail) {
+        metadata.add(constantReference(link.head.value));
+      }
     }
     return js.fun([], [js.return_(new jsAst.ArrayInitializer.from(metadata))]);
   }

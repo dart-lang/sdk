@@ -600,7 +600,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
   }
 
   set metadata(value) {
-    // The metadata is stored on the library name.
+    // The metadata is stored on [libraryTag].
     throw new SpannableAssertionFailure(this, 'Cannot set metadata on Library');
   }
 
