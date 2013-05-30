@@ -158,6 +158,9 @@ String JS_OPERATOR_IS_PREFIX() {}
  */
 String JS_OPERATOR_AS_PREFIX() {}
 
+/// Returns the name of the class `Object` in the generated code.
+String JS_OBJECT_CLASS_NAME() {}
+
 /**
  * Returns the field name used for determining if an object or its
  * interceptor has JavaScript indexing behavior.

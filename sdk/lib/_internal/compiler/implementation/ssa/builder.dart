@@ -3113,6 +3113,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignCreateIsolate(node);
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')) {
       stack.add(addConstantString(node, backend.namer.operatorIsPrefix()));
+    } else if (name == const SourceString('JS_OBJECT_CLASS_NAME')) {
+      String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
+      stack.add(addConstantString(node, name));
     } else if (name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
       stack.add(addConstantString(node, backend.namer.operatorAsPrefix()));
     } else if (name == const SourceString('JS_DART_OBJECT_CONSTRUCTOR')) {

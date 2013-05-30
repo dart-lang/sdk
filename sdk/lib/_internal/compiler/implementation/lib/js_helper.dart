@@ -13,6 +13,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_OPERATOR_IS_PREFIX,
                                    JS_OPERATOR_AS_PREFIX,
                                    JS_IS_INDEXABLE_FIELD_NAME,
+                                   JS_OBJECT_CLASS_NAME,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import "dart:_collection-dev" as _symbol_dev;
