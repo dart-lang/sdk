@@ -52,7 +52,7 @@ abstract class Browser {
 
   // We use this to gracefully handle double calls to close.
   bool underTermination = false;
-  
+
   Browser();
 
   factory Browser.byName(String name) {
@@ -67,7 +67,10 @@ abstract class Browser {
     }
   }
 
-  static const List<String> SUPPORTED_BROWSERS = 
+  static const List<String> SUPPORTED_BROWSERS =
+      const ['safari', 'ff', 'firefox', 'chrome'];
+
+  static const List<String> BROWSERS_WITH_WINDOW_SUPPORT =
       const ['safari', 'ff', 'firefox', 'chrome'];
 
   // TODO(kustermann): add standard support for chrome on android
@@ -532,7 +535,11 @@ class BrowserTestRunner {
   BrowserTestRunner(this.local_ip, this.browserName, this.maxNumBrowsers);
 
   Future<bool> start() {
-    testingServer = new BrowserTestingServer(local_ip);
+    // If [browserName] doesn't support opening new windows, we use new iframes
+    // instead.
+    bool useIframe =
+        !Browser.BROWSERS_WITH_WINDOW_SUPPORT.contains(browserName);
+    testingServer = new BrowserTestingServer(local_ip, useIframe);
     return testingServer.start().then((_) {
       testingServer.testDoneCallBack = handleResults;
       testingServer.nextTestCallBack = getNextTest;
@@ -761,11 +768,12 @@ class BrowserTestingServer {
   var testCount = 0;
   var httpServer;
   bool underTermination = false;
+  bool useIframe = false;
 
   Function testDoneCallBack;
   Function nextTestCallBack;
 
-  BrowserTestingServer(this.local_ip);
+  BrowserTestingServer(this.local_ip, this.useIframe);
 
   Future start() {
     return HttpServer.bind(local_ip, 0).then((createdServer) {
@@ -850,98 +858,109 @@ class BrowserTestingServer {
 <head>
   <title>Driving page</title>
   <script type='text/javascript'>
-    var number_of_tests = 0;
-    var current_id;
-    var last_reported_id;
-    var testing_window;
-    // We use this to determine if we did actually get back a start event
-    // from the test we just loaded.
-    var did_start = false;
 
-    function newTaskHandler() {
-      if (this.readyState == this.DONE) {
-        if (this.status == 200) {
-          if (this.responseText == '$waitSignal') {
-            setTimeout(getNextTask, 500);
-          } else if (this.responseText == '$terminateSignal') {
-            // Don't do anything, we will be killed shortly.
-          } else {
-            // TODO(ricow): Do something more clever here.
-            if (nextTask != undefined) alert('This is really bad');
-            // The task is send to us as:
-            // URL#ID
-            var split = this.responseText.split('#');
-            var nextTask = split[0];
-            current_id = split[1];
-            did_start = false;
-            run(nextTask);
-          }
-        } else {
-          // We are basically in trouble - do something clever.
-        }
-      }
-    }
+    function startTesting() {
+      var number_of_tests = 0;
+      var current_id;
+      var last_reported_id;
+      var testing_window;
+      // We use this to determine if we did actually get back a start event
+      // from the test we just loaded.
+      var did_start = false;
 
-    function getNextTask() {
-      var client = new XMLHttpRequest();
-      client.onreadystatechange = newTaskHandler;
-      client.open('GET', '$nextTestPath/$browserId');
-      client.send();
-    }
+      var embedded_iframe = document.getElementById('embedded_iframe');
+      var use_iframe = ${useIframe};
 
-    function run(url) {
-      number_of_tests++;
-      document.getElementById('number').innerHTML = number_of_tests;
-      if (testing_window == undefined) {
-        testing_window = window.open(url);
-      } else {
-        testing_window.location = url;
-      }
-    }
-
-    function reportMessage(msg) {
-      if (msg == 'STARTING') {
-        did_start = true;
-        return;
-      }
-      var client = new XMLHttpRequest();
-      function handleReady() {
+      function newTaskHandler() {
         if (this.readyState == this.DONE) {
-          if (last_reported_id != current_id && did_start) {
-            getNextTask();
-            last_reported_id = current_id;
+          if (this.status == 200) {
+            if (this.responseText == '$waitSignal') {
+              setTimeout(getNextTask, 500);
+            } else if (this.responseText == '$terminateSignal') {
+              // Don't do anything, we will be killed shortly.
+            } else {
+              // TODO(ricow): Do something more clever here.
+              if (nextTask != undefined) alert('This is really bad');
+              // The task is send to us as:
+              // URL#ID
+              var split = this.responseText.split('#');
+              var nextTask = split[0];
+              current_id = split[1];
+              did_start = false;
+              run(nextTask);
+            }
+          } else {
+            // We are basically in trouble - do something clever.
           }
         }
       }
-      client.onreadystatechange = handleReady;
-      // If did_start is false it means that we did actually set the url on
-      // the testing_window, but this is a report left in the event loop or
-      // a callback because the page did not load yet.
-      // In both cases this is a double report from the last test.
-      var posting_id = did_start ? current_id : last_reported_id;
-      client.open('POST', '$reportPath/${browserId}?id=' + posting_id);
-      client.setRequestHeader('Content-type',
-                              'application/x-www-form-urlencoded');
-      client.send(msg);
-      // TODO(ricow) add error handling to somehow report the fact that
-      // we could not send back a result.
+
+      function getNextTask() {
+        var client = new XMLHttpRequest();
+        client.onreadystatechange = newTaskHandler;
+        client.open('GET', '$nextTestPath/$browserId');
+        client.send();
+      }
+
+      function run(url) {
+        number_of_tests++;
+        document.getElementById('number').innerHTML = number_of_tests;
+        if (use_iframe) {
+          embedded_iframe.src = url;
+        } else {
+          if (testing_window == undefined) {
+            testing_window = window.open(url);
+          } else {
+            testing_window.location = url;
+          }
+        }
+      }
+
+      function reportMessage(msg) {
+        if (msg == 'STARTING') {
+          did_start = true;
+          return;
+        }
+        var client = new XMLHttpRequest();
+        function handleReady() {
+          if (this.readyState == this.DONE) {
+            if (last_reported_id != current_id && did_start) {
+              getNextTask();
+              last_reported_id = current_id;
+            }
+          }
+        }
+        client.onreadystatechange = handleReady;
+        // If did_start is false it means that we did actually set the url on
+        // the testing_window, but this is a report left in the event loop or
+        // a callback because the page did not load yet.
+        // In both cases this is a double report from the last test.
+        var posting_id = did_start ? current_id : last_reported_id;
+        client.open('POST', '$reportPath/${browserId}?id=' + posting_id);
+        client.setRequestHeader('Content-type',
+                                'application/x-www-form-urlencoded');
+        client.send(msg);
+        // TODO(ricow) add error handling to somehow report the fact that
+        // we could not send back a result.
+      }
+
+      function messageHandler(e) {
+        var msg = e.data;
+        if (typeof msg != 'string') return;
+        reportMessage(msg);
+      }
+
+      window.addEventListener('message', messageHandler, false);
+      waitForDone = false;
+
+      getNextTask();
     }
-
-    function messageHandler(e) {
-      var msg = e.data;
-      if (typeof msg != 'string') return;
-      reportMessage(msg);
-    }
-
-    window.addEventListener('message', messageHandler, false);
-    waitForDone = false;
-
-    getNextTask();
 
   </script>
 </head>
-  <body>
+  <body onload="startTesting()">
     Dart test driver, number of tests: <div id="number"></div>
+    <iframe id="embedded_iframe"></iframe>
   </body>
 </html>
 """;

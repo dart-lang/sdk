@@ -33,9 +33,22 @@ var testRunner = window.testRunner || window.layoutTestController;
 
 var waitForDone = false;
 
+// Returns the driving window object if available
+function getDriverWindow() {
+  if (window != window.parent) {
+    // We're running in an iframe.
+    return window.parent;
+  } else if (window.opener) {
+    // We were opened by another window.
+    return window.opener;
+  }
+  return null;
+}
+
 function notifyStart() {
-  if (window.opener) {
-    window.opener.postMessage("STARTING", "*");
+  var driver = getDriverWindow();
+  if (driver) {
+    driver.postMessage("STARTING", "*");
   }
 }
 
@@ -43,8 +56,9 @@ function notifyDone() {
   if (testRunner) testRunner.notifyDone();
   // To support in browser launching of tests we post back start and result
   // messages to the window.opener.
-  if (window.opener) {
-    window.opener.postMessage(window.document.body.innerHTML, "*");
+  var driver = getDriverWindow();
+  if (driver) {
+    driver.postMessage(window.document.body.innerHTML, "*");
   }
 }
 
