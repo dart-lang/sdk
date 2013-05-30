@@ -1863,7 +1863,6 @@ class TempLocalScope : public ValueObject {
 
  private:
   EffectGraphVisitor* visitor_;
-  Value* value_;
   LocalVariable* var_;
 };
 
