@@ -412,6 +412,9 @@ abstract class Compiler implements DiagnosticListener {
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
 
+  static const String UNDETERMINED_BUILD_ID =
+      "build number could not be determined";
+
   final Selector iteratorSelector =
       new Selector.getter(const SourceString('iterator'), null);
   final Selector currentSelector =
@@ -459,15 +462,14 @@ abstract class Compiler implements DiagnosticListener {
             this.preserveComments: false,
             this.verbose: false,
             this.sourceMapUri: null,
-            this.buildId: "build number could not be determined",
+            this.buildId: UNDETERMINED_BUILD_ID,
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
-        this.outputProvider =
-            (outputProvider == null) ? NullSink.outputProvider : outputProvider
-
-  {
+        this.outputProvider = (outputProvider == null)
+            ? NullSink.outputProvider
+            : outputProvider {
     world = new World(this);
 
     closureMapping.ClosureNamer closureNamer;
@@ -507,6 +509,8 @@ abstract class Compiler implements DiagnosticListener {
 
   Universe get resolverWorld => enqueuer.resolution.universe;
   Universe get codegenWorld => enqueuer.codegen.universe;
+
+  bool get hasBuildId => buildId != UNDETERMINED_BUILD_ID;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
