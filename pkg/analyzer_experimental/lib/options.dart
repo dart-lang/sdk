@@ -9,7 +9,7 @@ import 'package:args/args.dart';
 import 'dart:io';
 
 
-const _BINARY_NAME = 'analyzer';
+const _BINARY_NAME = 'dartanalyzer';
 
 /**
  * Analyzer commandline configuration options.
@@ -21,6 +21,9 @@ class CommandLineOptions {
 
   /** Whether to use machine format for error display */
   final bool machineFormat;
+
+  /** Whether to display version information */
+  final bool displayVersion;
 
   /** Whether to ignore unrecognized flags */
   final bool ignoreUnrecognizedFlags;
@@ -48,7 +51,8 @@ class CommandLineOptions {
    */
   CommandLineOptions._fromArgs(ArgResults args)
     : shouldBatch = args['batch'],
-      machineFormat = args['machine-format'],
+      machineFormat = args['machine'],
+      displayVersion = args['version'],
       ignoreUnrecognizedFlags = args['ignore-unrecognized-flags'],
       showPackageWarnings = args['show-package-warnings'],
       showSdkWarnings = args['show-sdk-warnings'],
@@ -87,20 +91,23 @@ class CommandLineOptions {
           defaultsTo: false, negatable: false)
       ..addOption('dart-sdk', help: 'The path to the Dart SDK')
       ..addOption('package-root', help: 'The path to the package root')
-      ..addFlag('machine-format', help: 'Specify whether errors '
-        'should be in machine format',
+      ..addFlag('machine',
+          help: 'Print errors in a format suitable for parsing',
+          defaultsTo: false, negatable: false)
+      ..addFlag('version', help: 'Print the analyzer version',
           defaultsTo: false, negatable: false)
       ..addFlag('ignore-unrecognized-flags',
           help: 'Ignore unrecognized command line flags',
           defaultsTo: false, negatable: false)
       ..addFlag('fatal-warnings', help: 'Treat non-type warnings as fatal',
           defaultsTo: false, negatable: false)
-      ..addFlag('show-package-warnings', help: 'Show warnings from package: imports',
-         defaultsTo: false, negatable: false)
+      ..addFlag('show-package-warnings',
+          help: 'Show warnings from package: imports',
+          defaultsTo: false, negatable: false)
       ..addFlag('show-sdk-warnings', help: 'Show warnings from SDK imports',
-         defaultsTo: false, negatable: false)
+          defaultsTo: false, negatable: false)
       ..addFlag('help', abbr: 'h', help: 'Display this help message',
-         defaultsTo: false, negatable: false);
+          defaultsTo: false, negatable: false);
 
     try {
       var results = parser.parse(args);
@@ -116,6 +123,9 @@ class CommandLineOptions {
           _showUsage(parser);
           exit(15);
         }
+      } if (results['version']) {
+        print('$_BINARY_NAME version ${_getVersion()}');
+        exit(0);
       } else {
         if (results.rest.length == 0) {
           _showUsage(parser);
@@ -134,8 +144,22 @@ class CommandLineOptions {
   static _showUsage(parser) {
     print('Usage: $_BINARY_NAME [options...] <libraries to analyze...>');
     print(parser.getUsage());
+    print('');
+    print('For more information, see http://www.dartlang.org/tools/analyzer.');
   }
 
+  static String _getVersion() {
+    try {
+      Path path = new Path(new Options().script);
+      Path versionPath = path.directoryPath.append('..').append('version');
+      File versionFile = new File.fromPath(versionPath);
+      
+      return versionFile.readAsStringSync().trim();
+    } catch (_) {
+      // This happens when the script is not running in the context of an SDK.
+      return "<unknown>";
+    }
+  }
 }
 
 /**
