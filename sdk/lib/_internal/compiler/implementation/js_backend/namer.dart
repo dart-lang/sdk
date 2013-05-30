@@ -172,7 +172,7 @@ class Namer implements ClosureNamer {
     return _jsVariableReserved;
   }
 
-  final String CURRENT_ISOLATE = r'$';
+  final String CURRENT_ISOLATE;
 
   final String getterPrefix = r'get$';
   final String setterPrefix = r'set$';
@@ -204,6 +204,7 @@ class Namer implements ClosureNamer {
 
   Namer(Compiler compiler)
       : compiler = compiler,
+        CURRENT_ISOLATE = compiler.globalJsName,
         globals = new Map<Element, String>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>(),
         bailoutNames = new Map<Element, String>(),

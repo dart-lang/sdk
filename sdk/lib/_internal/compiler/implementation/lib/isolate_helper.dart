@@ -12,6 +12,7 @@ import 'dart:_js_helper' show convertDartClosureToJS,
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CREATE_ISOLATE,
+                                   JS_CURRENT_ISOLATE_CONTEXT,
                                    JS_CURRENT_ISOLATE,
                                    JS_SET_CURRENT_ISOLATE,
                                    IsolateContext;
@@ -425,7 +426,7 @@ class IsolateNatives {
    * JavaScript workers.
    */
   static String computeThisScript() {
-    var currentScript = JS('', r'$.$currentScript');
+    var currentScript = JS('', r'#.$currentScript', JS_CURRENT_ISOLATE());
     if (currentScript != null) {
       return JS('String', 'String(#.src)', currentScript);
     }
@@ -555,11 +556,11 @@ class IsolateNatives {
 
   /** Find a constructor given its name. */
   static dynamic _getJSConstructorFromName(String factoryName) {
-    return JS("", r"$[#]", factoryName);
+    return JS("", "#[#]", JS_CURRENT_ISOLATE(), factoryName);
   }
 
   static dynamic _getJSFunctionFromName(String functionName) {
-    return JS("", r"$[#]", functionName);
+    return JS("", "#[#]", JS_CURRENT_ISOLATE(), functionName);
   }
 
   /**

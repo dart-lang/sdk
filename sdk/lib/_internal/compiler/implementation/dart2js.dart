@@ -166,7 +166,15 @@ void compile(List<String> argv) {
         }
       }
     }
-    return passThrough('--categories=${categories.join(",")}');
+    passThrough('--categories=${categories.join(",")}');
+  }
+
+  checkGlobalName(String argument) {
+    String globalName = extractParameter(argument);
+    if (!new RegExp(r'^\$[a-z]*$').hasMatch(globalName)) {
+      fail('Error: "$globalName" must match "\\\$[a-z]*"');
+    }
+    passThrough(argument);
   }
 
   handleShortOptions(String argument) {
@@ -226,6 +234,7 @@ void compile(List<String> argv) {
     new OptionHandler('--report-sdk-use-of-deprecated-language-features',
                       passThrough),
     new OptionHandler('--categories=.*', setCategories),
+    new OptionHandler('--global-js-name=.*', checkGlobalName),
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
@@ -399,7 +408,7 @@ Common options:
 }
 
 void verboseHelp() {
-  print('''
+  print(r'''
 Usage: dart2js [options] dartfile
 
 Compiles Dart to JavaScript.
@@ -490,6 +499,11 @@ be removed in a future version:
     is "Client".  Possible categories can be seen by providing an
     unsupported category, for example, --categories=help.  To enable
     all categories, use --categories=all.
+
+  --global-js-name=<name>
+    By default, dart2js generates JavaScript output that uses a global
+    variable named "$".  The name of this global can be overridden
+    with this option.  The name must match the regular expression "\$[a-z]*".
 
 '''.trim());
 }

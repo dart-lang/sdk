@@ -45,7 +45,9 @@ main() {
   RegExp regexp = new RegExp(getIntTypeCheck(anyIdentifier));
   Iterator<Match> matches = regexp.allMatches(generated).iterator;
   checkNumberOfMatches(matches, 0);
-  Expect.isTrue(generated.contains(r'return a === true ? $.foo(2) : b;'));
+  Expect.isTrue(
+      generated.contains(
+          new RegExp(r'return a === true \? [$a-z]+\.foo\(2\) : b;')));
 
   generated = compile(TEST_TWO, entry: 'foo');
   regexp = new RegExp("foo\\(1\\)");

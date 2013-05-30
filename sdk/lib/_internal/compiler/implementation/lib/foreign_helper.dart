@@ -90,14 +90,14 @@ library _foreign_helper;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-dynamic JS(String typeDescription, String codeTemplate,
-    [var arg0, var arg1, var arg2, var arg3, var arg4, var arg5, var arg6,
-     var arg7, var arg8, var arg9, var arg10, var arg11]) {}
+JS(String typeDescription, String codeTemplate,
+    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
+{}
 
 /**
  * Returns the isolate in which this code is running.
  */
-IsolateContext JS_CURRENT_ISOLATE() {}
+IsolateContext JS_CURRENT_ISOLATE_CONTEXT() {}
 
 abstract class IsolateContext {
   /// Holds a (native) JavaScript instance of Isolate, see
@@ -108,12 +108,12 @@ abstract class IsolateContext {
 /**
  * Invokes [function] in the context of [isolate].
  */
-dynamic JS_CALL_IN_ISOLATE(var isolate, Function function) {}
+JS_CALL_IN_ISOLATE(isolate, Function function) {}
 
 /**
  * Converts the Dart closure [function] into a JavaScript closure.
  */
-dynamic DART_CLOSURE_TO_JS(Function function) {}
+DART_CLOSURE_TO_JS(Function function) {}
 
 /**
  * Returns a raw reference to the JavaScript function which implements
@@ -127,17 +127,17 @@ dynamic DART_CLOSURE_TO_JS(Function function) {}
  * to V8's Error.captureStackTrace. See
  * https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi.
  */
-dynamic RAW_DART_FUNCTION_REF(Function function) {}
+RAW_DART_FUNCTION_REF(Function function) {}
 
 /**
  * Sets the current isolate to [isolate].
  */
-void JS_SET_CURRENT_ISOLATE(var isolate) {}
+void JS_SET_CURRENT_ISOLATE(isolate) {}
 
 /**
  * Creates an isolate and returns it.
  */
-dynamic JS_CREATE_ISOLATE() {}
+JS_CREATE_ISOLATE() {}
 
 /**
  * Returns the JavaScript constructor function for Dart's Object class.
@@ -146,7 +146,7 @@ dynamic JS_CREATE_ISOLATE() {}
  *     if (JS('bool', '# instanceof #', obj, JS_DART_OBJECT_CONSTRUCTOR()))
  *       ...
  */
-dynamic JS_DART_OBJECT_CONSTRUCTOR() {}
+JS_DART_OBJECT_CONSTRUCTOR() {}
 
 /**
  * Returns the prefix used for generated is checks on classes.
@@ -166,3 +166,8 @@ String JS_OBJECT_CLASS_NAME() {}
  * interceptor has JavaScript indexing behavior.
  */
 String JS_IS_INDEXABLE_FIELD_NAME() {}
+
+/**
+ * Returns the object corresponding to Namer.CURRENT_ISOLATE.
+ */
+JS_CURRENT_ISOLATE() {}

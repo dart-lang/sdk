@@ -2972,10 +2972,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return;
   }
 
-  void handleForeignJsCurrentIsolate(Send node) {
+  void handleForeignJsCurrentIsolateContext(Send node) {
     if (!node.arguments.isEmpty) {
       compiler.cancel(
-          'Too many arguments to JS_CURRENT_ISOLATE', node: node);
+          'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT', node: node);
     }
 
     if (!compiler.hasIsolateSupport()) {
@@ -3094,13 +3094,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       <HInstruction>[]));
   }
 
+  void handleForeignJsCurrentIsolate(Send node) {
+    if (!node.arguments.isEmpty) {
+      compiler.cancel('Too many arguments', node: node.argumentsNode);
+    }
+    push(new HForeign(new js.LiteralString(backend.namer.CURRENT_ISOLATE),
+                      HType.UNKNOWN,
+                      <HInstruction>[]));
+  }
+
   visitForeignSend(Send node) {
     Selector selector = elements.getSelector(node);
     SourceString name = selector.name;
     if (name == const SourceString('JS')) {
       handleForeignJs(node);
-    } else if (name == const SourceString('JS_CURRENT_ISOLATE')) {
-      handleForeignJsCurrentIsolate(node);
+    } else if (name == const SourceString('JS_CURRENT_ISOLATE_CONTEXT')) {
+      handleForeignJsCurrentIsolateContext(node);
     } else if (name == const SourceString('JS_CALL_IN_ISOLATE')) {
       handleForeignJsCallInIsolate(node);
     } else if (name == const SourceString('DART_CLOSURE_TO_JS')) {
@@ -3124,6 +3133,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Element element = compiler.findHelper(
           const SourceString('JavaScriptIndexingBehavior'));
       stack.add(addConstantString(node, backend.namer.operatorIs(element)));
+    } else if (name == const SourceString('JS_CURRENT_ISOLATE')) {
+      handleForeignJsCurrentIsolate(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }

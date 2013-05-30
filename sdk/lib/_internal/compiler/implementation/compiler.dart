@@ -286,6 +286,12 @@ abstract class Compiler implements DiagnosticListener {
    */
   final Uri sourceMapUri;
 
+  /**
+   * The name to use for the global JS object in JS output.  Default
+   * value is "$".
+   */
+  final String globalJsName;
+
   final api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
@@ -464,6 +470,7 @@ abstract class Compiler implements DiagnosticListener {
             this.verbose: false,
             this.sourceMapUri: null,
             this.buildId: UNDETERMINED_BUILD_ID,
+            this.globalJsName: r'$',
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,

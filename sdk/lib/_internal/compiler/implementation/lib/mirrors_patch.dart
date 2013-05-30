@@ -4,7 +4,7 @@
 
 // Patch library for dart:mirrors.
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_CURRENT_ISOLATE;
 import 'dart:_collection-dev' as _symbol_dev;
 import 'dart:_js_helper' show createInvocationMirror;
 import 'dart:_interceptors' show Interceptor;
@@ -72,13 +72,13 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
     // TODO(ahe): This is extremely dangerous!!!
-    JS('void', r'$[#] = #', _n(fieldName), arg);
+    JS('void', '#[#] = #', JS_CURRENT_ISOLATE(), _n(fieldName), arg);
     return _reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
     // TODO(ahe): This is extremely dangerous!!!
-    return _reflect(JS('', r'$[#]', _n(fieldName)));
+    return _reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), _n(fieldName)));
   }
 
   Map<Symbol, MethodMirror> get functions {
@@ -90,7 +90,8 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
       _MethodMirror mirror =
           // TODO(ahe): Create accessor for accessing $.  It is also
           // used in js_helper.
-          new _MethodMirror(symbol, JS('', r'$[#]', name), parameterCount);
+          new _MethodMirror(
+              symbol, JS('', '#[#]', JS_CURRENT_ISOLATE(), name), parameterCount);
       // TODO(ahe): Cache mirrors.
       result[symbol] = mirror;
       mirror._owner = this;
@@ -306,14 +307,16 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
     // TODO(ahe): This is extremely dangerous!!!
-    JS('void', r'$[#] = #', '${_n(simpleName)}_${_n(fieldName)}', arg);
+    JS('void', '#[#] = #', JS_CURRENT_ISOLATE(),
+       '${_n(simpleName)}_${_n(fieldName)}', arg);
     return _reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
     // TODO(ahe): This is extremely dangerous!!!
     return _reflect(
-        JS('', r'$[#]', '${_n(simpleName)}_${_n(fieldName)}'));
+        JS('', '#[#]', JS_CURRENT_ISOLATE(),
+           '${_n(simpleName)}_${_n(fieldName)}'));
   }
 
   InstanceMirror newInstance(Symbol constructorName,
@@ -323,7 +326,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror {
       throw new UnsupportedError('Named arguments are not implemented');
     }
     String constructorName = '${_n(simpleName)}\$${_n(constructorName)}';
-    return _reflect(JS('', r'$[#].apply($, #)', constructorName,
+    return _reflect(JS('', r'#[#].apply(#, #)', JS_CURRENT_ISOLATE(),
+                       constructorName,
+                       JS_CURRENT_ISOLATE(),
                        new List.from(positionalArguments)));
   }
 

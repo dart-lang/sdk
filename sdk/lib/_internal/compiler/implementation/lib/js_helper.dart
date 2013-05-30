@@ -9,11 +9,12 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CALL_IN_ISOLATE,
                                    JS_CURRENT_ISOLATE,
+                                   JS_CURRENT_ISOLATE_CONTEXT,
                                    JS_DART_OBJECT_CONSTRUCTOR,
-                                   JS_OPERATOR_IS_PREFIX,
-                                   JS_OPERATOR_AS_PREFIX,
                                    JS_IS_INDEXABLE_FIELD_NAME,
                                    JS_OBJECT_CLASS_NAME,
+                                   JS_OPERATOR_AS_PREFIX,
+                                   JS_OPERATOR_IS_PREFIX,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import "dart:_collection-dev" as _symbol_dev;
@@ -577,8 +578,7 @@ class Primitives {
     if (JS('bool', '# == "num"', int)) return const JSNumber();
     if (JS('bool', '# == "bool"', int)) return const JSBool();
     if (JS('bool', '# == "List"', int)) return const JSArray();
-    // TODO(ahe): How to safely access $?
-    return JS('var', r'$[#]', className);
+    return JS('var', '#[#]', JS_CURRENT_ISOLATE(), className);
   }
 
   static bool identicalImplementation(a, b) {
@@ -933,7 +933,7 @@ convertDartClosureToJS(closure, int arity) {
                 // Capture the current isolate now.  Remember that "#"
                 // in JS is simply textual substitution of compiled
                 // expressions.
-                JS_CURRENT_ISOLATE(),
+                JS_CURRENT_ISOLATE_CONTEXT(),
                 DART_CLOSURE_TO_JS(invokeClosure));
 
   JS('void', r'#.$identity = #', closure, function);
