@@ -22,10 +22,7 @@ import 'analyze_helper.dart';
 const Map<String, List<String>> WHITE_LIST = const {
   'html_dart2js.dart':
       const ['Warning: Using "new Symbol"', // Issue 10565.
-             // Issue 10688:
-             'Warning: no property named',
-             "Warning: 'UnsupportedError' is not callable",
-             "Warning: no operator [] in class Iterable"],
+            ],
 };
 
 void main() {

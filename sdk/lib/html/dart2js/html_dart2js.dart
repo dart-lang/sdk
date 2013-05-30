@@ -22046,7 +22046,7 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
       var axis = 0;
       var detail = 0;
       if (deltaX != 0 && deltaY != 0) {
-        throw UnsupportedError(
+        throw new UnsupportedError(
             'Cannot modify deltaX and deltaY simultaneously');
       }
       if (deltaY != 0) {
@@ -27945,11 +27945,12 @@ class _Bindings {
   static void _removeChild(Node parent, Node child) {
     child._templateInstance = null;
     if (child is Element && (child as Element).isTemplate) {
+      Element childElement = child;
       // Make sure we stop observing when we remove an element.
-      var templateIterator = child._templateIterator;
+      var templateIterator = childElement._templateIterator;
       if (templateIterator != null) {
         templateIterator.abandon();
-        child._templateIterator = null;
+        childElement._templateIterator = null;
       }
     }
     child.remove();

@@ -29818,11 +29818,12 @@ class _Bindings {
   static void _removeChild(Node parent, Node child) {
     child._templateInstance = null;
     if (child is Element && (child as Element).isTemplate) {
+      Element childElement = child;
       // Make sure we stop observing when we remove an element.
-      var templateIterator = child._templateIterator;
+      var templateIterator = childElement._templateIterator;
       if (templateIterator != null) {
         templateIterator.abandon();
-        child._templateIterator = null;
+        childElement._templateIterator = null;
       }
     }
     child.remove();
