@@ -88,7 +88,7 @@ void Handles<kHandleSizeInWords,
 // current Isolate, current zone and current handle scope exist. It
 // asserts for this appropriately.
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
-uword Handles<kHandleSizeInWords,
+inline uword Handles<kHandleSizeInWords,
               kHandlesPerChunk,
               kOffsetOfRawPtr>::AllocateHandle(Isolate* isolate) {
   ASSERT(isolate != NULL);
@@ -385,6 +385,13 @@ int Handles<kHandleSizeInWords,
             kHandlesPerChunk,
             kOffsetOfRawPtr>::HandlesBlock::HandleCount() const {
   return (next_handle_slot_ / kHandleSizeInWords);
+}
+
+
+inline uword VMHandles::AllocateHandle(Isolate* isolate) {
+  return Handles<kVMHandleSizeInWords,
+                 kVMHandlesPerChunk,
+                 kOffsetOfRawPtr>::AllocateHandle(isolate);
 }
 
 }  // namespace dart
