@@ -541,19 +541,6 @@ class AreaElement extends _Element_Merged {
 
 
 @DocsEditable
-@DomName('Attr')
-class Attr extends Node {
-  Attr.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('HTMLAudioElement')
 class AudioElement extends MediaElement {
   AudioElement.internal() : super.internal();
@@ -8133,6 +8120,16 @@ abstract class Element extends Node implements ElementTraversal {
     _xtag = value;
   }
 
+  @DomName('Element.localName')
+  @DocsEditable
+  String get localName => $dom_localName;
+
+  @DomName('Element.namespaceUri')
+  @DocsEditable
+  String get namespaceUri => $dom_namespaceUri;
+
+  String toString() => localName;
+
   /**
    * Scrolls this element into view.
    *
@@ -8612,13 +8609,9 @@ abstract class Element extends Node implements ElementTraversal {
   @Experimental
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
 
-  @DomName('Element.webkitTransitionEndEvent')
+  @DomName('Element.transitionendEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  @deprecated
-  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('transitionend');
 
   @DomName('Element.webkitfullscreenchangeEvent')
   @DocsEditable
@@ -9183,13 +9176,12 @@ abstract class Element extends Node implements ElementTraversal {
   @Experimental
   Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
 
-  @DomName('Element.onwebkitTransitionEnd')
+  @DomName('Element.ontransitionend')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @deprecated
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
@@ -16900,8 +16892,7 @@ class Node extends EventTarget {
   /**
    * Print out a String representation of this Node.
    */
-  String toString() => localName == null ?
-      (nodeValue == null ? super.toString() : nodeValue) : localName;
+  String toString() => nodeValue == null ? super.toString() : nodeValue;
 
   /**
    * Binds the attribute [name] to the [path] of the [model].
@@ -16996,7 +16987,7 @@ class Node extends EventTarget {
   @DocsEditable
   // http://dom.spec.whatwg.org/#dom-node-localname
   @deprecated // deprecated
-  String get localName native "Node_localName_Getter";
+  String get $dom_localName native "Node_localName_Getter";
 
   @DomName('Node.namespaceURI')
   @DocsEditable
@@ -24737,6 +24728,10 @@ class Window extends EventTarget implements WindowBase {
   @Experimental
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
+  @DomName('Window.ontransitionend')
+  @DocsEditable
+  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
+
   @DomName('Window.onunload')
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
@@ -24755,11 +24750,6 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   @Experimental // untriaged
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
-
-  @DomName('Window.onwebkitTransitionEnd')
-  @DocsEditable
-  @deprecated
-  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 
   @DomName('DOMWindow.beforeunloadEvent')
@@ -25161,6 +25151,45 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   @DomName('XSLTProcessor.transformToFragment')
   @DocsEditable
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Attr')
+class _Attr extends Node {
+  _Attr.internal() : super.internal();
+
+  @DomName('Attr.isId')
+  @DocsEditable
+  bool get isId native "Attr_isId_Getter";
+
+  @DomName('Attr.name')
+  @DocsEditable
+  String get name native "Attr_name_Getter";
+
+  @DomName('Attr.ownerElement')
+  @DocsEditable
+  @deprecated // deprecated
+  Element get ownerElement native "Attr_ownerElement_Getter";
+
+  @DomName('Attr.specified')
+  @DocsEditable
+  @deprecated // deprecated
+  bool get specified native "Attr_specified_Getter";
+
+  @DomName('Attr.value')
+  @DocsEditable
+  String get value native "Attr_value_Getter";
+
+  @DomName('Attr.value')
+  @DocsEditable
+  void set value(String value) native "Attr_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26749,7 +26778,7 @@ abstract class _AttributeMap implements Map<String, String> {
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
-        keys.add(attributes[i].localName);
+        keys.add(attributes[i].name);
       }
     }
     return keys;

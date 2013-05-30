@@ -15,7 +15,7 @@ _logger = logging.getLogger('dartgenerator')
 # onEventName methods in the IDL but some events aren't listed so we need
 # to manually add them here so that they are easy for users to find.
 _html_manual_events = monitored.Dict('htmleventgenerator._html_manual_events', {
-  'Element': ['touchleave', 'touchenter', 'webkitTransitionEnd'],
+  'Element': ['touchleave', 'touchenter', 'transitionend'],
   'Window': ['DOMContentLoaded']
 })
 
@@ -28,7 +28,6 @@ _on_attribute_to_event_name_mapping = monitored.Dict(
   'webkitanimationiteration': 'webkitAnimationIteration',
   'webkitanimationstart': 'webkitAnimationStart',
   'webkitspeechchange': 'webkitSpeechChange',
-  'webkittransitionend': 'webkitTransitionEnd',
 })
 
 _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
@@ -108,7 +107,7 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   '*.webkitAnimationEnd': ('animationEnd', 'AnimationEvent'),
   '*.webkitAnimationIteration': ('animationIteration', 'AnimationEvent'),
   '*.webkitAnimationStart': ('animationStart', 'AnimationEvent'),
-  '*.webkitTransitionEnd': ('transitionEnd', 'TransitionEvent'),
+  '*.transitionend': ('transitionEnd', 'TransitionEvent'),
   '*.webkitfullscreenchange': ('fullscreenChange', 'Event'),
   '*.webkitfullscreenerror': ('fullscreenError', 'Event'),
   'AbstractWorker.error': ('error', 'ErrorEvent'),

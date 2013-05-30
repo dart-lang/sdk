@@ -427,15 +427,6 @@ class AreaElement extends Element native "HTMLAreaElement" {
 
 
 @DocsEditable
-@DomName('Attr')
-class Attr extends Node native "Attr" {
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable
 @DomName('HTMLAudioElement')
 class AudioElement extends MediaElement native "HTMLAudioElement" {
 
@@ -7660,6 +7651,16 @@ abstract class Element extends Node implements ElementTraversal native "Element"
     _xtag = value;
   }
 
+  @DomName('Element.localName')
+  @DocsEditable
+  String get localName => $dom_localName;
+
+  @DomName('Element.namespaceUri')
+  @DocsEditable
+  String get namespaceUri => $dom_namespaceUri;
+
+  String toString() => localName;
+
   /**
    * Scrolls this element into view.
    *
@@ -7714,7 +7715,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
     }
   }
 
-  @DomName('Element.webkitTransitionEndEvent')
+  @DomName('Element.transitionEndEvent')
   static const EventStreamProvider<TransitionEvent> transitionEndEvent =
       const _CustomEventStreamProvider<TransitionEvent>(
         Element._determineTransitionEventType);
@@ -8872,13 +8873,12 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   @Experimental
   Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
 
-  @DomName('Element.onwebkitTransitionEnd')
+  @DomName('Element.ontransitionend')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @deprecated
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
@@ -15847,8 +15847,7 @@ class Node extends EventTarget native "Node" {
   /**
    * Print out a String representation of this Node.
    */
-  String toString() => localName == null ?
-      (nodeValue == null ? super.toString() : nodeValue) : localName;
+  String toString() => nodeValue == null ? super.toString() : nodeValue;
 
   /**
    * Binds the attribute [name] to the [path] of the [model].
@@ -15943,11 +15942,12 @@ class Node extends EventTarget native "Node" {
   @DocsEditable
   final Node $dom_lastChild;
 
+  @JSName('localName')
   @DomName('Node.localName')
   @DocsEditable
   // http://dom.spec.whatwg.org/#dom-node-localname
   @deprecated // deprecated
-  final String localName;
+  final String $dom_localName;
 
   @JSName('namespaceURI')
   @DomName('Node.namespaceURI')
@@ -23238,6 +23238,10 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @Experimental
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
+  @DomName('Window.ontransitionend')
+  @DocsEditable
+  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
+
   @DomName('Window.onunload')
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
@@ -23256,11 +23260,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @DocsEditable
   @Experimental // untriaged
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
-
-  @DomName('Window.onwebkitTransitionEnd')
-  @DocsEditable
-  @deprecated
-  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 
   @DomName('DOMWindow.beforeunloadEvent')
@@ -23629,6 +23628,37 @@ class XsltProcessor native "XSLTProcessor" {
   @DomName('XSLTProcessor.transformToFragment')
   @DocsEditable
   DocumentFragment transformToFragment(Node source, Document docVal) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('Attr')
+class _Attr extends Node native "Attr" {
+
+  @DomName('Attr.isId')
+  @DocsEditable
+  final bool isId;
+
+  @DomName('Attr.name')
+  @DocsEditable
+  final String name;
+
+  @DomName('Attr.ownerElement')
+  @DocsEditable
+  @deprecated // deprecated
+  final Element ownerElement;
+
+  @DomName('Attr.specified')
+  @DocsEditable
+  @deprecated // deprecated
+  final bool specified;
+
+  @DomName('Attr.value')
+  @DocsEditable
+  String value;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24875,7 +24905,7 @@ abstract class _AttributeMap implements Map<String, String> {
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
-        keys.add(attributes[i].localName);
+        keys.add(attributes[i].name);
       }
     }
     return keys;

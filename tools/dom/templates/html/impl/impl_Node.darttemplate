@@ -249,8 +249,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   /**
    * Print out a String representation of this Node.
    */
-  String toString() => localName == null ?
-      (nodeValue == null ? super.toString() : nodeValue) : localName;
+  String toString() => nodeValue == null ? super.toString() : nodeValue;
 
   /**
    * Binds the attribute [name] to the [path] of the [model].

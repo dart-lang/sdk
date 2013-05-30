@@ -2354,6 +2354,7 @@
         "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
+      "ontransitionend": {},
       "onwebkitTransitionEnd": {
         "support_level": "deprecated"
       },

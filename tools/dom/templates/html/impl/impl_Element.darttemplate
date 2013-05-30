@@ -468,6 +468,16 @@ $endif
     _xtag = value;
   }
 
+  @DomName('Element.localName')
+  @DocsEditable
+  String get localName => $dom_localName;
+
+  @DomName('Element.namespaceUri')
+  @DocsEditable
+  String get namespaceUri => $dom_namespaceUri;
+
+  String toString() => localName;
+
   /**
    * Scrolls this element into view.
    *
@@ -525,7 +535,7 @@ $if DART2JS
     }
   }
 
-  @DomName('Element.webkitTransitionEndEvent')
+  @DomName('Element.transitionEndEvent')
   static const EventStreamProvider<TransitionEvent> transitionEndEvent =
       const _CustomEventStreamProvider<TransitionEvent>(
         Element._determineTransitionEventType);
