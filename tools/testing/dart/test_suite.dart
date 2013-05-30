@@ -1193,8 +1193,9 @@ class StandardTestSuite extends TestSuite {
       return configuration['drt'];
     }
     if (Platform.operatingSystem == 'macos') {
-      return dartDir.append('/client/tests/drt/Content Shell.app/Contents/'
-                            'MacOS/Content Shell').toNativePath();
+      final path = dartDir.append(
+          '/client/tests/drt/Content Shell.app/Contents/MacOS/Content Shell');
+      return '"${path.toNativePath()}"';
     }
     return dartDir.append('client/tests/drt/content_shell').toNativePath();
   }
