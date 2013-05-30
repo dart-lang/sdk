@@ -21,7 +21,18 @@ class InvokeDynamicSpecializer {
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   Compiler compiler) {
-    return HType.UNKNOWN;
+    HType receiverType = instruction.getDartReceiver(compiler).instructionType;
+    Selector refined = receiverType.refine(instruction.selector, compiler);
+    HType type = new HType.inferredTypeForSelector(refined, compiler);
+    // TODO(ngeoffray): Because we don't know yet the side effects of
+    // a JS call, we sometimes know more in the compiler about the
+    // side effects of an element (for example operator% on the int
+    // class). We should remove this check once we analyze JS calls.
+    if (!instruction.useGvn()) {
+      instruction.sideEffects =
+          compiler.world.getSideEffectsOfSelector(refined);
+    }
+    return type;
   }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
@@ -171,8 +182,8 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
                                   Compiler compiler) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
-    if (instruction.inputs[1].isPrimitive()) return HType.INTEGER;
-    return HType.UNKNOWN;
+    if (instruction.inputs[1].isPrimitiveOrNull()) return HType.INTEGER;
+    return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
@@ -207,8 +218,8 @@ class UnaryNegateSpecializer extends InvokeDynamicSpecializer {
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   Compiler compiler) {
     HType operandType = instruction.inputs[1].instructionType;
-    if (operandType.isNumber()) return operandType;
-    return HType.UNKNOWN;
+    if (operandType.isNumberOrNull()) return operandType;
+    return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
@@ -226,12 +237,12 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
-    if (left.isInteger() && right.isInteger()) return HType.INTEGER;
-    if (left.isNumber()) {
-      if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
+    if (left.isIntegerOrNull() && right.isIntegerOrNull()) return HType.INTEGER;
+    if (left.isNumberOrNull()) {
+      if (left.isDoubleOrNull() || right.isDoubleOrNull()) return HType.DOUBLE;
       return HType.NUMBER;
     }
-    return HType.UNKNOWN;
+    return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
@@ -308,8 +319,8 @@ class DivideSpecializer extends BinaryArithmeticSpecializer {
   HType computeTypeFromInputTypes(HInstruction instruction,
                                   Compiler compiler) {
     HInstruction left = instruction.inputs[1];
-    if (left.isNumber()) return HType.DOUBLE;
-    return HType.UNKNOWN;
+    if (left.isNumberOrNull()) return HType.DOUBLE;
+    return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
   HType computeDesiredTypeForInput(HInstruction instruction,
@@ -388,8 +399,8 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     HInstruction left = instruction.inputs[1];
-    if (left.isPrimitive()) return HType.INTEGER;
-    return HType.UNKNOWN;
+    if (left.isPrimitiveOrNull()) return HType.INTEGER;
+    return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
@@ -494,7 +505,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
     if (instruction.inputs[1].instructionType.isPrimitiveOrNull()) {
       return HType.BOOLEAN;
     }
-    return HType.UNKNOWN;
+    return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
   HType computeDesiredTypeForInput(HInvokeDynamic instruction,
