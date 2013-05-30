@@ -37,8 +37,12 @@ class _MirrorSystem implements MirrorSystem {
       Uri uri = Uri.parse(data[1]);
       List<String> classes = data[2];
       List<String> functions = data[3];
+      var metadataFunction = data[4];
+      List metadata = (metadataFunction == null)
+          ? null : JS('List', '#()', metadataFunction);
       var libraries = result.putIfAbsent(name, () => <LibraryMirror>[]);
-      libraries.add(new _LibraryMirror(_s(name), uri, classes, functions));
+      libraries.add(
+          new _LibraryMirror(_s(name), uri, classes, functions, metadata));
     }
     return result;
   }
@@ -54,8 +58,13 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
   final Uri uri;
   final List<String> _classes;
   final List<String> _functions;
+  final List _metadata;
 
-  _LibraryMirror(this.simpleName, this.uri, this._classes, this._functions);
+  _LibraryMirror(this.simpleName,
+                 this.uri,
+                 this._classes,
+                 this._functions,
+                 this._metadata);
 
   Symbol get qualifiedName => simpleName;
 
@@ -128,6 +137,8 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
     variables.forEach(addToResult);
     return result;
   }
+
+  List<InstanceMirror> get metadata => _metadata.map(reflect);
 }
 
 String _n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);

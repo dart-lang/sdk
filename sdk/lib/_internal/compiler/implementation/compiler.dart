@@ -655,6 +655,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     if (uri == Uri.parse('dart:mirrors')) {
       mirrorSystemClass = library.find(const SourceString('MirrorSystem'));
+      metadataHandler = constantHandler;
     } else if (uri == Uri.parse('dart:_collection-dev')) {
       symbolImplementationClass = library.find(const SourceString('Symbol'));
     }
@@ -835,6 +836,7 @@ abstract class Compiler implements DiagnosticListener {
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+    resolveReflectiveDataIfNeeded();
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
@@ -875,6 +877,17 @@ abstract class Compiler implements DiagnosticListener {
     backend.assembleProgram();
 
     checkQueues();
+  }
+
+  void resolveReflectiveDataIfNeeded() {
+    // Only need reflective data when dart:mirrors is loaded.
+    if (mirrorSystemClass == null) return;
+
+    for (LibraryElement library in libraries.values) {
+      for (Link link = library.metadata; !link.isEmpty; link = link.tail) {
+        link.head.ensureResolved(this);
+      }
+    }
   }
 
   void fullyEnqueueLibrary(LibraryElement library) {
@@ -961,7 +974,8 @@ abstract class Compiler implements DiagnosticListener {
   TreeElements analyzeElement(Element element) {
     assert(invariant(element, element.isDeclaration));
     assert(!element.isForwardingConstructor);
-    TreeElements elements = enqueuer.resolution.getCachedElements(element);
+    ResolutionEnqueuer world = enqueuer.resolution;
+    TreeElements elements = world.getCachedElements(element);
     if (elements != null) return elements;
     assert(parser != null);
     Node tree = parser.parse(element);
@@ -971,6 +985,7 @@ abstract class Compiler implements DiagnosticListener {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(tree, elements);
     }
+    world.resolvedElements[element] = elements;
     return elements;
   }
 
@@ -991,8 +1006,6 @@ abstract class Compiler implements DiagnosticListener {
     TreeElements result = world.getCachedElements(element);
     if (result != null) return result;
     result = analyzeElement(element);
-    assert(invariant(element, element.isDeclaration));
-    world.resolvedElements[element] = result;
     return result;
   }
 

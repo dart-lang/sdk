@@ -594,6 +594,15 @@ class LibraryElementX extends ElementX implements LibraryElement {
   LibraryElement get declaration => super.declaration;
   LibraryElement get implementation => super.implementation;
 
+  Link<MetadataAnnotation> get metadata {
+    return (libraryTag == null) ? super.metadata : libraryTag.metadata;
+  }
+
+  set metadata(value) {
+    // The metadata is stored on the library name.
+    throw new SpannableAssertionFailure(this, 'Cannot set metadata on Library');
+  }
+
   CompilationUnitElement getCompilationUnit() => entryCompilationUnit;
 
   void addCompilationUnit(CompilationUnitElement element) {

@@ -95,6 +95,7 @@ async/timer_isolate_test: Skip # See Issue 4997
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
+mirrors/metadata_test: Fail # http://dartbug.com/10906
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997

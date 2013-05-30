@@ -176,6 +176,11 @@ abstract class DeclarationMirror implements Mirror {
    * The source location of this Dart language entity.
    */
   SourceLocation get location;
+
+  /**
+   * A list of the metadata associated with this declaration.
+   */
+  List<InstanceMirror> get metadata;
 }
 
 /**

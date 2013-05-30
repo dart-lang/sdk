@@ -2926,6 +2926,24 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     if (compiler.enableMinification) buffer.write('\n');
   }
 
+  /// The metadata function returns the metadata associated with
+  /// [element] in generated code.  The metadata needs to be wrapped
+  /// in a function as it refers to constants that may not have been
+  /// constructed yet.  For example, a class is allowed to be
+  /// annotated with itself.  The metadata function is used by
+  /// mirrors_patch to implement DeclarationMirror.metadata.
+  jsAst.Expression buildMetadataFunction(Element element) {
+    if (compiler.mirrorSystemClass == null) return new jsAst.LiteralString('');
+    var metadata = [];
+    for (Link link = element.metadata;
+         // TODO(ahe): Why is metadata sometimes null?
+         link != null && !link.isEmpty;
+         link = link.tail) {
+      metadata.add(constantReference(link.head.value));
+    }
+    return js.fun([], [js.return_(new jsAst.ArrayInitializer.from(metadata))]);
+  }
+
   String assembleProgram() {
     measure(() {
       // Compute the required type checks to know which classes need a
@@ -3030,6 +3048,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
             mainBuffer
                 ..write('["${library.getLibraryOrScriptName()}",$_')
                 ..write('"${uri}",$_')
+                ..write(
+                    jsAst.prettyPrint(buildMetadataFunction(library), compiler))
+                ..write(',$_')
                 ..write('{$n')
                 ..addBuffer(buffer)
                 ..write('}],$n');
@@ -3039,6 +3060,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
             deferredBuffer
                 ..write('["${library.getLibraryOrScriptName()}",$_')
                 ..write('"${uri}",$_')
+                ..write('[],$_')
                 ..write('{$n')
                 ..addBuffer(buffer)
                 ..write('}],$n');
@@ -3216,7 +3238,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     var data = reflectionData[i];
     var name = data[0];
     var uri = data[1];
-    var descriptor = data[2];
+    var metadata = data[2];
+    var descriptor = data[3];
     var classes = [];
     var functions = [];
     for (var property in descriptor) {
@@ -3231,7 +3254,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         classes.push(element[""]);
       }
     }
-    libraries.push([name, uri, classes, functions]);
+    libraries.push([name, uri, classes, functions, metadata]);
   }
 })''';
   }
