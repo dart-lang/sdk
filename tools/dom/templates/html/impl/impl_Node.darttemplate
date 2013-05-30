@@ -230,14 +230,15 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
    */
   Node insertAllBefore(Iterable<Node> newNodes, Node refChild) {
     if (newNodes is _ChildNodeListLazy) {
-      if (identical(newNodes._this, this)) {
+      _ChildNodeListLazy otherList = newNodes;
+      if (identical(otherList._this, this)) {
         throw new ArgumentError(newNodes);
       }
 
       // Optimized route for copying between nodes.
-      for (var i = 0, len = newNodes.length; i < len; ++i) {
+      for (var i = 0, len = otherList.length; i < len; ++i) {
         // Should use $dom_firstChild, Bug 8886.
-        this.insertBefore(newNodes[0], refChild);
+        this.insertBefore(otherList[0], refChild);
       }
     } else {
       for (var node in newNodes) {
