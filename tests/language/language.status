@@ -77,6 +77,8 @@ on_catch_malformed_type_test: Fail # Issue 8601
 
 mixin_mixin_test: Fail
 mixin_issue10216_2_test: Fail
+mixin_illegal_object_test/01: Crash # Issue 10952
+mixin_illegal_object_test/02: Crash # Issue 10952
 
 type_variable_field_initializer_closure_test: Crash # issue 8847
 

@@ -327,6 +327,9 @@ class MessageKind {
   static const ILLEGAL_MIXIN_SUPERCLASS = const MessageKind(
       "Error: class used as mixin must have Object as superclass.");
 
+  static const ILLEGAL_MIXIN_OBJECT = const MessageKind(
+      "Error: cannot use Object as mixin.");
+
   static const ILLEGAL_MIXIN_CONSTRUCTOR = const MessageKind(
       "Error: class used as mixin cannot have non-factory constructor.");
 

@@ -106,10 +106,10 @@ class TreeElementMapping implements TreeElements {
     return selectors[node.assignmentOperator];
   }
 
-  // The following methods set selectors on the "for in" node. Since	
-  // we're using three selectors, we need to use children of the node,	
-  // and we arbitrarily choose which ones.	
- 
+  // The following methods set selectors on the "for in" node. Since
+  // we're using three selectors, we need to use children of the node,
+  // and we arbitrarily choose which ones.
+
   Selector setIteratorSelector(ForIn node, Selector selector) {
     selectors[node] = selector;
   }
@@ -121,7 +121,7 @@ class TreeElementMapping implements TreeElements {
   Selector setMoveNextSelector(ForIn node, Selector selector) {
     selectors[node.forToken] = selector;
   }
-	
+
   Selector getMoveNextSelector(ForIn node) {
     return selectors[node.forToken];
   }
@@ -601,6 +601,14 @@ class ResolverTask extends CompilerTask {
     // user so we just return from here.
     ClassElement mixin = mixinApplication.mixin;
     if (mixin == null) return;
+
+    // Check that we're not trying to use Object as a mixin.
+    if (mixin.superclass == null) {
+      compiler.reportErrorCode(mixinApplication,
+                               MessageKind.ILLEGAL_MIXIN_OBJECT);
+      // Avoid reporting additional errors for the Object class.
+      return;
+    }
 
     // Check that the mixed in class has Object as its superclass.
     if (!mixin.superclass.isObject(compiler)) {
