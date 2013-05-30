@@ -118,7 +118,7 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'DOMApplicationCache.downloading': ('downloading', 'Event'),
   'DOMApplicationCache.noupdate': ('noUpdate', 'Event'),
   'DOMApplicationCache.obsolete': ('obsolete', 'Event'),
-  'DOMApplicationCache.progress': ('progress', 'Event'),
+  'DOMApplicationCache.progress': ('progress', 'ProgressEvent'),
   'DOMApplicationCache.updateready': ('updateReady', 'Event'),
   'Document.readystatechange': ('readyStateChange', 'Event'),
   'Document.securitypolicyviolation': ('securityPolicyViolation', 'SecurityPolicyViolationEvent'),

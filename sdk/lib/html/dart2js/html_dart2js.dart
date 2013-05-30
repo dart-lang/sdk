@@ -249,7 +249,7 @@ class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicati
 
   @DomName('DOMApplicationCache.progressEvent')
   @DocsEditable
-  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DomName('DOMApplicationCache.updatereadyEvent')
   @DocsEditable
@@ -338,7 +338,7 @@ class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicati
 
   @DomName('DOMApplicationCache.onprogress')
   @DocsEditable
-  Stream<Event> get onProgress => progressEvent.forTarget(this);
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
   @DomName('DOMApplicationCache.onupdateready')
   @DocsEditable
