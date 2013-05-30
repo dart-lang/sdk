@@ -113,14 +113,14 @@ def TestStepName(name, flags):
 # supported platforms.
 def UseBrowserController(runtime, system):
   supported_platforms = {
-    'linux': ['ff', 'chromeOnAndroid', 'chrome'],
+    'linux': ['ff', 'chromeOnAndroid', 'chrome', 'safari'],
     'mac': [],
     'windows': []
   }
   # Platforms that we run on the fyi waterfall only.
   fyi_supported_platforms = {
     'linux': [],
-    'mac': ['safari'],
+    'mac': [],
     'windows': []
   }
 
