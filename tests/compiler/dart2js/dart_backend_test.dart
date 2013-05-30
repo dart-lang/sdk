@@ -23,6 +23,7 @@ abstract class String {}
 class Function {}
 class List<T> {}
 class Map<K,V> {}
+class BoundClosure {}
 class Closure {}
 class Dynamic_ {}
 class Null {}

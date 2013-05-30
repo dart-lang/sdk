@@ -53,6 +53,11 @@ const String DEFAULT_HELPERLIB = r'''
   boolConversionCheck(x) {}
   abstract class JavaScriptIndexingBehavior {}
   class JSInvocationMirror {}
+  class BoundClosure {
+    var self;
+    var target;
+    var receiver;
+  }
   class Closure {}
   class Null {}
   class Dynamic_ {}
