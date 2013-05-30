@@ -87,6 +87,8 @@ abstract class Enqueuer {
   final Function itemCompilationContextCreator;
   final Map<String, Link<Element>> instanceMembersByName
       = new Map<String, Link<Element>>();
+  final Map<String, Link<Element>> instanceFunctionsByName
+      = new Map<String, Link<Element>>();
   final Set<ClassElement> seenClasses = new Set<ClassElement>();
   final Universe universe = new Universe();
 
@@ -209,18 +211,22 @@ abstract class Enqueuer {
       if (member.name == Compiler.NO_SUCH_METHOD) {
         enableNoSuchMethod(member);
       }
-      if (universe.hasInvocation(member, compiler)) {
-        return addToWorkList(member);
-      }
       // If there is a property access with the same name as a method we
       // need to emit the method.
       if (universe.hasInvokedGetter(member, compiler)) {
-        // We will emit a closure, so make sure the closure class is
+        // We will emit a closure, so make sure the bound closure class is
         // generated.
-        compiler.closureClass.ensureResolved(compiler);
-        registerInstantiatedClass(compiler.closureClass,
+        registerInstantiatedClass(compiler.boundClosureClass,
                                   // Precise dependency is not important here.
                                   compiler.globalDependencies);
+        return addToWorkList(member);
+      }
+      // Store the member in [instanceFunctionsByName] to catch
+      // getters on the function.
+      Link<Element> members = instanceFunctionsByName.putIfAbsent(
+          memberName, () => const Link<Element>());
+      instanceFunctionsByName[memberName] = members.prepend(member);
+      if (universe.hasInvocation(member, compiler)) {
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
@@ -386,16 +392,26 @@ abstract class Enqueuer {
   void registerNewSymbol(TreeElements elements) {
   }
 
-  processInstanceMembers(SourceString n, bool f(Element e)) {
+  processLink(Map<String, Link<Element>> map,
+              SourceString n,
+              bool f(Element e)) {
     String memberName = n.slowToString();
-    Link<Element> members = instanceMembersByName[memberName];
+    Link<Element> members = map[memberName];
     if (members != null) {
       LinkBuilder<Element> remaining = new LinkBuilder<Element>();
       for (; !members.isEmpty; members = members.tail) {
         if (!f(members.head)) remaining.addLast(members.head);
       }
-      instanceMembersByName[memberName] = remaining.toLink();
+      map[memberName] = remaining.toLink();
     }
+  }
+
+  processInstanceMembers(SourceString n, bool f(Element e)) {
+    processLink(instanceMembersByName, n, f);
+  }
+
+  processInstanceFunctions(SourceString n, bool f(Element e)) {
+    processLink(instanceFunctionsByName, n, f);
   }
 
   void handleUnseenSelector(SourceString methodName, Selector selector) {
@@ -424,6 +440,19 @@ abstract class Enqueuer {
       }
       return false;
     });
+    if (selector.isGetter()) {
+      processInstanceFunctions(methodName, (Element member) {
+        if (selector.appliesUnnamed(member, compiler)) {
+          // We will emit a closure, so make sure the bound closure class is
+          // generated.
+          registerInstantiatedClass(compiler.boundClosureClass,
+                                    // Precise dependency is not important here.
+                                    compiler.globalDependencies);
+          return true;
+        }
+        return false;
+      });
+    }
   }
 
   /**
@@ -439,6 +468,8 @@ abstract class Enqueuer {
 
   void registerGetOfStaticFunction(FunctionElement element) {
     registerStaticUse(element);
+    registerInstantiatedClass(compiler.closureClass,
+                              compiler.globalDependencies);
     universe.staticFunctionsNeedingGetter.add(element);
   }
 

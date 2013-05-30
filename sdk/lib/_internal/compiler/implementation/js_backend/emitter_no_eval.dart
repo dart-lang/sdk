@@ -25,10 +25,10 @@ class CodeEmitterNoEvalTask extends CodeEmitterTask {
     }
   }
 
-  void emitBoundClosureClassHeader(String mangledName,
-                                   String superName,
-                                   List<String> fieldNames,
-                                   ClassBuilder builder) {
+  void emitClosureClassHeader(String mangledName,
+                              String superName,
+                              List<String> fieldNames,
+                              ClassBuilder builder) {
     builder.addProperty('', buildConstructor(mangledName, fieldNames));
     emitSuper(superName, builder);
   }

@@ -38,6 +38,7 @@ pseudo_kw_illegal_test/14: Fail  # Issue 356
 method_override2_test/00: Fail # Issue 7076.
 method_override2_test/02: Fail # Issue 7076.
 method_override2_test/03: Fail # Issue 7076.
+bound_closure_equality_test: Fail # Issue 10849
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)
@@ -521,6 +522,8 @@ super_operator_index7_test: Fail # VM bug: issue 8918
 
 execute_finally10_test: Fail # VM bug: issue 430
 execute_finally11_test: Fail # VM bug: issue 430
+
+bound_closure_equality_test: Fail # Issue 10849
 
 [ $compiler == dart2dart && $minified ]
 

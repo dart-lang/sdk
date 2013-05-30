@@ -145,13 +145,13 @@ class Primitives {
   static int hashCodeSeed = 0;
 
   static int objectHashCode(object) {
-    int hash = JS('var', r'#.$identityHash', object);
+    int hash = JS('int|Null', r'#.$identityHash', object);
     if (hash == null) {
       // TOOD(ahe): We should probably randomize this somehow.
       hash = ++hashCodeSeed;
       JS('void', r'#.$identityHash = #', object, hash);
     }
-    return hash;
+    return JS('int', '#', hash);
   }
 
   /**
@@ -944,6 +944,28 @@ convertDartClosureToJS(closure, int arity) {
  */
 class Closure implements Function {
   String toString() => "Closure";
+}
+
+class BoundClosure extends Closure {
+  var self;
+  var target;
+  var receiver;
+
+  bool operator==(other) {
+    if (identical(this, other)) return true;
+    if (other is! BoundClosure) return false;
+    return JS('bool', '# === # && # === # && # === #',
+        self, other.self,
+        target, other.target,
+        receiver, other.receiver);
+  }
+
+  int get hashCode {
+    return JS('int', '(# + # + #) & 0x3ffffff',
+        self.hashCode,
+        target.hashCode,
+        receiver.hashCode);
+  }
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {
