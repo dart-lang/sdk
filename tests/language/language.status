@@ -564,11 +564,6 @@ class_cycle_test/03: fail
 closure_call_wrong_argument_count_negative_test: fail
 compile_time_constant10_test/none: fail
 compile_time_constant8_test: fail
-compile_time_constant_arguments_test/01: fail
-compile_time_constant_arguments_test/02: fail
-compile_time_constant_arguments_test/03: fail
-compile_time_constant_arguments_test/05: fail
-compile_time_constant_arguments_test/06: fail
 compile_time_constant_b_test: fail
 compile_time_constant_c_test/01: fail
 compile_time_constant_c_test/02: fail
@@ -633,7 +628,6 @@ implicit_this_test/01: fail
 implicit_this_test/04: fail
 implicit_this_test/none: fail
 import_combinators_negative_test: fail
-infinite_switch_label_test: fail
 inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
 instance_method2_negative_test: fail
@@ -673,7 +667,6 @@ named_parameters_aggregated_test/05: fail
 new_expression_type_args_test/00: fail
 new_expression_type_args_test/01: fail
 new_expression_type_args_test/02: fail
-nested_switch_label_test: fail
 no_such_method_negative_test: fail
 non_const_super_negative_test: fail
 number_identifier_negative_test: fail
@@ -717,7 +710,6 @@ static_field_test/02: fail
 static_field_test/03: fail
 static_final_field2_negative_test: fail
 static_final_field_negative_test: fail
-switch_label2_test: fail
 syntax_test/28: fail
 syntax_test/29: fail
 syntax_test/30: fail

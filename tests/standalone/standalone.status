@@ -88,6 +88,10 @@ io/process_exit_negative_test: fail
 io/url_encoding_test: fail
 io/web_socket_protocol_processor_test: fail
 
+# Fails because checked-in dart executable is not up to date.
+io/test_runner_test: fail, OK
+io/skipping_dart2js_compilations_test: fail, OK
+
 
 [ $compiler == dart2js ]
 number_identity_test: Skip # Bigints and int/double diff. not supported.

@@ -70,7 +70,6 @@ Language/11_Expressions/06_Lists_A06_t01: fail
 Language/11_Expressions/07_Maps_A02_t02: fail
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: fail
-Language/11_Expressions/11_Instance_Creation/2_Const_A06_t02: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: fail
 Language/11_Expressions/11_Instance_Creation_A05_t02: fail
 Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: fail
