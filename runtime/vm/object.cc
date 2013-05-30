@@ -322,14 +322,14 @@ void Object::InitOnce() {
   Heap* heap = isolate->heap();
 
   // Allocate the read only object handles here.
-  empty_array_ = Array::ReadOnlyHandle(isolate);
-  sentinel_ = Instance::ReadOnlyHandle(isolate);
-  transition_sentinel_ = Instance::ReadOnlyHandle(isolate);
-  unknown_constant_ =  Instance::ReadOnlyHandle(isolate);
-  non_constant_ =  Instance::ReadOnlyHandle(isolate);
-  bool_true_ = Bool::ReadOnlyHandle(isolate);
-  bool_false_ = Bool::ReadOnlyHandle(isolate);
-  snapshot_writer_error_ = LanguageError::ReadOnlyHandle(isolate);
+  empty_array_ = Array::ReadOnlyHandle();
+  sentinel_ = Instance::ReadOnlyHandle();
+  transition_sentinel_ = Instance::ReadOnlyHandle();
+  unknown_constant_ =  Instance::ReadOnlyHandle();
+  non_constant_ =  Instance::ReadOnlyHandle();
+  bool_true_ = Bool::ReadOnlyHandle();
+  bool_false_ = Bool::ReadOnlyHandle();
+  snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
 
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
@@ -1578,19 +1578,24 @@ intptr_t Class::NumTypeArguments() const {
   // To work properly, this call requires the super class of this class to be
   // resolved, which is checked by the SuperClass() call.
   Class& cls = Class::Handle(raw());
-  if (IsSignatureClass()) {
-    const Function& signature_fun = Function::Handle(signature_function());
-    if (!signature_fun.is_static() &&
-        !signature_fun.HasInstantiatedSignature()) {
-      cls = signature_fun.Owner();
+  intptr_t num_type_args = 0;
+
+  do {
+    if (cls.IsSignatureClass()) {
+      const Function& signature_fun =
+          Function::Handle(cls.signature_function());
+      if (!signature_fun.is_static() &&
+          !signature_fun.HasInstantiatedSignature()) {
+        cls = signature_fun.Owner();
+      }
     }
-  }
-  intptr_t num_type_args = NumTypeParameters();
-  cls = cls.SuperClass();
-  // Object is its own super class during bootstrap.
-  if (!cls.IsNull() && (cls.raw() != raw())) {
-    num_type_args += cls.NumTypeArguments();
-  }
+    num_type_args += cls.NumTypeParameters();
+    // Object is its own super class during bootstrap.
+    if (cls.SuperClass() == Class::null() || cls.SuperClass() == cls.raw()) {
+      break;
+    }
+    cls = cls.SuperClass();
+  } while (true);
   return num_type_args;
 }
 
@@ -5300,15 +5305,10 @@ intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
 
 RawTokenStream* TokenStream::New() {
   ASSERT(Object::token_stream_class() != Class::null());
-  TokenStream& result = TokenStream::Handle();
-  {
-    RawObject* raw = Object::Allocate(TokenStream::kClassId,
-                                      TokenStream::InstanceSize(),
-                                      Heap::kOld);
-    NoGCScope no_gc;
-    result ^= raw;
-  }
-  return result.raw();
+  RawObject* raw = Object::Allocate(TokenStream::kClassId,
+                                    TokenStream::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawTokenStream*>(raw);
 }
 
 
@@ -9234,15 +9234,10 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   if (cls.EnsureIsFinalized(isolate) != Error::null()) {
     return Instance::null();
   }
-  Instance& result = Instance::Handle(isolate);
-  {
-    intptr_t instance_size = cls.instance_size();
-    ASSERT(instance_size > 0);
-    RawObject* raw = Object::Allocate(cls.id(), instance_size, space);
-    NoGCScope no_gc;
-    result ^= raw;
-  }
-  return result.raw();
+  intptr_t instance_size = cls.instance_size();
+  ASSERT(instance_size > 0);
+  RawObject* raw = Object::Allocate(cls.id(), instance_size, space);
+  return reinterpret_cast<RawInstance*>(raw);
 }
 
 
@@ -13320,15 +13315,10 @@ const char* JSRegExp::ToCString() const {
 RawWeakProperty* WeakProperty::New(Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->weak_property_class()
          != Class::null());
-  WeakProperty& result = WeakProperty::Handle();
-  {
-    RawObject* raw = Object::Allocate(WeakProperty::kClassId,
-                                      WeakProperty::InstanceSize(),
-                                      space);
-    NoGCScope no_gc;
-    result ^= raw;
-  }
-  return result.raw();
+  RawObject* raw = Object::Allocate(WeakProperty::kClassId,
+                                    WeakProperty::InstanceSize(),
+                                    space);
+  return reinterpret_cast<RawWeakProperty*>(raw);
 }
 
 

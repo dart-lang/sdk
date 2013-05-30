@@ -78,7 +78,7 @@ class Symbols;
     initializeHandle(obj, raw_ptr);                                            \
     return *obj;                                                               \
   }                                                                            \
-  static object* ReadOnlyHandle(Isolate* isolate) {                            \
+  static object* ReadOnlyHandle() {                                            \
     object* obj = reinterpret_cast<object*>(                                   \
         Dart::AllocateReadOnlyHandle());                                       \
     initializeHandle(obj, object::null());                                     \
