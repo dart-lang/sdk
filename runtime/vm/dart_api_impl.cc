@@ -637,10 +637,11 @@ DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(
 }
 
 
-DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
-                                                 intptr_t num_keys,
-                                                 Dart_Handle* values,
-                                                 intptr_t num_values) {
+DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(
+    Dart_WeakPersistentHandle* keys,
+    intptr_t num_keys,
+    Dart_WeakPersistentHandle* values,
+    intptr_t num_values) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();

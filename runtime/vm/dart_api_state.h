@@ -442,8 +442,8 @@ class FinalizablePersistentHandles
 
 class WeakReferenceSet {
  public:
-  WeakReferenceSet(Dart_Handle* keys, intptr_t keys_length,
-                   Dart_Handle* values, intptr_t values_length)
+  WeakReferenceSet(Dart_WeakPersistentHandle* keys, intptr_t keys_length,
+                   Dart_WeakPersistentHandle* values, intptr_t values_length)
       : next_(NULL),
         keys_(keys), num_keys_(keys_length),
         values_(values), num_values_(values_length) {
@@ -487,9 +487,9 @@ class WeakReferenceSet {
 
  private:
   WeakReferenceSet* next_;
-  Dart_Handle* keys_;
+  Dart_WeakPersistentHandle* keys_;
   intptr_t num_keys_;
-  Dart_Handle* values_;
+  Dart_WeakPersistentHandle* values_;
   intptr_t num_values_;
   DISALLOW_COPY_AND_ASSIGN(WeakReferenceSet);
 };
