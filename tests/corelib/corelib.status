@@ -4,9 +4,6 @@
 
 reg_exp_unicode_2_test: Fail # Bug 6592
 
-[ $compiler == dart2js && $checked ]
-list_test: Fail, OK # dartbug.com/10708
-
 [ $compiler == none ]
 unicode_test: Fail        # Bug 6706
 *dartc_test: Skip

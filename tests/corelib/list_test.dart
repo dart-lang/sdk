@@ -14,6 +14,12 @@ void main() {
   testTypedList(new Int16List(4));
   testTypedList(new Uint32List(4));
   testTypedList(new Int32List(4));
+  testTypedList(new Uint8List(4).toList(growable: false));
+  testTypedList(new Int8List(4).toList(growable: false));
+  testTypedList(new Uint16List(4).toList(growable: false));
+  testTypedList(new Int16List(4).toList(growable: false));
+  testTypedList(new Uint32List(4).toList(growable: false));
+  testTypedList(new Int32List(4).toList(growable: false));
 
   // Fixed length lists, length 4.
   testFixedLengthList(new List(4));
@@ -23,13 +29,6 @@ void main() {
   testFixedLengthList(new MyFixedList(new List(4)));
   testFixedLengthList(new MyFixedList(new List(4)).toList(growable: false));
 
-  testFixedLengthList(new Uint8List(4).toList(growable: false));
-  testFixedLengthList(new Int8List(4).toList(growable: false));
-  testFixedLengthList(new Uint16List(4).toList(growable: false));
-  testFixedLengthList(new Int16List(4).toList(growable: false));
-  testFixedLengthList(new Uint32List(4).toList(growable: false));
-  testFixedLengthList(new Int32List(4).toList(growable: false));
-
   // Growable lists. Initial length 0.
   testGrowableList(new List());
   testGrowableList(new List().toList());
@@ -38,12 +37,13 @@ void main() {
   testGrowableList((const []).toList());
   testGrowableList(new MyList([]));
   testGrowableList(new MyList([]).toList());
-  testGrowableList(new Uint8List(0).toList());
-  testGrowableList(new Int8List(0).toList());
-  testGrowableList(new Uint16List(0).toList());
-  testGrowableList(new Int16List(0).toList());
-  testGrowableList(new Uint32List(0).toList());
-  testGrowableList(new Int32List(0).toList());
+
+  testTypedGrowableList(new Uint8List(0).toList());
+  testTypedGrowableList(new Int8List(0).toList());
+  testTypedGrowableList(new Uint16List(0).toList());
+  testTypedGrowableList(new Int16List(0).toList());
+  testTypedGrowableList(new Uint32List(0).toList());
+  testTypedGrowableList(new Int32List(0).toList());
 }
 
 void testLength(int length, List list) {
@@ -237,6 +237,17 @@ void testCannotChangeLength(List list) {
   isUnsupported(() => list.replaceRange(0, 1, []));
 }
 
+void testTypedGrowableList(List list) {
+  testLength(0, list);
+  // set length.
+  list.length = 4;
+  testLength(4, list);
+
+  testTypedLengthInvariantOperations(list);
+
+  testGrowableListOperations(list);
+}
+
 void testGrowableList(List list) {
   testLength(0, list);
   // set length.
@@ -245,6 +256,10 @@ void testGrowableList(List list) {
 
   testLengthInvariantOperations(list);
 
+  testGrowableListOperations(list);
+}
+
+void testGrowableListOperations(List list) {
   // add, removeLast.
   list.clear();
   testLength(0, list);
