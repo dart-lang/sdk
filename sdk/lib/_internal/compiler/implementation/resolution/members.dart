@@ -2502,7 +2502,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       compiler.reportErrorCode(
           enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
-    Element redirectionTarget = resolveRedirectingFactory(node);
+    FunctionElement redirectionTarget = resolveRedirectingFactory(node);
     useElement(node.expression, redirectionTarget);
     FunctionElement constructor = enclosingElement;
     if (constructor.modifiers.isConst() &&
