@@ -2315,9 +2315,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     // unqualified.
     useElement(node, target);
     registerSend(selector, target);
-    if (node.isPropertyAccess) {
-      // It might be the closurization of a method.
-      world.registerInstantiatedClass(compiler.functionClass, mapping);
+    if (node.isPropertyAccess && Elements.isStaticOrTopLevelFunction(target)) {
+      world.registerGetOfStaticFunction(target);
     }
     return node.isPropertyAccess ? target : null;
   }
