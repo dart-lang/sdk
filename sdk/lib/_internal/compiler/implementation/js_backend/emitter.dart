@@ -58,7 +58,6 @@ class CodeEmitterTask extends CompilerTask {
   bool needsInheritFunction = false;
   bool needsDefineClass = false;
   bool needsMixinSupport = false;
-  bool needsClosureClass = false;
   bool needsLazyInitializer = false;
   final Namer namer;
   ConstantEmitter constantEmitter;
@@ -94,13 +93,6 @@ class CodeEmitterTask extends CompilerTask {
   final Map<int, String> boundClosureCache;
 
   /**
-   * A cache of closures that are used to closurize instance methods
-   * of interceptors. These closures are dynamically bound to the
-   * interceptor instance, and the actual receiver of the method.
-   */
-  final Map<int, String> interceptorClosureCache;
-
-  /**
    * Raw ClassElement symbols occuring in is-checks and type assertions.  If the
    * program contains parameterized checks `x is Set<int>` and
    * `x is Set<String>` then the ClassElement `Set` will occur once in
@@ -133,7 +125,6 @@ class CodeEmitterTask extends CompilerTask {
       : mainBuffer = new CodeBuffer(),
         this.namer = namer,
         boundClosureCache = new Map<int, String>(),
-        interceptorClosureCache = new Map<int, String>(),
         constantEmitter = new ConstantEmitter(compiler, namer),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
@@ -1756,19 +1747,6 @@ class CodeEmitterTask extends CompilerTask {
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }
 
-  void emitClosureClassIfNeeded(CodeBuffer buffer) {
-    // The closure class could have become necessary because of the generation
-    // of stubs.
-    ClassElement closureClass = compiler.closureClass;
-    if (needsClosureClass && !instantiatedClasses.contains(closureClass)) {
-      ClassElement objectClass = compiler.objectClass;
-      if (!instantiatedClasses.contains(objectClass)) {
-        generateClass(objectClass, bufferForElement(objectClass, buffer));
-      }
-      generateClass(closureClass, bufferForElement(closureClass, buffer));
-    }
-  }
-
   void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
       buffer.write('$finishClassesName($classesCollector,'
@@ -1852,10 +1830,10 @@ class CodeEmitterTask extends CompilerTask {
         compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in
              Elements.sortedByPosition(functionsNeedingGetter)) {
+      assert(instantiatedClasses.contains(compiler.closureClass));
       String staticName = namer.getName(element);
       String superName = namer.getName(compiler.closureClass);
       String name = 'Closure\$${element.name.slowToString()}';
-      needsClosureClass = true;
 
       ClassElement closureClassElement = new ClosureClassElement(
           null, new SourceString(name), compiler, element,
@@ -1914,6 +1892,7 @@ class CodeEmitterTask extends CompilerTask {
    */
   void emitDynamicFunctionGetter(FunctionElement member,
                                  DefineStubFunction defineStub) {
+    assert(instantiatedClasses.contains(compiler.boundClosureClass));
     assert(invariant(member, member.isDeclaration));
     // For every method that has the same name as a property-get we create a
     // getter that returns a bound closure. Say we have a class 'A' with method
@@ -1924,10 +1903,9 @@ class CodeEmitterTask extends CompilerTask {
     //    foo(x, y, z) { ... } // Original function.
     //    get foo { return new BoundClosure499(this, "foo"); }
     // }
-    // class BoundClosure499 extends Closure {
-    //   var self;
-    //   BoundClosure499(this.self, this.name);
-    //   $call3(x, y, z) { return self[name](x, y, z); }
+    // class BoundClosure499 extends BoundClosure {
+    //   BoundClosure499(this.self, this.target);
+    //   $call3(x, y, z) { return self[target](x, y, z); }
     // }
 
     // TODO(floitsch): share the closure classes with other classes
@@ -1939,22 +1917,14 @@ class CodeEmitterTask extends CompilerTask {
     bool hasOptionalParameters = member.optionalParameterCount(compiler) != 0;
     int parameterCount = member.parameterCount(compiler);
 
-    Map<int, String> cache;
-    String extraArg = null;
+    Map<int, String> cache = boundClosureCache;
     // Intercepted methods take an extra parameter, which is the
     // receiver of the call.
     bool inInterceptor = backend.isInterceptedMethod(member);
-    if (inInterceptor) {
-      cache = interceptorClosureCache;
-      extraArg = 'receiver';
-    } else {
-      cache = boundClosureCache;
-    }
-    List<String> fieldNames = compiler.enableMinification
-        ? inInterceptor ? const ['a', 'b', 'c']
-                        : const ['a', 'b']
-        : inInterceptor ? const ['self', 'target', 'receiver']
-                        : const ['self', 'target'];
+    List<String> fieldNames = <String>[];
+    compiler.boundClosureClass.forEachInstanceField((_, field) {
+      fieldNames.add(namer.getName(field));
+    });
 
     Iterable<Element> typedefChecks =
         getTypedefChecksOn(member.computeType(compiler));
@@ -1968,11 +1938,7 @@ class CodeEmitterTask extends CompilerTask {
       // Create a new closure class.
       String name;
       if (canBeShared) {
-        if (inInterceptor) {
-          name = 'BoundClosure\$i${parameterCount}';
-        } else {
-          name = 'BoundClosure\$${parameterCount}';
-        }
+        name = 'BoundClosure\$${parameterCount}';
       } else {
         name = 'Bound_${member.name.slowToString()}'
             '_${member.enclosingElement.name.slowToString()}';
@@ -1983,7 +1949,6 @@ class CodeEmitterTask extends CompilerTask {
           member.getCompilationUnit());
       String mangledName = namer.getName(closureClassElement);
       String superName = namer.getName(closureClassElement.superclass);
-      needsClosureClass = true;
 
       // Define the constructor with a name so that Object.toString can
       // find the class name of the closure class.
@@ -2044,8 +2009,8 @@ class CodeEmitterTask extends CompilerTask {
     arguments.add(js('this'));
     arguments.add(js.string(targetName));
     if (inInterceptor) {
-      parameters.add(extraArg);
-      arguments.add(js(extraArg));
+      parameters.add('receiver');
+      arguments.add(js('receiver'));
     }
 
     jsAst.Expression getterFunction = js.fun(
@@ -2997,7 +2962,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       }
 
       emitStaticFunctionClosures();
-      emitClosureClassIfNeeded(mainBuffer);
 
       addComment('Bound closures', mainBuffer);
       // Now that we have emitted all classes, we know all the bound

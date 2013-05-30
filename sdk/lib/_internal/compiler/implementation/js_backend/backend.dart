@@ -1100,6 +1100,8 @@ class JavaScriptBackend extends Backend {
             compiler.findHelper(const SourceString('iae')));
       } else if (cls == compiler.functionClass) {
         enqueuer.registerInstantiatedClass(compiler.closureClass, elements);
+        enqueuer.registerInstantiatedClass(
+            compiler.boundClosureClass, elements);
       } else if (cls == compiler.mapClass) {
         // The backend will use a literal list to initialize the entries
         // of the map.
