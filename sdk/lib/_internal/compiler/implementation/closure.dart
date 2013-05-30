@@ -112,11 +112,8 @@ class ClosureClassElement extends ClassElementX {
               // classes (since the emitter sorts classes by their id).
               compiler.getNextFreeClassId(),
               STATE_DONE) {
-    ClassElement superclass = methodElement.isInstanceMember()
-        ? compiler.boundClosureClass
-        : compiler.closureClass;
-    superclass.ensureResolved(compiler);
-    supertype = superclass.computeType(compiler);
+    compiler.closureClass.ensureResolved(compiler);
+    supertype = compiler.closureClass.computeType(compiler);
     interfaces = const Link<DartType>();
     allSupertypes = const Link<DartType>().prepend(supertype);
     thisType = rawType = new InterfaceType(this);

@@ -67,7 +67,8 @@ class SsaBuilderTask extends CompilerTask {
             index++;
           });
         } else {
-          // BUG(10938): the types are stored in the wrong order.
+          // TODO(ahe): I have disabled type optimizations for
+          // optional arguments as the types are stored in the wrong
           // order.
           HTypeList parameterTypes =
               backend.optimisticParameterTypes(element.declaration,

@@ -29,7 +29,6 @@ Future<String> provider(Uri uri) {
                   class List {}
                   class Map {}
                   class Closure {}
-                  class BoundClosure {}
                   class Dynamic_ {}
                   class Null {}
                   class StackTrace {}

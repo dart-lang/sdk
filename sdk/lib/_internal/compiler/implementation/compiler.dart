@@ -306,7 +306,6 @@ abstract class Compiler implements DiagnosticListener {
 
   ClassElement objectClass;
   ClassElement closureClass;
-  ClassElement boundClosureClass;
   ClassElement dynamicClass;
   ClassElement boolClass;
   ClassElement numClass;
@@ -707,7 +706,6 @@ abstract class Compiler implements DiagnosticListener {
       return result;
     }
     jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
-    boundClosureClass = lookupHelperClass('BoundClosure');
     closureClass = lookupHelperClass('Closure');
     dynamicClass = lookupHelperClass('Dynamic_');
     nullClass = lookupHelperClass('Null');
