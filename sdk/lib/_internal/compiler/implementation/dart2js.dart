@@ -358,7 +358,7 @@ void compile(List<String> argv) {
       }
     }
 
-    var controller = new StreamController<String>();
+    var controller = new StreamController<String>(sync: true);
     controller.stream.listen(output.write, onDone: onDone);
     sink = new CountingSink(controller);
     return sink;

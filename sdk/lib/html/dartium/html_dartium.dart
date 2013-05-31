@@ -11077,7 +11077,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
 
     int watchId;
     var controller;
-    controller = new StreamController<Geoposition>(
+    controller = new StreamController<Geoposition>(sync: true,
       onListen: () {
         assert(watchId == null);
         watchId = $dom_watchPosition(
@@ -21926,7 +21926,7 @@ class TemplateElement extends _Element_Merged {
   @Experimental
   static Stream<DocumentFragment> get instanceCreated {
     if (_instanceCreated == null) {
-      _instanceCreated = new StreamController<DocumentFragment>();
+      _instanceCreated = new StreamController<DocumentFragment>(sync: true);
     }
     return _instanceCreated.stream;
   }
@@ -24797,7 +24797,7 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     var stream = new _EventStream(e, _eventType, useCapture);
     stream.listen((event) {
       var wrapped = new _BeforeUnloadEvent(event);
@@ -27557,7 +27557,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController();
+  final StreamController _controller = new StreamController(sync: true);
 
   static const _EVENT_TYPE = 'KeyEvent';
 
@@ -27626,7 +27626,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
-  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) : 
+  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) :
     super(_EVENT_TYPE) {
     Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
         processKeyDown);
@@ -28771,7 +28771,8 @@ class PathObserver {
     // TODO(jmesserly): if the path is empty, or the object is! Observable, we
     // can optimize the PathObserver to be more lightweight.
 
-    _values = new StreamController.broadcast(onListen: _observe,
+    _values = new StreamController.broadcast(sync: true,
+                                             onListen: _observe,
                                              onCancel: _unobserve);
 
     if (_isValid) {

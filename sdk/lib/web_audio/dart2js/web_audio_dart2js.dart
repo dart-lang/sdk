@@ -1001,8 +1001,8 @@ class ScriptProcessorNode extends AudioNode native "ScriptProcessorNode" {
    */
   Stream<AudioProcessingEvent> get onAudioProcess {
     if (_eventStream == null) {
-      var controller = new StreamController();
-      var callback = (audioData) { 
+      var controller = new StreamController(sync: true);
+      var callback = (audioData) {
           if (controller.hasListener) {
             // This stream is a strange combination of broadcast and single
             // subscriber streams. We only allow one listener, but if there is

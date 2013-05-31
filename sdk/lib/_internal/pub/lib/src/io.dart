@@ -422,7 +422,7 @@ Future drainStream(Stream stream) {
 /// will succeed when [EventSink] is closed or fail with any errors that occur
 /// while writing.
 Pair<EventSink, Future> consumerToSink(StreamConsumer consumer) {
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   var done = controller.stream.pipe(consumer);
   return new Pair<EventSink, Future>(controller.sink, done);
 }
@@ -739,7 +739,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
   contents.forEach((file) => buffer.write('$file\n'));
   log.fine(buffer.toString());
 
-  var controller = new StreamController<List<int>>();
+  var controller = new StreamController<List<int>>(sync: true);
 
   if (baseDir == null) baseDir = path.current;
   baseDir = path.absolute(baseDir);

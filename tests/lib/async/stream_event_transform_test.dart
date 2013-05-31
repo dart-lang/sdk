@@ -46,7 +46,7 @@ class EventTransformer extends StreamEventTransformer<int,int> {
 
 main() {
   {
-    StreamController c = new StreamController();
+    StreamController c = new StreamController(sync: true);
     Events expected = new Events()..error("0")..add(1)
                                   ..error("1")..add(2)
                                   ..add(3)..error("4")
@@ -61,7 +61,7 @@ main() {
   }
 
   {
-    StreamController c = new StreamController();
+    StreamController c = new StreamController(sync: true);
     Events expected = new Events()..error("0")..add(1)
                                   ..error("1")..add(2)
                                   ..add(3)..error("4")

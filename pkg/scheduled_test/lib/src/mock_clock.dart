@@ -45,13 +45,13 @@ class Clock {
   int _time = 0;
 
   /// Controller providing streams for listening.
-  StreamController<int> _multiplexController =
-      new StreamController<int>.broadcast();
+  StreamController<int> _broadcastController =
+      new StreamController<int>.broadcast(sync: true);
 
   Clock._();
 
   /// The stream of millisecond ticks of the clock.
-  Stream<int> get onTick => _multiplexController.stream;
+  Stream<int> get onTick => _broadcastController.stream;
 
   /// Advances the clock forward by [milliseconds]. This works like synchronous
   /// code that takes [milliseconds] to execute; any [Timer]s that are scheduled
@@ -61,7 +61,7 @@ class Clock {
     for (var i = 0; i < milliseconds; i++) {
       var tickTime = ++_time;
       runAsync(() {
-        _multiplexController.add(tickTime);
+        _broadcastController.add(tickTime);
       });
     }
   }
@@ -72,7 +72,7 @@ class Clock {
   /// code runs before the next tick.
   void run() {
     pumpEventQueue().then((_) {
-      if (!_multiplexController.hasListener) return;
+      if (!_broadcastController.hasListener) return;
       tick();
       return run();
     });

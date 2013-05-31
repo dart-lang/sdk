@@ -1016,7 +1016,7 @@ class ObjectStore native "IDBObjectStore" {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
 
     request.onError.listen((e) {
       //TODO: Report stacktrace once issue 4061 is resolved.

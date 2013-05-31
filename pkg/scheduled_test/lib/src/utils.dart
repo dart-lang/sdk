@@ -81,7 +81,7 @@ Stream errorStream(error) => new Future.error(error).asStream();
 /// returned by [future] once [future] completes. If [future] completes to an
 /// error, the return value will emit that error and then close.
 Stream futureStream(Future<Stream> future) {
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   future.then((stream) {
     stream.listen(
         controller.add,
@@ -137,7 +137,7 @@ typedef void StreamCanceller();
 /// the wrapped stream. Unlike [StreamSubscription], this canceller will send a
 /// "done" message to the wrapped stream.
 Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   var controllerStream = stream.isBroadcast ?
       controller.stream.asBroadcastStream() :
       controller.stream;
@@ -154,8 +154,8 @@ Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
 /// errors from [stream]. This is useful if [stream] is single-subscription but
 /// multiple subscribers are necessary.
 Pair<Stream, Stream> tee(Stream stream) {
-  var controller1 = new StreamController();
-  var controller2 = new StreamController();
+  var controller1 = new StreamController(sync: true);
+  var controller2 = new StreamController(sync: true);
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);

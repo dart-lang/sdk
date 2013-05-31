@@ -37,7 +37,7 @@ class HttpParserTest {
     StreamController controller;
     void reset() {
       _HttpParser httpParser = new _HttpParser.requestParser();
-      controller = new StreamController();
+      controller = new StreamController(sync: true);
       var port1 = new ReceivePort();
       var port2 = new ReceivePort();
 
@@ -135,7 +135,7 @@ class HttpParserTest {
 
     void reset() {
       httpParser = new _HttpParser.requestParser();
-      controller = new StreamController();
+      controller = new StreamController(sync: true);
       var port = new ReceivePort();
       controller.stream.pipe(httpParser);
       var subscription = httpParser.listen((incoming) {
@@ -198,7 +198,7 @@ class HttpParserTest {
       int contentLength;
       int bytesReceived;
       httpParser = new _HttpParser.responseParser();
-      controller = new StreamController();
+      controller = new StreamController(sync: true);
       var port = new ReceivePort();
       controller.stream.pipe(httpParser);
       int doneCallCount = 0;
@@ -280,7 +280,7 @@ class HttpParserTest {
   static void _testParseInvalidResponse(String response, [bool close = false]) {
     void testWrite(List<int> requestData, [int chunkSize = -1]) {
       _HttpParser httpParser = new _HttpParser.responseParser();
-      StreamController controller = new StreamController();
+      StreamController controller = new StreamController(sync: true);
       bool errorCalled = false;;
 
       if (chunkSize == -1) chunkSize = requestData.length;

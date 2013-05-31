@@ -560,7 +560,8 @@ class _HttpOutboundConsumer implements StreamConsumer {
 
   _ensureController() {
     if (_controller != null) return;
-    _controller = new StreamController(onPause: () => _subscription.pause(),
+    _controller = new StreamController(sync: true,
+                                       onPause: () => _subscription.pause(),
                                        onResume: () => _subscription.resume(),
                                        onListen: () => _subscription.resume(),
                                        onCancel: _cancel);
@@ -1929,7 +1930,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   // Set of currently connected clients.
   final Set<_HttpConnection> _connections = new Set<_HttpConnection>();
   final StreamController<HttpRequest> _controller
-      = new StreamController<HttpRequest>();
+      = new StreamController<HttpRequest>(sync: true);
 
   // TODO(ajohnsen): Use close queue?
 }

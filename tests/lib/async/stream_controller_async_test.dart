@@ -10,6 +10,7 @@ import 'dart:async';
 import 'dart:isolate';
 import '../../../pkg/unittest/lib/unittest.dart';
 import 'event_helper.dart';
+import 'stream_state_helper.dart';
 
 testController() {
   // Test fold
@@ -266,111 +267,91 @@ testExtraMethods() {
 
 testPause() {
   test("pause event-unpause", () {
-    StreamController c = new StreamController();
-    Events actualEvents = new Events.capture(c.stream);
-    Events expectedEvents = new Events();
-    expectedEvents.add(42);
-    c.add(42);
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
+    StreamProtocolTest test = new StreamProtocolTest();
     Completer completer = new Completer();
-    actualEvents.pause(completer.future);
-    c..add(43)..add(44)..close();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    completer.complete();
-    expectedEvents..add(43)..add(44)..close();
-    actualEvents.onDone(expectAsync0(() {
-      Expect.listEquals(expectedEvents.events, actualEvents.events);
-    }));
+    test..expectListen()
+        ..expectData(42, () { test.pause(completer.future); })
+        ..expectPause(() {
+            completer.complete(null);
+          })
+        ..expectData(43)
+        ..expectData(44)
+        ..expectDone()
+        ..expectCancel();
+    test.listen();
+    test.add(42);
+    test.add(43);
+    test.add(44);
+    test.close();
   });
 
   test("pause twice event-unpause", () {
-    StreamController c = new StreamController();
-    Events actualEvents = new Events.capture(c.stream);
-    Events expectedEvents = new Events();
-    expectedEvents.add(42);
-    c.add(42);
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
+    StreamProtocolTest test = new StreamProtocolTest();
     Completer completer = new Completer();
     Completer completer2 = new Completer();
-    actualEvents.pause(completer.future);
-    actualEvents.pause(completer2.future);
-    c..add(43)..add(44)..close();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    completer.complete();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    completer2.complete();
-    expectedEvents..add(43)..add(44)..close();
-    actualEvents.onDone(expectAsync0((){
-      Expect.listEquals(expectedEvents.events, actualEvents.events);
-    }));
+    test..expectListen()
+        ..expectData(42, () {
+            test.pause(completer.future);
+            test.pause(completer2.future);
+          })
+        ..expectPause(() {
+            completer.future.then(completer2.complete);
+            completer.complete(null);
+          })
+        ..expectData(43)
+        ..expectData(44)
+        ..expectDone()
+        ..expectCancel();
+    test..listen()
+        ..add(42)
+        ..add(43)
+        ..add(44)
+        ..close();
   });
 
   test("pause twice direct-unpause", () {
-    StreamController c = new StreamController();
-    Events actualEvents = new Events.capture(c.stream);
-    Events expectedEvents = new Events();
-    expectedEvents.add(42);
-    c.add(42);
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    actualEvents.pause();
-    actualEvents.pause();
-    c.add(43);
-    c.add(44);
-    c.close();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    actualEvents.resume();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    expectedEvents..add(43)..add(44)..close();
-    actualEvents.onDone(expectAsync0(() {
-      Expect.listEquals(expectedEvents.events, actualEvents.events);
-    }));
-    actualEvents.resume();
+    StreamProtocolTest test = new StreamProtocolTest();
+    test..expectListen()
+        ..expectData(42, () {
+            test.pause();
+            test.pause();
+          })
+        ..expectPause(() {
+            test.resume();
+            test.resume();
+          })
+        ..expectData(43)
+        ..expectData(44)
+        ..expectDone()
+        ..expectCancel();
+    test..listen()
+        ..add(42)
+        ..add(43)
+        ..add(44)
+        ..close();
   });
 
   test("pause twice direct-event-unpause", () {
-    StreamController c = new StreamController();
-    Events actualEvents = new Events.capture(c.stream);
-    Events expectedEvents = new Events();
-    expectedEvents.add(42);
-    c.add(42);
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
+    StreamProtocolTest test = new StreamProtocolTest();
     Completer completer = new Completer();
-    actualEvents.pause(completer.future);
-    actualEvents.pause();
-    c.add(43);
-    c.add(44);
-    c.close();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    actualEvents.resume();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    expectedEvents..add(43)..add(44)..close();
-    actualEvents.onDone(expectAsync0(() {
-      Expect.listEquals(expectedEvents.events, actualEvents.events);
-    }));
-    completer.complete();
-  });
-
-  test("pause twice direct-unpause", () {
-    StreamController c = new StreamController();
-    Events actualEvents = new Events.capture(c.stream);
-    Events expectedEvents = new Events();
-    expectedEvents.add(42);
-    c.add(42);
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    Completer completer = new Completer();
-    actualEvents.pause(completer.future);
-    actualEvents.pause();
-    c.add(43);
-    c.add(44);
-    c.close();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    completer.complete();
-    Expect.listEquals(expectedEvents.events, actualEvents.events);
-    expectedEvents..add(43)..add(44)..close();
-    actualEvents.onDone(expectAsync0(() {
-      Expect.listEquals(expectedEvents.events, actualEvents.events);
-    }));
-    actualEvents.resume();
+    test..expectListen()
+        ..expectData(42, () {
+            test.pause();
+            test.pause(completer.future);
+            test.add(43);
+            test.add(44);
+            test.close();
+          })
+        ..expectPause(() {
+            completer.future.then((v) => test.resume());
+            completer.complete(null);
+          })
+        ..expectData(43)
+        ..expectData(44)
+        ..expectDone()
+        ..expectCancel();
+    test..listen()
+        ..add(42);
   });
 }
 
@@ -431,75 +412,89 @@ testRethrow() {
 
 void testBroadcastController() {
   test("broadcast-controller-basic", () {
-    StreamController<int> c = new StreamController.broadcast(
-      onListen: expectAsync0(() {}),
-      onCancel: expectAsync0(() {})
-    );
-    Stream<int> s = c.stream;
-    s.listen(expectAsync1((x) { expect(x, equals(42)); }));
-    c.add(42);
-    c.close();
+    StreamProtocolTest test = new StreamProtocolTest.broadcast();
+    test..expectListen()
+        ..expectData(42)
+        ..expectDone()
+        ..expectCancel(test.terminate);
+    test..listen()
+        ..add(42)
+        ..close();
   });
 
   test("broadcast-controller-listen-twice", () {
-    StreamController<int> c = new StreamController.broadcast(
-      onListen: expectAsync0(() {}),
-      onCancel: expectAsync0(() {})
-    );
-    c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }, count: 2));
-    c.add(42);
-    c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
-    c.add(42);
-    c.close();
+    StreamProtocolTest test = new StreamProtocolTest.broadcast();
+    test..expectListen()
+        ..expectData(42, () {
+            test.listen();
+            test.add(37);
+            test.close();
+          })
+      // Order is not guaranteed between subscriptions if not sync.
+        ..expectData(37)
+        ..expectData(37)
+        ..expectDone()
+        ..expectDone()
+        ..expectCancel(test.terminate);
+    test.listen();
+    test.add(42);
   });
 
   test("broadcast-controller-listen-twice-non-overlap", () {
-    StreamController<int> c = new StreamController.broadcast(
-      onListen: expectAsync0(() {}, count: 2),
-      onCancel: expectAsync0(() {}, count: 2)
-    );
-    var sub = c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
-    c.add(42);
-    sub.cancel();
-    c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
-    c.add(42);
-    c.close();
+    StreamProtocolTest test = new StreamProtocolTest.broadcast();
+    test
+    ..expectListen(() {
+      test.add(42);
+    })
+    ..expectData(42, () {
+      test.cancel();
+    })
+    ..expectCancel(() {
+      test.listen();
+    })..expectListen(() {
+      test.add(37);
+    })
+    ..expectData(37, () {
+      test.close();
+    })
+    ..expectDone()
+    ..expectCancel(test.terminate);
+    test.listen();
   });
 
   test("broadcast-controller-individual-pause", () {
-    StreamController<int> c = new StreamController.broadcast(
-      onListen: expectAsync0(() {}),
-      onCancel: expectAsync0(() {})
-    );
-    var sub1 = c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
-    var sub2 = c.stream.listen(expectAsync1((x) { expect(x, equals(42)); },
-                                            count: 3));
-    c.add(42);
-    sub1.pause();
-    c.add(42);
-    sub1.cancel();
-    var sub3 = c.stream.listen(expectAsync1((x) { expect(x, equals(42)); }));
-    c.add(42);
-    c.close();
+    StreamProtocolTest test = new StreamProtocolTest.broadcast();
+    test.trace = true;
+    var sub1;
+    test..expectListen()
+        ..expectData(42)
+        ..expectData(42, () { sub1.pause(); })
+        ..expectData(43, () {
+      sub1.cancel();
+      test.listen();
+      test.add(44);
+      test.expectData(44);
+      test.expectData(44, test.terminate);
+    });
+    sub1 = test.listen();
+    test.listen();
+    test.add(42);
+    test.add(43);
   });
 
   test("broadcast-controller-add-in-callback", () {
-    StreamController<int> c;
-    c = new StreamController(
-      onListen: expectAsync0(() {}),
-      onCancel: expectAsync0(() {
-        c.add(42);
-      })
-    );
-    var sub;
-    sub = c.stream.asBroadcastStream().listen(expectAsync1((v) {
-      Expect.equals(37, v);
-      c.add(21);
+    StreamProtocolTest test = new StreamProtocolTest.broadcast();
+    test.expectListen();
+    var sub = test.listen();
+    test.add(42);
+    sub.expectData(42, () {
+      test.add(87);
       sub.cancel();
-    }));
-    c.add(37);  // Triggers listener, which adds 21 and removes itself.
-    // Removing listener triggers onCancel which adds another 42.
-    // Both 21 and 42 are lost because there are no listeners.
+    });
+    test.expectCancel(() {
+      test.add(37);
+      test.terminate();
+    });
   });
 }
 

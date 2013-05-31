@@ -132,7 +132,7 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
       throw new StateError("StreamSink is closed");
     }
     if (_controllerInstance == null) {
-      _controllerInstance = new StreamController<T>();
+      _controllerInstance = new StreamController<T>(sync: true);
       _controllerCompleter = new Completer();
       _target.addStream(_controller.stream)
           .then(

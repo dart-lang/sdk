@@ -107,6 +107,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   _HttpDetachedIncoming(StreamSubscription this.subscription,
                         List<int> this.carryOverData) {
     controller = new StreamController<List<int>>(
+        sync: true,
         onListen: resume,
         onPause: pause,
         onResume: resume,
@@ -195,24 +196,25 @@ class _HttpParser
 
   _HttpParser._(this._requestParser) {
     _controller = new StreamController<_HttpIncoming>(
-          onListen: () {
-            _socketSubscription.resume();
-            _paused = false;
-          },
-          onPause: () {
-            _paused = true;
-            _pauseStateChanged();
-          },
-          onResume: () {
-            _paused = false;
-            _pauseStateChanged();
-          },
-          onCancel: () {
-            try {
-              _socketSubscription.cancel();
-            } catch (e) {
-            }
-          });
+        sync: true,
+        onListen: () {
+          _socketSubscription.resume();
+          _paused = false;
+        },
+        onPause: () {
+          _paused = true;
+          _pauseStateChanged();
+        },
+        onResume: () {
+          _paused = false;
+          _pauseStateChanged();
+        },
+        onCancel: () {
+          try {
+            _socketSubscription.cancel();
+          } catch (e) {
+          }
+        });
     _reset();
   }
 
@@ -883,6 +885,7 @@ class _HttpParser
     assert(!_bodyPaused);
     var incoming;
     _bodyController = new StreamController<List<int>>(
+        sync: true,
         onListen: () {
           if (incoming != _incoming) return;
           assert(_bodyPaused);

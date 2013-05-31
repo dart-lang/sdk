@@ -23,8 +23,8 @@ mainTest(bool broadcast) {
   var p = broadcast ? "BC" : "SC";
 
   test("$p-sub-data/pause/resume/pause/resume-done", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(broadcast: broadcast);
+    t..expectListen()
      ..expectData(42, () {
          t.pause();
        })
@@ -34,12 +34,12 @@ mainTest(bool broadcast) {
      ..expectResume(() { t.close(); })
      ..expectDone()
      ..expectCancel();
-    t..subscribe()..add(42);
+    t..listen()..add(42);
   });
 
   test("$p-sub-data/pause-done", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(broadcast: broadcast);
+    t..expectListen()
      ..expectData(42, () {
          t.pause(new Future.delayed(ms5, () => null));
        })
@@ -48,12 +48,12 @@ mainTest(bool broadcast) {
      ..expectCancel();
      // We are calling "close" while the controller is actually paused,
      // and it will stay paused until the pending events are sent.
-    t..subscribe()..add(42)..close();
+    t..listen()..add(42)..close();
   });
 
   test("$p-sub-data/pause-resume/done", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(broadcast: broadcast);
+    t..expectListen()
      ..expectData(42, () {
          t.pause(new Future.delayed(ms5, () => null));
        })
@@ -61,12 +61,12 @@ mainTest(bool broadcast) {
      ..expectResume(t.close)
      ..expectDone()
      ..expectCancel();
-    t..subscribe()..add(42);
+    t..listen()..add(42);
   });
 
   test("$p-sub-data/data+pause-data-resume-done", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(broadcast: broadcast);
+    t..expectListen()
      ..expectData(42, () {
          t.add(43);
          t.pause(new Future.delayed(ms5, () => null));
@@ -79,12 +79,12 @@ mainTest(bool broadcast) {
      ..expectResume(t.close)
      ..expectDone()
      ..expectCancel();
-    t..subscribe()..add(42);
+    t..listen()..add(42);
   });
-return;
+
   test("$p-pause-during-callback", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(broadcast: broadcast);
+    t..expectListen()
      ..expectData(42, () {
        t.pause();
      })
@@ -98,7 +98,7 @@ return;
      })
      ..expectDone()
      ..expectCancel();
-    t..subscribe()
+    t..listen()
      ..add(42);
   });
 }

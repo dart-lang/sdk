@@ -47,7 +47,7 @@ class _FileStream extends Stream<List<int>> {
   }
 
   void _setupController() {
-    _controller = new StreamController<List<int>>(
+    _controller = new StreamController<List<int>>(sync: true,
         onListen: _start,
         onPause: () => _paused = true,
         onResume: _resume,
@@ -488,7 +488,7 @@ class _File implements File {
   static List<String> _decodeLines(List<int> bytes, Encoding encoding) {
     if (bytes.length == 0) return [];
     var list = [];
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     controller.stream
         .transform(new StringDecoder(encoding))
         .transform(new LineTransformer())

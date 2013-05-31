@@ -11,7 +11,7 @@ import 'event_helper.dart';
 
 testMultiController() {
   // Test normal flow.
-  var c = new StreamController();
+  var c = new StreamController(sync: true);
   Events expectedEvents = new Events()
       ..add(42)
       ..add("dibs")
@@ -23,7 +23,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test automatic unsubscription on error.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(42)..error("error");
   actualEvents = new Events.capture(c.stream.asBroadcastStream(),
                                     cancelOnError: true);
@@ -33,7 +33,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test manual unsubscription.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(42)..error("error")..add(37);
   actualEvents = new Events.capture(c.stream.asBroadcastStream(),
                                     cancelOnError: false);
@@ -43,7 +43,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test filter.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()
     ..add("a string")..add("another string")..close();
   sentEvents = new Events()
@@ -55,7 +55,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test map.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
   actualEvents = new Events.capture(c.stream
@@ -65,7 +65,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test handleError.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add("ab")..error("[foo]");
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
   actualEvents = new Events.capture(c.stream
@@ -82,7 +82,7 @@ testMultiController() {
   // reduce is tested asynchronously and therefore not in this file.
 
   // Test expand
-  c = new StreamController();
+  c = new StreamController(sync: true);
   sentEvents = new Events()..add(3)..add(2)..add(4)..close();
   expectedEvents = new Events()..add(1)..add(2)..add(3)
                                ..add(1)..add(2)
@@ -97,7 +97,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test transform.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   sentEvents = new Events()..add("a")..error(42)..add("b")..close();
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
@@ -116,7 +116,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test multiple filters.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   sentEvents = new Events()..add(42)
                            ..add("snugglefluffy")
                            ..add(7)
@@ -136,7 +136,7 @@ testMultiController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test subscription changes while firing.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   var sink = c.sink;
   var stream = c.stream.asBroadcastStream();
   var counter = 0;
@@ -163,7 +163,7 @@ testMultiController() {
 
 testSingleController() {
   // Test normal flow.
-  var c = new StreamController();
+  var c = new StreamController(sync: true);
   Events expectedEvents = new Events()
       ..add(42)
       ..add("dibs")
@@ -175,7 +175,7 @@ testSingleController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test automatic unsubscription on error.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(42)..error("error");
   actualEvents = new Events.capture(c.stream, cancelOnError: true);
   Events sentEvents =
@@ -184,7 +184,7 @@ testSingleController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test manual unsubscription.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(42)..error("error")..add(37);
   actualEvents = new Events.capture(c.stream, cancelOnError: false);
   expectedEvents.replay(c);
@@ -193,7 +193,7 @@ testSingleController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test filter.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()
     ..add("a string")..add("another string")..close();
   sentEvents = new Events()
@@ -203,7 +203,7 @@ testSingleController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test map.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add("abab")..error("error")..close();
   sentEvents = new Events()..add("ab")..error("error")..close();
   actualEvents = new Events.capture(c.stream.map((v) => "$v$v"));
@@ -211,7 +211,7 @@ testSingleController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test handleError.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add("ab")..error("[foo]");
   sentEvents = new Events()..add("ab")..error("foo")..add("ab")..close();
   actualEvents = new Events.capture(c.stream.handleError((error) {
@@ -226,7 +226,7 @@ testSingleController() {
   // reduce is tested asynchronously and therefore not in this file.
 
   // Test expand
-  c = new StreamController();
+  c = new StreamController(sync: true);
   sentEvents = new Events()..add(3)..add(2)..add(4)..close();
   expectedEvents = new Events()..add(1)..add(2)..add(3)
                                ..add(1)..add(2)
@@ -242,7 +242,7 @@ testSingleController() {
 
   // test contains.
   {
-    c = new StreamController();
+    c = new StreamController(sync: true);
     // Error after match is not important.
     sentEvents = new Events()..add("a")..add("x")..error("FAIL")..close();
     Future<bool> contains = c.stream.contains("x");
@@ -253,7 +253,7 @@ testSingleController() {
   }
 
   {
-    c = new StreamController();
+    c = new StreamController(sync: true);
     // Not matching is ok.
     sentEvents = new Events()..add("a")..add("x")..add("b")..close();
     Future<bool> contains = c.stream.contains("y");
@@ -264,7 +264,7 @@ testSingleController() {
   }
 
   {
-    c = new StreamController();
+    c = new StreamController(sync: true);
     // Error before match makes future err.
     sentEvents = new Events()..add("a")..error("FAIL")..add("b")..close();
     Future<bool> contains = c.stream.contains("b");
@@ -277,7 +277,7 @@ testSingleController() {
   }
 
   // Test transform.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   sentEvents = new Events()..add("a")..error(42)..add("b")..close();
   expectedEvents =
       new Events()..error("a")..add(42)..error("b")..add("foo")..close();
@@ -293,7 +293,7 @@ testSingleController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test multiple filters.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   sentEvents = new Events()..add(42)
                            ..add("snugglefluffy")
                            ..add(7)
@@ -313,7 +313,7 @@ testSingleController() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
   // Test that only one subscription is allowed.
-  c = new StreamController();
+  c = new StreamController(sync: true);
   var sink = c.sink;
   var stream = c.stream;
   var counter = 0;
@@ -327,67 +327,67 @@ testSingleController() {
 testExtraMethods() {
   Events sentEvents = new Events()..add(1)..add(2)..add(3)..close();
 
-  var c = new StreamController();
+  var c = new StreamController(sync: true);
   Events expectedEvents = new Events()..add(3)..close();
   Events actualEvents = new Events.capture(c.stream.skip(2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..close();
   actualEvents = new Events.capture(c.stream.skip(3));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..close();
   actualEvents = new Events.capture(c.stream.skip(7));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = sentEvents;
   actualEvents = new Events.capture(c.stream.skip(0));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(3)..close();
   actualEvents = new Events.capture(c.stream.skipWhile((x) => x <= 2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(2)..add(3)..close();
   actualEvents = new Events.capture(c.stream.skipWhile((x) => x <= 1));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(1)..add(2)..add(3)..close();
   actualEvents = new Events.capture(c.stream.skipWhile((x) => false));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(1)..add(2)..close();
   actualEvents = new Events.capture(c.stream.take(2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   expectedEvents = new Events()..add(1)..add(2)..close();
   actualEvents = new Events.capture(c.stream.takeWhile((x) => x <= 2));
   sentEvents.replay(c);
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   sentEvents = new Events()
       ..add(1)..add(1)..add(2)..add(1)..add(2)..add(2)..add(2)..close();
   expectedEvents = new Events()
@@ -397,7 +397,7 @@ testExtraMethods() {
   Expect.listEquals(expectedEvents.events, actualEvents.events);
 
 
-  c = new StreamController();
+  c = new StreamController(sync: true);
   sentEvents = new Events()
       ..add(5)..add(6)..add(4)..add(6)..add(8)..add(3)..add(4)..add(1)..close();
   expectedEvents = new Events()
@@ -409,7 +409,7 @@ testExtraMethods() {
 }
 
 testClosed() {
-  StreamController c = new StreamController();
+  StreamController c = new StreamController(sync: true);
   Expect.isFalse(c.isClosed);
   c.add(42);
   Expect.isFalse(c.isClosed);

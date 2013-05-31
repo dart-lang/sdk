@@ -173,7 +173,7 @@ Stream get emptyStream => streamFromIterable([]);
 /// Creates a single-subscription stream that emits the items in [iter] and then
 /// ends.
 Stream streamFromIterable(Iterable iter) {
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   iter.forEach(controller.add);
   controller.close();
   return controller.stream;
@@ -184,8 +184,8 @@ Stream streamFromIterable(Iterable iter) {
 /// errors from [stream]. This is useful if [stream] is single-subscription but
 /// multiple subscribers are necessary.
 Pair<Stream, Stream> tee(Stream stream) {
-  var controller1 = new StreamController();
-  var controller2 = new StreamController();
+  var controller1 = new StreamController(sync: true);
+  var controller2 = new StreamController(sync: true);
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);

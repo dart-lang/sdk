@@ -28,7 +28,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController();
+  final StreamController _controller = new StreamController(sync: true);
 
   static const _EVENT_TYPE = 'KeyEvent';
 
@@ -97,7 +97,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
-  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) : 
+  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) :
     super(_EVENT_TYPE) {
     Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
         processKeyDown);

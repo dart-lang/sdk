@@ -101,7 +101,7 @@ void testFullMessages() {
     int messageCount = 0;
     // Use the same web socket protocol transformer for all frames.
     var transformer = new _WebSocketProtocolTransformer();
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     WebSocketMessageCollector mc = new WebSocketMessageCollector(
         controller.stream.transform(transformer),
         message);
@@ -165,7 +165,7 @@ void testFullMessages() {
 void testFragmentedMessages() {
   // Use the same web socket protocol transformer for all frames.
   var transformer = new _WebSocketProtocolTransformer();
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   WebSocketMessageCollector mc = new WebSocketMessageCollector(
       controller.stream.transform(transformer));
 
@@ -230,7 +230,7 @@ void testFragmentedMessages() {
 
 void testUnmaskedMessage() {
   var transformer = new _WebSocketProtocolTransformer(true);
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   var port = new ReceivePort();
   controller.stream.transform(transformer).listen((_) {}, onError: (e) {
     port.close();

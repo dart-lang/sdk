@@ -239,7 +239,7 @@ class _ErrorGroupStream extends Stream {
   /// Creates a new [_ErrorGroupFuture] that's a child of [_group] and wraps
   /// [inner].
   _ErrorGroupStream(this._group, Stream inner)
-    : _controller = new StreamController() {
+    : _controller = new StreamController(sync: true) {
     this._stream = inner.isBroadcast
         ? _controller.stream.asBroadcastStream()
         : _controller.stream;

@@ -11,38 +11,44 @@ import "stream_state_helper.dart";
 const ms5 = const Duration(milliseconds: 5);
 
 main() {
-  mainTest(false);
-  // TODO(floitsch): reenable?
-  // mainTest(true);
+  mainTest(sync: true, broadcast: false);
+  mainTest(sync: true, broadcast: true);
+  mainTest(sync: false, broadcast: false);
+  mainTest(sync: false, broadcast: true);
 }
 
-mainTest(bool broadcast) {
-  var p = broadcast ? "BC" : "SC";
+mainTest({bool sync, bool broadcast}) {
+  var p = (sync ? "S" : "AS") + (broadcast ? "BC" : "SC");
   test("$p-sub-data-done", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(sync: sync, broadcast: broadcast);
+    t..expectListen()
      ..expectData(42)
      ..expectDone()
      ..expectCancel();
-    t..subscribe()..add(42)..close();
+    t..listen()..add(42)..close();
   });
 
-  test("$p-data-done-sub", () {
-    var t = new StreamProtocolTest(broadcast);
-    if (broadcast) {
-      t..expectDone();
-    } else {
-      t..expectSubscription()
-       ..expectData(42)
-       ..expectDone()
-       ..expectCancel();
-    }
-    t..add(42)..close()..subscribe();
+  test("$p-data-done-sub-sync", () {
+    var t = new StreamProtocolTest(sync: sync, broadcast: broadcast);
+    t..expectListen()
+     ..expectData(42)
+     ..expectDone()
+     ..expectCancel();
+    t..add(42)..close()..listen();
+  });
+
+  test("$p-data-done-sub-async", () {
+    var t = new StreamProtocolTest(sync: sync, broadcast: broadcast);
+    t..expectListen()
+     ..expectData(42)
+     ..expectDone()
+     ..expectCancel();
+    t..add(42)..close()..listen();
   });
 
   test("$p-sub-data/pause+resume-done", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(sync: sync, broadcast: broadcast);
+    t..expectListen()
      ..expectData(42, () {
          t.pause();
          t.resume();
@@ -50,16 +56,16 @@ mainTest(bool broadcast) {
        })
      ..expectDone()
      ..expectCancel();
-    t..subscribe()..add(42);
+    t..listen()..add(42);
   });
 
   test("$p-sub-data-unsubonerror", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(sync: sync, broadcast: broadcast);
+    t..expectListen()
      ..expectData(42)
      ..expectError("bad")
      ..expectCancel();
-    t..subscribe(cancelOnError: true)
+    t..listen(cancelOnError: true)
      ..add(42)
      ..error("bad")
      ..add(43)
@@ -67,14 +73,14 @@ mainTest(bool broadcast) {
   });
 
   test("$p-sub-data-no-unsubonerror", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(sync: sync, broadcast: broadcast);
+    t..expectListen()
      ..expectData(42)
      ..expectError("bad")
      ..expectData(43)
      ..expectDone()
      ..expectCancel();
-    t..subscribe(cancelOnError: false)
+    t..listen(cancelOnError: false)
      ..add(42)
      ..error("bad")
      ..add(43)
@@ -82,15 +88,18 @@ mainTest(bool broadcast) {
   });
 
   test("$p-pause-resume-during-event", () {
-    var t = new StreamProtocolTest(broadcast);
-    t..expectSubscription()
+    var t = new StreamProtocolTest(sync: sync, broadcast: broadcast);
+    t..expectListen()
      ..expectData(42, () {
        t.pause();
        t.resume();
-     })
-     ..expectDone()
+     });
+    if (!broadcast && !sync) {
+      t..expectPause();
+    }
+    t..expectDone()
      ..expectCancel();
-    t..subscribe()
+    t..listen()
      ..add(42)
      ..close();
   });

@@ -17,11 +17,88 @@ library expect;
  */
 class Expect {
   /**
+   * Return a slice of a string.
+   *
+   * The slice will contain at least the substring from [start] to the lower of
+   * [end] and `start + length`.
+   * If the result is no more than `length - 10` characters long,
+   * context may be added by extending the range of the slice, by decreasing
+   * [start] and increasing [end], up to at most length characters.
+   * If the start or end of the slice are not matching the start or end of
+   * the string, ellipses are added before or after the slice.
+   * Control characters may be encoded as "\xhh" codes.
+   */
+  static String _truncateString(String string, int start, int end, int length) {
+    if (end - start > length) {
+      end = start + length;
+    } else if (end - start < length) {
+      int overflow = length - (end - start);
+      if (overflow > 10) overflow = 10;
+      // Add context.
+      start = start - ((overflow + 1) ~/ 2);
+      end = end + (overflow ~/ 2);
+      if (start < 0) start = 0;
+      if (end > string.length) end = string.length;
+    }
+    if (start == 0 && end == string.length) return string;
+    StringBuffer buf = new StringBuffer();
+    if (start > 0) buf.write("...");
+    for (int i = start; i < end; i++) {
+      int code = string.codeUnitAt(i);
+      if (code < 0x20) {
+        buf.write(r"\x");
+        buf.write("0123456789abcdef"[code ~/ 16]);
+        buf.write("0123456789abcdef"[code % 16]);
+      } else {
+        buf.writeCharCode(string.codeUnitAt(i));
+      }
+    }
+    if (end < string.length) buf.write("...");
+    return buf.toString();
+  }
+
+  /**
+   * Find the difference between two strings.
+   *
+   * This finds the first point where two strings differ, and returns
+   * a text describing the difference.
+   *
+   * For small strings (length less than 20) nothing is done, and null is
+   * returned. Small strings can be compared visually, but for longer strings
+   * only a slice  containing the first difference will be shown.
+   */
+  static String _stringDifference(String expected, String actual) {
+    if (expected.length < 20 && actual.length < 20) return null;
+    for (int i = 0; i < expected.length && i < actual.length; i++) {
+      if (expected.codeUnitAt(i) != actual.codeUnitAt(i)) {
+        int start = i;
+        i++;
+        while (i < expected.length && i < actual.length) {
+          if (expected.codeUnitAt(i) == actual.codeUnitAt(i)) break;
+        }
+        int end = i;
+        var truncExpected = _truncateString(expected, start, end, 20);
+        var truncActual = _truncateString(actual, start, end, 20);
+        return "at index $start: Expected <$truncExpected>, "
+                                "Found: <$truncActual>";
+      }
+    }
+    return null;
+  }
+
+  /**
    * Checks whether the expected and actual values are equal (using `==`).
    */
   static void equals(var expected, var actual, [String reason = null]) {
     if (expected == actual) return;
     String msg = _getMessage(reason);
+    stringSpecialCase:
+    if (expected is String && actual is String) {
+      String stringDifference = _stringDifference(expected, actual);
+      if (stringDifference != null) {
+        _fail("Expect.equals($stringDifference$msg) fails.");
+      }
+    }
     _fail("Expect.equals(expected: <$expected>, actual: <$actual>$msg) fails.");
   }
 

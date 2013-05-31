@@ -424,6 +424,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       bool this.sendClientCertificate,
       bool this.onBadCertificate(X509Certificate certificate)) {
     _controller = new StreamController<RawSocketEvent>(
+        sync: true,
         onListen: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
         onResume: _onPauseStateChange,

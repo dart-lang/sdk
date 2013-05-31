@@ -38,7 +38,7 @@ external bool _isCloseToken(var object);
 class IsolateStream extends Stream<dynamic> {
   bool _isClosed = false;
   final ReceivePort _port;
-  StreamController _controller = new StreamController();
+  StreamController _controller = new StreamController(sync: true);
 
   IsolateStream._fromOriginalReceivePort(this._port) {
     _port.receive((message, replyTo) {

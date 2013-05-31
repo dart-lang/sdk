@@ -14,7 +14,7 @@ void testParse(String message,
                List expectedParts,
                bool expectError = false]) {
   void testWrite(List<int> data, [int chunkSize = -1]) {
-    StreamController controller = new StreamController();
+    StreamController controller = new StreamController(sync: true);
 
     var stream = controller.stream.transform(
         new MimeMultipartTransformer(boundary));

@@ -29,7 +29,7 @@ $!MEMBERS
   @Experimental
   static Stream<DocumentFragment> get instanceCreated {
     if (_instanceCreated == null) {
-      _instanceCreated = new StreamController<DocumentFragment>();
+      _instanceCreated = new StreamController<DocumentFragment>(sync: true);
     }
     return _instanceCreated.stream;
   }
