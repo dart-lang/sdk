@@ -110,8 +110,15 @@ class Symbols;
     ASSERT(obj.Is##object());                                                  \
     return reinterpret_cast<const object&>(obj);                               \
   }                                                                            \
+  static Raw##object* RawCast(RawObject* raw) {                                \
+    ASSERT(Object::Handle(raw).Is##object());                                  \
+    return reinterpret_cast<Raw##object*>(raw);                                \
+  }                                                                            \
   static Raw##object* null() {                                                 \
     return reinterpret_cast<Raw##object*>(Object::null());                     \
+  }                                                                            \
+  static const object& null_object() {                                         \
+    return reinterpret_cast<const object&>(Object::null_object());             \
   }                                                                            \
   virtual const char* ToCString() const;                                       \
   static const ClassId kClassId = k##object##Cid;                              \
@@ -305,6 +312,10 @@ class Object {
   }
 
   static RawObject* null() { return null_; }
+  static const Object& null_object() {
+    ASSERT(null_object_ != NULL);
+    return *null_object_;
+  }
   static const Array& empty_array() {
     ASSERT(empty_array_ != NULL);
     return *empty_array_;
@@ -341,6 +352,11 @@ class Object {
   static const Bool& bool_false() {
     ASSERT(bool_false_ != NULL);
     return *bool_false_;
+  }
+
+  static const Smi& smi_illegal_cid() {
+    ASSERT(smi_illegal_cid_ != NULL);
+    return *smi_illegal_cid_;
   }
   static const LanguageError& snapshot_writer_error() {
     ASSERT(snapshot_writer_error_ != NULL);
@@ -533,6 +549,7 @@ class Object {
 
   // The static values below are read-only handle pointers for singleton
   // objects that are shared between the different isolates.
+  static Object* null_object_;
   static Array* empty_array_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
@@ -540,6 +557,7 @@ class Object {
   static Instance* non_constant_;
   static Bool* bool_true_;
   static Bool* bool_false_;
+  static Smi* smi_illegal_cid_;
   static LanguageError* snapshot_writer_error_;
 
   friend void ClassTable::Register(const Class& cls);
@@ -3251,7 +3269,7 @@ class ICData : public Object {
 #endif  // DEBUG
 
   intptr_t TestEntryLength() const;
-  void WriteSentinel() const;
+  void WriteSentinel(const Array& data) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;

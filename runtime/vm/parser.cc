@@ -264,6 +264,7 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
       allow_function_literals_(true),
       parsed_function_(NULL),
       innermost_function_(Function::Handle()),
+      literal_token_(LiteralToken::Handle()),
       current_class_(Class::Handle()),
       library_(Library::Handle(library.raw())),
       try_blocks_list_(NULL) {
@@ -285,6 +286,7 @@ Parser::Parser(const Script& script,
       allow_function_literals_(true),
       parsed_function_(parsed_function),
       innermost_function_(Function::Handle(parsed_function->function().raw())),
+      literal_token_(LiteralToken::Handle()),
       current_class_(Class::Handle(parsed_function->function().Owner())),
       library_(Library::Handle(Class::Handle(
           parsed_function->function().origin()).library())),
@@ -377,18 +379,16 @@ String* Parser::CurrentLiteral() const {
 
 
 RawDouble* Parser::CurrentDoubleLiteral() const {
-  LiteralToken& token = LiteralToken::Handle();
-  token ^= tokens_iterator_.CurrentToken();
-  ASSERT(token.kind() == Token::kDOUBLE);
-  return reinterpret_cast<RawDouble*>(token.value());
+  literal_token_ ^= tokens_iterator_.CurrentToken();
+  ASSERT(literal_token_.kind() == Token::kDOUBLE);
+  return Double::RawCast(literal_token_.value());
 }
 
 
 RawInteger* Parser::CurrentIntegerLiteral() const {
-  LiteralToken& token = LiteralToken::Handle();
-  token ^= tokens_iterator_.CurrentToken();
-  ASSERT(token.kind() == Token::kINTEGER);
-  return reinterpret_cast<RawInteger*>(token.value());
+  literal_token_ ^= tokens_iterator_.CurrentToken();
+  ASSERT(literal_token_.kind() == Token::kINTEGER);
+  return Integer::RawCast(literal_token_.value());
 }
 
 
@@ -4435,7 +4435,7 @@ void Parser::ParseLibraryDefinition() {
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
     const Namespace& core_ns = Namespace::Handle(
-        Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+        Namespace::New(core_lib, Array::null_object(), Array::null_object()));
     library_.AddImport(core_ns);
   }
   while (CurrentToken() == Token::kPART) {
@@ -4491,7 +4491,7 @@ void Parser::ParseTopLevel() {
   }
 
   while (true) {
-    set_current_class(Class::Handle());  // No current class.
+    set_current_class(Class::null_object());  // No current class.
     SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
       ParseClassDeclaration(pending_classes);
@@ -8092,7 +8092,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
           // generated AST is not deterministic. Therefore mark the function as
           // not optimizable.
           current_function().set_is_optimizable(false);
-          field.set_value(Instance::Handle());
+          field.set_value(Instance::null_object());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
           AppendErrorMsg(error, TokenPos(),
@@ -8676,7 +8676,8 @@ RawAbstractType* Parser::ParseType(
     Type& parameterized_type = Type::Handle();
     parameterized_type ^= type.raw();
     parameterized_type.set_type_class(Class::Handle(Object::dynamic_class()));
-    parameterized_type.set_arguments(AbstractTypeArguments::Handle());
+    parameterized_type.set_arguments(
+        AbstractTypeArguments::null_object());
     parameterized_type.set_malformed_error(malformed_error);
   }
   if (finalization >= ClassFinalizer::kTryResolve) {

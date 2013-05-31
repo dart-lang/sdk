@@ -70,6 +70,7 @@ cpp_vtable Smi::handle_vtable_ = 0;
 #error RAW_NULL should not be defined.
 #endif
 #define RAW_NULL kHeapObjectTag
+Object* Object::null_object_ = NULL;
 Array* Object::empty_array_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
@@ -77,6 +78,7 @@ Instance* Object::unknown_constant_ = NULL;
 Instance* Object::non_constant_ = NULL;
 Bool* Object::bool_true_ = NULL;
 Bool* Object::bool_false_ = NULL;
+Smi* Object::smi_illegal_cid_ = NULL;
 LanguageError* Object::snapshot_writer_error_ = NULL;
 
 RawObject* Object::null_ = reinterpret_cast<RawObject*>(RAW_NULL);
@@ -322,6 +324,7 @@ void Object::InitOnce() {
   Heap* heap = isolate->heap();
 
   // Allocate the read only object handles here.
+  null_object_ = Array::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
@@ -329,6 +332,7 @@ void Object::InitOnce() {
   non_constant_ =  Instance::ReadOnlyHandle();
   bool_true_ = Bool::ReadOnlyHandle();
   bool_false_ = Bool::ReadOnlyHandle();
+  smi_illegal_cid_ = Smi::ReadOnlyHandle();
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
 
   // Allocate and initialize the null instance.
@@ -340,6 +344,8 @@ void Object::InitOnce() {
     // The call below is using 'null_' to initialize itself.
     InitializeObject(address, kNullCid, Instance::InstanceSize());
   }
+
+  *null_object_ = null_;
 
   // Initialize the empty array handle to null_ in order to be able to check
   // if the empty array was allocated (RAW_NULL is not available).
@@ -534,9 +540,11 @@ void Object::InitOnce() {
   *bool_true_ = Bool::New(true);
   *bool_false_ = Bool::New(false);
 
+  *smi_illegal_cid_ = Smi::New(kIllegalCid);
   *snapshot_writer_error_ =
       LanguageError::New(String::Handle(String::New("SnapshotWriter Error")));
 
+  ASSERT(!null_object_->IsSmi());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!sentinel_->IsSmi());
@@ -551,6 +559,7 @@ void Object::InitOnce() {
   ASSERT(bool_true_->IsBool());
   ASSERT(!bool_false_->IsSmi());
   ASSERT(bool_false_->IsBool());
+  ASSERT(smi_illegal_cid_->IsSmi());
   ASSERT(!snapshot_writer_error_->IsSmi());
   ASSERT(snapshot_writer_error_->IsLanguageError());
 }
@@ -1054,7 +1063,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Remove the Object superclass cycle by setting the super type to null (not
   // to the type of null).
   cls = object_store->object_class();
-  cls.set_super_type(Type::Handle());
+  cls.set_super_type(Type::null_object());
 
   ClassFinalizer::VerifyBootstrapClasses();
   MarkInvisibleFunctions();
@@ -2580,8 +2589,7 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
   const Library& lib = Library::Handle(isolate, library());
   const Object& obj = Object::Handle(isolate, lib.LookupLocalObject(name));
   if (!obj.IsNull() && obj.IsLibraryPrefix()) {
-    const LibraryPrefix& lib_prefix = LibraryPrefix::Cast(obj);
-    return lib_prefix.raw();
+    return LibraryPrefix::Cast(obj).raw();
   }
   return LibraryPrefix::null();
 }
@@ -3163,10 +3171,8 @@ static void InsertIntoCanonicalTypeArguments(Isolate* isolate,
   // Update used count.
   // Last element of the array is the number of used elements.
   intptr_t table_size = table.Length() - 1;
-  Smi& used = Smi::Handle(isolate);
-  used ^= table.At(table_size);
-  intptr_t used_elements = used.Value() + 1;
-  used = Smi::New(used_elements);
+  intptr_t used_elements = Smi::Value(Smi::RawCast(table.At(table_size))) + 1;
+  const Smi& used = Smi::Handle(isolate, Smi::New(used_elements));
   table.SetAt(table_size, used);
 
   // Rehash if table is 75% full.
@@ -4871,7 +4877,7 @@ RawField* Field::New(const String& name,
   result.set_name(name);
   result.set_is_static(is_static);
   if (is_static) {
-    result.set_value(Instance::Handle());
+    result.set_value(Instance::null_object());
   } else {
     result.SetOffset(0);
   }
@@ -4882,7 +4888,7 @@ RawField* Field::New(const String& name,
   result.set_has_initializer(false);
   result.set_guarded_cid(kIllegalCid);
   result.set_is_nullable(false);
-  result.set_dependent_code(Array::Handle());
+  result.set_dependent_code(Array::null_object());
   return result.raw();
 }
 
@@ -4895,7 +4901,7 @@ RawField* Field::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, owner));
   clone.set_owner(clone_owner);
-  clone.set_dependent_code(Array::Handle());
+  clone.set_dependent_code(Array::null_object());
   if (!clone.is_static()) {
     clone.SetOffset(0);
   }
@@ -4989,7 +4995,7 @@ void Field::DeoptimizeDependentCode() const {
   if (code_objects.IsNull()) {
     return;
   }
-  set_dependent_code(Array::Handle());
+  set_dependent_code(Array::null_object());
 
   // Deoptimize all dependent code on the stack.
   Code& code = Code::Handle();
@@ -5631,13 +5637,11 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
     if (Token::IsPseudoKeyword(kind) || Token::IsKeyword(kind)) {
       Isolate* isolate = Isolate::Current();
       ObjectStore* object_store = isolate->object_store();
-      String& str = String::Handle(isolate, String::null());
       const Array& symbols = Array::Handle(isolate,
                                            object_store->keyword_symbols());
       ASSERT(!symbols.IsNull());
-      str ^= symbols.At(kind - Token::kFirstKeyword);
-      ASSERT(!str.IsNull());
-      return str.raw();
+      ASSERT(symbols.At(kind - Token::kFirstKeyword) != String::null());
+      return String::RawCast(symbols.At(kind - Token::kFirstKeyword));
     }
     return Symbols::New(Token::Str(kind));
   } else {
@@ -6021,10 +6025,9 @@ void Library::AddObject(const Object& obj, const String& name) const {
 
   // Insert the object at the empty slot.
   dict.SetAt(index, obj);
-  Smi& used = Smi::Handle();
-  used ^= dict.At(dict_size);
-  intptr_t used_elements = used.Value() + 1;  // One more element added.
-  used = Smi::New(used_elements);
+  // One more element added.
+  intptr_t used_elements = Smi::Value(Smi::RawCast(dict.At(dict_size))) + 1;
+  const Smi& used = Smi::Handle(Smi::New(used_elements));
   dict.SetAt(dict_size, used);  // Update used count.
 
   // Rehash if symbol_table is 75% full.
@@ -6219,9 +6222,9 @@ static bool ShouldBePrivate(const String& name) {
 
 RawField* Library::LookupFieldAllowPrivate(const String& name) const {
   // First check if name is found in the local scope of the library.
-  Field& field = Field::Handle(LookupLocalField(name));
-  if (!field.IsNull()) {
-    return field.raw();
+  Object& obj = Object::Handle(LookupLocalField(name));
+  if (!obj.IsNull()) {
+    return Field::Cast(obj).raw();
   }
 
   // Do not look up private names in imported libraries.
@@ -6232,13 +6235,11 @@ RawField* Library::LookupFieldAllowPrivate(const String& name) const {
   // Now check if name is found in any imported libs.
   const Array& imports = Array::Handle(this->imports());
   Namespace& import = Namespace::Handle();
-  Object& obj = Object::Handle();
   for (intptr_t j = 0; j < this->num_imports(); j++) {
     import ^= imports.At(j);
     obj = import.Lookup(name);
     if (!obj.IsNull() && obj.IsField()) {
-      field ^= obj.raw();
-      return field.raw();
+      return Field::Cast(obj).raw();
     }
   }
   return Field::null();
@@ -6409,9 +6410,7 @@ RawNamespace* Library::ImportAt(intptr_t index) const {
     return Namespace::null();
   }
   const Array& import_list = Array::Handle(imports());
-  Namespace& import = Namespace::Handle();
-  import ^= import_list.At(index);
-  return import.raw();
+  return Namespace::RawCast(import_list.At(index));
 }
 
 
@@ -6526,7 +6525,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
     const Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
     const Namespace& ns = Namespace::Handle(
-        Namespace::New(core_lib, Array::Handle(), Array::Handle()));
+        Namespace::New(core_lib, Array::null_object(), Array::null_object()));
     result.AddImport(ns);
   }
   return result.raw();
@@ -6544,7 +6543,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
   isolate->object_store()->set_bootstrap_library(ObjectStore::kCore, core_lib);
-  isolate->object_store()->set_root_library(Library::Handle());
+  isolate->object_store()->set_root_library(Library::null_object());
 
   // Hook up predefined classes without setting their library pointers. These
   // classes are coming from the VM isolate, and are shared between multiple
@@ -7737,9 +7736,8 @@ intptr_t Code::Comments::Length() const {
 
 
 intptr_t Code::Comments::PCOffsetAt(intptr_t idx) const {
-  Smi& result = Smi::Handle();
-  result ^= comments_.At(idx * kNumberOfEntries + kPCOffsetEntry);
-  return result.Value();
+  return Smi::Value(Smi::RawCast(
+      comments_.At(idx * kNumberOfEntries + kPCOffsetEntry)));
 }
 
 
@@ -7750,9 +7748,7 @@ void Code::Comments::SetPCOffsetAt(intptr_t idx, intptr_t pc)  {
 
 
 RawString* Code::Comments::CommentAt(intptr_t idx) const {
-  String& result = String::Handle();
-  result ^= comments_.At(idx * kNumberOfEntries + kCommentEntry);
-  return result.raw();
+  return String::RawCast(comments_.At(idx * kNumberOfEntries + kCommentEntry));
 }
 
 
@@ -8319,11 +8315,9 @@ intptr_t ICData::NumberOfChecks() const {
 }
 
 
-void ICData::WriteSentinel() const {
-  const Smi& sentinel_value = Smi::Handle(Smi::New(kIllegalCid));
-  const Array& data = Array::Handle(ic_data());
+void ICData::WriteSentinel(const Array& data) const {
   for (intptr_t i = 1; i <= TestEntryLength(); i++) {
-    data.SetAt(data.Length() - i, sentinel_value);
+    data.SetAt(data.Length() - i, smi_illegal_cid());
   }
 }
 
@@ -8362,16 +8356,19 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   set_ic_data(data);
-  WriteSentinel();
+  WriteSentinel(data);
   intptr_t data_pos = old_num * TestEntryLength();
+  Smi& value = Smi::Handle();
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     // kIllegalCid is used as terminating value, do not add it.
     ASSERT(class_ids[i] != kIllegalCid);
-    data.SetAt(data_pos++, Smi::Handle(Smi::New(class_ids[i])));
+    value = Smi::New(class_ids[i]);
+    data.SetAt(data_pos++, value);
   }
   ASSERT(!target.IsNull());
   data.SetAt(data_pos++, target);
-  data.SetAt(data_pos, Smi::Handle(Smi::New(1)));
+  value = Smi::New(1);
+  data.SetAt(data_pos, value);
 }
 
 
@@ -8391,7 +8388,7 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   set_ic_data(data);
-  WriteSentinel();
+  WriteSentinel(data);
   intptr_t data_pos = old_num * TestEntryLength();
   if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
     ASSERT(GetReceiverClassIdAt(0) != kSmiCid);
@@ -8417,10 +8414,8 @@ void ICData::GetCheckAt(intptr_t index,
   class_ids->Clear();
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
-  Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < num_args_tested(); i++) {
-    smi ^= data.At(data_pos++);
-    class_ids->Add(smi.Value());
+    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
   }
   (*target) ^= data.At(data_pos++);
 }
@@ -8434,9 +8429,7 @@ void ICData::GetOneClassCheckAt(intptr_t index,
   ASSERT(num_args_tested() == 1);
   const Array& data = Array::Handle(ic_data());
   intptr_t data_pos = index * TestEntryLength();
-  Smi& smi = Smi::Handle();
-  smi ^= data.At(data_pos);
-  *class_id = smi.Value();
+  *class_id = Smi::Value(Smi::RawCast(data.At(data_pos)));
   *target ^= data.At(data_pos + 1);
 }
 
@@ -8453,9 +8446,7 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
   ASSERT(index < NumberOfChecks());
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength();
-  Smi& smi = Smi::Handle();
-  smi ^= data.At(data_pos);
-  return smi.Value();
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
 }
 
 
@@ -8489,9 +8480,7 @@ intptr_t ICData::GetCountAt(intptr_t index) const {
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength() +
       CountIndexFor(num_args_tested());
-  Smi& smi = Smi::Handle();
-  smi ^= data.At(data_pos);
-  return smi.Value();
+  return Smi::Value(Smi::RawCast(data.At(data_pos)));
 }
 
 
@@ -8646,7 +8635,7 @@ RawICData* ICData::New(const Function& function,
   // IC data array must be null terminated (sentinel entry).
   const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
   result.set_ic_data(ic_data);
-  result.WriteSentinel();
+  result.WriteSentinel(ic_data);
   return result.raw();
 }
 
@@ -8694,11 +8683,10 @@ RawMegamorphicCache* MegamorphicCache::New() {
   }
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets = Array::Handle(Array::New(kEntryLength * capacity));
-  const Smi& illegal = Smi::Handle(Smi::New(kIllegalCid));
   const Function& handler = Function::Handle(
       Isolate::Current()->megamorphic_cache_table()->miss_handler());
   for (intptr_t i = 0; i < capacity; ++i) {
-    SetEntry(buckets, i, illegal, handler);
+    SetEntry(buckets, i, smi_illegal_cid(), handler);
   }
   result.set_buckets(buckets);
   result.set_mask(capacity - 1);
@@ -8716,17 +8704,17 @@ void MegamorphicCache::EnsureCapacity() const {
     const Array& new_buckets =
         Array::Handle(Array::New(kEntryLength * new_capacity));
 
-    Smi& class_id = Smi::Handle(Smi::New(kIllegalCid));
     Function& target = Function::Handle(
         Isolate::Current()->megamorphic_cache_table()->miss_handler());
     for (intptr_t i = 0; i < new_capacity; ++i) {
-      SetEntry(new_buckets, i, class_id, target);
+      SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
     set_buckets(new_buckets);
     set_mask(new_capacity - 1);
     set_filled_entry_count(0);
 
     // Rehash the valid entries.
+    Smi& class_id = Smi::Handle();
     for (intptr_t i = 0; i < old_capacity; ++i) {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
@@ -8745,11 +8733,9 @@ void MegamorphicCache::Insert(const Smi& class_id,
   const Array& backing_array = Array::Handle(buckets());
   intptr_t id_mask = mask();
   intptr_t index = class_id.Value() & id_mask;
-  Smi& probe = Smi::Handle();
   intptr_t i = index;
   do {
-    probe ^= GetClassId(backing_array, i);
-    if (probe.Value() == kIllegalCid) {
+    if (Smi::Value(Smi::RawCast(GetClassId(backing_array, i))) == kIllegalCid) {
       SetEntry(backing_array, i, class_id, target);
       set_filled_entry_count(filled_entry_count() + 1);
       return;
@@ -8822,9 +8808,8 @@ void SubtypeTestCache::GetCheck(
     Bool* test_result) const {
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
-  Smi& instance_class_id_handle = Smi::Handle();
-  instance_class_id_handle ^= data.At(data_pos + kInstanceClassId);
-  *instance_class_id = instance_class_id_handle.Value();
+  *instance_class_id =
+      Smi::Value(Smi::RawCast(data.At(data_pos + kInstanceClassId)));
   *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);
@@ -10494,12 +10479,8 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
   // 64-bit signed result, except the product of two Smis (unless the Smis are
   // 32-bit or less).
   if (IsSmi() && other.IsSmi()) {
-    Smi& left_smi = Smi::Handle();
-    Smi& right_smi = Smi::Handle();
-    left_smi ^= raw();
-    right_smi ^= other.raw();
-    const intptr_t left_value = left_smi.Value();
-    const intptr_t right_value = right_smi.Value();
+    const intptr_t left_value = Smi::Value(Smi::RawCast(raw()));
+    const intptr_t right_value = Smi::Value(Smi::RawCast(other.raw()));
     switch (operation) {
       case Token::kADD:
         return Integer::New(left_value + right_value);
@@ -10592,20 +10573,18 @@ static bool Are64bitOperands(const Integer& op1, const Integer& op2) {
 
 RawInteger* Integer::BitOp(Token::Kind kind, const Integer& other) const {
   if (IsSmi() && other.IsSmi()) {
-    Smi& op1 = Smi::Handle();
-    Smi& op2 = Smi::Handle();
-    op1 ^= raw();
-    op2 ^= other.raw();
+    intptr_t op1_value = Smi::Value(Smi::RawCast(raw()));
+    intptr_t op2_value = Smi::Value(Smi::RawCast(other.raw()));
     intptr_t result = 0;
     switch (kind) {
       case Token::kBIT_AND:
-        result = op1.Value() & op2.Value();
+        result = op1_value & op2_value;
         break;
       case Token::kBIT_OR:
-        result = op1.Value() | op2.Value();
+        result = op1_value | op2_value;
         break;
       case Token::kBIT_XOR:
-        result = op1.Value() ^ op2.Value();
+        result = op1_value ^ op2_value;
         break;
       default:
         UNIMPLEMENTED();
@@ -12587,7 +12566,7 @@ RawObject* GrowableObjectArray::RemoveLast() const {
   intptr_t index = Length() - 1;
   const Array& contents = Array::Handle(data());
   const Object& obj = Object::Handle(contents.At(index));
-  contents.SetAt(index, Object::Handle());
+  contents.SetAt(index, null_object());
   SetLength(index);
   return obj.raw();
 }

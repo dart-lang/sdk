@@ -17,6 +17,7 @@ namespace dart {
 
 // Forward declarations.
 class Function;
+class LiteralToken;
 class Script;
 class TokenStream;
 
@@ -644,6 +645,9 @@ class Parser : public ValueObject {
 
   // The function currently being parsed.
   Function& innermost_function_;
+
+  // Current literal token.
+  LiteralToken& literal_token_;
 
   // The class currently being parsed, or the owner class of the
   // function currently being parsed. It is used for primary identifier lookups.
