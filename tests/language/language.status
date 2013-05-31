@@ -552,8 +552,6 @@ call_through_getter_test: fail
 callable_test/none: fail
 cast_test/04: fail
 cast_test/05: fail
-class_cycle_negative_test: fail
-class_cycle_test/00: fail
 class_cycle_test/03: fail
 closure_call_wrong_argument_count_negative_test: fail
 compile_time_constant10_test/none: fail
