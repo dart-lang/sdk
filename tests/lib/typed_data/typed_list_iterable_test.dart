@@ -165,20 +165,16 @@ main() {
   testIterableFunctions(new Int8List.fromList([3, 9]), 3, 9);
   testIterableFunctions(new Int16List.fromList([3, 9]), 3, 9);
   testIterableFunctions(new Int32List.fromList([3, 9]), 3, 9);
-  testIterableFunctions(new Int64List.fromList([3, 9]), 3, 9);
   testIterableFunctions(new Uint8List.fromList([3, 9]), 3, 9);
   testIterableFunctions(new Uint16List.fromList([3, 9]), 3, 9);
   testIterableFunctions(new Uint32List.fromList([3, 9]), 3, 9);
-  testIterableFunctions(new Uint64List.fromList([3, 9]), 3, 9);
 
   emptyChecks(new Float32List(0));
   emptyChecks(new Float64List(0));
   emptyChecks(new Int8List(0));
   emptyChecks(new Int16List(0));
   emptyChecks(new Int32List(0));
-  emptyChecks(new Int64List(0));
   emptyChecks(new Uint8List(0));
   emptyChecks(new Uint16List(0));
   emptyChecks(new Uint32List(0));
-  emptyChecks(new Uint64List(0));
 }
