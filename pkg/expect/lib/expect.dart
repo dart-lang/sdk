@@ -29,7 +29,6 @@ class Expect {
    * Control characters may be encoded as "\xhh" codes.
    */
   static String _truncateString(String string, int start, int end, int length) {
-    print("$string: $start: $end: $length");
     if (end - start > length) {
       end = start + length;
     } else if (end - start < length) {
@@ -69,7 +68,6 @@ class Expect {
    * only a slice  containing the first difference will be shown.
    */
   static String _stringDifference(String expected, String actual) {
-    print("digg: $expected, $actual");
     if (expected.length < 20 && actual.length < 20) return null;
     for (int i = 0; i < expected.length && i < actual.length; i++) {
       if (expected.codeUnitAt(i) != actual.codeUnitAt(i)) {
