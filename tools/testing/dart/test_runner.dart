@@ -117,7 +117,7 @@ class Command {
     }
     var quotedArguments = [];
     arguments.forEach((argument) => quotedArguments.add('"$argument"'));
-    commandLine = "$executable ${quotedArguments.join(' ')}";
+    commandLine = "\"$executable\" ${quotedArguments.join(' ')}";
   }
 
   String toString() => commandLine;
