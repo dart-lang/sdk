@@ -32,6 +32,7 @@ main() {
                 testFor,
                 testWhile,
                 testTry,
+                testSwitch,
                 testOperators,
                 testConstructorInvocationArgumentCount,
                 testConstructorInvocationArgumentTypes,
@@ -42,6 +43,7 @@ main() {
                 testConditionalExpression,
                 testIfStatement,
                 testThis,
+                testSuper,
                 testOperatorsAssignability];
   for (Function test in tests) {
     setup();
@@ -120,6 +122,17 @@ testTry() {
   analyze("try {} catch (e, s) { int i = e; int j = s; } finally {}",
       MessageKind.NOT_ASSIGNABLE);
   analyze("try {} on String catch (e, s) { int i = e; int j = s; } finally {}",
+      [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+}
+
+
+testSwitch() {
+  analyze("switch (0) { case 1: break; case 2: break; }");
+  analyze("switch (0) { case 1: int i = ''; break; case 2: break; }",
+      MessageKind.NOT_ASSIGNABLE);
+  analyze("switch (0) { case '': break; case 2: break; }",
+      MessageKind.NOT_ASSIGNABLE);
+  analyze("switch ('') { case 1: break; case 2: break; }",
       [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
 }
 
@@ -538,6 +551,24 @@ testThis() {
   analyzeIn(foo, "{ int i = this; }", MessageKind.NOT_ASSIGNABLE);
   analyzeIn(foo, "{ Object o = this; }");
   analyzeIn(foo, "{ Foo f = this; }");
+}
+
+testSuper() {
+  String script = r'''
+    class A {
+      String field = "42";
+    }
+    
+    class B extends A {
+      Object field = 42;
+    }
+    ''';
+  LibraryElement library = mockLibrary(compiler, script);
+  compiler.parseScript(script, library);
+  ClassElement B = library.find(const SourceString("B"));
+  analyzeIn(B, "{ int i = super.field; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeIn(B, "{ Object o = super.field; }");
+  analyzeIn(B, "{ String s = super.field; }");
 }
 
 const String CLASSES_WITH_OPERATORS = '''
