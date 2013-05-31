@@ -26,6 +26,11 @@
 #if defined(__CYGWIN__)
 #error Tool chain and platform not supported.
 #elif defined(_WIN32)
+// Define bool if necessary.
+#ifndef __cplusplus
+typedef unsigned __int8 bool;
+#endif
+// Define integer types.
 typedef signed __int8 int8_t;
 typedef signed __int16 int16_t;
 typedef signed __int32 int32_t;
