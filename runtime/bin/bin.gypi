@@ -655,6 +655,13 @@
           'include_dirs': [
             '..',
           ],
+          'cflags!': [
+            '-Wnon-virtual-dtor',
+            '-Woverloaded-virtual',
+            '-fno-rtti',
+            '-fvisibility-inlines-hidden',
+            '-Wno-conversion-null',
+          ],
           'sources': [
             'test_extension.c',
             'test_extension_dllmain_win.cc',
