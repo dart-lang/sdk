@@ -170,6 +170,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     listType = compiler.listClass.computeType(compiler);
   }
 
+  LibraryElement get currentLibrary => elements.currentElement.getLibrary();
+
   reportTypeWarning(Node node, MessageKind kind, [Map arguments = const {}]) {
     compiler.reportWarning(node, new TypeWarning(kind, arguments));
   }
@@ -350,6 +352,19 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return thenType.join(elseType);
   }
 
+  void checkPrivateAccess(Node node, Element element, SourceString name) {
+    if (name != null &&
+        name.isPrivate() &&
+        element.getLibrary() != currentLibrary) {
+      reportTypeWarning(
+          node,
+          MessageKind.PRIVATE_ACCESS,
+          {'name': name,
+           'libraryName': element.getLibrary().getLibraryOrScriptName()});
+    }
+
+  }
+
   ElementAccess lookupMember(Node node, DartType type, SourceString name,
                              MemberKind memberKind) {
     if (identical(type, types.dynamicType)) {
@@ -357,6 +372,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     }
     Member member = type.lookupMember(name);
     if (member != null) {
+      checkPrivateAccess(node, member.element, name);
       return new MemberAccess(member);
     }
     switch (memberKind) {
@@ -542,12 +558,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           name, memberKind);
     } else if (element.isFunction()) {
       // foo() where foo is a method in the same class.
-      return new ResolvedAccess(element);
+      return createResolvedAccess(node, name, element);
     } else if (element.isVariable() ||
         element.isParameter() ||
         element.isField()) {
       // foo() where foo is a field in the same class.
-      return new ResolvedAccess(element);
+      return createResolvedAccess(node, name, element);
     } else if (element.impliesType()) {
       // The literal `Foo` where Foo is a class, a typedef, or a type variable.
       if (elements.getType(node) != null) {
@@ -557,13 +573,19 @@ class TypeCheckerVisitor extends Visitor<DartType> {
               '${elements.getType(node)}'));
         return new TypeLiteralAccess(element);
       }
-      return new ResolvedAccess(element);
+      return createResolvedAccess(node, name, element);
     } else if (element.isGetter() || element.isSetter()) {
-      return new ResolvedAccess(element);
+      return createResolvedAccess(node, name, element);
     } else {
       compiler.internalErrorOnElement(
           element, 'unexpected element kind ${element.kind}');
     }
+  }
+
+  ElementAccess createResolvedAccess(Send node, SourceString name,
+                                     Element element) {
+    checkPrivateAccess(node, element, name);
+    return new ResolvedAccess(element);
   }
 
   /**
@@ -891,6 +913,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
+    if (Elements.isUnresolved(element)) return types.dynamicType;
+
+    ClassElement enclosingClass = element.getEnclosingClass();
+    SourceString name = Elements.deconstructConstructorName(
+        element.name, enclosingClass);
+    checkPrivateAccess(node, element, name);
     DartType constructorType = computeType(element);
     DartType newType = elements.getType(node);
     // TODO(johnniwinther): Use [:lookupMember:] to account for type variable

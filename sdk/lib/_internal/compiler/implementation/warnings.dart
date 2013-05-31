@@ -38,6 +38,9 @@ class MessageKind {
       '#{className}.#{memberName} is not static');
   static const NO_INSTANCE_AVAILABLE = const MessageKind(
       '#{name} is only available in instance methods');
+  static const PRIVATE_ACCESS = const MessageKind(
+      "'#{name}' is declared private within library #{libraryName} and "
+      "is therefore not accessible.");
 
   static const THIS_IS_THE_METHOD = const MessageKind(
       "This is the method declaration.");
