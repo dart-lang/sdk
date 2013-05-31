@@ -149,23 +149,30 @@ abstract class SecureSocket implements Socket {
    * arguments.
    *
    * The optional argument [database] is the path to a certificate database
-   * containing root certificates for verifying certificate paths on
+   * directory containing root certificates for verifying certificate paths on
    * client connections, and server certificates to provide on server
    * connections.  The argument [password] should be used when creating
    * secure server sockets, to allow the private key of the server
    * certificate to be fetched.  If [useBuiltinRoots] is true (the default),
    * then a built-in set of root certificates for trusted certificate
    * authorities is merged with the certificates in the database.
+   * The list of built-in root certificates, and documentation about this
+   * default database, is available at
+   * http://www.mozilla.org/projects/security/certs/included/ .
+   *
+   * If the [database] argument is omitted, then only the
+   * builtin root certificates are used.  If [useBuiltinRoots] is also false,
+   * then no certificates are available.
    *
    * Examples:
    *   1) Use only the builtin root certificates:
    *     SecureSocket.initialize(); or
    *
-   *   2) Use a specified database and the builtin roots:
+   *   2) Use a specified database directory and the builtin roots:
    *     SecureSocket.initialize(database: 'path/to/my/database',
    *                             password: 'my_password');
    *
-   *   3) Use a specified database, without builtin roots:
+   *   3) Use a specified database directory, without builtin roots:
    *     SecureSocket.initialize(database: 'path/to/my/database',
    *                             password: 'my_password'.
    *                             useBuiltinRoots: false);
