@@ -262,6 +262,7 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
   final Symbol simpleName;
   final _jsConstructor;
   final String _fields;
+  List _metadata;
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
 
@@ -368,6 +369,15 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
       }
     }
     return _owner;
+  }
+
+  List<InstanceMirror> get metadata {
+    if (_metadata == null) {
+      var metadataFunction = JS('', '#.prototype["@"]', _jsConstructor);
+      _metadata = (metadataFunction == null)
+          ? const [] : JS('', '#()', metadataFunction);
+    }
+    return _metadata.map(reflect).toList();
   }
 
   String toString() => 'ClassMirror(${n(simpleName)})';

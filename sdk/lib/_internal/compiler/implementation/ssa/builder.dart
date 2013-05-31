@@ -2631,7 +2631,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // creating an [HStatic].
       push(new HStatic(element.declaration));
       // TODO(ahe): This should be registered in codegen.
-      compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
+      compiler.enqueuer.codegen.registerGetOfStaticFunction(
+          element.declaration);
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,

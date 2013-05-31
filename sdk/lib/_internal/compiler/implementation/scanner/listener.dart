@@ -1033,9 +1033,11 @@ class ElementListener extends Listener {
   }
 
   Link<MetadataAnnotation> popMetadata(Element element) {
-    var result = metadata;
+    var result = const Link<MetadataAnnotation>();
     for (Link link = metadata; !link.isEmpty; link = link.tail) {
       element.addMetadata(link.head);
+      // Reverse the list as is implicitly done by addMetadata.
+      result = result.prepend(link.head);
     }
     metadata = const Link<MetadataAnnotation>();
     return result;

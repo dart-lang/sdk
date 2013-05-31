@@ -1557,6 +1557,10 @@ class CodeEmitterTask extends CompilerTask {
     emitSuper(superName, builder);
     emitRuntimeName(runtimeName, builder);
     emitClassFields(classElement, builder, superName);
+    var metadata = buildMetadataFunction(classElement);
+    if (metadata != null) {
+      builder.addProperty("@", metadata);
+    }
     emitClassGettersSetters(classElement, builder);
     if (!classElement.isMixinApplication) {
       emitInstanceMembers(classElement, builder);
@@ -2932,13 +2936,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   /// constructed yet.  For example, a class is allowed to be
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
-  jsAst.Expression buildMetadataFunction(Element element) {
-    if (compiler.mirrorSystemClass == null) {
-      // Since the string is not quoted, this just becomes an empty
-      // node.  Since the result is added to a list, this implicitly
-      // makes the value undefined.
-      return new jsAst.LiteralString('');
-    }
+  jsAst.Fun buildMetadataFunction(Element element) {
+    if (compiler.mirrorSystemClass == null) return null;
     var metadata = [];
     Link link = element.metadata;
     // TODO(ahe): Why is metadata sometimes null?
@@ -2947,6 +2946,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         metadata.add(constantReference(link.head.value));
       }
     }
+    if (metadata.isEmpty) return null;
     return js.fun([], [js.return_(new jsAst.ArrayInitializer.from(metadata))]);
   }
 
@@ -3051,11 +3051,12 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
                 compiler.sourceMapUri, library.canonicalUri, false);
           }
           if (buffer != null) {
+            var metadata = buildMetadataFunction(library);
             mainBuffer
                 ..write('["${library.getLibraryOrScriptName()}",$_')
                 ..write('"${uri}",$_')
-                ..write(
-                    jsAst.prettyPrint(buildMetadataFunction(library), compiler))
+                ..write(metadata == null
+                        ? "" : jsAst.prettyPrint(metadata, compiler))
                 ..write(',$_')
                 ..write('{$n')
                 ..addBuffer(buffer)

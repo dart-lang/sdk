@@ -2320,7 +2320,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     useElement(node, target);
     registerSend(selector, target);
     if (node.isPropertyAccess && Elements.isStaticOrTopLevelFunction(target)) {
-      world.registerGetOfStaticFunction(target);
+      world.registerGetOfStaticFunction(target.declaration);
     }
     return node.isPropertyAccess ? target : null;
   }
