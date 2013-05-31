@@ -129,12 +129,15 @@ enum DRegister {
 };
 
 
+// Register aliases for floating point scratch registers.
+const DRegister DTMP = D0;  // Overlaps with STMP.
+const SRegister STMP = S0;
+
 // Architecture independent aliases.
 typedef DRegister FpuRegister;
-const FpuRegister FpuTMP = D0;
+const FpuRegister FpuTMP = DTMP;
 const int kNumberOfFpuRegisters = kNumberOfDRegisters;
 const FpuRegister kNoFpuRegister = kNoDRegister;
-
 
 // Register aliases.
 const Register TMP = IP;  // Used as scratch register by assembler.

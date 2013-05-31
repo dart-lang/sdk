@@ -491,7 +491,7 @@ static Condition NegateCondition(Condition condition) {
     case HI: return LS;
     case CS: return CC;
     default:
-      UNIMPLEMENTED();
+      UNREACHABLE();
       return EQ;
   }
 }
@@ -683,7 +683,7 @@ static Condition FlipCondition(Condition condition) {
     case HI: return CC;
     case CS: return LS;
     default:
-      UNIMPLEMENTED();
+      UNREACHABLE();
       return EQ;
   }
 }
@@ -1122,7 +1122,7 @@ CompileType LoadIndexedInstr::ComputeType() const {
                              : CompileType::Int();
 
     default:
-      UNIMPLEMENTED();
+      UNREACHABLE();
       return CompileType::Dynamic();
   }
 }
@@ -1153,7 +1153,7 @@ Representation LoadIndexedInstr::representation() const {
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
-      UNIMPLEMENTED();
+      UNREACHABLE();
       return kTagged;
   }
 }
@@ -1236,8 +1236,8 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         // vldrs does not support indexed addressing.
         __ add(index.reg(), index.reg(), ShifterOperand(array));
         element_address = Address(index.reg(), 0);
-        __ vldrs(S0, element_address);
-        __ vcvtds(result, S0);
+        __ vldrs(STMP, element_address);
+        __ vcvtds(result, STMP);
         break;
       case kTypedDataFloat64ArrayCid:
         // vldrd does not support indexed addressing.
@@ -1329,7 +1329,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
     case kTypedDataFloat32x4ArrayCid:
       return kUnboxedFloat32x4;
     default:
-      UNIMPLEMENTED();
+      UNREACHABLE();
       return kTagged;
   }
 }
@@ -2575,8 +2575,8 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadDFromOffset(result, value, Double::value_offset() - kHeapObjectTag);
   } else if (value_cid == kSmiCid) {
     __ SmiUntag(value);  // Untag input before conversion.
-    __ vmovsr(S0, value);
-    __ vcvtdi(result, S0);
+    __ vmovsr(STMP, value);
+    __ vcvtdi(result, STMP);
   } else {
     Label* deopt = compiler->AddDeoptStub(deopt_id_, kDeoptBinaryDoubleOp);
     Register temp = locs()->temp(0).reg();
@@ -2590,8 +2590,8 @@ void UnboxDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ Bind(&is_smi);
     // TODO(regis): Why do we preserve value here but not above?
     __ mov(IP, ShifterOperand(value, ASR, 1));  // Copy and untag.
-    __ vmovsr(S0, IP);
-    __ vcvtdi(result, S0);
+    __ vmovsr(STMP, IP);
+    __ vcvtdi(result, STMP);
     __ Bind(&done);
   }
 }
@@ -2941,8 +2941,8 @@ void SmiToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(0).reg();
   FpuRegister result = locs()->out().fpu_reg();
   __ SmiUntag(value);
-  __ vmovsr(S0, value);
-  __ vcvtdi(result, S0);
+  __ vmovsr(STMP, value);
+  __ vcvtdi(result, STMP);
 }
 
 
@@ -2962,9 +2962,9 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value_obj = locs()->in(0).reg();
   ASSERT(result == R0);
   ASSERT(result != value_obj);
-  __ LoadDFromOffset(D0, value_obj, Double::value_offset() - kHeapObjectTag);
-  __ vcvtid(S0, D0);
-  __ vmovrs(result, S0);
+  __ LoadDFromOffset(DTMP, value_obj, Double::value_offset() - kHeapObjectTag);
+  __ vcvtid(STMP, DTMP);
+  __ vmovrs(result, STMP);
   // Overflow is signaled with minint.
   Label do_call, done;
   // Check for overflow and that it fits into Smi.
@@ -3005,8 +3005,8 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptDoubleToSmi);
   Register result = locs()->out().reg();
   DRegister value = locs()->in(0).fpu_reg();
-  __ vcvtid(S0, value);
-  __ vmovrs(result, S0);
+  __ vcvtid(STMP, value);
+  __ vmovrs(result, STMP);
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(result, 0xC0000000);
   __ b(deopt, MI);
@@ -3074,14 +3074,12 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(&skip_call);
   }
   __ Bind(&do_call);
-  // TODO(regis): Using D0 as the reserved scratch value is not a good idea.
-  __ vmovd(D0, locs()->in(0).fpu_reg());
-  if (InputCount() == 2) {
-    __ vmovd(D1, locs()->in(1).fpu_reg());
-  }
-  UNIMPLEMENTED();  // TODO(regis): We need to support double type leaf calls.
+  __ vmovrrd(R0, R1, locs()->in(0).fpu_reg());
+  __ vmovrrd(R2, R3, locs()->in(1).fpu_reg());
+  // TODO(regis): This leaf runtime call is not yet supported by the simulator.
+  // We need a new leaf floating point runtime call kind.
   __ CallRuntime(TargetFunction());
-  __ vmovd(locs()->out().fpu_reg(), D0);
+  __ vmovdrr(locs()->out().fpu_reg(), R0, R1);
   __ Bind(&skip_call);
 }
 

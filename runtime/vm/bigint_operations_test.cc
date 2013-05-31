@@ -1340,7 +1340,9 @@ TEST_CASE(BigintBitNot) {
 }
 
 
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+#if defined(TARGET_ARCH_IA32) ||                                               \
+    defined(TARGET_ARCH_X64) ||                                                \
+    defined(TARGET_ARCH_ARM)
 static void TestBigintMultiplyDivide(const char* a,
                                      const char* b,
                                      const char* product) {

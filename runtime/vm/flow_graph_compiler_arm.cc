@@ -1640,8 +1640,8 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ vldrd(destination.fpu_reg(), source.ToStackSlotAddress());
     } else {
       ASSERT(destination.IsDoubleStackSlot());
-      __ vldrd(FpuTMP, source.ToStackSlotAddress());
-      __ vstrd(FpuTMP, destination.ToStackSlotAddress());
+      __ vldrd(DTMP, source.ToStackSlotAddress());
+      __ vstrd(DTMP, destination.ToStackSlotAddress());
     }
   } else if (source.IsQuadStackSlot()) {
     UNIMPLEMENTED();
@@ -1678,9 +1678,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
   } else if (source.IsStackSlot() && destination.IsStackSlot()) {
     Exchange(destination.ToStackSlotAddress(), source.ToStackSlotAddress());
   } else if (source.IsFpuRegister() && destination.IsFpuRegister()) {
-    __ vmovd(FpuTMP, source.fpu_reg());
+    __ vmovd(DTMP, source.fpu_reg());
     __ vmovd(source.fpu_reg(), destination.fpu_reg());
-    __ vmovd(destination.fpu_reg(), FpuTMP);
+    __ vmovd(destination.fpu_reg(), DTMP);
   } else if (source.IsFpuRegister() || destination.IsFpuRegister()) {
     ASSERT(destination.IsDoubleStackSlot() ||
            destination.IsQuadStackSlot() ||
@@ -1695,9 +1695,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
         : source.ToStackSlotAddress();
 
     if (double_width) {
-      __ vldrd(FpuTMP, slot_address);
+      __ vldrd(DTMP, slot_address);
       __ vstrd(reg, slot_address);
-      __ vmovd(reg, FpuTMP);
+      __ vmovd(reg, DTMP);
     } else {
       UNIMPLEMENTED();
     }
@@ -1705,10 +1705,10 @@ void ParallelMoveResolver::EmitSwap(int index) {
     const Address& source_slot_address = source.ToStackSlotAddress();
     const Address& destination_slot_address = destination.ToStackSlotAddress();
 
-    ScratchFpuRegisterScope ensure_scratch(this, FpuTMP);
-    __ vldrd(FpuTMP, source_slot_address);
+    ScratchFpuRegisterScope ensure_scratch(this, DTMP);
+    __ vldrd(DTMP, source_slot_address);
     __ vldrd(ensure_scratch.reg(), destination_slot_address);
-    __ vstrd(FpuTMP, destination_slot_address);
+    __ vstrd(DTMP, destination_slot_address);
     __ vstrd(ensure_scratch.reg(), source_slot_address);
   } else if (source.IsQuadStackSlot() && destination.IsQuadStackSlot()) {
     UNIMPLEMENTED();
