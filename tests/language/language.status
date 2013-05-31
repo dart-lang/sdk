@@ -38,6 +38,7 @@ pseudo_kw_illegal_test/14: Fail  # Issue 356
 method_override2_test/00: Fail # Issue 7076.
 method_override2_test/02: Fail # Issue 7076.
 method_override2_test/03: Fail # Issue 7076.
+bound_closure_equality_test: Fail # Issue 10849
 
 # These bugs refer currently ongoing language discussions.
 constructor5_test: Fail           # (Discussion ongoing)
@@ -77,11 +78,12 @@ on_catch_malformed_type_test: Fail # Issue 8601
 
 mixin_mixin_test: Fail
 mixin_issue10216_2_test: Fail
+mixin_illegal_object_test/01: Crash # Issue 10952
+mixin_illegal_object_test/02: Crash # Issue 10952
 
 type_variable_field_initializer_closure_test: Crash # issue 8847
 
 super_getter_setter_test: Fail # Issue 8917
-super_operator_index7_test: Fail # Issue 8918
 
 execute_finally10_test: Fail # Issue 430
 execute_finally11_test: Fail # Issue 430
@@ -330,16 +332,8 @@ call_test: Fail # Issue 1604
 built_in_identifier_prefix_test: Fail # Inherited from dart2js.
 constructor_redirect2_test/03: Fail
 constructor_initializer_test: Fail # VM issue
-factory2_test: Fail
 factory3_test: Fail
-factory5_test/none: Fail
-factory5_test/00: Fail
 type_checks_in_factory_method_test: Fail
-default_factory2_test/01: Fail # type arguments on redirecting factory not implemented
-default_factory3_test: Fail # type arguments on redirecting factory not implemented
-non_parameterized_factory_test: Fail # type arguments on redirecting factory not implemented
-non_parameterized_factory2_test: Fail # type arguments on redirecting factory not implemented
-type_variable_scope_test: Fail # type arguments on redirecting factory not implemented
 
 many_overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
 overridden_no_such_method_test: Fail, Pass, OK # Fails in minified mode, test depends on method names.
@@ -515,10 +509,11 @@ type_parameter_literal_test: Fail
 type_variable_field_initializer_closure_test: Crash # VM bug: issue 8847
 
 super_getter_setter_test: Fail # VM bug: issue 8917
-super_operator_index7_test: Fail # VM bug: issue 8918
 
 execute_finally10_test: Fail # VM bug: issue 430
 execute_finally11_test: Fail # VM bug: issue 430
+
+bound_closure_equality_test: Fail # Issue 10849
 
 [ $compiler == dart2dart && $minified ]
 
@@ -557,18 +552,10 @@ call_through_getter_test: fail
 callable_test/none: fail
 cast_test/04: fail
 cast_test/05: fail
-class_cycle_negative_test: fail
-class_cycle_test/00: fail
-class_cycle_test/01: fail
 class_cycle_test/03: fail
 closure_call_wrong_argument_count_negative_test: fail
 compile_time_constant10_test/none: fail
 compile_time_constant8_test: fail
-compile_time_constant_arguments_test/01: fail
-compile_time_constant_arguments_test/02: fail
-compile_time_constant_arguments_test/03: fail
-compile_time_constant_arguments_test/05: fail
-compile_time_constant_arguments_test/06: fail
 compile_time_constant_b_test: fail
 compile_time_constant_c_test/01: fail
 compile_time_constant_c_test/02: fail
@@ -606,7 +593,6 @@ factory2_test: fail
 factory5_test/00: fail
 factory_implementation_test/none: fail
 factory_redirection2_test/01: fail
-factory_redirection_test/07: fail
 fauxverride_test/03: fail
 fauxverride_test/05: fail
 field_method4_negative_test: fail
@@ -633,13 +619,11 @@ implicit_this_test/01: fail
 implicit_this_test/04: fail
 implicit_this_test/none: fail
 import_combinators_negative_test: fail
-infinite_switch_label_test: fail
 inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
 instance_method2_negative_test: fail
 instance_method_negative_test: fail
 instantiate_type_variable_negative_test: fail
-interface_cycle_negative_test: fail
 interface_inherit_field_test: fail
 interface_static_non_final_fields_negative_test: fail
 interface_test/00: fail
@@ -673,7 +657,6 @@ named_parameters_aggregated_test/05: fail
 new_expression_type_args_test/00: fail
 new_expression_type_args_test/01: fail
 new_expression_type_args_test/02: fail
-nested_switch_label_test: fail
 no_such_method_negative_test: fail
 non_const_super_negative_test: fail
 number_identifier_negative_test: fail
@@ -717,7 +700,6 @@ static_field_test/02: fail
 static_field_test/03: fail
 static_final_field2_negative_test: fail
 static_final_field_negative_test: fail
-switch_label2_test: fail
 syntax_test/28: fail
 syntax_test/29: fail
 syntax_test/30: fail
@@ -817,8 +799,24 @@ type_variable_scope_test/04: fail
 type_variable_scope_test/05: fail
 
 
-[ $arch == simarm ]
+[ $arch == arm ]
 *: Skip
+
+[ $arch == simarm ]
+arithmetic_test: Crash
+bit_operations_test: Crash
+char_escape_test: Pass, Crash
+deopt_smi_op_test: Fail
+div_with_power_of_two_test: Fail
+double_modulo_test: Crash
+gc_test: Crash
+invocation_mirror_test: Fail
+large_implicit_getter_test: Crash
+load_to_load_forwarding_test: Fail
+math_vm_test: Crash
+named_parameters_with_conversions_test: Pass, Crash
+stack_overflow_stacktrace_test: Crash
+stack_overflow_test: Crash
 
 [ $arch == mips ]
 *: Skip

@@ -251,6 +251,7 @@
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
+        'libdart_io',
       ],
       'include_dirs': [
         '..',

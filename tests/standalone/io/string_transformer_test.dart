@@ -17,7 +17,7 @@ void testUtf8() {
                     0xef, 0xbf, 0xbf,
                     0xf0, 0x9d, 0x84, 0x9e,
                     0x100, -0x1, -0xFF];
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.add(data);
   controller.close();
   var stringStream = controller.stream
@@ -52,7 +52,7 @@ void testLatin1() {
                     0x80,
                     0xff,
                     0x100, -0x1, -0xff];
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.add(data);
   controller.close();
   var stream = controller.stream
@@ -73,7 +73,7 @@ void testAscii() {
                     0x44, 0x61, 0x72, 0x74,
                     0x7f,
                     0xf4, 0x100, -0x1, -0xff];
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.add(data);
   controller.close();
   var stream = controller.stream
@@ -88,7 +88,7 @@ void testAscii() {
 }
 
 void testReadLine1() {
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   var stream = controller.stream
       .transform(new StringDecoder())
       .transform(new LineTransformer());
@@ -119,7 +119,7 @@ void testReadLine1() {
 }
 
 void testReadLine2() {
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
 
   var stream = controller.stream
     .transform(new StringDecoder())
@@ -187,7 +187,7 @@ class TestException implements Exception {
 }
 
 testErrorHandler() {
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   var errors = 0;
   var stream = controller.stream
     .transform(new StringDecoder())
@@ -212,7 +212,7 @@ testLatin1EncoderError() {
                     0x80,
                     0xff,
                     0x100];
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.add(new String.fromCharCodes(data));
   controller.close();
   var stream = controller.stream

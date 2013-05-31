@@ -65,7 +65,7 @@ void Symbols::InitOnce(Isolate* isolate) {
     // The symbol_table needs to be reloaded as it might have grown in the
     // previous iteration.
     symbol_table = object_store->symbol_table();
-    String* str = String::ReadOnlyHandle(isolate);
+    String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(names[i], Heap::kOld);
     Add(symbol_table, *str);
     symbol_handles_[i] = str;
@@ -81,7 +81,7 @@ void Symbols::InitOnce(Isolate* isolate) {
     ASSERT(idx < kMaxPredefinedId);
     ASSERT(Utf::IsLatin1(c));
     uint8_t ch = static_cast<uint8_t>(c);
-    String* str = String::ReadOnlyHandle(isolate);
+    String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(&ch, 1, Heap::kOld);
     Add(symbol_table, *str);
     predefined_[c] = str->raw();

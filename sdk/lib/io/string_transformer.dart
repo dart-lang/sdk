@@ -186,7 +186,7 @@ String _decodeString(List<int> bytes, [Encoding encoding = Encoding.UTF_8]) {
   if (bytes.length == 0) return "";
   var string;
   var error;
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.stream
     .transform(new StringDecoder(encoding))
     .listen((data) => string = data,
@@ -205,7 +205,7 @@ String _decodeUtf8Strict(List<int> bytes) {
   if (bytes.length == 0) return "";
   var string;
   var error;
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.stream
     .transform(new Utf8DecoderTransformer(null))
     .listen((data) => string = data,
@@ -223,7 +223,7 @@ String _decodeUtf8Strict(List<int> bytes) {
 List<int> _encodeString(String string, [Encoding encoding = Encoding.UTF_8]) {
   if (string.length == 0) return [];
   var bytes;
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.stream
     .transform(new StringEncoder(encoding))
     .listen((data) => bytes = data);

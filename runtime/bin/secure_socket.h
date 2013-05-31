@@ -89,7 +89,9 @@ class SSLFilter {
   void Handshake();
   void RegisterHandshakeCompleteCallback(Dart_Handle handshake_complete);
   void RegisterBadCertificateCallback(Dart_Handle callback);
-  Dart_Handle bad_certificate_callback() { return bad_certificate_callback_; }
+  Dart_Handle bad_certificate_callback() {
+    return Dart_HandleFromPersistent(bad_certificate_callback_);
+  }
   static void InitializeLibrary(const char* certificate_database,
                                 const char* password,
                                 bool use_builtin_root_certificates,
@@ -106,11 +108,11 @@ class SSLFilter {
   uint8_t* buffers_[kNumBuffers];
   int buffer_size_;
   int encrypted_buffer_size_;
-  Dart_Handle string_start_;
-  Dart_Handle string_length_;
-  Dart_Handle dart_buffer_objects_[kNumBuffers];
-  Dart_Handle handshake_complete_;
-  Dart_Handle bad_certificate_callback_;
+  Dart_PersistentHandle string_start_;
+  Dart_PersistentHandle string_length_;
+  Dart_PersistentHandle dart_buffer_objects_[kNumBuffers];
+  Dart_PersistentHandle handshake_complete_;
+  Dart_PersistentHandle bad_certificate_callback_;
   bool in_handshake_;
   bool is_server_;
   char* client_certificate_name_;

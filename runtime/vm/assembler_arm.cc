@@ -1243,29 +1243,6 @@ void Assembler::blx(Register rm, Condition cond) {
 }
 
 
-void Assembler::mrc(Register rd, int32_t coproc, int32_t opc1,
-                    int32_t crn, int32_t crm, int32_t opc2, Condition cond) {
-  ASSERT(rd != kNoRegister);
-  ASSERT(cond != kNoCondition);
-
-  // This is all the simulator and disassembler know about.
-  ASSERT(coproc == 15);
-  ASSERT(opc1 == 0);
-  ASSERT(crn == 0);
-  ASSERT(crm == 2);
-  ASSERT(opc2 == 0);
-  int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
-                     B27 | B26 | B25 | B20 | B4 |
-                     ((opc1 & 0x7) << kOpc1Shift) |
-                     ((crn & 0xf) << kCRnShift) |
-                     ((coproc & 0xf) << kCoprocShift) |
-                     ((opc2 & 0x7) << kOpc2Shift) |
-                     ((crm & 0xf) << kCRmShift) |
-                     (static_cast<int32_t>(rd) << kRdShift);
-  Emit(encoding);
-}
-
-
 void Assembler::MarkExceptionHandler(Label* label) {
   EmitType01(AL, 1, TST, 1, PC, R0, ShifterOperand(0));
   Label l;
@@ -1504,8 +1481,9 @@ bool Address::CanHoldLoadOffset(LoadOperandType type,
     }
     case kLoadSWord:
     case kLoadDWord: {
-      *offset_mask = 0x3ff;
-      return Utils::IsAbsoluteUint(10, offset);  // VFP addressing mode.
+      *offset_mask = 0x3fc;  // Multiple of 4.
+      // VFP addressing mode.
+      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
     }
     default: {
       UNREACHABLE();
@@ -1531,8 +1509,9 @@ bool Address::CanHoldStoreOffset(StoreOperandType type,
     }
     case kStoreSWord:
     case kStoreDWord: {
-      *offset_mask = 0x3ff;
-      return Utils::IsAbsoluteUint(10, offset);  // VFP addressing mode.
+      *offset_mask = 0x3fc;  // Multiple of 4.
+      // VFP addressing mode.
+      return (Utils::IsAbsoluteUint(10, offset) && Utils::IsAligned(offset, 4));
     }
     default: {
       UNREACHABLE();
@@ -1562,7 +1541,7 @@ void Assembler::PopList(RegList regs, Condition cond) {
 }
 
 
-void Assembler::Mov(Register rd, Register rm, Condition cond) {
+void Assembler::MoveRegister(Register rd, Register rm, Condition cond) {
   if (rd != rm) {
     mov(rd, ShifterOperand(rm), cond);
   }
@@ -1576,11 +1555,21 @@ void Assembler::Lsl(Register rd, Register rm, uint32_t shift_imm,
 }
 
 
+void Assembler::Lsl(Register rd, Register rm, Register rs, Condition cond) {
+  mov(rd, ShifterOperand(rm, LSL, rs), cond);
+}
+
+
 void Assembler::Lsr(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Do not use Lsr if no shift is wanted.
   if (shift_imm == 32) shift_imm = 0;  // Comply to UAL syntax.
   mov(rd, ShifterOperand(rm, LSR, shift_imm), cond);
+}
+
+
+void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
+  mov(rd, ShifterOperand(rm, LSR, rs), cond);
 }
 
 
@@ -1592,10 +1581,20 @@ void Assembler::Asr(Register rd, Register rm, uint32_t shift_imm,
 }
 
 
+void Assembler::Asr(Register rd, Register rm, Register rs, Condition cond) {
+  mov(rd, ShifterOperand(rm, ASR, rs), cond);
+}
+
+
 void Assembler::Ror(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Use Rrx instruction.
   mov(rd, ShifterOperand(rm, ROR, shift_imm), cond);
+}
+
+
+void Assembler::Ror(Register rd, Register rm, Register rs, Condition cond) {
+  mov(rd, ShifterOperand(rm, ROR, rs), cond);
 }
 
 

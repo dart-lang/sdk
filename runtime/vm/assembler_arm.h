@@ -514,10 +514,6 @@ class Assembler : public ValueObject {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  // Move to ARM core register from Coprocessor.
-  void mrc(Register rd, int32_t coproc, int32_t opc1,
-           int32_t crn, int32_t crm, int32_t opc2, Condition cond = AL);
-
   // Macros.
   // Branch to an entry address. Call sequence is never patched.
   void Branch(const ExternalLabel* label, Condition cond = AL);
@@ -617,14 +613,18 @@ class Assembler : public ValueObject {
   void PushList(RegList regs, Condition cond = AL);
   void PopList(RegList regs, Condition cond = AL);
 
-  void Mov(Register rd, Register rm, Condition cond = AL);
+  void MoveRegister(Register rd, Register rm, Condition cond = AL);
 
   // Convenience shift instructions. Use mov instruction with shifter operand
-  // for variants setting the status flags or using a register shift count.
+  // for variants setting the status flags.
   void Lsl(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Lsl(Register rd, Register rm, Register rs, Condition cond = AL);
   void Lsr(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Lsr(Register rd, Register rm, Register rs, Condition cond = AL);
   void Asr(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Asr(Register rd, Register rm, Register rs, Condition cond = AL);
   void Ror(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Ror(Register rd, Register rm, Register rs, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
 
   void SmiTag(Register reg, Condition cond = AL) {

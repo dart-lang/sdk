@@ -41,7 +41,7 @@ postmessage_structured_test/primitives: Fail # Issue 10097
 [ $runtime == chrome ]
 touchevent_test/supported: Fail
 
-[ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt ]
+[ $runtime == chrome || $runtime == chromeOnAndroid || $runtime == drt || $runtime == safari ]
 audiocontext_test: Skip # Issue 9322
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid]

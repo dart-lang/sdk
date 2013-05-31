@@ -106,6 +106,9 @@ String _filePathFromUri(String userUri, bool isWindows) {
     case 'package':
       path = _filePathFromPackageUri(uri);
       break;
+    case 'http':
+      path = _filePathFromHttpUri(uri);
+      break;
     default:
       // Only handling file and package URIs in standalone binary.
       _logResolution("# Unknown scheme (${uri.scheme}) in $uri.");
@@ -161,4 +164,24 @@ String _filePathFromPackageUri(Uri uri) {
 
   _logResolution("# Package: $path");
   return path;
+}
+
+String _filePathFromHttpUri(Uri uri) {
+  _logResolution('# Path: $uri');
+  return uri.toString();
+}
+
+String _pathFromHttpUri(String userUri) {
+  var uri = Uri.parse(userUri);
+  return uri.path;
+}
+
+String _domainFromHttpUri(String userUri) {
+  var uri = Uri.parse(userUri);
+  return uri.domain;
+}
+
+int _portFromHttpUri(String userUri) {
+  var uri = Uri.parse(userUri);
+  return uri.port == 0 ? 80 : uri.port;
 }

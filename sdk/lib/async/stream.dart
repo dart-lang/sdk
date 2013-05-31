@@ -62,7 +62,7 @@ abstract class Stream<T> {
    * data or error, and then close with a done-event.
    */
   factory Stream.fromFuture(Future<T> future) {
-    StreamController<T> controller = new StreamController<T>();
+    StreamController<T> controller = new StreamController<T>(sync: true);
     future.then((value) {
         controller.add(value);
         controller.close();
@@ -114,7 +114,7 @@ abstract class Stream<T> {
       });
     }
 
-    controller = new StreamController<T>(
+    controller = new StreamController<T>(sync: true,
         onListen: () {
           watch.start();
           startPeriodicTimer();

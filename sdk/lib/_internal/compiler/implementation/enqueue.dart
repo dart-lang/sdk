@@ -87,6 +87,8 @@ abstract class Enqueuer {
   final Function itemCompilationContextCreator;
   final Map<String, Link<Element>> instanceMembersByName
       = new Map<String, Link<Element>>();
+  final Map<String, Link<Element>> instanceFunctionsByName
+      = new Map<String, Link<Element>>();
   final Set<ClassElement> seenClasses = new Set<ClassElement>();
   final Universe universe = new Universe();
 
@@ -193,34 +195,69 @@ abstract class Enqueuer {
     assert(invariant(member, member.isDeclaration));
     if (isProcessed(member)) return;
     if (!member.isInstanceMember()) return;
-    if (member.isField()) {
-      // Fields are implicitly used by the constructor of the
-      // instantiated class they are part of.
-      compiler.world.registerUsedElement(member);
-      // Native fields need to go into instanceMembersByName as they
-      // are virtual instantiation points and escape points. Test the
-      // enclosing class, since the metadata has not been parsed yet.
-      if (!member.enclosingElement.isNative()) return;
-    }
 
     String memberName = member.name.slowToString();
 
-    if (member.kind == ElementKind.FUNCTION) {
+    if (member.kind == ElementKind.FIELD) {
+      // The obvious thing to test here would be "member.isNative()",
+      // however, that only works after metadata has been parsed/analyzed,
+      // and that may not have happened yet.
+      // So instead we use the enclosing class, which we know have had
+      // its metadata parsed and analyzed.
+      // Note: this assumes that there are no non-native fields on native
+      // classes, which may not be the case when a native class is subclassed.
+      if (cls.isNative()) {
+        compiler.world.registerUsedElement(member);
+        nativeEnqueuer.handleFieldAnnotations(member);
+        if (universe.hasInvokedGetter(member, compiler) ||
+            universe.hasInvocation(member, compiler)) {
+          nativeEnqueuer.registerFieldLoad(member);
+          // In handleUnseenSelector we can't tell if the field is loaded or
+          // stored.  We need the basic algorithm to be Church-Rosser, since the
+          // resolution 'reduction' order is different to the codegen order. So
+          // register that the field is also stored.  In other words: if we
+          // don't register the store here during resolution, the store could be
+          // registered during codegen on the handleUnseenSelector path, and
+          // cause the set of codegen elements to include unresolved elements.
+          nativeEnqueuer.registerFieldStore(member);
+          return;
+        }
+        if (universe.hasInvokedSetter(member, compiler)) {
+          nativeEnqueuer.registerFieldStore(member);
+          // See comment after registerFieldLoad above.
+          nativeEnqueuer.registerFieldLoad(member);
+          return;
+        }
+        // Native fields need to go into instanceMembersByName as they
+        // are virtual instantiation points and escape points.
+      } else {
+        // The codegen inlines instance fields initialization, so it
+        // does not need to add individual fields in the work list.
+        if (isResolutionQueue) {
+          addToWorkList(member);
+        }
+        return;
+      }
+    } else if (member.kind == ElementKind.FUNCTION) {
       if (member.name == Compiler.NO_SUCH_METHOD) {
         enableNoSuchMethod(member);
-      }
-      if (universe.hasInvocation(member, compiler)) {
-        return addToWorkList(member);
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
       if (universe.hasInvokedGetter(member, compiler)) {
-        // We will emit a closure, so make sure the closure class is
+        // We will emit a closure, so make sure the bound closure class is
         // generated.
-        compiler.closureClass.ensureResolved(compiler);
-        registerInstantiatedClass(compiler.closureClass,
+        registerInstantiatedClass(compiler.boundClosureClass,
                                   // Precise dependency is not important here.
                                   compiler.globalDependencies);
+        return addToWorkList(member);
+      }
+      // Store the member in [instanceFunctionsByName] to catch
+      // getters on the function.
+      Link<Element> members = instanceFunctionsByName.putIfAbsent(
+          memberName, () => const Link<Element>());
+      instanceFunctionsByName[memberName] = members.prepend(member);
+      if (universe.hasInvocation(member, compiler)) {
         return addToWorkList(member);
       }
     } else if (member.kind == ElementKind.GETTER) {
@@ -235,28 +272,6 @@ abstract class Enqueuer {
     } else if (member.kind == ElementKind.SETTER) {
       if (universe.hasInvokedSetter(member, compiler)) {
         return addToWorkList(member);
-      }
-    } else if (member.kind == ElementKind.FIELD &&
-               member.enclosingElement.isNative()) {
-      nativeEnqueuer.handleFieldAnnotations(member);
-      if (universe.hasInvokedGetter(member, compiler) ||
-          universe.hasInvocation(member, compiler)) {
-        nativeEnqueuer.registerFieldLoad(member);
-        // In handleUnseenSelector we can't tell if the field is loaded or
-        // stored.  We need the basic algorithm to be Church-Rosser, since the
-        // resolution 'reduction' order is different to the codegen order. So
-        // register that the field is also stored.  In other words: if we don't
-        // register the store here during resolution, the store could be
-        // registered during codegen on the handleUnseenSelector path, and cause
-        // the set of codegen elements to include unresolved elements.
-        nativeEnqueuer.registerFieldStore(member);
-        return;
-      }
-      if (universe.hasInvokedSetter(member, compiler)) {
-        nativeEnqueuer.registerFieldStore(member);
-        // See comment after registerFieldLoad above.
-        nativeEnqueuer.registerFieldLoad(member);
-        return;
       }
     }
 
@@ -282,12 +297,6 @@ abstract class Enqueuer {
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
         if (isResolutionQueue) {
-          // Only the resolution queue needs to operate on individual
-          // fields. The codegen enqueuer inlines the potential field
-          // intializations in the constructor.
-          cls.implementation.forEachInstanceField((_, Element field) {
-            addToWorkList(field);
-          }, includeSuperAndInjectedMembers: true);
           compiler.resolver.checkClass(cls);
         }
       }
@@ -386,22 +395,32 @@ abstract class Enqueuer {
   void registerNewSymbol(TreeElements elements) {
   }
 
-  processInstanceMembers(SourceString n, bool f(Element e)) {
+  processLink(Map<String, Link<Element>> map,
+              SourceString n,
+              bool f(Element e)) {
     String memberName = n.slowToString();
-    Link<Element> members = instanceMembersByName[memberName];
+    Link<Element> members = map[memberName];
     if (members != null) {
       LinkBuilder<Element> remaining = new LinkBuilder<Element>();
       for (; !members.isEmpty; members = members.tail) {
         if (!f(members.head)) remaining.addLast(members.head);
       }
-      instanceMembersByName[memberName] = remaining.toLink();
+      map[memberName] = remaining.toLink();
     }
+  }
+
+  processInstanceMembers(SourceString n, bool f(Element e)) {
+    processLink(instanceMembersByName, n, f);
+  }
+
+  processInstanceFunctions(SourceString n, bool f(Element e)) {
+    processLink(instanceFunctionsByName, n, f);
   }
 
   void handleUnseenSelector(SourceString methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
       if (selector.appliesUnnamed(member, compiler)) {
-        if (member.isField() && member.enclosingElement.isNative()) {
+        if (member.isField() && member.getEnclosingClass().isNative()) {
           if (selector.isGetter() || selector.isCall()) {
             nativeEnqueuer.registerFieldLoad(member);
             // We have to also handle storing to the field because we only get
@@ -410,6 +429,7 @@ abstract class Enqueuer {
             // TODO(sra): Process fields for storing separately.
             nativeEnqueuer.registerFieldStore(member);
           } else {
+            assert(selector.isSetter());
             nativeEnqueuer.registerFieldStore(member);
             // We have to also handle loading from the field because we only get
             // one look at each member and there might be a load we have not
@@ -424,6 +444,19 @@ abstract class Enqueuer {
       }
       return false;
     });
+    if (selector.isGetter()) {
+      processInstanceFunctions(methodName, (Element member) {
+        if (selector.appliesUnnamed(member, compiler)) {
+          // We will emit a closure, so make sure the bound closure class is
+          // generated.
+          registerInstantiatedClass(compiler.boundClosureClass,
+                                    // Precise dependency is not important here.
+                                    compiler.globalDependencies);
+          return true;
+        }
+        return false;
+      });
+    }
   }
 
   /**
@@ -439,6 +472,8 @@ abstract class Enqueuer {
 
   void registerGetOfStaticFunction(FunctionElement element) {
     registerStaticUse(element);
+    registerInstantiatedClass(compiler.closureClass,
+                              compiler.globalDependencies);
     universe.staticFunctionsNeedingGetter.add(element);
   }
 

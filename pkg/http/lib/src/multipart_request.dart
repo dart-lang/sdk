@@ -89,7 +89,7 @@ class MultipartRequest extends BaseRequest {
     headers['content-transfer-encoding'] = 'binary';
     super.finalize();
 
-    var controller = new StreamController<List<int>>();
+    var controller = new StreamController<List<int>>(sync: true);
 
     void writeAscii(String string) {
       assert(isPlainAscii(string));

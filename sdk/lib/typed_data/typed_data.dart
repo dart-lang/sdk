@@ -430,7 +430,7 @@ abstract class Uint8List implements List<int>, TypedData {
  * more space- and time-efficient than the default [List] implementation.
  * Indexed store clamps the value to range 0..0xFF.
  */
-abstract class Uint8ClampedList implements List<int>, TypedData {
+abstract class Uint8ClampedList implements Uint8List {
   /**
    * Creates a [Uint8ClampedList] of the specified length (in elements), all of
    * whose elements are initially zero.

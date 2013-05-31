@@ -167,20 +167,24 @@ void renamePlaceholders(
   // A function that takes original identifier name and generates a new unique
   // identifier.
   Function generateUniqueName;
+
+  Set<String> allNamedParameterIdentifiers = new Set<String>();
+  for (var functionScope in placeholderCollector.functionScopes.values) {
+    allNamedParameterIdentifiers.addAll(functionScope.parameterIdentifiers);
+  }
+
   if (compiler.enableMinification) {
     MinifyingGenerator generator = new MinifyingGenerator();
     Set<String> forbiddenIdentifiers = new Set<String>.from(['main']);
     forbiddenIdentifiers.addAll(Keyword.keywords.keys);
     forbiddenIdentifiers.addAll(fixedMemberNames);
     generateUniqueName = (_) =>
-        generator.generate(forbiddenIdentifiers.contains);
+        generator.generate((name) =>
+            forbiddenIdentifiers.contains(name)
+            || allNamedParameterIdentifiers.contains(name));
     rename = makeRenamer(generateUniqueName);
     renameElement = makeElementRenamer(rename, generateUniqueName);
 
-    Set<String> allParameterIdentifiers = new Set<String>();
-    for (var functionScope in placeholderCollector.functionScopes.values) {
-      allParameterIdentifiers.addAll(functionScope.parameterIdentifiers);
-    }
     // Build a sorted (by usage) list of local nodes that will be renamed to
     // the same identifier. So the top-used local variables in all functions
     // will be renamed first and will all share the same new identifier.
@@ -209,10 +213,7 @@ void renamePlaceholders(
         renameElement(elementRenamable.element);
     String memberRenamer(MemberRenamable memberRenamable) =>
         generator.generate(forbiddenIdentifiers.contains);
-    String localRenamer(LocalRenamable localRenamable) =>
-        generator.generate((name) =>
-            allParameterIdentifiers.contains(name)
-            || forbiddenIdentifiers.contains(name));
+    Function localRenamer = generateUniqueName;
     List<Renamable> renamables = [];
     placeholderCollector.elementNodes.forEach(
         (Element element, Set<Node> nodes) {
@@ -239,7 +240,9 @@ void renamePlaceholders(
     usedTopLevelOrMemberIdentifiers.addAll(fixedMemberNames);
     generateUniqueName = (originalName) {
       String newName = conservativeGenerator(
-          originalName, usedTopLevelOrMemberIdentifiers.contains);
+          originalName, (name) =>
+              usedTopLevelOrMemberIdentifiers.contains(name)
+              || allNamedParameterIdentifiers.contains(name));
       usedTopLevelOrMemberIdentifiers.add(newName);
       return newName;
     };

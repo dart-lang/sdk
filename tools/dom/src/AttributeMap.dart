@@ -44,7 +44,7 @@ abstract class _AttributeMap implements Map<String, String> {
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
-        keys.add(attributes[i].localName);
+        keys.add(attributes[i].name);
       }
     }
     return keys;

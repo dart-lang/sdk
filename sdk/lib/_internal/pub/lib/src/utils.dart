@@ -183,7 +183,7 @@ Future streamFirst(Stream stream) {
 /// Returns a wrapped version of [stream] along with a [StreamSubscription] that
 /// can be used to control the wrapped stream.
 Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   var controllerStream = stream.isBroadcast ?
       controller.stream.asBroadcastStream() :
       controller.stream;
@@ -198,8 +198,8 @@ Pair<Stream, StreamSubscription> streamWithSubscription(Stream stream) {
 /// errors from [stream]. This is useful if [stream] is single-subscription but
 /// multiple subscribers are necessary.
 Pair<Stream, Stream> tee(Stream stream) {
-  var controller1 = new StreamController();
-  var controller2 = new StreamController();
+  var controller1 = new StreamController(sync: true);
+  var controller2 = new StreamController(sync: true);
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);
@@ -217,7 +217,7 @@ Pair<Stream, Stream> tee(Stream stream) {
 /// both sources.
 Stream mergeStreams(Stream stream1, Stream stream2) {
   var doneCount = 0;
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
 
   for (var stream in [stream1, stream2]) {
     stream.listen((value) {

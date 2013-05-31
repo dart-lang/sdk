@@ -62,11 +62,13 @@ class ConstantHandler extends CompilerTask {
 
   void registerStaticUse(Element element) {
     if (isMetadata) return;
+    compiler.analyzeElement(element.declaration);
     compiler.enqueuer.codegen.registerStaticUse(element);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
     if (isMetadata) return;
+    compiler.analyzeElement(element.declaration);
     compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
   }
 
@@ -124,7 +126,7 @@ class ConstantHandler extends CompilerTask {
         return result;
       }
       return compiler.withCurrentElement(element, () {
-        TreeElements definitions = compiler.analyzeElement(element);
+        TreeElements definitions = compiler.analyzeElement(element.declaration);
         Constant constant = compileVariableWithDefinitions(
             element, definitions, isConst: isConst);
         return constant;
@@ -645,6 +647,10 @@ class CompileTimeConstantEvaluator extends Visitor {
 
     Send send = node.send;
     FunctionElement constructor = elements[send];
+    // TODO(ahe): This is nasty: we must eagerly analyze the
+    // constructor to ensure the redirectionTarget has been computed
+    // correctly.  Find a way to avoid this.
+    compiler.analyzeElement(constructor.declaration);
     constructor = constructor.redirectionTarget;
     ClassElement classElement = constructor.getEnclosingClass();
     // The constructor must be an implementation to ensure that field

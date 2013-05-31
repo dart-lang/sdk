@@ -568,50 +568,36 @@ class FileTest {
 
     var tempDir = tempDirectory.path;
     var file = new File("${tempDir}/testDirectory");
-    var errors = 0;
-    var dirFuture = file.directory();
-    dirFuture.then((d) => Expect.fail("non-existing file"))
-    .catchError((e) {
       file.create().then((ignore) {
-        file.directory().then((Directory d) {
-          d.exists().then((exists) {
-            Expect.isTrue(exists);
-            Expect.isTrue(d.path.endsWith(tempDir));
-            file.delete().then((ignore) {
-              var fileDir = new File(".");
-              var dirFuture2 = fileDir.directory();
-              dirFuture2.then((d) => Expect.fail("non-existing file"))
-              .catchError((e) {
-                var fileDir = new File(tempDir);
-                var dirFuture3 = fileDir.directory();
-                dirFuture3.then((d) => Expect.fail("non-existing file"))
-                .catchError((e) {
-                  port.toSendPort().send(1);
-                });
-              });
-            });
+          Directory d = file.directory;
+          d.exists().then((xexists) {
+          Expect.isTrue(xexists);
+          Expect.isTrue(d.path.endsWith(tempDir));
+          file.delete().then((ignore) {
+                port.toSendPort().send(1);
           });
         });
       });
-    });
   }
 
   static void testDirectorySync() {
     var tempDir = tempDirectory.path;
     var file = new File("${tempDir}/testDirectorySync");
-    // Non-existing file should throw exception.
-    Expect.throws(file.directorySync, (e) { return e is FileIOException; });
+    // Non-existing file still provides the directory.
+    Expect.equals("${tempDir}", file.directory.path);
     file.createSync();
     // Check that the path of the returned directory is the temp directory.
-    Directory d = file.directorySync();
+    Directory d = file.directory;
     Expect.isTrue(d.existsSync());
     Expect.isTrue(d.path.endsWith(tempDir));
     file.deleteSync();
-    // Directories should throw exception.
-    var file_dir = new File(".");
-    Expect.throws(file_dir.directorySync, (e) { return e is FileIOException; });
-    file_dir = new File(tempDir);
-    Expect.throws(file_dir.directorySync, (e) { return e is FileIOException; });
+    // The directory getter does not care about file or type of file
+    // system entity.
+    Expect.equals("${tempDir}", file.directory.path);
+    file = new File("foo");
+    Expect.equals(".", file.directory.path);
+    file = new File(".");
+    Expect.equals(".", file.directory.path);
   }
 
   // Test for file length functionality.

@@ -20,7 +20,7 @@ main() {
   // The contents of the file is precomposed utf8.
   Expect.equals(precomposed, nonAsciiFile.readAsStringSync());
   nonAsciiFile.createSync();
-  var path = nonAsciiFile.directorySync().path;
+  var path = nonAsciiFile.directory.path;
   Expect.isTrue(path.endsWith(precomposed) || path.endsWith(decomposed));
   Expect.equals(6, nonAsciiFile.lengthSync());
   nonAsciiFile.lastModifiedSync();

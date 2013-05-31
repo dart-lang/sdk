@@ -23,6 +23,7 @@ abstract class String {}
 class Function {}
 class List<T> {}
 class Map<K,V> {}
+class BoundClosure {}
 class Closure {}
 class Dynamic_ {}
 class Null {}
@@ -611,7 +612,7 @@ class A {
   }
 }
 
-fooglobal(arg,[optionalarg = 7]) {
+fooglobal(arg,{optionalarg: 7}) {
   arg = 6;
 }
 
@@ -622,7 +623,7 @@ main() {
 }
 ''';
   var expectedResult =
-      'class B{var E;static C(A){A=5;}}D(A,[optionalarg=7]){A=6;}'
+      'class B{var E;static C(A){A=5;}}D(A,{optionalarg: 7}){A=6;}'
       'main(){new B().E;B.C(8);D(8);}';
   testDart2Dart(src, continuation:
       (String result) { Expect.equals(expectedResult, result); }, minify: true);

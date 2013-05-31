@@ -140,6 +140,9 @@ class FlowGraphBuilder: public ValueObject {
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
 
+  intptr_t args_pushed() const { return args_pushed_; }
+  void add_args_pushed(intptr_t n) { args_pushed_ += n; }
+
  private:
   intptr_t parameter_count() const {
     return num_copied_params_ + num_non_copied_params_;
@@ -161,6 +164,9 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t last_used_try_index_;
   intptr_t try_index_;
   GraphEntryInstr* graph_entry_;
+
+  // Outgoing argument stack height.
+  intptr_t args_pushed_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -318,6 +324,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
     temp_index_ -= n;
   }
 
+  // Returns a local variable index for a temporary local that is
+  // on top of the current expression stack.
+  intptr_t GetCurrentTempLocalIndex() const;
+
   Value* BuildObjectAllocation(ConstructorCallNode* node);
   void BuildConstructorCall(ConstructorCallNode* node,
                             PushArgumentInstr* alloc_value);
@@ -346,21 +356,23 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   Value* BuildNullValue();
 
- private:
-  // Specify a definition of the final result.  Adds the definition to
-  // the graph, but normally overridden in subclasses.
-  virtual void ReturnDefinition(Definition* definition) {
-    Do(definition);
-  }
-
- protected:
   // Returns true if the run-time type check can be eliminated.
   bool CanSkipTypeCheck(intptr_t token_pos,
                         Value* value,
                         const AbstractType& dst_type,
                         const String& dst_name);
 
+  void BuildLetTempExpressions(LetNode* node);
+
  private:
+  friend class TempLocalScope;  // For ReturnDefinition.
+
+  // Specify a definition of the final result.  Adds the definition to
+  // the graph, but normally overridden in subclasses.
+  virtual void ReturnDefinition(Definition* definition) {
+    Do(definition);
+  }
+
   // Shared global state.
   FlowGraphBuilder* owner_;
 
@@ -401,6 +413,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitStoreStaticFieldNode(StoreStaticFieldNode* node);
   virtual void VisitTypeNode(TypeNode* node);
   virtual void VisitCommaNode(CommaNode* node);
+  virtual void VisitLetNode(LetNode* node);
 
   Value* value() const { return value_; }
 

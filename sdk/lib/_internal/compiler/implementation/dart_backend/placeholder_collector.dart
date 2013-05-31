@@ -48,7 +48,15 @@ class SendVisitor extends ResolvedVisitor {
 
   SendVisitor(this.collector, TreeElements elements) : super(elements);
 
-  visitOperatorSend(Send node) {}
+  visitOperatorSend(Send node) {
+    if (node.isParameterCheck) {
+      final element = elements[node.receiver];
+      if (element != null) {
+        collector.tryMakeLocalPlaceholder(element, node.receiver);
+      }
+    }
+  }
+
   visitForeignSend(Send node) {}
 
   visitSuperSend(Send node) {
@@ -236,9 +244,11 @@ class PlaceholderCollector extends Visitor {
   }
 
   void tryMakeLocalPlaceholder(Element element, Identifier node) {
-    bool isOptionalParameter() {
+    bool isNamedOptionalParameter() {
       FunctionElement function = element.enclosingElement;
-      for (Element parameter in function.functionSignature.optionalParameters) {
+      FunctionSignature signature = function.functionSignature;
+      if (!signature.optionalParametersAreNamed) return false;
+      for (Element parameter in signature.optionalParameters) {
         if (identical(parameter, element)) return true;
       }
       return false;
@@ -247,7 +257,7 @@ class PlaceholderCollector extends Visitor {
     // TODO(smok): Maybe we should rename privates as well, their privacy
     // should not matter if they are local vars.
     if (node.source.isPrivate()) return;
-    if (element.isParameter() && isOptionalParameter()) {
+    if (element.isParameter() && isNamedOptionalParameter()) {
       currentFunctionScope.registerParameter(node);
     } else if (Elements.isLocal(element)) {
       makeLocalPlaceholder(node);

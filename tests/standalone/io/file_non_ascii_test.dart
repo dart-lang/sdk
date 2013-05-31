@@ -27,7 +27,7 @@ main() {
                 // The contents of the file is precomposed utf8.
                 Expect.equals(precomposed, contents);
                 nonAsciiFile.create().then((_) {
-                  nonAsciiFile.directory().then((d) {
+                  var d = nonAsciiFile.directory;
                   Expect.isTrue(d.path.endsWith(precomposed) ||
                                 d.path.endsWith(decomposed));
                   nonAsciiFile.length().then((length) {
@@ -37,8 +37,7 @@ main() {
                         Expect.isTrue(path.endsWith('${precomposed}.txt') ||
                                       path.endsWith('${decomposed}.txt'));
                         tempDir.delete(recursive: true).then((_) {
-                          port.close();
-                        });
+                        port.close();
                       });
                     });
                   });

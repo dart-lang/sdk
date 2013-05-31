@@ -51,17 +51,6 @@ abstract class Directory extends FileSystemEntity {
   }
 
   /**
-   * Check whether a directory with this name already exists. Returns
-   * a [:Future<bool>:] that completes with the result.
-   */
-  Future<bool> exists();
-
-  /**
-   * Synchronously check whether a directory with this name already exists.
-   */
-  bool existsSync();
-
-  /**
    * Creates the directory with this name.
    *
    * If [recursive] is false, only the last directory in the path is

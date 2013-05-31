@@ -71,6 +71,7 @@ class DataProvider {
 
   DataProvider(int this.bytesPerSecond, int this.targetCount, this.chunkSize) {
     controller = new StreamController(
+      sync: true,
       onPause: onPauseStateChange,
       onResume: onPauseStateChange);
     Timer.run(send);

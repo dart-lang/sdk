@@ -171,38 +171,6 @@ void testFullPathOnNonExistentDirectory() {
   });
 }
 
-bool checkDirectoryInNonExistentDirectoryException(e) {
-  Expect.isTrue(e is FileIOException);
-  Expect.isTrue(e.osError != null);
-  Expect.isTrue(
-      e.toString().indexOf("Cannot retrieve directory for file") != -1);
-  // File not not found has error code 2 on all supported platforms.
-  Expect.equals(2, e.osError.errorCode);
-
-  return true;
-}
-
-void testDirectoryInNonExistentDirectory() {
-  Directory temp = tempDir();
-  ReceivePort p = new ReceivePort();
-  p.receive((x, y) {
-    p.close();
-    temp.deleteSync(recursive: true);
-  });
-  var file = new File("${temp.path}/nonExistentDirectory/newFile");
-
-  // Create in non-existent directory should throw exception.
-  Expect.throws(() => file.directorySync(),
-                (e) => checkDirectoryInNonExistentDirectoryException(e));
-
-  var dirFuture = file.directory();
-  dirFuture.then((directory) => Expect.fail("Unreachable code"))
-  .catchError((error) {
-    checkDirectoryInNonExistentDirectoryException(error);
-    p.toSendPort().send(null);
-  });
-}
-
 void testReadAsBytesNonExistent() {
   Directory temp = tempDir();
   ReceivePort p = new ReceivePort();
@@ -481,7 +449,6 @@ main() {
   testLengthNonExistent();
   testCreateInNonExistentDirectory();
   testFullPathOnNonExistentDirectory();
-  testDirectoryInNonExistentDirectory();
   testReadAsBytesNonExistent();
   testReadAsTextNonExistent();
   testReadAsLinesNonExistent();

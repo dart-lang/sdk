@@ -63,15 +63,15 @@ typedef ObservableBase = Object with ObservableMixin;
  * call [notifyPropertyChange]. See that method for an example.
  */
 abstract class ObservableMixin implements Observable {
-  StreamController _multiplexController;
+  StreamController _broadcastController;
   List<ChangeRecord> _changes;
 
   Stream<List<ChangeRecord>> get changes {
-    if (_multiplexController == null) {
-      _multiplexController =
-          new StreamController<List<ChangeRecord>>.broadcast();
+    if (_broadcastController == null) {
+      _broadcastController =
+          new StreamController<List<ChangeRecord>>.broadcast(sync: true);
     }
-    return _multiplexController.stream;
+    return _broadcastController.stream;
   }
 
   void _deliverChanges() {
@@ -79,7 +79,7 @@ abstract class ObservableMixin implements Observable {
     _changes = null;
     if (hasObservers && changes != null) {
       // TODO(jmesserly): make "changes" immutable
-      _multiplexController.add(changes);
+      _broadcastController.add(changes);
     }
   }
 
@@ -87,8 +87,8 @@ abstract class ObservableMixin implements Observable {
    * True if this object has any observers, and should call
    * [notifyPropertyChange] for changes.
    */
-  bool get hasObservers => _multiplexController != null &&
-                           _multiplexController.hasListener;
+  bool get hasObservers => _broadcastController != null &&
+                           _broadcastController.hasListener;
 
   /**
    * Notify that the field [name] of this object has been changed.

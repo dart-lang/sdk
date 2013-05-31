@@ -42,18 +42,21 @@ bool Socket::Initialize() {
 }
 
 
-intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
+intptr_t Socket::Create(RawAddr addr) {
   intptr_t fd;
 
   fd = TEMP_FAILURE_RETRY(socket(addr.ss.ss_family, SOCK_STREAM, 0));
   if (fd < 0) {
-    Log::PrintErr("Error CreateConnect: %s\n", strerror(errno));
+    Log::PrintErr("Error Create: %s\n", strerror(errno));
     return -1;
   }
 
   FDUtils::SetCloseOnExec(fd);
-  Socket::SetNonBlocking(fd);
+  return fd;
+}
 
+
+intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
   SocketAddress::SetAddrPort(&addr, port);
   intptr_t result = TEMP_FAILURE_RETRY(
       connect(fd,
@@ -64,6 +67,18 @@ intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
   }
   VOID_TEMP_FAILURE_RETRY(close(fd));
   return -1;
+}
+
+
+intptr_t Socket::CreateConnect(RawAddr addr, const intptr_t port) {
+  intptr_t fd = Socket::Create(addr);
+  if (fd < 0) {
+    return fd;
+  }
+
+  Socket::SetNonBlocking(fd);
+
+  return Socket::Connect(fd, addr, port);
 }
 
 

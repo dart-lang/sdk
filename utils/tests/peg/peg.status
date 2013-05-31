@@ -8,8 +8,14 @@ peg_test: Skip
 [ $arch == x64 ]
 *: Skip
 
+[ $arch == arm ]
+*: Skip
+
 [ $arch == simarm ]
 *: Skip
 
-[ $arch == arm ]
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
 *: Skip

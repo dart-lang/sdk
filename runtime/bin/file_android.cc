@@ -281,25 +281,6 @@ char* File::GetCanonicalPath(const char* pathname) {
 }
 
 
-char* File::GetContainingDirectory(char* pathname) {
-  // Report errors for non-regular files.
-  struct stat st;
-  if (TEMP_FAILURE_RETRY(stat(pathname, &st)) == 0) {
-    if (!S_ISREG(st.st_mode)) {
-      errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
-      return NULL;
-    }
-  } else {
-    return NULL;
-  }
-  char* path = NULL;
-  do {
-    path = dirname(pathname);
-  } while (path == NULL && errno == EINTR);
-  return GetCanonicalPath(path);
-}
-
-
 const char* File::PathSeparator() {
   return "/";
 }

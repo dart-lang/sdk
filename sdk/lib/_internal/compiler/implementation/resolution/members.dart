@@ -106,10 +106,10 @@ class TreeElementMapping implements TreeElements {
     return selectors[node.assignmentOperator];
   }
 
-  // The following methods set selectors on the "for in" node. Since	
-  // we're using three selectors, we need to use children of the node,	
-  // and we arbitrarily choose which ones.	
- 
+  // The following methods set selectors on the "for in" node. Since
+  // we're using three selectors, we need to use children of the node,
+  // and we arbitrarily choose which ones.
+
   Selector setIteratorSelector(ForIn node, Selector selector) {
     selectors[node] = selector;
   }
@@ -121,7 +121,7 @@ class TreeElementMapping implements TreeElements {
   Selector setMoveNextSelector(ForIn node, Selector selector) {
     selectors[node.forToken] = selector;
   }
-	
+
   Selector getMoveNextSelector(ForIn node) {
     return selectors[node.forToken];
   }
@@ -602,6 +602,14 @@ class ResolverTask extends CompilerTask {
     ClassElement mixin = mixinApplication.mixin;
     if (mixin == null) return;
 
+    // Check that we're not trying to use Object as a mixin.
+    if (mixin.superclass == null) {
+      compiler.reportErrorCode(mixinApplication,
+                               MessageKind.ILLEGAL_MIXIN_OBJECT);
+      // Avoid reporting additional errors for the Object class.
+      return;
+    }
+
     // Check that the mixed in class has Object as its superclass.
     if (!mixin.superclass.isObject(compiler)) {
       compiler.reportErrorCode(mixin, MessageKind.ILLEGAL_MIXIN_SUPERCLASS);
@@ -962,8 +970,12 @@ class ResolverTask extends CompilerTask {
       annotation.resolutionState = STATE_STARTED;
 
       Node node = annotation.parseNode(compiler);
-      ResolverVisitor visitor =
-          visitorFor(annotation.annotatedElement.enclosingElement);
+      Element annotatedElement = annotation.annotatedElement;
+      Element context = annotatedElement.enclosingElement;
+      if (context == null) {
+        context = annotatedElement;
+      }
+      ResolverVisitor visitor = visitorFor(context);
       node.accept(visitor);
       annotation.value = compiler.metadataHandler.compileNodeWithDefinitions(
           node, visitor.mapping, isConst: true);
@@ -2307,9 +2319,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     // unqualified.
     useElement(node, target);
     registerSend(selector, target);
-    if (node.isPropertyAccess) {
-      // It might be the closurization of a method.
-      world.registerInstantiatedClass(compiler.functionClass, mapping);
+    if (node.isPropertyAccess && Elements.isStaticOrTopLevelFunction(target)) {
+      world.registerGetOfStaticFunction(target.declaration);
     }
     return node.isPropertyAccess ? target : null;
   }
@@ -2491,11 +2502,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       compiler.reportErrorCode(
           enclosingElement, MessageKind.MISSING_FACTORY_KEYWORD);
     }
-    Element redirectionTarget = resolveRedirectingFactory(node);
-    var type = mapping.getType(node.expression);
-    if (type is InterfaceType && !type.isRaw) {
-      unimplemented(node.expression, 'type arguments on redirecting factory');
-    }
+    FunctionElement redirectionTarget = resolveRedirectingFactory(node);
     useElement(node.expression, redirectionTarget);
     FunctionElement constructor = enclosingElement;
     if (constructor.modifiers.isConst() &&
@@ -2503,7 +2510,36 @@ class ResolverVisitor extends MappingVisitor<Element> {
       error(node, MessageKind.CONSTRUCTOR_IS_NOT_CONST);
     }
     constructor.defaultImplementation = redirectionTarget;
-    if (Elements.isUnresolved(redirectionTarget)) return;
+    if (Elements.isUnresolved(redirectionTarget)) {
+      compiler.backend.registerThrowNoSuchMethod(mapping);
+      return;
+    }
+
+    // Compute the signature of the target method taking into account the
+    // type arguments that are specified in the redirection, and store it on
+    // the return node.
+    ClassElement targetClass = redirectionTarget.getEnclosingClass();
+    InterfaceType type = mapping.getType(node.expression)
+        .subst(currentClass.typeVariables, targetClass.typeVariables);
+    mapping.setType(node, type);
+
+    // Check that the target constructor is type compatible with the
+    // redirecting constructor.
+    FunctionType targetType = redirectionTarget.computeType(compiler)
+        .subst(type.typeArguments, targetClass.typeVariables);
+    FunctionType constructorType = constructor.computeType(compiler);
+    if (!compiler.types.isSubtype(targetType, constructorType)) {
+      warning(node, MessageKind.NOT_ASSIGNABLE,
+              {'fromType': targetType, 'toType': constructorType});
+    }
+
+    FunctionSignature targetSignature =
+        redirectionTarget.computeSignature(compiler);
+    FunctionSignature constructorSignature =
+        constructor.computeSignature(compiler);
+    if (!targetSignature.isCompatibleWith(constructorSignature)) {
+      compiler.backend.registerThrowNoSuchMethod(mapping);
+    }
 
     // TODO(ahe): Check that this doesn't lead to a cycle.  For now,
     // just make sure that the redirection target isn't itself a
@@ -2513,7 +2549,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       FunctionExpression function = targetImplementation.parseNode(compiler);
       if (function.body != null && function.body.asReturn() != null
           && function.body.asReturn().isRedirectingFactoryBody) {
-        unimplemented(node.expression, 'redirecing to redirecting factory');
+        unimplemented(node.expression, 'redirecting to redirecting factory');
       }
     }
     world.registerStaticUse(redirectionTarget);

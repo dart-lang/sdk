@@ -86,7 +86,7 @@ fieldTest() {
 
 constructor1() {
   String generated = compileAll(TEST_FIVE);
-  Expect.isTrue(generated.contains(r"new $.A(a);"));
+  Expect.isTrue(generated.contains(new RegExp(r"new [$a-z]+\.A\(a\);")));
 }
 
 main() {

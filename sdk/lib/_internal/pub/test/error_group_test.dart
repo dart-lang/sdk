@@ -38,7 +38,8 @@ main() {
 
       expect(() => errorGroup.registerFuture(new Future.value()),
           throwsStateError);
-      expect(() => errorGroup.registerStream(new StreamController().stream),
+      expect(() => errorGroup.registerStream(
+          new StreamController(sync: true).stream),
           throwsStateError);
     });
   });
@@ -66,7 +67,8 @@ main() {
       completer.future.then(expectAsync1((_) {
         expect(() => errorGroup.registerFuture(new Future.value()),
             throwsStateError);
-        expect(() => errorGroup.registerStream(new StreamController().stream),
+        expect(() => errorGroup.registerStream(
+            new StreamController(sync: true).stream),
             throwsStateError);
       }));
     });
@@ -205,7 +207,7 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller = new StreamController();
+      controller = new StreamController(sync: true);
       stream = errorGroup.registerStream(controller.stream.asBroadcastStream());
     });
 
@@ -277,7 +279,7 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller = new StreamController();
+      controller = new StreamController(sync: true);
       stream = errorGroup.registerStream(controller.stream);
     });
 
@@ -326,8 +328,8 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller1 = new StreamController();
-      controller2 = new StreamController();
+      controller1 = new StreamController(sync: true);
+      controller2 = new StreamController(sync: true);
       stream1 = errorGroup.registerStream(controller1.stream.asBroadcastStream());
       stream2 = errorGroup.registerStream(controller2.stream.asBroadcastStream());
     });
@@ -385,7 +387,7 @@ main() {
 
     setUp(() {
       errorGroup = new ErrorGroup();
-      controller = new StreamController();
+      controller = new StreamController(sync: true);
       stream = errorGroup.registerStream(controller.stream.asBroadcastStream());
       completer = new Completer();
       future = errorGroup.registerFuture(completer.future);

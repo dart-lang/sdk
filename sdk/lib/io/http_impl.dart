@@ -78,9 +78,6 @@ abstract class _HttpInboundMessage extends Stream<List<int>> {
 class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   final HttpResponse response;
 
-  // Lazy initialized parsed query parameters.
-  Map<String, String> _queryParameters;
-
   final _HttpServer _httpServer;
 
   final _HttpConnection _httpConnection;
@@ -117,13 +114,6 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
                             onError: onError,
                             onDone: onDone,
                             cancelOnError: cancelOnError);
-  }
-
-  Map<String, String> get queryParameters {
-    if (_queryParameters == null) {
-      _queryParameters = _HttpUtils.splitQueryString(uri.query);
-    }
-    return _queryParameters;
   }
 
   Uri get uri => _incoming.uri;
@@ -570,7 +560,8 @@ class _HttpOutboundConsumer implements StreamConsumer {
 
   _ensureController() {
     if (_controller != null) return;
-    _controller = new StreamController(onPause: () => _subscription.pause(),
+    _controller = new StreamController(sync: true,
+                                       onPause: () => _subscription.pause(),
                                        onResume: () => _subscription.resume(),
                                        onListen: () => _subscription.resume(),
                                        onCancel: _cancel);
@@ -1939,7 +1930,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   // Set of currently connected clients.
   final Set<_HttpConnection> _connections = new Set<_HttpConnection>();
   final StreamController<HttpRequest> _controller
-      = new StreamController<HttpRequest>();
+      = new StreamController<HttpRequest>(sync: true);
 
   // TODO(ajohnsen): Use close queue?
 }

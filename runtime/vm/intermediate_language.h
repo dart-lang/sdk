@@ -529,6 +529,8 @@ class EmbeddedArray<T, 0> {
   M(PolymorphicInstanceCall)                                                   \
   M(StaticCall)                                                                \
   M(LoadLocal)                                                                 \
+  M(PushTemp)                                                                  \
+  M(DropTemps)                                                                 \
   M(StoreLocal)                                                                \
   M(StrictCompare)                                                             \
   M(EqualityCompare)                                                           \
@@ -3142,6 +3144,69 @@ class LoadLocalInstr : public TemplateDefinition<0> {
   bool is_last_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
+};
+
+
+class PushTempInstr : public TemplateDefinition<1> {
+ public:
+  explicit PushTempInstr(Value* value) {
+    SetInputAt(0, value);
+  }
+
+  DECLARE_INSTRUCTION(PushTemp)
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual EffectSet Effects() const {
+    UNREACHABLE();  // Eliminated by SSA construction.
+    return EffectSet::None();
+  }
+
+  virtual bool MayThrow() const {
+    UNREACHABLE();
+    return false;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(PushTempInstr);
+};
+
+
+class DropTempsInstr : public TemplateDefinition<1> {
+ public:
+  explicit DropTempsInstr(intptr_t num_temps, Value* value)
+      : num_temps_(num_temps) {
+    SetInputAt(0, value);
+  }
+
+  DECLARE_INSTRUCTION(DropTemps)
+
+  Value* value() const { return inputs_[0]; }
+
+  intptr_t num_temps() const { return num_temps_; }
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual EffectSet Effects() const {
+    UNREACHABLE();  // Eliminated by SSA construction.
+    return EffectSet::None();
+  }
+
+  virtual bool MayThrow() const {
+    UNREACHABLE();
+    return false;
+  }
+
+ private:
+  intptr_t num_temps_;
+
+  DISALLOW_COPY_AND_ASSIGN(DropTempsInstr);
 };
 
 

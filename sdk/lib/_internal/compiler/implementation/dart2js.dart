@@ -29,13 +29,19 @@ const String OUTPUT_LANGUAGE_DART = 'Dart';
  */
 String BUILD_ID = null;
 
-typedef void HandleOption(String option);
+/**
+ * The data passed to the [HandleOption] callback is either a single
+ * string argument, or the arguments iterator for multiple arguments
+ * handlers.
+ */
+typedef void HandleOption(data);
 
 class OptionHandler {
-  String pattern;
-  HandleOption handle;
+  final String pattern;
+  final HandleOption handle;
+  final bool multipleArguments;
 
-  OptionHandler(this.pattern, this.handle);
+  OptionHandler(this.pattern, this.handle, {this.multipleArguments: false});
 }
 
 /**
@@ -64,12 +70,20 @@ void parseCommandLine(List<OptionHandler> handlers, List<String> argv) {
     patterns.add(handler.pattern);
   }
   var pattern = new RegExp('^(${patterns.join(")\$|(")})\$');
-  OUTER: for (String argument in argv) {
+
+  Iterator<String> arguments = argv.iterator;
+  OUTER: while (arguments.moveNext()) {
+    String argument = arguments.current;
     Match match = pattern.firstMatch(argument);
     assert(match.groupCount == handlers.length);
     for (int i = 0; i < handlers.length; i++) {
       if (match[i + 1] != null) {
-        handlers[i].handle(argument);
+        OptionHandler handler = handlers[i];
+        if (handler.multipleArguments) {
+          handler.handle(arguments);
+        } else {
+          handler.handle(argument);
+        }
         continue OUTER;
       }
     }
@@ -86,6 +100,7 @@ void compile(List<String> argv) {
   List<String> options = new List<String>();
   bool explicitOut = false;
   bool wantHelp = false;
+  bool wantVersion = false;
   String outputLanguage = 'JavaScript';
   bool stripArgumentSet = false;
   bool analyzeOnly = false;
@@ -107,9 +122,18 @@ void compile(List<String> argv) {
     packageRoot = currentDirectory.resolve(extractPath(argument));
   }
 
-  setOutput(String argument) {
+  setOutput(Iterator<String> arguments) {
+    String path;
+    if (arguments.current == '-o') {
+      if (!arguments.moveNext()) {
+        helpAndFail('Error: Missing file after -o option.');
+      }
+      path = arguments.current;
+    } else {
+      path = extractParameter(arguments.current);
+    }
     explicitOut = true;
-    out = currentDirectory.resolve(nativeToUriPath(extractParameter(argument)));
+    out = currentDirectory.resolve(nativeToUriPath(path));
     sourceMapOut = Uri.parse('$out.map');
   }
 
@@ -165,7 +189,15 @@ void compile(List<String> argv) {
         }
       }
     }
-    return passThrough('--categories=${categories.join(",")}');
+    passThrough('--categories=${categories.join(",")}');
+  }
+
+  checkGlobalName(String argument) {
+    String globalName = extractParameter(argument);
+    if (!new RegExp(r'^\$[a-z]*$').hasMatch(globalName)) {
+      fail('Error: "$globalName" must match "\\\$[a-z]*"');
+    }
+    passThrough(argument);
   }
 
   handleShortOptions(String argument) {
@@ -197,8 +229,9 @@ void compile(List<String> argv) {
                       (_) => diagnosticHandler.showWarnings = false),
     new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
     new OptionHandler('--verbose', setVerbose),
+    new OptionHandler('--version', (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
-    new OptionHandler('--out=.+|-o.+', setOutput),
+    new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler('--allow-mock-compilation', passThrough),
     new OptionHandler('--minify', passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
@@ -224,6 +257,7 @@ void compile(List<String> argv) {
     new OptionHandler('--report-sdk-use-of-deprecated-language-features',
                       passThrough),
     new OptionHandler('--categories=.*', setCategories),
+    new OptionHandler('--global-js-name=.*', checkGlobalName),
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {
@@ -235,7 +269,9 @@ void compile(List<String> argv) {
   ];
 
   parseCommandLine(handlers, argv);
-  if (wantHelp) helpAndExit(diagnosticHandler.verbose);
+  if (wantHelp || wantVersion) {
+    helpAndExit(wantHelp, wantVersion, diagnosticHandler.verbose);
+  }
 
   if (outputLanguage != OUTPUT_LANGUAGE_DART && stripArgumentSet) {
     helpAndFail('Error: --force-strip may only be used with '
@@ -322,7 +358,7 @@ void compile(List<String> argv) {
       }
     }
 
-    var controller = new StreamController<String>();
+    var controller = new StreamController<String>(sync: true);
     controller.stream.listen(output.write, onDone: onDone);
     sink = new CountingSink(controller);
     return sink;
@@ -389,19 +425,19 @@ Usage: dart2js [options] dartfile
 Compiles Dart to JavaScript.
 
 Common options:
-  -o<file> Generate the output into <file>.
-  -c       Insert runtime type checks and enable assertions (checked mode).
-  -h       Display this message (add -v for information about all options).''');
+  -o <file> Generate the output into <file>.
+  -c        Insert runtime type checks and enable assertions (checked mode).
+  -h        Display this message (add -v for information about all options).''');
 }
 
 void verboseHelp() {
-  print('''
+  print(r'''
 Usage: dart2js [options] dartfile
 
 Compiles Dart to JavaScript.
 
 Supported options:
-  -o<file>, --out=<file>
+  -o <file>, --out=<file>
     Generate the output into <file>.
 
   -c, --enable-checked-mode, --checked
@@ -412,6 +448,9 @@ Supported options:
 
   -v, --verbose
     Display verbose information.
+
+  --version
+    Display version information.
 
   -p<path>, --package-root=<path>
     Where to find packages, that is, "package:..." imports.
@@ -484,14 +523,27 @@ be removed in a future version:
     unsupported category, for example, --categories=help.  To enable
     all categories, use --categories=all.
 
+  --global-js-name=<name>
+    By default, dart2js generates JavaScript output that uses a global
+    variable named "$".  The name of this global can be overridden
+    with this option.  The name must match the regular expression "\$[a-z]*".
+
 '''.trim());
 }
 
-void helpAndExit(bool verbose) {
-  if (verbose) {
-    verboseHelp();
-  } else {
-    help();
+void helpAndExit(bool wantHelp, bool wantVersion, bool verbose) {
+  if (wantVersion) {
+    var version = (BUILD_ID == null)
+        ? '<non-SDK build>'
+        : BUILD_ID;
+    print('Dart-to-JavaScript compiler (dart2js) version: $version');
+  }
+  if (wantHelp) {
+    if (verbose) {
+      verboseHelp();
+    } else {
+      help();
+    }
   }
   exit(0);
 }

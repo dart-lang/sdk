@@ -286,6 +286,12 @@ abstract class Compiler implements DiagnosticListener {
    */
   final Uri sourceMapUri;
 
+  /**
+   * The name to use for the global JS object in JS output.  Default
+   * value is "$".
+   */
+  final String globalJsName;
+
   final api.CompilerOutputProvider outputProvider;
 
   bool disableInlining = false;
@@ -306,6 +312,7 @@ abstract class Compiler implements DiagnosticListener {
 
   ClassElement objectClass;
   ClassElement closureClass;
+  ClassElement boundClosureClass;
   ClassElement dynamicClass;
   ClassElement boolClass;
   ClassElement numClass;
@@ -412,6 +419,9 @@ abstract class Compiler implements DiagnosticListener {
   static const SourceString START_ROOT_ISOLATE =
       const SourceString('startRootIsolate');
 
+  static const String UNDETERMINED_BUILD_ID =
+      "build number could not be determined";
+
   final Selector iteratorSelector =
       new Selector.getter(const SourceString('iterator'), null);
   final Selector currentSelector =
@@ -459,15 +469,15 @@ abstract class Compiler implements DiagnosticListener {
             this.preserveComments: false,
             this.verbose: false,
             this.sourceMapUri: null,
-            this.buildId: "build number could not be determined",
+            this.buildId: UNDETERMINED_BUILD_ID,
+            this.globalJsName: r'$',
             outputProvider,
             List<String> strips: const []})
       : this.analyzeOnly = analyzeOnly || analyzeSignaturesOnly,
         this.analyzeSignaturesOnly = analyzeSignaturesOnly,
-        this.outputProvider =
-            (outputProvider == null) ? NullSink.outputProvider : outputProvider
-
-  {
+        this.outputProvider = (outputProvider == null)
+            ? NullSink.outputProvider
+            : outputProvider {
     world = new World(this);
 
     closureMapping.ClosureNamer closureNamer;
@@ -507,6 +517,8 @@ abstract class Compiler implements DiagnosticListener {
 
   Universe get resolverWorld => enqueuer.resolution.universe;
   Universe get codegenWorld => enqueuer.codegen.universe;
+
+  bool get hasBuildId => buildId != UNDETERMINED_BUILD_ID;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -643,6 +655,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     if (uri == Uri.parse('dart:mirrors')) {
       mirrorSystemClass = library.find(const SourceString('MirrorSystem'));
+      metadataHandler = constantHandler;
     } else if (uri == Uri.parse('dart:_collection-dev')) {
       symbolImplementationClass = library.find(const SourceString('Symbol'));
     }
@@ -702,6 +715,7 @@ abstract class Compiler implements DiagnosticListener {
       return result;
     }
     jsInvocationMirrorClass = lookupHelperClass('JSInvocationMirror');
+    boundClosureClass = lookupHelperClass('BoundClosure');
     closureClass = lookupHelperClass('Closure');
     dynamicClass = lookupHelperClass('Dynamic_');
     nullClass = lookupHelperClass('Null');
@@ -822,6 +836,7 @@ abstract class Compiler implements DiagnosticListener {
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+    resolveReflectiveDataIfNeeded();
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
@@ -864,8 +879,19 @@ abstract class Compiler implements DiagnosticListener {
     checkQueues();
   }
 
+  void resolveReflectiveDataIfNeeded() {
+    // Only need reflective data when dart:mirrors is loaded.
+    if (mirrorSystemClass == null) return;
+
+    for (LibraryElement library in libraries.values) {
+      for (Link link = library.metadata; !link.isEmpty; link = link.tail) {
+        link.head.ensureResolved(this);
+      }
+    }
+  }
+
   void fullyEnqueueLibrary(LibraryElement library) {
-    library.forEachLocalMember(fullyEnqueueTopLevelElement);
+    library.implementation.forEachLocalMember(fullyEnqueueTopLevelElement);
   }
 
   void fullyEnqueueTopLevelElement(Element element) {
@@ -948,7 +974,8 @@ abstract class Compiler implements DiagnosticListener {
   TreeElements analyzeElement(Element element) {
     assert(invariant(element, element.isDeclaration));
     assert(!element.isForwardingConstructor);
-    TreeElements elements = enqueuer.resolution.getCachedElements(element);
+    ResolutionEnqueuer world = enqueuer.resolution;
+    TreeElements elements = world.getCachedElements(element);
     if (elements != null) return elements;
     assert(parser != null);
     Node tree = parser.parse(element);
@@ -956,8 +983,9 @@ abstract class Compiler implements DiagnosticListener {
     elements = resolver.resolve(element);
     if (elements != null && !analyzeSignaturesOnly) {
       // Only analyze nodes with a corresponding [TreeElements].
-      checker.check(tree, elements);
+      checker.check(elements);
     }
+    world.resolvedElements[element] = elements;
     return elements;
   }
 
@@ -978,8 +1006,6 @@ abstract class Compiler implements DiagnosticListener {
     TreeElements result = world.getCachedElements(element);
     if (result != null) return result;
     result = analyzeElement(element);
-    assert(invariant(element, element.isDeclaration));
-    world.resolvedElements[element] = result;
     return result;
   }
 

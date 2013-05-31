@@ -50,7 +50,7 @@ $if DART2JS
       var axis = 0;
       var detail = 0;
       if (deltaX != 0 && deltaY != 0) {
-        throw UnsupportedError(
+        throw new UnsupportedError(
             'Cannot modify deltaX and deltaY simultaneously');
       }
       if (deltaY != 0) {

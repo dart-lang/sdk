@@ -694,9 +694,9 @@ class _StreamImplEvents extends _PendingEvents {
   }
 }
 
-class _MultiplexerLinkedList {
-  _MultiplexerLinkedList _next;
-  _MultiplexerLinkedList _previous;
+class _BroadcastLinkedList {
+  _BroadcastLinkedList _next;
+  _BroadcastLinkedList _previous;
 
   void _unlink() {
     _previous._next = _next;
@@ -704,8 +704,8 @@ class _MultiplexerLinkedList {
     _next = _previous = this;
   }
 
-  void _insertBefore(_MultiplexerLinkedList newNext) {
-    _MultiplexerLinkedList newPrevious = newNext._previous;
+  void _insertBefore(_BroadcastLinkedList newNext) {
+    _BroadcastLinkedList newPrevious = newNext._previous;
     newPrevious._next = this;
     newNext._previous = _previous;
     _previous._next = newNext;
@@ -715,11 +715,11 @@ class _MultiplexerLinkedList {
 
 class _AsBroadcastStream<T> extends Stream<T> {
   final Stream<T> _source;
-  _BufferingMultiplexStreamController<T> _controller;
+  _AsBroadcastStreamController<T> _controller;
   StreamSubscription<T> _subscription;
 
   _AsBroadcastStream(this._source) {
-    _controller = new _BufferingMultiplexStreamController<T>(null, _onCancel);
+    _controller = new _AsBroadcastStreamController<T>(null, _onCancel);
   }
 
   bool get isBroadcast => true;

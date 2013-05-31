@@ -106,6 +106,7 @@ class DartUtils {
   static bool IsDartExtensionSchemeURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);
   static bool IsDartBuiltinLibURL(const char* url_name);
+  static bool IsHttpSchemeURL(const char* url_name);
   static Dart_Handle CanonicalizeURL(CommandLineOptions* url_mapping,
                                      Dart_Handle library,
                                      const char* url_str);
@@ -114,11 +115,14 @@ class DartUtils {
   static void WriteFile(const void* buffer, intptr_t num_bytes, void* stream);
   static void CloseFile(void* stream);
   static Dart_Handle ReadStringFromFile(const char* filename);
+  static Dart_Handle ReadStringFromHttp(const char* filename);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
                                        Dart_Handle url);
   static Dart_Handle LoadScript(const char* script_uri,
                                 Dart_Handle builtin_lib);
+  static Dart_Handle LoadScriptHttp(const char* script_uri,
+                                    Dart_Handle builtin_lib);
   static Dart_Handle LoadSource(CommandLineOptions* url_mapping,
                                 Dart_Handle library,
                                 Dart_Handle url,
@@ -164,6 +168,15 @@ class DartUtils {
   static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
                                      Dart_Handle builtin_lib);
 
+  static Dart_Handle PathFromUri(Dart_Handle script_uri,
+                                 Dart_Handle builtin_lib);
+
+  static Dart_Handle DomainFromUri(Dart_Handle script_uri,
+                                   Dart_Handle builtin_lib);
+
+  static Dart_Handle PortFromUri(Dart_Handle script_uri,
+                                 Dart_Handle builtin_lib);
+
   static Dart_Handle ResolveUri(Dart_Handle library_url,
                                 Dart_Handle url,
                                 Dart_Handle builtin_lib);
@@ -191,6 +204,7 @@ class DartUtils {
   static const char* kIOLibURL;
   static const char* kIOLibPatchURL;
   static const char* kUriLibURL;
+  static const char* kHttpScheme;
 
   static const char* kIdFieldName;
 

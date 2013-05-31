@@ -88,10 +88,11 @@ static bool IsSimpleValue(Dart_Handle object) {
 }
 
 
-static void FreeVMReference(Dart_Handle weak_ref, void* data) {
-  Dart_Handle perm_handle = reinterpret_cast<Dart_Handle>(data);
+static void FreeVMReference(Dart_WeakPersistentHandle weak_ref, void* data) {
+  Dart_PersistentHandle perm_handle =
+      reinterpret_cast<Dart_PersistentHandle>(data);
   Dart_DeletePersistentHandle(perm_handle);
-  Dart_DeletePersistentHandle(weak_ref);
+  Dart_DeleteWeakPersistentHandle(weak_ref);
 }
 
 
@@ -108,10 +109,8 @@ static Dart_Handle CreateVMReference(Dart_Handle handle) {
   }
 
   // Allocate a persistent handle.
-  Dart_Handle perm_handle = Dart_NewPersistentHandle(handle);
-  if (Dart_IsError(perm_handle)) {
-    return perm_handle;
-  }
+  Dart_PersistentHandle perm_handle = Dart_NewPersistentHandle(handle);
+  ASSERT(perm_handle != NULL);
 
   // Store the persistent handle in the VMReference.
   intptr_t perm_handle_value = reinterpret_cast<intptr_t>(perm_handle);
@@ -126,12 +125,9 @@ static Dart_Handle CreateVMReference(Dart_Handle handle) {
   // the VMReference is collected, so we can release the persistent
   // handle.
   void* perm_handle_data = reinterpret_cast<void*>(perm_handle);
-  Dart_Handle weak_ref =
+  Dart_WeakPersistentHandle weak_ref =
       Dart_NewWeakPersistentHandle(vm_ref, perm_handle_data, FreeVMReference);
-  if (Dart_IsError(weak_ref)) {
-    Dart_DeletePersistentHandle(perm_handle);
-    return weak_ref;
-  }
+  ASSERT(weak_ref != NULL);
 
   // Success.
   return vm_ref;
@@ -146,9 +142,13 @@ static Dart_Handle UnwrapVMReference(Dart_Handle vm_ref) {
   if (Dart_IsError(result)) {
     return result;
   }
-  Dart_Handle perm_handle = reinterpret_cast<Dart_Handle>(perm_handle_value);
-  ASSERT(!Dart_IsError(perm_handle));
-  return perm_handle;
+  Dart_PersistentHandle perm_handle =
+      reinterpret_cast<Dart_PersistentHandle>(perm_handle_value);
+  ASSERT(perm_handle != NULL);
+  Dart_Handle handle = Dart_HandleFromPersistent(perm_handle);
+  ASSERT(handle != NULL);
+  ASSERT(!Dart_IsError(handle));
+  return handle;
 }
 
 

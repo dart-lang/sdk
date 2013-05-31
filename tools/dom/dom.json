@@ -883,6 +883,7 @@
   },
   "CustomElementConstructor": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-constructor-generation",
+    "dart_action": "suppress",
     "members": {},
     "support_level": "experimental"
   },
@@ -2354,6 +2355,7 @@
         "comment": "http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features",
         "support_level": "experimental"
       },
+      "ontransitionend": {},
       "onwebkitTransitionEnd": {
         "support_level": "deprecated"
       },

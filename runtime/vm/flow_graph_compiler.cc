@@ -738,7 +738,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   }
 
   // Allocate all unallocated input locations.
-  const bool should_pop = !instr->IsPushArgument();
+  const bool should_pop = !instr->IsPushArgument() && !instr->IsPushTemp();
   for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
     Register reg = kNoRegister;

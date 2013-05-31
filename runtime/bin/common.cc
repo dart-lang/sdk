@@ -18,38 +18,38 @@ void FUNCTION_NAME(Common_IsBuiltinList)(Dart_NativeArguments args) {
   // Fetch the cached builtin array types for this isolate.
   IsolateData* isolate_data =
       reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  Dart_Handle object_array_class = isolate_data->object_array_class;
-  Dart_Handle growable_object_array_class =
-      isolate_data->growable_object_array_class;
-  Dart_Handle immutable_array_class = isolate_data->immutable_array_class;
 
   // If we have not cached the class pointers in the isolate data,
   // look them up and cache them now.
-  if (object_array_class == NULL) {
+  if (isolate_data->object_array_class == NULL) {
     Dart_Handle core_lib =
         Dart_LookupLibrary(Dart_NewStringFromCString("dart:core"));
     ASSERT(!Dart_IsError(core_lib));
-    object_array_class =
+
+    Dart_Handle cls =
         Dart_GetClass(core_lib, Dart_NewStringFromCString("_ObjectArray"));
-    ASSERT(!Dart_IsError(object_array_class));
-    immutable_array_class =
-        Dart_GetClass(core_lib, Dart_NewStringFromCString("_ImmutableArray"));
-    ASSERT(!Dart_IsError(immutable_array_class));
-    growable_object_array_class = Dart_GetClass(
+    ASSERT(!Dart_IsError(cls));
+    isolate_data->object_array_class = Dart_NewPersistentHandle(cls);
+    ASSERT(isolate_data->object_array_class != NULL);
+
+    cls = Dart_GetClass(core_lib, Dart_NewStringFromCString("_ImmutableArray"));
+    ASSERT(!Dart_IsError(cls));
+    isolate_data->immutable_array_class = Dart_NewPersistentHandle(cls);
+    ASSERT(isolate_data->immutable_array_class != NULL);
+
+    cls = Dart_GetClass(
         core_lib, Dart_NewStringFromCString("_GrowableObjectArray"));
-    ASSERT(!Dart_IsError(growable_object_array_class));
-    // Update the cache.
-    isolate_data->object_array_class =
-        Dart_NewPersistentHandle(object_array_class);
-    ASSERT(!Dart_IsError(isolate_data->object_array_class));
-    isolate_data->growable_object_array_class =
-        Dart_NewPersistentHandle(growable_object_array_class);
-    ASSERT(!Dart_IsError(isolate_data->growable_object_array_class));
-    isolate_data->immutable_array_class =
-        Dart_NewPersistentHandle(immutable_array_class);
-    ASSERT(!Dart_IsError(isolate_data->immutable_array_class));
+    ASSERT(!Dart_IsError(cls));
+    isolate_data->growable_object_array_class = Dart_NewPersistentHandle(cls);
+    ASSERT(isolate_data->growable_object_array_class != NULL);
   }
 
+  Dart_Handle object_array_class =
+      Dart_HandleFromPersistent(isolate_data->object_array_class);
+  Dart_Handle growable_object_array_class =
+      Dart_HandleFromPersistent(isolate_data->growable_object_array_class);
+  Dart_Handle immutable_array_class =
+      Dart_HandleFromPersistent(isolate_data->immutable_array_class);
   bool builtin_array =
       (Dart_IdentityEquals(list_class, growable_object_array_class) ||
        Dart_IdentityEquals(list_class, object_array_class) ||

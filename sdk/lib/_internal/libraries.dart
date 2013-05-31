@@ -146,6 +146,12 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
+
+  "_js_mirrors": const LibraryInfo(
+      "_internal/compiler/implementation/lib/js_mirrors.dart",
+      category: "Internal",
+      documented: false,
+      platforms: DART2JS_PLATFORM),
 };
 
 /**

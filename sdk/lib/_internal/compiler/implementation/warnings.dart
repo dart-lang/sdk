@@ -38,6 +38,9 @@ class MessageKind {
       '#{className}.#{memberName} is not static');
   static const NO_INSTANCE_AVAILABLE = const MessageKind(
       '#{name} is only available in instance methods');
+  static const PRIVATE_ACCESS = const MessageKind(
+      "'#{name}' is declared private within library #{libraryName} and "
+      "is therefore not accessible.");
 
   static const THIS_IS_THE_METHOD = const MessageKind(
       "This is the method declaration.");
@@ -326,6 +329,9 @@ class MessageKind {
 
   static const ILLEGAL_MIXIN_SUPERCLASS = const MessageKind(
       "Error: class used as mixin must have Object as superclass.");
+
+  static const ILLEGAL_MIXIN_OBJECT = const MessageKind(
+      "Error: cannot use Object as mixin.");
 
   static const ILLEGAL_MIXIN_CONSTRUCTOR = const MessageKind(
       "Error: class used as mixin cannot have non-factory constructor.");

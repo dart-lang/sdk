@@ -1408,17 +1408,47 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 }
 
 
+// Implement equality spec: if any of the arguments is null do identity check.
+// Fallthrough calls super equality.
 void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
                                                       Label* skip_call) {
-  UNIMPLEMENTED();
+  Label check_identity, fall_through;
+  __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
+  __ ldr(result, Address(SP, 0 * kWordSize));  // Load right operand.
+  __ cmp(result, ShifterOperand(IP));  // Is right null?
+  __ ldr(result, Address(SP, 1 * kWordSize));  // Load left operand.
+  __ b(&check_identity, EQ);  // Branch if right (IP) is null; left in result.
+  __ cmp(result, ShifterOperand(IP));  // Right is non-null; is left null?
+  __ b(&fall_through, NE);
+  // Right is non-null, left is null. We could return false, but we save code
+  // by falling through with an IP different than null.
+  __ mov(IP, ShifterOperand(0));
+  __ Bind(&check_identity);
+  __ cmp(result, ShifterOperand(IP));
+  __ LoadObject(result, Bool::True(), EQ);
+  __ LoadObject(result, Bool::False(), NE);
+  __ Drop(2);
+  __ b(skip_call);
+  __ Bind(&fall_through);
 }
 
 
 void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
   // TODO(vegorov): consider saving only caller save (volatile) registers.
-  const intptr_t fpu_registers = locs->live_registers()->fpu_registers();
-  if (fpu_registers > 0) {
-    UNIMPLEMENTED();
+  const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();
+  if (fpu_regs_count > 0) {
+    __ AddImmediate(SP, -(fpu_regs_count * kFpuRegisterSize));
+    // Store fpu registers with the lowest register number at the lowest
+    // address.
+    intptr_t offset = 0;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
+      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+      if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
+        __ vstrd(fpu_reg, Address(SP, offset));
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 
   // Store general purpose registers with the lowest register number at the
@@ -1440,9 +1470,19 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
     __ PopList(cpu_registers);
   }
 
-  const intptr_t fpu_registers = locs->live_registers()->fpu_registers();
-  if (fpu_registers > 0) {
-    UNIMPLEMENTED();
+  const intptr_t fpu_regs_count = locs->live_registers()->fpu_regs_count();
+  if (fpu_regs_count > 0) {
+    // Fpu registers have the lowest register number at the lowest address.
+    intptr_t offset = 0;
+    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
+      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+      if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
+        __ vldrd(fpu_reg, Address(SP, offset));
+        offset += kFpuRegisterSize;
+      }
+    }
+    ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
+    __ AddImmediate(SP, offset);
   }
 }
 
@@ -1498,7 +1538,13 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
                                                 FpuRegister left,
                                                 FpuRegister right,
                                                 BranchInstr* branch) {
-  UNIMPLEMENTED();
+  ASSERT(branch != NULL);
+  assembler()->vcmpd(left, right);
+  assembler()->vmstat();
+  BlockEntryInstr* nan_result = (true_condition == NE) ?
+      branch->true_successor() : branch->false_successor();
+  assembler()->b(GetJumpLabel(nan_result), VS);
+  branch->EmitBranchOnCondition(this, true_condition);
 }
 
 
@@ -1506,7 +1552,13 @@ void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
                                               FpuRegister left,
                                               FpuRegister right,
                                               Register result) {
-  UNIMPLEMENTED();
+  assembler()->vcmpd(left, right);
+  assembler()->vmstat();
+  assembler()->LoadObject(result, Bool::False());
+  Label done;
+  assembler()->b(&done, VS);  // NaN -> false.
+  assembler()->LoadObject(result, Bool::True(), true_condition);
+  assembler()->Bind(&done);
 }
 
 

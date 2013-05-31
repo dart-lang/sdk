@@ -332,7 +332,7 @@ class ApplicationCache extends EventTarget {
 
   @DomName('DOMApplicationCache.progressEvent')
   @DocsEditable
-  static const EventStreamProvider<Event> progressEvent = const EventStreamProvider<Event>('progress');
+  static const EventStreamProvider<ProgressEvent> progressEvent = const EventStreamProvider<ProgressEvent>('progress');
 
   @DomName('DOMApplicationCache.updatereadyEvent')
   @DocsEditable
@@ -419,7 +419,7 @@ class ApplicationCache extends EventTarget {
 
   @DomName('DOMApplicationCache.onprogress')
   @DocsEditable
-  Stream<Event> get onProgress => progressEvent.forTarget(this);
+  Stream<ProgressEvent> get onProgress => progressEvent.forTarget(this);
 
   @DomName('DOMApplicationCache.onupdateready')
   @DocsEditable
@@ -531,19 +531,6 @@ class AreaElement extends _Element_Merged {
   @DomName('HTMLAreaElement.target')
   @DocsEditable
   void set target(String value) native "HTMLAreaElement_target_Setter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('Attr')
-class Attr extends Node {
-  Attr.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6060,7 +6047,7 @@ class CssUnknownRule extends CssRule {
 @DocsEditable
 @DomName('CustomElementConstructor')
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-constructor-generation
-@Experimental
+@deprecated // experimental
 class CustomElementConstructor extends NativeFieldWrapperClass1 {
   CustomElementConstructor.internal();
 
@@ -7725,6 +7712,24 @@ class _ChildrenElementList extends ListBase<Element> {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
+  void removeWhere(bool test(Element element)) {
+    _filter(test, false);
+  }
+
+  void retainWhere(bool test(Element element)) {
+    _filter(test, true);
+  }
+
+  void _filter(bool test(var element), bool retainMatching) {
+    var removed;
+    if (retainMatching) {
+      removed = _element.children.where((e) => !test(e));
+    } else {
+      removed = _element.children.where(test);
+    }
+    for (var e in removed) e.remove();
+  }
+
   void setRange(int start, int end, Iterable<Element> iterable,
                 [int skipCount = 0]) {
     throw new UnimplementedError();
@@ -8114,6 +8119,16 @@ abstract class Element extends Node implements ElementTraversal {
   void set xtag(Element value) {
     _xtag = value;
   }
+
+  @DomName('Element.localName')
+  @DocsEditable
+  String get localName => $dom_localName;
+
+  @DomName('Element.namespaceUri')
+  @DocsEditable
+  String get namespaceUri => $dom_namespaceUri;
+
+  String toString() => localName;
 
   /**
    * Scrolls this element into view.
@@ -8594,13 +8609,9 @@ abstract class Element extends Node implements ElementTraversal {
   @Experimental
   static const EventStreamProvider<TouchEvent> touchStartEvent = const EventStreamProvider<TouchEvent>('touchstart');
 
-  @DomName('Element.webkitTransitionEndEvent')
+  @DomName('Element.transitionendEvent')
   @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  @deprecated
-  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('webkitTransitionEnd');
+  static const EventStreamProvider<TransitionEvent> transitionEndEvent = const EventStreamProvider<TransitionEvent>('transitionend');
 
   @DomName('Element.webkitfullscreenchangeEvent')
   @DocsEditable
@@ -9165,13 +9176,12 @@ abstract class Element extends Node implements ElementTraversal {
   @Experimental
   Stream<TouchEvent> get onTouchStart => touchStartEvent.forTarget(this);
 
-  @DomName('Element.onwebkitTransitionEnd')
+  @DomName('Element.ontransitionend')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @deprecated
   Stream<TransitionEvent> get onTransitionEnd => transitionEndEvent.forTarget(this);
 
   @DomName('Element.onwebkitfullscreenchange')
@@ -11067,7 +11077,7 @@ class Geolocation extends NativeFieldWrapperClass1 {
 
     int watchId;
     var controller;
-    controller = new StreamController<Geoposition>(
+    controller = new StreamController<Geoposition>(sync: true,
       onListen: () {
         assert(watchId == null);
         watchId = $dom_watchPosition(
@@ -16863,14 +16873,15 @@ class Node extends EventTarget {
    */
   Node insertAllBefore(Iterable<Node> newNodes, Node refChild) {
     if (newNodes is _ChildNodeListLazy) {
-      if (identical(newNodes._this, this)) {
+      _ChildNodeListLazy otherList = newNodes;
+      if (identical(otherList._this, this)) {
         throw new ArgumentError(newNodes);
       }
 
       // Optimized route for copying between nodes.
-      for (var i = 0, len = newNodes.length; i < len; ++i) {
+      for (var i = 0, len = otherList.length; i < len; ++i) {
         // Should use $dom_firstChild, Bug 8886.
-        this.insertBefore(newNodes[0], refChild);
+        this.insertBefore(otherList[0], refChild);
       }
     } else {
       for (var node in newNodes) {
@@ -16882,8 +16893,7 @@ class Node extends EventTarget {
   /**
    * Print out a String representation of this Node.
    */
-  String toString() => localName == null ?
-      (nodeValue == null ? super.toString() : nodeValue) : localName;
+  String toString() => nodeValue == null ? super.toString() : nodeValue;
 
   /**
    * Binds the attribute [name] to the [path] of the [model].
@@ -16978,7 +16988,7 @@ class Node extends EventTarget {
   @DocsEditable
   // http://dom.spec.whatwg.org/#dom-node-localname
   @deprecated // deprecated
-  String get localName native "Node_localName_Getter";
+  String get $dom_localName native "Node_localName_Getter";
 
   @DomName('Node.namespaceURI')
   @DocsEditable
@@ -21916,7 +21926,7 @@ class TemplateElement extends _Element_Merged {
   @Experimental
   static Stream<DocumentFragment> get instanceCreated {
     if (_instanceCreated == null) {
-      _instanceCreated = new StreamController<DocumentFragment>();
+      _instanceCreated = new StreamController<DocumentFragment>(sync: true);
     }
     return _instanceCreated.stream;
   }
@@ -24719,6 +24729,10 @@ class Window extends EventTarget implements WindowBase {
   @Experimental
   Stream<TouchEvent> get onTouchStart => Element.touchStartEvent.forTarget(this);
 
+  @DomName('Window.ontransitionend')
+  @DocsEditable
+  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
+
   @DomName('Window.onunload')
   @DocsEditable
   Stream<Event> get onUnload => unloadEvent.forTarget(this);
@@ -24737,11 +24751,6 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   @Experimental // untriaged
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
-
-  @DomName('Window.onwebkitTransitionEnd')
-  @DocsEditable
-  @deprecated
-  Stream<TransitionEvent> get onTransitionEnd => Element.transitionEndEvent.forTarget(this);
 
 
   @DomName('DOMWindow.beforeunloadEvent')
@@ -24788,7 +24797,7 @@ class _BeforeUnloadEventStreamProvider implements
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
   Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     var stream = new _EventStream(e, _eventType, useCapture);
     stream.listen((event) {
       var wrapped = new _BeforeUnloadEvent(event);
@@ -25143,6 +25152,45 @@ class XsltProcessor extends NativeFieldWrapperClass1 {
   @DomName('XSLTProcessor.transformToFragment')
   @DocsEditable
   DocumentFragment transformToFragment(Node source, Document docVal) native "XSLTProcessor_transformToFragment_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Attr')
+class _Attr extends Node {
+  _Attr.internal() : super.internal();
+
+  @DomName('Attr.isId')
+  @DocsEditable
+  bool get isId native "Attr_isId_Getter";
+
+  @DomName('Attr.name')
+  @DocsEditable
+  String get name native "Attr_name_Getter";
+
+  @DomName('Attr.ownerElement')
+  @DocsEditable
+  @deprecated // deprecated
+  Element get ownerElement native "Attr_ownerElement_Getter";
+
+  @DomName('Attr.specified')
+  @DocsEditable
+  @deprecated // deprecated
+  bool get specified native "Attr_specified_Getter";
+
+  @DomName('Attr.value')
+  @DocsEditable
+  String get value native "Attr_value_Getter";
+
+  @DomName('Attr.value')
+  @DocsEditable
+  void set value(String value) native "Attr_value_Setter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26731,7 +26779,7 @@ abstract class _AttributeMap implements Map<String, String> {
     var keys = new List<String>();
     for (int i = 0, len = attributes.length; i < len; i++) {
       if (_matches(attributes[i])) {
-        keys.add(attributes[i].localName);
+        keys.add(attributes[i].name);
       }
     }
     return keys;
@@ -27509,7 +27557,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
 
   /** Controller to produce KeyEvents for the stream. */
-  final StreamController _controller = new StreamController();
+  final StreamController _controller = new StreamController(sync: true);
 
   static const _EVENT_TYPE = 'KeyEvent';
 
@@ -27578,7 +27626,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * Hook up all event listeners under the covers so we can estimate keycodes
    * and charcodes when they are not provided.
    */
-  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) : 
+  _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target) :
     super(_EVENT_TYPE) {
     Element.keyDownEvent.forTarget(_target, useCapture: true).listen(
         processKeyDown);
@@ -28723,7 +28771,8 @@ class PathObserver {
     // TODO(jmesserly): if the path is empty, or the object is! Observable, we
     // can optimize the PathObserver to be more lightweight.
 
-    _values = new StreamController.broadcast(onListen: _observe,
+    _values = new StreamController.broadcast(sync: true,
+                                             onListen: _observe,
                                              onCancel: _unobserve);
 
     if (_isValid) {
@@ -29770,11 +29819,12 @@ class _Bindings {
   static void _removeChild(Node parent, Node child) {
     child._templateInstance = null;
     if (child is Element && (child as Element).isTemplate) {
+      Element childElement = child;
       // Make sure we stop observing when we remove an element.
-      var templateIterator = child._templateIterator;
+      var templateIterator = childElement._templateIterator;
       if (templateIterator != null) {
         templateIterator.abandon();
-        child._templateIterator = null;
+        childElement._templateIterator = null;
       }
     }
     child.remove();

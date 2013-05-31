@@ -55,6 +55,7 @@ namespace dart {
   V(LoadIndexedNode, "load indexed")                                           \
   V(StoreIndexedNode, "store indexed")                                         \
   V(SequenceNode, "seq")                                                       \
+  V(LetNode, "let")                                                            \
   V(CommaNode, "comma")                                                        \
   V(CatchClauseNode, "catch clause block")                                     \
   V(TryCatchNode, "try catch block")                                           \
@@ -293,24 +294,48 @@ class ArgumentDefinitionTestNode : public AstNode {
 };
 
 
+class LetNode : public AstNode {
+ public:
+  explicit LetNode(intptr_t token_pos);
+
+  LocalVariable* TempAt(intptr_t i) const { return vars_[i]; }
+  AstNode* InitializerAt(intptr_t i) const { return initializers_[i]; }
+
+  LocalVariable* AddInitializer(AstNode* node);
+
+  intptr_t num_temps() const {
+    return vars_.length();
+  }
+
+  AstNode* body() const { return body_; }
+  void set_body(AstNode* node) { body_ = node; }
+
+  void VisitChildren(AstNodeVisitor* visitor) const;
+
+  DECLARE_COMMON_NODE_FUNCTIONS(LetNode);
+
+ private:
+  GrowableArray<LocalVariable*> vars_;
+  GrowableArray<AstNode*> initializers_;
+  AstNode* body_;
+
+  DISALLOW_COPY_AND_ASSIGN(LetNode);
+};
+
+
 class ArrayNode : public AstNode {
  public:
-  ArrayNode(intptr_t token_pos,
-            const AbstractType& type,
-            const LocalVariable& temp)
+  ArrayNode(intptr_t token_pos, const AbstractType& type)
       : AstNode(token_pos),
         type_(type),
-        temp_local_(temp),
         elements_() {
     CheckFields();
   }
   ArrayNode(intptr_t token_pos,
             const AbstractType& type,
-            const LocalVariable& temp,
             const GrowableArray<AstNode*>& elements)
       : AstNode(token_pos),
         type_(type),
-        temp_local_(temp),
         elements_(elements.length()) {
     CheckFields();
     for (intptr_t i = 0; i < elements.length(); i++) {
@@ -330,13 +355,10 @@ class ArrayNode : public AstNode {
 
   const AbstractType& type() const { return type_; }
 
-  const LocalVariable& temp_local() const { return temp_local_; }
-
   DECLARE_COMMON_NODE_FUNCTIONS(ArrayNode);
 
  private:
   const AbstractType& type_;
-  const LocalVariable& temp_local_;  // Store allocated array while filling it.
   GrowableArray<AstNode*> elements_;
 
   void CheckFields() {
@@ -1507,25 +1529,19 @@ class ClosureCallNode : public AstNode {
 // instantiator is the first parameter of this factory, which is already a
 // type argument vector. This case is identified by a null and unneeded
 // instantiator_class.
-//
-// A temporary local is needed to hold the allocated value while the
-// constructor is being called.
 class ConstructorCallNode : public AstNode {
  public:
   ConstructorCallNode(intptr_t token_pos,
                       const AbstractTypeArguments& type_arguments,
                       const Function& constructor,
-                      ArgumentListNode* arguments,
-                      const LocalVariable* allocated_object_var)
+                      ArgumentListNode* arguments)
       : AstNode(token_pos),
         type_arguments_(type_arguments),
         constructor_(constructor),
-        arguments_(arguments),
-        allocated_object_var_(*allocated_object_var) {
+        arguments_(arguments) {
     ASSERT(type_arguments_.IsZoneHandle());
     ASSERT(constructor_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
-    ASSERT(allocated_object_var != NULL);
   }
 
   const AbstractTypeArguments& type_arguments() const {
@@ -1533,9 +1549,6 @@ class ConstructorCallNode : public AstNode {
   }
   const Function& constructor() const { return constructor_; }
   ArgumentListNode* arguments() const { return arguments_; }
-  const LocalVariable& allocated_object_var() const {
-    return allocated_object_var_;
-  }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     arguments()->Visit(visitor);
@@ -1547,7 +1560,6 @@ class ConstructorCallNode : public AstNode {
   const AbstractTypeArguments& type_arguments_;
   const Function& constructor_;
   ArgumentListNode* arguments_;
-  const LocalVariable& allocated_object_var_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ConstructorCallNode);
 };

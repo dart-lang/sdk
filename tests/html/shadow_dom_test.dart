@@ -66,5 +66,30 @@ main() {
         expect(shadowRoot.queryAll('.foo'), equals([paragraph1]));
       }, expectation);
     });
+
+    if (ShadowRoot.supported) {
+      test('Shadowroot contents are distributed', () {
+
+        var div = new DivElement();
+
+        var box1 = new DivElement()
+          ..classes.add('foo');
+        div.append(box1);
+
+        var box2 = new DivElement();
+        div.append(box2);
+
+        var sRoot = div.createShadowRoot();
+        var content1 = new ContentElement()
+          ..select = ".foo";
+        sRoot.append(content1);
+
+        var content2 = new ContentElement();
+        sRoot.append(content2);
+
+        expect(content1.getDistributedNodes(), [box1]);
+        expect(content2.getDistributedNodes(), [box2]);
+      });
+    }
   });
 }

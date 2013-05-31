@@ -180,12 +180,13 @@ abstract class HType {
   bool isInteger() => false;
   bool isDouble() => false;
   bool isString() => false;
-  bool isFixedArray() => false;
-  bool isReadableArray() => false;
-  bool isMutableArray() => false;
-  bool isExtendableArray() => false;
-  bool isPrimitive() => false;
 
+  bool isFixedArray(Compiler compiler) => false;
+  bool isReadableArray(Compiler compiler) => false;
+  bool isMutableArray(Compiler compiler) => false;
+  bool isExtendableArray(Compiler compiler) => false;
+
+  bool isPrimitive() => false;
   bool isBooleanOrNull() => false;
   bool isNumberOrNull() => false;
   bool isIntegerOrNull() => false;
@@ -194,7 +195,7 @@ abstract class HType {
   bool isPrimitiveOrNull() => false;
 
   // TODO(kasperl): Get rid of this one.
-  bool isIndexablePrimitive() => false;
+  bool isIndexablePrimitive(Compiler compiler) => false;
 
   bool isIndexable(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
@@ -222,7 +223,7 @@ abstract class HType {
   /** A type is useful it is not unknown, not conflicting, and not null. */
   bool isUseful() => !isUnknown() && !isConflicting() && !isNull();
   /** Alias for isReadableArray. */
-  bool isArray() => isReadableArray();
+  bool isArray(Compiler compiler) => isReadableArray(compiler);
 
   TypeMask computeMask(Compiler compiler);
 
@@ -457,7 +458,7 @@ class HDoubleType extends HNumberType {
 
 class HIndexablePrimitiveType extends HPrimitiveType {
   const HIndexablePrimitiveType();
-  bool isIndexablePrimitive() => true;
+  bool isIndexablePrimitive(Compiler compiler) => true;
   String toString() => "indexable";
 
   TypeMask computeMask(Compiler compiler) {
@@ -497,7 +498,7 @@ class HStringType extends HIndexablePrimitiveType {
 
 class HReadableArrayType extends HIndexablePrimitiveType {
   const HReadableArrayType();
-  bool isReadableArray() => true;
+  bool isReadableArray(Compiler compiler) => true;
   String toString() => "readable array";
   bool canBePrimitiveArray(Compiler compiler) => true;
 
@@ -510,7 +511,7 @@ class HReadableArrayType extends HIndexablePrimitiveType {
 
 class HMutableArrayType extends HReadableArrayType {
   const HMutableArrayType();
-  bool isMutableArray() => true;
+  bool isMutableArray(Compiler compiler) => true;
   String toString() => "mutable array";
 
   TypeMask computeMask(Compiler compiler) {
@@ -522,7 +523,7 @@ class HMutableArrayType extends HReadableArrayType {
 
 class HFixedArrayType extends HMutableArrayType {
   const HFixedArrayType();
-  bool isFixedArray() => true;
+  bool isFixedArray(Compiler compiler) => true;
   String toString() => "fixed array";
   bool isExact() => true;
 
@@ -535,7 +536,7 @@ class HFixedArrayType extends HMutableArrayType {
 
 class HExtendableArrayType extends HMutableArrayType {
   const HExtendableArrayType();
-  bool isExtendableArray() => true;
+  bool isExtendableArray(Compiler compiler) => true;
   String toString() => "extendable array";
   bool isExact() => true;
 
@@ -585,6 +586,32 @@ class HBoundedType extends HType {
     return mask.contains(jsArrayType, compiler)
         || mask.contains(jsFixedArrayType, compiler)
         || mask.contains(jsExtendableArrayType, compiler);
+  }
+
+  bool isIndexablePrimitive(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return mask.containsOnlyString(compiler)
+        || mask.satisfies(backend.jsIndexableClass, compiler);
+  }
+
+  bool isFixedArray(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return mask.containsOnly(backend.jsFixedArrayClass);
+  }
+
+  bool isExtendableArray(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return mask.containsOnly(backend.jsExtendableArrayClass);
+  }
+
+  bool isMutableArray(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return mask.satisfies(backend.jsMutableArrayClass, compiler);
+  }
+
+  bool isReadableArray(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return mask.satisfies(backend.jsArrayClass, compiler);
   }
 
   bool canBePrimitiveString(Compiler compiler) {

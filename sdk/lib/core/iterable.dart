@@ -198,13 +198,13 @@ abstract class Iterable<E> {
    * Returns an [Iterable] that skips elements while [test] is satisfied.
    *
    * The filtering happens lazily. Every new [Iterator] of the returned
-   * [Iterable] will iterate over all elements of `this`.
+   * [Iterable] iterates over all elements of `this`.
    *
-   * As long as the iterator's elements do not satisfy [test] they are
-   * discarded. Once an element satisfies the [test] the iterator stops testing
-   * and uses every element unconditionally. That is, the elements of the
-   * returned [Iterable] are the elements of `this` starting from the first
-   * element that doesn't satisfy [test].
+   * As long as the iterator's elements satisfy [test] they are
+   * discarded. Once an element does not satisfy the [test] the iterator stops
+   * testing and uses every later element unconditionally. That is, the elements
+   * of the returned [Iterable] are the elements of `this` starting from the
+   * first element that does not satisfy [test].
    */
   Iterable<E> skipWhile(bool test(E value));
 

@@ -139,7 +139,7 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
   if (tag == kCanonicalizeUrl) {
     return url;
   }
-  return Api::Success(Isolate::Current());
+  return Api::Success();
 }
 
 

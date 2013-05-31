@@ -17,5 +17,5 @@ main() {
 
   // If this test fail, please take a look at the use of
   // toStringWrapper in captureStackTrace in js_helper.dart.
-  Expect.isTrue(code.contains(r'print($.main$closure);'));
+  Expect.isTrue(code.contains(new RegExp(r'print\([$a-z]+\.main\$closure\);')));
 }

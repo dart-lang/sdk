@@ -90,40 +90,46 @@ List<String> _buildFailureOutput(TestCase test,
       }
     }
   }
-  if (!test.lastCommandOutput.diagnostics.isEmpty) {
-    String prefix = 'diagnostics:';
-    for (var s in test.lastCommandOutput.diagnostics) {
-      output.add('$prefix ${s}');
-      prefix = '   ';
+  for (var i = 0; i < test.commands.length; i++) {
+    var command = test.commands[i];
+    var commandOutput = test.commandOutputs[command];
+    if (commandOutput != null) {
+      output.add("CommandOutput[$i]:");
+      if (!commandOutput.diagnostics.isEmpty) {
+        String prefix = 'diagnostics:';
+        for (var s in commandOutput.diagnostics) {
+          output.add('$prefix ${s}');
+          prefix = '   ';
+        }
+      }
+      if (!commandOutput.stdout.isEmpty) {
+        output.add('');
+        output.add('stdout:');
+        if (command.isPixelTest) {
+          output.add('DRT pixel test failed! stdout is not printed because it '
+                     'contains binary data!');
+        } else {
+          output.addAll(getLinesWithoutCarriageReturn(commandOutput.stdout));
+        }
+      }
+      if (!commandOutput.stderr.isEmpty) {
+        output.add('');
+        output.add('stderr:');
+        output.addAll(getLinesWithoutCarriageReturn(commandOutput.stderr));
+      }
     }
-  }
-  if (!test.lastCommandOutput.stdout.isEmpty) {
-    output.add('');
-    output.add('stdout:');
-    if (test.lastCommandOutput.command.isPixelTest) {
-      output.add('DRT pixel test failed! stdout is not printed because it '
-                 'contains binary data!');
-    } else {
-      output.addAll(
-          getLinesWithoutCarriageReturn(test.lastCommandOutput.stdout));
-    }
-  }
-  if (!test.lastCommandOutput.stderr.isEmpty) {
-    output.add('');
-    output.add('stderr:');
-    output.addAll(getLinesWithoutCarriageReturn(test.lastCommandOutput.stderr));
   }
   if (test is BrowserTestCase) {
     // Additional command for rerunning the steps locally after the fact.
     var command =
       test.configuration["_servers_"].httpServerCommandline();
+    output.add('');
     output.add('To retest, run:  $command');
   }
-  for (Command c in test.commands) {
+  for (var i = 0; i < test.commands.length; i++) {
+    var command = test.commands[i];
     output.add('');
-    String message = (c == test.commands.last
-        ? "Command line" : "Compilation command");
-    output.add('$message: $c');
+    output.add('Command[$i]: $command');
   }
   return output;
 }

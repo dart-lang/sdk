@@ -74,24 +74,18 @@ class Api : AllStatic {
   CLASS_LIST_FOR_HANDLES(DECLARE_UNWRAP)
 #undef DECLARE_UNWRAP
 
-  // Validates and converts the passed in handle as a local handle.
-  static LocalHandle* UnwrapAsLocalHandle(const ApiState& state,
-                                          Dart_Handle object);
-
   // Validates and converts the passed in handle as a persistent handle.
-  static PersistentHandle* UnwrapAsPersistentHandle(const ApiState& state,
-                                                    Dart_Handle object);
+  static PersistentHandle* UnwrapAsPersistentHandle(
+      Dart_PersistentHandle object);
 
   // Validates and converts the passed in handle as a weak persistent handle.
   static FinalizablePersistentHandle* UnwrapAsWeakPersistentHandle(
-      const ApiState& state,
-      Dart_Handle object);
+      Dart_WeakPersistentHandle object);
 
   // Validates and converts the passed in handle as a prologue weak
   // persistent handle.
   static FinalizablePersistentHandle* UnwrapAsPrologueWeakPersistentHandle(
-      const ApiState& state,
-      Dart_Handle object);
+      Dart_WeakPersistentHandle object);
 
   // Returns an Error handle if isolate is in an inconsistent state.
   // Returns a Success handle when no error condition exists.
@@ -101,7 +95,7 @@ class Api : AllStatic {
   static Dart_Isolate CastIsolate(Isolate* isolate);
 
   // Gets the handle used to designate successful return.
-  static Dart_Handle Success(Isolate* isolate);
+  static Dart_Handle Success() { return Api::True(); }
 
   // Sets up the acquired error object after initializing an Isolate. This
   // object is pre-created because we will not be able to allocate this
@@ -140,19 +134,22 @@ class Api : AllStatic {
   static Dart_Handle NewError(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
 
   // Gets a handle to Null.
-  static Dart_Handle Null(Isolate* isolate);
+  static Dart_Handle Null();
 
   // Gets a handle to True.
-  static Dart_Handle True(Isolate* isolate);
+  static Dart_Handle True();
 
   // Gets a handle to False
-  static Dart_Handle False(Isolate* isolate);
+  static Dart_Handle False();
 
   // Retrieves the top ApiLocalScope.
   static ApiLocalScope* TopScope(Isolate* isolate);
 
   // Performs one-time initialization needed by the API.
   static void InitOnce();
+
+  // Allocates handles for objects in the VM isolate.
+  static void InitHandles();
 
   // Helper function to get the peer value of an external string object.
   static bool ExternalStringGetPeerHelper(Dart_Handle object, void** peer);
@@ -161,6 +158,9 @@ class Api : AllStatic {
   // Thread local key used by the API. Currently holds the current
   // ApiNativeScope if any.
   static ThreadLocalKey api_native_key_;
+  static Dart_Handle true_handle_;
+  static Dart_Handle false_handle_;
+  static Dart_Handle null_handle_;
 
   friend class ApiNativeScope;
 };

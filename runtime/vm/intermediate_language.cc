@@ -1579,6 +1579,35 @@ LocationSummary* StoreContextInstr::MakeLocationSummary() const {
 }
 
 
+LocationSummary* PushTempInstr::MakeLocationSummary() const {
+  return LocationSummary::Make(1,
+                               Location::NoLocation(),
+                               LocationSummary::kNoCall);
+}
+
+
+void PushTempInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(!compiler->is_optimizing());
+  // Nothing to do.
+}
+
+
+LocationSummary* DropTempsInstr::MakeLocationSummary() const {
+  return LocationSummary::Make(1,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kNoCall);
+}
+
+
+void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(!compiler->is_optimizing());
+  Register value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  ASSERT(result == value);  // Assert that register assignment is correct.
+  __ Drop(num_temps());
+}
+
+
 void StoreContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Nothing to do.  Context register was loaded by the register allocator.
   ASSERT(locs()->in(0).reg() == CTX);

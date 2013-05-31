@@ -18,7 +18,6 @@ fuzzSyncMethods() {
       doItSync(f.existsSync);
       doItSync(f.createSync);
       doItSync(f.deleteSync);
-      doItSync(f.directorySync);
       doItSync(f.lengthSync);
       doItSync(f.modifiedSync);
       doItSync(f.fullPathSync);

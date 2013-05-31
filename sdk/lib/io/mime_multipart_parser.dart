@@ -101,6 +101,7 @@ class MimeMultipartTransformer
 
   Stream<MimeMultipart> bind(Stream<List<int>> stream) {
     _controller = new StreamController(
+        sync: true,
         onPause: _pauseStream,
         onResume:_resumeStream,
         onCancel: () {
@@ -293,6 +294,7 @@ class MimeMultipartTransformer
         case _HEADER_ENDING:
           _expect(byte, _CharCode.LF);
           _multipartController = new StreamController(
+              sync: true,
               onPause: () {
                 _pauseStream();
               },

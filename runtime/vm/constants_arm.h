@@ -554,15 +554,6 @@ class Instr {
     return ((Bits(20, 5) & 0x12) == 0x10) && (Bits(9, 3) == 5);
   }
 
-  // Only handle mrc of the id_isar0 register.
-  inline bool IsMrcIdIsar0() const {
-    ASSERT(ConditionField() != kSpecialCondition);
-    ASSERT(TypeField() == 7);
-    return (Bits(21, 3) == 0) && (Bits(16, 4) == 0) &&
-           (Bits(8, 4) == 0xf) && (Bits(5, 3) == 0) &&
-           (Bits(0, 4) == 2);
-  }
-
   // Test for VFP multiple load and store instructions of type 6.
   inline bool IsVFPMultipleLoadStore() const {
     ASSERT(ConditionField() != kSpecialCondition);

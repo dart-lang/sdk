@@ -181,7 +181,7 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     bool isIndexOperatorOnIndexablePrimitive(instruction) {
       return instruction is HIndex
           || (instruction is HInvokeDynamicMethod
-              && instruction.isIndexOperatorOnIndexablePrimitive());
+              && instruction.isIndexOperatorOnIndexablePrimitive(compiler));
     }
 
     // To speed up computations on values loaded from arrays, we

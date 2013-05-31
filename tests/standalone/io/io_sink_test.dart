@@ -65,7 +65,7 @@ void testAddClose() {
 void testAddStreamClose() {
   {
     var sink = new IOSink(new TestConsumer([0]));
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     sink.addStream(controller.stream)
         .then((_) {
           sink.close();
@@ -75,7 +75,7 @@ void testAddStreamClose() {
   }
   {
     var sink = new IOSink(new TestConsumer([0, 1, 2]));
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     sink.addStream(controller.stream)
         .then((_) {
           sink.close();
@@ -90,7 +90,7 @@ void testAddStreamClose() {
 void testAddStreamAddClose() {
   {
     var sink = new IOSink(new TestConsumer([0, 1]));
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     sink.addStream(controller.stream)
         .then((_) {
           sink.add([1]);

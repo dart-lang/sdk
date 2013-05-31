@@ -386,6 +386,8 @@ class B extends A {
 }
 
 main() {
+  // Ensure a function class is being instantiated.
+  () => 42;
   returnNum1(true);
   returnNum2(true);
   returnInt1(true);

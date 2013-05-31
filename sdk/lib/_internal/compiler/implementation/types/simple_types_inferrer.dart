@@ -2053,7 +2053,8 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')
-               || name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
+               || name == const SourceString('JS_OPERATOR_AS_PREFIX')
+               || name == const SourceString('JS_OBJECT_CLASS_NAME')) {
       return inferrer.stringType;
     } else {
       sideEffects.setAllSideEffects();

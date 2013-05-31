@@ -11,7 +11,7 @@ void testZLibDeflate() {
   test(int level, List<int> expected) {
     var port = new ReceivePort();
     var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     controller.stream.transform(new ZLibDeflater(gzip: false, level: level))
         .fold([], (buffer, data) {
           buffer.addAll(data);
@@ -31,7 +31,7 @@ void testZLibDeflate() {
 
 void testZLibDeflateEmpty() {
   var port = new ReceivePort();
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.stream.transform(new ZLibDeflater(gzip: false, level: 6))
       .fold([], (buffer, data) {
         buffer.addAll(data);
@@ -48,7 +48,7 @@ void testZLibDeflateEmpty() {
 void testZLibDeflateGZip() {
   var port = new ReceivePort();
   var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.stream.transform(new ZLibDeflater())
       .fold([], (buffer, data) {
         buffer.addAll(data);
@@ -92,7 +92,7 @@ void testZLibInflate() {
   test2(bool gzip, int level) {
     var port = new ReceivePort();
     var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     controller.stream
       .transform(new ZLibDeflater(gzip: gzip, level: level))
       .transform(new ZLibInflater())

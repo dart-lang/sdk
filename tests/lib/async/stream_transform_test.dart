@@ -14,7 +14,7 @@ main() {
   // Regression tests for http://dartbug.com/8310 and 8311
 
   test("simpleDone", () {
-    StreamController c = new StreamController();
+    StreamController c = new StreamController(sync: true);
     Stream out = c.stream.handleError((x){}).handleError((x){});
     out.listen((v){}, onDone: expectAsync0(() {}));
     // Should not throw.
@@ -22,7 +22,7 @@ main() {
   });
 
   test("with events", () {
-    StreamController c = new StreamController();
+    StreamController c = new StreamController(sync: true);
     Events expected = new Events.fromIterable([10, 12]);
     Events input = new Events.fromIterable([1, 2, 3, 4, 5, 6, 7]);
     Events actual = new Events.capture(
@@ -34,7 +34,7 @@ main() {
   });
 
   test("paused events", () {
-    StreamController c = new StreamController();
+    StreamController c = new StreamController(sync: true);
     Events expected = new Events.fromIterable([10, 12]);
     Events input = new Events.fromIterable([1, 2, 3, 4, 5, 6, 7]);
     Events actual = new Events.capture(
@@ -48,7 +48,7 @@ main() {
   });
 
   test("closing after done", () {
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     controller.stream.map((e) => e).transform(new StreamTransformer(
         handleData: (element, sink) { sink.add(element); },
         handleDone: (sink) { sink.close(); })

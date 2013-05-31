@@ -50,14 +50,18 @@ def cross_compiling_builder(arch, mode):
     num_run = int(os.environ['BUILDBOT_ANNOTATED_STEPS_RUN'])
     if num_run == 1:
       with bot.BuildStep('Build %s %s' % (arch, mode)):
-        args = [sys.executable, build_py,
-                '-m%s' % mode, '--arch=%s' % arch, 'runtime']
+        run([sys.executable, build_py,
+             '-m%s' % mode, '--arch=%s' % arch, 'runtime'])
+        # We need to build 'run_vm_tests.host' as well to enable
+        # test.py to list the VM tests.
+        run([sys.executable, build_py,
+             '-m%s' % mode, '--arch=%s' % arch, 'run_vm_tests.host'])
 
-        run(args)
       with bot.BuildStep('Create build tarball'):
         run(['tar', '-cjf', tarball, '--exclude=**/obj',
              '--exclude=**/obj.host', '--exclude=**/obj.target',
-             '--exclude=**/*analyzer*', '--exclude=**/*IA32', 'out/'])
+             '--exclude=**/*analyzer*', '--exclude=**/run_vm_tests.host',
+             'out/'])
 
       with bot.BuildStep('Upload build tarball'):
         uri = "%s/%s" % (GCS_BUCKET, tarball)

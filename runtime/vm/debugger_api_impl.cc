@@ -78,7 +78,7 @@ DART_EXPORT Dart_Handle Dart_StackTraceLength(
   CHECK_NOT_NULL(length);
   CHECK_AND_CAST(DebuggerStackTrace, stack_trace, trace);
   *length = stack_trace->Length();
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -96,7 +96,7 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
   }
   *frame = reinterpret_cast<Dart_ActivationFrame>(
        stack_trace->ActivationFrameAt(frame_index));
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 static Dart_PausedEventHandler* paused_event_handler = NULL;
@@ -204,7 +204,7 @@ DART_EXPORT Dart_Handle Dart_SetExceptionPauseInfo(
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   isolate->debugger()->SetExceptionPauseInfo(pause_info);
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -220,7 +220,7 @@ DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
   DARTSCOPE(isolate);
   CHECK_NOT_NULL(trace);
   *trace = reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -246,7 +246,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
     const Library& lib = Library::Handle(frame->Library());
     *library_id = lib.index();
   }
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -269,7 +269,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
     location->library_id = lib.index();
     location->token_pos = frame->TokenPos();
   }
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -397,7 +397,7 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
   }
 
   debugger->OneTimeBreakAtEntry(bp_target);
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -408,7 +408,7 @@ DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   ASSERT(debugger != NULL);
 
   isolate->debugger()->RemoveBreakpoint(bp_id);
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -416,7 +416,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOver() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   isolate->debugger()->SetStepOver();
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -424,7 +424,7 @@ DART_EXPORT Dart_Handle Dart_SetStepInto() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   isolate->debugger()->SetStepInto();
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -432,7 +432,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOut() {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   isolate->debugger()->SetStepOut();
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -493,7 +493,7 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   CHECK_NOT_NULL(class_id);
   *class_id = obj.GetClassId();
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -536,7 +536,7 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
     *static_fields =
         Api::NewHandle(isolate, isolate->debugger()->GetStaticFields(cls));
   }
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -747,7 +747,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
                          CURRENT_FUNC, library_id);
   }
   *is_debuggable = lib.IsDebuggable();
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 
@@ -762,7 +762,7 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
                          CURRENT_FUNC, library_id);
   }
   lib.set_debuggable(is_debuggable);
-  return Api::True(isolate);
+  return Api::Success();
 }
 
 

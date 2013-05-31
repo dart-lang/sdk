@@ -247,7 +247,7 @@ class _Directory implements Directory {
     const int RESPONSE_COMPLETE = 1;
     const int RESPONSE_ERROR = 2;
 
-    var controller = new StreamController<FileSystemEntity>();
+    var controller = new StreamController<FileSystemEntity>(sync: true);
 
     List request = [ _Directory.LIST_REQUEST, path, recursive, followLinks ];
     ReceivePort responsePort = new ReceivePort();

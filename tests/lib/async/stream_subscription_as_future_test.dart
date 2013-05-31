@@ -20,7 +20,7 @@ main() {
   });
 
   test("subscription.asStream success2", () {
-    StreamController controller = new StreamController();
+    StreamController controller = new StreamController(sync: true);
     [1, 2, 3].forEach(controller.add);
     controller.close();
     Stream stream = controller.stream;
@@ -41,7 +41,7 @@ main() {
   });
 
   test("subscription.asStream failure", () {
-    StreamController controller = new StreamController();
+    StreamController controller = new StreamController(sync: true);
     [1, 2, 3].forEach(controller.add);
     controller.addError("foo");
     controller.close();

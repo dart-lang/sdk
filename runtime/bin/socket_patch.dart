@@ -558,7 +558,7 @@ class _RawServerSocket extends Stream<RawSocket>
   }
 
   _RawServerSocket(this._socket) {
-    _controller = new StreamController(
+    _controller = new StreamController(sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
@@ -630,7 +630,7 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   _RawSocket(this._socket) {
-    _controller = new StreamController(
+    _controller = new StreamController(sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,
@@ -886,7 +886,7 @@ class _Socket extends Stream<List<int>> implements Socket {
   var _detachReady;
 
   _Socket(RawSocket this._raw) {
-    _controller = new StreamController<List<int>>(
+    _controller = new StreamController<List<int>>(sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
         onPause: _onPauseStateChange,

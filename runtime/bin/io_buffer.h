@@ -29,10 +29,10 @@ class IOBuffer {
   }
 
   // Function for finalizing external byte arrays used as IO buffers.
-  static void Finalizer(Dart_Handle handle, void* buffer) {
+  static void Finalizer(Dart_WeakPersistentHandle handle, void* buffer) {
     Free(buffer);
     if (handle != NULL) {
-      Dart_DeletePersistentHandle(handle);
+      Dart_DeleteWeakPersistentHandle(handle);
     }
   }
 

@@ -23,6 +23,7 @@ typed_array_renames = {
 
 html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
                                         dict({
+    'Attr': '_Attr',
     'CDATASection': 'CDataSection',
     'Clipboard': 'DataTransfer',
     'Database': 'SqlDatabase', # Avoid conflict with Index DB's Database.
@@ -270,6 +271,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
   'Node.childNodes',
   'Node.firstChild',
   'Node.lastChild',
+  'Node.localName',
   'Node.namespaceURI',
   'Node.removeChild',
   'Node.replaceChild',
@@ -363,7 +365,6 @@ for member in convert_to_future_members:
 # to be suppressed but not the setter, etc.
 # TODO(jacobr): cleanup and augment this list.
 _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
-    'Attr.*',
     'AudioBufferSourceNode.looping', # TODO(vsm): Use deprecated IDL annotation
     'CSSStyleDeclaration.getPropertyCSSValue',
     'CanvasRenderingContext2D.clearShadow',

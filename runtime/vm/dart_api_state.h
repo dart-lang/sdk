@@ -187,7 +187,7 @@ class FinalizablePersistentHandle {
     if (callback != NULL) {
       void* peer = handle->peer();
       handle->Clear();
-      (*callback)(reinterpret_cast<Dart_Handle>(handle), peer);
+      (*callback)(reinterpret_cast<Dart_WeakPersistentHandle>(handle), peer);
     } else {
       handle->Clear();
     }
@@ -351,7 +351,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
   }
 
   // Validate if passed in handle is a Persistent Handle.
-  bool IsValidHandle(Dart_Handle object) const {
+  bool IsValidHandle(Dart_PersistentHandle object) const {
     return IsValidScopedHandle(reinterpret_cast<uword>(object));
   }
 
@@ -425,7 +425,7 @@ class FinalizablePersistentHandles
   }
 
   // Validate if passed in handle is a Persistent Handle.
-  bool IsValidHandle(Dart_Handle object) const {
+  bool IsValidHandle(Dart_WeakPersistentHandle object) const {
     return IsValidScopedHandle(reinterpret_cast<uword>(object));
   }
 
@@ -442,8 +442,8 @@ class FinalizablePersistentHandles
 
 class WeakReferenceSet {
  public:
-  WeakReferenceSet(Dart_Handle* keys, intptr_t keys_length,
-                   Dart_Handle* values, intptr_t values_length)
+  WeakReferenceSet(Dart_WeakPersistentHandle* keys, intptr_t keys_length,
+                   Dart_WeakPersistentHandle* values, intptr_t values_length)
       : next_(NULL),
         keys_(keys), num_keys_(keys_length),
         values_(values), num_values_(values_length) {
@@ -456,14 +456,16 @@ class WeakReferenceSet {
   RawObject** get_key(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < num_keys_);
-    return (reinterpret_cast<PersistentHandle*>(keys_[i]))->raw_addr();
+    return (reinterpret_cast<FinalizablePersistentHandle*>(keys_[i]))->
+        raw_addr();
   }
 
   intptr_t num_values() const { return num_values_; }
   RawObject** get_value(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < num_values_);
-    return (reinterpret_cast<PersistentHandle*>(values_[i]))->raw_addr();
+    return (reinterpret_cast<FinalizablePersistentHandle*>(values_[i]))->
+        raw_addr();
   }
 
   static WeakReferenceSet* Pop(WeakReferenceSet** queue) {
@@ -485,9 +487,9 @@ class WeakReferenceSet {
 
  private:
   WeakReferenceSet* next_;
-  Dart_Handle* keys_;
+  Dart_WeakPersistentHandle* keys_;
   intptr_t num_keys_;
-  Dart_Handle* values_;
+  Dart_WeakPersistentHandle* values_;
   intptr_t num_values_;
   DISALLOW_COPY_AND_ASSIGN(WeakReferenceSet);
 };
@@ -617,15 +619,16 @@ class ApiState {
     return false;
   }
 
-  bool IsValidPersistentHandle(Dart_Handle object) const {
+  bool IsValidPersistentHandle(Dart_PersistentHandle object) const {
     return persistent_handles_.IsValidHandle(object);
   }
 
-  bool IsValidWeakPersistentHandle(Dart_Handle object) const {
+  bool IsValidWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
     return weak_persistent_handles_.IsValidHandle(object);
   }
 
-  bool IsValidPrologueWeakPersistentHandle(Dart_Handle object) const {
+  bool IsValidPrologueWeakPersistentHandle(
+      Dart_WeakPersistentHandle object) const {
     return prologue_weak_persistent_handles_.IsValidHandle(object);
   }
 
@@ -654,27 +657,6 @@ class ApiState {
       scope = scope->previous();
     }
     return total;
-  }
-  PersistentHandle* Null() {
-    if (null_ == NULL) {
-      null_ = persistent_handles().AllocateHandle();
-      null_->set_raw(Object::null());
-    }
-    return null_;
-  }
-  PersistentHandle* True() {
-    if (true_ == NULL) {
-      true_ = persistent_handles().AllocateHandle();
-      true_->set_raw(Bool::True());
-    }
-    return true_;
-  }
-  PersistentHandle* False() {
-    if (false_ == NULL) {
-      false_ = persistent_handles().AllocateHandle();
-      false_->set_raw(Bool::False());
-    }
-    return false_;
   }
 
   void SetupAcquiredError() {

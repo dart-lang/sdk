@@ -8,11 +8,15 @@ class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);
   String get name => "Type checker";
 
-  void check(Node tree, TreeElements elements) {
-    measure(() {
-      Visitor visitor =
-          new TypeCheckerVisitor(compiler, elements, compiler.types);
-      tree.accept(visitor);
+  void check(TreeElements elements) {
+    Element element = elements.currentElement;
+    compiler.withCurrentElement(element, () {
+      measure(() {
+        Node tree = element.parseNode(compiler);
+        Visitor visitor =
+            new TypeCheckerVisitor(compiler, elements, compiler.types);
+        tree.accept(visitor);
+      });
     });
   }
 }
@@ -140,7 +144,7 @@ class TypeLiteralAccess extends ElementAccess {
   String toString() => 'TypeLiteralAccess($element)';
 }
 
-class TypeCheckerVisitor implements Visitor<DartType> {
+class TypeCheckerVisitor extends Visitor<DartType> {
   final Compiler compiler;
   final TreeElements elements;
   final Types types;
@@ -169,6 +173,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     objectType = compiler.objectClass.computeType(compiler);
     listType = compiler.listClass.computeType(compiler);
   }
+
+  LibraryElement get currentLibrary => elements.currentElement.getLibrary();
 
   reportTypeWarning(Node node, MessageKind kind, [Map arguments = const {}]) {
     compiler.reportWarning(node, new TypeWarning(kind, arguments));
@@ -260,18 +266,6 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return type;
   }
 
-  DartType visitClassNode(ClassNode node) {
-    compiler.internalError('unexpected node type', node: node);
-  }
-
-  DartType visitMixinApplication(MixinApplication node) {
-    compiler.internalError('unexpected node type', node: node);
-  }
-
-  DartType visitNamedMixinApplication(NamedMixinApplication node) {
-    compiler.internalError('unexpected node type', node: node);
-  }
-
   DartType visitDoWhile(DoWhile node) {
     StatementType bodyType = analyze(node.body);
     checkCondition(node.condition);
@@ -337,8 +331,19 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   DartType visitIdentifier(Identifier node) {
     if (node.isThis()) {
       return currentClass.computeType(compiler);
+    } else if (node.isSuper()) {
+      return currentClass.supertype;
     } else {
-      // This is an identifier of a formal parameter.
+      Element element = elements[node];
+      if (element != null) {
+        assert(invariant(node, element.isVariable() || element.isParameter(),
+            message: 'Unexpected context element ${element}'));
+        return element.computeType(compiler);
+      }
+
+      assert(invariant(node, elements.currentElement.isField(),
+          message: 'Unexpected context element ${elements.currentElement}'));
+      // This is an identifier of a field declaration.
       return types.dynamicType;
     }
   }
@@ -351,8 +356,17 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return thenType.join(elseType);
   }
 
-  DartType visitLoop(Loop node) {
-    return unhandledStatement();
+  void checkPrivateAccess(Node node, Element element, SourceString name) {
+    if (name != null &&
+        name.isPrivate() &&
+        element.getLibrary() != currentLibrary) {
+      reportTypeWarning(
+          node,
+          MessageKind.PRIVATE_ACCESS,
+          {'name': name,
+           'libraryName': element.getLibrary().getLibraryOrScriptName()});
+    }
+
   }
 
   ElementAccess lookupMember(Node node, DartType type, SourceString name,
@@ -362,6 +376,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     }
     Member member = type.lookupMember(name);
     if (member != null) {
+      checkPrivateAccess(node, member.element, name);
       return new MemberAccess(member);
     }
     switch (memberKind) {
@@ -547,12 +562,12 @@ class TypeCheckerVisitor implements Visitor<DartType> {
           name, memberKind);
     } else if (element.isFunction()) {
       // foo() where foo is a method in the same class.
-      return new ResolvedAccess(element);
+      return createResolvedAccess(node, name, element);
     } else if (element.isVariable() ||
         element.isParameter() ||
         element.isField()) {
       // foo() where foo is a field in the same class.
-      return new ResolvedAccess(element);
+      return createResolvedAccess(node, name, element);
     } else if (element.impliesType()) {
       // The literal `Foo` where Foo is a class, a typedef, or a type variable.
       if (elements.getType(node) != null) {
@@ -562,13 +577,19 @@ class TypeCheckerVisitor implements Visitor<DartType> {
               '${elements.getType(node)}'));
         return new TypeLiteralAccess(element);
       }
-      return new ResolvedAccess(element);
+      return createResolvedAccess(node, name, element);
     } else if (element.isGetter() || element.isSetter()) {
-      return new ResolvedAccess(element);
+      return createResolvedAccess(node, name, element);
     } else {
       compiler.internalErrorOnElement(
           element, 'unexpected element kind ${element.kind}');
     }
+  }
+
+  ElementAccess createResolvedAccess(Send node, SourceString name,
+                                     Element element) {
+    checkPrivateAccess(node, element, name);
+    return new ResolvedAccess(element);
   }
 
   /**
@@ -896,6 +917,12 @@ class TypeCheckerVisitor implements Visitor<DartType> {
 
   DartType visitNewExpression(NewExpression node) {
     Element element = elements[node.send];
+    if (Elements.isUnresolved(element)) return types.dynamicType;
+
+    ClassElement enclosingClass = element.getEnclosingClass();
+    SourceString name = Elements.deconstructConstructorName(
+        element.name, enclosingClass);
+    checkPrivateAccess(node, element, name);
     DartType constructorType = computeType(element);
     DartType newType = elements.getType(node);
     // TODO(johnniwinther): Use [:lookupMember:] to account for type variable
@@ -944,10 +971,6 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return type;
   }
 
-  DartType visitOperator(Operator node) {
-    compiler.internalError('unexpected node type', node: node);
-  }
-
   DartType visitRethrow(Rethrow node) {
     return StatementType.RETURNING;
   }
@@ -991,6 +1014,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   DartType visitThrow(Throw node) {
+    // TODO(johnniwinther): Handle reachability.
     analyze(node.expression);
     return types.dynamicType;
   }
@@ -1006,10 +1030,6 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return elements.getType(node);
   }
 
-  visitTypeVariable(TypeVariable node) {
-    return types.dynamicType;
-  }
-
   DartType visitVariableDefinitions(VariableDefinitions node) {
     DartType type = analyzeWithDefault(node.type, types.dynamicType);
     if (type == types.voidType) {
@@ -1020,7 +1040,7 @@ class TypeCheckerVisitor implements Visitor<DartType> {
          link = link.tail) {
       Node definition = link.head;
       compiler.ensure(definition is Identifier || definition is SendSet);
-      if (definition is Send) {
+      if (definition is SendSet) {
         SendSet initialization = definition;
         DartType initializer = analyzeNonVoid(initialization.arguments.head);
         checkAssignable(initialization.assignmentOperator, initializer, type);
@@ -1062,8 +1082,6 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     }
   }
 
-  DartType visitModifiers(Modifiers node) {}
-
   visitStringInterpolation(StringInterpolation node) {
     node.visitChildren(this);
     return stringType;
@@ -1092,10 +1110,8 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return bodyType.join(StatementType.NOT_RETURNING);
   }
 
-  visitLabel(Label node) { }
-
   visitLabeledStatement(LabeledStatement node) {
-    return node.statement.accept(this);
+    return analyze(node.statement);
   }
 
   visitLiteralMap(LiteralMap node) {
@@ -1114,10 +1130,6 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return mapType;
   }
 
-  visitLiteralMapEntry(LiteralMapEntry node) {
-    return unhandledExpression();
-  }
-
   visitNamedArgument(NamedArgument node) {
     // Named arguments are visited as part of analyzing invocations of
     // unresolved methods. For instance [: foo(a: 42); :] where 'foo' is neither
@@ -1128,15 +1140,25 @@ class TypeCheckerVisitor implements Visitor<DartType> {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    return unhandledStatement();
+    // TODO(johnniwinther): Handle reachability based on reachability of
+    // switch cases.
+    // TODO(johnniwinther): Check assignability to constants.
+    DartType expressionType = analyze(node.expression);
+    for (SwitchCase switchCase in node.cases) {
+      for (Node labelOrCase in switchCase.labelsAndCases) {
+        CaseMatch caseMatch = labelOrCase.asCaseMatch();
+        if (caseMatch == null) continue;
+
+        DartType caseType = analyze(caseMatch.expression);
+        checkAssignable(caseMatch, expressionType, caseType);
+      }
+      analyze(switchCase);
+    }
+    return StatementType.NOT_RETURNING;
   }
 
   visitSwitchCase(SwitchCase node) {
-    return unhandledStatement();
-  }
-
-  visitCaseMatch(CaseMatch node) {
-    return unhandledStatement();
+    return analyze(node.statements);
   }
 
   visitTryStatement(TryStatement node) {
@@ -1151,79 +1173,17 @@ class TypeCheckerVisitor implements Visitor<DartType> {
     return StatementType.NOT_RETURNING;
   }
 
-  visitScriptTag(ScriptTag node) {
-    return unhandledExpression();
-  }
-
   visitCatchBlock(CatchBlock node) {
     return analyze(node.block);
   }
 
   visitTypedef(Typedef node) {
-    return unhandledStatement();
+    // Do not typecheck [Typedef] nodes.
   }
 
-  DartType visitNode(Node node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitCombinator(Combinator node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitExport(Export node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitExpression(Expression node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitGotoStatement(GotoStatement node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitImport(Import node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitLibraryName(LibraryName node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitLibraryTag(LibraryTag node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitLiteral(Literal node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitPart(Part node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitPartOf(PartOf node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitPostfix(Postfix node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitPrefix(Prefix node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitStatement(Statement node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitStringNode(StringNode node) {
-    compiler.unimplemented('visitNode', node: node);
-  }
-
-  DartType visitLibraryDependency(LibraryDependency node) {
-    compiler.unimplemented('visitNode', node: node);
+  visitNode(Node node) {
+    compiler.internalError(
+        'Unexpected node ${node.getObjectDescription()} in the type checker.',
+        node: node);
   }
 }

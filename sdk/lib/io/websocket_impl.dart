@@ -93,7 +93,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                 throw new WebSocketException("Protocol error");
               }
               _currentMessageType = _WebSocketMessageType.TEXT;
-              _controller = new StreamController();
+              _controller = new StreamController(sync: true);
               _controller.stream
                   .transform(new Utf8DecoderTransformer(null))
                   .fold(new StringBuffer(), (buffer, str) => buffer..write(str))
@@ -109,7 +109,7 @@ class _WebSocketProtocolTransformer extends StreamEventTransformer {
                 throw new WebSocketException("Protocol error");
               }
               _currentMessageType = _WebSocketMessageType.BINARY;
-              _controller = new StreamController();
+              _controller = new StreamController(sync: true);
               _controller.stream
                   .fold(new _BufferList(), (buffer, data) => buffer..add(data))
                   .then((buffer) {
@@ -376,7 +376,7 @@ class _WebSocketPong {
 
 class _WebSocketTransformerImpl implements WebSocketTransformer {
   final StreamController<WebSocket> _controller =
-      new StreamController<WebSocket>();
+      new StreamController<WebSocket>(sync: true);
 
   Stream<WebSocket> bind(Stream<HttpRequest> stream) {
     stream.listen((request) {
@@ -566,7 +566,8 @@ class _WebSocketConsumer implements StreamConsumer {
 
   _ensureController() {
     if (_controller != null) return;
-    _controller = new StreamController(onPause: () => _subscription.pause(),
+    _controller = new StreamController(sync: true,
+                                       onPause: () => _subscription.pause(),
                                        onResume: () => _subscription.resume(),
                                        onCancel: _onListen);
     var stream = _controller.stream.transform(
@@ -628,7 +629,7 @@ class _WebSocketConsumer implements StreamConsumer {
 
 
 class _WebSocketImpl extends Stream implements WebSocket {
-  final StreamController _controller = new StreamController();
+  final StreamController _controller = new StreamController(sync: true);
   StreamSink _sink;
 
   final Socket _socket;

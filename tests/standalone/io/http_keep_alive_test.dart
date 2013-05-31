@@ -25,8 +25,8 @@ Future getData(HttpClient client, int port, bool chunked, int length) {
 Future<HttpServer> startServer() {
   return HttpServer.bind("127.0.0.1", 0).then((server) {
     server.listen((request) {
-      bool chunked = request.queryParameters["chunked"] == "true";
-      int length = int.parse(request.queryParameters["length"]);
+      bool chunked = request.uri.queryParameters["chunked"] == "true";
+      int length = int.parse(request.uri.queryParameters["length"]);
       var buffer = new List<int>.filled(length, 0);
       if (!chunked) request.response.contentLength = length;
       request.response.add(buffer);

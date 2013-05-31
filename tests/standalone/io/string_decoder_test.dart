@@ -8,7 +8,7 @@ import "dart:io";
 
 void test() {
   // Code point U+10FFFF is the largest code point supported by Dart.
-  var controller = new StreamController();
+  var controller = new StreamController(sync: true);
   controller.add([0xf0, 0x90, 0x80, 0x80]);  // U+10000
   controller.add([0xf4, 0x8f, 0xbf, 0xbf]);  // U+10FFFF
   controller.add([0xf4, 0x90, 0x80, 0x80]);  // U+110000
@@ -42,7 +42,7 @@ void test() {
 
 void testInvalid() {
   void invalid(var bytes, var outputLength) {
-    var controller = new StreamController();
+    var controller = new StreamController(sync: true);
     controller.add(bytes);
     controller.close();
     controller.stream.transform(new StringDecoder()).listen((string) {

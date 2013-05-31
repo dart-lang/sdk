@@ -119,7 +119,7 @@ substitute(var substitution, var arguments) {
  *   against.
  */
 bool checkSubtype(Object object, String isField, List checks, String asField) {
-  if (object == null) return true;
+  if (object == null) return false;
   var arguments = getRuntimeTypeInfo(object);
   // Interceptor is needed for JSArray and native classes.
   // TODO(sra): It could be a more specialized interceptor since [object] is not
@@ -143,7 +143,7 @@ String computeTypeName(String isField, List arguments) {
 }
 
 Object subtypeCast(Object object, String isField, List checks, String asField) {
-  if (!checkSubtype(object, isField, checks, asField)) {
+  if (object != null && !checkSubtype(object, isField, checks, asField)) {
     String actualType = Primitives.objectTypeName(object);
     String typeName = computeTypeName(isField, checks);
     throw new CastErrorImplementation(object, typeName);
@@ -153,7 +153,7 @@ Object subtypeCast(Object object, String isField, List checks, String asField) {
 
 Object assertSubtype(Object object, String isField, List checks,
                      String asField) {
-  if (!checkSubtype(object, isField, checks, asField)) {
+  if (object != null && !checkSubtype(object, isField, checks, asField)) {
     String typeName = computeTypeName(isField, checks);
     throw new TypeErrorImplementation(object, typeName);
   }
@@ -195,13 +195,19 @@ getArguments(var type) {
 
 getField(var object, var name) => JS('var', r'#[#]', object, name);
 
+bool isSubtypeOfNull(type) {
+  // `null` means `dynamic`.
+  return type == null || getConstructorName(type) == JS_OBJECT_CLASS_NAME();
+}
+
 /**
  * Tests whether the Dart object [o] is a subtype of the runtime type
  * representation [t], which is a type representation as described in the
  * comment on [isSubtype].
  */
 bool checkSubtypeOfRuntimeType(Object o, var t) {
-  if (JS('bool', '# == null', o) || JS('bool', '# == null', t)) return true;
+  if (JS('bool', '# == null', o)) return isSubtypeOfNull(t);
+  if (JS('bool', '# == null', t)) return true;
   // Get the runtime type information from the object here, because we may
   // overwrite o with the interceptor below.
   var rti = getRuntimeTypeInfo(o);
@@ -224,7 +230,7 @@ bool checkSubtypeOfRuntimeType(Object o, var t) {
 }
 
 Object subtypeOfRuntimeTypeCast(Object object, var type) {
-  if (!checkSubtypeOfRuntimeType(object, type)) {
+  if (object != null && !checkSubtypeOfRuntimeType(object, type)) {
     String actualType = Primitives.objectTypeName(object);
     throw new CastErrorImplementation(actualType, runtimeTypeToString(type));
   }
@@ -232,7 +238,7 @@ Object subtypeOfRuntimeTypeCast(Object object, var type) {
 }
 
 Object assertSubtypeOfRuntimeType(Object object, var type) {
-  if (!checkSubtypeOfRuntimeType(object, type)) {
+  if (object != null && !checkSubtypeOfRuntimeType(object, type)) {
     throw new TypeErrorImplementation(object, runtimeTypeToString(type));
   }
   return object;

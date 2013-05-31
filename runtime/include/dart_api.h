@@ -176,9 +176,12 @@ typedef unsigned __int64 uint64_t;
  * deallocated (see Dart_DeletePersistentHandle).
  */
 typedef struct _Dart_Handle* Dart_Handle;
+typedef struct _Dart_PersistentHandle* Dart_PersistentHandle;
+typedef struct _Dart_WeakPersistentHandle* Dart_WeakPersistentHandle;
 
-typedef void (*Dart_WeakPersistentHandleFinalizer)(Dart_Handle handle,
-                                                   void* peer);
+typedef void (*Dart_WeakPersistentHandleFinalizer)(
+    Dart_WeakPersistentHandle handle,
+    void* peer);
 typedef void (*Dart_PeerFinalizer)(void* peer);
 
 /**
@@ -361,6 +364,17 @@ DART_EXPORT Dart_Handle Dart_ToString(Dart_Handle object);
 DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2);
 
 /**
+ * Allocates a handle in the current scope from a persistent handle.
+ */
+DART_EXPORT Dart_Handle Dart_HandleFromPersistent(Dart_PersistentHandle object);
+
+/**
+ * Allocates a handle in the current scope from a weak persistent handle.
+ */
+DART_EXPORT Dart_Handle Dart_HandleFromWeakPersistent(
+    Dart_WeakPersistentHandle object);
+
+/**
  * Allocates a persistent handle for an object.
  *
  * This handle has the lifetime of the current isolate unless it is
@@ -368,14 +382,14 @@ DART_EXPORT bool Dart_IdentityEquals(Dart_Handle obj1, Dart_Handle obj2);
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT Dart_Handle Dart_NewPersistentHandle(Dart_Handle object);
+DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object);
 
 /**
  * Deallocates a persistent handle.
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
+DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
 
 /**
  * Allocates a weak persistent handle for an object.
@@ -394,17 +408,13 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_Handle object);
  * \return Success if the weak persistent handle was
  *   created. Otherwise, returns an error.
  */
-DART_EXPORT Dart_Handle Dart_NewWeakPersistentHandle(
+DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback);
 
-/**
- * Is this object a weak persistent handle?
- *
- * Requires there to be a current isolate.
- */
-DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object);
+DART_EXPORT void Dart_DeleteWeakPersistentHandle(
+    Dart_WeakPersistentHandle object);
 
 /**
  * Allocates a prologue weak persistent handle for an object.
@@ -432,7 +442,7 @@ DART_EXPORT bool Dart_IsWeakPersistentHandle(Dart_Handle object);
  * \return Success if the prologue weak persistent handle was created.
  *   Otherwise, returns an error.
  */
-DART_EXPORT Dart_Handle Dart_NewPrologueWeakPersistentHandle(
+DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
     Dart_Handle object,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback);
@@ -442,7 +452,8 @@ DART_EXPORT Dart_Handle Dart_NewPrologueWeakPersistentHandle(
  *
  * Requires there to be a current isolate.
  */
-DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(Dart_Handle object);
+DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(
+    Dart_WeakPersistentHandle object);
 
 /**
  * Constructs a set of weak references from the Cartesian product of
@@ -459,10 +470,11 @@ DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(Dart_Handle object);
  * \return Success if the weak reference set could be created.
  *   Otherwise, returns an error handle.
  */
-DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
-                                                 intptr_t num_keys,
-                                                 Dart_Handle* values,
-                                                 intptr_t num_values);
+DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(
+    Dart_WeakPersistentHandle* keys,
+    intptr_t num_keys,
+    Dart_WeakPersistentHandle* values,
+    intptr_t num_values);
 
 // --- Garbage Collection Callbacks ---
 
@@ -1766,18 +1778,9 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
  *   WeakPersistentHandle which needs to be deleted in the specified callback
  *   using Dart_DeletePersistentHandle.
  */
-DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
-    Dart_TypedData_Type type,
-    void* data,
-    intptr_t length,
-    void* peer,
-    Dart_WeakPersistentHandleFinalizer callback);
-
-/**
- * Retrieves the peer pointer associated with an external TypedData object.
- */
-DART_EXPORT Dart_Handle Dart_ExternalTypedDataGetPeer(Dart_Handle object,
-                                                      void** peer);
+DART_EXPORT Dart_Handle Dart_NewExternalTypedData(Dart_TypedData_Type type,
+                                                  void* data,
+                                                  intptr_t length);
 
 /**
  * Acquires access to the internal data address of a TypedData object.

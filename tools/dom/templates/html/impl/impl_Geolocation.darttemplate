@@ -53,7 +53,7 @@ $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
     int watchId;
     var controller;
-    controller = new StreamController<Geoposition>(
+    controller = new StreamController<Geoposition>(sync: true,
       onListen: () {
         assert(watchId == null);
         watchId = $dom_watchPosition(

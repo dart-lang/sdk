@@ -59,7 +59,7 @@ Future startServer() {
 
       new ByteStream(request).toBytes().then((requestBodyBytes) {
         var outputEncoding;
-        var encodingName = request.queryParameters['response-encoding'];
+        var encodingName = request.uri.queryParameters['response-encoding'];
         if (encodingName != null) {
           outputEncoding = requiredEncodingForCharset(encodingName);
         } else {

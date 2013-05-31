@@ -990,6 +990,9 @@ bool PolymorphicInliner::CheckNonInlinedDuplicate(const Function& target) {
 
 
 bool PolymorphicInliner::TryInlining(const Function& target) {
+  if (!target.is_optimizable()) {
+    return false;
+  }
   GrowableArray<Value*> arguments(call_->ArgumentCount());
   for (int i = 0; i < call_->ArgumentCount(); ++i) {
     arguments.Add(call_->PushArgumentAt(i)->value());

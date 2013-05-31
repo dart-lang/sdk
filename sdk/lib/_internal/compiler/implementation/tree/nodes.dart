@@ -702,6 +702,11 @@ class FunctionExpression extends Expression {
 
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
+  bool get isRedirectingFactory {
+    return body != null && body.asReturn() != null &&
+        body.asReturn().isRedirectingFactoryBody;
+  }
+
   visitChildren(Visitor visitor) {
     if (modifiers != null) modifiers.accept(visitor);
     if (returnType != null) returnType.accept(visitor);

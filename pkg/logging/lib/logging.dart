@@ -196,7 +196,7 @@ class Logger {
   Stream<LogRecord> _getStream() {
     if (hierarchicalLoggingEnabled || parent == null) {
       if (_controller == null) {
-        _controller = new StreamController<LogRecord>();
+        _controller = new StreamController<LogRecord>(sync: true);
         _stream = _controller.stream.asBroadcastStream();
       }
       return _stream;

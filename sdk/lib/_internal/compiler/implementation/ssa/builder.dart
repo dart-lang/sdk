@@ -67,8 +67,7 @@ class SsaBuilderTask extends CompilerTask {
             index++;
           });
         } else {
-          // TODO(ahe): I have disabled type optimizations for
-          // optional arguments as the types are stored in the wrong
+          // BUG(10938): the types are stored in the wrong order.
           // order.
           HTypeList parameterTypes =
               backend.optimisticParameterTypes(element.declaration,
@@ -2632,7 +2631,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // creating an [HStatic].
       push(new HStatic(element.declaration));
       // TODO(ahe): This should be registered in codegen.
-      compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
+      compiler.enqueuer.codegen.registerGetOfStaticFunction(
+          element.declaration);
     } else if (Elements.isErroneousElement(element)) {
       // An erroneous element indicates an unresolved static getter.
       generateThrowNoSuchMethod(send,
@@ -2973,10 +2973,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return;
   }
 
-  void handleForeignJsCurrentIsolate(Send node) {
+  void handleForeignJsCurrentIsolateContext(Send node) {
     if (!node.arguments.isEmpty) {
       compiler.cancel(
-          'Too many arguments to JS_CURRENT_ISOLATE', node: node);
+          'Too many arguments to JS_CURRENT_ISOLATE_CONTEXT', node: node);
     }
 
     if (!compiler.hasIsolateSupport()) {
@@ -3095,13 +3095,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                       <HInstruction>[]));
   }
 
+  void handleForeignJsCurrentIsolate(Send node) {
+    if (!node.arguments.isEmpty) {
+      compiler.cancel('Too many arguments', node: node.argumentsNode);
+    }
+    push(new HForeign(new js.LiteralString(backend.namer.CURRENT_ISOLATE),
+                      HType.UNKNOWN,
+                      <HInstruction>[]));
+  }
+
   visitForeignSend(Send node) {
     Selector selector = elements.getSelector(node);
     SourceString name = selector.name;
     if (name == const SourceString('JS')) {
       handleForeignJs(node);
-    } else if (name == const SourceString('JS_CURRENT_ISOLATE')) {
-      handleForeignJsCurrentIsolate(node);
+    } else if (name == const SourceString('JS_CURRENT_ISOLATE_CONTEXT')) {
+      handleForeignJsCurrentIsolateContext(node);
     } else if (name == const SourceString('JS_CALL_IN_ISOLATE')) {
       handleForeignJsCallInIsolate(node);
     } else if (name == const SourceString('DART_CLOSURE_TO_JS')) {
@@ -3114,6 +3123,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignCreateIsolate(node);
     } else if (name == const SourceString('JS_OPERATOR_IS_PREFIX')) {
       stack.add(addConstantString(node, backend.namer.operatorIsPrefix()));
+    } else if (name == const SourceString('JS_OBJECT_CLASS_NAME')) {
+      String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
+      stack.add(addConstantString(node, name));
     } else if (name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
       stack.add(addConstantString(node, backend.namer.operatorAsPrefix()));
     } else if (name == const SourceString('JS_DART_OBJECT_CONSTRUCTOR')) {
@@ -3122,6 +3134,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Element element = compiler.findHelper(
           const SourceString('JavaScriptIndexingBehavior'));
       stack.add(addConstantString(node, backend.namer.operatorIs(element)));
+    } else if (name == const SourceString('JS_CURRENT_ISOLATE')) {
+      handleForeignJsCurrentIsolate(node);
     } else {
       throw "Unknown foreign: ${selector}";
     }
@@ -3376,6 +3390,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     FunctionElement functionElement = constructor;
     constructor = functionElement.redirectionTarget;
+
     final bool isSymbolConstructor =
         functionElement == compiler.symbolConstructor;
 
@@ -3386,6 +3401,23 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       selector = compiler.symbolValidatedConstructorSelector;
       assert(invariant(send, selector != null,
                        message: 'Constructor Symbol.validated is missing'));
+    }
+
+    bool isRedirected = functionElement.isRedirectingFactory;
+    DartType expectedType = type;
+    if (isRedirected) {
+      FunctionExpression functionNode = functionElement.parseNode(compiler);
+      if (functionNode.isRedirectingFactory) {
+        // Lookup the type used in the redirection.
+        Return redirectionNode = functionNode.body;
+        TreeElements treeElements =
+            compiler.enqueuer.resolution.getCachedElements(
+                functionElement.declaration);
+        ClassElement targetClass = functionElement.getEnclosingClass();
+        type = treeElements.getType(redirectionNode)
+            .subst(type.typeArguments, targetClass.typeVariables);
+      }
+      functionElement = functionElement.redirectionTarget;
     }
 
     var inputs = <HInstruction>[];
@@ -3431,6 +3463,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // the 'new' is done.
     if (isListConstructor && backend.needsRti(compiler.listClass)) {
       handleListConstructor(type, send, newInstance);
+    }
+
+    // Finally, if we called a redirecting factory constructor, check the type.
+    if (isRedirected) {
+      HInstruction checked = potentiallyCheckType(newInstance, expectedType);
+      if (checked != newInstance) {
+        pop();
+        stack.add(checked);
+      }
     }
   }
 

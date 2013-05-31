@@ -20,19 +20,6 @@ abstract class Link extends FileSystemEntity {
   factory Link.fromPath(Path path) => new _Link.fromPath(path);
 
   /**
-   * Checks if the link exists. The link may exist, even if its target
-   * is missing or deleted.
-   * Returns a [:Future<bool>:] that completes when the answer is known.
-   */
-  Future<bool> exists();
-
-  /**
-   * Synchronously checks if the link exists. The link may exist, even if
-   * its target is missing or deleted.
-   */
-  bool existsSync();
-
-  /**
    * Creates a symbolic link. Returns a [:Future<Link>:] that completes with
    * the link when it has been created. If the link exists,
    * the future will complete with an error.

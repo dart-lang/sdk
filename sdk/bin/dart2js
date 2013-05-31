@@ -41,9 +41,6 @@ unset EXTRA_VM_OPTIONS
 declare -a EXTRA_VM_OPTIONS
 
 if test -f "$SNAPSHOT"; then
-  # TODO(ahe): Remove the following line when we are relatively sure it works.
-  echo Using snapshot "$SNAPSHOT" 1>&2
-
   EXTRA_OPTIONS[${#EXTRA_OPTIONS[@]}]="--library-root=$SDK_DIR"
 fi
 

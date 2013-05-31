@@ -418,6 +418,7 @@ void VariableLivenessAnalysis::ComputeInitialSets() {
       LoadLocalInstr* load = current->AsLoadLocal();
       if (load != NULL) {
         const intptr_t index = load->local().BitIndexIn(num_non_copied_params_);
+        if (index >= live_in->length()) continue;  // Skip tmp_locals.
         live_in->Add(index);
         if (!last_loads->Contains(index)) {
           last_loads->Add(index);
@@ -774,6 +775,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       Definition* input_defn = v->definition();
       if (input_defn->IsLoadLocal() ||
           input_defn->IsStoreLocal() ||
+          input_defn->IsPushTemp() ||
+          input_defn->IsDropTemps() ||
           input_defn->IsConstant()) {
         // Remove the load/store from the graph.
         input_defn->RemoveFromGraph();
@@ -795,8 +798,14 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     if (definition != NULL) {
       LoadLocalInstr* load = definition->AsLoadLocal();
       StoreLocalInstr* store = definition->AsStoreLocal();
+      PushTempInstr* push = definition->AsPushTemp();
+      DropTempsInstr* drop = definition->AsDropTemps();
       ConstantInstr* constant = definition->AsConstant();
-      if ((load != NULL) || (store != NULL) || (constant != NULL)) {
+      if ((load != NULL) ||
+          (store != NULL) ||
+          (push != NULL) ||
+          (drop != NULL) ||
+          (constant != NULL)) {
         intptr_t index;
         Definition* result;
         if (store != NULL) {
@@ -825,6 +834,17 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           if (variable_liveness->IsLastLoad(block_entry, load)) {
             (*env)[index] = constant_null();
           }
+        } else if (push != NULL) {
+          result = push->value()->definition();
+          env->Add(result);
+          it.RemoveCurrentFromGraph();
+          continue;
+        } else if (drop != NULL) {
+          // Drop temps from the environment.
+          for (intptr_t j = 0; j < drop->num_temps(); j++) {
+            env->RemoveLast();
+          }
+          result = drop->value()->definition();
         } else {
           ASSERT(definition->is_used());
           result = GetConstant(constant->value());

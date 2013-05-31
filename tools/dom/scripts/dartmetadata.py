@@ -279,7 +279,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
   'DOMWindow.webkitNotifications': _webkit_experimental_annotations,
   'DOMWindow.webkitRequestFileSystem': _file_system_annotations,
   'DOMWindow.webkitResolveLocalFileSystemURL': _file_system_annotations,
-  'Element.onwebkitTransitionEnd': _all_but_ie9_annotations,
+  'Element.ontransitionend': _all_but_ie9_annotations,
   # Placeholder to add experimental flag, implementation for this is
   # pending in a separate CL.
   'Element.webkitMatchesSelector': ['@Experimental()'],
