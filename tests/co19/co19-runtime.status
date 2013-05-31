@@ -515,6 +515,7 @@ LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issu
 
 [ $compiler == none && $runtime == vm && $arch == simarm]
 LibTest/math/tan_A01_t01: Fail
+LibTest/math/Random/nextDouble_A01_t01.dart: Pass, Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail
 LibTest/core/int/operator_unary_minus_A01_t01: Fail
 
