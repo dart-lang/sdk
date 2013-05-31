@@ -1,26 +1,20 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+/* Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
+ */
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "include/dart_api.h"
 
-
-namespace dart {
-namespace bin {
-
-Dart_NativeFunction ResolveName(Dart_Handle name, int argc);
-
-DART_EXPORT Dart_Handle test_extension_Init(Dart_Handle parent_library) {
-  if (Dart_IsError(parent_library)) { return parent_library; }
-
-  Dart_Handle result_code = Dart_SetNativeResolver(parent_library, ResolveName);
-  if (Dart_IsError(result_code)) return result_code;
-
-  return parent_library;
-}
+#if defined(ASSERT)
+#error ASSERT already defined!
+#endif
 
 
+/* Native methods. */
 void IfNull(Dart_NativeArguments arguments) {
   Dart_Handle object = Dart_GetNativeArgument(arguments, 0);
   if (Dart_IsNull(object)) {
@@ -37,6 +31,7 @@ void ThrowMeTheBall(Dart_NativeArguments arguments) {
 }
 
 
+/* Native resolver for the extension library. */
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
   assert(Dart_IsString(name));
   const char* cname;
@@ -55,5 +50,14 @@ Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
   return NULL;
 }
 
-}  // namespace bin
-}  // namespace dart
+
+/* Native entry point for the extension library. */
+DART_EXPORT Dart_Handle test_extension_Init(Dart_Handle parent_library) {
+  if (Dart_IsError(parent_library)) { return parent_library; }
+
+  Dart_Handle result_code = Dart_SetNativeResolver(parent_library, ResolveName);
+  if (Dart_IsError(result_code)) return result_code;
+
+  return parent_library;
+}
+

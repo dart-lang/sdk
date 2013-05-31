@@ -75,7 +75,7 @@ void FUNCTION_NAME(InternetAddress_Fixed)(Dart_NativeArguments args) {
       Dart_ThrowException(error);
   }
   int len = SocketAddress::GetAddrLength(raw);
-  Dart_Handle result = Dart_NewTypedData(kUint8, len);
+  Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
   Dart_ListSetAsBytes(result, 0, reinterpret_cast<uint8_t *>(&raw), len);
   Dart_SetReturnValue(args, result);
@@ -491,7 +491,7 @@ void SocketService(Dart_Port dest_port_id,
                    Dart_CObject* message) {
   CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
-  if (message->type == Dart_CObject::kArray) {
+  if (message->type == Dart_CObject_kArray) {
     if (request.Length() > 1 && request[0]->IsInt32()) {
       CObjectInt32 request_type(request[0]);
       switch (request_type.Value()) {

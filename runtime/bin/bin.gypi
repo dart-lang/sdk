@@ -656,7 +656,7 @@
             '..',
           ],
           'sources': [
-            'test_extension.cc',
+            'test_extension.c',
             'test_extension_dllmain_win.cc',
           ],
           'defines': [

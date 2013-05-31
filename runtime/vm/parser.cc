@@ -4232,7 +4232,7 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
     if (url.StartsWith(Symbols::DartScheme())) {
-      if (tag == kCanonicalizeUrl) {
+      if (tag == Dart_kCanonicalizeUrl) {
         return url.raw();
       }
       return Object::null();
@@ -4249,7 +4249,7 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
     prev_error ^= Api::UnwrapHandle(result);
     AppendErrorMsg(prev_error, token_pos, "library handler failed");
   }
-  if (tag == kCanonicalizeUrl) {
+  if (tag == Dart_kCanonicalizeUrl) {
     if (!Dart_IsString(result)) {
       ErrorMsg(token_pos, "library handler failed URI canonicalization");
     }
@@ -4340,12 +4340,12 @@ void Parser::ParseLibraryImportExport() {
 
   // Canonicalize library URL.
   const String& canon_url = String::CheckedHandle(
-      CallLibraryTagHandler(kCanonicalizeUrl, import_pos, url));
+      CallLibraryTagHandler(Dart_kCanonicalizeUrl, import_pos, url));
   // Lookup the library URL.
   Library& library = Library::Handle(Library::LookupLibrary(canon_url));
   if (library.IsNull()) {
     // Call the library tag handler to load the library.
-    CallLibraryTagHandler(kImportTag, import_pos, canon_url);
+    CallLibraryTagHandler(Dart_kImportTag, import_pos, canon_url);
     // If the library tag handler succeded without registering the
     // library we create an empty library to import.
     library = Library::LookupLibrary(canon_url);
@@ -4393,8 +4393,8 @@ void Parser::ParseLibraryPart() {
   ConsumeToken();
   ExpectSemicolon();
   const String& canon_url = String::CheckedHandle(
-      CallLibraryTagHandler(kCanonicalizeUrl, source_pos, url));
-  CallLibraryTagHandler(kSourceTag, source_pos, canon_url);
+      CallLibraryTagHandler(Dart_kCanonicalizeUrl, source_pos, url));
+  CallLibraryTagHandler(Dart_kSourceTag, source_pos, canon_url);
 }
 
 

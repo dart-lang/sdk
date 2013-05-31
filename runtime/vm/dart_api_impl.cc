@@ -2362,70 +2362,70 @@ static Dart_TypedData_Type GetType(intptr_t class_id) {
   Dart_TypedData_Type type;
   switch (class_id) {
     case kByteDataViewCid :
-      type = kByteData;
+      type = Dart_TypedData_kByteData;
       break;
     case kTypedDataInt8ArrayCid :
     case kTypedDataInt8ArrayViewCid :
     case kExternalTypedDataInt8ArrayCid :
-      type = kInt8;
+      type = Dart_TypedData_kInt8;
       break;
     case kTypedDataUint8ArrayCid :
     case kTypedDataUint8ArrayViewCid :
     case kExternalTypedDataUint8ArrayCid :
-      type = kUint8;
+      type = Dart_TypedData_kUint8;
       break;
     case kTypedDataUint8ClampedArrayCid :
     case kTypedDataUint8ClampedArrayViewCid :
     case kExternalTypedDataUint8ClampedArrayCid :
-      type = kUint8Clamped;
+      type = Dart_TypedData_kUint8Clamped;
       break;
     case kTypedDataInt16ArrayCid :
     case kTypedDataInt16ArrayViewCid :
     case kExternalTypedDataInt16ArrayCid :
-      type = kInt16;
+      type = Dart_TypedData_kInt16;
       break;
     case kTypedDataUint16ArrayCid :
     case kTypedDataUint16ArrayViewCid :
     case kExternalTypedDataUint16ArrayCid :
-      type = kUint16;
+      type = Dart_TypedData_kUint16;
       break;
     case kTypedDataInt32ArrayCid :
     case kTypedDataInt32ArrayViewCid :
     case kExternalTypedDataInt32ArrayCid :
-      type = kInt32;
+      type = Dart_TypedData_kInt32;
       break;
     case kTypedDataUint32ArrayCid :
     case kTypedDataUint32ArrayViewCid :
     case kExternalTypedDataUint32ArrayCid :
-      type = kUint32;
+      type = Dart_TypedData_kUint32;
       break;
     case kTypedDataInt64ArrayCid :
     case kTypedDataInt64ArrayViewCid :
     case kExternalTypedDataInt64ArrayCid :
-      type = kInt64;
+      type = Dart_TypedData_kInt64;
       break;
     case kTypedDataUint64ArrayCid :
     case kTypedDataUint64ArrayViewCid :
     case kExternalTypedDataUint64ArrayCid :
-      type = kUint64;
+      type = Dart_TypedData_kUint64;
       break;
     case kTypedDataFloat32ArrayCid :
     case kTypedDataFloat32ArrayViewCid :
     case kExternalTypedDataFloat32ArrayCid :
-      type = kFloat32;
+      type = Dart_TypedData_kFloat32;
       break;
     case kTypedDataFloat64ArrayCid :
     case kTypedDataFloat64ArrayViewCid :
     case kExternalTypedDataFloat64ArrayCid :
-      type = kFloat64;
+      type = Dart_TypedData_kFloat64;
       break;
     case kTypedDataFloat32x4ArrayCid :
     case kTypedDataFloat32x4ArrayViewCid :
     case kExternalTypedDataFloat32x4ArrayCid :
-      type = kFloat32x4;
+      type = Dart_TypedData_kFloat32x4;
       break;
     default:
-      type = kInvalid;
+      type = Dart_TypedData_kInvalid;
       break;
   }
   return type;
@@ -2438,7 +2438,7 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfTypedData(Dart_Handle object) {
       RawObject::IsTypedDataViewClassId(class_id)) {
     return GetType(class_id);
   }
-  return kInvalid;
+  return Dart_TypedData_kInvalid;
 }
 
 
@@ -2449,7 +2449,7 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
       RawObject::IsTypedDataViewClassId(class_id)) {
     return GetType(class_id);
   }
-  return kInvalid;
+  return Dart_TypedData_kInvalid;
 }
 
 
@@ -2551,31 +2551,31 @@ DART_EXPORT Dart_Handle Dart_NewTypedData(Dart_TypedData_Type type,
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
   switch (type) {
-    case kByteData :
+    case Dart_TypedData_kByteData :
       return NewByteData(isolate, length);
-    case kInt8 :
+    case Dart_TypedData_kInt8 :
       return NewTypedData(isolate, kTypedDataInt8ArrayCid, length);
-    case kUint8 :
+    case Dart_TypedData_kUint8 :
       return NewTypedData(isolate, kTypedDataUint8ArrayCid, length);
-    case kUint8Clamped :
+    case Dart_TypedData_kUint8Clamped :
       return NewTypedData(isolate, kTypedDataUint8ClampedArrayCid, length);
-    case kInt16 :
+    case Dart_TypedData_kInt16 :
       return NewTypedData(isolate, kTypedDataInt16ArrayCid, length);
-    case kUint16 :
+    case Dart_TypedData_kUint16 :
       return NewTypedData(isolate, kTypedDataUint16ArrayCid, length);
-    case kInt32 :
+    case Dart_TypedData_kInt32 :
       return NewTypedData(isolate, kTypedDataInt32ArrayCid, length);
-    case kUint32 :
+    case Dart_TypedData_kUint32 :
       return NewTypedData(isolate, kTypedDataUint32ArrayCid, length);
-    case kInt64 :
+    case Dart_TypedData_kInt64 :
       return NewTypedData(isolate, kTypedDataInt64ArrayCid, length);
-    case kUint64 :
+    case Dart_TypedData_kUint64 :
       return NewTypedData(isolate, kTypedDataUint64ArrayCid, length);
-    case kFloat32 :
+    case Dart_TypedData_kFloat32 :
       return NewTypedData(isolate, kTypedDataFloat32ArrayCid,  length);
-    case kFloat64 :
+    case Dart_TypedData_kFloat64 :
       return NewTypedData(isolate, kTypedDataFloat64ArrayCid, length);
-    case kFloat32x4:
+    case Dart_TypedData_kFloat32x4:
       return NewTypedData(isolate, kTypedDataFloat32x4ArrayCid, length);
     default:
       return Api::NewError("%s expects argument 'type' to be of 'TypedData'",
@@ -2597,64 +2597,64 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
   }
   CHECK_CALLBACK_STATE(isolate);
   switch (type) {
-    case kByteData:
+    case Dart_TypedData_kByteData:
       return NewExternalByteData(isolate, data, length);
-    case kInt8:
+    case Dart_TypedData_kInt8:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataInt8ArrayCid,
                                   data,
                                   length);
-    case kUint8:
+    case Dart_TypedData_kUint8:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint8ArrayCid,
                                   data,
                                   length);
-    case kUint8Clamped:
+    case Dart_TypedData_kUint8Clamped:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint8ClampedArrayCid,
                                   data,
                                   length);
-    case kInt16:
+    case Dart_TypedData_kInt16:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataInt16ArrayCid,
                                   data,
                                   length);
-    case kUint16:
+    case Dart_TypedData_kUint16:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint16ArrayCid,
                                   data,
                                   length);
-    case kInt32:
+    case Dart_TypedData_kInt32:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataInt32ArrayCid,
                                   data,
                                   length);
-    case kUint32:
+    case Dart_TypedData_kUint32:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint32ArrayCid,
                                   data,
                                   length);
-    case kInt64:
+    case Dart_TypedData_kInt64:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataInt64ArrayCid,
                                   data,
                                   length);
-    case kUint64:
+    case Dart_TypedData_kUint64:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataUint64ArrayCid,
                                   data,
                                   length);
-    case kFloat32:
+    case Dart_TypedData_kFloat32:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataFloat32ArrayCid,
                                   data,
                                   length);
-    case kFloat64:
+    case Dart_TypedData_kFloat64:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataFloat64ArrayCid,
                                   data,
                                   length);
-    case kFloat32x4:
+    case Dart_TypedData_kFloat32x4:
       return NewExternalTypedData(isolate,
                                   kExternalTypedDataFloat32x4ArrayCid,
                                   data,

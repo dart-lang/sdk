@@ -278,7 +278,7 @@ static void DirectoryService(Dart_Port dest_port_id,
                              Dart_CObject* message) {
   CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
-  if (message->type == Dart_CObject::kArray) {
+  if (message->type == Dart_CObject_kArray) {
     if (request.Length() > 1 && request[0]->IsInt32()) {
       CObjectInt32 requestType(request[0]);
       switch (requestType.Value()) {

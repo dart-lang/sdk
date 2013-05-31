@@ -576,7 +576,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   bool is_dart_extension_url = DartUtils::IsDartExtensionSchemeURL(url_string);
 
   // Handle URI canonicalization requests.
-  if (tag == kCanonicalizeUrl) {
+  if (tag == Dart_kCanonicalizeUrl) {
     // If this is a Dart Scheme URL or 'part' of a io library
     // then it is not modified as it will be handled internally.
     if (is_dart_scheme_url || is_io_library) {
@@ -594,25 +594,25 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
 
   // Handle 'import' of dart scheme URIs (i.e they start with 'dart:').
   if (is_dart_scheme_url) {
-    if (tag == kImportTag) {
+    if (tag == Dart_kImportTag) {
       // Handle imports of other built-in libraries present in the SDK.
       if (DartUtils::IsDartIOLibURL(url_string)) {
         return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
       }
       return Dart_Error("Do not know how to load '%s'", url_string);
     } else {
-      ASSERT(tag == kSourceTag);
+      ASSERT(tag == Dart_kSourceTag);
       return Dart_Error("Unable to load source '%s' ", url_string);
     }
   }
 
   // Handle 'part' of IO library.
   if (is_io_library) {
-    if (tag == kSourceTag) {
+    if (tag == Dart_kSourceTag) {
       return Dart_LoadSource(
           library, url, Builtin::PartSource(Builtin::kIOLibrary, url_string));
     } else {
-      ASSERT(tag == kImportTag);
+      ASSERT(tag == Dart_kImportTag);
       return Dart_Error("Unable to import '%s' ", url_string);
     }
   }
@@ -627,7 +627,7 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
   }
   Dart_StringToCString(file_path, &url_string);
   if (is_dart_extension_url) {
-    if (tag != kImportTag) {
+    if (tag != Dart_kImportTag) {
       return Dart_Error("Dart extensions must use import: '%s'", url_string);
     }
     return Extensions::LoadExtension(url_string, library);
@@ -778,10 +778,10 @@ Dart_Handle DartUtils::LoadSource(CommandLineOptions* url_mapping,
   }
   // The tag is either an import or a source tag.
   // Load it according to the specified tag.
-  if (tag == kImportTag) {
+  if (tag == Dart_kImportTag) {
     // Return library object or an error string.
     return Dart_LoadLibrary(url, source);
-  } else if (tag == kSourceTag) {
+  } else if (tag == Dart_kSourceTag) {
     return Dart_LoadSource(library, url, source);
   }
   return Dart_Error("wrong tag");
@@ -876,7 +876,7 @@ bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
   int32_t max = 0x3fffffff;  // 1073741823
   ASSERT(min <= value && value < max);
   Dart_CObject object;
-  object.type = Dart_CObject::kInt32;
+  object.type = Dart_CObject_kInt32;
   object.value.as_int32 = value;
   return Dart_PostCObject(port_id, &object);
 }
@@ -953,9 +953,9 @@ void DartUtils::SetOriginalWorkingDirectory() {
 // objects. As these will be used by different threads the use of
 // these depends on the fact that the marking internally in the
 // Dart_CObject structure is not marking simple value objects.
-Dart_CObject CObject::api_null_ = { Dart_CObject::kNull , { 0 } };
-Dart_CObject CObject::api_true_ = { Dart_CObject::kBool , { true } };
-Dart_CObject CObject::api_false_ = { Dart_CObject::kBool, { false } };
+Dart_CObject CObject::api_null_ = { Dart_CObject_kNull , { 0 } };
+Dart_CObject CObject::api_true_ = { Dart_CObject_kBool , { true } };
+Dart_CObject CObject::api_false_ = { Dart_CObject_kBool, { false } };
 CObject CObject::null_ = CObject(&api_null_);
 CObject CObject::true_ = CObject(&api_true_);
 CObject CObject::false_ = CObject(&api_false_);
@@ -981,7 +981,7 @@ CObject* CObject::Bool(bool value) {
 }
 
 
-Dart_CObject* CObject::New(Dart_CObject::Type type, int additional_bytes) {
+Dart_CObject* CObject::New(Dart_CObject_Type type, int additional_bytes) {
   Dart_CObject* cobject = reinterpret_cast<Dart_CObject*>(
       Dart_ScopeAllocate(sizeof(Dart_CObject) + additional_bytes));
   cobject->type = type;
@@ -990,14 +990,14 @@ Dart_CObject* CObject::New(Dart_CObject::Type type, int additional_bytes) {
 
 
 Dart_CObject* CObject::NewInt32(int32_t value) {
-  Dart_CObject* cobject = New(Dart_CObject::kInt32);
+  Dart_CObject* cobject = New(Dart_CObject_kInt32);
   cobject->value.as_int32 = value;
   return cobject;
 }
 
 
 Dart_CObject* CObject::NewInt64(int64_t value) {
-  Dart_CObject* cobject = New(Dart_CObject::kInt64);
+  Dart_CObject* cobject = New(Dart_CObject_kInt64);
   cobject->value.as_int64 = value;
   return cobject;
 }
@@ -1005,21 +1005,21 @@ Dart_CObject* CObject::NewInt64(int64_t value) {
 
 Dart_CObject* CObject::NewIntptr(intptr_t value) {
   // Pointer values passed as intptr_t are always send as int64_t.
-  Dart_CObject* cobject = New(Dart_CObject::kInt64);
+  Dart_CObject* cobject = New(Dart_CObject_kInt64);
   cobject->value.as_int64 = value;
   return cobject;
 }
 
 
 Dart_CObject* CObject::NewDouble(double value) {
-  Dart_CObject* cobject = New(Dart_CObject::kDouble);
+  Dart_CObject* cobject = New(Dart_CObject_kDouble);
   cobject->value.as_double = value;
   return cobject;
 }
 
 
 Dart_CObject* CObject::NewString(int length) {
-  Dart_CObject* cobject = New(Dart_CObject::kString, length + 1);
+  Dart_CObject* cobject = New(Dart_CObject_kString, length + 1);
   cobject->value.as_string = reinterpret_cast<char*>(cobject + 1);
   return cobject;
 }
@@ -1035,7 +1035,7 @@ Dart_CObject* CObject::NewString(const char* str) {
 
 Dart_CObject* CObject::NewArray(int length) {
   Dart_CObject* cobject =
-      New(Dart_CObject::kArray, length * sizeof(Dart_CObject*));  // NOLINT
+      New(Dart_CObject_kArray, length * sizeof(Dart_CObject*));  // NOLINT
   cobject->value.as_array.length = length;
   cobject->value.as_array.values =
       reinterpret_cast<Dart_CObject**>(cobject + 1);
@@ -1044,8 +1044,8 @@ Dart_CObject* CObject::NewArray(int length) {
 
 
 Dart_CObject* CObject::NewUint8Array(int length) {
-  Dart_CObject* cobject = New(Dart_CObject::kTypedData, length);
-  cobject->value.as_typed_data.type = Dart_CObject::kUint8Array;
+  Dart_CObject* cobject = New(Dart_CObject_kTypedData, length);
+  cobject->value.as_typed_data.type = Dart_TypedData_kUint8;
   cobject->value.as_typed_data.length = length;
   cobject->value.as_typed_data.values = reinterpret_cast<uint8_t*>(cobject + 1);
   return cobject;
@@ -1055,8 +1055,8 @@ Dart_CObject* CObject::NewUint8Array(int length) {
 Dart_CObject* CObject::NewExternalUint8Array(
     int64_t length, uint8_t* data, void* peer,
     Dart_WeakPersistentHandleFinalizer callback) {
-  Dart_CObject* cobject = New(Dart_CObject::kExternalTypedData);
-  cobject->value.as_external_typed_data.type = Dart_CObject::kUint8Array;
+  Dart_CObject* cobject = New(Dart_CObject_kExternalTypedData);
+  cobject->value.as_external_typed_data.type = Dart_TypedData_kUint8;
   cobject->value.as_external_typed_data.length = length;
   cobject->value.as_external_typed_data.data = data;
   cobject->value.as_external_typed_data.peer = peer;
@@ -1072,7 +1072,7 @@ Dart_CObject* CObject::NewIOBuffer(int64_t length) {
 
 
 void CObject::FreeIOBufferData(Dart_CObject* cobject) {
-  ASSERT(cobject->type == Dart_CObject::kExternalTypedData);
+  ASSERT(cobject->type == Dart_CObject_kExternalTypedData);
   cobject->value.as_external_typed_data.callback(
       NULL, cobject->value.as_external_typed_data.peer);
   cobject->value.as_external_typed_data.data = NULL;

@@ -304,7 +304,7 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
                                                            url_string);
 
   Builtin::BuiltinLibraryId libraryBuiltinId = BuiltinId(library_url_string);
-  if (tag == kCanonicalizeUrl) {
+  if (tag == Dart_kCanonicalizeUrl) {
     if (mapped_url_string) {
       return url;
     }
@@ -318,20 +318,20 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   Builtin::BuiltinLibraryId builtinId = BuiltinId(url_string);
   if (builtinId != Builtin::kInvalidLibrary) {
     // Special case for importing a builtin library.
-    if (tag == kImportTag) {
+    if (tag == Dart_kImportTag) {
       return Builtin::LoadAndCheckLibrary(builtinId);
     }
-    ASSERT(tag == kSourceTag);
+    ASSERT(tag == Dart_kSourceTag);
     return Dart_Error("Unable to part '%s' ", url_string);
   }
 
   if (libraryBuiltinId != Builtin::kInvalidLibrary) {
     // Special case for parting sources of a builtin library.
-    if (tag == kSourceTag) {
+    if (tag == Dart_kSourceTag) {
       return Dart_LoadSource(
           library, url, Builtin::PartSource(libraryBuiltinId, url_string));
     }
-    ASSERT(tag == kImportTag);
+    ASSERT(tag == Dart_kImportTag);
     return Dart_Error("Unable to import '%s' ", url_string);
   }
 

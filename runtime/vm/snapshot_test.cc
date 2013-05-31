@@ -65,33 +65,33 @@ static uint8_t* zone_allocator(
 // whether the graphs are equal or not.
 static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
   // Return immediately if entering a cycle.
-  if (second->type == Dart_CObject::kNumberOfTypes) return;
+  if (second->type == Dart_CObject_kNumberOfTypes) return;
 
   EXPECT_NE(first, second);
   EXPECT_EQ(first->type, second->type);
   switch (first->type) {
-    case Dart_CObject::kNull:
+    case Dart_CObject_kNull:
       // Nothing more to compare.
       break;
-    case Dart_CObject::kBool:
+    case Dart_CObject_kBool:
       EXPECT_EQ(first->value.as_bool, second->value.as_bool);
       break;
-    case Dart_CObject::kInt32:
+    case Dart_CObject_kInt32:
       EXPECT_EQ(first->value.as_int32, second->value.as_int32);
       break;
-    case Dart_CObject::kInt64:
+    case Dart_CObject_kInt64:
       EXPECT_EQ(first->value.as_int64, second->value.as_int64);
       break;
-    case Dart_CObject::kBigint:
+    case Dart_CObject_kBigint:
       EXPECT_STREQ(first->value.as_bigint, second->value.as_bigint);
       break;
-    case Dart_CObject::kDouble:
+    case Dart_CObject_kDouble:
       EXPECT_EQ(first->value.as_double, second->value.as_double);
       break;
-    case Dart_CObject::kString:
+    case Dart_CObject_kString:
       EXPECT_STREQ(first->value.as_string, second->value.as_string);
       break;
-    case Dart_CObject::kTypedData:
+    case Dart_CObject_kTypedData:
       EXPECT_EQ(first->value.as_typed_data.length,
                 second->value.as_typed_data.length);
       for (int i = 0; i < first->value.as_typed_data.length; i++) {
@@ -99,10 +99,10 @@ static void CompareDartCObjects(Dart_CObject* first, Dart_CObject* second) {
                   second->value.as_typed_data.values[i]);
       }
       break;
-    case Dart_CObject::kArray:
+    case Dart_CObject_kArray:
       // Use invalid type as a visited marker to avoid infinite
       // recursion on graphs with cycles.
-      second->type = Dart_CObject::kNumberOfTypes;
+      second->type = Dart_CObject_kNumberOfTypes;
       EXPECT_EQ(first->value.as_array.length, second->value.as_array.length);
       for (int i = 0; i < first->value.as_array.length; i++) {
         CompareDartCObjects(first->value.as_array.values[i],
@@ -149,7 +149,7 @@ TEST_CASE(SerializeNull) {
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kNull, root->type);
+  EXPECT_EQ(Dart_CObject_kNull, root->type);
   CheckEncodeDecodeMessage(root);
 }
 
@@ -175,7 +175,7 @@ TEST_CASE(SerializeSmi1) {
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kInt32, root->type);
+  EXPECT_EQ(Dart_CObject_kInt32, root->type);
   EXPECT_EQ(smi.Value(), root->value.as_int32);
   CheckEncodeDecodeMessage(root);
 }
@@ -202,7 +202,7 @@ TEST_CASE(SerializeSmi2) {
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kInt32, root->type);
+  EXPECT_EQ(Dart_CObject_kInt32, root->type);
   EXPECT_EQ(smi.Value(), root->value.as_int32);
   CheckEncodeDecodeMessage(root);
 }
@@ -242,14 +242,14 @@ void CheckMint(int64_t value) {
   // range covers most of the 32-bit range and values outside that
   // range are also represented as mints.
 #if defined(ARCH_IS_64_BIT)
-  EXPECT_EQ(Dart_CObject::kInt64, mint_cobject->type);
+  EXPECT_EQ(Dart_CObject_kInt64, mint_cobject->type);
   EXPECT_EQ(value, mint_cobject->value.as_int64);
 #else
   if (kMinInt32 < value && value < kMaxInt32) {
-    EXPECT_EQ(Dart_CObject::kInt32, mint_cobject->type);
+    EXPECT_EQ(Dart_CObject_kInt32, mint_cobject->type);
     EXPECT_EQ(value, mint_cobject->value.as_int32);
   } else {
-    EXPECT_EQ(Dart_CObject::kInt64, mint_cobject->type);
+    EXPECT_EQ(Dart_CObject_kInt64, mint_cobject->type);
     EXPECT_EQ(value, mint_cobject->value.as_int64);
   }
 #endif
@@ -297,7 +297,7 @@ TEST_CASE(SerializeDouble) {
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kDouble, root->type);
+  EXPECT_EQ(Dart_CObject_kDouble, root->type);
   EXPECT_EQ(dbl.value(), root->value.as_double);
   CheckEncodeDecodeMessage(root);
 }
@@ -326,7 +326,7 @@ TEST_CASE(SerializeTrue) {
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kBool, root->type);
+  EXPECT_EQ(Dart_CObject_kBool, root->type);
   EXPECT_EQ(true, root->value.as_bool);
   CheckEncodeDecodeMessage(root);
 }
@@ -353,7 +353,7 @@ TEST_CASE(SerializeFalse) {
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kBool, root->type);
+  EXPECT_EQ(Dart_CObject_kBool, root->type);
   EXPECT_EQ(false, root->value.as_bool);
   CheckEncodeDecodeMessage(root);
 }
@@ -392,7 +392,7 @@ TEST_CASE(SerializeBigint) {
   Dart_CObject* root = api_reader.ReadMessage();
   // Bigint not supported.
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kBigint, root->type);
+  EXPECT_EQ(Dart_CObject_kBigint, root->type);
   EXPECT_STREQ("270FFFFFFFFFFFFFD8F0", root->value.as_bigint);
   CheckEncodeDecodeMessage(root);
 }
@@ -434,7 +434,7 @@ void CheckBigint(const char* bigint_value) {
   Bigint& bigint = Bigint::Handle();
   bigint ^= BigintOperations::NewFromCString(bigint_value);
   Dart_CObject* bigint_cobject = SerializeAndDeserializeBigint(bigint);
-  EXPECT_EQ(Dart_CObject::kBigint, bigint_cobject->type);
+  EXPECT_EQ(Dart_CObject_kBigint, bigint_cobject->type);
   if (bigint_value[0] == '0') {
     EXPECT_STREQ(bigint_value + 2, bigint_cobject->value.as_bigint);
   } else {
@@ -520,7 +520,7 @@ static void TestString(const char* cstr) {
   ApiNativeScope scope;
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
-  EXPECT_EQ(Dart_CObject::kString, root->type);
+  EXPECT_EQ(Dart_CObject_kString, root->type);
   EXPECT_STREQ(cstr, root->value.as_string);
   CheckEncodeDecodeMessage(root);
 }
@@ -568,11 +568,11 @@ TEST_CASE(SerializeArray) {
   ApiNativeScope scope;
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
-  EXPECT_EQ(Dart_CObject::kArray, root->type);
+  EXPECT_EQ(Dart_CObject_kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);
   for (int i = 0; i < kArrayLength; i++) {
     Dart_CObject* element = root->value.as_array.values[i];
-    EXPECT_EQ(Dart_CObject::kInt32, element->type);
+    EXPECT_EQ(Dart_CObject_kInt32, element->type);
     EXPECT_EQ(i, element->value.as_int32);
   }
   CheckEncodeDecodeMessage(root);
@@ -601,7 +601,7 @@ TEST_CASE(SerializeEmptyArray) {
   ApiNativeScope scope;
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
-  EXPECT_EQ(Dart_CObject::kArray, root->type);
+  EXPECT_EQ(Dart_CObject_kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);
   EXPECT(root->value.as_array.values == NULL);
   CheckEncodeDecodeMessage(root);
@@ -634,7 +634,7 @@ TEST_CASE(SerializeByteArray) {
   ApiNativeScope scope;
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
-  EXPECT_EQ(Dart_CObject::kTypedData, root->type);
+  EXPECT_EQ(Dart_CObject_kTypedData, root->type);
   EXPECT_EQ(kTypedDataLength, root->value.as_typed_data.length);
   for (int i = 0; i < kTypedDataLength; i++) {
     EXPECT(root->value.as_typed_data.values[i] == i);
@@ -743,8 +743,8 @@ TEST_CASE(SerializeEmptyByteArray) {
   ApiNativeScope scope;
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
-  EXPECT_EQ(Dart_CObject::kTypedData, root->type);
-  EXPECT_EQ(Dart_CObject::kUint8Array, root->value.as_typed_data.type);
+  EXPECT_EQ(Dart_CObject_kTypedData, root->type);
+  EXPECT_EQ(Dart_TypedData_kUint8, root->value.as_typed_data.type);
   EXPECT_EQ(kTypedDataLength, root->value.as_typed_data.length);
   EXPECT(root->value.as_typed_data.values == NULL);
   CheckEncodeDecodeMessage(root);
@@ -1239,11 +1239,11 @@ TEST_CASE(IntArrayMessage) {
   ApiNativeScope scope;
   ApiMessageReader api_reader(buffer, writer.BytesWritten(), &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
-  EXPECT_EQ(Dart_CObject::kArray, root->type);
+  EXPECT_EQ(Dart_CObject_kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);
   for (int i = 0; i < kArrayLength; i++) {
     Dart_CObject* element = root->value.as_array.values[i];
-    EXPECT_EQ(Dart_CObject::kInt32, element->type);
+    EXPECT_EQ(Dart_CObject_kInt32, element->type);
     EXPECT_EQ(i + 1, element->value.as_int32);
   }
   CheckEncodeDecodeMessage(root);
@@ -1285,7 +1285,7 @@ static void CheckString(Dart_Handle dart_string, const char* expected) {
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kString, root->type);
+  EXPECT_EQ(Dart_CObject_kString, root->type);
   EXPECT_STREQ(expected, root->value.as_string);
   CheckEncodeDecodeMessage(root);
 }
@@ -1305,7 +1305,7 @@ static void CheckStringInvalid(Dart_Handle dart_string) {
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_NOTNULL(root);
-  EXPECT_EQ(Dart_CObject::kUnsupported, root->type);
+  EXPECT_EQ(Dart_CObject_kUnsupported, root->type);
 }
 
 
@@ -1415,7 +1415,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
       Dart_CObject* root = api_reader.ReadMessage();
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kInt32, root->type);
+      EXPECT_EQ(Dart_CObject_kInt32, root->type);
       EXPECT_EQ(42, root->value.as_int32);
       CheckEncodeDecodeMessage(root);
     }
@@ -1433,7 +1433,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
       Dart_CObject* root = api_reader.ReadMessage();
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kBigint, root->type);
+      EXPECT_EQ(Dart_CObject_kBigint, root->type);
       EXPECT_STREQ("-424242424242424242424242424242424242",
                    root->value.as_bigint);
       CheckEncodeDecodeMessage(root);
@@ -1496,10 +1496,10 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
-        EXPECT_EQ(Dart_CObject::kNull, root->value.as_array.values[i]->type);
+        EXPECT_EQ(Dart_CObject_kNull, root->value.as_array.values[i]->type);
       }
       CheckEncodeDecodeMessage(root);
     }
@@ -1508,10 +1508,10 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getIntList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
-        EXPECT_EQ(Dart_CObject::kInt32, root->value.as_array.values[i]->type);
+        EXPECT_EQ(Dart_CObject_kInt32, root->value.as_array.values[i]->type);
         EXPECT_EQ(i, root->value.as_array.values[i]->value.as_int32);
       }
       CheckEncodeDecodeMessage(root);
@@ -1521,10 +1521,10 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
-        EXPECT_EQ(Dart_CObject::kString, root->value.as_array.values[i]->type);
+        EXPECT_EQ(Dart_CObject_kString, root->value.as_array.values[i]->type);
         char buffer[3];
         snprintf(buffer, sizeof(buffer), "%d", i);
         EXPECT_STREQ(buffer, root->value.as_array.values[i]->value.as_string);
@@ -1535,21 +1535,21 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
 
-      EXPECT_EQ(Dart_CObject::kInt32, root->value.as_array.values[0]->type);
+      EXPECT_EQ(Dart_CObject_kInt32, root->value.as_array.values[0]->type);
       EXPECT_EQ(0, root->value.as_array.values[0]->value.as_int32);
-      EXPECT_EQ(Dart_CObject::kString, root->value.as_array.values[1]->type);
+      EXPECT_EQ(Dart_CObject_kString, root->value.as_array.values[1]->type);
       EXPECT_STREQ("1", root->value.as_array.values[1]->value.as_string);
-      EXPECT_EQ(Dart_CObject::kDouble, root->value.as_array.values[2]->type);
+      EXPECT_EQ(Dart_CObject_kDouble, root->value.as_array.values[2]->type);
       EXPECT_EQ(2.2, root->value.as_array.values[2]->value.as_double);
-      EXPECT_EQ(Dart_CObject::kBool, root->value.as_array.values[3]->type);
+      EXPECT_EQ(Dart_CObject_kBool, root->value.as_array.values[3]->type);
       EXPECT_EQ(true, root->value.as_array.values[3]->value.as_bool);
 
       for (int i = 0; i < kArrayLength; i++) {
         if (i > 3) {
-          EXPECT_EQ(Dart_CObject::kNull, root->value.as_array.values[i]->type);
+          EXPECT_EQ(Dart_CObject_kNull, root->value.as_array.values[i]->type);
         }
       }
     }
@@ -1614,10 +1614,10 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
-        EXPECT_EQ(Dart_CObject::kNull, root->value.as_array.values[i]->type);
+        EXPECT_EQ(Dart_CObject_kNull, root->value.as_array.values[i]->type);
       }
       CheckEncodeDecodeMessage(root);
     }
@@ -1626,10 +1626,10 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getIntList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
-        EXPECT_EQ(Dart_CObject::kInt32, root->value.as_array.values[i]->type);
+        EXPECT_EQ(Dart_CObject_kInt32, root->value.as_array.values[i]->type);
         EXPECT_EQ(i, root->value.as_array.values[i]->value.as_int32);
       }
       CheckEncodeDecodeMessage(root);
@@ -1639,10 +1639,10 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
-        EXPECT_EQ(Dart_CObject::kString, root->value.as_array.values[i]->type);
+        EXPECT_EQ(Dart_CObject_kString, root->value.as_array.values[i]->type);
         char buffer[3];
         snprintf(buffer, sizeof(buffer), "%d", i);
         EXPECT_STREQ(buffer, root->value.as_array.values[i]->value.as_string);
@@ -1653,14 +1653,14 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getListList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
-        EXPECT_EQ(Dart_CObject::kArray, element->type);
+        EXPECT_EQ(Dart_CObject_kArray, element->type);
         EXPECT_EQ(i, element->value.as_array.length);
         for (int j = 0; j < i; j++) {
-          EXPECT_EQ(Dart_CObject::kInt32,
+          EXPECT_EQ(Dart_CObject_kInt32,
                     element->value.as_array.values[j]->type);
           EXPECT_EQ(j, element->value.as_array.values[j]->value.as_int32);
         }
@@ -1671,21 +1671,21 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
 
-      EXPECT_EQ(Dart_CObject::kInt32, root->value.as_array.values[0]->type);
+      EXPECT_EQ(Dart_CObject_kInt32, root->value.as_array.values[0]->type);
       EXPECT_EQ(0, root->value.as_array.values[0]->value.as_int32);
-      EXPECT_EQ(Dart_CObject::kString, root->value.as_array.values[1]->type);
+      EXPECT_EQ(Dart_CObject_kString, root->value.as_array.values[1]->type);
       EXPECT_STREQ("1", root->value.as_array.values[1]->value.as_string);
-      EXPECT_EQ(Dart_CObject::kDouble, root->value.as_array.values[2]->type);
+      EXPECT_EQ(Dart_CObject_kDouble, root->value.as_array.values[2]->type);
       EXPECT_EQ(2.2, root->value.as_array.values[2]->value.as_double);
-      EXPECT_EQ(Dart_CObject::kBool, root->value.as_array.values[3]->type);
+      EXPECT_EQ(Dart_CObject_kBool, root->value.as_array.values[3]->type);
       EXPECT_EQ(true, root->value.as_array.values[3]->value.as_bool);
 
       for (int i = 0; i < kArrayLength; i++) {
         if (i > 3) {
-          EXPECT_EQ(Dart_CObject::kArray, root->value.as_array.values[i]->type);
+          EXPECT_EQ(Dart_CObject_kArray, root->value.as_array.values[i]->type);
         }
       }
 
@@ -1700,60 +1700,60 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       element = root->value.as_array.values[5];
       EXPECT_EQ(1, element->value.as_array.length);
       element = element->value.as_array.values[0];
-      EXPECT_EQ(Dart_CObject::kArray, element->type);
+      EXPECT_EQ(Dart_CObject_kArray, element->type);
       EXPECT_EQ(0, element->value.as_array.length);
 
       // [[[]]]"
       element = root->value.as_array.values[6];
       EXPECT_EQ(1, element->value.as_array.length);
       element = element->value.as_array.values[0];
-      EXPECT_EQ(Dart_CObject::kArray, element->type);
+      EXPECT_EQ(Dart_CObject_kArray, element->type);
       EXPECT_EQ(1, element->value.as_array.length);
       element = element->value.as_array.values[0];
-      EXPECT_EQ(Dart_CObject::kArray, element->type);
+      EXPECT_EQ(Dart_CObject_kArray, element->type);
       EXPECT_EQ(0, element->value.as_array.length);
 
       // [1, [2, [3]]]
       element = root->value.as_array.values[7];
       EXPECT_EQ(2, element->value.as_array.length);
       e = element->value.as_array.values[0];
-      EXPECT_EQ(Dart_CObject::kInt32, e->type);
+      EXPECT_EQ(Dart_CObject_kInt32, e->type);
       EXPECT_EQ(1, e->value.as_int32);
       element = element->value.as_array.values[1];
-      EXPECT_EQ(Dart_CObject::kArray, element->type);
+      EXPECT_EQ(Dart_CObject_kArray, element->type);
       EXPECT_EQ(2, element->value.as_array.length);
       e = element->value.as_array.values[0];
-      EXPECT_EQ(Dart_CObject::kInt32, e->type);
+      EXPECT_EQ(Dart_CObject_kInt32, e->type);
       EXPECT_EQ(2, e->value.as_int32);
       element = element->value.as_array.values[1];
-      EXPECT_EQ(Dart_CObject::kArray, element->type);
+      EXPECT_EQ(Dart_CObject_kArray, element->type);
       EXPECT_EQ(1, element->value.as_array.length);
       e = element->value.as_array.values[0];
-      EXPECT_EQ(Dart_CObject::kInt32, e->type);
+      EXPECT_EQ(Dart_CObject_kInt32, e->type);
       EXPECT_EQ(3, e->value.as_int32);
 
       // [1, [1, 2, [1, 2, 3]]]
       element = root->value.as_array.values[8];
       EXPECT_EQ(2, element->value.as_array.length);
       e = element->value.as_array.values[0];
-      EXPECT_EQ(Dart_CObject::kInt32, e->type);
+      EXPECT_EQ(Dart_CObject_kInt32, e->type);
       e = element->value.as_array.values[0];
-      EXPECT_EQ(Dart_CObject::kInt32, e->type);
+      EXPECT_EQ(Dart_CObject_kInt32, e->type);
       EXPECT_EQ(1, e->value.as_int32);
       element = element->value.as_array.values[1];
-      EXPECT_EQ(Dart_CObject::kArray, element->type);
+      EXPECT_EQ(Dart_CObject_kArray, element->type);
       EXPECT_EQ(3, element->value.as_array.length);
       for (int i = 0; i < 2; i++) {
         e = element->value.as_array.values[i];
-        EXPECT_EQ(Dart_CObject::kInt32, e->type);
+        EXPECT_EQ(Dart_CObject_kInt32, e->type);
         EXPECT_EQ(i + 1, e->value.as_int32);
       }
       element = element->value.as_array.values[2];
-      EXPECT_EQ(Dart_CObject::kArray, element->type);
+      EXPECT_EQ(Dart_CObject_kArray, element->type);
       EXPECT_EQ(3, element->value.as_array.length);
       for (int i = 0; i < 3; i++) {
         e = element->value.as_array.values[i];
-        EXPECT_EQ(Dart_CObject::kInt32, e->type);
+        EXPECT_EQ(Dart_CObject_kInt32, e->type);
         EXPECT_EQ(i + 1, e->value.as_int32);
       }
 
@@ -1762,7 +1762,7 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
       EXPECT_EQ(3, element->value.as_array.length);
       for (int i = 0; i < 3; i++) {
         e = element->value.as_array.values[i];
-        EXPECT_EQ(Dart_CObject::kInt32, e->type);
+        EXPECT_EQ(Dart_CObject_kInt32, e->type);
         EXPECT_EQ(i + 1, e->value.as_int32);
       }
     }
@@ -1847,12 +1847,12 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kString, element->type);
+        EXPECT_EQ(Dart_CObject_kString, element->type);
         EXPECT_STREQ("Hello, world!", element->value.as_string);
       }
     }
@@ -1861,12 +1861,12 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getMintList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kInt64, element->type);
+        EXPECT_EQ(Dart_CObject_kInt64, element->type);
         EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
       }
     }
@@ -1875,12 +1875,12 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getBigintList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kBigint, element->type);
+        EXPECT_EQ(Dart_CObject_kBigint, element->type);
         EXPECT_STREQ("1234567890123456789012345678901234567890",
                      element->value.as_bigint);
       }
@@ -1890,12 +1890,12 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getDoubleList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kDouble, element->type);
+        EXPECT_EQ(Dart_CObject_kDouble, element->type);
         EXPECT_EQ(3.14, element->value.as_double);
       }
     }
@@ -1904,13 +1904,13 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kTypedData, element->type);
-        EXPECT_EQ(Dart_CObject::kUint8Array, element->value.as_typed_data.type);
+        EXPECT_EQ(Dart_CObject_kTypedData, element->type);
+        EXPECT_EQ(Dart_TypedData_kUint8, element->value.as_typed_data.type);
         EXPECT_EQ(256, element->value.as_typed_data.length);
       }
     }
@@ -1920,13 +1920,13 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       Dart_CObject* root =
           GetDeserializedDartMessage(lib, "getTypedDataViewList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kTypedData, element->type);
-        EXPECT_EQ(Dart_CObject::kUint8Array, element->value.as_typed_data.type);
+        EXPECT_EQ(Dart_CObject_kTypedData, element->type);
+        EXPECT_EQ(Dart_TypedData_kUint8, element->value.as_typed_data.type);
         EXPECT_EQ(128, element->value.as_typed_data.length);
         EXPECT_EQ(1, element->value.as_typed_data.values[0]);
         EXPECT_EQ(0, element->value.as_typed_data.values[1]);
@@ -1937,17 +1937,17 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         if ((i % 2) == 0) {
           EXPECT_EQ(root->value.as_array.values[0], element);
-          EXPECT_EQ(Dart_CObject::kString, element->type);
+          EXPECT_EQ(Dart_CObject_kString, element->type);
           EXPECT_STREQ("A", element->value.as_string);
         } else {
           EXPECT_EQ(root->value.as_array.values[1], element);
-          EXPECT_EQ(Dart_CObject::kDouble, element->type);
+          EXPECT_EQ(Dart_CObject_kDouble, element->type);
           EXPECT_STREQ(2.72, element->value.as_double);
         }
       }
@@ -1957,11 +1957,11 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getSelfRefList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
-        EXPECT_EQ(Dart_CObject::kArray, element->type);
+        EXPECT_EQ(Dart_CObject_kArray, element->type);
         EXPECT_EQ(root, element);
       }
     }
@@ -2051,12 +2051,12 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kString, element->type);
+        EXPECT_EQ(Dart_CObject_kString, element->type);
         EXPECT_STREQ("Hello, world!", element->value.as_string);
       }
     }
@@ -2065,12 +2065,12 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getMintList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kInt64, element->type);
+        EXPECT_EQ(Dart_CObject_kInt64, element->type);
         EXPECT_EQ(DART_INT64_C(0x7FFFFFFFFFFFFFFF), element->value.as_int64);
       }
     }
@@ -2079,12 +2079,12 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getBigintList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kBigint, element->type);
+        EXPECT_EQ(Dart_CObject_kBigint, element->type);
         EXPECT_STREQ("1234567890123456789012345678901234567890",
                      element->value.as_bigint);
       }
@@ -2094,12 +2094,12 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getDoubleList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kDouble, element->type);
+        EXPECT_EQ(Dart_CObject_kDouble, element->type);
         EXPECT_EQ(3.14, element->value.as_double);
       }
     }
@@ -2108,13 +2108,13 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kTypedData, element->type);
-        EXPECT_EQ(Dart_CObject::kUint8Array, element->value.as_typed_data.type);
+        EXPECT_EQ(Dart_CObject_kTypedData, element->type);
+        EXPECT_EQ(Dart_TypedData_kUint8, element->value.as_typed_data.type);
         EXPECT_EQ(256, element->value.as_typed_data.length);
       }
     }
@@ -2124,13 +2124,13 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       Dart_CObject* root =
           GetDeserializedDartMessage(lib, "getTypedDataViewList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         EXPECT_EQ(root->value.as_array.values[0], element);
-        EXPECT_EQ(Dart_CObject::kTypedData, element->type);
-        EXPECT_EQ(Dart_CObject::kUint8Array, element->value.as_typed_data.type);
+        EXPECT_EQ(Dart_CObject_kTypedData, element->type);
+        EXPECT_EQ(Dart_TypedData_kUint8, element->value.as_typed_data.type);
         EXPECT_EQ(128, element->value.as_typed_data.length);
         EXPECT_EQ(1, element->value.as_typed_data.values[0]);
         EXPECT_EQ(0, element->value.as_typed_data.values[1]);
@@ -2141,17 +2141,17 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
         if ((i % 2) == 0) {
           EXPECT_EQ(root->value.as_array.values[0], element);
-          EXPECT_EQ(Dart_CObject::kString, element->type);
+          EXPECT_EQ(Dart_CObject_kString, element->type);
           EXPECT_STREQ(".", element->value.as_string);
         } else {
           EXPECT_EQ(root->value.as_array.values[1], element);
-          EXPECT_EQ(Dart_CObject::kDouble, element->type);
+          EXPECT_EQ(Dart_CObject_kDouble, element->type);
           EXPECT_STREQ(2.72, element->value.as_double);
         }
       }
@@ -2161,11 +2161,11 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getSelfRefList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
       for (int i = 0; i < kArrayLength; i++) {
         Dart_CObject* element = root->value.as_array.values[i];
-        EXPECT_EQ(Dart_CObject::kArray, element->type);
+        EXPECT_EQ(Dart_CObject_kArray, element->type);
         EXPECT_EQ(root, element);
       }
     }
@@ -2176,9 +2176,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
 
 
 static void CheckTypedData(Dart_CObject* object,
-                           Dart_CObject::TypedDataType typed_data_type,
+                           Dart_TypedData_Type typed_data_type,
                            int len) {
-    EXPECT_EQ(Dart_CObject::kTypedData, object->type);
+    EXPECT_EQ(Dart_CObject_kTypedData, object->type);
     EXPECT_EQ(typed_data_type, object->value.as_typed_data.type);
     EXPECT_EQ(len, object->value.as_typed_data.length);
 }
@@ -2270,26 +2270,26 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
       ApiNativeScope scope;
       Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       struct {
-        Dart_CObject::TypedDataType type;
+        Dart_TypedData_Type type;
         int size;
       } expected[] = {
-        { Dart_CObject::kInt8Array, 256},
-        { Dart_CObject::kUint8Array, 256},
-        { Dart_CObject::kInt16Array, 512},
-        { Dart_CObject::kUint16Array, 512},
-        { Dart_CObject::kInt32Array, 1024},
-        { Dart_CObject::kUint32Array, 1024},
-        { Dart_CObject::kInt64Array, 2048},
-        { Dart_CObject::kUint64Array, 2048},
-        { Dart_CObject::kFloat32Array, 1024},
-        { Dart_CObject::kFloat64Array, 2048},
-        { Dart_CObject::kNumberOfTypedDataTypes, -1 }
+        { Dart_TypedData_kInt8, 256},
+        { Dart_TypedData_kUint8, 256},
+        { Dart_TypedData_kInt16, 512},
+        { Dart_TypedData_kUint16, 512},
+        { Dart_TypedData_kInt32, 1024},
+        { Dart_TypedData_kUint32, 1024},
+        { Dart_TypedData_kInt64, 2048},
+        { Dart_TypedData_kUint64, 2048},
+        { Dart_TypedData_kFloat32, 1024},
+        { Dart_TypedData_kFloat64, 2048},
+        { Dart_TypedData_kInvalid, -1 }
       };
 
       int i = 0;
-      while (expected[i].type != Dart_CObject::kNumberOfTypedDataTypes) {
+      while (expected[i].type != Dart_TypedData_kInvalid) {
         CheckTypedData(root->value.as_array.values[i],
                        expected[i].type,
                        expected[i].size);
@@ -2304,49 +2304,49 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
       Dart_CObject* root =
           GetDeserializedDartMessage(lib, "getTypedDataViewList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       struct {
-        Dart_CObject::TypedDataType type;
+        Dart_TypedData_Type type;
         int size;
       } expected[] = {
-        { Dart_CObject::kInt8Array, 256},
-        { Dart_CObject::kUint8Array, 256},
-        { Dart_CObject::kInt16Array, 512},
-        { Dart_CObject::kUint16Array, 512},
-        { Dart_CObject::kInt32Array, 1024},
-        { Dart_CObject::kUint32Array, 1024},
-        { Dart_CObject::kInt64Array, 2048},
-        { Dart_CObject::kUint64Array, 2048},
-        { Dart_CObject::kFloat32Array, 1024},
-        { Dart_CObject::kFloat64Array, 2048},
+        { Dart_TypedData_kInt8, 256},
+        { Dart_TypedData_kUint8, 256},
+        { Dart_TypedData_kInt16, 512},
+        { Dart_TypedData_kUint16, 512},
+        { Dart_TypedData_kInt32, 1024},
+        { Dart_TypedData_kUint32, 1024},
+        { Dart_TypedData_kInt64, 2048},
+        { Dart_TypedData_kUint64, 2048},
+        { Dart_TypedData_kFloat32, 1024},
+        { Dart_TypedData_kFloat64, 2048},
 
-        { Dart_CObject::kInt8Array, 512},
-        { Dart_CObject::kUint8Array, 512},
-        { Dart_CObject::kInt8Array, 1024},
-        { Dart_CObject::kUint8Array, 1024},
-        { Dart_CObject::kInt8Array, 2048},
-        { Dart_CObject::kUint8Array, 2048},
-        { Dart_CObject::kInt8Array, 1024},
-        { Dart_CObject::kUint8Array, 1024},
-        { Dart_CObject::kInt8Array, 2048},
-        { Dart_CObject::kUint8Array, 2048},
+        { Dart_TypedData_kInt8, 512},
+        { Dart_TypedData_kUint8, 512},
+        { Dart_TypedData_kInt8, 1024},
+        { Dart_TypedData_kUint8, 1024},
+        { Dart_TypedData_kInt8, 2048},
+        { Dart_TypedData_kUint8, 2048},
+        { Dart_TypedData_kInt8, 1024},
+        { Dart_TypedData_kUint8, 1024},
+        { Dart_TypedData_kInt8, 2048},
+        { Dart_TypedData_kUint8, 2048},
 
-        { Dart_CObject::kInt16Array, 256},
-        { Dart_CObject::kUint16Array, 256},
-        { Dart_CObject::kInt16Array, 1024},
-        { Dart_CObject::kUint16Array, 1024},
-        { Dart_CObject::kInt16Array, 2048},
-        { Dart_CObject::kUint16Array, 2048},
-        { Dart_CObject::kInt16Array, 1024},
-        { Dart_CObject::kUint16Array, 1024},
-        { Dart_CObject::kInt16Array, 2048},
-        { Dart_CObject::kUint16Array, 2048},
+        { Dart_TypedData_kInt16, 256},
+        { Dart_TypedData_kUint16, 256},
+        { Dart_TypedData_kInt16, 1024},
+        { Dart_TypedData_kUint16, 1024},
+        { Dart_TypedData_kInt16, 2048},
+        { Dart_TypedData_kUint16, 2048},
+        { Dart_TypedData_kInt16, 1024},
+        { Dart_TypedData_kUint16, 1024},
+        { Dart_TypedData_kInt16, 2048},
+        { Dart_TypedData_kUint16, 2048},
 
-        { Dart_CObject::kNumberOfTypedDataTypes, -1 }
+        { Dart_TypedData_kInvalid, -1 }
       };
 
       int i = 0;
-      while (expected[i].type != Dart_CObject::kNumberOfTypedDataTypes) {
+      while (expected[i].type != Dart_TypedData_kInvalid) {
         CheckTypedData(root->value.as_array.values[i],
                        expected[i].type,
                        expected[i].size);
@@ -2360,26 +2360,26 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
       Dart_CObject* root =
           GetDeserializedDartMessage(lib, "getMultipleTypedDataViewList");
       EXPECT_NOTNULL(root);
-      EXPECT_EQ(Dart_CObject::kArray, root->type);
+      EXPECT_EQ(Dart_CObject_kArray, root->type);
       struct {
-        Dart_CObject::TypedDataType type;
+        Dart_TypedData_Type type;
         int size;
       } expected[] = {
-        { Dart_CObject::kInt8Array, 256},
-        { Dart_CObject::kUint8Array, 256},
-        { Dart_CObject::kInt16Array, 256},
-        { Dart_CObject::kUint16Array, 256},
-        { Dart_CObject::kInt32Array, 256},
-        { Dart_CObject::kUint32Array, 256},
-        { Dart_CObject::kInt64Array, 256},
-        { Dart_CObject::kUint64Array, 256},
-        { Dart_CObject::kFloat32Array, 256},
-        { Dart_CObject::kFloat64Array, 256},
-        { Dart_CObject::kNumberOfTypedDataTypes, -1 }
+        { Dart_TypedData_kInt8, 256},
+        { Dart_TypedData_kUint8, 256},
+        { Dart_TypedData_kInt16, 256},
+        { Dart_TypedData_kUint16, 256},
+        { Dart_TypedData_kInt32, 256},
+        { Dart_TypedData_kUint32, 256},
+        { Dart_TypedData_kInt64, 256},
+        { Dart_TypedData_kUint64, 256},
+        { Dart_TypedData_kFloat32, 256},
+        { Dart_TypedData_kFloat64, 256},
+        { Dart_TypedData_kInvalid, -1 }
       };
 
       int i = 0;
-      while (expected[i].type != Dart_CObject::kNumberOfTypedDataTypes) {
+      while (expected[i].type != Dart_TypedData_kInvalid) {
         CheckTypedData(root->value.as_array.values[i],
                        expected[i].type,
                        expected[i].size);
@@ -2435,34 +2435,34 @@ UNIT_TEST_CASE(PostCObject) {
   // Setup single object message.
   Dart_CObject object;
 
-  object.type = Dart_CObject::kNull;
+  object.type = Dart_CObject_kNull;
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
-  object.type = Dart_CObject::kBool;
+  object.type = Dart_CObject_kBool;
   object.value.as_bool = true;
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
-  object.type = Dart_CObject::kBool;
+  object.type = Dart_CObject_kBool;
   object.value.as_bool = false;
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
-  object.type = Dart_CObject::kInt32;
+  object.type = Dart_CObject_kInt32;
   object.value.as_int32 = 123;
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
-  object.type = Dart_CObject::kString;
+  object.type = Dart_CObject_kString;
   object.value.as_string = const_cast<char*>("456");
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
-  object.type = Dart_CObject::kString;
+  object.type = Dart_CObject_kString;
   object.value.as_string = const_cast<char*>("æøå");
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
-  object.type = Dart_CObject::kDouble;
+  object.type = Dart_CObject_kDouble;
   object.value.as_double = 3.14;
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
-  object.type = Dart_CObject::kArray;
+  object.type = Dart_CObject_kArray;
   object.value.as_array.length = 0;
   EXPECT(Dart_PostCObject(send_port_id, &object));
 
@@ -2471,7 +2471,7 @@ UNIT_TEST_CASE(PostCObject) {
       reinterpret_cast<Dart_CObject*>(
           Dart_ScopeAllocate(
               sizeof(Dart_CObject) + sizeof(Dart_CObject*) * kArrayLength));  // NOLINT
-  array->type = Dart_CObject::kArray;
+  array->type = Dart_CObject_kArray;
   array->value.as_array.length = kArrayLength;
   array->value.as_array.values =
       reinterpret_cast<Dart_CObject**>(array + 1);
@@ -2479,7 +2479,7 @@ UNIT_TEST_CASE(PostCObject) {
     Dart_CObject* element =
         reinterpret_cast<Dart_CObject*>(
             Dart_ScopeAllocate(sizeof(Dart_CObject)));
-    element->type = Dart_CObject::kInt32;
+    element->type = Dart_CObject_kInt32;
     element->value.as_int32 = i;
     array->value.as_array.values[i] = element;
   }

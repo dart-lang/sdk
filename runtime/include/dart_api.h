@@ -1,6 +1,8 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
+/*
+ * Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+ * for details. All rights reserved. Use of this source code is governed by a
+ * BSD-style license that can be found in the LICENSE file.
+ */
 
 #ifndef INCLUDE_DART_API_H_
 #define INCLUDE_DART_API_H_
@@ -38,8 +40,8 @@ typedef unsigned __int64 uint64_t;
 #define DART_EXPORT DART_EXTERN_C
 #endif
 #else
-// __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
-// enable platform independent printf format specifiers.
+/* __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
+ * enable platform independent printf format specifiers. */
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
 #endif
@@ -58,7 +60,7 @@ typedef unsigned __int64 uint64_t;
 
 #include <assert.h>
 
-// --- Handles ---
+/* --- Handles --- */
 
 /**
  * An object reference managed by the Dart VM garbage collector.
@@ -283,8 +285,8 @@ DART_EXPORT Dart_Handle Dart_NewApiError(const char* format, ...);
  */
 DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
 
-// Deprecated.
-// TODO(turnidge): Remove all uses and delete.
+/* Deprecated. */
+/* TODO(turnidge): Remove all uses and delete. */
 DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
 
 /**
@@ -314,17 +316,17 @@ DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
  *   error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_PropagateError(Dart_Handle handle);
-// TODO(turnidge): Should this really return an error handle?
-// Consider just terminating.
+/* TODO(turnidge): Should this really return an error handle? */
+/* Consider just terminating. */
 
-// Internal routine used for reporting error handles.
+/* Internal routine used for reporting error handles. */
 DART_EXPORT void _Dart_ReportErrorHandle(const char* file,
                                          int line,
                                          const char* handle_string,
                                          const char* error);
 
-// TODO(turnidge): Move DART_CHECK_VALID to some sort of dart_utils
-// header instead of this header.
+/* TODO(turnidge): Move DART_CHECK_VALID to some sort of dart_utils
+ * header instead of this header. */
 /**
  * Aborts the process if 'handle' is an error handle.
  *
@@ -476,7 +478,7 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(
     Dart_WeakPersistentHandle* values,
     intptr_t num_values);
 
-// --- Garbage Collection Callbacks ---
+/* --- Garbage Collection Callbacks --- */
 
 /**
  * Callbacks signal the beginning and end of a garbage collection.
@@ -546,7 +548,7 @@ DART_EXPORT Dart_Handle Dart_AddGcEpilogueCallback(
 DART_EXPORT Dart_Handle Dart_RemoveGcEpilogueCallback(
     Dart_GcEpilogueCallback callback);
 
-// --- Initialization and Globals ---
+/* --- Initialization and Globals --- */
 
 /**
  * Gets the version string for the Dart VM.
@@ -627,7 +629,7 @@ typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
  *   unwound (currently unimplemented).
  */
 typedef bool (*Dart_IsolateInterruptCallback)();
-// TODO(turnidge): Define and implement unwinding.
+/* TODO(turnidge): Define and implement unwinding. */
 
 /**
  * An isolate unhandled exception callback function.
@@ -737,7 +739,7 @@ DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv);
  */
 DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
 
-// --- Isolates ---
+/* --- Isolates --- */
 
 /**
  * Creates a new isolate. The new isolate becomes the current isolate.
@@ -767,8 +769,8 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             const uint8_t* snapshot,
                                             void* callback_data,
                                             char** error);
-// TODO(turnidge): Document behavior when there is already a current
-// isolate.
+/* TODO(turnidge): Document behavior when there is already a current
+ * isolate. */
 
 /**
  * Shuts down the current isolate. After this call, the current
@@ -777,7 +779,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
  * Requires there to be a current isolate.
  */
 DART_EXPORT void Dart_ShutdownIsolate();
-// TODO(turnidge): Document behavior when there is no current isolate.
+/* TODO(turnidge): Document behavior when there is no current isolate. */
 
 /**
  * Returns the current isolate. Will return NULL if there is no
@@ -806,9 +808,9 @@ DART_EXPORT Dart_Handle Dart_DebugName();
  * Requires there to be no current isolate.
  */
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
-// TODO(turnidge): Describe what happens if two threads attempt to
-// enter the same isolate simultaneously. Check for this in the code.
-// Describe whether isolates are allowed to migrate.
+/* TODO(turnidge): Describe what happens if two threads attempt to
+ * enter the same isolate simultaneously. Check for this in the code.
+ * Describe whether isolates are allowed to migrate. */
 
 /**
  * Exits an isolate. After this call, Dart_CurrentIsolate will
@@ -817,8 +819,8 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
  * Requires there to be a current isolate.
  */
 DART_EXPORT void Dart_ExitIsolate();
-// TODO(turnidge): We don't want users of the api to be able to exit a
-// "pure" dart isolate. Implement and document.
+/* TODO(turnidge): We don't want users of the api to be able to exit a
+ * "pure" dart isolate. Implement and document. */
 
 /**
  * Creates a full snapshot of the current isolate heap.
@@ -887,7 +889,7 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_IsolateMakeRunnable(Dart_Isolate isolate);
 
 
-// --- Messages and Ports ---
+/* --- Messages and Ports --- */
 
 /**
  * A port is used to send or receive inter-isolate messages
@@ -921,8 +923,8 @@ typedef void (*Dart_MessageNotifyCallback)(Dart_Isolate dest_isolate);
  */
 DART_EXPORT void Dart_SetMessageNotifyCallback(
     Dart_MessageNotifyCallback message_notify_callback);
-// TODO(turnidge): Consider moving this to isolate creation so that it
-// is impossible to mess up.
+/* TODO(turnidge): Consider moving this to isolate creation so that it
+ * is impossible to mess up. */
 
 /**
  * Handles the next pending message for the current isolate.
@@ -950,7 +952,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage();
  *   error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_RunLoop();
-// TODO(turnidge): Should this be removed from the public api?
+/* TODO(turnidge): Should this be removed from the public api? */
 
 /**
  * Gets the main port id for the current isolate.
@@ -977,140 +979,6 @@ DART_EXPORT bool Dart_HasLivePorts();
  */
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle object);
 
-// --- Message sending/receiving from native code ----
-
-/**
- * A Dart_CObject is used for representing Dart objects as native C
- * data outside the Dart heap. These objects are totally detached from
- * the Dart heap. Only a subset of the Dart objects have a
- * representation as a Dart_CObject.
- *
- * The string encoding in the 'value.as_string' is UTF-8.
- *
- * All the different types from dart:typed_data are exposed as type
- * kTypedData. The specific type from dart:typed_data is in the type
- * field of the as_typed_data structure. The length in the
- * as_typed_data structure is always in bytes.
- */
-typedef struct _Dart_CObject {
-  enum Type {
-    kNull = 0,
-    kBool,
-    kInt32,
-    kInt64,
-    kBigint,
-    kDouble,
-    kString,
-    kArray,
-    kTypedData,
-    kExternalTypedData,
-    kUnsupported,
-    kNumberOfTypes
-  } type;
-
-  enum TypedDataType {
-    kInt8Array = 0,
-    kUint8Array,
-    kUint8ClampedArray,
-    kInt16Array,
-    kUint16Array,
-    kInt32Array,
-    kUint32Array,
-    kInt64Array,
-    kUint64Array,
-    kFloat32Array,
-    kFloat64Array,
-    kNumberOfTypedDataTypes
-  };
-
-  union {
-    bool as_bool;
-    int32_t as_int32;
-    int64_t as_int64;
-    double as_double;
-    char* as_string;
-    char* as_bigint;
-    struct {
-      int length;
-      struct _Dart_CObject** values;
-    } as_array;
-    struct {
-      TypedDataType type;
-      int length;
-      uint8_t* values;
-    } as_typed_data;
-    struct {
-      TypedDataType type;
-      int length;
-      uint8_t* data;
-      void* peer;
-      Dart_WeakPersistentHandleFinalizer callback;
-    } as_external_typed_data;
-  } value;
-} Dart_CObject;
-
-/**
- * Posts a message on some port. The message will contain the
- * Dart_CObject object graph rooted in 'message'.
- *
- * While the message is being sent the state of the graph of
- * Dart_CObject structures rooted in 'message' should not be accessed,
- * as the message generation will make temporary modifications to the
- * data. When the message has been sent the graph will be fully
- * restored.
- *
- * \param port_id The destination port.
- * \param message The message to send.
- *
- * \return True if the message was posted.
- */
-DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message);
-
-/**
- * A native message handler.
- *
- * This handler is associated with a native port by calling
- * Dart_NewNativePort.
- *
- * The message received is decoded into the message structure. The
- * lifetime of the message data is controlled by the caller. All the
- * data references from the message are allocated by the caller and
- * will be reclaimed when returning to it.
- */
-
-typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
-                                          Dart_Port reply_port_id,
-                                          Dart_CObject* message);
-
-/**
- * Creates a new native port.  When messages are received on this
- * native port, then they will be dispatched to the provided native
- * message handler.
- *
- * \param name The name of this port in debugging messages.
- * \param handler The C handler to run when messages arrive on the port.
- * \param handle_concurrently Is it okay to process requests on this
- *                            native port concurrently?
- *
- * \return If successful, returns the port id for the native port.  In
- *   case of error, returns ILLEGAL_PORT.
- */
-DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
-                                         Dart_NativeMessageHandler handler,
-                                         bool handle_concurrently);
-// TODO(turnidge): Currently handle_concurrently is ignored.
-
-/**
- * Closes the native port with the given id.
- *
- * The port must have been allocated by a call to Dart_NewNativePort.
- *
- * \param native_port_id The id of the native port to close.
- *
- * \return Returns true if the port was closed successfully.
- */
-DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
-
 /**
  * Returns a new SendPort with the provided port id.
  */
@@ -1123,7 +991,7 @@ DART_EXPORT Dart_Handle Dart_NewSendPort(Dart_Port port_id);
  */
 DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id);
 
-// --- Scopes ----
+/* --- Scopes ---- */
 
 /**
  * Enters a new scope.
@@ -1169,7 +1037,7 @@ DART_EXPORT void Dart_ExitScope();
  */
 DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size);
 
-// --- Objects ----
+/* --- Objects ---- */
 
 /**
  * Returns the null object.
@@ -1220,13 +1088,13 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle type,
                                           bool* instanceof);
 
-// --- Instances ----
-// For the purposes of the embedding api, not all objects returned are
-// Dart language objects.  Within the api, we use the term 'Instance'
-// to indicate handles which refer to true Dart language objects.
-//
-// TODO(turnidge): Reorganize the "Object" section above, pulling down
-// any functions that more properly belong here.
+/* --- Instances ----
+ * For the purposes of the embedding api, not all objects returned are
+ * Dart language objects.  Within the api, we use the term 'Instance'
+ * to indicate handles which refer to true Dart language objects.
+ *
+ * TODO(turnidge): Reorganize the "Object" section above, pulling down
+ * any functions that more properly belong here. */
 
 /**
  * Does this handle refer to some Dart language object?
@@ -1243,14 +1111,14 @@ DART_EXPORT bool Dart_IsInstance(Dart_Handle object);
  */
 DART_EXPORT Dart_Handle Dart_InstanceGetClass(Dart_Handle instance);
 
-// --- Numbers ----
+/* --- Numbers ---- */
 
 /**
  * Is this object a Number?
  */
 DART_EXPORT bool Dart_IsNumber(Dart_Handle object);
 
-// --- Integers ----
+/* --- Integers ---- */
 
 /**
  * Is this object an Integer?
@@ -1340,7 +1208,7 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
 DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
                                                  const char** value);
 
-// --- Booleans ----
+/* --- Booleans ---- */
 
 /**
  * Returns the True object.
@@ -1385,7 +1253,7 @@ DART_EXPORT Dart_Handle Dart_NewBoolean(bool value);
  */
 DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj, bool* value);
 
-// --- Doubles ---
+/* --- Doubles --- */
 
 /**
  * Is this object a Double?
@@ -1412,7 +1280,7 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value);
  */
 DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj, double* value);
 
-// --- Strings ---
+/* --- Strings --- */
 
 /**
  * Is this object a String?
@@ -1446,8 +1314,8 @@ DART_EXPORT Dart_Handle Dart_StringLength(Dart_Handle str, intptr_t* length);
  *   an error handle.
  */
 DART_EXPORT Dart_Handle Dart_NewStringFromCString(const char* str);
-// TODO(turnidge): Document what happens when we run out of memory
-// during this call.
+/* TODO(turnidge): Document what happens when we run out of memory
+ * during this call. */
 
 /**
  * Returns a String built from an array of UTF-8 encoded characters.
@@ -1639,7 +1507,7 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
                                                 Dart_PeerFinalizer cback);
 
 
-// --- Lists ---
+/* --- Lists --- */
 
 /**
  * Is this object a List?
@@ -1717,23 +1585,23 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             uint8_t* native_array,
                                             intptr_t length);
 
-// --- Typed Data ---
+/* --- Typed Data --- */
 
 typedef enum {
-  kByteData = 0,
-  kInt8,
-  kUint8,
-  kUint8Clamped,
-  kInt16,
-  kUint16,
-  kInt32,
-  kUint32,
-  kInt64,
-  kUint64,
-  kFloat32,
-  kFloat64,
-  kFloat32x4,
-  kInvalid
+  Dart_TypedData_kByteData = 0,
+  Dart_TypedData_kInt8,
+  Dart_TypedData_kUint8,
+  Dart_TypedData_kUint8Clamped,
+  Dart_TypedData_kInt16,
+  Dart_TypedData_kUint16,
+  Dart_TypedData_kInt32,
+  Dart_TypedData_kUint32,
+  Dart_TypedData_kInt64,
+  Dart_TypedData_kUint64,
+  Dart_TypedData_kFloat32,
+  Dart_TypedData_kFloat64,
+  Dart_TypedData_kFloat32x4,
+  Dart_TypedData_kInvalid
 } Dart_TypedData_Type;
 
 /**
@@ -1816,7 +1684,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
 DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object);
 
 
-// --- Closures ---
+/* --- Closures --- */
 
 /**
  * Is this object a Closure?
@@ -1844,7 +1712,7 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            int number_of_arguments,
                                            Dart_Handle* arguments);
 
-// --- Classes and Interfaces ---
+/* --- Classes and Interfaces --- */
 
 /**
  * Is this a class handle?
@@ -1919,7 +1787,7 @@ DART_EXPORT bool Dart_ClassIsFunctionType(Dart_Handle clazz);
  */
 DART_EXPORT Dart_Handle Dart_ClassGetFunctionTypeSignature(Dart_Handle clazz);
 
-// --- Function and Variable Declarations ---
+/* --- Function and Variable Declarations --- */
 
 /**
  * Returns a list of the names of all functions or methods declared in
@@ -2009,7 +1877,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
  */
 DART_EXPORT Dart_Handle Dart_FunctionIsConstructor(Dart_Handle function,
                                                    bool* is_constructor);
-// TODO(turnidge): Document behavior for factory constructors too.
+/* TODO(turnidge): Document behavior for factory constructors too. */
 
 /**
  * Determines whether a function or method is a getter.
@@ -2185,9 +2053,9 @@ DART_EXPORT Dart_Handle Dart_TypeVariableOwner(Dart_Handle type_variable);
  *   argument is not a valid handle.
  */
 DART_EXPORT Dart_Handle Dart_TypeVariableUpperBound(Dart_Handle type_variable);
-// TODO(turnidge): Finish documentation.
+/* TODO(turnidge): Finish documentation. */
 
-// --- Constructors, Methods, and Fields ---
+/* --- Constructors, Methods, and Fields --- */
 
 /**
  * Invokes a constructor, creating a new object.
@@ -2237,7 +2105,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                     Dart_Handle name,
                                     int number_of_arguments,
                                     Dart_Handle* arguments);
-// TODO(turnidge): Document how to invoke operators.
+/* TODO(turnidge): Document how to invoke operators. */
 
 /**
  * Gets the value of a field.
@@ -2316,9 +2184,9 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
                                                     int index,
                                                     intptr_t value);
 
-// --- Exceptions ----
-// TODO(turnidge): Remove these functions from the api and replace all
-// uses with Dart_NewUnhandledExceptionError.
+/* --- Exceptions ----
+ * TODO(turnidge): Remove these functions from the api and replace all
+ * uses with Dart_NewUnhandledExceptionError. */
 
 /**
  * Throws an exception.
@@ -2351,7 +2219,7 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception);
 DART_EXPORT Dart_Handle Dart_RethrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace);
 
-// --- Native functions ---
+/* --- Native functions --- */
 
 /**
  * The arguments to a native function.
@@ -2368,7 +2236,7 @@ typedef struct _Dart_NativeArguments* Dart_NativeArguments;
  */
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index);
-// TODO(turnidge): Specify the behavior of an out-of-bounds access.
+/* TODO(turnidge): Specify the behavior of an out-of-bounds access. */
 
 /**
  * Gets the number of native arguments.
@@ -2398,20 +2266,20 @@ typedef void (*Dart_NativeFunction)(Dart_NativeArguments arguments);
  */
 typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
                                                         int num_of_arguments);
-// TODO(turnidge): Consider renaming to NativeFunctionResolver or
-// NativeResolver.
+/* TODO(turnidge): Consider renaming to NativeFunctionResolver or
+ * NativeResolver. */
 
-// --- Scripts and Libraries ---
-// TODO(turnidge): Finish documenting this section.
+/* --- Scripts and Libraries ---
+ * TODO(turnidge): Finish documenting this section. */
 
 typedef enum {
-  kLibraryTag = 0,
-  kImportTag,
-  kSourceTag,
-  kCanonicalizeUrl
+  Dart_kLibraryTag = 0,
+  Dart_kImportTag,
+  Dart_kSourceTag,
+  Dart_kCanonicalizeUrl
 } Dart_LibraryTag;
 
-// TODO(turnidge): Document.
+/* TODO(turnidge): Document. */
 typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
                                               Dart_Handle library,
                                               Dart_Handle url);
@@ -2502,8 +2370,8 @@ DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
  */
 DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
                                       Dart_Handle class_name);
-// TODO(turnidge): Consider returning Dart_Null() when the class is
-// not found to distinguish that from a true error case.
+/* TODO(turnidge): Consider returning Dart_Null() when the class is
+ * not found to distinguish that from a true error case. */
 
 /**
  * Returns the name of a library as declared in the #library directive.
@@ -2525,8 +2393,8 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library);
 
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
-// TODO(turnidge): Consider returning Dart_Null() when the library is
-// not found to distinguish that from a true error case.
+/* TODO(turnidge): Consider returning Dart_Null() when the library is
+ * not found to distinguish that from a true error case. */
 
 DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                                          Dart_Handle source);
@@ -2558,7 +2426,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
                                         Dart_Handle source);
-// TODO(turnidge): Rename to Dart_LibraryLoadSource?
+/* TODO(turnidge): Rename to Dart_LibraryLoadSource? */
 
 
 /**
@@ -2583,20 +2451,20 @@ DART_EXPORT Dart_Handle Dart_LoadPatch(Dart_Handle library,
 DART_EXPORT Dart_Handle Dart_SetNativeResolver(
     Dart_Handle library,
     Dart_NativeEntryResolver resolver);
-// TODO(turnidge): Rename to Dart_LibrarySetNativeResolver?
+/* TODO(turnidge): Rename to Dart_LibrarySetNativeResolver? */
 
-// --- Profiling support ----
+/* --- Profiling support ---- */
 
-// External pprof support for gathering and dumping symbolic
-// information that can be used for better profile reports for
-// dynamically generated code.
+/* External pprof support for gathering and dumping symbolic
+ * information that can be used for better profile reports for
+ * dynamically generated code. */
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
 
-// Support for generating symbol maps for use by the Linux perf tool.
+/* Support for generating symbol maps for use by the Linux perf tool. */
 DART_EXPORT void Dart_InitPerfEventsSupport(void* perf_events_file);
 
-// --- Heap Profiler ---
+/* --- Heap Profiler --- */
 
 /**
  * Generates a heap profile.
@@ -2611,7 +2479,7 @@ DART_EXPORT void Dart_InitPerfEventsSupport(void* perf_events_file);
 DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_FileWriteCallback callback,
                                          void* stream);
 
-// --- Peers ---
+/* --- Peers --- */
 
 /**
  * The peer field is a lazily allocated field intendend for storage of
@@ -2644,4 +2512,124 @@ DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer);
  */
 DART_EXPORT Dart_Handle Dart_SetPeer(Dart_Handle object, void* peer);
 
-#endif  // INCLUDE_DART_API_H_
+/* --- Message sending/receiving from native code ---- */
+
+/**
+ * A Dart_CObject is used for representing Dart objects as native C
+ * data outside the Dart heap. These objects are totally detached from
+ * the Dart heap. Only a subset of the Dart objects have a
+ * representation as a Dart_CObject.
+ *
+ * The string encoding in the 'value.as_string' is UTF-8.
+ *
+ * All the different types from dart:typed_data are exposed as type
+ * kTypedData. The specific type from dart:typed_data is in the type
+ * field of the as_typed_data structure. The length in the
+ * as_typed_data structure is always in bytes.
+ */
+typedef enum {
+  Dart_CObject_kNull = 0,
+  Dart_CObject_kBool,
+  Dart_CObject_kInt32,
+  Dart_CObject_kInt64,
+  Dart_CObject_kBigint,
+  Dart_CObject_kDouble,
+  Dart_CObject_kString,
+  Dart_CObject_kArray,
+  Dart_CObject_kTypedData,
+  Dart_CObject_kExternalTypedData,
+  Dart_CObject_kUnsupported,
+  Dart_CObject_kNumberOfTypes
+} Dart_CObject_Type;
+
+typedef struct _Dart_CObject {
+  Dart_CObject_Type type;
+  union {
+    bool as_bool;
+    int32_t as_int32;
+    int64_t as_int64;
+    double as_double;
+    char* as_string;
+    char* as_bigint;
+    struct {
+      int length;
+      struct _Dart_CObject** values;
+    } as_array;
+    struct {
+      Dart_TypedData_Type type;
+      int length;
+      uint8_t* values;
+    } as_typed_data;
+    struct {
+      Dart_TypedData_Type type;
+      int length;
+      uint8_t* data;
+      void* peer;
+      Dart_WeakPersistentHandleFinalizer callback;
+    } as_external_typed_data;
+  } value;
+} Dart_CObject;
+
+/**
+ * Posts a message on some port. The message will contain the
+ * Dart_CObject object graph rooted in 'message'.
+ *
+ * While the message is being sent the state of the graph of
+ * Dart_CObject structures rooted in 'message' should not be accessed,
+ * as the message generation will make temporary modifications to the
+ * data. When the message has been sent the graph will be fully
+ * restored.
+ *
+ * \param port_id The destination port.
+ * \param message The message to send.
+ *
+ * \return True if the message was posted.
+ */
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message);
+
+/**
+ * A native message handler.
+ *
+ * This handler is associated with a native port by calling
+ * Dart_NewNativePort.
+ *
+ * The message received is decoded into the message structure. The
+ * lifetime of the message data is controlled by the caller. All the
+ * data references from the message are allocated by the caller and
+ * will be reclaimed when returning to it.
+ */
+
+typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
+Dart_Port reply_port_id,
+Dart_CObject* message);
+
+/**
+ * Creates a new native port.  When messages are received on this
+ * native port, then they will be dispatched to the provided native
+ * message handler.
+ *
+ * \param name The name of this port in debugging messages.
+ * \param handler The C handler to run when messages arrive on the port.
+ * \param handle_concurrently Is it okay to process requests on this
+ *                            native port concurrently?
+ *
+ * \return If successful, returns the port id for the native port.  In
+ *   case of error, returns ILLEGAL_PORT.
+ */
+DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
+                                         Dart_NativeMessageHandler handler,
+                                         bool handle_concurrently);
+/* TODO(turnidge): Currently handle_concurrently is ignored. */
+
+/**
+ * Closes the native port with the given id.
+ *
+ * The port must have been allocated by a call to Dart_NewNativePort.
+ *
+ * \param native_port_id The id of the native port to close.
+ *
+ * \return Returns true if the port was closed successfully.
+ */
+DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
+
+#endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

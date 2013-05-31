@@ -26,7 +26,7 @@ void FUNCTION_NAME(Crypto_GetRandomBytes)(Dart_NativeArguments args) {
     delete[] buffer;
     Dart_ThrowException(DartUtils::NewDartOSError());
   }
-  Dart_Handle result = Dart_NewTypedData(kUint8, count);
+  Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, count);
   if (Dart_IsError(result)) {
     delete[] buffer;
     Dart_Handle error = DartUtils::NewString("Failed to allocate storage.");

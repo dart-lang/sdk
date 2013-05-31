@@ -72,7 +72,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
 
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_chars);
   bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
-  if (tag == kCanonicalizeUrl) {
+  if (tag == Dart_kCanonicalizeUrl) {
     // If this is a Dart Scheme URL then it is not modified as it will be
     // handled by the VM internally.
     if (is_dart_scheme_url || is_io_library) {
@@ -84,7 +84,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return DartUtils::CanonicalizeURL(NULL, library, url_chars);
   }
   if (is_dart_scheme_url) {
-    ASSERT(tag == kImportTag);
+    ASSERT(tag == Dart_kImportTag);
     // Handle imports of other built-in libraries present in the SDK.
     if (DartUtils::IsDartIOLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
@@ -95,7 +95,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     }
   }
   if (is_io_library) {
-    ASSERT(tag == kSourceTag);
+    ASSERT(tag == Dart_kSourceTag);
     return Dart_LoadSource(library,
                            url,
                            Builtin::PartSource(Builtin::kIOLibrary,
@@ -136,7 +136,7 @@ Dart_Handle TestCase::lib() {
 Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
                                       Dart_Handle library,
                                       Dart_Handle url) {
-  if (tag == kCanonicalizeUrl) {
+  if (tag == Dart_kCanonicalizeUrl) {
     return url;
   }
   return Api::Success();
