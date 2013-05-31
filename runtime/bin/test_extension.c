@@ -53,10 +53,15 @@ Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
 
 /* Native entry point for the extension library. */
 DART_EXPORT Dart_Handle test_extension_Init(Dart_Handle parent_library) {
-  if (Dart_IsError(parent_library)) { return parent_library; }
+  if (Dart_IsError(parent_library)) {
+    return parent_library;
+  }
 
-  Dart_Handle result_code = Dart_SetNativeResolver(parent_library, ResolveName);
-  if (Dart_IsError(result_code)) return result_code;
+  Dart_Handle result_code =
+      Dart_SetNativeResolver(parent_library, ResolveName);
+  if (Dart_IsError(result_code)) {
+    return result_code;
+  }
 
   return parent_library;
 }
