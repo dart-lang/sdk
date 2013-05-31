@@ -10,9 +10,12 @@ import "../../../sdk/lib/_internal/compiler/implementation/util/util.dart";
 import "mock_compiler.dart";
 import "parser_helper.dart";
 
-Compiler applyPatch(String script, String patch) {
+Compiler applyPatch(String script, String patch,
+                    {bool analyzeAll: false, bool analyzeOnly: false}) {
   String core = "$DEFAULT_CORELIB\n$script";
-  MockCompiler compiler = new MockCompiler(coreSource: core);
+  MockCompiler compiler = new MockCompiler(coreSource: core,
+                                           analyzeAll: analyzeAll,
+                                           analyzeOnly: analyzeOnly);
   var uri = Uri.parse("core.dartp");
   compiler.sourceFiles[uri.toString()] = new MockFile(patch);
   var handler = new LibraryDependencyHandler(compiler);
@@ -715,6 +718,34 @@ testPatchAndSelector() {
   Expect.isTrue(typedSelector.applies(method, compiler));
 }
 
+void testAnalyzeAllInjectedMembers() {
+  String patchText = """
+                     void method() {
+                       String s = 0;
+                     }
+                     """;
+  var compiler = applyPatch('', patchText, analyzeAll: true, analyzeOnly: true);
+  compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
+  compiler.runCompiler(null);
+  compareWarningKinds(patchText,
+      [MessageKind.NOT_ASSIGNABLE], compiler.warnings);
+}
+
+void testTypecheckPatchedMembers() {
+  String originText = "external void method();";
+  String patchText = """
+                     patch void method() {
+                       String s = 0;
+                     }
+                     """;
+  var compiler = applyPatch(originText, patchText,
+                            analyzeAll: true, analyzeOnly: true);
+  compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
+  compiler.runCompiler(null);
+  compareWarningKinds(patchText,
+      [MessageKind.NOT_ASSIGNABLE], compiler.warnings);
+}
+
 main() {
   testPatchConstructor();
   testPatchFunction();
@@ -744,4 +775,7 @@ main() {
   testPatchNonFunction();
 
   testPatchAndSelector();
+
+  testAnalyzeAllInjectedMembers();
+  testTypecheckPatchedMembers();
 }

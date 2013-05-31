@@ -891,7 +891,7 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void fullyEnqueueLibrary(LibraryElement library) {
-    library.forEachLocalMember(fullyEnqueueTopLevelElement);
+    library.implementation.forEachLocalMember(fullyEnqueueTopLevelElement);
   }
 
   void fullyEnqueueTopLevelElement(Element element) {
@@ -983,7 +983,7 @@ abstract class Compiler implements DiagnosticListener {
     elements = resolver.resolve(element);
     if (elements != null && !analyzeSignaturesOnly) {
       // Only analyze nodes with a corresponding [TreeElements].
-      checker.check(tree, elements);
+      checker.check(elements);
     }
     world.resolvedElements[element] = elements;
     return elements;
