@@ -33,18 +33,18 @@ void ThrowMeTheBall(Dart_NativeArguments arguments) {
 
 /* Native resolver for the extension library. */
 Dart_NativeFunction ResolveName(Dart_Handle name, int argc) {
-  assert(Dart_IsString(name));
-  const char* cname;
+  /* assert(Dart_IsString(name)); */
+  const char* c_name;
   Dart_Handle check_error;
 
-  check_error = Dart_StringToCString(name, &cname);
+  check_error = Dart_StringToCString(name, &c_name);
   if (Dart_IsError(check_error)) {
     Dart_PropagateError(check_error);
   }
-  if ((strcmp("TestExtension_IfNull", cname) == 0) && (argc == 2)) {
+  if ((strcmp("TestExtension_IfNull", c_name) == 0) && (argc == 2)) {
     return IfNull;
   }
-  if ((strcmp("TestExtension_ThrowMeTheBall", cname) == 0) && (argc == 1)) {
+  if ((strcmp("TestExtension_ThrowMeTheBall", c_name) == 0) && (argc == 1)) {
     return ThrowMeTheBall;
   }
   return NULL;
