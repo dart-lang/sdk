@@ -337,6 +337,14 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       Format(instr, "movz 'rd, 'rs, 'rt");
       break;
     }
+    case MTHI: {
+      Format(instr, "mthi 'rs");
+      break;
+    }
+    case MTLO: {
+      Format(instr, "mtlo 'rs");
+      break;
+    }
     case MULT: {
       Format(instr, "mult 'rs, 'rt");
       break;
@@ -430,6 +438,14 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
 void MIPSDecoder::DecodeSpecial2(Instr* instr) {
   ASSERT(instr->OpcodeField() == SPECIAL2);
   switch (instr->FunctionField()) {
+    case MADD: {
+      Format(instr, "madd 'rs, 'rt");
+      break;
+    }
+    case MADDU: {
+      Format(instr, "maddu 'rs, 'rt");
+      break;
+    }
     case CLO: {
       Format(instr, "clo 'rd, 'rs");
       break;

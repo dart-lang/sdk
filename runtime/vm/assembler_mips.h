@@ -187,10 +187,7 @@ class Assembler : public ValueObject {
   // Only the tags field of the object is initialized.
   void TryAllocate(const Class& cls,
                    Label* failure,
-                   bool near_jump,
-                   Register instance_reg) {
-    UNIMPLEMENTED();
-  }
+                   Register instance_reg);
 
   // Debugging and bringup support.
   void Stop(const char* message);
@@ -523,6 +520,14 @@ class Assembler : public ValueObject {
     EmitFpuLoadStore(LWC1, ft, addr);
   }
 
+  void madd(Register rs, Register rt) {
+    EmitRType(SPECIAL2, rs, rt, R0, 0, MADD);
+  }
+
+  void maddu(Register rs, Register rt) {
+    EmitRType(SPECIAL2, rs, rt, R0, 0, MADDU);
+  }
+
   void mfc1(Register rt, FRegister fs) {
     Emit(COP1 << kOpcodeShift |
          COP1_MF << kCop1SubShift |
@@ -565,6 +570,14 @@ class Assembler : public ValueObject {
          COP1_MT << kCop1SubShift |
          rt << kRtShift |
          fs << kFsShift);
+  }
+
+  void mthi(Register rs) {
+    EmitRType(SPECIAL, rs, R0, R0, 0, MTHI);
+  }
+
+  void mtlo(Register rs) {
+    EmitRType(SPECIAL, rs, R0, R0, 0, MTLO);
   }
 
   void muld(DRegister dd, DRegister ds, DRegister dt) {

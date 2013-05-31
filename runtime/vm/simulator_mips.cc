@@ -1067,7 +1067,6 @@ void Simulator::DecodeSpecial(Instr* instr) {
         // TODO(zra): Drop into the debugger here.
         break;
       }
-
       set_lo_register(rs_val / rt_val);
       set_hi_register(rs_val % rt_val);
       break;
@@ -1128,6 +1127,22 @@ void Simulator::DecodeSpecial(Instr* instr) {
       if (rt_val == 0) {
         set_register(instr->RdField(), rs_val);
       }
+      break;
+    }
+    case MTHI: {
+      ASSERT(instr->RtField() == 0);
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "mthi 'rd");
+      set_hi_register(get_register(instr->RsField()));
+      break;
+    }
+    case MTLO: {
+      ASSERT(instr->RtField() == 0);
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "mflo 'rd");
+      set_lo_register(get_register(instr->RsField()));
       break;
     }
     case MULT: {
@@ -1266,6 +1281,34 @@ void Simulator::DecodeSpecial(Instr* instr) {
 void Simulator::DecodeSpecial2(Instr* instr) {
   ASSERT(instr->OpcodeField() == SPECIAL2);
   switch (instr->FunctionField()) {
+    case MADD: {
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "madd 'rs, 'rt");
+      uint32_t lo = get_lo_register();
+      int32_t hi = get_hi_register();
+      int64_t accum = Utils::LowHighTo64Bits(lo, hi);
+      int64_t rs = static_cast<int64_t>(get_register(instr->RsField()));
+      int64_t rt = static_cast<int64_t>(get_register(instr->RtField()));
+      int64_t res = accum + rs * rt;
+      set_hi_register(Utils::High32Bits(res));
+      set_lo_register(Utils::Low32Bits(res));
+      break;
+    }
+    case MADDU: {
+      ASSERT(instr->RdField() == 0);
+      ASSERT(instr->SaField() == 0);
+      // Format(instr, "maddu 'rs, 'rt");
+      uint32_t lo = get_lo_register();
+      uint32_t hi = get_hi_register();
+      uint64_t accum = Utils::LowHighTo64Bits(lo, hi);
+      uint64_t rs = static_cast<int64_t>(get_register(instr->RsField()));
+      uint64_t rt = static_cast<int64_t>(get_register(instr->RtField()));
+      uint64_t res = accum + rs * rt;
+      set_hi_register(Utils::High32Bits(res));
+      set_lo_register(Utils::Low32Bits(res));
+      break;
+    }
     case CLO: {
       ASSERT(instr->SaField() == 0);
       ASSERT(instr->RtField() == instr->RdField());

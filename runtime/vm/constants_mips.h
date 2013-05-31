@@ -379,6 +379,8 @@ enum SpecialFunction {
   TNE = 54,
 
   // SPECIAL2 opcodes.
+  MADD = 0,
+  MADDU = 1,
   CLZ = 32,
   CLO = 33,
 };

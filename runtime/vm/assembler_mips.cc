@@ -16,7 +16,7 @@ namespace dart {
 DECLARE_FLAG(bool, trace_sim);
 #endif
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
-
+DECLARE_FLAG(bool, inline_alloc);
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, int length) {
   ASSERT(Utils::IsAligned(data, 4));
@@ -393,6 +393,43 @@ void Assembler::LeaveStubFrameAndReturn(Register ra, bool uses_pp) {
     lw(FP, Address(SP, 0 * kWordSize));
     jr(ra);
     delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  }
+}
+
+
+void Assembler::TryAllocate(const Class& cls,
+                            Label* failure,
+                            Register instance_reg) {
+  ASSERT(failure != NULL);
+  if (FLAG_inline_alloc) {
+    Heap* heap = Isolate::Current()->heap();
+    const intptr_t instance_size = cls.instance_size();
+    LoadImmediate(instance_reg, heap->TopAddress());
+    lw(instance_reg, Address(instance_reg, 0));
+    AddImmediate(instance_reg, instance_size);
+
+    // instance_reg: potential next object start.
+    LoadImmediate(TMP, heap->EndAddress());
+    lw(TMP, Address(TMP, 0));
+    // Fail if heap end unsigned less than or equal to instance_reg.
+    BranchUnsignedLessEqual(TMP, instance_reg, failure);
+
+    // Successfully allocated the object, now update top to point to
+    // next object start and store the class in the class field of object.
+    LoadImmediate(TMP, heap->TopAddress());
+    sw(instance_reg, Address(TMP, 0));
+
+    ASSERT(instance_size >= kHeapObjectTag);
+    AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
+
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    ASSERT(cls.id() != kIllegalCid);
+    tags = RawObject::ClassIdTag::update(cls.id(), tags);
+    LoadImmediate(TMP, tags);
+    sw(TMP, FieldAddress(instance_reg, Object::tags_offset()));
+  } else {
+    b(failure);
   }
 }
 
