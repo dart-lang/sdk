@@ -3,6 +3,42 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library builtin;
+import 'dart:io';
+
+int _httpRequestResponseCode = 0;
+String _httpRequestStatusString;
+List<int> _httpRequestResponse;
+
+void _requestCompleted(HttpClientResponse response, List<int> responseData) {
+  _httpRequestResponseCode = response.statusCode;
+  _httpRequestStatusString = '${response.statusCode} ${response.reasonPhrase}';
+  _httpRequestResponse = responseData;
+}
+
+void _requestFailed(error) {
+  _httpRequestResponseCode = 0;
+  _httpRequestStatusString = error.toString();
+  _httpRequestResponse = null;
+}
+
+HttpClient _client = new HttpClient();
+void _makeHttpRequest(String uri) {
+  _httpRequestResponseCode = 0;
+  _httpRequestStatusString = null;
+  _httpRequestResponse = null;
+
+  Uri requestUri = Uri.parse(uri);
+
+  _client.getUrl(requestUri).then((HttpClientRequest request) {
+    return request.close();
+  }).then((HttpClientResponse response) {
+    response.listen((List<int> responseData) {
+      _requestCompleted(response, responseData);
+    });
+  }).catchError((error) {
+    _requestFailed(error);
+  });
+}
 
 // Corelib 'print' implementation.
 void _print(arg) {
@@ -169,19 +205,4 @@ String _filePathFromPackageUri(Uri uri) {
 String _filePathFromHttpUri(Uri uri) {
   _logResolution('# Path: $uri');
   return uri.toString();
-}
-
-String _pathFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.path;
-}
-
-String _domainFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.domain;
-}
-
-int _portFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.port == 0 ? 80 : uri.port;
 }
