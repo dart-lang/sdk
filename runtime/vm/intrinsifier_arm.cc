@@ -833,7 +833,6 @@ bool Intrinsifier::Integer_bitOr(Assembler* assembler) {
 
 bool Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   Label fall_through;
-  __ Untested("Intrinsifier::Integer_bitXorFromInteger");
 
   TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
   __ eor(R0, R0, ShifterOperand(R1));
@@ -1126,12 +1125,10 @@ static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in R0.
 
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D1, Address(R0));
+  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
   __ Bind(&double_op);
   __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D0, Address(R0));
+  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
 
   __ vcmpd(D0, D1);
   __ vmstat();
@@ -1183,13 +1180,9 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
 
   TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
   // Both arguments are double, right operand is in R0.
-  // Can't use FieldAddress here. R0 is heap-object-tagged, so the offset will
-  // not be 4-byte aligned.
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D1, Address(R0));
+  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
   __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D0, Address(R0));
+  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   switch (kind) {
     case Token::kADD: __ vaddd(D0, D0, D1); break;
     case Token::kSUB: __ vsubd(D0, D0, D1); break;
@@ -1200,8 +1193,7 @@ static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, R0);  // Result register.
-  __ AddImmediate(R1, R0, Double::value_offset() - kHeapObjectTag);
-  __ vstrd(D0, Address(R1));
+  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   __ Ret();
   __ Bind(&fall_through);
   return false;
@@ -1265,8 +1257,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, R0);  // Result register.
-  __ AddImmediate(R1, R0, Double::value_offset() - kHeapObjectTag);
-  __ vstrd(D0, Address(R1));
+  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   __ Ret();
   __ Bind(&fall_through);
   return false;
@@ -1276,8 +1267,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   Label is_true;
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D0, Address(R0));
+  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   __ vcmpd(D0, D0);
   __ vmstat();
   __ LoadObject(R0, Bool::False(), VC);
@@ -1289,10 +1279,8 @@ bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
 
 bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
-  __ Untested("Intrinsifier::Double_getIsNegative");
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D0, Address(R0));
+  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   __ LoadDImmediate(D1, 0.0, R1);
   __ vcmpd(D0, D1);
   __ vmstat();
@@ -1321,8 +1309,7 @@ bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 
 bool Intrinsifier::Double_toInt(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D0, Address(R0));
+  __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   __ vcvtid(S0, D0);
   __ vmovrs(R0, S0);
   // Overflow is signaled with minint.
@@ -1339,18 +1326,15 @@ bool Intrinsifier::Double_toInt(Assembler* assembler) {
 
 bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
-  __ Untested("Intrinsifier::Math_sqrt");
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Argument is double and is in R0.
-  __ AddImmediate(R0, Double::value_offset() - kHeapObjectTag);
-  __ vldrd(D1, Address(R0));
+  __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
   __ Bind(&double_op);
   __ vsqrtd(D0, D1);
   const Class& double_class = Class::Handle(
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, R0);  // Result register.
-  __ AddImmediate(R1, R0, Double::value_offset() - kHeapObjectTag);
-  __ vstrd(D0, Address(R1));
+  __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
   __ Ret();
   __ Bind(&is_smi);
   __ SmiUntag(R0);
@@ -1393,8 +1377,6 @@ bool Intrinsifier::Random_nextState(Assembler* assembler) {
   // 'a_int_value' is a mask.
   ASSERT(Utils::IsUint(32, a_int_value));
   int32_t a_int32_value = static_cast<int32_t>(a_int_value);
-
-  __ Untested("Random_nextState");
 
   __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
   __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.

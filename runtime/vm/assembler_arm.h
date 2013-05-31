@@ -616,11 +616,15 @@ class Assembler : public ValueObject {
   void MoveRegister(Register rd, Register rm, Condition cond = AL);
 
   // Convenience shift instructions. Use mov instruction with shifter operand
-  // for variants setting the status flags or using a register shift count.
+  // for variants setting the status flags.
   void Lsl(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Lsl(Register rd, Register rm, Register rs, Condition cond = AL);
   void Lsr(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Lsr(Register rd, Register rm, Register rs, Condition cond = AL);
   void Asr(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Asr(Register rd, Register rm, Register rs, Condition cond = AL);
   void Ror(Register rd, Register rm, uint32_t shift_imm, Condition cond = AL);
+  void Ror(Register rd, Register rm, Register rs, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
 
   void SmiTag(Register reg, Condition cond = AL) {

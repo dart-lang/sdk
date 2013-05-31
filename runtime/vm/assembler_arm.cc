@@ -1555,11 +1555,21 @@ void Assembler::Lsl(Register rd, Register rm, uint32_t shift_imm,
 }
 
 
+void Assembler::Lsl(Register rd, Register rm, Register rs, Condition cond) {
+  mov(rd, ShifterOperand(rm, LSL, rs), cond);
+}
+
+
 void Assembler::Lsr(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Do not use Lsr if no shift is wanted.
   if (shift_imm == 32) shift_imm = 0;  // Comply to UAL syntax.
   mov(rd, ShifterOperand(rm, LSR, shift_imm), cond);
+}
+
+
+void Assembler::Lsr(Register rd, Register rm, Register rs, Condition cond) {
+  mov(rd, ShifterOperand(rm, LSR, rs), cond);
 }
 
 
@@ -1571,10 +1581,20 @@ void Assembler::Asr(Register rd, Register rm, uint32_t shift_imm,
 }
 
 
+void Assembler::Asr(Register rd, Register rm, Register rs, Condition cond) {
+  mov(rd, ShifterOperand(rm, ASR, rs), cond);
+}
+
+
 void Assembler::Ror(Register rd, Register rm, uint32_t shift_imm,
                     Condition cond) {
   ASSERT(shift_imm != 0);  // Use Rrx instruction.
   mov(rd, ShifterOperand(rm, ROR, shift_imm), cond);
+}
+
+
+void Assembler::Ror(Register rd, Register rm, Register rs, Condition cond) {
+  mov(rd, ShifterOperand(rm, ROR, rs), cond);
 }
 
 

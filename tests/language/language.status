@@ -801,8 +801,24 @@ type_variable_scope_test/04: fail
 type_variable_scope_test/05: fail
 
 
-[ $arch == simarm ]
+[ $arch == arm ]
 *: Skip
+
+[ $arch == simarm ]
+arithmetic_test: Crash
+bit_operations_test: Crash
+char_escape_test: Pass, Crash
+deopt_smi_op_test: Fail
+div_with_power_of_two_test: Fail
+double_modulo_test: Crash
+gc_test: Crash
+invocation_mirror_test: Fail
+large_implicit_getter_test: Crash
+load_to_load_forwarding_test: Fail
+math_vm_test: Crash
+named_parameters_with_conversions_test: Pass, Crash
+stack_overflow_stacktrace_test: Crash
+stack_overflow_test: Crash
 
 [ $arch == mips ]
 *: Skip
