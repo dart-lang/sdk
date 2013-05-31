@@ -62,7 +62,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
   ASSERT(sizeof(NativeArguments) == 4 * kWordSize);
-  __ ReserveAlignedFrameSpace(0);
+  __ ReserveAlignedFrameSpace(4 * kWordSize);  // Reserve space for arguments.
 
   // Pass NativeArguments structure by value and call runtime.
   // Registers A0, A1, A2, and A3 are used.
@@ -161,11 +161,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Cache Isolate pointer into CTX while executing native code.
   __ mov(CTX, A0);
 
-  // Reserve space for the native arguments structure passed on the stack (the
-  // outgoing pointer parameter to the native arguments structure is passed in
-  // R0) and align frame before entering the C++ world.
-  __ ReserveAlignedFrameSpace(sizeof(NativeArguments));
-
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.
 
@@ -191,10 +186,12 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ sw(A2, Address(SP, 2 * kWordSize));
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(A0, Address(SP, 0 * kWordSize));
+  __ mov(A0, SP);  // Pass the pointer to the NativeArguments.
+
+  __ ReserveAlignedFrameSpace(kWordSize);  // Just passing A0.
 
   // Call native function or redirection via simulator.
   __ jalr(T5);
-  __ delay_slot()->mov(A0, SP);  // Pass the pointer to the NativeArguments.
   __ TraceSimMsg("CallNativeCFunctionStub return");
 
   // Reset exit frame information in Isolate structure.
@@ -1478,7 +1475,7 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 
 
 // Generate inline cache check for 'num_args'.
-//  AR: return address
+//  RA: return address
 //  S5: Inline cache data object.
 //  S4: Arguments descriptor array.
 // Control flow:

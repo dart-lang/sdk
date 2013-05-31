@@ -54,7 +54,7 @@
 // On Linux,x86 89255e-22 != Div_double(89255.0/1e22)
 #if defined(_M_X64) || defined(__x86_64__) || \
     defined(__ARMEL__) || \
-    defined(_MIPS_ARCH_MIPS32R2)
+    defined(_MIPS_ARCH_MIPS32)
 #define DOUBLE_CONVERSION_CORRECT_DOUBLE_OPERATIONS 1
 #elif defined(_M_IX86) || defined(__i386__)
 #if defined(_WIN32)

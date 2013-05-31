@@ -803,6 +803,7 @@ class Assembler : public ValueObject {
   }
 
   void AddImmediate(Register rd, Register rs, int32_t value) {
+    if (value == 0) return;
     if (Utils::IsInt(kImmBits, value)) {
       addiu(rd, rs, Immediate(value));
     } else {

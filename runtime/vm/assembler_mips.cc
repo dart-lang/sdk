@@ -12,7 +12,9 @@
 
 namespace dart {
 
+#if defined(USING_SIMULATOR)
 DECLARE_FLAG(bool, trace_sim);
+#endif
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 
 
@@ -575,7 +577,9 @@ void Assembler::Stop(const char* message) {
 
 
 void Assembler::TraceSimMsg(const char* message) {
-  //  Don't bother adding in the messages unless tracing is enabled.
+  // Don't bother adding in the messages unless tracing is enabled, and we are
+  // running in the simulator.
+#if defined(USING_SIMULATOR)
   if (FLAG_trace_sim) {
     Label msg;
     b(&msg);
@@ -583,6 +587,7 @@ void Assembler::TraceSimMsg(const char* message) {
     Bind(&msg);
     break_(Instr::kMsgMessageCode);
   }
+#endif
 }
 
 }  // namespace dart

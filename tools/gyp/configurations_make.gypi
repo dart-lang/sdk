@@ -69,11 +69,18 @@
       },
 
       'Dart_mips_Base': {
-        'cflags': [
-          '-march=mips32r2',
-          '-mhard-float',
-          '-fno-strict-overflow',
-        ],
+        'target_conditions': [
+          ['_toolset=="target"', {
+            'cflags': [
+              '-march=mips32',
+              '-mhard-float',
+              '-fno-strict-overflow',
+            ],
+          }],
+          ['_toolset=="host"',{
+            'cflags': [ '-O3', '-m32', '-msse2' ],
+            'ldflags': [ '-m32' ],
+        }]]
       },
 
       'Dart_Debug': {
