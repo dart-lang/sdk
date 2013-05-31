@@ -177,7 +177,9 @@ class Debugger {
       if (line.startsWith("Debugger listening")) {
         RegExp portExpr = new RegExp(r"\d+");
         var port = portExpr.stringMatch(line);
-        print("Debug target found listening at port '$port'");
+        var pid = targetProcess.pid;
+        print("Coverage target process (pid $pid) found "
+              "listening on port $port.");
         openConnection(int.parse(port));
       }
     });
@@ -227,15 +229,14 @@ class Debugger {
     }
   }
 
-  // Handle one JSON message object and match it to the
-  // expected events and responses in the debugging script.
+  // Handle one JSON message object.
   void handleMessage(Map<String,dynamic> receivedMsg) {
     currentMessage = receivedMsg;
     if (receivedMsg["event"] != null) {
       handleEvent(receivedMsg);
       if (errorsDetected) {
-        error("Error while handling debugger event");
-        error("Event received from debug target: $receivedMsg");
+        error("Error while handling event message");
+        error("Event received from coverage target: $receivedMsg");
       }
     } else if (receivedMsg["id"] != null) {
       // This is a response to the last command we sent.
@@ -249,7 +250,7 @@ class Debugger {
     }
   }
 
-  // Handle data received over the wire from the debug target
+  // Handle data received over the wire from the coverage target
   // process. Split input from JSON wire format into individual
   // message objects (maps).
   void handleMessages() {
@@ -265,8 +266,8 @@ class Debugger {
       var msgObj = JSON.parse(msg);
       handleMessage(msgObj);
       if (errorsDetected) {
-        error("Error while handling message from debug target");
-        error("Message received from debug target: $msg");
+        error("Error while handling message from coverage target");
+        error("Message received from coverage target: $msg");
         cleanup();
         return;
       }
@@ -327,16 +328,16 @@ class Debugger {
             }
           },
           onDone: () {
-            print("Connection closed by debug target");
+            print("Connection closed by coverage target");
             cleanup();
           },
           onError: (e) {
-            print("Error '$e' detected in input stream from debug target");
+            print("Error '$e' detected in input stream from coverage target");
             cleanup();
           });
       },
       onError: (e) {
-        String msg = "Error while connecting to debugee: $e";
+        String msg = "Error while connecting to coverage target: $e";
         var trace = getAttachedStackTrace(e);
         if (trace != null) msg += "\nStackTrace: $trace";
         error(msg);
@@ -356,14 +357,14 @@ class Debugger {
       });
     }
     var targetPid = targetProcess.pid;
-    print("Sending kill signal to process $targetPid...");
+    print("Sending kill signal to process $targetPid.");
     targetProcess.kill();
     // If the process was already dead exitCode is already
     // available and we call exit() in the next event loop cycle.
     // Otherwise this will wait for the process to exit.
 
     targetProcess.exitCode.then((exitCode) {
-      print("process $targetPid terminated with exit code $exitCode.");
+      print("Process $targetPid terminated with exit code $exitCode.");
       if (errorsDetected) {
         print("\n===== Errors detected: =====");
         for (int i = 0; i < errors.length; i++) print(errors[i]);
@@ -377,7 +378,7 @@ class Debugger {
 }
 
 
-// Class to buffer wire protocol data from debug target and
+// Class to buffer wire protocol data from coverage target and
 // break it down to individual json messages.
 class JsonBuffer {
   String buffer = null;
