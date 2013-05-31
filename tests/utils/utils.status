@@ -24,6 +24,9 @@ txt_layout_test: Skip # Might just go away.
 # Skip until we stabilize language tests.
 *: Skip
 
+[ $arch == arm ]
+*: Skip
+
 [ $arch == simarm ]
 *: Skip
 
