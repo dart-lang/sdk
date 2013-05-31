@@ -29,6 +29,7 @@ class Expect {
    * Control characters may be encoded as "\xhh" codes.
    */
   static String _truncateString(String string, int start, int end, int length) {
+    print("$string: $start: $end: $length");
     if (end - start > length) {
       end = start + length;
     } else if (end - start < length) {
@@ -68,6 +69,7 @@ class Expect {
    * only a slice  containing the first difference will be shown.
    */
   static String _stringDifference(String expected, String actual) {
+    print("digg: $expected, $actual");
     if (expected.length < 20 && actual.length < 20) return null;
     for (int i = 0; i < expected.length && i < actual.length; i++) {
       if (expected.codeUnitAt(i) != actual.codeUnitAt(i)) {
@@ -75,6 +77,7 @@ class Expect {
         i++;
         while (i < expected.length && i < actual.length) {
           if (expected.codeUnitAt(i) == actual.codeUnitAt(i)) break;
+          i++;
         }
         int end = i;
         var truncExpected = _truncateString(expected, start, end, 20);
@@ -92,7 +95,6 @@ class Expect {
   static void equals(var expected, var actual, [String reason = null]) {
     if (expected == actual) return;
     String msg = _getMessage(reason);
-    stringSpecialCase:
     if (expected is String && actual is String) {
       String stringDifference = _stringDifference(expected, actual);
       if (stringDifference != null) {
