@@ -282,14 +282,14 @@ abstract class _TypedListBase {
   // Method(s) implementing the Collection interface.
   bool contains(element) => IterableMixinWorkaround.contains(this, element);
 
-  void forEach(void f(element)) {
+  void forEach(void f(num element)) {
     var len = this.length;
     for (var i = 0; i < len; i++) {
       f(this[i]);
     }
   }
 
-  Iterable map(f(int element)) {
+  Iterable map(f(num element)) {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
@@ -297,20 +297,20 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.join(this, separator);
   }
 
-  dynamic reduce(dynamic combine(value, element)) {
+  num reduce(dynamic combine(num value, num element)) {
     return IterableMixinWorkaround.reduce(this, combine);
   }
 
   dynamic fold(dynamic initialValue,
-                 dynamic combine(dynamic initialValue, element)) {
+               dynamic combine(dynamic initialValue, num element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 
-  Iterable where(bool f(int element)) {
+  Iterable where(bool f(num element)) {
     return IterableMixinWorkaround.where(this, f);
   }
 
-  Iterable expand(Iterable f(int element)) {
+  Iterable expand(Iterable f(num element)) {
     return IterableMixinWorkaround.expand(this, f);
   }
 
@@ -318,7 +318,7 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.takeList(this, n);
   }
 
-  Iterable takeWhile(bool test(int value)) {
+  Iterable takeWhile(bool test(num element)) {
     return IterableMixinWorkaround.takeWhile(this, test);
   }
 
@@ -326,31 +326,31 @@ abstract class _TypedListBase {
     return IterableMixinWorkaround.skipList(this, n);
   }
 
-  Iterable skipWhile(bool test(int value)) {
+  Iterable skipWhile(bool test(num element)) {
     return IterableMixinWorkaround.skipWhile(this, test);
   }
 
-  bool every(bool f(element)) {
+  bool every(bool f(num element)) {
     return IterableMixinWorkaround.every(this, f);
   }
 
-  bool any(bool f(element)) {
+  bool any(bool f(num element)) {
     return IterableMixinWorkaround.any(this, f);
   }
 
-  int firstWhere(bool test(int value), {int orElse()}) {
+  num firstWhere(bool test(num element), {orElse()}) {
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
   }
 
-  int lastWhere(bool test(int value), {int orElse()}) {
+  num lastWhere(bool test(num element), {orElse()}) {
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
   }
 
-  int singleWhere(bool test(int value)) {
+  num singleWhere(bool test(num element)) {
     return IterableMixinWorkaround.singleWhere(this, test);
   }
 
-  int elementAt(int index) {
+  num elementAt(int index) {
     return this[index];
   }
 
@@ -387,7 +387,7 @@ abstract class _TypedListBase {
         "Cannot insert into a non-extendable array");
   }
 
-  void sort([int compare(var a, var b)]) {
+  void sort([int compare(num a, num b)]) {
     return IterableMixinWorkaround.sortList(this, compare);
   }
 
@@ -429,27 +429,27 @@ abstract class _TypedListBase {
         "Cannot remove from a non-extendable array");
   }
 
-  void removeWhere(bool test(int element)) {
+  void removeWhere(bool test(element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
-  void retainWhere(bool test(int element)) {
+  void retainWhere(bool test(element)) {
     throw new UnsupportedError(
         "Cannot remove from a non-extendable array");
   }
 
-  int get first {
+  num get first {
     if (length > 0) return this[0];
     throw new StateError("No elements");
   }
 
-  int get last {
+  num get last {
     if (length > 0) return this[length - 1];
     throw new StateError("No elements");
   }
 
-  int get single {
+  num get single {
     if (length == 1) return this[0];
     if (length == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -497,7 +497,7 @@ abstract class _TypedListBase {
     IterableMixinWorkaround.setAllList(this, index, iterable);
   }
 
-  void fillRange(int start, int end, [fillValue]) {
+  void fillRange(int start, int end, [num fillValue]) {
     IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
