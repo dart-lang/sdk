@@ -976,6 +976,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
   cls = object_store->stacktrace_class();
+  type = object_store->object_type();
   cls.set_super_type(type);
 
   // Note: The abstract class Function is represented by VM class
@@ -1586,13 +1587,14 @@ intptr_t Class::NumTypeParameters() const {
 intptr_t Class::NumTypeArguments() const {
   // To work properly, this call requires the super class of this class to be
   // resolved, which is checked by the SuperClass() call.
-  Class& cls = Class::Handle(raw());
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle(isolate, raw());
   intptr_t num_type_args = 0;
 
   do {
     if (cls.IsSignatureClass()) {
       const Function& signature_fun =
-          Function::Handle(cls.signature_function());
+          Function::Handle(isolate, cls.signature_function());
       if (!signature_fun.is_static() &&
           !signature_fun.HasInstantiatedSignature()) {
         cls = signature_fun.Owner();
@@ -1600,7 +1602,8 @@ intptr_t Class::NumTypeArguments() const {
     }
     num_type_args += cls.NumTypeParameters();
     // Object is its own super class during bootstrap.
-    if (cls.SuperClass() == Class::null() || cls.SuperClass() == cls.raw()) {
+    if (cls.super_type() == Type::null() ||
+        cls.super_type() == isolate->object_store()->object_type()) {
       break;
     }
     cls = cls.SuperClass();
@@ -1621,10 +1624,10 @@ bool Class::HasTypeArguments() const {
 
 
 RawClass* Class::SuperClass() const {
-  const AbstractType& sup_type = AbstractType::Handle(super_type());
-  if (sup_type.IsNull()) {
+  if (super_type() == Type::null()) {
     return Class::null();
   }
+  const AbstractType& sup_type = AbstractType::Handle(super_type());
   return sup_type.type_class();
 }
 
@@ -6890,10 +6893,11 @@ bool Namespace::HidesName(const String& name) const {
 
 
 RawObject* Namespace::Lookup(const String& name) const {
-  const Library& lib = Library::Handle(library());
+  Isolate* isolate = Isolate::Current();
+  const Library& lib = Library::Handle(isolate, library());
   intptr_t ignore = 0;
   // Lookup the name in the library's symbols.
-  Object& obj = Object::Handle(lib.LookupEntry(name, &ignore));
+  Object& obj = Object::Handle(isolate, lib.LookupEntry(name, &ignore));
   if (obj.IsNull()) {
     // Lookup in the re-exported symbols.
     obj = lib.LookupExport(name);
