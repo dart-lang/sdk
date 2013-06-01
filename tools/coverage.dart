@@ -101,7 +101,8 @@ class Source {
       }
     });
 
-    List lines = new File(Uri.parse(url).path).readAsLinesSync();
+    String srcPath = new Path(Uri.parse(url).path).toNativePath();
+    List lines = new File(srcPath).readAsLinesSync();
     for (int line = 1; line <= lines.length; line++) {
       String prefix = "      ";
       if (lineCounts.containsKey(line)) {
