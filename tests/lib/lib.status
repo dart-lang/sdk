@@ -103,6 +103,7 @@ async/timer_not_available_test: Skip # only meant to test when there is no way t
                                      # implement timer (currently only in d8)
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
 async/run_async6_test: Fail # Issue 10910
+utf/utf8_test: Fail # Issue 11030
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail # See Issue 10982

@@ -306,10 +306,13 @@ final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
+optimized_string_charat_test: Fail # Issue 11030
+optimized_string_charcodeat_test: Fail # Issue 11030
 
 
 [ $runtime == dartium ]
 import_combinators_test: Fail
+optimized_string_charcodeat_test: Fail # Issue 11030
 
 
 [ $runtime == vm || ($runtime == drt && $compiler == none) ]

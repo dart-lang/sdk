@@ -12,6 +12,8 @@ interactive_test: Skip # Must be run manually.
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
+crypto_test/functional: Fail # Issue 11032
+
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
