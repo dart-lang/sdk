@@ -7,7 +7,6 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory $CLASSNAME(String data) => _$(CLASSNAME)FactoryProvider.create$CLASSNAME(data);
 $!MEMBERS
 
 $if DART2JS

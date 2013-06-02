@@ -424,7 +424,7 @@ class DartiumBackend(HtmlDartGenerator):
         [],
         attr.type.id,
         attr.type.nullable,
-        'GetterRaisesException' in attr.ext_attrs)
+        'GetterRaisesException' in attr.ext_attrs or 'RaisesException' in attr.ext_attrs)
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
@@ -939,7 +939,7 @@ class DartiumBackend(HtmlDartGenerator):
     if 'ImplementedBy' in idl_node.ext_attrs:
       return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
     if idl_node.is_static:
-      return '%s::%s' % (self._interface_type_info.idl_type(), function_name)
+      return '%s::%s' % (self._interface_type_info.native_type(), function_name)
     interface_name = self._interface_type_info.idl_type()
     cpp_type_name = _GetCPPTypeName(interface_name, function_name)
     if cpp_type_name == interface_name:

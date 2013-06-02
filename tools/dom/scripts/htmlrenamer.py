@@ -316,8 +316,6 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'Document.createCDATASection': 'createCDataSection',
     'Document.defaultView': 'window',
     'Document.querySelector': 'query',
-    'DOMURL.createObjectURL': 'createObjectUrl',
-    'DOMURL.revokeObjectURL': 'revokeObjectUrl',
     'DOMWindow.CSS': 'css',
     'DOMWindow.clearTimeout': '_clearTimeout',
     'DOMWindow.clearInterval': '_clearInterval',
@@ -345,6 +343,8 @@ renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'StorageInfo.queryUsageAndQuota': '_queryUsageAndQuota',
     'SVGElement.className': '$dom_svgClassName',
     'SVGStopElement.offset': 'gradientOffset',
+    'URL.createObjectURL': 'createObjectUrl',
+    'URL.revokeObjectURL': 'revokeObjectUrl',
     'WheelEvent.wheelDeltaX': '_wheelDeltaX',
     'WheelEvent.wheelDeltaY': '_wheelDeltaY',
     #'WorkerContext.webkitRequestFileSystem': '_requestFileSystem',
@@ -396,12 +396,10 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Document.all',
     'Document.applets',
     'Document.bgColor',
-    'Document.captureEvents',
     'Document.clear',
     'Document.createAttribute',
     'Document.createAttributeNS',
     'Document.createComment',
-    'Document.createEntityReference',
     'Document.createExpression',
     'Document.createNSResolver',
     'Document.createProcessingInstruction',
@@ -433,7 +431,6 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Document.linkColor',
     'Document.location',
     'Document.open',
-    'Document.releaseEvents',
     'Document.set:domain',
     'Document.vlinkColor',
     'Document.webkitCurrentFullScreenElement',
@@ -442,6 +439,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'Document.writeln',
     'Document.xmlStandalone',
     'Document.xmlVersion',
+    'DocumentFragment.children',
     'DocumentType.*',
     'DOMCoreException.code',
     'DOMCoreException.ABORT_ERR',
@@ -665,6 +663,10 @@ class HtmlRenamer(object):
     suppressed in the HTML library
     """
     interface = self._database.GetInterface(interface_name)
+
+    if not member:
+      if 'ImplementedAs' in member_node.ext_attrs:
+        member = member_node.ext_attrs['ImplementedAs']
 
     if self.ShouldSuppressMember(interface, member, member_prefix):
       return None

@@ -7,8 +7,6 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory $CLASSNAME() => document.$dom_createRange();
-
 $!MEMBERS
 
   /**

@@ -288,7 +288,7 @@ _annotations = monitored.Dict('dartmetadata._annotations', {
     "@Experimental",
   ],
   'Event.clipboardData': _webkit_experimental_annotations,
-  'DOMFormData': _all_but_ie9_annotations,
+  'FormData': _all_but_ie9_annotations,
   'HashChangeEvent': [
     "@SupportedBrowser(SupportedBrowser.CHROME)",
     "@SupportedBrowser(SupportedBrowser.FIREFOX)",

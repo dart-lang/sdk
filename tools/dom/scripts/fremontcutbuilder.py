@@ -20,7 +20,6 @@ FEATURE_DISABLED = [
     'ENABLE_BATTERY_STATUS',
     'ENABLE_CSS_DEVICE_ADAPTATION',
     'ENABLE_CUSTOM_SCHEME_HANDLER',
-    'ENABLE_ENCRYPTED_MEDIA_V2',
     'ENABLE_MEDIA_CAPTURE', # Only enabled on Android.
     'ENABLE_ORIENTATION_EVENTS', # Only enabled on Android.
     'ENABLE_WEBVTT_REGIONS',
@@ -29,13 +28,11 @@ FEATURE_DISABLED = [
 
 FEATURE_DEFINES = [
     'ENABLE_CALENDAR_PICKER', # Not on Android
-    'ENABLE_DATALIST_ELEMENT', # Not on Android
-    'ENABLE_ENCRYPTED_MEDIA',
+    'ENABLE_ENCRYPTED_MEDIA_V2',
     'ENABLE_INPUT_SPEECH', # Not on Android
     'ENABLE_LEGACY_NOTIFICATIONS', # Not on Android
     'ENABLE_NAVIGATOR_CONTENT_UTILS', # Not on Android
     'ENABLE_NOTIFICATIONS', # Not on Android
-    'ENABLE_PAGE_POPUP', # Not on Android
     'ENABLE_SVG',
     'ENABLE_SVG_FONTS',
     'ENABLE_WEB_AUDIO', # Not on Android
@@ -105,12 +102,14 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
     _logger.warning('There are some unused conditionals %s' %
         sorted(unused_conditionals))
     _logger.warning('Please update fremontcutbuilder.py')
+    raise 'Halt'
 
   unknown_conditionals = conditionals_met - known_conditionals
   if unknown_conditionals:
     _logger.warning('There are some unknown conditionals %s' %
         sorted(unknown_conditionals))
     _logger.warning('Please update fremontcutbuilder.py')
+    raise 'Halt'
 
   db.Save()
   return db

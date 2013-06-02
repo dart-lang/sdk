@@ -240,7 +240,7 @@ interface MutationObserver {
   CustomConstructor,
   // Provide missing constructor signature.
   Constructor(optional HTMLFormElement form)]
-interface DOMFormData {
+interface FormData {
   [Suppressed] void append(DOMString name, DOMString value, DOMString filename);
   [Custom] void append(DOMString name, DOMString value);
   [Custom] void append(DOMString name, Blob value, optional DOMString filename);
@@ -277,7 +277,7 @@ interface XMLHttpRequest {
    [Custom] void send(Blob data);
    [Custom] void send(Document data);
    [Custom] void send([StrictTypeChecking] DOMString data);
-   [Custom] void send(DOMFormData data);
+   [Custom] void send(FormData data);
 };
 
 
@@ -297,5 +297,20 @@ interface InspectorFrontendHost {};
 interface JavaScriptCallFrame {};
 
 
-[Suppressed]
-interface Entity {};
+[Supplemental]
+interface Location {
+  [CustomSetter] attribute DOMString href;
+
+  [Custom] void assign(optional DOMString url);
+  [Custom] void replace([Default=Undefined] optional DOMString url);
+  [Custom] void reload();
+
+  // URI decomposition attributes
+  [CustomSetter] attribute DOMString protocol;
+  [CustomSetter] attribute DOMString host;
+  [CustomSetter] attribute DOMString hostname;
+  [CustomSetter] attribute DOMString port;
+  [CustomSetter] attribute DOMString pathname;
+  [CustomSetter] attribute DOMString search;
+  [CustomSetter] attribute DOMString hash;
+};

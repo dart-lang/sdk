@@ -5,8 +5,6 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.createDocumentFragment();
-
   factory $CLASSNAME.html(String html) =>
       _$(CLASSNAME)FactoryProvider.createDocumentFragment_html(html);
 
