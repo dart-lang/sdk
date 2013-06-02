@@ -185,6 +185,7 @@ class IndexExpressionTest extends EngineTestCase {
     });
   }
 }
+
 /**
  * The class {@code ASTFactory} defines utility methods that can be used to create AST nodes. The
  * nodes that are created are complete in the sense that all of the tokens that would have been
@@ -372,6 +373,7 @@ class ASTFactory {
   static TryStatement tryStatement3(Block body, List<CatchClause> catchClauses, Block finallyClause) => new TryStatement.full(TokenFactory.token(Keyword.TRY), body, catchClauses, finallyClause == null ? null : TokenFactory.token(Keyword.FINALLY), finallyClause);
   static FunctionTypeAlias typeAlias(TypeName returnType, String name, TypeParameterList typeParameters, FormalParameterList parameters) => new FunctionTypeAlias.full(null, null, TokenFactory.token(Keyword.TYPEDEF), returnType, identifier3(name), typeParameters, parameters, TokenFactory.token3(TokenType.SEMICOLON));
   static TypeArgumentList typeArgumentList(List<TypeName> typeNames) => new TypeArgumentList.full(TokenFactory.token3(TokenType.LT), list(typeNames), TokenFactory.token3(TokenType.GT));
+  
   /**
    * Create a type name whose name has been resolved to the given element and whose type has been
    * resolved to the type of the given element.
@@ -416,11 +418,6 @@ class ASTFactory {
   static VariableDeclarationStatement variableDeclarationStatement2(Keyword keyword, List<VariableDeclaration> variables) => variableDeclarationStatement(keyword, null, variables);
   static WhileStatement whileStatement(Expression condition, Statement body) => new WhileStatement.full(TokenFactory.token(Keyword.WHILE), TokenFactory.token3(TokenType.OPEN_PAREN), condition, TokenFactory.token3(TokenType.CLOSE_PAREN), body);
   static WithClause withClause(List<TypeName> types) => new WithClause.full(TokenFactory.token(Keyword.WITH), list(types));
-  /**
-   * Prevent the creation of instances of this class.
-   */
-  ASTFactory() {
-  }
 }
 class SimpleIdentifierTest extends ParserTestCase {
   void test_inDeclarationContext_argumentDefinition() {
@@ -569,6 +566,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     }
     return identifier;
   }
+  
   /**
    * Return the top-most node in the AST structure containing the given identifier.
    * @param identifier the identifier in the AST structure being traversed
@@ -676,13 +674,16 @@ class AssignmentKind implements Comparable<AssignmentKind> {
   static final AssignmentKind SIMPLE_RIGHT = new AssignmentKind('SIMPLE_RIGHT', 8);
   static final AssignmentKind NONE = new AssignmentKind('NONE', 9);
   static final List<AssignmentKind> values = [BINARY, COMPOUND_LEFT, COMPOUND_RIGHT, POSTFIX_INC, PREFIX_DEC, PREFIX_INC, PREFIX_NOT, SIMPLE_LEFT, SIMPLE_RIGHT, NONE];
-  final String __name;
-  final int __ordinal;
-  int get ordinal => __ordinal;
-  AssignmentKind(this.__name, this.__ordinal) {
+  
+  /// The name of this enum constant, as declared in the enum declaration.
+  final String name;
+  
+  /// The position in the enum declaration.
+  final int ordinal;
+  AssignmentKind(this.name, this.ordinal) {
   }
-  int compareTo(AssignmentKind other) => __ordinal - other.__ordinal;
-  String toString() => __name;
+  int compareTo(AssignmentKind other) => ordinal - other.ordinal;
+  String toString() => name;
 }
 class WrapperKind implements Comparable<WrapperKind> {
   static final WrapperKind PREFIXED_LEFT = new WrapperKind('PREFIXED_LEFT', 0);
@@ -691,13 +692,47 @@ class WrapperKind implements Comparable<WrapperKind> {
   static final WrapperKind PROPERTY_RIGHT = new WrapperKind('PROPERTY_RIGHT', 3);
   static final WrapperKind NONE = new WrapperKind('NONE', 4);
   static final List<WrapperKind> values = [PREFIXED_LEFT, PREFIXED_RIGHT, PROPERTY_LEFT, PROPERTY_RIGHT, NONE];
-  final String __name;
-  final int __ordinal;
-  int get ordinal => __ordinal;
-  WrapperKind(this.__name, this.__ordinal) {
+  
+  /// The name of this enum constant, as declared in the enum declaration.
+  final String name;
+  
+  /// The position in the enum declaration.
+  final int ordinal;
+  WrapperKind(this.name, this.ordinal) {
   }
-  int compareTo(WrapperKind other) => __ordinal - other.__ordinal;
-  String toString() => __name;
+  int compareTo(WrapperKind other) => ordinal - other.ordinal;
+  String toString() => name;
+}
+class BreadthFirstVisitorTest extends ParserTestCase {
+  void testIt() {
+    String source = EngineTestCase.createSource(["class A {", "  bool get g => true;", "}", "class B {", "  int f() {", "    num q() {", "      return 3;", "    }", "  return q() + 4;", "  }", "}", "A f(var p) {", "  if ((p as A).g) {", "    return p;", "  } else {", "    return null;", "  }", "}"]);
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(source, []);
+    List<ASTNode> nodes = new List<ASTNode>();
+    BreadthFirstVisitor<Object> visitor = new BreadthFirstVisitor_15(nodes);
+    visitor.visitAllNodes(unit);
+    EngineTestCase.assertSize(59, nodes);
+    EngineTestCase.assertInstanceOf(CompilationUnit, nodes[0]);
+    EngineTestCase.assertInstanceOf(ClassDeclaration, nodes[2]);
+    EngineTestCase.assertInstanceOf(FunctionDeclaration, nodes[3]);
+    EngineTestCase.assertInstanceOf(FunctionDeclarationStatement, nodes[27]);
+    EngineTestCase.assertInstanceOf(IntegerLiteral, nodes[58]);
+  }
+  static dartSuite() {
+    _ut.group('BreadthFirstVisitorTest', () {
+      _ut.test('testIt', () {
+        final __test = new BreadthFirstVisitorTest();
+        runJUnitTest(__test, __test.testIt);
+      });
+    });
+  }
+}
+class BreadthFirstVisitor_15 extends BreadthFirstVisitor<Object> {
+  List<ASTNode> nodes;
+  BreadthFirstVisitor_15(this.nodes) : super();
+  Object visitNode(ASTNode node) {
+    nodes.add(node);
+    return super.visitNode(node);
+  }
 }
 class ConstantEvaluatorTest extends ParserTestCase {
   void fail_constructor() {
@@ -1886,6 +1921,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitWithClause_single() {
     assertSource("with A", ASTFactory.withClause([ASTFactory.typeName4("A", [])]));
   }
+  
   /**
    * Assert that a {@code ToSourceVisitor} will produce the expected source when visiting the given
    * node.
@@ -2875,6 +2911,7 @@ main() {
   ConstantEvaluatorTest.dartSuite();
   NodeLocatorTest.dartSuite();
   ToSourceVisitorTest.dartSuite();
+  BreadthFirstVisitorTest.dartSuite();
   IndexExpressionTest.dartSuite();
   SimpleIdentifierTest.dartSuite();
 }

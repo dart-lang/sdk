@@ -21,6 +21,13 @@ class JavaSystemIO {
       return '\n';
     }
     if (name == 'com.google.dart.sdk') {
+      String value = Platform.environment['DART_SDK'];
+      if (value != null) {
+        _properties[name] = value;
+        return value;
+      }
+    }
+    if (name == 'com.google.dart.sdk') {
       String exec = new Options().executable;
       if (exec.length != 0) {
         String sdkPath;
@@ -86,6 +93,14 @@ class JavaFile {
   Uri toURI() => new Uri(path: _path.toString());
   String readAsStringSync() => _newFile().readAsStringSync();
   int lastModified() => _newFile().lastModifiedSync().millisecondsSinceEpoch;
+  List<JavaFile> listFiles() {
+    List<JavaFile> files = [];
+    List<FileSystemEntity> entities = _newDirectory().listSync();
+    for (FileSystemEntity entity in entities) {
+      files.add(new JavaFile(entity.path));
+    }
+    return files;
+  }
   File _newFile() => new File.fromPath(_path);
   Directory _newDirectory() => new Directory.fromPath(_path);
 }

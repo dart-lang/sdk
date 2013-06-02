@@ -268,6 +268,15 @@ class NumberFormatException implements Exception {
   String toString() => "NumberFormatException";
 }
 
+/// Parses given string to [Uri], throws [URISyntaxException] if invalid.
+Uri parseUriWithException(String str) {
+  Uri uri = Uri.parse(str);
+  if (uri.path.isEmpty) {
+    throw new URISyntaxException();
+  }
+  return uri;
+}
+
 class URISyntaxException implements Exception {
   String toString() => "URISyntaxException";
 }
@@ -421,17 +430,24 @@ class JavaIterator<E> {
 }
 
 class MapEntry<K, V> {
-  K _key;
+  final Map<K, V> _map;
+  final K _key;
   V _value;
-  MapEntry(this._key, this._value);
+  MapEntry(this._map, this._key, this._value);
   K getKey() => _key;
   V getValue() => _value;
+  V setValue(V v) {
+    V prevValue = _value;
+    _value = v;
+    _map[_key] = v;
+    return prevValue;
+  }
 }
 
 Set<MapEntry> getMapEntrySet(Map m) {
   Set<MapEntry> result = new Set();
   m.forEach((k, v) {
-    result.add(new MapEntry(k, v));
+    result.add(new MapEntry(m, k, v));
   });
   return result;
 }

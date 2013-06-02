@@ -131,6 +131,7 @@ class TokenTypeTest extends EngineTestCase {
     });
   }
 }
+
 /**
  * The class {@code TokenFactory} defines utility methods that can be used to create tokens.
  */
@@ -139,11 +140,6 @@ class TokenFactory {
   static Token token2(String lexeme) => new StringToken(TokenType.STRING, lexeme, 0);
   static Token token3(TokenType type) => new Token(type, 0);
   static Token token4(TokenType type, String lexeme) => new StringToken(type, lexeme, 0);
-  /**
-   * Prevent the creation of instances of this class.
-   */
-  TokenFactory() {
-  }
 }
 class CharBufferScannerTest extends AbstractScannerTest {
   Token scan(String source, GatheringErrorListener listener) {
@@ -555,9 +551,17 @@ class CharBufferScannerTest extends AbstractScannerTest {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_keyword_with);
       });
-      _ut.test('test_lineInfo', () {
+      _ut.test('test_lineInfo_multilineComment', () {
         final __test = new CharBufferScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo);
+        runJUnitTest(__test, __test.test_lineInfo_multilineComment);
+      });
+      _ut.test('test_lineInfo_simpleClass', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_simpleClass);
+      });
+      _ut.test('test_lineInfo_slashN', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_slashN);
       });
       _ut.test('test_lt', () {
         final __test = new CharBufferScannerTest();
@@ -739,6 +743,10 @@ class CharBufferScannerTest extends AbstractScannerTest {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_string_simple_escapedDollar);
       });
+      _ut.test('test_string_simple_interpolation_adjacentIdentifiers', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_adjacentIdentifiers);
+      });
       _ut.test('test_string_simple_interpolation_block', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_string_simple_interpolation_block);
@@ -754,6 +762,14 @@ class CharBufferScannerTest extends AbstractScannerTest {
       _ut.test('test_string_simple_interpolation_identifier', () {
         final __test = new CharBufferScannerTest();
         runJUnitTest(__test, __test.test_string_simple_interpolation_identifier);
+      });
+      _ut.test('test_string_simple_interpolation_missingIdentifier', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_missingIdentifier);
+      });
+      _ut.test('test_string_simple_interpolation_nonIdentifier', () {
+        final __test = new CharBufferScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_nonIdentifier);
       });
       _ut.test('test_string_simple_single', () {
         final __test = new CharBufferScannerTest();
@@ -1206,9 +1222,17 @@ class StringScannerTest extends AbstractScannerTest {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_keyword_with);
       });
-      _ut.test('test_lineInfo', () {
+      _ut.test('test_lineInfo_multilineComment', () {
         final __test = new StringScannerTest();
-        runJUnitTest(__test, __test.test_lineInfo);
+        runJUnitTest(__test, __test.test_lineInfo_multilineComment);
+      });
+      _ut.test('test_lineInfo_simpleClass', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_simpleClass);
+      });
+      _ut.test('test_lineInfo_slashN', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_lineInfo_slashN);
       });
       _ut.test('test_lt', () {
         final __test = new StringScannerTest();
@@ -1394,6 +1418,10 @@ class StringScannerTest extends AbstractScannerTest {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_string_simple_escapedDollar);
       });
+      _ut.test('test_string_simple_interpolation_adjacentIdentifiers', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_adjacentIdentifiers);
+      });
       _ut.test('test_string_simple_interpolation_block', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_string_simple_interpolation_block);
@@ -1409,6 +1437,14 @@ class StringScannerTest extends AbstractScannerTest {
       _ut.test('test_string_simple_interpolation_identifier', () {
         final __test = new StringScannerTest();
         runJUnitTest(__test, __test.test_string_simple_interpolation_identifier);
+      });
+      _ut.test('test_string_simple_interpolation_missingIdentifier', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_missingIdentifier);
+      });
+      _ut.test('test_string_simple_interpolation_nonIdentifier', () {
+        final __test = new StringScannerTest();
+        runJUnitTest(__test, __test.test_string_simple_interpolation_nonIdentifier);
       });
       _ut.test('test_string_simple_single', () {
         final __test = new StringScannerTest();
@@ -1441,11 +1477,13 @@ class StringScannerTest extends AbstractScannerTest {
     });
   }
 }
+
 /**
  * Instances of the class {@code TokenStreamValidator} are used to validate the correct construction
  * of a stream of tokens.
  */
 class TokenStreamValidator {
+  
   /**
    * Validate that the stream of tokens that starts with the given token is correct.
    * @param token the first token in the stream of tokens to be validated
@@ -1802,15 +1840,17 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void test_keyword_with() {
     assertKeywordToken("with");
   }
-  void test_lineInfo() {
+  void test_lineInfo_multilineComment() {
     String source = "/*\r *\r */";
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Token token = scan(source, listener);
-    JUnitTestCase.assertSame(TokenType.MULTI_LINE_COMMENT, token.precedingComments.type);
-    listener.assertNoErrors();
-    LineInfo info = listener.getLineInfo(new TestSource());
-    JUnitTestCase.assertNotNull(info);
-    JUnitTestCase.assertEquals(3, info.getLocation(source.length - 1).lineNumber);
+    assertLineInfo(source, [new AbstractScannerTest_ExpectedLocation(0, 1, 1), new AbstractScannerTest_ExpectedLocation(4, 2, 2), new AbstractScannerTest_ExpectedLocation(source.length - 1, 3, 3)]);
+  }
+  void test_lineInfo_simpleClass() {
+    String source = "class Test {\r\n    String s = '...';\r\n    int get x => s.MISSING_GETTER;\r\n}";
+    assertLineInfo(source, [new AbstractScannerTest_ExpectedLocation(0, 1, 1), new AbstractScannerTest_ExpectedLocation(source.indexOf("MISSING_GETTER"), 3, 20), new AbstractScannerTest_ExpectedLocation(source.length - 1, 4, 1)]);
+  }
+  void test_lineInfo_slashN() {
+    String source = "class Test {\n}";
+    assertLineInfo(source, [new AbstractScannerTest_ExpectedLocation(0, 1, 1), new AbstractScannerTest_ExpectedLocation(source.indexOf("}"), 2, 1)]);
   }
   void test_lt() {
     assertToken(TokenType.LT, "<");
@@ -1953,6 +1993,9 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   void test_string_simple_escapedDollar() {
     assertToken(TokenType.STRING, "'a\\\$b'");
   }
+  void test_string_simple_interpolation_adjacentIdentifiers() {
+    assertTokens("'\$a\$b'", [new StringToken(TokenType.STRING, "'", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1), new StringToken(TokenType.IDENTIFIER, "a", 2), new StringToken(TokenType.STRING, "", 3), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3), new StringToken(TokenType.IDENTIFIER, "b", 4), new StringToken(TokenType.STRING, "'", 5)]);
+  }
   void test_string_simple_interpolation_block() {
     assertTokens("'Hello \${name}!'", [new StringToken(TokenType.STRING, "'Hello ", 0), new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 7), new StringToken(TokenType.IDENTIFIER, "name", 9), new Token(TokenType.CLOSE_CURLY_BRACKET, 13), new StringToken(TokenType.STRING, "!'", 14)]);
   }
@@ -1964,6 +2007,12 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
   void test_string_simple_interpolation_identifier() {
     assertTokens("'Hello \$name!'", [new StringToken(TokenType.STRING, "'Hello ", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 7), new StringToken(TokenType.IDENTIFIER, "name", 8), new StringToken(TokenType.STRING, "!'", 12)]);
+  }
+  void test_string_simple_interpolation_missingIdentifier() {
+    assertTokens("'\$x\$'", [new StringToken(TokenType.STRING, "'", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1), new StringToken(TokenType.IDENTIFIER, "x", 2), new StringToken(TokenType.STRING, "", 3), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3), new StringToken(TokenType.STRING, "'", 4)]);
+  }
+  void test_string_simple_interpolation_nonIdentifier() {
+    assertTokens("'\$1'", [new StringToken(TokenType.STRING, "'", 0), new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1), new StringToken(TokenType.STRING, "1'", 2)]);
   }
   void test_string_simple_single() {
     assertToken(TokenType.STRING, "'string'");
@@ -1999,6 +2048,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(source.length, comment.length);
     JUnitTestCase.assertEquals(source, comment.lexeme);
   }
+  
   /**
    * Assert that scanning the given source produces an error with the given code.
    * @param illegalCharacter
@@ -2010,6 +2060,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     scan(source, listener);
     listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [(source.codeUnitAt(expectedOffset) as int)])]);
   }
+  
   /**
    * Assert that when scanned the given source contains a single keyword token with the same lexeme
    * as the original source.
@@ -2036,6 +2087,19 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(source, ((value2 as Keyword)).syntax);
     JUnitTestCase.assertEquals(TokenType.EOF, token.next.type);
   }
+  void assertLineInfo(String source, List<AbstractScannerTest_ExpectedLocation> expectedLocations) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    scan(source, listener);
+    listener.assertNoErrors();
+    LineInfo info = listener.getLineInfo(new TestSource());
+    JUnitTestCase.assertNotNull(info);
+    for (AbstractScannerTest_ExpectedLocation expectedLocation in expectedLocations) {
+      LineInfo_Location location = info.getLocation(expectedLocation._offset);
+      JUnitTestCase.assertEquals(expectedLocation._lineNumber, location.lineNumber);
+      JUnitTestCase.assertEquals(expectedLocation._columnNumber, location.columnNumber);
+    }
+  }
+  
   /**
    * Assert that the token scanned from the given source has the expected type.
    * @param expectedType the expected type of the token
@@ -2068,6 +2132,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(TokenType.EOF, originalToken.next.type);
     return originalToken;
   }
+  
   /**
    * Assert that when scanned the given source contains a sequence of tokens identical to the given
    * tokens.
@@ -2093,6 +2158,21 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     Token token = scan(source, listener);
     listener.assertNoErrors();
     return token;
+  }
+}
+
+/**
+ * Instances of the class {@code ExpectedLocation} encode information about the expected location
+ * of a given offset in source code.
+ */
+class AbstractScannerTest_ExpectedLocation {
+  int _offset = 0;
+  int _lineNumber = 0;
+  int _columnNumber = 0;
+  AbstractScannerTest_ExpectedLocation(int offset, int lineNumber, int columnNumber) {
+    this._offset = offset;
+    this._lineNumber = lineNumber;
+    this._columnNumber = columnNumber;
   }
 }
 main() {

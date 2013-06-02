@@ -4,6 +4,7 @@
 library engine.utilities.dart;
 
 
+
 /**
  * The enumeration {@code ParameterKind} defines the different kinds of parameters. There are two
  * basic kinds of parameters: required and optional. Optional parameters are further divided into
@@ -15,25 +16,31 @@ class ParameterKind implements Comparable<ParameterKind> {
   static final ParameterKind POSITIONAL = new ParameterKind('POSITIONAL', 1, true);
   static final ParameterKind NAMED = new ParameterKind('NAMED', 2, true);
   static final List<ParameterKind> values = [REQUIRED, POSITIONAL, NAMED];
-  final String __name;
-  final int __ordinal;
-  int get ordinal => __ordinal;
+  
+  /// The name of this enum constant, as declared in the enum declaration.
+  final String name;
+  
+  /// The position in the enum declaration.
+  final int ordinal;
+  
   /**
    * A flag indicating whether this is an optional parameter.
    */
   bool _isOptional2 = false;
+  
   /**
    * Initialize a newly created kind with the given state.
    * @param isOptional {@code true} if this is an optional parameter
    */
-  ParameterKind(this.__name, this.__ordinal, bool isOptional) {
+  ParameterKind(this.name, this.ordinal, bool isOptional) {
     this._isOptional2 = isOptional;
   }
+  
   /**
    * Return {@code true} if this is an optional parameter.
    * @return {@code true} if this is an optional parameter
    */
   bool isOptional() => _isOptional2;
-  int compareTo(ParameterKind other) => __ordinal - other.__ordinal;
-  String toString() => __name;
+  int compareTo(ParameterKind other) => ordinal - other.ordinal;
+  String toString() => name;
 }
