@@ -159,6 +159,8 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
+
+[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 intl/test/number_closure_test: Fail # Bug 11030
 intl/test/number_format_test: Fail # Bug 11030
 intl/test/date_time_format_http_request_test: Fail # Issue 11030
