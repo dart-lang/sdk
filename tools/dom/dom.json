@@ -175,14 +175,23 @@
   "AudioNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section",
     "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
       "channelCount": {},
       "channelCountMode": {},
       "channelInterpretation": {},
       "connect": {},
       "context": {},
       "disconnect": {},
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
       "numberOfInputs": {},
-      "numberOfOutputs": {}
+      "numberOfOutputs": {},
+      "removeEventListener": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -233,6 +242,14 @@
       "visible": {}
     },
     "support_level": "nonstandard"
+  },
+  "BarProp": {
+    "members": {
+      "visible": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "BatteryManager": {
     "comment": "https://dvcs.w3.org/hg/dap/raw-file/default/battery/Overview.html#batterymanager-interface",
@@ -293,6 +310,14 @@
     "dart_action": "suppress",
     "members": {},
     "support_level": "deprecated"
+  },
+  "CSS": {
+    "members": {
+      "supports": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "CSSCharsetRule": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface",
@@ -714,6 +739,12 @@
       "deleteData": {},
       "insertData": {},
       "length": {},
+      "nextElementSibling": {
+        "support_level": "untriaged"
+      },
+      "previousElementSibling": {
+        "support_level": "untriaged"
+      },
       "remove": {
         "support_level": "nonstandard"
       },
@@ -768,7 +799,9 @@
   },
   "Comment": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-1728279322",
-    "members": {},
+    "members": {
+      "Comment": {}
+    },
     "support_level": "stable"
   },
   "Composition": {
@@ -1791,6 +1824,12 @@
         "dart_action": "suppress",
         "support_level": "nonstandard"
       },
+      "childElementCount": {
+        "support_level": "untriaged"
+      },
+      "children": {
+        "support_level": "untriaged"
+      },
       "compatMode": {
         "dart_action": "suppress"
       },
@@ -1861,6 +1900,9 @@
         "dart_action": "suppress"
       },
       "execCommand": {},
+      "firstElementChild": {
+        "support_level": "untriaged"
+      },
       "fontloader": {
         "comment": "http://www.w3.org/TR/css3-fonts/#document-fontloader",
         "support_level": "experimental"
@@ -1892,6 +1934,9 @@
         "comment": "http://www.w3.org/TR/domcore/",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "lastElementChild": {
+        "support_level": "untriaged"
       },
       "lastModified": {},
       "links": {
@@ -2084,6 +2129,16 @@
   },
   "DocumentFragment": {
     "members": {
+      "DocumentFragment": {},
+      "childElementCount": {
+        "support_level": "untriaged"
+      },
+      "firstElementChild": {
+        "support_level": "untriaged"
+      },
+      "lastElementChild": {
+        "support_level": "untriaged"
+      },
       "querySelector": {},
       "querySelectorAll": {}
     },
@@ -2245,6 +2300,9 @@
       "getElementsByTagName": {},
       "getElementsByTagNameNS": {
         "dart_action": "suppress"
+      },
+      "getInputContext": {
+        "support_level": "untriaged"
       },
       "hasAttribute": {},
       "hasAttributeNS": {},
@@ -2498,6 +2556,20 @@
     },
     "support_level": "stable"
   },
+  "Entity": {
+    "members": {
+      "notationName": {
+        "support_level": "untriaged"
+      },
+      "publicId": {
+        "support_level": "untriaged"
+      },
+      "systemId": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "EntityReference": {
     "dart_action": "suppress",
     "members": {},
@@ -2690,6 +2762,9 @@
       "defaultPrevented": {},
       "eventPhase": {},
       "initEvent": {},
+      "path": {
+        "support_level": "untriaged"
+      },
       "preventDefault": {},
       "returnValue": {
         "comment": "http://dev.w3.org/html5/spec-LC/history.html#dom-beforeunloadevent-returnvalue",
@@ -2979,6 +3054,15 @@
       "removeEventListener": {}
     },
     "support_level": "experimental"
+  },
+  "FormData": {
+    "members": {
+      "FormData": {},
+      "append": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "GainNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#GainNode",
@@ -3432,6 +3516,9 @@
       "contentEditable": {},
       "dir": {},
       "draggable": {},
+      "getInputContext": {
+        "support_level": "untriaged"
+      },
       "hidden": {},
       "id": {},
       "innerHTML": {},
@@ -4033,6 +4120,9 @@
       "load": {},
       "loop": {},
       "mediaGroup": {},
+      "mediaKeys": {
+        "support_level": "untriaged"
+      },
       "muted": {},
       "networkState": {},
       "oncanplay": {},
@@ -5292,6 +5382,14 @@
     },
     "support_level": "untriaged"
   },
+  "MIDIOutput": {
+    "members": {
+      "send": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "MIDIPort": {
     "members": {
       "addEventListener": {
@@ -5382,7 +5480,10 @@
       "MEDIA_KEYERR_OUTPUT": {},
       "MEDIA_KEYERR_SERVICE": {},
       "MEDIA_KEYERR_UNKNOWN": {},
-      "code": {}
+      "code": {},
+      "systemCode": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -5398,6 +5499,66 @@
       "systemCode": {}
     },
     "support_level": "experimental"
+  },
+  "MediaKeyMessageEvent": {
+    "members": {
+      "destinationURL": {
+        "support_level": "untriaged"
+      },
+      "message": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "MediaKeyNeededEvent": {
+    "members": {
+      "initData": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "MediaKeySession": {
+    "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "close": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "error": {
+        "support_level": "untriaged"
+      },
+      "keySystem": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
+      "sessionId": {
+        "support_level": "untriaged"
+      },
+      "update": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "MediaKeys": {
+    "members": {
+      "MediaKeys": {},
+      "createSession": {
+        "support_level": "untriaged"
+      },
+      "keySystem": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "MediaList": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSMediaRule",
@@ -5586,6 +5747,37 @@
       "handleEvent": {}
     },
     "support_level": "experimental"
+  },
+  "MimeType": {
+    "members": {
+      "description": {
+        "support_level": "untriaged"
+      },
+      "enabledPlugin": {
+        "support_level": "untriaged"
+      },
+      "suffixes": {
+        "support_level": "untriaged"
+      },
+      "type": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "MimeTypeArray": {
+    "members": {
+      "item": {
+        "support_level": "untriaged"
+      },
+      "length": {
+        "support_level": "untriaged"
+      },
+      "namedItem": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "MouseEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#events-mouseevents",
@@ -6078,6 +6270,10 @@
     "members": {},
     "support_level": "experimental"
   },
+  "OESTextureFloatLinear": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "OESTextureHalfFloat": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/",
     "dart_action": "experimental",
@@ -6087,6 +6283,10 @@
       }
     },
     "support_level": "experimental"
+  },
+  "OESTextureHalfFloatLinear": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "OESVertexArrayObject": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/",
@@ -6240,6 +6440,36 @@
       "setVelocity": {}
     },
     "support_level": "experimental"
+  },
+  "Path": {
+    "members": {
+      "Path": {},
+      "arc": {
+        "support_level": "untriaged"
+      },
+      "arcTo": {
+        "support_level": "untriaged"
+      },
+      "bezierCurveTo": {
+        "support_level": "untriaged"
+      },
+      "closePath": {
+        "support_level": "untriaged"
+      },
+      "lineTo": {
+        "support_level": "untriaged"
+      },
+      "moveTo": {
+        "support_level": "untriaged"
+      },
+      "quadraticCurveTo": {
+        "support_level": "untriaged"
+      },
+      "rect": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "Performance": {
     "comment": "http://www.w3.org/TR/navigation-timing/#performance",
@@ -6412,6 +6642,46 @@
       "unloadEventStart": {}
     },
     "support_level": "stable"
+  },
+  "Plugin": {
+    "members": {
+      "description": {
+        "support_level": "untriaged"
+      },
+      "filename": {
+        "support_level": "untriaged"
+      },
+      "item": {
+        "support_level": "untriaged"
+      },
+      "length": {
+        "support_level": "untriaged"
+      },
+      "name": {
+        "support_level": "untriaged"
+      },
+      "namedItem": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "PluginArray": {
+    "members": {
+      "item": {
+        "support_level": "untriaged"
+      },
+      "length": {
+        "support_level": "untriaged"
+      },
+      "namedItem": {
+        "support_level": "untriaged"
+      },
+      "refresh": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "PopStateEvent": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#popstateevent",
@@ -6665,6 +6935,7 @@
         "dart_action": "experimental",
         "support_level": "nonstandard"
       },
+      "Range": {},
       "START_TO_END": {},
       "START_TO_START": {},
       "cloneContents": {},
@@ -9924,6 +10195,56 @@
     },
     "support_level": "nonstandard"
   },
+  "SecurityPolicy": {
+    "members": {
+      "allowsConnectionTo": {
+        "support_level": "untriaged"
+      },
+      "allowsEval": {
+        "support_level": "untriaged"
+      },
+      "allowsFontFrom": {
+        "support_level": "untriaged"
+      },
+      "allowsFormAction": {
+        "support_level": "untriaged"
+      },
+      "allowsFrameFrom": {
+        "support_level": "untriaged"
+      },
+      "allowsImageFrom": {
+        "support_level": "untriaged"
+      },
+      "allowsInlineScript": {
+        "support_level": "untriaged"
+      },
+      "allowsInlineStyle": {
+        "support_level": "untriaged"
+      },
+      "allowsMediaFrom": {
+        "support_level": "untriaged"
+      },
+      "allowsObjectFrom": {
+        "support_level": "untriaged"
+      },
+      "allowsPluginType": {
+        "support_level": "untriaged"
+      },
+      "allowsScriptFrom": {
+        "support_level": "untriaged"
+      },
+      "allowsStyleFrom": {
+        "support_level": "untriaged"
+      },
+      "isActive": {
+        "support_level": "untriaged"
+      },
+      "reportURIs": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "SecurityPolicyViolationEvent": {
     "comment": "https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicyviolationevent-events",
     "members": {
@@ -9940,6 +10261,89 @@
       "violatedDirective": {}
     },
     "support_level": "experimental"
+  },
+  "Selection": {
+    "members": {
+      "addRange": {
+        "support_level": "untriaged"
+      },
+      "anchorNode": {
+        "support_level": "untriaged"
+      },
+      "anchorOffset": {
+        "support_level": "untriaged"
+      },
+      "baseNode": {
+        "support_level": "untriaged"
+      },
+      "baseOffset": {
+        "support_level": "untriaged"
+      },
+      "collapse": {
+        "support_level": "untriaged"
+      },
+      "collapseToEnd": {
+        "support_level": "untriaged"
+      },
+      "collapseToStart": {
+        "support_level": "untriaged"
+      },
+      "containsNode": {
+        "support_level": "untriaged"
+      },
+      "deleteFromDocument": {
+        "support_level": "untriaged"
+      },
+      "empty": {
+        "support_level": "untriaged"
+      },
+      "extend": {
+        "support_level": "untriaged"
+      },
+      "extentNode": {
+        "support_level": "untriaged"
+      },
+      "extentOffset": {
+        "support_level": "untriaged"
+      },
+      "focusNode": {
+        "support_level": "untriaged"
+      },
+      "focusOffset": {
+        "support_level": "untriaged"
+      },
+      "getRangeAt": {
+        "support_level": "untriaged"
+      },
+      "isCollapsed": {
+        "support_level": "untriaged"
+      },
+      "modify": {
+        "support_level": "untriaged"
+      },
+      "rangeCount": {
+        "support_level": "untriaged"
+      },
+      "removeAllRanges": {
+        "support_level": "untriaged"
+      },
+      "selectAllChildren": {
+        "support_level": "untriaged"
+      },
+      "setBaseAndExtent": {
+        "support_level": "untriaged"
+      },
+      "setPosition": {
+        "support_level": "untriaged"
+      },
+      "toString": {
+        "support_level": "untriaged"
+      },
+      "type": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "ShadowRoot": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-root",
@@ -10326,6 +10730,7 @@
   "Text": {
     "comment": "http://dom.spec.whatwg.org/#interface-text",
     "members": {
+      "Text": {},
       "replaceWholeText": {
         "comment": "http://dom.spec.whatwg.org/#dom-text-replacewholetext",
         "dart_action": "suppress",
@@ -10592,6 +10997,14 @@
       }
     },
     "support_level": "stable"
+  },
+  "URL": {
+    "members": {
+      "revokeObjectURL": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "Uint16Array": {
     "comment": "http://www.khronos.org/registry/typedarray/specs/latest/",
@@ -11391,6 +11804,82 @@
       "operationType": {}
     },
     "support_level": "deprecated"
+  },
+  "WebKitMediaSource": {
+    "members": {
+      "WebKitMediaSource": {},
+      "activeSourceBuffers": {
+        "support_level": "untriaged"
+      },
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "addSourceBuffer": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "duration": {
+        "support_level": "untriaged"
+      },
+      "endOfStream": {
+        "support_level": "untriaged"
+      },
+      "isTypeSupported": {
+        "support_level": "untriaged"
+      },
+      "readyState": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
+      },
+      "removeSourceBuffer": {
+        "support_level": "untriaged"
+      },
+      "sourceBuffers": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "WebKitSourceBuffer": {
+    "members": {
+      "abort": {
+        "support_level": "untriaged"
+      },
+      "append": {
+        "support_level": "untriaged"
+      },
+      "buffered": {
+        "support_level": "untriaged"
+      },
+      "timestampOffset": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "WebKitSourceBufferList": {
+    "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "item": {
+        "support_level": "untriaged"
+      },
+      "length": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "WebSocket": {
     "comment": "http://www.w3.org/TR/websockets/#the-websocket-interface",

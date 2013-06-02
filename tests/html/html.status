@@ -14,7 +14,6 @@ interactive_test: Skip # Must be run manually.
 postmessage_structured_test/typed_arrays: Fail
 crypto_test/functional: Fail # Issue 11032
 
-
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
@@ -364,9 +363,8 @@ request_animation_frame_test: Skip # Async test hangs.
 [ $compiler == dart2js && ($runtime == drt || $runtime == chrome || $runtime == ff || $runtime == safari) ]
 isolates_test: Skip   # Timeout because leg does not support web workers.
 
-
-[ $compiler == dart2js && $runtime == drt && $unchecked ]
-#indexeddb_5_test/functional: Fail, Pass # http://dartbug.com/8851
+[ $compiler == dart2js && $runtime == drt ]
+speechrecognition_test/types: Fail # Issue 11035
 
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).

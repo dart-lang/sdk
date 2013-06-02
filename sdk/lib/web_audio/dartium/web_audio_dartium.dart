@@ -524,8 +524,8 @@ class AudioListener extends NativeFieldWrapperClass1 {
 @DomName('AudioNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
 @Experimental
-class AudioNode extends NativeFieldWrapperClass1 {
-  AudioNode.internal();
+class AudioNode extends EventTarget {
+  AudioNode.internal() : super.internal();
 
   @DomName('AudioNode.channelCount')
   @DocsEditable
@@ -563,6 +563,11 @@ class AudioNode extends NativeFieldWrapperClass1 {
   @DocsEditable
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
+  @DomName('AudioNode.addEventListener')
+  @DocsEditable
+  @Experimental // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
+
   void connect(destination, int output, [int input]) {
     if ((destination is AudioNode || destination == null) && (output is int || output == null) && (input is int || input == null)) {
       _connect_1(destination, output, input);
@@ -582,6 +587,16 @@ class AudioNode extends NativeFieldWrapperClass1 {
   @DomName('AudioNode.disconnect')
   @DocsEditable
   void disconnect(int output) native "AudioNode_disconnect_Callback";
+
+  @DomName('AudioNode.dispatchEvent')
+  @DocsEditable
+  @Experimental // untriaged
+  bool dispatchEvent(Event event) native "AudioNode_dispatchEvent_Callback";
+
+  @DomName('AudioNode.removeEventListener')
+  @DocsEditable
+  @Experimental // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
