@@ -1711,10 +1711,6 @@ class Console {
   MemoryInfo get memory => _isConsoleDefined ?
       JS('MemoryInfo', 'console.memory') : null;
 
-  @DomName('Console.profiles')
-  List<ScriptProfile> get profiles => _isConsoleDefined ?
-      JS('List<ScriptProfile>', 'console.profiles') : null;
-
   @DomName('Console.assertCondition')
   void assertCondition(bool condition, Object arg) => _isConsoleDefined ?
       JS('void', 'console.assertCondition(#, #)', condition, arg) : null;
