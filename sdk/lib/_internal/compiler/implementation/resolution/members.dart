@@ -2294,6 +2294,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isCall) {
       if (Elements.isUnresolved(target) ||
           target.isGetter() ||
+          target.isField() ||
           Elements.isClosureSend(node, target)) {
         // If we don't know what we're calling or if we are calling a getter,
         // we need to register that fact that we may be calling a closure
