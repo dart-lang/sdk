@@ -71,7 +71,6 @@ class _Utils {
   static void spawnDomFunction(Function f, int replyTo) native "Utils_spawnDomFunction";
   static void spawnDomUri(String uri, int replyTo) native "Utils_spawnDomUri";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
-  static bool shadowRootSupported(Document document) native "Utils_shadowRootSupported";
 }
 
 class _NPObject extends NativeFieldWrapperClass1 {
