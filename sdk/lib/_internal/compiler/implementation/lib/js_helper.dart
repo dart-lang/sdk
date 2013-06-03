@@ -948,24 +948,24 @@ class Closure implements Function {
 }
 
 class BoundClosure extends Closure {
-  var self;
-  var target;
-  var receiver;
+  var _self;
+  var _target;
+  var _receiver;
 
   bool operator==(other) {
     if (identical(this, other)) return true;
     if (other is! BoundClosure) return false;
     return JS('bool', '# === # && # === # && # === #',
-        self, other.self,
-        target, other.target,
-        receiver, other.receiver);
+        _self, other._self,
+        _target, other._target,
+        _receiver, other._receiver);
   }
 
   int get hashCode {
     return JS('int', '(# + # + #) & 0x3ffffff',
-        self.hashCode,
-        target.hashCode,
-        receiver.hashCode);
+        _self.hashCode,
+        _target.hashCode,
+        _receiver.hashCode);
   }
 }
 
