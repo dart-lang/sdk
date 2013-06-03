@@ -13,6 +13,8 @@ const symbol = const Symbol('fisk');
 
 @symbol @fisk
 class MyClass {
+  @fisk @symbol @fisk
+  myMethod() => 1;
 }
 
 checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
@@ -34,6 +36,7 @@ checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
   print(metadata);
 }
 
+@symbol @fisk @symbol
 main() {
   if (MirrorSystem.getName(symbol) != 'fisk') {
     // This happened in dart2js due to how early library metadata is
@@ -45,4 +48,10 @@ main() {
   checkMetadata(mirrors.findLibrary(const Symbol('test.metadata_test')).first,
                 [fisk, symbol]);
   checkMetadata(reflect(new MyClass()).type, [symbol, fisk]);
+  ClosureMirror closure = reflect(main);
+  checkMetadata(closure.function, [symbol, fisk, symbol]);
+  closure = reflect(new MyClass().myMethod);
+  checkMetadata(closure.function, [fisk, symbol, fisk]);
+
+  // TODO(ahe): Test local functions.
 }

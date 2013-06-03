@@ -10,6 +10,7 @@ import 'dart:mirrors';
 import 'dart:_foreign_helper' show JS, JS_CURRENT_ISOLATE;
 import 'dart:_collection-dev' as _symbol_dev;
 import 'dart:_js_helper' show
+    BoundClosure,
     Closure,
     JSInvocationMirror,
     Null,
@@ -106,7 +107,8 @@ class JsLibraryMirror extends JsObjectMirror implements LibraryMirror {
           // TODO(ahe): Create accessor for accessing $.  It is also
           // used in js_helper.
           new JsMethodMirror(
-              symbol, JS('', '#[#]', JS_CURRENT_ISOLATE(), name), parameterCount);
+              symbol, JS('', '#[#]', JS_CURRENT_ISOLATE(), name),
+              parameterCount);
       // TODO(ahe): Cache mirrors.
       result[symbol] = mirror;
       mirror._owner = this;
@@ -373,9 +375,7 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
 
   List<InstanceMirror> get metadata {
     if (_metadata == null) {
-      var metadataFunction = JS('', '#.prototype["@"]', _jsConstructor);
-      _metadata = (metadataFunction == null)
-          ? const [] : JS('', '#()', metadataFunction);
+      _metadata = extractMetadata(JS('', '#.prototype', _jsConstructor));
     }
     return _metadata.map(reflect).toList();
   }
@@ -442,9 +442,16 @@ function(reflectee) {
     if (callName == null) {
       throw new RuntimeError('Cannot find callName on "$reflectee"');
     }
-    var jsFunction = JS('', '#[#]', reflectee, callName);
     int parameterCount = int.parse(callName.split(r'$')[1]);
-    return new JsMethodMirror(s(callName), jsFunction, parameterCount);
+    if (reflectee is BoundClosure) {
+      var target = BoundClosure.targetOf(reflectee);
+      var self = BoundClosure.selfOf(reflectee);
+      return new JsMethodMirror(
+          s(target), JS('', '#[#]', self, target), parameterCount);
+    } else {
+      var jsFunction = JS('', '#[#]', reflectee, callName);
+      return new JsMethodMirror(s(callName), jsFunction, parameterCount);
+    }
   }
 
   InstanceMirror apply(List positionalArguments,
@@ -465,6 +472,7 @@ class JsMethodMirror implements MethodMirror {
   final _jsFunction;
   final int _parameterCount;
   DeclarationMirror _owner;
+  List _metadata;
 
   JsMethodMirror(this.simpleName, this._jsFunction, this._parameterCount);
 
@@ -476,6 +484,13 @@ class JsMethodMirror implements MethodMirror {
   DeclarationMirror get owner => _owner;
 
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
+
+  List<InstanceMirror> get metadata {
+    if (_metadata == null) {
+      _metadata = extractMetadata(_jsFunction);
+    }
+    return _metadata.map(reflect).toList();
+  }
 }
 
 Symbol computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
@@ -483,4 +498,10 @@ Symbol computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
   String ownerName = n(owner.qualifiedName);
   if (ownerName == '') return simpleName;
   return s('$ownerName.${n(simpleName)}');
+}
+
+List extractMetadata(victim) {
+  var metadataFunction = JS('', '#["@"]', victim);
+  return (metadataFunction == null)
+      ? const [] : JS('', '#()', metadataFunction);
 }

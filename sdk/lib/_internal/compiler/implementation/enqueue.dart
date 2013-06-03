@@ -231,9 +231,12 @@ abstract class Enqueuer {
         // Native fields need to go into instanceMembersByName as they
         // are virtual instantiation points and escape points.
       } else {
-        // The codegen inlines instance fields initialization, so it
-        // does not need to add individual fields in the work list.
         if (isResolutionQueue) {
+          // All field initializers must be resolved as they could
+          // have an observable side-effect (and cannot be tree-shaken
+          // away).  However, codegen inlines field initializers, so
+          // it does not need to add individual fields in the work
+          // list.
           addToWorkList(member);
         }
         return;

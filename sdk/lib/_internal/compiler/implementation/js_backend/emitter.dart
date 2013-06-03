@@ -1161,7 +1161,8 @@ class CodeEmitterTask extends CompilerTask {
       if (member.isAbstract(compiler)) return;
       jsAst.Expression code = backend.generatedCode[member];
       if (code == null) return;
-      builder.addProperty(namer.getName(member), code);
+      String name = namer.getName(member);
+      builder.addProperty(name, code);
       code = backend.generatedBailoutCode[member];
       if (code != null) {
         builder.addProperty(namer.getBailoutName(member), code);
@@ -1170,6 +1171,10 @@ class CodeEmitterTask extends CompilerTask {
       FunctionSignature parameters = function.computeSignature(compiler);
       if (!parameters.optionalParameters.isEmpty) {
         addParameterStubs(member, builder.addProperty);
+      }
+      var metadata = buildMetadataFunction(member);
+      if (metadata != null) {
+        builder.addProperty('@$name', metadata);
       }
     } else if (!member.isField()) {
       compiler.internalError('unexpected kind: "${member.kind}"',
@@ -1796,7 +1801,13 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
       jsAst.Expression code = backend.generatedCode[element];
-      emitStaticFunction(buffer, namer.getName(element), code);
+      String name = namer.getName(element);
+      emitStaticFunction(buffer, name, code);
+      var metadata = buildMetadataFunction(element);
+      if (metadata != null) {
+        buffer.write(',$n$n"@$name":$_');
+        buffer.write(jsAst.prettyPrint(metadata, compiler));
+      }
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
         pendingElementsWithBailouts.remove(element);
@@ -3252,11 +3263,24 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     for (var property in descriptor) {
       if (!hasOwnProperty.call(descriptor, property)) continue;
       var element = descriptor[property];
-      if (typeof element === "function") {
+      if (property.substring(0, 1) == "@") {
+        property = property.substring(1);
+        ${namer.CURRENT_ISOLATE}[property]["${namer.metadataField}"] = element;
+      } else if (typeof element === "function") {
         ${namer.CURRENT_ISOLATE}[property] = element;
         functions.push(property);
       } else {
-        $classesCollector[property] = element;
+        var newDesc = {}
+        for (var prop in element) {
+          if (!hasOwnProperty.call(element, prop)) continue;
+          if (prop.substring(0, 1) == "@" && prop != "@") {
+            newDesc[prop.substring(1)]["${namer.metadataField}"] ='''
+'''element[prop];
+          } else {
+            newDesc[prop] = element[prop];
+          }
+        }
+        $classesCollector[property] = newDesc;
         classes.push(property);
         classes.push(element[""]);
       }

@@ -947,10 +947,19 @@ class Closure implements Function {
   String toString() => "Closure";
 }
 
+/// Represents a 'tear-off' closure, that is an instance method bound
+/// to a specific receiver (instance).
 class BoundClosure extends Closure {
-  var _self;
-  var _target;
-  var _receiver;
+  /// The receiver or interceptor.
+  // TODO(ahe): This could just be the interceptor, we always know if
+  // we need the interceptor when generating the call method.
+  final _self;
+
+  /// The method name.
+  final String _target;
+
+  /// The reciever.
+  final _receiver;
 
   bool operator==(other) {
     if (identical(this, other)) return true;
@@ -967,6 +976,12 @@ class BoundClosure extends Closure {
         _target.hashCode,
         _receiver.hashCode);
   }
+
+  static selfOf(BoundClosure closure) => closure._self;
+
+  static String targetOf(BoundClosure closure) => closure._target;
+
+  static revceiverOf(BoundClosure closure) => closure._receiver;
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {
