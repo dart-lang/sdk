@@ -23,6 +23,7 @@
     'eventhandler_win.h',
     'filter.cc',
     'filter.h',
+    'filter_unsupported.cc',
     'net/nss_memio.cc',
     'net/nss_memio.h',
     'platform.cc',
@@ -45,5 +46,23 @@
     'socket_win.cc',
     'secure_socket.cc',
     'secure_socket.h',
+    'secure_socket_unsupported.cc',
+  ],
+  'conditions': [
+    ['dart_io_support==1', {
+      'sources!' : [
+        'filter_unsupported.cc',
+        'secure_socket_unsupported.cc',
+      ],
+    },{  # else dart_io_support == 0
+      'sources!' : [
+        'filter.cc',
+        'filter.h',
+        'net/nss_memio.cc',
+        'net/nss_memio.h',
+        'secure_socket.cc',
+        'secure_socket.h',
+      ],
+    }],
   ],
 }

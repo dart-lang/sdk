@@ -184,22 +184,17 @@
       'include_dirs': [
         '..',
       ],
+      'includes': [
+        'io_impl_sources.gypi',
+      ],
       'sources': [
         'io_natives.h',
         'io_natives.cc',
       ],
       'conditions': [
-        [ 'dart_io_support==1', {
+        ['dart_io_support==1', {
           'dependencies': [
             'bin/net/ssl.gyp:libssl_dart',
-          ],
-          'includes': [
-            'io_impl_sources.gypi',
-          ],
-        },
-        {
-          'includes': [
-            'io_impl_sources_no_nss.gypi',
           ],
         }],
         ['OS=="win"', {
@@ -343,7 +338,6 @@
     {
       'target_name': 'generate_resources_cc_file',
       'type': 'none',
-      'toolsets':['target', 'host'],
       'includes': [
         'vmstats_sources.gypi',
       ],
@@ -372,13 +366,12 @@
       # dart binary with a snapshot of corelibs built in.
       'target_name': 'dart',
       'type': 'executable',
-      'toolsets':['target'],
       'dependencies': [
         'libdart',
         'libdart_builtin',
         'libdart_io',
         'generate_snapshot_file#host',
-        'generate_resources_cc_file#host',
+        'generate_resources_cc_file',
       ],
       'include_dirs': [
         '..',
@@ -442,12 +435,11 @@
       # dart binary without any snapshot built in.
       'target_name': 'dart_no_snapshot',
       'type': 'executable',
-      'toolsets':['target'],
       'dependencies': [
         'libdart_withcore',
         'libdart_builtin',
         'libdart_io',
-        'generate_resources_cc_file#host',
+        'generate_resources_cc_file',
       ],
       'include_dirs': [
         '..',
