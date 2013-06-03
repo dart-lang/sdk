@@ -12,6 +12,40 @@
 // 'myField='.  This allows us to assign unique names to getters and
 // setters for the purposes of member lookup.
 
+/**
+ * The mirrors library provides basic reflection support for Dart.
+ * Reflection here is limited to introspection and dynamic
+ * evaluation.
+ *
+ * Introspection is that subset of reflection by which a running
+ * program can examine its own structure. For example, a function
+ * that prints out the names of all the members of an arbitrary object.
+ *
+ * Dynamic evaluation refers the ability to evaluate code that
+ * has not been literally specified at compile time, such as calling a method
+ * whose name is provided as an argument (because it is looked up
+ * in a database, or provided interactively by the user).
+ *
+ * How to Interpret the Dartdoc specifications below
+ *
+ * As a rule, the names of Dart declarations are represented using
+ * instances of class [Symbol]. Whenever we speak of an object *s*
+ * of class [Symbol] denoting a name, we mean the string that
+ * was used to construct *s*.
+ *
+ * We will also frequently abuse notation and write
+ * Dart pseudo-code such as [:o.x(a):], where we have defined
+ * o and a to be objects; what is actually meant in these
+ * cases is [:o'.x(a'):] where *o'* and *a'* are Dart variables
+ * bound to *o* and *a* respectively. Furthermore, *o'* and *a'*
+ * are assumed to be fresh variables (meaning that they are
+ * distinct from any other variables in the program).
+ *
+ * An object is serializable across isolates if and only if it is an instance of
+ * either num, bool, String, a list of objects that are serializable
+ * across isolates or a map whose keys and values are all serializable across
+ * isolates.
+ */
 library dart.mirrors;
 
 import 'dart:async';
@@ -143,9 +177,14 @@ abstract class DeclarationMirror implements Mirror {
    * the qualified name of a method 'method' in class 'Class' in
    * library 'library' is 'library.Class.method'.
    *
-   * TODO(turnidge): Specify whether this name is unique.  Currently
-   * this is a gray area due to lack of clarity over whether library
-   * names are unique.
+   * Returns a [Symbol] constructed from a string representing the
+   * fully qualified name of the reflectee.
+   * Let *o* be the [owner] of this mirror, let *r* be the reflectee of
+   * this mirror, let *p* be the fully qualified
+   * name of the reflectee of *o*, and let *s* be the simple name of *r*
+   * computed by [simpleName].
+   * The fully qualified name of *r* is the
+   * concatenation of *p*, '.', and *s*.
    */
   Symbol get qualifiedName;
 
@@ -153,13 +192,20 @@ abstract class DeclarationMirror implements Mirror {
    * A mirror on the owner of this function.  This is the declaration
    * immediately surrounding the reflectee.
    *
-   * Note that for libraries, the owner will be [:null:].
+   * For a library, the owner is [:null:].
+   * For a class, typedef or top level function or variable, the owner is
+   * the enclosing library. For a method, instance variable or
+   * a static variable, the owner is the immediately enclosing class.
+   * For a parameter, local variable or local function the owner is the
+   * immediately enclosing function.
    */
   DeclarationMirror get owner;
 
   /**
    * Is this declaration private?
    *
+   * A declaration is private if and only if it is considered private
+   * according to the Dart language specification.
    * Note that for libraries, this will be [:false:].
    */
   bool get isPrivate;
@@ -199,9 +245,24 @@ abstract class ObjectMirror implements Mirror {
 
   /**
    * Invokes the named function and returns a mirror on the result.
-   * The arguments are objects local to the current isolate.
+   *
+   * Let *o* be the object reflected by this mirror, let
+   * *f* be the simple name of the member denoted by [memberName],
+   * let *a1, ..., an* be the elements of [positionalArguments]
+   * let *k1, ..., km* be the identifiers denoted by the elements of
+   * [namedArguments.keys]
+   * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   * Then this method will perform the method invocation
+   *  *o.f(a1, ..., an, k1: v1, ..., km: vm)*
+   * in a scope that has access to the private members
+   * of *o* (if *o* is a class or library) or the private members of the
+   * class of *o* (otherwise).
+   * If the invocation returns a result *r*, this method returns
+   * the result of calling [reflect](*r*).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * the the result is a [MirrorError] wrapping *e*.
    */
-  /* TODO(turnidge): Properly document.
+  /*
    * TODO(turnidge): Handle ambiguous names.
    * TODO(turnidge): Handle optional & named arguments.
    */
@@ -213,6 +274,18 @@ abstract class ObjectMirror implements Mirror {
    * Invokes a getter and returns a mirror on the result. The getter
    * can be the implicit getter for a field or a user-defined getter
    * method.
+   *
+   * Let *o* be the object reflected by this mirror, let
+   * *f* be the simple name of the getter denoted by [fieldName],
+   * Then this method will perform the getter invocation
+   *  *o.f*
+   * in a scope that has access to the private members
+   * of *o* (if *o* is a class or library) or the private members of the
+   * class of *o* (otherwise).
+   * If the invocation returns a result *r*, this method returns
+   * the result of calling [reflect](*r*).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * the the result is a [MirrorError] wrapping *e*.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
   InstanceMirror getField(Symbol fieldName);
@@ -221,17 +294,53 @@ abstract class ObjectMirror implements Mirror {
    * Invokes a setter and returns a mirror on the result. The setter
    * may be either the implicit setter for a non-final field or a
    * user-defined setter method.
-   * The argument is an object local to the current isolate.
+   *
+   * Let *o* be the object reflected by this mirror, let
+   * *f* be the simple name of the getter denoted by [fieldName],
+   * and let *a* be the object bound to [value].
+   * Then this method will perform the setter invocation
+   * *o.f = a*
+   * in a scope that has access to the private members
+   * of *o* (if *o* is a class or library) or the private members of the
+   * class of *o* (otherwise).
+   * If the invocation returns a result *r*, this method returns
+   * the result of calling [reflect]([value]).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * the the result is a [MirrorError] wrapping *e*.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
   InstanceMirror setField(Symbol fieldName, Object arg);
 
   /**
    * Invokes the named function and returns a mirror on the result.
-   * The arguments must be instances of [InstanceMirror], [num],
-   * [String], or [bool].
+   * The arguments must be instances of [InstanceMirror], or of
+   * a type that is serializable across isolates (currently [num],
+   * [String], or [bool]).
+   *
+   * Let *o* be the object reflected by this mirror, let
+   * *f* be the simple name of the member denoted by [memberName],
+   * let *a1, ..., an* be the elements of [positionalArguments]
+   * let *k1, ..., km* be the identifiers denoted by the elements of
+   * [namedArguments.keys]
+   * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   * For each *ai*, if *ai* is an instance of [InstanceMirror], let *pi*
+   * be the object reflected by *ai*; otherwise let *pi = ai,  i in 1 ...n*.
+   * Likewise, for each *vj*, if *vj* is an instance of [InstanceMirror], let *qj*
+   * be the object reflected by *vj*; otherwise let *qj = vj,  j in 1 ...m*.
+   * If any of the *pi, qj* is not an instance of [InstanceMirror] and
+   * is not serializable across isolates, an exception is thrown.
+   * Then this method will perform the method invocation
+   *  *o.f(p1, ..., pn, k1: q1, ..., km: qm)*
+   * in a scope that has access to the private members
+   * of *o* (if *o* is a class or library) or the private members of the
+   * class of *o*(otherwise).
+   * The method returns a future *k*.
+   * If the invocation returns a result *r*, *k* will be completed
+   * with the result of calling [reflect](*r*).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * then *k* is completed with a [MirrorError] wrapping *e*.
    */
-  /* TODO(turnidge): Properly document.
+  /*
    * TODO(turnidge): Handle ambiguous names.
    * TODO(turnidge): Handle optional & named arguments.
    */
@@ -243,6 +352,19 @@ abstract class ObjectMirror implements Mirror {
    * Invokes a getter and returns a mirror on the result. The getter
    * can be the implicit getter for a field or a user-defined getter
    * method.
+   *
+   * Let *o* be the object reflected by this mirror, let
+   * *f* be the simple name of the getter denoted by [fieldName],
+   * Then this method will perform the getter invocation
+   *  *o.f*
+   * in a scope that has access to the private members
+   * of *o* (if *o* is a class or library) or the private members of the
+   * class of *o*(otherwise).
+   * The method returns a future *k*.
+   * If the invocation returns a result *r*, *k* will be completed
+   * with the result of calling [reflect](*r*).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * then *k* is completed with a [MirrorError] wrapping *e*.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
   Future<InstanceMirror> getFieldAsync(Symbol fieldName);
@@ -251,8 +373,27 @@ abstract class ObjectMirror implements Mirror {
    * Invokes a setter and returns a mirror on the result. The setter
    * may be either the implicit setter for a non-final field or a
    * user-defined setter method.
-   * The argument must be an instance of either [InstanceMirror], [num],
-   * [String], or [bool].
+   * The argument must be an instance of [InstanceMirror], or of
+   * a type that is serializable across isolates (currently [num],
+   * [String], or [bool]).
+   *
+   * Let *o* be the object reflected by this mirror, let
+   * *f* be the simple name of the getter denoted by [fieldName],
+   * and let a be the object bound to [value]. If *a* is an instance of
+   * [InstanceMirror]  let *p* be the object
+   * reflected by *a*, otherwise let *p =a*.
+   * If *p* is not an instance of [InstanceMirror], *p* must be
+   * serializable across isolates or an exception is thrown.
+   * Then this method will perform the setter invocation
+   *  *o.f = a*
+   * in a scope that has access to the private members
+   * of *o* (if *o* is a class or library) or the private members of the
+   * class of *o*(otherwise).
+   * The method returns a future *k*.
+   * If the invocation returns a result *r*, *k* will be completed
+   * with the result of calling [reflect](*r*).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * then *k* is completed with a [MirrorError} wrapping *e*.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
   Future<InstanceMirror> setFieldAsync(Symbol fieldName, Object value);
@@ -264,6 +405,11 @@ abstract class ObjectMirror implements Mirror {
 abstract class InstanceMirror implements ObjectMirror {
   /**
    * A mirror on the type of the reflectee.
+   *
+   * Returns a mirror on the actual class of the reflectee.
+   * The class of the reflectee may differ from
+   * the object returned by invoking [runtimeType] on
+   * the reflectee.
    */
   ClassMirror get type;
 
@@ -293,10 +439,11 @@ abstract class InstanceMirror implements ObjectMirror {
 
   /**
    * Perform [invocation] on [reflectee].
+   * Equivalent to
    *
-   * If [reflectee] doesn't support the invocation, its [noSuchMethod]
-   * method will be called with either [invocation] or another
-   * equivalent instance of [Invocation].
+   * this.invoke(invocation.memberName,
+   *             invocation.positionalArguments,
+   *             invocation.namedArguments);
    */
   delegate(Invocation invocation);
 }
@@ -321,16 +468,48 @@ abstract class ClosureMirror implements InstanceMirror {
   String get source;
 
   /**
-   * Executes the closure.
-   * The arguments are objects local to the current isolate. 
+   * Executes the closure and returns a mirror on the result.
+   * Let *f* be the closure reflected by this mirror,
+   * let *a1, ..., an* be the elements of [positionalArguments]
+   * let *k1, ..., km* be the identifiers denoted by the elements of
+   * [namedArguments.keys]
+   * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   * Then this method will perform the method invocation
+   *  *f(a1, ..., an, k1: v1, ..., km: vm)*
+   * If the invocation returns a result *r*, this method returns
+   * the result of calling [reflect](*r*).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * the the result is a [MirrorError] wrapping *e*.
    */
   InstanceMirror apply(List<Object> positionalArguments,
                        [Map<Symbol,Object> namedArguments]);
 
   /**
-   * Executes the closure.
-   * The arguments must be instances of [InstanceMirror], [num],
-   * [String], or [bool].
+   * Executes the closure and returns a mirror on the result.
+   *
+   * Let *f* be the closure reflected by this mirror,
+   * let *a1, ..., an* be the elements of [positionalArguments]
+   * let *k1, ..., km* be the identifiers denoted by the elements of
+   * [namedArguments.keys]
+   * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   * For each *ai*, if *ai* is an instance of [InstanceMirror], let *pi*
+   * be the object reflected by *ai*; otherwise let *pi = ai,  i in 1 ...n*.
+   * Likewise, for each *vj*, if *vj* is an instance of [InstanceMirror], let
+   * *qj*
+   * be the object reflected by *vj*; otherwise let *qj = vj,  j in 1 ...m*.
+   * If any of the *pi, qj* is not an instance of [InstanceMirror] and
+   * is not serializable across isolates, an exception is thrown.
+   * Then this method will perform the function invocation
+   *  *f(p1, ..., pn, k1: q1, ..., km: qm)*
+   * The method returns a future *k*.
+   * If the invocation returns a result *r*, *k* will be completed
+   * with the result of calling [reflect](*r*).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * then *k* is completed with a [MirrorError] wrapping *e*.
+   *
+   * The arguments must be instances of [InstanceMirror], or of
+   * a type that is serializable across isolates (currently [num],
+   * [String], or [bool]).
    */
   Future<InstanceMirror> applyAsync(List<Object> positionalArguments,
                                     [Map<Symbol, Object> namedArguments]);
@@ -338,6 +517,18 @@ abstract class ClosureMirror implements InstanceMirror {
   /**
    * Looks up the value of a name in the scope of the closure. The
    * result is a mirror on that value.
+   *
+   * Let *s* be the contents of the string used to construct the symbol [name].
+   *
+   * If the expression *s* occurs within the source code of the reflectee,
+   * and that any such occurrence refers to a declaration outside the reflectee,
+   * then let *v* be the result of evaluating the expression *s* at such
+   * an occurrence.
+   * If *s = this*, and the reflectee was defined within the instance scope of
+   * an object *o*, then let *v* be *o*.
+   *
+   * The returned value is the result of invoking the method [reflect] on
+   * *v*.
    */
   Future<InstanceMirror> findInContext(Symbol name);
 }
@@ -498,21 +689,70 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    */
   ClassMirror get originalDeclaration;
 
-  /**
+   /**
    * Invokes the named constructor and returns a mirror on the result.
-   * The arguments are objects local to the current isolate 
+   *
+   * Let *c* be the class reflected by this mirror
+   * let *a1, ..., an* be the elements of [positionalArguments]
+   * let *k1, ..., km* be the identifiers denoted by the elements of
+   * [namedArguments.keys]
+   * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   * If [constructorName] was created from the empty string
+   * Then this method will execute the instance creation expression
+   * *new c(a1, ..., an, k1: v1, ..., km: vm)*
+   * in a scope that has access to the private members
+   * of *c*. Otherwise, let
+   * *f* be the simple name of the constructor denoted by [constructorName]
+   * Then this method will execute the instance creation expression
+   *  *new c.f(a1, ..., an, k1: v1, ..., km: vm)*
+   * in a scope that has access to the private members
+   * of *c*.
+   * In either case:
+   * If the expression evaluates to a result *r*, this method returns
+   * the result of calling [reflect](*r*).
+   * If evaluating the expression throws an exception *e* (that it does not
+   * catch)
+   * the the result is a [MirrorError] wrapping *e*.
    */
-  /* TODO(turnidge): Properly document.*/
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
                              [Map<Symbol,dynamic> namedArguments]);
 
-  /**
-   * Invokes the named constructor and returns a mirror on the result.
-   * The arguments must be instances of [InstanceMirror], [num],
-   * [String] or [bool].
-   */
-  /* TODO(turnidge): Properly document.*/
+ /**
+   * Invokes the named function and returns a mirror on the result.
+   * The arguments must be instances of [InstanceMirror], or of
+   * a type that is serializable across isolates (currently [num],
+   * [String], or [bool]).
+   *
+   * Let *c* be the class reflected by this mirror,
+   * let *a1, ..., an* be the elements of [positionalArguments]
+   * let *k1, ..., km* be the identifiers denoted by the elements of
+   * [namedArguments.keys]
+   * and let *v1, ..., vm* be the elements of [namedArguments.values].
+   * For each *ai*, if *ai* is an instance of [InstanceMirror], let *pi*
+   * be the object reflected by *ai*; otherwise let *pi = ai,  i in 1 ...n*.
+   * Likewise, for each *vj*, if *vj* is an instance of [InstanceMirror], let
+   * *qj*
+   * be the object reflected by *vj*; otherwise let *qj = vj,  j in 1 ...m*.
+   * If any of the *pi, qj* is not an instance of [InstanceMirror] and
+   * is not serializable across isolates, an exception is thrown.
+   * If [constructorName] was created from the empty string
+   * Then this method will execute the instance creation expression
+   * *new c(a1, ..., an, k1: v1, ..., km: vm)*
+   * in a scope that has access to the private members
+   * of *c*. Otherwise, let
+   * *f* be the simple name of the constructor denoted by [constructorName]
+   * Then this method will execute the instance creation expression
+   *  *new c.f(a1, ..., an, k1: v1, ..., km: vm)*
+   * in a scope that has access to the private members
+   * of *c*.
+   * In either case:
+   * The method returns a future *k*.
+   * If the invocation returns a result *r*, *k* will be completed
+   * with the result of calling [reflect](*r*).
+   * If the invocation throws an exception *e* (that it does not catch)
+   * then *k* is completed with a [MirrorError] wrapping *e*.
+*/
   Future<InstanceMirror> newInstanceAsync(Symbol constructorName,
                                           List<Object> positionalArguments,
                                           [Map<Symbol, Object> namedArguments]);
