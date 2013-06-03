@@ -10,7 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
-from idlnode import IDLArgument
+from idlnode import IDLArgument, IDLAttribute
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
 _cpp_type_map = {
@@ -797,6 +797,10 @@ class DartiumBackend(HtmlDartGenerator):
 
         if argument.type.nullable:
           return True
+
+        if isinstance(argument, IDLAttribute):
+          return (argument.type.id == 'DOMString') and \
+              ('Reflect' in argument.ext_attrs)
 
         if isinstance(argument, IDLArgument):
           if IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument):
