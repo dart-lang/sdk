@@ -1,8 +1,6 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
-
 library engine.scanner_test;
-
 import 'dart:collection';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
 import 'package:analyzer_experimental/src/generated/java_engine.dart';
@@ -12,7 +10,6 @@ import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
-
 class KeywordStateTest extends JUnitTestCase {
   void test_KeywordState() {
     List<Keyword> keywords = Keyword.values;
@@ -131,7 +128,6 @@ class TokenTypeTest extends EngineTestCase {
     });
   }
 }
-
 /**
  * The class {@code TokenFactory} defines utility methods that can be used to create tokens.
  */
@@ -1477,13 +1473,12 @@ class StringScannerTest extends AbstractScannerTest {
     });
   }
 }
-
 /**
  * Instances of the class {@code TokenStreamValidator} are used to validate the correct construction
  * of a stream of tokens.
  */
 class TokenStreamValidator {
-  
+
   /**
    * Validate that the stream of tokens that starts with the given token is correct.
    * @param token the first token in the stream of tokens to be validated
@@ -2048,7 +2043,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(source.length, comment.length);
     JUnitTestCase.assertEquals(source, comment.lexeme);
   }
-  
+
   /**
    * Assert that scanning the given source produces an error with the given code.
    * @param illegalCharacter
@@ -2060,7 +2055,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     scan(source, listener);
     listener.assertErrors([new AnalysisError.con2(null, expectedOffset, 1, expectedError, [(source.codeUnitAt(expectedOffset) as int)])]);
   }
-  
+
   /**
    * Assert that when scanned the given source contains a single keyword token with the same lexeme
    * as the original source.
@@ -2099,7 +2094,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
       JUnitTestCase.assertEquals(expectedLocation._columnNumber, location.columnNumber);
     }
   }
-  
+
   /**
    * Assert that the token scanned from the given source has the expected type.
    * @param expectedType the expected type of the token
@@ -2132,7 +2127,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(TokenType.EOF, originalToken.next.type);
     return originalToken;
   }
-  
+
   /**
    * Assert that when scanned the given source contains a sequence of tokens identical to the given
    * tokens.
@@ -2160,7 +2155,6 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     return token;
   }
 }
-
 /**
  * Instances of the class {@code ExpectedLocation} encode information about the expected location
  * of a given offset in source code.

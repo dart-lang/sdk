@@ -1,8 +1,6 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
-
 library engine.parser_test;
-
 import 'dart:collection';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
 import 'package:analyzer_experimental/src/generated/java_engine.dart';
@@ -17,8 +15,6 @@ import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
 import 'ast_test.dart' show ASTFactory;
-
-
 /**
  * The class {@code SimpleParserTest} defines parser tests that test individual parsing method. The
  * code fragments should be as minimal as possible in order to test the method, but should not test
@@ -3670,7 +3666,7 @@ class SimpleParserTest extends ParserTestCase {
     JUnitTestCase.assertNotNull(following);
     JUnitTestCase.assertEquals(TokenType.PLUS, following.type);
   }
-  
+
   /**
    * Invoke the method {@link Parser#computeStringValue(String)} with the given argument.
    * @param lexeme the argument to the method
@@ -3682,7 +3678,7 @@ class SimpleParserTest extends ParserTestCase {
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme], null) as String;
   }
-  
+
   /**
    * Invoke the method {@link Parser#createSyntheticIdentifier()} with the parser set to the token
    * stream produced by scanning the given source.
@@ -3694,7 +3690,7 @@ class SimpleParserTest extends ParserTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("createSyntheticIdentifier", "", listener);
   }
-  
+
   /**
    * Invoke the method {@link Parser#createSyntheticIdentifier()} with the parser set to the token
    * stream produced by scanning the given source.
@@ -3706,7 +3702,7 @@ class SimpleParserTest extends ParserTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("createSyntheticStringLiteral", "", listener);
   }
-  
+
   /**
    * Invoke the method {@link Parser#isFunctionDeclaration()} with the parser set to the token
    * stream produced by scanning the given source.
@@ -3718,7 +3714,7 @@ class SimpleParserTest extends ParserTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("isFunctionDeclaration", source, listener) as bool;
   }
-  
+
   /**
    * Invoke the method {@link Parser#isFunctionExpression()} with the parser set to the token stream
    * produced by scanning the given source.
@@ -3733,7 +3729,7 @@ class SimpleParserTest extends ParserTestCase {
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "isFunctionExpression", <Object> [tokenStream], tokenStream) as bool;
   }
-  
+
   /**
    * Invoke the method {@link Parser#isInitializedVariableDeclaration()} with the parser set to the
    * token stream produced by scanning the given source.
@@ -3745,7 +3741,7 @@ class SimpleParserTest extends ParserTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("isInitializedVariableDeclaration", source, listener) as bool;
   }
-  
+
   /**
    * Invoke the method {@link Parser#isSwitchMember()} with the parser set to the token stream
    * produced by scanning the given source.
@@ -3757,7 +3753,7 @@ class SimpleParserTest extends ParserTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     return ParserTestCase.invokeParserMethod2("isSwitchMember", source, listener) as bool;
   }
-  
+
   /**
    * Invoke a "skip" method in {@link Parser}. The method is assumed to take a token as it's
    * parameter and is given the first token in the scanned source.
@@ -5856,7 +5852,6 @@ class AnalysisErrorListener_20 implements AnalysisErrorListener {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }
 }
-
 /**
  * The class {@code ComplexParserTest} defines parser tests that test the parsing of more complex
  * code fragments or the interactions between multiple parsing methods. For example, tests to ensure
@@ -6267,18 +6262,17 @@ class ComplexParserTest extends ParserTestCase {
     });
   }
 }
-
 /**
  * Instances of the class {@code ASTValidator} are used to validate the correct construction of an
  * AST structure.
  */
 class ASTValidator extends GeneralizingASTVisitor<Object> {
-  
+
   /**
    * A list containing the errors found while traversing the AST structure.
    */
   List<String> _errors = new List<String>();
-  
+
   /**
    * Assert that no errors were found while traversing any of the AST structures that have been
    * visited.
@@ -6298,7 +6292,7 @@ class ASTValidator extends GeneralizingASTVisitor<Object> {
     validate(node);
     return super.visitNode(node);
   }
-  
+
   /**
    * Validate that the given AST node is correctly constructed.
    * @param node the AST node being validated
@@ -6339,12 +6333,12 @@ class ASTValidator extends GeneralizingASTVisitor<Object> {
   }
 }
 class ParserTestCase extends EngineTestCase {
-  
+
   /**
    * An empty array of objects used as arguments to zero-argument methods.
    */
   static List<Object> _EMPTY_ARGUMENTS = new List<Object>(0);
-  
+
   /**
    * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
@@ -6359,7 +6353,7 @@ class ParserTestCase extends EngineTestCase {
    * @throws AssertionFailedError if the result is {@code null} or if any errors are produced
    */
   static Object parse(String methodName, List<Object> objects, String source) => parse3(methodName, objects, source, new List<AnalysisError>(0));
-  
+
   /**
    * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
@@ -6381,7 +6375,7 @@ class ParserTestCase extends EngineTestCase {
     listener.assertErrors(errors);
     return result;
   }
-  
+
   /**
    * Invoke a parse method in {@link Parser}. The method is assumed to have the given number and
    * type of parameters and will be invoked with the given arguments.
@@ -6403,7 +6397,7 @@ class ParserTestCase extends EngineTestCase {
     listener.assertErrors2(errorCodes);
     return result;
   }
-  
+
   /**
    * Invoke a parse method in {@link Parser}. The method is assumed to have no arguments.
    * <p>
@@ -6418,7 +6412,7 @@ class ParserTestCase extends EngineTestCase {
    * scanning and parsing the source do not match the expected errors
    */
   static Object parse5(String methodName, String source, List<ErrorCode> errorCodes) => parse4(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
-  
+
   /**
    * Parse the given source as a compilation unit.
    * @param source the source to be parsed
@@ -6438,7 +6432,7 @@ class ParserTestCase extends EngineTestCase {
     listener.assertErrors2(errorCodes);
     return unit;
   }
-  
+
   /**
    * Parse the given source as an expression.
    * @param source the source to be parsed
@@ -6458,7 +6452,7 @@ class ParserTestCase extends EngineTestCase {
     listener.assertErrors2(errorCodes);
     return expression as Expression;
   }
-  
+
   /**
    * Parse the given source as a statement.
    * @param source the source to be parsed
@@ -6478,7 +6472,7 @@ class ParserTestCase extends EngineTestCase {
     listener.assertErrors2(errorCodes);
     return statement as Statement;
   }
-  
+
   /**
    * Parse the given source as a sequence of statements.
    * @param source the source to be parsed
@@ -6500,7 +6494,7 @@ class ParserTestCase extends EngineTestCase {
     listener.assertErrors2(errorCodes);
     return statements;
   }
-  
+
   /**
    * Invoke a method in {@link Parser}. The method is assumed to have the given number and type of
    * parameters and will be invoked with the given arguments.
@@ -6527,7 +6521,7 @@ class ParserTestCase extends EngineTestCase {
     }
     return result as Object;
   }
-  
+
   /**
    * Invoke a method in {@link Parser}. The method is assumed to have no arguments.
    * <p>
@@ -6542,7 +6536,7 @@ class ParserTestCase extends EngineTestCase {
    * scanning and parsing the source do not match the expected errors
    */
   static Object invokeParserMethod2(String methodName, String source, GatheringErrorListener listener) => invokeParserMethod(methodName, _EMPTY_ARGUMENTS, source, listener);
-  
+
   /**
    * Return a CommentAndMetadata object with the given values that can be used for testing.
    * @param comment the comment to be wrapped in the object
@@ -6556,7 +6550,7 @@ class ParserTestCase extends EngineTestCase {
     }
     return new CommentAndMetadata(comment, metadata);
   }
-  
+
   /**
    * Return an empty CommentAndMetadata object that can be used for testing.
    * @return an empty CommentAndMetadata object that can be used for testing
@@ -6567,7 +6561,6 @@ class ParserTestCase extends EngineTestCase {
     });
   }
 }
-
 /**
  * The class {@code RecoveryParserTest} defines parser tests that test the parsing of invalid code
  * sequences to ensure that the correct recovery steps are taken in the parser.
@@ -7288,7 +7281,6 @@ class RecoveryParserTest extends ParserTestCase {
     });
   }
 }
-
 /**
  * The class {@code ErrorParserTest} defines parser tests that test the parsing of code to ensure
  * that errors are correctly reported, and in some cases, not reported.

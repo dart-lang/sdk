@@ -1,8 +1,6 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
-
 library engine.resolver_test;
-
 import 'dart:collection';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
 import 'package:analyzer_experimental/src/generated/java_engine.dart';
@@ -22,7 +20,6 @@ import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
 import 'ast_test.dart' show ASTFactory;
 import 'element_test.dart' show ElementFactory;
-
 class TypePropagationTest extends ResolverTestCase {
   void test_as() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  bool get g => true;", "}", "A f(var p) {", "  if ((p as A).g) {", "    return p;", "  } else {", "    return null;", "  }", "}"]));
@@ -4194,6 +4191,18 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
+  void test_constInitializedWithNonConstValue_missingConstInListLiteral() {
+    Source source = addSource("const List L = [0];");
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
+  void test_constInitializedWithNonConstValue_missingConstInMapLiteral() {
+    Source source = addSource("const Map M = {'a' : 0};");
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
+    verify([source]);
+  }
   void test_constWithInvalidTypeParameters() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "}", "f() { return const A<A>(); }"]));
     resolve(source);
@@ -5567,6 +5576,14 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constInitializedWithNonConstValue);
       });
+      _ut.test('test_constInitializedWithNonConstValue_missingConstInListLiteral', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constInitializedWithNonConstValue_missingConstInListLiteral);
+      });
+      _ut.test('test_constInitializedWithNonConstValue_missingConstInMapLiteral', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constInitializedWithNonConstValue_missingConstInMapLiteral);
+      });
       _ut.test('test_constWithInvalidTypeParameters', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constWithInvalidTypeParameters);
@@ -6350,7 +6367,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     });
   }
 }
-
 /**
  * Instances of the class {@code StaticTypeVerifier} verify that all of the nodes in an AST
  * structure that should have a static type associated with them do have a static type.
@@ -6483,6 +6499,135 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
       }
     }
     return "<unknown file- ASTNode is null>";
+  }
+}
+/**
+ * The class {@code StrictModeTest} contains tests to ensure that the correct errors and warnings
+ * are reported when the analysis engine is run in strict mode.
+ */
+class StrictModeTest extends ResolverTestCase {
+  void fail_for() {
+    Source source = addSource(EngineTestCase.createSource(["int f(List<int> list) {", "  num sum = 0;", "  for (num i = 0; i < list.length; i++) {", "    sum += list[i];", "  }", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void setUp() {
+    super.setUp();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strictMode = true;
+    analysisContext.analysisOptions = options;
+  }
+  void test_assert_is() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  assert (n is int);", "  return n & 0x0F;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_conditional_and_is() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  return (n is int && n > 0) ? n & 0x0F : 0;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_conditional_is() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  return (n is int) ? n & 0x0F : 0;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_conditional_isNot() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  return (n is! int) ? 0 : n & 0x0F;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_conditional_or_is() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  return (n is! int || n < 0) ? 0 : n & 0x0F;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_forEach() {
+    Source source = addSource(EngineTestCase.createSource(["int f(List<int> list) {", "  num sum = 0;", "  for (num n in list) {", "    sum += n & 0x0F;", "  }", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_if_and_is() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  if (n is int && n > 0) {", "    return n & 0x0F;", "  }", "  return 0;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_if_is() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  if (n is int) {", "    return n & 0x0F;", "  }", "  return 0;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_if_isNot() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  if (n is! int) {", "    return 0;", "  } else {", "    return n & 0x0F;", "  }", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_if_isNot_abrupt() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  if (n is! int) {", "    return 0;", "  }", "  return n & 0x0F;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_if_or_is() {
+    Source source = addSource(EngineTestCase.createSource(["int f(num n) {", "  if (n is! int || n < 0) {", "    return 0;", "  } else {", "    return n & 0x0F;", "  }", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  void test_localVar() {
+    Source source = addSource(EngineTestCase.createSource(["int f() {", "  num n = 1234;", "  return n & 0x0F;", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+  static dartSuite() {
+    _ut.group('StrictModeTest', () {
+      _ut.test('test_assert_is', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_assert_is);
+      });
+      _ut.test('test_conditional_and_is', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_conditional_and_is);
+      });
+      _ut.test('test_conditional_is', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_conditional_is);
+      });
+      _ut.test('test_conditional_isNot', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_conditional_isNot);
+      });
+      _ut.test('test_conditional_or_is', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_conditional_or_is);
+      });
+      _ut.test('test_forEach', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_forEach);
+      });
+      _ut.test('test_if_and_is', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_if_and_is);
+      });
+      _ut.test('test_if_is', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_if_is);
+      });
+      _ut.test('test_if_isNot', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_if_isNot);
+      });
+      _ut.test('test_if_isNot_abrupt', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_if_isNot_abrupt);
+      });
+      _ut.test('test_if_or_is', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_if_or_is);
+      });
+      _ut.test('test_localVar', () {
+        final __test = new StrictModeTest();
+        runJUnitTest(__test, __test.test_localVar);
+      });
+    });
   }
 }
 class ElementResolverTest extends EngineTestCase {
@@ -7244,6 +7389,48 @@ class TypeOverrideManagerTest extends EngineTestCase {
       _ut.test('test_getType_noScope', () {
         final __test = new TypeOverrideManagerTest();
         runJUnitTest(__test, __test.test_getType_noScope);
+      });
+    });
+  }
+}
+class PubSuggestionCodeTest extends ResolverTestCase {
+  void test_import_packageWithDotDot() {
+    Source source = addSource(EngineTestCase.createSource(["import 'package:somepackage/../other.dart';"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST, PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
+  }
+  void test_import_referenceIntoLibDirectory() {
+    Source source = addSource(EngineTestCase.createSource(["import '../lib/other.dart';"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST, PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
+  }
+  void test_import_referenceOutOfLibDirectory() {
+    Source source = addSource2("lib/test.dart", EngineTestCase.createSource(["import '../web/other.dart';"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST, PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
+  }
+  void test_import_valid() {
+    Source source = addSource2("lib2/test.dart", EngineTestCase.createSource(["import '../web/other.dart';"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+  }
+  static dartSuite() {
+    _ut.group('PubSuggestionCodeTest', () {
+      _ut.test('test_import_packageWithDotDot', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_packageWithDotDot);
+      });
+      _ut.test('test_import_referenceIntoLibDirectory', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_referenceIntoLibDirectory);
+      });
+      _ut.test('test_import_referenceOutOfLibDirectory', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_referenceOutOfLibDirectory);
+      });
+      _ut.test('test_import_valid', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_valid);
       });
     });
   }
@@ -8466,7 +8653,6 @@ class ErrorResolverTest extends ResolverTestCase {
     });
   }
 }
-
 /**
  * Instances of the class {@code TestTypeProvider} implement a type provider that can be used by
  * tests without creating the element model for the core library.
@@ -8609,7 +8795,8 @@ class TestTypeProvider implements TypeProvider {
       Type2 eType = listElement.typeVariables[0].type;
       InterfaceType supertype = iterableType.substitute5(<Type2> [eType]);
       listElement.supertype = supertype;
-      listElement.methods = <MethodElement> [ElementFactory.methodElement("[]", eType, [_intType]), ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [_intType, eType])];
+      listElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("length", false, intType)];
+      listElement.methods = <MethodElement> [ElementFactory.methodElement("[]", eType, [intType]), ElementFactory.methodElement("[]=", VoidTypeImpl.instance, [intType, eType])];
     }
     return _listType;
   }
@@ -8617,7 +8804,7 @@ class TestTypeProvider implements TypeProvider {
     if (_mapType == null) {
       ClassElementImpl mapElement = ElementFactory.classElement2("Map", ["K", "V"]);
       _mapType = mapElement.type;
-      mapElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("length", false, _intType)];
+      mapElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("length", false, intType)];
     }
     return _mapType;
   }
@@ -8633,7 +8820,7 @@ class TestTypeProvider implements TypeProvider {
       _objectType = objectElement.type;
       if (objectElement.methods.length == 0) {
         objectElement.constructors = <ConstructorElement> [ElementFactory.constructorElement(objectElement, null)];
-        objectElement.methods = <MethodElement> [ElementFactory.methodElement("toString", stringType, []), ElementFactory.methodElement("==", _boolType, [_objectType]), ElementFactory.methodElement("noSuchMethod", dynamicType, [dynamicType])];
+        objectElement.methods = <MethodElement> [ElementFactory.methodElement("toString", stringType, []), ElementFactory.methodElement("==", boolType, [_objectType]), ElementFactory.methodElement("noSuchMethod", dynamicType, [dynamicType])];
         objectElement.accessors = <PropertyAccessorElement> [ElementFactory.getterElement("hashCode", false, intType), ElementFactory.getterElement("runtimeType", false, typeType)];
       }
     }
@@ -8687,7 +8874,6 @@ class TestTypeProvider implements TypeProvider {
     doubleElement.methods = <MethodElement> [ElementFactory.methodElement("remainder", _doubleType, [_numType]), ElementFactory.methodElement("+", _doubleType, [_numType]), ElementFactory.methodElement("-", _doubleType, [_numType]), ElementFactory.methodElement("*", _doubleType, [_numType]), ElementFactory.methodElement("%", _doubleType, [_numType]), ElementFactory.methodElement("/", _doubleType, [_numType]), ElementFactory.methodElement("~/", _doubleType, [_numType]), ElementFactory.methodElement("-", _doubleType, []), ElementFactory.methodElement("abs", _doubleType, []), ElementFactory.methodElement("round", _doubleType, []), ElementFactory.methodElement("floor", _doubleType, []), ElementFactory.methodElement("ceil", _doubleType, []), ElementFactory.methodElement("truncate", _doubleType, []), ElementFactory.methodElement("toString", _stringType, [])];
   }
 }
-
 /**
  * The class {@code AnalysisContextFactory} defines utility methods used to create analysis contexts
  * for testing purposes.
@@ -8861,7 +9047,6 @@ class LibraryImportScopeTest extends ResolverTestCase {
     });
   }
 }
-
 /**
  * Instances of the class {@code ResolutionVerifier} verify that all of the nodes in an AST
  * structure that should have been resolved were resolved.
@@ -8889,10 +9074,10 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
    * structures that are expected to have been resolved have an element associated with them.
    */
   ResolutionVerifier() {
-    _jtd_constructor_359_impl();
+    _jtd_constructor_361_impl();
   }
-  _jtd_constructor_359_impl() {
-    _jtd_constructor_360_impl(null);
+  _jtd_constructor_361_impl() {
+    _jtd_constructor_362_impl(null);
   }
 
   /**
@@ -8904,9 +9089,9 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
    * therefore not cause the test to fail
    */
   ResolutionVerifier.con1(Set<ASTNode> knownExceptions2) {
-    _jtd_constructor_360_impl(knownExceptions2);
+    _jtd_constructor_362_impl(knownExceptions2);
   }
-  _jtd_constructor_360_impl(Set<ASTNode> knownExceptions2) {
+  _jtd_constructor_362_impl(Set<ASTNode> knownExceptions2) {
     this._knownExceptions = knownExceptions2;
   }
 
@@ -10406,7 +10591,6 @@ class ScopeTest extends ResolverTestCase {
     });
   }
 }
-
 /**
  * A non-abstract subclass that can be used for testing purposes.
  */
@@ -10975,8 +11159,10 @@ main() {
 //  CompileTimeErrorCodeTest.dartSuite();
 //  ErrorResolverTest.dartSuite();
 //  NonErrorResolverTest.dartSuite();
+//  PubSuggestionCodeTest.dartSuite();
 //  SimpleResolverTest.dartSuite();
 //  StaticTypeWarningCodeTest.dartSuite();
 //  StaticWarningCodeTest.dartSuite();
+//  StrictModeTest.dartSuite();
 //  TypePropagationTest.dartSuite();
 }

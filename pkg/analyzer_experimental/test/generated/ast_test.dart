@@ -1,8 +1,6 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
-
 library engine.ast_test;
-
 import 'dart:collection';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
 import 'package:analyzer_experimental/src/generated/java_engine.dart';
@@ -17,7 +15,6 @@ import 'package:unittest/unittest.dart' as _ut;
 import 'parser_test.dart' show ParserTestCase;
 import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
-
 class NodeLocatorTest extends ParserTestCase {
   void test_offset() {
     CompilationUnit unit = ParserTestCase.parseCompilationUnit("library myLib;", []);
@@ -185,7 +182,6 @@ class IndexExpressionTest extends EngineTestCase {
     });
   }
 }
-
 /**
  * The class {@code ASTFactory} defines utility methods that can be used to create AST nodes. The
  * nodes that are created are complete in the sense that all of the tokens that would have been
@@ -373,7 +369,7 @@ class ASTFactory {
   static TryStatement tryStatement3(Block body, List<CatchClause> catchClauses, Block finallyClause) => new TryStatement.full(TokenFactory.token(Keyword.TRY), body, catchClauses, finallyClause == null ? null : TokenFactory.token(Keyword.FINALLY), finallyClause);
   static FunctionTypeAlias typeAlias(TypeName returnType, String name, TypeParameterList typeParameters, FormalParameterList parameters) => new FunctionTypeAlias.full(null, null, TokenFactory.token(Keyword.TYPEDEF), returnType, identifier3(name), typeParameters, parameters, TokenFactory.token3(TokenType.SEMICOLON));
   static TypeArgumentList typeArgumentList(List<TypeName> typeNames) => new TypeArgumentList.full(TokenFactory.token3(TokenType.LT), list(typeNames), TokenFactory.token3(TokenType.GT));
-  
+
   /**
    * Create a type name whose name has been resolved to the given element and whose type has been
    * resolved to the type of the given element.
@@ -566,7 +562,7 @@ class SimpleIdentifierTest extends ParserTestCase {
     }
     return identifier;
   }
-  
+
   /**
    * Return the top-most node in the AST structure containing the given identifier.
    * @param identifier the identifier in the AST structure being traversed
@@ -674,10 +670,10 @@ class AssignmentKind implements Comparable<AssignmentKind> {
   static final AssignmentKind SIMPLE_RIGHT = new AssignmentKind('SIMPLE_RIGHT', 8);
   static final AssignmentKind NONE = new AssignmentKind('NONE', 9);
   static final List<AssignmentKind> values = [BINARY, COMPOUND_LEFT, COMPOUND_RIGHT, POSTFIX_INC, PREFIX_DEC, PREFIX_INC, PREFIX_NOT, SIMPLE_LEFT, SIMPLE_RIGHT, NONE];
-  
+
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
-  
+
   /// The position in the enum declaration.
   final int ordinal;
   AssignmentKind(this.name, this.ordinal) {
@@ -692,10 +688,10 @@ class WrapperKind implements Comparable<WrapperKind> {
   static final WrapperKind PROPERTY_RIGHT = new WrapperKind('PROPERTY_RIGHT', 3);
   static final WrapperKind NONE = new WrapperKind('NONE', 4);
   static final List<WrapperKind> values = [PREFIXED_LEFT, PREFIXED_RIGHT, PROPERTY_LEFT, PROPERTY_RIGHT, NONE];
-  
+
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
-  
+
   /// The position in the enum declaration.
   final int ordinal;
   WrapperKind(this.name, this.ordinal) {
@@ -1921,7 +1917,7 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitWithClause_single() {
     assertSource("with A", ASTFactory.withClause([ASTFactory.typeName4("A", [])]));
   }
-  
+
   /**
    * Assert that a {@code ToSourceVisitor} will produce the expected source when visiting the given
    * node.

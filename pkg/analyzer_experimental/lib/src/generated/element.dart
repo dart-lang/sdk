@@ -1,8 +1,6 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
-
 library engine.element;
-
 import 'dart:collection';
 import 'java_core.dart';
 import 'java_engine.dart';
@@ -14,15 +12,13 @@ import 'html.dart' show XmlTagNode;
 import 'engine.dart' show AnalysisContext;
 import 'constant.dart' show EvaluationResultImpl;
 import 'utilities_dart.dart';
-
-
 /**
  * The interface {@code Annotation} defines the behavior of objects representing a single annotation
  * associated with an element.
  * @coverage dart.engine.element
  */
 abstract class Annotation {
-  
+
   /**
    * Return the element representing the field, variable, or const constructor being used as an
    * annotation.
@@ -30,38 +26,37 @@ abstract class Annotation {
    */
   Element get element;
 }
-
 /**
  * The interface {@code ClassElement} defines the behavior of elements that represent a class.
  * @coverage dart.engine.element
  */
 abstract class ClassElement implements Element {
-  
+
   /**
    * Return an array containing all of the accessors (getters and setters) declared in this class.
    * @return the accessors declared in this class
    */
   List<PropertyAccessorElement> get accessors;
-  
+
   /**
    * Return an array containing all the supertypes defined for this class and its supertypes. This
    * includes superclasses, mixins and interfaces.
    * @return all the supertypes of this class, including mixins
    */
   List<InterfaceType> get allSupertypes;
-  
+
   /**
    * Return an array containing all of the constructors declared in this class.
    * @return the constructors declared in this class
    */
   List<ConstructorElement> get constructors;
-  
+
   /**
    * Return an array containing all of the fields declared in this class.
    * @return the fields declared in this class
    */
   List<FieldElement> get fields;
-  
+
   /**
    * Return the element representing the getter with the given name that is declared in this class,
    * or {@code null} if this class does not declare a getter with the given name.
@@ -69,7 +64,7 @@ abstract class ClassElement implements Element {
    * @return the getter declared in this class with the given name
    */
   PropertyAccessorElement getGetter(String getterName);
-  
+
   /**
    * Return an array containing all of the interfaces that are implemented by this class.
    * <p>
@@ -80,7 +75,7 @@ abstract class ClassElement implements Element {
    * @return the interfaces that are implemented by this class
    */
   List<InterfaceType> get interfaces;
-  
+
   /**
    * Return the element representing the method with the given name that is declared in this class,
    * or {@code null} if this class does not declare a method with the given name.
@@ -88,13 +83,13 @@ abstract class ClassElement implements Element {
    * @return the method declared in this class with the given name
    */
   MethodElement getMethod(String methodName);
-  
+
   /**
    * Return an array containing all of the methods declared in this class.
    * @return the methods declared in this class
    */
   List<MethodElement> get methods;
-  
+
   /**
    * Return an array containing all of the mixins that are applied to the class being extended in
    * order to derive the superclass of this class.
@@ -106,7 +101,7 @@ abstract class ClassElement implements Element {
    * @return the mixins that are applied to derive the superclass of this class
    */
   List<InterfaceType> get mixins;
-  
+
   /**
    * Return the named constructor declared in this class with the given name, or {@code null} if
    * this class does not declare a named constructor with the given name.
@@ -114,7 +109,7 @@ abstract class ClassElement implements Element {
    * @return the element representing the specified constructor
    */
   ConstructorElement getNamedConstructor(String name);
-  
+
   /**
    * Return the element representing the setter with the given name that is declared in this class,
    * or {@code null} if this class does not declare a setter with the given name.
@@ -122,7 +117,7 @@ abstract class ClassElement implements Element {
    * @return the setter declared in this class with the given name
    */
   PropertyAccessorElement getSetter(String setterName);
-  
+
   /**
    * Return the superclass of this class, or {@code null} if the class represents the class
    * 'Object'. All other classes will have a non-{@code null} superclass. If the superclass was not
@@ -135,19 +130,19 @@ abstract class ClassElement implements Element {
    * @return the superclass of this class
    */
   InterfaceType get supertype;
-  
+
   /**
    * Return the type defined by the class.
    * @return the type defined by the class
    */
   InterfaceType get type;
-  
+
   /**
    * Return an array containing all of the type variables declared for this class.
    * @return the type variables declared for this class
    */
   List<TypeVariableElement> get typeVariables;
-  
+
   /**
    * Return the unnamed constructor declared in this class, or {@code null} if this class does not
    * declare an unnamed constructor but does declare named constructors. The returned constructor
@@ -156,33 +151,33 @@ abstract class ClassElement implements Element {
    * @return the unnamed constructor defined in this class
    */
   ConstructorElement get unnamedConstructor;
-  
+
   /**
    * Return {@code true} if this class or its superclass declares a non-final instance field.
    * @return {@code true} if this class or its superclass declares a non-final instance field
    */
   bool hasNonFinalField();
-  
+
   /**
    * Return {@code true} if this class has reference to super (so, for example, cannot be used as a
    * mixin).
    * @return {@code true} if this class has reference to super
    */
   bool hasReferenceToSuper();
-  
+
   /**
    * Return {@code true} if this class is abstract. A class is abstract if it has an explicit{@code abstract} modifier. Note, that this definition of <i>abstract</i> is different from
    * <i>has unimplemented members</i>.
    * @return {@code true} if this class is abstract
    */
   bool isAbstract();
-  
+
   /**
    * Return {@code true} if this class is defined by a typedef construct.
    * @return {@code true} if this class is defined by a typedef construct
    */
   bool isTypedef();
-  
+
   /**
    * Return {@code true} if this class can validly be used as a mixin when defining another class.
    * The behavior of this method is defined by the Dart Language Specification in section 9:
@@ -193,7 +188,7 @@ abstract class ClassElement implements Element {
    * @return {@code true} if this class can validly be used as a mixin
    */
   bool isValidMixin();
-  
+
   /**
    * Return the element representing the getter that results from looking up the given getter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
@@ -214,7 +209,7 @@ abstract class ClassElement implements Element {
    * library
    */
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
-  
+
   /**
    * Return the element representing the method that results from looking up the given method in
    * this class with respect to the given library, or {@code null} if the look up fails. The
@@ -234,7 +229,7 @@ abstract class ClassElement implements Element {
    * library
    */
   MethodElement lookUpMethod(String methodName, LibraryElement library);
-  
+
   /**
    * Return the element representing the setter that results from looking up the given setter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
@@ -256,45 +251,44 @@ abstract class ClassElement implements Element {
    */
   PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library);
 }
-
 /**
  * The interface {@code CompilationUnitElement} defines the behavior of elements representing a
  * compilation unit.
  * @coverage dart.engine.element
  */
 abstract class CompilationUnitElement implements Element, UriReferencedElement {
-  
+
   /**
    * Return an array containing all of the top-level accessors (getters and setters) contained in
    * this compilation unit.
    * @return the top-level accessors contained in this compilation unit
    */
   List<PropertyAccessorElement> get accessors;
-  
+
   /**
    * Return the library in which this compilation unit is defined.
    * @return the library in which this compilation unit is defined
    */
   LibraryElement get enclosingElement;
-  
+
   /**
    * Return an array containing all of the top-level functions contained in this compilation unit.
    * @return the top-level functions contained in this compilation unit
    */
   List<FunctionElement> get functions;
-  
+
   /**
    * Return an array containing all of the function type aliases contained in this compilation unit.
    * @return the function type aliases contained in this compilation unit
    */
   List<FunctionTypeAliasElement> get functionTypeAliases;
-  
+
   /**
    * Return an array containing all of the top-level variables contained in this compilation unit.
    * @return the top-level variables contained in this compilation unit
    */
   List<TopLevelVariableElement> get topLevelVariables;
-  
+
   /**
    * Return the class defined in this compilation unit that has the given name, or {@code null} if
    * this compilation unit does not define a class with the given name.
@@ -302,46 +296,44 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
    * @return the class with the given name that is defined in this compilation unit
    */
   ClassElement getType(String className);
-  
+
   /**
    * Return an array containing all of the classes contained in this compilation unit.
    * @return the classes contained in this compilation unit
    */
   List<ClassElement> get types;
 }
-
 /**
  * The interface {@code ConstructorElement} defines the behavior of elements representing a
  * constructor or a factory method defined within a type.
  * @coverage dart.engine.element
  */
 abstract class ConstructorElement implements ExecutableElement {
-  
+
   /**
    * Return the type in which this constructor is defined.
    * @return the type in which this constructor is defined
    */
   ClassElement get enclosingElement;
-  
+
   /**
    * Return the constructor to which this constructor is redirecting.
    * @return the constructor to which this constructor is redirecting
    */
   ConstructorElement get redirectedConstructor;
-  
+
   /**
    * Return {@code true} if this constructor is a const constructor.
    * @return {@code true} if this constructor is a const constructor
    */
   bool isConst();
-  
+
   /**
    * Return {@code true} if this constructor represents a factory constructor.
    * @return {@code true} if this constructor represents a factory constructor
    */
   bool isFactory();
 }
-
 /**
  * The interface {@code Element} defines the behavior common to all of the elements in the element
  * model. Generally speaking, the element model is a semantic model of the program that represents
@@ -364,20 +356,20 @@ abstract class ConstructorElement implements ExecutableElement {
  * @coverage dart.engine.element
  */
 abstract class Element {
-  
+
   /**
    * A comparator that can be used to sort elements by their name offset. Elements with a smaller
    * offset will be sorted to be before elements with a larger name offset.
    */
   static Comparator<Element> SORT_BY_OFFSET = (Element firstElement, Element secondElement) => firstElement.nameOffset - secondElement.nameOffset;
-  
+
   /**
    * Use the given visitor to visit this element.
    * @param visitor the visitor that will visit this element
    * @return the value returned by the visitor as a result of visiting this element
    */
   accept(ElementVisitor visitor);
-  
+
   /**
    * Return the documentation comment for this element as it appears in the original source
    * (complete with the beginning and ending delimiters), or {@code null} if this element does not
@@ -388,20 +380,20 @@ abstract class Element {
    * analysis could not be performed
    */
   String computeDocumentationComment();
-  
+
   /**
    * Return the element of the given class that most immediately encloses this element, or{@code null} if there is no enclosing element of the given class.
    * @param elementClass the class of the element to be returned
    * @return the element that encloses this element
    */
   Element getAncestor(Type elementClass);
-  
+
   /**
    * Return the analysis context in which this element is defined.
    * @return the analysis context in which this element is defined
    */
   AnalysisContext get context;
-  
+
   /**
    * Return the display name of this element, or {@code null} if this element does not have a name.
    * <p>
@@ -410,20 +402,20 @@ abstract class Element {
    * @return the display name of this element
    */
   String get displayName;
-  
+
   /**
    * Return the element that either physically or logically encloses this element. This will be{@code null} if this element is a library because libraries are the top-level elements in the
    * model.
    * @return the element that encloses this element
    */
   Element get enclosingElement;
-  
+
   /**
    * Return the kind of element that this is.
    * @return the kind of this element
    */
   ElementKind get kind;
-  
+
   /**
    * Return the library that contains this element. This will be the element itself if it is a
    * library element. This will be {@code null} if this element is an HTML file because HTML files
@@ -431,26 +423,26 @@ abstract class Element {
    * @return the library that contains this element
    */
   LibraryElement get library;
-  
+
   /**
    * Return an object representing the location of this element in the element model. The object can
    * be used to locate this element at a later time.
    * @return the location of this element in the element model
    */
   ElementLocation get location;
-  
+
   /**
    * Return an array containing all of the metadata associated with this element.
    * @return the metadata associated with this element
    */
   List<Annotation> get metadata;
-  
+
   /**
    * Return the name of this element, or {@code null} if this element does not have a name.
    * @return the name of this element
    */
   String get name;
-  
+
   /**
    * Return the offset of the name of this element in the file that contains the declaration of this
    * element, or {@code -1} if this element is synthetic, does not have a name, or otherwise does
@@ -458,14 +450,14 @@ abstract class Element {
    * @return the offset of the name of this element
    */
   int get nameOffset;
-  
+
   /**
    * Return the source that contains this element, or {@code null} if this element is not contained
    * in a source.
    * @return the source that contains this element
    */
   Source get source;
-  
+
   /**
    * Return {@code true} if this element, assuming that it is within scope, is accessible to code in
    * the given library. This is defined by the Dart Language Specification in section 3.2:
@@ -475,7 +467,7 @@ abstract class Element {
    * @return {@code true} if this element is accessible to code in the given library
    */
   bool isAccessibleIn(LibraryElement library);
-  
+
   /**
    * Return {@code true} if this element is synthetic. A synthetic element is an element that is not
    * represented in the source code explicitly, but is implied by the source code, such as the
@@ -483,7 +475,7 @@ abstract class Element {
    * @return {@code true} if this element is synthetic
    */
   bool isSynthetic();
-  
+
   /**
    * Use the given visitor to visit all of the children of this element. There is no guarantee of
    * the order in which the children will be visited.
@@ -491,7 +483,6 @@ abstract class Element {
    */
   void visitChildren(ElementVisitor<Object> visitor);
 }
-
 /**
  * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
  * @coverage dart.engine.element
@@ -523,13 +514,13 @@ class ElementKind implements Comparable<ElementKind> {
   static final ElementKind TYPE_VARIABLE = new ElementKind('TYPE_VARIABLE', 23, "type variable");
   static final ElementKind UNIVERSE = new ElementKind('UNIVERSE', 24, "<universe>");
   static final List<ElementKind> values = [CLASS, COMPILATION_UNIT, CONSTRUCTOR, DYNAMIC, EMBEDDED_HTML_SCRIPT, ERROR, EXPORT, EXTERNAL_HTML_SCRIPT, FIELD, FUNCTION, GETTER, HTML, IMPORT, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, NAME, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, FUNCTION_TYPE_ALIAS, TYPE_VARIABLE, UNIVERSE];
-  
+
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
-  
+
   /// The position in the enum declaration.
   final int ordinal;
-  
+
   /**
    * Return the kind of the given element, or {@link #ERROR} if the element is {@code null}. This is
    * a utility method that can reduce the need for null checks in other places.
@@ -542,12 +533,12 @@ class ElementKind implements Comparable<ElementKind> {
     }
     return element.kind;
   }
-  
+
   /**
    * The name displayed in the UI for this kind of element.
    */
   String _displayName;
-  
+
   /**
    * Initialize a newly created element kind to have the given display name.
    * @param displayName the name displayed in the UI for this kind of element
@@ -555,7 +546,7 @@ class ElementKind implements Comparable<ElementKind> {
   ElementKind(this.name, this.ordinal, String displayName) {
     this._displayName = displayName;
   }
-  
+
   /**
    * Return the name displayed in the UI for this kind of element.
    * @return the name of this {@link ElementKind} to display in UI.
@@ -564,14 +555,13 @@ class ElementKind implements Comparable<ElementKind> {
   int compareTo(ElementKind other) => ordinal - other.ordinal;
   String toString() => name;
 }
-
 /**
  * The interface {@code ElementLocation} defines the behavior of objects that represent the location
  * of an element within the element model.
  * @coverage dart.engine.element
  */
 abstract class ElementLocation {
-  
+
   /**
    * Return an encoded representation of this location that can be used to create a location that is
    * equal to this location.
@@ -579,7 +569,6 @@ abstract class ElementLocation {
    */
   String get encoding;
 }
-
 /**
  * The interface {@code ElementVisitor} defines the behavior of objects that can be used to visit an
  * element structure.
@@ -609,58 +598,56 @@ abstract class ElementVisitor<R> {
   R visitTopLevelVariableElement(TopLevelVariableElement element);
   R visitTypeVariableElement(TypeVariableElement element);
 }
-
 /**
  * The interface {@code EmbeddedHtmlScriptElement} defines the behavior of elements representing a
  * script tag in an HTML file having content that defines a Dart library.
  * @coverage dart.engine.element
  */
 abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
-  
+
   /**
    * Return the library element defined by the content of the script tag.
    * @return the library element (not {@code null})
    */
   LibraryElement get scriptLibrary;
 }
-
 /**
  * The interface {@code ExecutableElement} defines the behavior of elements representing an
  * executable object, including functions, methods, constructors, getters, and setters.
  * @coverage dart.engine.element
  */
 abstract class ExecutableElement implements Element {
-  
+
   /**
    * Return an array containing all of the functions defined within this executable element.
    * @return the functions defined within this executable element
    */
   List<FunctionElement> get functions;
-  
+
   /**
    * Return an array containing all of the labels defined within this executable element.
    * @return the labels defined within this executable element
    */
   List<LabelElement> get labels;
-  
+
   /**
    * Return an array containing all of the local variables defined within this executable element.
    * @return the local variables defined within this executable element
    */
   List<LocalVariableElement> get localVariables;
-  
+
   /**
    * Return an array containing all of the parameters defined by this executable element.
    * @return the parameters defined by this executable element
    */
   List<ParameterElement> get parameters;
-  
+
   /**
    * Return the type of function defined by this executable element.
    * @return the type of function defined by this executable element
    */
   FunctionType get type;
-  
+
   /**
    * Return {@code true} if this executable element is an operator. The test may be based on the
    * name of the executable element, in which case the result will be correct when the name is
@@ -668,7 +655,7 @@ abstract class ExecutableElement implements Element {
    * @return {@code true} if this executable element is an operator
    */
   bool isOperator();
-  
+
   /**
    * Return {@code true} if this element is a static element. A static element is an element that is
    * not associated with a particular instance, but rather with an entire library or class.
@@ -676,33 +663,31 @@ abstract class ExecutableElement implements Element {
    */
   bool isStatic();
 }
-
 /**
  * The interface {@code ExportElement} defines the behavior of objects representing information
  * about a single export directive within a library.
  * @coverage dart.engine.element
  */
 abstract class ExportElement implements Element, UriReferencedElement {
-  
+
   /**
    * An empty array of export elements.
    */
   static List<ExportElement> EMPTY_ARRAY = new List<ExportElement>(0);
-  
+
   /**
    * Return an array containing the combinators that were specified as part of the export directive
    * in the order in which they were specified.
    * @return the combinators specified in the export directive
    */
   List<NamespaceCombinator> get combinators;
-  
+
   /**
    * Return the library that is exported from this library by this export directive.
    * @return the library that is exported from this library
    */
   LibraryElement get exportedLibrary;
 }
-
 /**
  * The interface {@code ExternalHtmlScriptElement} defines the behavior of elements representing a
  * script tag in an HTML file having a {@code source} attribute that references a Dart library
@@ -710,7 +695,7 @@ abstract class ExportElement implements Element, UriReferencedElement {
  * @coverage dart.engine.element
  */
 abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
-  
+
   /**
    * Return the source referenced by this element, or {@code null} if this element does not
    * reference a Dart library source file.
@@ -718,27 +703,25 @@ abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
    */
   Source get scriptSource;
 }
-
 /**
  * The interface {@code FieldElement} defines the behavior of elements representing a field defined
  * within a type.
  * @coverage dart.engine.element
  */
 abstract class FieldElement implements PropertyInducingElement {
-  
+
   /**
    * Return the type in which this field is defined.
    * @return the type in which this field is defined
    */
   ClassElement get enclosingElement;
 }
-
 /**
  * The interface {@code FieldFormalParameterElement} defines the behavior of elements representing a
  * field formal parameter defined within a constructor element.
  */
 abstract class FieldFormalParameterElement implements ParameterElement {
-  
+
   /**
    * Return the field element associated with this field formal parameter, or {@code null} if the
    * parameter references a field that doesn't exist.
@@ -746,53 +729,50 @@ abstract class FieldFormalParameterElement implements ParameterElement {
    */
   FieldElement get field;
 }
-
 /**
  * The interface {@code FunctionElement} defines the behavior of elements representing a function.
  * @coverage dart.engine.element
  */
 abstract class FunctionElement implements ExecutableElement, LocalElement {
 }
-
 /**
  * The interface {@code FunctionTypeAliasElement} defines the behavior of elements representing a
  * function type alias ({@code typedef}).
  * @coverage dart.engine.element
  */
 abstract class FunctionTypeAliasElement implements Element {
-  
+
   /**
    * Return the compilation unit in which this type alias is defined.
    * @return the compilation unit in which this type alias is defined
    */
   CompilationUnitElement get enclosingElement;
-  
+
   /**
    * Return an array containing all of the parameters defined by this type alias.
    * @return the parameters defined by this type alias
    */
   List<ParameterElement> get parameters;
-  
+
   /**
    * Return the type of function defined by this type alias.
    * @return the type of function defined by this type alias
    */
   FunctionType get type;
-  
+
   /**
    * Return an array containing all of the type variables defined for this type.
    * @return the type variables defined for this type
    */
   List<TypeVariableElement> get typeVariables;
 }
-
 /**
  * The interface {@code HideCombinator} defines the behavior of combinators that cause some of the
  * names in a namespace to be hidden when being imported.
  * @coverage dart.engine.element
  */
 abstract class HideCombinator implements NamespaceCombinator {
-  
+
   /**
    * Return an array containing the names that are not to be made visible in the importing library
    * even if they are defined in the imported library.
@@ -800,13 +780,12 @@ abstract class HideCombinator implements NamespaceCombinator {
    */
   List<String> get hiddenNames;
 }
-
 /**
  * The interface {@code HtmlElement} defines the behavior of elements representing an HTML file.
  * @coverage dart.engine.element
  */
 abstract class HtmlElement implements Element {
-  
+
   /**
    * Return an array containing all of the script elements contained in the HTML file. This includes
    * scripts with libraries that are defined by the content of a script tag as well as libraries
@@ -815,7 +794,6 @@ abstract class HtmlElement implements Element {
    */
   List<HtmlScriptElement> get scripts;
 }
-
 /**
  * The interface {@code HtmlScriptElement} defines the behavior of elements representing a script
  * tag in an HTML file.
@@ -825,32 +803,31 @@ abstract class HtmlElement implements Element {
  */
 abstract class HtmlScriptElement implements Element {
 }
-
 /**
  * The interface {@code ImportElement} defines the behavior of objects representing information
  * about a single import directive within a library.
  * @coverage dart.engine.element
  */
 abstract class ImportElement implements Element, UriReferencedElement {
-  
+
   /**
    * An empty array of import elements.
    */
   static List<ImportElement> EMPTY_ARRAY = new List<ImportElement>(0);
-  
+
   /**
    * Return an array containing the combinators that were specified as part of the import directive
    * in the order in which they were specified.
    * @return the combinators specified in the import directive
    */
   List<NamespaceCombinator> get combinators;
-  
+
   /**
    * Return the library that is imported into this library by this import directive.
    * @return the library that is imported into this library
    */
   LibraryElement get importedLibrary;
-  
+
   /**
    * Return the prefix that was specified as part of the import directive, or {@code null} if there
    * was no prefix specified.
@@ -858,52 +835,50 @@ abstract class ImportElement implements Element, UriReferencedElement {
    */
   PrefixElement get prefix;
 }
-
 /**
  * The interface {@code LabelElement} defines the behavior of elements representing a label
  * associated with a statement.
  * @coverage dart.engine.element
  */
 abstract class LabelElement implements Element {
-  
+
   /**
    * Return the executable element in which this label is defined.
    * @return the executable element in which this label is defined
    */
   ExecutableElement get enclosingElement;
 }
-
 /**
  * The interface {@code LibraryElement} defines the behavior of elements representing a library.
  * @coverage dart.engine.element
  */
 abstract class LibraryElement implements Element {
-  
+
   /**
    * Return the compilation unit that defines this library.
    * @return the compilation unit that defines this library
    */
   CompilationUnitElement get definingCompilationUnit;
-  
+
   /**
    * Return the entry point for this library, or {@code null} if this library does not have an entry
    * point. The entry point is defined to be a zero argument top-level function whose name is{@code main}.
    * @return the entry point for this library
    */
   FunctionElement get entryPoint;
-  
+
   /**
    * Return an array containing all of the libraries that are exported from this library.
    * @return an array containing all of the libraries that are exported from this library
    */
   List<LibraryElement> get exportedLibraries;
-  
+
   /**
    * Return an array containing all of the exports defined in this library.
    * @return the exports defined in this library
    */
   List<ExportElement> get exports;
-  
+
   /**
    * Return an array containing all of the libraries that are imported into this library. This
    * includes all of the libraries that are imported using a prefix (also available through the
@@ -911,27 +886,27 @@ abstract class LibraryElement implements Element {
    * @return an array containing all of the libraries that are imported into this library
    */
   List<LibraryElement> get importedLibraries;
-  
+
   /**
    * Return an array containing all of the imports defined in this library.
    * @return the imports defined in this library
    */
   List<ImportElement> get imports;
-  
+
   /**
    * Return an array containing all of the compilation units that are included in this library using
    * a {@code part} directive. This does not include the defining compilation unit that contains the{@code part} directives.
    * @return the compilation units that are included in this library
    */
   List<CompilationUnitElement> get parts;
-  
+
   /**
    * Return an array containing elements for each of the prefixes used to {@code import} libraries
    * into this library. Each prefix can be used in more than one {@code import} directive.
    * @return the prefixes used to {@code import} libraries into this library
    */
   List<PrefixElement> get prefixes;
-  
+
   /**
    * Return the class defined in this library that has the given name, or {@code null} if this
    * library does not define a class with the given name.
@@ -939,19 +914,19 @@ abstract class LibraryElement implements Element {
    * @return the class with the given name that is defined in this library
    */
   ClassElement getType(String className);
-  
+
   /**
    * Answer {@code true} if this library is an application that can be run in the browser.
    * @return {@code true} if this library is an application that can be run in the browser
    */
   bool isBrowserApplication();
-  
+
   /**
    * Return {@code true} if this library is the dart:core library.
    * @return {@code true} if this library is the dart:core library
    */
   bool isDartCore();
-  
+
   /**
    * Return {@code true} if this library is up to date with respect to the given time stamp. If any
    * transitively referenced Source is newer than the time stamp, this method returns false.
@@ -960,14 +935,13 @@ abstract class LibraryElement implements Element {
    */
   bool isUpToDate2(int timeStamp);
 }
-
 /**
  * The interface {@code LocalElement} defines the behavior of elements that can be (but are not
  * required to be) defined within a method or function (an {@link ExecutableElement}).
  * @coverage dart.engine.element
  */
 abstract class LocalElement implements Element {
-  
+
   /**
    * Return a source range that covers the approximate portion of the source in which the name of
    * this element is visible, or {@code null} if there is no single range of characters within which
@@ -986,7 +960,6 @@ abstract class LocalElement implements Element {
    */
   SourceRange get visibleRange;
 }
-
 /**
  * The interface {@code LocalVariableElement} defines the behavior common to elements that represent
  * a local variable.
@@ -994,20 +967,19 @@ abstract class LocalElement implements Element {
  */
 abstract class LocalVariableElement implements LocalElement, VariableElement {
 }
-
 /**
  * The interface {@code MethodElement} defines the behavior of elements that represent a method
  * defined within a type.
  * @coverage dart.engine.element
  */
 abstract class MethodElement implements ExecutableElement {
-  
+
   /**
    * Return the type in which this method is defined.
    * @return the type in which this method is defined
    */
   ClassElement get enclosingElement;
-  
+
   /**
    * Return {@code true} if this method is abstract. Methods are abstract if they are not external
    * and have no body.
@@ -1015,7 +987,6 @@ abstract class MethodElement implements ExecutableElement {
    */
   bool isAbstract();
 }
-
 /**
  * The interface {@code MultiplyDefinedElement} defines the behavior of pseudo-elements that
  * represent multiple elements defined within a single scope that have the same name. This situation
@@ -1025,7 +996,7 @@ abstract class MethodElement implements ExecutableElement {
  * @coverage dart.engine.element
  */
 abstract class MultiplyDefinedElement implements Element {
-  
+
   /**
    * Return an array containing all of the elements that were defined within the scope to have the
    * same name.
@@ -1033,67 +1004,63 @@ abstract class MultiplyDefinedElement implements Element {
    */
   List<Element> get conflictingElements;
 }
-
 /**
  * The interface {@code NamespaceCombinator} defines the behavior common to objects that control how
  * namespaces are combined.
  * @coverage dart.engine.element
  */
 abstract class NamespaceCombinator {
-  
+
   /**
    * An empty array of namespace combinators.
    */
   static List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>(0);
 }
-
 /**
  * The interface {@code ParameterElement} defines the behavior of elements representing a parameter
  * defined within an executable element.
  * @coverage dart.engine.element
  */
 abstract class ParameterElement implements LocalElement, VariableElement {
-  
+
   /**
    * Return the kind of this parameter.
    * @return the kind of this parameter
    */
   ParameterKind get parameterKind;
-  
+
   /**
    * Return an array containing all of the parameters defined by this parameter. A parameter will
    * only define other parameters if it is a function typed parameter.
    * @return the parameters defined by this parameter element
    */
   List<ParameterElement> get parameters;
-  
+
   /**
    * Return {@code true} if this parameter is an initializing formal parameter.
    * @return {@code true} if this parameter is an initializing formal parameter
    */
   bool isInitializingFormal();
 }
-
 /**
  * The interface {@code PrefixElement} defines the behavior common to elements that represent a
  * prefix used to import one or more libraries into another library.
  * @coverage dart.engine.element
  */
 abstract class PrefixElement implements Element {
-  
+
   /**
    * Return the library into which other libraries are imported using this prefix.
    * @return the library into which other libraries are imported using this prefix
    */
   LibraryElement get enclosingElement;
-  
+
   /**
    * Return an array containing all of the libraries that are imported using this prefix.
    * @return the libraries that are imported using this prefix
    */
   List<LibraryElement> get importedLibraries;
 }
-
 /**
  * The interface {@code PropertyAccessorElement} defines the behavior of elements representing a
  * getter or a setter. Note that explicitly defined property accessors implicitly define a synthetic
@@ -1110,7 +1077,7 @@ abstract class PrefixElement implements Element {
  * @coverage dart.engine.element
  */
 abstract class PropertyAccessorElement implements ExecutableElement {
-  
+
   /**
    * Return the accessor representing the getter that corresponds to (has the same name as) this
    * setter, or {@code null} if this accessor is not a setter or if there is no corresponding
@@ -1118,7 +1085,7 @@ abstract class PropertyAccessorElement implements ExecutableElement {
    * @return the getter that corresponds to this setter
    */
   PropertyAccessorElement get correspondingGetter;
-  
+
   /**
    * Return the accessor representing the setter that corresponds to (has the same name as) this
    * getter, or {@code null} if this accessor is not a getter or if there is no corresponding
@@ -1126,34 +1093,33 @@ abstract class PropertyAccessorElement implements ExecutableElement {
    * @return the setter that corresponds to this getter
    */
   PropertyAccessorElement get correspondingSetter;
-  
+
   /**
    * Return the field or top-level variable associated with this accessor. If this accessor was
    * explicitly defined (is not synthetic) then the variable associated with it will be synthetic.
    * @return the variable associated with this accessor
    */
   PropertyInducingElement get variable;
-  
+
   /**
    * Return {@code true} if this accessor is abstract. Accessors are abstract if they are not
    * external and have no body.
    * @return {@code true} if this accessor is abstract
    */
   bool isAbstract();
-  
+
   /**
    * Return {@code true} if this accessor represents a getter.
    * @return {@code true} if this accessor represents a getter
    */
   bool isGetter();
-  
+
   /**
    * Return {@code true} if this accessor represents a setter.
    * @return {@code true} if this accessor represents a setter
    */
   bool isSetter();
 }
-
 /**
  * The interface {@code PropertyInducingElement} defines the behavior of elements representing a
  * variable that has an associated getter and possibly a setter. Note that explicitly defined
@@ -1171,14 +1137,14 @@ abstract class PropertyAccessorElement implements ExecutableElement {
  * @coverage dart.engine.element
  */
 abstract class PropertyInducingElement implements VariableElement {
-  
+
   /**
    * Return the getter associated with this variable. If this variable was explicitly defined (is
    * not synthetic) then the getter associated with it will be synthetic.
    * @return the getter associated with this variable
    */
   PropertyAccessorElement get getter;
-  
+
   /**
    * Return the setter associated with this variable, or {@code null} if the variable is effectively{@code final} and therefore does not have a setter associated with it. (This can happen either
    * because the variable is explicitly defined as being {@code final} or because the variable is
@@ -1187,7 +1153,7 @@ abstract class PropertyInducingElement implements VariableElement {
    * @return the setter associated with this variable
    */
   PropertyAccessorElement get setter;
-  
+
   /**
    * Return {@code true} if this element is a static element. A static element is an element that is
    * not associated with a particular instance, but rather with an entire library or class.
@@ -1195,14 +1161,13 @@ abstract class PropertyInducingElement implements VariableElement {
    */
   bool isStatic();
 }
-
 /**
  * The interface {@code ShowCombinator} defines the behavior of combinators that cause some of the
  * names in a namespace to be visible (and the rest hidden) when being imported.
  * @coverage dart.engine.element
  */
 abstract class ShowCombinator implements NamespaceCombinator {
-  
+
   /**
    * Return an array containing the names that are to be made visible in the importing library if
    * they are defined in the imported library.
@@ -1210,7 +1175,6 @@ abstract class ShowCombinator implements NamespaceCombinator {
    */
   List<String> get shownNames;
 }
-
 /**
  * The interface {@code TopLevelVariableElement} defines the behavior of elements representing a
  * top-level variable.
@@ -1218,28 +1182,26 @@ abstract class ShowCombinator implements NamespaceCombinator {
  */
 abstract class TopLevelVariableElement implements PropertyInducingElement {
 }
-
 /**
  * The interface {@code TypeVariableElement} defines the behavior of elements representing a type
  * variable.
  * @coverage dart.engine.element
  */
 abstract class TypeVariableElement implements Element {
-  
+
   /**
    * Return the type representing the bound associated with this variable, or {@code null} if this
    * variable does not have an explicit bound.
    * @return the type representing the bound associated with this variable
    */
   Type2 get bound;
-  
+
   /**
    * Return the type defined by this type variable.
    * @return the type defined by this type variable
    */
   TypeVariableType get type;
 }
-
 /**
  * The interface {@code UndefinedElement} defines the behavior of pseudo-elements that represent
  * names that are undefined. This situation is not allowed by the language, so objects implementing
@@ -1249,28 +1211,26 @@ abstract class TypeVariableElement implements Element {
  */
 abstract class UndefinedElement implements Element {
 }
-
 /**
  * The interface {@code UriReferencedElement} defines the behavior of objects included into a
  * library using some URI.
  * @coverage dart.engine.element
  */
 abstract class UriReferencedElement implements Element {
-  
+
   /**
    * Return the URI that is used to include this element into the enclosing library, or {@code null}if this is the defining compilation unit of a library.
    * @return the URI that is used to include this element into the enclosing library
    */
   String get uri;
 }
-
 /**
  * The interface {@code VariableElement} defines the behavior common to elements that represent a
  * variable.
  * @coverage dart.engine.element
  */
 abstract class VariableElement implements Element {
-  
+
   /**
    * Return a synthetic function representing this variable's initializer, or {@code null} if this
    * variable does not have an initializer. The function will have no parameters. The return type of
@@ -1278,20 +1238,20 @@ abstract class VariableElement implements Element {
    * @return a synthetic function representing this variable's initializer
    */
   FunctionElement get initializer;
-  
+
   /**
    * Return the declared type of this variable, or {@code null} if the variable did not have a
    * declared type (such as if it was declared using the keyword 'var').
    * @return the declared type of this variable
    */
   Type2 get type;
-  
+
   /**
    * Return {@code true} if this variable was declared with the 'const' modifier.
    * @return {@code true} if this variable was declared with the 'const' modifier
    */
   bool isConst();
-  
+
   /**
    * Return {@code true} if this variable was declared with the 'final' modifier. Variables that are
    * declared with the 'const' modifier will return {@code false} even though they are implicitly
@@ -1300,7 +1260,6 @@ abstract class VariableElement implements Element {
    */
   bool isFinal();
 }
-
 /**
  * Instances of the class {@code GeneralizingElementVisitor} implement an element visitor that will
  * recursively visit all of the elements in an element model (like instances of the class{@link RecursiveElementVisitor}). In addition, when an element of a specific type is visited not
@@ -1394,7 +1353,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitTypeVariableElement(TypeVariableElement element) => visitElement(element);
   R visitVariableElement(VariableElement element) => visitElement(element);
 }
-
 /**
  * Instances of the class {@code RecursiveElementVisitor} implement an element visitor that will
  * recursively visit all of the element in an element model. For example, using an instance of this
@@ -1496,7 +1454,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 }
-
 /**
  * Instances of the class {@code SimpleElementVisitor} implement an element visitor that will do
  * nothing when visiting an element. It is intended to be a superclass for classes that use the
@@ -1528,23 +1485,22 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
   R visitTypeVariableElement(TypeVariableElement element) => null;
 }
-
 /**
  * Instances of the class {@code AnnotationImpl} implement an {@link Annotation}.
  * @coverage dart.engine.element
  */
 class AnnotationImpl implements Annotation {
-  
+
   /**
    * The element representing the field, variable, or constructor being used as an annotation.
    */
   Element _element;
-  
+
   /**
    * An empty array of annotations.
    */
   static List<AnnotationImpl> EMPTY_ARRAY = new List<AnnotationImpl>(0);
-  
+
   /**
    * Initialize a newly created annotation.
    * @param element the element representing the field, variable, or constructor being used as an
@@ -1556,64 +1512,63 @@ class AnnotationImpl implements Annotation {
   Element get element => _element;
   String toString() => "@${_element.toString()}";
 }
-
 /**
  * Instances of the class {@code ClassElementImpl} implement a {@code ClassElement}.
  * @coverage dart.engine.element
  */
 class ClassElementImpl extends ElementImpl implements ClassElement {
-  
+
   /**
    * An array containing all of the accessors (getters and setters) contained in this class.
    */
   List<PropertyAccessorElement> _accessors = PropertyAccessorElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the constructors contained in this class.
    */
   List<ConstructorElement> _constructors = ConstructorElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the fields contained in this class.
    */
   List<FieldElement> _fields = FieldElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the mixins that are applied to the class being extended in order to
    * derive the superclass of this class.
    */
   List<InterfaceType> _mixins = InterfaceTypeImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the interfaces that are implemented by this class.
    */
   List<InterfaceType> _interfaces = InterfaceTypeImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the methods contained in this class.
    */
   List<MethodElement> _methods = MethodElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * The superclass of the class, or {@code null} if the class does not have an explicit superclass.
    */
   InterfaceType _supertype;
-  
+
   /**
    * The type defined by the class.
    */
   InterfaceType _type;
-  
+
   /**
    * An array containing all of the type variables defined for this class.
    */
   List<TypeVariableElement> _typeVariables = TypeVariableElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An empty array of type elements.
    */
   static List<ClassElement> EMPTY_ARRAY = new List<ClassElement>(0);
-  
+
   /**
    * Initialize a newly created class element to have the given name.
    * @param name the name of this element
@@ -1656,7 +1611,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
   List<ConstructorElement> get constructors => _constructors;
-  
+
   /**
    * Given some name, this returns the {@link FieldElement} with the matching name, if there is no
    * such field, then {@code null} is returned.
@@ -1833,7 +1788,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     return null;
   }
-  
+
   /**
    * Set whether this class is abstract to correspond to the given value.
    * @param isAbstract {@code true} if the class is abstract
@@ -1841,7 +1796,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   void set abstract(bool isAbstract) {
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
-  
+
   /**
    * Set the accessors contained in this class to the given accessors.
    * @param accessors the accessors contained in this class
@@ -1852,7 +1807,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     this._accessors = accessors2;
   }
-  
+
   /**
    * Set the constructors contained in this class to the given constructors.
    * @param constructors the constructors contained in this class
@@ -1863,7 +1818,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     this._constructors = constructors2;
   }
-  
+
   /**
    * Set the fields contained in this class to the given fields.
    * @param fields the fields contained in this class
@@ -1874,7 +1829,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     this._fields = fields2;
   }
-  
+
   /**
    * Set whether this class references 'super' to the given value.
    * @param isReferencedSuper {@code true} references 'super'
@@ -1882,7 +1837,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   void set hasReferenceToSuper2(bool isReferencedSuper) {
     setModifier(Modifier.REFERENCES_SUPER, isReferencedSuper);
   }
-  
+
   /**
    * Set the interfaces that are implemented by this class to the given types.
    * @param the interfaces that are implemented by this class
@@ -1890,7 +1845,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   void set interfaces(List<InterfaceType> interfaces2) {
     this._interfaces = interfaces2;
   }
-  
+
   /**
    * Set the methods contained in this class to the given methods.
    * @param methods the methods contained in this class
@@ -1901,7 +1856,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     this._methods = methods2;
   }
-  
+
   /**
    * Set the mixins that are applied to the class being extended in order to derive the superclass
    * of this class to the given types.
@@ -1910,7 +1865,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   void set mixins(List<InterfaceType> mixins2) {
     this._mixins = mixins2;
   }
-  
+
   /**
    * Set the superclass of the class to the given type.
    * @param supertype the superclass of the class
@@ -1918,7 +1873,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   void set supertype(InterfaceType supertype2) {
     this._supertype = supertype2;
   }
-  
+
   /**
    * Set the type defined by the class to the given type.
    * @param type the type defined by the class
@@ -1926,7 +1881,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   void set type(InterfaceType type2) {
     this._type = type2;
   }
-  
+
   /**
    * Set whether this class is defined by a typedef construct to correspond to the given value.
    * @param isTypedef {@code true} if the class is defined by a typedef construct
@@ -1934,7 +1889,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   void set typedef(bool isTypedef) {
     setModifier(Modifier.TYPEDEF, isTypedef);
   }
-  
+
   /**
    * Set the type variables defined for this class to the given type variables.
    * @param typeVariables the type variables defined for this class
@@ -1945,7 +1900,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     this._typeVariables = typeVariables2;
   }
-  
+
   /**
    * Set whether this class is a valid mixin to correspond to the given value.
    * @param isValidMixin {@code true} if this class can be used as a mixin
@@ -2009,55 +1964,54 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 }
-
 /**
  * Instances of the class {@code CompilationUnitElementImpl} implement a{@link CompilationUnitElement}.
  * @coverage dart.engine.element
  */
 class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitElement {
-  
+
   /**
    * An empty array of compilation unit elements.
    */
   static List<CompilationUnitElement> EMPTY_ARRAY = new List<CompilationUnitElement>(0);
-  
+
   /**
    * An array containing all of the top-level accessors (getters and setters) contained in this
    * compilation unit.
    */
   List<PropertyAccessorElement> _accessors = PropertyAccessorElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the top-level functions contained in this compilation unit.
    */
   List<FunctionElement> _functions = FunctionElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the variables contained in this compilation unit.
    */
   List<TopLevelVariableElement> _variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * The source that corresponds to this compilation unit.
    */
   Source _source;
-  
+
   /**
    * An array containing all of the function type aliases contained in this compilation unit.
    */
   List<FunctionTypeAliasElement> _typeAliases = FunctionTypeAliasElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the types contained in this compilation unit.
    */
   List<ClassElement> _types = ClassElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * The URI that is specified by the "part" directive in the enclosing library, or {@code null} if
    * this is the defining compilation unit of a library.
    */
   String _uri;
-  
+
   /**
    * Initialize a newly created compilation unit element to have the given name.
    * @param name the name of this element
@@ -2113,7 +2067,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   List<ClassElement> get types => _types;
   String get uri => _uri;
   int get hashCode => _source.hashCode;
-  
+
   /**
    * Set the top-level accessors (getters and setters) contained in this compilation unit to the
    * given accessors.
@@ -2125,7 +2079,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     }
     this._accessors = accessors2;
   }
-  
+
   /**
    * Set the top-level functions contained in this compilation unit to the given functions.
    * @param functions the top-level functions contained in this compilation unit
@@ -2136,7 +2090,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     }
     this._functions = functions2;
   }
-  
+
   /**
    * Set the source that corresponds to this compilation unit to the given source.
    * @param source the source that corresponds to this compilation unit
@@ -2144,7 +2098,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
   void set source(Source source2) {
     this._source = source2;
   }
-  
+
   /**
    * Set the top-level variables contained in this compilation unit to the given variables.
    * @param variables the top-level variables contained in this compilation unit
@@ -2155,7 +2109,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     }
     this._variables = variables2;
   }
-  
+
   /**
    * Set the function type aliases contained in this compilation unit to the given type aliases.
    * @param typeAliases the function type aliases contained in this compilation unit
@@ -2166,7 +2120,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     }
     this._typeAliases = typeAliases2;
   }
-  
+
   /**
    * Set the types contained in this compilation unit to the given types.
    * @param types types contained in this compilation unit
@@ -2177,7 +2131,7 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     }
     this._types = types2;
   }
-  
+
   /**
    * Set the URI that is specified by the "part" directive in the enclosing library.
    * @param uri the URI that is specified by the "part" directive in the enclosing library.
@@ -2201,18 +2155,17 @@ class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitE
     }
   }
 }
-
 /**
  * Instances of the class {@code ConstFieldElementImpl} implement a {@code FieldElement} for a
  * 'const' field that has an initializer.
  */
 class ConstFieldElementImpl extends FieldElementImpl {
-  
+
   /**
    * The result of evaluating this variable's initializer.
    */
   EvaluationResultImpl _result;
-  
+
   /**
    * Initialize a newly created field element to have the given name.
    * @param name the name of this element
@@ -2224,18 +2177,17 @@ class ConstFieldElementImpl extends FieldElementImpl {
     this._result = result2;
   }
 }
-
 /**
  * Instances of the class {@code ConstLocalVariableElementImpl} implement a{@code LocalVariableElement} for a local 'const' variable that has an initializer.
  * @coverage dart.engine.element
  */
 class ConstLocalVariableElementImpl extends LocalVariableElementImpl {
-  
+
   /**
    * The result of evaluating this variable's initializer.
    */
   EvaluationResultImpl _result;
-  
+
   /**
    * Initialize a newly created local variable element to have the given name.
    * @param name the name of this element
@@ -2247,19 +2199,18 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl {
     this._result = result2;
   }
 }
-
 /**
  * Instances of the class {@code ConstParameterElementImpl} implement a {@code ParameterElement} for
  * a 'const' parameter that has an initializer.
  * @coverage dart.engine.element
  */
 class ConstParameterElementImpl extends ParameterElementImpl {
-  
+
   /**
    * The result of evaluating this variable's initializer.
    */
   EvaluationResultImpl _result;
-  
+
   /**
    * Initialize a newly created parameter element to have the given name.
    * @param name the name of this element
@@ -2271,17 +2222,16 @@ class ConstParameterElementImpl extends ParameterElementImpl {
     this._result = result2;
   }
 }
-
 /**
  * Instances of the class {@code ConstTopLevelVariableElementImpl} implement a{@code TopLevelVariableElement} for a top-level 'const' variable that has an initializer.
  */
 class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
-  
+
   /**
    * The result of evaluating this variable's initializer.
    */
   EvaluationResultImpl _result;
-  
+
   /**
    * Initialize a newly created top-level variable element to have the given name.
    * @param name the name of this element
@@ -2293,23 +2243,22 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl {
     this._result = result2;
   }
 }
-
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.
  * @coverage dart.engine.element
  */
 class ConstructorElementImpl extends ExecutableElementImpl implements ConstructorElement {
-  
+
   /**
    * An empty array of constructor elements.
    */
   static List<ConstructorElement> EMPTY_ARRAY = new List<ConstructorElement>(0);
-  
+
   /**
    * The constructor to which this constructor is redirecting.
    */
   ConstructorElement _redirectedConstructor;
-  
+
   /**
    * Initialize a newly created constructor element to have the given name.
    * @param name the name of this element
@@ -2323,7 +2272,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   bool isConst() => hasModifier(Modifier.CONST);
   bool isFactory() => hasModifier(Modifier.FACTORY);
   bool isStatic() => false;
-  
+
   /**
    * Set whether this constructor represents a 'const' constructor to the given value.
    * @param isConst {@code true} if this constructor represents a 'const' constructor
@@ -2331,7 +2280,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   void set const2(bool isConst) {
     setModifier(Modifier.CONST, isConst);
   }
-  
+
   /**
    * Set whether this constructor represents a factory method to the given value.
    * @param isFactory {@code true} if this constructor represents a factory method
@@ -2339,7 +2288,7 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   void set factory(bool isFactory) {
     setModifier(Modifier.FACTORY, isFactory);
   }
-  
+
   /**
    * Sets the constructor to which this constructor is redirecting.
    * @param redirectedConstructor the constructor to which this constructor is redirecting
@@ -2357,25 +2306,24 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
     super.appendTo(builder);
   }
 }
-
 /**
  * Instances of the class {@code DynamicElementImpl} represent the synthetic element representing
  * the declaration of the type {@code dynamic}.
  * @coverage dart.engine.element
  */
 class DynamicElementImpl extends ElementImpl {
-  
+
   /**
    * Return the unique instance of this class.
    * @return the unique instance of this class
    */
   static DynamicElementImpl get instance => DynamicTypeImpl.instance.element as DynamicElementImpl;
-  
+
   /**
    * The type defined by this element.
    */
   DynamicTypeImpl _type;
-  
+
   /**
    * Initialize a newly created instance of this class. Instances of this class should <b>not</b> be
    * created except as part of creating the type associated with this element. The single instance
@@ -2386,13 +2334,13 @@ class DynamicElementImpl extends ElementImpl {
   }
   accept(ElementVisitor visitor) => null;
   ElementKind get kind => ElementKind.DYNAMIC;
-  
+
   /**
    * Return the type defined by this element.
    * @return the type defined by this element
    */
   DynamicTypeImpl get type => _type;
-  
+
   /**
    * Set the type defined by this element to the given type.
    * @param type the type defined by this element
@@ -2401,57 +2349,56 @@ class DynamicElementImpl extends ElementImpl {
     this._type = type2;
   }
 }
-
 /**
  * The abstract class {@code ElementImpl} implements the behavior common to objects that implement
  * an {@link Element}.
  * @coverage dart.engine.element
  */
 abstract class ElementImpl implements Element {
-  
+
   /**
    * The enclosing element of this element, or {@code null} if this element is at the root of the
    * element structure.
    */
   ElementImpl _enclosingElement;
-  
+
   /**
    * The name of this element.
    */
   String _name;
-  
+
   /**
    * The offset of the name of this element in the file that contains the declaration of this
    * element.
    */
   int _nameOffset = 0;
-  
+
   /**
    * A bit-encoded form of the modifiers associated with this element.
    */
   Set<Modifier> _modifiers;
-  
+
   /**
    * An array containing all of the metadata associated with this element.
    */
   List<Annotation> _metadata = AnnotationImpl.EMPTY_ARRAY;
-  
+
   /**
    * A cached copy of the calculated hashCode for this element.
    */
   int _cachedHashCode = 0;
-  
+
   /**
    * Initialize a newly created element to have the given name.
    * @param name the name of this element
    */
   ElementImpl.con1(Identifier name2) {
-    _jtd_constructor_193_impl(name2);
+    _jtd_constructor_194_impl(name2);
   }
-  _jtd_constructor_193_impl(Identifier name2) {
-    _jtd_constructor_194_impl(name2 == null ? "" : name2.name, name2 == null ? -1 : name2.offset);
+  _jtd_constructor_194_impl(Identifier name2) {
+    _jtd_constructor_195_impl(name2 == null ? "" : name2.name, name2 == null ? -1 : name2.offset);
   }
-  
+
   /**
    * Initialize a newly created element to have the given name.
    * @param name the name of this element
@@ -2459,9 +2406,9 @@ abstract class ElementImpl implements Element {
    * declaration of this element
    */
   ElementImpl.con2(String name2, int nameOffset2) {
-    _jtd_constructor_194_impl(name2, nameOffset2);
+    _jtd_constructor_195_impl(name2, nameOffset2);
   }
-  _jtd_constructor_194_impl(String name2, int nameOffset2) {
+  _jtd_constructor_195_impl(String name2, int nameOffset2) {
     this._name = StringUtilities.intern(name2);
     this._nameOffset = nameOffset2;
   }
@@ -2480,7 +2427,7 @@ abstract class ElementImpl implements Element {
     }
     return ancestor as Element;
   }
-  
+
   /**
    * Return the child of this element that is uniquely identified by the given identifier, or{@code null} if there is no such child.
    * @param identifier the identifier used to select a child
@@ -2519,7 +2466,7 @@ abstract class ElementImpl implements Element {
     return true;
   }
   bool isSynthetic() => hasModifier(Modifier.SYNTHETIC);
-  
+
   /**
    * Set the metadata associate with this element to the given array of annotations.
    * @param metadata the metadata to be associated with this element
@@ -2527,7 +2474,7 @@ abstract class ElementImpl implements Element {
   void set metadata(List<Annotation> metadata2) {
     this._metadata = metadata2;
   }
-  
+
   /**
    * Set the offset of the name of this element in the file that contains the declaration of this
    * element to the given value. This is normally done via the constructor, but this method is
@@ -2537,7 +2484,7 @@ abstract class ElementImpl implements Element {
   void set nameOffset(int nameOffset2) {
     this._nameOffset = nameOffset2;
   }
-  
+
   /**
    * Set whether this element is synthetic to correspond to the given value.
    * @param isSynthetic {@code true} if the element is synthetic
@@ -2552,7 +2499,7 @@ abstract class ElementImpl implements Element {
   }
   void visitChildren(ElementVisitor<Object> visitor) {
   }
-  
+
   /**
    * Append a textual representation of this type to the given builder.
    * @param builder the builder to which the text is to be appended
@@ -2566,21 +2513,21 @@ abstract class ElementImpl implements Element {
       builder.append(_name);
     }
   }
-  
+
   /**
    * Return an identifier that uniquely identifies this element among the children of this element's
    * parent.
    * @return an identifier that uniquely identifies this element relative to its parent
    */
   String get identifier => name;
-  
+
   /**
    * Return {@code true} if this element has the given modifier associated with it.
    * @param modifier the modifier being tested for
    * @return {@code true} if this element has the given modifier associated with it
    */
   bool hasModifier(Modifier modifier) => _modifiers != null && _modifiers.contains(modifier);
-  
+
   /**
    * If the given child is not {@code null}, use the given visitor to visit it.
    * @param child the child to be visited
@@ -2591,7 +2538,7 @@ abstract class ElementImpl implements Element {
       child.accept(visitor);
     }
   }
-  
+
   /**
    * Use the given visitor to visit all of the children in the given array.
    * @param children the children to be visited
@@ -2604,7 +2551,7 @@ abstract class ElementImpl implements Element {
       }
     }
   }
-  
+
   /**
    * Set the enclosing element of this element to the given element.
    * @param element the enclosing element of this element
@@ -2612,7 +2559,7 @@ abstract class ElementImpl implements Element {
   void set enclosingElement(ElementImpl element) {
     _enclosingElement = element;
   }
-  
+
   /**
    * Set whether the given modifier is associated with this element to correspond to the given
    * value.
@@ -2635,31 +2582,30 @@ abstract class ElementImpl implements Element {
     }
   }
 }
-
 /**
  * Instances of the class {@code ElementLocationImpl} implement an {@link ElementLocation}.
  * @coverage dart.engine.element
  */
 class ElementLocationImpl implements ElementLocation {
-  
+
   /**
    * The path to the element whose location is represented by this object.
    */
   List<String> _components;
-  
+
   /**
    * The character used to separate components in the encoded form.
    */
   static int _SEPARATOR_CHAR = 0x3B;
-  
+
   /**
    * Initialize a newly created location to represent the given element.
    * @param element the element whose location is being represented
    */
   ElementLocationImpl.con1(Element element) {
-    _jtd_constructor_195_impl(element);
+    _jtd_constructor_196_impl(element);
   }
-  _jtd_constructor_195_impl(Element element) {
+  _jtd_constructor_196_impl(Element element) {
     List<String> components = new List<String>();
     Element ancestor = element;
     while (ancestor != null) {
@@ -2668,15 +2614,15 @@ class ElementLocationImpl implements ElementLocation {
     }
     this._components = new List.from(components);
   }
-  
+
   /**
    * Initialize a newly created location from the given encoded form.
    * @param encoding the encoded form of a location
    */
   ElementLocationImpl.con2(String encoding) {
-    _jtd_constructor_196_impl(encoding);
+    _jtd_constructor_197_impl(encoding);
   }
-  _jtd_constructor_196_impl(String encoding) {
+  _jtd_constructor_197_impl(String encoding) {
     this._components = decode(encoding);
   }
   bool operator ==(Object object) {
@@ -2686,7 +2632,7 @@ class ElementLocationImpl implements ElementLocation {
     ElementLocationImpl location = object as ElementLocationImpl;
     return JavaArrays.equals(_components, location._components);
   }
-  
+
   /**
    * Return the path to the element whose location is represented by this object.
    * @return the path to the element whose location is represented by this object
@@ -2705,7 +2651,7 @@ class ElementLocationImpl implements ElementLocation {
   }
   int get hashCode => JavaArrays.makeHashCode(_components);
   String toString() => encoding;
-  
+
   /**
    * Decode the encoded form of a location into an array of components.
    * @param encoding the encoded form of a location
@@ -2737,7 +2683,7 @@ class ElementLocationImpl implements ElementLocation {
     }
     return new List.from(components);
   }
-  
+
   /**
    * Append an encoded form of the given component to the given builder.
    * @param builder the builder to which the encoded component is to be appended
@@ -2754,18 +2700,17 @@ class ElementLocationImpl implements ElementLocation {
     }
   }
 }
-
 /**
  * Instances of the class {@code EmbeddedHtmlScriptElementImpl} implement an{@link EmbeddedHtmlScriptElement}.
  * @coverage dart.engine.element
  */
 class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements EmbeddedHtmlScriptElement {
-  
+
   /**
    * The library defined by the script tag's content.
    */
   LibraryElement _scriptLibrary;
-  
+
   /**
    * Initialize a newly created script element to have the specified tag name and offset.
    * @param node the XML node from which this element is derived (not {@code null})
@@ -2775,7 +2720,7 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements Emb
   accept(ElementVisitor visitor) => visitor.visitEmbeddedHtmlScriptElement(this);
   ElementKind get kind => ElementKind.EMBEDDED_HTML_SCRIPT;
   LibraryElement get scriptLibrary => _scriptLibrary;
-  
+
   /**
    * Set the script library defined by the script tag's content.
    * @param scriptLibrary the library or {@code null} if none
@@ -2788,53 +2733,52 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements Emb
     safelyVisitChild(_scriptLibrary, visitor);
   }
 }
-
 /**
  * The abstract class {@code ExecutableElementImpl} implements the behavior common to{@code ExecutableElement}s.
  * @coverage dart.engine.element
  */
 abstract class ExecutableElementImpl extends ElementImpl implements ExecutableElement {
-  
+
   /**
    * An array containing all of the functions defined within this executable element.
    */
   List<FunctionElement> _functions = FunctionElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the labels defined within this executable element.
    */
   List<LabelElement> _labels = LabelElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the local variables defined within this executable element.
    */
   List<LocalVariableElement> _localVariables = LocalVariableElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the parameters defined by this executable element.
    */
   List<ParameterElement> _parameters = ParameterElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * The type of function defined by this executable element.
    */
   FunctionType _type;
-  
+
   /**
    * An empty array of executable elements.
    */
   static List<ExecutableElement> EMPTY_ARRAY = new List<ExecutableElement>(0);
-  
+
   /**
    * Initialize a newly created executable element to have the given name.
    * @param name the name of this element
    */
   ExecutableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_198_impl(name);
+    _jtd_constructor_199_impl(name);
   }
-  _jtd_constructor_198_impl(Identifier name) {
+  _jtd_constructor_199_impl(Identifier name) {
   }
-  
+
   /**
    * Initialize a newly created executable element to have the given name.
    * @param name the name of this element
@@ -2842,9 +2786,9 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
    * declaration of this element
    */
   ExecutableElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_199_impl(name, nameOffset);
+    _jtd_constructor_200_impl(name, nameOffset);
   }
-  _jtd_constructor_199_impl(String name, int nameOffset) {
+  _jtd_constructor_200_impl(String name, int nameOffset) {
   }
   ElementImpl getChild(String identifier2) {
     for (ExecutableElement function in _functions) {
@@ -2875,7 +2819,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   List<ParameterElement> get parameters => _parameters;
   FunctionType get type => _type;
   bool isOperator() => false;
-  
+
   /**
    * Set the functions defined within this executable element to the given functions.
    * @param functions the functions defined within this executable element
@@ -2886,7 +2830,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     }
     this._functions = functions2;
   }
-  
+
   /**
    * Set the labels defined within this executable element to the given labels.
    * @param labels the labels defined within this executable element
@@ -2897,7 +2841,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     }
     this._labels = labels2;
   }
-  
+
   /**
    * Set the local variables defined within this executable element to the given variables.
    * @param localVariables the local variables defined within this executable element
@@ -2908,7 +2852,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     }
     this._localVariables = localVariables2;
   }
-  
+
   /**
    * Set the parameters defined by this executable element to the given parameters.
    * @param parameters the parameters defined by this executable element
@@ -2919,7 +2863,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     }
     this._parameters = parameters2;
   }
-  
+
   /**
    * Set the type of function defined by this executable element to the given type.
    * @param type the type of function defined by this executable element
@@ -2950,29 +2894,28 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
     }
   }
 }
-
 /**
  * Instances of the class {@code ExportElementImpl} implement an {@link ExportElement}.
  * @coverage dart.engine.element
  */
 class ExportElementImpl extends ElementImpl implements ExportElement {
-  
+
   /**
    * The URI that is specified by this directive.
    */
   String _uri;
-  
+
   /**
    * The library that is exported from this library by this export directive.
    */
   LibraryElement _exportedLibrary;
-  
+
   /**
    * The combinators that were specified as part of the export directive in the order in which they
    * were specified.
    */
   List<NamespaceCombinator> _combinators = NamespaceCombinator.EMPTY_ARRAY;
-  
+
   /**
    * Initialize a newly created export element.
    */
@@ -2983,7 +2926,7 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
   LibraryElement get exportedLibrary => _exportedLibrary;
   ElementKind get kind => ElementKind.EXPORT;
   String get uri => _uri;
-  
+
   /**
    * Set the combinators that were specified as part of the export directive to the given array of
    * combinators.
@@ -2992,7 +2935,7 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
   void set combinators(List<NamespaceCombinator> combinators2) {
     this._combinators = combinators2;
   }
-  
+
   /**
    * Set the library that is exported from this library by this import directive to the given
    * library.
@@ -3001,7 +2944,7 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
   void set exportedLibrary(LibraryElement exportedLibrary2) {
     this._exportedLibrary = exportedLibrary2;
   }
-  
+
   /**
    * Set the URI that is specified by this directive.
    * @param uri the URI that is specified by this directive.
@@ -3015,18 +2958,17 @@ class ExportElementImpl extends ElementImpl implements ExportElement {
   }
   String get identifier => _exportedLibrary.name;
 }
-
 /**
  * Instances of the class {@code ExternalHtmlScriptElementImpl} implement an{@link ExternalHtmlScriptElement}.
  * @coverage dart.engine.element
  */
 class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements ExternalHtmlScriptElement {
-  
+
   /**
    * The source specified in the {@code source} attribute or {@code null} if unspecified.
    */
   Source _scriptSource;
-  
+
   /**
    * Initialize a newly created script element to have the specified tag name and offset.
    * @param node the XML node from which this element is derived (not {@code null})
@@ -3036,7 +2978,7 @@ class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements Ext
   accept(ElementVisitor visitor) => visitor.visitExternalHtmlScriptElement(this);
   ElementKind get kind => ElementKind.EXTERNAL_HTML_SCRIPT;
   Source get scriptSource => _scriptSource;
-  
+
   /**
    * Set the source specified in the {@code source} attribute.
    * @param scriptSource the script source or {@code null} if unspecified
@@ -3045,42 +2987,41 @@ class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements Ext
     this._scriptSource = scriptSource2;
   }
 }
-
 /**
  * Instances of the class {@code FieldElementImpl} implement a {@code FieldElement}.
  * @coverage dart.engine.element
  */
 class FieldElementImpl extends PropertyInducingElementImpl implements FieldElement {
-  
+
   /**
    * An empty array of field elements.
    */
   static List<FieldElement> EMPTY_ARRAY = new List<FieldElement>(0);
-  
+
   /**
    * Initialize a newly created field element to have the given name.
    * @param name the name of this element
    */
   FieldElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_202_impl(name);
+    _jtd_constructor_203_impl(name);
   }
-  _jtd_constructor_202_impl(Identifier name) {
+  _jtd_constructor_203_impl(Identifier name) {
   }
-  
+
   /**
    * Initialize a newly created synthetic field element to have the given name.
    * @param name the name of this element
    */
   FieldElementImpl.con2(String name) : super.con2(name) {
-    _jtd_constructor_203_impl(name);
+    _jtd_constructor_204_impl(name);
   }
-  _jtd_constructor_203_impl(String name) {
+  _jtd_constructor_204_impl(String name) {
   }
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
   ElementKind get kind => ElementKind.FIELD;
   bool isStatic() => hasModifier(Modifier.STATIC);
-  
+
   /**
    * Set whether this field is static to correspond to the given value.
    * @param isStatic {@code true} if the field is static
@@ -3089,18 +3030,17 @@ class FieldElementImpl extends PropertyInducingElementImpl implements FieldEleme
     setModifier(Modifier.STATIC, isStatic);
   }
 }
-
 /**
  * Instances of the class {@code FieldFormalParameterElementImpl} extend{@link ParameterElementImpl} to provide the additional information of the {@link FieldElement}associated with the parameter.
  * @coverage dart.engine.element
  */
 class FieldFormalParameterElementImpl extends ParameterElementImpl implements FieldFormalParameterElement {
-  
+
   /**
    * The field associated with this field formal parameter.
    */
   FieldElement _field;
-  
+
   /**
    * Initialize a newly created parameter element to have the given name.
    * @param name the name of this element
@@ -3110,7 +3050,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl implements Fi
   accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
   FieldElement get field => _field;
   bool isInitializingFormal() => true;
-  
+
   /**
    * Set the field element associated with this field formal parameter to the given element.
    * @param field the new field element
@@ -3119,49 +3059,48 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl implements Fi
     this._field = field2;
   }
 }
-
 /**
  * Instances of the class {@code FunctionElementImpl} implement a {@code FunctionElement}.
  * @coverage dart.engine.element
  */
 class FunctionElementImpl extends ExecutableElementImpl implements FunctionElement {
-  
+
   /**
    * The offset to the beginning of the visible range for this element.
    */
   int _visibleRangeOffset = 0;
-  
+
   /**
    * The length of the visible range for this element, or {@code -1} if this element does not have a
    * visible range.
    */
   int _visibleRangeLength = -1;
-  
+
   /**
    * An empty array of function elements.
    */
   static List<FunctionElement> EMPTY_ARRAY = new List<FunctionElement>(0);
-  
+
   /**
    * Initialize a newly created synthetic function element.
    */
   FunctionElementImpl() : super.con2("", -1) {
-    _jtd_constructor_205_impl();
+    _jtd_constructor_206_impl();
   }
-  _jtd_constructor_205_impl() {
+  _jtd_constructor_206_impl() {
     synthetic = true;
   }
-  
+
   /**
    * Initialize a newly created function element to have the given name.
    * @param name the name of this element
    */
   FunctionElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_206_impl(name);
+    _jtd_constructor_207_impl(name);
   }
-  _jtd_constructor_206_impl(Identifier name) {
+  _jtd_constructor_207_impl(Identifier name) {
   }
-  
+
   /**
    * Initialize a newly created function element to have no name and the given offset. This is used
    * for function expressions, which have no name.
@@ -3169,9 +3108,9 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
    * declaration of this element
    */
   FunctionElementImpl.con2(int nameOffset) : super.con2("", nameOffset) {
-    _jtd_constructor_207_impl(nameOffset);
+    _jtd_constructor_208_impl(nameOffset);
   }
-  _jtd_constructor_207_impl(int nameOffset) {
+  _jtd_constructor_208_impl(int nameOffset) {
   }
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
   String get identifier => name;
@@ -3183,7 +3122,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
   bool isStatic() => enclosingElement is CompilationUnitElement;
-  
+
   /**
    * Set the visible range for this element to the range starting at the given offset with the given
    * length.
@@ -3203,33 +3142,32 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     super.appendTo(builder);
   }
 }
-
 /**
  * Instances of the class {@code FunctionTypeAliasElementImpl} implement a{@code FunctionTypeAliasElement}.
  * @coverage dart.engine.element
  */
 class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAliasElement {
-  
+
   /**
    * An array containing all of the parameters defined by this type alias.
    */
   List<ParameterElement> _parameters = ParameterElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * The type of function defined by this type alias.
    */
   FunctionType _type;
-  
+
   /**
    * An array containing all of the type variables defined for this type.
    */
   List<TypeVariableElement> _typeVariables = TypeVariableElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An empty array of type alias elements.
    */
   static List<FunctionTypeAliasElement> EMPTY_ARRAY = new List<FunctionTypeAliasElement>(0);
-  
+
   /**
    * Initialize a newly created type alias element to have the given name.
    * @param name the name of this element
@@ -3255,7 +3193,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   List<ParameterElement> get parameters => _parameters;
   FunctionType get type => _type;
   List<TypeVariableElement> get typeVariables => _typeVariables;
-  
+
   /**
    * Set the parameters defined by this type alias to the given parameters.
    * @param parameters the parameters defined by this type alias
@@ -3268,7 +3206,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
     }
     this._parameters = parameters2;
   }
-  
+
   /**
    * Set the type of function defined by this type alias to the given type.
    * @param type the type of function defined by this type alias
@@ -3276,7 +3214,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   void set type(FunctionType type2) {
     this._type = type2;
   }
-  
+
   /**
    * Set the type variables defined for this type to the given variables.
    * @param typeVariables the type variables defined for this type
@@ -3321,20 +3259,19 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
     }
   }
 }
-
 /**
  * Instances of the class {@code ShowCombinatorImpl} implement a {@link ShowCombinator}.
  * @coverage dart.engine.element
  */
 class HideCombinatorImpl implements HideCombinator {
-  
+
   /**
    * The names that are not to be made visible in the importing library even if they are defined in
    * the imported library.
    */
   List<String> _hiddenNames = StringUtilities.EMPTY_ARRAY;
   List<String> get hiddenNames => _hiddenNames;
-  
+
   /**
    * Set the names that are not to be made visible in the importing library even if they are defined
    * in the imported library to the given names.
@@ -3356,33 +3293,32 @@ class HideCombinatorImpl implements HideCombinator {
     return builder.toString();
   }
 }
-
 /**
  * Instances of the class {@code HtmlElementImpl} implement an {@link HtmlElement}.
  * @coverage dart.engine.element
  */
 class HtmlElementImpl extends ElementImpl implements HtmlElement {
-  
+
   /**
    * An empty array of HTML file elements.
    */
   static List<HtmlElement> EMPTY_ARRAY = new List<HtmlElement>(0);
-  
+
   /**
    * The analysis context in which this library is defined.
    */
   AnalysisContext _context;
-  
+
   /**
    * The scripts contained in or referenced from script tags in the HTML file.
    */
   List<HtmlScriptElement> _scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * The source that corresponds to this HTML file.
    */
   Source _source;
-  
+
   /**
    * Initialize a newly created HTML element to have the given name.
    * @param context the analysis context in which the HTML file is defined
@@ -3398,7 +3334,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
   List<HtmlScriptElement> get scripts => _scripts;
   Source get source => _source;
   int get hashCode => _source.hashCode;
-  
+
   /**
    * Set the scripts contained in the HTML file to the given scripts.
    * @param scripts the scripts
@@ -3412,7 +3348,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
     }
     this._scripts = scripts2;
   }
-  
+
   /**
    * Set the source that corresponds to this HTML file to the given source.
    * @param source the source that corresponds to this HTML file
@@ -3432,18 +3368,17 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
     }
   }
 }
-
 /**
  * Instances of the class {@code HtmlScriptElementImpl} implement an {@link HtmlScriptElement}.
  * @coverage dart.engine.element
  */
 abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptElement {
-  
+
   /**
    * An empty array of HTML script elements.
    */
   static List<HtmlScriptElement> EMPTY_ARRAY = new List<HtmlScriptElement>(0);
-  
+
   /**
    * Initialize a newly created script element to have the specified tag name and offset.
    * @param node the XML node from which this element is derived (not {@code null})
@@ -3451,35 +3386,34 @@ abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptEl
   HtmlScriptElementImpl(XmlTagNode node) : super.con2(node.tag.lexeme, node.tag.offset) {
   }
 }
-
 /**
  * Instances of the class {@code ImportElementImpl} implement an {@link ImportElement}.
  * @coverage dart.engine.element
  */
 class ImportElementImpl extends ElementImpl implements ImportElement {
-  
+
   /**
    * The URI that is specified by this directive.
    */
   String _uri;
-  
+
   /**
    * The library that is imported into this library by this import directive.
    */
   LibraryElement _importedLibrary;
-  
+
   /**
    * The combinators that were specified as part of the import directive in the order in which they
    * were specified.
    */
   List<NamespaceCombinator> _combinators = NamespaceCombinator.EMPTY_ARRAY;
-  
+
   /**
    * The prefix that was specified as part of the import directive, or {@code null} if there was no
    * prefix specified.
    */
   PrefixElement _prefix;
-  
+
   /**
    * Initialize a newly created import element.
    */
@@ -3491,7 +3425,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   ElementKind get kind => ElementKind.IMPORT;
   PrefixElement get prefix => _prefix;
   String get uri => _uri;
-  
+
   /**
    * Set the combinators that were specified as part of the import directive to the given array of
    * combinators.
@@ -3500,7 +3434,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   void set combinators(List<NamespaceCombinator> combinators2) {
     this._combinators = combinators2;
   }
-  
+
   /**
    * Set the library that is imported into this library by this import directive to the given
    * library.
@@ -3509,7 +3443,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   void set importedLibrary(LibraryElement importedLibrary2) {
     this._importedLibrary = importedLibrary2;
   }
-  
+
   /**
    * Set the prefix that was specified as part of the import directive to the given prefix.
    * @param prefix the prefix that was specified as part of the import directive
@@ -3517,7 +3451,7 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   void set prefix(PrefixElement prefix2) {
     this._prefix = prefix2;
   }
-  
+
   /**
    * Set the URI that is specified by this directive.
    * @param uri the URI that is specified by this directive.
@@ -3535,28 +3469,27 @@ class ImportElementImpl extends ElementImpl implements ImportElement {
   }
   String get identifier => ((_importedLibrary as LibraryElementImpl)).identifier;
 }
-
 /**
  * Instances of the class {@code LabelElementImpl} implement a {@code LabelElement}.
  * @coverage dart.engine.element
  */
 class LabelElementImpl extends ElementImpl implements LabelElement {
-  
+
   /**
    * A flag indicating whether this label is associated with a {@code switch} statement.
    */
   bool _onSwitchStatement = false;
-  
+
   /**
    * A flag indicating whether this label is associated with a {@code switch} member ({@code case}or {@code default}).
    */
   bool _onSwitchMember = false;
-  
+
   /**
    * An empty array of label elements.
    */
   static List<LabelElement> EMPTY_ARRAY = new List<LabelElement>(0);
-  
+
   /**
    * Initialize a newly created label element to have the given name.
    * @param name the name of this element
@@ -3570,31 +3503,30 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   accept(ElementVisitor visitor) => visitor.visitLabelElement(this);
   ExecutableElement get enclosingElement => super.enclosingElement as ExecutableElement;
   ElementKind get kind => ElementKind.LABEL;
-  
+
   /**
    * Return {@code true} if this label is associated with a {@code switch} member ({@code case} or{@code default}).
    * @return {@code true} if this label is associated with a {@code switch} member
    */
   bool isOnSwitchMember() => _onSwitchMember;
-  
+
   /**
    * Return {@code true} if this label is associated with a {@code switch} statement.
    * @return {@code true} if this label is associated with a {@code switch} statement
    */
   bool isOnSwitchStatement() => _onSwitchStatement;
 }
-
 /**
  * Instances of the class {@code LibraryElementImpl} implement a {@code LibraryElement}.
  * @coverage dart.engine.element
  */
 class LibraryElementImpl extends ElementImpl implements LibraryElement {
-  
+
   /**
    * An empty array of library elements.
    */
   static List<LibraryElement> EMPTY_ARRAY = new List<LibraryElement>(0);
-  
+
   /**
    * Determine if the given library is up to date with respect to the given time stamp.
    * @param library the library to process
@@ -3625,37 +3557,37 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     return true;
   }
-  
+
   /**
    * The analysis context in which this library is defined.
    */
   AnalysisContext _context;
-  
+
   /**
    * The compilation unit that defines this library.
    */
   CompilationUnitElement _definingCompilationUnit;
-  
+
   /**
    * The entry point for this library, or {@code null} if this library does not have an entry point.
    */
   FunctionElement _entryPoint;
-  
+
   /**
    * An array containing specifications of all of the imports defined in this library.
    */
   List<ImportElement> _imports = ImportElement.EMPTY_ARRAY;
-  
+
   /**
    * An array containing specifications of all of the exports defined in this library.
    */
   List<ExportElement> _exports = ExportElement.EMPTY_ARRAY;
-  
+
   /**
    * An array containing all of the compilation units that are included in this library using a{@code part} directive.
    */
   List<CompilationUnitElement> _parts = CompilationUnitElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * Initialize a newly created library element to have the given name.
    * @param context the analysis context in which the library is defined
@@ -3752,7 +3684,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     Set<LibraryElement> visitedLibraries = new Set();
     return isUpToDate(this, timeStamp, visitedLibraries);
   }
-  
+
   /**
    * Set the compilation unit that defines this library to the given compilation unit.
    * @param definingCompilationUnit the compilation unit that defines this library
@@ -3761,7 +3693,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     ((definingCompilationUnit2 as CompilationUnitElementImpl)).enclosingElement = this;
     this._definingCompilationUnit = definingCompilationUnit2;
   }
-  
+
   /**
    * Set the entry point for this library to the given function.
    * @param entryPoint the entry point for this library
@@ -3769,7 +3701,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   void set entryPoint(FunctionElement entryPoint2) {
     this._entryPoint = entryPoint2;
   }
-  
+
   /**
    * Set the specifications of all of the exports defined in this library to the given array.
    * @param exports the specifications of all of the exports defined in this library
@@ -3780,7 +3712,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     this._exports = exports2;
   }
-  
+
   /**
    * Set the specifications of all of the imports defined in this library to the given array.
    * @param imports the specifications of all of the imports defined in this library
@@ -3795,7 +3727,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     }
     this._imports = imports2;
   }
-  
+
   /**
    * Set the compilation units that are included in this library using a {@code part} directive.
    * @param parts the compilation units that are included in this library using a {@code part}directive
@@ -3813,7 +3745,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     safelyVisitChildren(_imports, visitor);
     safelyVisitChildren(_parts, visitor);
   }
-  
+
   /**
    * Answer {@code true} if the receiver directly or indirectly imports the dart:html libraries.
    * @return {@code true} if the receiver directly or indirectly imports the dart:html libraries
@@ -3842,29 +3774,28 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return false;
   }
 }
-
 /**
  * Instances of the class {@code LocalVariableElementImpl} implement a {@code LocalVariableElement}.
  * @coverage dart.engine.element
  */
 class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
-  
+
   /**
    * The offset to the beginning of the visible range for this element.
    */
   int _visibleRangeOffset = 0;
-  
+
   /**
    * The length of the visible range for this element, or {@code -1} if this element does not have a
    * visible range.
    */
   int _visibleRangeLength = -1;
-  
+
   /**
    * An empty array of field elements.
    */
   static List<LocalVariableElement> EMPTY_ARRAY = new List<LocalVariableElement>(0);
-  
+
   /**
    * Initialize a newly created local variable element to have the given name.
    * @param name the name of this element
@@ -3879,7 +3810,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     }
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
-  
+
   /**
    * Set the visible range for this element to the range starting at the given offset with the given
    * length.
@@ -3897,28 +3828,27 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     builder.append(displayName);
   }
 }
-
 /**
  * Instances of the class {@code MethodElementImpl} implement a {@code MethodElement}.
  * @coverage dart.engine.element
  */
 class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
-  
+
   /**
    * An empty array of method elements.
    */
   static List<MethodElement> EMPTY_ARRAY = new List<MethodElement>(0);
-  
+
   /**
    * Initialize a newly created method element to have the given name.
    * @param name the name of this element
    */
   MethodElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_216_impl(name);
+    _jtd_constructor_217_impl(name);
   }
-  _jtd_constructor_216_impl(Identifier name) {
+  _jtd_constructor_217_impl(Identifier name) {
   }
-  
+
   /**
    * Initialize a newly created method element to have the given name.
    * @param name the name of this element
@@ -3926,9 +3856,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * declaration of this element
    */
   MethodElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_217_impl(name, nameOffset);
+    _jtd_constructor_218_impl(name, nameOffset);
   }
-  _jtd_constructor_217_impl(String name, int nameOffset) {
+  _jtd_constructor_218_impl(String name, int nameOffset) {
   }
   accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
@@ -3952,7 +3882,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return !((0x61 <= first && first <= 0x7A) || (0x41 <= first && first <= 0x5A) || first == 0x5F || first == 0x24);
   }
   bool isStatic() => hasModifier(Modifier.STATIC);
-  
+
   /**
    * Set whether this method is abstract to correspond to the given value.
    * @param isAbstract {@code true} if the method is abstract
@@ -3960,7 +3890,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   void set abstract(bool isAbstract) {
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
-  
+
   /**
    * Set whether this method is static to correspond to the given value.
    * @param isStatic {@code true} if the method is static
@@ -3975,7 +3905,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     super.appendTo(builder);
   }
 }
-
 /**
  * The enumeration {@code Modifier} defines constants for all of the modifiers defined by the Dart
  * language and for a few additional flags that are useful.
@@ -3994,10 +3923,10 @@ class Modifier implements Comparable<Modifier> {
   static final Modifier SYNTHETIC = new Modifier('SYNTHETIC', 9);
   static final Modifier TYPEDEF = new Modifier('TYPEDEF', 10);
   static final List<Modifier> values = [ABSTRACT, CONST, FACTORY, FINAL, GETTER, MIXIN, REFERENCES_SUPER, SETTER, STATIC, SYNTHETIC, TYPEDEF];
-  
+
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
-  
+
   /// The position in the enum declaration.
   final int ordinal;
   Modifier(this.name, this.ordinal) {
@@ -4005,29 +3934,28 @@ class Modifier implements Comparable<Modifier> {
   int compareTo(Modifier other) => ordinal - other.ordinal;
   String toString() => name;
 }
-
 /**
  * Instances of the class {@code MultiplyDefinedElementImpl} represent a collection of elements that
  * have the same name within the same scope.
  * @coverage dart.engine.element
  */
 class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
-  
+
   /**
    * The analysis context in which the multiply defined elements are defined.
    */
   AnalysisContext _context;
-  
+
   /**
    * The name of the conflicting elements.
    */
   String _name;
-  
+
   /**
    * A list containing all of the elements that conflict.
    */
   List<Element> _conflictingElements;
-  
+
   /**
    * Initialize a newly created element to represent a list of conflicting elements.
    * @param context the analysis context in which the multiply defined elements are defined
@@ -4076,7 +4004,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
   void visitChildren(ElementVisitor<Object> visitor) {
   }
-  
+
   /**
    * Add the given element to the list of elements. If the element is a multiply-defined element,
    * add all of the conflicting elements that it represents.
@@ -4092,7 +4020,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
       elements.add(element);
     }
   }
-  
+
   /**
    * Use the given elements to construct an array of conflicting elements. If either of the given
    * elements are multiply-defined elements then the conflicting elements they represent will be
@@ -4108,40 +4036,39 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return new List.from(elements);
   }
 }
-
 /**
  * Instances of the class {@code ParameterElementImpl} implement a {@code ParameterElement}.
  * @coverage dart.engine.element
  */
 class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
-  
+
   /**
    * An array containing all of the parameters defined by this parameter element. There will only be
    * parameters if this parameter is a function typed parameter.
    */
   List<ParameterElement> _parameters = ParameterElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * The kind of this parameter.
    */
   ParameterKind _parameterKind;
-  
+
   /**
    * The offset to the beginning of the visible range for this element.
    */
   int _visibleRangeOffset = 0;
-  
+
   /**
    * The length of the visible range for this element, or {@code -1} if this element does not have a
    * visible range.
    */
   int _visibleRangeLength = -1;
-  
+
   /**
    * An empty array of field elements.
    */
   static List<ParameterElement> EMPTY_ARRAY = new List<ParameterElement>(0);
-  
+
   /**
    * Initialize a newly created parameter element to have the given name.
    * @param name the name of this element
@@ -4159,7 +4086,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
   bool isInitializingFormal() => false;
-  
+
   /**
    * Set the kind of this parameter to the given kind.
    * @param parameterKind the new kind of this parameter
@@ -4167,7 +4094,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   void set parameterKind(ParameterKind parameterKind2) {
     this._parameterKind = parameterKind2;
   }
-  
+
   /**
    * Set the parameters defined by this executable element to the given parameters.
    * @param parameters the parameters defined by this executable element
@@ -4178,7 +4105,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     }
     this._parameters = parameters2;
   }
-  
+
   /**
    * Set the visible range for this element to the range starting at the given offset with the given
    * length.
@@ -4214,23 +4141,22 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     builder.append(right);
   }
 }
-
 /**
  * Instances of the class {@code PrefixElementImpl} implement a {@code PrefixElement}.
  * @coverage dart.engine.element
  */
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
-  
+
   /**
    * An array containing all of the libraries that are imported using this prefix.
    */
   List<LibraryElement> _importedLibraries = LibraryElementImpl.EMPTY_ARRAY;
-  
+
   /**
    * An empty array of prefix elements.
    */
   static List<PrefixElement> EMPTY_ARRAY = new List<PrefixElement>(0);
-  
+
   /**
    * Initialize a newly created prefix element to have the given name.
    * @param name the name of this element
@@ -4241,7 +4167,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   LibraryElement get enclosingElement => super.enclosingElement as LibraryElement;
   List<LibraryElement> get importedLibraries => _importedLibraries;
   ElementKind get kind => ElementKind.PREFIX;
-  
+
   /**
    * Set the libraries that are imported using this prefix to the given libraries.
    * @param importedLibraries the libraries that are imported using this prefix
@@ -4257,42 +4183,41 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
     super.appendTo(builder);
   }
 }
-
 /**
  * Instances of the class {@code PropertyAccessorElementImpl} implement a{@code PropertyAccessorElement}.
  * @coverage dart.engine.element
  */
 class PropertyAccessorElementImpl extends ExecutableElementImpl implements PropertyAccessorElement {
-  
+
   /**
    * The variable associated with this accessor.
    */
   PropertyInducingElement _variable;
-  
+
   /**
    * An empty array of property accessor elements.
    */
   static List<PropertyAccessorElement> EMPTY_ARRAY = new List<PropertyAccessorElement>(0);
-  
+
   /**
    * Initialize a newly created property accessor element to have the given name.
    * @param name the name of this element
    */
   PropertyAccessorElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_222_impl(name);
+    _jtd_constructor_223_impl(name);
   }
-  _jtd_constructor_222_impl(Identifier name) {
+  _jtd_constructor_223_impl(Identifier name) {
   }
-  
+
   /**
    * Initialize a newly created synthetic property accessor element to be associated with the given
    * variable.
    * @param variable the variable with which this access is associated
    */
   PropertyAccessorElementImpl.con2(PropertyInducingElementImpl variable2) : super.con2(variable2.name, variable2.nameOffset) {
-    _jtd_constructor_223_impl(variable2);
+    _jtd_constructor_224_impl(variable2);
   }
-  _jtd_constructor_223_impl(PropertyInducingElementImpl variable2) {
+  _jtd_constructor_224_impl(PropertyInducingElementImpl variable2) {
     this._variable = variable2;
     synthetic = true;
   }
@@ -4327,7 +4252,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   bool isGetter() => hasModifier(Modifier.GETTER);
   bool isSetter() => hasModifier(Modifier.SETTER);
   bool isStatic() => hasModifier(Modifier.STATIC);
-  
+
   /**
    * Set whether this accessor is abstract to correspond to the given value.
    * @param isAbstract {@code true} if the accessor is abstract
@@ -4335,7 +4260,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   void set abstract(bool isAbstract) {
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
-  
+
   /**
    * Set whether this accessor is a getter to correspond to the given value.
    * @param isGetter {@code true} if the accessor is a getter
@@ -4343,7 +4268,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   void set getter(bool isGetter) {
     setModifier(Modifier.GETTER, isGetter);
   }
-  
+
   /**
    * Set whether this accessor is a setter to correspond to the given value.
    * @param isSetter {@code true} if the accessor is a setter
@@ -4351,7 +4276,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   void set setter(bool isSetter) {
     setModifier(Modifier.SETTER, isSetter);
   }
-  
+
   /**
    * Set whether this accessor is static to correspond to the given value.
    * @param isStatic {@code true} if the accessor is static
@@ -4359,7 +4284,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
   void set static(bool isStatic) {
     setModifier(Modifier.STATIC, isStatic);
   }
-  
+
   /**
    * Set the variable associated with this accessor to the given variable.
    * @param variable the variable associated with this accessor
@@ -4373,51 +4298,50 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     super.appendTo(builder);
   }
 }
-
 /**
  * Instances of the class {@code PropertyInducingElementImpl} implement a{@code PropertyInducingElement}.
  * @coverage dart.engine.element
  */
 abstract class PropertyInducingElementImpl extends VariableElementImpl implements PropertyInducingElement {
-  
+
   /**
    * The getter associated with this element.
    */
   PropertyAccessorElement _getter;
-  
+
   /**
    * The setter associated with this element, or {@code null} if the element is effectively{@code final} and therefore does not have a setter associated with it.
    */
   PropertyAccessorElement _setter;
-  
+
   /**
    * An empty array of elements.
    */
   static List<PropertyInducingElement> EMPTY_ARRAY = new List<PropertyInducingElement>(0);
-  
+
   /**
    * Initialize a newly created element to have the given name.
    * @param name the name of this element
    */
   PropertyInducingElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_224_impl(name);
+    _jtd_constructor_225_impl(name);
   }
-  _jtd_constructor_224_impl(Identifier name) {
+  _jtd_constructor_225_impl(Identifier name) {
   }
-  
+
   /**
    * Initialize a newly created synthetic element to have the given name.
    * @param name the name of this element
    */
   PropertyInducingElementImpl.con2(String name) : super.con2(name, -1) {
-    _jtd_constructor_225_impl(name);
+    _jtd_constructor_226_impl(name);
   }
-  _jtd_constructor_225_impl(String name) {
+  _jtd_constructor_226_impl(String name) {
     synthetic = true;
   }
   PropertyAccessorElement get getter => _getter;
   PropertyAccessorElement get setter => _setter;
-  
+
   /**
    * Set the getter associated with this element to the given accessor.
    * @param getter the getter associated with this element
@@ -4425,7 +4349,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
   void set getter(PropertyAccessorElement getter2) {
     this._getter = getter2;
   }
-  
+
   /**
    * Set the setter associated with this element to the given accessor.
    * @param setter the setter associated with this element
@@ -4434,20 +4358,19 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
     this._setter = setter2;
   }
 }
-
 /**
  * Instances of the class {@code ShowCombinatorImpl} implement a {@link ShowCombinator}.
  * @coverage dart.engine.element
  */
 class ShowCombinatorImpl implements ShowCombinator {
-  
+
   /**
    * The names that are to be made visible in the importing library if they are defined in the
    * imported library.
    */
   List<String> _shownNames = StringUtilities.EMPTY_ARRAY;
   List<String> get shownNames => _shownNames;
-  
+
   /**
    * Set the names that are to be made visible in the importing library if they are defined in the
    * imported library to the given names.
@@ -4469,64 +4392,62 @@ class ShowCombinatorImpl implements ShowCombinator {
     return builder.toString();
   }
 }
-
 /**
  * Instances of the class {@code TopLevelVariableElementImpl} implement a{@code TopLevelVariableElement}.
  * @coverage dart.engine.element
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements TopLevelVariableElement {
-  
+
   /**
    * An empty array of top-level variable elements.
    */
   static List<TopLevelVariableElement> EMPTY_ARRAY = new List<TopLevelVariableElement>(0);
-  
+
   /**
    * Initialize a newly created top-level variable element to have the given name.
    * @param name the name of this element
    */
   TopLevelVariableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_227_impl(name);
+    _jtd_constructor_228_impl(name);
   }
-  _jtd_constructor_227_impl(Identifier name) {
+  _jtd_constructor_228_impl(Identifier name) {
   }
-  
+
   /**
    * Initialize a newly created synthetic top-level variable element to have the given name.
    * @param name the name of this element
    */
   TopLevelVariableElementImpl.con2(String name) : super.con2(name) {
-    _jtd_constructor_228_impl(name);
+    _jtd_constructor_229_impl(name);
   }
-  _jtd_constructor_228_impl(String name) {
+  _jtd_constructor_229_impl(String name) {
   }
   accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
   bool isStatic() => true;
 }
-
 /**
  * Instances of the class {@code TypeVariableElementImpl} implement a {@code TypeVariableElement}.
  * @coverage dart.engine.element
  */
 class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement {
-  
+
   /**
    * The type defined by this type variable.
    */
   TypeVariableType _type;
-  
+
   /**
    * The type representing the bound associated with this variable, or {@code null} if this variable
    * does not have an explicit bound.
    */
   Type2 _bound;
-  
+
   /**
    * An empty array of type variable elements.
    */
   static List<TypeVariableElement> EMPTY_ARRAY = new List<TypeVariableElement>(0);
-  
+
   /**
    * Initialize a newly created type variable element to have the given name.
    * @param name the name of this element
@@ -4537,7 +4458,7 @@ class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement
   Type2 get bound => _bound;
   ElementKind get kind => ElementKind.TYPE_VARIABLE;
   TypeVariableType get type => _type;
-  
+
   /**
    * Set the type representing the bound associated with this variable to the given type.
    * @param bound the type representing the bound associated with this variable
@@ -4545,7 +4466,7 @@ class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement
   void set bound(Type2 bound2) {
     this._bound = bound2;
   }
-  
+
   /**
    * Set the type defined by this type variable to the given type
    * @param type the type defined by this type variable
@@ -4561,39 +4482,38 @@ class TypeVariableElementImpl extends ElementImpl implements TypeVariableElement
     }
   }
 }
-
 /**
  * Instances of the class {@code VariableElementImpl} implement a {@code VariableElement}.
  * @coverage dart.engine.element
  */
 abstract class VariableElementImpl extends ElementImpl implements VariableElement {
-  
+
   /**
    * The declared type of this variable.
    */
   Type2 _type;
-  
+
   /**
    * A synthetic function representing this variable's initializer, or {@code null} if this variable
    * does not have an initializer.
    */
   FunctionElement _initializer;
-  
+
   /**
    * An empty array of variable elements.
    */
   static List<VariableElement> EMPTY_ARRAY = new List<VariableElement>(0);
-  
+
   /**
    * Initialize a newly created variable element to have the given name.
    * @param name the name of this element
    */
   VariableElementImpl.con1(Identifier name) : super.con1(name) {
-    _jtd_constructor_230_impl(name);
+    _jtd_constructor_231_impl(name);
   }
-  _jtd_constructor_230_impl(Identifier name) {
+  _jtd_constructor_231_impl(Identifier name) {
   }
-  
+
   /**
    * Initialize a newly created variable element to have the given name.
    * @param name the name of this element
@@ -4601,11 +4521,11 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
    * declaration of this element
    */
   VariableElementImpl.con2(String name, int nameOffset) : super.con2(name, nameOffset) {
-    _jtd_constructor_231_impl(name, nameOffset);
+    _jtd_constructor_232_impl(name, nameOffset);
   }
-  _jtd_constructor_231_impl(String name, int nameOffset) {
+  _jtd_constructor_232_impl(String name, int nameOffset) {
   }
-  
+
   /**
    * Return the result of evaluating this variable's initializer as a compile-time constant
    * expression, or {@code null} if this variable is not a 'const' variable or does not have an
@@ -4617,7 +4537,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   Type2 get type => _type;
   bool isConst() => hasModifier(Modifier.CONST);
   bool isFinal() => hasModifier(Modifier.FINAL);
-  
+
   /**
    * Set whether this variable is const to correspond to the given value.
    * @param isConst {@code true} if the variable is const
@@ -4625,7 +4545,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   void set const3(bool isConst) {
     setModifier(Modifier.CONST, isConst);
   }
-  
+
   /**
    * Set the result of evaluating this variable's initializer as a compile-time constant expression
    * to the given result.
@@ -4634,7 +4554,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   void set evaluationResult(EvaluationResultImpl result) {
     throw new IllegalStateException("Invalid attempt to set a compile-time constant result");
   }
-  
+
   /**
    * Set whether this variable is final to correspond to the given value.
    * @param isFinal {@code true} if the variable is final
@@ -4642,7 +4562,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   void set final2(bool isFinal) {
     setModifier(Modifier.FINAL, isFinal);
   }
-  
+
   /**
    * Set the function representing this variable's initializer to the given function.
    * @param initializer the function representing this variable's initializer
@@ -4653,7 +4573,7 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
     }
     this._initializer = initializer2;
   }
-  
+
   /**
    * Set the declared type of this variable to the given type.
    * @param type the declared type of this variable
@@ -4671,13 +4591,12 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
     builder.append(displayName);
   }
 }
-
 /**
  * Instances of the class {@code ConstructorMember} represent a constructor element defined in a
  * parameterized type where the values of the type parameters are known.
  */
 class ConstructorMember extends ExecutableMember implements ConstructorElement {
-  
+
   /**
    * If the given constructor's type is different when any type parameters from the defining type's
    * declaration are replaced with the actual type arguments from the defining type, create a
@@ -4701,7 +4620,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     }
     return new ConstructorMember(baseConstructor, definingType);
   }
-  
+
   /**
    * Initialize a newly created element to represent a constructor of the given parameterized type.
    * @param baseElement the element on which the parameterized element was created
@@ -4743,14 +4662,13 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   }
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
-
 /**
  * The abstract class {@code ExecutableMember} defines the behavior common to members that represent
  * an executable element defined in a parameterized type where the values of the type parameters are
  * known.
  */
 abstract class ExecutableMember extends Member implements ExecutableElement {
-  
+
   /**
    * Initialize a newly created element to represent an executable element of the given
    * parameterized type.
@@ -4790,13 +4708,12 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     safelyVisitChildren(parameters, visitor);
   }
 }
-
 /**
  * Instances of the class {@code FieldMember} represent a field element defined in a parameterized
  * type where the values of the type parameters are known.
  */
 class FieldMember extends VariableMember implements FieldElement {
-  
+
   /**
    * If the given field's type is different when any type parameters from the defining type's
    * declaration are replaced with the actual type arguments from the defining type, create a field
@@ -4823,7 +4740,7 @@ class FieldMember extends VariableMember implements FieldElement {
     }
     return new FieldMember(baseField, definingType);
   }
-  
+
   /**
    * Initialize a newly created element to represent a field of the given parameterized type.
    * @param baseElement the element on which the parameterized element was created
@@ -4839,23 +4756,22 @@ class FieldMember extends VariableMember implements FieldElement {
   bool isStatic() => baseElement.isStatic();
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
-
 /**
  * The abstract class {@code Member} defines the behavior common to elements that represent members
  * of parameterized types.
  */
 abstract class Member implements Element {
-  
+
   /**
    * The element on which the parameterized element was created.
    */
   Element _baseElement;
-  
+
   /**
    * The type in which the element is defined.
    */
   ParameterizedType _definingType;
-  
+
   /**
    * Initialize a newly created element to represent the member of the given parameterized type.
    * @param baseElement the element on which the parameterized element was created
@@ -4867,7 +4783,7 @@ abstract class Member implements Element {
   }
   String computeDocumentationComment() => _baseElement.computeDocumentationComment();
   Element getAncestor(Type elementClass) => baseElement.getAncestor(elementClass);
-  
+
   /**
    * Return the element on which the parameterized element was created.
    * @return the element on which the parameterized element was created
@@ -4886,13 +4802,13 @@ abstract class Member implements Element {
   bool isSynthetic() => _baseElement.isSynthetic();
   void visitChildren(ElementVisitor<Object> visitor) {
   }
-  
+
   /**
    * Return the type in which the element is defined.
    * @return the type in which the element is defined
    */
   ParameterizedType get definingType => _definingType;
-  
+
   /**
    * If the given child is not {@code null}, use the given visitor to visit it.
    * @param child the child to be visited
@@ -4903,7 +4819,7 @@ abstract class Member implements Element {
       child.accept(visitor);
     }
   }
-  
+
   /**
    * Use the given visitor to visit all of the children in the given array.
    * @param children the children to be visited
@@ -4916,7 +4832,7 @@ abstract class Member implements Element {
       }
     }
   }
-  
+
   /**
    * Return the type that results from replacing the type parameters in the given type with the type
    * arguments.
@@ -4928,7 +4844,7 @@ abstract class Member implements Element {
     List<Type2> parameterTypes = TypeVariableTypeImpl.getTypes(_definingType.typeVariables);
     return type.substitute2(argumentTypes, parameterTypes) as Type2;
   }
-  
+
   /**
    * Return the array of types that results from replacing the type parameters in the given types
    * with the type arguments.
@@ -4944,13 +4860,12 @@ abstract class Member implements Element {
     return substitutedTypes;
   }
 }
-
 /**
  * Instances of the class {@code MethodMember} represent a method element defined in a parameterized
  * type where the values of the type parameters are known.
  */
 class MethodMember extends ExecutableMember implements MethodElement {
-  
+
   /**
    * If the given method's type is different when any type parameters from the defining type's
    * declaration are replaced with the actual type arguments from the defining type, create a method
@@ -4974,7 +4889,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
     }
     return new MethodMember(baseMethod, definingType);
   }
-  
+
   /**
    * Initialize a newly created element to represent a method of the given parameterized type.
    * @param baseElement the element on which the parameterized element was created
@@ -5010,13 +4925,12 @@ class MethodMember extends ExecutableMember implements MethodElement {
     return builder.toString();
   }
 }
-
 /**
  * Instances of the class {@code ParameterMember} represent a parameter element defined in a
  * parameterized type where the values of the type parameters are known.
  */
 class ParameterMember extends VariableMember implements ParameterElement {
-  
+
   /**
    * If the given parameter's type is different when any type parameters from the defining type's
    * declaration are replaced with the actual type arguments from the defining type, create a
@@ -5040,7 +4954,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
     }
     return new ParameterMember(baseParameter, definingType);
   }
-  
+
   /**
    * Initialize a newly created element to represent a parameter of the given parameterized type.
    * @param baseElement the element on which the parameterized element was created
@@ -5108,13 +5022,12 @@ class ParameterMember extends VariableMember implements ParameterElement {
     safelyVisitChildren(parameters, visitor);
   }
 }
-
 /**
  * Instances of the class {@code PropertyAccessorMember} represent a property accessor element
  * defined in a parameterized type where the values of the type parameters are known.
  */
 class PropertyAccessorMember extends ExecutableMember implements PropertyAccessorElement {
-  
+
   /**
    * If the given property accessor's type is different when any type parameters from the defining
    * type's declaration are replaced with the actual type arguments from the defining type, create a
@@ -5138,7 +5051,7 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     }
     return new PropertyAccessorMember(baseAccessor, definingType);
   }
-  
+
   /**
    * Initialize a newly created element to represent a property accessor of the given parameterized
    * type.
@@ -5164,14 +5077,13 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
   bool isSetter() => baseElement.isSetter();
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
-
 /**
  * The abstract class {@code VariableMember} defines the behavior common to members that represent a
  * variable element defined in a parameterized type where the values of the type parameters are
  * known.
  */
 abstract class VariableMember extends Member implements VariableElement {
-  
+
   /**
    * Initialize a newly created element to represent an executable element of the given
    * parameterized type.
@@ -5192,21 +5104,20 @@ abstract class VariableMember extends Member implements VariableElement {
     safelyVisitChild(baseElement.initializer, visitor);
   }
 }
-
 /**
  * Instances of the class {@code AnonymousFunctionTypeImpl} extend the behavior of{@link FunctionTypeImpl} to support anonymous function types created for function typed
  * parameters.
  * @coverage dart.engine.type
  */
 class AnonymousFunctionTypeImpl extends FunctionTypeImpl {
-  
+
   /**
    * An array of parameters elements of this type of function.
    */
   List<ParameterElement> _baseParameters = ParameterElementImpl.EMPTY_ARRAY;
   AnonymousFunctionTypeImpl() : super.con2((null as FunctionTypeAliasElement)) {
   }
-  
+
   /**
    * Sets the parameters elements of this type of function.
    * @param parameters the parameters elements of this type of function
@@ -5216,24 +5127,23 @@ class AnonymousFunctionTypeImpl extends FunctionTypeImpl {
   }
   List<ParameterElement> get baseParameters => _baseParameters;
 }
-
 /**
  * The unique instance of the class {@code BottomTypeImpl} implements the type {@code bottom}.
  * @coverage dart.engine.type
  */
 class BottomTypeImpl extends TypeImpl {
-  
+
   /**
    * The unique instance of this class.
    */
   static BottomTypeImpl _INSTANCE = new BottomTypeImpl();
-  
+
   /**
    * Return the unique instance of this class.
    * @return the unique instance of this class
    */
   static BottomTypeImpl get instance => _INSTANCE;
-  
+
   /**
    * Prevent the creation of instances of this class.
    */
@@ -5245,24 +5155,23 @@ class BottomTypeImpl extends TypeImpl {
   bool isSupertypeOf(Type2 type) => false;
   BottomTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
 }
-
 /**
  * The unique instance of the class {@code DynamicTypeImpl} implements the type {@code dynamic}.
  * @coverage dart.engine.type
  */
 class DynamicTypeImpl extends TypeImpl {
-  
+
   /**
    * The unique instance of this class.
    */
   static DynamicTypeImpl _INSTANCE = new DynamicTypeImpl();
-  
+
   /**
    * Return the unique instance of this class.
    * @return the unique instance of this class
    */
   static DynamicTypeImpl get instance => _INSTANCE;
-  
+
   /**
    * Prevent the creation of instances of this class.
    */
@@ -5276,14 +5185,13 @@ class DynamicTypeImpl extends TypeImpl {
   bool isSupertypeOf(Type2 type) => true;
   DynamicTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
 }
-
 /**
  * Instances of the class {@code FunctionTypeImpl} defines the behavior common to objects
  * representing the type of a function, method, constructor, getter, or setter.
  * @coverage dart.engine.type
  */
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
-  
+
   /**
    * Return {@code true} if all of the name/type pairs in the first map are equal to the
    * corresponding name/type pairs in the second map. The maps are expected to iterate over their
@@ -5308,7 +5216,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     return true;
   }
-  
+
   /**
    * Return a map containing the results of using the given argument types and parameter types to
    * perform a substitution on all of the values in the given map. The order of the entries will be
@@ -5328,56 +5236,56 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     return newTypes;
   }
-  
+
   /**
    * An array containing the actual types of the type arguments.
    */
   List<Type2> _typeArguments = TypeImpl.EMPTY_ARRAY;
-  
+
   /**
    * An array containing the types of the normal parameters of this type of function. The parameter
    * types are in the same order as they appear in the declaration of the function.
    * @return the types of the normal parameters of this type of function
    */
   List<Type2> _normalParameterTypes = TypeImpl.EMPTY_ARRAY;
-  
+
   /**
    * A table mapping the names of optional (positional) parameters to the types of the optional
    * parameters of this type of function.
    */
   List<Type2> _optionalParameterTypes = TypeImpl.EMPTY_ARRAY;
-  
+
   /**
    * A table mapping the names of named parameters to the types of the named parameters of this type
    * of function.
    */
   Map<String, Type2> _namedParameterTypes = new Map();
-  
+
   /**
    * The type of object returned by this type of function.
    */
   Type2 _returnType = VoidTypeImpl.instance;
-  
+
   /**
    * Initialize a newly created function type to be declared by the given element and to have the
    * given name.
    * @param element the element representing the declaration of the function type
    */
   FunctionTypeImpl.con1(ExecutableElement element) : super(element, element == null ? null : element.name) {
-    _jtd_constructor_298_impl(element);
+    _jtd_constructor_299_impl(element);
   }
-  _jtd_constructor_298_impl(ExecutableElement element) {
+  _jtd_constructor_299_impl(ExecutableElement element) {
   }
-  
+
   /**
    * Initialize a newly created function type to be declared by the given element and to have the
    * given name.
    * @param element the element representing the declaration of the function type
    */
   FunctionTypeImpl.con2(FunctionTypeAliasElement element) : super(element, element == null ? null : element.name) {
-    _jtd_constructor_299_impl(element);
+    _jtd_constructor_300_impl(element);
   }
-  _jtd_constructor_299_impl(FunctionTypeAliasElement element) {
+  _jtd_constructor_300_impl(FunctionTypeAliasElement element) {
   }
   bool operator ==(Object object) {
     if (object is! FunctionTypeImpl) {
@@ -5541,7 +5449,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     return s.returnType == VoidTypeImpl.instance || t.returnType.isAssignableTo(s.returnType);
   }
-  
+
   /**
    * Set the mapping of the names of named parameters to the types of the named parameters of this
    * type of function to the given mapping.
@@ -5551,7 +5459,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   void set namedParameterTypes(LinkedHashMap<String, Type2> namedParameterTypes2) {
     this._namedParameterTypes = namedParameterTypes2;
   }
-  
+
   /**
    * Set the types of the normal parameters of this type of function to the types in the given
    * array.
@@ -5560,7 +5468,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   void set normalParameterTypes(List<Type2> normalParameterTypes2) {
     this._normalParameterTypes = normalParameterTypes2;
   }
-  
+
   /**
    * Set the types of the optional parameters of this type of function to the types in the given
    * array.
@@ -5569,7 +5477,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   void set optionalParameterTypes(List<Type2> optionalParameterTypes2) {
     this._optionalParameterTypes = optionalParameterTypes2;
   }
-  
+
   /**
    * Set the type of object returned by this type of function to the given type.
    * @param returnType the type of object returned by this type of function
@@ -5577,7 +5485,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   void set returnType(Type2 returnType2) {
     this._returnType = returnType2;
   }
-  
+
   /**
    * Set the actual types of the type arguments to the given types.
    * @param typeArguments the actual types of the type arguments
@@ -5658,7 +5566,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       ((_returnType as TypeImpl)).appendTo(builder);
     }
   }
-  
+
   /**
    * @return the base parameter elements of this function element, not {@code null}.
    */
@@ -5671,7 +5579,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
   }
 }
-
 /**
  * Instances of the class {@code InterfaceTypeImpl} defines the behavior common to objects
  * representing the type introduced by either a class or an interface, or a reference to such a
@@ -5679,12 +5586,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
  * @coverage dart.engine.type
  */
 class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
-  
+
   /**
    * An empty array of types.
    */
   static List<InterfaceType> EMPTY_ARRAY = new List<InterfaceType>(0);
-  
+
   /**
    * This method computes the longest inheritance path from some passed {@link Type} to Object.
    * @param type the {@link Type} to compute the longest inheritance path of from the passed{@link Type} to Object
@@ -5692,7 +5599,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see InterfaceType#getLeastUpperBound(Type)
    */
   static int computeLongestInheritancePathToObject(InterfaceType type) => computeLongestInheritancePathToObject2(type, 0, new Set<ClassElement>());
-  
+
   /**
    * Returns the set of all superinterfaces of the passed {@link Type}.
    * @param type the {@link Type} to compute the set of superinterfaces of
@@ -5701,7 +5608,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) => computeSuperinterfaceSet2(type, new Set<InterfaceType>());
   List<TypeVariableElement> get typeVariables => element.typeVariables;
-  
+
   /**
    * This method computes the longest inheritance path from some passed {@link Type} to Object. This
    * method calls itself recursively, callers should use the public method{@link #computeLongestInheritancePathToObject(Type)}.
@@ -5740,7 +5647,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return longestPath;
   }
-  
+
   /**
    * Returns the set of all superinterfaces of the passed {@link Type}. This is a recursive method,
    * callers should call the public {@link #computeSuperinterfaceSet(Type)}.
@@ -5769,7 +5676,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return set;
   }
-  
+
   /**
    * Return the intersection of the given sets of types, where intersection is based on the equality
    * of the elements of the types rather than on the equality of the types themselves. In cases
@@ -5794,7 +5701,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return new List.from(result);
   }
-  
+
   /**
    * Return the "least upper bound" of the given types under the assumption that the types have the
    * same element and differ only in terms of the type arguments. The resulting type is composed by
@@ -5827,31 +5734,31 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     lub.typeArguments = lubArguments;
     return lub;
   }
-  
+
   /**
    * An array containing the actual types of the type arguments.
    */
   List<Type2> _typeArguments = TypeImpl.EMPTY_ARRAY;
-  
+
   /**
    * Initialize a newly created type to be declared by the given element.
    * @param element the element representing the declaration of the type
    */
   InterfaceTypeImpl.con1(ClassElement element) : super(element, element.displayName) {
-    _jtd_constructor_300_impl(element);
+    _jtd_constructor_301_impl(element);
   }
-  _jtd_constructor_300_impl(ClassElement element) {
+  _jtd_constructor_301_impl(ClassElement element) {
   }
-  
+
   /**
    * Initialize a newly created type to have the given name. This constructor should only be used in
    * cases where there is no declaration of the type.
    * @param name the name of the type
    */
   InterfaceTypeImpl.con2(String name) : super(null, name) {
-    _jtd_constructor_301_impl(name);
+    _jtd_constructor_302_impl(name);
   }
-  _jtd_constructor_301_impl(String name) {
+  _jtd_constructor_302_impl(String name) {
   }
   bool operator ==(Object object) {
     if (object is! InterfaceTypeImpl) {
@@ -6111,7 +6018,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return null;
   }
-  
+
   /**
    * Set the actual types of the type arguments to those in the given array.
    * @param typeArguments the actual types of the type arguments
@@ -6231,14 +6138,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return false;
   }
 }
-
 /**
  * The abstract class {@code TypeImpl} implements the behavior common to objects representing the
  * declared type of elements in the element model.
  * @coverage dart.engine.type
  */
 abstract class TypeImpl implements Type2 {
-  
+
   /**
    * Return an array containing the results of using the given argument types and parameter types to
    * perform a substitution on all of the given types.
@@ -6258,23 +6164,23 @@ abstract class TypeImpl implements Type2 {
     }
     return newTypes;
   }
-  
+
   /**
    * The element representing the declaration of this type, or {@code null} if the type has not, or
    * cannot, be associated with an element.
    */
   Element _element;
-  
+
   /**
    * The name of this type, or {@code null} if the type does not have a name.
    */
   String _name;
-  
+
   /**
    * An empty array of types.
    */
   static List<Type2> EMPTY_ARRAY = new List<Type2>(0);
-  
+
   /**
    * Initialize a newly created type to be declared by the given element and to have the given name.
    * @param element the element representing the declaration of the type
@@ -6300,7 +6206,7 @@ abstract class TypeImpl implements Type2 {
     appendTo(builder);
     return builder.toString();
   }
-  
+
   /**
    * Append a textual representation of this type to the given builder.
    * @param builder the builder to which the text is to be appended
@@ -6313,14 +6219,13 @@ abstract class TypeImpl implements Type2 {
     }
   }
 }
-
 /**
  * Instances of the class {@code TypeVariableTypeImpl} defines the behavior of objects representing
  * the type introduced by a type variable.
  * @coverage dart.engine.type
  */
 class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
-  
+
   /**
    * Return an array containing the type variable types defined by the given array of type variable
    * elements.
@@ -6335,7 +6240,7 @@ class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
     }
     return types;
   }
-  
+
   /**
    * Initialize a newly created type variable to be declared by the given element and to have the
    * given name.
@@ -6361,24 +6266,23 @@ class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
     return this;
   }
 }
-
 /**
  * The unique instance of the class {@code VoidTypeImpl} implements the type {@code void}.
  * @coverage dart.engine.type
  */
 class VoidTypeImpl extends TypeImpl implements VoidType {
-  
+
   /**
    * The unique instance of this class.
    */
   static VoidTypeImpl _INSTANCE = new VoidTypeImpl();
-  
+
   /**
    * Return the unique instance of this class.
    * @return the unique instance of this class
    */
   static VoidTypeImpl get instance => _INSTANCE;
-  
+
   /**
    * Prevent the creation of instances of this class.
    */
@@ -6389,7 +6293,6 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool isVoid() => true;
   VoidTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
 }
-
 /**
  * The interface {@code FunctionType} defines the behavior common to objects representing the type
  * of a function, method, constructor, getter, or setter. Function types come in three variations:
@@ -6405,7 +6308,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
  * @coverage dart.engine.type
  */
 abstract class FunctionType implements ParameterizedType {
-  
+
   /**
    * Return a map from the names of named parameters to the types of the named parameters of this
    * type of function. The entries in the map will be iterated in the same order as the order in
@@ -6414,14 +6317,14 @@ abstract class FunctionType implements ParameterizedType {
    * @return a map from the name to the types of the named parameters of this type of function
    */
   Map<String, Type2> get namedParameterTypes;
-  
+
   /**
    * Return an array containing the types of the normal parameters of this type of function. The
    * parameter types are in the same order as they appear in the declaration of the function.
    * @return the types of the normal parameters of this type of function
    */
   List<Type2> get normalParameterTypes;
-  
+
   /**
    * Return a map from the names of optional (positional) parameters to the types of the optional
    * parameters of this type of function. The entries in the map will be iterated in the same order
@@ -6430,20 +6333,20 @@ abstract class FunctionType implements ParameterizedType {
    * @return a map from the name to the types of the optional parameters of this type of function
    */
   List<Type2> get optionalParameterTypes;
-  
+
   /**
    * Return an array containing the parameters elements of this type of function. The parameter
    * types are in the same order as they appear in the declaration of the function.
    * @return the parameters elements of this type of function
    */
   List<ParameterElement> get parameters;
-  
+
   /**
    * Return the type of object returned by this type of function.
    * @return the type of object returned by this type of function
    */
   Type2 get returnType;
-  
+
   /**
    * Return {@code true} if this type is a subtype of the given type.
    * <p>
@@ -6508,7 +6411,7 @@ abstract class FunctionType implements ParameterizedType {
    * @return {@code true} if this type is a subtype of the given type
    */
   bool isSubtypeOf(Type2 type);
-  
+
   /**
    * Return the type resulting from substituting the given arguments for this type's parameters.
    * This is fully equivalent to {@code substitute(argumentTypes, getTypeArguments())}.
@@ -6518,7 +6421,6 @@ abstract class FunctionType implements ParameterizedType {
   FunctionType substitute4(List<Type2> argumentTypes);
   FunctionType substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes);
 }
-
 /**
  * The interface {@code InterfaceType} defines the behavior common to objects representing the type
  * introduced by either a class or an interface, or a reference to such a type.
@@ -6526,7 +6428,7 @@ abstract class FunctionType implements ParameterizedType {
  */
 abstract class InterfaceType implements ParameterizedType {
   ClassElement get element;
-  
+
   /**
    * Return the element representing the getter with the given name that is declared in this class,
    * or {@code null} if this class does not declare a getter with the given name.
@@ -6534,7 +6436,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return the getter declared in this class with the given name
    */
   PropertyAccessorElement getGetter(String getterName);
-  
+
   /**
    * Return an array containing all of the interfaces that are implemented by this interface. Note
    * that this is <b>not</b>, in general, equivalent to getting the interfaces from this type's
@@ -6542,7 +6444,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return the interfaces that are implemented by this type
    */
   List<InterfaceType> get interfaces;
-  
+
   /**
    * Return the least upper bound of this type and the given type, or {@code null} if there is no
    * least upper bound.
@@ -6559,7 +6461,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return the least upper bound of this type and the given type
    */
   Type2 getLeastUpperBound(Type2 type);
-  
+
   /**
    * Return the element representing the method with the given name that is declared in this class,
    * or {@code null} if this class does not declare a method with the given name.
@@ -6567,7 +6469,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return the method declared in this class with the given name
    */
   MethodElement getMethod(String methodName);
-  
+
   /**
    * Return an array containing all of the mixins that are applied to the class being extended in
    * order to derive the superclass of this class. Note that this is <b>not</b>, in general,
@@ -6576,7 +6478,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return the mixins that are applied to derive the superclass of this class
    */
   List<InterfaceType> get mixins;
-  
+
   /**
    * Return the element representing the setter with the given name that is declared in this class,
    * or {@code null} if this class does not declare a setter with the given name.
@@ -6584,7 +6486,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return the setter declared in this class with the given name
    */
   PropertyAccessorElement getSetter(String setterName);
-  
+
   /**
    * Return the type representing the superclass of this type, or null if this type represents the
    * class 'Object'. Note that this is <b>not</b>, in general, equivalent to getting the superclass
@@ -6593,7 +6495,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return the superclass of this type
    */
   InterfaceType get superclass;
-  
+
   /**
    * Return {@code true} if this type is a direct supertype of the given type. The implicit
    * interface of class <i>I</i> is a direct supertype of the implicit interface of class <i>J</i>
@@ -6609,7 +6511,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return {@code true} if this type is a direct supertype of the given type
    */
   bool isDirectSupertypeOf(InterfaceType type);
-  
+
   /**
    * Return {@code true} if this type is more specific than the given type. An interface type
    * <i>T</i> is more specific than an interface type <i>S</i>, written <i>T &laquo; S</i>, if one
@@ -6629,7 +6531,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return {@code true} if this type is more specific than the given type
    */
   bool isMoreSpecificThan(Type2 type);
-  
+
   /**
    * Return {@code true} if this type is a subtype of the given type. An interface type <i>T</i> is
    * a subtype of an interface type <i>S</i>, written <i>T</i> <: <i>S</i>, iff
@@ -6640,7 +6542,7 @@ abstract class InterfaceType implements ParameterizedType {
    * @return {@code true} if this type is a subtype of the given type
    */
   bool isSubtypeOf(Type2 type);
-  
+
   /**
    * Return the element representing the constructor that results from looking up the given
    * constructor in this class with respect to the given library, or {@code null} if the look up
@@ -6654,7 +6556,7 @@ abstract class InterfaceType implements ParameterizedType {
    * library
    */
   ConstructorElement lookUpConstructor(String constructorName, LibraryElement library);
-  
+
   /**
    * Return the element representing the getter that results from looking up the given getter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
@@ -6675,7 +6577,7 @@ abstract class InterfaceType implements ParameterizedType {
    * library
    */
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
-  
+
   /**
    * Return the element representing the getter that results from looking up the given getter in the
    * superclass of this class with respect to the given library, or {@code null} if the look up
@@ -6696,7 +6598,7 @@ abstract class InterfaceType implements ParameterizedType {
    * library
    */
   PropertyAccessorElement lookUpGetterInSuperclass(String getterName, LibraryElement library);
-  
+
   /**
    * Return the element representing the method that results from looking up the given method in
    * this class with respect to the given library, or {@code null} if the look up fails. The
@@ -6716,7 +6618,7 @@ abstract class InterfaceType implements ParameterizedType {
    * library
    */
   MethodElement lookUpMethod(String methodName, LibraryElement library);
-  
+
   /**
    * Return the element representing the method that results from looking up the given method in the
    * superclass of this class with respect to the given library, or {@code null} if the look up
@@ -6736,7 +6638,7 @@ abstract class InterfaceType implements ParameterizedType {
    * library
    */
   MethodElement lookUpMethodInSuperclass(String methodName, LibraryElement library);
-  
+
   /**
    * Return the element representing the setter that results from looking up the given setter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
@@ -6757,7 +6659,7 @@ abstract class InterfaceType implements ParameterizedType {
    * library
    */
   PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library);
-  
+
   /**
    * Return the element representing the setter that results from looking up the given setter in the
    * superclass of this class with respect to the given library, or {@code null} if the look up
@@ -6778,7 +6680,7 @@ abstract class InterfaceType implements ParameterizedType {
    * library
    */
   PropertyAccessorElement lookUpSetterInSuperclass(String setterName, LibraryElement library);
-  
+
   /**
    * Return the type resulting from substituting the given arguments for this type's parameters.
    * This is fully equivalent to {@code substitute(argumentTypes, getTypeArguments())}.
@@ -6788,14 +6690,13 @@ abstract class InterfaceType implements ParameterizedType {
   InterfaceType substitute5(List<Type2> argumentTypes);
   InterfaceType substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes);
 }
-
 /**
  * The interface {@code ParameterizedType} defines the behavior common to objects representing the
  * type with type parameters, such as class and function type alias.
  * @coverage dart.engine.type
  */
 abstract class ParameterizedType implements Type2 {
-  
+
   /**
    * Return an array containing the actual types of the type arguments. If this type's element does
    * not have type parameters, then the array should be empty (although it is possible for type
@@ -6805,28 +6706,27 @@ abstract class ParameterizedType implements Type2 {
    * @return the actual types of the type arguments
    */
   List<Type2> get typeArguments;
-  
+
   /**
    * Return an array containing all of the type variables declared for this type.
    * @return the type variables declared for this type
    */
   List<TypeVariableElement> get typeVariables;
 }
-
 /**
  * The interface {@code Type} defines the behavior of objects representing the declared type of
  * elements in the element model.
  * @coverage dart.engine.type
  */
 abstract class Type2 {
-  
+
   /**
    * Return the name of this type as it should appear when presented to users in contexts such as
    * error messages.
    * @return the name of this type
    */
   String get displayName;
-  
+
   /**
    * Return the element representing the declaration of this type, or {@code null} if the type has
    * not, or cannot, be associated with an element. The former case will occur if the element model
@@ -6834,7 +6734,7 @@ abstract class Type2 {
    * @return the element representing the declaration of this type
    */
   Element get element;
-  
+
   /**
    * Return the least upper bound of this type and the given type, or {@code null} if there is no
    * least upper bound.
@@ -6842,14 +6742,14 @@ abstract class Type2 {
    * @return the least upper bound of this type and the given type
    */
   Type2 getLeastUpperBound(Type2 type);
-  
+
   /**
    * Return the name of this type, or {@code null} if the type does not have a name, such as when
    * the type represents the type of an unnamed function.
    * @return the name of this type
    */
   String get name;
-  
+
   /**
    * Return {@code true} if this type is assignable to the given type. A type <i>T</i> may be
    * assigned to a type <i>S</i>, written <i>T</i> &hArr; <i>S</i>, iff either <i>T</i> <: <i>S</i>
@@ -6858,7 +6758,7 @@ abstract class Type2 {
    * @return {@code true} if this type is assignable to the given type
    */
   bool isAssignableTo(Type2 type);
-  
+
   /**
    * Return {@code true} if this type represents the type 'Function' defined in the dart:core
    * library.
@@ -6866,33 +6766,33 @@ abstract class Type2 {
    * library
    */
   bool isDartCoreFunction();
-  
+
   /**
    * Return {@code true} if this type represents the type 'dynamic'.
    * @return {@code true} if this type represents the type 'dynamic'
    */
   bool isDynamic();
-  
+
   /**
    * Return {@code true} if this type is more specific than the given type.
    * @param type the type being compared with this type
    * @return {@code true} if this type is more specific than the given type
    */
   bool isMoreSpecificThan(Type2 type);
-  
+
   /**
    * Return {@code true} if this type represents the type 'Object'.
    * @return {@code true} if this type represents the type 'Object'
    */
   bool isObject();
-  
+
   /**
    * Return {@code true} if this type is a subtype of the given type.
    * @param type the type being compared with this type
    * @return {@code true} if this type is a subtype of the given type
    */
   bool isSubtypeOf(Type2 type);
-  
+
   /**
    * Return {@code true} if this type is a supertype of the given type. A type <i>S</i> is a
    * supertype of <i>T</i>, written <i>S</i> :> <i>T</i>, iff <i>T</i> is a subtype of <i>S</i>.
@@ -6900,13 +6800,13 @@ abstract class Type2 {
    * @return {@code true} if this type is a supertype of the given type
    */
   bool isSupertypeOf(Type2 type);
-  
+
   /**
    * Return {@code true} if this type represents the type 'void'.
    * @return {@code true} if this type represents the type 'void'
    */
   bool isVoid();
-  
+
   /**
    * Return the type resulting from substituting the given arguments for the given parameters in
    * this type. The specification defines this operation in section 2: <blockquote> The notation
@@ -6921,7 +6821,6 @@ abstract class Type2 {
    */
   Type2 substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes);
 }
-
 /**
  * The interface {@code TypeVariableType} defines the behavior of objects representing the type
  * introduced by a type variable.
@@ -6930,7 +6829,6 @@ abstract class Type2 {
 abstract class TypeVariableType implements Type2 {
   TypeVariableElement get element;
 }
-
 /**
  * The interface {@code VoidType} defines the behavior of the unique object representing the type{@code void}.
  * @coverage dart.engine.type

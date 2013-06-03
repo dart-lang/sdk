@@ -1,11 +1,7 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
-
 library engine.instrumentation;
-
 import 'java_core.dart';
-
-
 /**
  * The class {@code Instrumentation} implements support for logging instrumentation information.
  * <p>
@@ -32,55 +28,55 @@ import 'java_core.dart';
  * @coverage dart.engine.utilities
  */
 class Instrumentation {
-  
+
   /**
    * A builder that will silently ignore all data and logging requests.
    */
   static InstrumentationBuilder _NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder_13();
-  
+
   /**
    * An instrumentation logger that can be used when no other instrumentation logger has been
    * configured. This logger will silently ignore all data and logging requests.
    */
   static InstrumentationLogger _NULL_LOGGER = new InstrumentationLogger_14();
-  
+
   /**
    * The current instrumentation logger.
    */
   static InstrumentationLogger _CURRENT_LOGGER = _NULL_LOGGER;
-  
+
   /**
    * Create a builder that can collect the data associated with an operation.
    * @param clazz the class performing the operation (not {@code null})
    * @return the builder that was created (not {@code null})
    */
   static InstrumentationBuilder builder(Type clazz) => _CURRENT_LOGGER.createBuilder(clazz.toString());
-  
+
   /**
    * Create a builder that can collect the data associated with an operation.
    * @param name the name used to uniquely identify the operation (not {@code null})
    * @return the builder that was created (not {@code null})
    */
   static InstrumentationBuilder builder2(String name) => _CURRENT_LOGGER.createBuilder(name);
-  
+
   /**
    * Get the currently active instrumentation logger
    */
   static InstrumentationLogger get logger => _CURRENT_LOGGER;
-  
+
   /**
    * Return a builder that will silently ignore all data and logging requests.
    * @return the builder (not {@code null})
    */
   static InstrumentationBuilder get nullBuilder => _NULL_INSTRUMENTATION_BUILDER;
-  
+
   /**
    * Is this instrumentation system currently configured to drop instrumentation data provided to
    * it?
    * @return
    */
   static bool isNullLogger() => identical(_CURRENT_LOGGER, _NULL_LOGGER);
-  
+
   /**
    * Set the logger that should receive instrumentation information to the given logger.
    * @param logger the logger that should receive instrumentation information
@@ -106,7 +102,6 @@ class InstrumentationBuilder_13 implements InstrumentationBuilder {
 class InstrumentationLogger_14 implements InstrumentationLogger {
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
-
 /**
  * The interface {@code InstrumentationBuilder} defines the behavior of objects used to collect data
  * about an operation that has occurred and record that data through an instrumentation logger.
@@ -115,7 +110,7 @@ class InstrumentationLogger_14 implements InstrumentationLogger {
  * @coverage dart.engine.utilities
  */
 abstract class InstrumentationBuilder {
-  
+
   /**
    * Append the given data to the data being collected by this builder. The information is declared
    * to potentially contain data that is either user identifiable or contains user intellectual
@@ -125,7 +120,7 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder data(String name, bool value);
-  
+
   /**
    * Append the given data to the data being collected by this builder. The information is declared
    * to potentially contain data that is either user identifiable or contains user intellectual
@@ -135,7 +130,7 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder data2(String name, int value);
-  
+
   /**
    * Append the given data to the data being collected by this builder. The information is declared
    * to potentially contain data that is either user identifiable or contains user intellectual
@@ -145,7 +140,7 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder data3(String name, String value);
-  
+
   /**
    * Append the given data to the data being collected by this builder. The information is declared
    * to potentially contain data that is either user identifiable or contains user intellectual
@@ -155,20 +150,20 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder data4(String name, List<String> value);
-  
+
   /**
    * Answer the {@link InstrumentationLevel} of this {@code InstrumentationBuilder}.
    * @return one of {@link InstrumentationLevel#EVERYTHING}, {@link InstrumentationLevel#METRICS},{@link InstrumentationLevel#OFF}
    */
   InstrumentationLevel get instrumentationLevel;
-  
+
   /**
    * Log the data that has been collected. The instrumentation builder should not be used after this
    * method is invoked. The behavior of any method defined on this interface that is used after this
    * method is invoked is undefined.
    */
   void log();
-  
+
   /**
    * Append the given metric to the data being collected by this builder. The information is
    * declared to contain only metrics data (data that is not user identifiable and does not contain
@@ -178,7 +173,7 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder metric(String name, bool value);
-  
+
   /**
    * Append the given metric to the data being collected by this builder. The information is
    * declared to contain only metrics data (data that is not user identifiable and does not contain
@@ -188,7 +183,7 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder metric2(String name, int value);
-  
+
   /**
    * Append the given metric to the data being collected by this builder. The information is
    * declared to contain only metrics data (data that is not user identifiable and does not contain
@@ -198,7 +193,7 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder metric3(String name, String value);
-  
+
   /**
    * Append the given metric to the data being collected by this builder. The information is
    * declared to contain only metrics data (data that is not user identifiable and does not contain
@@ -208,7 +203,7 @@ abstract class InstrumentationBuilder {
    * @return this builder
    */
   InstrumentationBuilder metric4(String name, List<String> value);
-  
+
   /**
    * Append the given exception to the information being collected by this builder. The exception's
    * class name is captured using {@link #metric(String,String)}. Other aspects of the exception
@@ -218,7 +213,6 @@ abstract class InstrumentationBuilder {
    */
   InstrumentationBuilder record(Exception exception);
 }
-
 /**
  * The instrumentation recording level representing (1) recording {@link #EVERYTHING} recording of
  * all instrumentation data, (2) recording only {@link #METRICS} information, or (3) recording
@@ -226,26 +220,26 @@ abstract class InstrumentationBuilder {
  * @coverage dart.engine.utilities
  */
 class InstrumentationLevel implements Comparable<InstrumentationLevel> {
-  
+
   /**
    * Recording all instrumented information
    */
   static final InstrumentationLevel EVERYTHING = new InstrumentationLevel('EVERYTHING', 0);
-  
+
   /**
    * Recording only metrics
    */
   static final InstrumentationLevel METRICS = new InstrumentationLevel('METRICS', 1);
-  
+
   /**
    * Nothing recorded
    */
   static final InstrumentationLevel OFF = new InstrumentationLevel('OFF', 2);
   static final List<InstrumentationLevel> values = [EVERYTHING, METRICS, OFF];
-  
+
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
-  
+
   /// The position in the enum declaration.
   final int ordinal;
   static InstrumentationLevel fromString(String str) {
@@ -265,7 +259,6 @@ class InstrumentationLevel implements Comparable<InstrumentationLevel> {
   int compareTo(InstrumentationLevel other) => ordinal - other.ordinal;
   String toString() => name;
 }
-
 /**
  * The interface {@code InstrumentationLogger} defines the behavior of objects that are used to log
  * instrumentation data.
@@ -274,7 +267,7 @@ class InstrumentationLevel implements Comparable<InstrumentationLevel> {
  * @coverage dart.engine.utilities
  */
 abstract class InstrumentationLogger {
-  
+
   /**
    * Create a builder that can collect the data associated with an operation identified by the given
    * name.

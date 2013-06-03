@@ -1,8 +1,6 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
-
 library engine.constant;
-
 import 'java_core.dart';
 import 'source.dart' show Source;
 import 'error.dart' show AnalysisError, ErrorCode, CompileTimeErrorCode;
@@ -10,8 +8,6 @@ import 'scanner.dart' show TokenType;
 import 'ast.dart';
 import 'element.dart';
 import 'engine.dart' show AnalysisEngine;
-
-
 /**
  * Instances of the class {@code ConstantEvaluator} evaluate constant expressions to produce their
  * compile-time value. According to the Dart Language Specification: <blockquote> A constant
@@ -44,12 +40,12 @@ import 'engine.dart' show AnalysisEngine;
  * those values.
  */
 class ConstantEvaluator {
-  
+
   /**
    * The source containing the expression(s) that will be evaluated.
    */
   Source _source;
-  
+
   /**
    * Initialize a newly created evaluator to evaluate expressions in the given source.
    * @param source the source containing the expression(s) that will be evaluated
@@ -70,13 +66,12 @@ class ConstantEvaluator {
     return EvaluationResult.forErrors(new List.from(errors));
   }
 }
-
 /**
  * Instances of the class {@code EvaluationResult} represent the result of attempting to evaluate an
  * expression.
  */
 class EvaluationResult {
-  
+
   /**
    * Return an evaluation result representing the result of evaluating an expression that is not a
    * compile-time constant because of the given errors.
@@ -84,7 +79,7 @@ class EvaluationResult {
    * @return the result of evaluating an expression that is not a compile-time constant
    */
   static EvaluationResult forErrors(List<AnalysisError> errors) => new EvaluationResult(null, errors);
-  
+
   /**
    * Return an evaluation result representing the result of evaluating an expression that is a
    * compile-time constant that evaluates to the given value.
@@ -92,17 +87,17 @@ class EvaluationResult {
    * @return the result of evaluating an expression that is a compile-time constant
    */
   static EvaluationResult forValue(Object value) => new EvaluationResult(value, null);
-  
+
   /**
    * The value of the expression.
    */
   Object _value;
-  
+
   /**
    * The errors that should be reported for the expression(s) that were evaluated.
    */
   List<AnalysisError> _errors;
-  
+
   /**
    * Initialize a newly created result object with the given state. Clients should use one of the
    * factory methods: {@link #forErrors(AnalysisError\[\])} and {@link #forValue(Object)}.
@@ -113,7 +108,7 @@ class EvaluationResult {
     this._value = value;
     this._errors = errors;
   }
-  
+
   /**
    * Return an array containing the errors that should be reported for the expression(s) that were
    * evaluated. If there are no such errors, the array will be empty. The array can be empty even if
@@ -121,14 +116,14 @@ class EvaluationResult {
    * other parts of the analysis engine.
    */
   List<AnalysisError> get errors => _errors == null ? AnalysisError.NO_ERRORS : _errors;
-  
+
   /**
    * Return the value of the expression, or {@code null} if the expression evaluated to {@code null}or if the expression could not be evaluated, either because it was not a compile-time constant
    * expression or because it would throw an exception when evaluated.
    * @return the value of the expression
    */
   Object get value => _value;
-  
+
   /**
    * Return {@code true} if the expression is a compile-time constant expression that would not
    * throw an exception when evaluated.
@@ -136,19 +131,18 @@ class EvaluationResult {
    */
   bool isValid() => _errors == null;
 }
-
 /**
  * Instances of the class {@code ConstantFinder} are used to traverse the AST structures of all of
  * the compilation units being resolved and build a table mapping constant variable elements to the
  * declarations of those variables.
  */
 class ConstantFinder extends RecursiveASTVisitor<Object> {
-  
+
   /**
    * A table mapping constant variable elements to the declarations of those variables.
    */
   Map<VariableElement, VariableDeclaration> _variableMap = new Map<VariableElement, VariableDeclaration>();
-  
+
   /**
    * Return a table mapping constant variable elements to the declarations of those variables.
    * @return a table mapping constant variable elements to the declarations of those variables
@@ -166,7 +160,6 @@ class ConstantFinder extends RecursiveASTVisitor<Object> {
     return null;
   }
 }
-
 /**
  * Instances of the class {@code ConstantValueComputer} compute the values of constant variables in
  * one or more compilation units. The expected usage pattern is for the compilation units to be
@@ -174,23 +167,23 @@ class ConstantFinder extends RecursiveASTVisitor<Object> {
  * method {@link #computeValues()} will result in unpredictable behavior.
  */
 class ConstantValueComputer {
-  
+
   /**
    * The object used to find constant variables in the compilation units that were added.
    */
   ConstantFinder _constantFinder = new ConstantFinder();
-  
+
   /**
    * A graph in which the nodes are the constant variables and the edges are from each variable to
    * the other constant variables that are referenced in the head's initializer.
    */
   DirectedGraph<VariableElement> _referenceGraph = new DirectedGraph<VariableElement>();
-  
+
   /**
    * A table mapping constant variables to the declarations of those variables.
    */
   Map<VariableElement, VariableDeclaration> _declarationMap;
-  
+
   /**
    * Add the constant variables in the given compilation unit to the list of constant variables
    * whose value needs to be computed.
@@ -199,7 +192,7 @@ class ConstantValueComputer {
   void add(CompilationUnit unit) {
     unit.accept(_constantFinder);
   }
-  
+
   /**
    * Compute values for all of the constant variables in the compilation units that were added.
    */
@@ -230,7 +223,7 @@ class ConstantValueComputer {
       }
     }
   }
-  
+
   /**
    * Compute a value for the given variable.
    * @param variable the variable for which a value is to be computed
@@ -251,7 +244,7 @@ class ConstantValueComputer {
       }
     }
   }
-  
+
   /**
    * Generate an error indicating that the given variable is not a valid compile-time constant
    * because it references at least one of the variables in the given cycle, each of which directly
@@ -262,7 +255,6 @@ class ConstantValueComputer {
   void generateCycleError(List<VariableElement> variablesInCycle, VariableElement variable) {
   }
 }
-
 /**
  * Instances of the class {@code ConstantVisitor} evaluate constant expressions to produce their
  * compile-time value. According to the Dart Language Specification: <blockquote> A constant
@@ -371,6 +363,9 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
   }
   EvaluationResultImpl visitInterpolationString(InterpolationString node) => new ValidResult(node.value);
   EvaluationResultImpl visitListLiteral(ListLiteral node) {
+    if (node.modifier == null) {
+      return new ErrorResult.con1(node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
+    }
     ErrorResult result = null;
     for (Expression element in node.elements) {
       result = union(result, element.accept(this));
@@ -381,6 +376,9 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     return ValidResult.RESULT_OBJECT;
   }
   EvaluationResultImpl visitMapLiteral(MapLiteral node) {
+    if (node.modifier == null) {
+      return new ErrorResult.con1(node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
+    }
     ErrorResult result = null;
     for (MapLiteralEntry entry in node.entries) {
       result = union(result, entry.key.accept(this));
@@ -447,7 +445,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     }
     return result;
   }
-  
+
   /**
    * Return a result object representing an error associated with the given node.
    * @param node the AST node associated with the error
@@ -455,7 +453,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
    * @return a result object representing an error associated with the given node
    */
   ErrorResult error(ASTNode node, ErrorCode code) => new ErrorResult.con1(node, code == null ? CompileTimeErrorCode.INVALID_CONSTANT : code);
-  
+
   /**
    * Return the constant value of the static constant represented by the given element.
    * @param node the node to be used if an error needs to be reported
@@ -478,7 +476,7 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     }
     return error(node, null);
   }
-  
+
   /**
    * Return the union of the errors encoded in the given results.
    * @param leftResult the first set of errors, or {@code null} if there was no previous collection
@@ -498,7 +496,6 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     return leftResult;
   }
 }
-
 /**
  * Instances of the class {@code DirectedGraph} implement a directed graph in which the nodes are
  * arbitrary (client provided) objects and edges are represented implicitly. The graph will allow an
@@ -507,14 +504,14 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
  * @param N the type of the nodes in the graph
  */
 class DirectedGraph<N> {
-  
+
   /**
    * The table encoding the edges in the graph. An edge is represented by an entry mapping the head
    * to a set of tails. Nodes that are not the head of any edge are represented by an entry mapping
    * the node to an empty set of tails.
    */
   Map<N, Set<N>> _edges = new Map<N, Set<N>>();
-  
+
   /**
    * Add an edge from the given head node to the given tail node. Both nodes will be a part of the
    * graph after this method is invoked, whether or not they were before.
@@ -533,7 +530,7 @@ class DirectedGraph<N> {
     }
     javaSetAdd(tails, tail);
   }
-  
+
   /**
    * Add the given node to the set of nodes in the graph.
    * @param node the node to be added
@@ -544,19 +541,19 @@ class DirectedGraph<N> {
       _edges[node] = new Set<N>();
     }
   }
-  
+
   /**
    * Return a list of nodes that form a cycle, or {@code null} if there are no cycles in this graph.
    * @return a list of nodes that form a cycle
    */
   List<N> findCycle() => null;
-  
+
   /**
    * Return the number of nodes in this graph.
    * @return the number of nodes in this graph
    */
   int get nodeCount => _edges.length;
-  
+
   /**
    * Return a set containing the tails of edges that have the given node as their head. The set will
    * be empty if there are no such edges or if the node is not part of the graph. Clients must not
@@ -571,13 +568,13 @@ class DirectedGraph<N> {
     }
     return tails;
   }
-  
+
   /**
    * Return {@code true} if this graph is empty.
    * @return {@code true} if this graph is empty
    */
   bool isEmpty() => _edges.isEmpty;
-  
+
   /**
    * Remove all of the given nodes from this graph. As a consequence, any edges for which those
    * nodes were either a head or a tail will also be removed.
@@ -588,7 +585,7 @@ class DirectedGraph<N> {
       removeNode(node);
     }
   }
-  
+
   /**
    * Remove the edge from the given head node to the given tail node. If there was no such edge then
    * the graph will be unmodified: the number of edges will be the same and the set of nodes will be
@@ -603,7 +600,7 @@ class DirectedGraph<N> {
       tails.remove(tail);
     }
   }
-  
+
   /**
    * Remove the given node from this graph. As a consequence, any edges for which that node was
    * either a head or a tail will also be removed.
@@ -615,7 +612,7 @@ class DirectedGraph<N> {
       tails.remove(node);
     }
   }
-  
+
   /**
    * Find one node (referred to as a sink node) that has no outgoing edges (that is, for which there
    * are no edges that have that node as the head of the edge) and remove it from this graph. Return
@@ -632,7 +629,7 @@ class DirectedGraph<N> {
     removeNode(sink);
     return sink;
   }
-  
+
   /**
    * Return one node that has no outgoing edges (that is, for which there are no edges that have
    * that node as the head of the edge), or {@code null} if there are no such nodes.
@@ -647,18 +644,17 @@ class DirectedGraph<N> {
     return null;
   }
 }
-
 /**
  * Instances of the class {@code ErrorResult} represent the result of evaluating an expression that
  * is not a valid compile time constant.
  */
 class ErrorResult extends EvaluationResultImpl {
-  
+
   /**
    * The errors that prevent the expression from being a valid compile time constant.
    */
   List<ErrorResult_ErrorData> _errors = new List<ErrorResult_ErrorData>();
-  
+
   /**
    * Initialize a newly created result representing the error with the given code reported against
    * the given node.
@@ -666,12 +662,12 @@ class ErrorResult extends EvaluationResultImpl {
    * @param errorCode the error code for the error to be generated
    */
   ErrorResult.con1(ASTNode node, ErrorCode errorCode) {
-    _jtd_constructor_171_impl(node, errorCode);
+    _jtd_constructor_172_impl(node, errorCode);
   }
-  _jtd_constructor_171_impl(ASTNode node, ErrorCode errorCode) {
+  _jtd_constructor_172_impl(ASTNode node, ErrorCode errorCode) {
     _errors.add(new ErrorResult_ErrorData(node, errorCode));
   }
-  
+
   /**
    * Initialize a newly created result to represent the union of the errors in the given result
    * objects.
@@ -679,9 +675,9 @@ class ErrorResult extends EvaluationResultImpl {
    * @param secondResult the second set of results being merged
    */
   ErrorResult.con2(ErrorResult firstResult, ErrorResult secondResult) {
-    _jtd_constructor_172_impl(firstResult, secondResult);
+    _jtd_constructor_173_impl(firstResult, secondResult);
   }
-  _jtd_constructor_172_impl(ErrorResult firstResult, ErrorResult secondResult) {
+  _jtd_constructor_173_impl(ErrorResult firstResult, ErrorResult secondResult) {
     _errors.addAll(firstResult._errors);
     _errors.addAll(secondResult._errors);
   }
@@ -752,17 +748,17 @@ class ErrorResult extends EvaluationResultImpl {
   EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand) => this;
 }
 class ErrorResult_ErrorData {
-  
+
   /**
    * The node against which the error should be reported.
    */
   ASTNode _node;
-  
+
   /**
    * The error code for the error to be generated.
    */
   ErrorCode _errorCode;
-  
+
   /**
    * Initialize a newly created data holder to represent the error with the given code reported
    * against the given node.
@@ -773,20 +769,19 @@ class ErrorResult_ErrorData {
     this._node = node;
     this._errorCode = errorCode;
   }
-  
+
   /**
    * Return the error code for the error to be generated.
    * @return the error code for the error to be generated
    */
   ErrorCode get errorCode => _errorCode;
-  
+
   /**
    * Return the node against which the error should be reported.
    * @return the node against which the error should be reported
    */
   ASTNode get node => _node;
 }
-
 /**
  * Instances of the class {@code InternalResult} represent the result of attempting to evaluate a
  * expression.
@@ -857,24 +852,23 @@ abstract class EvaluationResultImpl {
   EvaluationResultImpl timesError(BinaryExpression node, ErrorResult leftOperand);
   EvaluationResultImpl timesValid(BinaryExpression node, ValidResult leftOperand);
 }
-
 /**
  * Instances of the class {@code ReferenceFinder} add reference information for a given variable to
  * the bi-directional mapping used to order the evaluation of constants.
  */
 class ReferenceFinder extends RecursiveASTVisitor<Object> {
-  
+
   /**
    * The element representing the variable whose initializer will be visited.
    */
   VariableElement _source;
-  
+
   /**
    * A graph in which the nodes are the constant variables and the edges are from each variable to
    * the other constant variables that are referenced in the head's initializer.
    */
   DirectedGraph<VariableElement> _referenceGraph;
-  
+
   /**
    * Initialize a newly created reference finder to find references from the given variable to other
    * variables and to add those references to the given graph.
@@ -900,69 +894,68 @@ class ReferenceFinder extends RecursiveASTVisitor<Object> {
     return null;
   }
 }
-
 /**
  * Instances of the class {@code ValidResult} represent the result of attempting to evaluate a valid
  * compile time constant expression.
  */
 class ValidResult extends EvaluationResultImpl {
-  
+
   /**
    * A result object representing the value 'false'.
    */
   static ValidResult RESULT_FALSE = new ValidResult(false);
-  
+
   /**
    * A result object representing the an object without specific type on which no further operations
    * can be performed.
    */
   static ValidResult RESULT_DYNAMIC = new ValidResult(null);
-  
+
   /**
    * A result object representing the an arbitrary integer on which no further operations can be
    * performed.
    */
   static ValidResult RESULT_INT = new ValidResult(null);
-  
+
   /**
    * A result object representing the {@code null} value.
    */
   static ValidResult RESULT_NULL = new ValidResult(null);
-  
+
   /**
    * A result object representing the an arbitrary numeric on which no further operations can be
    * performed.
    */
   static ValidResult RESULT_NUM = new ValidResult(null);
-  
+
   /**
    * A result object representing the an arbitrary boolean on which no further operations can be
    * performed.
    */
   static ValidResult RESULT_BOOL = new ValidResult(null);
-  
+
   /**
    * A result object representing the an arbitrary object on which no further operations can be
    * performed.
    */
   static ValidResult RESULT_OBJECT = new ValidResult(new Object());
-  
+
   /**
    * A result object representing the an arbitrary string on which no further operations can be
    * performed.
    */
   static ValidResult RESULT_STRING = new ValidResult("<string>");
-  
+
   /**
    * A result object representing the value 'true'.
    */
   static ValidResult RESULT_TRUE = new ValidResult(true);
-  
+
   /**
    * The value of the expression.
    */
   Object _value;
-  
+
   /**
    * Initialize a newly created result to represent the given value.
    * @param value the value of the expression
@@ -1574,7 +1567,7 @@ class ValidResult extends EvaluationResultImpl {
     return error(node);
   }
   bool isNull() => identical(this, RESULT_NULL);
-  
+
   /**
    * Return the result of applying boolean conversion to the given value.
    * @param node the node against which errors should be reported
@@ -1592,7 +1585,7 @@ class ValidResult extends EvaluationResultImpl {
     return error(node);
   }
   ErrorResult error(ASTNode node) => error2(node, CompileTimeErrorCode.INVALID_CONSTANT);
-  
+
   /**
    * Return a result object representing an error associated with the given node.
    * @param node the AST node associated with the error
@@ -1600,43 +1593,43 @@ class ValidResult extends EvaluationResultImpl {
    * @return a result object representing an error associated with the given node
    */
   ErrorResult error2(ASTNode node, ErrorCode code) => new ErrorResult.con1(node, code);
-  
+
   /**
    * Checks if this result has type "bool", with known or unknown value.
    */
   bool isAnyBool() => isSomeBool() || identical(this, RESULT_TRUE) || identical(this, RESULT_FALSE);
-  
+
   /**
    * Checks if this result has type "int", with known or unknown value.
    */
   bool isAnyInt() => identical(this, RESULT_INT) || _value is int;
-  
+
   /**
    * Checks if this result has one of the types - "bool", "num" or "string"; or may be {@code null}.
    */
   bool isAnyNullBoolNumString() => isNull() || isAnyBool() || isAnyNum() || _value is String;
-  
+
   /**
    * Checks if this result has type "num", with known or unknown value.
    */
   bool isAnyNum() => isSomeNum() || _value is num;
-  
+
   /**
    * Checks if this result has type "bool", exact value of which we don't know.
    */
   bool isSomeBool() => identical(this, RESULT_BOOL);
-  
+
   /**
    * Checks if this result has type "int", exact value of which we don't know.
    */
   bool isSomeInt() => identical(this, RESULT_INT);
-  
+
   /**
    * Checks if this result has type "num" (or "int"), exact value of which we don't know.
    */
   bool isSomeNum() => identical(this, RESULT_DYNAMIC) || identical(this, RESULT_INT) || identical(this, RESULT_NUM);
   double toDouble(int value) => value.toDouble();
-  
+
   /**
    * Return an error result that is the union of the two given error results.
    * @param firstError the first error to be combined
@@ -1644,28 +1637,28 @@ class ValidResult extends EvaluationResultImpl {
    * @return an error result that is the union of the two given error results
    */
   ErrorResult union(ErrorResult firstError, ErrorResult secondError) => new ErrorResult.con2(firstError, secondError);
-  
+
   /**
    * Return a result object representing the given value.
    * @param value the value to be represented as a result object
    * @return a result object representing the given value
    */
   ValidResult valueOf(int value) => new ValidResult(value);
-  
+
   /**
    * Return a result object representing the given value.
    * @param value the value to be represented as a result object
    * @return a result object representing the given value
    */
   ValidResult valueOf2(bool value) => value ? RESULT_TRUE : RESULT_FALSE;
-  
+
   /**
    * Return a result object representing the given value.
    * @param value the value to be represented as a result object
    * @return a result object representing the given value
    */
   ValidResult valueOf3(double value) => new ValidResult(value);
-  
+
   /**
    * Return a result object representing the given value.
    * @param value the value to be represented as a result object
