@@ -192,12 +192,11 @@ void CodeGenTest::Compile() {
   parsed_function->SetNodeSequence(node_sequence_);
   parsed_function->set_instantiator(NULL);
   parsed_function->set_default_parameter_values(default_parameter_values_);
-  parsed_function->set_expression_temp_var(
-      ParsedFunction::CreateExpressionTempVar(0));
+  parsed_function->EnsureExpressionTemp();
   node_sequence_->scope()->AddVariable(parsed_function->expression_temp_var());
   parsed_function->AllocateVariables();
   const Error& error =
-      Error::Handle(Compiler::CompileParsedFunction(*parsed_function));
+      Error::Handle(Compiler::CompileParsedFunction(parsed_function));
   EXPECT(error.IsNull());
 }
 

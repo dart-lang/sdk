@@ -109,10 +109,17 @@ static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
 }
 
 
-LocalVariable* ParsedFunction::CreateExpressionTempVar(intptr_t token_pos) {
-  return new LocalVariable(token_pos,
-                           Symbols::ExprTemp(),
-                           Type::ZoneHandle(Type::DynamicType()));
+LocalVariable* ParsedFunction::EnsureExpressionTemp() {
+  if (!has_expression_temp_var()) {
+    LocalVariable* temp =
+        new LocalVariable(function_.token_pos(),
+                          Symbols::ExprTemp(),
+                          Type::ZoneHandle(Type::DynamicType()));
+    ASSERT(temp != NULL);
+    set_expression_temp_var(temp);
+  }
+  ASSERT(has_expression_temp_var());
+  return expression_temp_var();
 }
 
 
@@ -1401,7 +1408,8 @@ static const String& PrivateCoreLibName(const String& str) {
 StaticCallNode* Parser::BuildInvocationMirrorAllocation(
     intptr_t call_pos,
     const String& function_name,
-    const ArgumentListNode& function_args) {
+    const ArgumentListNode& function_args,
+    const LocalVariable* temp_for_last_arg) {
   const intptr_t args_pos = function_args.token_pos();
   // Build arguments to the call to the static
   // InvocationMirror._allocateInvocationMirror method.
@@ -1418,7 +1426,18 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   ArrayNode* args_array =
       new ArrayNode(args_pos, Type::ZoneHandle(Type::ArrayType()));
   for (intptr_t i = 0; i < function_args.length(); i++) {
-    args_array->AddElement(function_args.NodeAt(i));
+    AstNode* arg = function_args.NodeAt(i);
+    if ((temp_for_last_arg != NULL) && (i == function_args.length() - 1)) {
+      args_array->AddElement(
+          new CommaNode(arg->token_pos(),
+                        new StoreLocalNode(arg->token_pos(),
+                                           temp_for_last_arg,
+                                           arg),
+                        new LoadLocalNode(arg->token_pos(),
+                                          temp_for_last_arg)));
+    } else {
+      args_array->AddElement(function_args.NodeAt(i));
+    }
   }
   arguments->Add(args_array);
   // Lookup the static InvocationMirror._allocateInvocationMirror method.
@@ -1436,14 +1455,15 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
 ArgumentListNode* Parser::BuildNoSuchMethodArguments(
     intptr_t call_pos,
     const String& function_name,
-    const ArgumentListNode& function_args) {
+    const ArgumentListNode& function_args,
+    const LocalVariable* temp_for_last_arg) {
   ASSERT(function_args.length() >= 1);  // The receiver is the first argument.
   const intptr_t args_pos = function_args.token_pos();
   ArgumentListNode* arguments = new ArgumentListNode(args_pos);
   arguments->Add(function_args.NodeAt(0));
   // The second argument is the invocation mirror.
   arguments->Add(BuildInvocationMirrorAllocation(
-      call_pos, function_name, function_args));
+      call_pos, function_name, function_args, temp_for_last_arg));
   return arguments;
 }
 
@@ -6881,21 +6901,9 @@ AstNode* Parser::ParseExprList() {
 }
 
 
-const LocalVariable* Parser::GetIncrementTempLocal() {
-  if (!parsed_function()->has_expression_temp_var()) {
-    LocalVariable* temp = ParsedFunction::CreateExpressionTempVar(
-        current_function().token_pos());
-    ASSERT(temp != NULL);
-    parsed_function()->set_expression_temp_var(temp);
-  }
-  ASSERT(parsed_function()->has_expression_temp_var());
-  return parsed_function()->expression_temp_var();
-}
-
-
 void Parser::EnsureExpressionTemp() {
   // Temporary used later by the flow_graph_builder.
-  GetIncrementTempLocal();
+  parsed_function()->EnsureExpressionTemp();
 }
 
 

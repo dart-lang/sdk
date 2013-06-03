@@ -50,7 +50,7 @@ class Compiler : public AllStatic {
   // sets its code field.
   //
   // Returns Error::null() if there is no compilation error.
-  static RawError* CompileParsedFunction(const ParsedFunction& parsed_function);
+  static RawError* CompileParsedFunction(ParsedFunction* parsed_function);
 
   // Generates and executes code for a given code fragment, e.g. a
   // compile time constant expression. Returns the result returned

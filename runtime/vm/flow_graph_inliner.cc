@@ -494,7 +494,7 @@ class CallSiteInliner : public ValueObject {
       // Build the callee graph.
       InlineExitCollector* exit_collector =
           new InlineExitCollector(caller_graph_, call);
-      FlowGraphBuilder builder(*parsed_function, ic_data_array, exit_collector);
+      FlowGraphBuilder builder(parsed_function, ic_data_array, exit_collector);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {

@@ -41,17 +41,17 @@ static const String& PrivateCoreLibName(const String& str) {
 }
 
 
-FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function,
+FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
                                    const Array& ic_data_array,
                                    InlineExitCollector* exit_collector)
   : parsed_function_(parsed_function),
     ic_data_array_(ic_data_array),
-    num_copied_params_(parsed_function.num_copied_params()),
+    num_copied_params_(parsed_function->num_copied_params()),
     // All parameters are copied if any parameter is.
     num_non_copied_params_((num_copied_params_ == 0)
-        ? parsed_function.function().num_fixed_parameters()
+        ? parsed_function->function().num_fixed_parameters()
         : 0),
-    num_stack_locals_(parsed_function.num_stack_locals()),
+    num_stack_locals_(parsed_function->num_stack_locals()),
     exit_collector_(exit_collector),
     last_used_block_id_(0),  // 0 is used for the graph entry.
     context_level_(0),
@@ -522,13 +522,13 @@ Definition* EffectGraphVisitor::BuildStoreTemp(const LocalVariable& local,
 
 
 Definition* EffectGraphVisitor::BuildStoreExprTemp(Value* value) {
-  return BuildStoreTemp(*owner()->parsed_function().expression_temp_var(),
+  return BuildStoreTemp(*owner()->parsed_function()->expression_temp_var(),
                         value);
 }
 
 
 Definition* EffectGraphVisitor::BuildLoadExprTemp() {
-  return BuildLoadLocal(*owner()->parsed_function().expression_temp_var());
+  return BuildLoadLocal(*owner()->parsed_function()->expression_temp_var());
 }
 
 
@@ -769,7 +769,7 @@ void EffectGraphVisitor::Bailout(const char* reason) {
 
 
 void EffectGraphVisitor::InlineBailout(const char* reason) {
-  owner()->parsed_function().function().set_is_inlinable(false);
+  owner()->parsed_function()->function().set_is_inlinable(false);
   if (owner()->IsInlining()) owner()->Bailout(reason);
 }
 
@@ -791,7 +791,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   Value* return_value = for_value.value();
   if (FLAG_enable_type_checks) {
-    const Function& function = owner()->parsed_function().function();
+    const Function& function = owner()->parsed_function()->function();
     const bool is_implicit_dynamic_getter =
         (!function.is_static() &&
         ((function.kind() == RawFunction::kImplicitGetter) ||
@@ -804,7 +804,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     if (!is_implicit_dynamic_getter && !function.IsConstructor()) {
       const AbstractType& dst_type =
           AbstractType::ZoneHandle(
-              owner()->parsed_function().function().result_type());
+              owner()->parsed_function()->function().result_type());
       return_value = BuildAssignableValue(node->value()->token_pos(),
                                           return_value,
                                           dst_type,
@@ -814,9 +814,9 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   intptr_t current_context_level = owner()->context_level();
   ASSERT(current_context_level >= 0);
-  if (owner()->parsed_function().saved_entry_context_var() != NULL) {
+  if (owner()->parsed_function()->saved_entry_context_var() != NULL) {
     // CTX on entry was saved, but not linked as context parent.
-    BuildLoadContext(*owner()->parsed_function().saved_entry_context_var());
+    BuildLoadContext(*owner()->parsed_function()->saved_entry_context_var());
   } else {
     while (current_context_level-- > 0) {
       UnchainContext();
@@ -886,7 +886,7 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
 
   const bool eliminated = value->Type()->IsAssignableTo(dst_type);
   if (FLAG_trace_type_check_elimination) {
-    FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
+    FlowGraphPrinter::PrintTypeCheck(*owner()->parsed_function(),
                                      token_pos,
                                      value,
                                      dst_type,
@@ -1034,7 +1034,7 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
     PushArgumentInstr** push_instantiator_result,
     PushArgumentInstr** push_instantiator_type_arguments_result) {
   const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function().function().Owner());
+      owner()->parsed_function()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   Value* instantiator_type_arguments = NULL;
@@ -1064,7 +1064,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
   Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
   const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function().function().Owner());
+      owner()->parsed_function()->function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   instantiator = BuildInstantiator();
@@ -1838,33 +1838,28 @@ intptr_t EffectGraphVisitor::GetCurrentTempLocalIndex() const {
 }
 
 
-class TempLocalScope : public ValueObject {
- public:
-  TempLocalScope(EffectGraphVisitor* visitor, Value* value)
-      : visitor_(visitor) {
-    ASSERT(value->definition()->temp_index() == visitor->temp_index() - 1);
-    intptr_t index = visitor->GetCurrentTempLocalIndex();
-    char name[64];
-    OS::SNPrint(name, 64, ":tmp_local%"Pd, index);
-    var_ = new LocalVariable(0, String::ZoneHandle(Symbols::New(name)),
-                             Type::ZoneHandle(Type::DynamicType()));
-    var_->set_index(index);
-    visitor->Do(new PushTempInstr(value));
-    visitor->AllocateTempIndex();
-  }
+LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
+  Do(new PushTempInstr(value));
+  AllocateTempIndex();
 
-  LocalVariable* var() const { return var_; }
+  ASSERT(value->definition()->temp_index() == temp_index() - 1);
+  intptr_t index = GetCurrentTempLocalIndex();
+  char name[64];
+  OS::SNPrint(name, 64, ":tmp_local%"Pd, index);
+  LocalVariable*  var =
+      new LocalVariable(0, String::ZoneHandle(Symbols::New(name)),
+                        Type::ZoneHandle(Type::DynamicType()));
+  var->set_index(index);
+  return var;
+}
 
-  ~TempLocalScope() {
-    Value* result = visitor_->Bind(new LoadLocalInstr(*var_));
-    visitor_->DeallocateTempIndex(1);
-    visitor_->ReturnDefinition(new DropTempsInstr(1, result));
-  }
 
- private:
-  EffectGraphVisitor* visitor_;
-  LocalVariable* var_;
-};
+Definition* EffectGraphVisitor::ExitTempLocalScope(LocalVariable* var) {
+    Value* tmp = Bind(new LoadLocalInstr(*var));
+    DeallocateTempIndex(1);
+    ASSERT(GetCurrentTempLocalIndex() == var->index());
+    return new DropTempsInstr(1, tmp);
+}
 
 
 void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
@@ -1926,11 +1921,11 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
                                                   element_type);
   Value* array_val = Bind(create);
 
-  { TempLocalScope tmp(this, array_val);
+  { LocalVariable* tmp_var = EnterTempLocalScope(array_val);
     const intptr_t class_id = create->Type()->ToCid();
     const intptr_t deopt_id = Isolate::kNoDeoptId;
     for (int i = 0; i < node->length(); ++i) {
-      Value* array = Bind(new LoadLocalInstr(*tmp.var()));
+      Value* array = Bind(new LoadLocalInstr(*tmp_var));
       Value* index = Bind(new ConstantInstr(Smi::ZoneHandle(Smi::New(i))));
       ValueGraphVisitor for_value(owner(), temp_index());
       node->ElementAt(i)->Visit(&for_value);
@@ -1946,6 +1941,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
           emit_store_barrier, index_scale, class_id, deopt_id);
       Do(store);
     }
+    ReturnDefinition(ExitTempLocalScope(tmp_var));
   }
 }
 
@@ -2000,7 +1996,7 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   if (requires_type_arguments) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
     const Class& instantiator_class = Class::Handle(
-        owner()->parsed_function().function().Owner());
+        owner()->parsed_function()->function().Owner());
     type_arguments = BuildInstantiatorTypeArguments(node->token_pos(),
                                                     instantiator_class,
                                                     NULL);
@@ -2121,8 +2117,8 @@ ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
   BuildPushArguments(*node->arguments(), arguments);
 
   // Save context around the call.
-  ASSERT(owner()->parsed_function().saved_current_context_var() != NULL);
-  BuildStoreContext(*owner()->parsed_function().saved_current_context_var());
+  ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
+  BuildStoreContext(*owner()->parsed_function()->saved_current_context_var());
   return new ClosureCallInstr(node, arguments);
 }
 
@@ -2130,16 +2126,16 @@ ClosureCallInstr* EffectGraphVisitor::BuildClosureCall(
 void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   Do(BuildClosureCall(node));
   // Restore context from saved location.
-  ASSERT(owner()->parsed_function().saved_current_context_var() != NULL);
-  BuildLoadContext(*owner()->parsed_function().saved_current_context_var());
+  ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
+  BuildLoadContext(*owner()->parsed_function()->saved_current_context_var());
 }
 
 
 void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
   Value* result = Bind(BuildClosureCall(node));
   // Restore context from temp.
-  ASSERT(owner()->parsed_function().saved_current_context_var() != NULL);
-  BuildLoadContext(*owner()->parsed_function().saved_current_context_var());
+  ASSERT(owner()->parsed_function()->saved_current_context_var() != NULL);
+  BuildLoadContext(*owner()->parsed_function()->saved_current_context_var());
   ReturnValue(result);
 }
 
@@ -2304,12 +2300,12 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 Value* EffectGraphVisitor::BuildInstantiator() {
   const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function().function().Owner());
+      owner()->parsed_function()->function().Owner());
   if (instantiator_class.NumTypeParameters() == 0) {
     return NULL;
   }
   Function& outer_function =
-      Function::Handle(owner()->parsed_function().function().raw());
+      Function::Handle(owner()->parsed_function()->function().raw());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
@@ -2317,9 +2313,9 @@ Value* EffectGraphVisitor::BuildInstantiator() {
     return NULL;
   }
 
-  ASSERT(owner()->parsed_function().instantiator() != NULL);
+  ASSERT(owner()->parsed_function()->instantiator() != NULL);
   ValueGraphVisitor for_instantiator(owner(), temp_index());
-  owner()->parsed_function().instantiator()->Visit(&for_instantiator);
+  owner()->parsed_function()->instantiator()->Visit(&for_instantiator);
   Append(for_instantiator);
   return for_instantiator.value();
 }
@@ -2345,16 +2341,16 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     return Bind(new ConstantInstr(type_arguments));
   }
   Function& outer_function =
-      Function::Handle(owner()->parsed_function().function().raw());
+      Function::Handle(owner()->parsed_function()->function().raw());
   while (outer_function.IsLocalFunction()) {
     outer_function = outer_function.parent_function();
   }
   if (outer_function.IsFactory()) {
     // No instantiator for factories.
     ASSERT(instantiator == NULL);
-    ASSERT(owner()->parsed_function().instantiator() != NULL);
+    ASSERT(owner()->parsed_function()->instantiator() != NULL);
     ValueGraphVisitor for_instantiator(owner(), temp_index());
-    owner()->parsed_function().instantiator()->Visit(&for_instantiator);
+    owner()->parsed_function()->instantiator()->Visit(&for_instantiator);
     Append(for_instantiator);
     return for_instantiator.value();
   }
@@ -2384,7 +2380,7 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
   }
   // The type arguments are uninstantiated.
   const Class& instantiator_class = Class::ZoneHandle(
-      owner()->parsed_function().function().Owner());
+      owner()->parsed_function()->function().Owner());
   Value* instantiator_value =
       BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   const bool use_instantiator_type_args =
@@ -2419,9 +2415,9 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
 
   // The type arguments are uninstantiated. We use expression_temp_var to save
   // the instantiator type arguments because they have two uses.
-  ASSERT(owner()->parsed_function().expression_temp_var() != NULL);
+  ASSERT(owner()->parsed_function()->expression_temp_var() != NULL);
   const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function().function().Owner());
+      owner()->parsed_function()->function().Owner());
   Value* type_arguments_val = BuildInstantiatorTypeArguments(
       node->token_pos(), instantiator_class, NULL);
 
@@ -2482,10 +2478,11 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   tn       <- LoadLocal(temp)
 
   Value* allocate = BuildObjectAllocation(node);
-  { TempLocalScope tmp(this, allocate);
-    Value* allocated_tmp = Bind(new LoadLocalInstr(*tmp.var()));
+  { LocalVariable* tmp_var = EnterTempLocalScope(allocate);
+    Value* allocated_tmp = Bind(new LoadLocalInstr(*tmp_var));
     PushArgumentInstr* push_allocated_value = PushArgument(allocated_tmp);
     BuildConstructorCall(node, push_allocated_value);
+    ReturnDefinition(ExitTempLocalScope(tmp_var));
   }
 }
 
@@ -2582,10 +2579,12 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
       // Resolve and call noSuchMethod.
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
       arguments->Add(node->receiver());
-      StaticCallInstr* call = BuildStaticNoSuchMethodCall(node->cls(),
-                                                          node->receiver(),
-                                                          getter_name,
-                                                          arguments);
+      StaticCallInstr* call =
+          BuildStaticNoSuchMethodCall(node->cls(),
+                                      node->receiver(),
+                                      getter_name,
+                                      arguments,
+                                      false);  // Don't save last argument.
       ReturnDefinition(call);
       return;
     } else {
@@ -2656,10 +2655,12 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
       arguments->Add(node->receiver());
       arguments->Add(node->value());
-      call = BuildStaticNoSuchMethodCall(node->cls(),
-                                         node->receiver(),
-                                         setter_name,
-                                         arguments);
+      call = BuildStaticNoSuchMethodCall(
+          node->cls(),
+          node->receiver(),
+          setter_name,
+          arguments,
+          result_is_needed);  // Save last arg if result is needed.
     } else {
       // Throw a NoSuchMethodError.
       call = BuildThrowNoSuchMethodError(
@@ -2891,7 +2892,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
           BuildStaticNoSuchMethodCall(node->super_class(),
                                       node->array(),
                                       Symbols::IndexToken(),
-                                      arguments);
+                                      arguments,
+                                      false);  // Don't save last arg.
       ReturnDefinition(call);
       return;
     }
@@ -2945,29 +2947,16 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
       ArgumentListNode* arguments = new ArgumentListNode(node->token_pos());
       arguments->Add(node->array());
       arguments->Add(node->index_expr());
-
-      // Even though noSuchMethod most likely does not return,
-      // we save the stored value if the result is needed.
-      if (result_is_needed) {
-        ValueGraphVisitor for_value(owner(), temp_index());
-        node->value()->Visit(&for_value);
-        Append(for_value);
-        Do(BuildStoreExprTemp(for_value.value()));
-
-        const LocalVariable* temp =
-            owner()->parsed_function().expression_temp_var();
-        AstNode* value = new LoadLocalNode(node->token_pos(), temp);
-        arguments->Add(value);
-      } else {
-        arguments->Add(node->value());
-      }
-      StaticCallInstr* call =
-          BuildStaticNoSuchMethodCall(node->super_class(),
-                                      node->array(),
-                                      Symbols::AssignIndexToken(),
-                                      arguments);
+      arguments->Add(node->value());
+      StaticCallInstr* call = BuildStaticNoSuchMethodCall(
+          node->super_class(),
+          node->array(),
+          Symbols::AssignIndexToken(),
+          arguments,
+          result_is_needed);  // Save last arg if result is needed.
       if (result_is_needed) {
         Do(call);
+        // BuildStaticNoSuchMethodCall stores the value in expression_temp.
         return BuildLoadExprTemp();
       } else {
         return call;
@@ -3046,8 +3035,8 @@ void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 
 
 bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
-  return (node == owner()->parsed_function().node_sequence()) &&
-         (owner()->parsed_function().saved_entry_context_var() != NULL);
+  return (node == owner()->parsed_function()->node_sequence()) &&
+         (owner()->parsed_function()->saved_entry_context_var() != NULL);
 }
 
 
@@ -3087,7 +3076,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // In this case, the parser pre-allocates a variable to save the context.
     if (MustSaveRestoreContext(node)) {
       Value* current_context = Bind(new CurrentContextInstr());
-      Do(BuildStoreTemp(*owner()->parsed_function().saved_entry_context_var(),
+      Do(BuildStoreTemp(*owner()->parsed_function()->saved_entry_context_var(),
                         current_context));
       Value* null_context = Bind(new ConstantInstr(Object::ZoneHandle()));
       AddInstruction(new StoreContextInstr(null_context));
@@ -3098,14 +3087,15 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
     // If this node_sequence is the body of the function being compiled, copy
     // the captured parameters from the frame into the context.
-    if (node == owner()->parsed_function().node_sequence()) {
+    if (node == owner()->parsed_function()->node_sequence()) {
       ASSERT(scope->context_level() == 1);
-      const Function& function = owner()->parsed_function().function();
+      const Function& function = owner()->parsed_function()->function();
       int num_params = function.NumParameters();
       int param_frame_index = (num_params == function.num_fixed_parameters()) ?
           (kParamEndSlotFromFp + num_params) : kFirstLocalSlotFromFp;
       // Handle the saved arguments descriptor as an additional parameter.
-      if (owner()->parsed_function().GetSavedArgumentsDescriptorVar() != NULL) {
+      if (owner()->parsed_function()->GetSavedArgumentsDescriptorVar() !=
+          NULL) {
         ASSERT(param_frame_index == kFirstLocalSlotFromFp);
         num_params++;
       }
@@ -3137,8 +3127,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   }
 
   if (FLAG_enable_type_checks &&
-      (node == owner()->parsed_function().node_sequence())) {
-    const Function& function = owner()->parsed_function().function();
+      (node == owner()->parsed_function()->node_sequence())) {
+    const Function& function = owner()->parsed_function()->function();
     const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsConstructor()) {
@@ -3186,7 +3176,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if (is_open()) {
     if (MustSaveRestoreContext(node)) {
       ASSERT(num_context_variables > 0);
-      BuildLoadContext(*owner()->parsed_function().saved_entry_context_var());
+      BuildLoadContext(*owner()->parsed_function()->saved_entry_context_var());
     } else if (num_context_variables > 0) {
       UnchainContext();
     }
@@ -3205,7 +3195,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
 
   // The outermost function sequence cannot contain a label.
   ASSERT((node->label() == NULL) ||
-         (node != owner()->parsed_function().node_sequence()));
+         (node != owner()->parsed_function()->node_sequence()));
   owner()->set_context_level(previous_context_level);
 }
 
@@ -3317,72 +3307,30 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
     const Class& target_class,
     AstNode* receiver,
     const String& method_name,
-    ArgumentListNode* method_arguments) {
-  // Build the graph to allocate an InvocationMirror object by calling
-  // the static allocation method.
-  const Library& corelib = Library::Handle(Library::CoreLibrary());
-  const Class& mirror_class = Class::Handle(
-      corelib.LookupClassAllowPrivate(Symbols::InvocationMirror()));
-  ASSERT(!mirror_class.IsNull());
-  const Function& allocation_function = Function::ZoneHandle(
-      Resolver::ResolveStaticByName(
-          mirror_class,
-          PrivateCoreLibName(Symbols::AllocateInvocationMirror()),
-          Resolver::kIsQualified));
-  ASSERT(!allocation_function.IsNull());
-
-  // Evaluate the receiver before the arguments. This will be used
-  // as an argument to the noSuchMethod call.
-  ValueGraphVisitor for_receiver(owner(), temp_index());
-  receiver->Visit(&for_receiver);
-  Append(for_receiver);
-  PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
-
-  // Allocate the arguments and pass them into the construction
-  // of the InvocationMirror.
-  const intptr_t args_pos = method_arguments->token_pos();
-  ArgumentListNode* arguments = new ArgumentListNode(args_pos);
-  // The first argument is the original method name.
-  arguments->Add(new LiteralNode(args_pos, method_name));
-  // The second argument is the arguments descriptor of the original method.
-  const Array& args_descriptor =
-      Array::ZoneHandle(ArgumentsDescriptor::New(method_arguments->length(),
-                                                 method_arguments->names()));
-  arguments->Add(new LiteralNode(args_pos, args_descriptor));
-  // The third argument is an array containing the original method arguments,
-  // including the receiver.
-  ArrayNode* args_array = new ArrayNode(
-      args_pos,
-      Type::ZoneHandle(Type::ArrayType()));
-  for (intptr_t i = 0; i < method_arguments->length(); i++) {
-    args_array->AddElement(method_arguments->NodeAt(i));
+    ArgumentListNode* method_arguments,
+    bool save_last_arg) {
+  intptr_t args_pos = method_arguments->token_pos();
+  LocalVariable* temp = NULL;
+  if (save_last_arg) {
+    temp = owner()->parsed_function()->EnsureExpressionTemp();
   }
-  arguments->Add(args_array);
-  ZoneGrowableArray<PushArgumentInstr*>* allocation_args =
-      new ZoneGrowableArray<PushArgumentInstr*>(arguments->length());
-  BuildPushArguments(*arguments, allocation_args);
-  StaticCallInstr* allocation = new StaticCallInstr(args_pos,
-                                                    allocation_function,
-                                                    Array::ZoneHandle(),
-                                                    allocation_args);
-  Value* invocation_mirror = Bind(allocation);
-  PushArgumentInstr* push_invocation_mirror = PushArgument(invocation_mirror);
-  // Lookup noSuchMethod and call it with the receiver and the InvocationMirror.
+  ArgumentListNode* args =
+      Parser::BuildNoSuchMethodArguments(args_pos,
+                                         method_name,
+                                         *method_arguments,
+                                         temp);
   const Function& no_such_method_func = Function::ZoneHandle(
       Resolver::ResolveDynamicAnyArgs(target_class, Symbols::NoSuchMethod()));
   // We are guaranteed to find noSuchMethod of class Object.
   ASSERT(!no_such_method_func.IsNull());
-  ZoneGrowableArray<PushArgumentInstr*>* args =
+  ZoneGrowableArray<PushArgumentInstr*>* push_arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
-  args->Add(push_receiver);
-  args->Add(push_invocation_mirror);
+  BuildPushArguments(*args, push_arguments);
   return new StaticCallInstr(args_pos,
                              no_such_method_func,
                              Array::ZoneHandle(),
-                             args);
+                             push_arguments);
 }
-
-
 StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     intptr_t token_pos,
     const Class& function_class,
@@ -3511,14 +3459,14 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 FlowGraph* FlowGraphBuilder::BuildGraph() {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
-    AstPrinter::PrintFunctionNodes(parsed_function());
+    AstPrinter::PrintFunctionNodes(*parsed_function());
   }
   // Compilation can be nested, preserve the computation-id.
-  const Function& function = parsed_function().function();
+  const Function& function = parsed_function()->function();
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(AllocateBlockId(),
                            CatchClauseNode::kInvalidTryIndex);
-  graph_entry_ = new GraphEntryInstr(parsed_function(), normal_entry);
+  graph_entry_ = new GraphEntryInstr(*parsed_function(), normal_entry);
   EffectGraphVisitor for_effect(this, 0);
   // This check may be deleted if the generated code is leaf.
   CheckStackOverflowInstr* check =
@@ -3526,7 +3474,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // If we are inlining don't actually attach the stack check. We must still
   // create the stack check in order to allocate a deopt id.
   if (!IsInlining()) for_effect.AddInstruction(check);
-  parsed_function().node_sequence()->Visit(&for_effect);
+  parsed_function()->node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
@@ -3537,7 +3485,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 void FlowGraphBuilder::Bailout(const char* reason) {
   const char* kFormat = "FlowGraphBuilder Bailout: %s %s";
-  const char* function_name = parsed_function_.function().ToCString();
+  const char* function_name = parsed_function_->function().ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, function_name, reason);
