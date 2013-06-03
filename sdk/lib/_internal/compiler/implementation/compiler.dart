@@ -254,6 +254,8 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableUserAssertions;
   final bool trustTypeAnnotations;
   final bool enableConcreteTypeInference;
+  final bool disableTypeInference;
+
   /**
    * The maximum size of a concrete type before it widens to dynamic during
    * concrete type inference.
@@ -455,6 +457,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.enableConcreteTypeInference: false,
+            this.disableTypeInference: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
             this.enableNativeLiveTypeAnalysis: false,

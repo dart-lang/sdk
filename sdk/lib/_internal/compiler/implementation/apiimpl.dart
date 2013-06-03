@@ -56,6 +56,8 @@ class Compiler extends leg.Compiler {
             strips: extractCsvOption(options, '--force-strip='),
             enableConcreteTypeInference:
                 hasOption(options, '--enable-concrete-type-inference'),
+            disableTypeInference:
+                hasOption(options, '--disable-type-inference'),
             preserveComments: hasOption(options, '--preserve-comments'),
             verbose: hasOption(options, '--verbose'),
             sourceMapUri: extractSourceMapUri(options),

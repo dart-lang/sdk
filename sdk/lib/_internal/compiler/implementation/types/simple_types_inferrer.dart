@@ -165,6 +165,7 @@ class SimpleTypesInferrer extends TypesInferrer {
   }
 
   bool analyzeMain(Element element) {
+    if (compiler.disableTypeInference) return true;
     bool result = internal.analyzeMain(element);
     if (internal.optimismState == OPTIMISTIC) return result;
     assert(internal.optimismState == RETRY);
@@ -348,6 +349,10 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       bool wasAnalyzed = analyzeCount.containsKey(element);
       if (wasAnalyzed) {
         recompiles++;
+        if (recompiles >= numberOfElementsToAnalyze) {
+          compiler.log('Ran out of budget for inferring.');
+          break;
+        }
         if (compiler.verbose) recomputeWatch.start();
       }
       bool changed =
