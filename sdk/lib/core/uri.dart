@@ -82,6 +82,16 @@ class Uri {
   final String fragment;
 
   /**
+   * Cache the computed return value of [pathSegements].
+   */
+  List<String> _pathSegments;
+
+  /**
+   * Cache the computed return value of [queryParameters].
+   */
+  Map<String, String> _queryParameters;
+
+  /**
    * Creates a new URI object by parsing a URI string.
    */
   static Uri parse(String uri) => new Uri._fromMatch(_splitRe.firstMatch(uri));
@@ -167,10 +177,19 @@ class Uri {
    * Returns the URI path split into its segments. Each of the
    * segments in the returned list have been decoded. If the path is
    * empty the empty list will be returned.
+   *
+   * The returned list is immutable and will throw [StateError] on any
+   * calls that would mutate it.
    */
   List<String> get pathSegments {
-    if (path == "") return const<String>[];
-    return path.split("/").map(Uri.decodeComponent).toList(growable: false);
+    if (_pathSegments == null) {
+      _pathSegments = new UnmodifiableListView(
+        path == "" ? const<String>[]
+                   : path.split("/")
+                         .map(Uri.decodeComponent)
+                         .toList(growable: false));
+    }
+    return _pathSegments;
   }
 
   /*
@@ -178,9 +197,14 @@ class Uri {
    * specified for FORM post in the HTML 4.01 specification. Each key
    * and value in the returned map have been decoded. If there is no
    * query the empty map will be returned.
+   *
+   * The returned map is immutable and will throw [StateError] on any
+   * calls that would mutate it.
    */
   Map<String, String> get queryParameters {
-    return query.split("&").fold({}, (map, element) {
+    if (_queryParameters == null) {
+      var map;
+      map = query.split("&").fold({}, (map, element) {
         int index = element.indexOf("=");
         if (index == -1) {
           if (!element.isEmpty) map[element] = "";
@@ -190,7 +214,10 @@ class Uri {
           map[Uri.decodeQueryComponent(key)] = decodeQueryComponent(value);
         }
         return map;
-    });
+      });
+      _queryParameters = new _UnmodifiableMap(map);
+    }
+    return _queryParameters;
   }
 
   static String _makeScheme(String scheme) {
@@ -943,4 +970,31 @@ class Uri {
       0xfffe,   // 0x60 - 0x6f  0111111111111111
                 //              pqrstuvwxyz   ~
       0x47ff];  // 0x70 - 0x7f  1111111111100010
+}
+
+class _UnmodifiableMap<K, V> implements Map<K, V> {
+  final Map _map;
+  const _UnmodifiableMap(this._map);
+
+  bool containsValue(V value) => _map.containsValue(value);
+  bool containsKey(K key) => _map.containsKey(key);
+  V operator [](K key) => _map[key];
+  void operator []=(K key, V value) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  V putIfAbsent(K key, V ifAbsent()) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  V remove(K key) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  void clear() {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
+  void forEach(void f(K key, V value)) => _map.forEach(f);
+  Iterable<K> get keys => _map.keys;
+  Iterable<V> get values => _map.values;
+  int get length => _map.length;
+  bool get isEmpty => _map.isEmpty;
+  bool get isNotEmpty => _map.isNotEmpty;
 }

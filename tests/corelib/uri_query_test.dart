@@ -71,8 +71,6 @@ void testQueryParameters() {
   }
   encoded = encoded.toString();
   unencoded = unencoded.toString();
-  print(encoded);
-  print(unencoded);
   test("a=$encoded", {"a": unencoded});
   test("a=$encoded&b=$encoded", {"a": unencoded, "b": unencoded});
 
@@ -113,9 +111,35 @@ testInvalidQueryParameters() {
   test("&=xxx&=xxx&", {});
 }
 
+testQueryParametersImmutableMap() {
+  test(map) {
+    bool isUnsupported(e) => e is UnsupportedError;
+
+    Expect.isTrue(map.containsValue("b"));
+    Expect.isTrue(map.containsKey("a"));
+    Expect.equals("b", map["a"]);
+    Expect.throws(() => map["a"] = "c", isUnsupported);
+    Expect.throws(() => map.putIfAbsent("b", () => "e"), isUnsupported);
+    Expect.throws(() => map.remove("a"), isUnsupported);
+    Expect.throws(() => map.clear(), isUnsupported);
+    var count = 0;
+    map.forEach((key, value) => count++);
+    Expect.equals(2, count);
+    Expect.equals(2, map.keys.length);
+    Expect.equals(2, map.values.length);
+    Expect.equals(2, map.length);
+    Expect.isFalse(map.isEmpty);
+    Expect.isTrue(map.isNotEmpty);
+  }
+
+  test(Uri.parse("?a=b&c=d").queryParameters);
+  test(new Uri(queryParameters: {"a": "b", "c": "d"}).queryParameters);
+}
+
 main() {
   testInvalidArguments();
   testEncodeQueryComponent();
   testQueryParameters();
   testInvalidQueryParameters();
+  testQueryParametersImmutableMap();
 }
