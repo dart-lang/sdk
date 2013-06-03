@@ -207,7 +207,7 @@ class Uri {
       map = query.split("&").fold({}, (map, element) {
         int index = element.indexOf("=");
         if (index == -1) {
-          if (!element.isEmpty) map[element] = "";
+          if (!element.isEmpty) map[decodeQueryComponent(element)] = "";
         } else if (index != 0) {
           var key = element.substring(0, index);
           var value = element.substring(index + 1);
@@ -337,17 +337,18 @@ class Uri {
     int length = component.length;
     int index = 0;
     int prevIndex = 0;
-    while (index < length) {
 
-      // Copy a part of the component string to the result.
-      fillResult() {
-        if (result == null) {
-          assert(prevIndex == 0);
-          result = new StringBuffer(component.substring(prevIndex, index));
-        } else {
-          result.write(component.substring(prevIndex, index));
-        }
+    // Copy a part of the component string to the result.
+    void fillResult() {
+      if (result == null) {
+        assert(prevIndex == 0);
+        result = new StringBuffer(component.substring(prevIndex, index));
+      } else {
+        result.write(component.substring(prevIndex, index));
       }
+    }
+
+    while (index < length) {
 
       // Normalize percent encoding to uppercase and don't encode
       // unreserved characters.
@@ -380,6 +381,7 @@ class Uri {
         index++;
       }
     }
+    if (result != null && prevIndex != index) fillResult();
     assert(index == length);
 
     if (result == null) return component;
