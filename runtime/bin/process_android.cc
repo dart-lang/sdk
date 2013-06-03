@@ -533,6 +533,14 @@ int Process::Start(const char* path,
     TEMP_FAILURE_RETRY(close(read_err[1]));
     TEMP_FAILURE_RETRY(close(write_out[0]));
     TEMP_FAILURE_RETRY(close(write_out[1]));
+
+    // Since exec() failed, we're not interested in the exit code.
+    // We close the reading side of the exit code pipe here.
+    // GetProcessExitCodes will get a broken pipe error when it tries to write
+    // to the writing side of the pipe and it will ignore the error.
+    TEMP_FAILURE_RETRY(close(*exit_event));
+    *exit_event = -1;
+
     if (bytes_read == -1) {
       return errno;  // Read failed.
     } else {
