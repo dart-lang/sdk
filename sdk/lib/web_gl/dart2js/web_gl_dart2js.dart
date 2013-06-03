@@ -762,7 +762,8 @@ class OesTextureFloat native "OESTextureFloat" {
 
 @DocsEditable
 @DomName('OESTextureFloatLinear')
-@Experimental // untriaged
+// http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
+@Experimental
 class OesTextureFloatLinear native "OESTextureFloatLinear" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -778,7 +779,6 @@ class OesTextureHalfFloat native "OESTextureHalfFloat" {
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
   @DocsEditable
-  @Experimental // untriaged
   static const int HALF_FLOAT_OES = 0x8D61;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -788,7 +788,8 @@ class OesTextureHalfFloat native "OESTextureHalfFloat" {
 
 @DocsEditable
 @DomName('OESTextureHalfFloatLinear')
-@Experimental // untriaged
+// http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
+@Experimental
 class OesTextureHalfFloatLinear native "OESTextureHalfFloatLinear" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

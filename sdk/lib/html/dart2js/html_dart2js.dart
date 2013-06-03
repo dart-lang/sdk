@@ -476,12 +476,12 @@ class BRElement extends Element native "HTMLBRElement" {
 
 @DocsEditable
 @DomName('BarProp')
-@Experimental // untriaged
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop
+@deprecated // standard
 class BarProp native "BarProp" {
 
   @DomName('BarProp.visible')
   @DocsEditable
-  @Experimental // untriaged
   final bool visible;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -770,12 +770,12 @@ class CDataSection extends Text native "CDATASection" {
 
 @DocsEditable
 @DomName('Canvas2DContextAttributes')
-@Experimental // untriaged
+// http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
+@Experimental
 class Canvas2DContextAttributes native "Canvas2DContextAttributes" {
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable
-  @Experimental // untriaged
   bool alpha;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1177,7 +1177,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
 
   @DomName('CanvasRenderingContext2D.getContextAttributes')
   @DocsEditable
-  @Experimental // untriaged
+  // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
+  @Experimental
   Canvas2DContextAttributes getContextAttributes() native;
 
   @DomName('CanvasRenderingContext2D.getImageData')
@@ -1576,12 +1577,10 @@ class CharacterData extends Node native "CharacterData" {
 
   @DomName('CharacterData.nextElementSibling')
   @DocsEditable
-  @Experimental // untriaged
   final Element nextElementSibling;
 
   @DomName('CharacterData.previousElementSibling')
   @DocsEditable
-  @Experimental // untriaged
   final Element previousElementSibling;
 
   @DomName('CharacterData.appendData')
@@ -1652,17 +1651,16 @@ class Comment extends CharacterData native "Comment" {
 
 @DocsEditable
 @DomName('Composition')
-@Experimental // untriaged
+// http://www.w3.org/TR/ime-api/#idl-def-Composition
+@Experimental
 class Composition native "Composition" {
 
   @DomName('Composition.caret')
   @DocsEditable
-  @Experimental // untriaged
   final Range caret;
 
   @DomName('Composition.text')
   @DocsEditable
-  @Experimental // untriaged
   final Node text;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -1897,12 +1895,12 @@ class Crypto native "Crypto" {
 
 @DocsEditable
 @DomName('CSS')
-@Experimental // untriaged
+// http://www.w3.org/TR/css3-conditional/#the-css-interface
+@Experimental // None
 class Css native "CSS" {
 
   @DomName('CSS.supports')
   @DocsEditable
-  @Experimental // untriaged
   bool supports(String conditionText_OR_property, [String value]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2184,7 +2182,6 @@ class CssRule native "CSSRule" {
 
   @DomName('CSSRule.SUPPORTS_RULE')
   @DocsEditable
-  @Experimental // untriaged
   static const int SUPPORTS_RULE = 12;
 
   @DomName('CSSRule.UNKNOWN_RULE')
@@ -5533,29 +5530,24 @@ class CssStyleSheet extends StyleSheet native "CSSStyleSheet" {
 
 @DocsEditable
 @DomName('CSSSupportsRule')
-@Experimental // untriaged
 class CssSupportsRule extends CssRule native "CSSSupportsRule" {
 
   @DomName('CSSSupportsRule.conditionText')
   @DocsEditable
-  @Experimental // untriaged
   final String conditionText;
 
   @DomName('CSSSupportsRule.cssRules')
   @DocsEditable
-  @Experimental // untriaged
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
   @DomName('CSSSupportsRule.deleteRule')
   @DocsEditable
-  @Experimental // untriaged
   void deleteRule(int index) native;
 
   @DomName('CSSSupportsRule.insertRule')
   @DocsEditable
-  @Experimental // untriaged
   int insertRule(String rule, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6246,12 +6238,10 @@ class Document extends Node  native "Document"
 
   @DomName('Document.childElementCount')
   @DocsEditable
-  @Experimental // untriaged
   final int childElementCount;
 
   @DomName('Document.children')
   @DocsEditable
-  @Experimental // untriaged
   final HtmlCollection children;
 
   @DomName('Document.cookie')
@@ -6279,7 +6269,6 @@ class Document extends Node  native "Document"
 
   @DomName('Document.firstElementChild')
   @DocsEditable
-  @Experimental // untriaged
   final Element firstElementChild;
 
   @DomName('Document.fontloader')
@@ -6300,7 +6289,6 @@ class Document extends Node  native "Document"
 
   @DomName('Document.lastElementChild')
   @DocsEditable
-  @Experimental // untriaged
   final Element lastElementChild;
 
   @JSName('lastModified')
@@ -6968,17 +6956,14 @@ class DocumentFragment extends Node native "DocumentFragment" {
 
   @DomName('DocumentFragment.childElementCount')
   @DocsEditable
-  @Experimental // untriaged
   final int childElementCount;
 
   @DomName('DocumentFragment.firstElementChild')
   @DocsEditable
-  @Experimental // untriaged
   final Element firstElementChild;
 
   @DomName('DocumentFragment.lastElementChild')
   @DocsEditable
-  @Experimental // untriaged
   final Element lastElementChild;
 
   @JSName('querySelector')
@@ -8432,7 +8417,8 @@ abstract class Element extends Node implements ElementTraversal native "Element"
 
   @DomName('Element.getInputContext')
   @DocsEditable
-  @Experimental // untriaged
+  // http://www.w3.org/TR/ime-api/#the-getinputcontext-method
+  @Experimental
   InputMethodContext getInputContext() native;
 
   @DomName('Element.ALLOW_KEYBOARD_INPUT')
@@ -9175,17 +9161,14 @@ class Entity extends Node native "Entity" {
 
   @DomName('Entity.notationName')
   @DocsEditable
-  @Experimental // untriaged
   final String notationName;
 
   @DomName('Entity.publicId')
   @DocsEditable
-  @Experimental // untriaged
   final String publicId;
 
   @DomName('Entity.systemId')
   @DocsEditable
-  @Experimental // untriaged
   final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9571,7 +9554,8 @@ class Event native "Event" {
 
   @DomName('Event.path')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
+  @Experimental
   @Returns('NodeList')
   @Creates('NodeList')
   List<Node> path() native;
@@ -10540,7 +10524,6 @@ class FontLoader extends EventTarget native "FontLoader" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental // untriaged
 class FormData native "FormData" {
 
   @DomName('FormData.FormData')
@@ -10559,7 +10542,6 @@ class FormData native "FormData" {
 
   @DomName('FormData.append')
   @DocsEditable
-  @Experimental // untriaged
   void append(String name, value, [String filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13043,42 +13025,36 @@ abstract class ButtonInputElement implements InputElementBase {
 
 @DocsEditable
 @DomName('InputMethodContext')
-@Experimental // untriaged
+// http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
+@Experimental
 class InputMethodContext native "InputMethodContext" {
 
   @DomName('InputMethodContext.composition')
   @DocsEditable
-  @Experimental // untriaged
   final Composition composition;
 
   @DomName('InputMethodContext.enabled')
   @DocsEditable
-  @Experimental // untriaged
   bool enabled;
 
   @DomName('InputMethodContext.locale')
   @DocsEditable
-  @Experimental // untriaged
   final String locale;
 
   @DomName('InputMethodContext.confirmComposition')
   @DocsEditable
-  @Experimental // untriaged
   void confirmComposition() native;
 
   @DomName('InputMethodContext.open')
   @DocsEditable
-  @Experimental // untriaged
   bool open() native;
 
   @DomName('InputMethodContext.setCaretRectangle')
   @DocsEditable
-  @Experimental // untriaged
   void setCaretRectangle(Node anchor, int x, int y, int w, int h) native;
 
   @DomName('InputMethodContext.setExclusionRectangle')
   @DocsEditable
-  @Experimental // untriaged
   void setExclusionRectangle(Node anchor, int x, int y, int w, int h) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13433,7 +13409,8 @@ class Location implements LocationBase native "Location" {
 
 
 @DomName('MIDIErrorCallback')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midierrorcallback
+@Experimental
 typedef void MidiErrorCallback(DomError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -13768,7 +13745,8 @@ class MediaElement extends Element native "HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.mediaKeys')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
+  @Experimental
   MediaKeys mediaKeys;
 
   @DomName('HTMLMediaElement.muted')
@@ -14107,7 +14085,7 @@ class MediaKeyError native "MediaKeyError" {
 
   @DomName('MediaKeyError.systemCode')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   final int systemCode;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14157,18 +14135,17 @@ class MediaKeyEvent extends Event native "MediaKeyEvent" {
 
 @DocsEditable
 @DomName('MediaKeyMessageEvent')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeymessageevent
+@Experimental
 class MediaKeyMessageEvent extends Event native "MediaKeyMessageEvent" {
 
   @JSName('destinationURL')
   @DomName('MediaKeyMessageEvent.destinationURL')
   @DocsEditable
-  @Experimental // untriaged
   final String destinationUrl;
 
   @DomName('MediaKeyMessageEvent.message')
   @DocsEditable
-  @Experimental // untriaged
   final Uint8List message;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14178,12 +14155,12 @@ class MediaKeyMessageEvent extends Event native "MediaKeyMessageEvent" {
 
 @DocsEditable
 @DomName('MediaKeyNeededEvent')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent
+@Experimental
 class MediaKeyNeededEvent extends Event native "MediaKeyNeededEvent" {
 
   @DomName('MediaKeyNeededEvent.initData')
   @DocsEditable
-  @Experimental // untriaged
   final Uint8List initData;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14193,49 +14170,42 @@ class MediaKeyNeededEvent extends Event native "MediaKeyNeededEvent" {
 
 @DocsEditable
 @DomName('MediaKeySession')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeysession
+@Experimental
 class MediaKeySession extends EventTarget native "MediaKeySession" {
 
   @DomName('MediaKeySession.error')
   @DocsEditable
-  @Experimental // untriaged
   final MediaKeyError error;
 
   @DomName('MediaKeySession.keySystem')
   @DocsEditable
-  @Experimental // untriaged
   final String keySystem;
 
   @DomName('MediaKeySession.sessionId')
   @DocsEditable
-  @Experimental // untriaged
   final String sessionId;
 
   @JSName('addEventListener')
   @DomName('MediaKeySession.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('MediaKeySession.close')
   @DocsEditable
-  @Experimental // untriaged
   void close() native;
 
   @DomName('MediaKeySession.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event evt) native;
 
   @JSName('removeEventListener')
   @DomName('MediaKeySession.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('MediaKeySession.update')
   @DocsEditable
-  @Experimental // untriaged
   void update(Uint8List key) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14245,7 +14215,8 @@ class MediaKeySession extends EventTarget native "MediaKeySession" {
 
 @DocsEditable
 @DomName('MediaKeys')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
+@Experimental
 class MediaKeys native "MediaKeys" {
 
   @DomName('MediaKeys.MediaKeys')
@@ -14257,12 +14228,10 @@ class MediaKeys native "MediaKeys" {
 
   @DomName('MediaKeys.keySystem')
   @DocsEditable
-  @Experimental // untriaged
   final String keySystem;
 
   @DomName('MediaKeys.createSession')
   @DocsEditable
-  @Experimental // untriaged
   MediaKeySession createSession(String type, Uint8List initData) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14342,7 +14311,7 @@ abstract class MediaQueryListListener {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource
 class MediaSource extends EventTarget native "WebKitMediaSource" {
 
   @DomName('WebKitMediaSource.WebKitMediaSource')
@@ -14354,59 +14323,48 @@ class MediaSource extends EventTarget native "WebKitMediaSource" {
 
   @DomName('WebKitMediaSource.activeSourceBuffers')
   @DocsEditable
-  @Experimental // untriaged
   final SourceBufferList activeSourceBuffers;
 
   @DomName('WebKitMediaSource.duration')
   @DocsEditable
-  @Experimental // untriaged
   num duration;
 
   @DomName('WebKitMediaSource.readyState')
   @DocsEditable
-  @Experimental // untriaged
   final String readyState;
 
   @DomName('WebKitMediaSource.sourceBuffers')
   @DocsEditable
-  @Experimental // untriaged
   final SourceBufferList sourceBuffers;
 
   @JSName('addEventListener')
   @DomName('WebKitMediaSource.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('WebKitMediaSource.addSourceBuffer')
   @DocsEditable
-  @Experimental // untriaged
   SourceBuffer addSourceBuffer(String type) native;
 
   @DomName('WebKitMediaSource.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native;
 
   @DomName('WebKitMediaSource.endOfStream')
   @DocsEditable
-  @Experimental // untriaged
   void endOfStream(String error) native;
 
   @DomName('WebKitMediaSource.isTypeSupported')
   @DocsEditable
-  @Experimental // untriaged
   static bool isTypeSupported(String type) native;
 
   @JSName('removeEventListener')
   @DomName('WebKitMediaSource.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('WebKitMediaSource.removeSourceBuffer')
   @DocsEditable
-  @Experimental // untriaged
   void removeSourceBuffer(SourceBuffer buffer) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -14499,7 +14457,6 @@ class MediaStream extends EventTarget native "MediaStream" {
 
   @DomName('MediaStream.stop')
   @DocsEditable
-  @Experimental // untriaged
   void stop() native;
 
   @DomName('MediaStream.onaddtrack')
@@ -14939,12 +14896,12 @@ class MeterElement extends Element native "HTMLMeterElement" {
 
 @DocsEditable
 @DomName('MIDIConnectionEvent')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midiconnectionevent-interface
+@Experimental
 class MidiConnectionEvent extends Event native "MIDIConnectionEvent" {
 
   @DomName('MIDIConnectionEvent.port')
   @DocsEditable
-  @Experimental // untriaged
   final MidiPort port;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14954,7 +14911,8 @@ class MidiConnectionEvent extends Event native "MIDIConnectionEvent" {
 
 @DocsEditable
 @DomName('MIDIInput')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#idl-def-MIDIInput
+@Experimental
 class MidiInput extends MidiPort implements EventTarget native "MIDIInput" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14964,17 +14922,16 @@ class MidiInput extends MidiPort implements EventTarget native "MIDIInput" {
 
 @DocsEditable
 @DomName('MIDIMessageEvent')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midimessageevent-interface
+@Experimental
 class MidiMessageEvent extends Event native "MIDIMessageEvent" {
 
   @DomName('MIDIMessageEvent.data')
   @DocsEditable
-  @Experimental // untriaged
   final Uint8List data;
 
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable
-  @Experimental // untriaged
   final num receivedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14984,12 +14941,12 @@ class MidiMessageEvent extends Event native "MIDIMessageEvent" {
 
 @DocsEditable
 @DomName('MIDIOutput')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midioutput-interface
+@Experimental
 class MidiOutput extends MidiPort native "MIDIOutput" {
 
   @DomName('MIDIOutput.send')
   @DocsEditable
-  @Experimental // untriaged
   void send(Uint8List data, [num timestamp]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14999,59 +14956,50 @@ class MidiOutput extends MidiPort native "MIDIOutput" {
 
 @DocsEditable
 @DomName('MIDIPort')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#idl-def-MIDIPort
+@Experimental
 class MidiPort extends EventTarget native "MIDIPort" {
 
   @DomName('MIDIPort.disconnectEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
   @DomName('MIDIPort.id')
   @DocsEditable
-  @Experimental // untriaged
   final String id;
 
   @DomName('MIDIPort.manufacturer')
   @DocsEditable
-  @Experimental // untriaged
   final String manufacturer;
 
   @DomName('MIDIPort.name')
   @DocsEditable
-  @Experimental // untriaged
   final String name;
 
   @DomName('MIDIPort.type')
   @DocsEditable
-  @Experimental // untriaged
   final String type;
 
   @DomName('MIDIPort.version')
   @DocsEditable
-  @Experimental // untriaged
   final String version;
 
   @JSName('addEventListener')
   @DomName('MIDIPort.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('MIDIPort.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
   @DomName('MIDIPort.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('MIDIPort.ondisconnect')
   @DocsEditable
-  @Experimental // untriaged
   Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15061,27 +15009,23 @@ class MidiPort extends EventTarget native "MIDIPort" {
 
 @DocsEditable
 @DomName('MimeType')
-@Experimental // untriaged
+@Experimental // non-standard
 class MimeType native "MimeType" {
 
   @DomName('MimeType.description')
   @DocsEditable
-  @Experimental // untriaged
   final String description;
 
   @DomName('MimeType.enabledPlugin')
   @DocsEditable
-  @Experimental // untriaged
   final Plugin enabledPlugin;
 
   @DomName('MimeType.suffixes')
   @DocsEditable
-  @Experimental // untriaged
   final String suffixes;
 
   @DomName('MimeType.type')
   @DocsEditable
-  @Experimental // untriaged
   final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15091,12 +15035,11 @@ class MimeType native "MimeType" {
 
 @DocsEditable
 @DomName('MimeTypeArray')
-@Experimental // untriaged
+@Experimental // non-standard
 class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
 
   @DomName('MimeTypeArray.length')
   @DocsEditable
-  @Experimental // untriaged
   int get length => JS("int", "#.length", this);
 
   MimeType operator[](int index) {
@@ -15145,12 +15088,10 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
 
   @DomName('MimeTypeArray.item')
   @DocsEditable
-  @Experimental // untriaged
   MimeType item(int index) native;
 
   @DomName('MimeTypeArray.namedItem')
   @DocsEditable
-  @Experimental // untriaged
   MimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17053,7 +16994,8 @@ class ParamElement extends Element native "HTMLParamElement" {
 
 @DocsEditable
 @DomName('Path')
-@Experimental // untriaged
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
+@Experimental
 class Path native "Path" {
 
   @DomName('Path.Path')
@@ -17076,42 +17018,34 @@ class Path native "Path" {
 
   @DomName('Path.arc')
   @DocsEditable
-  @Experimental // untriaged
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native;
 
   @DomName('Path.arcTo')
   @DocsEditable
-  @Experimental // untriaged
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
   @DomName('Path.bezierCurveTo')
   @DocsEditable
-  @Experimental // untriaged
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native;
 
   @DomName('Path.closePath')
   @DocsEditable
-  @Experimental // untriaged
   void closePath() native;
 
   @DomName('Path.lineTo')
   @DocsEditable
-  @Experimental // untriaged
   void lineTo(num x, num y) native;
 
   @DomName('Path.moveTo')
   @DocsEditable
-  @Experimental // untriaged
   void moveTo(num x, num y) native;
 
   @DomName('Path.quadraticCurveTo')
   @DocsEditable
-  @Experimental // untriaged
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
   @DomName('Path.rect')
   @DocsEditable
-  @Experimental // untriaged
   void rect(num x, num y, num width, num height) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17152,37 +17086,44 @@ class Performance extends EventTarget native "Performance" {
 
   @DomName('Performance.clearMarks')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
+  @Experimental
   void clearMarks(String markName) native;
 
   @DomName('Performance.clearMeasures')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
+  @Experimental
   void clearMeasures(String measureName) native;
 
   @DomName('Performance.getEntries')
   @DocsEditable
-  @Experimental // untriaged
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental
   List<PerformanceEntry> getEntries() native;
 
   @DomName('Performance.getEntriesByName')
   @DocsEditable
-  @Experimental // untriaged
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental
   List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
 
   @DomName('Performance.getEntriesByType')
   @DocsEditable
-  @Experimental // untriaged
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
   @DomName('Performance.mark')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
+  @Experimental
   void mark(String markName) native;
 
   @DomName('Performance.measure')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
+  @Experimental
   void measure(String measureName, String startMark, String endMark) native;
 
   @DomName('Performance.now')
@@ -17195,7 +17136,7 @@ class Performance extends EventTarget native "Performance" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#extensions-performance-interface
   void clearResourceTimings() native;
 
   @JSName('webkitSetResourceTimingBufferSize')
@@ -17459,37 +17400,31 @@ class PerformanceTiming native "PerformanceTiming" {
 
 @DocsEditable
 @DomName('Plugin')
-@Experimental // untriaged
+@Experimental // non-standard
 class Plugin native "Plugin" {
 
   @DomName('Plugin.description')
   @DocsEditable
-  @Experimental // untriaged
   final String description;
 
   @DomName('Plugin.filename')
   @DocsEditable
-  @Experimental // untriaged
   final String filename;
 
   @DomName('Plugin.length')
   @DocsEditable
-  @Experimental // untriaged
   final int length;
 
   @DomName('Plugin.name')
   @DocsEditable
-  @Experimental // untriaged
   final String name;
 
   @DomName('Plugin.item')
   @DocsEditable
-  @Experimental // untriaged
   MimeType item(int index) native;
 
   @DomName('Plugin.namedItem')
   @DocsEditable
-  @Experimental // untriaged
   MimeType namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17499,12 +17434,11 @@ class Plugin native "Plugin" {
 
 @DocsEditable
 @DomName('PluginArray')
-@Experimental // untriaged
+@Experimental // non-standard
 class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
 
   @DomName('PluginArray.length')
   @DocsEditable
-  @Experimental // untriaged
   int get length => JS("int", "#.length", this);
 
   Plugin operator[](int index) {
@@ -17553,17 +17487,14 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
 
   @DomName('PluginArray.item')
   @DocsEditable
-  @Experimental // untriaged
   Plugin item(int index) native;
 
   @DomName('PluginArray.namedItem')
   @DocsEditable
-  @Experimental // untriaged
   Plugin namedItem(String name) native;
 
   @DomName('PluginArray.refresh')
   @DocsEditable
-  @Experimental // untriaged
   void refresh(bool reload) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18739,84 +18670,70 @@ class ScriptElement extends Element native "HTMLScriptElement" {
 
 @DocsEditable
 @DomName('SecurityPolicy')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicy
+@Experimental
 class SecurityPolicy native "SecurityPolicy" {
 
   @DomName('SecurityPolicy.allowsEval')
   @DocsEditable
-  @Experimental // untriaged
   final bool allowsEval;
 
   @DomName('SecurityPolicy.allowsInlineScript')
   @DocsEditable
-  @Experimental // untriaged
   final bool allowsInlineScript;
 
   @DomName('SecurityPolicy.allowsInlineStyle')
   @DocsEditable
-  @Experimental // untriaged
   final bool allowsInlineStyle;
 
   @DomName('SecurityPolicy.isActive')
   @DocsEditable
-  @Experimental // untriaged
   final bool isActive;
 
   @DomName('SecurityPolicy.reportURIs')
   @DocsEditable
-  @Experimental // untriaged
   @Returns('DomStringList')
   @Creates('DomStringList')
   final List<String> reportURIs;
 
   @DomName('SecurityPolicy.allowsConnectionTo')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsConnectionTo(String url) native;
 
   @DomName('SecurityPolicy.allowsFontFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsFontFrom(String url) native;
 
   @DomName('SecurityPolicy.allowsFormAction')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsFormAction(String url) native;
 
   @DomName('SecurityPolicy.allowsFrameFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsFrameFrom(String url) native;
 
   @DomName('SecurityPolicy.allowsImageFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsImageFrom(String url) native;
 
   @DomName('SecurityPolicy.allowsMediaFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsMediaFrom(String url) native;
 
   @DomName('SecurityPolicy.allowsObjectFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsObjectFrom(String url) native;
 
   @DomName('SecurityPolicy.allowsPluginType')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsPluginType(String type) native;
 
   @DomName('SecurityPolicy.allowsScriptFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsScriptFrom(String url) native;
 
   @DomName('SecurityPolicy.allowsStyleFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsStyleFrom(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18837,7 +18754,6 @@ class SecurityPolicyViolationEvent extends Event native "SecurityPolicyViolation
 
   @DomName('SecurityPolicyViolationEvent.columnNumber')
   @DocsEditable
-  @Experimental // untriaged
   final int columnNumber;
 
   @JSName('documentURI')
@@ -18985,137 +18901,120 @@ class SelectElement extends Element native "HTMLSelectElement" {
 
 @DocsEditable
 @DomName('Selection')
-@Experimental // untriaged
 class Selection native "Selection" {
 
   @DomName('Selection.anchorNode')
   @DocsEditable
-  @Experimental // untriaged
   final Node anchorNode;
 
   @DomName('Selection.anchorOffset')
   @DocsEditable
-  @Experimental // untriaged
   final int anchorOffset;
 
   @DomName('Selection.baseNode')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   final Node baseNode;
 
   @DomName('Selection.baseOffset')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   final int baseOffset;
 
   @DomName('Selection.extentNode')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   final Node extentNode;
 
   @DomName('Selection.extentOffset')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   final int extentOffset;
 
   @DomName('Selection.focusNode')
   @DocsEditable
-  @Experimental // untriaged
   final Node focusNode;
 
   @DomName('Selection.focusOffset')
   @DocsEditable
-  @Experimental // untriaged
   final int focusOffset;
 
   @DomName('Selection.isCollapsed')
   @DocsEditable
-  @Experimental // untriaged
   final bool isCollapsed;
 
   @DomName('Selection.rangeCount')
   @DocsEditable
-  @Experimental // untriaged
   final int rangeCount;
 
   @DomName('Selection.type')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   final String type;
 
   @DomName('Selection.addRange')
   @DocsEditable
-  @Experimental // untriaged
   void addRange(Range range) native;
 
   @DomName('Selection.collapse')
   @DocsEditable
-  @Experimental // untriaged
   void collapse(Node node, int index) native;
 
   @DomName('Selection.collapseToEnd')
   @DocsEditable
-  @Experimental // untriaged
   void collapseToEnd() native;
 
   @DomName('Selection.collapseToStart')
   @DocsEditable
-  @Experimental // untriaged
   void collapseToStart() native;
 
   @DomName('Selection.containsNode')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   bool containsNode(Node node, bool allowPartial) native;
 
   @DomName('Selection.deleteFromDocument')
   @DocsEditable
-  @Experimental // untriaged
   void deleteFromDocument() native;
 
   @DomName('Selection.empty')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void empty() native;
 
   @DomName('Selection.extend')
   @DocsEditable
-  @Experimental // untriaged
   void extend(Node node, int offset) native;
 
   @DomName('Selection.getRangeAt')
   @DocsEditable
-  @Experimental // untriaged
   Range getRangeAt(int index) native;
 
   @DomName('Selection.modify')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void modify(String alter, String direction, String granularity) native;
 
   @DomName('Selection.removeAllRanges')
   @DocsEditable
-  @Experimental // untriaged
   void removeAllRanges() native;
 
   @DomName('Selection.selectAllChildren')
   @DocsEditable
-  @Experimental // untriaged
   void selectAllChildren(Node node) native;
 
   @DomName('Selection.setBaseAndExtent')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
 
   @DomName('Selection.setPosition')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void setPosition(Node node, int offset) native;
 
   @DomName('Selection.toString')
   @DocsEditable
-  @Experimental // untriaged
   String toString() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19213,27 +19112,24 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer
 class SourceBuffer native "WebKitSourceBuffer" {
 
   @DomName('WebKitSourceBuffer.buffered')
   @DocsEditable
-  @Experimental // untriaged
   final TimeRanges buffered;
 
   @DomName('WebKitSourceBuffer.timestampOffset')
   @DocsEditable
-  @Experimental // untriaged
   num timestampOffset;
 
   @DomName('WebKitSourceBuffer.abort')
   @DocsEditable
-  @Experimental // untriaged
   void abort() native;
 
   @DomName('WebKitSourceBuffer.append')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void append(Uint8List data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19246,12 +19142,11 @@ class SourceBuffer native "WebKitSourceBuffer" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
 class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior, List<SourceBuffer> native "WebKitSourceBufferList" {
 
   @DomName('WebKitSourceBufferList.length')
   @DocsEditable
-  @Experimental // untriaged
   int get length => JS("int", "#.length", this);
 
   SourceBuffer operator[](int index) {
@@ -19301,23 +19196,19 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   @JSName('addEventListener')
   @DomName('WebKitSourceBufferList.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('WebKitSourceBufferList.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native;
 
   @DomName('WebKitSourceBufferList.item')
   @DocsEditable
-  @Experimental // untriaged
   SourceBuffer item(int index) native;
 
   @JSName('removeEventListener')
   @DomName('WebKitSourceBufferList.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19752,47 +19643,40 @@ class SpeechRecognitionResult native "SpeechRecognitionResult" {
 
 @DocsEditable
 @DomName('SpeechSynthesis')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+@Experimental
 class SpeechSynthesis native "SpeechSynthesis" {
 
   @DomName('SpeechSynthesis.paused')
   @DocsEditable
-  @Experimental // untriaged
   final bool paused;
 
   @DomName('SpeechSynthesis.pending')
   @DocsEditable
-  @Experimental // untriaged
   final bool pending;
 
   @DomName('SpeechSynthesis.speaking')
   @DocsEditable
-  @Experimental // untriaged
   final bool speaking;
 
   @DomName('SpeechSynthesis.cancel')
   @DocsEditable
-  @Experimental // untriaged
   void cancel() native;
 
   @DomName('SpeechSynthesis.getVoices')
   @DocsEditable
-  @Experimental // untriaged
   List<SpeechSynthesisVoice> getVoices() native;
 
   @DomName('SpeechSynthesis.pause')
   @DocsEditable
-  @Experimental // untriaged
   void pause() native;
 
   @DomName('SpeechSynthesis.resume')
   @DocsEditable
-  @Experimental // untriaged
   void resume() native;
 
   @DomName('SpeechSynthesis.speak')
   @DocsEditable
-  @Experimental // untriaged
   void speak(SpeechSynthesisUtterance utterance) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19802,22 +19686,20 @@ class SpeechSynthesis native "SpeechSynthesis" {
 
 @DocsEditable
 @DomName('SpeechSynthesisEvent')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+@Experimental
 class SpeechSynthesisEvent extends Event native "SpeechSynthesisEvent" {
 
   @DomName('SpeechSynthesisEvent.charIndex')
   @DocsEditable
-  @Experimental // untriaged
   final int charIndex;
 
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable
-  @Experimental // untriaged
   final num elapsedTime;
 
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable
-  @Experimental // untriaged
   final String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19827,42 +19709,36 @@ class SpeechSynthesisEvent extends Event native "SpeechSynthesisEvent" {
 
 @DocsEditable
 @DomName('SpeechSynthesisUtterance')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+@Experimental
 class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUtterance" {
 
   @DomName('SpeechSynthesisUtterance.boundaryEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> boundaryEvent = const EventStreamProvider<SpeechSynthesisEvent>('boundary');
 
   @DomName('SpeechSynthesisUtterance.endEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> endEvent = const EventStreamProvider<SpeechSynthesisEvent>('end');
 
   @DomName('SpeechSynthesisUtterance.errorEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('SpeechSynthesisUtterance.markEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> markEvent = const EventStreamProvider<SpeechSynthesisEvent>('mark');
 
   @DomName('SpeechSynthesisUtterance.pauseEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
 
   @DomName('SpeechSynthesisUtterance.resumeEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> resumeEvent = const EventStreamProvider<SpeechSynthesisEvent>('resume');
 
   @DomName('SpeechSynthesisUtterance.startEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> startEvent = const EventStreamProvider<SpeechSynthesisEvent>('start');
 
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
@@ -19878,67 +19754,54 @@ class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUttera
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable
-  @Experimental // untriaged
   String lang;
 
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable
-  @Experimental // untriaged
   num pitch;
 
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable
-  @Experimental // untriaged
   num rate;
 
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable
-  @Experimental // untriaged
   String text;
 
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable
-  @Experimental // untriaged
   SpeechSynthesisVoice voice;
 
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable
-  @Experimental // untriaged
   num volume;
 
   @DomName('SpeechSynthesisUtterance.onboundary')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onend')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onEnd => endEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onerror')
   @DocsEditable
-  @Experimental // untriaged
   Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onmark')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onMark => markEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onpause')
   @DocsEditable
-  @Experimental // untriaged
   Stream<Event> get onPause => pauseEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onresume')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onResume => resumeEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onstart')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onStart => startEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19948,34 +19811,30 @@ class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUttera
 
 @DocsEditable
 @DomName('SpeechSynthesisVoice')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+@Experimental
 class SpeechSynthesisVoice native "SpeechSynthesisVoice" {
 
   @JSName('default')
   @DomName('SpeechSynthesisVoice.default')
   @DocsEditable
-  @Experimental // untriaged
   final bool defaultValue;
 
   @DomName('SpeechSynthesisVoice.lang')
   @DocsEditable
-  @Experimental // untriaged
   final String lang;
 
   @DomName('SpeechSynthesisVoice.localService')
   @DocsEditable
-  @Experimental // untriaged
   final bool localService;
 
   @DomName('SpeechSynthesisVoice.name')
   @DocsEditable
-  @Experimental // untriaged
   final String name;
 
   @JSName('voiceURI')
   @DomName('SpeechSynthesisVoice.voiceURI')
   @DocsEditable
-  @Experimental // untriaged
   final String voiceUri;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21920,7 +21779,6 @@ class UnknownElement extends Element native "HTMLUnknownElement" {
 
 
 @DomName('URL')
-@Experimental // untriaged
 class Url native "URL" {
 
   static String createObjectUrl(blob_OR_source_OR_stream) =>
@@ -22761,7 +22619,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   @DomName('Window.DOMContentLoadedEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
   @DomName('Window.devicemotionEvent')
@@ -22821,7 +22678,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
   @DomName('Window.webkitAnimationIterationEvent')
@@ -22829,7 +22685,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
   @DomName('Window.webkitAnimationStartEvent')
@@ -22837,7 +22692,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
   @DomName('Window.PERSISTENT')
@@ -22855,7 +22709,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @JSName('CSS')
   @DomName('Window.CSS')
   @DocsEditable
-  @Experimental // untriaged
   final Css css;
 
   @DomName('Window.applicationCache')
@@ -23020,7 +22873,8 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   @DomName('Window.speechSynthesis')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+  @Experimental
   final SpeechSynthesis speechSynthesis;
 
   @DomName('Window.status')
@@ -23308,7 +23162,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   @DomName('Window.onDOMContentLoaded')
   @DocsEditable
-  @Experimental // untriaged
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
   @DomName('Window.onabort')
@@ -23523,17 +23376,17 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   @DomName('Window.onwebkitAnimationEnd')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
   @DomName('Window.onwebkitAnimationIteration')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
   @DomName('Window.onwebkitAnimationStart')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
 

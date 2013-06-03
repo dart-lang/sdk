@@ -600,13 +600,13 @@ class BRElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('BarProp')
-@Experimental // untriaged
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop
+@deprecated // standard
 class BarProp extends NativeFieldWrapperClass1 {
   BarProp.internal();
 
   @DomName('BarProp.visible')
   @DocsEditable
-  @Experimental // untriaged
   bool get visible native "BarProp_visible_Getter";
 
 }
@@ -971,18 +971,17 @@ class CDataSection extends Text {
 
 @DocsEditable
 @DomName('Canvas2DContextAttributes')
-@Experimental // untriaged
+// http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
+@Experimental
 class Canvas2DContextAttributes extends NativeFieldWrapperClass1 {
   Canvas2DContextAttributes.internal();
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable
-  @Experimental // untriaged
   bool get alpha native "Canvas2DContextAttributes_alpha_Getter";
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable
-  @Experimental // untriaged
   void set alpha(bool value) native "Canvas2DContextAttributes_alpha_Setter";
 
 }
@@ -1545,7 +1544,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
 
   @DomName('CanvasRenderingContext2D.getContextAttributes')
   @DocsEditable
-  @Experimental // untriaged
+  // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
+  @Experimental
   Canvas2DContextAttributes getContextAttributes() native "CanvasRenderingContext2D_getContextAttributes_Callback";
 
   @DomName('CanvasRenderingContext2D.getImageData')
@@ -1921,12 +1921,10 @@ class CharacterData extends Node {
 
   @DomName('CharacterData.nextElementSibling')
   @DocsEditable
-  @Experimental // untriaged
   Element get nextElementSibling native "CharacterData_nextElementSibling_Getter";
 
   @DomName('CharacterData.previousElementSibling')
   @DocsEditable
-  @Experimental // untriaged
   Element get previousElementSibling native "CharacterData_previousElementSibling_Getter";
 
   @DomName('CharacterData.appendData')
@@ -2006,18 +2004,17 @@ class Comment extends CharacterData {
 
 @DocsEditable
 @DomName('Composition')
-@Experimental // untriaged
+// http://www.w3.org/TR/ime-api/#idl-def-Composition
+@Experimental
 class Composition extends NativeFieldWrapperClass1 {
   Composition.internal();
 
   @DomName('Composition.caret')
   @DocsEditable
-  @Experimental // untriaged
   Range get caret native "Composition_caret_Getter";
 
   @DomName('Composition.text')
   @DocsEditable
-  @Experimental // untriaged
   Node get text native "Composition_text_Getter";
 
 }
@@ -2280,7 +2277,8 @@ class Crypto extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('CSS')
-@Experimental // untriaged
+// http://www.w3.org/TR/css3-conditional/#the-css-interface
+@Experimental // None
 class Css extends NativeFieldWrapperClass1 {
   Css.internal();
 
@@ -2632,7 +2630,6 @@ class CssRule extends NativeFieldWrapperClass1 {
 
   @DomName('CSSRule.SUPPORTS_RULE')
   @DocsEditable
-  @Experimental // untriaged
   static const int SUPPORTS_RULE = 12;
 
   @DomName('CSSRule.UNKNOWN_RULE')
@@ -5997,28 +5994,23 @@ class CssStyleSheet extends StyleSheet {
 
 @DocsEditable
 @DomName('CSSSupportsRule')
-@Experimental // untriaged
 class CssSupportsRule extends CssRule {
   CssSupportsRule.internal() : super.internal();
 
   @DomName('CSSSupportsRule.conditionText')
   @DocsEditable
-  @Experimental // untriaged
   String get conditionText native "CSSSupportsRule_conditionText_Getter";
 
   @DomName('CSSSupportsRule.cssRules')
   @DocsEditable
-  @Experimental // untriaged
   List<CssRule> get cssRules native "CSSSupportsRule_cssRules_Getter";
 
   @DomName('CSSSupportsRule.deleteRule')
   @DocsEditable
-  @Experimental // untriaged
   void deleteRule(int index) native "CSSSupportsRule_deleteRule_Callback";
 
   @DomName('CSSSupportsRule.insertRule')
   @DocsEditable
-  @Experimental // untriaged
   int insertRule(String rule, int index) native "CSSSupportsRule_insertRule_Callback";
 
 }
@@ -6716,12 +6708,10 @@ class Document extends Node
 
   @DomName('Document.childElementCount')
   @DocsEditable
-  @Experimental // untriaged
   int get childElementCount native "Document_childElementCount_Getter";
 
   @DomName('Document.children')
   @DocsEditable
-  @Experimental // untriaged
   HtmlCollection get children native "Document_children_Getter";
 
   @DomName('Document.cookie')
@@ -6746,7 +6736,6 @@ class Document extends Node
 
   @DomName('Document.firstElementChild')
   @DocsEditable
-  @Experimental // untriaged
   Element get firstElementChild native "Document_firstElementChild_Getter";
 
   @DomName('Document.fontloader')
@@ -6766,7 +6755,6 @@ class Document extends Node
 
   @DomName('Document.lastElementChild')
   @DocsEditable
-  @Experimental // untriaged
   Element get lastElementChild native "Document_lastElementChild_Getter";
 
   /// Moved to [HtmlDocument].
@@ -7391,17 +7379,14 @@ class DocumentFragment extends Node {
 
   @DomName('DocumentFragment.childElementCount')
   @DocsEditable
-  @Experimental // untriaged
   int get childElementCount native "DocumentFragment_childElementCount_Getter";
 
   @DomName('DocumentFragment.firstElementChild')
   @DocsEditable
-  @Experimental // untriaged
   Element get firstElementChild native "DocumentFragment_firstElementChild_Getter";
 
   @DomName('DocumentFragment.lastElementChild')
   @DocsEditable
-  @Experimental // untriaged
   Element get lastElementChild native "DocumentFragment_lastElementChild_Getter";
 
   @DomName('DocumentFragment.querySelector')
@@ -9511,17 +9496,14 @@ class Entity extends Node {
 
   @DomName('Entity.notationName')
   @DocsEditable
-  @Experimental // untriaged
   String get notationName native "Entity_notationName_Getter";
 
   @DomName('Entity.publicId')
   @DocsEditable
-  @Experimental // untriaged
   String get publicId native "Entity_publicId_Getter";
 
   @DomName('Entity.systemId')
   @DocsEditable
-  @Experimental // untriaged
   String get systemId native "Entity_systemId_Getter";
 
 }
@@ -9911,7 +9893,8 @@ class Event extends NativeFieldWrapperClass1 {
 
   @DomName('Event.path')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
+  @Experimental
   List<Node> path() native "Event_path_Callback";
 
   @DomName('Event.preventDefault')
@@ -10915,7 +10898,6 @@ class FontLoader extends EventTarget {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental // untriaged
 class FormData extends NativeFieldWrapperClass1 {
   FormData.internal();
 
@@ -10931,7 +10913,6 @@ class FormData extends NativeFieldWrapperClass1 {
 
   @DomName('FormData.append')
   @DocsEditable
-  @Experimental // untriaged
   void append(String name, value, [String filename]) native "FormData_append_Callback";
 
 }
@@ -13781,48 +13762,41 @@ abstract class ButtonInputElement implements InputElementBase {
 
 @DocsEditable
 @DomName('InputMethodContext')
-@Experimental // untriaged
+// http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
+@Experimental
 class InputMethodContext extends NativeFieldWrapperClass1 {
   InputMethodContext.internal();
 
   @DomName('InputMethodContext.composition')
   @DocsEditable
-  @Experimental // untriaged
   Composition get composition native "InputMethodContext_composition_Getter";
 
   @DomName('InputMethodContext.enabled')
   @DocsEditable
-  @Experimental // untriaged
   bool get enabled native "InputMethodContext_enabled_Getter";
 
   @DomName('InputMethodContext.enabled')
   @DocsEditable
-  @Experimental // untriaged
   void set enabled(bool value) native "InputMethodContext_enabled_Setter";
 
   @DomName('InputMethodContext.locale')
   @DocsEditable
-  @Experimental // untriaged
   String get locale native "InputMethodContext_locale_Getter";
 
   @DomName('InputMethodContext.confirmComposition')
   @DocsEditable
-  @Experimental // untriaged
   void confirmComposition() native "InputMethodContext_confirmComposition_Callback";
 
   @DomName('InputMethodContext.open')
   @DocsEditable
-  @Experimental // untriaged
   bool open() native "InputMethodContext_open_Callback";
 
   @DomName('InputMethodContext.setCaretRectangle')
   @DocsEditable
-  @Experimental // untriaged
   void setCaretRectangle(Node anchor, int x, int y, int w, int h) native "InputMethodContext_setCaretRectangle_Callback";
 
   @DomName('InputMethodContext.setExclusionRectangle')
   @DocsEditable
-  @Experimental // untriaged
   void setExclusionRectangle(Node anchor, int x, int y, int w, int h) native "InputMethodContext_setExclusionRectangle_Callback";
 
 }
@@ -14272,7 +14246,8 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
 
 
 @DomName('MIDIErrorCallback')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midierrorcallback
+@Experimental
 typedef void MidiErrorCallback(DomError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14674,12 +14649,14 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.mediaKeys')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
+  @Experimental
   MediaKeys get mediaKeys native "HTMLMediaElement_mediaKeys_Getter";
 
   @DomName('HTMLMediaElement.mediaKeys')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
+  @Experimental
   void set mediaKeys(MediaKeys value) native "HTMLMediaElement_mediaKeys_Setter";
 
   @DomName('HTMLMediaElement.muted')
@@ -15074,7 +15051,7 @@ class MediaKeyError extends NativeFieldWrapperClass1 {
 
   @DomName('MediaKeyError.systemCode')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   int get systemCode native "MediaKeyError_systemCode_Getter";
 
 }
@@ -15130,18 +15107,17 @@ class MediaKeyEvent extends Event {
 
 @DocsEditable
 @DomName('MediaKeyMessageEvent')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeymessageevent
+@Experimental
 class MediaKeyMessageEvent extends Event {
   MediaKeyMessageEvent.internal() : super.internal();
 
   @DomName('MediaKeyMessageEvent.destinationURL')
   @DocsEditable
-  @Experimental // untriaged
   String get destinationUrl native "MediaKeyMessageEvent_destinationURL_Getter";
 
   @DomName('MediaKeyMessageEvent.message')
   @DocsEditable
-  @Experimental // untriaged
   Uint8List get message native "MediaKeyMessageEvent_message_Getter";
 
 }
@@ -15154,13 +15130,13 @@ class MediaKeyMessageEvent extends Event {
 
 @DocsEditable
 @DomName('MediaKeyNeededEvent')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent
+@Experimental
 class MediaKeyNeededEvent extends Event {
   MediaKeyNeededEvent.internal() : super.internal();
 
   @DomName('MediaKeyNeededEvent.initData')
   @DocsEditable
-  @Experimental // untriaged
   Uint8List get initData native "MediaKeyNeededEvent_initData_Getter";
 
 }
@@ -15173,48 +15149,41 @@ class MediaKeyNeededEvent extends Event {
 
 @DocsEditable
 @DomName('MediaKeySession')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeysession
+@Experimental
 class MediaKeySession extends EventTarget {
   MediaKeySession.internal() : super.internal();
 
   @DomName('MediaKeySession.error')
   @DocsEditable
-  @Experimental // untriaged
   MediaKeyError get error native "MediaKeySession_error_Getter";
 
   @DomName('MediaKeySession.keySystem')
   @DocsEditable
-  @Experimental // untriaged
   String get keySystem native "MediaKeySession_keySystem_Getter";
 
   @DomName('MediaKeySession.sessionId')
   @DocsEditable
-  @Experimental // untriaged
   String get sessionId native "MediaKeySession_sessionId_Getter";
 
   @DomName('MediaKeySession.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_addEventListener_Callback";
 
   @DomName('MediaKeySession.close')
   @DocsEditable
-  @Experimental // untriaged
   void close() native "MediaKeySession_close_Callback";
 
   @DomName('MediaKeySession.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event evt) native "MediaKeySession_dispatchEvent_Callback";
 
   @DomName('MediaKeySession.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaKeySession_removeEventListener_Callback";
 
   @DomName('MediaKeySession.update')
   @DocsEditable
-  @Experimental // untriaged
   void update(Uint8List key) native "MediaKeySession_update_Callback";
 
 }
@@ -15227,7 +15196,8 @@ class MediaKeySession extends EventTarget {
 
 @DocsEditable
 @DomName('MediaKeys')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
+@Experimental
 class MediaKeys extends NativeFieldWrapperClass1 {
   MediaKeys.internal();
 
@@ -15242,12 +15212,10 @@ class MediaKeys extends NativeFieldWrapperClass1 {
 
   @DomName('MediaKeys.keySystem')
   @DocsEditable
-  @Experimental // untriaged
   String get keySystem native "MediaKeys_keySystem_Getter";
 
   @DomName('MediaKeys.createSession')
   @DocsEditable
-  @Experimental // untriaged
   MediaKeySession createSession(String type, Uint8List initData) native "MediaKeys_createSession_Callback";
 
 }
@@ -15349,7 +15317,7 @@ class MediaQueryListListener extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource
 class MediaSource extends EventTarget {
   MediaSource.internal() : super.internal();
 
@@ -15364,62 +15332,50 @@ class MediaSource extends EventTarget {
 
   @DomName('WebKitMediaSource.activeSourceBuffers')
   @DocsEditable
-  @Experimental // untriaged
   SourceBufferList get activeSourceBuffers native "WebKitMediaSource_activeSourceBuffers_Getter";
 
   @DomName('WebKitMediaSource.duration')
   @DocsEditable
-  @Experimental // untriaged
   num get duration native "WebKitMediaSource_duration_Getter";
 
   @DomName('WebKitMediaSource.duration')
   @DocsEditable
-  @Experimental // untriaged
   void set duration(num value) native "WebKitMediaSource_duration_Setter";
 
   @DomName('WebKitMediaSource.readyState')
   @DocsEditable
-  @Experimental // untriaged
   String get readyState native "WebKitMediaSource_readyState_Getter";
 
   @DomName('WebKitMediaSource.sourceBuffers')
   @DocsEditable
-  @Experimental // untriaged
   SourceBufferList get sourceBuffers native "WebKitMediaSource_sourceBuffers_Getter";
 
   @DomName('WebKitMediaSource.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitMediaSource_addEventListener_Callback";
 
   @DomName('WebKitMediaSource.addSourceBuffer')
   @DocsEditable
-  @Experimental // untriaged
   SourceBuffer addSourceBuffer(String type) native "WebKitMediaSource_addSourceBuffer_Callback";
 
   @DomName('WebKitMediaSource.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native "WebKitMediaSource_dispatchEvent_Callback";
 
   @DomName('WebKitMediaSource.endOfStream')
   @DocsEditable
-  @Experimental // untriaged
   void endOfStream(String error) native "WebKitMediaSource_endOfStream_Callback";
 
   @DomName('WebKitMediaSource.isTypeSupported')
   @DocsEditable
-  @Experimental // untriaged
   static bool isTypeSupported(String type) native "WebKitMediaSource_isTypeSupported_Callback";
 
   @DomName('WebKitMediaSource.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitMediaSource_removeEventListener_Callback";
 
   @DomName('WebKitMediaSource.removeSourceBuffer')
   @DocsEditable
-  @Experimental // untriaged
   void removeSourceBuffer(SourceBuffer buffer) native "WebKitMediaSource_removeSourceBuffer_Callback";
 
 }
@@ -15518,7 +15474,6 @@ class MediaStream extends EventTarget {
 
   @DomName('MediaStream.stop')
   @DocsEditable
-  @Experimental // untriaged
   void stop() native "MediaStream_stop_Callback";
 
   @DomName('MediaStream.onaddtrack')
@@ -16000,13 +15955,13 @@ class MeterElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('MIDIConnectionEvent')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midiconnectionevent-interface
+@Experimental
 class MidiConnectionEvent extends Event {
   MidiConnectionEvent.internal() : super.internal();
 
   @DomName('MIDIConnectionEvent.port')
   @DocsEditable
-  @Experimental // untriaged
   MidiPort get port native "MIDIConnectionEvent_port_Getter";
 
 }
@@ -16019,7 +15974,8 @@ class MidiConnectionEvent extends Event {
 
 @DocsEditable
 @DomName('MIDIInput')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#idl-def-MIDIInput
+@Experimental
 class MidiInput extends MidiPort implements EventTarget {
   MidiInput.internal() : super.internal();
 
@@ -16033,18 +15989,17 @@ class MidiInput extends MidiPort implements EventTarget {
 
 @DocsEditable
 @DomName('MIDIMessageEvent')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midimessageevent-interface
+@Experimental
 class MidiMessageEvent extends Event {
   MidiMessageEvent.internal() : super.internal();
 
   @DomName('MIDIMessageEvent.data')
   @DocsEditable
-  @Experimental // untriaged
   Uint8List get data native "MIDIMessageEvent_data_Getter";
 
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable
-  @Experimental // untriaged
   num get receivedTime native "MIDIMessageEvent_receivedTime_Getter";
 
 }
@@ -16057,7 +16012,8 @@ class MidiMessageEvent extends Event {
 
 @DocsEditable
 @DomName('MIDIOutput')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midioutput-interface
+@Experimental
 class MidiOutput extends MidiPort {
   MidiOutput.internal() : super.internal();
 
@@ -16084,58 +16040,49 @@ class MidiOutput extends MidiPort {
 
 @DocsEditable
 @DomName('MIDIPort')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#idl-def-MIDIPort
+@Experimental
 class MidiPort extends EventTarget {
   MidiPort.internal() : super.internal();
 
   @DomName('MIDIPort.disconnectEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
   @DomName('MIDIPort.id')
   @DocsEditable
-  @Experimental // untriaged
   String get id native "MIDIPort_id_Getter";
 
   @DomName('MIDIPort.manufacturer')
   @DocsEditable
-  @Experimental // untriaged
   String get manufacturer native "MIDIPort_manufacturer_Getter";
 
   @DomName('MIDIPort.name')
   @DocsEditable
-  @Experimental // untriaged
   String get name native "MIDIPort_name_Getter";
 
   @DomName('MIDIPort.type')
   @DocsEditable
-  @Experimental // untriaged
   String get type native "MIDIPort_type_Getter";
 
   @DomName('MIDIPort.version')
   @DocsEditable
-  @Experimental // untriaged
   String get version native "MIDIPort_version_Getter";
 
   @DomName('MIDIPort.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_addEventListener_Callback";
 
   @DomName('MIDIPort.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native "MIDIPort_dispatchEvent_Callback";
 
   @DomName('MIDIPort.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIPort_removeEventListener_Callback";
 
   @DomName('MIDIPort.ondisconnect')
   @DocsEditable
-  @Experimental // untriaged
   Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
 
 }
@@ -16148,28 +16095,24 @@ class MidiPort extends EventTarget {
 
 @DocsEditable
 @DomName('MimeType')
-@Experimental // untriaged
+@Experimental // non-standard
 class MimeType extends NativeFieldWrapperClass1 {
   MimeType.internal();
 
   @DomName('MimeType.description')
   @DocsEditable
-  @Experimental // untriaged
   String get description native "MimeType_description_Getter";
 
   @DomName('MimeType.enabledPlugin')
   @DocsEditable
-  @Experimental // untriaged
   Plugin get enabledPlugin native "MimeType_enabledPlugin_Getter";
 
   @DomName('MimeType.suffixes')
   @DocsEditable
-  @Experimental // untriaged
   String get suffixes native "MimeType_suffixes_Getter";
 
   @DomName('MimeType.type')
   @DocsEditable
-  @Experimental // untriaged
   String get type native "MimeType_type_Getter";
 
 }
@@ -16182,13 +16125,12 @@ class MimeType extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('MimeTypeArray')
-@Experimental // untriaged
+@Experimental // non-standard
 class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
   MimeTypeArray.internal();
 
   @DomName('MimeTypeArray.length')
   @DocsEditable
-  @Experimental // untriaged
   int get length native "MimeTypeArray_length_Getter";
 
   MimeType operator[](int index) {
@@ -16238,12 +16180,10 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
 
   @DomName('MimeTypeArray.item')
   @DocsEditable
-  @Experimental // untriaged
   MimeType item(int index) native "MimeTypeArray_item_Callback";
 
   @DomName('MimeTypeArray.namedItem')
   @DocsEditable
-  @Experimental // untriaged
   MimeType namedItem(String name) native "MimeTypeArray_namedItem_Callback";
 
 }
@@ -18243,7 +18183,8 @@ class ParamElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('Path')
-@Experimental // untriaged
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
+@Experimental
 class Path extends NativeFieldWrapperClass1 {
   Path.internal();
 
@@ -18273,42 +18214,34 @@ class Path extends NativeFieldWrapperClass1 {
 
   @DomName('Path.arc')
   @DocsEditable
-  @Experimental // untriaged
   void arc(num x, num y, num radius, num startAngle, num endAngle, bool anticlockwise) native "Path_arc_Callback";
 
   @DomName('Path.arcTo')
   @DocsEditable
-  @Experimental // untriaged
   void arcTo(num x1, num y1, num x2, num y2, num radius) native "Path_arcTo_Callback";
 
   @DomName('Path.bezierCurveTo')
   @DocsEditable
-  @Experimental // untriaged
   void bezierCurveTo(num cp1x, num cp1y, num cp2x, num cp2y, num x, num y) native "Path_bezierCurveTo_Callback";
 
   @DomName('Path.closePath')
   @DocsEditable
-  @Experimental // untriaged
   void closePath() native "Path_closePath_Callback";
 
   @DomName('Path.lineTo')
   @DocsEditable
-  @Experimental // untriaged
   void lineTo(num x, num y) native "Path_lineTo_Callback";
 
   @DomName('Path.moveTo')
   @DocsEditable
-  @Experimental // untriaged
   void moveTo(num x, num y) native "Path_moveTo_Callback";
 
   @DomName('Path.quadraticCurveTo')
   @DocsEditable
-  @Experimental // untriaged
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native "Path_quadraticCurveTo_Callback";
 
   @DomName('Path.rect')
   @DocsEditable
-  @Experimental // untriaged
   void rect(num x, num y, num width, num height) native "Path_rect_Callback";
 
 }
@@ -18353,37 +18286,44 @@ class Performance extends EventTarget {
 
   @DomName('Performance.clearMarks')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
+  @Experimental
   void clearMarks(String markName) native "Performance_clearMarks_Callback";
 
   @DomName('Performance.clearMeasures')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
+  @Experimental
   void clearMeasures(String measureName) native "Performance_clearMeasures_Callback";
 
   @DomName('Performance.getEntries')
   @DocsEditable
-  @Experimental // untriaged
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental
   List<PerformanceEntry> getEntries() native "Performance_getEntries_Callback";
 
   @DomName('Performance.getEntriesByName')
   @DocsEditable
-  @Experimental // untriaged
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental
   List<PerformanceEntry> getEntriesByName(String name, String entryType) native "Performance_getEntriesByName_Callback";
 
   @DomName('Performance.getEntriesByType')
   @DocsEditable
-  @Experimental // untriaged
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental
   List<PerformanceEntry> getEntriesByType(String entryType) native "Performance_getEntriesByType_Callback";
 
   @DomName('Performance.mark')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
+  @Experimental
   void mark(String markName) native "Performance_mark_Callback";
 
   @DomName('Performance.measure')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
+  @Experimental
   void measure(String measureName, String startMark, String endMark) native "Performance_measure_Callback";
 
   @DomName('Performance.now')
@@ -18395,7 +18335,7 @@ class Performance extends EventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods
+  // http://www.w3c-test.org/webperf/specs/ResourceTiming/#extensions-performance-interface
   void clearResourceTimings() native "Performance_webkitClearResourceTimings_Callback";
 
   @DomName('Performance.webkitSetResourceTimingBufferSize')
@@ -18685,38 +18625,32 @@ class PerformanceTiming extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('Plugin')
-@Experimental // untriaged
+@Experimental // non-standard
 class Plugin extends NativeFieldWrapperClass1 {
   Plugin.internal();
 
   @DomName('Plugin.description')
   @DocsEditable
-  @Experimental // untriaged
   String get description native "Plugin_description_Getter";
 
   @DomName('Plugin.filename')
   @DocsEditable
-  @Experimental // untriaged
   String get filename native "Plugin_filename_Getter";
 
   @DomName('Plugin.length')
   @DocsEditable
-  @Experimental // untriaged
   int get length native "Plugin_length_Getter";
 
   @DomName('Plugin.name')
   @DocsEditable
-  @Experimental // untriaged
   String get name native "Plugin_name_Getter";
 
   @DomName('Plugin.item')
   @DocsEditable
-  @Experimental // untriaged
   MimeType item(int index) native "Plugin_item_Callback";
 
   @DomName('Plugin.namedItem')
   @DocsEditable
-  @Experimental // untriaged
   MimeType namedItem(String name) native "Plugin_namedItem_Callback";
 
 }
@@ -18729,13 +18663,12 @@ class Plugin extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('PluginArray')
-@Experimental // untriaged
+@Experimental // non-standard
 class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
   PluginArray.internal();
 
   @DomName('PluginArray.length')
   @DocsEditable
-  @Experimental // untriaged
   int get length native "PluginArray_length_Getter";
 
   Plugin operator[](int index) {
@@ -18785,17 +18718,14 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
 
   @DomName('PluginArray.item')
   @DocsEditable
-  @Experimental // untriaged
   Plugin item(int index) native "PluginArray_item_Callback";
 
   @DomName('PluginArray.namedItem')
   @DocsEditable
-  @Experimental // untriaged
   Plugin namedItem(String name) native "PluginArray_namedItem_Callback";
 
   @DomName('PluginArray.refresh')
   @DocsEditable
-  @Experimental // untriaged
   void refresh(bool reload) native "PluginArray_refresh_Callback";
 
 }
@@ -20027,83 +19957,69 @@ class ScriptElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('SecurityPolicy')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicy
+@Experimental
 class SecurityPolicy extends NativeFieldWrapperClass1 {
   SecurityPolicy.internal();
 
   @DomName('SecurityPolicy.allowsEval')
   @DocsEditable
-  @Experimental // untriaged
   bool get allowsEval native "SecurityPolicy_allowsEval_Getter";
 
   @DomName('SecurityPolicy.allowsInlineScript')
   @DocsEditable
-  @Experimental // untriaged
   bool get allowsInlineScript native "SecurityPolicy_allowsInlineScript_Getter";
 
   @DomName('SecurityPolicy.allowsInlineStyle')
   @DocsEditable
-  @Experimental // untriaged
   bool get allowsInlineStyle native "SecurityPolicy_allowsInlineStyle_Getter";
 
   @DomName('SecurityPolicy.isActive')
   @DocsEditable
-  @Experimental // untriaged
   bool get isActive native "SecurityPolicy_isActive_Getter";
 
   @DomName('SecurityPolicy.reportURIs')
   @DocsEditable
-  @Experimental // untriaged
   List<String> get reportURIs native "SecurityPolicy_reportURIs_Getter";
 
   @DomName('SecurityPolicy.allowsConnectionTo')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsConnectionTo(String url) native "SecurityPolicy_allowsConnectionTo_Callback";
 
   @DomName('SecurityPolicy.allowsFontFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsFontFrom(String url) native "SecurityPolicy_allowsFontFrom_Callback";
 
   @DomName('SecurityPolicy.allowsFormAction')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsFormAction(String url) native "SecurityPolicy_allowsFormAction_Callback";
 
   @DomName('SecurityPolicy.allowsFrameFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsFrameFrom(String url) native "SecurityPolicy_allowsFrameFrom_Callback";
 
   @DomName('SecurityPolicy.allowsImageFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsImageFrom(String url) native "SecurityPolicy_allowsImageFrom_Callback";
 
   @DomName('SecurityPolicy.allowsMediaFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsMediaFrom(String url) native "SecurityPolicy_allowsMediaFrom_Callback";
 
   @DomName('SecurityPolicy.allowsObjectFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsObjectFrom(String url) native "SecurityPolicy_allowsObjectFrom_Callback";
 
   @DomName('SecurityPolicy.allowsPluginType')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsPluginType(String type) native "SecurityPolicy_allowsPluginType_Callback";
 
   @DomName('SecurityPolicy.allowsScriptFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsScriptFrom(String url) native "SecurityPolicy_allowsScriptFrom_Callback";
 
   @DomName('SecurityPolicy.allowsStyleFrom')
   @DocsEditable
-  @Experimental // untriaged
   bool allowsStyleFrom(String url) native "SecurityPolicy_allowsStyleFrom_Callback";
 
 }
@@ -20127,7 +20043,6 @@ class SecurityPolicyViolationEvent extends Event {
 
   @DomName('SecurityPolicyViolationEvent.columnNumber')
   @DocsEditable
-  @Experimental // untriaged
   int get columnNumber native "SecurityPolicyViolationEvent_columnNumber_Getter";
 
   @DomName('SecurityPolicyViolationEvent.documentURI')
@@ -20312,138 +20227,121 @@ class SelectElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('Selection')
-@Experimental // untriaged
 class Selection extends NativeFieldWrapperClass1 {
   Selection.internal();
 
   @DomName('Selection.anchorNode')
   @DocsEditable
-  @Experimental // untriaged
   Node get anchorNode native "Selection_anchorNode_Getter";
 
   @DomName('Selection.anchorOffset')
   @DocsEditable
-  @Experimental // untriaged
   int get anchorOffset native "Selection_anchorOffset_Getter";
 
   @DomName('Selection.baseNode')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   Node get baseNode native "Selection_baseNode_Getter";
 
   @DomName('Selection.baseOffset')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   int get baseOffset native "Selection_baseOffset_Getter";
 
   @DomName('Selection.extentNode')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   Node get extentNode native "Selection_extentNode_Getter";
 
   @DomName('Selection.extentOffset')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   int get extentOffset native "Selection_extentOffset_Getter";
 
   @DomName('Selection.focusNode')
   @DocsEditable
-  @Experimental // untriaged
   Node get focusNode native "Selection_focusNode_Getter";
 
   @DomName('Selection.focusOffset')
   @DocsEditable
-  @Experimental // untriaged
   int get focusOffset native "Selection_focusOffset_Getter";
 
   @DomName('Selection.isCollapsed')
   @DocsEditable
-  @Experimental // untriaged
   bool get isCollapsed native "Selection_isCollapsed_Getter";
 
   @DomName('Selection.rangeCount')
   @DocsEditable
-  @Experimental // untriaged
   int get rangeCount native "Selection_rangeCount_Getter";
 
   @DomName('Selection.type')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   String get type native "Selection_type_Getter";
 
   @DomName('Selection.addRange')
   @DocsEditable
-  @Experimental // untriaged
   void addRange(Range range) native "Selection_addRange_Callback";
 
   @DomName('Selection.collapse')
   @DocsEditable
-  @Experimental // untriaged
   void collapse(Node node, int index) native "Selection_collapse_Callback";
 
   @DomName('Selection.collapseToEnd')
   @DocsEditable
-  @Experimental // untriaged
   void collapseToEnd() native "Selection_collapseToEnd_Callback";
 
   @DomName('Selection.collapseToStart')
   @DocsEditable
-  @Experimental // untriaged
   void collapseToStart() native "Selection_collapseToStart_Callback";
 
   @DomName('Selection.containsNode')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   bool containsNode(Node node, bool allowPartial) native "Selection_containsNode_Callback";
 
   @DomName('Selection.deleteFromDocument')
   @DocsEditable
-  @Experimental // untriaged
   void deleteFromDocument() native "Selection_deleteFromDocument_Callback";
 
   @DomName('Selection.empty')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void empty() native "Selection_empty_Callback";
 
   @DomName('Selection.extend')
   @DocsEditable
-  @Experimental // untriaged
   void extend(Node node, int offset) native "Selection_extend_Callback";
 
   @DomName('Selection.getRangeAt')
   @DocsEditable
-  @Experimental // untriaged
   Range getRangeAt(int index) native "Selection_getRangeAt_Callback";
 
   @DomName('Selection.modify')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void modify(String alter, String direction, String granularity) native "Selection_modify_Callback";
 
   @DomName('Selection.removeAllRanges')
   @DocsEditable
-  @Experimental // untriaged
   void removeAllRanges() native "Selection_removeAllRanges_Callback";
 
   @DomName('Selection.selectAllChildren')
   @DocsEditable
-  @Experimental // untriaged
   void selectAllChildren(Node node) native "Selection_selectAllChildren_Callback";
 
   @DomName('Selection.setBaseAndExtent')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void setBaseAndExtent(Node baseNode, int baseOffset, Node extentNode, int extentOffset) native "Selection_setBaseAndExtent_Callback";
 
   @DomName('Selection.setPosition')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void setPosition(Node node, int offset) native "Selection_setPosition_Callback";
 
   @DomName('Selection.toString')
   @DocsEditable
-  @Experimental // untriaged
   String toString() native "Selection_toString_Callback";
 
 }
@@ -20558,33 +20456,29 @@ class ShadowRoot extends DocumentFragment {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer
 class SourceBuffer extends NativeFieldWrapperClass1 {
   SourceBuffer.internal();
 
   @DomName('WebKitSourceBuffer.buffered')
   @DocsEditable
-  @Experimental // untriaged
   TimeRanges get buffered native "WebKitSourceBuffer_buffered_Getter";
 
   @DomName('WebKitSourceBuffer.timestampOffset')
   @DocsEditable
-  @Experimental // untriaged
   num get timestampOffset native "WebKitSourceBuffer_timestampOffset_Getter";
 
   @DomName('WebKitSourceBuffer.timestampOffset')
   @DocsEditable
-  @Experimental // untriaged
   void set timestampOffset(num value) native "WebKitSourceBuffer_timestampOffset_Setter";
 
   @DomName('WebKitSourceBuffer.abort')
   @DocsEditable
-  @Experimental // untriaged
   void abort() native "WebKitSourceBuffer_abort_Callback";
 
   @DomName('WebKitSourceBuffer.append')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental // non-standard
   void append(Uint8List data) native "WebKitSourceBuffer_append_Callback";
 
 }
@@ -20600,13 +20494,12 @@ class SourceBuffer extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
 class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements List<SourceBuffer> {
   SourceBufferList.internal() : super.internal();
 
   @DomName('WebKitSourceBufferList.length')
   @DocsEditable
-  @Experimental // untriaged
   int get length native "WebKitSourceBufferList_length_Getter";
 
   SourceBuffer operator[](int index) {
@@ -20656,22 +20549,18 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
   @DomName('WebKitSourceBufferList.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitSourceBufferList_addEventListener_Callback";
 
   @DomName('WebKitSourceBufferList.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native "WebKitSourceBufferList_dispatchEvent_Callback";
 
   @DomName('WebKitSourceBufferList.item')
   @DocsEditable
-  @Experimental // untriaged
   SourceBuffer item(int index) native "WebKitSourceBufferList_item_Callback";
 
   @DomName('WebKitSourceBufferList.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitSourceBufferList_removeEventListener_Callback";
 
 }
@@ -21215,48 +21104,41 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SpeechSynthesis')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+@Experimental
 class SpeechSynthesis extends NativeFieldWrapperClass1 {
   SpeechSynthesis.internal();
 
   @DomName('SpeechSynthesis.paused')
   @DocsEditable
-  @Experimental // untriaged
   bool get paused native "SpeechSynthesis_paused_Getter";
 
   @DomName('SpeechSynthesis.pending')
   @DocsEditable
-  @Experimental // untriaged
   bool get pending native "SpeechSynthesis_pending_Getter";
 
   @DomName('SpeechSynthesis.speaking')
   @DocsEditable
-  @Experimental // untriaged
   bool get speaking native "SpeechSynthesis_speaking_Getter";
 
   @DomName('SpeechSynthesis.cancel')
   @DocsEditable
-  @Experimental // untriaged
   void cancel() native "SpeechSynthesis_cancel_Callback";
 
   @DomName('SpeechSynthesis.getVoices')
   @DocsEditable
-  @Experimental // untriaged
   List<SpeechSynthesisVoice> getVoices() native "SpeechSynthesis_getVoices_Callback";
 
   @DomName('SpeechSynthesis.pause')
   @DocsEditable
-  @Experimental // untriaged
   void pause() native "SpeechSynthesis_pause_Callback";
 
   @DomName('SpeechSynthesis.resume')
   @DocsEditable
-  @Experimental // untriaged
   void resume() native "SpeechSynthesis_resume_Callback";
 
   @DomName('SpeechSynthesis.speak')
   @DocsEditable
-  @Experimental // untriaged
   void speak(SpeechSynthesisUtterance utterance) native "SpeechSynthesis_speak_Callback";
 
 }
@@ -21269,23 +21151,21 @@ class SpeechSynthesis extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('SpeechSynthesisEvent')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+@Experimental
 class SpeechSynthesisEvent extends Event {
   SpeechSynthesisEvent.internal() : super.internal();
 
   @DomName('SpeechSynthesisEvent.charIndex')
   @DocsEditable
-  @Experimental // untriaged
   int get charIndex native "SpeechSynthesisEvent_charIndex_Getter";
 
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable
-  @Experimental // untriaged
   num get elapsedTime native "SpeechSynthesisEvent_elapsedTime_Getter";
 
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable
-  @Experimental // untriaged
   String get name native "SpeechSynthesisEvent_name_Getter";
 
 }
@@ -21298,43 +21178,37 @@ class SpeechSynthesisEvent extends Event {
 
 @DocsEditable
 @DomName('SpeechSynthesisUtterance')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+@Experimental
 class SpeechSynthesisUtterance extends EventTarget {
   SpeechSynthesisUtterance.internal() : super.internal();
 
   @DomName('SpeechSynthesisUtterance.boundaryEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> boundaryEvent = const EventStreamProvider<SpeechSynthesisEvent>('boundary');
 
   @DomName('SpeechSynthesisUtterance.endEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> endEvent = const EventStreamProvider<SpeechSynthesisEvent>('end');
 
   @DomName('SpeechSynthesisUtterance.errorEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('SpeechSynthesisUtterance.markEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> markEvent = const EventStreamProvider<SpeechSynthesisEvent>('mark');
 
   @DomName('SpeechSynthesisUtterance.pauseEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
 
   @DomName('SpeechSynthesisUtterance.resumeEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> resumeEvent = const EventStreamProvider<SpeechSynthesisEvent>('resume');
 
   @DomName('SpeechSynthesisUtterance.startEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<SpeechSynthesisEvent> startEvent = const EventStreamProvider<SpeechSynthesisEvent>('start');
 
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
@@ -21348,97 +21222,78 @@ class SpeechSynthesisUtterance extends EventTarget {
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable
-  @Experimental // untriaged
   String get lang native "SpeechSynthesisUtterance_lang_Getter";
 
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable
-  @Experimental // untriaged
   void set lang(String value) native "SpeechSynthesisUtterance_lang_Setter";
 
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable
-  @Experimental // untriaged
   num get pitch native "SpeechSynthesisUtterance_pitch_Getter";
 
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable
-  @Experimental // untriaged
   void set pitch(num value) native "SpeechSynthesisUtterance_pitch_Setter";
 
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable
-  @Experimental // untriaged
   num get rate native "SpeechSynthesisUtterance_rate_Getter";
 
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable
-  @Experimental // untriaged
   void set rate(num value) native "SpeechSynthesisUtterance_rate_Setter";
 
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable
-  @Experimental // untriaged
   String get text native "SpeechSynthesisUtterance_text_Getter";
 
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable
-  @Experimental // untriaged
   void set text(String value) native "SpeechSynthesisUtterance_text_Setter";
 
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable
-  @Experimental // untriaged
   SpeechSynthesisVoice get voice native "SpeechSynthesisUtterance_voice_Getter";
 
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable
-  @Experimental // untriaged
   void set voice(SpeechSynthesisVoice value) native "SpeechSynthesisUtterance_voice_Setter";
 
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable
-  @Experimental // untriaged
   num get volume native "SpeechSynthesisUtterance_volume_Getter";
 
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable
-  @Experimental // untriaged
   void set volume(num value) native "SpeechSynthesisUtterance_volume_Setter";
 
   @DomName('SpeechSynthesisUtterance.onboundary')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onend')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onEnd => endEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onerror')
   @DocsEditable
-  @Experimental // untriaged
   Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onmark')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onMark => markEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onpause')
   @DocsEditable
-  @Experimental // untriaged
   Stream<Event> get onPause => pauseEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onresume')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onResume => resumeEvent.forTarget(this);
 
   @DomName('SpeechSynthesisUtterance.onstart')
   @DocsEditable
-  @Experimental // untriaged
   Stream<SpeechSynthesisEvent> get onStart => startEvent.forTarget(this);
 
 }
@@ -21451,33 +21306,29 @@ class SpeechSynthesisUtterance extends EventTarget {
 
 @DocsEditable
 @DomName('SpeechSynthesisVoice')
-@Experimental // untriaged
+// https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+@Experimental
 class SpeechSynthesisVoice extends NativeFieldWrapperClass1 {
   SpeechSynthesisVoice.internal();
 
   @DomName('SpeechSynthesisVoice.default')
   @DocsEditable
-  @Experimental // untriaged
   bool get defaultValue native "SpeechSynthesisVoice_default_Getter";
 
   @DomName('SpeechSynthesisVoice.lang')
   @DocsEditable
-  @Experimental // untriaged
   String get lang native "SpeechSynthesisVoice_lang_Getter";
 
   @DomName('SpeechSynthesisVoice.localService')
   @DocsEditable
-  @Experimental // untriaged
   bool get localService native "SpeechSynthesisVoice_localService_Getter";
 
   @DomName('SpeechSynthesisVoice.name')
   @DocsEditable
-  @Experimental // untriaged
   String get name native "SpeechSynthesisVoice_name_Getter";
 
   @DomName('SpeechSynthesisVoice.voiceURI')
   @DocsEditable
-  @Experimental // untriaged
   String get voiceUri native "SpeechSynthesisVoice_voiceURI_Getter";
 
 }
@@ -23681,7 +23532,6 @@ class UnknownElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('URL')
-@Experimental // untriaged
 class Url extends NativeFieldWrapperClass1 {
   Url.internal();
 
@@ -23706,7 +23556,6 @@ class Url extends NativeFieldWrapperClass1 {
 
   @DomName('URL.revokeObjectURL')
   @DocsEditable
-  @Experimental // untriaged
   static void revokeObjectUrl(String url) native "URL_revokeObjectURL_Callback";
 
 }
@@ -24295,7 +24144,6 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.DOMContentLoadedEvent')
   @DocsEditable
-  @Experimental // untriaged
   static const EventStreamProvider<Event> contentLoadedEvent = const EventStreamProvider<Event>('DOMContentLoaded');
 
   @DomName('Window.devicemotionEvent')
@@ -24355,7 +24203,6 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationEndEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationEnd');
 
   @DomName('Window.webkitAnimationIterationEvent')
@@ -24363,7 +24210,6 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationIterationEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationIteration');
 
   @DomName('Window.webkitAnimationStartEvent')
@@ -24371,7 +24217,6 @@ class Window extends EventTarget implements WindowBase {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
-  @Experimental // untriaged
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
   @DomName('Window.PERSISTENT')
@@ -24388,7 +24233,6 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.CSS')
   @DocsEditable
-  @Experimental // untriaged
   Css get css native "DOMWindow_CSS_Getter";
 
   @DomName('Window.applicationCache')
@@ -24574,7 +24418,8 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.speechSynthesis')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
+  @Experimental
   SpeechSynthesis get speechSynthesis native "DOMWindow_speechSynthesis_Getter";
 
   @DomName('Window.status')
@@ -24815,7 +24660,6 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.onDOMContentLoaded')
   @DocsEditable
-  @Experimental // untriaged
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
 
   @DomName('Window.onabort')
@@ -25030,17 +24874,17 @@ class Window extends EventTarget implements WindowBase {
 
   @DomName('Window.onwebkitAnimationEnd')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental
   Stream<AnimationEvent> get onAnimationEnd => animationEndEvent.forTarget(this);
 
   @DomName('Window.onwebkitAnimationIteration')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental
   Stream<AnimationEvent> get onAnimationIteration => animationIterationEvent.forTarget(this);
 
   @DomName('Window.onwebkitAnimationStart')
   @DocsEditable
-  @Experimental // untriaged
+  @Experimental
   Stream<AnimationEvent> get onAnimationStart => animationStartEvent.forTarget(this);
 
 
@@ -26112,7 +25956,8 @@ class _Element_Merged extends Element {
 
   @DomName('HTMLElement.getInputContext')
   @DocsEditable
-  @Experimental // untriaged
+  // http://www.w3.org/TR/ime-api/#the-getinputcontext-method
+  @Experimental
   InputMethodContext getInputContext() native "HTMLElement_getInputContext_Callback";
 
   @DomName('HTMLElement.insertAdjacentElement')

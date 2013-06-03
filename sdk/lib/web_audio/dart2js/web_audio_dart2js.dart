@@ -191,17 +191,14 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteGrainOn(num when, num grainOffset, num grainDuration) native;
 
   @DomName('AudioBufferSourceNode.noteOff')
   @DocsEditable
-  @Experimental // untriaged
   void noteOff(num when) native;
 
   @DomName('AudioBufferSourceNode.noteOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteOn(num when) native;
 
 }
@@ -276,7 +273,6 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.createDelayNode')
   @DocsEditable
-  @Experimental // untriaged
   DelayNode createDelayNode([num maxDelayTime]) native;
 
   @DomName('AudioContext.createDynamicsCompressor')
@@ -285,12 +281,10 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.createGainNode')
   @DocsEditable
-  @Experimental // untriaged
   GainNode createGainNode() native;
 
   @DomName('AudioContext.createJavaScriptNode')
   @DocsEditable
-  @Experimental // untriaged
   ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   @DomName('AudioContext.createMediaElementSource')
@@ -444,7 +438,6 @@ class AudioNode extends EventTarget native "AudioNode" {
   @JSName('addEventListener')
   @DomName('AudioNode.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('AudioNode.connect')
@@ -457,13 +450,11 @@ class AudioNode extends EventTarget native "AudioNode" {
 
   @DomName('AudioNode.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
   @DomName('AudioNode.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -519,7 +510,6 @@ class AudioParam native "AudioParam" {
 
   @DomName('AudioParam.setTargetValueAtTime')
   @DocsEditable
-  @Experimental // untriaged
   void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
 
   @DomName('AudioParam.setValueAtTime')
@@ -887,12 +877,10 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 
   @DomName('OscillatorNode.noteOff')
   @DocsEditable
-  @Experimental // untriaged
   void noteOff(num when) native;
 
   @DomName('OscillatorNode.noteOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteOn(num when) native;
 
   @DomName('OscillatorNode.setWaveTable')

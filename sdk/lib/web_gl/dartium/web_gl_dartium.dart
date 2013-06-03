@@ -854,7 +854,8 @@ class OesTextureFloat extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('OESTextureFloatLinear')
-@Experimental // untriaged
+// http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/
+@Experimental
 class OesTextureFloatLinear extends NativeFieldWrapperClass1 {
   OesTextureFloatLinear.internal();
 
@@ -875,7 +876,6 @@ class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
   @DocsEditable
-  @Experimental // untriaged
   static const int HALF_FLOAT_OES = 0x8D61;
 
 }
@@ -888,7 +888,8 @@ class OesTextureHalfFloat extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('OESTextureHalfFloatLinear')
-@Experimental // untriaged
+// http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/
+@Experimental
 class OesTextureHalfFloatLinear extends NativeFieldWrapperClass1 {
   OesTextureHalfFloatLinear.internal();
 

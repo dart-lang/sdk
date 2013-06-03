@@ -206,17 +206,14 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteGrainOn(num when, num grainOffset, num grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback";
 
   @DomName('AudioBufferSourceNode.noteOff')
   @DocsEditable
-  @Experimental // untriaged
   void noteOff(num when) native "AudioBufferSourceNode_noteOff_Callback";
 
   @DomName('AudioBufferSourceNode.noteOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteOn(num when) native "AudioBufferSourceNode_noteOn_Callback";
 
   void start(num when, [num grainOffset, num grainDuration]) {
@@ -375,7 +372,6 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.createGainNode')
   @DocsEditable
-  @Experimental // untriaged
   GainNode createGainNode() native "AudioContext_createGainNode_Callback";
 
   ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
@@ -565,7 +561,6 @@ class AudioNode extends EventTarget {
 
   @DomName('AudioNode.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
 
   void connect(destination, int output, [int input]) {
@@ -590,12 +585,10 @@ class AudioNode extends EventTarget {
 
   @DomName('AudioNode.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native "AudioNode_dispatchEvent_Callback";
 
   @DomName('AudioNode.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
 
 }
@@ -659,7 +652,6 @@ class AudioParam extends NativeFieldWrapperClass1 {
 
   @DomName('AudioParam.setTargetValueAtTime')
   @DocsEditable
-  @Experimental // untriaged
   void setTargetValueAtTime(num targetValue, num time, num timeConstant) native "AudioParam_setTargetValueAtTime_Callback";
 
   @DomName('AudioParam.setValueAtTime')
@@ -1105,12 +1097,10 @@ class OscillatorNode extends AudioSourceNode {
 
   @DomName('OscillatorNode.noteOff')
   @DocsEditable
-  @Experimental // untriaged
   void noteOff(num when) native "OscillatorNode_noteOff_Callback";
 
   @DomName('OscillatorNode.noteOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteOn(num when) native "OscillatorNode_noteOn_Callback";
 
   @DomName('OscillatorNode.setWaveTable')

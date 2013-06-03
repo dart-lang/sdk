@@ -96,15 +96,9 @@
       "loop": {},
       "loopEnd": {},
       "loopStart": {},
-      "noteGrainOn": {
-        "support_level": "untriaged"
-      },
-      "noteOff": {
-        "support_level": "untriaged"
-      },
-      "noteOn": {
-        "support_level": "untriaged"
-      },
+      "noteGrainOn": {},
+      "noteOff": {},
+      "noteOn": {},
       "playbackRate": {},
       "playbackState": {},
       "start": {},
@@ -125,17 +119,11 @@
       "createChannelSplitter": {},
       "createConvolver": {},
       "createDelay": {},
-      "createDelayNode": {
-        "support_level": "untriaged"
-      },
+      "createDelayNode": {},
       "createDynamicsCompressor": {},
       "createGain": {},
-      "createGainNode": {
-        "support_level": "untriaged"
-      },
-      "createJavaScriptNode": {
-        "support_level": "untriaged"
-      },
+      "createGainNode": {},
+      "createJavaScriptNode": {},
       "createMediaElementSource": {},
       "createMediaStreamDestination": {},
       "createMediaStreamSource": {},
@@ -175,23 +163,17 @@
   "AudioNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section",
     "members": {
-      "addEventListener": {
-        "support_level": "untriaged"
-      },
+      "addEventListener": {},
       "channelCount": {},
       "channelCountMode": {},
       "channelInterpretation": {},
       "connect": {},
       "context": {},
       "disconnect": {},
-      "dispatchEvent": {
-        "support_level": "untriaged"
-      },
+      "dispatchEvent": {},
       "numberOfInputs": {},
       "numberOfOutputs": {},
-      "removeEventListener": {
-        "support_level": "untriaged"
-      }
+      "removeEventListener": {}
     },
     "support_level": "experimental"
   },
@@ -206,9 +188,7 @@
       "minValue": {},
       "name": {},
       "setTargetAtTime": {},
-      "setTargetValueAtTime": {
-        "support_level": "untriaged"
-      },
+      "setTargetValueAtTime": {},
       "setValueAtTime": {},
       "setValueCurveAtTime": {},
       "units": {},
@@ -236,20 +216,13 @@
     },
     "support_level": "experimental"
   },
-  "BarInfo": {
-    "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop (Rename to BarProp?)",
+  "BarProp": {
+    "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop",
+    "dart_action": "suppress",
     "members": {
       "visible": {}
     },
-    "support_level": "nonstandard"
-  },
-  "BarProp": {
-    "members": {
-      "visible": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
+    "support_level": "standard"
   },
   "BatteryManager": {
     "comment": "https://dvcs.w3.org/hg/dap/raw-file/default/battery/Overview.html#batterymanager-interface",
@@ -312,12 +285,11 @@
     "support_level": "deprecated"
   },
   "CSS": {
+    "comment": "http://www.w3.org/TR/css3-conditional/#the-css-interface",
+    "dart_action": "experimental",
     "members": {
-      "supports": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
+      "supports": {}
+    }
   },
   "CSSCharsetRule": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface",
@@ -435,9 +407,7 @@
       "MEDIA_RULE": {},
       "PAGE_RULE": {},
       "STYLE_RULE": {},
-      "SUPPORTS_RULE": {
-        "support_level": "untriaged"
-      },
+      "SUPPORTS_RULE": {},
       "UNKNOWN_RULE": {
         "comment": "http://dev.w3.org/csswg/cssom/#changes-from-dom2",
         "dart_action": "suppress",
@@ -484,17 +454,7 @@
         "support_level": "deprecated"
       },
       "getPropertyPriority": {},
-      "getPropertyShorthand": {
-        "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
       "getPropertyValue": {},
-      "isPropertyImplicit": {
-        "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
-        "dart_action": "suppress",
-        "support_level": "deprecated"
-      },
       "item": {},
       "length": {},
       "parentRule": {},
@@ -531,21 +491,14 @@
     "support_level": "stable"
   },
   "CSSSupportsRule": {
+    "comment": "http://www.w3.org/TR/css3-conditional/#csssupportsrule",
     "members": {
-      "conditionText": {
-        "support_level": "untriaged"
-      },
-      "cssRules": {
-        "support_level": "untriaged"
-      },
-      "deleteRule": {
-        "support_level": "untriaged"
-      },
-      "insertRule": {
-        "support_level": "untriaged"
-      }
+      "conditionText": {},
+      "cssRules": {},
+      "deleteRule": {},
+      "insertRule": {}
     },
-    "support_level": "untriaged"
+    "support_level": "standard"
   },
   "CSSUnknownRule": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface",
@@ -576,12 +529,11 @@
     "support_level": "deprecated"
   },
   "Canvas2DContextAttributes": {
+    "comment": "http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL",
     "members": {
-      "alpha": {
-        "support_level": "untriaged"
-      }
+      "alpha": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "CanvasGradient": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient",
@@ -636,7 +588,8 @@
       "fillText": {},
       "font": {},
       "getContextAttributes": {
-        "support_level": "untriaged"
+        "comment": "http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL",
+        "support_level": "experimental"
       },
       "getImageData": {},
       "getLineDash": {},
@@ -740,10 +693,10 @@
       "insertData": {},
       "length": {},
       "nextElementSibling": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#childnode"
       },
       "previousElementSibling": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#childnode"
       },
       "remove": {
         "support_level": "nonstandard"
@@ -805,15 +758,12 @@
     "support_level": "stable"
   },
   "Composition": {
+    "comment": "http://www.w3.org/TR/ime-api/#idl-def-Composition",
     "members": {
-      "caret": {
-        "support_level": "untriaged"
-      },
-      "text": {
-        "support_level": "untriaged"
-      }
+      "caret": {},
+      "text": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "CompositionEvent": {
     "comment": "http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-CompositionEvent",
@@ -1094,17 +1044,6 @@
     },
     "support_level": "experimental"
   },
-  "DOMFormData": {
-    "comment": "http://www.w3.org/TR/XMLHttpRequest2/#interface-formdata",
-    "members": {
-      "DOMFormData": {},
-      "FormData": {
-        "support_level": "untriaged"
-      },
-      "append": {}
-    },
-    "support_level": "stable"
-  },
   "DOMImplementation": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-102161490",
     "members": {
@@ -1117,23 +1056,6 @@
       "hasFeature": {}
     },
     "support_level": "stable"
-  },
-  "DOMMimeType": {
-    "members": {
-      "description": {},
-      "enabledPlugin": {},
-      "suffixes": {},
-      "type": {}
-    },
-    "support_level": "nonstandard"
-  },
-  "DOMMimeTypeArray": {
-    "members": {
-      "item": {},
-      "length": {},
-      "namedItem": {}
-    },
-    "support_level": "nonstandard"
   },
   "DOMNamedFlowCollection": {
     "comment": "http://dev.w3.org/csswg/css-regions/#dom-named-flow-collection",
@@ -1151,125 +1073,15 @@
     },
     "support_level": "stable"
   },
-  "DOMPath": {
-    "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects",
-    "members": {
-      "DOMPath": {},
-      "arc": {},
-      "arcTo": {},
-      "bezierCurveTo": {},
-      "closePath": {},
-      "lineTo": {},
-      "moveTo": {},
-      "quadraticCurveTo": {},
-      "rect": {}
-    },
-    "support_level": "experimental"
-  },
-  "DOMPlugin": {
-    "members": {
-      "description": {},
-      "filename": {},
-      "item": {},
-      "length": {},
-      "name": {},
-      "namedItem": {}
-    },
-    "support_level": "nonstandard"
-  },
-  "DOMPluginArray": {
-    "members": {
-      "item": {},
-      "length": {},
-      "namedItem": {},
-      "refresh": {}
-    },
-    "support_level": "nonstandard"
-  },
   "DOMPoint": {
     "comment": "http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html",
     "members": {
       "DOMPoint": {},
-      "_DomPoint": {
-        "support_level": "untriaged"
-      },
+      "_DomPoint": {},
       "x": {},
       "y": {}
     },
     "support_level": "nonstandard"
-  },
-  "DOMSecurityPolicy": {
-    "comment": "https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicy",
-    "members": {
-      "allowsConnectionTo": {},
-      "allowsEval": {},
-      "allowsFontFrom": {},
-      "allowsFormAction": {},
-      "allowsFrameFrom": {},
-      "allowsImageFrom": {},
-      "allowsInlineScript": {},
-      "allowsInlineStyle": {},
-      "allowsMediaFrom": {},
-      "allowsObjectFrom": {},
-      "allowsPluginType": {},
-      "allowsScriptFrom": {},
-      "allowsStyleFrom": {},
-      "isActive": {},
-      "reportURIs": {}
-    },
-    "support_level": "experimental"
-  },
-  "DOMSelection": {
-    "comment": "https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#concept-selection",
-    "members": {
-      "addRange": {},
-      "anchorNode": {},
-      "anchorOffset": {},
-      "baseNode": {
-        "support_level": "nonstandard"
-      },
-      "baseOffset": {
-        "support_level": "nonstandard"
-      },
-      "collapse": {},
-      "collapseToEnd": {},
-      "collapseToStart": {},
-      "containsNode": {
-        "support_level": "nonstandard"
-      },
-      "deleteFromDocument": {},
-      "empty": {
-        "support_level": "nonstandard"
-      },
-      "extend": {},
-      "extentNode": {
-        "support_level": "nonstandard"
-      },
-      "extentOffset": {
-        "support_level": "nonstandard"
-      },
-      "focusNode": {},
-      "focusOffset": {},
-      "getRangeAt": {},
-      "isCollapsed": {},
-      "modify": {
-        "support_level": "nonstandard"
-      },
-      "rangeCount": {},
-      "removeAllRanges": {},
-      "selectAllChildren": {},
-      "setBaseAndExtent": {
-        "support_level": "nonstandard"
-      },
-      "setPosition": {
-        "support_level": "nonstandard"
-      },
-      "toString": {},
-      "type": {
-        "support_level": "nonstandard"
-      }
-    },
-    "support_level": "stable"
   },
   "DOMSettableTokenList": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domsettabletokenlist-0",
@@ -1303,18 +1115,10 @@
     },
     "support_level": "stable"
   },
-  "DOMURL": {
-    "comment": "http://www.w3.org/TR/FileAPI/#URL-object",
-    "members": {
-      "createObjectURL": {},
-      "revokeObjectURL": {}
-    },
-    "support_level": "stable"
-  },
   "DOMWindow": {
     "members": {
       "CSS": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/css3-conditional/#the-css-interface"
       },
       "PERSISTENT": {
         "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
@@ -1400,9 +1204,7 @@
       "offscreenBuffering": {
         "support_level": "nonstandard"
       },
-      "onDOMContentLoaded": {
-        "support_level": "untriaged"
-      },
+      "onDOMContentLoaded": {},
       "onabort": {},
       "onbeforeunload": {},
       "onblur": {},
@@ -1497,13 +1299,13 @@
       "onvolumechange": {},
       "onwaiting": {},
       "onwebkitAnimationEnd": {
-        "support_level": "untriaged"
+        "support_level": "experimental"
       },
       "onwebkitAnimationIteration": {
-        "support_level": "untriaged"
+        "support_level": "experimental"
       },
       "onwebkitAnimationStart": {
-        "support_level": "untriaged"
+        "support_level": "experimental"
       },
       "onwebkitTransitionEnd": {
         "support_level": "deprecated"
@@ -1573,7 +1375,8 @@
       "setTimeout": {},
       "showModalDialog": {},
       "speechSynthesis": {
-        "support_level": "untriaged"
+        "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
+        "support_level": "experimental"
       },
       "status": {},
       "statusbar": {},
@@ -1629,14 +1432,6 @@
       "window": {}
     },
     "support_level": "stable"
-  },
-  "DOMWindowCSS": {
-    "members": {
-      "supports": {
-        "support_level": "untriaged"
-      }
-    },
-    "support_level": "untriaged"
   },
   "DataTransferItem": {
     "comment": "http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface",
@@ -1825,10 +1620,10 @@
         "support_level": "nonstandard"
       },
       "childElementCount": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
       "children": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
       "compatMode": {
         "dart_action": "suppress"
@@ -1901,7 +1696,7 @@
       },
       "execCommand": {},
       "firstElementChild": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
       "fontloader": {
         "comment": "http://www.w3.org/TR/css3-fonts/#document-fontloader",
@@ -1936,7 +1731,7 @@
         "support_level": "deprecated"
       },
       "lastElementChild": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
       "lastModified": {},
       "links": {
@@ -2131,13 +1926,13 @@
     "members": {
       "DocumentFragment": {},
       "childElementCount": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
       "firstElementChild": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
       "lastElementChild": {
-        "support_level": "untriaged"
+        "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
       "querySelector": {},
       "querySelectorAll": {}
@@ -2302,7 +2097,8 @@
         "dart_action": "suppress"
       },
       "getInputContext": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/ime-api/#the-getinputcontext-method",
+        "support_level": "experimental"
       },
       "hasAttribute": {},
       "hasAttributeNS": {},
@@ -2558,15 +2354,9 @@
   },
   "Entity": {
     "members": {
-      "notationName": {
-        "support_level": "untriaged"
-      },
-      "publicId": {
-        "support_level": "untriaged"
-      },
-      "systemId": {
-        "support_level": "untriaged"
-      }
+      "notationName": {},
+      "publicId": {},
+      "systemId": {}
     },
     "support_level": "untriaged"
   },
@@ -2763,7 +2553,8 @@
       "eventPhase": {},
       "initEvent": {},
       "path": {
-        "support_level": "untriaged"
+        "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event",
+        "support_level": "experimental"
       },
       "preventDefault": {},
       "returnValue": {
@@ -3056,13 +2847,12 @@
     "support_level": "experimental"
   },
   "FormData": {
+    "comment": "http://www.w3.org/TR/XMLHttpRequest2/#interface-formdata",
     "members": {
       "FormData": {},
-      "append": {
-        "support_level": "untriaged"
-      }
+      "append": {}
     },
-    "support_level": "untriaged"
+    "support_level": "stable"
   },
   "GainNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#GainNode",
@@ -3517,7 +3307,8 @@
       "dir": {},
       "draggable": {},
       "getInputContext": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/ime-api/#the-getinputcontext-method",
+        "support_level": "experimental"
       },
       "hidden": {},
       "id": {},
@@ -4121,7 +3912,8 @@
       "loop": {},
       "mediaGroup": {},
       "mediaKeys": {
-        "support_level": "untriaged"
+        "comment": "https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html",
+        "support_level": "experimental"
       },
       "muted": {},
       "networkState": {},
@@ -5223,30 +5015,17 @@
     "support_level": "stable"
   },
   "InputMethodContext": {
+    "comment": "http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext",
     "members": {
-      "composition": {
-        "support_level": "untriaged"
-      },
-      "confirmComposition": {
-        "support_level": "untriaged"
-      },
-      "enabled": {
-        "support_level": "untriaged"
-      },
-      "locale": {
-        "support_level": "untriaged"
-      },
-      "open": {
-        "support_level": "untriaged"
-      },
-      "setCaretRectangle": {
-        "support_level": "untriaged"
-      },
-      "setExclusionRectangle": {
-        "support_level": "untriaged"
-      }
+      "composition": {},
+      "confirmComposition": {},
+      "enabled": {},
+      "locale": {},
+      "open": {},
+      "setCaretRectangle": {},
+      "setExclusionRectangle": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "Int16Array": {
     "comment": "http://www.khronos.org/registry/typedarray/specs/latest/",
@@ -5356,71 +5135,51 @@
     "support_level": "stable"
   },
   "MIDIConnectionEvent": {
+    "comment": "http://webaudio.github.io/web-midi-api/#midiconnectionevent-interface",
     "members": {
-      "port": {
-        "support_level": "untriaged"
-      }
+      "port": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MIDIErrorCallback": {
+    "comment": "http://webaudio.github.io/web-midi-api/#midierrorcallback",
     "members": {},
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MIDIInput": {
+    "comment": "http://webaudio.github.io/web-midi-api/#idl-def-MIDIInput",
     "members": {},
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MIDIMessageEvent": {
+    "comment": "http://webaudio.github.io/web-midi-api/#midimessageevent-interface",
     "members": {
-      "data": {
-        "support_level": "untriaged"
-      },
-      "receivedTime": {
-        "support_level": "untriaged"
-      }
+      "data": {},
+      "receivedTime": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MIDIOutput": {
+    "comment": "http://webaudio.github.io/web-midi-api/#midioutput-interface",
     "members": {
-      "send": {
-        "support_level": "untriaged"
-      }
+      "send": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MIDIPort": {
+    "comment": "http://webaudio.github.io/web-midi-api/#idl-def-MIDIPort",
     "members": {
-      "addEventListener": {
-        "support_level": "untriaged"
-      },
-      "dispatchEvent": {
-        "support_level": "untriaged"
-      },
-      "id": {
-        "support_level": "untriaged"
-      },
-      "manufacturer": {
-        "support_level": "untriaged"
-      },
-      "name": {
-        "support_level": "untriaged"
-      },
-      "ondisconnect": {
-        "support_level": "untriaged"
-      },
-      "removeEventListener": {
-        "support_level": "untriaged"
-      },
-      "type": {
-        "support_level": "untriaged"
-      },
-      "version": {
-        "support_level": "untriaged"
-      }
+      "addEventListener": {},
+      "dispatchEvent": {},
+      "id": {},
+      "manufacturer": {},
+      "name": {},
+      "ondisconnect": {},
+      "removeEventListener": {},
+      "type": {},
+      "version": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MediaController": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#mediacontroller",
@@ -5482,7 +5241,7 @@
       "MEDIA_KEYERR_UNKNOWN": {},
       "code": {},
       "systemCode": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       }
     },
     "support_level": "experimental"
@@ -5501,64 +5260,42 @@
     "support_level": "experimental"
   },
   "MediaKeyMessageEvent": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeymessageevent",
     "members": {
-      "destinationURL": {
-        "support_level": "untriaged"
-      },
-      "message": {
-        "support_level": "untriaged"
-      }
+      "destinationURL": {},
+      "message": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MediaKeyNeededEvent": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent",
     "members": {
-      "initData": {
-        "support_level": "untriaged"
-      }
+      "initData": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MediaKeySession": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeysession",
     "members": {
-      "addEventListener": {
-        "support_level": "untriaged"
-      },
-      "close": {
-        "support_level": "untriaged"
-      },
-      "dispatchEvent": {
-        "support_level": "untriaged"
-      },
-      "error": {
-        "support_level": "untriaged"
-      },
-      "keySystem": {
-        "support_level": "untriaged"
-      },
-      "removeEventListener": {
-        "support_level": "untriaged"
-      },
-      "sessionId": {
-        "support_level": "untriaged"
-      },
-      "update": {
-        "support_level": "untriaged"
-      }
+      "addEventListener": {},
+      "close": {},
+      "dispatchEvent": {},
+      "error": {},
+      "keySystem": {},
+      "removeEventListener": {},
+      "sessionId": {},
+      "update": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MediaKeys": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html",
     "members": {
       "MediaKeys": {},
-      "createSession": {
-        "support_level": "untriaged"
-      },
-      "keySystem": {
-        "support_level": "untriaged"
-      }
+      "createSession": {},
+      "keySystem": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MediaList": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSMediaRule",
@@ -5591,24 +5328,6 @@
     },
     "support_level": "stable"
   },
-  "MediaSource": {
-    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource",
-    "members": {
-      "MediaSource": {},
-      "activeSourceBuffers": {},
-      "addEventListener": {},
-      "addSourceBuffer": {},
-      "dispatchEvent": {},
-      "duration": {},
-      "endOfStream": {},
-      "isTypeSupported": {},
-      "readyState": {},
-      "removeEventListener": {},
-      "removeSourceBuffer": {},
-      "sourceBuffers": {}
-    },
-    "support_level": "experimental"
-  },
   "MediaStream": {
     "comment": "http://dev.w3.org/2011/webrtc/editor/getusermedia.html#mediastream",
     "members": {
@@ -5629,9 +5348,7 @@
       "onremovetrack": {},
       "removeEventListener": {},
       "removeTrack": {},
-      "stop": {
-        "support_level": "untriaged"
-      }
+      "stop": {}
     },
     "support_level": "experimental"
   },
@@ -5750,34 +5467,20 @@
   },
   "MimeType": {
     "members": {
-      "description": {
-        "support_level": "untriaged"
-      },
-      "enabledPlugin": {
-        "support_level": "untriaged"
-      },
-      "suffixes": {
-        "support_level": "untriaged"
-      },
-      "type": {
-        "support_level": "untriaged"
-      }
+      "description": {},
+      "enabledPlugin": {},
+      "suffixes": {},
+      "type": {}
     },
-    "support_level": "untriaged"
+    "support_level": "nonstandard"
   },
   "MimeTypeArray": {
     "members": {
-      "item": {
-        "support_level": "untriaged"
-      },
-      "length": {
-        "support_level": "untriaged"
-      },
-      "namedItem": {
-        "support_level": "untriaged"
-      }
+      "item": {},
+      "length": {},
+      "namedItem": {}
     },
-    "support_level": "untriaged"
+    "support_level": "nonstandard"
   },
   "MouseEvent": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Events/#events-mouseevents",
@@ -6271,22 +5974,22 @@
     "support_level": "experimental"
   },
   "OESTextureFloatLinear": {
+    "comment": "http://www.khronos.org/registry/webgl/extensions/OES_texture_float_linear/",
     "members": {},
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "OESTextureHalfFloat": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float/",
     "dart_action": "experimental",
     "members": {
-      "HALF_FLOAT_OES": {
-        "support_level": "untriaged"
-      }
+      "HALF_FLOAT_OES": {}
     },
     "support_level": "experimental"
   },
   "OESTextureHalfFloatLinear": {
+    "comment": "http://www.khronos.org/registry/webgl/extensions/OES_texture_half_float_linear/",
     "members": {},
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "OESVertexArrayObject": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/",
@@ -6348,12 +6051,8 @@
       "UNSCHEDULED_STATE": {},
       "detune": {},
       "frequency": {},
-      "noteOff": {
-        "support_level": "untriaged"
-      },
-      "noteOn": {
-        "support_level": "untriaged"
-      },
+      "noteOff": {},
+      "noteOn": {},
       "playbackState": {},
       "setWaveTable": {},
       "start": {},
@@ -6442,58 +6141,50 @@
     "support_level": "experimental"
   },
   "Path": {
+    "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects",
     "members": {
       "Path": {},
-      "arc": {
-        "support_level": "untriaged"
-      },
-      "arcTo": {
-        "support_level": "untriaged"
-      },
-      "bezierCurveTo": {
-        "support_level": "untriaged"
-      },
-      "closePath": {
-        "support_level": "untriaged"
-      },
-      "lineTo": {
-        "support_level": "untriaged"
-      },
-      "moveTo": {
-        "support_level": "untriaged"
-      },
-      "quadraticCurveTo": {
-        "support_level": "untriaged"
-      },
-      "rect": {
-        "support_level": "untriaged"
-      }
+      "arc": {},
+      "arcTo": {},
+      "bezierCurveTo": {},
+      "closePath": {},
+      "lineTo": {},
+      "moveTo": {},
+      "quadraticCurveTo": {},
+      "rect": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "Performance": {
     "comment": "http://www.w3.org/TR/navigation-timing/#performance",
     "members": {
       "clearMarks": {
-        "support_level": "untriaged"
+        "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
+        "support_level": "experimental"
       },
       "clearMeasures": {
-        "support_level": "untriaged"
+        "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
+        "support_level": "experimental"
       },
       "getEntries": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute",
+        "support_level": "experimental"
       },
       "getEntriesByName": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute",
+        "support_level": "experimental"
       },
       "getEntriesByType": {
-        "support_level": "untriaged"
+        "comment": "http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute",
+        "support_level": "experimental"
       },
       "mark": {
-        "support_level": "untriaged"
+        "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
+        "support_level": "experimental"
       },
       "measure": {
-        "support_level": "untriaged"
+        "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
+        "support_level": "experimental"
       },
       "memory": {
         "dart_action": "experimental",
@@ -6508,36 +6199,8 @@
         "support_level": "experimental"
       },
       "timing": {},
-      "webkitClearMarks": {
-        "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
-        "support_level": "experimental"
-      },
-      "webkitClearMeasures": {
-        "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
-        "support_level": "experimental"
-      },
       "webkitClearResourceTimings": {
-        "comment": "http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming-methods",
-        "support_level": "experimental"
-      },
-      "webkitGetEntries": {
-        "comment": "http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute",
-        "support_level": "experimental"
-      },
-      "webkitGetEntriesByName": {
-        "comment": "http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute",
-        "support_level": "experimental"
-      },
-      "webkitGetEntriesByType": {
-        "comment": "http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute",
-        "support_level": "experimental"
-      },
-      "webkitMark": {
-        "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
-        "support_level": "experimental"
-      },
-      "webkitMeasure": {
-        "comment": "https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface",
+        "comment": "http://www.w3c-test.org/webperf/specs/ResourceTiming/#extensions-performance-interface",
         "support_level": "experimental"
       },
       "webkitSetResourceTimingBufferSize": {
@@ -6645,43 +6308,23 @@
   },
   "Plugin": {
     "members": {
-      "description": {
-        "support_level": "untriaged"
-      },
-      "filename": {
-        "support_level": "untriaged"
-      },
-      "item": {
-        "support_level": "untriaged"
-      },
-      "length": {
-        "support_level": "untriaged"
-      },
-      "name": {
-        "support_level": "untriaged"
-      },
-      "namedItem": {
-        "support_level": "untriaged"
-      }
+      "description": {},
+      "filename": {},
+      "item": {},
+      "length": {},
+      "name": {},
+      "namedItem": {}
     },
-    "support_level": "untriaged"
+    "support_level": "nonstandard"
   },
   "PluginArray": {
     "members": {
-      "item": {
-        "support_level": "untriaged"
-      },
-      "length": {
-        "support_level": "untriaged"
-      },
-      "namedItem": {
-        "support_level": "untriaged"
-      },
-      "refresh": {
-        "support_level": "untriaged"
-      }
+      "item": {},
+      "length": {},
+      "namedItem": {},
+      "refresh": {}
     },
-    "support_level": "untriaged"
+    "support_level": "nonstandard"
   },
   "PopStateEvent": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#popstateevent",
@@ -10170,88 +9813,32 @@
     },
     "support_level": "experimental"
   },
-  "ScriptProfile": {
-    "dart_action": "suppress",
-    "members": {
-      "head": {},
-      "idleTime": {},
-      "title": {},
-      "uid": {}
-    },
-    "support_level": "nonstandard"
-  },
-  "ScriptProfileNode": {
-    "dart_action": "suppress",
-    "members": {
-      "callUID": {},
-      "children": {},
-      "functionName": {},
-      "lineNumber": {},
-      "numberOfCalls": {},
-      "selfTime": {},
-      "totalTime": {},
-      "url": {},
-      "visible": {}
-    },
-    "support_level": "nonstandard"
-  },
   "SecurityPolicy": {
+    "comment": "https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicy",
     "members": {
-      "allowsConnectionTo": {
-        "support_level": "untriaged"
-      },
-      "allowsEval": {
-        "support_level": "untriaged"
-      },
-      "allowsFontFrom": {
-        "support_level": "untriaged"
-      },
-      "allowsFormAction": {
-        "support_level": "untriaged"
-      },
-      "allowsFrameFrom": {
-        "support_level": "untriaged"
-      },
-      "allowsImageFrom": {
-        "support_level": "untriaged"
-      },
-      "allowsInlineScript": {
-        "support_level": "untriaged"
-      },
-      "allowsInlineStyle": {
-        "support_level": "untriaged"
-      },
-      "allowsMediaFrom": {
-        "support_level": "untriaged"
-      },
-      "allowsObjectFrom": {
-        "support_level": "untriaged"
-      },
-      "allowsPluginType": {
-        "support_level": "untriaged"
-      },
-      "allowsScriptFrom": {
-        "support_level": "untriaged"
-      },
-      "allowsStyleFrom": {
-        "support_level": "untriaged"
-      },
-      "isActive": {
-        "support_level": "untriaged"
-      },
-      "reportURIs": {
-        "support_level": "untriaged"
-      }
+      "allowsConnectionTo": {},
+      "allowsEval": {},
+      "allowsFontFrom": {},
+      "allowsFormAction": {},
+      "allowsFrameFrom": {},
+      "allowsImageFrom": {},
+      "allowsInlineScript": {},
+      "allowsInlineStyle": {},
+      "allowsMediaFrom": {},
+      "allowsObjectFrom": {},
+      "allowsPluginType": {},
+      "allowsScriptFrom": {},
+      "allowsStyleFrom": {},
+      "isActive": {},
+      "reportURIs": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "SecurityPolicyViolationEvent": {
     "comment": "https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicyviolationevent-events",
     "members": {
       "blockedURI": {},
-      "columnNumber": {
-        "support_level": "untriaged"
-      },
+      "columnNumber": {},
       "documentURI": {},
       "effectiveDirective": {},
       "lineNumber": {},
@@ -10263,87 +9850,56 @@
     "support_level": "experimental"
   },
   "Selection": {
+    "comment": "https://dvcs.w3.org/hg/editing/raw-file/tip/editing.html#concept-selection",
     "members": {
-      "addRange": {
-        "support_level": "untriaged"
-      },
-      "anchorNode": {
-        "support_level": "untriaged"
-      },
-      "anchorOffset": {
-        "support_level": "untriaged"
-      },
+      "addRange": {},
+      "anchorNode": {},
+      "anchorOffset": {},
       "baseNode": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
       "baseOffset": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
-      "collapse": {
-        "support_level": "untriaged"
-      },
-      "collapseToEnd": {
-        "support_level": "untriaged"
-      },
-      "collapseToStart": {
-        "support_level": "untriaged"
-      },
+      "collapse": {},
+      "collapseToEnd": {},
+      "collapseToStart": {},
       "containsNode": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
-      "deleteFromDocument": {
-        "support_level": "untriaged"
-      },
+      "deleteFromDocument": {},
       "empty": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
-      "extend": {
-        "support_level": "untriaged"
-      },
+      "extend": {},
       "extentNode": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
       "extentOffset": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
-      "focusNode": {
-        "support_level": "untriaged"
-      },
-      "focusOffset": {
-        "support_level": "untriaged"
-      },
-      "getRangeAt": {
-        "support_level": "untriaged"
-      },
-      "isCollapsed": {
-        "support_level": "untriaged"
-      },
+      "focusNode": {},
+      "focusOffset": {},
+      "getRangeAt": {},
+      "isCollapsed": {},
       "modify": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
-      "rangeCount": {
-        "support_level": "untriaged"
-      },
-      "removeAllRanges": {
-        "support_level": "untriaged"
-      },
-      "selectAllChildren": {
-        "support_level": "untriaged"
-      },
+      "rangeCount": {},
+      "removeAllRanges": {},
+      "selectAllChildren": {},
       "setBaseAndExtent": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
       "setPosition": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
-      "toString": {
-        "support_level": "untriaged"
-      },
+      "toString": {},
       "type": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       }
     },
-    "support_level": "untriaged"
+    "support_level": "stable"
   },
   "ShadowRoot": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-root",
@@ -10378,29 +9934,6 @@
       "onconnect": {}
     },
     "support_level": "nonstandard"
-  },
-  "SourceBuffer": {
-    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer",
-    "members": {
-      "abort": {},
-      "append": {
-        "support_level": "nonstandard"
-      },
-      "buffered": {},
-      "timestampOffset": {}
-    },
-    "support_level": "experimental"
-  },
-  "SourceBufferList": {
-    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist",
-    "members": {
-      "addEventListener": {},
-      "dispatchEvent": {},
-      "item": {},
-      "length": {},
-      "removeEventListener": {}
-    },
-    "support_level": "experimental"
   },
   "SpeechGrammar": {
     "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammar",
@@ -10518,112 +10051,58 @@
     "support_level": "experimental"
   },
   "SpeechSynthesis": {
+    "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
     "members": {
-      "cancel": {
-        "support_level": "untriaged"
-      },
-      "getVoices": {
-        "support_level": "untriaged"
-      },
-      "pause": {
-        "support_level": "untriaged"
-      },
-      "paused": {
-        "support_level": "untriaged"
-      },
-      "pending": {
-        "support_level": "untriaged"
-      },
-      "resume": {
-        "support_level": "untriaged"
-      },
-      "speak": {
-        "support_level": "untriaged"
-      },
-      "speaking": {
-        "support_level": "untriaged"
-      }
+      "cancel": {},
+      "getVoices": {},
+      "pause": {},
+      "paused": {},
+      "pending": {},
+      "resume": {},
+      "speak": {},
+      "speaking": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "SpeechSynthesisEvent": {
+    "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
     "members": {
-      "charIndex": {
-        "support_level": "untriaged"
-      },
-      "elapsedTime": {
-        "support_level": "untriaged"
-      },
-      "name": {
-        "support_level": "untriaged"
-      }
+      "charIndex": {},
+      "elapsedTime": {},
+      "name": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "SpeechSynthesisUtterance": {
+    "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
     "members": {
       "SpeechSynthesisUtterance": {},
-      "lang": {
-        "support_level": "untriaged"
-      },
-      "onboundary": {
-        "support_level": "untriaged"
-      },
-      "onend": {
-        "support_level": "untriaged"
-      },
-      "onerror": {
-        "support_level": "untriaged"
-      },
-      "onmark": {
-        "support_level": "untriaged"
-      },
-      "onpause": {
-        "support_level": "untriaged"
-      },
-      "onresume": {
-        "support_level": "untriaged"
-      },
-      "onstart": {
-        "support_level": "untriaged"
-      },
-      "pitch": {
-        "support_level": "untriaged"
-      },
-      "rate": {
-        "support_level": "untriaged"
-      },
-      "text": {
-        "support_level": "untriaged"
-      },
-      "voice": {
-        "support_level": "untriaged"
-      },
-      "volume": {
-        "support_level": "untriaged"
-      }
+      "lang": {},
+      "onboundary": {},
+      "onend": {},
+      "onerror": {},
+      "onmark": {},
+      "onpause": {},
+      "onresume": {},
+      "onstart": {},
+      "pitch": {},
+      "rate": {},
+      "text": {},
+      "voice": {},
+      "volume": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "SpeechSynthesisVoice": {
+    "comment": "https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section",
     "members": {
-      "default": {
-        "support_level": "untriaged"
-      },
-      "lang": {
-        "support_level": "untriaged"
-      },
-      "localService": {
-        "support_level": "untriaged"
-      },
-      "name": {
-        "support_level": "untriaged"
-      },
-      "voiceURI": {
-        "support_level": "untriaged"
-      }
+      "default": {},
+      "lang": {},
+      "localService": {},
+      "name": {},
+      "voiceURI": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "Storage": {
     "comment": "http://www.w3.org/TR/webstorage/#the-storage-interface",
@@ -10999,12 +10478,12 @@
     "support_level": "stable"
   },
   "URL": {
+    "comment": "http://www.w3.org/TR/FileAPI/#URL-object",
     "members": {
-      "revokeObjectURL": {
-        "support_level": "untriaged"
-      }
+      "createObjectURL": {},
+      "revokeObjectURL": {}
     },
-    "support_level": "untriaged"
+    "support_level": "stable"
   },
   "Uint16Array": {
     "comment": "http://www.khronos.org/registry/typedarray/specs/latest/",
@@ -11806,80 +11285,45 @@
     "support_level": "deprecated"
   },
   "WebKitMediaSource": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource",
     "members": {
       "WebKitMediaSource": {},
-      "activeSourceBuffers": {
-        "support_level": "untriaged"
-      },
-      "addEventListener": {
-        "support_level": "untriaged"
-      },
-      "addSourceBuffer": {
-        "support_level": "untriaged"
-      },
-      "dispatchEvent": {
-        "support_level": "untriaged"
-      },
-      "duration": {
-        "support_level": "untriaged"
-      },
-      "endOfStream": {
-        "support_level": "untriaged"
-      },
-      "isTypeSupported": {
-        "support_level": "untriaged"
-      },
-      "readyState": {
-        "support_level": "untriaged"
-      },
-      "removeEventListener": {
-        "support_level": "untriaged"
-      },
-      "removeSourceBuffer": {
-        "support_level": "untriaged"
-      },
-      "sourceBuffers": {
-        "support_level": "untriaged"
-      }
+      "activeSourceBuffers": {},
+      "addEventListener": {},
+      "addSourceBuffer": {},
+      "dispatchEvent": {},
+      "duration": {},
+      "endOfStream": {},
+      "isTypeSupported": {},
+      "readyState": {},
+      "removeEventListener": {},
+      "removeSourceBuffer": {},
+      "sourceBuffers": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "WebKitSourceBuffer": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer",
     "members": {
-      "abort": {
-        "support_level": "untriaged"
-      },
+      "abort": {},
       "append": {
-        "support_level": "untriaged"
+        "support_level": "nonstandard"
       },
-      "buffered": {
-        "support_level": "untriaged"
-      },
-      "timestampOffset": {
-        "support_level": "untriaged"
-      }
+      "buffered": {},
+      "timestampOffset": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "WebKitSourceBufferList": {
+    "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist",
     "members": {
-      "addEventListener": {
-        "support_level": "untriaged"
-      },
-      "dispatchEvent": {
-        "support_level": "untriaged"
-      },
-      "item": {
-        "support_level": "untriaged"
-      },
-      "length": {
-        "support_level": "untriaged"
-      },
-      "removeEventListener": {
-        "support_level": "untriaged"
-      }
+      "addEventListener": {},
+      "dispatchEvent": {},
+      "item": {},
+      "length": {},
+      "removeEventListener": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "WebSocket": {
     "comment": "http://www.w3.org/TR/websockets/#the-websocket-interface",
@@ -12093,9 +11537,7 @@
     "members": {
       "DONE": {},
       "HEADERS_RECEIVED": {},
-      "HttpRequest": {
-        "support_level": "untriaged"
-      },
+      "HttpRequest": {},
       "LOADING": {},
       "OPENED": {},
       "UNSENT": {},
