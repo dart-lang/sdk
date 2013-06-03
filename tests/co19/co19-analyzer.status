@@ -33,15 +33,12 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: fail
 Language/07_Classes/6_Constructors/2_Factories_A06_t01: fail
 Language/07_Classes/6_Constructors/2_Factories_A06_t02: fail
 Language/07_Classes/6_Constructors/2_Factories_A06_t04: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t01: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: fail
 Language/07_Classes/7_Static_Methods_A01_t01: fail
 Language/09_Generics/09_Generics_A04_t07: fail
 Language/11_Expressions/01_Constants_A01_t01: fail
-Language/11_Expressions/01_Constants_A08_t02: fail
-Language/11_Expressions/01_Constants_A09_t02: fail
 Language/11_Expressions/01_Constants_A11_t03: fail
 Language/11_Expressions/01_Constants_A15_t07: fail
 Language/11_Expressions/01_Constants_A15_t08: fail
@@ -62,7 +59,6 @@ Language/11_Expressions/05_Strings_A02_t46: fail
 Language/11_Expressions/05_Strings_A02_t48: fail
 Language/11_Expressions/06_Lists_A03_t01: fail
 Language/11_Expressions/06_Lists_A06_t01: fail
-Language/11_Expressions/07_Maps_A02_t02: fail
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A06_t01: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: fail
