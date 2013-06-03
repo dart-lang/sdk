@@ -7,12 +7,16 @@ import 'dart:io';
 
 int _httpRequestResponseCode = 0;
 String _httpRequestStatusString;
-List<int> _httpRequestResponse;
+var _httpRequestResponse;
 
-void _requestCompleted(HttpClientResponse response, List<int> responseData) {
-  _httpRequestResponseCode = response.statusCode;
-  _httpRequestStatusString = '${response.statusCode} ${response.reasonPhrase}';
-  _httpRequestResponse = responseData;
+void _requestCompleted(HttpClientResponseBody body) {
+  _httpRequestResponseCode = body.statusCode;
+  _httpRequestStatusString = '${body.statusCode} ${body.reasonPhrase}';
+  _httpRequestResponse = null;
+  if (body.statusCode != 200 || body.type == "json") {
+    return;
+  }
+  _httpRequestResponse = body.body;
 }
 
 void _requestFailed(error) {
@@ -26,18 +30,15 @@ void _makeHttpRequest(String uri) {
   _httpRequestResponseCode = 0;
   _httpRequestStatusString = null;
   _httpRequestResponse = null;
-
   Uri requestUri = Uri.parse(uri);
-
-  _client.getUrl(requestUri).then((HttpClientRequest request) {
-    return request.close();
-  }).then((HttpClientResponse response) {
-    response.listen((List<int> responseData) {
-      _requestCompleted(response, responseData);
-    });
-  }).catchError((error) {
-    _requestFailed(error);
-  });
+  _client.getUrl(requestUri)
+      .then((HttpClientRequest request) => request.close())
+      .then(HttpBodyHandler.processResponse)
+      .then((HttpClientResponseBody body) {
+        _requestCompleted(body);
+      }).catchError((error) {
+        _requestFailed(error);
+      });
 }
 
 // Corelib 'print' implementation.

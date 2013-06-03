@@ -287,26 +287,45 @@ Dart_Handle MakeHttpRequest(Dart_Handle uri, Dart_Handle builtin_lib,
     }
     return Dart_Error(DartUtils::GetStringValue(responseStatus));
   }
-  Dart_Handle responseList =
+  Dart_Handle response =
     Dart_GetField(builtin_lib, DartUtils::NewString("_httpRequestResponse"));
-  if (Dart_IsError(responseList)) {
-    return responseList;
+  if (Dart_IsError(response)) {
+    return response;
   }
-  // Query list length.
-  result = Dart_ListLength(responseList, buffer_len);
-  if (Dart_IsError(result)) {
-    *buffer_len = 0;
-    *buffer = NULL;
-    return result;
-  }
-  // Get payload as bytes.
-  *buffer = reinterpret_cast<uint8_t*>(malloc(*buffer_len));
-  result = Dart_ListGetAsBytes(responseList, 0, *buffer, *buffer_len);
-  if (Dart_IsError(result)) {
-    free(*buffer);
-    *buffer_len = 0;
-    *buffer = NULL;
-    return result;
+  if (Dart_IsString(response)) {
+    // Received response as string.
+    uint8_t* responseString = NULL;
+    intptr_t responseStringLength;
+    Dart_Handle r = Dart_StringToUTF8(response, &responseString,
+                                      &responseStringLength);
+    if (Dart_IsError(r)) {
+      *buffer = NULL;
+      *buffer_len = 0;
+      return r;
+    }
+    // Get payload as bytes.
+    *buffer_len = responseStringLength;
+    *buffer = reinterpret_cast<uint8_t*>(malloc(responseStringLength));
+    memmove(*buffer, responseString, responseStringLength);
+  } else {
+    // Received response as list of bytes.
+    ASSERT(Dart_IsList(response));
+    // Query list length.
+    result = Dart_ListLength(response, buffer_len);
+    if (Dart_IsError(result)) {
+      *buffer_len = 0;
+      *buffer = NULL;
+      return result;
+    }
+    // Get payload as bytes.
+    *buffer = reinterpret_cast<uint8_t*>(malloc(*buffer_len));
+    result = Dart_ListGetAsBytes(response, 0, *buffer, *buffer_len);
+    if (Dart_IsError(result)) {
+      free(*buffer);
+      *buffer_len = 0;
+      *buffer = NULL;
+      return result;
+    }
   }
   return result;
 }
@@ -533,6 +552,7 @@ Dart_Handle DartUtils::LoadScriptHttp(Dart_Handle uri,
     return Dart_LoadScriptFromSnapshot(payload, len);
   } else {
     Dart_Handle source = Dart_NewStringFromUTF8(payload, len);
+    free(buffer);
     if (Dart_IsError(source)) {
       return source;
     }
