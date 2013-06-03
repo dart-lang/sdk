@@ -10,20 +10,24 @@ import 'source.dart';
 import 'error.dart';
 import 'instrumentation.dart';
 
+
 /**
  * Instances of the abstract class {@code KeywordState} represent a state in a state machine used to
  * scan keywords.
  * @coverage dart.engine.parser
  */
 class KeywordState {
+  
   /**
    * An empty transition table used by leaf states.
    */
   static List<KeywordState> _EMPTY_TABLE = new List<KeywordState>(26);
+  
   /**
    * The initial state in the state machine.
    */
   static KeywordState KEYWORD_STATE = createKeywordStateTable();
+  
   /**
    * Create the next state in the state machine where we have already recognized the subset of
    * strings in the given array of strings starting at the given offset and having the given length.
@@ -70,6 +74,7 @@ class KeywordState {
       return new KeywordState(result, null);
     }
   }
+  
   /**
    * Create the initial state in the state machine.
    * @return the state that was created
@@ -83,16 +88,19 @@ class KeywordState {
     strings.sort();
     return computeKeywordStateTable(0, strings, 0, strings.length);
   }
+  
   /**
    * A table mapping characters to the states to which those characters will transition. (The index
    * into the array is the offset from the character {@code 'a'} to the transitioning character.)
    */
   List<KeywordState> _table;
+  
   /**
    * The keyword that is recognized by this state, or {@code null} if this state is not a terminal
    * state.
    */
   Keyword _keyword2;
+  
   /**
    * Initialize a newly created state to have the given transitions and to recognize the keyword
    * with the given syntax.
@@ -103,12 +111,14 @@ class KeywordState {
     this._table = table;
     this._keyword2 = (syntax == null) ? null : Keyword.keywords[syntax];
   }
+  
   /**
    * Return the keyword that was recognized by this state, or {@code null} if this state does not
    * recognized a keyword.
    * @return the keyword that was matched by reaching this state
    */
   Keyword keyword() => _keyword2;
+  
   /**
    * Return the state that follows this state on a transition of the given character, or{@code null} if there is no valid state reachable from this state with such a transition.
    * @param c the character used to transition from this state to another state
@@ -116,6 +126,7 @@ class KeywordState {
    */
   KeywordState next(int c) => _table[c - 0x61];
 }
+
 /**
  * The enumeration {@code ScannerErrorCode} defines the error codes used for errors detected by the
  * scanner.
@@ -129,37 +140,44 @@ class ScannerErrorCode implements Comparable<ScannerErrorCode>, ErrorCode {
   static final ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT = new ScannerErrorCode('UNTERMINATED_MULTI_LINE_COMMENT', 4, "Unterminated multi-line comment");
   static final ScannerErrorCode UNTERMINATED_STRING_LITERAL = new ScannerErrorCode('UNTERMINATED_STRING_LITERAL', 5, "Unterminated string literal");
   static final List<ScannerErrorCode> values = [ILLEGAL_CHARACTER, MISSING_DIGIT, MISSING_HEX_DIGIT, MISSING_QUOTE, UNTERMINATED_MULTI_LINE_COMMENT, UNTERMINATED_STRING_LITERAL];
-  final String __name;
-  final int __ordinal;
-  int get ordinal => __ordinal;
+  
+  /// The name of this enum constant, as declared in the enum declaration.
+  final String name;
+  
+  /// The position in the enum declaration.
+  final int ordinal;
+  
   /**
    * The message template used to create the message to be displayed for this error.
    */
   String _message;
+  
   /**
    * Initialize a newly created error code to have the given message.
    * @param message the message template used to create the message to be displayed for this error
    */
-  ScannerErrorCode(this.__name, this.__ordinal, String message) {
+  ScannerErrorCode(this.name, this.ordinal, String message) {
     this._message = message;
   }
   ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
   String get message => _message;
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
-  bool needsRecompilation() => true;
-  int compareTo(ScannerErrorCode other) => __ordinal - other.__ordinal;
-  String toString() => __name;
+  int compareTo(ScannerErrorCode other) => ordinal - other.ordinal;
+  String toString() => name;
 }
+
 /**
  * Instances of the class {@code TokenWithComment} represent a string token that is preceded by
  * comments.
  * @coverage dart.engine.parser
  */
 class StringTokenWithComment extends StringToken {
+  
   /**
    * The first comment in the list of comments that precede this token.
    */
   Token _precedingComment;
+  
   /**
    * Initialize a newly created token to have the given type and offset and to be preceded by the
    * comments reachable from the given comment.
@@ -172,6 +190,7 @@ class StringTokenWithComment extends StringToken {
   }
   Token get precedingComments => _precedingComment;
 }
+
 /**
  * The enumeration {@code Keyword} defines the keywords in the Dart programming language.
  * @coverage dart.engine.parser
@@ -226,22 +245,29 @@ class Keyword implements Comparable<Keyword> {
   static final Keyword STATIC = new Keyword.con2('STATIC', 46, "static", true);
   static final Keyword TYPEDEF = new Keyword.con2('TYPEDEF', 47, "typedef", true);
   static final List<Keyword> values = [ASSERT, BREAK, CASE, CATCH, CLASS, CONST, CONTINUE, DEFAULT, DO, ELSE, ENUM, EXTENDS, FALSE, FINAL, FINALLY, FOR, IF, IN, IS, NEW, NULL, RETHROW, RETURN, SUPER, SWITCH, THIS, THROW, TRUE, TRY, VAR, VOID, WHILE, WITH, ABSTRACT, AS, DYNAMIC, EXPORT, EXTERNAL, FACTORY, GET, IMPLEMENTS, IMPORT, LIBRARY, OPERATOR, PART, SET, STATIC, TYPEDEF];
-  String __name;
-  int __ordinal = 0;
-  int get ordinal => __ordinal;
+  
+  /// The name of this enum constant, as declared in the enum declaration.
+  final String name;
+  
+  /// The position in the enum declaration.
+  final int ordinal;
+  
   /**
    * The lexeme for the keyword.
    */
   String _syntax;
+  
   /**
    * A flag indicating whether the keyword is a pseudo-keyword. Pseudo keywords can be used as
    * identifiers.
    */
   bool _isPseudoKeyword2 = false;
+  
   /**
    * A table mapping the lexemes of keywords to the corresponding keyword.
    */
   static Map<String, Keyword> keywords = createKeywordMap();
+  
   /**
    * Create a table mapping the lexemes of keywords to the corresponding keyword.
    * @return the table that was created
@@ -253,46 +279,49 @@ class Keyword implements Comparable<Keyword> {
     }
     return result;
   }
+  
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is not a
    * pseudo-keyword.
    * @param syntax the lexeme for the keyword
    */
-  Keyword.con1(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_309_impl(___name, ___ordinal, syntax);
+  Keyword.con1(this.name, this.ordinal, String syntax) {
+    _jtd_constructor_316_impl(syntax);
   }
-  _jtd_constructor_309_impl(String ___name, int ___ordinal, String syntax) {
-    _jtd_constructor_310_impl(___name, ___ordinal, syntax, false);
+  _jtd_constructor_316_impl(String syntax) {
+    _jtd_constructor_317_impl(syntax, false);
   }
+  
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
    * the given flag is {@code true}.
    * @param syntax the lexeme for the keyword
    * @param isPseudoKeyword {@code true} if this keyword is a pseudo-keyword
    */
-  Keyword.con2(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
-    _jtd_constructor_310_impl(___name, ___ordinal, syntax2, isPseudoKeyword);
+  Keyword.con2(this.name, this.ordinal, String syntax2, bool isPseudoKeyword) {
+    _jtd_constructor_317_impl(syntax2, isPseudoKeyword);
   }
-  _jtd_constructor_310_impl(String ___name, int ___ordinal, String syntax2, bool isPseudoKeyword) {
-    __name = ___name;
-    __ordinal = ___ordinal;
+  _jtd_constructor_317_impl(String syntax2, bool isPseudoKeyword) {
     this._syntax = syntax2;
     this._isPseudoKeyword2 = isPseudoKeyword;
   }
+  
   /**
    * Return the lexeme for the keyword.
    * @return the lexeme for the keyword
    */
   String get syntax => _syntax;
+  
   /**
    * Return {@code true} if this keyword is a pseudo-keyword. Pseudo keywords can be used as
    * identifiers.
    * @return {@code true} if this keyword is a pseudo-keyword
    */
   bool isPseudoKeyword() => _isPseudoKeyword2;
-  int compareTo(Keyword other) => __ordinal - other.__ordinal;
-  String toString() => __name;
+  int compareTo(Keyword other) => ordinal - other.ordinal;
+  String toString() => name;
 }
+
 /**
  * The abstract class {@code AbstractScanner} implements a scanner for Dart code. Subclasses are
  * required to implement the interface used to access the characters being scanned.
@@ -305,51 +334,63 @@ class Keyword implements Comparable<Keyword> {
  * @coverage dart.engine.parser
  */
 abstract class AbstractScanner {
+  
   /**
    * The source being scanned.
    */
   Source _source;
+  
   /**
    * The error listener that will be informed of any errors that are found during the scan.
    */
   AnalysisErrorListener _errorListener;
+  
   /**
    * The token pointing to the head of the linked list of tokens.
    */
   Token _tokens;
+  
   /**
    * The last token that was scanned.
    */
   Token _tail;
+  
   /**
    * The first token in the list of comment tokens found since the last non-comment token.
    */
   Token _firstComment;
+  
   /**
    * The last token in the list of comment tokens found since the last non-comment token.
    */
   Token _lastComment;
+  
   /**
    * The index of the first character of the current token.
    */
   int _tokenStart = 0;
+  
   /**
    * A list containing the offsets of the first character of each line in the source code.
    */
   List<int> _lineStarts = new List<int>();
+  
   /**
    * A list, treated something like a stack, of tokens representing the beginning of a matched pair.
    * It is used to pair the end tokens with the begin tokens.
    */
   List<BeginToken> _groupingStack = new List<BeginToken>();
+  
   /**
    * A flag indicating whether any unmatched groups were found during the parse.
    */
   bool _hasUnmatchedGroups2 = false;
+  
   /**
    * A non-breaking space, which is allowed by this scanner as a white-space character.
    */
   static int _$NBSP = 160;
+  
   /**
    * Initialize a newly created scanner.
    * @param source the source being scanned
@@ -364,11 +405,13 @@ abstract class AbstractScanner {
     _tokenStart = -1;
     _lineStarts.add(0);
   }
+  
   /**
    * Return an array containing the offsets of the first character of each line in the source code.
    * @return an array containing the offsets of the first character of each line in the source code
    */
   List<int> get lineStarts => _lineStarts;
+  
   /**
    * Return the current offset relative to the beginning of the file. Return the initial offset if
    * the scanner has not yet scanned the source code, and one (1) past the end of the source code if
@@ -376,11 +419,13 @@ abstract class AbstractScanner {
    * @return the current offset of the scanner in the source
    */
   int get offset;
+  
   /**
    * Return {@code true} if any unmatched groups were found during the parse.
    * @return {@code true} if any unmatched groups were found during the parse
    */
   bool hasUnmatchedGroups() => _hasUnmatchedGroups2;
+  
   /**
    * Scan the source code to produce a list of tokens representing the source.
    * @return the first token in the list of tokens that were produced
@@ -401,11 +446,13 @@ abstract class AbstractScanner {
       instrumentation.log();
     }
   }
+  
   /**
    * Advance the current position and return the character at the new current position.
    * @return the character at the new current position
    */
   int advance();
+  
   /**
    * Return the substring of the source code between the start offset and the modified current
    * position. The current position is modified by adding the end delta.
@@ -416,11 +463,13 @@ abstract class AbstractScanner {
    * @return the specified substring of the source code
    */
   String getString(int start, int endDelta);
+  
   /**
    * Return the character at the current position without changing the current position.
    * @return the character at the current position
    */
   int peek();
+  
   /**
    * Record the fact that we are at the beginning of a new line in the source.
    */
@@ -539,8 +588,9 @@ abstract class AbstractScanner {
       recordStartOfLine();
       return next;
     } else if (next == 0xA) {
+      next = advance();
       recordStartOfLine();
-      return advance();
+      return next;
     } else if (next == 0x9 || next == 0x20) {
       return advance();
     }
@@ -674,6 +724,7 @@ abstract class AbstractScanner {
     reportError(ScannerErrorCode.ILLEGAL_CHARACTER, [next]);
     return advance();
   }
+  
   /**
    * Return the beginning token corresponding to a closing brace that was found while scanning
    * inside a string interpolation expression. Tokens that cannot be matched with the closing brace
@@ -694,11 +745,13 @@ abstract class AbstractScanner {
     return null;
   }
   Token firstToken() => _tokens.next;
+  
   /**
    * Return the source being scanned.
    * @return the source being scanned
    */
   Source get source => _source;
+  
   /**
    * Report an error at the current offset.
    * @param errorCode the error code indicating the nature of the error
@@ -717,7 +770,7 @@ abstract class AbstractScanner {
       return next;
     }
   }
-  int select2(int choice, TokenType yesType, TokenType noType, int offset) {
+  int select4(int choice, TokenType yesType, TokenType noType, int offset) {
     int next = advance();
     if (next == choice) {
       appendToken2(yesType, offset);
@@ -824,7 +877,7 @@ abstract class AbstractScanner {
     if (!hasDigit) {
       appendStringToken(TokenType.INT, getString(start, -2));
       if (0x2E == next) {
-        return select2(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
+        return select4(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
       }
       appendToken2(TokenType.PERIOD, offset - 1);
       return bigSwitch(next);
@@ -922,8 +975,10 @@ abstract class AbstractScanner {
   }
   int tokenizeInterpolatedIdentifier(int next, int start) {
     appendStringToken2(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 0);
-    beginToken();
-    next = tokenizeKeywordOrIdentifier(next, false);
+    if (((0x41 <= next && next <= 0x5A) || (0x61 <= next && next <= 0x7A) || next == 0x5F)) {
+      beginToken();
+      next = tokenizeKeywordOrIdentifier(next, false);
+    }
     beginToken();
     return next;
   }
@@ -1222,16 +1277,19 @@ abstract class AbstractScanner {
     }
   }
 }
+
 /**
  * Instances of the class {@code StringToken} represent a token whose value is independent of it's
  * type.
  * @coverage dart.engine.parser
  */
 class StringToken extends Token {
+  
   /**
    * The lexeme represented by this token.
    */
   String _value2;
+  
   /**
    * Initialize a newly created token to represent a token of the given type with the given value.
    * @param type the type of the token
@@ -1244,24 +1302,29 @@ class StringToken extends Token {
   String get lexeme => _value2;
   String value() => _value2;
 }
+
 /**
  * Instances of the class {@code CharBufferScanner} implement a scanner that reads from a character
  * buffer. The scanning logic is in the superclass.
  * @coverage dart.engine.parser
  */
 class CharBufferScanner extends AbstractScanner {
+  
   /**
    * The buffer from which characters will be read.
    */
   CharBuffer _buffer;
+  
   /**
    * The number of characters in the buffer.
    */
   int _bufferLength = 0;
+  
   /**
    * The index of the last character that was read.
    */
   int _charOffset = 0;
+  
   /**
    * Initialize a newly created scanner to scan the characters in the given character buffer.
    * @param source the source being scanned
@@ -1288,16 +1351,19 @@ class CharBufferScanner extends AbstractScanner {
     return _buffer.charAt(_charOffset + 1);
   }
 }
+
 /**
  * Instances of the class {@code TokenWithComment} represent a normal token that is preceded by
  * comments.
  * @coverage dart.engine.parser
  */
 class TokenWithComment extends Token {
+  
   /**
    * The first comment in the list of comments that precede this token.
    */
   Token _precedingComment;
+  
   /**
    * Initialize a newly created token to have the given type and offset and to be preceded by the
    * comments reachable from the given comment.
@@ -1310,28 +1376,34 @@ class TokenWithComment extends Token {
   }
   Token get precedingComments => _precedingComment;
 }
+
 /**
  * Instances of the class {@code Token} represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
  * @coverage dart.engine.parser
  */
 class Token {
+  
   /**
    * The type of the token.
    */
   TokenType _type;
+  
   /**
    * The offset from the beginning of the file to the first character in the token.
    */
   int _offset = 0;
+  
   /**
    * The previous token in the token stream.
    */
   Token _previous;
+  
   /**
    * The next token in the token stream.
    */
   Token _next;
+  
   /**
    * Initialize a newly created token to have the given type and offset.
    * @param type the type of the token
@@ -1341,6 +1413,7 @@ class Token {
     this._type = type;
     this._offset = offset;
   }
+  
   /**
    * Return the offset from the beginning of the file to the character after last character of the
    * token.
@@ -1348,26 +1421,31 @@ class Token {
    * of the token
    */
   int get end => _offset + length;
+  
   /**
    * Return the number of characters in the node's source range.
    * @return the number of characters in the node's source range
    */
   int get length => lexeme.length;
+  
   /**
    * Return the lexeme that represents this token.
    * @return the lexeme that represents this token
    */
   String get lexeme => _type.lexeme;
+  
   /**
    * Return the next token in the token stream.
    * @return the next token in the token stream
    */
   Token get next => _next;
+  
   /**
    * Return the offset from the beginning of the file to the first character in the token.
    * @return the offset from the beginning of the file to the first character in the token
    */
   int get offset => _offset;
+  
   /**
    * Return the first comment in the list of comments that precede this token, or {@code null} if
    * there are no comments preceding this token. Additional comments can be reached by following the
@@ -1375,21 +1453,25 @@ class Token {
    * @return the first comment in the list of comments that precede this token
    */
   Token get precedingComments => null;
+  
   /**
    * Return the previous token in the token stream.
    * @return the previous token in the token stream
    */
   Token get previous => _previous;
+  
   /**
    * Return the type of the token.
    * @return the type of the token
    */
   TokenType get type => _type;
+  
   /**
    * Return {@code true} if this token represents an operator.
    * @return {@code true} if this token represents an operator
    */
   bool isOperator() => _type.isOperator();
+  
   /**
    * Return {@code true} if this token is a synthetic token. A synthetic token is a token that was
    * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
@@ -1397,11 +1479,13 @@ class Token {
    * @return {@code true} if this token is a synthetic token
    */
   bool isSynthetic() => length == 0;
+  
   /**
    * Return {@code true} if this token represents an operator that can be defined by users.
    * @return {@code true} if this token represents an operator that can be defined by users
    */
   bool isUserDefinableOperator() => _type.isUserDefinableOperator();
+  
   /**
    * Set the next token in the token stream to the given token. This has the side-effect of setting
    * this token to be the previous token for the given token.
@@ -1413,6 +1497,7 @@ class Token {
     token.previous = this;
     return token;
   }
+  
   /**
    * Set the next token in the token stream to the given token without changing which token is the
    * previous token for the given token.
@@ -1423,6 +1508,7 @@ class Token {
     _next = token;
     return token;
   }
+  
   /**
    * Set the offset from the beginning of the file to the first character in the token to the given
    * offset.
@@ -1432,12 +1518,14 @@ class Token {
     this._offset = offset2;
   }
   String toString() => lexeme;
+  
   /**
    * Return the value of this token. For keyword tokens, this is the keyword associated with the
    * token, for other tokens it is the lexeme associated with the token.
    * @return the value of this token
    */
   Object value() => _type.lexeme;
+  
   /**
    * Set the previous token in the token stream to the given token.
    * @param previous the previous token in the token stream
@@ -1446,28 +1534,34 @@ class Token {
     this._previous = previous2;
   }
 }
+
 /**
  * Instances of the class {@code StringScanner} implement a scanner that reads from a string. The
  * scanning logic is in the superclass.
  * @coverage dart.engine.parser
  */
 class StringScanner extends AbstractScanner {
+  
   /**
    * The offset from the beginning of the file to the beginning of the source being scanned.
    */
   int _offsetDelta = 0;
+  
   /**
    * The string from which characters will be read.
    */
   String _string;
+  
   /**
    * The number of characters in the string.
    */
   int _stringLength = 0;
+  
   /**
    * The index, relative to the string, of the last character that was read.
    */
   int _charOffset = 0;
+  
   /**
    * Initialize a newly created scanner to scan the characters in the given string.
    * @param source the source being scanned
@@ -1481,6 +1575,7 @@ class StringScanner extends AbstractScanner {
     this._charOffset = -1;
   }
   int get offset => _offsetDelta + _charOffset;
+  
   /**
    * Record that the source begins on the given line and column at the given offset. The line starts
    * for lines before the given line will not be correct.
@@ -1519,16 +1614,19 @@ class StringScanner extends AbstractScanner {
     return _string.codeUnitAt(_charOffset + 1);
   }
 }
+
 /**
  * Instances of the class {@code BeginTokenWithComment} represent a begin token that is preceded by
  * comments.
  * @coverage dart.engine.parser
  */
 class BeginTokenWithComment extends BeginToken {
+  
   /**
    * The first comment in the list of comments that precede this token.
    */
   Token _precedingComment;
+  
   /**
    * Initialize a newly created token to have the given type and offset and to be preceded by the
    * comments reachable from the given comment.
@@ -1541,15 +1639,18 @@ class BeginTokenWithComment extends BeginToken {
   }
   Token get precedingComments => _precedingComment;
 }
+
 /**
  * Instances of the class {@code KeywordToken} represent a keyword in the language.
  * @coverage dart.engine.parser
  */
 class KeywordToken extends Token {
+  
   /**
    * The keyword being represented by this token.
    */
   Keyword _keyword;
+  
   /**
    * Initialize a newly created token to represent the given keyword.
    * @param keyword the keyword being represented by this token
@@ -1558,6 +1659,7 @@ class KeywordToken extends Token {
   KeywordToken(Keyword keyword, int offset) : super(TokenType.KEYWORD, offset) {
     this._keyword = keyword;
   }
+  
   /**
    * Return the keyword being represented by this token.
    * @return the keyword being represented by this token
@@ -1566,16 +1668,19 @@ class KeywordToken extends Token {
   String get lexeme => _keyword.syntax;
   Keyword value() => _keyword;
 }
+
 /**
  * Instances of the class {@code BeginToken} represent the opening half of a grouping pair of
  * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('\[').
  * @coverage dart.engine.parser
  */
 class BeginToken extends Token {
+  
   /**
    * The token that corresponds to this token.
    */
   Token _endToken;
+  
   /**
    * Initialize a newly created token representing the opening half of a grouping pair of tokens.
    * @param type the type of the token
@@ -1584,11 +1689,13 @@ class BeginToken extends Token {
   BeginToken(TokenType type, int offset) : super(type, offset) {
     assert((identical(type, TokenType.OPEN_CURLY_BRACKET) || identical(type, TokenType.OPEN_PAREN) || identical(type, TokenType.OPEN_SQUARE_BRACKET) || identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)));
   }
+  
   /**
    * Return the token that corresponds to this token.
    * @return the token that corresponds to this token
    */
   Token get endToken => _endToken;
+  
   /**
    * Set the token that corresponds to this token to the given token.
    * @param token the token that corresponds to this token
@@ -1597,117 +1704,140 @@ class BeginToken extends Token {
     this._endToken = token;
   }
 }
+
 /**
  * The enumeration {@code TokenClass} represents classes (or groups) of tokens with a similar use.
  * @coverage dart.engine.parser
  */
 class TokenClass implements Comparable<TokenClass> {
+  
   /**
    * A value used to indicate that the token type is not part of any specific class of token.
    */
   static final TokenClass NO_CLASS = new TokenClass.con1('NO_CLASS', 0);
+  
   /**
    * A value used to indicate that the token type is an additive operator.
    */
   static final TokenClass ADDITIVE_OPERATOR = new TokenClass.con2('ADDITIVE_OPERATOR', 1, 12);
+  
   /**
    * A value used to indicate that the token type is an assignment operator.
    */
   static final TokenClass ASSIGNMENT_OPERATOR = new TokenClass.con2('ASSIGNMENT_OPERATOR', 2, 1);
+  
   /**
    * A value used to indicate that the token type is a bitwise-and operator.
    */
   static final TokenClass BITWISE_AND_OPERATOR = new TokenClass.con2('BITWISE_AND_OPERATOR', 3, 8);
+  
   /**
    * A value used to indicate that the token type is a bitwise-or operator.
    */
   static final TokenClass BITWISE_OR_OPERATOR = new TokenClass.con2('BITWISE_OR_OPERATOR', 4, 6);
+  
   /**
    * A value used to indicate that the token type is a bitwise-xor operator.
    */
   static final TokenClass BITWISE_XOR_OPERATOR = new TokenClass.con2('BITWISE_XOR_OPERATOR', 5, 7);
+  
   /**
    * A value used to indicate that the token type is a cascade operator.
    */
   static final TokenClass CASCADE_OPERATOR = new TokenClass.con2('CASCADE_OPERATOR', 6, 2);
+  
   /**
    * A value used to indicate that the token type is a conditional operator.
    */
   static final TokenClass CONDITIONAL_OPERATOR = new TokenClass.con2('CONDITIONAL_OPERATOR', 7, 3);
+  
   /**
    * A value used to indicate that the token type is an equality operator.
    */
   static final TokenClass EQUALITY_OPERATOR = new TokenClass.con2('EQUALITY_OPERATOR', 8, 9);
+  
   /**
    * A value used to indicate that the token type is a logical-and operator.
    */
   static final TokenClass LOGICAL_AND_OPERATOR = new TokenClass.con2('LOGICAL_AND_OPERATOR', 9, 5);
+  
   /**
    * A value used to indicate that the token type is a logical-or operator.
    */
   static final TokenClass LOGICAL_OR_OPERATOR = new TokenClass.con2('LOGICAL_OR_OPERATOR', 10, 4);
+  
   /**
    * A value used to indicate that the token type is a multiplicative operator.
    */
   static final TokenClass MULTIPLICATIVE_OPERATOR = new TokenClass.con2('MULTIPLICATIVE_OPERATOR', 11, 13);
+  
   /**
    * A value used to indicate that the token type is a relational operator.
    */
   static final TokenClass RELATIONAL_OPERATOR = new TokenClass.con2('RELATIONAL_OPERATOR', 12, 10);
+  
   /**
    * A value used to indicate that the token type is a shift operator.
    */
   static final TokenClass SHIFT_OPERATOR = new TokenClass.con2('SHIFT_OPERATOR', 13, 11);
+  
   /**
    * A value used to indicate that the token type is a unary operator.
    */
   static final TokenClass UNARY_POSTFIX_OPERATOR = new TokenClass.con2('UNARY_POSTFIX_OPERATOR', 14, 15);
+  
   /**
    * A value used to indicate that the token type is a unary operator.
    */
   static final TokenClass UNARY_PREFIX_OPERATOR = new TokenClass.con2('UNARY_PREFIX_OPERATOR', 15, 14);
   static final List<TokenClass> values = [NO_CLASS, ADDITIVE_OPERATOR, ASSIGNMENT_OPERATOR, BITWISE_AND_OPERATOR, BITWISE_OR_OPERATOR, BITWISE_XOR_OPERATOR, CASCADE_OPERATOR, CONDITIONAL_OPERATOR, EQUALITY_OPERATOR, LOGICAL_AND_OPERATOR, LOGICAL_OR_OPERATOR, MULTIPLICATIVE_OPERATOR, RELATIONAL_OPERATOR, SHIFT_OPERATOR, UNARY_POSTFIX_OPERATOR, UNARY_PREFIX_OPERATOR];
-  String __name;
-  int __ordinal = 0;
-  int get ordinal => __ordinal;
+  
+  /// The name of this enum constant, as declared in the enum declaration.
+  final String name;
+  
+  /// The position in the enum declaration.
+  final int ordinal;
+  
   /**
    * The precedence of tokens of this class, or {@code 0} if the such tokens do not represent an
    * operator.
    */
   int _precedence = 0;
-  TokenClass.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_319_impl(___name, ___ordinal);
+  TokenClass.con1(this.name, this.ordinal) {
+    _jtd_constructor_326_impl();
   }
-  _jtd_constructor_319_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_320_impl(___name, ___ordinal, 0);
+  _jtd_constructor_326_impl() {
+    _jtd_constructor_327_impl(0);
   }
-  TokenClass.con2(String ___name, int ___ordinal, int precedence2) {
-    _jtd_constructor_320_impl(___name, ___ordinal, precedence2);
+  TokenClass.con2(this.name, this.ordinal, int precedence2) {
+    _jtd_constructor_327_impl(precedence2);
   }
-  _jtd_constructor_320_impl(String ___name, int ___ordinal, int precedence2) {
-    __name = ___name;
-    __ordinal = ___ordinal;
+  _jtd_constructor_327_impl(int precedence2) {
     this._precedence = precedence2;
   }
+  
   /**
    * Return the precedence of tokens of this class, or {@code 0} if the such tokens do not represent
    * an operator.
    * @return the precedence of tokens of this class
    */
   int get precedence => _precedence;
-  int compareTo(TokenClass other) => __ordinal - other.__ordinal;
-  String toString() => __name;
+  int compareTo(TokenClass other) => ordinal - other.ordinal;
+  String toString() => name;
 }
+
 /**
  * Instances of the class {@code KeywordTokenWithComment} implement a keyword token that is preceded
  * by comments.
  * @coverage dart.engine.parser
  */
 class KeywordTokenWithComment extends KeywordToken {
+  
   /**
    * The first comment in the list of comments that precede this token.
    */
   Token _precedingComment;
+  
   /**
    * Initialize a newly created token to to represent the given keyword and to be preceded by the
    * comments reachable from the given comment.
@@ -1720,12 +1850,14 @@ class KeywordTokenWithComment extends KeywordToken {
   }
   Token get precedingComments => _precedingComment;
 }
+
 /**
  * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
  * scanner.
  * @coverage dart.engine.parser
  */
 class TokenType implements Comparable<TokenType> {
+  
   /**
    * The type of the token that marks the end of the input.
    */
@@ -1798,54 +1930,62 @@ class TokenType implements Comparable<TokenType> {
   static final TokenType BACKSLASH = new TokenType.con2('BACKSLASH', 66, null, "\\");
   static final TokenType PERIOD_PERIOD_PERIOD = new TokenType.con2('PERIOD_PERIOD_PERIOD', 67, null, "...");
   static final List<TokenType> values = [EOF, DOUBLE, HEXADECIMAL, IDENTIFIER, INT, KEYWORD, MULTI_LINE_COMMENT, SCRIPT_TAG, SINGLE_LINE_COMMENT, STRING, AMPERSAND, AMPERSAND_AMPERSAND, AMPERSAND_EQ, AT, BANG, BANG_EQ, BAR, BAR_BAR, BAR_EQ, COLON, COMMA, CARET, CARET_EQ, CLOSE_CURLY_BRACKET, CLOSE_PAREN, CLOSE_SQUARE_BRACKET, EQ, EQ_EQ, FUNCTION, GT, GT_EQ, GT_GT, GT_GT_EQ, HASH, INDEX, INDEX_EQ, IS, LT, LT_EQ, LT_LT, LT_LT_EQ, MINUS, MINUS_EQ, MINUS_MINUS, OPEN_CURLY_BRACKET, OPEN_PAREN, OPEN_SQUARE_BRACKET, PERCENT, PERCENT_EQ, PERIOD, PERIOD_PERIOD, PLUS, PLUS_EQ, PLUS_PLUS, QUESTION, SEMICOLON, SLASH, SLASH_EQ, STAR, STAR_EQ, STRING_INTERPOLATION_EXPRESSION, STRING_INTERPOLATION_IDENTIFIER, TILDE, TILDE_SLASH, TILDE_SLASH_EQ, BACKPING, BACKSLASH, PERIOD_PERIOD_PERIOD];
-  String __name;
-  int __ordinal = 0;
-  int get ordinal => __ordinal;
+  
+  /// The name of this enum constant, as declared in the enum declaration.
+  final String name;
+  
+  /// The position in the enum declaration.
+  final int ordinal;
+  
   /**
    * The class of the token.
    */
   TokenClass _tokenClass;
+  
   /**
    * The lexeme that defines this type of token, or {@code null} if there is more than one possible
    * lexeme for this type of token.
    */
   String _lexeme;
-  TokenType.con1(String ___name, int ___ordinal) {
-    _jtd_constructor_321_impl(___name, ___ordinal);
+  TokenType.con1(this.name, this.ordinal) {
+    _jtd_constructor_328_impl();
   }
-  _jtd_constructor_321_impl(String ___name, int ___ordinal) {
-    _jtd_constructor_322_impl(___name, ___ordinal, TokenClass.NO_CLASS, null);
+  _jtd_constructor_328_impl() {
+    _jtd_constructor_329_impl(TokenClass.NO_CLASS, null);
   }
-  TokenType.con2(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
-    _jtd_constructor_322_impl(___name, ___ordinal, tokenClass2, lexeme2);
+  TokenType.con2(this.name, this.ordinal, TokenClass tokenClass2, String lexeme2) {
+    _jtd_constructor_329_impl(tokenClass2, lexeme2);
   }
-  _jtd_constructor_322_impl(String ___name, int ___ordinal, TokenClass tokenClass2, String lexeme2) {
-    __name = ___name;
-    __ordinal = ___ordinal;
+  _jtd_constructor_329_impl(TokenClass tokenClass2, String lexeme2) {
     this._tokenClass = tokenClass2 == null ? TokenClass.NO_CLASS : tokenClass2;
     this._lexeme = lexeme2;
   }
+  
   /**
    * Return the lexeme that defines this type of token, or {@code null} if there is more than one
    * possible lexeme for this type of token.
    * @return the lexeme that defines this type of token
    */
   String get lexeme => _lexeme;
+  
   /**
    * Return the precedence of the token, or {@code 0} if the token does not represent an operator.
    * @return the precedence of the token
    */
   int get precedence => _tokenClass.precedence;
+  
   /**
    * Return {@code true} if this type of token represents an additive operator.
    * @return {@code true} if this type of token represents an additive operator
    */
   bool isAdditiveOperator() => identical(_tokenClass, TokenClass.ADDITIVE_OPERATOR);
+  
   /**
    * Return {@code true} if this type of token represents an assignment operator.
    * @return {@code true} if this type of token represents an assignment operator
    */
   bool isAssignmentOperator() => identical(_tokenClass, TokenClass.ASSIGNMENT_OPERATOR);
+  
   /**
    * Return {@code true} if this type of token represents an associative operator. An associative
    * operator is an operator for which the following equality is true:{@code (a * b) * c == a * (b * c)}. In other words, if the result of applying the operator to
@@ -1857,55 +1997,64 @@ class TokenType implements Comparable<TokenType> {
    * @return {@code true} if this type of token represents an associative operator
    */
   bool isAssociativeOperator() => identical(this, AMPERSAND) || identical(this, AMPERSAND_AMPERSAND) || identical(this, BAR) || identical(this, BAR_BAR) || identical(this, CARET) || identical(this, PLUS) || identical(this, STAR);
+  
   /**
    * Return {@code true} if this type of token represents an equality operator.
    * @return {@code true} if this type of token represents an equality operator
    */
   bool isEqualityOperator() => identical(_tokenClass, TokenClass.EQUALITY_OPERATOR);
+  
   /**
    * Return {@code true} if this type of token represents an increment operator.
    * @return {@code true} if this type of token represents an increment operator
    */
   bool isIncrementOperator() => identical(_lexeme, "++") || identical(_lexeme, "--");
+  
   /**
    * Return {@code true} if this type of token represents a multiplicative operator.
    * @return {@code true} if this type of token represents a multiplicative operator
    */
   bool isMultiplicativeOperator() => identical(_tokenClass, TokenClass.MULTIPLICATIVE_OPERATOR);
+  
   /**
    * Return {@code true} if this token type represents an operator.
    * @return {@code true} if this token type represents an operator
    */
   bool isOperator() => _tokenClass != TokenClass.NO_CLASS && this != OPEN_PAREN && this != OPEN_SQUARE_BRACKET && this != PERIOD;
+  
   /**
    * Return {@code true} if this type of token represents a relational operator.
    * @return {@code true} if this type of token represents a relational operator
    */
   bool isRelationalOperator() => identical(_tokenClass, TokenClass.RELATIONAL_OPERATOR);
+  
   /**
    * Return {@code true} if this type of token represents a shift operator.
    * @return {@code true} if this type of token represents a shift operator
    */
   bool isShiftOperator() => identical(_tokenClass, TokenClass.SHIFT_OPERATOR);
+  
   /**
    * Return {@code true} if this type of token represents a unary postfix operator.
    * @return {@code true} if this type of token represents a unary postfix operator
    */
   bool isUnaryPostfixOperator() => identical(_tokenClass, TokenClass.UNARY_POSTFIX_OPERATOR);
+  
   /**
    * Return {@code true} if this type of token represents a unary prefix operator.
    * @return {@code true} if this type of token represents a unary prefix operator
    */
   bool isUnaryPrefixOperator() => identical(_tokenClass, TokenClass.UNARY_PREFIX_OPERATOR);
+  
   /**
    * Return {@code true} if this token type represents an operator that can be defined by users.
    * @return {@code true} if this token type represents an operator that can be defined by users
    */
   bool isUserDefinableOperator() => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
-  int compareTo(TokenType other) => __ordinal - other.__ordinal;
-  String toString() => __name;
+  int compareTo(TokenType other) => ordinal - other.ordinal;
+  String toString() => name;
 }
 class TokenType_EOF extends TokenType {
-  TokenType_EOF(String ___name, int ___ordinal, TokenClass arg0, String arg1) : super.con2(___name, ___ordinal, arg0, arg1);
+  TokenType_EOF(String name, int ordinal, TokenClass arg0, String arg1) : super.con2(name, ordinal, arg0, arg1);
   String toString() => "-eof-";
 }

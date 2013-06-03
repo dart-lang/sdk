@@ -11,28 +11,34 @@ import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext, AnalysisEngine;
 export 'source.dart';
 
+
 /**
  * Instances of the class {@code FileBasedSource} implement a source that represents a file.
  * @coverage dart.engine.source
  */
 class FileBasedSource implements Source {
+  
   /**
    * The content cache used to access the contents of this source if they have been overridden from
    * what is on disk or cached.
    */
   ContentCache _contentCache;
+  
   /**
    * The file represented by this source.
    */
   JavaFile _file;
+  
   /**
    * The cached encoding for this source.
    */
   String _encoding;
+  
   /**
    * The kind of URI from which this source was originally derived.
    */
   UriKind _uriKind;
+  
   /**
    * Initialize a newly created source object. The source object is assumed to not be in a system
    * library.
@@ -40,11 +46,12 @@ class FileBasedSource implements Source {
    * @param file the file represented by this source
    */
   FileBasedSource.con1(ContentCache contentCache, JavaFile file) {
-    _jtd_constructor_329_impl(contentCache, file);
+    _jtd_constructor_336_impl(contentCache, file);
   }
-  _jtd_constructor_329_impl(ContentCache contentCache, JavaFile file) {
-    _jtd_constructor_330_impl(contentCache, file, UriKind.FILE_URI);
+  _jtd_constructor_336_impl(ContentCache contentCache, JavaFile file) {
+    _jtd_constructor_337_impl(contentCache, file, UriKind.FILE_URI);
   }
+  
   /**
    * Initialize a newly created source object.
    * @param contentCache the content cache used to access the contents of this source
@@ -52,9 +59,9 @@ class FileBasedSource implements Source {
    * @param flags {@code true} if this source is in one of the system libraries
    */
   FileBasedSource.con2(ContentCache contentCache2, JavaFile file2, UriKind uriKind2) {
-    _jtd_constructor_330_impl(contentCache2, file2, uriKind2);
+    _jtd_constructor_337_impl(contentCache2, file2, uriKind2);
   }
-  _jtd_constructor_330_impl(ContentCache contentCache2, JavaFile file2, UriKind uriKind2) {
+  _jtd_constructor_337_impl(ContentCache contentCache2, JavaFile file2, UriKind uriKind2) {
     this._contentCache = contentCache2;
     this._file = file2;
     this._uriKind = uriKind2;
@@ -99,6 +106,7 @@ class FileBasedSource implements Source {
     }
     return _file.getAbsolutePath();
   }
+  
   /**
    * Return the file represented by this source. This is an internal method that is only intended to
    * be used by {@link UriResolver}.
@@ -106,6 +114,7 @@ class FileBasedSource implements Source {
    */
   JavaFile get file => _file;
 }
+
 /**
  * Instances of the class {@code PackageUriResolver} resolve {@code package} URI's in the context of
  * an application.
@@ -116,20 +125,29 @@ class FileBasedSource implements Source {
  * @coverage dart.engine.source
  */
 class PackageUriResolver extends UriResolver {
+  
   /**
    * The package directories that {@code package} URI's are assumed to be relative to.
    */
   List<JavaFile> _packagesDirectories;
+  
   /**
    * The name of the {@code package} scheme.
    */
   static String _PACKAGE_SCHEME = "package";
+  
+  /**
+   * Log exceptions thrown with the message "Required key not available" only once.
+   */
+  static bool _CanLogRequiredKeyIoException = true;
+  
   /**
    * Return {@code true} if the given URI is a {@code package} URI.
    * @param uri the URI being tested
    * @return {@code true} if the given URI is a {@code package} URI
    */
-  static bool isPackageUri(Uri uri) => uri.scheme == _PACKAGE_SCHEME;
+  static bool isPackageUri(Uri uri) => _PACKAGE_SCHEME == uri.scheme;
+  
   /**
    * Initialize a newly created resolver to resolve {@code package} URI's relative to the given
    * package directories.
@@ -179,6 +197,28 @@ class PackageUriResolver extends UriResolver {
     }
     return new FileBasedSource.con2(contentCache, getCanonicalFile(_packagesDirectories[0], pkgName, relPath), UriKind.PACKAGE_URI);
   }
+  Uri restoreAbsolute(Source source) {
+    if (source is FileBasedSource) {
+      String sourcePath = ((source as FileBasedSource)).file.getPath();
+      for (JavaFile packagesDirectory in _packagesDirectories) {
+        List<JavaFile> pkgFolders = packagesDirectory.listFiles();
+        if (pkgFolders != null) {
+          for (JavaFile pkgFolder in pkgFolders) {
+            try {
+              String pkgCanonicalPath = pkgFolder.getCanonicalPath();
+              if (sourcePath.startsWith(pkgCanonicalPath)) {
+                String relPath = sourcePath.substring(pkgCanonicalPath.length);
+                return parseUriWithException("${_PACKAGE_SCHEME}:${pkgFolder.getName()}${relPath}");
+              }
+            } catch (e) {
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+  
   /**
    * Answer the canonical file for the specified package.
    * @param packagesDirectory the "packages" directory (not {@code null})
@@ -192,17 +232,24 @@ class PackageUriResolver extends UriResolver {
     try {
       pkgDir = pkgDir.getCanonicalFile();
     } on IOException catch (e) {
-      AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
+      if (!e.toString().contains("Required key not available")) {
+        AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
+      } else if (_CanLogRequiredKeyIoException) {
+        _CanLogRequiredKeyIoException = false;
+        AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
+      }
     }
     return new JavaFile.relative(pkgDir, relPath.replaceAll('/', JavaFile.separatorChar));
   }
 }
+
 /**
  * Instances of the class {@link DirectoryBasedSourceContainer} represent a source container that
  * contains all sources within a given directory.
  * @coverage dart.engine.source
  */
 class DirectoryBasedSourceContainer implements SourceContainer {
+  
   /**
    * Append the system file separator to the given path unless the path already ends with a
    * separator.
@@ -215,33 +262,37 @@ class DirectoryBasedSourceContainer implements SourceContainer {
     }
     return "${path}${JavaFile.separator}";
   }
+  
   /**
    * The container's path (not {@code null}).
    */
   String _path;
+  
   /**
    * Construct a container representing the specified directory and containing any sources whose{@link Source#getFullName()} starts with the directory's path. This is a convenience method,
    * fully equivalent to {@link DirectoryBasedSourceContainer#DirectoryBasedSourceContainer(String)}.
    * @param directory the directory (not {@code null})
    */
   DirectoryBasedSourceContainer.con1(JavaFile directory) {
-    _jtd_constructor_327_impl(directory);
+    _jtd_constructor_334_impl(directory);
   }
-  _jtd_constructor_327_impl(JavaFile directory) {
-    _jtd_constructor_328_impl(directory.getPath());
+  _jtd_constructor_334_impl(JavaFile directory) {
+    _jtd_constructor_335_impl(directory.getPath());
   }
+  
   /**
    * Construct a container representing the specified path and containing any sources whose{@link Source#getFullName()} starts with the specified path.
    * @param path the path (not {@code null} and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path2) {
-    _jtd_constructor_328_impl(path2);
+    _jtd_constructor_335_impl(path2);
   }
-  _jtd_constructor_328_impl(String path2) {
+  _jtd_constructor_335_impl(String path2) {
     this._path = appendFileSeparator(path2);
   }
   bool contains(Source source) => source.fullName.startsWith(_path);
   bool operator ==(Object obj) => (obj is DirectoryBasedSourceContainer) && ((obj as DirectoryBasedSourceContainer)).path == path;
+  
   /**
    * Answer the receiver's path, used to determine if a source is contained in the receiver.
    * @return the path (not {@code null}, not empty)
@@ -250,27 +301,24 @@ class DirectoryBasedSourceContainer implements SourceContainer {
   int get hashCode => _path.hashCode;
   String toString() => "SourceContainer[${_path}]";
 }
+
 /**
  * Instances of the class {@code FileUriResolver} resolve {@code file} URI's.
  * @coverage dart.engine.source
  */
 class FileUriResolver extends UriResolver {
+  
   /**
    * The name of the {@code file} scheme.
    */
   static String _FILE_SCHEME = "file";
+  
   /**
    * Return {@code true} if the given URI is a {@code file} URI.
    * @param uri the URI being tested
    * @return {@code true} if the given URI is a {@code file} URI
    */
   static bool isFileUri(Uri uri) => uri.scheme == _FILE_SCHEME;
-  /**
-   * Initialize a newly created resolver to resolve {@code file} URI's relative to the given root
-   * directory.
-   */
-  FileUriResolver() : super() {
-  }
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {
     if (identical(kind, UriKind.FILE_URI)) {
       return new FileBasedSource.con2(contentCache, new JavaFile.fromUri(uri), kind);
