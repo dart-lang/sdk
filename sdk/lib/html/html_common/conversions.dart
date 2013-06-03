@@ -314,6 +314,49 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
   return copy;
 }
 
+// Conversions for ImageData
+//
+// On Firefox, the returned ImageData is a plain object.
+
+class _TypedImageData implements ImageData {
+  final Uint8ClampedList data;
+  final int height;
+  final int width;
+
+  _TypedImageData(this.data, this.height, this.width);
+}
+
+ImageData convertNativeToDart_ImageData(nativeImageData) {
+
+  // None of the native getters that return ImageData have the type ImageData
+  // since that is incorrect for FireFox (which returns a plain Object).  So we
+  // need something that tells the compiler that the ImageData class has been
+  // instantiated.
+  // TODO(sra): Remove this when all the ImageData returning APIs have been
+  // annotated as returning the union ImageData + Object.
+  JS('ImageData', '0');
+
+  if (nativeImageData is ImageData) return nativeImageData;
+
+  // On Firefox the above test fails because imagedata is a plain object.
+  // So we create a _TypedImageData.
+
+  return new _TypedImageData(
+      JS('var', '#.data', nativeImageData),
+      JS('var', '#.height', nativeImageData),
+      JS('var', '#.width', nativeImageData));
+}
+
+// We can get rid of this conversion if _TypedImageData implements the fields
+// with native names.
+convertDartToNative_ImageData(ImageData imageData) {
+  if (imageData is _TypedImageData) {
+    return JS('', '{data: #, height: #, width: #}',
+        imageData.data, imageData.height, imageData.width);
+  }
+  return imageData;
+}
+
 
 bool isJavaScriptDate(value) => JS('bool', '# instanceof Date', value);
 bool isJavaScriptRegExp(value) => JS('bool', '# instanceof RegExp', value);

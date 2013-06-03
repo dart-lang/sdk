@@ -2465,7 +2465,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
       return;
     }
     if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && format == null && type == null && pixels == null) {
-      var pixels_1 = _convertDartToNative_ImageData(border_OR_canvas_OR_image_OR_pixels_OR_video);
+      var pixels_1 = convertDartToNative_ImageData(border_OR_canvas_OR_image_OR_pixels_OR_video);
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, pixels_1);
       return;
     }
@@ -2520,7 +2520,7 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
       return;
     }
     if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && type == null && pixels == null) {
-      var pixels_1 = _convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
+      var pixels_1 = convertDartToNative_ImageData(canvas_OR_format_OR_image_OR_pixels_OR_video);
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, pixels_1);
       return;
     }

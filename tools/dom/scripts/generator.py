@@ -491,9 +491,9 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
                  'dynamic'),
 
     'ImageData get':
-      Conversion('_convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
+      Conversion('convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
     'ImageData set':
-      Conversion('_convertDartToNative_ImageData', 'ImageData', 'dynamic'),
+      Conversion('convertDartToNative_ImageData', 'ImageData', 'dynamic'),
 
     'Dictionary get':
       Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map'),
@@ -517,7 +517,7 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
                  'dynamic', 'dynamic'),
 
     '* get History.state':
-      Conversion('_convertNativeToDart_SerializedScriptValue',
+      Conversion('convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
     '* get PopStateEvent.state':

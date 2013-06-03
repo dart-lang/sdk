@@ -1130,7 +1130,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable
   @Creates('ImageData|=Object')
   ImageData createImageData(num sw, num sh) {
-    return _convertNativeToDart_ImageData(_createImageData_1(sw, sh));
+    return convertNativeToDart_ImageData(_createImageData_1(sw, sh));
   }
   @JSName('createImageData')
   @DomName('CanvasRenderingContext2D.createImageData')
@@ -1142,8 +1142,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable
   @Creates('ImageData|=Object')
   ImageData createImageDataFromImageData(ImageData imagedata) {
-    var imagedata_1 = _convertDartToNative_ImageData(imagedata);
-    return _convertNativeToDart_ImageData(_createImageDataFromImageData_1(imagedata_1));
+    var imagedata_1 = convertDartToNative_ImageData(imagedata);
+    return convertNativeToDart_ImageData(_createImageDataFromImageData_1(imagedata_1));
   }
   @JSName('createImageData')
   @DomName('CanvasRenderingContext2D.createImageData')
@@ -1185,7 +1185,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable
   @Creates('ImageData|=Object')
   ImageData getImageData(num sx, num sy, num sw, num sh) {
-    return _convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
+    return convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
   }
   @JSName('getImageData')
   @DomName('CanvasRenderingContext2D.getImageData')
@@ -1221,12 +1221,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
-      var imagedata_1 = _convertDartToNative_ImageData(imagedata);
+      var imagedata_1 = convertDartToNative_ImageData(imagedata);
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
     if (dirtyHeight != null && dirtyWidth != null && dirtyY != null && dirtyX != null) {
-      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+      var imagedata_2 = convertDartToNative_ImageData(imagedata);
       _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
@@ -1300,7 +1300,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @Experimental
   @Creates('ImageData|=Object')
   ImageData getImageDataHD(num sx, num sy, num sw, num sh) {
-    return _convertNativeToDart_ImageData(_getImageDataHD_1(sx, sy, sw, sh));
+    return convertNativeToDart_ImageData(_getImageDataHD_1(sx, sy, sw, sh));
   }
   @JSName('webkitGetImageDataHD')
   @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
@@ -1318,12 +1318,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @Experimental
   void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
     if (dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
-      var imagedata_1 = _convertDartToNative_ImageData(imagedata);
+      var imagedata_1 = convertDartToNative_ImageData(imagedata);
       _putImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
     if (dirtyHeight != null && dirtyWidth != null && dirtyY != null && dirtyX != null) {
-      var imagedata_2 = _convertDartToNative_ImageData(imagedata);
+      var imagedata_2 = convertDartToNative_ImageData(imagedata);
       _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
@@ -7827,7 +7827,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
    * * [insertAdjacentElement]
    */
   void insertAdjacentHtml(String where, String html) {
-    if (JS('bool', '!!#.insertAdjacentHtml', this)) {
+    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
       _insertAdjacentHtml(where, html);
     } else {
       _insertAdjacentNode(where, new DocumentFragment.html(html));
@@ -7835,7 +7835,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   }
 
   @JSName('insertAdjacentHTML')
-  void _insertAdjacentHTML(String where, String text) native;
+  void _insertAdjacentHtml(String where, String text) native;
 
   /**
    * Inserts [element] into the DOM at the specified location.
@@ -10946,7 +10946,7 @@ class History implements HistoryBase native "History" {
   @DocsEditable
   final int length;
 
-  dynamic get state => _convertNativeToDart_SerializedScriptValue(this._get_state);
+  dynamic get state => convertNativeToDart_SerializedScriptValue(this._get_state);
   @JSName('state')
   @DomName('History.state')
   @DocsEditable
@@ -23420,8 +23420,8 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
     _returnValue = value;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
-    if (JS('bool', '("returnValue" in #)', _base)) {
-      JS('void', '#.returnValue = #', _base, value);
+    if (JS('bool', '("returnValue" in #)', wrapped)) {
+      JS('void', '#.returnValue = #', wrapped, value);
     }
   }
 }
@@ -28994,49 +28994,6 @@ EventTarget _convertDartToNative_EventTarget(e) {
   } else {
     return e;
   }
-}
-
-// Conversions for ImageData
-//
-// On Firefox, the returned ImageData is a plain object.
-
-class _TypedImageData implements ImageData {
-  final Uint8ClampedList data;
-  final int height;
-  final int width;
-
-  _TypedImageData(this.data, this.height, this.width);
-}
-
-ImageData _convertNativeToDart_ImageData(nativeImageData) {
-
-  // None of the native getters that return ImageData have the type ImageData
-  // since that is incorrect for FireFox (which returns a plain Object).  So we
-  // need something that tells the compiler that the ImageData class has been
-  // instantiated.
-  // TODO(sra): Remove this when all the ImageData returning APIs have been
-  // annotated as returning the union ImageData + Object.
-  JS('ImageData', '0');
-
-  if (nativeImageData is ImageData) return nativeImageData;
-
-  // On Firefox the above test fails because imagedata is a plain object.
-  // So we create a _TypedImageData.
-
-  return new _TypedImageData(
-      JS('var', '#.data', nativeImageData),
-      JS('var', '#.height', nativeImageData),
-      JS('var', '#.width', nativeImageData));
-}
-
-// We can get rid of this conversion if _TypedImageData implements the fields
-// with native names.
-_convertDartToNative_ImageData(ImageData imageData) {
-  if (imageData is _TypedImageData) {
-    return JS('', '{data: #, height: #, width: #}',
-        imageData.data, imageData.height, imageData.width);
-  }
-  return imageData;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
