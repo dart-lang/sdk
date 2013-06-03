@@ -798,11 +798,7 @@ type_variable_scope_test/03: fail
 type_variable_scope_test/04: fail
 type_variable_scope_test/05: fail
 
-
-[ $arch == arm ]
-*: Skip
-
-[ $arch == simarm ]
+[ $arch == simarm || $arch == arm ]
 arithmetic_test: Fail, Crash
 bit_operations_test: Crash
 char_escape_test: Pass, Crash

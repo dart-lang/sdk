@@ -54,10 +54,7 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == arm ]
-*: Skip
-
-[ $arch == simarm ]
+[ $arch == simarm || $arch == arm ]
 # Bug in optimized code generation.
 dart/byte_array_test: Fail
 dart/byte_array_optimized_test: Fail
