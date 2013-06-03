@@ -38,13 +38,13 @@ postmessage_structured_test/primitives: Fail # Issue 10097
 # Layout tests are only supported on DRT.
 [ $runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 *layout_test: Skip
-html/node_bindings_test: Fail # Issue 11036
-html/client_rect_test: Fail # Issue 11036
-html/node_test/functional: Fail #   Issue 11036
-html/queryall_test: Fail # Issue 11036
-html/element_add_test: Fail #	 Issue 11036
-html/documentfragment_test: Fail #     Issue 11036
-html/range_test/functional: Fail #     Issue 11036
+node_bindings_test: Fail # Issue 11036
+client_rect_test: Fail # Issue 11036
+node_test/functional: Fail #   Issue 11036
+queryall_test: Fail # Issue 11036
+element_add_test: Fail #	 Issue 11036
+documentfragment_test: Fail #     Issue 11036
+range_test/functional: Fail #     Issue 11036
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail
