@@ -5702,7 +5702,7 @@ class DataTransfer native "Clipboard" {
 
   @DomName('Clipboard.setDragImage')
   @DocsEditable
-  void setDragImage(ImageElement image, int x, int y) native;
+  void setDragImage(Element element, int x, int y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

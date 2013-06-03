@@ -6191,7 +6191,7 @@ class DataTransfer extends NativeFieldWrapperClass1 {
 
   @DomName('Clipboard.setDragImage')
   @DocsEditable
-  void setDragImage(ImageElement image, int x, int y) native "Clipboard_setDragImage_Callback";
+  void setDragImage(Element element, int x, int y) native "Clipboard_setDragImage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -23,6 +23,12 @@ interface AudioParam {
 };
 
 [Supplemental]
+interface Clipboard {
+  [Suppressed] void setDragImage(HTMLImageElement image, long x, long y);
+  [Custom] void setDragImage(Element element, long x, long y);
+};
+
+[Supplemental]
 interface Document {
   [Suppressed] DOMObject getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
   CanvasRenderingContext getCSSCanvasContext(DOMString contextId, DOMString name, long width, long height);
