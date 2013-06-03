@@ -262,18 +262,20 @@ void Parser::TryBlocks::AddNodeForFinallyInlining(AstNode* node) {
 
 // For parsing a compilation unit.
 Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
-    : script_(Script::Handle(script.raw())),
-      tokens_iterator_(TokenStream::Handle(script.tokens()), token_pos),
+    : isolate_(Isolate::Current()),
+      script_(Script::Handle(isolate_, script.raw())),
+      tokens_iterator_(TokenStream::Handle(isolate_, script.tokens()),
+                       token_pos),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(NULL),
-      innermost_function_(Function::Handle()),
-      literal_token_(LiteralToken::Handle()),
-      current_class_(Class::Handle()),
-      library_(Library::Handle(library.raw())),
+      innermost_function_(Function::Handle(isolate_)),
+      literal_token_(LiteralToken::Handle(isolate_)),
+      current_class_(Class::Handle(isolate_)),
+      library_(Library::Handle(isolate_, library.raw())),
       try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
   ASSERT(!library.IsNull());
@@ -284,18 +286,23 @@ Parser::Parser(const Script& script, const Library& library, intptr_t token_pos)
 Parser::Parser(const Script& script,
                ParsedFunction* parsed_function,
                intptr_t token_position)
-    : script_(Script::Handle(script.raw())),
-      tokens_iterator_(TokenStream::Handle(script.tokens()), token_position),
+    : isolate_(Isolate::Current()),
+      script_(Script::Handle(isolate_, script.raw())),
+      tokens_iterator_(TokenStream::Handle(isolate_, script.tokens()),
+                       token_position),
       token_kind_(Token::kILLEGAL),
       current_block_(NULL),
       is_top_level_(false),
       current_member_(NULL),
       allow_function_literals_(true),
       parsed_function_(parsed_function),
-      innermost_function_(Function::Handle(parsed_function->function().raw())),
-      literal_token_(LiteralToken::Handle()),
-      current_class_(Class::Handle(parsed_function->function().Owner())),
+      innermost_function_(Function::Handle(isolate_,
+                                           parsed_function->function().raw())),
+      literal_token_(LiteralToken::Handle(isolate_)),
+      current_class_(Class::Handle(isolate_,
+                                   parsed_function->function().Owner())),
       library_(Library::Handle(Class::Handle(
+          isolate_,
           parsed_function->function().origin()).library())),
       try_blocks_list_(NULL) {
   ASSERT(tokens_iterator_.IsValid());
@@ -3756,7 +3763,6 @@ void Parser::SkipType(bool allow_void) {
 void Parser::ParseTypeParameters(const Class& cls) {
   TRACE_PARSER("ParseTypeParameters");
   if (CurrentToken() == Token::kLT) {
-    Isolate* isolate = Isolate::Current();
     const GrowableObjectArray& type_parameters_array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
     intptr_t index = 0;
@@ -3787,7 +3793,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
         // type parameters, as they are not fully parsed yet.
         type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
       } else {
-        type_parameter_bound = isolate->object_store()->object_type();
+        type_parameter_bound = isolate()->object_store()->object_type();
       }
       type_parameter = TypeParameter::New(cls,
                                           index,
@@ -3922,7 +3928,7 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
     mixin_app_name = mixin_super_type.ClassName();
     mixin_app_name = String::Concat(mixin_app_name, Symbols::Ampersand());
     mixin_app_name = String::Concat(mixin_app_name,
-                                     String::Handle(mixin_type.ClassName()));
+                                    String::Handle(mixin_type.ClassName()));
     mixin_app_name = Symbols::New(mixin_app_name);
 
     mixin_application = Class::New(mixin_app_name, script_, mixin_pos);
@@ -4248,8 +4254,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
                                           intptr_t token_pos,
                                           const String& url) {
-  Isolate* isolate = Isolate::Current();
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+  Dart_LibraryTagHandler handler = isolate()->library_tag_handler();
   if (handler == NULL) {
     if (url.StartsWith(Symbols::DartScheme())) {
       if (tag == Dart_kCanonicalizeUrl) {
@@ -4260,8 +4265,8 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
     ErrorMsg(token_pos, "no library handler registered");
   }
   Dart_Handle result = handler(tag,
-                               Api::NewHandle(isolate, library_.raw()),
-                               Api::NewHandle(isolate, url.raw()));
+                               Api::NewHandle(isolate(), library_.raw()),
+                               Api::NewHandle(isolate(), url.raw()));
   if (Dart_IsError(result)) {
     // In case of an error we append an explanatory error message to the
     // error obtained from the library tag handler.
@@ -4493,10 +4498,9 @@ void Parser::ParseTopLevel() {
   // Collect the classes found at the top level in this growable array.
   // They need to be registered with class finalization after parsing
   // has been completed.
-  Isolate* isolate = Isolate::Current();
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = isolate()->object_store();
   const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(isolate, object_store->pending_classes());
+      GrowableObjectArray::Handle(isolate(), object_store->pending_classes());
   SetPosition(0);
   is_top_level_ = true;
   TopLevel top_level;
@@ -6574,7 +6578,7 @@ void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) {
   const Error& error = Error::Handle(
       FormatError(script_, token_pos, "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
@@ -6585,13 +6589,13 @@ void Parser::ErrorMsg(const char* format, ...) {
   const Error& error = Error::Handle(
       FormatError(script_, TokenPos(), "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
 
 void Parser::ErrorMsg(const Error& error) {
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
@@ -6603,7 +6607,7 @@ void Parser::AppendErrorMsg(
   const Error& error = Error::Handle(FormatErrorWithAppend(
       prev_error, script_, token_pos, "Error", format, args));
   va_end(args);
-  Isolate::Current()->long_jump_base()->Jump(1, error);
+  isolate()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
 }
 
@@ -6616,7 +6620,7 @@ void Parser::Warning(intptr_t token_pos, const char* format, ...) {
       FormatError(script_, token_pos, "Warning", format, args));
   va_end(args);
   if (FLAG_warning_as_error) {
-    Isolate::Current()->long_jump_base()->Jump(1, error);
+    isolate()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
   } else {
     OS::Print("%s", error.ToErrorCString());
@@ -6632,7 +6636,7 @@ void Parser::Warning(const char* format, ...) {
       FormatError(script_, TokenPos(), "Warning", format, args));
   va_end(args);
   if (FLAG_warning_as_error) {
-    Isolate::Current()->long_jump_base()->Jump(1, error);
+    isolate()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
   } else {
     OS::Print("%s", error.ToErrorCString());
@@ -8107,7 +8111,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
                          "error initializing const field '%s'",
                          String::Handle(field.name()).ToCString());
         } else {
-          Isolate::Current()->long_jump_base()->Jump(1, error);
+          isolate()->long_jump_base()->Jump(1, error);
         }
       }
       ASSERT(const_value.IsNull() || const_value.IsInstance());
@@ -8170,7 +8174,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {
-        Isolate::Current()->long_jump_base()->Jump(1, Error::Cast(result));
+        isolate()->long_jump_base()->Jump(1, Error::Cast(result));
         UNREACHABLE();
         return Object::null();
       }
@@ -8190,7 +8194,6 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
                                       const String &ident,
                                       AstNode** node) {
   TRACE_PARSER("ResolveIdentInLocalScope");
-  Isolate* isolate = Isolate::Current();
   // First try to find the identifier in the nested local scopes.
   LocalVariable* local = LookupLocalScope(ident);
   if (local != NULL) {
@@ -8207,14 +8210,14 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   // Try to find the identifier in the class scope of the current class.
   // If the current class is the result of a mixin application, we must
   // use the class scope of the class from which the function originates.
-  Class& cls = Class::Handle(isolate);
+  Class& cls = Class::Handle(isolate());
   if (current_class().mixin() == Type::null()) {
     cls = current_class().raw();
   } else {
     cls = parsed_function()->function().origin();
   }
-  Function& func = Function::Handle(isolate, Function::null());
-  Field& field = Field::Handle(isolate, Field::null());
+  Function& func = Function::Handle(isolate(), Function::null());
+  Field& field = Field::Handle(isolate(), Field::null());
 
   // First check if a field exists.
   field = cls.LookupField(ident);
@@ -8236,7 +8239,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
       (func.IsDynamicFunction() || func.IsStaticFunction())) {
     if (node != NULL) {
       *node = new PrimaryNode(ident_pos,
-                              Function::ZoneHandle(isolate, func.raw()));
+                              Function::ZoneHandle(isolate(), func.raw()));
     }
     return true;
   }
@@ -8268,7 +8271,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         *node = new StaticGetterNode(ident_pos,
                                      receiver,
                                      false,
-                                     Class::ZoneHandle(isolate, cls.raw()),
+                                     Class::ZoneHandle(isolate(), cls.raw()),
                                      ident);
       }
       return true;
@@ -8296,7 +8299,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         *node = new StaticGetterNode(ident_pos,
                                      NULL,
                                      false,
-                                     Class::ZoneHandle(isolate, cls.raw()),
+                                     Class::ZoneHandle(isolate(), cls.raw()),
                                      ident);
       }
       return true;
@@ -8311,13 +8314,15 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 }
 
 
-static RawObject* LookupNameInLibrary(const Library& lib, const String& name) {
-  Object& obj = Object::Handle();
+static RawObject* LookupNameInLibrary(Isolate* isolate,
+                                      const Library& lib,
+                                      const String& name) {
+  Object& obj = Object::Handle(isolate);
   obj = lib.LookupLocalObject(name);
   if (!obj.IsNull()) {
     return obj.raw();
   }
-  String& accessor_name = String::Handle(Field::GetterName(name));
+  String& accessor_name = String::Handle(isolate, Field::GetterName(name));
   obj = lib.LookupLocalObject(accessor_name);
   if (!obj.IsNull()) {
     return obj.raw();
@@ -8328,8 +8333,10 @@ static RawObject* LookupNameInLibrary(const Library& lib, const String& name) {
 }
 
 
-static RawObject* LookupNameInImport(const Namespace& ns, const String& name) {
-  Object& obj = Object::Handle();
+static RawObject* LookupNameInImport(Isolate* isolate,
+                                     const Namespace& ns,
+                                     const String& name) {
+  Object& obj = Object::Handle(isolate);
   obj = ns.Lookup(name);
   if (!obj.IsNull()) {
     return obj.raw();
@@ -8339,7 +8346,7 @@ static RawObject* LookupNameInImport(const Namespace& ns, const String& name) {
   if (ns.HidesName(name)) {
     return Object::null();
   }
-  String& accessor_name = String::Handle(Field::GetterName(name));
+  String& accessor_name = String::Handle(isolate, Field::GetterName(name));
   obj = ns.Lookup(accessor_name);
   if (!obj.IsNull()) {
     return obj.raw();
@@ -8360,18 +8367,20 @@ RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
                                                     const String& name,
                                                     Error* error) {
   TRACE_PARSER("ResolveNameInCurrentLibraryScope");
-  Object& obj = Object::Handle(LookupNameInLibrary(library_, name));
+  HANDLESCOPE(isolate());
+  Object& obj = Object::Handle(isolate(),
+                               LookupNameInLibrary(isolate(), library_, name));
   if (obj.IsNull()) {
     // Name is not found in current library. Check scope of all
     // imported libraries.
-    String& first_lib_url = String::Handle();
-    Namespace& import = Namespace::Handle();
+    String& first_lib_url = String::Handle(isolate());
+    Namespace& import = Namespace::Handle(isolate());
     intptr_t num_imports = library_.num_imports();
-    Object& imported_obj = Object::Handle();
-    Library& lib = Library::Handle();
+    Object& imported_obj = Object::Handle(isolate());
+    Library& lib = Library::Handle(isolate());
     for (int i = 0; i < num_imports; i++) {
       import = library_.ImportAt(i);
-      imported_obj = LookupNameInImport(import, name);
+      imported_obj = LookupNameInImport(isolate(), import, name);
       if (!imported_obj.IsNull()) {
         lib ^= import.library();
         if (!first_lib_url.IsNull()) {
@@ -8467,17 +8476,19 @@ RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
                                             const String& name,
                                             Error* error) {
   TRACE_PARSER("ResolveNameInPrefixScope");
-  Namespace& import = Namespace::Handle();
-  String& first_lib_url = String::Handle();
-  Object& obj = Object::Handle();
-  Object& resolved_obj = Object::Handle();
-  const Array& imports = Array::Handle(prefix.imports());
+  HANDLESCOPE(isolate());
+  Namespace& import = Namespace::Handle(isolate());
+  String& first_lib_url = String::Handle(isolate());
+  Object& obj = Object::Handle(isolate());
+  Object& resolved_obj = Object::Handle(isolate());
+  const Array& imports = Array::Handle(isolate(), prefix.imports());
+  Library& lib = Library::Handle(isolate());
   for (intptr_t i = 0; i < prefix.num_imports(); i++) {
     import ^= imports.At(i);
-    resolved_obj = LookupNameInImport(import, name);
+    resolved_obj = LookupNameInImport(isolate(), import, name);
     if (!resolved_obj.IsNull()) {
       obj = resolved_obj.raw();
-      const Library& lib = Library::Handle(import.library());
+      lib = import.library();
       if (first_lib_url.IsNull()) {
         first_lib_url = lib.url();
       } else {
@@ -8658,10 +8669,10 @@ RawAbstractType* Parser::ParseType(
                type_name.ident->ToCString());
     }
   }
-  Object& type_class = Object::Handle();
+  Object& type_class = Object::Handle(isolate());
   // Leave type_class as null if type finalization mode is kIgnore.
   if (finalization != ClassFinalizer::kIgnore) {
-    LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
+    LibraryPrefix& lib_prefix = LibraryPrefix::Handle(isolate());
     if (type_name.lib_prefix != NULL) {
       lib_prefix = type_name.lib_prefix->raw();
     }
@@ -8669,21 +8680,24 @@ RawAbstractType* Parser::ParseType(
                                       *type_name.ident,
                                       type_name.ident_pos);
   }
-  Error& malformed_error = Error::Handle();
+  Error& malformed_error = Error::Handle(isolate());
   AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::Handle(ParseTypeArguments(&malformed_error,
+      AbstractTypeArguments::Handle(isolate(),
+                                    ParseTypeArguments(&malformed_error,
                                                        finalization));
   if (finalization == ClassFinalizer::kIgnore) {
     return Type::DynamicType();
   }
   AbstractType& type = AbstractType::Handle(
+      isolate(),
       Type::New(type_class, type_arguments, type_name.ident_pos));
   // In production mode, malformed type arguments are mapped to dynamic.
   // In checked mode, a type with malformed type arguments is malformed.
   if (FLAG_enable_type_checks && !malformed_error.IsNull()) {
-    Type& parameterized_type = Type::Handle();
+    Type& parameterized_type = Type::Handle(isolate());
     parameterized_type ^= type.raw();
-    parameterized_type.set_type_class(Class::Handle(Object::dynamic_class()));
+    parameterized_type.set_type_class(
+        Class::Handle(isolate(), Object::dynamic_class()));
     parameterized_type.set_arguments(
         AbstractTypeArguments::null_object());
     parameterized_type.set_malformed_error(malformed_error);
@@ -8748,7 +8762,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
   }
   ASSERT(type_arguments.IsNull() || (type_arguments.Length() == 1));
   const Class& array_class = Class::Handle(
-      Isolate::Current()->object_store()->array_class());
+      isolate()->object_store()->array_class());
   Type& type = Type::ZoneHandle(
       Type::New(array_class, type_arguments, type_pos));
   type ^= ClassFinalizer::FinalizeType(
@@ -9673,7 +9687,7 @@ const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
     Object& result = Object::Handle(Compiler::ExecuteOnce(seq));
     if (result.IsError()) {
       // Propagate the compilation error.
-      Isolate::Current()->long_jump_base()->Jump(1, Error::Cast(result));
+      isolate()->long_jump_base()->Jump(1, Error::Cast(result));
       UNREACHABLE();
     }
     ASSERT(result.IsInstance());

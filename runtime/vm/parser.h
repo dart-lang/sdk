@@ -17,6 +17,7 @@ namespace dart {
 
 // Forward declarations.
 class Function;
+class Isolate;
 class LiteralToken;
 class Script;
 class TokenStream;
@@ -627,6 +628,10 @@ class Parser : public ValueObject {
       const AbstractTypeArguments& type_arguments,
       const Function& constructor,
       ArgumentListNode* arguments);
+
+  Isolate* isolate() const { return isolate_; }
+
+  Isolate* isolate_;  // Cached current isolate.
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;
