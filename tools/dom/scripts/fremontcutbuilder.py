@@ -102,14 +102,12 @@ def build_database(idl_files, database_dir, feature_defines=None, parallel=False
     _logger.warning('There are some unused conditionals %s' %
         sorted(unused_conditionals))
     _logger.warning('Please update fremontcutbuilder.py')
-    raise 'Halt'
 
   unknown_conditionals = conditionals_met - known_conditionals
   if unknown_conditionals:
     _logger.warning('There are some unknown conditionals %s' %
         sorted(unknown_conditionals))
     _logger.warning('Please update fremontcutbuilder.py')
-    raise 'Halt'
 
   db.Save()
   return db
