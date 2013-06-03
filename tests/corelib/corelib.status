@@ -13,10 +13,6 @@ symbol_test/01: Fail
 symbol_test/02: Fail
 symbol_test/03: Fail
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
-string_from_list_test: Fail # Bug 11030
-uri_path_test: Fail # Bug 11030
-
 [ $runtime == ff || $runtime == ie9 || $runtime == jsshell ]
 unicode_test: Fail
 
