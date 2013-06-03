@@ -73,7 +73,6 @@ _removed_html_interfaces = [
   'DedicatedWorkerContext', # Workers
   'DirectoryEntrySync', # Workers
   'DirectoryReaderSync', # Workers
-  'EntityReference',
   'EntrySync', # Workers
   'FileEntrySync', # Workers
   'FileReaderSync', # Workers
