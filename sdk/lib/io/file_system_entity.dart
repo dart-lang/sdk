@@ -46,7 +46,7 @@ class FileStat {
 
 
   /**
-   * Call the operating system's stat() function on [path].
+   * Calls the operating system's stat() function on [path].
    * Returns a [FileStat] object containing the data returned by stat().
    * If the call fails, returns a [FileStat] object with .type set to
    * FileSystemEntityType.NOT_FOUND and the other fields invalid.
@@ -64,7 +64,7 @@ class FileStat {
   }
 
   /**
-   * Asynchronously call the operating system's stat() function on [path].
+   * Asynchronously calls the operating system's stat() function on [path].
    * Returns a Future which completes with a [FileStat] object containing
    * the data returned by stat().
    * If the call fails, completes the future with a [FileStat] object with
@@ -193,14 +193,16 @@ abstract class FileSystemEntity {
   }
 
   /**
-   * Do two paths refer to the same object in the file system?
-   * Links are not identical to their targets, and two links
-   * are not identical just because they point to identical targets.
-   * Links in intermediate directories in the paths are followed, though.
+   * Synchronously checks whether two paths refer to the same object in the
+   * file system. Returns a [:Future<bool>:] that completes with the result.
    *
-   * Throws an error if one of the paths points to an object that does not
-   * exist.
-   * The target of a link can be compared by first getting it with Link.target.
+   * Comparing a link to its target returns false, as does comparing two links
+   * that point to the same target.  To check the target of a link, use
+   * Link.target explicitly to fetch it.  Directory links appearing
+   * inside a path are followed, though, to find the file system object.
+   *
+   * Completes the returned Future with an error if one of the paths points
+   * to an object that does not exist.
    */
   static Future<bool> identical(String path1, String path2) {
     // Get a new file service port for each request.  We could also cache one.
@@ -220,14 +222,16 @@ abstract class FileSystemEntity {
 
 
   /**
-   * Do two paths refer to the same object in the file system?
-   * Links are not identical to their targets, and two links
-   * are not identical just because they point to identical targets.
-   * Links in intermediate directories in the paths are followed, though.
+   * Synchronously checks whether two paths refer to the same object in the
+   * file system.
+   *
+   * Comparing a link to its target returns false, as does comparing two links
+   * that point to the same target.  To check the target of a link, use
+   * Link.target explicitly to fetch it.  Directory links appearing
+   * inside a path are followed, though, to find the file system object.
    *
    * Throws an error if one of the paths points to an object that does not
    * exist.
-   * The target of a link can be compared by first getting it with Link.target.
    */
   static bool identicalSync(String path1, String path2) {
     var result = _identical(path1, path2);
@@ -236,7 +240,7 @@ abstract class FileSystemEntity {
   }
 
   /**
-   * Check whether the file system entity with this path exists. Returns
+   * Checks whether the file system entity with this path exists. Returns
    * a [:Future<bool>:] that completes with the result.
    *
    * Since FileSystemEntity is abstract, every FileSystemEntity object
@@ -252,7 +256,7 @@ abstract class FileSystemEntity {
   Future<bool> exists();
 
   /**
-   * Synchronously check whether the file system entity with this path
+   * Synchronously checks whether the file system entity with this path
    * exists.
    *
    * Since FileSystemEntity is abstract, every FileSystemEntity object
@@ -266,30 +270,104 @@ abstract class FileSystemEntity {
    */
   bool existsSync();
 
+  /**
+   * Calls the operating system's stat() function on the [path] of this
+   * [FileSystemEntity].  Identical to [:FileStat.stat(this.path):].
+   *
+   * Returns a [:Future<FileStat>:] object containing the data returned by
+   * stat().
+   *
+   * If the call fails, completes the future with a [FileStat] object
+   * with .type set to
+   * FileSystemEntityType.NOT_FOUND and the other fields invalid.
+   */
+  Future<FileStat> stat();
+
+  /**
+   * Synchronously calls the operating system's stat() function on the
+   * [path] of this [FileSystemEntity].
+   * Identical to [:FileStat.statSync(this.path):].
+   *
+   * Returns a [FileStat] object containing the data returned by stat().
+   *
+   * If the call fails, returns a [FileStat] object with .type set to
+   * FileSystemEntityType.NOT_FOUND and the other fields invalid.
+   */
+  FileStat statSync();
+
+
+  /**
+   * Finds the type of file system object that a path points to. Returns
+   * a [:Future<FileSystemEntityType>:] that completes with the result.
+   *
+   * [FileSystemEntityType] has the constant instances FILE, DIRECTORY,
+   * LINK, and NOT_FOUND.  [type] will return LINK only if the optional
+   * named argument [followLinks] is false, and [path] points to a link.
+   * If the path does not point to a file system object, or any other error
+   * occurs in looking up the path, NOT_FOUND is returned.  The only
+   * error or exception that may be put on the returned future is ArgumentError,
+   * caused by passing the wrong type of arguments to the function.
+   */
   static Future<FileSystemEntityType> type(String path,
                                            {bool followLinks: true})
       => _getTypeAsync(path, followLinks).then(FileSystemEntityType._lookup);
 
+  /**
+   * Synchronously finds the type of file system object that a path points to.
+   * Returns a [FileSystemEntityType].
+   *
+   * [FileSystemEntityType] has the constant instances FILE, DIRECTORY,
+   * LINK, and NOT_FOUND.  [type] will return LINK only if the optional
+   * named argument [followLinks] is false, and [path] points to a link.
+   * If the path does not point to a file system object, or any other error
+   * occurs in looking up the path, NOT_FOUND is returned.  The only
+   * error or exception that may be thrown is ArgumentError,
+   * caused by passing the wrong type of arguments to the function.
+   */
   static FileSystemEntityType typeSync(String path, {bool followLinks: true})
       => FileSystemEntityType._lookup(_getTypeSync(path, followLinks));
 
+
+  /**
+   * Checks if type(path, followLinks: false) returns
+   * FileSystemEntityType.LINK.
+   */
   static Future<bool> isLink(String path) => _getTypeAsync(path, false)
       .then((type) => (type == FileSystemEntityType.LINK._type));
 
+  /**
+   * Checks if type(path) returns FileSystemEntityType.FILE.
+   */
   static Future<bool> isFile(String path) => _getTypeAsync(path, true)
       .then((type) => (type == FileSystemEntityType.FILE._type));
 
+  /**
+   * Checks if type(path) returns FileSystemEntityType.DIRECTORY.
+   */
   static Future<bool> isDirectory(String path) => _getTypeAsync(path, true)
       .then((type) => (type == FileSystemEntityType.DIRECTORY._type));
 
+  /**
+   * Synchronously checks if typeSync(path, followLinks: false) returns
+   * FileSystemEntityType.LINK.
+   */
   static bool isLinkSync(String path) =>
       (_getTypeSync(path, false) == FileSystemEntityType.LINK._type);
 
+  /**
+   * Synchronously checks if typeSync(path) returns
+   * FileSystemEntityType.FILE.
+   */
   static bool isFileSync(String path) =>
       (_getTypeSync(path, true) == FileSystemEntityType.FILE._type);
 
+  /**
+   * Synchronously checks if typeSync(path) returns
+   * FileSystemEntityType.DIRECTORY.
+   */
   static bool isDirectorySync(String path) =>
       (_getTypeSync(path, true) == FileSystemEntityType.DIRECTORY._type);
+
 
   static _throwIfError(Object result, String msg) {
     if (result is OSError) {

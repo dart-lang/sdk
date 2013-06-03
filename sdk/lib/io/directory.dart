@@ -7,7 +7,7 @@ part of dart.io;
 /**
  * [Directory] objects are used for working with directories.
  */
-abstract class Directory extends FileSystemEntity {
+abstract class Directory implements FileSystemEntity {
   /**
    * Creates a directory object. The path is either an absolute path,
    * or it is a relative path which is interpreted relative to the directory

@@ -61,6 +61,10 @@ class _Directory implements Directory {
     return (result == 1);
   }
 
+  Future<FileStat> stat() => FileStat.stat(path);
+
+  FileStat statSync() => FileStat.statSync(path);
+
   // Compute the index of the first directory in the list that exists. If
   // none of the directories exist dirsToCreate.length is returned.
   Future<int> _computeExistingIndex(List dirsToCreate) {
