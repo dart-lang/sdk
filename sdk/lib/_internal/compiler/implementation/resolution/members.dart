@@ -2516,16 +2516,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
       return;
     }
 
-    // Compute the signature of the target method taking into account the
-    // type arguments that are specified in the redirection, and store it on
-    // the return node.
-    ClassElement targetClass = redirectionTarget.getEnclosingClass();
-    InterfaceType type = mapping.getType(node.expression)
-        .subst(currentClass.typeVariables, targetClass.typeVariables);
-    mapping.setType(node, type);
-
     // Check that the target constructor is type compatible with the
     // redirecting constructor.
+    ClassElement targetClass = redirectionTarget.getEnclosingClass();
+    InterfaceType type = mapping.getType(node.expression);
     FunctionType targetType = redirectionTarget.computeType(compiler)
         .subst(type.typeArguments, targetClass.typeVariables);
     FunctionType constructorType = constructor.computeType(compiler);

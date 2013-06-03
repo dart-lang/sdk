@@ -3414,7 +3414,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             compiler.enqueuer.resolution.getCachedElements(
                 functionElement.declaration);
         ClassElement targetClass = functionElement.getEnclosingClass();
-        type = treeElements.getType(redirectionNode)
+        type = treeElements.getType(redirectionNode.expression)
             .subst(type.typeArguments, targetClass.typeVariables);
       }
       functionElement = functionElement.redirectionTarget;
