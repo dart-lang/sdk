@@ -12,8 +12,8 @@ import 'dart:isolate';
 void testStat() {
   Directory directory = new Directory("").createTempSync();
   File file = new File.fromPath(new Path(directory.path).append("file"));
-  FileStat nonExistent = FileStat.statSync(file.path);
-  Expect.equals(FileSystemEntityType.NOT_FOUND, nonExistent.type);
+  Expect.throws(file.statSync);
+  Expect.throws(() => FileStat.statSync(file.path));
   file.writeAsStringSync("Dart IO library test of FileStat");
   new Timer(const Duration(seconds: 2), () {
     file.readAsStringSync();
@@ -50,9 +50,11 @@ Future testStatAsync() {
   .then((directory) {
     File file = new File.fromPath(new Path(directory.path).append("file"));
     return FileStat.stat(file.path)
-    .then((missingStat) {
-      Expect.equals(FileSystemEntityType.NOT_FOUND, missingStat.type);
-    })
+    .then((_) => Expect.fail("FileStat.stat should throw an exception."))
+    .catchError((e) => null)
+    .then((_) => file.stat())
+    .then((_) => Expect.fail("File.stat should throw an exception."))
+    .catchError((e) => null)
     .then((_) => file.writeAsString("Dart IO library test of FileStat"))
     .then((_) => new Future.delayed(const Duration(seconds: 2)))
     .then((_) => file.readAsString())

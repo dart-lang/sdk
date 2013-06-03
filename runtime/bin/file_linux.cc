@@ -221,11 +221,6 @@ void File::Stat(const char* name, int64_t* data) {
     data[kSize] = st.st_size;
   } else {
     data[kType] = kDoesNotExist;
-    data[kCreatedTime] = 0;
-    data[kModifiedTime] = 0;
-    data[kAccessedTime] = 0;
-    data[kMode] = 0;
-    data[kSize] = 0;
   }
 }
 

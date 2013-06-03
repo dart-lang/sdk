@@ -571,21 +571,27 @@ void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
 
     int64_t stat_data[File::kStatSize];
     File::Stat(path, stat_data);
-    Dart_Handle returned_data = Dart_NewTypedData(Dart_TypedData_kInt64,
-                                                  File::kStatSize);
-    if (Dart_IsError(returned_data)) Dart_PropagateError(returned_data);
-    Dart_TypedData_Type data_type_unused;
-    void* data_location;
-    intptr_t data_length_unused;
-    Dart_Handle status = Dart_TypedDataAcquireData(returned_data,
-                                                   &data_type_unused,
-                                                   &data_location,
-                                                   &data_length_unused);
-    if (Dart_IsError(status)) Dart_PropagateError(status);
-    memmove(data_location, stat_data, File::kStatSize * sizeof(int64_t));
-    status = Dart_TypedDataReleaseData(returned_data);
-    if (Dart_IsError(status)) Dart_PropagateError(status);
-    Dart_SetReturnValue(args, returned_data);
+    if (stat_data[File::kType] == File::kDoesNotExist) {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    } else {
+      Dart_Handle returned_data = Dart_NewTypedData(Dart_TypedData_kInt64,
+                                                    File::kStatSize);
+      if (Dart_IsError(returned_data)) Dart_PropagateError(returned_data);
+      Dart_TypedData_Type data_type_unused;
+      void* data_location;
+      intptr_t data_length_unused;
+      Dart_Handle status = Dart_TypedDataAcquireData(returned_data,
+                                                     &data_type_unused,
+                                                     &data_location,
+                                                     &data_length_unused);
+      if (Dart_IsError(status)) Dart_PropagateError(status);
+      memmove(data_location, stat_data, File::kStatSize * sizeof(int64_t));
+      status = Dart_TypedDataReleaseData(returned_data);
+      if (Dart_IsError(status)) Dart_PropagateError(status);
+      Dart_SetReturnValue(args, returned_data);
+    }
   } else {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to FileSystemEntity.stat");
@@ -1124,6 +1130,9 @@ static CObject* FileStatRequest(const CObjectArray& request) {
     int64_t data[File::kStatSize];
     CObjectString path(request[1]);
     File::Stat(path.CString(), data);
+    if (data[File::kType] == File::kDoesNotExist) {
+      return CObject::NewOSError();
+    }
     CObjectArray* result =
         new CObjectArray(CObject::NewArray(File::kStatSize));
     for (int i = 0; i < File::kStatSize; ++i) {
