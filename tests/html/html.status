@@ -138,7 +138,6 @@ window_open_test: Skip      # BUG(4016)
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 input_element_test/attributes: Fail # IE returns null while others ''
-safe_dom_test: Fail # Issue 11036
 
 # IE9 Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
