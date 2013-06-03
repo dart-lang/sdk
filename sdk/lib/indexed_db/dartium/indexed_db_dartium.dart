@@ -193,13 +193,13 @@ class Database extends EventTarget {
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
 
   Transaction transaction(storeName_OR_storeNames, String mode) {
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
       return _transaction_1(storeName_OR_storeNames, mode);
     }
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
       return _transaction_2(storeName_OR_storeNames, mode);
     }
-    if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && (mode is String || mode == null)) {
+    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
       return _transaction_3(storeName_OR_storeNames, mode);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -323,7 +323,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
   OpenDBRequest $dom_deleteDatabase(String name) native "IDBFactory_deleteDatabase_Callback";
 
   OpenDBRequest $dom_open(String name, [int version]) {
-    if (?version) {
+    if (version != null) {
       return _open_1(name, version);
     }
     return _open_2(name);
@@ -484,7 +484,7 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_1(key_OR_range);
     }
-    if (?key_OR_range) {
+    if (key_OR_range != null) {
       return _count_2(key_OR_range);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -498,7 +498,7 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
-    if (?key) {
+    if (key != null) {
       return _get_2(key);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -512,7 +512,7 @@ class Index extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _getKey_1(key);
     }
-    if (?key) {
+    if (key != null) {
       return _getKey_2(key);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -523,10 +523,10 @@ class Index extends NativeFieldWrapperClass1 {
   Request _getKey_2(key) native "IDBIndex__getKey_2_Callback";
 
   Request $dom_openCursor([key_OR_range, String direction]) {
-    if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_1(key_OR_range, direction);
     }
-    if (?key_OR_range && (direction is String || direction == null)) {
+    if ((direction is String || direction == null) && key_OR_range != null) {
       return _openCursor_2(key_OR_range, direction);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -537,10 +537,10 @@ class Index extends NativeFieldWrapperClass1 {
   Request _openCursor_2(key_OR_range, direction) native "IDBIndex__openCursor_2_Callback";
 
   Request $dom_openKeyCursor([key_OR_range, String direction]) {
-    if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
       return _openKeyCursor_1(key_OR_range, direction);
     }
-    if (?key_OR_range && (direction is String || direction == null)) {
+    if ((direction is String || direction == null) && key_OR_range != null) {
       return _openKeyCursor_2(key_OR_range, direction);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -790,7 +790,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key_OR_range is KeyRange || key_OR_range == null)) {
       return _count_1(key_OR_range);
     }
-    if (?key_OR_range) {
+    if (key_OR_range != null) {
       return _count_2(key_OR_range);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -801,10 +801,10 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   Request _count_2(key_OR_range) native "IDBObjectStore__count_2_Callback";
 
   Index $dom_createIndex(String name, keyPath, [Map options]) {
-    if ((name is String || name == null) && (keyPath is List<String> || keyPath == null) && (options is Map || options == null)) {
+    if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
       return _createIndex_1(name, keyPath, options);
     }
-    if ((name is String || name == null) && (keyPath is String || keyPath == null) && (options is Map || options == null)) {
+    if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
       return _createIndex_2(name, keyPath, options);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -818,7 +818,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key_OR_keyRange is KeyRange || key_OR_keyRange == null)) {
       return _delete_1(key_OR_keyRange);
     }
-    if (?key_OR_keyRange) {
+    if (key_OR_keyRange != null) {
       return _delete_2(key_OR_keyRange);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -836,7 +836,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     if ((key is KeyRange || key == null)) {
       return _get_1(key);
     }
-    if (?key) {
+    if (key != null) {
       return _get_2(key);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -851,10 +851,10 @@ class ObjectStore extends NativeFieldWrapperClass1 {
   Index index(String name) native "IDBObjectStore_index_Callback";
 
   Request $dom_openCursor([key_OR_range, String direction]) {
-    if ((key_OR_range is KeyRange || key_OR_range == null) && (direction is String || direction == null)) {
+    if ((direction is String || direction == null) && (key_OR_range is KeyRange || key_OR_range == null)) {
       return _openCursor_1(key_OR_range, direction);
     }
-    if (?key_OR_range && (direction is String || direction == null)) {
+    if ((direction is String || direction == null) && key_OR_range != null) {
       return _openCursor_2(key_OR_range, direction);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

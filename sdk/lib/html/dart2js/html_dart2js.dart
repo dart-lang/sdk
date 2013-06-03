@@ -433,7 +433,7 @@ class AudioElement extends MediaElement native "HTMLAudioElement" {
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable
   factory AudioElement([String src]) {
-    if (?src) {
+    if (src != null) {
       return AudioElement._create_1(src);
     }
     return AudioElement._create_2();
@@ -808,7 +808,7 @@ class CanvasElement extends Element implements CanvasImageSource native "HTMLCan
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable
   CanvasRenderingContext getContext(String contextId, [Map attrs]) {
-    if (?attrs) {
+    if (attrs != null) {
       var attrs_1 = convertDartToNative_Dictionary(attrs);
       return _getContext_1(contextId, attrs_1);
     }
@@ -1220,12 +1220,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DomName('CanvasRenderingContext2D.putImageData')
   @DocsEditable
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if (!?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
+    if (dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata);
       _putImageData_1(imagedata_1, dx, dy);
       return;
     }
-    if (?dirtyX && ?dirtyY && ?dirtyWidth && ?dirtyHeight) {
+    if (dirtyHeight != null && dirtyWidth != null && dirtyY != null && dirtyX != null) {
       var imagedata_2 = _convertDartToNative_ImageData(imagedata);
       _putImageData_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
@@ -1317,12 +1317,12 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental
   void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if (!?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
+    if (dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
       var imagedata_1 = _convertDartToNative_ImageData(imagedata);
       _putImageDataHD_1(imagedata_1, dx, dy);
       return;
     }
-    if (?dirtyX && ?dirtyY && ?dirtyWidth && ?dirtyHeight) {
+    if (dirtyHeight != null && dirtyWidth != null && dirtyY != null && dirtyX != null) {
       var imagedata_2 = _convertDartToNative_ImageData(imagedata);
       _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
@@ -1636,7 +1636,7 @@ class Comment extends CharacterData native "Comment" {
   @DomName('Comment.Comment')
   @DocsEditable
   factory Comment([String data]) {
-    if (?data) {
+    if (data != null) {
       return Comment._create_1(data);
     }
     return Comment._create_2();
@@ -6002,17 +6002,17 @@ class DirectoryEntry extends Entry native "DirectoryEntry" {
   @DomName('DirectoryEntry.getDirectory')
   @DocsEditable
   void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
-    if (?errorCallback) {
+    if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       ___getDirectory_1(path, options_1, successCallback, errorCallback);
       return;
     }
-    if (?successCallback) {
+    if (successCallback != null) {
       var options_2 = convertDartToNative_Dictionary(options);
       ___getDirectory_2(path, options_2, successCallback);
       return;
     }
-    if (?options) {
+    if (options != null) {
       var options_3 = convertDartToNative_Dictionary(options);
       ___getDirectory_3(path, options_3);
       return;
@@ -6051,17 +6051,17 @@ class DirectoryEntry extends Entry native "DirectoryEntry" {
   @DomName('DirectoryEntry.getFile')
   @DocsEditable
   void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
-    if (?errorCallback) {
+    if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       ___getFile_1(path, options_1, successCallback, errorCallback);
       return;
     }
-    if (?successCallback) {
+    if (successCallback != null) {
       var options_2 = convertDartToNative_Dictionary(options);
       ___getFile_2(path, options_2, successCallback);
       return;
     }
-    if (?options) {
+    if (options != null) {
       var options_3 = convertDartToNative_Dictionary(options);
       ___getFile_3(path, options_3);
       return;
@@ -6610,7 +6610,7 @@ class Document extends Node  native "Document"
   @Experimental
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-document-register
   CustomElementConstructor register(String name, [Map options]) {
-    if (?options) {
+    if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _register_1(name, options_1);
     }
@@ -9640,7 +9640,7 @@ class EventSource extends EventTarget native "EventSource" {
   @DomName('EventSource.EventSource')
   @DocsEditable
   static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
-    if (?eventSourceInit) {
+    if (eventSourceInit != null) {
       return EventSource._create_1(url, eventSourceInit);
     }
     return EventSource._create_2(url);
@@ -10529,7 +10529,7 @@ class FormData native "FormData" {
   @DomName('FormData.FormData')
   @DocsEditable
   factory FormData([FormElement form]) {
-    if (?form) {
+    if (form != null) {
       return FormData._create_1(form);
     }
     return FormData._create_2();
@@ -14393,7 +14393,7 @@ class MediaStream extends EventTarget native "MediaStream" {
   @DomName('MediaStream.MediaStream')
   @DocsEditable
   factory MediaStream([stream_OR_tracks]) {
-    if (!?stream_OR_tracks) {
+    if (stream_OR_tracks == null) {
       return MediaStream._create_1();
     }
     if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
@@ -14754,7 +14754,7 @@ class MessagePort extends EventTarget native "MessagePort" {
   @DomName('MessagePort.postMessage')
   @DocsEditable
   void postMessage(/*any*/ message, [List messagePorts]) {
-    if (?messagePorts) {
+    if (messagePorts != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, messagePorts);
       return;
@@ -16505,7 +16505,7 @@ class Notification extends EventTarget native "Notification" {
   @DomName('Notification.Notification')
   @DocsEditable
   static Notification _factoryNotification(String title, [Map options]) {
-    if (?options) {
+    if (options != null) {
       return Notification._create_1(title, options);
     }
     return Notification._create_2(title);
@@ -16785,16 +16785,16 @@ class OptionElement extends Element native "HTMLOptionElement" {
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable
   factory OptionElement([String data, String value, bool defaultSelected, bool selected]) {
-    if (?selected) {
+    if (selected != null) {
       return OptionElement._create_1(data, value, defaultSelected, selected);
     }
-    if (?defaultSelected) {
+    if (defaultSelected != null) {
       return OptionElement._create_2(data, value, defaultSelected);
     }
-    if (?value) {
+    if (value != null) {
       return OptionElement._create_3(data, value);
     }
-    if (?data) {
+    if (data != null) {
       return OptionElement._create_4(data);
     }
     return OptionElement._create_5();
@@ -17001,7 +17001,7 @@ class Path native "Path" {
   @DomName('Path.Path')
   @DocsEditable
   factory Path([path_OR_text]) {
-    if (!?path_OR_text) {
+    if (path_OR_text == null) {
       return Path._create_1();
     }
     if ((path_OR_text is Path || path_OR_text == null)) {
@@ -18257,7 +18257,7 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   @DomName('RTCPeerConnection.addStream')
   @DocsEditable
   void addStream(MediaStream stream, [Map mediaConstraints]) {
-    if (?mediaConstraints) {
+    if (mediaConstraints != null) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       _addStream_1(stream, mediaConstraints_1);
       return;
@@ -18281,7 +18281,7 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   @DomName('RTCPeerConnection.createAnswer')
   @DocsEditable
   void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
-    if (?mediaConstraints) {
+    if (mediaConstraints != null) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       __createAnswer_1(successCallback, failureCallback, mediaConstraints_1);
       return;
@@ -18306,7 +18306,7 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   @DomName('RTCPeerConnection.createDataChannel')
   @DocsEditable
   RtcDataChannel createDataChannel(String label, [Map options]) {
-    if (?options) {
+    if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _createDataChannel_1(label, options_1);
     }
@@ -18324,7 +18324,7 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   @DomName('RTCPeerConnection.createOffer')
   @DocsEditable
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
-    if (?mediaConstraints) {
+    if (mediaConstraints != null) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       __createOffer_1(successCallback, failureCallback, mediaConstraints_1);
       return;
@@ -18405,13 +18405,13 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
   @DomName('RTCPeerConnection.updateIce')
   @DocsEditable
   void updateIce([Map configuration, Map mediaConstraints]) {
-    if (?mediaConstraints) {
+    if (mediaConstraints != null) {
       var configuration_1 = convertDartToNative_Dictionary(configuration);
       var mediaConstraints_2 = convertDartToNative_Dictionary(mediaConstraints);
       _updateIce_1(configuration_1, mediaConstraints_2);
       return;
     }
-    if (?configuration) {
+    if (configuration != null) {
       var configuration_3 = convertDartToNative_Dictionary(configuration);
       _updateIce_2(configuration_3);
       return;
@@ -19744,7 +19744,7 @@ class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUttera
   @DomName('SpeechSynthesisUtterance.SpeechSynthesisUtterance')
   @DocsEditable
   factory SpeechSynthesisUtterance([String text]) {
-    if (?text) {
+    if (text != null) {
       return SpeechSynthesisUtterance._create_1(text);
     }
     return SpeechSynthesisUtterance._create_2();
@@ -20625,7 +20625,7 @@ class Text extends CharacterData native "Text" {
   @DomName('Text.Text')
   @DocsEditable
   factory Text([String data]) {
-    if (?data) {
+    if (data != null) {
       return Text._create_1(data);
     }
     return Text._create_2();
@@ -22025,13 +22025,13 @@ class WebSocket extends EventTarget native "WebSocket" {
   @DomName('WebSocket.WebSocket')
   @DocsEditable
   factory WebSocket(String url, [protocol_OR_protocols]) {
-    if ((url is String || url == null) && !?protocol_OR_protocols) {
+    if ((url is String || url == null) && protocol_OR_protocols == null) {
       return WebSocket._create_1(url);
     }
-    if ((url is String || url == null) && (protocol_OR_protocols is List<String> || protocol_OR_protocols == null)) {
+    if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
       return WebSocket._create_2(url, protocol_OR_protocols);
     }
-    if ((url is String || url == null) && (protocol_OR_protocols is String || protocol_OR_protocols == null)) {
+    if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
       return WebSocket._create_3(url, protocol_OR_protocols);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -23029,7 +23029,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @DomName('Window.postMessage')
   @DocsEditable
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) {
-    if (?messagePorts) {
+    if (messagePorts != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, targetOrigin, messagePorts);
       return;
@@ -24681,7 +24681,7 @@ abstract class _SharedWorker extends AbstractWorker native "SharedWorker" {
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable
   factory _SharedWorker(String scriptURL, [String name]) {
-    if (?name) {
+    if (name != null) {
       return _SharedWorker._create_1(scriptURL, name);
     }
     return _SharedWorker._create_2(scriptURL);
@@ -24915,7 +24915,7 @@ abstract class _WebKitCSSMatrix native "WebKitCSSMatrix" {
   @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
   @DocsEditable
   factory _WebKitCSSMatrix([String cssValue]) {
-    if (?cssValue) {
+    if (cssValue != null) {
       return _WebKitCSSMatrix._create_1(cssValue);
     }
     return _WebKitCSSMatrix._create_2();

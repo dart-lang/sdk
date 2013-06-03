@@ -686,13 +686,13 @@ class Blob extends NativeFieldWrapperClass1 {
   String get type native "Blob_type_Getter";
 
   Blob slice([int start, int end, String contentType]) {
-    if (?contentType) {
+    if (contentType != null) {
       return _slice_1(start, end, contentType);
     }
-    if (?end) {
+    if (end != null) {
       return _slice_2(start, end);
     }
-    if (?start) {
+    if (start != null) {
       return _slice_3(start);
     }
     return _slice_4();
@@ -1408,7 +1408,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void clearRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_clearRect_Callback";
 
   void clip([String winding]) {
-    if (?winding) {
+    if (winding != null) {
       _clip_1(winding);
       return;
     }
@@ -1437,10 +1437,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native "CanvasRenderingContext2D_createLinearGradient_Callback";
 
   CanvasPattern createPattern(canvas_OR_image, String repetitionType) {
-    if ((canvas_OR_image is CanvasElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
+    if ((repetitionType is String || repetitionType == null) && (canvas_OR_image is CanvasElement || canvas_OR_image == null)) {
       return _createPattern_1(canvas_OR_image, repetitionType);
     }
-    if ((canvas_OR_image is ImageElement || canvas_OR_image == null) && (repetitionType is String || repetitionType == null)) {
+    if ((repetitionType is String || repetitionType == null) && (canvas_OR_image is ImageElement || canvas_OR_image == null)) {
       return _createPattern_2(canvas_OR_image, repetitionType);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -1455,39 +1455,39 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   CanvasGradient createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native "CanvasRenderingContext2D_createRadialGradient_Callback";
 
   void _drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) {
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
       _drawImage_1(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
       _drawImage_2(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is ImageElement || canvas_OR_image_OR_video == null)) {
       _drawImage_3(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
       _drawImage_4(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
       _drawImage_5(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is CanvasElement || canvas_OR_image_OR_video == null)) {
       _drawImage_6(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && !?sw_OR_width && !?height_OR_sh && !?dx && !?dy && !?dw && !?dh) {
+    if ((sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && sw_OR_width == null && height_OR_sh == null && dx == null && dy == null && dw == null && dh == null) {
       _drawImage_7(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y);
       return;
     }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && !?dx && !?dy && !?dw && !?dh) {
+    if ((height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && dx == null && dy == null && dw == null && dh == null) {
       _drawImage_8(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh);
       return;
     }
-    if ((canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null) && (sx_OR_x is num || sx_OR_x == null) && (sy_OR_y is num || sy_OR_y == null) && (sw_OR_width is num || sw_OR_width == null) && (height_OR_sh is num || height_OR_sh == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dw is num || dw == null) && (dh is num || dh == null)) {
+    if ((dh is num || dh == null) && (dw is num || dw == null) && (dy is num || dy == null) && (dx is num || dx == null) && (height_OR_sh is num || height_OR_sh == null) && (sw_OR_width is num || sw_OR_width == null) && (sy_OR_y is num || sy_OR_y == null) && (sx_OR_x is num || sx_OR_x == null) && (canvas_OR_image_OR_video is VideoElement || canvas_OR_image_OR_video == null)) {
       _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh);
       return;
     }
@@ -1513,7 +1513,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D__drawImage_9_Callback";
 
   void fill([String winding]) {
-    if (?winding) {
+    if (winding != null) {
       _fill_1(winding);
       return;
     }
@@ -1530,7 +1530,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
 
   void fillText(String text, num x, num y, [num maxWidth]) {
-    if (?maxWidth) {
+    if (maxWidth != null) {
       _fillText_1(text, x, y, maxWidth);
       return;
     }
@@ -1557,7 +1557,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   List<num> getLineDash() native "CanvasRenderingContext2D_getLineDash_Callback";
 
   bool isPointInPath(num x, num y, [String winding]) {
-    if (?winding) {
+    if (winding != null) {
       return _isPointInPath_1(x, y, winding);
     }
     return _isPointInPath_2(x, y);
@@ -1584,11 +1584,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void moveTo(num x, num y) native "CanvasRenderingContext2D_moveTo_Callback";
 
   void putImageData(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
+    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
       _putImageData_1(imagedata, dx, dy);
       return;
     }
-    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dirtyX is num || dirtyX == null) && (dirtyY is num || dirtyY == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyHeight is num || dirtyHeight == null)) {
+    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
       _putImageData_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
@@ -1640,7 +1640,7 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   void strokeRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_strokeRect_Callback";
 
   void strokeText(String text, num x, num y, [num maxWidth]) {
-    if (?maxWidth) {
+    if (maxWidth != null) {
       _strokeText_1(text, x, y, maxWidth);
       return;
     }
@@ -1668,11 +1668,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext {
   ImageData getImageDataHD(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_webkitGetImageDataHD_Callback";
 
   void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && !?dirtyX && !?dirtyY && !?dirtyWidth && !?dirtyHeight) {
+    if ((dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null) && dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
       _webkitPutImageDataHD_1(imagedata, dx, dy);
       return;
     }
-    if ((imagedata is ImageData || imagedata == null) && (dx is num || dx == null) && (dy is num || dy == null) && (dirtyX is num || dirtyX == null) && (dirtyY is num || dirtyY == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyHeight is num || dirtyHeight == null)) {
+    if ((dirtyHeight is num || dirtyHeight == null) && (dirtyWidth is num || dirtyWidth == null) && (dirtyY is num || dirtyY == null) && (dirtyX is num || dirtyX == null) && (dy is num || dy == null) && (dx is num || dx == null) && (imagedata is ImageData || imagedata == null)) {
       _webkitPutImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
       return;
     }
@@ -2283,10 +2283,10 @@ class Css extends NativeFieldWrapperClass1 {
   Css.internal();
 
   bool supports(String conditionText_OR_property, [String value]) {
-    if ((conditionText_OR_property is String || conditionText_OR_property == null) && (value is String || value == null)) {
+    if ((value is String || value == null) && (conditionText_OR_property is String || conditionText_OR_property == null)) {
       return _supports_1(conditionText_OR_property, value);
     }
-    if ((conditionText_OR_property is String || conditionText_OR_property == null) && !?value) {
+    if ((conditionText_OR_property is String || conditionText_OR_property == null) && value == null) {
       return _supports_2(conditionText_OR_property);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -5961,7 +5961,7 @@ class CssStyleSheet extends StyleSheet {
   List<CssRule> get rules native "CSSStyleSheet_rules_Getter";
 
   int addRule(String selector, String style, [int index]) {
-    if (?index) {
+    if (index != null) {
       return _addRule_1(selector, style, index);
     }
     return _addRule_2(selector, style);
@@ -6254,11 +6254,11 @@ class DataTransferItemList extends NativeFieldWrapperClass1 {
   int get length native "DataTransferItemList_length_Getter";
 
   void add(data_OR_file, [String type]) {
-    if ((data_OR_file is File || data_OR_file == null) && !?type) {
+    if ((data_OR_file is File || data_OR_file == null) && type == null) {
       _add_1(data_OR_file);
       return;
     }
-    if ((data_OR_file is String || data_OR_file == null) && (type is String || type == null)) {
+    if ((type is String || type == null) && (data_OR_file is String || data_OR_file == null)) {
       _add_2(data_OR_file, type);
       return;
     }
@@ -6876,10 +6876,10 @@ class Document extends Node
   DocumentFragment createDocumentFragment() native "Document_createDocumentFragment_Callback";
 
   Element $dom_createElement(String localName_OR_tagName, [String typeExtension]) {
-    if ((localName_OR_tagName is String || localName_OR_tagName == null) && !?typeExtension) {
+    if ((localName_OR_tagName is String || localName_OR_tagName == null) && typeExtension == null) {
       return _createElement_1(localName_OR_tagName);
     }
-    if ((localName_OR_tagName is String || localName_OR_tagName == null) && (typeExtension is String || typeExtension == null)) {
+    if ((typeExtension is String || typeExtension == null) && (localName_OR_tagName is String || localName_OR_tagName == null)) {
       return _createElement_2(localName_OR_tagName, typeExtension);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -6890,10 +6890,10 @@ class Document extends Node
   Element _createElement_2(localName_OR_tagName, typeExtension) native "Document__createElement_2_Callback";
 
   Element $dom_createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
-    if ((namespaceURI is String || namespaceURI == null) && (qualifiedName is String || qualifiedName == null) && !?typeExtension) {
+    if ((qualifiedName is String || qualifiedName == null) && (namespaceURI is String || namespaceURI == null) && typeExtension == null) {
       return _createElementNS_1(namespaceURI, qualifiedName);
     }
-    if ((namespaceURI is String || namespaceURI == null) && (qualifiedName is String || qualifiedName == null) && (typeExtension is String || typeExtension == null)) {
+    if ((typeExtension is String || typeExtension == null) && (qualifiedName is String || qualifiedName == null) && (namespaceURI is String || namespaceURI == null)) {
       return _createElementNS_2(namespaceURI, qualifiedName, typeExtension);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -7675,7 +7675,7 @@ class DomTokenList extends NativeFieldWrapperClass1 {
   String toString() native "DOMTokenList_toString_Callback";
 
   bool toggle(String token, [bool force]) {
-    if (?force) {
+    if (force != null) {
       return _toggle_1(token, force);
     }
     return _toggle_2(token);
@@ -8936,7 +8936,7 @@ abstract class Element extends Node implements ElementTraversal {
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
   void $dom_scrollIntoView([bool alignWithTop]) {
-    if (?alignWithTop) {
+    if (alignWithTop != null) {
       _scrollIntoView_1(alignWithTop);
       return;
     }
@@ -8949,7 +8949,7 @@ abstract class Element extends Node implements ElementTraversal {
   void _scrollIntoView_2() native "Element__scrollIntoView_2_Callback";
 
   void $dom_scrollIntoViewIfNeeded([bool centerIfNeeded]) {
-    if (?centerIfNeeded) {
+    if (centerIfNeeded != null) {
       _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
     }
@@ -9553,7 +9553,7 @@ class Entry extends NativeFieldWrapperClass1 {
   String get name native "Entry_name_Getter";
 
   void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
-    if (?name) {
+    if (name != null) {
       _copyTo_1(parent, name, successCallback, errorCallback);
       return;
     }
@@ -9598,7 +9598,7 @@ class Entry extends NativeFieldWrapperClass1 {
   }
 
   void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
-    if (?name) {
+    if (name != null) {
       _moveTo_1(parent, name, successCallback, errorCallback);
       return;
     }
@@ -10576,7 +10576,7 @@ class FileReader extends EventTarget {
   void readAsDataUrl(Blob blob) native "FileReader_readAsDataURL_Callback";
 
   void readAsText(Blob blob, [String encoding]) {
-    if (?encoding) {
+    if (encoding != null) {
       _readAsText_1(blob, encoding);
       return;
     }
@@ -13136,11 +13136,11 @@ class InputElement extends _Element_Merged implements
   void setCustomValidity(String error) native "HTMLInputElement_setCustomValidity_Callback";
 
   void setRangeText(String replacement, {int start, int end, String selectionMode}) {
-    if ((replacement is String || replacement == null) && !?start && !?end && !?selectionMode) {
+    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
       _setRangeText_1(replacement);
       return;
     }
-    if ((replacement is String || replacement == null) && (start is int || start == null) && (end is int || end == null) && (selectionMode is String || selectionMode == null)) {
+    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
       _setRangeText_2(replacement, start, end, selectionMode);
       return;
     }
@@ -13152,7 +13152,7 @@ class InputElement extends _Element_Merged implements
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLInputElement__setRangeText_2_Callback";
 
   void setSelectionRange(int start, int end, [String direction]) {
-    if (?direction) {
+    if (direction != null) {
       _setSelectionRange_1(start, end, direction);
       return;
     }
@@ -13165,7 +13165,7 @@ class InputElement extends _Element_Merged implements
   void _setSelectionRange_2(start, end) native "HTMLInputElement__setSelectionRange_2_Callback";
 
   void stepDown([int n]) {
-    if (?n) {
+    if (n != null) {
       _stepDown_1(n);
       return;
     }
@@ -13178,7 +13178,7 @@ class InputElement extends _Element_Merged implements
   void _stepDown_2() native "HTMLInputElement__stepDown_2_Callback";
 
   void stepUp([int n]) {
-    if (?n) {
+    if (n != null) {
       _stepUp_1(n);
       return;
     }
@@ -14791,10 +14791,10 @@ class MediaElement extends _Element_Merged {
   int get videoDecodedByteCount native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
   TextTrack addTextTrack(String kind, [String label, String language]) {
-    if (?language) {
+    if (language != null) {
       return _addTextTrack_1(kind, label, language);
     }
-    if (?label) {
+    if (label != null) {
       return _addTextTrack_2(kind, label);
     }
     return _addTextTrack_3(kind);
@@ -14823,7 +14823,7 @@ class MediaElement extends _Element_Merged {
   void play() native "HTMLMediaElement_play_Callback";
 
   void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
-    if (?initData) {
+    if (initData != null) {
       _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
     }
@@ -14844,7 +14844,7 @@ class MediaElement extends _Element_Merged {
   void cancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
   void generateKeyRequest(String keySystem, [Uint8List initData]) {
-    if (?initData) {
+    if (initData != null) {
       _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
     }
@@ -15406,7 +15406,7 @@ class MediaStream extends EventTarget {
   @DomName('MediaStream.MediaStream')
   @DocsEditable
   factory MediaStream([stream_OR_tracks]) {
-    if (!?stream_OR_tracks) {
+    if (stream_OR_tracks == null) {
       return MediaStream._create_1();
     }
     if ((stream_OR_tracks is MediaStream || stream_OR_tracks == null)) {
@@ -16018,7 +16018,7 @@ class MidiOutput extends MidiPort {
   MidiOutput.internal() : super.internal();
 
   void send(Uint8List data, [num timestamp]) {
-    if (?timestamp) {
+    if (timestamp != null) {
       _send_1(data, timestamp);
       return;
     }
@@ -18191,7 +18191,7 @@ class Path extends NativeFieldWrapperClass1 {
   @DomName('Path.Path')
   @DocsEditable
   factory Path([path_OR_text]) {
-    if (!?path_OR_text) {
+    if (path_OR_text == null) {
       return Path._create_1();
     }
     if ((path_OR_text is Path || path_OR_text == null)) {
@@ -19376,11 +19376,11 @@ class RtcDtmfSender extends EventTarget {
   bool dispatchEvent(Event event) native "RTCDTMFSender_dispatchEvent_Callback";
 
   void insertDtmf(String tones, [int duration, int interToneGap]) {
-    if (?interToneGap) {
+    if (interToneGap != null) {
       _insertDTMF_1(tones, duration, interToneGap);
       return;
     }
-    if (?duration) {
+    if (duration != null) {
       _insertDTMF_2(tones, duration);
       return;
     }
@@ -20735,7 +20735,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
   // -- end List<SpeechGrammar> mixins.
 
   void addFromString(String string, [num weight]) {
-    if (?weight) {
+    if (weight != null) {
       _addFromString_1(string, weight);
       return;
     }
@@ -20748,7 +20748,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass1 with ListMixin<SpeechGr
   void _addFromString_2(string) native "SpeechGrammarList__addFromString_2_Callback";
 
   void addFromUri(String src, [num weight]) {
-    if (?weight) {
+    if (weight != null) {
       _addFromUri_1(src, weight);
       return;
     }
@@ -22443,11 +22443,11 @@ class TextAreaElement extends _Element_Merged {
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
   void setRangeText(String replacement, [int start, int end, String selectionMode]) {
-    if ((replacement is String || replacement == null) && !?start && !?end && !?selectionMode) {
+    if ((replacement is String || replacement == null) && start == null && end == null && selectionMode == null) {
       _setRangeText_1(replacement);
       return;
     }
-    if ((replacement is String || replacement == null) && (start is int || start == null) && (end is int || end == null) && (selectionMode is String || selectionMode == null)) {
+    if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
       _setRangeText_2(replacement, start, end, selectionMode);
       return;
     }
@@ -22459,7 +22459,7 @@ class TextAreaElement extends _Element_Merged {
   void _setRangeText_2(replacement, start, end, selectionMode) native "HTMLTextAreaElement__setRangeText_2_Callback";
 
   void setSelectionRange(int start, int end, [String direction]) {
-    if (?direction) {
+    if (direction != null) {
       _setSelectionRange_1(start, end, direction);
       return;
     }
@@ -23805,13 +23805,13 @@ class WebSocket extends EventTarget {
   @DomName('WebSocket.WebSocket')
   @DocsEditable
   factory WebSocket(String url, [protocol_OR_protocols]) {
-    if ((url is String || url == null) && !?protocol_OR_protocols) {
+    if ((url is String || url == null) && protocol_OR_protocols == null) {
       return WebSocket._create_1(url);
     }
-    if ((url is String || url == null) && (protocol_OR_protocols is List<String> || protocol_OR_protocols == null)) {
+    if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
       return WebSocket._create_2(url, protocol_OR_protocols);
     }
-    if ((url is String || url == null) && (protocol_OR_protocols is String || protocol_OR_protocols == null)) {
+    if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
       return WebSocket._create_3(url, protocol_OR_protocols);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -23883,11 +23883,11 @@ class WebSocket extends EventTarget {
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
   void close([int code, String reason]) {
-    if (?reason) {
+    if (reason != null) {
       _close_1(code, reason);
       return;
     }
-    if (?code) {
+    if (code != null) {
       _close_2(code);
       return;
     }

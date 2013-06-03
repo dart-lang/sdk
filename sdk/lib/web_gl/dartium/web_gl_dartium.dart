@@ -2213,15 +2213,15 @@ class RenderingContext extends CanvasRenderingContext {
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) native "WebGLRenderingContext_blendFuncSeparate_Callback";
 
   void bufferData(int target, data_OR_size, int usage) {
-    if ((target is int || target == null) && (data_OR_size is TypedData || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((usage is int || usage == null) && (data_OR_size is TypedData || data_OR_size == null) && (target is int || target == null)) {
       _bufferData_1(target, data_OR_size, usage);
       return;
     }
-    if ((target is int || target == null) && (data_OR_size is ByteBuffer || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((usage is int || usage == null) && (data_OR_size is ByteBuffer || data_OR_size == null) && (target is int || target == null)) {
       _bufferData_2(target, data_OR_size, usage);
       return;
     }
-    if ((target is int || target == null) && (data_OR_size is int || data_OR_size == null) && (usage is int || usage == null)) {
+    if ((usage is int || usage == null) && (data_OR_size is int || data_OR_size == null) && (target is int || target == null)) {
       _bufferData_3(target, data_OR_size, usage);
       return;
     }
@@ -2235,11 +2235,11 @@ class RenderingContext extends CanvasRenderingContext {
   void _bufferData_3(target, data_OR_size, usage) native "WebGLRenderingContext__bufferData_3_Callback";
 
   void bufferSubData(int target, int offset, data) {
-    if ((target is int || target == null) && (offset is int || offset == null) && (data is TypedData || data == null)) {
+    if ((data is TypedData || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
       _bufferSubData_1(target, offset, data);
       return;
     }
-    if ((target is int || target == null) && (offset is int || offset == null) && (data is ByteBuffer || data == null)) {
+    if ((data is ByteBuffer || data == null) && (offset is int || offset == null) && (target is int || target == null)) {
       _bufferSubData_2(target, offset, data);
       return;
     }
@@ -2599,23 +2599,23 @@ class RenderingContext extends CanvasRenderingContext {
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native "WebGLRenderingContext_stencilOpSeparate_Callback";
 
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
-    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (format is int || format == null) && (type is int || type == null) && (pixels is TypedData || pixels == null)) {
+    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (format is int || format == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
-    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && !?format && !?type && !?pixels) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
       _texImage2D_2(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && !?format && !?type && !?pixels) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
       _texImage2D_3(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && !?format && !?type && !?pixels) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
       _texImage2D_4(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) && (level is int || level == null) && (internalformat is int || internalformat == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && !?format && !?type && !?pixels) {
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (internalformat is int || internalformat == null) && (level is int || level == null) && (target is int || target == null) && format == null && type == null && pixels == null) {
       _texImage2D_5(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video);
       return;
     }
@@ -2641,23 +2641,23 @@ class RenderingContext extends CanvasRenderingContext {
   void texParameteri(int target, int pname, int param) native "WebGLRenderingContext_texParameteri_Callback";
 
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
-    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (type is int || type == null) && (pixels is TypedData || pixels == null)) {
+    if ((pixels is TypedData || pixels == null) && (type is int || type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
-    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && !?type && !?pixels) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
       _texSubImage2D_2(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && !?type && !?pixels) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
       _texSubImage2D_3(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && !?type && !?pixels) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
       _texSubImage2D_4(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }
-    if ((target is int || target == null) && (level is int || level == null) && (xoffset is int || xoffset == null) && (yoffset is int || yoffset == null) && (format_OR_width is int || format_OR_width == null) && (height_OR_type is int || height_OR_type == null) && (canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && !?type && !?pixels) {
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int || height_OR_type == null) && (format_OR_width is int || format_OR_width == null) && (yoffset is int || yoffset == null) && (xoffset is int || xoffset == null) && (level is int || level == null) && (target is int || target == null) && type == null && pixels == null) {
       _texSubImage2D_5(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video);
       return;
     }

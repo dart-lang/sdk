@@ -239,22 +239,22 @@ class HtmlDartGenerator(object):
 
     def GenerateChecksAndCall(signature_index, argument_count):
       checks = []
-      for i in range(0, argument_count):
+      for i in reversed(range(0, argument_count)):
         argument = signatures[signature_index][i]
         parameter_name = parameter_names[i]
         test_type = self._DartType(argument.type.id)
 
         if test_type in ['dynamic', 'Object']:
-          checks.append('?%s' % parameter_name)
+          checks.append('%s != null' % parameter_name)
         elif not can_omit_type_check(test_type, i):
           checks.append('(%s is %s || %s == null)' % (
               parameter_name, test_type, parameter_name))
         elif i >= number_of_required_in_dart:
-          checks.append('?%s' % parameter_name)
+          checks.append('%s != null' % parameter_name)
 
       # There can be multiple presence checks.  We need them all since a later
       # optional argument could have been passed by name, leaving 'holes'.
-      checks.extend(['!?%s' % name for name in parameter_names[argument_count:]])
+      checks.extend(['%s == null' % name for name in parameter_names[argument_count:]])
 
       GenerateCall(signature_index, argument_count, checks)
 
@@ -292,7 +292,7 @@ class HtmlDartGenerator(object):
       argument_count = len(signature)
       for argument_position, argument in list(enumerate(signature))[::-1]:
         if is_optional(0, argument):
-          check = '?%s' % parameter_names[argument_position]
+          check = '%s != null' % parameter_names[argument_position]
           # argument_count instead of argument_position + 1 is used here to cover one
           # complicated case with the effectively optional argument in the middle.
           # Consider foo(x, optional y, [Default=NullString] optional z)
@@ -375,10 +375,8 @@ class HtmlDartGenerator(object):
     if not factory_constructor_name:
       factory_constructor_name = '_create'
       factory_parameters = constructor_info.ParametersAsArgumentList()
-      has_factory_provider = True
     else:
       factory_parameters = ', '.join(constructor_info.factory_parameters)
-      has_factory_provider = False
 
     if constructor_info.pure_dart_constructor:
       # TODO(antonm): use common dispatcher generation for this case as well.
