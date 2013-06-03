@@ -2690,9 +2690,13 @@ class CssRule extends NativeFieldWrapperClass1 {
 
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration extends NativeFieldWrapperClass1 {
-  factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
-  factory CssStyleDeclaration.css(String css) =>
-      _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration_css(css);
+  factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
+
+  factory CssStyleDeclaration.css(String css) {
+    final style = new Element.tag('div').style;
+    style.cssText = css;
+    return style;
+  }
 
   CssStyleDeclaration.internal();
 
@@ -7302,11 +7306,24 @@ class Document extends Node
 
 @DomName('DocumentFragment')
 class DocumentFragment extends Node {
-  factory DocumentFragment.html(String html) =>
-      _DocumentFragmentFactoryProvider.createDocumentFragment_html(html);
+  factory DocumentFragment() => document.createDocumentFragment();
 
-  factory DocumentFragment.svg(String svgContent) =>
-      _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
+  factory DocumentFragment.html(String html) {
+    final fragment = new DocumentFragment();
+    fragment.innerHtml = html;
+    return fragment;
+  }
+
+  factory DocumentFragment.svg(String svgContent) {
+    final fragment = new DocumentFragment();
+    final e = new svg.SvgSvgElement();
+    e.innerHtml = svgContent;
+
+    // Copy list first since we don't want liveness during iteration.
+    final List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
 
   List<Element> _children;
 
@@ -7367,15 +7384,6 @@ class DocumentFragment extends Node {
   }
 
   DocumentFragment.internal() : super.internal();
-
-  @DomName('DocumentFragment.DocumentFragment')
-  @DocsEditable
-  factory DocumentFragment() {
-    return DocumentFragment._create_1();
-  }
-
-  @DocsEditable
-  static DocumentFragment _create_1() native "DocumentFragment__create_1constructorCallback";
 
   @DomName('DocumentFragment.childElementCount')
   @DocsEditable
@@ -19002,16 +19010,8 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 @DomName('Range')
 @Unstable
 class Range extends NativeFieldWrapperClass1 {
+  factory Range() => document.$dom_createRange();
   Range.internal();
-
-  @DomName('Range.Range')
-  @DocsEditable
-  factory Range() {
-    return Range._create_1();
-  }
-
-  @DocsEditable
-  static Range _create_1() native "Range__create_1constructorCallback";
 
   @DomName('Range.END_TO_END')
   @DocsEditable
@@ -22184,16 +22184,8 @@ option[template] {
 
 @DomName('Text')
 class Text extends CharacterData {
+  factory Text(String data) => document.$dom_createTextNode(data);
   Text.internal() : super.internal();
-
-  @DomName('Text.Text')
-  @DocsEditable
-  factory Text([String data]) {
-    return Text._create_1(data);
-  }
-
-  @DocsEditable
-  static Text _create_1(data) native "Text__create_1constructorCallback";
 
   @DomName('Text.webkitInsertionParent')
   @DocsEditable
@@ -30273,57 +30265,6 @@ class _HttpRequestUtils {
     return request;
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _CssStyleDeclarationFactoryProvider {
-  static CssStyleDeclaration createCssStyleDeclaration_css(String css) {
-    final style = new Element.tag('div').style;
-    style.cssText = css;
-    return style;
-  }
-
-  static CssStyleDeclaration createCssStyleDeclaration() {
-    return new CssStyleDeclaration.css('');
-  }
-}
-
-class _DocumentFragmentFactoryProvider {
-  @DomName('Document.createDocumentFragment')
-  static DocumentFragment createDocumentFragment() =>
-      document.createDocumentFragment();
-
-  static DocumentFragment createDocumentFragment_html(String html) {
-    final fragment = new DocumentFragment();
-    fragment.innerHtml = html;
-    return fragment;
-  }
-
-  // TODO(nweiz): enable this when XML is ported.
-  // factory DocumentFragment.xml(String xml) {
-  //   final fragment = new DocumentFragment();
-  //   final e = new XMLElement.tag("xml");
-  //   e.innerHtml = xml;
-  //
-  //   // Copy list first since we don't want liveness during iteration.
-  //   final List nodes = new List.from(e.nodes);
-  //   fragment.nodes.addAll(nodes);
-  //   return fragment;
-  // }
-
-  static DocumentFragment createDocumentFragment_svg(String svgContent) {
-    final fragment = new DocumentFragment();
-    final e = new svg.SvgSvgElement();
-    e.innerHtml = svgContent;
-
-    // Copy list first since we don't want liveness during iteration.
-    final List nodes = new List.from(e.nodes);
-    fragment.nodes.addAll(nodes);
-    return fragment;
-  }
-}
 /**
  * A custom KeyboardEvent that attempts to eliminate cross-browser
  * inconsistencies, and also provide both keyCode and charCode information
@@ -30427,14 +30368,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _TextFactoryProvider {
-  static Text createText(String data) => document.$dom_createTextNode(data);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

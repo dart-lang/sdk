@@ -2237,9 +2237,13 @@ class CssRule native "CSSRule" {
 
 @DomName('CSSStyleDeclaration')
 class CssStyleDeclaration native "CSSStyleDeclaration" {
-  factory CssStyleDeclaration() => _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration();
-  factory CssStyleDeclaration.css(String css) =>
-      _CssStyleDeclarationFactoryProvider.createCssStyleDeclaration_css(css);
+  factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
+
+  factory CssStyleDeclaration.css(String css) {
+    final style = new Element.tag('div').style;
+    style.cssText = css;
+    return style;
+  }
 
 
   @DomName('CSSStyleDeclaration.cssText')
@@ -6879,11 +6883,24 @@ class Document extends Node  native "Document"
 
 @DomName('DocumentFragment')
 class DocumentFragment extends Node native "DocumentFragment" {
-  factory DocumentFragment.html(String html) =>
-      _DocumentFragmentFactoryProvider.createDocumentFragment_html(html);
+  factory DocumentFragment() => document.createDocumentFragment();
 
-  factory DocumentFragment.svg(String svgContent) =>
-      _DocumentFragmentFactoryProvider.createDocumentFragment_svg(svgContent);
+  factory DocumentFragment.html(String html) {
+    final fragment = new DocumentFragment();
+    fragment.innerHtml = html;
+    return fragment;
+  }
+
+  factory DocumentFragment.svg(String svgContent) {
+    final fragment = new DocumentFragment();
+    final e = new svg.SvgSvgElement();
+    e.innerHtml = svgContent;
+
+    // Copy list first since we don't want liveness during iteration.
+    final List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
 
   // Native field is used only by Dart code so does not lead to instantiation
   // of native classes
@@ -6946,13 +6963,6 @@ class DocumentFragment extends Node native "DocumentFragment" {
     this.append(new DocumentFragment.html(text));
   }
 
-
-  @DomName('DocumentFragment.DocumentFragment')
-  @DocsEditable
-  factory DocumentFragment() {
-    return DocumentFragment._create_1();
-  }
-  static DocumentFragment _create_1() => JS('DocumentFragment', 'new DocumentFragment()');
 
   @DomName('DocumentFragment.childElementCount')
   @DocsEditable
@@ -17726,13 +17736,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 @DomName('Range')
 @Unstable
 class Range native "Range" {
-
-  @DomName('Range.Range')
-  @DocsEditable
-  factory Range() {
-    return Range._create_1();
-  }
-  static Range _create_1() => JS('Range', 'new Range()');
+  factory Range() => document.$dom_createRange();
 
   @DomName('Range.END_TO_END')
   @DocsEditable
@@ -20621,17 +20625,7 @@ option[template] {
 
 @DomName('Text')
 class Text extends CharacterData native "Text" {
-
-  @DomName('Text.Text')
-  @DocsEditable
-  factory Text([String data]) {
-    if (data != null) {
-      return Text._create_1(data);
-    }
-    return Text._create_2();
-  }
-  static Text _create_1(data) => JS('Text', 'new Text(#)', data);
-  static Text _create_2() => JS('Text', 'new Text()');
+  factory Text(String data) => document.$dom_createTextNode(data);
 
   @JSName('webkitInsertionParent')
   @DomName('Text.webkitInsertionParent')
@@ -28954,57 +28948,6 @@ class _WrappedIterator<E> implements Iterator<E> {
 // BSD-style license that can be found in the LICENSE file.
 
 
-class _CssStyleDeclarationFactoryProvider {
-  static CssStyleDeclaration createCssStyleDeclaration_css(String css) {
-    final style = new Element.tag('div').style;
-    style.cssText = css;
-    return style;
-  }
-
-  static CssStyleDeclaration createCssStyleDeclaration() {
-    return new CssStyleDeclaration.css('');
-  }
-}
-
-class _DocumentFragmentFactoryProvider {
-  @DomName('Document.createDocumentFragment')
-  static DocumentFragment createDocumentFragment() =>
-      document.createDocumentFragment();
-
-  static DocumentFragment createDocumentFragment_html(String html) {
-    final fragment = new DocumentFragment();
-    fragment.innerHtml = html;
-    return fragment;
-  }
-
-  // TODO(nweiz): enable this when XML is ported.
-  // factory DocumentFragment.xml(String xml) {
-  //   final fragment = new DocumentFragment();
-  //   final e = new XMLElement.tag("xml");
-  //   e.innerHtml = xml;
-  //
-  //   // Copy list first since we don't want liveness during iteration.
-  //   final List nodes = new List.from(e.nodes);
-  //   fragment.nodes.addAll(nodes);
-  //   return fragment;
-  // }
-
-  static DocumentFragment createDocumentFragment_svg(String svgContent) {
-    final fragment = new DocumentFragment();
-    final e = new svg.SvgSvgElement();
-    e.innerHtml = svgContent;
-
-    // Copy list first since we don't want liveness during iteration.
-    final List nodes = new List.from(e.nodes);
-    fragment.nodes.addAll(nodes);
-    return fragment;
-  }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 // Conversions for Window.  These check if the window is the local
 // window, and if it's not, wraps or unwraps it with a secure wrapper.
 // We need to test for EventTarget here as well as it's a base type.
@@ -29299,15 +29242,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-class _TextFactoryProvider {
-  static Text createText(String data) =>
-      JS('Text', 'document.createTextNode(#)', data);
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

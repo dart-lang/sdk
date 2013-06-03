@@ -5,11 +5,24 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory $CLASSNAME.html(String html) =>
-      _$(CLASSNAME)FactoryProvider.createDocumentFragment_html(html);
+  factory $CLASSNAME() => document.createDocumentFragment();
 
-  factory $CLASSNAME.svg(String svgContent) =>
-      _$(CLASSNAME)FactoryProvider.createDocumentFragment_svg(svgContent);
+  factory $CLASSNAME.html(String html) {
+    final fragment = new DocumentFragment();
+    fragment.innerHtml = html;
+    return fragment;
+  }
+
+  factory $CLASSNAME.svg(String svgContent) {
+    final fragment = new DocumentFragment();
+    final e = new svg.SvgSvgElement();
+    e.innerHtml = svgContent;
+
+    // Copy list first since we don't want liveness during iteration.
+    final List nodes = new List.from(e.nodes);
+    fragment.nodes.addAll(nodes);
+    return fragment;
+  }
 
 $if DART2JS
   // Native field is used only by Dart code so does not lead to instantiation

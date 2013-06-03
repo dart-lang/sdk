@@ -37,6 +37,17 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
 def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
 
+#
+# Classes which have native constructors but which we are suppressing because
+# they are not cross-platform.
+#
+_suppressed_native_constructors = monitored.Set(
+    'generator._suppressed_native_constructors', [
+  'DocumentFragment',
+  'Range',
+  'Text',
+  ])
+
 _custom_types = monitored.Set('generator._custom_types',
                               typed_array_renames.keys())
 
@@ -242,6 +253,9 @@ def AnalyzeConstructor(interface):
 
   Returns None if the interface has no Constructor.
   """
+  if interface.id in _suppressed_native_constructors:
+    return None
+
   if 'Constructor' in interface.ext_attrs:
     name = None
     overloads = interface.ext_attrs['Constructor']

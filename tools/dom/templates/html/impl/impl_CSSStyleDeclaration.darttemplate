@@ -5,9 +5,13 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
-  factory $CLASSNAME() => _$(CLASSNAME)FactoryProvider.create$CLASSNAME();
-  factory $CLASSNAME.css(String css) =>
-      _$(CLASSNAME)FactoryProvider.create$(CLASSNAME)_css(css);
+  factory $CLASSNAME() => new CssStyleDeclaration.css('');
+
+  factory $CLASSNAME.css(String css) {
+    final style = new Element.tag('div').style;
+    style.cssText = css;
+    return style;
+  }
 
 $!MEMBERS
 
