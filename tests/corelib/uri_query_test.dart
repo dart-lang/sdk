@@ -20,7 +20,7 @@ void testEncodeQueryComponent() {
 
 void testQueryParameters() {
   test(String query, Map<String, String> parameters, [String normalizedQuery]) {
-    if (normalizedQuery === null) normalizedQuery = query;
+    if (normalizedQuery == null) normalizedQuery = query;
     check(uri) {
       Expect.equals(normalizedQuery, uri.query);
       if (query.isEmpty) {
