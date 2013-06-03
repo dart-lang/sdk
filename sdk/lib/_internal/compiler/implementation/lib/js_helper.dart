@@ -958,7 +958,7 @@ class BoundClosure extends Closure {
   /// The method name.
   final String _target;
 
-  /// The reciever.
+  /// The receiver.
   final _receiver;
 
   bool operator==(other) {
