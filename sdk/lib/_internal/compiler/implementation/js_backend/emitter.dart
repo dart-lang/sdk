@@ -1176,7 +1176,7 @@ class CodeEmitterTask extends CompilerTask {
       if (metadata != null) {
         builder.addProperty('@$name', metadata);
       }
-      String reflectionName = reflectionName(member);
+      String reflectionName = getReflectionName(member);
       if (reflectionName != null) {
         builder.addProperty('+$reflectionName', js('0'));
       }
@@ -1196,7 +1196,7 @@ class CodeEmitterTask extends CompilerTask {
     emitExtraAccessors(member, builder);
   }
 
-  String reflectionName(Element element) {
+  String getReflectionName(Element element) {
     if (!compiler.mirrorsEnabled) return null;
     String name = element.name.slowToString();
     if (element.isGetter()) return name;
