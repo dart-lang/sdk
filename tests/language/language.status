@@ -515,7 +515,7 @@ bound_closure_equality_test: Fail # Issue 10849
 
 [ $compiler == dart2dart && $minified ]
 
-super_getter_setter_test: Fail # Issue 11065. 
+super_getter_setter_test: Fail # Issue 11065.
 
 # TODO(tball): Assign proper bug numbers.
 class_literal_test/none: Fail
@@ -799,7 +799,7 @@ type_variable_scope_test/05: fail
 
 [ $arch == simarm || $arch == arm ]
 arithmetic_test: Fail, Crash
-bit_operations_test: Crash
+bit_operations_test: Crash, Fail
 char_escape_test: Pass, Crash
 deopt_smi_op_test: Fail
 div_with_power_of_two_test: Fail
@@ -812,6 +812,8 @@ math_vm_test: Fail
 named_parameters_with_conversions_test: Pass, Crash
 stack_overflow_stacktrace_test: Crash
 stack_overflow_test: Crash
+positive_bit_operations_test: Pass, Fail, Crash
+left_shift_test: Pass, Fail
 
 [ $arch == mips ]
 *: Skip
