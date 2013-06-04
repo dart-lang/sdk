@@ -14,7 +14,7 @@ import '../../lib/src/io.dart';
 import '../test_pub.dart';
 
 void handleUploadForm(ScheduledServer server, [Map body]) {
-  server.handle('GET', '/packages/versions/new.json', (request) {
+  server.handle('GET', '/api/packages/versions/new', (request) {
     return server.url.then((url) {
       expect(request.headers.value('authorization'),
           equals('Bearer access token'));

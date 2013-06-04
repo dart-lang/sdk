@@ -22,7 +22,7 @@ main() {
 
     confirmPublish(pub);
 
-    server.handle('GET', '/packages/versions/new.json', (request) {
+    server.handle('GET', '/api/packages/versions/new', (request) {
       request.response.write('{not json');
       request.response.close();
     });

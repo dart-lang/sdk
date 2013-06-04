@@ -58,7 +58,7 @@ main() {
     d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
-    server.handle('POST', '/packages/pkg/uploaders.json', (request) {
+    server.handle('POST', '/api/packages/pkg/uploaders', (request) {
       expect(new ByteStream(request).toBytes().then((bodyBytes) {
         expect(new String.fromCharCodes(bodyBytes), equals('email=email'));
 
@@ -80,7 +80,7 @@ main() {
     d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'remove', 'email']);
 
-    server.handle('DELETE', '/packages/pkg/uploaders/email.json', (request) {
+    server.handle('DELETE', '/api/packages/pkg/uploaders/email', (request) {
       request.response.headers.contentType =
           new ContentType("application", "json");
       request.response.write(json.stringify({
@@ -100,7 +100,7 @@ main() {
     d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['add', 'email']);
 
-    server.handle('POST', '/packages/test_pkg/uploaders.json', (request) {
+    server.handle('POST', '/api/packages/test_pkg/uploaders', (request) {
       request.response.headers.contentType =
           new ContentType("application", "json");
       request.response.write(json.stringify({
@@ -118,7 +118,7 @@ main() {
     d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
-    server.handle('POST', '/packages/pkg/uploaders.json', (request) {
+    server.handle('POST', '/api/packages/pkg/uploaders', (request) {
       request.response.statusCode = 400;
       request.response.headers.contentType =
           new ContentType("application", "json");
@@ -138,7 +138,7 @@ main() {
     var pub = startPubUploader(server,
         ['--package', 'pkg', 'remove', 'e/mail']);
 
-    server.handle('DELETE', '/packages/pkg/uploaders/e%2Fmail.json', (request) {
+    server.handle('DELETE', '/api/packages/pkg/uploaders/e%2Fmail', (request) {
       request.response.statusCode = 400;
       request.response.headers.contentType =
           new ContentType("application", "json");
@@ -157,7 +157,7 @@ main() {
     d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'add', 'email']);
 
-    server.handle('POST', '/packages/pkg/uploaders.json', (request) {
+    server.handle('POST', '/api/packages/pkg/uploaders', (request) {
       request.response.write("{not json");
       request.response.close();
     });
@@ -172,7 +172,7 @@ main() {
     d.credentialsFile(server, 'access token').create();
     var pub = startPubUploader(server, ['--package', 'pkg', 'remove', 'email']);
 
-    server.handle('DELETE', '/packages/pkg/uploaders/email.json', (request) {
+    server.handle('DELETE', '/api/packages/pkg/uploaders/email', (request) {
       request.response.write("{not json");
       request.response.close();
     });

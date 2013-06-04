@@ -54,8 +54,8 @@ class LishCommand extends PubCommand {
       return log.progress('Uploading', () {
         // TODO(nweiz): Cloud Storage can provide an XML-formatted error. We
         // should report that error and exit.
-        var newUri = server.resolve("/packages/versions/new.json");
-        return client.get(newUri).then((response) {
+        var newUri = server.resolve("/api/packages/versions/new");
+        return client.get(newUri, headers: PUB_API_HEADERS).then((response) {
           var parameters = parseJsonResponse(response);
 
           var url = _expectField(parameters, 'url', response);
@@ -78,7 +78,7 @@ class LishCommand extends PubCommand {
           var location = response.headers['location'];
           if (location == null) throw new PubHttpException(response);
           return location;
-        }).then((location) => client.get(location))
+        }).then((location) => client.get(location, headers: PUB_API_HEADERS))
           .then(handleJsonSuccess);
       });
     }).catchError((error) {

@@ -63,13 +63,16 @@ class UploaderCommand extends PubCommand {
       var uploader = commandOptions.rest[0];
       return oauth2.withClient(cache, (client) {
         if (command == 'add') {
-          var url = server.resolve("/packages/${Uri.encodeComponent(package)}"
-              "/uploaders.json");
-          return client.post(url, fields: {"email": uploader});
+          var url = server.resolve("/api/packages/"
+              "${Uri.encodeComponent(package)}/uploaders");
+          return client.post(url,
+              headers: PUB_API_HEADERS,
+              fields: {"email": uploader});
         } else { // command == 'remove'
-          var url = server.resolve("/packages/${Uri.encodeComponent(package)}"
-              "/uploaders/${Uri.encodeComponent(uploader)}.json");
-          return client.delete(url);
+          var url = server.resolve("/api/packages/"
+              "${Uri.encodeComponent(package)}/uploaders/"
+              "${Uri.encodeComponent(uploader)}");
+          return client.delete(url, headers: PUB_API_HEADERS);
         }
       });
     }).then(handleJsonSuccess)

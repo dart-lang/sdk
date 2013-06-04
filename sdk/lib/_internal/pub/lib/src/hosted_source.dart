@@ -34,13 +34,13 @@ class HostedSource extends Source {
   /// site.
   Future<List<Version>> getVersions(String name, description) {
     var url = _makeUrl(description,
-        (server, package) => "$server/packages/$package.json");
+        (server, package) => "$server/api/packages/$package");
 
     log.io("Get versions from $url.");
-    return httpClient.read(url).then((body) {
+    return httpClient.read(url, headers: PUB_API_HEADERS).then((body) {
       var doc = json.parse(body);
       return doc['versions']
-          .map((version) => new Version.parse(version))
+          .map((version) => new Version.parse(version['version']))
           .toList();
     }).catchError((ex) {
       var parsed = _parseDescription(description);
@@ -53,15 +53,17 @@ class HostedSource extends Source {
   Future<Pubspec> describeUncached(PackageId id) {
     // Request it from the server.
     var url = _makeVersionUrl(id, (server, package, version) =>
-        "$server/packages/$package/versions/$version.yaml");
+        "$server/api/packages/$package/versions/$version");
 
     log.io("Describe package at $url.");
-    return httpClient.read(url).then((yaml) {
+    return httpClient.read(url, headers: PUB_API_HEADERS).then((version) {
+      version = json.parse(version);
+
       // TODO(rnystrom): After this is pulled down, we could place it in
       // a secondary cache of just pubspecs. This would let us have a
       // persistent cache for pubspecs for packages that haven't actually
       // been installed.
-      return new Pubspec.parse(null, yaml, systemCache.sources);
+      return new Pubspec.fromMap(version['pubspec'], systemCache.sources);
     }).catchError((ex) {
       var parsed = _parseDescription(id.description);
       _throwFriendlyError(ex, id, parsed.last);

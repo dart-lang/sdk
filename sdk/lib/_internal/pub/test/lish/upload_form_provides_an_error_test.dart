@@ -22,7 +22,7 @@ main() {
 
     confirmPublish(pub);
 
-    server.handle('GET', '/packages/versions/new.json', (request) {
+    server.handle('GET', '/api/packages/versions/new', (request) {
       request.response.statusCode = 400;
       request.response.write(json.stringify({
         'error': {'message': 'your request sucked'}

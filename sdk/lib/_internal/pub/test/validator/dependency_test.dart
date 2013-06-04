@@ -35,7 +35,7 @@ expectDependencyValidationWarning(String warning) {
 setUpDependency(Map dep, {List<String> hostedVersions}) {
   useMockClient(new MockClient((request) {
     expect(request.method, equals("GET"));
-    expect(request.url.path, equals("/packages/foo.json"));
+    expect(request.url.path, equals("/api/packages/foo"));
 
     if (hostedVersions == null) {
       return new Future.value(new http.Response("not found", 404));
@@ -43,7 +43,8 @@ setUpDependency(Map dep, {List<String> hostedVersions}) {
       return new Future.value(new http.Response(json.stringify({
         "name": "foo",
         "uploaders": ["nweiz@google.com"],
-        "versions": hostedVersions
+        "versions": hostedVersions.map((version) =>
+            packageVersionApiMap(packageMap('foo', version))).toList()
       }), 200));
     }
   }));
