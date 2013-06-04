@@ -144,13 +144,10 @@ class JSInvocationMirror implements Invocation {
 }
 
 class Primitives {
-  static int hashCodeSeed = 0;
-
   static int objectHashCode(object) {
     int hash = JS('int|Null', r'#.$identityHash', object);
     if (hash == null) {
-      // TOOD(ahe): We should probably randomize this somehow.
-      hash = ++hashCodeSeed;
+      hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
       JS('void', r'#.$identityHash = #', object, hash);
     }
     return JS('int', '#', hash);
