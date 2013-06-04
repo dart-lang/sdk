@@ -817,7 +817,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       return isTypeValuable(result);
     });
     if (result == null) {
-      result = dynamicType;
+      result = new TypeMask.nonNullEmpty();
     }
     return result;
   }
