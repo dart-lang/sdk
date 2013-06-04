@@ -53,6 +53,9 @@ String compile(String code, {String entry: 'main',
   MockCompiler compiler =
       new MockCompiler(enableTypeAssertions: enableTypeAssertions,
                        coreSource: coreSource,
+                       // Type inference does not run when manually
+                       // compiling a method.
+                       disableTypeInference: true,
                        interceptorsSource: interceptorsSource,
                        enableMinification: minify);
   compiler.parseScript(code);

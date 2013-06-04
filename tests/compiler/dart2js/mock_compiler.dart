@@ -194,6 +194,7 @@ class MockCompiler extends Compiler {
                 bool enableMinification: false,
                 bool enableConcreteTypeInference: false,
                 int maxConcreteTypeSize: 5,
+                bool disableTypeInference: false,
                 bool analyzeAll: false,
                 bool analyzeOnly: false,
                 bool preserveComments: false})
@@ -203,6 +204,7 @@ class MockCompiler extends Compiler {
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
               maxConcreteTypeSize: maxConcreteTypeSize,
+              disableTypeInference: disableTypeInference,
               analyzeAll: analyzeAll,
               analyzeOnly: analyzeOnly,
               preserveComments: preserveComments) {

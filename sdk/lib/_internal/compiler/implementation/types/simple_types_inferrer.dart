@@ -152,15 +152,19 @@ class SimpleTypesInferrer extends TypesInferrer {
   TypeMask get typeType => internal.typeType;
 
   TypeMask getReturnTypeOfElement(Element element) {
+    if (compiler.disableTypeInference) return dynamicType;
     return internal.getReturnTypeOfElement(element);
   }
   TypeMask getTypeOfElement(Element element) {
+    if (compiler.disableTypeInference) return dynamicType;
     return internal.getTypeOfElement(element);
   }
   TypeMask getTypeOfNode(Element owner, Node node) {
+    if (compiler.disableTypeInference) return dynamicType;
     return internal.getTypeOfNode(owner, node);
   }
   TypeMask getTypeOfSelector(Selector selector) {
+    if (compiler.disableTypeInference) return dynamicType;
     return internal.getTypeOfSelector(selector);
   }
 
@@ -817,7 +821,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       return isTypeValuable(result);
     });
     if (result == null) {
-      result = dynamicType;
+      result = new TypeMask.nonNullEmpty();
     }
     return result;
   }
