@@ -6238,7 +6238,6 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // Finally parse the 'finally' block.
   SequenceNode* finally_block = NULL;
   if (CurrentToken() == Token::kFINALLY) {
-    current_function().set_is_optimizable(false);
     current_function().set_has_finally(true);
     ConsumeToken();  // Consume the 'finally'.
     const intptr_t finally_pos = TokenPos();

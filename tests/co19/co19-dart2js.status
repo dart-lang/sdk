@@ -158,6 +158,9 @@ LibTest/math/cos_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js ]
+Language/14_Types/4_Interface_Types_A11_t01: Pass, Crash # Issue 8857
+Language/14_Types/4_Interface_Types_A11_t02: Pass, Crash # Issue 8857
+
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 6750
 
 LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
