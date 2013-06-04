@@ -2,18 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@fisk @symbol
+@string @symbol
 library test.metadata_test;
 
 import 'dart:mirrors';
 
-const fisk = 'a metadata string';
+const string = 'a metadata string';
 
-const symbol = const Symbol('fisk');
+const symbol = const Symbol('symbol');
 
-@symbol @fisk
+const hest = 'hest';
+
+@symbol @string
 class MyClass {
-  @fisk @symbol @fisk
+  @hest @hest @symbol
+  var x;
+
+  @string @symbol @string
   myMethod() => 1;
 }
 
@@ -36,9 +41,9 @@ checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
   print(metadata);
 }
 
-@symbol @fisk @symbol
+@symbol @string @symbol
 main() {
-  if (MirrorSystem.getName(symbol) != 'fisk') {
+  if (MirrorSystem.getName(symbol) != 'symbol') {
     // This happened in dart2js due to how early library metadata is
     // computed.
     throw 'Bad constant: $symbol';
@@ -46,12 +51,16 @@ main() {
 
   MirrorSystem mirrors = currentMirrorSystem();
   checkMetadata(mirrors.findLibrary(const Symbol('test.metadata_test')).first,
-                [fisk, symbol]);
-  checkMetadata(reflect(new MyClass()).type, [symbol, fisk]);
+                [string, symbol]);
+  ClassMirror myClassMirror = reflectClass(MyClass);
+  checkMetadata(myClassMirror, [symbol, string]);
   ClosureMirror closure = reflect(main);
-  checkMetadata(closure.function, [symbol, fisk, symbol]);
+  checkMetadata(closure.function, [symbol, string, symbol]);
   closure = reflect(new MyClass().myMethod);
-  checkMetadata(closure.function, [fisk, symbol, fisk]);
+  checkMetadata(closure.function, [string, symbol, string]);
+
+  VariableMirror xMirror = myClassMirror.variables[const Symbol('x')];
+  checkMetadata(xMirror, [hest, hest, symbol]);
 
   // TODO(ahe): Test local functions.
 }

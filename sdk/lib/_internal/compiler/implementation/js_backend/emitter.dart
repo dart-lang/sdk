@@ -612,6 +612,12 @@ class CodeEmitterTask extends CompilerTask {
            * print the runtime type JSInt as 'int'.
            */
           js('var classData = desc[""], supr, name = cls, fields = classData'),
+          optional(
+              compiler.mirrorSystemClass != null,
+              js.if_('typeof classData == "object" && '
+                     'classData instanceof Array',
+                     [js('classData = fields = classData[0]')])),
+
           js.if_('typeof classData == "string"', [
             js('var split = classData.split("/")'),
             js.if_('split.length == 2', [
@@ -640,7 +646,10 @@ class CodeEmitterTask extends CompilerTask {
             ]),
           ])),
 
-          js('isolateProperties[cls] = defineClass(name, cls, fields, desc)'),
+          js('var constructor = defineClass(name, cls, fields, desc)'),
+          optional(compiler.mirrorSystemClass != null,
+                   js('constructor["${namer.metadataField}"] = desc')),
+          js('isolateProperties[cls] = constructor'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
         ])
       ]),
@@ -1443,6 +1452,9 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write('$superName;');
     int bufferClassLength = buffer.length;
 
+    var fieldMetadata = [];
+    bool hasMetadata = false;
+
     visitClassFields(classElement, (Element member,
                                     String name,
                                     String accessorName,
@@ -1458,6 +1470,13 @@ class CodeEmitterTask extends CompilerTask {
       if (!classIsNative || needsAccessor) {
         buffer.write(separator);
         separator = ',';
+        if (compiler.mirrorSystemClass != null) {
+          var metadata = buildMetadataFunction(member);
+          fieldMetadata.add(metadata);
+          if (metadata != null) {
+            hasMetadata = true;
+          }
+        }
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
@@ -1501,7 +1520,12 @@ class CodeEmitterTask extends CompilerTask {
 
     bool fieldsAdded = buffer.length > bufferClassLength;
     String compactClassData = buffer.toString();
-    builder.addProperty('', js.string(compactClassData));
+    jsAst.Expression classDataNode = js.string(compactClassData);
+    if (hasMetadata) {
+      fieldMetadata.insert(0, classDataNode);
+      classDataNode = new jsAst.ArrayInitializer.from(fieldMetadata);
+    }
+    builder.addProperty('', classDataNode);
     return fieldsAdded;
   }
 
@@ -3282,7 +3306,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         }
         $classesCollector[property] = newDesc;
         classes.push(property);
-        classes.push(element[""]);
       }
     }
     libraries.push([name, uri, classes, functions, metadata]);

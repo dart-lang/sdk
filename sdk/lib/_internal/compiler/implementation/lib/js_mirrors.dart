@@ -77,9 +77,9 @@ class JsLibraryMirror extends JsObjectMirror implements LibraryMirror {
 
   Map<Symbol, ClassMirror> get classes {
     var result = new Map<Symbol, ClassMirror>();
-    for (int i = 0; i < _classes.length; i += 2) {
-      Symbol symbol = s(_classes[i]);
-      JsClassMirror cls = reflectClassByName(symbol, _classes[i + 1]);
+    for (String className in _classes) {
+      Symbol symbol = s(className);
+      JsClassMirror cls = reflectClassByName(symbol);
       result[symbol] = cls;
       cls._owner = this;
     }
@@ -168,9 +168,9 @@ InstanceMirror reflect(Object reflectee) {
 
 final Expando<ClassMirror> classMirrors = new Expando<ClassMirror>();
 
-ClassMirror reflectType(Type key) => reflectClassByName(s('$key'), null);
+ClassMirror reflectType(Type key) => reflectClassByName(s('$key'));
 
-ClassMirror reflectClassByName(Symbol symbol, String fields) {
+ClassMirror reflectClassByName(Symbol symbol) {
   String className = n(symbol);
   var constructor = Primitives.getConstructor(className);
   if (constructor == null) {
@@ -178,9 +178,27 @@ ClassMirror reflectClassByName(Symbol symbol, String fields) {
     // TODO(ahe): How to handle intercepted classes?
     throw new UnsupportedError('Cannot find class for: $className');
   }
+  var descriptor = JS('', '#["@"]', constructor);
+  var fields;
+  var fieldsMetadata;
+  if (descriptor == null) {
+    // This is a native class, or an intercepted class.
+    // TODO(ahe): Preserve descriptor for such classes.
+  } else {
+    fields = JS('', '#[""]', descriptor);
+    if (fields is List) {
+      fieldsMetadata = fields.getRange(1, fields.length).toList();
+      fields = fields[0];
+    }
+    if (fields is! String) {
+      // TODO(ahe): This is CSP mode.  Find a way to determine the
+      // fields of this class.
+      fields = '';
+    }
+  }
   var mirror = classMirrors[constructor];
   if (mirror == null) {
-    mirror = new JsClassMirror(symbol, constructor, fields);
+    mirror = new JsClassMirror(symbol, constructor, fields, fieldsMetadata);
     classMirrors[constructor] = mirror;
   }
   return mirror;
@@ -264,11 +282,15 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
   final Symbol simpleName;
   final _jsConstructor;
   final String _fields;
+  final List _fieldsMetadata;
   List _metadata;
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
 
-  JsClassMirror(this.simpleName, this._jsConstructor, this._fields);
+  JsClassMirror(this.simpleName,
+                this._jsConstructor,
+                this._fields,
+                this._fieldsMetadata);
 
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
 
@@ -294,8 +316,13 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
     var result = new Map<Symbol, VariableMirror>();
     var s = _fields.split(";");
     var fields = s[1] == "" ? [] : s[1].split(",");
+    int fieldNumber = 0;
     for (String field in fields) {
-      JsVariableMirror mirror = new JsVariableMirror.from(field);
+      var metadata;
+      if (_fieldsMetadata != null) {
+        metadata = _fieldsMetadata[fieldNumber++];
+      }
+      JsVariableMirror mirror = new JsVariableMirror.from(field, metadata);
       result[mirror.simpleName] = mirror;
       mirror._owner = this;
     }
@@ -388,11 +415,16 @@ class JsVariableMirror implements VariableMirror {
   final Symbol simpleName;
   final String _jsName;
   final bool _readOnly;
+  final _metadataFunction;
   DeclarationMirror _owner;
+  List _metadata;
 
-  JsVariableMirror(this.simpleName, this._jsName, this._readOnly);
+  JsVariableMirror(this.simpleName,
+                   this._jsName,
+                   this._readOnly,
+                   this._metadataFunction);
 
-  factory JsVariableMirror.from(String descriptor) {
+  factory JsVariableMirror.from(String descriptor, metadataFunction) {
     int length = descriptor.length;
     var code = fieldCode(descriptor.codeUnitAt(length - 1));
     if (code == 0) {
@@ -408,7 +440,8 @@ class JsVariableMirror implements VariableMirror {
       jsName = accessorName.substring(divider + 1);
     }
     bool readOnly = !hasSetter;
-    return new JsVariableMirror(s(accessorName), jsName, readOnly);
+    return new JsVariableMirror(
+        s(accessorName), jsName, readOnly, metadataFunction);
   }
 
   TypeMirror get type => JsMirrorSystem._dynamicType;
@@ -416,6 +449,14 @@ class JsVariableMirror implements VariableMirror {
   DeclarationMirror get owner => _owner;
 
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
+
+  List<InstanceMirror> get metadata {
+    if (_metadata == null) {
+      _metadata = (_metadataFunction == null)
+          ? const [] : JS('', '#()', _metadataFunction);
+    }
+    return _metadata.map(reflect).toList();
+  }
 
   static int fieldCode(int code) {
     if (code >= 60 && code <= 64) return code - 59;

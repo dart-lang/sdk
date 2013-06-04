@@ -23,7 +23,7 @@ typed_data/byte_data_test: Fail, OK # d8/ie9 doesn't support DataView
 mirrors/mirrors_resolve_fields_test: Fail # Issue 6490
 
 [ $csp ]
-mirrors/library_uri_package_test: Fail, Pass # Issue 6490
+mirrors/metadata_test: Fail # Issue 6490
 
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.
