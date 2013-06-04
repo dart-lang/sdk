@@ -7783,6 +7783,17 @@ void Code::set_object_table(const Array& array) const {
 
 void Code::set_static_calls_target_table(const Array& value) const {
   StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
+#if defined(DEBUG)
+  // Check that the table is sorted by pc offsets.
+  // FlowGraphCompiler::AddStaticCallTarget adds pc-offsets to the table while
+  // emitting assembly. This guarantees that every succeeding pc-offset is
+  // larger than the previously added one.
+  for (intptr_t i = kSCallTableEntryLength;
+      i < value.Length();
+      i += kSCallTableEntryLength) {
+    ASSERT(value.At(i - kSCallTableEntryLength) < value.At(i));
+  }
+#endif  // DEBUG
 }
 
 
@@ -7810,36 +7821,49 @@ RawDeoptInfo* Code::GetDeoptInfoAtPc(uword pc, intptr_t* deopt_reason) const {
 }
 
 
-RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
-  RawObject* raw_code_offset =
-      reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
-  const Array& array =
-      Array::Handle(raw_ptr()->static_calls_target_table_);
-  for (intptr_t i = 0; i < array.Length(); i += kSCallTableEntryLength) {
-    if (array.At(i) == raw_code_offset) {
-      Function& function = Function::Handle();
-      function ^= array.At(i + kSCallTableFunctionEntry);
-      return function.raw();
+intptr_t Code::BinarySearchInSCallTable(uword pc) const {
+  NoGCScope no_gc;
+  const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
+  RawObject* key = reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
+  intptr_t imin = 0;
+  intptr_t imax = table.Length() / kSCallTableEntryLength;
+  while (imax >= imin) {
+    const intptr_t imid = ((imax - imin) / 2) + imin;
+    const intptr_t real_index = imid * kSCallTableEntryLength;
+    RawObject* key_in_table = table.At(real_index);
+    if (key_in_table < key) {
+      imin = imid + 1;
+    } else if (key_in_table > key) {
+      imax = imid - 1;
+    } else {
+      return real_index;
     }
   }
-  return Function::null();
+  return -1;
+}
+
+
+RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
+  const intptr_t i = BinarySearchInSCallTable(pc);
+  if (i < 0) {
+    return Function::null();
+  }
+  const Array& array =
+      Array::Handle(raw_ptr()->static_calls_target_table_);
+  Function& function = Function::Handle();
+  function ^= array.At(i + kSCallTableFunctionEntry);
+  return function.raw();
 }
 
 
 void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
-  RawObject* raw_code_offset =
-      reinterpret_cast<RawObject*>(Smi::New(pc - EntryPoint()));
+  const intptr_t i = BinarySearchInSCallTable(pc);
+  ASSERT(i >= 0);
   const Array& array =
       Array::Handle(raw_ptr()->static_calls_target_table_);
-  for (intptr_t i = 0; i < array.Length(); i += kSCallTableEntryLength) {
-    if (array.At(i) == raw_code_offset) {
-      ASSERT(code.IsNull() ||
-             (code.function() == array.At(i + kSCallTableFunctionEntry)));
-      array.SetAt(i + kSCallTableCodeEntry, code);
-      return;
-    }
-  }
-  UNREACHABLE();
+  ASSERT(code.IsNull() ||
+         (code.function() == array.At(i + kSCallTableFunctionEntry)));
+  array.SetAt(i + kSCallTableCodeEntry, code);
 }
 
 

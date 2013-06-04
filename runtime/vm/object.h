@@ -2991,6 +2991,7 @@ class Code : public Object {
     *PointerOffsetAddrAt(index) = offset_in_instructions;
   }
 
+  intptr_t BinarySearchInSCallTable(uword pc) const;
 
   // New is a private method as RawInstruction and RawCode objects should
   // only be created using the Code::FinalizeCode method. This method creates
