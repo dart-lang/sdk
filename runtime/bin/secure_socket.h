@@ -35,17 +35,11 @@ static void ThrowException(const char* message) {
 /* Handle an error reported from the NSS library. */
 static void ThrowPRException(const char* message) {
   PRErrorCode error_code = PR_GetError();
-  int error_length = PR_GetErrorTextLength();
-  char* error_message = static_cast<char*>(malloc(error_length + 1));
-  ASSERT(error_message != NULL);
-  int copied_length = PR_GetErrorText(error_message);
-  ASSERT(copied_length == error_length);
-  error_message[error_length] = '\0';
+  const char* error_message = PR_ErrorToString(error_code, PR_LANGUAGE_EN);
   OSError os_error_struct(error_code, error_message, OSError::kNSS);
   Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
   Dart_Handle socket_io_exception =
       DartUtils::NewDartSocketIOException(message, os_error);
-  free(error_message);
   Dart_ThrowException(socket_io_exception);
 }
 
