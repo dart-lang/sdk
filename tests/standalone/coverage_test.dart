@@ -8,7 +8,7 @@
 // runs.
 
 import "dart:io";
-import "dart:utf";
+import "dart:async";
 
 // Coverage tool script relative to the path of this test.
 var coverageToolScript = "../../tools/coverage.dart";
@@ -24,20 +24,25 @@ int nextLineToMatch = 0;
 void onCoverageOutput(String line) {
   print("COV: $line");
   if (nextLineToMatch < sourceLines.length) {
-    if (line.endsWith(sourceLines[nextLineToMatch])) {
+    if (line.endsWith("|" + sourceLines[nextLineToMatch])) {
       nextLineToMatch++;
     }
   }
 }
 
-void onCoverageExit(exitCode) {
+bool checkExitCode(exitCode) {
   var pid = coverageToolProcess.pid;
-  print("process $pid terminated with exit code $exitCode.");
-  if (nextLineToMatch < sourceLines.length) {
+  print("Coverage tool process (pid $pid) terminated with "
+        "exit code $exitCode.");
+  return exitCode == 0;
+}
+
+void checkSuccess() {
+  if (nextLineToMatch == sourceLines.length) {
+    print("Successfully matched all lines of '$targPath'");
+  } else {
     print("Error: could not match all source code lines of '$targPath'");
     exit(-1);
-  } else {
-    print("Successfully matched all lines of '$targPath'");
   }
 }
 
@@ -63,13 +68,22 @@ void main() {
     var stdoutStringStream = coverageToolProcess.stdout
         .transform(new StringDecoder())
         .transform(new LineTransformer());
-    stdoutStringStream.listen(onCoverageOutput);
 
     var stderrStringStream = coverageToolProcess.stderr
         .transform(new StringDecoder())
         .transform(new LineTransformer());
-    stderrStringStream.listen(onCoverageOutput);
 
-    coverageToolProcess.exitCode.then(onCoverageExit);
+    // Wait for 3 future events: stdout and stderr streams of the coverage
+    // tool process closed, and coverage tool process terminated.
+    var futures = [];
+    var subscription = stdoutStringStream.listen(onCoverageOutput);
+    futures.add(subscription.asFuture(true));
+    subscription = stderrStringStream.listen(onCoverageOutput);
+    futures.add(subscription.asFuture(true));
+    futures.add(coverageToolProcess.exitCode.then(checkExitCode));
+    Future.wait(futures).then((results) {
+      checkSuccess();
+      if (results.contains(false)) exit(-1);
+    });
   });
 }
