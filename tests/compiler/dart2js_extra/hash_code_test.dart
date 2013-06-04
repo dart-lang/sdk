@@ -30,8 +30,8 @@ check(value1, value2) {
   Expect.isFalse((h1 & 0xf) == (h2 & 0xf));
 
   // Quality check - the values should be SMIs for efficient arithmetic.
-  Expect.equals((h1 & 0x1fffffff), h1);
-  Expect.equals((h2 & 0x1fffffff), h2);
+  Expect.equals((h1 & 0x3fffffff), h1);
+  Expect.equals((h2 & 0x3fffffff), h2);
 }
 
 bools() {
