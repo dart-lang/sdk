@@ -1677,7 +1677,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // Register this invocation to collect the types used at all call sites.
       backend.registerDynamicInvocation(node, node.selector);
     }
-    world.registerStaticUse(superMethod);
   }
 
   visitFieldGet(HFieldGet node) {

@@ -220,25 +220,23 @@ abstract class Enqueuer {
           // registered during codegen on the handleUnseenSelector path, and
           // cause the set of codegen elements to include unresolved elements.
           nativeEnqueuer.registerFieldStore(member);
+          addToWorkList(member);
           return;
         }
         if (universe.hasInvokedSetter(member, compiler)) {
           nativeEnqueuer.registerFieldStore(member);
           // See comment after registerFieldLoad above.
           nativeEnqueuer.registerFieldLoad(member);
+          addToWorkList(member);
           return;
         }
         // Native fields need to go into instanceMembersByName as they
         // are virtual instantiation points and escape points.
       } else {
-        if (isResolutionQueue) {
-          // All field initializers must be resolved as they could
-          // have an observable side-effect (and cannot be tree-shaken
-          // away).  However, codegen inlines field initializers, so
-          // it does not need to add individual fields in the work
-          // list.
-          addToWorkList(member);
-        }
+        // All field initializers must be resolved as they could
+        // have an observable side-effect (and cannot be tree-shaken
+        // away).
+        addToWorkList(member);
         return;
       }
     } else if (member.kind == ElementKind.FUNCTION) {
@@ -440,9 +438,8 @@ abstract class Enqueuer {
             // TODO(sra): Process fields for storing separately.
             nativeEnqueuer.registerFieldLoad(member);
           }
-        } else {
-          addToWorkList(member);
         }
+        addToWorkList(member);
         return true;
       }
       return false;
@@ -741,6 +738,10 @@ class CodegenEnqueuer extends Enqueuer {
       member.isAbstract(compiler) || generatedCode.containsKey(member);
 
   bool addElementToWorkList(Element element, [TreeElements elements]) {
+    // Codegen inlines field initializers, so it does not need to add
+    // individual fields in the work list.
+    if (element.isField() && element.isInstanceMember()) return true;
+
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
                                           "Codegen work list is closed.");
