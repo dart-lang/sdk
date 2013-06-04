@@ -21,7 +21,7 @@ import '../scheduled_test.dart';
 /// This differs from the `completes` matcher in `unittest` in that it pipes any
 /// errors in the Future to [currentSchedule], rather than reporting them in the
 /// [expect]'s error message.
-Matcher completes = const _ScheduledCompletes(null, null);
+final Matcher completes = const _ScheduledCompletes(null, null);
 
 /// Matches a [Future] that completes succesfully with a value that matches
 /// [matcher]. Note that this creates an asynchronous expectation. The call to
