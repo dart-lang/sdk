@@ -636,10 +636,8 @@ class DirectedGraph<N> {
    * @return a sink node
    */
   N findSink() {
-    for (MapEntry<N, Set<N>> entry in getMapEntrySet(_edges)) {
-      if (entry.getValue().isEmpty) {
-        return entry.getKey();
-      }
+    for (N key in _edges.keys) {
+      if (_edges[key].isEmpty) return key;
     }
     return null;
   }

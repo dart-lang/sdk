@@ -38,6 +38,10 @@ void main() {
 }
 
 ErrorSeverity _runAnalyzer(CommandLineOptions options) {
+  if (!options.machineFormat) {
+    stdout.writeln("Analyzing ${options.sourceFiles}...");
+  }
+  ErrorSeverity allResult = ErrorSeverity.NONE;
   for (String sourcePath in options.sourceFiles) {
     sourcePath = sourcePath.trim();
     // check that file exists
@@ -50,10 +54,8 @@ ErrorSeverity _runAnalyzer(CommandLineOptions options) {
       print('$sourcePath is not a Dart file');
       return ErrorSeverity.ERROR;
     }
-    // start analysis
-    ErrorFormatter formatter = new ErrorFormatter(options.machineFormat ? stderr : stdout, options);
-    formatter.startAnalysis();
     // do analyze
+    ErrorFormatter formatter = new ErrorFormatter(options.machineFormat ? stderr : stdout, options);
     AnalyzerImpl analyzer = new AnalyzerImpl(options);
     analyzer.analyze(sourcePath);
     // pring errors
@@ -63,8 +65,9 @@ ErrorSeverity _runAnalyzer(CommandLineOptions options) {
     if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
       status = ErrorSeverity.ERROR;
     }
-    return status;
+    allResult = allResult.max(status);
   }
+  return allResult;
 }
 
 typedef ErrorSeverity BatchRunnerHandler(List<String> args);
@@ -101,6 +104,8 @@ class BatchRunner {
         args.addAll(lineArgs);
         args.remove('-b');
         args.remove('--batch');
+        // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
+        args.remove('-batch');
       }
       // analyze single set of arguments
       try {

@@ -1,0 +1,33 @@
+#!/bin/bash --posix
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+set -e
+
+BIN_DIR="$(cd "${BASH_SOURCE%/*}" ; pwd -P)"
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
+DART="$BIN_DIR/dart"
+PKG_ANALYZER="$BIN_DIR/../packages/analyzer_experimental/bin/analyzer.dart"
+
+FOUND_BATCH=0
+FOUND_SDK=0
+for ARG in "$@"
+do
+  case $ARG in
+    -batch|--batch)
+      FOUND_BATCH=1
+      ;;
+    --dart-sdk)
+      FOUND_SDK=1
+      ;;
+    *)
+      ;;
+  esac
+done
+
+if [ $FOUND_SDK = 0 ] ; then
+  exec "$DART" "${PKG_ANALYZER}" --dart-sdk "${SDK_DIR}" "$@"
+else
+  exec "$DART" "${PKG_ANALYZER}" "$@"
+fi

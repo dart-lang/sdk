@@ -72,8 +72,17 @@ class JavaFile {
   }
   String getPath() => _path.toNativePath();
   String getName() => _path.filename;
-  String getParent() => _path.directoryPath.toNativePath();
-  JavaFile getParentFile() => new JavaFile(getParent());
+  String getParent() {
+    var result = _path.directoryPath.toNativePath();
+    // "." or  "/" or  "C:\"
+    if (result.length < 4) return null;
+    return result;
+  }
+  JavaFile getParentFile() {
+    var parent = getParent();
+    if (parent == null) return null;
+    return new JavaFile(parent);
+  }
   String getAbsolutePath() => _path.canonicalize().toNativePath();
   String getCanonicalPath() => _path.canonicalize().toNativePath();
   JavaFile getAbsoluteFile() => new JavaFile(getAbsolutePath());

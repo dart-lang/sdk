@@ -3027,7 +3027,7 @@ class CompilationUnit extends ASTNode {
     childList.addAll(_directives);
     childList.addAll(_declarations);
     List<ASTNode> children = new List.from(childList);
-    children.sort();
+    children.sort(ASTNode.LEXICAL_ORDER);
     return children;
   }
 }
