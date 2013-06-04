@@ -114,14 +114,6 @@ void main() {
     });
   });
 
-  expectTestsPass("file().load() throws an error", () {
-    test('test', () {
-      expect(d.file('name.txt', 'contents').load('path').toList(),
-          throwsA(equals("Can't load 'path' from within 'name.txt': not a "
-                         "directory.")));
-    });
-  });
-
   expectTestsPass("file().describe() returns the filename", () {
     test('test', () {
       expect(d.file('name.txt', 'contents').describe(), equals('name.txt'));

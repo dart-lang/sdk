@@ -84,22 +84,4 @@ void main() {
               r"directory\.$"));
     });
   }, passing: ['test 2']);
-
-  expectTestsPass("nothing().load() fails", () {
-    test('test', () {
-      scheduleSandbox();
-
-      expect(d.nothing('name.txt').load('path').toList(),
-          throwsA(equals("Nothing descriptors don't support load().")));
-    });
-  });
-
-  expectTestsPass("nothing().read() fails", () {
-    test('test', () {
-      scheduleSandbox();
-
-      expect(d.nothing('name.txt').read().toList(),
-          throwsA(equals("Nothing descriptors don't support read().")));
-    });
-  });
 }

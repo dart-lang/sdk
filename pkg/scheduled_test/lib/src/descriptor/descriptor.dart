@@ -35,6 +35,12 @@ abstract class Descriptor {
   /// need to be caught, since otherwise they'd be registered by the schedule.
   Future validateNow([String parent]);
 
+  /// Returns a detailed tree-style description of [this].
+  String describe();
+}
+
+/// An interface for descriptors that can load the contents of sub-descriptors.
+abstract class LoadableDescriptor extends Descriptor {
   /// Treats [this] as an in-memory filesystem and returns a stream of the
   /// contents of the child entry located at [path]. This only works if [this]
   /// is a directory entry. This operation is not [schedule]d.
@@ -44,16 +50,15 @@ abstract class Descriptor {
   ///
   /// All errors in loading the file will be passed through the returned
   /// [Stream].
-  Stream<List<int>> load(String pathToLoad) => errorStream("Can't load "
-      "'$pathToLoad' from within '$name': not a directory.");
+  Stream<List<int>> load(String pathToLoad);
+}
 
+/// An interface for descriptors whose contents can be read.
+abstract class ReadableDescriptor extends Descriptor {
   /// Returns the contents of [this] as a stream. This only works if [this] is a
   /// file entry. This operation is not [schedule]d.
   ///
   /// All errors in loading the file will be passed through the returned
   /// [Stream].
   Stream<List<int>> read();
-
-  /// Returns a detailed tree-style description of [this].
-  String describe();
 }

@@ -17,7 +17,7 @@ import '../utils.dart';
 final path.Builder _path = new path.Builder(style: path.Style.posix);
 
 /// A descriptor describing a directory containing multiple files.
-class DirectoryDescriptor extends Descriptor {
+class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   /// The entries contained within this directory. This is intentionally
   /// mutable.
   final List<Descriptor> contents;
@@ -59,21 +59,29 @@ class DirectoryDescriptor extends Descriptor {
   Stream<List<int>> load(String pathToLoad) {
     return futureStream(new Future.value().then((_) {
       if (_path.isAbsolute(pathToLoad)) {
-        throw "Can't load absolute path '$pathToLoad'.";
+        throw new ArgumentError("Can't load absolute path '$pathToLoad'.");
       }
 
       var split = _path.split(_path.normalize(pathToLoad));
       if (split.isEmpty || split.first == '.' || split.first == '..') {
-        throw "Can't load '$pathToLoad' from within '$name'.";
+        throw new ArgumentError("Can't load '$pathToLoad' from within "
+            "'$name'.");
       }
 
-      var matchingEntries = contents.where((entry) =>
-          entry.name == split.first).toList();
+      var requiresReadable = split.length == 1;
+      var matchingEntries = contents.where((entry) {
+        return entry.name == split.first && (requiresReadable ?
+            entry is ReadableDescriptor :
+            entry is LoadableDescriptor);
+      }).toList();
 
+      var adjective = requiresReadable ? 'readable' : 'loadable';
       if (matchingEntries.length == 0) {
-        throw "Couldn't find an entry named '${split.first}' within '$name'.";
+        throw "Couldn't find a $adjective entry named '${split.first}' within "
+            "'$name'.";
       } else if (matchingEntries.length > 1) {
-        throw "Found multiple entries named '${split.first}' within '$name'.";
+        throw "Found multiple $adjective entries named '${split.first}' within "
+            "'$name'.";
       } else {
         var remainingPath = split.sublist(1);
         if (remainingPath.isEmpty) {
@@ -84,9 +92,6 @@ class DirectoryDescriptor extends Descriptor {
       }
     }));
   }
-
-  Stream<List<int>> read() => errorStream("Can't read the contents of '$name': "
-      "is a directory.");
 
   String describe() {
     if (contents.isEmpty) return name;

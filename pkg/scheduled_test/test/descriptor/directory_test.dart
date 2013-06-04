@@ -291,14 +291,6 @@ void main() {
     });
   });
 
-  expectTestsPass("directory().read() fails", () {
-    test('test', () {
-      var dir = d.dir('dir', [d.file('name.txt', 'contents')]);
-      expect(dir.read().toList(),
-          throwsA(equals("Can't read the contents of 'dir': is a directory.")));
-    });
-  });
-
   expectTestsPass("directory().load() fails to load a nested directory", () {
     test('test', () {
       var dir = d.dir('dir', [
@@ -309,8 +301,8 @@ void main() {
       ]);
 
       expect(dir.load('subdir').toList(),
-          throwsA(equals("Can't read the contents of 'subdir': is a "
-              "directory.")));
+          throwsA(equals("Couldn't find a readable entry named 'subdir' within "
+              "'dir'.")));
     });
   });
 
@@ -318,8 +310,7 @@ void main() {
     test('test', () {
       var dir = d.dir('dir', [d.file('name.txt', 'contents')]);
 
-      expect(dir.load('/name.txt').toList(),
-          throwsA(equals("Can't load absolute path '/name.txt'.")));
+      expect(dir.load('/name.txt').toList(), throwsArgumentError);
     });
   });
 
@@ -327,14 +318,11 @@ void main() {
     test('test', () {
       var dir = d.dir('dir', [d.file('name.txt', 'contents')]);
 
-      expect(dir.load('.').toList(),
-          throwsA(equals("Can't load '.' from within 'dir'.")));
+      expect(dir.load('.').toList(), throwsArgumentError);
 
-      expect(dir.load('..').toList(),
-          throwsA(equals("Can't load '..' from within 'dir'.")));
+      expect(dir.load('..').toList(), throwsArgumentError);
 
-      expect(dir.load('').toList(),
-          throwsA(equals("Can't load '' from within 'dir'.")));
+      expect(dir.load('').toList(), throwsArgumentError);
     });
   });
 
@@ -344,8 +332,8 @@ void main() {
       var dir = d.dir('dir', [d.file('name.txt', 'contents')]);
 
       expect(dir.load('not-name.txt').toList(),
-          throwsA(equals("Couldn't find an entry named 'not-name.txt' within "
-              "'dir'.")));
+          throwsA(equals("Couldn't find a readable entry named 'not-name.txt' "
+              "within 'dir'.")));
     });
   });
 
@@ -358,8 +346,21 @@ void main() {
       ]);
 
       expect(dir.load('name.txt').toList(),
-          throwsA(equals("Found multiple entries named 'name.txt' within "
-              "'dir'.")));
+          throwsA(equals("Found multiple readable entries named 'name.txt' "
+              "within 'dir'.")));
+    });
+  });
+
+  expectTestsPass("directory().load() loads a file next to a subdirectory with "
+      "the same name", () {
+    test('test', () {
+      var dir = d.dir('dir', [
+        d.file('name', 'contents'),
+        d.dir('name', [d.file('subfile', 'contents')])
+      ]);
+
+      expect(byteStreamToString(dir.load('name')),
+          completion(equals('contents')));
     });
   });
 

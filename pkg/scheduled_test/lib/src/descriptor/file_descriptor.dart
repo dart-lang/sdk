@@ -16,7 +16,7 @@ import '../../scheduled_test.dart';
 import '../utils.dart';
 
 /// A descriptor describing a single file.
-class FileDescriptor extends Descriptor {
+class FileDescriptor extends Descriptor implements ReadableDescriptor {
   /// The contents of the file, in bytes.
   final List<int> contents;
 

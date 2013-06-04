@@ -33,11 +33,5 @@ class AsyncDescriptor extends Descriptor {
   Future validateNow([String parent]) =>
     future.then((entry) => entry.validateNow(parent));
 
-  Stream<List<int>> load(String path) => errorStream("AsyncDescriptors don't "
-      "support load().");
-
-  Stream<List<int>> read() => errorStream("AsyncDescriptors don't support "
-      "read().");
-
   String describe() => "async descriptor";
 }
