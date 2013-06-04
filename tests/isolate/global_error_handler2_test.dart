@@ -15,7 +15,7 @@ runTest() {
     if (isFirst) {
       mainIsolate = msg;
       isFirst = false;
-      throw new RuntimeError("ignore exception");
+      throw new UnsupportedError("ignore exception");
     }
     Expect.equals("message 2", msg);
     mainIsolate.send("received");
@@ -23,7 +23,7 @@ runTest() {
 }
 
 bool globalErrorHandler(IsolateUnhandledException e) {
-  return e.source is RuntimeError && e.source.message == "ignore exception";
+  return e.source is UnsupportedError && e.source.message == "ignore exception";
 }
 
 main() {

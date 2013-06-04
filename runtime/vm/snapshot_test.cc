@@ -920,7 +920,7 @@ UNIT_TEST_CASE(FullSnapshot) {
       "}\n"
       "class Expect {\n"
       "  static void equals(x, y) {\n"
-      "    if (x != y) throw new RuntimeError('not equal');\n"
+      "    if (x != y) throw new ArgumentError('not equal');\n"
       "  }\n"
       "}\n"
       "class FieldsTest {\n"

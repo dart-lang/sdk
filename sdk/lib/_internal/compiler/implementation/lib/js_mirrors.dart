@@ -428,7 +428,7 @@ class JsVariableMirror implements VariableMirror {
     int length = descriptor.length;
     var code = fieldCode(descriptor.codeUnitAt(length - 1));
     if (code == 0) {
-      throw new RuntimeError('Bad field descriptor: $descriptor');
+      throw new ArgumentError('Bad field descriptor: $descriptor');
     }
     bool hasGetter = (code & 3) != 0;
     bool hasSetter = (code >> 2) != 0;
@@ -481,7 +481,7 @@ function(reflectee) {
 ''');
     String callName = JS('String|Null', '#(#)', extractCallName, reflectee);
     if (callName == null) {
-      throw new RuntimeError('Cannot find callName on "$reflectee"');
+      throw new ArgumentError('Cannot find callName on "$reflectee"');
     }
     int parameterCount = int.parse(callName.split(r'$')[1]);
     if (reflectee is BoundClosure) {

@@ -1444,5 +1444,15 @@ void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
  * field that is currently being initialized.
  */
 void throwCyclicInit(String staticName) {
-  throw new RuntimeError("Cyclic initialization for static $staticName");
+  throw new CyclicInitializationError(
+      "Cyclic initialization for static $staticName");
+}
+
+/**
+ * Error thrown when a runtime error occurs.
+ */
+class RuntimeError implements Error {
+  final message;
+  RuntimeError(this.message);
+  String toString() => "RuntimeError: $message";
 }

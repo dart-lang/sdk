@@ -229,16 +229,23 @@ class OutOfMemoryError implements Error {
   String toString() => "Out of Memory";
 }
 
+
 class StackOverflowError implements Error {
   const StackOverflowError();
   String toString() => "Stack Overflow";
 }
 
 /**
- * Error thrown when a runtime error occurs.
+ * Error thrown when a lazily initialized variable cannot be initialized.
+ *
+ * A static/library variable with an initializer expression is initialized
+ * the first time it is read. If evaluating the initializer expression causes
+ * another read of the variable, this error is thrown.
  */
-class RuntimeError implements Error {
-  final message;
-  RuntimeError(this.message);
-  String toString() => "RuntimeError: $message";
+class CyclicInitializationError implements Error {
+  final String variableName;
+  const CyclicInitializationError([this.variableName]);
+  String toString() => variableName == null
+      ? "Reading static variable during its initialization"
+      : "Reading static variable '$variableName' during its initialization";
 }
