@@ -57,6 +57,7 @@ crypto/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
 debugger/*: Skip # Do not run standalone debugger tests in browser.
 coverage_test: Skip
+http_launch_test: Skip
 
 [ $compiler == dartc ]
 
@@ -115,6 +116,7 @@ left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
 io/test_runner_test: Fail # Library dart:uri removed.
 io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
+http_launch_test: Skip
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.

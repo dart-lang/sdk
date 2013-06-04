@@ -563,13 +563,17 @@ Dart_Handle DartUtils::LoadScriptHttp(Dart_Handle uri,
 
 Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                   Dart_Handle builtin_lib) {
-  if (DartUtils::IsHttpSchemeURL(script_uri)) {
-    return LoadScriptHttp(NewString(script_uri), builtin_lib);
-  }
-  Dart_Handle resolved_script_uri;
-  resolved_script_uri = ResolveScriptUri(NewString(script_uri), builtin_lib);
+  // Always call ResolveScriptUri because as a side effect it sets
+  // the script entry path which is used when automatically resolving
+  // package root.
+  Dart_Handle resolved_script_uri =
+      ResolveScriptUri(NewString(script_uri), builtin_lib);
   if (Dart_IsError(resolved_script_uri)) {
     return resolved_script_uri;
+  }
+  // Handle http: requests separately.
+  if (DartUtils::IsHttpSchemeURL(script_uri)) {
+    return LoadScriptHttp(resolved_script_uri, builtin_lib);
   }
   Dart_Handle script_path = DartUtils::FilePathFromUri(resolved_script_uri,
                                                        builtin_lib);

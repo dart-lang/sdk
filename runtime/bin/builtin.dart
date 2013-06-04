@@ -73,6 +73,12 @@ _setPackageRoot(String packageRoot) {
 }
 
 String _resolveScriptUri(String cwd, String scriptName, bool isWindows) {
+  var scriptUri = Uri.parse(scriptName);
+  if (scriptUri.scheme == 'http') {
+    _entrypoint = scriptUri;
+    _logResolution("# Resolved script to: $_entrypoint");
+    return _entrypoint.toString();
+  }
   _logResolution("# Current working directory: $cwd");
   _logResolution("# ScriptName: $scriptName");
   if (isWindows) {
@@ -196,7 +202,11 @@ String _filePathFromPackageUri(Uri uri) {
   if (_packageRoot != null) {
     path = "${_packageRoot}${uri.path}";
   } else {
-    path = _entrypoint.resolve('packages/${uri.path}').path;
+    if (_entrypoint.scheme == 'http') {
+      path = _entrypoint.resolve('packages/${uri.path}').toString();
+    } else {
+      path = _entrypoint.resolve('packages/${uri.path}').path;
+    }
   }
 
   _logResolution("# Package: $path");
