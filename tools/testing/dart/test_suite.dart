@@ -1010,7 +1010,15 @@ class StandardTestSuite extends TestSuite {
 
         List<String> args = <String>[];
 
-        if (TestUtils.usesWebDriver(runtime)) {
+        if (configuration['use_browser_controller']) {
+          // This command is not actually run, it is used for reproducing
+          // the failure.
+          args = ['tools/testing/dart/launch_browser.dart',
+                  runtime,
+                  fullHtmlPath];
+          commandSet.add(new Command(TestUtils.dartTestExecutable.toString(),
+                                     args));
+        } else if (TestUtils.usesWebDriver(runtime)) {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
               '--browser=$runtime',
