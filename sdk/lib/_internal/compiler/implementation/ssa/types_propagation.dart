@@ -27,7 +27,6 @@ abstract class SsaTypePropagator extends HBaseVisitor
     HType candidateType = HType.CONFLICTING;
     for (int i = 0, length = phi.inputs.length; i < length; i++) {
       HType inputType = phi.inputs[i].instructionType;
-      if (inputType.isConflicting()) return HType.CONFLICTING;
       if (ignoreUnknowns && inputType.isUnknown()) continue;
       // Phis need to combine the incoming types using the union operation.
       // For example, if one incoming edge has type integer and the other has
