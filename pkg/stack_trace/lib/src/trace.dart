@@ -10,7 +10,7 @@ import 'dart:math' as math;
 import 'frame.dart';
 import 'lazy_trace.dart';
 
-final _patchRegExp = new RegExp(r"-patch$");
+final _terseRegExp = new RegExp(r"(-patch)?(/.*)?$");
 
 /// A stack trace, comprised of a list of stack frames.
 class Trace implements StackTrace {
@@ -79,15 +79,16 @@ class Trace implements StackTrace {
   /// native stack traces.
   String get fullStackTrace => toString();
 
-  /// Returns a terser version of [this]. This is accomplished by folding
-  /// together multiple stack frames from the core library, as in [foldFrames].
-  /// Core library patches are also renamed to remove their `-patch` suffix.
+  /// Returns a terser version of [this].
+  ///
+  /// This is accomplished by folding together multiple stack frames from the
+  /// core library, as in [foldFrames]. Remaining core library frames have their
+  /// libraries, "-patch" suffixes, and line numbers removed.
   Trace get terse {
     return new Trace(foldFrames((frame) => frame.isCore).frames.map((frame) {
       if (!frame.isCore) return frame;
-      var library = frame.library.replaceAll(_patchRegExp, '');
-      return new Frame(
-          Uri.parse(library), frame.line, frame.column, frame.member);
+      var library = frame.library.replaceAll(_terseRegExp, '');
+      return new Frame(Uri.parse(library), null, null, frame.member);
     }));
   }
 

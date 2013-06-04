@@ -35,13 +35,13 @@ void main() {
   test('parses a stack trace correctly', () {
     var trace = new Trace.parse('''
 #0      Foo._bar (file:///home/nweiz/code/stuff.dart:42:21)
-#1      zip.<anonymous closure>.zap (dart:async:0:2)
+#1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)
 #2      zip.<anonymous closure>.zap (http://pub.dartlang.org/thing.dart:1:100)
 ''');
 
     expect(trace.frames[0].uri,
         equals(Uri.parse("file:///home/nweiz/code/stuff.dart")));
-    expect(trace.frames[1].uri, equals(Uri.parse("dart:async")));
+    expect(trace.frames[1].uri, equals(Uri.parse("dart:async/future.dart")));
     expect(trace.frames[2].uri,
         equals(Uri.parse("http://pub.dartlang.org/thing.dart")));
   });
@@ -94,13 +94,13 @@ void main() {
     var uri = pathToFileUri(path.join('foo', 'bar.dart'));
     var trace = new Trace.parse('''
 #0      Foo._bar ($uri:42:21)
-#1      zip.<anonymous closure>.zap (dart:async:0:2)
+#1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)
 #2      zip.<anonymous closure>.zap (http://pub.dartlang.org/thing.dart:1:100)
 ''');
 
     expect(trace.toString(), equals('''
 ${path.join('foo', 'bar.dart')} 42:21                        Foo._bar
-dart:async                                zip.<fn>.zap
+dart:async/future.dart 0:2                zip.<fn>.zap
 http://pub.dartlang.org/thing.dart 1:100  zip.<fn>.zap
 '''));
   });
@@ -118,11 +118,11 @@ http://pub.dartlang.org/thing.dart 1:100  zip.<fn>.zap
   test('.terse folds core frames together bottom-up', () {
     var trace = new Trace.parse('''
 #0 notCore (foo.dart:42:21)
-#1 top (dart:async:0:2)
-#2 bottom (dart:core:1:100)
+#1 top (dart:async/future.dart:0:2)
+#2 bottom (dart:core/uri.dart:1:100)
 #3 alsoNotCore (bar.dart:10:20)
 #4 top (dart:io:5:10)
-#5 bottom (dart:async-patch:9:11)
+#5 bottom (dart:async-patch/future.dart:9:11)
 ''');
 
     expect(trace.terse.toString(), equals('''
@@ -139,16 +139,16 @@ dart:async      bottom
 #1 fooTop (bar.dart:0:2)
 #2 fooBottom (foo.dart:1:100)
 #3 alsoNotFoo (bar.dart:10:20)
-#4 fooTop (dart:io:5:10)
-#5 fooBottom (dart:async-patch:9:11)
+#4 fooTop (dart:io/socket.dart:5:10)
+#5 fooBottom (dart:async-patch/future.dart:9:11)
 ''');
 
     var folded = trace.foldFrames((frame) => frame.member.startsWith('foo'));
     expect(folded.toString(), equals('''
-foo.dart 42:21    notFoo
-foo.dart 1:100    fooBottom
-bar.dart 10:20    alsoNotFoo
-dart:async-patch  fooBottom
+foo.dart 42:21                     notFoo
+foo.dart 1:100                     fooBottom
+bar.dart 10:20                     alsoNotFoo
+dart:async-patch/future.dart 9:11  fooBottom
 '''));
   });
 }

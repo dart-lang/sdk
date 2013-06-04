@@ -59,13 +59,13 @@ void main() {
     expect(() => new Frame.parse(''), throwsFormatException);
     expect(() => new Frame.parse('#1'), throwsFormatException);
     expect(() => new Frame.parse('#1      Foo'), throwsFormatException);
-    expect(() => new Frame.parse('#1      Foo (dart:async)'),
+    expect(() => new Frame.parse('#1      Foo (dart:async/future.dart)'),
         throwsFormatException);
-    expect(() => new Frame.parse('#1      Foo (dart:async:10)'),
+    expect(() => new Frame.parse('#1      Foo (dart:async/future.dart:10)'),
         throwsFormatException);
-    expect(() => new Frame.parse('#1      (dart:async:10:15)'),
+    expect(() => new Frame.parse('#1      (dart:async/future.dart:10:15)'),
         throwsFormatException);
-    expect(() => new Frame.parse('Foo (dart:async:10:15)'),
+    expect(() => new Frame.parse('Foo (dart:async/future.dart:10:15)'),
         throwsFormatException);
   });
 
@@ -75,9 +75,12 @@ void main() {
 
     expect(isCore('dart:core'), isTrue);
     expect(isCore('dart:async'), isTrue);
+    expect(isCore('dart:core/uri.dart'), isTrue);
+    expect(isCore('dart:async/future.dart'), isTrue);
     expect(isCore('bart:core'), isFalse);
     expect(isCore('sdart:core'), isFalse);
     expect(isCore('darty:core'), isFalse);
+    expect(isCore('bart:core/uri.dart'), isFalse);
   });
 
   group('.caller()', () {
@@ -104,8 +107,8 @@ void main() {
 
   group('.library', () {
     test('returns the URI string for non-file URIs', () {
-      expect(new Frame.parse('#0 Foo (dart:async:0:0)').library,
-          equals('dart:async'));
+      expect(new Frame.parse('#0 Foo (dart:async/future.dart:0:0)').library,
+          equals('dart:async/future.dart'));
       expect(new Frame.parse('#0 Foo '
               '(http://dartlang.org/stuff/thing.dart:0:0)').library,
           equals('http://dartlang.org/stuff/thing.dart'));
@@ -128,18 +131,12 @@ void main() {
       expect(new Frame.parse('#0 Foo ($uri:1:2)').location,
           equals('${path.join('foo', 'bar.dart')} 1:2'));
     });
-
-    test('just returns the library for core libraries', () {
-      expect(new Frame.parse('#0 Foo (dart:core:5:10)').location,
-          equals('dart:core'));
-      expect(new Frame.parse('#0 Foo (dart:async-patch:1:2)').location,
-          equals('dart:async-patch'));
-    });
   });
 
   group('.package', () {
     test('returns null for non-package URIs', () {
-      expect(new Frame.parse('#0 Foo (dart:async:0:0)').package, isNull);
+      expect(new Frame.parse('#0 Foo (dart:async/future.dart:0:0)').package,
+          isNull);
       expect(new Frame.parse('#0 Foo '
               '(http://dartlang.org/stuff/thing.dart:0:0)').package,
           isNull);
@@ -161,15 +158,10 @@ void main() {
           equals('http://dartlang.org/thing.dart 5:10 in Foo'));
     });
 
-    test('just returns the library for core libraries', () {
-      expect(new Frame.parse('#0 Foo (dart:core:5:10)').toString(),
-          equals('dart:core in Foo'));
-    });
-
     test('converts "<anonymous closure>" to "<fn>"', () {
-      expect(new Frame.parse('#0 Foo.<anonymous closure> (dart:core:5:10)')
-              .toString(),
-          equals('dart:core in Foo.<fn>'));
+      expect(new Frame.parse('#0 Foo.<anonymous closure> '
+              '(dart:core/uri.dart:5:10)').toString(),
+          equals('dart:core/uri.dart 5:10 in Foo.<fn>'));
     });
   });
 }
