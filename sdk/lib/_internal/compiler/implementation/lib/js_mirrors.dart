@@ -15,6 +15,7 @@ import 'dart:_js_helper' show
     JSInvocationMirror,
     Null,
     Primitives,
+    RuntimeError,
     createInvocationMirror;
 import 'dart:_interceptors' show Interceptor;
 
@@ -491,7 +492,7 @@ function(reflectee) {
 ''');
     String callName = JS('String|Null', '#(#)', extractCallName, reflectee);
     if (callName == null) {
-      throw new ArgumentError('Cannot find callName on "$reflectee"');
+      throw new RuntimeError('Cannot find callName on "$reflectee"');
     }
     int parameterCount = int.parse(callName.split(r'$')[1]);
     if (reflectee is BoundClosure) {
