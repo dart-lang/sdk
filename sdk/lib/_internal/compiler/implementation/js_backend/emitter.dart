@@ -613,7 +613,7 @@ class CodeEmitterTask extends CompilerTask {
            */
           js('var classData = desc[""], supr, name = cls, fields = classData'),
           optional(
-              compiler.mirrorSystemClass != null,
+              compiler.mirrorsEnabled,
               js.if_('typeof classData == "object" && '
                      'classData instanceof Array',
                      [js('classData = fields = classData[0]')])),
@@ -647,7 +647,7 @@ class CodeEmitterTask extends CompilerTask {
           ])),
 
           js('var constructor = defineClass(name, cls, fields, desc)'),
-          optional(compiler.mirrorSystemClass != null,
+          optional(compiler.mirrorsEnabled,
                    js('constructor["${namer.metadataField}"] = desc')),
           js('isolateProperties[cls] = constructor'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
@@ -1470,7 +1470,7 @@ class CodeEmitterTask extends CompilerTask {
       if (!classIsNative || needsAccessor) {
         buffer.write(separator);
         separator = ',';
-        if (compiler.mirrorSystemClass != null) {
+        if (compiler.mirrorsEnabled) {
           var metadata = buildMetadataFunction(member);
           fieldMetadata.add(metadata);
           if (metadata != null) {
@@ -2972,7 +2972,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun buildMetadataFunction(Element element) {
-    if (compiler.mirrorSystemClass == null) return null;
+    if (!compiler.mirrorsEnabled) return null;
     var metadata = [];
     Link link = element.metadata;
     // TODO(ahe): Why is metadata sometimes null?

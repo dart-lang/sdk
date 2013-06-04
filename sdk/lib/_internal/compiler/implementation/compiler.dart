@@ -523,6 +523,8 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get hasBuildId => buildId != UNDETERMINED_BUILD_ID;
 
+  bool get mirrorsEnabled => mirrorSystemClass != null;
+
   int getNextFreeClassId() => nextFreeClassId++;
 
   void ensure(bool condition) {
@@ -884,7 +886,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void resolveReflectiveDataIfNeeded() {
     // Only need reflective data when dart:mirrors is loaded.
-    if (mirrorSystemClass == null) return;
+    if (!mirrorsEnabled) return;
 
     for (LibraryElement library in libraries.values) {
       for (Link link = library.metadata; !link.isEmpty; link = link.tail) {

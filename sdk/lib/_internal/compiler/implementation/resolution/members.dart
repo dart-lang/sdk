@@ -2251,8 +2251,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // Set the type of the node to [Type] to mark this send as a
         // type literal.
         mapping.setType(node, compiler.typeClass.computeType(compiler));
-        world.registerInstantiatedClass(compiler.typeClass, mapping);
-        compiler.backend.registerTypeLiteral(mapping);
+        world.registerTypeLiteral(target, mapping);
       }
     }
 

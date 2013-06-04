@@ -170,6 +170,15 @@ abstract class Enqueuer {
     registerInstantiatedType(cls.rawType, elements);
   }
 
+  void registerTypeLiteral(Element element, TreeElements elements) {
+    registerInstantiatedClass(compiler.typeClass, elements);
+    compiler.backend.registerTypeLiteral(elements);
+    if (compiler.mirrorsEnabled) {
+      // In order to use reflectClass, we need to find the constructor.
+      registerInstantiatedClass(element, elements);
+    }
+  }
+
   bool checkNoEnqueuedInvokedInstanceMethods() {
     task.measure(() {
       // Run through the classes and see if we need to compile methods.
@@ -347,7 +356,7 @@ abstract class Enqueuer {
     // If dart:mirrors is loaded, a const symbol may be used to call a
     // static/top-level method or accessor, instantiate a class, call
     // an instance method or accessor with the given name.
-    if (compiler.mirrorSystemClass == null) return;
+    if (!compiler.mirrorsEnabled) return;
 
     task.ensureAllElementsByName();
 

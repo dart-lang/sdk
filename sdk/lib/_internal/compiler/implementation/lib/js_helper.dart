@@ -570,11 +570,11 @@ class Primitives {
     // TODO(ahe): Generalize this and improve test coverage of
     // reflecting on intercepted classes.
     if (JS('bool', '# == "String"', className)) return const JSString();
-    if (JS('bool', '# == "int"', int)) return const JSInt();
-    if (JS('bool', '# == "double"', int)) return const JSDouble();
-    if (JS('bool', '# == "num"', int)) return const JSNumber();
-    if (JS('bool', '# == "bool"', int)) return const JSBool();
-    if (JS('bool', '# == "List"', int)) return const JSArray();
+    if (JS('bool', '# == "int"', className)) return const JSInt();
+    if (JS('bool', '# == "double"', className)) return const JSDouble();
+    if (JS('bool', '# == "num"', className)) return const JSNumber();
+    if (JS('bool', '# == "bool"', className)) return const JSBool();
+    if (JS('bool', '# == "List"', className)) return const JSArray();
     return JS('var', '#[#]', JS_CURRENT_ISOLATE(), className);
   }
 

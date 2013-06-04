@@ -414,34 +414,40 @@ class JsVariableMirror implements VariableMirror {
   // TODO(ahe): The values in these fields are virtually untested.
   final Symbol simpleName;
   final String _jsName;
-  final bool _readOnly;
+  final bool isFinal;
+  final bool isStatic;
   final _metadataFunction;
   DeclarationMirror _owner;
   List _metadata;
 
   JsVariableMirror(this.simpleName,
                    this._jsName,
-                   this._readOnly,
+                   this.isFinal,
+                   this.isStatic,
                    this._metadataFunction);
 
   factory JsVariableMirror.from(String descriptor, metadataFunction) {
     int length = descriptor.length;
     var code = fieldCode(descriptor.codeUnitAt(length - 1));
-    if (code == 0) {
-      throw new ArgumentError('Bad field descriptor: $descriptor');
+    bool isFinal = false;
+    // code might be 0 if the accessors aren't needed, or if they are
+    // inherited.
+    // TODO(ahe): Ensure code is only 0 for inherited fields.
+    if (code != 0) {
+      bool hasGetter = (code & 3) != 0;
+      bool hasSetter = (code >> 2) != 0;
+      isFinal = !hasSetter;
+      length--;
     }
-    bool hasGetter = (code & 3) != 0;
-    bool hasSetter = (code >> 2) != 0;
     String jsName;
-    String accessorName = jsName = descriptor.substring(0, length - 1);
+    String accessorName = jsName = descriptor.substring(0, length);
     int divider = descriptor.indexOf(":");
     if (divider > 0) {
       accessorName = accessorName.substring(0, divider);
       jsName = accessorName.substring(divider + 1);
     }
-    bool readOnly = !hasSetter;
     return new JsVariableMirror(
-        s(accessorName), jsName, readOnly, metadataFunction);
+        s(accessorName), jsName, isFinal, false, metadataFunction);
   }
 
   TypeMirror get type => JsMirrorSystem._dynamicType;
@@ -457,6 +463,10 @@ class JsVariableMirror implements VariableMirror {
     }
     return _metadata.map(reflect).toList();
   }
+
+  bool get isPrivate => n(simpleName).startsWith('_');
+
+  String toString() => 'VariableMirror(${n(qualifiedName)})';
 
   static int fieldCode(int code) {
     if (code >= 60 && code <= 64) return code - 59;
