@@ -20,30 +20,36 @@ void main() {
 
     test('isTrue', () {
       shouldPass(true, isTrue);
-      shouldFail(false, isTrue, "Expected: true But: was <false>.");
+      shouldFail(false, isTrue, "Expected: true But: was <false>. "
+          "Actual: <false>");
     });
 
     test('isFalse', () {
       shouldPass(false, isFalse);
-      shouldFail(10, isFalse, "Expected: false But: was <10>.");
-      shouldFail(true, isFalse, "Expected: false But: was <true>.");
+      shouldFail(10, isFalse, "Expected: false But: was <10>. "
+          "Actual: <10>");
+      shouldFail(true, isFalse, "Expected: false But: was <true>. "
+          "Actual: <true>");
     });
 
     test('isNull', () {
       shouldPass(null, isNull);
-      shouldFail(false, isNull, "Expected: null But: was <false>.");
+      shouldFail(false, isNull, "Expected: null But: was <false>. "
+          "Actual: <false>");
     });
 
     test('isNotNull', () {
       shouldPass(false, isNotNull);
-      shouldFail(null, isNotNull, "Expected: not null But: was <null>.");
+      shouldFail(null, isNotNull, "Expected: not null But: was <null>. "
+          "Actual: <null>");
     });
 
     test('same', () {
       var a = new Map();
       var b = new Map();
       shouldPass(a, same(a));
-      shouldFail(b, same(a), "Expected: same instance as {} But: was {}.");
+      shouldFail(b, same(a), "Expected: same instance as {} But: was {}. "
+          "Actual: {}");
     });
 
     test('equals', () {
@@ -58,7 +64,8 @@ void main() {
       shouldPass(0, anything);
       shouldPass(null, anything);
       shouldPass(a, anything);
-      shouldFail(a, isNot(anything), "Expected: not anything But: was {}.");
+      shouldFail(a, isNot(anything), "Expected: not anything "
+          "But: was {}. Actual: {}");
     });
 
     test('throws', () {
@@ -121,7 +128,7 @@ void main() {
     test('scalar type mismatch', () {
       shouldFail('error', equals(5.1),
           "Expected: <5.1> "
-          "But: was 'error'.");
+          "But: was 'error'. Actual: 'error'");
     });
 
     test('nested type mismatch', () {
@@ -145,64 +152,67 @@ void main() {
     test('greaterThan', () {
       shouldPass(10, greaterThan(9));
       shouldFail(9, greaterThan(10),
-        "Expected: a value greater than <10> But: was <9>.");
+        "Expected: a value greater than <10> But: was <9>. Actual: <9>");
     });
 
     test('greaterThanOrEqualTo', () {
       shouldPass(10, greaterThanOrEqualTo(10));
       shouldFail(9, greaterThanOrEqualTo(10),
-        "Expected: a value greater than or equal to <10> But: was <9>.");
+        "Expected: a value greater than or equal to <10> But: was <9>. "
+        "Actual: <9>");
     });
 
     test('lessThan', () {
       shouldFail(10, lessThan(9), "Expected: a value less than <9> "
-          "But: was <10>.");
+          "But: was <10>. Actual: <10>");
       shouldPass(9, lessThan(10));
     });
 
     test('lessThanOrEqualTo', () {
       shouldPass(10, lessThanOrEqualTo(10));
       shouldFail(11, lessThanOrEqualTo(10),
-        "Expected: a value less than or equal to <10> But: was <11>.");
+        "Expected: a value less than or equal to <10> But: was <11>. "
+        "Actual: <11>");
     });
 
     test('isZero', () {
       shouldPass(0, isZero);
-      shouldFail(1, isZero, "Expected: a value equal to <0> But: was <1>.");
+      shouldFail(1, isZero, "Expected: a value equal to <0> But: was <1>."
+          " Actual: <1>");
     });
 
     test('isNonZero', () {
       shouldFail(0, isNonZero, "Expected: a value not equal to <0> "
-          "But: was <0>.");
+          "But: was <0>. Actual: <0>");
       shouldPass(1, isNonZero);
     });
 
     test('isPositive', () {
       shouldFail(-1, isPositive, "Expected: a positive value "
-          "But: was <-1>.");
+          "But: was <-1>. Actual: <-1>");
       shouldFail(0, isPositive, "Expected: a positive value "
-          "But: was <0>.");
+          "But: was <0>. Actual: <0>");
       shouldPass(1, isPositive);
     });
 
     test('isNegative', () {
       shouldPass(-1, isNegative);
       shouldFail(0, isNegative,
-          "Expected: a negative value But: was <0>.");
+          "Expected: a negative value But: was <0>. Actual: <0>");
     });
 
     test('isNonPositive', () {
       shouldPass(-1, isNonPositive);
       shouldPass(0, isNonPositive);
       shouldFail(1, isNonPositive,
-          "Expected: a non-positive value But: was <1>.");
+          "Expected: a non-positive value But: was <1>. Actual: <1>");
     });
 
     test('isNonNegative', () {
       shouldPass(1, isNonNegative);
       shouldPass(0, isNonNegative);
       shouldFail(-1, isNonNegative,
-        "Expected: a non-negative value But: was <-1>.");
+        "Expected: a non-negative value But: was <-1>. Actual: <-1>");
     });
 
     test('closeTo', () {
@@ -222,29 +232,29 @@ void main() {
     test('inInclusiveRange', () {
       shouldFail(-1, inInclusiveRange(0,2),
           "Expected: be in range from 0 (inclusive) to 2 (inclusive) "
-          "But: was <-1>.");
+          "But: was <-1>. Actual: <-1>");
       shouldPass(0, inInclusiveRange(0,2));
       shouldPass(1, inInclusiveRange(0,2));
       shouldPass(2, inInclusiveRange(0,2));
       shouldFail(3, inInclusiveRange(0,2),
           "Expected: be in range from 0 (inclusive) to 2 (inclusive) "
-          "But: was <3>.");
+          "But: was <3>. Actual: <3>");
     });
 
     test('inExclusiveRange', () {
       shouldFail(0, inExclusiveRange(0,2),
           "Expected: be in range from 0 (exclusive) to 2 (exclusive) "
-          "But: was <0>.");
+          "But: was <0>. Actual: <0>");
       shouldPass(1, inExclusiveRange(0,2));
       shouldFail(2, inExclusiveRange(0,2),
           "Expected: be in range from 0 (exclusive) to 2 (exclusive) "
-          "But: was <2>.");
+          "But: was <2>. Actual: <2>");
     });
 
     test('inOpenClosedRange', () {
       shouldFail(0, inOpenClosedRange(0,2),
           "Expected: be in range from 0 (exclusive) to 2 (inclusive) "
-          "But: was <0>.");
+          "But: was <0>. Actual: <0>");
       shouldPass(1, inOpenClosedRange(0,2));
       shouldPass(2, inOpenClosedRange(0,2));
     });
@@ -254,7 +264,7 @@ void main() {
       shouldPass(1, inClosedOpenRange(0,2));
       shouldFail(2, inClosedOpenRange(0,2),
           "Expected: be in range from 0 (inclusive) to 2 (exclusive) "
-          "But: was <2>.");
+          "But: was <2>. Actual: <2>");
     });
   });
 
@@ -263,22 +273,23 @@ void main() {
     test('isEmpty', () {
       shouldPass('', isEmpty);
       shouldFail(null, isEmpty,
-          "Expected: empty But: was <null>.");
+          "Expected: empty But: was <null>. Actual: <null>");
       shouldFail(0, isEmpty,
-          "Expected: empty But: was <0>.");
-      shouldFail('a', isEmpty, "Expected: empty But: was 'a'.");
+          "Expected: empty But: was <0>. Actual: <0>");
+      shouldFail('a', isEmpty, "Expected: empty But: was 'a'. Actual: 'a'");
     });
 
     test('equalsIgnoringCase', () {
       shouldPass('hello', equalsIgnoringCase('HELLO'));
       shouldFail('hi', equalsIgnoringCase('HELLO'),
-          "Expected: 'HELLO' ignoring case But: was 'hi'.");
+          "Expected: 'HELLO' ignoring case But: was 'hi'. Actual: 'hi'");
     });
 
     test('equalsIgnoringWhitespace', () {
       shouldPass(' hello   world  ', equalsIgnoringWhitespace('hello world'));
       shouldFail(' helloworld  ', equalsIgnoringWhitespace('hello world'),
-          "Expected: 'hello world' ignoring whitespace But: was 'helloworld'.");
+          "Expected: 'hello world' ignoring whitespace "
+          "But: was 'helloworld'. Actual: ' helloworld '");
     });
 
     test('startsWith', () {
@@ -286,7 +297,8 @@ void main() {
       shouldPass('hello', startsWith('hell'));
       shouldPass('hello', startsWith('hello'));
       shouldFail('hello', startsWith('hello '),
-          "Expected: a string starting with 'hello ' But: was 'hello'.");
+          "Expected: a string starting with 'hello ' "
+          "But: was 'hello'. Actual: 'hello'");
     });
 
     test('endsWith', () {
@@ -294,7 +306,8 @@ void main() {
       shouldPass('hello', endsWith('lo'));
       shouldPass('hello', endsWith('hello'));
       shouldFail('hello', endsWith(' hello'),
-          "Expected: a string ending with ' hello' But: was 'hello'.");
+          "Expected: a string ending with ' hello' "
+          "But: was 'hello'. Actual: 'hello'");
     });
 
     test('contains', () {
@@ -304,7 +317,7 @@ void main() {
       shouldPass('hello', contains('hell'));
       shouldPass('hello', contains('hello'));
       shouldFail('hello', contains(' '),
-          "Expected: contains ' ' But: was 'hello'.");
+          "Expected: contains ' ' But: was 'hello'. Actual: 'hello'");
     });
 
     test('stringContainsInOrder', () {
@@ -323,14 +336,14 @@ void main() {
       shouldFail('goodbye cruel world',
         stringContainsInOrder(['goo', 'cruel', 'bye']),
         "Expected: a string containing 'goo', 'cruel', 'bye' in order "
-        "But: was 'goodbye cruel world'.");
+        "But: was 'goodbye cruel world'. Actual: 'goodbye cruel world'");
     });
 
     test('matches', () {
       shouldPass('c0d', matches('[a-z][0-9][a-z]'));
       shouldPass('c0d', matches(new RegExp('[a-z][0-9][a-z]')));
       shouldFail('cOd', matches('[a-z][0-9][a-z]'),
-          "Expected: match '[a-z][0-9][a-z]' But: was 'cOd'.");
+          "Expected: match '[a-z][0-9][a-z]' But: was 'cOd'. Actual: 'cOd'");
     });
   });
 
@@ -338,19 +351,20 @@ void main() {
 
     test('isEmpty', () {
       shouldPass([], isEmpty);
-      shouldFail([1], isEmpty, "Expected: empty But: was [1].");
+      shouldFail([1], isEmpty, "Expected: empty But: was [1]. Actual: [1]");
     });
 
     test('contains', () {
       var d = [1, 2];
       shouldPass(d, contains(1));
-      shouldFail(d, contains(0), "Expected: contains <0> But: was [1, 2].");
+      shouldFail(d, contains(0), "Expected: contains <0> "
+          "But: was [1, 2]. Actual: [1, 2]");
     });
 
     test('isIn', () {
       var d = [1, 2];
       shouldPass(1, isIn(d));
-      shouldFail(0, isIn(d), "Expected: is in [1, 2] But: was <0>.");
+      shouldFail(0, isIn(d), "Expected: is in [1, 2] But: was <0>. Actual: <0>");
     });
 
     test('everyElement', () {
@@ -367,7 +381,7 @@ void main() {
       var e = [1, 1, 1];
       shouldPass(d, someElement(2));
       shouldFail(e, someElement(2),
-          "Expected: some element <2> But: was [1, 1, 1].");
+          "Expected: some element <2> But: was [1, 1, 1]. Actual: [1, 1, 1]");
     });
 
     test('orderedEquals', () {
@@ -430,7 +444,8 @@ void main() {
       shouldPass({}, isEmpty);
       shouldPass(a, isEmpty);
       a['foo'] = 'bar';
-      shouldFail(a, isEmpty, "Expected: empty But: was {'foo': 'bar'}.");
+      shouldFail(a, isEmpty, "Expected: empty But: was {'foo': 'bar'}. "
+          "Actual: {'foo': 'bar'}");
     });
 
     test('equals', () {
@@ -487,9 +502,9 @@ void main() {
       var b = new Map();
       shouldPass(a, contains('foo'));
       shouldFail(b, contains('foo'),
-          "Expected: contains 'foo' But: was {}.");
+          "Expected: contains 'foo' But: was {}. Actual: {}");
       shouldFail(10, contains('foo'),
-          "Expected: contains 'foo' But: was <10>.");
+          "Expected: contains 'foo' But: was <10>. Actual: <10>");
     });
 
     test('containsValue', () {
@@ -497,7 +512,8 @@ void main() {
       a['foo'] = 'bar';
       shouldPass(a, containsValue('bar'));
       shouldFail(a, containsValue('ba'),
-          "Expected: contains value 'ba' But: was {'foo': 'bar'}.");
+          "Expected: contains value 'ba' But: was {'foo': 'bar'}. "
+          "Actual: {'foo': 'bar'}");
     });
 
     test('containsPair', () {
@@ -506,7 +522,8 @@ void main() {
       shouldPass(a, containsPair('foo', 'bar'));
       shouldFail(a, containsPair('foo', 'ba'),
           "Expected: contains pair 'foo' => 'ba' "
-          "But:  contains key 'foo' but with value was 'bar'. "
+          "But: Strings are not equal. Both strings start the same, "
+          "but the given value also has the following trailing characters: r. "
           "Actual: {'foo': 'bar'}");
       shouldFail(a, containsPair('fo', 'bar'),
           "Expected: contains pair 'fo' => 'bar' "
@@ -530,7 +547,7 @@ void main() {
 
     test('anyOf', () {
       shouldFail(0, anyOf([equals(1), equals(2)]),
-          "Expected: (<1> or <2>) But: was <0>.");
+          "Expected: (<1> or <2>) But: was <0>. Actual: <0>");
       shouldPass(1, anyOf([equals(1), equals(2)]));
     });
 
@@ -538,7 +555,7 @@ void main() {
       shouldPass(1, allOf([lessThan(10), greaterThan(0)]));
       shouldFail(-1, allOf([lessThan(10), greaterThan(0)]),
           "Expected: (a value less than <10> and a value greater than <0>) "
-          "But: was <-1> (wasn't a value greater than <0>).");
+          "But: was <-1> (wasn't a value greater than <0>). Actual: <-1>");
     });
   });
 
@@ -598,7 +615,8 @@ void main() {
       var completer = new Completer();
       completer.completeError('X');
       shouldFail(completer.future, throwsA(equals('Y')),
-          "Expected: 'Y' But: was 'X'.",
+          "Expected: 'Y' But: Strings are not equal. "
+          "Expected: Y Actual: X ^ Differ at position 0. Actual: 'X'",
           isAsync: true);
     });
   });
@@ -606,7 +624,7 @@ void main() {
   group('Predicate Matchers', () {
     test('isInstanceOf', () {
       shouldFail(0, predicate((x) => x is String, "an instance of String"),
-          "Expected: an instance of String But: was <0>.");
+          "Expected: an instance of String But: was <0>. Actual: <0>");
       shouldPass('cow', predicate((x) => x is String, "an instance of String"));
     });
   });

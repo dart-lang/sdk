@@ -13,7 +13,7 @@ main() {
   group('Type Matchers', () {
     test('isInstanceOf', () {
       shouldFail(0, new isInstanceOf<String>('String'),
-          "Expected: an instance of String But: was <0>.");
+          "Expected: an instance of String But: was <0>. Actual: <0>");
       shouldPass('cow', new isInstanceOf<String>('String'));
     });
 
