@@ -187,6 +187,6 @@ Language/11_Expressions/08_Throw_A05_t01: fail, OK
 Language/11_Expressions/08_Throw_A05_t02: fail, OK
 Language/11_Expressions/08_Throw_A05_t03: fail, OK
 
-
-[ $runtime == drt && $compiler == none ]
-*: Skip
+# infinite loop
+Language/14_Types/4_Interface_Types_A11_t01: skip
+Language/14_Types/4_Interface_Types_A11_t02: skip
