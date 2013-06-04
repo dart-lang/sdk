@@ -515,6 +515,8 @@ bound_closure_equality_test: Fail # Issue 10849
 
 [ $compiler == dart2dart && $minified ]
 
+super_getter_setter_test: Fail # Issue 11065. 
+
 # TODO(tball): Assign proper bug numbers.
 class_literal_test/none: Fail
 
