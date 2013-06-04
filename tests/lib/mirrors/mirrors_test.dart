@@ -200,9 +200,10 @@ testLibraryUri(var value, bool check(Uri)) {
   expect(check(valueLibrary.uri), isTrue);
 }
 
-mainWithArgument({bool isDart2js}) {
+mainWithArgument({bool isDart2js: false, bool isMinified: false}) {
   var mirrors = currentMirrorSystem();
   test("Test reflective method invocation", () { testInvoke(mirrors); });
+  if (isMinified) return;
   test("Test instance field access", () { testInstanceFieldAccess(mirrors); });
   test('Test intercepted objects', () { testIntercepted(mirrors); });
   test("Test field access", () { testFieldAccess(mirrors); });
@@ -221,5 +222,5 @@ mainWithArgument({bool isDart2js}) {
 }
 
 main() {
-  mainWithArgument(isDart2js: false);
+  mainWithArgument();
 }

@@ -32,6 +32,10 @@ class JsMirrorSystem implements MirrorSystem {
   static final Map<String, List<LibraryMirror>> librariesByName =
       computeLibrariesByName();
 
+  static final Map<String, String> mangledNames = computeMangledNames();
+
+  static final Map<String, String> reflectiveNames = computeReflectiveNames();
+
   Iterable<LibraryMirror> findLibrary(Symbol libraryName) {
     return new List<LibraryMirror>.from(librariesByName[n(libraryName)]);
   }
@@ -52,6 +56,31 @@ class JsMirrorSystem implements MirrorSystem {
       libraries.add(
           new JsLibraryMirror(s(name), uri, classes, functions, metadata));
     }
+    return result;
+  }
+
+  static Map<String, String> computeMangledNames() {
+    var mangledNames = JS('', 'init.mangledNames');
+    var keys = JS('List', '''
+(function(mangled, hasOwnProperty) {
+  var result = [];
+  for (var key in mangled) {
+    if (hasOwnProperty.call(mangled, key)) result.push(key);
+  }
+  return result;
+})(#, Object.prototype.hasOwnProperty)''', mangledNames);
+    var result = <String, String>{};
+    for (String key in keys) {
+      result[key] = JS('String', '#[#]', mangledNames, key);
+    }
+    return result;
+  }
+
+  static Map<String, String> computeReflectiveNames() {
+    var result = <String, String>{};
+    mangledNames.forEach((String mangledName, String reflectiveName) {
+      result[reflectiveName] = mangledName;
+    });
     return result;
   }
 }
@@ -244,9 +273,9 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // Copy the list to ensure that it can safely be passed to
     // JavaScript.
     var jsList = new List.from(positionalArguments);
-    return _invoke(
-        memberName, JSInvocationMirror.METHOD,
-        '${n(memberName)}\$${positionalArguments.length}', jsList);
+    String reflectiveName = '${n(memberName)}:${positionalArguments.length}:0';
+    String mangledName = JsMirrorSystem.reflectiveNames[reflectiveName];
+    return _invoke(memberName, JSInvocationMirror.METHOD, mangledName, jsList);
   }
 
   InstanceMirror _invoke(Symbol name,

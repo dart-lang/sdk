@@ -1172,6 +1172,14 @@ class CodeEmitterTask extends CompilerTask {
       if (code == null) return;
       String name = namer.getName(member);
       builder.addProperty(name, code);
+      var metadata = buildMetadataFunction(member);
+      if (metadata != null) {
+        builder.addProperty('@$name', metadata);
+      }
+      String reflectionName = reflectionName(member);
+      if (reflectionName != null) {
+        builder.addProperty('+$reflectionName', js('0'));
+      }
       code = backend.generatedBailoutCode[member];
       if (code != null) {
         builder.addProperty(namer.getBailoutName(member), code);
@@ -1181,15 +1189,30 @@ class CodeEmitterTask extends CompilerTask {
       if (!parameters.optionalParameters.isEmpty) {
         addParameterStubs(member, builder.addProperty);
       }
-      var metadata = buildMetadataFunction(member);
-      if (metadata != null) {
-        builder.addProperty('@$name', metadata);
-      }
     } else if (!member.isField()) {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
     }
     emitExtraAccessors(member, builder);
+  }
+
+  String reflectionName(Element element) {
+    if (!compiler.mirrorsEnabled) return null;
+    String name = element.name.slowToString();
+    if (element.isGetter()) return name;
+    if (element.isSetter()) return '$name=';
+    if (element.isFunction()) {
+      FunctionElement function = element;
+      int requiredParameterCount = function.requiredParameterCount(compiler);
+      int optionalParameterCount = function.optionalParameterCount(compiler);
+      String suffix = '$name:$requiredParameterCount:$optionalParameterCount';
+      return (function.isConstructor()) ? 'new $suffix' : suffix;
+    }
+    if (element.isGenerativeConstructorBody()) {
+      return null;
+    }
+    throw compiler.internalErrorOnElement(
+        element, 'Do not know how to reflect on this');
   }
 
   /**
@@ -3273,7 +3296,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     return '''
 (function (reflectionData) {
   if (!init.libraries) init.libraries = [];
+  if (!init.mangledNames) init.mangledNames = {};
   var libraries = init.libraries;
+  var mangledNames = init.mangledNames;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
@@ -3294,14 +3319,18 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         ${namer.CURRENT_ISOLATE}[property] = element;
         functions.push(property);
       } else {
-        var newDesc = {}
+        var newDesc = {};
+        var previousProp;
         for (var prop in element) {
           if (!hasOwnProperty.call(element, prop)) continue;
-          if (prop.substring(0, 1) == "@" && prop != "@") {
+          var firstChar = prop.substring(0, 1);
+          if (firstChar == "+") {
+            mangledNames[previousProp] = prop.substring(1);
+          } else if (firstChar == "@" && prop != "@") {
             newDesc[prop.substring(1)]["${namer.metadataField}"] ='''
 '''element[prop];
           } else {
-            newDesc[prop] = element[prop];
+            newDesc[previousProp = prop] = element[prop];
           }
         }
         $classesCollector[property] = newDesc;
