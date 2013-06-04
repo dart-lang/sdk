@@ -19,7 +19,8 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '../../sdk/lib/_internal/libraries.dart',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib/_internal/compiler", "../../runtime/lib"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib/_internal/compiler", "../../runtime/lib", "../../sdk/lib/_internal/dartdoc"])',
+            'create_snapshot.dart',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
@@ -29,6 +30,8 @@
             'create_snapshot.dart',
             '--output_dir=<(SHARED_INTERMEDIATE_DIR)',
             '--dart2js_main=sdk/lib/_internal/compiler/implementation/dart2js.dart',
+            '--dartdoc_main=sdk/lib/_internal/dartdoc/bin/dartdoc.dart',
+            '--package_root=<(PRODUCT_DIR)/packages/',
           ],
         },
       ],
