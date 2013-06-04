@@ -113,11 +113,14 @@ final RegExp _ASCII_ONLY = new RegExp(r"^[\x00-\x7F]+$");
 /// characters.
 bool isPlainAscii(String string) => _ASCII_ONLY.hasMatch(string);
 
-/// Converts [input] into a [Uint8List]. If [input] is a [ByteArray] or
-/// [ByteArrayViewable], this just returns a view on [input].
+/// Converts [input] into a [Uint8List]. If [input] is a [TypedData], this just
+/// returns a view on [input].
 Uint8List toUint8List(List<int> input) {
   if (input is Uint8List) return input;
-  if (input is ByteData) return new Uint8List.view(input.buffer);
+  if (input is TypedData) {
+    // TODO(nweiz): remove this "as" check when issue 11080 is fixed.
+    return new Uint8List.view((input as TypedData).buffer);
+  }
   var output = new Uint8List(input.length);
   output.setRange(0, input.length, input);
   return output;

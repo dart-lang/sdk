@@ -85,9 +85,10 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
       } else {
         var remainingPath = split.sublist(1);
         if (remainingPath.isEmpty) {
-          return matchingEntries.first.read();
+          return (matchingEntries.first as ReadableDescriptor).read();
         } else {
-          return matchingEntries.first.load(_path.joinAll(remainingPath));
+          return (matchingEntries.first as LoadableDescriptor)
+              .load(_path.joinAll(remainingPath));
         }
       }
     }));

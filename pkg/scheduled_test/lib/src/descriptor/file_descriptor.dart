@@ -16,7 +16,7 @@ import '../../scheduled_test.dart';
 import '../utils.dart';
 
 /// A descriptor describing a single file.
-class FileDescriptor extends Descriptor implements ReadableDescriptor {
+abstract class FileDescriptor extends Descriptor implements ReadableDescriptor {
   /// The contents of the file, in bytes.
   final List<int> contents;
 
@@ -82,7 +82,7 @@ class _BinaryFileDescriptor extends FileDescriptor {
       : super._(name, contents);
 
   Future _validateNow(List<int> actualContents) {
-    if (orderedIterableEquals(contents, actualContents)) return;
+    if (orderedIterableEquals(contents, actualContents)) return null;
     // TODO(nweiz): show a hex dump here if the data is small enough.
     throw "File '$name' didn't contain the expected binary data.";
   }
@@ -93,7 +93,7 @@ class _StringFileDescriptor extends FileDescriptor {
       : super._(name, encodeUtf8(contents));
 
   Future _validateNow(List<int> actualContents) {
-    if (orderedIterableEquals(contents, actualContents)) return;
+    if (orderedIterableEquals(contents, actualContents)) return null;
     throw _textMismatchMessage(textContents,
         new String.fromCharCodes(actualContents));
   }
