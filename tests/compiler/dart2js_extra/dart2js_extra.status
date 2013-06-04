@@ -33,7 +33,6 @@ class_test: Fail
 to_string_test: Fail # Issue 7179.
 runtime_type_test: Fail, OK # Tests extected output of Type.toString().
 
-mirror_test: Fail  # http://dartbug.com/6490
 mirrors_test: Fail # http://dartbug.com/6490
 
 [ $jscl ]
