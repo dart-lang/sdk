@@ -38,4 +38,18 @@ fi
 
 JAR_FILE="$JAR_DIR/dartanalyzer.jar"
 
-exec java -jar $JAR_FILE --dart-sdk "$SDK_DIR" "$@"
+EXTRA_JVMARGS="-Xss2M "
+OS=`uname | tr "[A-Z]" "[a-z]"`
+if [ "$OS" == "darwin" ] ; then
+  # Bump up the heap on Mac VMs, some of which default to 128M or less.
+  EXTRA_JVMARGS+=" -Xmx256M -client "
+else
+  # On other architectures
+  # -batch invocations will do better with a server vm
+  # invocations for analyzing a single file do better with a client vm
+  if [ $FOUND_BATCH = 0 ] ; then
+    EXTRA_JVMARGS+=" -client "
+  fi
+fi
+
+exec java $EXTRA_JVMARGS -jar $JAR_FILE --dart-sdk "$SDK_DIR" "$@"

@@ -1834,6 +1834,9 @@ class TestUtils {
     if (compiler == "dart2js" && configuration["csp"]) {
       args.add("--disallow-unsafe-eval");
     }
+    if (compiler == "dartanalyzer" || compiler == "dart2analyzer") {
+      args.add("--show-package-warnings");
+    }
     return args;
   }
 
