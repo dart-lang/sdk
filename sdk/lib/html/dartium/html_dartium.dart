@@ -9496,32 +9496,6 @@ class EmbedElement extends _Element_Merged {
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable
-@DomName('Entity')
-@Experimental // untriaged
-class Entity extends Node {
-  Entity.internal() : super.internal();
-
-  @DomName('Entity.notationName')
-  @DocsEditable
-  String get notationName native "Entity_notationName_Getter";
-
-  @DomName('Entity.publicId')
-  @DocsEditable
-  String get publicId native "Entity_publicId_Getter";
-
-  @DomName('Entity.systemId')
-  @DocsEditable
-  String get systemId native "Entity_systemId_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
 @DomName('EntriesCallback')
 // http://www.w3.org/TR/file-system-api/#the-entriescallback-interface
 @Experimental
@@ -25965,6 +25939,32 @@ class _Element_Merged extends Element {
   @DocsEditable
   @Experimental // non-standard
   void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('Entity')
+@Experimental // untriaged
+class _Entity extends Node {
+  _Entity.internal() : super.internal();
+
+  @DomName('Entity.notationName')
+  @DocsEditable
+  String get notationName native "Entity_notationName_Getter";
+
+  @DomName('Entity.publicId')
+  @DocsEditable
+  String get publicId native "Entity_publicId_Getter";
+
+  @DomName('Entity.systemId')
+  @DocsEditable
+  String get systemId native "Entity_systemId_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

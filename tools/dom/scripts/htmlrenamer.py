@@ -31,6 +31,7 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'DOMApplicationCache': 'ApplicationCache',
     'DOMFileSystem': 'FileSystem',
     'DOMPoint': '_DomPoint',
+    'Entity': '_Entity', # Not sure if we want to expose this yet, may conflict with other libs.
     'EntryCallback': '_EntryCallback',
     'EntriesCallback': '_EntriesCallback',
     'ErrorCallback': '_ErrorCallback',
