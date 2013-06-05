@@ -32,7 +32,9 @@ void BitmapBuilder::SetLength(intptr_t new_length) {
 
 
 bool BitmapBuilder::Get(intptr_t bit_offset) const {
-  ASSERT(InRange(bit_offset));
+  if (!InRange(bit_offset)) {
+    return false;
+  }
   intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
   // Bits not covered by the backing store are implicitly false.
   return (byte_offset < data_size_in_bytes_) && GetBit(bit_offset);
@@ -40,7 +42,6 @@ bool BitmapBuilder::Get(intptr_t bit_offset) const {
 
 
 void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
-  ASSERT(bit_offset >= 0);
   if (!InRange(bit_offset)) {
     length_ = bit_offset + 1;
     // Bits not covered by the backing store are implicitly false.
@@ -72,7 +73,9 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 
 
 bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
-  ASSERT(InRange(bit_offset));
+  if (!InRange(bit_offset)) {
+    return false;
+  }
   intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
   ASSERT(byte_offset < data_size_in_bytes_);
   intptr_t bit_remainder = bit_offset & (kBitsPerByte - 1);
@@ -83,7 +86,10 @@ bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
 
 
 void BitmapBuilder::SetBit(intptr_t bit_offset, bool value) {
-  ASSERT(InRange(bit_offset));
+  if (!InRange(bit_offset)) {
+    FATAL1("Fatal error in BitmapBuilder::SetBit :"
+           " invalid bit_offset, %"Pd"\n", bit_offset);
+  }
   int byte_offset = bit_offset >> kBitsPerByteLog2;
   ASSERT(byte_offset < data_size_in_bytes_);
   int bit_remainder = bit_offset & (kBitsPerByte - 1);
