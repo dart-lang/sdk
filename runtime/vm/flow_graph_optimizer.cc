@@ -6299,6 +6299,7 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
           // Update use lists to reflect changes in the graph.
           phi->UnuseAllInputs();
           branch->UnuseAllInputs();
+          block->UnuseAllInputs();
 
           // The graph has changed. Recompute dominators and block orders after
           // this pass is finished.
