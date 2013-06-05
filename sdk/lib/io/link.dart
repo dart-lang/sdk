@@ -8,7 +8,7 @@ part of dart.io;
  * [Link] objects are references to filesystem links.
  *
  */
-abstract class Link extends FileSystemEntity {
+abstract class Link implements FileSystemEntity {
   /**
    * Creates a Link object.
    */
@@ -118,6 +118,10 @@ class _Link extends FileSystemEntity implements Link {
   Future<bool> exists() => FileSystemEntity.isLink(path);
 
   bool existsSync() => FileSystemEntity.isLinkSync(path);
+
+  Future<FileStat> stat() => FileStat.stat(path);
+
+  FileStat statSync() => FileStat.statSync(path);
 
   Future<Link> create(String target) {
     _ensureFileService();

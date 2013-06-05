@@ -258,6 +258,7 @@ void compile(List<String> argv) {
                       passThrough),
     new OptionHandler('--categories=.*', setCategories),
     new OptionHandler('--global-js-name=.*', checkGlobalName),
+    new OptionHandler('--disable-type-inference', passThrough),
 
     // The following two options must come last.
     new OptionHandler('-.*', (String argument) {

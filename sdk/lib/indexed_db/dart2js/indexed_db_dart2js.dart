@@ -305,7 +305,7 @@ class Database extends EventTarget native "IDBDatabase" {
   @DomName('IDBDatabase.createObjectStore')
   @DocsEditable
   ObjectStore $dom_createObjectStore(String name, [Map options]) {
-    if (?options) {
+    if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _$dom_createObjectStore_1(name, options_1);
     }
@@ -878,7 +878,7 @@ class ObjectStore native "IDBObjectStore" {
   @Creates('Request')
   @_annotation_Creates_IDBKey
   Request $dom_add(/*any*/ value, [/*any*/ key]) {
-    if (?key) {
+    if (key != null) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
       var key_2 = convertDartToNative_SerializedScriptValue(key);
       return _$dom_add_1(value_1, key_2);
@@ -914,19 +914,19 @@ class ObjectStore native "IDBObjectStore" {
   @DomName('IDBObjectStore.createIndex')
   @DocsEditable
   Index $dom_createIndex(String name, keyPath, [Map options]) {
-    if ((keyPath is List<String> || keyPath == null) && !?options) {
+    if ((keyPath is List<String> || keyPath == null) && options == null) {
       List keyPath_1 = convertDartToNative_StringArray(keyPath);
       return _$dom_createIndex_1(name, keyPath_1);
     }
-    if ((keyPath is List<String> || keyPath == null) && ?options) {
+    if (options != null && (keyPath is List<String> || keyPath == null)) {
       List keyPath_2 = convertDartToNative_StringArray(keyPath);
       var options_3 = convertDartToNative_Dictionary(options);
       return _$dom_createIndex_2(name, keyPath_2, options_3);
     }
-    if ((keyPath is String || keyPath == null) && !?options) {
+    if ((keyPath is String || keyPath == null) && options == null) {
       return _$dom_createIndex_3(name, keyPath);
     }
-    if ((keyPath is String || keyPath == null) && ?options) {
+    if (options != null && (keyPath is String || keyPath == null)) {
       var options_4 = convertDartToNative_Dictionary(options);
       return _$dom_createIndex_4(name, keyPath, options_4);
     }
@@ -984,7 +984,7 @@ class ObjectStore native "IDBObjectStore" {
   @Creates('Request')
   @_annotation_Creates_IDBKey
   Request $dom_put(/*any*/ value, [/*any*/ key]) {
-    if (?key) {
+    if (key != null) {
       var value_1 = convertDartToNative_SerializedScriptValue(value);
       var key_2 = convertDartToNative_SerializedScriptValue(key);
       return _$dom_put_1(value_1, key_2);

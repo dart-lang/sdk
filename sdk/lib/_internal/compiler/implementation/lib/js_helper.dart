@@ -144,13 +144,10 @@ class JSInvocationMirror implements Invocation {
 }
 
 class Primitives {
-  static int hashCodeSeed = 0;
-
   static int objectHashCode(object) {
     int hash = JS('int|Null', r'#.$identityHash', object);
     if (hash == null) {
-      // TOOD(ahe): We should probably randomize this somehow.
-      hash = ++hashCodeSeed;
+      hash = JS('int', '(Math.random() * 0x3fffffff) | 0');
       JS('void', r'#.$identityHash = #', object, hash);
     }
     return JS('int', '#', hash);
@@ -573,11 +570,11 @@ class Primitives {
     // TODO(ahe): Generalize this and improve test coverage of
     // reflecting on intercepted classes.
     if (JS('bool', '# == "String"', className)) return const JSString();
-    if (JS('bool', '# == "int"', int)) return const JSInt();
-    if (JS('bool', '# == "double"', int)) return const JSDouble();
-    if (JS('bool', '# == "num"', int)) return const JSNumber();
-    if (JS('bool', '# == "bool"', int)) return const JSBool();
-    if (JS('bool', '# == "List"', int)) return const JSArray();
+    if (JS('bool', '# == "int"', className)) return const JSInt();
+    if (JS('bool', '# == "double"', className)) return const JSDouble();
+    if (JS('bool', '# == "num"', className)) return const JSNumber();
+    if (JS('bool', '# == "bool"', className)) return const JSBool();
+    if (JS('bool', '# == "List"', className)) return const JSArray();
     return JS('var', '#[#]', JS_CURRENT_ISOLATE(), className);
   }
 
@@ -947,26 +944,41 @@ class Closure implements Function {
   String toString() => "Closure";
 }
 
+/// Represents a 'tear-off' closure, that is an instance method bound
+/// to a specific receiver (instance).
 class BoundClosure extends Closure {
-  var self;
-  var target;
-  var receiver;
+  /// The receiver or interceptor.
+  // TODO(ahe): This could just be the interceptor, we always know if
+  // we need the interceptor when generating the call method.
+  final _self;
+
+  /// The method name.
+  final String _target;
+
+  /// The receiver.
+  final _receiver;
 
   bool operator==(other) {
     if (identical(this, other)) return true;
     if (other is! BoundClosure) return false;
     return JS('bool', '# === # && # === # && # === #',
-        self, other.self,
-        target, other.target,
-        receiver, other.receiver);
+        _self, other._self,
+        _target, other._target,
+        _receiver, other._receiver);
   }
 
   int get hashCode {
     return JS('int', '(# + # + #) & 0x3ffffff',
-        self.hashCode,
-        target.hashCode,
-        receiver.hashCode);
+        _self.hashCode,
+        _target.hashCode,
+        _receiver.hashCode);
   }
+
+  static selfOf(BoundClosure closure) => closure._self;
+
+  static String targetOf(BoundClosure closure) => closure._target;
+
+  static revceiverOf(BoundClosure closure) => closure._receiver;
 }
 
 bool jsHasOwnProperty(var jsObject, String property) {
@@ -1432,5 +1444,15 @@ void throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {
  * field that is currently being initialized.
  */
 void throwCyclicInit(String staticName) {
-  throw new RuntimeError("Cyclic initialization for static $staticName");
+  throw new CyclicInitializationError(
+      "Cyclic initialization for static $staticName");
+}
+
+/**
+ * Error thrown when a runtime error occurs.
+ */
+class RuntimeError implements Error {
+  final message;
+  RuntimeError(this.message);
+  String toString() => "RuntimeError: $message";
 }

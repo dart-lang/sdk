@@ -421,6 +421,9 @@ LibTest/math/asin_A01_t01: Fail, OK # co19 issue 44
 LibTest/math/atan_A01_t01: Fail, OK # co19 issue 44
 
 [ $compiler == dart2dart ]
+Language/14_Types/4_Interface_Types_A11_t01: Pass, Crash # Issue 8857
+Language/14_Types/4_Interface_Types_A11_t02: Pass, Crash # Issue 8857
+
 LibTest/core/Date/operator_equality_A01_t01: Fail # DateTime.== now looks at timezone, co19 issue 379
 
 Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)

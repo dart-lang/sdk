@@ -112,10 +112,4 @@ class PatternDescriptor extends Descriptor {
 
   Future create([String parent]) => new Future.error(
       new UnsupportedError("Pattern descriptors don't support create()."));
-
-  Stream<List<int>> load(String pathToLoad) => errorStream(
-      new UnsupportedError("Pattern descriptors don't support load()."));
-
-  Stream<List<int>> read() => errorStream(new UnsupportedError("Pattern "
-      "descriptors don't support read()."));
 }

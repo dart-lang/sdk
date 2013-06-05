@@ -236,13 +236,13 @@ class ExpressionParser {
       scanner.advance();
       SetExpression value = parseSetExpression();
       if (scanner.current != Token.RIGHT_PAREN) {
-        throw new RuntimeError("Missing right parenthesis in expression");
+        throw new FormatException("Missing right parenthesis in expression");
       }
       scanner.advance();
       return value;
     }
     if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
-      throw new RuntimeError(
+      throw new FormatException(
           "Expected identifier in expression, got ${scanner.current}");
     }
     SetExpression value = new SetConstant(scanner.current);
@@ -277,7 +277,7 @@ class ExpressionParser {
       scanner.advance();
       BooleanExpression value = parseBooleanExpression();
       if (scanner.current != Token.RIGHT_PAREN) {
-        throw new RuntimeError("Missing right parenthesis in expression");
+        throw new FormatException("Missing right parenthesis in expression");
       }
       scanner.advance();
       return value;
@@ -286,12 +286,12 @@ class ExpressionParser {
     // The only atomic booleans are of the form $variable == value or the
     // form $variable.
     if (scanner.current != Token.DOLLAR_SYMBOL) {
-      throw new RuntimeError(
+      throw new FormatException(
           "Expected \$ in expression, got ${scanner.current}");
     }
     scanner.advance();
     if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
-      throw new RuntimeError(
+      throw new FormatException(
           "Expected identifier in expression, got ${scanner.current}");
     }
     TermVariable left = new TermVariable(scanner.current);
@@ -301,7 +301,7 @@ class ExpressionParser {
       bool negate = scanner.current == Token.NOT_EQUALS;
       scanner.advance();
       if (!new RegExp(r"^\w+$").hasMatch(scanner.current)) {
-        throw new RuntimeError(
+        throw new FormatException(
             "Expected identifier in expression, got ${scanner.current}");
       }
       TermConstant right = new TermConstant(scanner.current);

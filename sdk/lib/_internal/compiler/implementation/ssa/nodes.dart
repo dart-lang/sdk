@@ -1418,8 +1418,8 @@ class HInvokeSuper extends HInvokeStatic {
 
   HInstruction get value {
     assert(isSetter);
-    // Index 0: 'this'.
-    return inputs[1];
+    // The 'inputs' are [receiver, value] or [interceptor, receiver, value].
+    return inputs.last;
   }
 }
 

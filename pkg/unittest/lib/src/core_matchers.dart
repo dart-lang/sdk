@@ -86,7 +86,9 @@ class _IsSameAs extends BaseMatcher {
  * recursion depth [limit] can be provided. The default limit is 100.
  */
 Matcher equals(expected, [limit=100]) =>
-    new _DeepMatcher(expected, limit);
+    expected is String
+        ? new _StringEqualsMatcher(expected) 
+        : new _DeepMatcher(expected, limit);
 
 class _DeepMatcher extends BaseMatcher {
   final _expected;
@@ -204,6 +206,84 @@ class _DeepMatcher extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) =>
     mismatchDescription.add(_match(_expected, item));
+}
+
+/** A special equality matcher for strings. */
+class _StringEqualsMatcher extends BaseMatcher {
+  final String _value;
+
+  _StringEqualsMatcher(this._value);
+
+  bool get showActualValue => true;
+
+  bool matches(item, MatchState mismatchState) => _value == item;
+
+  Description describe(Description description) =>
+      description.addDescriptionOf(_value);
+
+  Description describeMismatch(item, Description mismatchDescription,
+      MatchState matchState, bool verbose) {
+    if (item is! String) {
+      return mismatchDescription.addDescriptionOf(item).add(' not a string');
+    } else {
+      var buff = new StringBuffer();
+      buff.write('Strings are not equal.');
+      var escapedItem = _escape(item);
+      var escapedValue = _escape(_value);
+      int minLength = escapedItem.length < escapedValue.length ?
+          escapedItem.length : escapedValue.length;
+      int start;
+      for (start = 0; start < minLength; start++) {
+        if (escapedValue.codeUnitAt(start) != escapedItem.codeUnitAt(start)) {
+          break;
+        }
+      }
+      if (start == minLength) {
+        if (escapedValue.length < escapedItem.length) {
+          buff.write(' Both strings start the same, but the given value also'
+              ' has the following trailing characters: ');
+          _writeTrailing(buff, escapedItem, escapedValue.length);
+        } else {
+          buff.write(' Both strings start the same, but the given value is'
+              ' missing the following trailing characters: ');
+          _writeTrailing(buff, escapedValue, escapedItem.length);
+        }
+      } else {
+        buff.write('\nExpected: ');
+        _writeLeading(buff, escapedValue, start);
+        _writeTrailing(buff, escapedValue, start);
+        buff.write('\n  Actual: ');
+        _writeLeading(buff, escapedItem, start);
+        _writeTrailing(buff, escapedItem, start);
+        buff.write('\n          ');
+        for (int i = (start > 10 ? 14 : start); i > 0; i--) buff.write(' ');
+        buff.write('^\n Differ at position $start');
+      }
+
+      return mismatchDescription.replace(buff.toString());
+    }
+  }
+
+  static String _escape(String s) =>
+      s.replaceAll('\n', '\\n').replaceAll('\r', '\\r').replaceAll('\t', '\\t');
+
+  static String _writeLeading(StringBuffer buff, String s, int start) {
+    if (start > 10) {
+      buff.write('... ');
+      buff.write(s.substring(start - 10, start));
+    } else {
+      buff.write(s.substring(0, start));
+    }
+  }
+
+  static String _writeTrailing(StringBuffer buff, String s, int start) {
+    if (start + 10 > s.length) {
+      buff.write(s.substring(start));
+    } else {
+      buff.write(s.substring(start, start + 10));
+      buff.write(' ...');
+    }
+  }
 }
 
 /** A matcher that matches any value. */

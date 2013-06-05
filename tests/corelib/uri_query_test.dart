@@ -19,13 +19,14 @@ void testEncodeQueryComponent() {
 }
 
 void testQueryParameters() {
-  test(String query, Map<String, String> parameters) {
+  test(String query, Map<String, String> parameters, [String normalizedQuery]) {
+    if (normalizedQuery == null) normalizedQuery = query;
     check(uri) {
-      Expect.equals(query, uri.query);
+      Expect.equals(normalizedQuery, uri.query);
       if (query.isEmpty) {
-        Expect.equals(query, uri.toString());
+        Expect.equals(normalizedQuery, uri.toString());
       } else {
-        Expect.equals("?$query", uri.toString());
+        Expect.equals("?$normalizedQuery", uri.toString());
       }
       if (parameters.containsValue(null)) {
       } else {
@@ -45,18 +46,28 @@ void testQueryParameters() {
 
   test("", {});
   test("A", {"A": null});
+  test("%25", {"%": null});
+  test("%41", {"A": null}, "A");
+  test("%41A", {"AA": null}, "AA");
   test("A", {"A": ""});
+  test("%25", {"%": ""});
+  test("%41", {"A": ""}, "A");
+  test("%41A", {"AA": ""}, "AA");
   test("A=a", {"A": "a"});
+  test("%25=a", {"%": "a"});
+  test("%41=%61", {"A": "a"}, "A=a");
   test("A=+", {"A": " "});
   test("A=%2B", {"A": "+"});
   test("A=a&B", {"A": "a", "B": null});
   test("A=a&B", {"A": "a", "B": ""});
   test("A=a&B=b", {"A": "a", "B": "b"});
+  test("%41=%61&%42=%62", {"A": "a", "B": "b"}, "A=a&B=b");
 
   var unreserved = "-._~0123456789"
                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                    "abcdefghijklmnopqrstuvwxyz";
   var encoded = new StringBuffer();
+  var allEncoded = new StringBuffer();
   var unencoded = new StringBuffer();
   for (int i = 32; i < 128; i++) {
     if (i == 32) {
@@ -67,18 +78,29 @@ void testQueryParameters() {
       encoded.write("%");
       encoded.write(i.toRadixString(16).toUpperCase());
     }
+    if (i == 32) {
+      allEncoded.write("+");
+    } else {
+      allEncoded.write("%");
+      allEncoded.write(i.toRadixString(16).toUpperCase());
+    }
     unencoded.writeCharCode(i);
   }
   encoded = encoded.toString();
   unencoded = unencoded.toString();
-  print(encoded);
-  print(unencoded);
   test("a=$encoded", {"a": unencoded});
   test("a=$encoded&b=$encoded", {"a": unencoded, "b": unencoded});
 
   var map = new Map();
   map[unencoded] = unencoded;
   test("$encoded=$encoded", map);
+  test("$encoded=$allEncoded", map, "$encoded=$encoded");
+  test("$allEncoded=$encoded", map, "$encoded=$encoded");
+  test("$allEncoded=$allEncoded", map, "$encoded=$encoded");
+  map[unencoded] = null;
+  test("$encoded", map);
+  map[unencoded] = "";
+  test("$encoded", map);
 }
 
 testInvalidQueryParameters() {
@@ -113,9 +135,35 @@ testInvalidQueryParameters() {
   test("&=xxx&=xxx&", {});
 }
 
+testQueryParametersImmutableMap() {
+  test(map) {
+    bool isUnsupported(e) => e is UnsupportedError;
+
+    Expect.isTrue(map.containsValue("b"));
+    Expect.isTrue(map.containsKey("a"));
+    Expect.equals("b", map["a"]);
+    Expect.throws(() => map["a"] = "c", isUnsupported);
+    Expect.throws(() => map.putIfAbsent("b", () => "e"), isUnsupported);
+    Expect.throws(() => map.remove("a"), isUnsupported);
+    Expect.throws(() => map.clear(), isUnsupported);
+    var count = 0;
+    map.forEach((key, value) => count++);
+    Expect.equals(2, count);
+    Expect.equals(2, map.keys.length);
+    Expect.equals(2, map.values.length);
+    Expect.equals(2, map.length);
+    Expect.isFalse(map.isEmpty);
+    Expect.isTrue(map.isNotEmpty);
+  }
+
+  test(Uri.parse("?a=b&c=d").queryParameters);
+  test(new Uri(queryParameters: {"a": "b", "c": "d"}).queryParameters);
+}
+
 main() {
   testInvalidArguments();
   testEncodeQueryComponent();
   testQueryParameters();
   testInvalidQueryParameters();
+  testQueryParametersImmutableMap();
 }

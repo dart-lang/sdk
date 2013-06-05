@@ -110,6 +110,8 @@ class CommandLineOptions {
           defaultsTo: false, negatable: false);
 
     try {
+      // TODO(scheglov) https://code.google.com/p/dart/issues/detail?id=11061
+      args = args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       var results = parser.parse(args);
       // help requests
       if (results['help']) {
@@ -118,16 +120,16 @@ class CommandLineOptions {
       }
       // batch mode and input files
       if (results['batch']) {
-        if (results.rest.length != 0) {
+        if (results.rest.isNotEmpty) {
           print('No source files expected in the batch mode.');
           _showUsage(parser);
           exit(15);
         }
-      } if (results['version']) {
+      } else if (results['version']) {
         print('$_BINARY_NAME version ${_getVersion()}');
         exit(0);
       } else {
-        if (results.rest.length == 0) {
+        if (results.rest.isEmpty) {
           _showUsage(parser);
           exit(15);
         }
@@ -153,7 +155,6 @@ class CommandLineOptions {
       Path path = new Path(new Options().script);
       Path versionPath = path.directoryPath.append('..').append('version');
       File versionFile = new File.fromPath(versionPath);
-      
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.

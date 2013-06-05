@@ -7,7 +7,7 @@ import 'dart:async';
 
 class Expect {
   static void equals(x, y) {
-    if (x != y) throw new RuntimeError('not equal');
+    if (x != y) throw new ArgumentError('not equal');
   }
 }
 

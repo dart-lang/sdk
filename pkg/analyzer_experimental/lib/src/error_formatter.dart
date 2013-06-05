@@ -27,12 +27,6 @@ class ErrorFormatter {
 
   ErrorFormatter(this.out, this.options);
 
-  void startAnalysis() {
-    if (!options.machineFormat) {
-      out.writeln("Analyzing ${options.sourceFiles}...");
-    }
-  }
-
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
     var errors = new List<AnalysisError>();
     var errorToLine = new Map<AnalysisError, LineInfo>();
@@ -122,13 +116,14 @@ class ErrorFormatter {
       out.write('|');
       out.write(length);
       out.write('|');
-      out.writeln(escapePipe(error.message));
+      out.write(escapePipe(error.message));
     } else {
       // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
       out.write('[${severity.displayName}] ${error.message} ');
       out.write('(${source.fullName}');
       out.write(', line ${location.lineNumber}, col ${location.columnNumber})');
     }
+    out.writeln();
   }
 
   static String escapePipe(String input) {

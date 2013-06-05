@@ -191,13 +191,13 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
   if (!Dart_IsString(uri)) {
     return Dart_NewApiError("uri is not a string");
   }
-  if (tag == kCanonicalizeUrl) {
+  if (tag == Dart_kCanonicalizeUrl) {
     // In the boot strap loader we do not try and do any canonicalization.
     return uri;
   }
   const String& uri_str = Api::UnwrapStringHandle(isolate, uri);
   ASSERT(!uri_str.IsNull());
-  if (tag == kImportTag) {
+  if (tag == Dart_kImportTag) {
     // We expect the core bootstrap libraries to only import other
     // core bootstrap libraries.
     // We have precreated all the bootstrap library objects hence
@@ -206,7 +206,7 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
     return Dart_NewApiError("Invalid import of '%s' in a bootstrap library",
                             uri_str.ToCString());
   }
-  ASSERT(tag == kSourceTag);
+  ASSERT(tag == Dart_kSourceTag);
   const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
   ASSERT(!lib.IsNull());
   return LoadPartSource(isolate, lib, uri_str);

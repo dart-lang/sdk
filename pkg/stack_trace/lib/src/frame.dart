@@ -21,9 +21,15 @@ class Frame {
   final Uri uri;
 
   /// The line number on which the code location is located.
+  ///
+  /// This can be null, indicating that the line number is unknown or
+  /// unimportant.
   final int line;
 
   /// The column number of the code location.
+  ///
+  /// This can be null, indicating that the column number is unknown or
+  /// unimportant.
   final int column;
 
   /// The name of the member in which the code location occurs.
@@ -53,11 +59,8 @@ class Frame {
   }
 
   /// A human-friendly description of the code location.
-  ///
-  /// For Dart core libraries, this will omit the line and column information,
-  /// since those are useless for baked-in libraries.
   String get location {
-    if (isCore) return library;
+    if (line == null || column == null) return library;
     return '$library $line:$column';
   }
 

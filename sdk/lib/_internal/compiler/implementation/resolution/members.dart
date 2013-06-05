@@ -2251,8 +2251,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // Set the type of the node to [Type] to mark this send as a
         // type literal.
         mapping.setType(node, compiler.typeClass.computeType(compiler));
-        world.registerInstantiatedClass(compiler.typeClass, mapping);
-        compiler.backend.registerTypeLiteral(mapping);
+        world.registerTypeLiteral(target, mapping);
       }
     }
 
@@ -2294,6 +2293,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isCall) {
       if (Elements.isUnresolved(target) ||
           target.isGetter() ||
+          target.isField() ||
           Elements.isClosureSend(node, target)) {
         // If we don't know what we're calling or if we are calling a getter,
         // we need to register that fact that we may be calling a closure
@@ -2515,16 +2515,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
       return;
     }
 
-    // Compute the signature of the target method taking into account the
-    // type arguments that are specified in the redirection, and store it on
-    // the return node.
-    ClassElement targetClass = redirectionTarget.getEnclosingClass();
-    InterfaceType type = mapping.getType(node.expression)
-        .subst(currentClass.typeVariables, targetClass.typeVariables);
-    mapping.setType(node, type);
-
     // Check that the target constructor is type compatible with the
     // redirecting constructor.
+    ClassElement targetClass = redirectionTarget.getEnclosingClass();
+    InterfaceType type = mapping.getType(node.expression);
     FunctionType targetType = redirectionTarget.computeType(compiler)
         .subst(type.typeArguments, targetClass.typeVariables);
     FunctionType constructorType = constructor.computeType(compiler);

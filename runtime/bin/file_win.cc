@@ -394,11 +394,6 @@ char* File::LinkTarget(const char* pathname) {
 void File::Stat(const char* name, int64_t* data) {
   File::Type type = GetType(name, false);
   data[kType] = type;
-  data[kCreatedTime] = 0;
-  data[kModifiedTime] = 0;
-  data[kAccessedTime] = 0;
-  data[kMode] = 0;
-  data[kSize] = 0;
   if (type != kDoesNotExist) {
     struct _stat64 st;
     const wchar_t* system_name = StringUtils::Utf8ToWide(name);

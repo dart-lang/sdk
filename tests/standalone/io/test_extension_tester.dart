@@ -10,14 +10,14 @@ class Expect {
   static void equals(expected, actual, [msg]) {
     if (expected != actual) {
       if (msg == null) msg = "Expected: $expected. Actual: $actual";
-      throw new RuntimeError(msg);
+      throw new StateError(msg);
     }
   }
 
   static void isNull(x, [msg]) {
     if (x != null) {
       if (msg != null) msg = "$x not null";
-      throw new RuntimeError(msg);
+      throw new StateError(msg);
     }
   }
 }

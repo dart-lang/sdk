@@ -20,7 +20,7 @@ void runFunctions() {
 }
 
 void startTest(EventSink finishSink) {
-  firstFunction = () { throw new RuntimeError("ignore exception"); };
+  firstFunction = () { throw new UnsupportedError("ignore exception"); };
   finishFunction = () { finishSink.add("done"); finishSink.close(); };
   new Timer(Duration.ZERO, runFunctions);
 }
@@ -30,7 +30,7 @@ runTest() {
 }
 
 bool globalErrorHandler(IsolateUnhandledException e) {
-  return e.source is RuntimeError && e.source.message == "ignore exception";
+  return e.source is UnsupportedError && e.source.message == "ignore exception";
 }
 
 main() {

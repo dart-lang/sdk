@@ -6,7 +6,7 @@ import 'dart:_collection-dev';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:typed_data';
-import 'dart:_js_helper' show Creates, Returns, convertDartClosureToJS;
+import 'dart:_js_helper' show Creates, JSName, Returns, convertDartClosureToJS;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 // DO NOT EDIT - unless you are editing documentation as per:
@@ -191,17 +191,14 @@ class AudioBufferSourceNode extends AudioSourceNode native "AudioBufferSourceNod
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteGrainOn(num when, num grainOffset, num grainDuration) native;
 
   @DomName('AudioBufferSourceNode.noteOff')
   @DocsEditable
-  @Experimental // untriaged
   void noteOff(num when) native;
 
   @DomName('AudioBufferSourceNode.noteOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteOn(num when) native;
 
 }
@@ -276,7 +273,6 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.createDelayNode')
   @DocsEditable
-  @Experimental // untriaged
   DelayNode createDelayNode([num maxDelayTime]) native;
 
   @DomName('AudioContext.createDynamicsCompressor')
@@ -285,12 +281,10 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   @DomName('AudioContext.createGainNode')
   @DocsEditable
-  @Experimental // untriaged
   GainNode createGainNode() native;
 
   @DomName('AudioContext.createJavaScriptNode')
   @DocsEditable
-  @Experimental // untriaged
   ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   @DomName('AudioContext.createMediaElementSource')
@@ -415,7 +409,7 @@ class AudioListener native "AudioListener" {
 @DomName('AudioNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
 @Experimental
-class AudioNode native "AudioNode" {
+class AudioNode extends EventTarget native "AudioNode" {
 
   @DomName('AudioNode.channelCount')
   @DocsEditable
@@ -441,6 +435,11 @@ class AudioNode native "AudioNode" {
   @DocsEditable
   final int numberOfOutputs;
 
+  @JSName('addEventListener')
+  @DomName('AudioNode.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
   @DomName('AudioNode.connect')
   @DocsEditable
   void connect(destination, int output, [int input]) native;
@@ -448,6 +447,15 @@ class AudioNode native "AudioNode" {
   @DomName('AudioNode.disconnect')
   @DocsEditable
   void disconnect(int output) native;
+
+  @DomName('AudioNode.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native;
+
+  @JSName('removeEventListener')
+  @DomName('AudioNode.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -502,7 +510,6 @@ class AudioParam native "AudioParam" {
 
   @DomName('AudioParam.setTargetValueAtTime')
   @DocsEditable
-  @Experimental // untriaged
   void setTargetValueAtTime(num targetValue, num time, num timeConstant) native;
 
   @DomName('AudioParam.setValueAtTime')
@@ -870,12 +877,10 @@ class OscillatorNode extends AudioSourceNode native "OscillatorNode" {
 
   @DomName('OscillatorNode.noteOff')
   @DocsEditable
-  @Experimental // untriaged
   void noteOff(num when) native;
 
   @DomName('OscillatorNode.noteOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteOn(num when) native;
 
   @DomName('OscillatorNode.setWaveTable')

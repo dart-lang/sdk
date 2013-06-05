@@ -176,6 +176,7 @@ class Namer implements ClosureNamer {
 
   final String getterPrefix = r'get$';
   final String setterPrefix = r'set$';
+  final String metadataField = '@';
 
   /**
    * Map from top-level or static elements to their unique identifiers provided

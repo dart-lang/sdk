@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'io.dart';
 import 'log.dart' as log;
 import 'oauth2.dart' as oauth2;
+import 'sdk.dart' as sdk;
 import 'utils.dart';
 
 // TODO(nweiz): make this configurable
@@ -23,6 +24,13 @@ final HTTP_TIMEOUT = 30 * 1000;
 
 /// Headers and field names that should be censored in the log output.
 final _CENSORED_FIELDS = const ['refresh_token', 'authorization'];
+
+/// Headers required for pub.dartlang.org API requests.
+///
+/// The Accept header tells pub.dartlang.org which version of the API we're
+/// expecting, so it can either serve that version or give us a 406 error if
+/// it's not supported.
+final PUB_API_HEADERS = const {'Accept': 'application/vnd.pub.v2+json'};
 
 /// Whether dart:io's SecureSocket has been initialized with pub's resources
 /// yet.
@@ -54,8 +62,6 @@ class PubHttpClient extends http.BaseClient {
       stackTrace = localStackTrace;
     }
 
-    // TODO(nweiz): Ideally the timeout would extend to reading from the
-    // response input stream, but until issue 3657 is fixed that's not feasible.
     return timeout(inner.send(request).then((streamedResponse) {
       _logResponse(streamedResponse);
 
@@ -67,6 +73,13 @@ class PubHttpClient extends http.BaseClient {
           streamedResponse.request.url, oauth2.tokenEndpoint);
       if (status < 400 || status == 401 || (status == 400 && tokenRequest)) {
         return streamedResponse;
+      }
+
+      if (status == 406 &&
+          request.headers['Accept'] == PUB_API_HEADERS['Accept']) {
+        fail("Pub ${sdk.version} is incompatible with the current version of "
+                 "${request.url.host}.\n"
+             "Upgrade pub to the latest version and try again.");
       }
 
       return http.Response.fromStream(streamedResponse).then((response) {

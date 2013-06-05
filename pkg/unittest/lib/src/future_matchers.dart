@@ -13,7 +13,7 @@ part of matcher;
  * To test that a Future completes with an exception, you can use [throws] and
  * [throwsA].
  */
-Matcher completes = const _Completes(null, '');
+final Matcher completes = const _Completes(null, '');
 
 /**
  * Matches a [Future] that completes succesfully with a value that matches

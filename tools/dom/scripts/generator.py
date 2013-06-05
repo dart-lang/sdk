@@ -37,6 +37,17 @@ _pure_interfaces = monitored.Set('generator._pure_interfaces', [
 def IsPureInterface(interface_name):
   return interface_name in _pure_interfaces
 
+#
+# Classes which have native constructors but which we are suppressing because
+# they are not cross-platform.
+#
+_suppressed_native_constructors = monitored.Set(
+    'generator._suppressed_native_constructors', [
+  'DocumentFragment',
+  'Range',
+  'Text',
+  ])
+
 _custom_types = monitored.Set('generator._custom_types',
                               typed_array_renames.keys())
 
@@ -242,6 +253,9 @@ def AnalyzeConstructor(interface):
 
   Returns None if the interface has no Constructor.
   """
+  if interface.id in _suppressed_native_constructors:
+    return None
+
   if 'Constructor' in interface.ext_attrs:
     name = None
     overloads = interface.ext_attrs['Constructor']
@@ -477,9 +491,9 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
                  'dynamic'),
 
     'ImageData get':
-      Conversion('_convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
+      Conversion('convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
     'ImageData set':
-      Conversion('_convertDartToNative_ImageData', 'ImageData', 'dynamic'),
+      Conversion('convertDartToNative_ImageData', 'ImageData', 'dynamic'),
 
     'Dictionary get':
       Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map'),
@@ -503,7 +517,7 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
                  'dynamic', 'dynamic'),
 
     '* get History.state':
-      Conversion('_convertNativeToDart_SerializedScriptValue',
+      Conversion('convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
 
     '* get PopStateEvent.state':
@@ -626,6 +640,10 @@ class IDLTypeInfo(object):
     if self._idl_type in WTF_INCLUDES:
       return ['<wtf/%s.h>' % self.native_type()]
 
+    # TODO(vsm): Why does this need special casing?
+    if self._idl_type == 'AnalyserNode':
+      return ['"AnalyserNode.h"', '<wtf/Uint8Array.h>']
+
     if not self._idl_type.startswith('SVG'):
       return ['"%s.h"' % self.native_type()]
 
@@ -687,6 +705,14 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
       implementation_name = '_%s' % implementation_name
 
     return implementation_name
+
+  def native_type(self):
+    database = self._type_registry._database
+    if database.HasInterface(self.idl_type()):
+      interface = database.GetInterface(self.idl_type())
+      if 'ImplementedAs' in interface.ext_attrs:
+        return interface.ext_attrs['ImplementedAs']
+    return super(InterfaceIDLTypeInfo, self).native_type()
 
   def has_generated_interface(self):
     return not self._data.suppress_interface
@@ -979,8 +1005,8 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         item_type='CSSRule', suppress_interface=True),
     'CSSValueList': TypeData(clazz='Interface',
         item_type='CSSValue', suppress_interface=True),
-    'DOMMimeTypeArray': TypeData(clazz='Interface', item_type='DOMMimeType'),
-    'DOMPluginArray': TypeData(clazz='Interface', item_type='DOMPlugin'),
+    'MimeTypeArray': TypeData(clazz='Interface', item_type='MimeType'),
+    'PluginArray': TypeData(clazz='Interface', item_type='Plugin'),
     'DOMStringList': TypeData(clazz='Interface', item_type='DOMString',
         dart_type='List<String>', custom_to_native=True),
     'EntryArray': TypeData(clazz='Interface', item_type='Entry',
@@ -999,7 +1025,7 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
                          suppress_interface=False, dart_type='List<Node>'),
     'SVGElementInstanceList': TypeData(clazz='Interface',
         item_type='SVGElementInstance', suppress_interface=True),
-    'SourceBufferList': TypeData(clazz='Interface', item_type='SourceBuffer'),
+    'WebKitSourceBufferList': TypeData(clazz='Interface', item_type='WebKitSourceBuffer'),
     'SpeechGrammarList': TypeData(clazz='Interface', item_type='SpeechGrammar'),
     'SpeechInputResultList': TypeData(clazz='Interface',
         item_type='SpeechInputResult', suppress_interface=True),

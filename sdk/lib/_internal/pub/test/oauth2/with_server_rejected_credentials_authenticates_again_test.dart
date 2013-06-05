@@ -25,7 +25,7 @@ main() {
 
     confirmPublish(pub);
 
-    server.handle('GET', '/packages/versions/new.json', (request) {
+    server.handle('GET', '/api/packages/versions/new', (request) {
       var response = request.response;
       response.statusCode = 401;
       response.headers.set('www-authenticate', 'Bearer error="invalid_token",'

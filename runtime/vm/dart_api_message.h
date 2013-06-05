@@ -16,7 +16,7 @@ namespace dart {
 // that graph.
 struct Dart_CObject_Internal : public Dart_CObject {
   enum Type {
-    kTypeArguments = Dart_CObject::kNumberOfTypes,
+    kTypeArguments = Dart_CObject_kNumberOfTypes,
     kDynamicType,
     kClass,
     kView,
@@ -70,7 +70,7 @@ class ApiMessageReader : public BaseReader {
   // Allocates a Dart_CObject object.
   Dart_CObject* AllocateDartCObject();
   // Allocates a Dart_CObject object with the specified type.
-  Dart_CObject* AllocateDartCObject(Dart_CObject::Type type);
+  Dart_CObject* AllocateDartCObject(Dart_CObject_Type type);
   // Allocates a Dart_CObject object representing an unsupported
   // object in the API message.
   Dart_CObject* AllocateDartCObjectUnsupported();
@@ -90,7 +90,7 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* AllocateDartCObjectString(intptr_t length);
   // Allocates a C Dart_CObject object for a typed data.
   Dart_CObject* AllocateDartCObjectTypedData(
-      Dart_CObject::TypedDataType type, intptr_t length);
+      Dart_TypedData_Type type, intptr_t length);
   // Allocates a C array of Dart_CObject objects.
   Dart_CObject* AllocateDartCObjectArray(intptr_t length);
   // Allocates a Dart_CObject_Internal object with the specified type.
@@ -120,7 +120,7 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* GetBackRef(intptr_t id);
 
   Dart_CObject_Internal* AsInternal(Dart_CObject* object) {
-    ASSERT(object->type >= Dart_CObject::kNumberOfTypes);
+    ASSERT(object->type >= Dart_CObject_kNumberOfTypes);
     return reinterpret_cast<Dart_CObject_Internal*>(object);
   }
 
@@ -143,7 +143,7 @@ class ApiMessageWriter : public BaseWriter {
       : BaseWriter(buffer, alloc, kInitialSize),
         object_id_(0), forward_list_(NULL),
         forward_list_length_(0), forward_id_(0) {
-    ASSERT(kDartCObjectTypeMask >= Dart_CObject::kNumberOfTypes - 1);
+    ASSERT(kDartCObjectTypeMask >= Dart_CObject_kNumberOfTypes - 1);
   }
   ~ApiMessageWriter() {
     ::free(forward_list_);
@@ -177,7 +177,7 @@ class ApiMessageWriter : public BaseWriter {
   bool WriteCObject(Dart_CObject* object);
   bool WriteCObjectRef(Dart_CObject* object);
   bool WriteForwardedCObject(Dart_CObject* object);
-  bool WriteCObjectInlined(Dart_CObject* object, Dart_CObject::Type type);
+  bool WriteCObjectInlined(Dart_CObject* object, Dart_CObject_Type type);
 
   intptr_t object_id_;
   Dart_CObject** forward_list_;

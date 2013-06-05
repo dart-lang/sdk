@@ -24,6 +24,8 @@ class RuntimeEntry : public ValueObject {
  public:
   RuntimeEntry(const char* name, RuntimeFunction function,
                int argument_count, bool is_leaf)
+  // TODO(regis): In order to simulate leaf runtime calls taking floating point
+  // arguments, we need to add an 'is_float' flag.
       : name_(name),
         function_(function),
         argument_count_(argument_count),

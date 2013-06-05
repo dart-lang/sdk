@@ -266,6 +266,10 @@ class _File implements File {
     return result;
   }
 
+  Future<FileStat> stat() => FileStat.stat(path);
+
+  FileStat statSync() => FileStat.statSync(path);
+
   Future<File> create() {
     _ensureFileService();
     List request = new List(2);

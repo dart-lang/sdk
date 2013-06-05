@@ -1,8 +1,6 @@
 // This code was auto-generated, is not intended to be edited, and is subject to
 // significant change. Please see the README file for more information.
-
 library engine.element_test;
-
 import 'dart:collection';
 import 'dart:io';
 import 'package:analyzer_experimental/src/generated/java_core.dart';
@@ -21,7 +19,6 @@ import 'test_support.dart';
 import 'scanner_test.dart' show TokenFactory;
 import 'ast_test.dart' show ASTFactory;
 import 'resolver_test.dart' show TestTypeProvider;
-
 class ElementLocationImplTest extends EngineTestCase {
   void test_create_encoding() {
     String encoding = "a;b;c";
@@ -173,7 +170,7 @@ class LibraryElementImplTest extends EngineTestCase {
   }
 }
 class InterfaceTypeImplTest extends EngineTestCase {
-  
+
   /**
    * The type provider used to access the types.
    */
@@ -1537,14 +1534,13 @@ class TypeVariableTypeImplTest extends EngineTestCase {
     });
   }
 }
-
 /**
  * The class {@code ElementFactory} defines utility methods used to create elements for testing
  * purposes. The elements that are created are complete in the sense that as much of the element
  * model as can be created, given the provided information, has been created.
  */
 class ElementFactory {
-  
+
   /**
    * The element representing the class 'Object'.
    */

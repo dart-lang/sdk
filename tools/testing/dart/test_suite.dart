@@ -141,6 +141,7 @@ abstract class TestSuite {
     switch (configuration['compiler']) {
       case 'dartc':
       case 'dartanalyzer':
+      case 'dart2analyzer':
         name = executablePath;
         break;
       case 'dart2js':
@@ -183,6 +184,8 @@ abstract class TestSuite {
         return '$buildDir/analyzer/bin/dart_analyzer$suffix';
       case 'dartanalyzer':
         return 'sdk/bin/dartanalyzer_developer$suffix';
+      case 'dart2analyzer':
+        return 'sdk/bin/dart2analyzer_developer$suffix';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
@@ -793,6 +796,7 @@ class StandardTestSuite extends TestSuite {
     case 'none':
     case 'dartc':
     case 'dartanalyzer':
+    case 'dart2analyzer':
       var arguments = new List.from(vmOptions);
       arguments.addAll(args);
       return <Command>[new Command(dartShellFileName, arguments)];
@@ -1010,7 +1014,15 @@ class StandardTestSuite extends TestSuite {
 
         List<String> args = <String>[];
 
-        if (TestUtils.usesWebDriver(runtime)) {
+        if (configuration['use_browser_controller']) {
+          // This command is not actually run, it is used for reproducing
+          // the failure.
+          args = ['tools/testing/dart/launch_browser.dart',
+                  runtime,
+                  fullHtmlPath];
+          commandSet.add(new Command(TestUtils.dartTestExecutable.toString(),
+                                     args));
+        } else if (TestUtils.usesWebDriver(runtime)) {
           args = [
               dartDir.append('tools/testing/run_selenium.py').toNativePath(),
               '--browser=$runtime',
@@ -1169,6 +1181,7 @@ class StandardTestSuite extends TestSuite {
         return 'application/dart';
       case 'dart2js':
       case 'dartanalyzer':
+      case 'dart2analyzer':
       case 'dartc':
         return 'text/javascript';
       default:
@@ -1845,7 +1858,7 @@ class TestUtils {
       const ['d8', 'jsshell'].contains(runtime);
 
   static bool isCommandLineAnalyzer(String compiler) =>
-      compiler == 'dartc' || compiler == 'dartanalyzer';
+      compiler == 'dartc' || compiler == 'dartanalyzer' || compiler == 'dart2analyzer';
 
   static String buildDir(Map configuration) {
     // FIXME(kustermann,ricow): Our code assumes that the returned 'buildDir'

@@ -10,7 +10,7 @@ import emitter
 import os
 from generator import *
 from htmldartgenerator import *
-from idlnode import IDLArgument
+from idlnode import IDLArgument, IDLAttribute
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
 _cpp_type_map = {
@@ -424,7 +424,7 @@ class DartiumBackend(HtmlDartGenerator):
         [],
         attr.type.id,
         attr.type.nullable,
-        'GetterRaisesException' in attr.ext_attrs)
+        'GetterRaisesException' in attr.ext_attrs or 'RaisesException' in attr.ext_attrs)
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
@@ -798,6 +798,10 @@ class DartiumBackend(HtmlDartGenerator):
         if argument.type.nullable:
           return True
 
+        if isinstance(argument, IDLAttribute):
+          return (argument.type.id == 'DOMString') and \
+              ('Reflect' in argument.ext_attrs)
+
         if isinstance(argument, IDLArgument):
           if IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument):
             return True
@@ -939,7 +943,7 @@ class DartiumBackend(HtmlDartGenerator):
     if 'ImplementedBy' in idl_node.ext_attrs:
       return '%s::%s' % (idl_node.ext_attrs['ImplementedBy'], function_name)
     if idl_node.is_static:
-      return '%s::%s' % (self._interface_type_info.idl_type(), function_name)
+      return '%s::%s' % (self._interface_type_info.native_type(), function_name)
     interface_name = self._interface_type_info.idl_type()
     cpp_type_name = _GetCPPTypeName(interface_name, function_name)
     if cpp_type_name == interface_name:

@@ -134,6 +134,34 @@ ASSEMBLER_TEST_RUN(Clz, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(MtloMflo, assembler) {
+  __ LoadImmediate(T0, 42);
+  __ mtlo(T0);
+  __ mflo(V0);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(MtloMflo, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(MthiMfhi, assembler) {
+  __ LoadImmediate(T0, 42);
+  __ mthi(T0);
+  __ mfhi(V0);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(MthiMfhi, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Divu, assembler) {
   __ addiu(R1, ZR, Immediate(27));
   __ addiu(R2, ZR, Immediate(9));
@@ -517,6 +545,23 @@ ASSEMBLER_TEST_GENERATE(Multu_hi, assembler) {
 ASSEMBLER_TEST_RUN(Multu_hi, test) {
   typedef int (*SimpleCode)();
   EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Madd_neg, assembler) {
+  __ LoadImmediate(R1, -6);
+  __ LoadImmediate(R2, 7);
+  __ mult(R1, R2);
+  __ madd(R1, R2);
+  __ mflo(V0);
+  __ mfhi(V1);
+  __ jr(RA);
+}
+
+
+ASSEMBLER_TEST_RUN(Madd_neg, test) {
+  typedef int (*SimpleCode)();
+  EXPECT_EQ(-84, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 

@@ -15,7 +15,8 @@ import '../../lib/src/io.dart';
 import '../../lib/src/utils.dart';
 
 /// Describes a tar file and its contents.
-class TarFileDescriptor extends DirectoryDescriptor {
+class TarFileDescriptor extends DirectoryDescriptor
+    implements ReadableDescriptor {
   TarFileDescriptor(String name, List<Descriptor> contents)
       : super(name, contents);
 

@@ -301,8 +301,8 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
 $if DART2JS
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
-    if (JS('bool', '("returnValue" in #)', _base)) {
-      JS('void', '#.returnValue = #', _base, value);
+    if (JS('bool', '("returnValue" in #)', wrapped)) {
+      JS('void', '#.returnValue = #', wrapped, value);
     }
 $endif
   }

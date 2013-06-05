@@ -15,6 +15,7 @@ class Co19TestSuite extends StandardTestSuite {
               "co19",
               new Path("tests/co19/src"),
               ["tests/co19/co19-analyzer.status",
+               "tests/co19/co19-analyzer2.status",
                "tests/co19/co19-compiler.status",
                "tests/co19/co19-runtime.status",
                "tests/co19/co19-dart2dart.status",

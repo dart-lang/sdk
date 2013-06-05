@@ -1414,7 +1414,7 @@ FieldAddress FlowGraphCompiler::ElementAddressForIntIndex(intptr_t cid,
                                                           intptr_t index_scale,
                                                           Register array,
                                                           intptr_t index) {
-  UNIMPLEMENTED();
+  UNREACHABLE();
   return FieldAddress(array, index);
 }
 

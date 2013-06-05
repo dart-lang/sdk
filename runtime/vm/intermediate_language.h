@@ -1052,9 +1052,6 @@ class ParallelMoveInstr : public TemplateInstruction<0> {
 
   MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
 
-  void SetSrcSlotAt(intptr_t index, const Location& loc);
-  void SetDestSlotAt(intptr_t index, const Location& loc);
-
   intptr_t NumMoves() const { return moves_.length(); }
 
   virtual void PrintTo(BufferFormatter* f) const;

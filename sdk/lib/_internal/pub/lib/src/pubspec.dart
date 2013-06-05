@@ -74,6 +74,13 @@ class Pubspec {
   bool get isEmpty =>
     name == null && version == Version.none && dependencies.isEmpty;
 
+  /// Returns a Pubspec object for an already-parsed map representing its
+  /// contents.
+  ///
+  /// This will validate that [contents] is a valid pubspec.
+  factory Pubspec.fromMap(Map contents, SourceRegistry sources) =>
+    _parseMap(null, contents, sources);
+
   // TODO(rnystrom): Instead of allowing a null argument here, split this up
   // into load(), parse(), and _parse() like LockFile does.
   /// Parses the pubspec stored at [filePath] whose text is [contents]. If the
@@ -82,9 +89,6 @@ class Pubspec {
   /// file system.
   factory Pubspec.parse(String filePath, String contents,
       SourceRegistry sources) {
-    var name = null;
-    var version = Version.none;
-
     if (contents.trim() == '') return new Pubspec.empty();
 
     var parsedPubspec = loadYaml(contents);
@@ -94,123 +98,7 @@ class Pubspec {
       throw new FormatException('The pubspec must be a YAML mapping.');
     }
 
-    if (parsedPubspec.containsKey('name')) {
-      name = parsedPubspec['name'];
-      if (name is! String) {
-        throw new FormatException(
-            'The pubspec "name" field should be a string, but was "$name".');
-      }
-    }
-
-    if (parsedPubspec.containsKey('version')) {
-      version = new Version.parse(parsedPubspec['version']);
-    }
-
-    var dependencies = _parseDependencies(filePath, sources,
-        parsedPubspec['dependencies']);
-
-    var devDependencies = _parseDependencies(filePath, sources,
-        parsedPubspec['dev_dependencies']);
-
-    // Make sure the same package doesn't appear as both a regular and dev
-    // dependency.
-    var dependencyNames = dependencies.map((dep) => dep.name).toSet();
-    var collisions = dependencyNames.intersection(
-        devDependencies.map((dep) => dep.name).toSet());
-
-    if (!collisions.isEmpty) {
-      var packageNames;
-      if (collisions.length == 1) {
-        packageNames = 'Package "${collisions.first}"';
-      } else {
-        var names = collisions.toList();
-        names.sort();
-        var buffer = new StringBuffer();
-        buffer.write("Packages ");
-        for (var i = 0; i < names.length; i++) {
-          buffer.write('"');
-          buffer.write(names[i]);
-          buffer.write('"');
-          if (i == names.length - 2) {
-            buffer.write(", ");
-          } else if (i == names.length - 1) {
-            buffer.write(", and ");
-          }
-        }
-
-        packageNames = buffer.toString();
-      }
-      throw new FormatException(
-          '$packageNames cannot appear in both "dependencies" and '
-          '"dev_dependencies".');
-    }
-
-    var environmentYaml = parsedPubspec['environment'];
-    var sdkConstraint = VersionConstraint.any;
-    if (environmentYaml != null) {
-      if (environmentYaml is! Map) {
-        throw new FormatException(
-            'The pubspec "environment" field should be a map, but was '
-            '"$environmentYaml".');
-      }
-
-      var sdkYaml = environmentYaml['sdk'];
-      if (sdkYaml is! String) {
-        throw new FormatException(
-            'The "sdk" field of "environment" should be a string, but was '
-            '"$sdkYaml".');
-      }
-
-      sdkConstraint = new VersionConstraint.parse(sdkYaml);
-    }
-    var environment = new PubspecEnvironment(sdkConstraint);
-
-    // Even though the pub app itself doesn't use these fields, we validate
-    // them here so that users find errors early before they try to upload to
-    // the server:
-    // TODO(rnystrom): We should split this validation into separate layers:
-    // 1. Stuff that is required in any pubspec to perform any command. Things
-    //    like "must have a name". That should go here.
-    // 2. Stuff that is required to upload a package. Things like "homepage
-    //    must use a valid scheme". That should go elsewhere. pub upload should
-    //    call it, and we should provide a separate command to show the user,
-    //    and also expose it to the editor in some way.
-
-    if (parsedPubspec.containsKey('homepage')) {
-      _validateFieldUrl(parsedPubspec['homepage'], 'homepage');
-    }
-    if (parsedPubspec.containsKey('documentation')) {
-      _validateFieldUrl(parsedPubspec['documentation'], 'documentation');
-    }
-
-    if (parsedPubspec.containsKey('author') &&
-        parsedPubspec['author'] is! String) {
-      throw new FormatException(
-          'The "author" field should be a string, but was '
-          '${parsedPubspec["author"]}.');
-    }
-
-    if (parsedPubspec.containsKey('authors')) {
-      var authors = parsedPubspec['authors'];
-      if (authors is List) {
-        // All of the elements must be strings.
-        if (!authors.every((author) => author is String)) {
-          throw new FormatException('The "authors" field should be a string '
-              'or a list of strings, but was "$authors".');
-        }
-      } else if (authors is! String) {
-        throw new FormatException('The pubspec "authors" field should be a '
-            'string or a list of strings, but was "$authors".');
-      }
-
-      if (parsedPubspec.containsKey('author')) {
-        throw new FormatException('A pubspec should not have both an "author" '
-            'and an "authors" field.');
-      }
-    }
-
-    return new Pubspec(name, version, dependencies, devDependencies,
-        environment, parsedPubspec);
+    return _parseMap(filePath, parsedPubspec, sources);
   }
 }
 
@@ -229,6 +117,128 @@ void _validateFieldUrl(url, String field) {
         'The "$field" field should be an "http:" or "https:" URL, but '
         'was "$url".');
   }
+}
+
+Pubspec _parseMap(String filePath, Map map, SourceRegistry sources) {
+  var name = null;
+  var version = Version.none;
+
+  if (map.containsKey('name')) {
+    name = map['name'];
+    if (name is! String) {
+      throw new FormatException(
+          'The pubspec "name" field should be a string, but was "$name".');
+    }
+  }
+
+  if (map.containsKey('version')) {
+    version = new Version.parse(map['version']);
+  }
+
+  var dependencies = _parseDependencies(filePath, sources,
+      map['dependencies']);
+
+  var devDependencies = _parseDependencies(filePath, sources,
+      map['dev_dependencies']);
+
+  // Make sure the same package doesn't appear as both a regular and dev
+  // dependency.
+  var dependencyNames = dependencies.map((dep) => dep.name).toSet();
+  var collisions = dependencyNames.intersection(
+      devDependencies.map((dep) => dep.name).toSet());
+
+  if (!collisions.isEmpty) {
+    var packageNames;
+    if (collisions.length == 1) {
+      packageNames = 'Package "${collisions.first}"';
+    } else {
+      var names = collisions.toList();
+      names.sort();
+      var buffer = new StringBuffer();
+      buffer.write("Packages ");
+      for (var i = 0; i < names.length; i++) {
+        buffer.write('"');
+        buffer.write(names[i]);
+        buffer.write('"');
+        if (i == names.length - 2) {
+          buffer.write(", ");
+        } else if (i == names.length - 1) {
+          buffer.write(", and ");
+        }
+      }
+
+      packageNames = buffer.toString();
+    }
+    throw new FormatException(
+        '$packageNames cannot appear in both "dependencies" and '
+        '"dev_dependencies".');
+  }
+
+  var environmentYaml = map['environment'];
+  var sdkConstraint = VersionConstraint.any;
+  if (environmentYaml != null) {
+    if (environmentYaml is! Map) {
+      throw new FormatException(
+          'The pubspec "environment" field should be a map, but was '
+          '"$environmentYaml".');
+    }
+
+    var sdkYaml = environmentYaml['sdk'];
+    if (sdkYaml is! String) {
+      throw new FormatException(
+          'The "sdk" field of "environment" should be a string, but was '
+          '"$sdkYaml".');
+    }
+
+    sdkConstraint = new VersionConstraint.parse(sdkYaml);
+  }
+  var environment = new PubspecEnvironment(sdkConstraint);
+
+  // Even though the pub app itself doesn't use these fields, we validate
+  // them here so that users find errors early before they try to upload to
+  // the server:
+  // TODO(rnystrom): We should split this validation into separate layers:
+  // 1. Stuff that is required in any pubspec to perform any command. Things
+  //    like "must have a name". That should go here.
+  // 2. Stuff that is required to upload a package. Things like "homepage
+  //    must use a valid scheme". That should go elsewhere. pub upload should
+  //    call it, and we should provide a separate command to show the user,
+  //    and also expose it to the editor in some way.
+
+  if (map.containsKey('homepage')) {
+    _validateFieldUrl(map['homepage'], 'homepage');
+  }
+  if (map.containsKey('documentation')) {
+    _validateFieldUrl(map['documentation'], 'documentation');
+  }
+
+  if (map.containsKey('author') && map['author'] is! String) {
+    throw new FormatException(
+        'The "author" field should be a string, but was '
+        '${map["author"]}.');
+  }
+
+  if (map.containsKey('authors')) {
+    var authors = map['authors'];
+    if (authors is List) {
+      // All of the elements must be strings.
+      if (!authors.every((author) => author is String)) {
+        throw new FormatException('The "authors" field should be a string '
+            'or a list of strings, but was "$authors".');
+      }
+    } else if (authors is! String) {
+      throw new FormatException('The pubspec "authors" field should be a '
+          'string or a list of strings, but was "$authors".');
+    }
+
+    if (map.containsKey('author')) {
+      throw new FormatException('A pubspec should not have both an "author" '
+          'and an "authors" field.');
+    }
+  }
+
+  return new Pubspec(name, version, dependencies, devDependencies,
+      environment, map);
 }
 
 List<PackageDep> _parseDependencies(String pubspecPath, SourceRegistry sources,

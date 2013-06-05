@@ -25,7 +25,6 @@ Language/05_Variables/05_Variables_A07_t06: Fail # TODO(ahe): Please triage this
 Language/05_Variables/05_Variables_A07_t07: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t08: Fail # TODO(ahe): Please triage this failure.
 Language/05_Variables/05_Variables_A08_t01: Fail # TODO(ahe): Please triage this failure.
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/07_Classes_A03_t07: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/1_Instance_Methods_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/07_Classes/1_Instance_Methods_A06_t02: Fail # TODO(ahe): Please triage this failure.
@@ -159,6 +158,9 @@ LibTest/math/cos_A01_t01: Fail # TODO(ahe): Please triage this failure.
 
 
 [ $compiler == dart2js ]
+Language/14_Types/4_Interface_Types_A11_t01: Pass, Crash # Issue 8857
+Language/14_Types/4_Interface_Types_A11_t02: Pass, Crash # Issue 8857
+
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail # Issue 6750
 
 LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355

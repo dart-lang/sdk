@@ -25,7 +25,7 @@ DEFINE_FLAG(charp, inlining_filter, NULL, "Inline only in named function");
 // Flags for inlining heuristics.
 DEFINE_FLAG(int, inlining_depth_threshold, 3,
     "Inline function calls up to threshold nesting depth");
-DEFINE_FLAG(int, inlining_size_threshold, 22,
+DEFINE_FLAG(int, inlining_size_threshold, 20,
     "Always inline functions that have threshold or fewer instructions");
 DEFINE_FLAG(int, inlining_callee_call_sites_threshold, 1,
     "Always inline functions containing threshold or fewer calls.");
@@ -494,7 +494,7 @@ class CallSiteInliner : public ValueObject {
       // Build the callee graph.
       InlineExitCollector* exit_collector =
           new InlineExitCollector(caller_graph_, call);
-      FlowGraphBuilder builder(*parsed_function, ic_data_array, exit_collector);
+      FlowGraphBuilder builder(parsed_function, ic_data_array, exit_collector);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {

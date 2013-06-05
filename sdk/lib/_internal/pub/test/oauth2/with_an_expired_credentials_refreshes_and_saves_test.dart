@@ -45,7 +45,7 @@ main() {
       });
     });
 
-    server.handle('GET', '/packages/versions/new.json', (request) {
+    server.handle('GET', '/api/packages/versions/new', (request) {
       expect(request.headers.value('authorization'),
           equals('Bearer new access token'));
 

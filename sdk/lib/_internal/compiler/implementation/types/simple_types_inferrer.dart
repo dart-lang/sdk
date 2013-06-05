@@ -152,19 +152,24 @@ class SimpleTypesInferrer extends TypesInferrer {
   TypeMask get typeType => internal.typeType;
 
   TypeMask getReturnTypeOfElement(Element element) {
+    if (compiler.disableTypeInference) return dynamicType;
     return internal.getReturnTypeOfElement(element);
   }
   TypeMask getTypeOfElement(Element element) {
+    if (compiler.disableTypeInference) return dynamicType;
     return internal.getTypeOfElement(element);
   }
   TypeMask getTypeOfNode(Element owner, Node node) {
+    if (compiler.disableTypeInference) return dynamicType;
     return internal.getTypeOfNode(owner, node);
   }
   TypeMask getTypeOfSelector(Selector selector) {
+    if (compiler.disableTypeInference) return dynamicType;
     return internal.getTypeOfSelector(selector);
   }
 
   bool analyzeMain(Element element) {
+    if (compiler.disableTypeInference) return true;
     bool result = internal.analyzeMain(element);
     if (internal.optimismState == OPTIMISTIC) return result;
     assert(internal.optimismState == RETRY);
@@ -348,6 +353,10 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       bool wasAnalyzed = analyzeCount.containsKey(element);
       if (wasAnalyzed) {
         recompiles++;
+        if (recompiles >= numberOfElementsToAnalyze) {
+          compiler.log('Ran out of budget for inferring.');
+          break;
+        }
         if (compiler.verbose) recomputeWatch.start();
       }
       bool changed =
@@ -812,7 +821,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       return isTypeValuable(result);
     });
     if (result == null) {
-      result = dynamicType;
+      result = new TypeMask.nonNullEmpty();
     }
     return result;
   }

@@ -132,7 +132,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     stackmap_table_builder->AddEntry(3, stack_bitmap, 0);
 
     const Error& error =
-        Error::Handle(Compiler::CompileParsedFunction(*parsed_function));
+        Error::Handle(Compiler::CompileParsedFunction(parsed_function));
     EXPECT(error.IsNull());
     const Code& code = Code::Handle(function.CurrentCode());
 

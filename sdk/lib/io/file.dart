@@ -34,7 +34,7 @@ const APPEND = FileMode.APPEND;
  *    this.[openWrite]().
  *  * Open the file for random access operations using [open].
  */
-abstract class File extends FileSystemEntity {
+abstract class File implements FileSystemEntity {
   /**
    * Create a File object.
    */

@@ -65,7 +65,6 @@ Language/11_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/11_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/07_Classes/07_Classes_A01_t20: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.
 Language/11_Expressions/15_Method_Invocation/2_Cascaded_Invocation_A01_t19: Fail, OK # TODO(ahe): This test is failing after correctly implementing static warning checks in co19 test suite. The co19 authors have informed me that some of these failures are due to bugs in the test suite.

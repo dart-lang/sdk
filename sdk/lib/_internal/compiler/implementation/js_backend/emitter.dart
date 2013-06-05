@@ -612,6 +612,12 @@ class CodeEmitterTask extends CompilerTask {
            * print the runtime type JSInt as 'int'.
            */
           js('var classData = desc[""], supr, name = cls, fields = classData'),
+          optional(
+              compiler.mirrorsEnabled,
+              js.if_('typeof classData == "object" && '
+                     'classData instanceof Array',
+                     [js('classData = fields = classData[0]')])),
+
           js.if_('typeof classData == "string"', [
             js('var split = classData.split("/")'),
             js.if_('split.length == 2', [
@@ -640,7 +646,10 @@ class CodeEmitterTask extends CompilerTask {
             ]),
           ])),
 
-          js('isolateProperties[cls] = defineClass(name, cls, fields, desc)'),
+          js('var constructor = defineClass(name, cls, fields, desc)'),
+          optional(compiler.mirrorsEnabled,
+                   js('constructor["${namer.metadataField}"] = desc')),
+          js('isolateProperties[cls] = constructor'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
         ])
       ]),
@@ -1161,7 +1170,16 @@ class CodeEmitterTask extends CompilerTask {
       if (member.isAbstract(compiler)) return;
       jsAst.Expression code = backend.generatedCode[member];
       if (code == null) return;
-      builder.addProperty(namer.getName(member), code);
+      String name = namer.getName(member);
+      builder.addProperty(name, code);
+      var metadata = buildMetadataFunction(member);
+      if (metadata != null) {
+        builder.addProperty('@$name', metadata);
+      }
+      String reflectionName = getReflectionName(member);
+      if (reflectionName != null) {
+        builder.addProperty('+$reflectionName', js('0'));
+      }
       code = backend.generatedBailoutCode[member];
       if (code != null) {
         builder.addProperty(namer.getBailoutName(member), code);
@@ -1176,6 +1194,25 @@ class CodeEmitterTask extends CompilerTask {
                              element: member);
     }
     emitExtraAccessors(member, builder);
+  }
+
+  String getReflectionName(Element element) {
+    if (!compiler.mirrorsEnabled) return null;
+    String name = element.name.slowToString();
+    if (element.isGetter()) return name;
+    if (element.isSetter()) return '$name=';
+    if (element.isFunction()) {
+      FunctionElement function = element;
+      int requiredParameterCount = function.requiredParameterCount(compiler);
+      int optionalParameterCount = function.optionalParameterCount(compiler);
+      String suffix = '$name:$requiredParameterCount:$optionalParameterCount';
+      return (function.isConstructor()) ? 'new $suffix' : suffix;
+    }
+    if (element.isGenerativeConstructorBody()) {
+      return null;
+    }
+    throw compiler.internalErrorOnElement(
+        element, 'Do not know how to reflect on this');
   }
 
   /**
@@ -1438,6 +1475,9 @@ class CodeEmitterTask extends CompilerTask {
     buffer.write('$superName;');
     int bufferClassLength = buffer.length;
 
+    var fieldMetadata = [];
+    bool hasMetadata = false;
+
     visitClassFields(classElement, (Element member,
                                     String name,
                                     String accessorName,
@@ -1453,6 +1493,13 @@ class CodeEmitterTask extends CompilerTask {
       if (!classIsNative || needsAccessor) {
         buffer.write(separator);
         separator = ',';
+        if (compiler.mirrorsEnabled) {
+          var metadata = buildMetadataFunction(member);
+          fieldMetadata.add(metadata);
+          if (metadata != null) {
+            hasMetadata = true;
+          }
+        }
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
@@ -1496,7 +1543,12 @@ class CodeEmitterTask extends CompilerTask {
 
     bool fieldsAdded = buffer.length > bufferClassLength;
     String compactClassData = buffer.toString();
-    builder.addProperty('', js.string(compactClassData));
+    jsAst.Expression classDataNode = js.string(compactClassData);
+    if (hasMetadata) {
+      fieldMetadata.insert(0, classDataNode);
+      classDataNode = new jsAst.ArrayInitializer.from(fieldMetadata);
+    }
+    builder.addProperty('', classDataNode);
     return fieldsAdded;
   }
 
@@ -1796,7 +1848,13 @@ class CodeEmitterTask extends CompilerTask {
     for (Element element in Elements.sortedByPosition(elements)) {
       CodeBuffer buffer = bufferForElement(element, eagerBuffer);
       jsAst.Expression code = backend.generatedCode[element];
-      emitStaticFunction(buffer, namer.getName(element), code);
+      String name = namer.getName(element);
+      emitStaticFunction(buffer, name, code);
+      var metadata = buildMetadataFunction(element);
+      if (metadata != null) {
+        buffer.write(',$n$n"@$name":$_');
+        buffer.write(jsAst.prettyPrint(metadata, compiler));
+      }
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
         pendingElementsWithBailouts.remove(element);
@@ -2937,7 +2995,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun buildMetadataFunction(Element element) {
-    if (compiler.mirrorSystemClass == null) return null;
+    if (!compiler.mirrorsEnabled) return null;
     var metadata = [];
     Link link = element.metadata;
     // TODO(ahe): Why is metadata sometimes null?
@@ -3238,7 +3296,9 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     return '''
 (function (reflectionData) {
   if (!init.libraries) init.libraries = [];
+  if (!init.mangledNames) init.mangledNames = {};
   var libraries = init.libraries;
+  var mangledNames = init.mangledNames;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
@@ -3252,13 +3312,29 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     for (var property in descriptor) {
       if (!hasOwnProperty.call(descriptor, property)) continue;
       var element = descriptor[property];
-      if (typeof element === "function") {
+      if (property.substring(0, 1) == "@") {
+        property = property.substring(1);
+        ${namer.CURRENT_ISOLATE}[property]["${namer.metadataField}"] = element;
+      } else if (typeof element === "function") {
         ${namer.CURRENT_ISOLATE}[property] = element;
         functions.push(property);
       } else {
-        $classesCollector[property] = element;
+        var newDesc = {};
+        var previousProp;
+        for (var prop in element) {
+          if (!hasOwnProperty.call(element, prop)) continue;
+          var firstChar = prop.substring(0, 1);
+          if (firstChar == "+") {
+            mangledNames[previousProp] = prop.substring(1);
+          } else if (firstChar == "@" && prop != "@") {
+            newDesc[prop.substring(1)]["${namer.metadataField}"] ='''
+'''element[prop];
+          } else {
+            newDesc[previousProp = prop] = element[prop];
+          }
+        }
+        $classesCollector[property] = newDesc;
         classes.push(property);
-        classes.push(element[""]);
       }
     }
     libraries.push([name, uri, classes, functions, metadata]);

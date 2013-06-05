@@ -147,16 +147,26 @@ Future _closeServer() {
   return sleep(10);
 }
 
-/// The [d.DirectoryDescriptor] describing the server layout of packages that
-/// are being served via [servePackages]. This is `null` if [servePackages] has
-/// not yet been called for this test.
+/// The [d.DirectoryDescriptor] describing the server layout of `/api/packages`
+/// on the test server.
+///
+/// This contains metadata for packages that are being served via
+/// [servePackages]. It's `null` if [servePackages] has not yet been called for
+/// this test.
+d.DirectoryDescriptor _servedApiPackageDir;
+
+/// The [d.DirectoryDescriptor] describing the server layout of `/packages` on
+/// the test server.
+///
+/// This contains the tarballs for packages that are being served via
+/// [servePackages]. It's `null` if [servePackages] has not yet been called for
+/// this test.
 d.DirectoryDescriptor _servedPackageDir;
 
-/// A map from package names to version numbers to YAML-serialized pubspecs for
-/// those packages. This represents the packages currently being served by
-/// [servePackages], and is `null` if [servePackages] has not yet been called
-/// for this test.
-Map<String, Map<String, String>> _servedPackages;
+/// A map from package names to parsed pubspec maps for those packages. This
+/// represents the packages currently being served by [servePackages], and is
+/// `null` if [servePackages] has not yet been called for this test.
+Map<String, List<Map>> _servedPackages;
 
 /// Creates an HTTP server that replicates the structure of pub.dartlang.org.
 /// [pubspecs] is a list of unserialized pubspecs representing the packages to
@@ -166,12 +176,17 @@ Map<String, Map<String, String>> _servedPackages;
 /// are being served. Previous packages will continue to be served.
 void servePackages(List<Map> pubspecs) {
   if (_servedPackages == null || _servedPackageDir == null) {
-    _servedPackages = <String, Map<String, String>>{};
+    _servedPackages = <String, List<Map>>{};
+    _servedApiPackageDir = d.dir('packages', []);
     _servedPackageDir = d.dir('packages', []);
-    serve([_servedPackageDir]);
+    serve([
+      d.dir('api', [_servedApiPackageDir]),
+      _servedPackageDir
+    ]);
 
     currentSchedule.onComplete.schedule(() {
       _servedPackages = null;
+      _servedApiPackageDir = null;
       _servedPackageDir = null;
     }, 'cleaning up served packages');
   }
@@ -181,28 +196,36 @@ void servePackages(List<Map> pubspecs) {
       for (var spec in resolvedPubspecs) {
         var name = spec['name'];
         var version = spec['version'];
-        var versions = _servedPackages.putIfAbsent(
-            name, () => <String, String>{});
-        versions[version] = yaml(spec);
+        var versions = _servedPackages.putIfAbsent(name, () => []);
+        versions.add(spec);
       }
 
+      _servedApiPackageDir.contents.clear();
       _servedPackageDir.contents.clear();
       for (var name in _servedPackages.keys) {
-        var versions = _servedPackages[name].keys.toList();
-        _servedPackageDir.contents.addAll([
-          d.file('$name.json', json.stringify({'versions': versions})),
+        _servedApiPackageDir.contents.addAll([
+          d.file('$name', json.stringify({
+            'name': name,
+            'uploaders': ['nweiz@google.com'],
+            'versions': _servedPackages[name].map(packageVersionApiMap).toList()
+          })),
           d.dir(name, [
-            d.dir('versions', flatten(versions.map((version) {
-              return [
-                d.file('$version.yaml', _servedPackages[name][version]),
-                d.tar('$version.tar.gz', [
-                  d.file('pubspec.yaml', _servedPackages[name][version]),
-                  d.libDir(name, '$name $version')
-                ])
-              ];
-            })))
+            d.dir('versions', _servedPackages[name].map((pubspec) {
+              return d.file(pubspec['version'], json.stringify(
+                  packageVersionApiMap(pubspec, full: true)));
+            }))
           ])
         ]);
+
+        _servedPackageDir.contents.add(d.dir(name, [
+          d.dir('versions', _servedPackages[name].map((pubspec) {
+            var version = pubspec['version'];
+            return d.tar('$version.tar.gz', [
+              d.file('pubspec.yaml', json.stringify(pubspec)),
+              d.libDir(name, '$name $version')
+            ]);
+          }))
+        ]));
       }
     });
   }, 'initializing the package server');
@@ -630,6 +653,37 @@ String _packageName(String sourceName, description) {
   default:
     return description;
   }
+}
+
+/// Returns a Map in the format used by the pub.dartlang.org API to represent a
+/// package version.
+///
+/// [pubspec] is the parsed pubspec of the package version. If [full] is true,
+/// this returns the complete map, including metadata that's only included when
+/// requesting the package version directly.
+Map packageVersionApiMap(Map pubspec, {bool full: false}) {
+  var name = pubspec['name'];
+  var version = pubspec['version'];
+  var map = {
+    'pubspec': pubspec,
+    'version': version,
+    'url': '/api/packages/$name/versions/$version',
+    'archive_url': '/packages/$name/versions/$version.tar.gz',
+    'new_dartdoc_url': '/api/packages/$name/versions/$version'
+        '/new_dartdoc',
+    'package_url': '/api/packages/$name'
+  };
+
+  if (full) {
+    mapAddAll(map, {
+      'downloads': 0,
+      'created': '2012-09-25T18:38:28.685260',
+      'libraries': ['$name.dart'],
+      'uploader': ['nweiz@google.com']
+    });
+  }
+
+  return map;
 }
 
 /// Compares the [actual] output from running pub with [expected]. For [String]

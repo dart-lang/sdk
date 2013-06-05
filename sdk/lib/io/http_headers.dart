@@ -415,7 +415,7 @@ class _HttpHeaders implements HttpHeaders {
           if (s[index] == " " || s[index] == "\t" || s[index] == "=") break;
           index++;
         }
-        return s.substring(start, index).toLowerCase();
+        return s.substring(start, index);
       }
 
       String parseValue() {
@@ -424,7 +424,7 @@ class _HttpHeaders implements HttpHeaders {
           if (s[index] == " " || s[index] == "\t" || s[index] == ";") break;
           index++;
         }
-        return s.substring(start, index).toLowerCase();
+        return s.substring(start, index);
       }
 
       void expect(String expected) {
@@ -669,7 +669,7 @@ class _Cookie implements Cookie {
         if (s[index] == "=") break;
         index++;
       }
-      return s.substring(start, index).trim().toLowerCase();
+      return s.substring(start, index).trim();
     }
 
     String parseValue() {
@@ -678,7 +678,7 @@ class _Cookie implements Cookie {
         if (s[index] == ";") break;
         index++;
       }
-      return s.substring(start, index).trim().toLowerCase();
+      return s.substring(start, index).trim();
     }
 
     void expect(String expected) {

@@ -206,29 +206,26 @@ class AudioBufferSourceNode extends AudioSourceNode {
 
   @DomName('AudioBufferSourceNode.noteGrainOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteGrainOn(num when, num grainOffset, num grainDuration) native "AudioBufferSourceNode_noteGrainOn_Callback";
 
   @DomName('AudioBufferSourceNode.noteOff')
   @DocsEditable
-  @Experimental // untriaged
   void noteOff(num when) native "AudioBufferSourceNode_noteOff_Callback";
 
   @DomName('AudioBufferSourceNode.noteOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteOn(num when) native "AudioBufferSourceNode_noteOn_Callback";
 
   void start(num when, [num grainOffset, num grainDuration]) {
-    if ((when is num || when == null) && !?grainOffset && !?grainDuration) {
+    if ((when is num || when == null) && grainOffset == null && grainDuration == null) {
       _start_1(when);
       return;
     }
-    if ((when is num || when == null) && (grainOffset is num || grainOffset == null) && !?grainDuration) {
+    if ((grainOffset is num || grainOffset == null) && (when is num || when == null) && grainDuration == null) {
       _start_2(when, grainOffset);
       return;
     }
-    if ((when is num || when == null) && (grainOffset is num || grainOffset == null) && (grainDuration is num || grainDuration == null)) {
+    if ((grainDuration is num || grainDuration == null) && (grainOffset is num || grainOffset == null) && (when is num || when == null)) {
       _start_3(when, grainOffset, grainDuration);
       return;
     }
@@ -300,10 +297,10 @@ class AudioContext extends EventTarget {
   BiquadFilterNode createBiquadFilter() native "AudioContext_createBiquadFilter_Callback";
 
   AudioBuffer createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) {
-    if ((buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames == null) && (sampleRate is num || sampleRate == null)) {
+    if ((sampleRate is num || sampleRate == null) && (mixToMono_OR_numberOfFrames is int || mixToMono_OR_numberOfFrames == null) && (buffer_OR_numberOfChannels is int || buffer_OR_numberOfChannels == null)) {
       return _createBuffer_1(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, sampleRate);
     }
-    if ((buffer_OR_numberOfChannels is ByteBuffer || buffer_OR_numberOfChannels == null) && (mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && !?sampleRate) {
+    if ((mixToMono_OR_numberOfFrames is bool || mixToMono_OR_numberOfFrames == null) && (buffer_OR_numberOfChannels is ByteBuffer || buffer_OR_numberOfChannels == null) && sampleRate == null) {
       return _createBuffer_2(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -318,7 +315,7 @@ class AudioContext extends EventTarget {
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
   ChannelMergerNode createChannelMerger([int numberOfInputs]) {
-    if (?numberOfInputs) {
+    if (numberOfInputs != null) {
       return _createChannelMerger_1(numberOfInputs);
     }
     return _createChannelMerger_2();
@@ -329,7 +326,7 @@ class AudioContext extends EventTarget {
   ChannelMergerNode _createChannelMerger_2() native "AudioContext__createChannelMerger_2_Callback";
 
   ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) {
-    if (?numberOfOutputs) {
+    if (numberOfOutputs != null) {
       return _createChannelSplitter_1(numberOfOutputs);
     }
     return _createChannelSplitter_2();
@@ -344,7 +341,7 @@ class AudioContext extends EventTarget {
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
   DelayNode createDelay([num maxDelayTime]) {
-    if (?maxDelayTime) {
+    if (maxDelayTime != null) {
       return _createDelay_1(maxDelayTime);
     }
     return _createDelay_2();
@@ -355,7 +352,7 @@ class AudioContext extends EventTarget {
   DelayNode _createDelay_2() native "AudioContext__createDelay_2_Callback";
 
   DelayNode createDelayNode([num maxDelayTime]) {
-    if (?maxDelayTime) {
+    if (maxDelayTime != null) {
       return _createDelayNode_1(maxDelayTime);
     }
     return _createDelayNode_2();
@@ -375,14 +372,13 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.createGainNode')
   @DocsEditable
-  @Experimental // untriaged
   GainNode createGainNode() native "AudioContext_createGainNode_Callback";
 
   ScriptProcessorNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
-    if (?numberOfOutputChannels) {
+    if (numberOfOutputChannels != null) {
       return _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
     }
-    if (?numberOfInputChannels) {
+    if (numberOfInputChannels != null) {
       return _createJavaScriptNode_2(bufferSize, numberOfInputChannels);
     }
     return _createJavaScriptNode_3(bufferSize);
@@ -415,10 +411,10 @@ class AudioContext extends EventTarget {
   PannerNode createPanner() native "AudioContext_createPanner_Callback";
 
   ScriptProcessorNode createScriptProcessor(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) {
-    if (?numberOfOutputChannels) {
+    if (numberOfOutputChannels != null) {
       return _createScriptProcessor_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
     }
-    if (?numberOfInputChannels) {
+    if (numberOfInputChannels != null) {
       return _createScriptProcessor_2(bufferSize, numberOfInputChannels);
     }
     return _createScriptProcessor_3(bufferSize);
@@ -524,8 +520,8 @@ class AudioListener extends NativeFieldWrapperClass1 {
 @DomName('AudioNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioNode-section
 @Experimental
-class AudioNode extends NativeFieldWrapperClass1 {
-  AudioNode.internal();
+class AudioNode extends EventTarget {
+  AudioNode.internal() : super.internal();
 
   @DomName('AudioNode.channelCount')
   @DocsEditable
@@ -563,12 +559,16 @@ class AudioNode extends NativeFieldWrapperClass1 {
   @DocsEditable
   int get numberOfOutputs native "AudioNode_numberOfOutputs_Getter";
 
+  @DomName('AudioNode.addEventListener')
+  @DocsEditable
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_addEventListener_Callback";
+
   void connect(destination, int output, [int input]) {
-    if ((destination is AudioNode || destination == null) && (output is int || output == null) && (input is int || input == null)) {
+    if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
       _connect_1(destination, output, input);
       return;
     }
-    if ((destination is AudioParam || destination == null) && (output is int || output == null) && !?input) {
+    if ((output is int || output == null) && (destination is AudioParam || destination == null) && input == null) {
       _connect_2(destination, output);
       return;
     }
@@ -582,6 +582,14 @@ class AudioNode extends NativeFieldWrapperClass1 {
   @DomName('AudioNode.disconnect')
   @DocsEditable
   void disconnect(int output) native "AudioNode_disconnect_Callback";
+
+  @DomName('AudioNode.dispatchEvent')
+  @DocsEditable
+  bool dispatchEvent(Event event) native "AudioNode_dispatchEvent_Callback";
+
+  @DomName('AudioNode.removeEventListener')
+  @DocsEditable
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AudioNode_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -644,7 +652,6 @@ class AudioParam extends NativeFieldWrapperClass1 {
 
   @DomName('AudioParam.setTargetValueAtTime')
   @DocsEditable
-  @Experimental // untriaged
   void setTargetValueAtTime(num targetValue, num time, num timeConstant) native "AudioParam_setTargetValueAtTime_Callback";
 
   @DomName('AudioParam.setValueAtTime')
@@ -1090,12 +1097,10 @@ class OscillatorNode extends AudioSourceNode {
 
   @DomName('OscillatorNode.noteOff')
   @DocsEditable
-  @Experimental // untriaged
   void noteOff(num when) native "OscillatorNode_noteOff_Callback";
 
   @DomName('OscillatorNode.noteOn')
   @DocsEditable
-  @Experimental // untriaged
   void noteOn(num when) native "OscillatorNode_noteOn_Callback";
 
   @DomName('OscillatorNode.setWaveTable')

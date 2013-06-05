@@ -593,7 +593,7 @@ $if DART2JS
    * * [insertAdjacentElement]
    */
   void insertAdjacentHtml(String where, String html) {
-    if (JS('bool', '!!#.insertAdjacentHtml', this)) {
+    if (JS('bool', '!!#.insertAdjacentHTML', this)) {
       _insertAdjacentHtml(where, html);
     } else {
       _insertAdjacentNode(where, new DocumentFragment.html(html));
@@ -601,7 +601,7 @@ $if DART2JS
   }
 
   @JSName('insertAdjacentHTML')
-  void _insertAdjacentHTML(String where, String text) native;
+  void _insertAdjacentHtml(String where, String text) native;
 
   /**
    * Inserts [element] into the DOM at the specified location.

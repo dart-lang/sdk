@@ -97,9 +97,11 @@ static void CollectFinalizedSuperClasses(
     super_type = cls.super_type();
     if (!super_type.IsNull()) {
       if (!super_type.IsMalformed() &&
-          super_type.HasResolvedTypeClass() &&
-          Class::Handle(super_type.type_class()).is_finalized()) {
-        AddSuperType(super_type, finalized_super_classes);
+          super_type.HasResolvedTypeClass()) {
+        cls ^= super_type.type_class();
+        if (cls.is_finalized()) {
+          AddSuperType(super_type, finalized_super_classes);
+        }
       }
     }
   }
@@ -374,7 +376,8 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
 
   // Update redirection data with resolved target.
   factory.SetRedirectionTarget(target);
-  factory.SetRedirectionIdentifier(String::Handle());  // Not needed anymore.
+  // Not needed anymore.
+  factory.SetRedirectionIdentifier(String::null_object());
   if (!target.IsRedirectingFactory()) {
     return;
   }
@@ -882,7 +885,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                                   parameterized_type_name.ToCString()));
     return BoundedType::New(parameterized_type,
                             malformed_bound,
-                            TypeParameter::Handle());
+                            TypeParameter::null_object());
   }
 
   if (finalization >= kCanonicalize) {
@@ -1438,6 +1441,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   // Finalize interface types (but not necessarily interface classes).
   Array& interface_types = Array::Handle(cls.interfaces());
   AbstractType& interface_type = AbstractType::Handle();
+  AbstractType& seen_interf = AbstractType::Handle();
   for (intptr_t i = 0; i < interface_types.Length(); i++) {
     interface_type ^= interface_types.At(i);
     interface_type = FinalizeType(cls, interface_type, kCanonicalizeWellFormed);
@@ -1456,7 +1460,6 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
                   String::Handle(super_type.Name()).ToCString(),
                   String::Handle(cls.Name()).ToCString());
     }
-    AbstractType& seen_interf = AbstractType::Handle();
     for (intptr_t j = 0; j < i; j++) {
       seen_interf ^= interface_types.At(j);
       if (interface_type.Equals(seen_interf)) {
@@ -1623,10 +1626,11 @@ RawType* ClassFinalizer::ResolveMixinAppType(const Class& cls,
   ASSERT(type.IsType());
   CollectTypeArguments(cls, Type::Cast(type), type_args);
   const Array& mixins = Array::Handle(mixin_app.mixin_types());
+  Class& mixin_app_class = Class::Handle();
   for (int i = 0; i < mixins.Length(); i++) {
     type ^= mixins.At(i);
     ASSERT(type.HasResolvedTypeClass());  // Newly created class in parser.
-    const Class& mixin_app_class = Class::Handle(type.type_class());
+    mixin_app_class ^= type.type_class();
     type = mixin_app_class.mixin();
     ASSERT(!type.IsNull());
     ResolveType(cls, type, kCanonicalizeWellFormed);
@@ -1650,12 +1654,10 @@ RawType* ClassFinalizer::ResolveMixinAppType(const Class& cls,
   // mixin types. This super type replaces the MixinAppType object
   // in the class that extends the mixin application.
   type ^= mixins.At(mixins.Length() - 1);
-  const Class& resolved_mixin_app_class = Class::Handle(type.type_class());
-  Type& resolved_mixin_app_type = Type::Handle();
-  resolved_mixin_app_type = Type::New(resolved_mixin_app_class,
-                                      mixin_app_args,
-                                      mixin_app.token_pos());
-  return resolved_mixin_app_type.raw();
+  mixin_app_class ^= type.type_class();
+  return Type::New(mixin_app_class,
+                   mixin_app_args,
+                   mixin_app.token_pos());
 }
 
 
@@ -1915,7 +1917,7 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
   if (FLAG_enable_type_checks || !type.HasResolvedTypeClass()) {
     type.set_malformed_error(error);
   }
-  type.set_arguments(AbstractTypeArguments::Handle());
+  type.set_arguments(AbstractTypeArguments::null_object());
   if (!type.IsFinalized()) {
     type.SetIsFinalized();
     // Do not canonicalize malformed types, since they may not be resolved.

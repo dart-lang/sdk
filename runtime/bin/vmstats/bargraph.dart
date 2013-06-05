@@ -31,7 +31,7 @@ class BarGraph {
 
   void addSample(List<int> segments) {
     if (segments.length != _elements.length) {
-      throw new RuntimeError('invalid sample size for graph');
+      throw new ArgumentError('invalid sample size for graph');
     }
     _model.addSample(segments);
   }

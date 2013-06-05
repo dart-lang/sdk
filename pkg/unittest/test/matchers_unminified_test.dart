@@ -105,7 +105,9 @@ void main() {
       var d = new SimpleIterable(0);
       var e = new SimpleIterable(1);
       shouldPass(d, isEmpty);
-      shouldFail(e, isEmpty, "Expected: empty But: was SimpleIterable:[1].");
+      shouldFail(e, isEmpty, "Expected: empty "
+          "But: was SimpleIterable:[1]. "
+          "Actual: SimpleIterable:[1]");
     });
 
     test('contains', () {
@@ -113,7 +115,8 @@ void main() {
       shouldPass(d, contains(2));
       shouldFail(d, contains(5),
           "Expected: contains <5> "
-          "But: was SimpleIterable:[3, 2, 1].");
+          "But: was SimpleIterable:[3, 2, 1]. "
+          "Actual: SimpleIterable:[3, 2, 1]");
     });
   });
 

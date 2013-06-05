@@ -12,7 +12,7 @@ runTest() {
   IsolateSink mainIsolate;
   stream.listen((msg) {
     mainIsolate = msg;
-    throw new RuntimeError("ignore exception");
+    throw new UnsupportedError("ignore exception");
   }, onDone: () {
     mainIsolate.add("received done");
     mainIsolate.close();
@@ -21,7 +21,7 @@ runTest() {
 
 bool globalErrorHandler(IsolateUnhandledException e) {
   var source = e.source;
-  return source is RuntimeError && source.message == "ignore exception";
+  return source is UnsupportedError && source.message == "ignore exception";
 }
 
 main() {

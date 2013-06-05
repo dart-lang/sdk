@@ -254,6 +254,8 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableUserAssertions;
   final bool trustTypeAnnotations;
   final bool enableConcreteTypeInference;
+  final bool disableTypeInference;
+
   /**
    * The maximum size of a concrete type before it widens to dynamic during
    * concrete type inference.
@@ -455,6 +457,7 @@ abstract class Compiler implements DiagnosticListener {
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.enableConcreteTypeInference: false,
+            this.disableTypeInference: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
             this.enableNativeLiveTypeAnalysis: false,
@@ -519,6 +522,8 @@ abstract class Compiler implements DiagnosticListener {
   Universe get codegenWorld => enqueuer.codegen.universe;
 
   bool get hasBuildId => buildId != UNDETERMINED_BUILD_ID;
+
+  bool get mirrorsEnabled => mirrorSystemClass != null;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -881,7 +886,7 @@ abstract class Compiler implements DiagnosticListener {
 
   void resolveReflectiveDataIfNeeded() {
     // Only need reflective data when dart:mirrors is loaded.
-    if (mirrorSystemClass == null) return;
+    if (!mirrorsEnabled) return;
 
     for (LibraryElement library in libraries.values) {
       for (Link link = library.metadata; !link.isEmpty; link = link.tail) {

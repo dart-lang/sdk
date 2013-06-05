@@ -138,7 +138,7 @@ static bool CanonicalizeUri(Isolate* isolate,
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler != NULL) {
     Dart_EnterScope();
-    Dart_Handle result = handler(kCanonicalizeUrl,
+    Dart_Handle result = handler(Dart_kCanonicalizeUrl,
                                  Api::NewHandle(isolate, library.raw()),
                                  Api::NewHandle(isolate, uri.raw()));
     const Object& obj = Object::Handle(Api::UnwrapHandle(result));

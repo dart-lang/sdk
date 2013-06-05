@@ -144,9 +144,7 @@ String _defaultErrorFormatter(actual, Matcher matcher, String reason,
   description.add('     But: ')
       .add(mismatchDescription.toString()).add('.\n');
 
-  if (!mismatchDescription.toString().startsWith("was ")) {
-    description.add('Actual: ').addDescriptionOf(actual);
-  }
+  description.add('Actual: ').addDescriptionOf(actual);
   if (reason != null) {
     description.add(reason).add('\n');
   }

@@ -533,7 +533,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
 
 // Emit code when ICData's targets are all Object == (which is ===).
 static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
-                                   const ICData& ic_data,
+                                   const ICData& orig_ic_data,
                                    const LocationSummary& locs,
                                    Token::Kind kind,
                                    BranchInstr* branch,
@@ -555,6 +555,7 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
   __ j(EQUAL, &identity_compare);
 
   __ LoadClassId(temp, left);
+  const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
   const intptr_t len = ic_data.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     __ cmpl(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));

@@ -263,8 +263,11 @@ class IDLParser(object):
     def Type():
       return _Type
 
+    def UnionType():
+      return ['(', Type, 'or', Type, ')']
+
     def ReturnType():
-      return OR(VoidType, _Type)
+      return OR(VoidType, _Type, UnionType)
 
     def InterfaceType():
       return ScopedName

@@ -3,6 +3,43 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library builtin;
+import 'dart:io';
+
+int _httpRequestResponseCode = 0;
+String _httpRequestStatusString;
+var _httpRequestResponse;
+
+void _requestCompleted(HttpClientResponseBody body) {
+  _httpRequestResponseCode = body.statusCode;
+  _httpRequestStatusString = '${body.statusCode} ${body.reasonPhrase}';
+  _httpRequestResponse = null;
+  if (body.statusCode != 200 || body.type == "json") {
+    return;
+  }
+  _httpRequestResponse = body.body;
+}
+
+void _requestFailed(error) {
+  _httpRequestResponseCode = 0;
+  _httpRequestStatusString = error.toString();
+  _httpRequestResponse = null;
+}
+
+HttpClient _client = new HttpClient();
+void _makeHttpRequest(String uri) {
+  _httpRequestResponseCode = 0;
+  _httpRequestStatusString = null;
+  _httpRequestResponse = null;
+  Uri requestUri = Uri.parse(uri);
+  _client.getUrl(requestUri)
+      .then((HttpClientRequest request) => request.close())
+      .then(HttpBodyHandler.processResponse)
+      .then((HttpClientResponseBody body) {
+        _requestCompleted(body);
+      }).catchError((error) {
+        _requestFailed(error);
+      });
+}
 
 // Corelib 'print' implementation.
 void _print(arg) {
@@ -36,6 +73,12 @@ _setPackageRoot(String packageRoot) {
 }
 
 String _resolveScriptUri(String cwd, String scriptName, bool isWindows) {
+  var scriptUri = Uri.parse(scriptName);
+  if (scriptUri.scheme == 'http') {
+    _entrypoint = scriptUri;
+    _logResolution("# Resolved script to: $_entrypoint");
+    return _entrypoint.toString();
+  }
   _logResolution("# Current working directory: $cwd");
   _logResolution("# ScriptName: $scriptName");
   if (isWindows) {
@@ -159,7 +202,11 @@ String _filePathFromPackageUri(Uri uri) {
   if (_packageRoot != null) {
     path = "${_packageRoot}${uri.path}";
   } else {
-    path = _entrypoint.resolve('packages/${uri.path}').path;
+    if (_entrypoint.scheme == 'http') {
+      path = _entrypoint.resolve('packages/${uri.path}').toString();
+    } else {
+      path = _entrypoint.resolve('packages/${uri.path}').path;
+    }
   }
 
   _logResolution("# Package: $path");
@@ -169,19 +216,4 @@ String _filePathFromPackageUri(Uri uri) {
 String _filePathFromHttpUri(Uri uri) {
   _logResolution('# Path: $uri');
   return uri.toString();
-}
-
-String _pathFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.path;
-}
-
-String _domainFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.domain;
-}
-
-int _portFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.port == 0 ? 80 : uri.port;
 }

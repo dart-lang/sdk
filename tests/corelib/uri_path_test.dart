@@ -70,14 +70,53 @@ void testPathSegments() {
   }
   encoded = encoded.toString();
   unencoded = unencoded.toString();
-  print(encoded);
-  print(unencoded);
   test(encoded, [unencoded]);
   test(encoded + "/" + encoded, [unencoded, unencoded]);
+}
+
+testPathSegmentsUnmodifiableList() {
+
+  test(list) {
+    bool isUnsupported(e) => e is UnsupportedError;
+
+    Expect.equals("a", list[0]);
+    Expect.throws(() => list[0] = "c", isUnsupported);
+    Expect.equals(2, list.length);
+    Expect.throws(() => list.length = 1, isUnsupported);
+    Expect.throws(() => list.add("c"), isUnsupported);
+    Expect.throws(() => list.addAll(["c", "d"]), isUnsupported);
+    Expect.listEquals(["b", "a"], list.reversed.toList());
+    Expect.throws(() => list.sort(), isUnsupported);
+    Expect.equals(0, list.indexOf("a"));
+    Expect.equals(0, list.lastIndexOf("a"));
+    Expect.throws(() => list.clear(), isUnsupported);
+    Expect.throws(() => list.insert(1, "c"), isUnsupported);
+    Expect.throws(() => list.insertAll(1, ["c", "d"]), isUnsupported);
+    Expect.throws(() => list.setAll(1, ["c", "d"]), isUnsupported);
+    Expect.throws(() => list.remove("a"), isUnsupported);
+    Expect.throws(() => list.removeAt(0), isUnsupported);
+    Expect.throws(() => list.removeLast(), isUnsupported);
+    Expect.throws(() => list.removeWhere((e) => true), isUnsupported);
+    Expect.throws(() => list.retainWhere((e) => false), isUnsupported);
+    Expect.listEquals(["a"], list.sublist(0, 1));
+    Expect.listEquals(["a"], list.getRange(0, 1).toList());
+    Expect.throws(() => list.setRange(0, 1, ["c"]), isUnsupported);
+    Expect.throws(() => list.removeRange(0, 1), isUnsupported);
+    Expect.throws(() => list.fillRange(0, 1, "c"), isUnsupported);
+    Expect.throws(() => list.replaceRange(0, 1, ["c"]), isUnsupported);
+    Map map = new Map();
+    map[0] = "a";
+    map[1] = "b";
+    Expect.mapEquals(list.asMap(), map);
+  }
+
+  test(Uri.parse("a/b").pathSegments);
+  test(new Uri(pathSegments: ["a", "b"]).pathSegments);
 }
 
 main() {
   testInvalidArguments();
   testPath();
   testPathSegments();
+  testPathSegmentsUnmodifiableList();
 }

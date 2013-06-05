@@ -240,9 +240,10 @@ static void InstallUnoptimizedCode(const Function& function) {
 
 
 // Return false if bailed out.
-static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
+static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                                         bool optimized) {
-  if (optimized && !parsed_function.function().is_optimizable()) {
+  const Function& function = parsed_function->function();
+  if (optimized && !function.is_optimizable()) {
     return false;
   }
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
@@ -264,15 +265,15 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
                        isolate);
       Array& ic_data_array = Array::Handle();
       if (optimized) {
-        ASSERT(parsed_function.function().HasCode());
+        ASSERT(function.HasCode());
         // Extract type feedback before the graph is built, as the graph
         // builder uses it to attach it to nodes.
         // Do not use type feedback to optimize a function that was
         // deoptimized too often.
-        if (parsed_function.function().deoptimization_counter() <
+        if (function.deoptimization_counter() <
             FLAG_deoptimization_counter_threshold) {
           const Code& unoptimized_code =
-              Code::Handle(parsed_function.function().unoptimized_code());
+              Code::Handle(function.unoptimized_code());
           ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
         }
       }
@@ -396,7 +397,7 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
         }
       }
       if (FLAG_loop_invariant_code_motion &&
-          (parsed_function.function().deoptimization_counter() <
+          (function.deoptimization_counter() <
            (FLAG_deoptimization_counter_threshold - 1))) {
         LICM licm(flow_graph);
         licm.Optimize();
@@ -485,7 +486,6 @@ static bool CompileParsedFunctionHelper(const ParsedFunction& parsed_function,
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::codefinalizer_timer,
                        isolate);
-      const Function& function = parsed_function.function();
       const Code& code = Code::Handle(
           Code::FinalizeCode(function, &assembler, optimized));
       code.set_is_optimized(optimized);
@@ -700,7 +700,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
 
     const bool success =
-        CompileParsedFunctionHelper(*parsed_function, optimized);
+        CompileParsedFunctionHelper(parsed_function, optimized);
     if (optimized && !success) {
       // Optimizer bailed out. Disable optimizations and to never try again.
       if (FLAG_trace_compiler) {
@@ -762,7 +762,7 @@ RawError* Compiler::CompileOptimizedFunction(const Function& function) {
 
 
 RawError* Compiler::CompileParsedFunction(
-    const ParsedFunction& parsed_function) {
+    ParsedFunction* parsed_function) {
   Isolate* isolate = Isolate::Current();
   LongJump* base = isolate->long_jump_base();
   LongJump jump;
@@ -771,7 +771,7 @@ RawError* Compiler::CompileParsedFunction(
     // Non-optimized code generator.
     CompileParsedFunctionHelper(parsed_function, false);
     if (FLAG_disassemble) {
-      DisassembleCode(parsed_function.function(), false);
+      DisassembleCode(parsed_function->function(), false);
     }
     isolate->set_long_jump_base(base);
     return Error::null();
@@ -851,13 +851,12 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     ParsedFunction* parsed_function = new ParsedFunction(func);
     parsed_function->SetNodeSequence(fragment);
     parsed_function->set_default_parameter_values(Array::ZoneHandle());
-    parsed_function->set_expression_temp_var(
-        ParsedFunction::CreateExpressionTempVar(0));
+    parsed_function->EnsureExpressionTemp();
     fragment->scope()->AddVariable(parsed_function->expression_temp_var());
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    CompileParsedFunctionHelper(*parsed_function, false);
+    CompileParsedFunctionHelper(parsed_function, false);
 
     const Object& result = Object::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));

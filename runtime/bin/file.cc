@@ -571,20 +571,27 @@ void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
 
     int64_t stat_data[File::kStatSize];
     File::Stat(path, stat_data);
-    Dart_Handle returned_data = Dart_NewTypedData(kInt64, File::kStatSize);
-    if (Dart_IsError(returned_data)) Dart_PropagateError(returned_data);
-    Dart_TypedData_Type data_type_unused;
-    void* data_location;
-    intptr_t data_length_unused;
-    Dart_Handle status = Dart_TypedDataAcquireData(returned_data,
-                                                   &data_type_unused,
-                                                   &data_location,
-                                                   &data_length_unused);
-    if (Dart_IsError(status)) Dart_PropagateError(status);
-    memmove(data_location, stat_data, File::kStatSize * sizeof(int64_t));
-    status = Dart_TypedDataReleaseData(returned_data);
-    if (Dart_IsError(status)) Dart_PropagateError(status);
-    Dart_SetReturnValue(args, returned_data);
+    if (stat_data[File::kType] == File::kDoesNotExist) {
+      Dart_Handle err = DartUtils::NewDartOSError();
+      if (Dart_IsError(err)) Dart_PropagateError(err);
+      Dart_SetReturnValue(args, err);
+    } else {
+      Dart_Handle returned_data = Dart_NewTypedData(Dart_TypedData_kInt64,
+                                                    File::kStatSize);
+      if (Dart_IsError(returned_data)) Dart_PropagateError(returned_data);
+      Dart_TypedData_Type data_type_unused;
+      void* data_location;
+      intptr_t data_length_unused;
+      Dart_Handle status = Dart_TypedDataAcquireData(returned_data,
+                                                     &data_type_unused,
+                                                     &data_location,
+                                                     &data_length_unused);
+      if (Dart_IsError(status)) Dart_PropagateError(status);
+      memmove(data_location, stat_data, File::kStatSize * sizeof(int64_t));
+      status = Dart_TypedDataReleaseData(returned_data);
+      if (Dart_IsError(status)) Dart_PropagateError(status);
+      Dart_SetReturnValue(args, returned_data);
+    }
   } else {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to FileSystemEntity.stat");
@@ -962,22 +969,22 @@ static CObject* FileReadIntoRequest(const CObjectArray& request) {
 }
 
 
-static int SizeInBytes(Dart_CObject::TypedDataType type) {
+static int SizeInBytes(Dart_TypedData_Type type) {
   switch (type) {
-    case Dart_CObject::kInt8Array:
-    case Dart_CObject::kUint8Array:
-    case Dart_CObject::kUint8ClampedArray:
+    case Dart_TypedData_kInt8:
+    case Dart_TypedData_kUint8:
+    case Dart_TypedData_kUint8Clamped:
       return 1;
-    case Dart_CObject::kInt16Array:
-    case Dart_CObject::kUint16Array:
+    case Dart_TypedData_kInt16:
+    case Dart_TypedData_kUint16:
       return 2;
-    case Dart_CObject::kInt32Array:
-    case Dart_CObject::kUint32Array:
-    case Dart_CObject::kFloat32Array:
+    case Dart_TypedData_kInt32:
+    case Dart_TypedData_kUint32:
+    case Dart_TypedData_kFloat32:
       return 4;
-    case Dart_CObject::kInt64Array:
-    case Dart_CObject::kUint64Array:
-    case Dart_CObject::kFloat64Array:
+    case Dart_TypedData_kInt64:
+    case Dart_TypedData_kUint64:
+    case Dart_TypedData_kFloat64:
       return 8;
     default:
       break;
@@ -1123,6 +1130,9 @@ static CObject* FileStatRequest(const CObjectArray& request) {
     int64_t data[File::kStatSize];
     CObjectString path(request[1]);
     File::Stat(path.CString(), data);
+    if (data[File::kType] == File::kDoesNotExist) {
+      return CObject::NewOSError();
+    }
     CObjectArray* result =
         new CObjectArray(CObject::NewArray(File::kStatSize));
     for (int i = 0; i < File::kStatSize; ++i) {
@@ -1142,7 +1152,7 @@ static void FileService(Dart_Port dest_port_id,
                  Dart_CObject* message) {
   CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
-  if (message->type == Dart_CObject::kArray) {
+  if (message->type == Dart_CObject_kArray) {
     if (request.Length() > 1 && request[0]->IsInt32()) {
       CObjectInt32 requestType(request[0]);
       switch (requestType.Value()) {

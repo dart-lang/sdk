@@ -21,7 +21,7 @@ void entry() {
   port.receive((message, replyTo) {
     if (message == 'throw exception') {
       replyTo.call('throwing exception');
-      throw new RuntimeError('ignore this exception');
+      throw new UnsupportedError('ignore this exception');
     }
     replyTo.call('hello');
     port.close();

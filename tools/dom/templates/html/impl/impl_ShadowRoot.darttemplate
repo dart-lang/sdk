@@ -12,6 +12,6 @@ $if DART2JS
   static bool get supported =>
       JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
 $else
-  static bool get supported => _Utils.shadowRootSupported(window.document);
+  static final bool supported = true;
 $endif
 }

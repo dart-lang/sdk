@@ -16,7 +16,7 @@
 # ......dart or dart.exe (executable)
 # ......dart.lib (import library for VM native extensions on Windows)
 # ......dart2js
-# ......dart_analyzer
+# ......dartanalyzer
 # ......pub
 # ......snapshots/
 # ........utils_wrapper.dart.snapshot
@@ -49,8 +49,6 @@
 # ......unittest/
 # ......(more will come here)
 # ....util/
-# ......analyzer/
-# ........dart_analyzer.jar
 # ......dartanalyzer/
 # ........dartanalyzer.jar
 # ........(third-party libraries for dart_analyzer)
@@ -160,10 +158,8 @@ def Main(argv):
   # TODO(dgrove) - deal with architectures that are not ia32.
   build_dir = os.path.dirname(SDK)
   dart_file_extension = ''
-  analyzer_file_extension = ''
   if HOST_OS == 'win32':
     dart_file_extension = '.exe'
-    analyzer_file_extension = '.bat'
     dart_import_lib_src = join(HOME, build_dir, 'dart.lib')
     dart_import_lib_dest = join(BIN, 'dart.lib')
     copyfile(dart_import_lib_src, dart_import_lib_dest)
@@ -176,15 +172,6 @@ def Main(argv):
     subprocess.call(['strip', dart_dest_binary])
   elif HOST_OS == 'macos':
     subprocess.call(['strip', '-x', dart_dest_binary])
-
-  # Copy analyzer into sdk/bin
-  ANALYZER_HOME = join(HOME, build_dir, 'analyzer')
-  dart_analyzer_src_binary = join(ANALYZER_HOME, 'bin',
-      'dart_analyzer' + analyzer_file_extension)
-  dart_analyzer_dest_binary = join(BIN,
-      'dart_analyzer' + analyzer_file_extension)
-  copyfile(dart_analyzer_src_binary, dart_analyzer_dest_binary)
-  copymode(dart_analyzer_src_binary, dart_analyzer_dest_binary)
 
   #
   # Create and populate sdk/include.
@@ -249,25 +236,6 @@ def Main(argv):
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
-
-  # Create and copy Analyzer library into 'util'
-  ANALYZER_DEST = join(UTIL, 'analyzer')
-  os.makedirs(ANALYZER_DEST)
-
-  analyzer_src_jar = join(ANALYZER_HOME, 'util', 'analyzer',
-                          'dart_analyzer.jar')
-  analyzer_dest_jar = join(ANALYZER_DEST, 'dart_analyzer.jar')
-  copyfile(analyzer_src_jar, analyzer_dest_jar)
-
-  jarsToCopy = [ join("args4j", "2.0.12", "args4j-2.0.12.jar"),
-                 join("guava", "r13", "guava-13.0.1.jar"),
-                 join("json", "r2_20080312", "json.jar") ]
-  for jarToCopy in jarsToCopy:
-    dest_dir = join (ANALYZER_DEST, os.path.dirname(jarToCopy))
-    os.makedirs(dest_dir)
-    dest_file = join (ANALYZER_DEST, jarToCopy)
-    src_file = join(ANALYZER_HOME, 'util', 'analyzer', jarToCopy)
-    copyfile(src_file, dest_file)
 
   # Create and copy dartanalyzer into 'util'
   DARTANALYZER_SRC = join(HOME, build_dir, 'dartanalyzer')

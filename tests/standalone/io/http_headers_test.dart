@@ -314,83 +314,91 @@ void testContentTypeCache() {
 }
 
 void testCookie() {
-  void checkCookiesEquals(a, b) {
-    Expect.equals(a.name, b.name);
-    Expect.equals(a.value, b.value);
-    Expect.equals(a.expires, b.expires);
-    Expect.equals(a.toString(), b.toString());
-  }
+  test(String name, String value) {
 
-  void checkCookie(cookie, s) {
-    Expect.equals(s, cookie.toString());
-    var c = new _Cookie.fromSetCookieValue(s);
-    checkCookiesEquals(cookie, c);
-  }
+    void checkCookiesEquals(a, b) {
+      Expect.equals(a.name, b.name);
+      Expect.equals(a.value, b.value);
+      Expect.equals(a.expires, b.expires);
+      Expect.equals(a.toString(), b.toString());
+    }
 
-  Cookie cookie;
-  cookie = new Cookie("name", "value");
-  Expect.equals("name=value", cookie.toString());
-  DateTime date = new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
-  cookie.expires = date;
-  checkCookie(cookie, "name=value"
-                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT");
-  cookie.maxAge = 567;
-  checkCookie(cookie, "name=value"
-                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
-                      "; Max-Age=567");
-  cookie.domain = "example.com";
-  checkCookie(cookie, "name=value"
-                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
-                      "; Max-Age=567"
-                      "; Domain=example.com");
-  cookie.path = "/xxx";
-  checkCookie(cookie, "name=value"
-                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
-                      "; Max-Age=567"
-                      "; Domain=example.com"
-                      "; Path=/xxx");
-  cookie.secure = true;
-  checkCookie(cookie, "name=value"
-                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
-                      "; Max-Age=567"
-                      "; Domain=example.com"
-                      "; Path=/xxx"
-                      "; Secure");
-  cookie.httpOnly = true;
-  checkCookie(cookie, "name=value"
-                      "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
-                      "; Max-Age=567"
-                      "; Domain=example.com"
-                      "; Path=/xxx"
-                      "; Secure"
-                      "; HttpOnly");
-  cookie.expires = null;
-  checkCookie(cookie, "name=value"
-                      "; Max-Age=567"
-                      "; Domain=example.com"
-                      "; Path=/xxx"
-                      "; Secure"
-                      "; HttpOnly");
-  cookie.maxAge = null;
-  checkCookie(cookie, "name=value"
-                      "; Domain=example.com"
-                      "; Path=/xxx"
-                      "; Secure"
-                      "; HttpOnly");
-  cookie.domain = null;
-  checkCookie(cookie, "name=value"
-                      "; Path=/xxx"
-                      "; Secure"
-                      "; HttpOnly");
-  cookie.path = null;
-  checkCookie(cookie, "name=value"
-                      "; Secure"
-                      "; HttpOnly");
-  cookie.secure = false;
-  checkCookie(cookie, "name=value"
-                      "; HttpOnly");
-  cookie.httpOnly = false;
-  checkCookie(cookie, "name=value");
+    void checkCookie(cookie, s) {
+      Expect.equals(s, cookie.toString());
+      var c = new _Cookie.fromSetCookieValue(s);
+      checkCookiesEquals(cookie, c);
+    }
+
+    Cookie cookie;
+    cookie = new Cookie(name, value);
+    Expect.equals("$name=$value", cookie.toString());
+    DateTime date = new DateTime.utc(2014, DateTime.JANUARY, 5, 23, 59, 59, 0);
+    cookie.expires = date;
+    checkCookie(cookie, "$name=$value"
+                "; Expires=Sun, 5 Jan 2014 23:59:59 GMT");
+    cookie.maxAge = 567;
+    checkCookie(cookie, "$name=$value"
+                "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                "; Max-Age=567");
+    cookie.domain = "example.com";
+    checkCookie(cookie, "$name=$value"
+                "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                "; Max-Age=567"
+                "; Domain=example.com");
+    cookie.path = "/xxx";
+    checkCookie(cookie, "$name=$value"
+                "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                "; Max-Age=567"
+                "; Domain=example.com"
+                "; Path=/xxx");
+    cookie.secure = true;
+    checkCookie(cookie, "$name=$value"
+                "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                "; Max-Age=567"
+                "; Domain=example.com"
+                "; Path=/xxx"
+                "; Secure");
+    cookie.httpOnly = true;
+    checkCookie(cookie, "$name=$value"
+                "; Expires=Sun, 5 Jan 2014 23:59:59 GMT"
+                "; Max-Age=567"
+                "; Domain=example.com"
+                "; Path=/xxx"
+                "; Secure"
+                "; HttpOnly");
+    cookie.expires = null;
+    checkCookie(cookie, "$name=$value"
+                "; Max-Age=567"
+                "; Domain=example.com"
+                "; Path=/xxx"
+                "; Secure"
+                "; HttpOnly");
+    cookie.maxAge = null;
+    checkCookie(cookie, "$name=$value"
+                "; Domain=example.com"
+                "; Path=/xxx"
+                "; Secure"
+                "; HttpOnly");
+    cookie.domain = null;
+    checkCookie(cookie, "$name=$value"
+                "; Path=/xxx"
+                "; Secure"
+                "; HttpOnly");
+    cookie.path = null;
+    checkCookie(cookie, "$name=$value"
+                "; Secure"
+                "; HttpOnly");
+    cookie.secure = false;
+    checkCookie(cookie, "$name=$value"
+                "; HttpOnly");
+    cookie.httpOnly = false;
+    checkCookie(cookie, "$name=$value");
+  }
+  test("name", "value");
+  test("abc", "def");
+  test("ABC", "DEF");
+  test("Abc", "Def");
+  test("SID", "sJdkjKSJD12343kjKj78");
 }
 
 void testInvalidCookie() {

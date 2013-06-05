@@ -19,11 +19,24 @@ main() {
     currentSchedule.timeout *= 3;
 
     serve([
+      d.dir('api', [
+        d.dir('packages', [
+          d.file('browser', json.stringify({
+            'versions': [packageVersionApiMap(packageMap('browser', '1.0.0'))]
+          })),
+          d.dir('browser', [
+            d.dir('versions', [
+              d.file('1.0.0', json.stringify(
+                  packageVersionApiMap(
+                      packageMap('browser', '1.0.0'),
+                      full: true)))
+            ])
+          ])
+        ])
+      ]),
       d.dir('packages', [
-        d.file('browser.json', json.stringify({'versions': ['1.0.0']})),
         d.dir('browser', [
           d.dir('versions', [
-            d.file('1.0.0.yaml', yaml(packageMap("browser", "1.0.0"))),
             d.tar('1.0.0.tar.gz', [
               d.file('pubspec.yaml', yaml(packageMap("browser", "1.0.0"))),
               d.dir('lib', [

@@ -101,13 +101,13 @@ class InlineExitCollector: public ZoneAllocated {
 class FlowGraphBuilder: public ValueObject {
  public:
   // The inlining context is NULL if not inlining.
-  FlowGraphBuilder(const ParsedFunction& parsed_function,
+  FlowGraphBuilder(ParsedFunction* parsed_function,
                    const Array& ic_data_array,
                    InlineExitCollector* exit_collector);
 
   FlowGraph* BuildGraph();
 
-  const ParsedFunction& parsed_function() const { return parsed_function_; }
+  ParsedFunction* parsed_function() const { return parsed_function_; }
   const Array& ic_data_array() const { return ic_data_array_; }
 
   void Bailout(const char* reason);
@@ -151,7 +151,7 @@ class FlowGraphBuilder: public ValueObject {
     return parameter_count() + num_stack_locals_;
   }
 
-  const ParsedFunction& parsed_function_;
+  ParsedFunction* parsed_function_;
   const Array& ic_data_array_;
 
   const intptr_t num_copied_params_;
@@ -341,7 +341,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
       const Class& target_class,
       AstNode* receiver,
       const String& method_name,
-      ArgumentListNode* method_arguments);
+      ArgumentListNode* method_arguments,
+      bool save_last_arg);
 
   StaticCallInstr* BuildThrowNoSuchMethodError(intptr_t token_pos,
                                                const Class& function_class,
@@ -361,6 +362,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
                         Value* value,
                         const AbstractType& dst_type,
                         const String& dst_name);
+
+  // Helpers for allocating and deallocating temporary locals on top of the
+  // expression stack.
+  LocalVariable* EnterTempLocalScope(Value* value);
+  Definition* ExitTempLocalScope(LocalVariable* var);
 
   void BuildLetTempExpressions(LetNode* node);
 

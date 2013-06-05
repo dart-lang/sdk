@@ -12,22 +12,27 @@ import 'dart:isolate';
 void testStat() {
   Directory directory = new Directory("").createTempSync();
   File file = new File.fromPath(new Path(directory.path).append("file"));
-  FileStat nonExistent = FileStat.statSync(file.path);
-  Expect.equals(FileSystemEntityType.NOT_FOUND, nonExistent.type);
+  Expect.throws(file.statSync);
+  Expect.throws(() => FileStat.statSync(file.path));
   file.writeAsStringSync("Dart IO library test of FileStat");
   new Timer(const Duration(seconds: 2), () {
     file.readAsStringSync();
     directory.listSync();
     FileStat fileStat = FileStat.statSync(file.path);
+    FileStat fileStatDirect = file.statSync();
     Expect.equals(FileSystemEntityType.FILE, fileStat.type);
     Expect.equals(32, fileStat.size);
+    Expect.equals(FileSystemEntityType.FILE, fileStatDirect.type);
+    Expect.equals(32, fileStatDirect.size);
     if (Platform.operatingSystem != 'windows') {
       Expect.isTrue(fileStat.modified.compareTo(fileStat.accessed) < 0);
       Expect.isTrue(fileStat.changed.compareTo(fileStat.accessed) < 0);
     }
     Expect.equals(6 << 6, fileStat.mode & (6 << 6));  // Mode includes +urw.
     FileStat directoryStat = FileStat.statSync(directory.path);
+    FileStat directoryStatDirect = directory.statSync();
     Expect.equals(FileSystemEntityType.DIRECTORY, directoryStat.type);
+    Expect.equals(FileSystemEntityType.DIRECTORY, directoryStatDirect.type);
     if (Platform.operatingSystem != 'windows') {
       Expect.isTrue(
           directoryStat.modified.compareTo(directoryStat.accessed) < 0);
@@ -45,14 +50,26 @@ Future testStatAsync() {
   .then((directory) {
     File file = new File.fromPath(new Path(directory.path).append("file"));
     return FileStat.stat(file.path)
-    .then((missingStat) {
-      Expect.equals(FileSystemEntityType.NOT_FOUND, missingStat.type);
-    })
+    .then((_) => Expect.fail("FileStat.stat should throw an exception."))
+    .catchError((e) => null)
+    .then((_) => file.stat())
+    .then((_) => Expect.fail("File.stat should throw an exception."))
+    .catchError((e) => null)
     .then((_) => file.writeAsString("Dart IO library test of FileStat"))
     .then((_) => new Future.delayed(const Duration(seconds: 2)))
     .then((_) => file.readAsString())
     .then((_) => directory.list().last)
     .then((_) => FileStat.stat(file.path))
+    .then((FileStat fileStat) {
+      Expect.equals(FileSystemEntityType.FILE, fileStat.type);
+      Expect.equals(32, fileStat.size);
+      if (Platform.operatingSystem != 'windows') {
+        Expect.isTrue(fileStat.modified.compareTo(fileStat.accessed) < 0);
+        Expect.isTrue(fileStat.changed.compareTo(fileStat.accessed) < 0);
+      }
+      Expect.equals(6 << 6, fileStat.mode & (6 << 6));  // Mode includes +urw.
+      return file.stat();
+    })
     .then((FileStat fileStat) {
       Expect.equals(FileSystemEntityType.FILE, fileStat.type);
       Expect.equals(32, fileStat.size);
@@ -72,6 +89,28 @@ Future testStatAsync() {
             directoryStat.changed.compareTo(directoryStat.accessed) < 0);
       }
       Expect.equals(7 << 6, directoryStat.mode & (7 << 6));  // Includes +urwx.
+      return directory.stat();
+    })
+    .then((FileStat directoryStat) {
+      Expect.equals(FileSystemEntityType.DIRECTORY, directoryStat.type);
+      if (Platform.operatingSystem != 'windows') {
+        Expect.isTrue(
+            directoryStat.modified.compareTo(directoryStat.accessed) < 0);
+        Expect.isTrue(
+            directoryStat.changed.compareTo(directoryStat.accessed) < 0);
+      }
+      Expect.equals(7 << 6, directoryStat.mode & (7 << 6));  // Includes +urwx.
+      return new Link(directory.path).stat();
+    })
+    .then((FileStat linkStat) {
+      Expect.equals(FileSystemEntityType.DIRECTORY, linkStat.type);
+      if (Platform.operatingSystem != 'windows') {
+        Expect.isTrue(
+            linkStat.modified.compareTo(linkStat.accessed) < 0);
+        Expect.isTrue(
+            linkStat.changed.compareTo(linkStat.accessed) < 0);
+      }
+      Expect.equals(7 << 6, linkStat.mode & (7 << 6));  // Includes +urwx.
       return directory.delete(recursive: true);
     });
   });

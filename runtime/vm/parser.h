@@ -17,6 +17,8 @@ namespace dart {
 
 // Forward declarations.
 class Function;
+class Isolate;
+class LiteralToken;
 class Script;
 class TokenStream;
 
@@ -100,6 +102,7 @@ class ParsedFunction : public ZoneAllocated {
     return expression_temp_var_ != NULL;
   }
   static LocalVariable* CreateExpressionTempVar(intptr_t token_pos);
+  LocalVariable* EnsureExpressionTemp();
 
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
@@ -167,6 +170,8 @@ class Parser : public ValueObject {
                                          va_list args);
 
  private:
+  friend class EffectGraphVisitor;  // For BuildNoSuchMethodArguments.
+
   struct Block;
   class TryBlocks;
 
@@ -384,14 +389,18 @@ class Parser : public ValueObject {
   String& ParseNativeDeclaration();
   void ParseInterfaceList(const Class& cls);
   RawAbstractType* ParseMixins(const AbstractType& super_type);
-  StaticCallNode* BuildInvocationMirrorAllocation(
+  static StaticCallNode* BuildInvocationMirrorAllocation(
       intptr_t call_pos,
       const String& function_name,
-      const ArgumentListNode& function_args);
-  ArgumentListNode* BuildNoSuchMethodArguments(
+      const ArgumentListNode& function_args,
+      const LocalVariable* temp = NULL);
+  // Build arguments for a NoSuchMethodCall. If LocalVariable temp is not NULL,
+  // the last argument is stored in temp.
+  static ArgumentListNode* BuildNoSuchMethodArguments(
       intptr_t call_pos,
       const String& function_name,
-      const ArgumentListNode& function_args);
+      const ArgumentListNode& function_args,
+      const LocalVariable* temp = NULL);
   RawFunction* GetSuperFunction(intptr_t token_pos,
                                 const String& name,
                                 ArgumentListNode* arguments,
@@ -609,7 +618,6 @@ class Parser : public ValueObject {
 
   void CheckOperatorArity(const MemberDesc& member);
 
-  const LocalVariable* GetIncrementTempLocal();
   void EnsureExpressionTemp();
   void EnsureSavedCurrentContext();
   AstNode* CreateAssignmentNode(AstNode* original, AstNode* rhs);
@@ -620,6 +628,10 @@ class Parser : public ValueObject {
       const AbstractTypeArguments& type_arguments,
       const Function& constructor,
       ArgumentListNode* arguments);
+
+  Isolate* isolate() const { return isolate_; }
+
+  Isolate* isolate_;  // Cached current isolate.
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;
@@ -644,6 +656,9 @@ class Parser : public ValueObject {
 
   // The function currently being parsed.
   Function& innermost_function_;
+
+  // Current literal token.
+  LiteralToken& literal_token_;
 
   // The class currently being parsed, or the owner class of the
   // function currently being parsed. It is used for primary identifier lookups.

@@ -121,23 +121,4 @@ void main() {
           matches(r"^Directory not found: '[^']+[\\/]dir'\.$"));
     });
   }, passing: ['test 2']);
-
-  expectTestsPass("async().load() fails", () {
-    test('test', () {
-      scheduleSandbox();
-
-      expect(d.async(new Future.value(d.file('name.txt')))
-              .load('path').toList(),
-          throwsA(equals("AsyncDescriptors don't support load().")));
-    });
-  });
-
-  expectTestsPass("async().read() fails", () {
-    test('test', () {
-      scheduleSandbox();
-
-      expect(d.async(new Future.value(d.file('name.txt'))).read().toList(),
-          throwsA(equals("AsyncDescriptors don't support read().")));
-    });
-  });
 }

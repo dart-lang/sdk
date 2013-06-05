@@ -19,7 +19,7 @@ import 'dart:io';
 
 main() {
   if ('æøå' != new File('æøå.txt').readAsStringSync()) {
-    throw new RuntimeError("not equal");
+    throw new StateError("not equal");
   }
 }
 """);

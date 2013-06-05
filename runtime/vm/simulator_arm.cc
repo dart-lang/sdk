@@ -1494,12 +1494,13 @@ void Simulator::SupervisorCall(Instr* instr) {
         set_register(R3, icount_);
         set_register(IP, icount_);
         set_register(LR, icount_);
-        float zap_fvalue = static_cast<float>(icount_);
-        for (int i = S0; i <= S15; i++) {
-          set_sregister(static_cast<SRegister>(i), zap_fvalue);
-        }
-#ifdef VFPv3_D32
         double zap_dvalue = static_cast<double>(icount_);
+        for (int i = D0; i <= D7; i++) {
+          set_dregister(static_cast<DRegister>(i), zap_dvalue);
+        }
+        // The above loop also zaps overlapping registers S0-S15.
+        // Registers D8-D15 (overlapping with S16-S31) are preserved.
+#ifdef VFPv3_D32
         for (int i = D16; i <= D31; i++) {
           set_dregister(static_cast<DRegister>(i), zap_dvalue);
         }

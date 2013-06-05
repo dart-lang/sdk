@@ -37,11 +37,5 @@ class NothingDescriptor extends Descriptor {
     }
   });
 
-  Stream<List<int>> load(String pathToLoad) => errorStream("Nothing "
-      "descriptors don't support load().");
-
-  Stream<List<int>> read() => errorStream("Nothing descriptors don't support "
-      "read().");
-
   String describe() => "nothing at '$name'";
 }

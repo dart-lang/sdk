@@ -14,7 +14,7 @@ void startTest(SendPort finishPort, replyPort) {
     runAsync(() {
       invokedCallbacks++;
       if (invokedCallbacks == 100) finishPort.send("done");
-      if (i == 50) throw new RuntimeError("ignore exception");
+      if (i == 50) throw new UnsupportedError("ignore exception");
     });
   }
 }
@@ -24,7 +24,7 @@ runTest() {
 }
 
 bool globalErrorHandler(IsolateUnhandledException e) {
-  return e.source is RuntimeError && e.source.message == "ignore exception";
+  return e.source is UnsupportedError && e.source.message == "ignore exception";
 }
 
 main() {

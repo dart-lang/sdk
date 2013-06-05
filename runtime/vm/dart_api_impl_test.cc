@@ -800,12 +800,16 @@ TEST_CASE(ListAccess) {
 
 
 TEST_CASE(TypedDataAccess) {
-  EXPECT_EQ(kInvalid, Dart_GetTypeOfTypedData(Dart_True()));
-  EXPECT_EQ(kInvalid, Dart_GetTypeOfExternalTypedData(Dart_False()));
-  Dart_Handle byte_array1 = Dart_NewTypedData(kUint8, 10);
+  EXPECT_EQ(Dart_TypedData_kInvalid,
+            Dart_GetTypeOfTypedData(Dart_True()));
+  EXPECT_EQ(Dart_TypedData_kInvalid,
+            Dart_GetTypeOfExternalTypedData(Dart_False()));
+  Dart_Handle byte_array1 = Dart_NewTypedData(Dart_TypedData_kUint8, 10);
   EXPECT_VALID(byte_array1);
-  EXPECT_EQ(kUint8, Dart_GetTypeOfTypedData(byte_array1));
-  EXPECT_EQ(kInvalid, Dart_GetTypeOfExternalTypedData(byte_array1));
+  EXPECT_EQ(Dart_TypedData_kUint8,
+            Dart_GetTypeOfTypedData(byte_array1));
+  EXPECT_EQ(Dart_TypedData_kInvalid,
+            Dart_GetTypeOfExternalTypedData(byte_array1));
   EXPECT(Dart_IsList(byte_array1));
 
   intptr_t length = 0;
@@ -832,7 +836,7 @@ TEST_CASE(TypedDataAccess) {
     EXPECT_EQ(i + 1, int64_t_value);
   }
 
-  Dart_Handle byte_array2 = Dart_NewTypedData(kUint8, 10);
+  Dart_Handle byte_array2 = Dart_NewTypedData(Dart_TypedData_kUint8, 10);
   bool is_equal = false;
   Dart_ObjectEquals(byte_array1, byte_array2, &is_equal);
   EXPECT(!is_equal);
@@ -872,9 +876,9 @@ static int kLength = 16;
 
 static void ByteDataNativeFunction(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle byte_data = Dart_NewTypedData(kByteData, kLength);
+  Dart_Handle byte_data = Dart_NewTypedData(Dart_TypedData_kByteData, kLength);
   EXPECT_VALID(byte_data);
-  EXPECT_EQ(kByteData, Dart_GetTypeOfTypedData(byte_data));
+  EXPECT_EQ(Dart_TypedData_kByteData, Dart_GetTypeOfTypedData(byte_data));
   Dart_SetReturnValue(args, byte_data);
   Dart_ExitScope();
 }
@@ -929,11 +933,11 @@ static int8_t data[kExtLength] = { 0x41, 0x42, 0x41, 0x42,
 
 static void ExternalByteDataNativeFunction(Dart_NativeArguments args) {
   Dart_EnterScope();
-  Dart_Handle external_byte_data = Dart_NewExternalTypedData(kByteData,
-                                                             data,
-                                                             16);
+  Dart_Handle external_byte_data = Dart_NewExternalTypedData(
+      Dart_TypedData_kByteData, data, 16);
   EXPECT_VALID(external_byte_data);
-  EXPECT_EQ(kByteData, Dart_GetTypeOfTypedData(external_byte_data));
+  EXPECT_EQ(Dart_TypedData_kByteData,
+            Dart_GetTypeOfTypedData(external_byte_data));
   Dart_SetReturnValue(args, external_byte_data);
   Dart_ExitScope();
 }
@@ -994,7 +998,7 @@ TEST_CASE(ExternalByteDataAccess) {
 
 TEST_CASE(TypedDataDirectAccess) {
   Dart_Handle str = Dart_NewStringFromCString("junk");
-  Dart_Handle byte_array = Dart_NewTypedData(kUint8, 10);
+  Dart_Handle byte_array = Dart_NewTypedData(Dart_TypedData_kUint8, 10);
   EXPECT_VALID(byte_array);
   Dart_Handle result;
   result = Dart_TypedDataAcquireData(byte_array, NULL, NULL, NULL);
@@ -1098,16 +1102,16 @@ TEST_CASE(TypedDataDirectAccess1) {
   Dart_Handle list_access_test_obj;
   list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(list_access_test_obj);
-  TestDirectAccess(lib, list_access_test_obj, kInt8);
+  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kInt8);
 
   // Test with an external typed data object.
   uint8_t data[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   intptr_t data_length = ARRAY_SIZE(data);
   Dart_Handle ext_list_access_test_obj;
-  ext_list_access_test_obj = Dart_NewExternalTypedData(kUint8,
+  ext_list_access_test_obj = Dart_NewExternalTypedData(Dart_TypedData_kUint8,
                                                        data, data_length);
   EXPECT_VALID(ext_list_access_test_obj);
-  TestDirectAccess(lib, ext_list_access_test_obj, kUint8);
+  TestDirectAccess(lib, ext_list_access_test_obj, Dart_TypedData_kUint8);
 }
 
 
@@ -1146,7 +1150,7 @@ TEST_CASE(TypedDataViewDirectAccess) {
   Dart_Handle list_access_test_obj;
   list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(list_access_test_obj);
-  TestDirectAccess(lib, list_access_test_obj, kInt8);
+  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kInt8);
 }
 
 
@@ -1185,7 +1189,7 @@ TEST_CASE(ByteDataDirectAccess) {
   Dart_Handle list_access_test_obj;
   list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(list_access_test_obj);
-  TestDirectAccess(lib, list_access_test_obj, kByteData);
+  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kByteData);
 }
 
 
@@ -1250,8 +1254,9 @@ TEST_CASE(ExternalTypedDataAccess) {
   uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
   intptr_t data_length = ARRAY_SIZE(data);
 
-  Dart_Handle obj = Dart_NewExternalTypedData(kUint8, data, data_length);
-  ExternalTypedDataAccessTests(obj, kUint8, data, data_length);
+  Dart_Handle obj = Dart_NewExternalTypedData(
+      Dart_TypedData_kUint8, data, data_length);
+  ExternalTypedDataAccessTests(obj, Dart_TypedData_kUint8, data, data_length);
 }
 
 
@@ -1259,8 +1264,10 @@ TEST_CASE(ExternalClampedTypedDataAccess) {
   uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
   intptr_t data_length = ARRAY_SIZE(data);
 
-  Dart_Handle obj = Dart_NewExternalTypedData(kUint8Clamped, data, data_length);
-  ExternalTypedDataAccessTests(obj, kUint8Clamped, data, data_length);
+  Dart_Handle obj = Dart_NewExternalTypedData(
+      Dart_TypedData_kUint8Clamped, data, data_length);
+  ExternalTypedDataAccessTests(obj, Dart_TypedData_kUint8Clamped,
+                               data, data_length);
 }
 
 
@@ -1279,7 +1286,7 @@ TEST_CASE(ExternalUint8ClampedArrayAccess) {
 
   uint8_t data[] = { 0, 11, 22, 33, 44, 55, 66, 77 };
   intptr_t data_length = ARRAY_SIZE(data);
-  Dart_Handle obj = Dart_NewExternalTypedData(kUint8Clamped,
+  Dart_Handle obj = Dart_NewExternalTypedData(Dart_TypedData_kUint8Clamped,
                                               data, data_length);
   EXPECT_VALID(obj);
   Dart_Handle result;
@@ -1312,7 +1319,7 @@ TEST_CASE(ExternalTypedDataCallback) {
     Dart_EnterScope();
     uint8_t data[] = { 1, 2, 3, 4 };
     Dart_Handle obj = Dart_NewExternalTypedData(
-        kUint8,
+        Dart_TypedData_kUint8,
         data,
         ARRAY_SIZE(data));
     Dart_NewWeakPersistentHandle(obj, &peer, ExternalTypedDataFinalizer);
@@ -1332,7 +1339,7 @@ static void CheckFloat32x4Data(Dart_Handle obj) {
   intptr_t len;
   Dart_TypedData_Type type;
   EXPECT_VALID(Dart_TypedDataAcquireData(obj, &type, &raw_data, &len));
-  EXPECT_EQ(kFloat32x4, type);
+  EXPECT_EQ(Dart_TypedData_kFloat32x4, type);
   EXPECT_EQ(len, 10);
   float* float_data = reinterpret_cast<float*>(raw_data);
   for (int i = 0; i < len * 4; i++) {
@@ -1355,7 +1362,7 @@ TEST_CASE(Float32x4List) {
   EXPECT_VALID(obj);
   CheckFloat32x4Data(obj);
 
-  obj = Dart_NewTypedData(kFloat32x4, 10);
+  obj = Dart_NewTypedData(Dart_TypedData_kFloat32x4, 10);
   EXPECT_VALID(obj);
   CheckFloat32x4Data(obj);
 
@@ -1368,7 +1375,8 @@ TEST_CASE(Float32x4List) {
   // Dart_NewExternalTypedData.
   Dart_EnterScope();
   {
-    Dart_Handle lcl = Dart_NewExternalTypedData(kFloat32x4, data, 10);
+    Dart_Handle lcl = Dart_NewExternalTypedData(
+        Dart_TypedData_kFloat32x4, data, 10);
     Dart_NewWeakPersistentHandle(lcl, &peer, ExternalTypedDataFinalizer);
     CheckFloat32x4Data(lcl);
   }
@@ -5268,7 +5276,7 @@ TEST_CASE(InstanceOf) {
 static Dart_Handle library_handler(Dart_LibraryTag tag,
                                    Dart_Handle library,
                                    Dart_Handle url) {
-  if (tag == kCanonicalizeUrl) {
+  if (tag == Dart_kCanonicalizeUrl) {
     return url;
   }
   return Api::Success();
@@ -5368,7 +5376,7 @@ static int index = 0;
 static Dart_Handle import_library_handler(Dart_LibraryTag tag,
                                           Dart_Handle library,
                                           Dart_Handle url) {
-  if (tag == kCanonicalizeUrl) {
+  if (tag == Dart_kCanonicalizeUrl) {
     return url;
   }
   EXPECT(Dart_IsString(url));
@@ -6427,12 +6435,12 @@ void NewNativePort_send123(Dart_Port dest_port_id,
                            Dart_CObject *message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
-  EXPECT_EQ(Dart_CObject::kNull, message->type);
+  EXPECT_EQ(Dart_CObject_kNull, message->type);
 
   // Post integer value.
   Dart_CObject* response =
       reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(sizeof(Dart_CObject)));
-  response->type = Dart_CObject::kInt32;
+  response->type = Dart_CObject_kInt32;
   response->value.as_int32 = 123;
   Dart_PostCObject(reply_port_id, response);
 }
@@ -6443,12 +6451,12 @@ void NewNativePort_send321(Dart_Port dest_port_id,
                            Dart_CObject* message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
-  EXPECT_EQ(Dart_CObject::kNull, message->type);
+  EXPECT_EQ(Dart_CObject_kNull, message->type);
 
   // Post integer value.
   Dart_CObject* response =
       reinterpret_cast<Dart_CObject*>(Dart_ScopeAllocate(sizeof(Dart_CObject)));
-  response->type = Dart_CObject::kInt32;
+  response->type = Dart_CObject_kInt32;
   response->value.as_int32 = 321;
   Dart_PostCObject(reply_port_id, response);
 }

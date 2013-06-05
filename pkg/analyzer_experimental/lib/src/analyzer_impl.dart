@@ -17,10 +17,12 @@ import 'generated/ast.dart';
 import 'generated/element.dart';
 import '../options.dart';
 
+
+DartSdk sdk;
+
 /// Analyzes single library [File].
 class AnalyzerImpl {
   final CommandLineOptions options;
-  DartSdk sdk;
 
   ContentCache contentCache = new ContentCache();
   SourceFactory sourceFactory;
@@ -33,7 +35,9 @@ class AnalyzerImpl {
   final List<AnalysisErrorInfo> errorInfos = new List<AnalysisErrorInfo>();
 
   AnalyzerImpl(CommandLineOptions this.options) {
-    sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+    if (sdk == null) {
+      sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+    }
   }
 
   /**
