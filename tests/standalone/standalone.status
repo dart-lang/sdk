@@ -117,6 +117,7 @@ pow_test: Skip # Precision > 53 bits.
 io/test_runner_test: Fail # Library dart:uri removed.
 io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
 http_launch_test: Skip
+53bit_overflow_test: Skip
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
