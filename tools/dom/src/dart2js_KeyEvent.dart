@@ -42,7 +42,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   int get _realCharCode => JS('int', '#.charCode', _parent);
 
   /** Accessor to the underlying altKey value is the parent event. */
-  bool get _realAltKey => JS('int', '#.altKey', _parent);
+  bool get _realAltKey => JS('bool', '#.altKey', _parent);
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
   KeyEvent(KeyboardEvent parent): super(parent) {
