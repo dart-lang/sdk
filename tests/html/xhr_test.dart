@@ -193,7 +193,7 @@ main() {
 
         // 10MB of payload data w/ a bit of data to make sure it
         // doesn't get compressed to nil.
-        var data = new Uint8List(10 * 1024 * 1024);
+        var data = new Uint8List(1 * 1024 * 1024);
         for (var i = 0; i < data.length; ++i) {
           data[i] = i & 0xFF;
         }
