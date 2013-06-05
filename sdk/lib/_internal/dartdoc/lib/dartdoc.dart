@@ -126,40 +126,17 @@ Future copyDirectory(Path from, Path to) {
 Future compileScript(int mode, Path outputDir, Path libPath) {
   print('Compiling client JavaScript...');
 
-  // TODO(nweiz): don't run this in an isolate when issue 9815 is fixed.
-  return spawnFunction(_compileScript).call({
-    'mode': mode,
-    'outputDir': outputDir.toNativePath(),
-    'libPath': libPath.toNativePath()
-  }).then((result) {
-    if (result.first == 'success') return;
-    throw result[1] + (result[2] == null ? '' : '\n' + result[2]);
-  });
-}
+  var clientScript = (mode == MODE_STATIC) ?  'static' : 'live-nav';
+  var dartPath = pathos.join(libPath.toNativePath(), 'lib', '_internal',
+      'dartdoc', 'lib', 'src', 'client', 'client-$clientScript.dart');
+  var jsPath = pathos.join(outputDir.toNativePath(), 'client-$clientScript.js');
 
-void _compileScript() {
-  port.receive((message, replyTo) {
-    new Future.sync(() {
-      var clientScript = (message['mode'] == MODE_STATIC) ?
-          'static' : 'live-nav';
-      var dartPath = pathos.join(message['libPath'], 'lib', '_internal',
-          'dartdoc', 'lib', 'src', 'client', 'client-$clientScript.dart');
-      var jsPath = pathos.join(message['outputDir'], 'client-$clientScript.js');
-
-      return dart2js.compile(
-          new Path(dartPath), new Path(message['libPath']),
-          options: const <String>['--categories=Client,Server', '--minify'])
-      .then((jsCode) {
-        writeString(new File(jsPath), jsCode);
-      });
-    }).then((_) {
-      replyTo.send(['success']);
-    }).catchError((error) {
-      var trace = getAttachedStackTrace(error);
-      var traceString = trace == null ? null : trace.toString();
-      replyTo.send(['error', error.toString(), traceString]);
-    });
-  });
+  dart2js.compile(
+      new Path(dartPath), libPath,
+      options: const <String>['--categories=Client,Server', '--minify'])
+    .then((jsCode) {
+      writeString(new File(jsPath), jsCode);
+    });                                  
 }
 
 /**
