@@ -241,17 +241,17 @@ abstract class DartSdk {
   /**
    * The short name of the dart SDK core library.
    */
-  static String DART_CORE = "dart:core";
+  static final String DART_CORE = "dart:core";
 
   /**
    * The short name of the dart SDK html library.
    */
-  static String DART_HTML = "dart:html";
+  static final String DART_HTML = "dart:html";
 
   /**
    * The version number that is returned when the real version number could not be determined.
    */
-  static String DEFAULT_VERSION = "0";
+  static final String DEFAULT_VERSION = "0";
 
   /**
    * Return the source representing the file with the given URI.

@@ -6689,6 +6689,22 @@ class ElementResolverTest extends EngineTestCase {
     _typeProvider = new TestTypeProvider();
     _resolver = createResolver();
   }
+  void test_lookUpMethodInInterfaces() {
+    InterfaceType intType2 = _typeProvider.intType;
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    MethodElement operator = ElementFactory.methodElement("[]", intType2, [intType2]);
+    classA.methods = <MethodElement> [operator];
+    ClassElementImpl classB = ElementFactory.classElement2("B", []);
+    classB.interfaces = <InterfaceType> [classA.type];
+    ClassElementImpl classC = ElementFactory.classElement2("C", []);
+    classC.mixins = <InterfaceType> [classB.type];
+    ClassElementImpl classD = ElementFactory.classElement("D", classC.type, []);
+    SimpleIdentifier array = ASTFactory.identifier3("a");
+    array.staticType = classD.type;
+    IndexExpression expression = ASTFactory.indexExpression(array, ASTFactory.identifier3("i"));
+    JUnitTestCase.assertSame(operator, resolve5(expression, []));
+    _listener.assertNoErrors();
+  }
   void test_visitAssignmentExpression_compound() {
     InterfaceType intType2 = _typeProvider.intType;
     SimpleIdentifier leftHandSide = ASTFactory.identifier3("a");
@@ -7172,6 +7188,10 @@ class ElementResolverTest extends EngineTestCase {
   }
   static dartSuite() {
     _ut.group('ElementResolverTest', () {
+      _ut.test('test_lookUpMethodInInterfaces', () {
+        final __test = new ElementResolverTest();
+        runJUnitTest(__test, __test.test_lookUpMethodInInterfaces);
+      });
       _ut.test('test_visitAssignmentExpression_compound', () {
         final __test = new ElementResolverTest();
         runJUnitTest(__test, __test.test_visitAssignmentExpression_compound);
@@ -10741,7 +10761,15 @@ class SimpleResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
-  void test_importWithPrefix() {
+  void test_import_hide() {
+    addSource2("lib1.dart", EngineTestCase.createSource(["library lib1;", "set foo(value) {}"]));
+    addSource2("lib2.dart", EngineTestCase.createSource(["library lib2;", "set foo(value) {}"]));
+    Source source = addSource2("lib3.dart", EngineTestCase.createSource(["import 'lib1.dart' hide foo;", "import 'lib2.dart';", "", "main() {", "  foo = 0;", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
+  void test_import_prefix() {
     addSource2("/two.dart", EngineTestCase.createSource(["library two;", "f(int x) {", "  return x * x;", "}"]));
     Source source = addSource2("/one.dart", EngineTestCase.createSource(["library one;", "import 'two.dart' as _two;", "main() {", "  _two.f(0);", "}"]));
     resolve(source);
@@ -10957,7 +10985,7 @@ class SimpleResolverTest extends ResolverTestCase {
     JUnitTestCase.assertEquals(indices.length, argumentCount);
     for (int i = 0; i < argumentCount; i++) {
       Expression argument = arguments2[i];
-      ParameterElement element = argument.parameterElement;
+      ParameterElement element = argument.staticParameterElement;
       int index = indices[i];
       if (index < 0) {
         JUnitTestCase.assertNull(element);
@@ -11056,9 +11084,13 @@ class SimpleResolverTest extends ResolverTestCase {
         final __test = new SimpleResolverTest();
         runJUnitTest(__test, __test.test_hasReferenceToSuper);
       });
-      _ut.test('test_importWithPrefix', () {
+      _ut.test('test_import_hide', () {
         final __test = new SimpleResolverTest();
-        runJUnitTest(__test, __test.test_importWithPrefix);
+        runJUnitTest(__test, __test.test_import_hide);
+      });
+      _ut.test('test_import_prefix', () {
+        final __test = new SimpleResolverTest();
+        runJUnitTest(__test, __test.test_import_prefix);
       });
       _ut.test('test_indexExpression_typeParameters', () {
         final __test = new SimpleResolverTest();

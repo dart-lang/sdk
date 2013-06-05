@@ -3610,7 +3610,7 @@ class Parser {
       double value = 0.0;
       try {
         value = double.parse(token.lexeme);
-      } on NumberFormatException catch (exception) {
+      } on FormatException catch (exception) {
       }
       return new DoubleLiteral.full(token, value);
     } else if (matches5(TokenType.HEXADECIMAL)) {
@@ -3618,7 +3618,7 @@ class Parser {
       int value = null;
       try {
         value = int.parse(token.lexeme.substring(2), radix: 16);
-      } on NumberFormatException catch (exception) {
+      } on FormatException catch (exception) {
       }
       return new IntegerLiteral.full(token, value);
     } else if (matches5(TokenType.INT)) {
@@ -3626,7 +3626,7 @@ class Parser {
       int value = null;
       try {
         value = int.parse(token.lexeme);
-      } on NumberFormatException catch (exception) {
+      } on FormatException catch (exception) {
       }
       return new IntegerLiteral.full(token, value);
     } else if (matches5(TokenType.STRING)) {

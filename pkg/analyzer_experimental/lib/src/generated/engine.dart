@@ -711,62 +711,62 @@ abstract class DartEntry implements SourceEntry {
    * The data descriptor representing the library element for the library. This data is only
    * available for Dart files that are the defining compilation unit of a library.
    */
-  static DataDescriptor<LibraryElement> ELEMENT = new DataDescriptor<LibraryElement>("DartEntry.ELEMENT");
+  static final DataDescriptor<LibraryElement> ELEMENT = new DataDescriptor<LibraryElement>("DartEntry.ELEMENT");
 
   /**
    * The data descriptor representing the list of referenced libraries. This data is only available
    * for Dart files that are the defining compilation unit of a library.
    */
-  static DataDescriptor<List<Source>> REFERENCED_LIBRARIES = new DataDescriptor<List<Source>>("DartEntry.REFERENCED_LIBRARIES");
+  static final DataDescriptor<List<Source>> REFERENCED_LIBRARIES = new DataDescriptor<List<Source>>("DartEntry.REFERENCED_LIBRARIES");
 
   /**
    * The data descriptor representing the list of included parts. This data is only available for
    * Dart files that are the defining compilation unit of a library.
    */
-  static DataDescriptor<List<Source>> INCLUDED_PARTS = new DataDescriptor<List<Source>>("DartEntry.INCLUDED_PARTS");
+  static final DataDescriptor<List<Source>> INCLUDED_PARTS = new DataDescriptor<List<Source>>("DartEntry.INCLUDED_PARTS");
 
   /**
    * The data descriptor representing the client flag. This data is only available for Dart files
    * that are the defining compilation unit of a library.
    */
-  static DataDescriptor<bool> IS_CLIENT = new DataDescriptor<bool>("DartEntry.IS_CLIENT");
+  static final DataDescriptor<bool> IS_CLIENT = new DataDescriptor<bool>("DartEntry.IS_CLIENT");
 
   /**
    * The data descriptor representing the launchable flag. This data is only available for Dart
    * files that are the defining compilation unit of a library.
    */
-  static DataDescriptor<bool> IS_LAUNCHABLE = new DataDescriptor<bool>("DartEntry.IS_LAUNCHABLE");
+  static final DataDescriptor<bool> IS_LAUNCHABLE = new DataDescriptor<bool>("DartEntry.IS_LAUNCHABLE");
 
   /**
    * The data descriptor representing the errors resulting from parsing the source.
    */
-  static DataDescriptor<List<AnalysisError>> PARSE_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.PARSE_ERRORS");
+  static final DataDescriptor<List<AnalysisError>> PARSE_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.PARSE_ERRORS");
 
   /**
    * The data descriptor representing the parsed AST structure.
    */
-  static DataDescriptor<CompilationUnit> PARSED_UNIT = new DataDescriptor<CompilationUnit>("DartEntry.PARSED_UNIT");
+  static final DataDescriptor<CompilationUnit> PARSED_UNIT = new DataDescriptor<CompilationUnit>("DartEntry.PARSED_UNIT");
 
   /**
    * The data descriptor representing the public namespace of the library. This data is only
    * available for Dart files that are the defining compilation unit of a library.
    */
-  static DataDescriptor<Namespace> PUBLIC_NAMESPACE = new DataDescriptor<Namespace>("DartEntry.PUBLIC_NAMESPACE");
+  static final DataDescriptor<Namespace> PUBLIC_NAMESPACE = new DataDescriptor<Namespace>("DartEntry.PUBLIC_NAMESPACE");
 
   /**
    * The data descriptor representing the errors resulting from resolving the source.
    */
-  static DataDescriptor<List<AnalysisError>> RESOLUTION_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.RESOLUTION_ERRORS");
+  static final DataDescriptor<List<AnalysisError>> RESOLUTION_ERRORS = new DataDescriptor<List<AnalysisError>>("DartEntry.RESOLUTION_ERRORS");
 
   /**
    * The data descriptor representing the resolved AST structure.
    */
-  static DataDescriptor<CompilationUnit> RESOLVED_UNIT = new DataDescriptor<CompilationUnit>("DartEntry.RESOLVED_UNIT");
+  static final DataDescriptor<CompilationUnit> RESOLVED_UNIT = new DataDescriptor<CompilationUnit>("DartEntry.RESOLVED_UNIT");
 
   /**
    * The data descriptor representing the source kind.
    */
-  static DataDescriptor<SourceKind> SOURCE_KIND = new DataDescriptor<SourceKind>("DartEntry.SOURCE_KIND");
+  static final DataDescriptor<SourceKind> SOURCE_KIND = new DataDescriptor<SourceKind>("DartEntry.SOURCE_KIND");
 
   /**
    * Return all of the errors associated with the compilation unit that are currently cached.
@@ -1472,27 +1472,27 @@ abstract class HtmlEntry implements SourceEntry {
   /**
    * The data descriptor representing the HTML element.
    */
-  static DataDescriptor<HtmlElement> ELEMENT = new DataDescriptor<HtmlElement>("HtmlEntry.ELEMENT");
+  static final DataDescriptor<HtmlElement> ELEMENT = new DataDescriptor<HtmlElement>("HtmlEntry.ELEMENT");
 
   /**
    * The data descriptor representing the parsed AST structure.
    */
-  static DataDescriptor<HtmlUnit> PARSED_UNIT = new DataDescriptor<HtmlUnit>("HtmlEntry.PARSED_UNIT");
+  static final DataDescriptor<HtmlUnit> PARSED_UNIT = new DataDescriptor<HtmlUnit>("HtmlEntry.PARSED_UNIT");
 
   /**
    * The data descriptor representing the list of referenced libraries.
    */
-  static DataDescriptor<List<Source>> REFERENCED_LIBRARIES = new DataDescriptor<List<Source>>("HtmlEntry.REFERENCED_LIBRARIES");
+  static final DataDescriptor<List<Source>> REFERENCED_LIBRARIES = new DataDescriptor<List<Source>>("HtmlEntry.REFERENCED_LIBRARIES");
 
   /**
    * The data descriptor representing the errors resulting from resolving the source.
    */
-  static DataDescriptor<List<AnalysisError>> RESOLUTION_ERRORS = new DataDescriptor<List<AnalysisError>>("HtmlEntry.RESOLUTION_ERRORS");
+  static final DataDescriptor<List<AnalysisError>> RESOLUTION_ERRORS = new DataDescriptor<List<AnalysisError>>("HtmlEntry.RESOLUTION_ERRORS");
 
   /**
    * The data descriptor representing the resolved AST structure.
    */
-  static DataDescriptor<HtmlUnit> RESOLVED_UNIT = new DataDescriptor<HtmlUnit>("HtmlEntry.RESOLVED_UNIT");
+  static final DataDescriptor<HtmlUnit> RESOLVED_UNIT = new DataDescriptor<HtmlUnit>("HtmlEntry.RESOLVED_UNIT");
 
   /**
    * Return all of the errors associated with the compilation unit that are currently cached.
@@ -1670,7 +1670,7 @@ abstract class SourceEntry {
   /**
    * The data descriptor representing the line information.
    */
-  static DataDescriptor<LineInfo> LINE_INFO = new DataDescriptor<LineInfo>("SourceEntry.LINE_INFO");
+  static final DataDescriptor<LineInfo> LINE_INFO = new DataDescriptor<LineInfo>("SourceEntry.LINE_INFO");
 
   /**
    * Return the kind of the source, or {@code null} if the kind is not currently cached.
@@ -4403,7 +4403,7 @@ class ResolutionEraser extends GeneralizingASTVisitor<Object> {
  * @coverage dart.engine.utilities
  */
 abstract class Logger {
-  static Logger NULL = new Logger_NullLogger();
+  static final Logger NULL = new Logger_NullLogger();
 
   /**
    * Log the given message as an error.

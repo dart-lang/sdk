@@ -264,7 +264,7 @@ abstract class Source {
   /**
    * An empty array of sources.
    */
-  static List<Source> EMPTY_ARRAY = new List<Source>(0);
+  static final List<Source> EMPTY_ARRAY = new List<Source>(0);
 
   /**
    * Return {@code true} if the given object is a source that represents the same source code as

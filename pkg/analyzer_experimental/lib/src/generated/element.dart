@@ -361,7 +361,7 @@ abstract class Element {
    * A comparator that can be used to sort elements by their name offset. Elements with a smaller
    * offset will be sorted to be before elements with a larger name offset.
    */
-  static Comparator<Element> SORT_BY_OFFSET = (Element firstElement, Element secondElement) => firstElement.nameOffset - secondElement.nameOffset;
+  static final Comparator<Element> SORT_BY_OFFSET = (Element firstElement, Element secondElement) => firstElement.nameOffset - secondElement.nameOffset;
 
   /**
    * Use the given visitor to visit this element.
@@ -673,7 +673,7 @@ abstract class ExportElement implements Element, UriReferencedElement {
   /**
    * An empty array of export elements.
    */
-  static List<ExportElement> EMPTY_ARRAY = new List<ExportElement>(0);
+  static final List<ExportElement> EMPTY_ARRAY = new List<ExportElement>(0);
 
   /**
    * Return an array containing the combinators that were specified as part of the export directive
@@ -813,7 +813,7 @@ abstract class ImportElement implements Element, UriReferencedElement {
   /**
    * An empty array of import elements.
    */
-  static List<ImportElement> EMPTY_ARRAY = new List<ImportElement>(0);
+  static final List<ImportElement> EMPTY_ARRAY = new List<ImportElement>(0);
 
   /**
    * Return an array containing the combinators that were specified as part of the import directive
@@ -1014,7 +1014,7 @@ abstract class NamespaceCombinator {
   /**
    * An empty array of namespace combinators.
    */
-  static List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>(0);
+  static final List<NamespaceCombinator> EMPTY_ARRAY = new List<NamespaceCombinator>(0);
 }
 /**
  * The interface {@code ParameterElement} defines the behavior of elements representing a parameter

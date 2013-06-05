@@ -1943,7 +1943,11 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     ConstructorElement invokedConstructor = node.constructorName.element;
     node.staticElement = invokedConstructor;
     node.element = invokedConstructor;
-    resolveArgumentsToParameters(node.isConst(), node.argumentList, invokedConstructor);
+    ArgumentList argumentList2 = node.argumentList;
+    List<ParameterElement> parameters = resolveArgumentsToParameters(node.isConst(), argumentList2, invokedConstructor);
+    if (parameters != null) {
+      argumentList2.correspondingStaticParameters = parameters;
+    }
     return null;
   }
   Object visitLibraryDirective(LibraryDirective node) {
@@ -1972,38 +1976,18 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     }
     staticElement = convertSetterToGetter(staticElement);
     propagatedElement = convertSetterToGetter(propagatedElement);
-    Element recordedElement = recordResolution2(methodName2, staticElement, propagatedElement);
-    if (recordedElement is PropertyAccessorElement) {
-      FunctionType getterType = ((recordedElement as PropertyAccessorElement)).type;
-      if (getterType != null) {
-        Type2 getterReturnType = getterType.returnType;
-        if (getterReturnType is InterfaceType) {
-          MethodElement callMethod = ((getterReturnType as InterfaceType)).lookUpMethod(CALL_METHOD_NAME, _resolver.definingLibrary);
-          if (callMethod != null) {
-            resolveArgumentsToParameters(false, node.argumentList, callMethod);
-          }
-        } else if (getterReturnType is FunctionType) {
-          Element functionElement = ((getterReturnType as FunctionType)).element;
-          if (functionElement is ExecutableElement) {
-            resolveArgumentsToParameters(false, node.argumentList, (functionElement as ExecutableElement));
-          }
-        }
+    recordResolution2(methodName2, staticElement, propagatedElement);
+    ArgumentList argumentList2 = node.argumentList;
+    if (staticElement != null) {
+      List<ParameterElement> parameters = computePropagatedParameters(argumentList2, staticElement);
+      if (parameters != null) {
+        argumentList2.correspondingStaticParameters = parameters;
       }
-    } else if (recordedElement is ExecutableElement) {
-      resolveArgumentsToParameters(false, node.argumentList, (recordedElement as ExecutableElement));
-    } else if (recordedElement is VariableElement) {
-      VariableElement variable = recordedElement as VariableElement;
-      Type2 type2 = variable.type;
-      if (type2 is FunctionType) {
-        FunctionType functionType = type2 as FunctionType;
-        List<ParameterElement> parameters2 = functionType.parameters;
-        resolveArgumentsToParameters2(false, node.argumentList, parameters2);
-      } else if (type2 is InterfaceType) {
-        MethodElement callMethod = ((type2 as InterfaceType)).lookUpMethod(CALL_METHOD_NAME, _resolver.definingLibrary);
-        if (callMethod != null) {
-          List<ParameterElement> parameters3 = callMethod.parameters;
-          resolveArgumentsToParameters2(false, node.argumentList, parameters3);
-        }
+    }
+    if (propagatedElement != null) {
+      List<ParameterElement> parameters = computePropagatedParameters(argumentList2, propagatedElement);
+      if (parameters != null) {
+        argumentList2.correspondingParameters = parameters;
       }
     }
     ErrorCode errorCode;
@@ -2140,7 +2124,11 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     }
     node.staticElement = element;
     node.element = element;
-    resolveArgumentsToParameters(false, node.argumentList, element);
+    ArgumentList argumentList2 = node.argumentList;
+    List<ParameterElement> parameters = resolveArgumentsToParameters(false, argumentList2, element);
+    if (parameters != null) {
+      argumentList2.correspondingStaticParameters = parameters;
+    }
     return null;
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
@@ -2193,7 +2181,11 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     }
     node.staticElement = element;
     node.element = element;
-    resolveArgumentsToParameters(false, node.argumentList, element);
+    ArgumentList argumentList2 = node.argumentList;
+    List<ParameterElement> parameters = resolveArgumentsToParameters(false, argumentList2, element);
+    if (parameters != null) {
+      argumentList2.correspondingStaticParameters = parameters;
+    }
     return null;
   }
   Object visitSuperExpression(SuperExpression node) {
@@ -2322,6 +2314,51 @@ class ElementResolver extends SimpleASTVisitor<Object> {
       return classDeclaresNoSuchMethod((element as ClassElement));
     }
     return false;
+  }
+
+  /**
+   * Given a list of arguments and the element that will be invoked using those argument, compute
+   * the list of parameters that correspond to the list of arguments. Return the parameters that
+   * correspond to the arguments, or {@code null} if no correspondence could be computed.
+   * @param argumentList the list of arguments being passed to the element
+   * @param executableElement the element that will be invoked with the arguments
+   * @return the parameters that correspond to the arguments
+   */
+  List<ParameterElement> computePropagatedParameters(ArgumentList argumentList, Element element2) {
+    if (element2 is PropertyAccessorElement) {
+      FunctionType getterType = ((element2 as PropertyAccessorElement)).type;
+      if (getterType != null) {
+        Type2 getterReturnType = getterType.returnType;
+        if (getterReturnType is InterfaceType) {
+          MethodElement callMethod = ((getterReturnType as InterfaceType)).lookUpMethod(CALL_METHOD_NAME, _resolver.definingLibrary);
+          if (callMethod != null) {
+            return resolveArgumentsToParameters(false, argumentList, callMethod);
+          }
+        } else if (getterReturnType is FunctionType) {
+          Element functionElement = ((getterReturnType as FunctionType)).element;
+          if (functionElement is ExecutableElement) {
+            return resolveArgumentsToParameters(false, argumentList, (functionElement as ExecutableElement));
+          }
+        }
+      }
+    } else if (element2 is ExecutableElement) {
+      return resolveArgumentsToParameters(false, argumentList, (element2 as ExecutableElement));
+    } else if (element2 is VariableElement) {
+      VariableElement variable = element2 as VariableElement;
+      Type2 type2 = variable.type;
+      if (type2 is FunctionType) {
+        FunctionType functionType = type2 as FunctionType;
+        List<ParameterElement> parameters2 = functionType.parameters;
+        return resolveArgumentsToParameters2(false, argumentList, parameters2);
+      } else if (type2 is InterfaceType) {
+        MethodElement callMethod = ((type2 as InterfaceType)).lookUpMethod(CALL_METHOD_NAME, _resolver.definingLibrary);
+        if (callMethod != null) {
+          List<ParameterElement> parameters3 = callMethod.parameters;
+          return resolveArgumentsToParameters2(false, argumentList, parameters3);
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -2546,6 +2583,12 @@ class ElementResolver extends SimpleASTVisitor<Object> {
         return getter;
       }
     }
+    for (InterfaceType mixinType in targetType.mixins) {
+      PropertyAccessorElement getter = lookUpGetterInInterfaces(mixinType, true, getterName, visitedInterfaces);
+      if (getter != null) {
+        return getter;
+      }
+    }
     InterfaceType superclass2 = targetType.superclass;
     if (superclass2 == null) {
       return null;
@@ -2607,6 +2650,12 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     }
     for (InterfaceType interfaceType in targetType.interfaces) {
       ExecutableElement member = lookUpGetterOrMethodInInterfaces(interfaceType, true, memberName, visitedInterfaces);
+      if (member != null) {
+        return member;
+      }
+    }
+    for (InterfaceType mixinType in targetType.mixins) {
+      ExecutableElement member = lookUpGetterOrMethodInInterfaces(mixinType, true, memberName, visitedInterfaces);
       if (member != null) {
         return member;
       }
@@ -2711,6 +2760,12 @@ class ElementResolver extends SimpleASTVisitor<Object> {
         return method;
       }
     }
+    for (InterfaceType mixinType in targetType.mixins) {
+      MethodElement method = lookUpMethodInInterfaces(mixinType, true, methodName, visitedInterfaces);
+      if (method != null) {
+        return method;
+      }
+    }
     InterfaceType superclass2 = targetType.superclass;
     if (superclass2 == null) {
       return null;
@@ -2768,6 +2823,12 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     }
     for (InterfaceType interfaceType in targetType.interfaces) {
       PropertyAccessorElement setter = lookUpSetterInInterfaces(interfaceType, true, setterName, visitedInterfaces);
+      if (setter != null) {
+        return setter;
+      }
+    }
+    for (InterfaceType mixinType in targetType.mixins) {
+      PropertyAccessorElement setter = lookUpSetterInInterfaces(mixinType, true, setterName, visitedInterfaces);
       if (setter != null) {
         return setter;
       }
@@ -2834,36 +2895,38 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * information
    * @return the element that was associated with the node
    */
-  Element recordResolution2(SimpleIdentifier node, Element staticElement2, Element propagatedElement) {
+  void recordResolution2(SimpleIdentifier node, Element staticElement2, Element propagatedElement) {
     node.staticElement = staticElement2;
-    Element element = propagatedElement == null ? staticElement2 : propagatedElement;
-    node.element = element;
-    return element;
+    node.element = propagatedElement == null ? staticElement2 : propagatedElement;
   }
 
   /**
    * Given a list of arguments and the element that will be invoked using those argument, compute
-   * the list of parameters that correspond to the list of arguments.
+   * the list of parameters that correspond to the list of arguments. Return the parameters that
+   * correspond to the arguments, or {@code null} if no correspondence could be computed.
    * @param reportError if {@code true} then compile-time error should be reported; if {@code false}then compile-time warning
    * @param argumentList the list of arguments being passed to the element
    * @param executableElement the element that will be invoked with the arguments
+   * @return the parameters that correspond to the arguments
    */
-  void resolveArgumentsToParameters(bool reportError, ArgumentList argumentList, ExecutableElement executableElement) {
+  List<ParameterElement> resolveArgumentsToParameters(bool reportError, ArgumentList argumentList, ExecutableElement executableElement) {
     if (executableElement == null) {
-      return;
+      return null;
     }
     List<ParameterElement> parameters2 = executableElement.parameters;
-    resolveArgumentsToParameters2(reportError, argumentList, parameters2);
+    return resolveArgumentsToParameters2(reportError, argumentList, parameters2);
   }
 
   /**
-   * Given a list of arguments and the element that will be invoked using those argument, compute
-   * the list of parameters that correspond to the list of arguments.
+   * Given a list of arguments and the parameters related to the element that will be invoked using
+   * those argument, compute the list of parameters that correspond to the list of arguments. Return
+   * the parameters that correspond to the arguments.
    * @param reportError if {@code true} then compile-time error should be reported; if {@code false}then compile-time warning
    * @param argumentList the list of arguments being passed to the element
    * @param parameters the of the function that will be invoked with the arguments
+   * @return the parameters that correspond to the arguments
    */
-  void resolveArgumentsToParameters2(bool reportError2, ArgumentList argumentList, List<ParameterElement> parameters) {
+  List<ParameterElement> resolveArgumentsToParameters2(bool reportError2, ArgumentList argumentList, List<ParameterElement> parameters) {
     List<ParameterElement> requiredParameters = new List<ParameterElement>();
     List<ParameterElement> positionalParameters = new List<ParameterElement>();
     Map<String, ParameterElement> namedParameters = new Map<String, ParameterElement>();
@@ -2916,7 +2979,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
       ErrorCode errorCode = reportError2 ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS;
       _resolver.reportError(errorCode, argumentList, [unnamedParameterCount, positionalArgumentCount]);
     }
-    argumentList.correspondingParameters = resolvedParameters;
+    return resolvedParameters;
   }
 
   /**
@@ -3032,7 +3095,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     if (shouldReportMissingMember(staticType, staticElement) && (_strictMode || propagatedType == null || shouldReportMissingMember(propagatedType, propagatedElement))) {
       bool staticNoSuchMethod = staticType != null && classDeclaresNoSuchMethod2(staticType.element);
       bool propagatedNoSuchMethod = propagatedType != null && classDeclaresNoSuchMethod2(propagatedType.element);
-      if (!staticNoSuchMethod && !propagatedNoSuchMethod) {
+      if (!staticNoSuchMethod && (_strictMode || !propagatedNoSuchMethod)) {
         bool isStaticProperty = isStatic(selectedElement);
         if (propertyName.inSetterContext()) {
           if (isStaticProperty) {
@@ -8989,6 +9052,7 @@ class NamespaceBuilder {
   void hide(Map<String, Element> definedNames, List<String> hiddenNames) {
     for (String name in hiddenNames) {
       definedNames.remove(name);
+      definedNames.remove("${name}=");
     }
   }
 
@@ -9004,6 +9068,11 @@ class NamespaceBuilder {
       Element element = definedNames[name];
       if (element != null) {
         newNames[name] = element;
+      }
+      String setterName = "${name}=";
+      element = definedNames[setterName];
+      if (element != null) {
+        newNames[setterName] = element;
       }
     }
     return newNames;
@@ -10347,30 +10416,33 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     if (argument == null) {
       return false;
     }
-    ParameterElement parameterElement2 = argument.parameterElement;
-    if (parameterElement2 == null) {
-      return false;
-    }
-    Type2 parameterType = parameterElement2.type;
-    if (parameterType == null) {
-      return false;
-    }
-    Type2 staticType = getStaticType(argument);
-    if (staticType == null) {
-      return false;
-    }
-    if (staticType.isAssignableTo(parameterType)) {
+    ParameterElement staticParameterElement2 = argument.staticParameterElement;
+    Type2 staticParameterType = staticParameterElement2 == null ? null : staticParameterElement2.type;
+    Type2 staticArgumentType = getStaticType(argument);
+    if (staticArgumentType == null || staticParameterType == null) {
       return false;
     }
     if (_strictMode) {
-      _errorReporter.reportError2(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, argument, [staticType.displayName, parameterType.displayName]);
+      if (staticArgumentType.isAssignableTo(staticParameterType)) {
+        return false;
+      }
+      _errorReporter.reportError2(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, argument, [staticArgumentType.displayName, staticParameterType.displayName]);
       return true;
     }
-    Type2 propagatedType = getPropagatedType(argument);
-    if (propagatedType != null && propagatedType.isAssignableTo(parameterType)) {
+    ParameterElement propagatedParameterElement = argument.parameterElement;
+    Type2 propagatedParameterType = propagatedParameterElement == null ? null : propagatedParameterElement.type;
+    Type2 propagatedArgumentType = getPropagatedType(argument);
+    if (propagatedArgumentType == null || propagatedParameterType == null) {
+      if (staticArgumentType.isAssignableTo(staticParameterType)) {
+        return false;
+      }
+      _errorReporter.reportError2(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, argument, [staticArgumentType.displayName, staticParameterType.displayName]);
+      return true;
+    }
+    if (staticArgumentType.isAssignableTo(staticParameterType) || staticArgumentType.isAssignableTo(propagatedParameterType) || propagatedArgumentType.isAssignableTo(staticParameterType) || propagatedArgumentType.isAssignableTo(propagatedParameterType)) {
       return false;
     }
-    _errorReporter.reportError2(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, argument, [(propagatedType == null ? staticType : propagatedType).displayName, parameterType.displayName]);
+    _errorReporter.reportError2(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, argument, [(propagatedArgumentType == null ? staticArgumentType : propagatedArgumentType).displayName, (propagatedParameterType == null ? staticParameterType : propagatedParameterType).displayName]);
     return true;
   }
 
@@ -12429,36 +12501,6 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
     this._errorReporter = errorReporter;
   }
   Object visitImportDirective(ImportDirective directive) {
-//    StringLiteral uriLiteral = directive.uri;
-//    if (uriLiteral == null) {
-//      return null;
-//    }
-//    String uriContent = uriLiteral.stringValue;
-//    if (uriContent == null) {
-//      return null;
-//    }
-//    uriContent = uriContent.trim();
-//    int index = uriContent.indexOf(':');
-//    String scheme;
-//    String path;
-//    if (index > -1) {
-//      scheme = uriContent.substring(0, index);
-//      path = uriContent.substring(index + 1);
-//    } else {
-//      scheme = FileUriResolver.FILE_SCHEME;
-//      path = uriContent;
-//    }
-//    if (scheme == FileUriResolver.FILE_SCHEME) {
-//      if (checkForFileImportOutsideLibReferencesFileInside(directive, path)) {
-//        _errorReporter.reportError2(PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, uriLiteral, []);
-//      } else if (checkForFileImportInsideLibReferencesFileOutside(directive, path)) {
-//        _errorReporter.reportError2(PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, uriLiteral, []);
-//      }
-//    } else if (scheme == PackageUriResolver.PACKAGE_SCHEME) {
-//      if (checkForPackageImportContainsDotDot(path)) {
-//        _errorReporter.reportError2(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral, []);
-//      }
-//    }
     return null;
   }
 
@@ -12521,19 +12563,19 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
    * @return the full name or {@code null} if it could not be determined
    */
   String getSourceFullName(ASTNode node) {
-//    CompilationUnit unit = node.getAncestor(CompilationUnit);
-//    if (unit != null) {
-//      CompilationUnitElement element2 = unit.element;
-//      if (element2 != null) {
-//        Source librarySource = element2.source;
-//        if (librarySource != null) {
-//          String fullName2 = librarySource.fullName;
-//          if (fullName2 != null) {
-//            return fullName2.replaceAll(JavaFile.separatorChar, '/');
-//          }
-//        }
-//      }
-//    }
+    CompilationUnit unit = node.getAncestor(CompilationUnit);
+    if (unit != null) {
+      CompilationUnitElement element2 = unit.element;
+      if (element2 != null) {
+        Source librarySource = element2.source;
+        if (librarySource != null) {
+          String fullName2 = librarySource.fullName;
+          if (fullName2 != null) {
+            return fullName2.replaceAll(r'\', '/');
+          }
+        }
+      }
+    }
     return null;
   }
 }

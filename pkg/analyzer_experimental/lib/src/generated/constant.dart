@@ -1294,15 +1294,15 @@ class ValidResult extends EvaluationResultImpl {
         return valueOf(((leftValue as int)) ~/ (_value as int));
       } else if (_value is double) {
         double result = ((leftValue as int)).toDouble() / ((_value as double));
-        return valueOf((result as int));
+        return valueOf(result.toInt());
       }
     } else if (leftValue is double) {
       if (_value is int) {
         double result = ((leftValue as double)) / ((_value as int)).toDouble();
-        return valueOf((result as int));
+        return valueOf(result.toInt());
       } else if (_value is double) {
         double result = ((leftValue as double)) / ((_value as double));
-        return valueOf((result as int));
+        return valueOf(result.toInt());
       }
     }
     return error(node);

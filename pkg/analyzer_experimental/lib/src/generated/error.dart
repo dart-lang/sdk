@@ -2222,7 +2222,7 @@ abstract class AnalysisErrorListener {
   /**
    * An error listener that ignores errors that are reported to it.
    */
-  static AnalysisErrorListener _NULL_LISTENER = new AnalysisErrorListener_5();
+  static final AnalysisErrorListener _NULL_LISTENER = new AnalysisErrorListener_5();
 
   /**
    * This method is invoked when an error has been found by the analysis engine.

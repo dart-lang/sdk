@@ -501,7 +501,7 @@ abstract class AnnotatedNode extends ASTNode {
     childList.add(_comment);
     childList.addAll(_metadata);
     List<ASTNode> children = new List.from(childList);
-    children.sort();
+    children.sort(ASTNode.LEXICAL_ORDER);
     return children;
   }
 }
@@ -786,11 +786,20 @@ class ArgumentList extends ASTNode {
   /**
    * An array containing the elements representing the parameters corresponding to each of the
    * arguments in this list, or {@code null} if the AST has not been resolved or if the function or
-   * method being invoked could not be determined. The array must be the same length as the number
-   * of arguments, but can contain {@code null} entries if a given argument does not correspond to a
-   * formal parameter.
+   * method being invoked could not be determined based on static type information. The array must
+   * be the same length as the number of arguments, but can contain {@code null} entries if a given
+   * argument does not correspond to a formal parameter.
    */
-  List<ParameterElement> _correspondingParameters;
+  List<ParameterElement> _correspondingStaticParameters;
+
+  /**
+   * An array containing the elements representing the parameters corresponding to each of the
+   * arguments in this list, or {@code null} if the AST has not been resolved or if the function or
+   * method being invoked could not be determined based on propagated type information. The array
+   * must be the same length as the number of arguments, but can contain {@code null} entries if a
+   * given argument does not correspond to a formal parameter.
+   */
+  List<ParameterElement> _correspondingPropagatedParameters;
 
   /**
    * Initialize a newly created list of arguments.
@@ -847,7 +856,21 @@ class ArgumentList extends ASTNode {
     if (parameters.length != _arguments.length) {
       throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
     }
-    _correspondingParameters = parameters;
+    _correspondingPropagatedParameters = parameters;
+  }
+
+  /**
+   * Set the parameter elements corresponding to each of the arguments in this list to the given
+   * array of parameters. The array of parameters must be the same length as the number of
+   * arguments, but can contain {@code null} entries if a given argument does not correspond to a
+   * formal parameter.
+   * @param parameters the parameter elements corresponding to the arguments
+   */
+  void set correspondingStaticParameters(List<ParameterElement> parameters) {
+    if (parameters.length != _arguments.length) {
+      throw new IllegalArgumentException("Expected ${_arguments.length} parameters, not ${parameters.length}");
+    }
+    _correspondingStaticParameters = parameters;
   }
 
   /**
@@ -871,24 +894,48 @@ class ArgumentList extends ASTNode {
 
   /**
    * If the given expression is a child of this list, and the AST structure has been resolved, and
-   * the function being invoked is known, and the expression corresponds to one of the parameters of
-   * the function being invoked, then return the parameter element representing the parameter to
-   * which the value of the given expression will be bound. Otherwise, return {@code null}.
+   * the function being invoked is known based on propagated type information, and the expression
+   * corresponds to one of the parameters of the function being invoked, then return the parameter
+   * element representing the parameter to which the value of the given expression will be bound.
+   * Otherwise, return {@code null}.
    * <p>
    * This method is only intended to be used by {@link Expression#getParameterElement()}.
    * @param expression the expression corresponding to the parameter to be returned
    * @return the parameter element representing the parameter to which the value of the expression
    * will be bound
    */
-  ParameterElement getParameterElementFor(Expression expression) {
-    if (_correspondingParameters == null) {
+  ParameterElement getPropagatedParameterElementFor(Expression expression) {
+    if (_correspondingPropagatedParameters == null) {
       return null;
     }
     int index = _arguments.indexOf(expression);
     if (index < 0) {
       return null;
     }
-    return _correspondingParameters[index];
+    return _correspondingPropagatedParameters[index];
+  }
+
+  /**
+   * If the given expression is a child of this list, and the AST structure has been resolved, and
+   * the function being invoked is known based on static type information, and the expression
+   * corresponds to one of the parameters of the function being invoked, then return the parameter
+   * element representing the parameter to which the value of the given expression will be bound.
+   * Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getStaticParameterElement()}.
+   * @param expression the expression corresponding to the parameter to be returned
+   * @return the parameter element representing the parameter to which the value of the expression
+   * will be bound
+   */
+  ParameterElement getStaticParameterElementFor(Expression expression) {
+    if (_correspondingStaticParameters == null) {
+      return null;
+    }
+    int index = _arguments.indexOf(expression);
+    if (index < 0) {
+      return null;
+    }
+    return _correspondingStaticParameters[index];
   }
 }
 /**
@@ -1401,18 +1448,39 @@ class BinaryExpression extends Expression {
   }
 
   /**
-   * Return the parameter element representing the parameter to which the value of the right operand
-   * will be bound. May be {@code null}.
+   * If the AST structure has been resolved, and the function being invoked is known based on
+   * propagated type information, then return the parameter element representing the parameter to
+   * which the value of the right operand will be bound. Otherwise, return {@code null}.
    * <p>
    * This method is only intended to be used by {@link Expression#getParameterElement()}.
    * @return the parameter element representing the parameter to which the value of the right
    * operand will be bound
    */
-  ParameterElement get parameterElementForRightOperand {
+  ParameterElement get propagatedParameterElementForRightOperand {
     if (_propagatedElement == null) {
       return null;
     }
     List<ParameterElement> parameters2 = _propagatedElement.parameters;
+    if (parameters2.length < 1) {
+      return null;
+    }
+    return parameters2[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on static
+   * type information, then return the parameter element representing the parameter to which the
+   * value of the right operand will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getStaticParameterElement()}.
+   * @return the parameter element representing the parameter to which the value of the right
+   * operand will be bound
+   */
+  ParameterElement get staticParameterElementForRightOperand {
+    if (_staticElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters2 = _staticElement.parameters;
     if (parameters2.length < 1) {
       return null;
     }
@@ -4705,28 +4773,31 @@ abstract class Expression extends ASTNode {
 
   /**
    * If this expression is an argument to an invocation, and the AST structure has been resolved,
-   * and the function being invoked is known, and this expression corresponds to one of the
-   * parameters of the function being invoked, then return the parameter element representing the
-   * parameter to which the value of this expression will be bound. Otherwise, return {@code null}.
+   * and the function being invoked is known based on propagated type information, and this
+   * expression corresponds to one of the parameters of the function being invoked, then return the
+   * parameter element representing the parameter to which the value of this expression will be
+   * bound. Otherwise, return {@code null}.
    * @return the parameter element representing the parameter to which the value of this expression
    * will be bound
    */
   ParameterElement get parameterElement {
     ASTNode parent2 = parent;
     if (parent2 is ArgumentList) {
-      return ((parent2 as ArgumentList)).getParameterElementFor(this);
-    }
-    if (parent2 is IndexExpression) {
+      return ((parent2 as ArgumentList)).getPropagatedParameterElementFor(this);
+    } else if (parent2 is IndexExpression) {
       IndexExpression indexExpression = parent2 as IndexExpression;
       if (identical(indexExpression.index, this)) {
-        return indexExpression.parameterElementForIndex;
+        return indexExpression.propagatedParameterElementForIndex;
       }
-    }
-    if (parent2 is BinaryExpression) {
+    } else if (parent2 is BinaryExpression) {
       BinaryExpression binaryExpression = parent2 as BinaryExpression;
       if (identical(binaryExpression.rightOperand, this)) {
-        return binaryExpression.parameterElementForRightOperand;
+        return binaryExpression.propagatedParameterElementForRightOperand;
       }
+    } else if (parent2 is PrefixExpression) {
+      return ((parent2 as PrefixExpression)).propagatedParameterElementForOperand;
+    } else if (parent2 is PostfixExpression) {
+      return ((parent2 as PostfixExpression)).propagatedParameterElementForOperand;
     }
     return null;
   }
@@ -4737,6 +4808,37 @@ abstract class Expression extends ASTNode {
    * @return the propagated type of this expression
    */
   Type2 get propagatedType => _propagatedType;
+
+  /**
+   * If this expression is an argument to an invocation, and the AST structure has been resolved,
+   * and the function being invoked is known based on static type information, and this expression
+   * corresponds to one of the parameters of the function being invoked, then return the parameter
+   * element representing the parameter to which the value of this expression will be bound.
+   * Otherwise, return {@code null}.
+   * @return the parameter element representing the parameter to which the value of this expression
+   * will be bound
+   */
+  ParameterElement get staticParameterElement {
+    ASTNode parent2 = parent;
+    if (parent2 is ArgumentList) {
+      return ((parent2 as ArgumentList)).getStaticParameterElementFor(this);
+    } else if (parent2 is IndexExpression) {
+      IndexExpression indexExpression = parent2 as IndexExpression;
+      if (identical(indexExpression.index, this)) {
+        return indexExpression.staticParameterElementForIndex;
+      }
+    } else if (parent2 is BinaryExpression) {
+      BinaryExpression binaryExpression = parent2 as BinaryExpression;
+      if (identical(binaryExpression.rightOperand, this)) {
+        return binaryExpression.staticParameterElementForRightOperand;
+      }
+    } else if (parent2 is PrefixExpression) {
+      return ((parent2 as PrefixExpression)).staticParameterElementForOperand;
+    } else if (parent2 is PostfixExpression) {
+      return ((parent2 as PostfixExpression)).staticParameterElementForOperand;
+    }
+    return null;
+  }
 
   /**
    * Return the static type of this expression, or {@code null} if the AST structure has not been
@@ -7285,18 +7387,39 @@ class IndexExpression extends Expression {
   }
 
   /**
-   * Return the parameter element representing the parameter to which the value of the index
-   * expression will be bound. May be {@code null}.
+   * If the AST structure has been resolved, and the function being invoked is known based on
+   * propagated type information, then return the parameter element representing the parameter to
+   * which the value of the index expression will be bound. Otherwise, return {@code null}.
    * <p>
    * This method is only intended to be used by {@link Expression#getParameterElement()}.
    * @return the parameter element representing the parameter to which the value of the index
    * expression will be bound
    */
-  ParameterElement get parameterElementForIndex {
+  ParameterElement get propagatedParameterElementForIndex {
     if (_propagatedElement == null) {
       return null;
     }
     List<ParameterElement> parameters2 = _propagatedElement.parameters;
+    if (parameters2.length < 1) {
+      return null;
+    }
+    return parameters2[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on static
+   * type information, then return the parameter element representing the parameter to which the
+   * value of the index expression will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getStaticParameterElement()}.
+   * @return the parameter element representing the parameter to which the value of the index
+   * expression will be bound
+   */
+  ParameterElement get staticParameterElementForIndex {
+    if (_staticElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters2 = _staticElement.parameters;
     if (parameters2.length < 1) {
       return null;
     }
@@ -9220,7 +9343,7 @@ abstract class NormalFormalParameter extends FormalParameter {
     childList.add(_comment);
     childList.addAll(_metadata);
     List<ASTNode> children = new List.from(childList);
-    children.sort();
+    children.sort(ASTNode.LEXICAL_ORDER);
     return children;
   }
 }
@@ -9674,6 +9797,46 @@ class PostfixExpression extends Expression {
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_operand, visitor);
   }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on
+   * propagated type information, then return the parameter element representing the parameter to
+   * which the value of the operand will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getParameterElement()}.
+   * @return the parameter element representing the parameter to which the value of the right
+   * operand will be bound
+   */
+  ParameterElement get propagatedParameterElementForOperand {
+    if (_propagatedElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters2 = _propagatedElement.parameters;
+    if (parameters2.length < 1) {
+      return null;
+    }
+    return parameters2[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on static
+   * type information, then return the parameter element representing the parameter to which the
+   * value of the operand will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getStaticParameterElement()}.
+   * @return the parameter element representing the parameter to which the value of the right
+   * operand will be bound
+   */
+  ParameterElement get staticParameterElementForOperand {
+    if (_staticElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters2 = _staticElement.parameters;
+    if (parameters2.length < 1) {
+      return null;
+    }
+    return parameters2[0];
+  }
 }
 /**
  * Instances of the class {@code PrefixExpression} represent a prefix unary expression.
@@ -9788,6 +9951,46 @@ class PrefixExpression extends Expression {
   }
   void visitChildren(ASTVisitor<Object> visitor) {
     safelyVisitChild(_operand, visitor);
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on
+   * propagated type information, then return the parameter element representing the parameter to
+   * which the value of the operand will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getParameterElement()}.
+   * @return the parameter element representing the parameter to which the value of the right
+   * operand will be bound
+   */
+  ParameterElement get propagatedParameterElementForOperand {
+    if (_propagatedElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters2 = _propagatedElement.parameters;
+    if (parameters2.length < 1) {
+      return null;
+    }
+    return parameters2[0];
+  }
+
+  /**
+   * If the AST structure has been resolved, and the function being invoked is known based on static
+   * type information, then return the parameter element representing the parameter to which the
+   * value of the operand will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getStaticParameterElement()}.
+   * @return the parameter element representing the parameter to which the value of the right
+   * operand will be bound
+   */
+  ParameterElement get staticParameterElementForOperand {
+    if (_staticElement == null) {
+      return null;
+    }
+    List<ParameterElement> parameters2 = _staticElement.parameters;
+    if (parameters2.length < 1) {
+      return null;
+    }
+    return parameters2[0];
   }
 }
 /**
