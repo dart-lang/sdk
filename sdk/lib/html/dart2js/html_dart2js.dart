@@ -11859,7 +11859,7 @@ class HttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgr
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental
-class HttpRequestUpload extends EventTarget native "XMLHttpRequestUpload" {
+class HttpRequestUpload extends EventTarget native "XMLHttpRequestUpload,XMLHttpRequestEventTarget" {
 
   @DomName('XMLHttpRequestUpload.abortEvent')
   @DocsEditable

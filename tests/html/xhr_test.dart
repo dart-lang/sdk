@@ -179,6 +179,31 @@ main() {
         HttpRequest.request(url, mimeType: 'application/binary');
       }, expectation);
     });
+
+    if (Platform.supportsTypedData) {
+      test('xhr upload', () {
+        var xhr = new HttpRequest();
+        var progressCalled = false;
+        xhr.upload.onProgress.listen((e) {
+          progressCalled = true;
+        });
+
+        xhr.open('POST',
+              '${window.location.protocol}//${window.location.host}/echo');
+
+        // 10MB of payload data w/ a bit of data to make sure it
+        // doesn't get compressed to nil.
+        var data = new Uint8List(10 * 1024 * 1024);
+        for (var i = 0; i < data.length; ++i) {
+          data[i] = i & 0xFF;
+        }
+        xhr.send(data);
+
+        return xhr.onLoadEnd.first.then((_) {
+          expect(progressCalled, isTrue);
+        });
+      });
+    }
   });
 
   group('xhr_requestBlob', () {
