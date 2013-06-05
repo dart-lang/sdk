@@ -9163,28 +9163,6 @@ class EmbedElement extends Element native "HTMLEmbedElement" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-@DocsEditable
-@DomName('Entity')
-@Experimental // untriaged
-class Entity extends Node native "Entity" {
-
-  @DomName('Entity.notationName')
-  @DocsEditable
-  final String notationName;
-
-  @DomName('Entity.publicId')
-  @DocsEditable
-  final String publicId;
-
-  @DomName('Entity.systemId')
-  @DocsEditable
-  final String systemId;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // WARNING: Do not edit - generated code.
 
 
@@ -24215,6 +24193,28 @@ class _DomPoint native "WebKitPoint" {
   @DomName('WebKitPoint.y')
   @DocsEditable
   num y;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('Entity')
+@Experimental // untriaged
+class _Entity extends Node native "Entity" {
+
+  @DomName('Entity.notationName')
+  @DocsEditable
+  final String notationName;
+
+  @DomName('Entity.publicId')
+  @DocsEditable
+  final String publicId;
+
+  @DomName('Entity.systemId')
+  @DocsEditable
+  final String systemId;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
