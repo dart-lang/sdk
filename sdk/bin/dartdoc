@@ -18,9 +18,17 @@ if test -t 1; then
 fi
 
 unset SNAPSHOT
-if test -f "$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart.snapshot"; then
+
+SNAPSHOT="$BIN_DIR/snapshots/utils_wrapper.dart.snapshot"
+
+if test -f $SNAPSHOT; then
   # TODO(ahe): Remove the following line when we are relatively sure it works.
-  echo Using snapshot "$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart.snapshot" 1>&2
-  SNAPSHOT="--use-script-snapshot=$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart.snapshot"
+  echo Using snapshot $SNAPSHOT 1>&2
+  exec "$BIN_DIR"/dart --heap_growth_rate=32 \
+      "--package-root=$BIN_DIR/../packages/" $SNAPSHOT dartdoc $COLORS \
+      "--package-root=$BIN_DIR/../packages/" "--library-root=$BIN_DIR/.." "$@"
+else
+  exec "$BIN_DIR"/dart --heap_growth_rate=32 \
+      "--package-root=$BIN_DIR/../packages/" \
+      "$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart" $COLORS "$@"
 fi
-exec "$BIN_DIR"/dart --heap_growth_rate=32 "--package-root=$BIN_DIR/../packages/" $SNAPSHOT "$BIN_DIR/../lib/_internal/dartdoc/bin/dartdoc.dart" "--package-root=$BIN_DIR/../packages/" $COLORS "$@"

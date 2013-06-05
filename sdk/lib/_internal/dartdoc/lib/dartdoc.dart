@@ -783,32 +783,42 @@ class Dartdoc {
     endFile();
   }
 
+  /// Whether dartdoc is running from within the Dart SDK or the
+  /// Dart source repository.
+  bool get runningFromSdk =>
+    pathos.extension(new Options().script) == '.snapshot';
+
+  /// Gets the path to the root directory of the SDK.
+  String get sdkDir =>
+    pathos.dirname(pathos.dirname(new Options().executable));
+
+  /// Gets the path to the dartdoc directory normalized for running in different
+  /// places.
+  Path get normalizedDartdocPath => new Path(runningFromSdk ?
+      pathos.join(sdkDir, 'lib', '_internal', 'dartdoc') :
+      dartdocPath.toString());
+
+  /// The path to the temporary directory in the SDK.
+  // TODO(amouravski): Remove this and use a REAL temporary directory.
+  Path get tmpPath => normalizedDartdocPath.join(new Path('tmp'));
+
   void docNavigationDart() {
-    final dir = new Directory.fromPath(tmpPath);
-    if (!dir.existsSync()) {
-      // TODO(3914): Hack to avoid 'file already exists' exception
-      // thrown due to invalid result from dir.existsSync() (probably due to
-      // race conditions).
-      try {
-        dir.createSync();
-      } on DirectoryIOException catch (e) {
-        // Ignore.
-      }
+    var tmpDir = new Directory.fromPath(tmpPath);
+    if (!tmpDir.existsSync()) {
+        tmpDir.createSync();
     }
     String jsonString = json.stringify(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
-    final filePath = tmpPath.append('nav.dart');
+    var filePath = tmpPath.join(new Path('nav.dart'));
     writeString(new File.fromPath(filePath),
         '''part of client;
-           get json => $dartString;''');
+        get json => $dartString;''');
   }
 
-  Path get tmpPath => dartdocPath.append('tmp');
-
   void cleanup() {
-    final dir = new Directory.fromPath(tmpPath);
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
+    var tmpDir = new Directory.fromPath(tmpPath);
+    if (tmpDir.existsSync()) {
+      tmpDir.deleteSync(recursive: true);
     }
   }
 

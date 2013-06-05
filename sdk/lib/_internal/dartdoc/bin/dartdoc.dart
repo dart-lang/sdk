@@ -29,10 +29,18 @@ import 'package:pathos/path.dart' as path;
  * Run this from the `lib/_internal/dartdoc` directory.
  */
 main() {
+  mainWithOptions(new Options());
+}
+
+/**
+ * We use this to include dartdoc in a single snapshot with dart2js.
+ * (They share 90% of the code)
+ */
+mainWithOptions(Options options) {
   // Need this because ArgParser.getUsage doesn't show command invocation.
   final USAGE = 'Usage dartdoc [options] <entrypoint(s)>\n[options] include:';
 
-  final args = new Options().arguments;
+  final args = options.arguments;
 
   final dartdoc = new Dartdoc();
 
@@ -240,8 +248,8 @@ main() {
     // TODO(amouravski): move compileScript out and pre-generate the client
     // scripts. This takes a long time and the js hardly ever changes.
     .then((_) => compileScript(dartdoc.mode, dartdoc.outputDir, libPath))
-    .then((_) => copyDirectory(scriptDir.append('../static'),
-          dartdoc.outputDir))
+    .then((_) => copyDirectory(libPath.append('lib/_internal/dartdoc/static'),
+                               dartdoc.outputDir))
     .then((_) {
       print(dartdoc.status);
       if (dartdoc.totals == 0) {
