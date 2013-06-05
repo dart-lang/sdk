@@ -18862,7 +18862,8 @@ class SelectElement extends Element native "HTMLSelectElement" {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options = this.children.where((e) => e is OptionElement).toList();
+    var options =
+        this.queryAll('option').where((e) => e is OptionElement).toList();
     return new UnmodifiableListView(options);
   }
 

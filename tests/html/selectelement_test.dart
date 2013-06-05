@@ -55,4 +55,21 @@ main() {
     // Use last to make sure that the list was correctly wrapped.
     expect(element.options.last, equals(options[3]));
   });
+
+  test('optgroup', () {
+    var element = new SelectElement();
+    element.innerHtml =
+        '<option>1</option>'
+        '<optgroup>'
+          '<option>2</option>'
+        '</optgroup>';
+
+    expect(element.options.length, 2);
+    element.selectedIndex = 1;
+
+    var optGroup = element.children[1];
+    expect(optGroup is OptGroupElement, isTrue);
+    expect(optGroup.children.single.selected, isTrue);
+    expect(element.selectedOptions, optGroup.children);
+  });
 }
