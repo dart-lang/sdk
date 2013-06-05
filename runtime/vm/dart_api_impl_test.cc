@@ -2632,7 +2632,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, NULL,
+      Dart_CreateIsolate(NULL, NULL, bin::snapshot_buffer,
                          reinterpret_cast<void*>(mydata),
                          &err);
   EXPECT(isolate != NULL);
@@ -6685,7 +6685,9 @@ void BusyLoop_start(uword unused) {
   {
     sync->Enter();
     char* error = NULL;
-    shared_isolate = Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error);
+    shared_isolate = Dart_CreateIsolate(NULL, NULL,
+                                        bin::snapshot_buffer,
+                                        NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
     Dart_Handle url = NewString(TestCase::url());
@@ -6809,7 +6811,9 @@ UNIT_TEST_CASE(IsolateShutdown) {
 
   // Create an isolate.
   char* err;
-  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, my_data, &err);
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
+                                            bin::snapshot_buffer,
+                                            my_data, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
     free(err);
