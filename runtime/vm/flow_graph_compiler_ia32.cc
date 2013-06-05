@@ -28,6 +28,7 @@ DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, eliminate_type_checks);
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -42,7 +43,8 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedMints() {
   // Support unboxed mints when SSE 4.1 is available.
-  return FLAG_unbox_mints && CPUFeatures::sse4_1_supported();
+  return FLAG_unbox_mints && CPUFeatures::sse4_1_supported() &&
+         !FLAG_throw_on_javascript_int_overflow;
 }
 
 

@@ -50,6 +50,8 @@ DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
     "Huge method cutoff in tokens: Disables optimizations for huge methods.");
 DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
     "Huge method cutoff in unoptimized code size (in bytes).");
+DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
+    "Throw an exception when integer arithmetic exceeds 53 bits.");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -7004,6 +7006,7 @@ void Library::CheckFunctionFingerprints() {
 
   lib = Library::CoreLibrary();
   CORE_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
+  CORE_INTEGER_LIB_INTRINSIC_LIST(CHECK_FINGERPRINTS);
 
   RECOGNIZED_LIST(CHECK_FINGERPRINTS);
 
@@ -10439,9 +10442,21 @@ RawInteger* Integer::NewCanonical(const String& str) {
 }
 
 
+// Throw FiftyThreeBitOverflow exception.
+static void ThrowFiftyThreeBitOverflow(const Integer& i) {
+  const Array& exc_args = Array::Handle(Array::New(1));
+  exc_args.SetAt(0, i);
+  Exceptions::ThrowByType(Exceptions::kFiftyThreeBitOverflowError, exc_args);
+}
+
+
 RawInteger* Integer::New(int64_t value, Heap::Space space) {
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
     return Smi::New(value);
+  }
+  if (FLAG_throw_on_javascript_int_overflow && !Utils::IsInt(53, value)) {
+    const Integer &i = Integer::Handle(Mint::New(value));
+    ThrowFiftyThreeBitOverflow(i);
   }
   return Mint::New(value, space);
 }
@@ -10449,6 +10464,11 @@ RawInteger* Integer::New(int64_t value, Heap::Space space) {
 
 RawInteger* Integer::NewFromUint64(uint64_t value, Heap::Space space) {
   if (value > static_cast<uint64_t>(Mint::kMaxValue)) {
+    if (FLAG_throw_on_javascript_int_overflow) {
+      const Integer &i =
+          Integer::Handle(BigintOperations::NewFromUint64(value));
+      ThrowFiftyThreeBitOverflow(i);
+    }
     return BigintOperations::NewFromUint64(value);
   } else {
     return Integer::New(value);
@@ -10474,7 +10494,31 @@ int Integer::CompareWith(const Integer& other) const {
 }
 
 
+static void CheckFiftyThreeBitOverflow(const Integer &i) {
+  if (i.IsSmi()) return;
+  // Always overflow if the value doesn't fit into an int64_t.
+  int64_t value = 1ULL << 63;
+  if (i.IsMint()) {
+    Mint& mint = Mint::Handle();
+    mint ^= i.raw();
+    value = mint.value();
+  } else {
+    ASSERT(i.IsBigint());
+    Bigint& big_value = Bigint::Handle();
+    big_value ^= i.raw();
+    if (BigintOperations::FitsIntoInt64(big_value)) {
+      value = BigintOperations::ToInt64(big_value);
+    }
+  }
+  if (Utils::IsInt(53, value)) return;
+  ThrowFiftyThreeBitOverflow(i);
+}
+
+
 RawInteger* Integer::AsValidInteger() const {
+  if (FLAG_throw_on_javascript_int_overflow) {
+    CheckFiftyThreeBitOverflow(*this);
+  }
   if (IsSmi()) return raw();
   if (IsMint()) {
     Mint& mint = Mint::Handle();

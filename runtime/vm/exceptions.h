@@ -59,7 +59,8 @@ class Exceptions : AllStatic {
     kInternalError,
     kNullThrown,
     kIsolateSpawn,
-    kIsolateUnhandledException
+    kIsolateUnhandledException,
+    kFiftyThreeBitOverflowError,
   };
 
   static void ThrowByType(ExceptionType type, const Array& arguments);

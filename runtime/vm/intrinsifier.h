@@ -16,6 +16,46 @@ namespace dart {
 // When adding a new function for intrinsification add a 0 as fingerprint,
 // build and run to get the correct fingerprint from the mismatch error.
 #define CORE_LIB_INTRINSIC_LIST(V)                                             \
+  V(_Smi, ~, Smi_bitNegate, 882629793)                                         \
+  V(_Double, >, Double_greaterThan, 301935359)                                 \
+  V(_Double, >=, Double_greaterEqualThan, 1184528952)                          \
+  V(_Double, <, Double_lessThan, 1596251333)                                   \
+  V(_Double, <=, Double_lessEqualThan, 1184499161)                             \
+  V(_Double, ==, Double_equal, 1706047712)                                     \
+  V(_Double, +, Double_add, 210576655)                                         \
+  V(_Double, -, Double_sub, 1605354741)                                        \
+  V(_Double, *, Double_mul, 788270837)                                         \
+  V(_Double, /, Double_div, 1202831412)                                        \
+  V(_Double, get:isNaN, Double_getIsNaN, 54462366)                             \
+  V(_Double, get:isNegative, Double_getIsNegative, 54462366)                   \
+  V(_Double, _mulFromInteger, Double_mulFromInteger, 704314034)                \
+  V(_Double, .fromInteger, Double_fromInteger, 842078193)                      \
+  V(_ObjectArray, ., ObjectArray_Allocate, 97987288)                           \
+  V(_ObjectArray, get:length, Array_getLength, 405297088)                      \
+  V(_ObjectArray, [], Array_getIndexed, 71937385)                              \
+  V(_ObjectArray, []=, Array_setIndexed, 255863719)                            \
+  V(_GrowableObjectArray, .withData, GrowableArray_Allocate, 816132033)        \
+  V(_GrowableObjectArray, get:length, GrowableArray_getLength, 725548050)      \
+  V(_GrowableObjectArray, get:_capacity, GrowableArray_getCapacity, 725548050) \
+  V(_GrowableObjectArray, [], GrowableArray_getIndexed, 581838973)             \
+  V(_GrowableObjectArray, []=, GrowableArray_setIndexed, 1048007636)           \
+  V(_GrowableObjectArray, _setLength, GrowableArray_setLength, 796709584)      \
+  V(_GrowableObjectArray, _setData, GrowableArray_setData, 629110947)          \
+  V(_GrowableObjectArray, add, GrowableArray_add, 1904852879)                  \
+  V(_ImmutableArray, [], ImmutableArray_getIndexed, 486821199)                 \
+  V(_ImmutableArray, get:length, ImmutableArray_getLength, 433698233)          \
+  V(Object, ==, Object_equal, 2126897013)                                      \
+  V(_StringBase, get:hashCode, String_getHashCode, 320803993)                  \
+  V(_StringBase, get:isEmpty, String_getIsEmpty, 1026765313)                   \
+  V(_StringBase, get:length, String_getLength, 320803993)                      \
+  V(_StringBase, codeUnitAt, String_codeUnitAt, 984449525)                     \
+  V(_OneByteString, get:hashCode, OneByteString_getHashCode, 682660413)        \
+  V(_OneByteString, _substringUncheckedNative,                                 \
+      OneByteString_substringUnchecked, 713121438)                             \
+  V(_OneByteString, _setAt, OneByteString_setAt, 342452817)                    \
+  V(_OneByteString, _allocate, OneByteString_allocate, 510754908)              \
+
+#define CORE_INTEGER_LIB_INTRINSIC_LIST(V)                                     \
   V(_IntegerImplementation, _addFromInteger, Integer_addFromInteger, 726019207)\
   V(_IntegerImplementation, +, Integer_add, 1768648592)                        \
   V(_IntegerImplementation, _subFromInteger, Integer_subFromInteger, 726019207)\
@@ -46,45 +86,7 @@ namespace dart {
   V(_IntegerImplementation, >=, Integer_greaterEqualThan, 949045946)           \
   V(_IntegerImplementation, <<, Integer_shl, 1195917829)                       \
   V(_IntegerImplementation, >>, Integer_sar, 1980227743)                       \
-  V(_Smi, ~, Smi_bitNegate, 882629793)                                         \
-  V(_Double, >, Double_greaterThan, 301935359)                                 \
-  V(_Double, >=, Double_greaterEqualThan, 1184528952)                          \
-  V(_Double, <, Double_lessThan, 1596251333)                                   \
-  V(_Double, <=, Double_lessEqualThan, 1184499161)                             \
-  V(_Double, ==, Double_equal, 1706047712)                                     \
-  V(_Double, +, Double_add, 210576655)                                         \
-  V(_Double, -, Double_sub, 1605354741)                                        \
-  V(_Double, *, Double_mul, 788270837)                                         \
-  V(_Double, /, Double_div, 1202831412)                                        \
-  V(_Double, get:isNaN, Double_getIsNaN, 54462366)                             \
-  V(_Double, get:isNegative, Double_getIsNegative, 54462366)                   \
-  V(_Double, _mulFromInteger, Double_mulFromInteger, 704314034)                \
-  V(_Double, .fromInteger, Double_fromInteger, 842078193)                      \
-  V(_Double, toInt, Double_toInt, 362666636)                                   \
-  V(_ObjectArray, ., ObjectArray_Allocate, 97987288)                           \
-  V(_ObjectArray, get:length, Array_getLength, 405297088)                      \
-  V(_ObjectArray, [], Array_getIndexed, 71937385)                              \
-  V(_ObjectArray, []=, Array_setIndexed, 255863719)                            \
-  V(_GrowableObjectArray, .withData, GrowableArray_Allocate, 816132033)        \
-  V(_GrowableObjectArray, get:length, GrowableArray_getLength, 725548050)      \
-  V(_GrowableObjectArray, get:_capacity, GrowableArray_getCapacity, 725548050) \
-  V(_GrowableObjectArray, [], GrowableArray_getIndexed, 581838973)             \
-  V(_GrowableObjectArray, []=, GrowableArray_setIndexed, 1048007636)           \
-  V(_GrowableObjectArray, _setLength, GrowableArray_setLength, 796709584)      \
-  V(_GrowableObjectArray, _setData, GrowableArray_setData, 629110947)          \
-  V(_GrowableObjectArray, add, GrowableArray_add, 1904852879)                  \
-  V(_ImmutableArray, [], ImmutableArray_getIndexed, 486821199)                 \
-  V(_ImmutableArray, get:length, ImmutableArray_getLength, 433698233)          \
-  V(Object, ==, Object_equal, 2126897013)                                      \
-  V(_StringBase, get:hashCode, String_getHashCode, 320803993)                  \
-  V(_StringBase, get:isEmpty, String_getIsEmpty, 1026765313)                   \
-  V(_StringBase, get:length, String_getLength, 320803993)                      \
-  V(_StringBase, codeUnitAt, String_codeUnitAt, 984449525)                     \
-  V(_OneByteString, get:hashCode, OneByteString_getHashCode, 682660413)        \
-  V(_OneByteString, _substringUncheckedNative,                                 \
-      OneByteString_substringUnchecked, 713121438)                             \
-  V(_OneByteString, _setAt, OneByteString_setAt, 342452817)                    \
-  V(_OneByteString, _allocate, OneByteString_allocate, 510754908)              \
+  V(_Double, toInt, Double_toInt, 362666636)
 
 
 #define MATH_LIB_INTRINSIC_LIST(V)                                             \
@@ -142,6 +144,7 @@ class Intrinsifier : public AllStatic {
   static bool destination(Assembler* assembler);
 
   CORE_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
+  CORE_INTEGER_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
   MATH_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
   TYPED_DATA_LIB_INTRINSIC_LIST(DECLARE_FUNCTION)
 

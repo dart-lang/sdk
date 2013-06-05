@@ -83,6 +83,7 @@ static RawInteger* DoubleToInteger(double val, const char* error_msg) {
   return big.AsValidInteger();
 }
 
+
 DEFINE_NATIVE_ENTRY(Double_trunc_div, 2) {
   double left = Double::CheckedHandle(arguments->NativeArgAt(0)).value();
   GET_NON_NULL_NATIVE_ARGUMENT(Double, right_object, arguments->NativeArgAt(1));
