@@ -50,8 +50,7 @@ class DebugInfo {
     void Resize(int new_size) {
       if (new_size > capacity_) {
         int new_capacity = Utils::RoundUpToPowerOfTwo(new_size);
-        uint8_t* new_data =
-            reinterpret_cast<uint8_t*>(realloc(data_, new_capacity));
+        uint8_t* new_data = Utils::Realloc(data_, capacity_, new_capacity);
         ASSERT(new_data != NULL);
         data_ = new_data;
         capacity_ = new_capacity;

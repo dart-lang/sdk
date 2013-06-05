@@ -34,9 +34,9 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(const String& name,
   }
 
   if (length_ == capacity_) {
-    capacity_ += kCapacityIncrement;
-    table_ =
-        reinterpret_cast<Entry*>(realloc(table_, capacity_ * sizeof(*table_)));
+    intptr_t new_capacity = capacity_ + kCapacityIncrement;
+    table_ = Utils::Realloc(table_, capacity_, new_capacity);
+    capacity_ = new_capacity;
   }
 
   ASSERT(length_ < capacity_);

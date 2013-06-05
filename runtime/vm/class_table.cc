@@ -61,8 +61,8 @@ void ClassTable::Register(const Class& cls) {
     if (top_ == capacity_) {
       // Grow the capacity of the class table.
       intptr_t new_capacity = capacity_ + capacity_increment_;
-      RawClass** new_table = reinterpret_cast<RawClass**>(
-          realloc(table_, new_capacity * sizeof(RawClass*)));  // NOLINT
+      RawClass** new_table = Utils::Realloc(table_, capacity_, new_capacity);
+      ASSERT(new_capacity > capacity_);
       for (intptr_t i = capacity_; i < new_capacity; i++) {
         new_table[i] = NULL;
       }

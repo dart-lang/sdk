@@ -5454,8 +5454,7 @@ class CompressedTokenStreamData : public ValueObject {
   static uint8_t* Reallocate(uint8_t* ptr,
                              intptr_t old_size,
                              intptr_t new_size) {
-    void* new_ptr = ::realloc(reinterpret_cast<void*>(ptr), new_size);
-    return reinterpret_cast<uint8_t*>(new_ptr);
+    return Utils::Realloc(ptr, old_size, new_size);
   }
 
   static const int kInitialTokenCount = 32;

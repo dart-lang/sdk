@@ -806,19 +806,22 @@ void ApiMessageWriter::UnmarkAllCObjects(Dart_CObject* object) {
 
 
 void ApiMessageWriter::AddToForwardList(Dart_CObject* object) {
-  if (forward_id_ >= forward_list_length_) {
-    void* new_list = NULL;
+  ASSERT(forward_id_ <= forward_list_length_);
+  if (forward_id_ == forward_list_length_) {
+    intptr_t new_size;
+    intptr_t old_size;
     if (forward_list_length_ == 0) {
+      old_size = 0;
       forward_list_length_ = 4;
-      intptr_t new_size = forward_list_length_ * sizeof(object);
-      new_list = ::malloc(new_size);
+      new_size = forward_list_length_ * sizeof(object);
     } else {
+      old_size = forward_list_length_ * sizeof(object);
+      new_size = old_size + old_size;
       forward_list_length_ *= 2;
-      intptr_t new_size = (forward_list_length_ * sizeof(object));
-      new_list = ::realloc(forward_list_, new_size);
     }
+    Dart_CObject** new_list = Utils::Realloc(forward_list_, old_size, new_size);
     ASSERT(new_list != NULL);
-    forward_list_ = reinterpret_cast<Dart_CObject**>(new_list);
+    forward_list_ = new_list;
   }
   forward_list_[forward_id_] = object;
   forward_id_ += 1;
