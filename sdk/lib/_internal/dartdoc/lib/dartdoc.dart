@@ -319,6 +319,12 @@ class Dartdoc {
   /** The file currently being written to. */
   StringBuffer _file;
 
+  /**
+   * The temporary directory used for this instance of Dartdoc.
+   * Call [cleanup] to delete it.
+   */
+  Directory _tempDir;
+
   int _totalLibraries = 0;
   int _totalTypes = 0;
   int _totalMembers = 0;
@@ -372,6 +378,8 @@ class Dartdoc {
 
 
   Dartdoc() {
+    _tempDir = new Directory(tempPath);
+
     dartdocResolver = (String name) => resolveNameReference(name,
         currentLibrary: _currentLibrary, currentType: _currentType,
         currentMember: _currentMember);
@@ -783,32 +791,48 @@ class Dartdoc {
     endFile();
   }
 
+  /// Whether dartdoc is running from within the Dart SDK or the
+  /// Dart source repository.
+  bool get runningFromSdk =>
+    pathos.extension(new Options().script) == '.snapshot';
+
+  /// Gets the path to the root directory of the SDK.
+  String get rootDirectory =>
+    pathos.dirname(pathos.dirname(new Options().executable));
+
+  /// Gets the path to the dartdoc directory normalized for running in different
+  /// places.
+  String get normalizedDartdocPath => runningFromSdk ?
+      pathos.join(rootDirectory, 'lib', '_internal', 'dartdoc') :
+      dartdocPath.toString();
+
+  /// The path to the temporary directory in the SDK.
+  // TODO(amouravski): Remove this and use a REAL temporary directory.
+  String get tempPath => pathos.join(normalizedDartdocPath, 'tmp');
+
   void docNavigationDart() {
-    final dir = new Directory.fromPath(tmpPath);
-    if (!dir.existsSync()) {
+    if (!_tempDir.existsSync()) {
       // TODO(3914): Hack to avoid 'file already exists' exception
       // thrown due to invalid result from dir.existsSync() (probably due to
       // race conditions).
       try {
-        dir.createSync();
+        _tempDir.createSync();
       } on DirectoryIOException catch (e) {
         // Ignore.
       }
     }
     String jsonString = json.stringify(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
-    final filePath = tmpPath.append('nav.dart');
-    writeString(new File.fromPath(filePath),
+
+    var navPath = pathos.join(tempPath, 'nav.dart');
+    writeString(new File(navPath),
         '''part of client;
-           get json => $dartString;''');
+        get json => $dartString;''');
   }
 
-  Path get tmpPath => dartdocPath.append('tmp');
-
   void cleanup() {
-    final dir = new Directory.fromPath(tmpPath);
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
+    if (_tempDir.existsSync()) {
+      _tempDir.deleteSync(recursive: true);
     }
   }
 
