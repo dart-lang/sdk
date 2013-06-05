@@ -199,7 +199,7 @@ main() {
         }
         xhr.send(data);
 
-        return xhr.onLoadEnd.first.then((_) {
+        return xhr.onLoad.first.then((_) {
           expect(progressCalled, isTrue);
         });
       });
