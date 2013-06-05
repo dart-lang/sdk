@@ -171,27 +171,6 @@ class Utils {
            count <= (length - offset);
   }
 
-  template <class ElementType>
-  static inline ElementType* Realloc(ElementType* old_data,
-                                     intptr_t old_len,
-                                     intptr_t new_len) {
-    if ((old_len * sizeof(ElementType)) >
-        (new_len * sizeof(ElementType))) {
-      FATAL2("Realloc overflow: "
-             "'old_size'=%"Pd",'new_size'=%"Pd,
-             (old_len * sizeof(ElementType)),
-             (new_len * sizeof(ElementType)));
-    }
-    ElementType* new_data = new ElementType[new_len];
-    if (old_data != NULL) {
-      memmove(reinterpret_cast<void*>(new_data),
-              reinterpret_cast<void*>(old_data),
-              (old_len * sizeof(ElementType)));
-      delete[] old_data;
-    }
-    return new_data;
-  }
-
   // Utility functions for converting values from host endianess to
   // big or little endian values.
   static uint16_t HostToBigEndian16(uint16_t host_value);

@@ -4,7 +4,6 @@
 
 #include "vm/code_observers.h"
 
-#include "platform/utils.h"
 #include "vm/os.h"
 
 namespace dart {
@@ -14,12 +13,12 @@ CodeObserver** CodeObservers::observers_ = NULL;
 
 
 void CodeObservers::Register(CodeObserver* observer) {
-  intptr_t new_length = observers_length_ + 1;
-  observers_ = Utils::Realloc(observers_, observers_length_, new_length);
+  observers_length_++;
+  observers_ = reinterpret_cast<CodeObserver**>(
+      realloc(observers_, sizeof(observer) * observers_length_));
   if (observers_ == NULL) {
     FATAL("failed to grow code observers array");
   }
-  observers_length_ = new_length;
   observers_[observers_length_ - 1] = observer;
 }
 

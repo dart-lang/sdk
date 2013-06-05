@@ -49,7 +49,7 @@ static bool Equals(const Object& expected, const Object& actual) {
 
 static uint8_t* malloc_allocator(
     uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  return Utils::Realloc(ptr, old_size, new_size);
+  return reinterpret_cast<uint8_t*>(realloc(ptr, new_size));
 }
 
 
