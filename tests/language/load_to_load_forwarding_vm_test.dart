@@ -4,6 +4,7 @@
 // Test correctness of side effects tracking used by load to load forwarding.
 
 import "package:expect/expect.dart";
+import "dart:typed_data";
 
 class A {
   var x, y;
@@ -50,6 +51,26 @@ testImmutableVMFields(arr, immutable) {
   return arr.length;
 }
 
+
+testPhiRepresentation(f, arr) {
+  if (f) {
+    arr[0] = arr[0] + arr[1];
+  } else {
+    arr[0] = arr[0] - arr[1];
+  }
+  return arr[0];
+}
+
+
+testPhiConvertions(f, arr) {
+  if (f) {
+    arr[0] = arr[1];
+  } else {
+    arr[0] = arr[2];
+  }
+  return arr[0];
+}
+
 main() {
   final fixed = new List(10);
   final growable = [];
@@ -57,15 +78,30 @@ main() {
   testImmutableVMFields(growable, false);
   testImmutableVMFields(growable, false);
 
+  final f64List = new Float64List(2);
+  testPhiRepresentation(true, f64List);
+  testPhiRepresentation(false, f64List);
+
   for (var i = 0; i < 2000; i++) {
     Expect.listEquals([0x02010000, 0x03020100], foo(new A(0, 0)));
     Expect.listEquals([0x02010000, 0x03020100], bar(new A(0, 0), false));
     Expect.listEquals([0x04020000, 0x03020100], bar(new A(0, 0), true));
     testImmutableVMFields(fixed, true);
+    testPhiRepresentation(true, f64List);
   }
 
   Expect.equals(1, testImmutableVMFields([], false));
   Expect.equals(2, testImmutableVMFields([1], false));
   Expect.equals(2, testImmutableVMFields([1, 2], false));
   Expect.equals(3, testImmutableVMFields([1, 2, 3], false));
+
+  final u32List = new Uint32List(3);
+  u32List[0] = 0;
+  u32List[1] = 0x3FFFFFFF;
+  u32List[2] = 0x7FFFFFFF;
+  
+  for (var i = 0; i < 4000; i++) {
+    testPhiConvertions(true, u32List);
+    testPhiConvertions(false, u32List);
+  }
 }

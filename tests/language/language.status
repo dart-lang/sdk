@@ -807,7 +807,7 @@ double_modulo_test: Fail
 gc_test: Crash
 invocation_mirror_test: Fail
 large_implicit_getter_test: Crash
-load_to_load_forwarding_test: Fail
+load_to_load_forwarding_vm_test: Fail
 math_vm_test: Fail
 named_parameters_with_conversions_test: Pass, Crash
 stack_overflow_stacktrace_test: Crash

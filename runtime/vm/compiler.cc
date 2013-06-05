@@ -445,6 +445,10 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         sinking->Optimize();
       }
 
+      // Ensure that all phis inserted by optimization passes have consistent
+      // representations.
+      optimizer.UnboxPhis();
+
       if (optimizer.Canonicalize()) {
         // To fully remove redundant boxing (e.g. BoxDouble used only in
         // environments and UnboxDouble instructions) instruction we
