@@ -25,6 +25,7 @@ mixin_super_constructor_multiple_test: Fail
 closure_type_variable_test: Fail # Type variable used as expression (dartbug.com/6282)
 
 [ $compiler == none ]
+extends_test: Fail # issue 11023
 mixin_super_constructor_test: Fail
 mixin_super_constructor2_test: Fail
 mixin_super_constructor_default_test: Fail
@@ -305,6 +306,7 @@ final_variable_assignment_test/01: Fail
 final_variable_assignment_test/02: Fail
 final_variable_assignment_test/03: Fail
 final_variable_assignment_test/04: Fail
+extends_test: Pass, Fail # issue 11023, may pass or fail depending on loading order
 
 
 [ $runtime == dartium ]
