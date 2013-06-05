@@ -378,8 +378,6 @@ class Dartdoc {
 
 
   Dartdoc() {
-    _tempDir = new Directory(tempPath);
-
     dartdocResolver = (String name) => resolveNameReference(name,
         currentLibrary: _currentLibrary, currentType: _currentType,
         currentMember: _currentMember);
@@ -811,6 +809,7 @@ class Dartdoc {
   String get tempPath => pathos.join(normalizedDartdocPath, 'tmp');
 
   void docNavigationDart() {
+    _tempDir = new Directory(tempPath);
     if (!_tempDir.existsSync()) {
       // TODO(3914): Hack to avoid 'file already exists' exception
       // thrown due to invalid result from dir.existsSync() (probably due to
