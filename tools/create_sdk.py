@@ -40,14 +40,6 @@
 # ......mirrors/
 # ......utf/
 # ......typed_data/
-# ....packages/
-# ......args/
-# ......intl/
-# ......logging/
-# ......meta/
-# ......serialization
-# ......unittest/
-# ......(more will come here)
 # ....util/
 # ......dartanalyzer/
 # ........dartanalyzer.jar
@@ -218,20 +210,6 @@ def Main(argv):
   # Copy lib/_internal/libraries.dart.
   copyfile(join(HOME, 'sdk', 'lib', '_internal', 'libraries.dart'),
            join(LIB, '_internal', 'libraries.dart'))
-
-  # Create and copy packages.
-  PACKAGES = join(SDK_tmp, 'packages')
-  os.makedirs(PACKAGES)
-
-  #
-  # Create and populate packages/{args, intl, logging, meta, unittest, ...}
-  #
-
-  for library in ['args', 'http', 'intl', 'logging', 'meta', 'oauth2', 'pathos',
-                  'serialization', 'unittest', 'yaml', 'analyzer_experimental']:
-
-    copytree(join(HOME, 'pkg', library, 'lib'), join(PACKAGES, library),
-             ignore=ignore_patterns('*.svn'))
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
