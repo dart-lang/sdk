@@ -494,13 +494,13 @@ LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue 4
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
-LibTest/collection/Queue/Queue.from_A01_t01: fail # Issue 400
-LibTest/collection/Queue/Queue.from_A01_t02: fail # Issue 400
-LibTest/core/List/List.from_A01_t01: fail # Issue 400
-LibTest/core/List/every_A01_t01: fail # Issue 400
-LibTest/core/Match/pattern_A01_t01: fail # Issue 400
-LibTest/core/Match/str_A01_t01: fail # Issue 400
-LibTest/core/RegExp/allMatches_A01_t01: fail # Issue 400
+LibTest/collection/Queue/Queue.from_A01_t01: Fail # Issue 400
+LibTest/collection/Queue/Queue.from_A01_t02: Fail # Issue 400
+LibTest/core/List/List.from_A01_t01: Fail # Issue 400
+LibTest/core/List/every_A01_t01: Fail # Issue 400
+LibTest/core/Match/pattern_A01_t01: Fail # Issue 400
+LibTest/core/Match/str_A01_t01: Fail # Issue 400
+LibTest/core/RegExp/allMatches_A01_t01: Fail # Issue 400
 
 LibTest/async/Completer/completeError_A03_t02: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Completer/complete_A02_t02: Fail # No AsyncError anymore. Issue 407

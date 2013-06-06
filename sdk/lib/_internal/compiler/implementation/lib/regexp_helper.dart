@@ -136,6 +136,10 @@ class _AllMatchesIterator implements Iterator<Match> {
   bool moveNext() {
     // firstMatch actually acts as nextMatch because of
     // hidden global flag.
+    if (_current != null && _current.start == _current.end) {
+      // Advance implicit start-position if last match was empty.
+      JS("void", "#.lastIndex++", _re._nativeRegExp);
+    }
     _current = _re.firstMatch(_str);
     return _current != null;
   }

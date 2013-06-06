@@ -18,7 +18,7 @@ part of dart.core;
  *     for (Match m in matches) {
  *       String match = m.group(0);
  *       print(match);
- *     };
+ *     }
  *
  * The output of the example is:
  *
