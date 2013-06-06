@@ -1469,8 +1469,11 @@ class SsaConstructionFieldTypes
     // Don't handle fields defined in superclasses. Given that the field is
     // always added to the [allSetters] set, setting a field defined in a
     // superclass will get an inferred type of UNKNOWN.
-    if (identical(work.element.getEnclosingClass(), field.getEnclosingClass()) &&
-        !value.instructionType.isUnknown()) {
+    if (work.element.getEnclosingClass() == field.getEnclosingClass()) {
+      HType existing = currentFieldSetters[field];
+      if (existing != null) {
+        type = existing.union(type, backend.compiler);
+      }
       currentFieldSetters[field] = type;
     }
   }
@@ -1481,6 +1484,7 @@ class SsaConstructionFieldTypes
     if (!thisExposed) {
       // Register the known field types.
       currentFieldSetters.forEach((Element element, HType type) {
+        if (type.isUnknown()) return;
         backend.registerFieldConstructor(element, type);
         allSetters.remove(element);
       });
