@@ -798,8 +798,10 @@ class Dartdoc {
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import '${pathos.join(clientDir, 'client-shared.dart')}';
-        import '${pathos.join(clientDir, 'dropdown.dart')}';
+        import '${pathos.join(clientDir, 'client-shared.dart')
+            .replaceAll('\\', '\\\\')}';
+        import '${pathos.join(clientDir, 'dropdown.dart').
+            .replaceAll('\\', '\\\\')}';
 
         main() {
           setup();
