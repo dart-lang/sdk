@@ -1335,6 +1335,32 @@ testSelectors() {
   Expect.isNull(inferredType(bar));
 }
 
+testMixins() {
+  final String source = r"""
+      class A {
+        foo() => "abc";
+        get x => 42;
+      }
+      class B extends Object with A {
+        bar() => foo();
+        baz() => x;
+      }
+      main() {
+        var b = new B();
+        var x = b.foo();
+        var y = b.bar();
+        var z = b.x;
+        var w = b.baz();
+        x; y; z; w;
+      }
+      """;
+  AnalysisResult result = analyze(source);
+  result.checkNodeHasType('x', [result.string]);
+  result.checkNodeHasType('y', [result.string]);
+  result.checkNodeHasType('z', [result.int]);
+  result.checkNodeHasType('w', [result.int]);
+}
+
 void main() {
   testDynamicBackDoor();
   testVariableDeclaration();
@@ -1386,4 +1412,5 @@ void main() {
   testIntDoubleNum();
   testConcreteTypeToTypeMask();
   testSelectors();
+  testMixins();
 }

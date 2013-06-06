@@ -2057,9 +2057,8 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         }
       }
     } else {
-      // node is a field of not(this)
-      assert(node.receiver != null);
-
+      // node is a field/getter which doesn't belong to the current class or
+      // the field/getter of a mixed-in class
       ConcreteType result = inferrer.emptyConcreteType;
       void augmentResult(ClassElement baseReceiverType, Element member) {
         if (member.isField()) {
@@ -2074,7 +2073,9 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
         // since this is a get we ignore non-fields
       }
 
-      ConcreteType receiverType = analyze(node.receiver);
+      ConcreteType receiverType = node.receiver != null
+          ? analyze(node.receiver)
+          : environment.lookupTypeOfThis();
       if (receiverType.isUnknown()) {
         SourceString name = node.selector.asIdentifier().source;
         inferrer.addDynamicCaller(name, currentMethodOrField);
