@@ -757,7 +757,6 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
   InsertBefore(call,
                new CheckArrayBoundInstr(new Value(length),
                                         new Value(*index),
-                                        class_id,
                                         call),
                call->env(),
                Definition::kEffect);
@@ -1637,7 +1636,6 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCodeUnitAt(
     InsertBefore(call,
                  new CheckArrayBoundInstr(new Value(length),
                                           new Value(index),
-                                          cid,
                                           call),
                  call->env(),
                  Definition::kEffect);
@@ -2236,7 +2234,6 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
   InsertBefore(call,
                new CheckArrayBoundInstr(new Value(len_in_bytes),
                                         new Value(byte_index),
-                                        receiver_cid,
                                         call),
                call->env(),
                Definition::kEffect);
@@ -3121,10 +3118,6 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
 
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
     Definition* defn, CheckArrayBoundInstr* check) {
-  if (!CheckArrayBoundInstr::IsFixedLengthArrayType(check->array_type())) {
-    return;
-  }
-
   Definition* length = check->length()->definition();
 
   Range* constraint_range = new Range(

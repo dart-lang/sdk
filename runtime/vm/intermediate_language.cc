@@ -129,13 +129,6 @@ bool GuardFieldInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-bool CheckArrayBoundInstr::AttributesEqual(Instruction* other) const {
-  CheckArrayBoundInstr* other_check = other->AsCheckArrayBound();
-  ASSERT(other_check != NULL);
-  return array_type() == other_check->array_type();
-}
-
-
 bool AssertAssignableInstr::AttributesEqual(Instruction* other) const {
   AssertAssignableInstr* other_assert = other->AsAssertAssignable();
   ASSERT(other_assert != NULL);
@@ -2347,11 +2340,6 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
 
 
 bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
-  // Check that array has an immutable length.
-  if (!IsFixedLengthArrayType(array_type())) {
-    return false;
-  }
-
   Range* index_range = index()->definition()->range();
 
   // Range of the index is unknown can't decide if the check is redundant.
