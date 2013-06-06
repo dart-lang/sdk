@@ -247,7 +247,8 @@ mainWithOptions(Options options) {
     // Prepare the dart2js script code and copy static resources.
     // TODO(amouravski): move compileScript out and pre-generate the client
     // scripts. This takes a long time and the js hardly ever changes.
-    .then((_) => compileScript(dartdoc.mode, dartdoc.outputDir, libPath))
+    .then((_) => compileScript(dartdoc.mode, dartdoc.outputDir, libPath,
+          dartdoc.tmpPath))
     .then((_) => copyDirectory(libPath.append('lib/_internal/dartdoc/static'),
                                dartdoc.outputDir))
     .then((_) {

@@ -180,7 +180,7 @@ void main() {
     Future.wait([copiedStatic, copiedApiDocStatic, htmlDiff])
       .then((_) => apidoc.documentLibraries(apidocLibraries, libPath,
             packageRoot))
-      .then((_) => compileScript(mode, outputDir, libPath))
+      .then((_) => compileScript(mode, outputDir, libPath, apidoc.tmpPath))
       .then((_) => print(apidoc.status))
       .catchError((e) {
         print('Error: generation failed: ${e}');

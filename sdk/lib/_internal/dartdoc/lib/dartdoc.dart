@@ -103,6 +103,7 @@ Future copyDirectory(Path from, Path to) {
   print('Copying static files...');
   final completer = new Completer();
   final fromDir = new Directory.fromPath(from);
+  var futureList = [];
   fromDir.list(recursive: false).listen(
       (FileSystemEntity entity) {
         if (entity is File) {
@@ -112,10 +113,10 @@ Future copyDirectory(Path from, Path to) {
 
           File fromFile = entity;
           File toFile = new File.fromPath(to.append(name));
-          fromFile.openRead().pipe(toFile.openWrite());
+          futureList.add(fromFile.openRead().pipe(toFile.openWrite()));
         }
       },
-      onDone: () => completer.complete(),
+      onDone: () => Future.wait(futureList).then((_) => completer.complete()),
       onError: (e) => completer.completeError(e));
   return completer.future;
 }
@@ -123,20 +124,24 @@ Future copyDirectory(Path from, Path to) {
 /**
  * Compiles the dartdoc client-side code to JavaScript using Dart2js.
  */
-Future compileScript(int mode, Path outputDir, Path libPath) {
+Future compileScript(int mode, Path outputDir, Path libPath, String tmpPath) {
   print('Compiling client JavaScript...');
-
   var clientScript = (mode == MODE_STATIC) ?  'static' : 'live-nav';
-  var dartPath = pathos.join(libPath.toNativePath(), 'lib', '_internal',
-      'dartdoc', 'lib', 'src', 'client', 'client-$clientScript.dart');
-  var jsPath = pathos.join(outputDir.toNativePath(), 'client-$clientScript.js');
+  var dartdocLibPath = pathos.join(libPath.toNativePath(),
+      'lib', '_internal', 'dartdoc', 'lib');
+  var dartPath = mode == MODE_STATIC ?
+    pathos.join(tmpPath, 'client.dart') :
+    pathos.join(dartdocLibPath, 'src', 'client', 'client-live-nav.dart');
 
-  dart2js.compile(
+  var jsPath = pathos.join(outputDir.toNativePath(),
+    'client-$clientScript.js');
+
+  return dart2js.compile(
       new Path(dartPath), libPath,
       options: const <String>['--categories=Client,Server', '--minify'])
-    .then((jsCode) {
-      writeString(new File(jsPath), jsCode);
-    });                                  
+  .then((jsCode) {
+    writeString(new File(jsPath), jsCode);
+  });
 }
 
 /**
@@ -263,6 +268,9 @@ class Dartdoc {
   /** The map containing all the exports for each library. */
   ExportMap _exports;
 
+  /** The path to a temporary directory used by Dartdoc. */
+  String tmpPath;
+
   /**
    * This list contains the libraries sorted in by the library name.
    */
@@ -347,8 +355,8 @@ class Dartdoc {
   List<md.InlineSyntax> dartdocSyntaxes =
     [new md.CodeSyntax(r'\[:\s?((?:.|\n)*?)\s?:\]')];
 
-
   Dartdoc() {
+    tmpPath = new Directory('').createTempSync().path;
     dartdocResolver = (String name) => resolveNameReference(name,
         currentLibrary: _currentLibrary, currentType: _currentType,
         currentMember: _currentMember);
@@ -759,7 +767,6 @@ class Dartdoc {
     writeln(json.stringify(createNavigationInfo()));
     endFile();
   }
-
   /// Whether dartdoc is running from within the Dart SDK or the
   /// Dart source repository.
   bool get runningFromSdk =>
@@ -771,32 +778,43 @@ class Dartdoc {
 
   /// Gets the path to the dartdoc directory normalized for running in different
   /// places.
-  Path get normalizedDartdocPath => new Path(runningFromSdk ?
+  String get normalizedDartdocPath => runningFromSdk ?
       pathos.join(sdkDir, 'lib', '_internal', 'dartdoc') :
-      dartdocPath.toString());
-
-  /// The path to the temporary directory in the SDK.
-  // TODO(amouravski): Remove this and use a REAL temporary directory.
-  Path get tmpPath => normalizedDartdocPath.join(new Path('tmp'));
+      dartdocPath.toString();
 
   void docNavigationDart() {
-    var tmpDir = new Directory.fromPath(tmpPath);
+    var tmpDir = new Directory(tmpPath);
     if (!tmpDir.existsSync()) {
         tmpDir.createSync();
     }
     String jsonString = json.stringify(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
-    var filePath = tmpPath.join(new Path('nav.dart'));
-    writeString(new File.fromPath(filePath),
-        '''part of client;
+    var filePath = pathos.join(tmpPath, 'client.dart');
+    var clientDir = pathos.relative(
+        pathos.join(normalizedDartdocPath, 'lib', 'src', 'client'),
+        from: tmpPath);
+
+    writeString(new File(filePath),
+        '''library client;
+        import 'dart:html';
+        import 'dart:json';
+        import '${pathos.join(clientDir, 'client-shared.dart')}';
+        import '${pathos.join(clientDir, 'dropdown.dart')}';
+
+        main() {
+          setup();
+          setupSearch(json);
+        }
+
         get json => $dartString;''');
   }
 
   void cleanup() {
-    var tmpDir = new Directory.fromPath(tmpPath);
+    var tmpDir = new Directory(tmpPath);
     if (tmpDir.existsSync()) {
       tmpDir.deleteSync(recursive: true);
     }
+    tmpPath = null;
   }
 
   List createNavigationInfo() {
