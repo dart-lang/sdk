@@ -1308,12 +1308,20 @@ bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 
 
 bool Intrinsifier::Double_toInt(Assembler* assembler) {
+  Label fall_through;
+
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
+
+  // Explicit NaN check, since ARM gives an FPU exception if you try to
+  // convert NaN to an int.
+  __ vcmpd(D0, D0);
+  __ vmstat();
+  __ b(&fall_through, VS);
+
   __ vcvtid(S0, D0);
   __ vmovrs(R0, S0);
   // Overflow is signaled with minint.
-  Label fall_through;
   // Check for overflow and that it fits into Smi.
   __ CompareImmediate(R0, 0xC0000000);
   __ b(&fall_through, MI);

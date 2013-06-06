@@ -239,8 +239,8 @@ ASSEMBLER_TEST_GENERATE(DoubleSqrtNeg, assembler) {
 
 ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
   EXPECT(test != NULL);
-  typedef double (*DoubleFPOperations)();
-  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleFPOperations, test->entry()));
+  typedef int (*DoubleSqrtNeg)();
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(DoubleSqrtNeg, test->entry()));
 }
 
 
