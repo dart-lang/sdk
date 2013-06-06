@@ -1495,10 +1495,12 @@ class CodeEmitterTask extends CompilerTask {
         separator = ',';
         if (compiler.mirrorsEnabled) {
           var metadata = buildMetadataFunction(member);
-          fieldMetadata.add(metadata);
           if (metadata != null) {
             hasMetadata = true;
+          } else {
+            metadata = new jsAst.LiteralNull();
           }
+          fieldMetadata.add(metadata);
         }
         if (!needsAccessor) {
           // Emit field for constructor generation.
