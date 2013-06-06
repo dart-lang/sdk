@@ -140,7 +140,9 @@ Future compileScript(int mode, Path outputDir, Path libPath, String tmpPath) {
       new Path(dartPath), libPath,
       options: const <String>['--categories=Client,Server', '--minify'])
   .then((jsCode) {
-    writeString(new File(jsPath), jsCode);
+    if (jsCode != null) {
+      writeString(new File(jsPath), jsCode);
+    }
   });
 }
 
@@ -798,10 +800,8 @@ class Dartdoc {
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import '${pathos.join(clientDir, 'client-shared.dart')
-            .replaceAll('\\', '\\\\')}';
-        import '${pathos.join(clientDir, 'dropdown.dart')
-            .replaceAll('\\', '\\\\')}';
+        import '${pathos.join(clientDir, 'client-shared.dart')}';
+        import '${pathos.join(clientDir, 'dropdown.dart')}';
 
         main() {
           setup();
