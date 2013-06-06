@@ -575,8 +575,7 @@ class EqualsSpecializer extends RelationalSpecializer {
     if (right.isConstantNull() || instructionType.isPrimitiveOrNull()) {
       return newBuiltinVariant(instruction);
     }
-    TypeMask mask = instructionType.computeMask(compiler);
-    Selector selector = new TypedSelector(mask, instruction.selector);
+    Selector selector = instructionType.refine(instruction.selector, compiler);
     World world = compiler.world;
     JavaScriptBackend backend = compiler.backend;
     Iterable<Element> matches = world.allFunctions.filter(selector);
