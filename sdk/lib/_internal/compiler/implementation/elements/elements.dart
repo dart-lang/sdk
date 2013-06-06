@@ -253,6 +253,8 @@ abstract class Element implements Spannable {
   /// the generative constructor that the forwarding constructor points to
   /// (possibly via other forwarding constructors).
   FunctionElement get targetConstructor;
+
+  void diagnose(Element context, DiagnosticListener listener) {}
 }
 
 class Elements {
@@ -626,7 +628,7 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
 
   void addCompilationUnit(CompilationUnitElement element);
   void addTag(LibraryTag tag, DiagnosticListener listener);
-  void addImport(Element element, DiagnosticListener listener);
+  void addImport(Element element, Import import, DiagnosticListener listener);
 
   /// Record which element an import or export tag resolved to.
   /// (Belongs on builder object).

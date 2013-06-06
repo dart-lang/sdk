@@ -1094,6 +1094,13 @@ abstract class Compiler implements DiagnosticListener {
                   api.Diagnostic.WARNING);
   }
 
+  void reportInfo(Spannable node, MessageKind errorCode,
+                  [Map arguments = const {}]) {
+    reportMessage(spanFromSpannable(node),
+                  errorCode.error(arguments),
+                  api.Diagnostic.INFO);
+  }
+
   void reportMessage(SourceSpan span, Diagnostic message, api.Diagnostic kind) {
     // TODO(ahe): The names Diagnostic and api.Diagnostic are in
     // conflict. Fix it.

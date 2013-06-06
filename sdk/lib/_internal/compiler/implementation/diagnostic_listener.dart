@@ -23,6 +23,14 @@ abstract class DiagnosticListener {
   // TODO(ahe): Rename to reportError when that method has been removed.
   void reportErrorCode(Spannable node, MessageKind errorCode, [Map arguments]);
 
+  void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]);
+
   /// Returns true if a diagnostic was emitted.
   bool onDeprecatedFeature(Spannable span, String feature);
+
+  // TODO(ahe): We should not expose this here.  Perhaps a
+  // [SourceSpan] should implement [Spannable], and we should have a
+  // way to construct a [SourceSpan] from a [Spannable] and an
+  // [Element].
+  withCurrentElement(Element element, f());
 }

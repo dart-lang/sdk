@@ -1485,6 +1485,7 @@ class TypeResolver {
       AmbiguousElement ambiguous = element;
       type = reportFailureAndCreateType(
           ambiguous.messageKind, ambiguous.messageArguments);
+      ambiguous.diagnose(visitor.mapping.currentElement, compiler);
     } else if (!element.impliesType()) {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
@@ -1721,6 +1722,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         AmbiguousElement ambiguous = result;
         compiler.reportErrorCode(
             node, ambiguous.messageKind, ambiguous.messageArguments);
+        ambiguous.diagnose(enclosingElement, compiler);
         return new ErroneousElementX(ambiguous.messageKind,
                                      ambiguous.messageArguments,
                                      name, enclosingElement);

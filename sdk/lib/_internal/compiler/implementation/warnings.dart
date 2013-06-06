@@ -428,6 +428,15 @@ Error: "#{value}" is not a valid Symbol name because is not:
  * a qualified non-private identifier optionally followed by "=", or
  * a qualified non-private identifier followed by "." and a user-defined operator.''');
 
+  static const AMBIGUOUS_REEXPORT = const MessageKind(
+    'Info: "#{element}" is (re)exported by multiple libraries.');
+
+  static const AMBIGUOUS_LOCATION = const MessageKind(
+    'Info: "#{element}" is defined here.');
+
+  static const IMPORTED_HERE = const MessageKind(
+    'Info: "#{element}" is imported here.');
+
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 
