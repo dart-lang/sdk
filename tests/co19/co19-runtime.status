@@ -67,6 +67,8 @@ LibTest/core/List/List_A01_t02: Fail # TODO(vm-team): Please triage this failure
 LibTest/core/double/toStringAsExponential_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/int/toStringAsExponential_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 
+LibTest/core/Match/pattern_A01_t01: Fail # Issue 422
+LibTest/core/RegExp/allMatches_A01_t01: Fail # Issue 422
 
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
@@ -88,7 +90,6 @@ Language/11_Expressions/18_Assignment_A05_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A05_t05: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 405
-
 
 
 [ $compiler == none && $runtime == vm ]
@@ -498,9 +499,7 @@ LibTest/collection/Queue/Queue.from_A01_t01: Fail # Issue 400
 LibTest/collection/Queue/Queue.from_A01_t02: Fail # Issue 400
 LibTest/core/List/List.from_A01_t01: Fail # Issue 400
 LibTest/core/List/every_A01_t01: Fail # Issue 400
-LibTest/core/Match/pattern_A01_t01: Fail # Issue 400
 LibTest/core/Match/str_A01_t01: Fail # Issue 400
-LibTest/core/RegExp/allMatches_A01_t01: Fail # Issue 400
 
 LibTest/async/Completer/completeError_A03_t02: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Completer/complete_A02_t02: Fail # No AsyncError anymore. Issue 407

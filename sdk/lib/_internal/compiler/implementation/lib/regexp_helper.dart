@@ -138,7 +138,7 @@ class _AllMatchesIterator implements Iterator<Match> {
     // hidden global flag.
     if (_current != null && _current.start == _current.end) {
       // Advance implicit start-position if last match was empty.
-      JS("void", "#.lastIndex++", _re._nativeRegExp);
+      JS("void", "#.lastIndex++", regExpGetNative(_re));
     }
     _current = _re.firstMatch(_str);
     return _current != null;
