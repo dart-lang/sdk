@@ -291,14 +291,16 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
   }
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
-    _invoke(
-        fieldName, JSInvocationMirror.SETTER, 'set\$${n(fieldName)}', [arg]);
+    String reflectiveName = '${n(fieldName)}=';
+    String mangledName = JsMirrorSystem.reflectiveNames[reflectiveName];
+    _invoke(s(reflectiveName), JSInvocationMirror.SETTER, mangledName, [arg]);
     return reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
-    return _invoke(
-        fieldName, JSInvocationMirror.GETTER, 'get\$${n(fieldName)}', []);
+    String reflectiveName = n(fieldName);
+    String mangledName = JsMirrorSystem.reflectiveNames[reflectiveName];
+    return _invoke(fieldName, JSInvocationMirror.GETTER, mangledName, []);
   }
 
   delegate(Invocation invocation) {
