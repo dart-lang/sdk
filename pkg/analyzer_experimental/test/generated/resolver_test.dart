@@ -7363,6 +7363,11 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST, PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
   }
+  void test_import_packageWithLeadingDotDot() {
+    Source source = addSource(EngineTestCase.createSource(["import 'package:../other.dart';"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST, PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
+  }
   void test_import_referenceIntoLibDirectory() {
     Source source = addSource(EngineTestCase.createSource(["import '../lib/other.dart';"]));
     resolve(source);
@@ -7383,6 +7388,10 @@ class PubSuggestionCodeTest extends ResolverTestCase {
       _ut.test('test_import_packageWithDotDot', () {
         final __test = new PubSuggestionCodeTest();
         runJUnitTest(__test, __test.test_import_packageWithDotDot);
+      });
+      _ut.test('test_import_packageWithLeadingDotDot', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_packageWithLeadingDotDot);
       });
       _ut.test('test_import_referenceIntoLibDirectory', () {
         final __test = new PubSuggestionCodeTest();
@@ -7482,18 +7491,6 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  int get g { return 0; }", "  set g(int v) {}", "}", "class B extends A {", "  String get g { return ''; }", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
-    verify([source]);
-  }
-  void fail_redirectToMissingConstructor() {
-    Source source = addSource(EngineTestCase.createSource([]));
-    resolve(source);
-    assertErrors([StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
-    verify([source]);
-  }
-  void fail_redirectToNonClass() {
-    Source source = addSource(EngineTestCase.createSource([]));
-    resolve(source);
-    assertErrors([StaticWarningCode.REDIRECT_TO_NON_CLASS]);
     verify([source]);
   }
   void fail_undefinedGetter() {
@@ -8137,6 +8134,22 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE]);
     verify([source]);
   }
+  void test_redirectToMissingConstructor_named() {
+    Source source = addSource(EngineTestCase.createSource(["class A implements B{", "  A() {}", "}", "class B {", "  B() = A.name;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+  }
+  void test_redirectToMissingConstructor_unnamed() {
+    Source source = addSource(EngineTestCase.createSource(["class A implements B{", "  A.name() {}", "}", "class B {", "  B() = A;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR]);
+  }
+  void test_redirectToNonClass() {
+    Source source = addSource(EngineTestCase.createSource(["class B {", "  B() = A;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.REDIRECT_TO_NON_CLASS]);
+    verify([source]);
+  }
   void test_returnWithoutValue() {
     Source source = addSource(EngineTestCase.createSource(["int f() { return; }"]));
     resolve(source);
@@ -8621,6 +8634,18 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_redirectToInvalidReturnType', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_redirectToInvalidReturnType);
+      });
+      _ut.test('test_redirectToMissingConstructor_named', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_redirectToMissingConstructor_named);
+      });
+      _ut.test('test_redirectToMissingConstructor_unnamed', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_redirectToMissingConstructor_unnamed);
+      });
+      _ut.test('test_redirectToNonClass', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_redirectToNonClass);
       });
       _ut.test('test_returnWithoutValue', () {
         final __test = new StaticWarningCodeTest();

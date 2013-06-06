@@ -5798,6 +5798,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return typedInterfaces;
   }
   Type2 getLeastUpperBound(Type2 type) {
+    if (identical(type, this)) {
+      return this;
+    }
     Type2 dynamicType = DynamicTypeImpl.instance;
     if (identical(this, dynamicType) || identical(type, dynamicType)) {
       return dynamicType;

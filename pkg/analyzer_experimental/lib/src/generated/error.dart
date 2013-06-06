@@ -2128,14 +2128,14 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * current scope; if type does denote such a class <i>C</i> it is a static warning if the
    * referenced constructor (be it <i>type</i> or <i>type.id</i>) is not a constructor of <i>C</i>.
    */
-  static final StaticWarningCode REDIRECT_TO_MISSING_CONSTRUCTOR = new StaticWarningCode('REDIRECT_TO_MISSING_CONSTRUCTOR', 53, "");
+  static final StaticWarningCode REDIRECT_TO_MISSING_CONSTRUCTOR = new StaticWarningCode('REDIRECT_TO_MISSING_CONSTRUCTOR', 53, "The constructor '%s' could not be found in '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if type does not denote a class accessible in the
    * current scope; if type does denote such a class <i>C</i> it is a static warning if the
    * referenced constructor (be it <i>type</i> or <i>type.id</i>) is not a constructor of <i>C</i>.
    */
-  static final StaticWarningCode REDIRECT_TO_NON_CLASS = new StaticWarningCode('REDIRECT_TO_NON_CLASS', 54, "");
+  static final StaticWarningCode REDIRECT_TO_NON_CLASS = new StaticWarningCode('REDIRECT_TO_NON_CLASS', 54, "The name '%s' is not a type and cannot be used in a redirected constructor");
 
   /**
    * 13.11 Return: Let <i>f</i> be the function immediately enclosing a return statement of the form

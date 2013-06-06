@@ -300,10 +300,54 @@ abstract class XmlNode {
   }
 
   /**
+   * This method exists for debugging purposes only.
+   */
+  void appendIdentifier(JavaStringBuilder builder, XmlNode node) {
+    if (node is XmlTagNode) {
+      builder.append(((node as XmlTagNode)).tag.lexeme);
+    } else if (node is XmlAttributeNode) {
+      builder.append(((node as XmlAttributeNode)).name.lexeme);
+    } else {
+      builder.append("htmlUnit");
+    }
+  }
+
+  /**
+   * This method exists for debugging purposes only.
+   */
+  String buildRecursiveStructureMessage(XmlNode newParent) {
+    JavaStringBuilder builder = new JavaStringBuilder();
+    builder.append("Attempt to create recursive structure: ");
+    XmlNode current = newParent;
+    while (current != null) {
+      if (current != newParent) {
+        builder.append(" -> ");
+      }
+      if (identical(current, this)) {
+        builder.appendChar(0x2A);
+        appendIdentifier(builder, current);
+        builder.appendChar(0x2A);
+      } else {
+        appendIdentifier(builder, current);
+      }
+      current = current.parent;
+    }
+    return builder.toString();
+  }
+
+  /**
    * Set the parent of this node to the given node.
    * @param newParent the node that is to be made the parent of this node
    */
   void set parent(XmlNode newParent) {
+    XmlNode current = newParent;
+    while (current != null) {
+      if (identical(current, this)) {
+        AnalysisEngine.instance.logger.logError3(new IllegalArgumentException(buildRecursiveStructureMessage(newParent)));
+        return;
+      }
+      current = current.parent;
+    }
     _parent = newParent;
   }
 }

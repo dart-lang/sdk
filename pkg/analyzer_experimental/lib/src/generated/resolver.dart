@@ -8026,6 +8026,8 @@ class TypeResolverVisitor extends ScopedVisitor {
         reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
       } else if (isTypeNameInIsExpression(node)) {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, [typeName.name]);
+      } else if (isTypeNameTargetInRedirectedConstructor(node)) {
+        reportError(StaticWarningCode.REDIRECT_TO_NON_CLASS, typeName, [typeName.name]);
       } else {
         reportError(StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
       }
@@ -8313,6 +8315,24 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (parent2 is IsExpression) {
       IsExpression isExpression = parent2 as IsExpression;
       return identical(isExpression.type, typeName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is the target in a redirected constructor.
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is used as the type in a redirected constructor
+   */
+  bool isTypeNameTargetInRedirectedConstructor(TypeName typeName) {
+    ASTNode parent2 = typeName.parent;
+    if (parent2 is ConstructorName) {
+      ConstructorName constructorName = parent2 as ConstructorName;
+      parent2 = constructorName.parent;
+      if (parent2 is ConstructorDeclaration) {
+        ConstructorDeclaration constructorDeclaration = parent2 as ConstructorDeclaration;
+        return constructorName == constructorDeclaration.redirectedConstructor;
+      }
     }
     return false;
   }
@@ -9854,7 +9874,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       checkForMultipleSuperInitializers(node);
       checkForRecursiveConstructorRedirect(node);
       checkForRecursiveFactoryRedirect(node);
-      checkForRedirectToInvalidFunction(node);
+      checkForAllRedirectConstructorErrorCodes(node);
       checkForUndefinedConstructorInInitializerImplicit(node);
       checkForRedirectToNonConstConstructor(node);
       return super.visitConstructorDeclaration(node);
@@ -10377,6 +10397,48 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       problemReported = javaBooleanOr(problemReported, checkForMixinReferencesSuper(mixinName, mixinElement));
     }
     return problemReported;
+  }
+
+  /**
+   * This checks error related to the redirected constructors.
+   * @param node the constructor declaration to evaluate
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#REDIRECT_TO_INVALID_RETURN_TYPE
+   * @see StaticWarningCode#REDIRECT_TO_INVALID_FUNCTION_TYPE
+   * @see StaticWarningCode#REDIRECT_TO_MISSING_CONSTRUCTOR
+   */
+  bool checkForAllRedirectConstructorErrorCodes(ConstructorDeclaration node) {
+    ConstructorName redirectedNode = node.redirectedConstructor;
+    if (redirectedNode == null) {
+      return false;
+    }
+    ConstructorElement redirectedElement = redirectedNode.element;
+    if (redirectedElement == null) {
+      TypeName constructorTypeName = redirectedNode.type;
+      Type2 redirectedType = constructorTypeName.type;
+      if (redirectedType != null && redirectedType.element != null && redirectedType.element != DynamicElementImpl.instance) {
+        String constructorStrName = constructorTypeName.name.name;
+        if (redirectedNode.name != null) {
+          constructorStrName += ".${redirectedNode.name.name}";
+        }
+        _errorReporter.reportError2(StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR, redirectedNode, [constructorStrName, redirectedType.displayName]);
+        return true;
+      }
+      return false;
+    }
+    FunctionType redirectedType = redirectedElement.type;
+    Type2 redirectedReturnType = redirectedType.returnType;
+    FunctionType constructorType = node.element.type;
+    Type2 constructorReturnType = constructorType.returnType;
+    if (!redirectedReturnType.isSubtypeOf(constructorReturnType)) {
+      _errorReporter.reportError2(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE, redirectedNode, [redirectedReturnType, constructorReturnType]);
+      return true;
+    }
+    if (!redirectedType.isSubtypeOf(constructorType)) {
+      _errorReporter.reportError2(StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE, redirectedNode, [redirectedType, constructorType]);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -12144,38 +12206,6 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
   }
 
   /**
-   * This checks if the passed constructor declaration has redirected constructor with compatible
-   * function type.
-   * @param node the constructor declaration to evaluate
-   * @return {@code true} if and only if an error code is generated on the passed node
-   * @see StaticWarningCode#REDIRECT_TO_INVALID_RETURN_TYPE
-   * @see StaticWarningCode#REDIRECT_TO_INVALID_FUNCTION_TYPE
-   */
-  bool checkForRedirectToInvalidFunction(ConstructorDeclaration node) {
-    ConstructorName redirectedNode = node.redirectedConstructor;
-    if (redirectedNode == null) {
-      return false;
-    }
-    ConstructorElement redirectedElement = redirectedNode.element;
-    if (redirectedElement == null) {
-      return false;
-    }
-    FunctionType redirectedType = redirectedElement.type;
-    Type2 redirectedReturnType = redirectedType.returnType;
-    FunctionType constructorType = node.element.type;
-    Type2 constructorReturnType = constructorType.returnType;
-    if (!redirectedReturnType.isSubtypeOf(constructorReturnType)) {
-      _errorReporter.reportError2(StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE, redirectedNode, [redirectedReturnType, constructorReturnType]);
-      return true;
-    }
-    if (!redirectedType.isSubtypeOf(constructorType)) {
-      _errorReporter.reportError2(StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE, redirectedNode, [redirectedType, constructorType]);
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * This checks if the passed constructor declaration has redirected constructor and references
    * itself directly or indirectly. TODO(scheglov)
    * @param node the constructor declaration to evaluate
@@ -12662,7 +12692,7 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
    * @param path the path to be validated (not {@code null})
    * @return {@code true} if the import path contains ".."
    */
-  bool checkForPackageImportContainsDotDot(String path) => path.contains("/../");
+  bool checkForPackageImportContainsDotDot(String path) => path.startsWith("../") || path.contains("/../");
 
   /**
    * Answer the full name of the source associated with the compilation unit containing the given
