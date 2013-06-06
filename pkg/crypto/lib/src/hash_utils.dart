@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.crypto;
+part of crypto;
 
 // Constants.
 const _MASK_8 = 0xff;
@@ -33,7 +33,7 @@ abstract class _HashBase implements Hash {
   // Update the hasher with more data.
   add(List<int> data) {
     if (_digestCalled) {
-      throw new HashException(
+      throw new StateError(
           'Hash update method called after digest was retrieved');
     }
     _lengthInBytes += data.length;

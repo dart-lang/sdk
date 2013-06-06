@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.crypto;
+library crypto;
 
 import 'dart:math';
 
@@ -56,14 +56,14 @@ abstract class Hash {
 /**
  * SHA1 hash function implementation.
  */
-abstract class SHA1 implements Hash {
+class SHA1 implements Hash {
   factory SHA1() => new _SHA1();
 }
 
 /**
  * SHA256 hash function implementation.
  */
-abstract class SHA256 implements Hash {
+class SHA256 implements Hash {
   factory SHA256() => new _SHA256();
 }
 
@@ -73,7 +73,7 @@ abstract class SHA256 implements Hash {
  * WARNING: MD5 has known collisions and should only be used when
  * required for backwards compatibility.
  */
-abstract class MD5 implements Hash {
+class MD5 implements Hash {
   factory MD5() => new _MD5();
 }
 
@@ -84,7 +84,7 @@ abstract class MD5 implements Hash {
  * [close] methods are used to extract the message authentication code.
  */
 // TODO(floitsch): make Hash implement Sink, EventSink or similar.
-abstract class HMAC {
+class HMAC {
   /**
    * Create an [HMAC] object from a [Hash] and a key.
    */
@@ -122,7 +122,7 @@ abstract class HMAC {
 /**
  * Utility methods for working with message digests.
  */
-abstract class CryptoUtils {
+class CryptoUtils {
   /**
    * Convert a list of bytes (for example a message digest) into a hex
    * string.
@@ -169,14 +169,3 @@ abstract class CryptoUtils {
     return _CryptoUtils.base64StringToBytes(input, ignoreInvalidCharacters);
   }
 }
-
-/**
- * HashExceptions are thrown on invalid use of a Hash
- * object.
- */
-class HashException {
-  HashException(String this.message);
-  toString() => "HashException: $message";
-  String message;
-}
-
