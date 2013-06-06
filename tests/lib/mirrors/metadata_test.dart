@@ -17,6 +17,7 @@ const hest = 'hest';
 class MyClass {
   @hest @hest @symbol
   var x;
+  var y;
 
   @string @symbol @string
   myMethod() => 1;
@@ -61,6 +62,9 @@ main() {
 
   VariableMirror xMirror = myClassMirror.variables[const Symbol('x')];
   checkMetadata(xMirror, [hest, hest, symbol]);
+
+  VariableMirror yMirror = myClassMirror.variables[const Symbol('y')];
+  checkMetadata(yMirror, []);
 
   // TODO(ahe): Test local functions.
 }
