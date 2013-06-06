@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
 # Run pub.dart on the Dart VM. This script assumes the Dart SDK's directory
 # structure.
 
@@ -6,6 +10,34 @@
 # dart-sdk/bin has been symlinked to. On MacOS, readlink doesn't work
 # with this case.
 BIN_DIR="$(cd "${0%/*}" ; pwd -P)"
-DART_SDK="$(cd "${BIN_DIR%/*}" ; pwd -P)"
+SDK_DIR="$(cd "${BIN_DIR}/.." ; pwd -P)"
 
-exec "$BIN_DIR"/dart "$DART_SDK"/bin/snapshots/pub.dart.snapshot $@
+SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
+
+if test -f "$SNAPSHOT"; then
+  # We are running the snapshot in the built SDK.
+  DART="$BIN_DIR/dart"
+  exec "$DART" "--checked" "$SNAPSHOT" "$@"
+else
+  # We are running pub from source in the development repo.
+  if [ -z "$DART_CONFIGURATION" ];
+  then
+    DART_CONFIGURATION="ReleaseIA32"
+  fi
+
+  if [[ `uname` == 'Darwin' ]];
+  then
+    BUILD_DIR="$SDK_DIR/../xcodebuild/$DART_CONFIGURATION"
+  else
+    BUILD_DIR="$SDK_DIR/../out/$DART_CONFIGURATION"
+  fi
+
+  # Use the Dart binary in the built SDK so pub can find the version file next
+  # to it.
+  DART="$BUILD_DIR/dart-sdk/bin/dart"
+  PACKAGES_DIR="$BUILD_DIR/packages/"
+
+  PUB="$SDK_DIR/lib/_internal/pub/bin/pub.dart"
+
+  exec "$DART" "--checked" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
+fi
