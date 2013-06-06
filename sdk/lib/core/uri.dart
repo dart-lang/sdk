@@ -9,6 +9,7 @@ part of dart.core;
  */
 class Uri {
   int _port;
+  String _path;
 
   /**
    * Returns the scheme component.
@@ -63,7 +64,7 @@ class Uri {
    *
    * Returns the empty string if there is no path component.
    */
-  final String path;
+  String get path => _path;
 
   /**
    * Returns the query component. The returned query is encoded. To get
@@ -137,7 +138,9 @@ class Uri {
    * is percent-encoded and joined using the forward slash
    * separator. The percent-encoding of the path segments encodes all
    * characters except for the unreserved characters and the following
-   * list of characters: `!$&'()*+,;=:@`.
+   * list of characters: `!$&'()*+,;=:@`. If the other components
+   * calls for an absolute path a leading slash `/` is prepended if
+   * not already there.
    *
    * The query component is set through either [query] or
    * [queryParameters]. When [query] is used the provided string is
@@ -160,7 +163,6 @@ class Uri {
        Map<String, String> queryParameters,
        fragment: ""}) :
       scheme = _makeScheme(scheme),
-      path = _makePath(path, pathSegments),
       query = _makeQuery(query, queryParameters),
       fragment = _makeFragment(fragment) {
     // Perform scheme specific normalization.
@@ -171,23 +173,29 @@ class Uri {
     } else {
       _port = port;
     }
+    // Fill the path.
+    _path = _makePath(path, pathSegments);
   }
 
   /*
    * Returns the URI path split into its segments. Each of the
    * segments in the returned list have been decoded. If the path is
-   * empty the empty list will be returned.
+   * empty the empty list will be returned. A leading slash `/` does
+   * not affect the segments returned.
    *
-   * The returned list is immutable and will throw [StateError] on any
+   * The returned list is unmodifiable and will throw [UnsupportedError] on any
    * calls that would mutate it.
    */
   List<String> get pathSegments {
     if (_pathSegments == null) {
+      var pathToSplit = !path.isEmpty && path.codeUnitAt(0) == _SLASH
+                        ? path.substring(1)
+                        : path;
       _pathSegments = new UnmodifiableListView(
-        path == "" ? const<String>[]
-                   : path.split("/")
-                         .map(Uri.decodeComponent)
-                         .toList(growable: false));
+        pathToSplit == "" ? const<String>[]
+                          : pathToSplit.split("/")
+                                       .map(Uri.decodeComponent)
+                                       .toList(growable: false));
     }
     return _pathSegments;
   }
@@ -198,7 +206,7 @@ class Uri {
    * and value in the returned map have been decoded. If there is no
    * query the empty map will be returned.
    *
-   * The returned map is immutable and will throw [StateError] on any
+   * The returned map is unmodifiable and will throw [UnsupportedError] on any
    * calls that would mutate it.
    */
   Map<String, String> get queryParameters {
@@ -247,14 +255,22 @@ class Uri {
     return allLowercase ? scheme : scheme.toLowerCase();
   }
 
-  static String _makePath(String path, List<String> pathSegments) {
+  String _makePath(String path, List<String> pathSegments) {
     if (path == null && pathSegments == null) return "";
     if (path != null && pathSegments != null) {
       throw new ArgumentError('Both path and pathSegments specified');
     }
-    if (path != null) return _normalize(path);
-
-    return pathSegments.map((s) => _uriEncode(_pathCharTable, s)).join("/");
+    var result;
+    if (path != null) {
+      result = _normalize(path);
+    } else {
+      result = pathSegments.map((s) => _uriEncode(_pathCharTable, s)).join("/");
+    }
+    if ((hasAuthority || (scheme == "file")) &&
+        result.isNotEmpty && !result.startsWith("/")) {
+      return "/$result";
+    }
+    return result;
   }
 
   static String _makeQuery(String query, Map<String, String> queryParameters) {
@@ -705,6 +721,7 @@ class Uri {
   // Frequently used character codes.
   static const int _PERCENT = 0x25;
   static const int _PLUS = 0x2B;
+  static const int _SLASH = 0x2F;
   static const int _ZERO = 0x30;
   static const int _NINE = 0x39;
   static const int _COLON = 0x3A;

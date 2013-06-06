@@ -8,18 +8,35 @@ void testInvalidArguments() {
 }
 
 void testPath() {
-  test(s, uri) {
+  void test(s, uri) {
     Expect.equals(s, uri.toString());
     Expect.equals(uri, Uri.parse(s));
   }
 
+  test("http:", new Uri(scheme: "http"));
+  test("http://host/xxx", new Uri(scheme: "http", host: "host", path: "xxx"));
+  test("http://host/xxx", new Uri(scheme: "http", host: "host", path: "/xxx"));
+  test("http://host/xxx",
+       new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]));
+  test("http://host/xxx/yyy",
+       new Uri(scheme: "http", host: "host", path: "xxx/yyy"));
+  test("http://host/xxx/yyy",
+       new Uri(scheme: "http", host: "host", path: "/xxx/yyy"));
+  test("http://host/xxx/yyy",
+       new Uri(scheme: "http", host: "host", pathSegments: ["xxx", "yyy"]));
+
   test("urn:", new Uri(scheme: "urn"));
   test("urn:xxx", new Uri(scheme: "urn", path: "xxx"));
   test("urn:xxx:yyy", new Uri(scheme: "urn", path: "xxx:yyy"));
+
+  Expect.equals(3, new Uri(path: "xxx/yyy/zzz").pathSegments.length);
+  Expect.equals(3, new Uri(path: "/xxx/yyy/zzz").pathSegments.length);
+  Expect.equals(3, Uri.parse("http://host/xxx/yyy/zzz").pathSegments.length);
+  Expect.equals(3, Uri.parse("file:///xxx/yyy/zzz").pathSegments.length);
 }
 
 void testPathSegments() {
-  test(String path, List<String> segments) {
+  void test(String path, List<String> segments) {
     void check(uri) {
       Expect.equals(path, uri.path);
       Expect.equals(path, uri.toString());
@@ -72,11 +89,41 @@ void testPathSegments() {
   unencoded = unencoded.toString();
   test(encoded, [unencoded]);
   test(encoded + "/" + encoded, [unencoded, unencoded]);
+
+  Uri uri;
+  uri = new Uri(pathSegments: ["xxx", "yyy", "zzz"]);
+  Expect.equals(3, uri.pathSegments.length);
+  uri = new Uri(scheme: "http",
+                host: "host",
+                pathSegments: ["xxx", "yyy", "zzz"]);
+  Expect.equals(3, uri.pathSegments.length);
+  uri = new Uri(scheme: "file",
+                pathSegments: ["xxx", "yyy", "zzz"]);
+  Expect.equals(3, uri.pathSegments.length);
+}
+
+void testPathCompare() {
+  void test(Uri uri1, Uri uri2) {
+    Expect.equals(uri1, uri2);
+    Expect.equals(uri2, uri1);
+  }
+
+  test(new Uri(scheme: "http", host: "host", path: "xxx"),
+       new Uri(scheme: "http", host: "host", path: "/xxx"));
+  test(new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]),
+       new Uri(scheme: "http", host: "host", path: "/xxx"));
+  test(new Uri(scheme: "http", host: "host", pathSegments: ["xxx"]),
+       new Uri(scheme: "http", host: "host", path: "xxx"));
+  test(new Uri(scheme: "file", path: "xxx"),
+       new Uri(scheme: "file", path: "/xxx"));
+  test(new Uri(scheme: "file", pathSegments: ["xxx"]),
+       new Uri(scheme: "file", path: "/xxx"));
+  test(new Uri(scheme: "file", pathSegments: ["xxx"]),
+       new Uri(scheme: "file", path: "xxx"));
 }
 
 testPathSegmentsUnmodifiableList() {
-
-  test(list) {
+  void test(list) {
     bool isUnsupported(e) => e is UnsupportedError;
 
     Expect.equals("a", list[0]);
@@ -118,5 +165,6 @@ main() {
   testInvalidArguments();
   testPath();
   testPathSegments();
+  testPathCompare();
   testPathSegmentsUnmodifiableList();
 }
