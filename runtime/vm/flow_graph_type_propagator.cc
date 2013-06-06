@@ -14,6 +14,7 @@ DEFINE_FLAG(bool, trace_type_propagation, false,
             "Trace flow graph type propagation");
 
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, propagate_types);
 DECLARE_FLAG(bool, use_cha);
 
 
@@ -489,9 +490,11 @@ static bool IsKnownPrivateClass(const Class& type_class) {
 
 intptr_t CompileType::ToNullableCid() {
   if (cid_ == kIllegalCid) {
-    ASSERT(type_ != NULL);
-
-    if (type_->IsMalformed()) {
+    if (type_ == NULL) {
+      // Type propagation is turned off.
+      ASSERT(!FLAG_propagate_types);
+      return kDynamicCid;
+    } else if (type_->IsMalformed()) {
       cid_ = kDynamicCid;
     } else if (type_->IsVoidType()) {
       cid_ = kNullCid;
