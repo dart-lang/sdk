@@ -254,7 +254,7 @@ abstract class Element implements Spannable {
   /// (possibly via other forwarding constructors).
   FunctionElement get targetConstructor;
 
-  void diagnose(Element context, DiagnosticListener listener) {}
+  void diagnose(Element context, DiagnosticListener listener);
 }
 
 class Elements {

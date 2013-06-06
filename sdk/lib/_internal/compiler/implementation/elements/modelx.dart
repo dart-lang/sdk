@@ -276,6 +276,8 @@ class ElementX implements Element {
   bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 
   FunctionElement get targetConstructor => null;
+
+  void diagnose(Element context, DiagnosticListener listener) {}
 }
 
 /**
