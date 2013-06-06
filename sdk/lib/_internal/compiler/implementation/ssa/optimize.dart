@@ -1470,10 +1470,6 @@ class SsaConstructionFieldTypes
     // always added to the [allSetters] set, setting a field defined in a
     // superclass will get an inferred type of UNKNOWN.
     if (work.element.getEnclosingClass() == field.getEnclosingClass()) {
-      HType existing = currentFieldSetters[field];
-      if (existing != null) {
-        type = existing.union(type, backend.compiler);
-      }
       currentFieldSetters[field] = type;
     }
   }
