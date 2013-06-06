@@ -35,3 +35,10 @@ txt_layout_test: Skip # Might just go away.
 
 [ $arch == simmips ]
 *: Skip
+
+[ $compiler == dartanalyzer ]
+
+# Test issue 11123- Only static fields can be declared as 'const'
+dummy_compiler_test: fail, OK
+dart2js_test: fail, OK
+recursive_import_test: fail, OK

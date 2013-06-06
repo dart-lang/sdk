@@ -190,3 +190,23 @@ Language/11_Expressions/08_Throw_A05_t03: fail, OK
 # infinite loop
 Language/14_Types/4_Interface_Types_A11_t01: skip
 Language/14_Types/4_Interface_Types_A11_t02: skip
+
+# co19 issue #424, Uninitialized finals are warnings not errors
+Language/05_Variables/05_Variables_A05_t05: fail, OK
+Language/05_Variables/05_Variables_A05_t06: fail, OK
+Language/05_Variables/05_Variables_A05_t07: fail, OK
+Language/05_Variables/05_Variables_A05_t08: fail, OK
+Language/05_Variables/05_Variables_A05_t09: fail, OK
+Language/05_Variables/05_Variables_A05_t10: fail, OK
+Language/05_Variables/05_Variables_A07_t05: fail, OK
+Language/05_Variables/05_Variables_A07_t06: fail, OK
+Language/05_Variables/05_Variables_A07_t07: fail, OK
+Language/05_Variables/05_Variables_A07_t08: fail, OK
+Language/05_Variables/05_Variables_A08_t01: fail, OK
+Language/11_Expressions/11_Instance_Creation/2_Const_A01_t02: fail, OK
+
+# co19 issue #425, Only static fields can be declared as 'const'
+Language/05_Variables/05_Variables_A12_t01: fail, OK
+Language/05_Variables/05_Variables_A12_t06: fail, OK
+Language/05_Variables/05_Variables_A13_t01: fail, OK
+Language/07_Classes/07_Classes_A02_t11: fail, OK

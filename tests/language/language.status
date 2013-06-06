@@ -571,7 +571,6 @@ compile_time_constant_checked3_test/04: fail
 compile_time_constant_checked3_test/06: fail
 compile_time_constant_d_test: fail
 compile_time_constant_e_test: fail
-compile_time_constant_test/02: fail
 const_syntax_test/06: fail
 constructor2_negative_test: fail
 constructor3_negative_test: fail
@@ -618,14 +617,12 @@ getters_setters2_test/01: fail
 getters_setters_type_test/01: fail
 implicit_this_test/01: fail
 implicit_this_test/04: fail
-implicit_this_test/none: fail
 import_combinators_negative_test: fail
 inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
 instance_method2_negative_test: fail
 instance_method_negative_test: fail
 instantiate_type_variable_negative_test: fail
-interface_inherit_field_test: fail
 interface_static_non_final_fields_negative_test: fail
 interface_test/00: fail
 is_not_class2_negative_test: fail
@@ -776,6 +773,21 @@ class_literal_test/27: fail, OK
 class_literal_test/28: fail, OK
 class_literal_test/29: fail, OK
 class_literal_test/none: fail, OK
+
+# Test issue 11124, Uninitialized finals are warnings not errors
+field3a_negative_test: fail, OK
+const_syntax_test/01: fail, OK
+const_syntax_test/04: fail, OK
+const_syntax_test/02: fail, OK
+const_syntax_test/03: fail, OK
+final_syntax_test/01: fail, OK
+final_syntax_test/04: fail, OK
+final_syntax_test/02: fail, OK
+final_syntax_test/03: fail, OK
+
+# Test issue 11123, Only static fields can be declared as 'const'
+const_escape_frog_test: fail, OK
+compile_time_constant_test/none: fail, OK
 
 [ $compiler == dartanalyzer && $checked ]
 factory1_test/00: fail
