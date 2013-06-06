@@ -49,23 +49,6 @@ void Handles<kHandleSizeInWords,
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords,
              kHandlesPerChunk,
-             kOffsetOfRawPtr>::VisitUnvisitedScopedHandles(
-    ObjectPointerVisitor* visitor) {
-  HandlesBlock* block = &first_scoped_block_;
-  while (block != NULL && block != last_visited_block_) {
-    block->VisitUnvisitedObjectPointers(visitor);
-    block = block->next_block();
-  }
-  // We want this to point to first_scoped_block.next,
-  // Because pointers are still being added to first_scoped_block
-  // So it may be "partially new", and require a partial scan.
-  last_visited_block_ = first_scoped_block_.next_block();
-}
-
-
-template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
-void Handles<kHandleSizeInWords,
-             kHandlesPerChunk,
              kOffsetOfRawPtr>::Visit(HandleVisitor* visitor) {
   // Visit all zone handles.
   HandlesBlock* block = zone_blocks_;
@@ -332,24 +315,6 @@ void Handles<kHandleSizeInWords,
   for (intptr_t i = 0; i < next_handle_slot_; i += kHandleSizeInWords) {
     visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&data_[i + kOffsetOfRawPtr/kWordSize]));
-  }
-}
-
-
-template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
-void Handles<kHandleSizeInWords,
-             kHandlesPerChunk,
-             kOffsetOfRawPtr>::HandlesBlock::VisitUnvisitedObjectPointers(
-                 ObjectPointerVisitor* visitor) {
-  ASSERT(visitor != NULL);
-
-  // last_visited_handle_ picks up where we were last time,
-  // so there is nothing in the intialization position of this for loop.
-
-  while (last_visited_handle_ < next_handle_slot_) {
-    last_visited_handle_ += kHandleSizeInWords;
-    uword* addr = &data_[last_visited_handle_ + kOffsetOfRawPtr / kWordSize];
-    visitor->VisitPointer(reinterpret_cast<RawObject**>(addr));
   }
 }
 
