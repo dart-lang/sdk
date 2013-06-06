@@ -440,11 +440,103 @@ class InferenceWorkItem {
 class DynamicTypeMask implements TypeMask {
   const DynamicTypeMask();
 
-  bool operator==(other) {
-    return identical(this, other);
+  String toString() => 'sentinel type mask';
+
+  TypeMask nullable() {
+    throw new UnsupportedError("");
   }
 
-  String toString() => 'sentinel type mask';
+  TypeMask nonNullable() {
+    throw new UnsupportedError("");
+  }
+
+  TypeMask simplify(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool get isEmpty {
+    throw new UnsupportedError("");
+  }
+
+  bool get isNullable {
+    throw new UnsupportedError("");
+  }
+
+  bool get isExact {
+    throw new UnsupportedError("");
+  }
+
+  bool get isUnion {
+    throw new UnsupportedError("");
+  }
+
+  bool containsOnlyInt(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool containsOnlyDouble(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool containsOnlyNum(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool containsOnlyNull(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool containsOnlyBool(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool containsOnlyString(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool containsOnly(ClassElement element) {
+    throw new UnsupportedError("");
+  }
+
+  bool satisfies(ClassElement cls, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool contains(DartType type, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool containsAll(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  ClassElement singleClass(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  Iterable<ClassElement> containedClasses(Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  TypeMask union(TypeMask other, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  TypeMask intersection(TypeMask other, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool willHit(Selector selector, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  bool canHit(Element element, Selector selector, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
+
+  Element locateSingleElement(Selector selector, Compiler compiler) {
+    throw new UnsupportedError("");
+  }
 }
 
 /**
