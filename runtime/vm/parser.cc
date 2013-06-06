@@ -1435,15 +1435,15 @@ StaticCallNode* Parser::BuildInvocationMirrorAllocation(
   for (intptr_t i = 0; i < function_args.length(); i++) {
     AstNode* arg = function_args.NodeAt(i);
     if ((temp_for_last_arg != NULL) && (i == function_args.length() - 1)) {
-      args_array->AddElement(
-          new CommaNode(arg->token_pos(),
-                        new StoreLocalNode(arg->token_pos(),
+      LetNode* store_arg = new LetNode(arg->token_pos());
+      store_arg->AddNode(new StoreLocalNode(arg->token_pos(),
                                            temp_for_last_arg,
-                                           arg),
-                        new LoadLocalNode(arg->token_pos(),
-                                          temp_for_last_arg)));
+                                           arg));
+      store_arg->AddNode(new LoadLocalNode(arg->token_pos(),
+                                           temp_for_last_arg));
+      args_array->AddElement(store_arg);
     } else {
-      args_array->AddElement(function_args.NodeAt(i));
+      args_array->AddElement(arg);
     }
   }
   arguments->Add(args_array);
@@ -7081,12 +7081,8 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
 
 AstNode* Parser::ParseCascades(AstNode* expr) {
   intptr_t cascade_pos = TokenPos();
-  LetNode* result = new LetNode(cascade_pos);
-  LocalVariable* cascade_receiver_var = result->AddInitializer(expr);
-  // TODO(fschneider): Make LetNode support more than one body node and
-  // replace the SequenceNode here and CommaNode here and in postfix
-  // expressions.
-  SequenceNode* cascade = new SequenceNode(cascade_pos, NULL);
+  LetNode* cascade = new LetNode(cascade_pos);
+  LocalVariable* cascade_receiver_var = cascade->AddInitializer(expr);
   while (CurrentToken() == Token::kCASCADE) {
     cascade_pos = TokenPos();
     LoadLocalNode* load_cascade_receiver =
@@ -7120,7 +7116,7 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
                    "left hand side of '%s' is not assignable",
                    Token::Str(assignment_op));
         }
-        let_expr->set_body(assign_expr);
+        let_expr->AddNode(assign_expr);
         expr = let_expr;
       } else {
         right_expr =
@@ -7134,16 +7130,12 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
         expr = assign_expr;
       }
     }
-    cascade->Add(expr);
+    cascade->AddNode(expr);
   }
-  // The result is a pair of the (side effects of the) cascade sequence
-  // followed by the (value of the) receiver temp variable load.
-  CommaNode* body = new CommaNode(
-      cascade_pos,
-      cascade,
-      new LoadLocalNode(cascade_pos, cascade_receiver_var));
-  result->set_body(body);
-  return result;
+  // The result is an expression with the (side effects of the) cascade
+  // sequence followed by the (value of the) receiver temp variable load.
+  cascade->AddNode(new LoadLocalNode(cascade_pos, cascade_receiver_var));
+  return cascade;
 }
 
 
@@ -7188,7 +7180,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
                "left hand side of '%s' is not assignable",
                Token::Str(assignment_op));
     }
-    let_expr->set_body(assign_expr);
+    let_expr->AddNode(assign_expr);
     return let_expr;
   } else {
     AstNode* assigned_value =
@@ -7268,7 +7260,7 @@ AstNode* Parser::ParseUnaryExpr() {
         new LiteralNode(op_pos, Smi::ZoneHandle(Smi::New(1))));
     AstNode* store = CreateAssignmentNode(expr, add);
     ASSERT(store != NULL);
-    let_expr->set_body(store);
+    let_expr->AddNode(store);
     expr = let_expr;
   } else {
     expr = ParsePostfixExpr();
@@ -7764,10 +7756,8 @@ AstNode* Parser::ParsePostfixExpr() {
     ASSERT(store != NULL);
     // The result is a pair of the (side effects of the) store followed by
     // the (value of the) initial value temp variable load.
-    let_expr->set_body(new CommaNode(
-        postfix_expr_pos,
-        store,
-        new LoadLocalNode(postfix_expr_pos, temp)));
+    let_expr->AddNode(store);
+    let_expr->AddNode(new LoadLocalNode(postfix_expr_pos, temp));
     return let_expr;
   }
   return postfix_expr;

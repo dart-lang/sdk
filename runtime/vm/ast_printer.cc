@@ -38,11 +38,6 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node_sequence) {
 }
 
 
-void AstPrinter::VisitCommaNode(CommaNode* node) {
-  VisitGenericAstNode(node);
-}
-
-
 void AstPrinter::VisitCloneContextNode(CloneContextNode* node) {
   VisitGenericAstNode(node);
 }

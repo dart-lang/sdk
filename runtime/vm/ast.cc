@@ -77,7 +77,7 @@ LetNode::LetNode(intptr_t token_pos)
   : AstNode(token_pos),
     vars_(1),
     initializers_(1),
-    body_(NULL) { }
+    nodes_(1) { }
 
 
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
@@ -97,7 +97,9 @@ void LetNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < num_temps(); ++i) {
     initializers_[i]->Visit(visitor);
   }
-  body_->Visit(visitor);
+  for (intptr_t i = 0; i < nodes_.length(); ++i) {
+    nodes_[i]->Visit(visitor);
+  }
 }
 
 
