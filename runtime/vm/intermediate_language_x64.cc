@@ -23,6 +23,7 @@ namespace dart {
 
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register RAX.
@@ -2129,6 +2130,22 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+static void Emit53BitOverflowCheck(FlowGraphCompiler* compiler,
+                                   Label* overflow,
+                                   Register result) {
+  if (FLAG_throw_on_javascript_int_overflow) {
+    ASSERT(overflow != NULL);
+    __ movq(TMP, result);  // result is a tagged Smi.
+    // Bits 54...64 must be all 0 or all 1. (It would be bit 53, but result
+    // is tagged.)
+    __ shlq(result, Immediate(64 - 54));
+    __ sarq(result, Immediate(64 - 54));
+    __ cmpq(result, TMP);
+    __ j(NOT_EQUAL, overflow);  // 53-bit overflow.
+  }
+}
+
+
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
   const bool is_truncating = shift_left->is_truncating();
@@ -2168,6 +2185,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       // Shift for result now we know there is no overflow.
       __ shlq(left, Immediate(value));
     }
+    Emit53BitOverflowCheck(compiler, deopt, result);
     return;
   }
 
@@ -2197,6 +2215,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       __ SmiUntag(right);
       __ shlq(left, right);
     }
+    Emit53BitOverflowCheck(compiler, deopt, result);
     return;
   }
 
@@ -2247,6 +2266,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Shift for result now we know there is no overflow.
     __ shlq(left, right);
   }
+  Emit53BitOverflowCheck(compiler, deopt, result);
 }
 
 
@@ -2445,6 +2465,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
+    Emit53BitOverflowCheck(compiler, deopt, result);
     return;
   }  // locs()->in(1).IsConstant().
 
@@ -2487,6 +2508,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
+    Emit53BitOverflowCheck(compiler, deopt, result);
     return;
   }  // locs()->in(1).IsStackSlot().
 
@@ -2616,6 +2638,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       UNREACHABLE();
       break;
   }
+  Emit53BitOverflowCheck(compiler, deopt, result);
 }
 
 
@@ -3734,6 +3757,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, &do_call, Assembler::kNearJump);
   __ SmiTag(result);
+  Emit53BitOverflowCheck(compiler, &do_call, result);
   __ jmp(&done);
   __ Bind(&do_call);
   ASSERT(instance_call()->HasICData());
@@ -3779,6 +3803,7 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, deopt);
   __ SmiTag(result);
+  Emit53BitOverflowCheck(compiler, deopt, result);
 }
 
 

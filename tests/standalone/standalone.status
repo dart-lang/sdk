@@ -156,10 +156,6 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == x64 ]
-# TODO(zra): Add checks to x64 arithmetic.
-53bit_overflow_test: Fail
-
 [ $arch == arm ]
 *: Skip
 

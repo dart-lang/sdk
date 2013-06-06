@@ -30,6 +30,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 Definition::Definition()
     : range_(NULL),
@@ -968,6 +969,7 @@ bool EqualityCompareInstr::IsPolymorphic() const {
 
 
 bool BinarySmiOpInstr::CanDeoptimize() const {
+  if (FLAG_throw_on_javascript_int_overflow) return true;
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:

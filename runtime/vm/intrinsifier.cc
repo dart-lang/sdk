@@ -98,7 +98,6 @@ void Intrinsifier::InitializeState() {
   Function& func = Function::Handle(isolate);
   String& str = String::Handle(isolate);
   Error& error = Error::Handle(isolate);
-  bool set_intrinsic = true;
 
 #define SETUP_FUNCTION(class_name, function_name, destination, fp)             \
   if (strcmp(#class_name, "::") == 0) {                                        \
@@ -118,7 +117,7 @@ void Intrinsifier::InitializeState() {
     func = cls.LookupFunctionAllowPrivate(str);                                \
   }                                                                            \
   ASSERT(!func.IsNull());                                                      \
-  func.set_is_intrinsic(set_intrinsic);                                        \
+  func.set_is_intrinsic(true);
 
   // Set up all core lib functions that can be intrisified.
   lib = Library::CoreLibrary();
@@ -126,9 +125,9 @@ void Intrinsifier::InitializeState() {
 
   // Integer intrinsics are in the core library, but we don't want to intrinsify
   // if we are looking for javascript integer overflow.
-  set_intrinsic = !FLAG_throw_on_javascript_int_overflow;
-  CORE_INTEGER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
-  set_intrinsic = true;
+  if (!FLAG_throw_on_javascript_int_overflow) {
+    CORE_INTEGER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+  }
 
   // Set up all math lib functions that can be intrisified.
   lib = Library::MathLibrary();
@@ -160,7 +159,9 @@ bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
 
   if (lib.raw() == Library::CoreLibrary()) {
     CORE_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
-    CORE_INTEGER_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
+    if (!FLAG_throw_on_javascript_int_overflow) {
+      CORE_INTEGER_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
+    }
   } else if (lib.raw() == Library::TypedDataLibrary()) {
     TYPED_DATA_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
   } else if (lib.raw() == Library::MathLibrary()) {

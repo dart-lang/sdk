@@ -10496,10 +10496,11 @@ int Integer::CompareWith(const Integer& other) const {
 
 
 static void CheckFiftyThreeBitOverflow(const Integer &i) {
-  if (i.IsSmi()) return;
   // Always overflow if the value doesn't fit into an int64_t.
   int64_t value = 1ULL << 63;
-  if (i.IsMint()) {
+  if (i.IsSmi()) {
+    value = i.AsInt64Value();
+  } else if (i.IsMint()) {
     Mint& mint = Mint::Handle();
     mint ^= i.raw();
     value = mint.value();
