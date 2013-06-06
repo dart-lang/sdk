@@ -121,9 +121,6 @@ function externalError(e) {
   window.postMessage('unittest-suite-external-error', '*');
 }
 
-// If nobody intercepts the error, finish the test.
-window.addEventListener("error", externalError, false);
-
 document.addEventListener('readystatechange', function () {
   if (document.readyState != "loaded") return;
   // If 'startedDartTest' is not set, that means that the test did not have
