@@ -18,7 +18,8 @@ const Duration TIMEOUT4 = const Duration(milliseconds: 1500);
 // Some browsers (Firefox and IE so far) can trigger too early. So we add more
 // margin. We use identical(1, 1.0) as an easy way to know if the test is
 // compiled by dart2js.
-int get safetyMargin => identical(1, 1.0) ? 100 : 1;
+// NOTE: 15 ms seems to be resolution of Stopwatch implementation on Windows.
+int get safetyMargin => identical(1, 1.0) ? 100 : 15;
 
 main() {
   test("multiple timer test", () {
