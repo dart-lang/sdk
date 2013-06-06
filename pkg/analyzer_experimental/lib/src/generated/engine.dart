@@ -3411,6 +3411,7 @@ class CacheState implements Comparable<CacheState> {
   CacheState(this.name, this.ordinal) {
   }
   int compareTo(CacheState other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**

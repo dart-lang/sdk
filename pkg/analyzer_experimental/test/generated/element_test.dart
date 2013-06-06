@@ -2279,6 +2279,38 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionType s = ElementFactory.functionElement4("s", null, null, <String> ["name"], <ClassElement> [b]).type;
     JUnitTestCase.assertTrue(t.isSubtypeOf(s));
   }
+  void test_isSubtypeOf_normalAndPositionalArgs_1() {
+    ClassElement a = ElementFactory.classElement2("A", []);
+    FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [a]).type;
+    FunctionType s = ElementFactory.functionElement5("s", <ClassElement> [a]).type;
+    JUnitTestCase.assertTrue(t.isSubtypeOf(s));
+    JUnitTestCase.assertFalse(s.isSubtypeOf(t));
+  }
+  void test_isSubtypeOf_normalAndPositionalArgs_2() {
+    ClassElement a = ElementFactory.classElement2("A", []);
+    FunctionType t = ElementFactory.functionElement6("t", <ClassElement> [a], <ClassElement> [a]).type;
+    FunctionType s = ElementFactory.functionElement5("s", <ClassElement> [a]).type;
+    JUnitTestCase.assertTrue(t.isSubtypeOf(s));
+    JUnitTestCase.assertFalse(s.isSubtypeOf(t));
+  }
+  void test_isSubtypeOf_normalAndPositionalArgs_3() {
+    ClassElement a = ElementFactory.classElement2("A", []);
+    FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [a]).type;
+    FunctionType s = ElementFactory.functionElement("s").type;
+    JUnitTestCase.assertTrue(t.isSubtypeOf(s));
+    JUnitTestCase.assertFalse(s.isSubtypeOf(t));
+  }
+  void test_isSubtypeOf_normalAndPositionalArgs_4() {
+    ClassElement a = ElementFactory.classElement2("A", []);
+    ClassElement b = ElementFactory.classElement2("B", []);
+    ClassElement c = ElementFactory.classElement2("C", []);
+    ClassElement d = ElementFactory.classElement2("D", []);
+    ClassElement e = ElementFactory.classElement2("E", []);
+    FunctionType t = ElementFactory.functionElement6("t", <ClassElement> [a, b], <ClassElement> [c, d, e]).type;
+    FunctionType s = ElementFactory.functionElement6("s", <ClassElement> [a, b, c], <ClassElement> [d]).type;
+    JUnitTestCase.assertTrue(t.isSubtypeOf(s));
+    JUnitTestCase.assertFalse(s.isSubtypeOf(t));
+  }
   void test_isSubtypeOf_normalParameters_isAssignable() {
     ClassElement a = ElementFactory.classElement2("A", []);
     ClassElement b = ElementFactory.classElement("B", a.type, []);
@@ -2311,7 +2343,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     InterfaceType t = ElementFactory.object.type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(t));
   }
-  void test_isSubtypeOf_optionalParameters_isAssignable() {
+  void test_isSubtypeOf_positionalParameters_isAssignable() {
     ClassElement a = ElementFactory.classElement2("A", []);
     ClassElement b = ElementFactory.classElement("B", a.type, []);
     FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [a]).type;
@@ -2319,19 +2351,19 @@ class FunctionTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(t.isSubtypeOf(s));
     JUnitTestCase.assertTrue(s.isSubtypeOf(t));
   }
-  void test_isSubtypeOf_optionalParameters_isNotAssignable() {
+  void test_isSubtypeOf_positionalParameters_isNotAssignable() {
     FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [ElementFactory.classElement2("A", [])]).type;
     FunctionType s = ElementFactory.functionElement6("s", null, <ClassElement> [ElementFactory.classElement2("B", [])]).type;
     JUnitTestCase.assertFalse(t.isSubtypeOf(s));
   }
-  void test_isSubtypeOf_optionalParameters_sHasMoreParams() {
+  void test_isSubtypeOf_positionalParameters_sHasMoreParams() {
     ClassElement a = ElementFactory.classElement2("A", []);
     ClassElement b = ElementFactory.classElement("B", a.type, []);
     FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [a]).type;
     FunctionType s = ElementFactory.functionElement6("s", null, <ClassElement> [b, b]).type;
     JUnitTestCase.assertFalse(t.isSubtypeOf(s));
   }
-  void test_isSubtypeOf_optionalParameters_tHasMoreParams() {
+  void test_isSubtypeOf_positionalParameters_tHasMoreParams() {
     ClassElement a = ElementFactory.classElement2("A", []);
     ClassElement b = ElementFactory.classElement("B", a.type, []);
     FunctionType t = ElementFactory.functionElement6("t", null, <ClassElement> [a, a]).type;
@@ -2339,7 +2371,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertTrue(t.isSubtypeOf(s));
   }
   void test_isSubtypeOf_returnType_sIsVoid() {
-    FunctionType t = ElementFactory.functionElement2("t", ElementFactory.classElement2("A", [])).type;
+    FunctionType t = ElementFactory.functionElement("t").type;
     FunctionType s = ElementFactory.functionElement("s").type;
     JUnitTestCase.assertTrue(VoidTypeImpl.instance == s.returnType);
     JUnitTestCase.assertTrue(t.isSubtypeOf(s));
@@ -2361,13 +2393,6 @@ class FunctionTypeImplTest extends EngineTestCase {
     ClassElement a = ElementFactory.classElement2("A", []);
     FunctionType t = ElementFactory.functionElement5("t", <ClassElement> [a]).type;
     FunctionType s = ElementFactory.functionElement7("s", null, <String> ["name"], <ClassElement> [a]).type;
-    JUnitTestCase.assertFalse(t.isSubtypeOf(s));
-    JUnitTestCase.assertFalse(s.isSubtypeOf(t));
-  }
-  void test_isSubtypeOf_wrongFunctionType_normal_optional() {
-    ClassElement a = ElementFactory.classElement2("A", []);
-    FunctionType t = ElementFactory.functionElement5("t", <ClassElement> [a]).type;
-    FunctionType s = ElementFactory.functionElement6("s", null, <ClassElement> [a]).type;
     JUnitTestCase.assertFalse(t.isSubtypeOf(s));
     JUnitTestCase.assertFalse(s.isSubtypeOf(t));
   }
@@ -2544,6 +2569,22 @@ class FunctionTypeImplTest extends EngineTestCase {
         final __test = new FunctionTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_namedParameters_tHasMoreParams);
       });
+      _ut.test('test_isSubtypeOf_normalAndPositionalArgs_1', () {
+        final __test = new FunctionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_normalAndPositionalArgs_1);
+      });
+      _ut.test('test_isSubtypeOf_normalAndPositionalArgs_2', () {
+        final __test = new FunctionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_normalAndPositionalArgs_2);
+      });
+      _ut.test('test_isSubtypeOf_normalAndPositionalArgs_3', () {
+        final __test = new FunctionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_normalAndPositionalArgs_3);
+      });
+      _ut.test('test_isSubtypeOf_normalAndPositionalArgs_4', () {
+        final __test = new FunctionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_normalAndPositionalArgs_4);
+      });
       _ut.test('test_isSubtypeOf_normalParameters_isAssignable', () {
         final __test = new FunctionTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_normalParameters_isAssignable);
@@ -2560,21 +2601,21 @@ class FunctionTypeImplTest extends EngineTestCase {
         final __test = new FunctionTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_normalParameters_tHasMoreParams);
       });
-      _ut.test('test_isSubtypeOf_optionalParameters_isAssignable', () {
+      _ut.test('test_isSubtypeOf_positionalParameters_isAssignable', () {
         final __test = new FunctionTypeImplTest();
-        runJUnitTest(__test, __test.test_isSubtypeOf_optionalParameters_isAssignable);
+        runJUnitTest(__test, __test.test_isSubtypeOf_positionalParameters_isAssignable);
       });
-      _ut.test('test_isSubtypeOf_optionalParameters_isNotAssignable', () {
+      _ut.test('test_isSubtypeOf_positionalParameters_isNotAssignable', () {
         final __test = new FunctionTypeImplTest();
-        runJUnitTest(__test, __test.test_isSubtypeOf_optionalParameters_isNotAssignable);
+        runJUnitTest(__test, __test.test_isSubtypeOf_positionalParameters_isNotAssignable);
       });
-      _ut.test('test_isSubtypeOf_optionalParameters_sHasMoreParams', () {
+      _ut.test('test_isSubtypeOf_positionalParameters_sHasMoreParams', () {
         final __test = new FunctionTypeImplTest();
-        runJUnitTest(__test, __test.test_isSubtypeOf_optionalParameters_sHasMoreParams);
+        runJUnitTest(__test, __test.test_isSubtypeOf_positionalParameters_sHasMoreParams);
       });
-      _ut.test('test_isSubtypeOf_optionalParameters_tHasMoreParams', () {
+      _ut.test('test_isSubtypeOf_positionalParameters_tHasMoreParams', () {
         final __test = new FunctionTypeImplTest();
-        runJUnitTest(__test, __test.test_isSubtypeOf_optionalParameters_tHasMoreParams);
+        runJUnitTest(__test, __test.test_isSubtypeOf_positionalParameters_tHasMoreParams);
       });
       _ut.test('test_isSubtypeOf_returnType_sIsVoid', () {
         final __test = new FunctionTypeImplTest();
@@ -2591,10 +2632,6 @@ class FunctionTypeImplTest extends EngineTestCase {
       _ut.test('test_isSubtypeOf_wrongFunctionType_normal_named', () {
         final __test = new FunctionTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_wrongFunctionType_normal_named);
-      });
-      _ut.test('test_isSubtypeOf_wrongFunctionType_normal_optional', () {
-        final __test = new FunctionTypeImplTest();
-        runJUnitTest(__test, __test.test_isSubtypeOf_wrongFunctionType_normal_optional);
       });
       _ut.test('test_isSubtypeOf_wrongFunctionType_optional_named', () {
         final __test = new FunctionTypeImplTest();

@@ -1,0 +1,288 @@
+# Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+[ $compiler == dartanalyzer ]
+abstract_factory_constructor_test/00: fail
+assign_instance_method_negative_test: fail
+assign_static_type_test/06: fail
+bad_named_parameters2_test: fail
+bad_named_parameters_test: fail
+bad_override_test/01: fail
+bad_override_test/02: fail
+bad_override_test/03: fail
+bad_override_test/04: fail
+bad_override_test/05: fail
+black_listed_test/11: fail
+body_less_constructor_wrong_arg_negative_test: fail
+built_in_identifier_prefix_test: fail
+call_constructor_on_unresolvable_class_test/01: fail
+call_constructor_on_unresolvable_class_test/02: fail
+call_constructor_on_unresolvable_class_test/03: fail
+call_constructor_on_unresolvable_class_test/07: fail
+call_nonexistent_static_test/04: fail
+call_nonexistent_static_test/06: fail
+call_nonexistent_static_test/07: fail
+call_nonexistent_static_test/09: fail
+call_nonexistent_static_test/10: fail
+call_through_getter_test: fail
+callable_test/none: fail
+cast_test/04: fail
+cast_test/05: fail
+class_cycle_test/03: fail
+closure_call_wrong_argument_count_negative_test: fail
+compile_time_constant10_test/none: fail
+compile_time_constant8_test: fail
+compile_time_constant_b_test: fail
+compile_time_constant_c_test/01: fail
+compile_time_constant_c_test/02: fail
+compile_time_constant_checked2_test/02: fail
+compile_time_constant_checked2_test/03: fail
+compile_time_constant_checked2_test/04: fail
+compile_time_constant_checked2_test/06: fail
+compile_time_constant_checked3_test/02: fail
+compile_time_constant_checked3_test/03: fail
+compile_time_constant_checked3_test/04: fail
+compile_time_constant_checked3_test/06: fail
+compile_time_constant_d_test: fail
+compile_time_constant_e_test: fail
+const_syntax_test/06: fail
+constructor2_negative_test: fail
+constructor3_negative_test: fail
+constructor_call_wrong_argument_count_negative_test: fail
+constructor_negative_test: fail
+constructor_return_with_arrow_negative_test: fail
+constructor_return_with_init_and_arrow_negative_test: fail
+cyclic_type_variable_test/01: fail
+cyclic_type_variable_test/02: fail
+cyclic_type_variable_test/03: fail
+cyclic_type_variable_test/04: fail
+default_factory2_test/01: fail
+default_implementation2_test: fail
+dynamic2_test/00: fail
+dynamic_field_test: fail
+export_cyclic_test: fail
+f_bounded_quantification_test/01: fail
+f_bounded_quantification_test/02: fail
+factory2_test: fail
+factory5_test/00: fail
+factory_implementation_test/none: fail
+factory_redirection2_test/01: fail
+fauxverride_test/03: fail
+fauxverride_test/05: fail
+field_method4_negative_test: fail
+field_override_test/01: fail
+final_for_in_variable_test/01: fail
+final_param_negative_test: fail
+final_var_negative_test: fail
+final_variable_assignment_test/01: fail
+final_variable_assignment_test/02: fail
+final_variable_assignment_test/03: fail
+final_variable_assignment_test/04: fail
+first_class_types_constants_test: fail
+for_in2_test: fail
+function_type_alias5_test/00: fail
+function_type_alias5_test/01: fail
+function_type_alias5_test/02: fail
+getter_no_setter2_test/00: fail
+getter_no_setter2_test/03: fail
+getter_no_setter_test/00: fail
+getter_no_setter_test/01: fail
+getters_setters2_test/01: fail
+getters_setters_type_test/01: fail
+implicit_this_test/01: fail
+implicit_this_test/04: fail
+import_combinators_negative_test: fail
+inst_field_initializer1_negative_test: fail
+instance_call_wrong_argument_count_negative_test: fail
+instance_method2_negative_test: fail
+instance_method_negative_test: fail
+instantiate_type_variable_negative_test: fail
+interface_static_non_final_fields_negative_test: fail
+interface_test/00: fail
+is_not_class2_negative_test: fail
+library_juxtaposition_test: fail
+licm_test: fail
+list_literal1_negative_test: fail
+list_literal_syntax_test/01: fail
+list_literal_syntax_test/02: fail
+list_literal_syntax_test/03: fail
+map_literal1_negative_test: fail
+map_literal3_test: fail
+method_override2_test/03: fail
+mixin_illegal_constructor_test/13: fail
+mixin_illegal_constructor_test/14: fail
+mixin_illegal_constructor_test/15: fail
+mixin_illegal_constructor_test/16: fail
+mixin_illegal_cycles_test/02: fail
+mixin_illegal_cycles_test/03: fail
+mixin_illegal_cycles_test/04: fail
+mixin_illegal_cycles_test/06: fail
+mixin_illegal_syntax_test/13: fail
+mixin_type_parameters_errors_test/01: fail
+mixin_type_parameters_errors_test/02: fail
+mixin_type_parameters_errors_test/03: fail
+mixin_type_parameters_errors_test/04: fail
+mixin_type_parameters_errors_test/05: fail
+named_parameters2_test: fail
+named_parameters_aggregated_test/03: fail
+named_parameters_aggregated_test/05: fail
+new_expression_type_args_test/00: fail
+new_expression_type_args_test/01: fail
+new_expression_type_args_test/02: fail
+no_such_method_negative_test: fail
+non_const_super_negative_test: fail
+number_identifier_negative_test: fail
+override_field_method1_negative_test: fail
+override_field_method2_negative_test: fail
+override_field_method4_negative_test: fail
+override_field_method5_negative_test: fail
+override_field_test/01: fail
+override_field_test/02: fail
+override_field_test/03: fail
+override_method_with_field_test/01: fail
+override_method_with_field_test/02: fail
+prefix10_negative_test: fail
+prefix11_negative_test: fail
+prefix12_negative_test: fail
+prefix1_negative_test: fail
+prefix22_test: fail
+prefix23_test: fail
+prefix2_negative_test: fail
+prefix4_negative_test: fail
+prefix5_negative_test: fail
+prefix6_negative_test: fail
+prefix8_negative_test: fail
+prefix9_negative_test: fail
+private_member1_negative_test: fail
+private_member2_negative_test: fail
+private_member3_negative_test: fail
+pseudo_kw_illegal_test/14: fail
+pseudo_kw_test: fail
+redirecting_factory_infinite_steps_test/01: fail
+redirecting_factory_infinite_steps_test/02: fail
+scope_negative_test: fail
+setter3_test/01: fail
+setter3_test/02: fail
+static_call_wrong_argument_count_negative_test: fail
+static_field3_test/01: fail
+static_field3_test/02: fail
+static_field3_test/04: fail
+static_field_test/01: fail
+static_field_test/02: fail
+static_field_test/03: fail
+static_final_field2_negative_test: fail
+static_final_field_negative_test: fail
+syntax_test/28: fail
+syntax_test/29: fail
+syntax_test/30: fail
+syntax_test/31: fail
+syntax_test/32: fail
+syntax_test/33: fail
+ternary_test: fail
+throw7_negative_test: fail
+type_error_test: fail
+type_parameter_test/01: fail
+type_parameter_test/02: fail
+type_parameter_test/03: fail
+type_parameter_test/04: fail
+type_variable_bounds2_test/00: fail
+type_variable_bounds2_test/01: fail
+type_variable_bounds2_test/02: fail
+type_variable_bounds2_test/03: fail
+type_variable_bounds2_test/04: fail
+type_variable_bounds2_test/06: fail
+type_variable_bounds_test/00: fail
+type_variable_bounds_test/01: fail
+type_variable_bounds_test/02: fail
+type_variable_bounds_test/03: fail
+type_variable_bounds_test/04: fail
+type_variable_bounds_test/06: fail
+type_variable_bounds_test/07: fail
+type_variable_bounds_test/09: fail
+type_variable_identifier_expression_negative_test: fail
+type_variable_static_context_negative_test: fail
+typed_equality_test: fail
+unary2_test: fail
+unary_test: fail
+unresolved_in_factory_negative_test: fail
+unresolved_top_level_method_negative_test: fail
+unresolved_top_level_var_negative_test: fail
+
+# test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
+block_scope_test: fail, OK
+lazy_static3_test: fail, OK
+
+# test issue 10752, there are 'implicit' scopes for 'if', 'while' and 'do-while'
+implicit_scope_test: fail, OK
+
+# test issue 10889, "throw" requires expression, "rethrow" should be used instead
+execute_finally10_test: fail, OK
+execute_finally11_test: fail, OK
+final_used_in_try_test: fail, OK
+full_stacktrace2_test: fail, OK
+stack_trace_test: fail, OK
+throw3_test: fail, OK
+try_catch3_test: fail, OK
+
+# test issue 10890; on-catch UnknownType is a static warning, not error
+try_catch_on_syntax_test/01: fail, OK
+try_catch_on_syntax_test/07: fail, OK
+try_catch_syntax_test/08: fail, OK
+
+# test issue 10899; it is static warning, not error, to call methods of class literal
+class_literal_test/02: fail, OK
+class_literal_test/05: fail, OK
+class_literal_test/07: fail, OK
+class_literal_test/10: fail, OK
+class_literal_test/11: fail, OK
+class_literal_test/12: fail, OK
+class_literal_test/14: fail, OK
+class_literal_test/17: fail, OK
+class_literal_test/18: fail, OK
+class_literal_test/19: fail, OK
+class_literal_test/22: fail, OK
+class_literal_test/23: fail, OK
+class_literal_test/24: fail, OK
+class_literal_test/27: fail, OK
+class_literal_test/28: fail, OK
+class_literal_test/29: fail, OK
+class_literal_test/none: fail, OK
+
+# Test issue 11124, Uninitialized finals are warnings not errors
+field3a_negative_test: fail, OK
+const_syntax_test/01: fail, OK
+const_syntax_test/04: fail, OK
+const_syntax_test/02: fail, OK
+const_syntax_test/03: fail, OK
+final_syntax_test/01: fail, OK
+final_syntax_test/04: fail, OK
+final_syntax_test/02: fail, OK
+final_syntax_test/03: fail, OK
+
+# Test issue 11123, Only static fields can be declared as 'const'
+const_escape_frog_test: fail, OK
+compile_time_constant_test/none: fail, OK
+
+[ $compiler == dartanalyzer && $checked ]
+factory1_test/00: fail
+factory1_test/01: fail
+field_type_check2_test/01: fail
+factory_implementation_test/00: fail
+factory_redirection_test/08: fail
+factory_redirection_test/09: fail
+factory_redirection_test/10: fail
+factory_redirection_test/11: fail
+factory_redirection_test/12: fail
+factory_redirection_test/13: fail
+factory_redirection_test/14: fail
+getters_setters2_test/03: fail
+type_variable_bounds3_test/00: fail
+type_variable_bounds2_test/05: fail
+type_variable_scope_test/00: fail
+type_variable_scope_test/01: fail
+type_variable_scope_test/02: fail
+type_variable_scope_test/03: fail
+type_variable_scope_test/04: fail
+type_variable_scope_test/05: fail
+

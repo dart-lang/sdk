@@ -234,7 +234,7 @@ class PackageUriResolver extends UriResolver {
         AnalysisEngine.instance.logger.logError2("Canonical failed: ${pkgDir}", e);
       }
     }
-    return new JavaFile.relative(pkgDir, relPath.replaceAll('/', JavaFile.separatorChar));
+    return new JavaFile.relative(pkgDir, relPath.replaceAll('/', new String.fromCharCode(JavaFile.separatorChar)));
   }
 }
 /**

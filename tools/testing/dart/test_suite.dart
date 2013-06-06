@@ -478,7 +478,8 @@ class StandardTestSuite extends TestSuite {
 
     return new StandardTestSuite(configuration,
         name, directory,
-        ['$directory/$name.status', '$directory/${name}_dart2js.status'],
+        ['$directory/$name.status', '$directory/${name}_dart2js.status',
+         '$directory/${name}_analyzer.status', '$directory/${name}_analyzer2.status'],
         isTestFilePredicate: (filename) => filename.endsWith('_test.dart'),
         recursive: true);
   }
@@ -564,9 +565,11 @@ class StandardTestSuite extends TestSuite {
     }
 
     for (var statusFilePath in statusFilePaths) {
-      // [forDirectory] adds name_dart2js.status for all tests suites. Use it
+      // [forDirectory] adds name_$compiler.status for all tests suites. Use it
       // if it exists, but otherwise skip it and don't fail.
-      if (statusFilePath.endsWith('_dart2js.status')) {
+      if (statusFilePath.endsWith('_dart2js.status') ||
+          statusFilePath.endsWith('_analyzer.status') ||
+          statusFilePath.endsWith('_analyzer2.status')) {
         var file = new File.fromPath(dartDir.append(statusFilePath));
         if (!file.existsSync()) {
           filesRead++;

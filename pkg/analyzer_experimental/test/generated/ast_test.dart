@@ -182,6 +182,35 @@ class IndexExpressionTest extends EngineTestCase {
     });
   }
 }
+class VariableDeclarationTest extends ParserTestCase {
+  void test_getDocumentationComment_onGrandParent() {
+    VariableDeclaration varDecl = ASTFactory.variableDeclaration("a");
+    TopLevelVariableDeclaration decl = ASTFactory.topLevelVariableDeclaration2(Keyword.VAR, [varDecl]);
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    JUnitTestCase.assertNull(varDecl.documentationComment);
+    decl.documentationComment = comment;
+    JUnitTestCase.assertNotNull(varDecl.documentationComment);
+    JUnitTestCase.assertNotNull(decl.documentationComment);
+  }
+  void test_getDocumentationComment_onNode() {
+    VariableDeclaration decl = ASTFactory.variableDeclaration("a");
+    Comment comment = Comment.createDocumentationComment(new List<Token>(0));
+    decl.documentationComment = comment;
+    JUnitTestCase.assertNotNull(decl.documentationComment);
+  }
+  static dartSuite() {
+    _ut.group('VariableDeclarationTest', () {
+      _ut.test('test_getDocumentationComment_onGrandParent', () {
+        final __test = new VariableDeclarationTest();
+        runJUnitTest(__test, __test.test_getDocumentationComment_onGrandParent);
+      });
+      _ut.test('test_getDocumentationComment_onNode', () {
+        final __test = new VariableDeclarationTest();
+        runJUnitTest(__test, __test.test_getDocumentationComment_onNode);
+      });
+    });
+  }
+}
 /**
  * The class {@code ASTFactory} defines utility methods that can be used to create AST nodes. The
  * nodes that are created are complete in the sense that all of the tokens that would have been
@@ -679,6 +708,7 @@ class AssignmentKind implements Comparable<AssignmentKind> {
   AssignmentKind(this.name, this.ordinal) {
   }
   int compareTo(AssignmentKind other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 class WrapperKind implements Comparable<WrapperKind> {
@@ -697,6 +727,7 @@ class WrapperKind implements Comparable<WrapperKind> {
   WrapperKind(this.name, this.ordinal) {
   }
   int compareTo(WrapperKind other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 class BreadthFirstVisitorTest extends ParserTestCase {
@@ -2910,4 +2941,5 @@ main() {
   BreadthFirstVisitorTest.dartSuite();
   IndexExpressionTest.dartSuite();
   SimpleIdentifierTest.dartSuite();
+  VariableDeclarationTest.dartSuite();
 }

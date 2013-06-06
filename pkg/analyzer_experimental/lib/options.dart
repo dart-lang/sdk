@@ -86,6 +86,7 @@ class CommandLineOptions {
   }
 
   static CommandLineOptions _parse(List<String> args) {
+    args = args.expand((String arg) => arg.split('=')).toList();
     var parser = new _CommandLineParser()
       ..addFlag('batch', abbr: 'b', help: 'Run in batch mode',
           defaultsTo: false, negatable: false)
@@ -200,6 +201,7 @@ class _CommandLineParser {
   void addOption(String name, {String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, String defaultsTo,
       void callback(value), bool allowMultiple: false}) {
+    _knownFlags.add(name);
     _parser.addOption(name, abbr: abbr, help: help, allowed: allowed,
         allowedHelp: allowedHelp, defaultsTo: defaultsTo, callback: callback,
         allowMultiple: allowMultiple);
@@ -224,7 +226,7 @@ class _CommandLineParser {
   List<String> _filterUnknowns(args) {
 
     // Only filter args if the ignore flag is specified.
-    if (!args.contains('--ignore_unrecognized_flags')) {
+    if (!args.contains('--ignore-unrecognized-flags')) {
       return args;
     }
 
@@ -238,6 +240,7 @@ class _CommandLineParser {
       var arg = args[i];
       if (arg.startsWith('--') && arg.length > 2) {
         if (!_knownFlags.contains(arg.substring(2))) {
+          print('remove: $arg');
           //"eat" params by advancing to the next flag/option
           i = _getNextFlagIndex(args, i);
         } else {
@@ -248,6 +251,7 @@ class _CommandLineParser {
       }
     }
 
+    print(filtered);
     return filtered;
   }
 

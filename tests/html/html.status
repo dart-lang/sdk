@@ -375,3 +375,6 @@ shadow_dom_layout_test: Fail, OK   # Test cannot run under CSP restrictions.
 
 [ $compiler == dartanalyzer ]
 path_observer_test: Fail
+
+[ $compiler == dart2analyzer ]
+path_observer_test: Fail

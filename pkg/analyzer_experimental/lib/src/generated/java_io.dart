@@ -63,7 +63,11 @@ class JavaFile {
     this._path = new Path(path);
   }
   JavaFile.relative(JavaFile base, String child) {
-    this._path = base._path.join(new Path(child));
+    if (child.isEmpty) {
+      this._path = base._path;
+    } else {
+      this._path = base._path.join(new Path(child));
+    }
   }
   JavaFile.fromUri(Uri uri) : this(uri.path);
   int get hashCode => _path.hashCode;

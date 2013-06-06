@@ -2775,6 +2775,7 @@ class CommentType implements Comparable<CommentType> {
   CommentType(this.name, this.ordinal) {
   }
   int compareTo(CommentType other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**
@@ -12652,6 +12653,23 @@ class VariableDeclaration extends Declaration {
    */
   VariableDeclaration({Comment comment, List<Annotation> metadata, SimpleIdentifier name, Token equals, Expression initializer}) : this.full(comment, metadata, name, equals, initializer);
   accept(ASTVisitor visitor) => visitor.visitVariableDeclaration(this);
+
+  /**
+   * This overridden implementation of getDocumentationComment() looks in the grandparent node for
+   * dartdoc comments if no documentation is specifically available on the node.
+   */
+  Comment get documentationComment {
+    Comment comment = super.documentationComment;
+    if (comment == null) {
+      if (parent != null && parent.parent != null) {
+        ASTNode node = parent.parent;
+        if (node is AnnotatedNode) {
+          return ((node as AnnotatedNode)).documentationComment;
+        }
+      }
+    }
+    return comment;
+  }
   VariableElement get element => _name != null ? (_name.element as VariableElement) : null;
   Token get endToken {
     if (_initializer != null) {

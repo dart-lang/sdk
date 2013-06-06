@@ -5370,6 +5370,7 @@ class ParserErrorCode implements Comparable<ParserErrorCode>, ErrorCode {
   String get message => _message;
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
   int compareTo(ParserErrorCode other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**

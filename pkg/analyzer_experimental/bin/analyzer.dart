@@ -42,32 +42,30 @@ ErrorSeverity _runAnalyzer(CommandLineOptions options) {
     stdout.writeln("Analyzing ${options.sourceFiles}...");
   }
   ErrorSeverity allResult = ErrorSeverity.NONE;
-  for (String sourcePath in options.sourceFiles) {
-    sourcePath = sourcePath.trim();
-    // check that file exists
-    if (!new File(sourcePath).existsSync()) {
-      print('File not found: $sourcePath');
-      return ErrorSeverity.ERROR;
-    }
-    // check that file is Dart file
-    if (!AnalysisEngine.isDartFileName(sourcePath)) {
-      print('$sourcePath is not a Dart file');
-      return ErrorSeverity.ERROR;
-    }
-    // do analyze
-    ErrorFormatter formatter = new ErrorFormatter(options.machineFormat ? stderr : stdout, options);
-    AnalyzerImpl analyzer = new AnalyzerImpl(options);
-    analyzer.analyze(sourcePath);
-    // pring errors
-    formatter.formatErrors(analyzer.errorInfos);
-    // prepare status
-    ErrorSeverity status = analyzer.maxErrorSeverity;
-    if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
-      status = ErrorSeverity.ERROR;
-    }
-    allResult = allResult.max(status);
+  String sourcePath = options.sourceFiles[0];
+  sourcePath = sourcePath.trim();
+  // check that file exists
+  if (!new File(sourcePath).existsSync()) {
+    print('File not found: $sourcePath');
+    return ErrorSeverity.ERROR;
   }
-  return allResult;
+  // check that file is Dart file
+  if (!AnalysisEngine.isDartFileName(sourcePath)) {
+    print('$sourcePath is not a Dart file');
+    return ErrorSeverity.ERROR;
+  }
+  // do analyze
+  ErrorFormatter formatter = new ErrorFormatter(options.machineFormat ? stderr : stdout, options);
+  AnalyzerImpl analyzer = new AnalyzerImpl(options);
+  analyzer.analyze(sourcePath);
+  // print errors
+  formatter.formatErrors(analyzer.errorInfos);
+  // prepare status
+  ErrorSeverity status = analyzer.maxErrorSeverity;
+  if (status == ErrorSeverity.WARNING && options.warningsAreFatal) {
+    status = ErrorSeverity.ERROR;
+  }
+  return status;
 }
 
 typedef ErrorSeverity BatchRunnerHandler(List<String> args);
@@ -92,7 +90,8 @@ class BatchRunner {
     var subscription = cmdLine.listen((String line) {
       // may be finish
       if (line.isEmpty) {
-        stdout.writeln('>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${stopwatch.elapsedMilliseconds}ms');
+        var time = stopwatch.elapsedMilliseconds;
+        stdout.writeln('>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms');
         exit(batchResult.ordinal);
       }
       // prepare aruments

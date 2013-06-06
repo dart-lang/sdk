@@ -853,6 +853,7 @@ class TokenType implements Comparable<TokenType> {
    */
   String get lexeme => _lexeme;
   int compareTo(TokenType other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 class TokenType_EOF extends TokenType {

@@ -3523,18 +3523,42 @@ class InheritanceManager {
     } else {
       resultMap = new Map<String, ExecutableElement>();
     }
+    InterfaceType supertype2 = classElt.supertype;
+    ClassElement superclassElement = supertype2 != null ? supertype2.element : null;
     List<InterfaceType> interfaces2 = classElt.interfaces;
-    if (interfaces2.length == 0) {
+    if (superclassElement == null || interfaces2.length == 0) {
       _interfaceLookup[classElt] = resultMap;
       return resultMap;
     }
     List<Map<String, ExecutableElement>> lookupMaps = new List<Map<String, ExecutableElement>>();
+    if (superclassElement != null) {
+      if (!visitedInterfaces.contains(superclassElement)) {
+        try {
+          javaSetAdd(visitedInterfaces, superclassElement);
+          lookupMaps.add(computeInterfaceLookupMap(superclassElement, visitedInterfaces));
+        } finally {
+          visitedInterfaces.remove(superclassElement);
+        }
+      } else {
+        Map<String, ExecutableElement> map = _interfaceLookup[classElt];
+        if (map != null) {
+          lookupMaps.add(map);
+        } else {
+          _interfaceLookup[superclassElement] = resultMap;
+          return resultMap;
+        }
+      }
+    }
     for (InterfaceType interfaceType in interfaces2) {
       ClassElement interfaceElement = interfaceType.element;
       if (interfaceElement != null) {
         if (!visitedInterfaces.contains(interfaceElement)) {
-          javaSetAdd(visitedInterfaces, interfaceElement);
-          lookupMaps.add(computeInterfaceLookupMap(interfaceElement, visitedInterfaces));
+          try {
+            javaSetAdd(visitedInterfaces, interfaceElement);
+            lookupMaps.add(computeInterfaceLookupMap(interfaceElement, visitedInterfaces));
+          } finally {
+            visitedInterfaces.remove(interfaceElement);
+          }
         } else {
           Map<String, ExecutableElement> map = _interfaceLookup[classElt];
           if (map != null) {
@@ -3563,11 +3587,39 @@ class InheritanceManager {
         }
       }
     }
+    if (superclassElement != null) {
+      List<MethodElement> methods2 = superclassElement.methods;
+      for (MethodElement method in methods2) {
+        if (method.isAccessibleIn(_library) && !method.isStatic()) {
+          String key = method.name;
+          if (!unionMap.containsKey(key)) {
+            Set<ExecutableElement> set = new Set<ExecutableElement>();
+            javaSetAdd(set, method);
+            unionMap[key] = set;
+          } else {
+            javaSetAdd(unionMap[key], method);
+          }
+        }
+      }
+      List<PropertyAccessorElement> accessors2 = superclassElement.accessors;
+      for (PropertyAccessorElement accessor in accessors2) {
+        if (accessor.isAccessibleIn(_library) && !accessor.isStatic()) {
+          String key = accessor.name;
+          if (!unionMap.containsKey(key)) {
+            Set<ExecutableElement> set = new Set<ExecutableElement>();
+            javaSetAdd(set, accessor);
+            unionMap[key] = set;
+          } else {
+            javaSetAdd(unionMap[key], accessor);
+          }
+        }
+      }
+    }
     for (InterfaceType interfaceType in interfaces2) {
       ClassElement interfaceElement = interfaceType.element;
       if (interfaceElement != null) {
-        List<MethodElement> methods2 = interfaceElement.methods;
-        for (MethodElement method in methods2) {
+        List<MethodElement> methods3 = interfaceElement.methods;
+        for (MethodElement method in methods3) {
           if (method.isAccessibleIn(_library) && !method.isStatic()) {
             String key = method.name;
             if (!unionMap.containsKey(key)) {
@@ -3579,8 +3631,8 @@ class InheritanceManager {
             }
           }
         }
-        List<PropertyAccessorElement> accessors2 = interfaceElement.accessors;
-        for (PropertyAccessorElement accessor in accessors2) {
+        List<PropertyAccessorElement> accessors3 = interfaceElement.accessors;
+        for (PropertyAccessorElement accessor in accessors3) {
           if (accessor.isAccessibleIn(_library) && !accessor.isStatic()) {
             String key = accessor.name;
             if (!unionMap.containsKey(key)) {
@@ -3623,7 +3675,7 @@ class InheritanceManager {
           for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
             executableElementTypes[i] = elements[i].type;
           }
-          bool foundSubtypeOfAllTypes = true;
+          bool foundSubtypeOfAllTypes = false;
           for (int i = 0; i < numOfEltsWithMatchingNames; i++) {
             FunctionType subtype = executableElementTypes[i];
             if (subtype == null) {
@@ -3634,12 +3686,12 @@ class InheritanceManager {
               if (i != j) {
                 if (!subtype.isSubtypeOf(executableElementTypes[j])) {
                   subtypeOfAllTypes = false;
-                  foundSubtypeOfAllTypes = false;
                   break;
                 }
               }
             }
             if (subtypeOfAllTypes) {
+              foundSubtypeOfAllTypes = true;
               resultMap[key] = elements[i];
               break;
             }
@@ -7969,9 +8021,13 @@ class TypeResolverVisitor extends ScopedVisitor {
       if (typeNameSimple.name == "boolean") {
         reportError(StaticWarningCode.UNDEFINED_CLASS_BOOLEAN, typeNameSimple, []);
       } else if (isTypeNameInCatchClause(node)) {
-        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, node, [node]);
+        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, [typeName.name]);
+      } else if (isTypeNameInAsExpression(node)) {
+        reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
+      } else if (isTypeNameInIsExpression(node)) {
+        reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, [typeName.name]);
       } else {
-        reportError(StaticWarningCode.UNDEFINED_CLASS, typeNameSimple, [typeNameSimple.name]);
+        reportError(StaticWarningCode.UNDEFINED_CLASS, typeName, [typeName.name]);
       }
       elementValid = false;
     }
@@ -8001,7 +8057,11 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     } else {
       if (isTypeNameInCatchClause(node)) {
-        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, node, [node]);
+        reportError(StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE, typeName, [typeName.name]);
+      } else if (isTypeNameInAsExpression(node)) {
+        reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
+      } else if (isTypeNameInIsExpression(node)) {
+        reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, [typeName.name]);
       }
       setElement(typeName, _dynamicType.element);
       typeName.staticType = _dynamicType;
@@ -8201,9 +8261,23 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Checks if the given type name is used as the exception type in the catch clause.
+   * Checks if the given type name is used as the type in an as expression.
    * @param typeName the type name to analyzer
-   * @return {@code true} if the given type name is used as the exception type in the catch clause.
+   * @return {@code true} if the given type name is used as the type in an as expression
+   */
+  bool isTypeNameInAsExpression(TypeName typeName) {
+    ASTNode parent2 = typeName.parent;
+    if (parent2 is AsExpression) {
+      AsExpression asExpression = parent2 as AsExpression;
+      return identical(asExpression.type, typeName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is used as the exception type in a catch clause.
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is used as the exception type in a catch clause
    */
   bool isTypeNameInCatchClause(TypeName typeName) {
     ASTNode parent2 = typeName.parent;
@@ -8215,9 +8289,9 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Checks if the given type name is used as the type in the instance creation expression.
+   * Checks if the given type name is used as the type in an instance creation expression.
    * @param typeName the type name to analyzer
-   * @return {@code true} if the given type name is used as the type in the instance creation
+   * @return {@code true} if the given type name is used as the type in an instance creation
    * expression
    */
   bool isTypeNameInInstanceCreationExpression(TypeName typeName) {
@@ -8225,6 +8299,20 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (parent2 is ConstructorName && parent2.parent is InstanceCreationExpression) {
       ConstructorName constructorName = parent2 as ConstructorName;
       return constructorName != null && identical(constructorName.type, typeName);
+    }
+    return false;
+  }
+
+  /**
+   * Checks if the given type name is used as the type in an is expression.
+   * @param typeName the type name to analyzer
+   * @return {@code true} if the given type name is used as the type in an is expression
+   */
+  bool isTypeNameInIsExpression(TypeName typeName) {
+    ASTNode parent2 = typeName.parent;
+    if (parent2 is IsExpression) {
+      IsExpression isExpression = parent2 as IsExpression;
+      return identical(isExpression.type, typeName);
     }
     return false;
   }
@@ -9798,6 +9886,15 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     checkForExportInternalLibrary(node);
     return super.visitExportDirective(node);
   }
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    if (!node.isStatic()) {
+      VariableDeclarationList variables = node.fields;
+      if (variables.isConst()) {
+        _errorReporter.reportError4(CompileTimeErrorCode.CONST_INSTANCE_FIELD, variables.keyword, []);
+      }
+    }
+    return super.visitFieldDeclaration(node);
+  }
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     checkForConstFormalParameter(node);
     checkForFieldInitializingFormalRedirectingConstructor(node);
@@ -11200,7 +11297,7 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       NodeList<VariableDeclaration> variables2 = node.variables;
       for (VariableDeclaration variable in variables2) {
         if (variable.initializer == null) {
-          _errorReporter.reportError2(CompileTimeErrorCode.FINAL_NOT_INITIALIZED, variable, [variable.name.name]);
+          _errorReporter.reportError2(StaticWarningCode.FINAL_NOT_INITIALIZED, variable, [variable.name.name]);
           foundError = true;
         }
       }
@@ -11728,16 +11825,25 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       return false;
     }
     List<ExecutableElement> missingOverridesArray = new List.from(missingOverrides);
+    List<String> stringTypeArray = new List<String>(Math.min(missingOverridesSize, 4));
+    String GET = "get ";
+    String SET = "set ";
+    for (int i = 0; i < stringTypeArray.length; i++) {
+      stringTypeArray[i] = StringUtilities.EMPTY;
+      if (missingOverridesArray[i] is PropertyAccessorElement) {
+        stringTypeArray[i] = ((missingOverridesArray[i] as PropertyAccessorElement)).isGetter() ? GET : SET;
+      }
+    }
     if (missingOverridesSize == 1) {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE, node.name, [missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName]);
+      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName]);
     } else if (missingOverridesSize == 2) {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO, node.name, [missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName]);
+      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName]);
     } else if (missingOverridesSize == 3) {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE, node.name, [missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName]);
+      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName]);
     } else if (missingOverridesSize == 4) {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR, node.name, [missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName, missingOverridesArray[3].enclosingElement.displayName, missingOverridesArray[3].displayName]);
+      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName, stringTypeArray[3], missingOverridesArray[3].enclosingElement.displayName, missingOverridesArray[3].displayName]);
     } else {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS, node.name, [missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName, missingOverridesArray[3].enclosingElement.displayName, missingOverridesArray[3].displayName, missingOverridesArray.length - 4]);
+      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName, stringTypeArray[3], missingOverridesArray[3].enclosingElement.displayName, missingOverridesArray[3].displayName, missingOverridesArray.length - 4]);
     }
     return true;
   }
@@ -12245,8 +12351,9 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
   }
 
   /**
-   * This checks that if the passed generative constructor has no explicit super constructor
-   * invocation, then super class has the default generative constructor.
+   * This checks that if the passed generative constructor has neither an explicit super constructor
+   * invocation nor a redirecting constructor invocation, that the superclass has a default
+   * generative constructor.
    * @param node the constructor declaration to evaluate
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT
@@ -12256,6 +12363,11 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
     if (node.factoryKeyword != null) {
       return false;
     }
+    for (ConstructorInitializer constructorInitializer in node.initializers) {
+      if (constructorInitializer is SuperConstructorInvocation || constructorInitializer is RedirectingConstructorInvocation) {
+        return false;
+      }
+    }
     if (_enclosingClass == null) {
       return false;
     }
@@ -12264,11 +12376,6 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
       return false;
     }
     ClassElement superElement = superType.element;
-    for (ConstructorInitializer constructorInitializer in node.initializers) {
-      if (constructorInitializer is SuperConstructorInvocation) {
-        return false;
-      }
-    }
     ConstructorElement superDefaultConstructor = superElement.unnamedConstructor;
     if (superDefaultConstructor != null) {
       if (superDefaultConstructor.isFactory()) {
@@ -12485,6 +12592,7 @@ class INIT_STATE implements Comparable<INIT_STATE> {
   INIT_STATE(this.name, this.ordinal) {
   }
   int compareTo(INIT_STATE other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**
@@ -12621,5 +12729,6 @@ class ResolverErrorCode implements Comparable<ResolverErrorCode>, ErrorCode {
   String get message => _message;
   ErrorType get type => _type;
   int compareTo(ResolverErrorCode other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }

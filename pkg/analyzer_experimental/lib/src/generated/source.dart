@@ -420,6 +420,7 @@ class SourceKind implements Comparable<SourceKind> {
   SourceKind(this.name, this.ordinal) {
   }
   int compareTo(SourceKind other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**
@@ -490,6 +491,7 @@ class UriKind implements Comparable<UriKind> {
    */
   int get encoding => _encoding;
   int compareTo(UriKind other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**

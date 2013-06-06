@@ -527,6 +527,12 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_argumentTypeNotAssignable_classWithCall_Function() {
+    Source source = addSource(EngineTestCase.createSource(["  caller(Function callee) {", "    callee();", "  }", "", "  class CallMeBack {", "    call() => 0;", "  }", "", "  main() {", "    caller(new CallMeBack());", "  }"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
   void test_argumentTypeNotAssignable_invocation_functionParameter_generic() {
     Source source = addSource(EngineTestCase.createSource(["class A<K> {", "  m(f(K k), K v) {", "    f(v);", "  }", "}"]));
     resolve(source);
@@ -636,12 +642,6 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
-  void test_constConstructorWithNonFinalField_constInstanceVar() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  const int x = 0;", "  const A();", "}"]));
-    resolve(source);
-    assertNoErrors();
-    verify([source]);
-  }
   void test_constConstructorWithNonFinalField_finalInstanceVar() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  final int x = 0;", "  const A();", "}"]));
     resolve(source);
@@ -685,7 +685,7 @@ class NonErrorResolverTest extends ResolverTestCase {
     verify([source]);
   }
   void test_constWithTypeParameters_direct() {
-    Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  const V = const A<int>();", "  const A();", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  static const V = const A<int>();", "  const A();", "}"]));
     resolve(source);
     assertNoErrors();
     verify([source]);
@@ -1457,6 +1457,12 @@ class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify([source]);
   }
+  void test_undefinedConstructorInInitializer_redirecting() {
+    Source source = addSource(EngineTestCase.createSource(["class Foo {", "  Foo.ctor();", "}", "class Bar extends Foo {", "  Bar() : this.ctor();", "  Bar.ctor() : super.ctor();", "}"]));
+    resolve(source);
+    assertNoErrors();
+    verify([source]);
+  }
   void test_undefinedGetter_noSuchMethod_getter() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  noSuchMethod(invocation) {}", "}", "f() {", "  (new A()).g;", "}"]));
     resolve(source);
@@ -1587,6 +1593,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_argumentTypeNotAssignable_Object_Function);
       });
+      _ut.test('test_argumentTypeNotAssignable_classWithCall_Function', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_argumentTypeNotAssignable_classWithCall_Function);
+      });
       _ut.test('test_argumentTypeNotAssignable_invocation_functionParameter_generic', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_argumentTypeNotAssignable_invocation_functionParameter_generic);
@@ -1654,10 +1664,6 @@ class NonErrorResolverTest extends ResolverTestCase {
       _ut.test('test_conflictingStaticSetterAndInstanceMember_thisClass_method', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_conflictingStaticSetterAndInstanceMember_thisClass_method);
-      });
-      _ut.test('test_constConstructorWithNonFinalField_constInstanceVar', () {
-        final __test = new NonErrorResolverTest();
-        runJUnitTest(__test, __test.test_constConstructorWithNonFinalField_constInstanceVar);
       });
       _ut.test('test_constConstructorWithNonFinalField_finalInstanceVar', () {
         final __test = new NonErrorResolverTest();
@@ -2199,6 +2205,10 @@ class NonErrorResolverTest extends ResolverTestCase {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_undefinedConstructorInInitializer_implicit_typedef);
       });
+      _ut.test('test_undefinedConstructorInInitializer_redirecting', () {
+        final __test = new NonErrorResolverTest();
+        runJUnitTest(__test, __test.test_undefinedConstructorInInitializer_redirecting);
+      });
       _ut.test('test_undefinedGetter_noSuchMethod_getter', () {
         final __test = new NonErrorResolverTest();
         runJUnitTest(__test, __test.test_undefinedGetter_noSuchMethod_getter);
@@ -2433,10 +2443,22 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticTypeWarningCode.TYPE_ARGUMENT_VIOLATES_BOUNDS]);
     verify([source]);
   }
-  void test_inconsistentMethodInheritanceGetterAndMethod() {
-    Source source = addSource(EngineTestCase.createSource(["abstract class A {", "  int x();", "}", "abstract class B {", "  int get x;", "}", "class C implements A, B {", "}"]));
+  void test_inconsistentMethodInheritance_paramCount() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A {", "  int x();", "}", "abstract class B {", "  int x(int y);", "}", "class C implements A, B {", "}"]));
     resolve(source);
-    assertErrors([StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
+    assertErrors([StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+    verify([source]);
+  }
+  void test_inconsistentMethodInheritance_paramType() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A {", "  x(int i);", "}", "abstract class B {", "  x(String s);", "}", "abstract class C implements A, B {}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+    verify([source]);
+  }
+  void test_inconsistentMethodInheritance_returnType() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A {", "  int x();", "}", "abstract class B {", "  String x();", "}", "abstract class C implements A, B {}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
     verify([source]);
   }
   void test_invalidAssignment_compoundAssignment() {
@@ -2631,9 +2653,17 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
   }
   static dartSuite() {
     _ut.group('StaticTypeWarningCodeTest', () {
-      _ut.test('test_inconsistentMethodInheritanceGetterAndMethod', () {
+      _ut.test('test_inconsistentMethodInheritance_paramCount', () {
         final __test = new StaticTypeWarningCodeTest();
-        runJUnitTest(__test, __test.test_inconsistentMethodInheritanceGetterAndMethod);
+        runJUnitTest(__test, __test.test_inconsistentMethodInheritance_paramCount);
+      });
+      _ut.test('test_inconsistentMethodInheritance_paramType', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_inconsistentMethodInheritance_paramType);
+      });
+      _ut.test('test_inconsistentMethodInheritance_returnType', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_inconsistentMethodInheritance_returnType);
       });
       _ut.test('test_invalidAssignment_compoundAssignment', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -3820,12 +3850,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS]);
     verify([source]);
   }
-  void fail_finalNotInitialized_inConstructor() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  final int x;", "  A() {}", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
-    verify([source]);
-  }
   void fail_invalidOverrideDefaultValue() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  m([a = 0]) {}", "}", "class B extends A {", "  m([a = 1]) {}", "}"]));
     resolve(source);
@@ -4203,6 +4227,12 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
+  void test_constInstanceField() {
+    Source source = addSource(EngineTestCase.createSource(["class C {", "  const int f = 0;", "}"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.CONST_INSTANCE_FIELD]);
+    verify([source]);
+  }
   void test_constWithInvalidTypeParameters() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  const A();", "}", "f() { return const A<A>(); }"]));
     resolve(source);
@@ -4228,13 +4258,13 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify([source]);
   }
   void test_constWithTypeParameters_direct() {
-    Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  const V = const A<T>();", "  const A();", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  static const V = const A<T>();", "  const A();", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS]);
     verify([source]);
   }
   void test_constWithTypeParameters_indirect() {
-    Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  const V = const A<List<T>>();", "  const A();", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["class A<T> {", "  static const V = const A<List<T>>();", "  const A();", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS]);
     verify([source]);
@@ -4403,12 +4433,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS, CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS]);
     verify([source]);
   }
-  void test_fieldInitializedInInitializerAndDeclaration_const() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  const int x = 0;", "  A() : x = 1 {}", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION]);
-    verify([source]);
-  }
   void test_fieldInitializedInInitializerAndDeclaration_final() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  final int x = 0;", "  A() : x = 1 {}", "}"]));
     resolve(source);
@@ -4510,54 +4534,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  final x;", "  A(this.x, this.x) {}", "}"]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]);
-    verify([source]);
-  }
-  void test_finalNotInitialized_instanceField_const() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  const F;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
-    verify([source]);
-  }
-  void test_finalNotInitialized_instanceField_const_static() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  static const F;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
-    verify([source]);
-  }
-  void test_finalNotInitialized_instanceField_final() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  final F;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
-    verify([source]);
-  }
-  void test_finalNotInitialized_instanceField_final_static() {
-    Source source = addSource(EngineTestCase.createSource(["class A {", "  static final F;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
-    verify([source]);
-  }
-  void test_finalNotInitialized_library_const() {
-    Source source = addSource(EngineTestCase.createSource(["const F;"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
-    verify([source]);
-  }
-  void test_finalNotInitialized_library_final() {
-    Source source = addSource(EngineTestCase.createSource(["final F;"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
-    verify([source]);
-  }
-  void test_finalNotInitialized_local_const() {
-    Source source = addSource(EngineTestCase.createSource(["f() {", "  const int x;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
-    verify([source]);
-  }
-  void test_finalNotInitialized_local_final() {
-    Source source = addSource(EngineTestCase.createSource(["f() {", "  final int x;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
   void test_getterAndMethodWithSameName() {
@@ -5584,6 +5560,10 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constInitializedWithNonConstValue_missingConstInMapLiteral);
       });
+      _ut.test('test_constInstanceField', () {
+        final __test = new CompileTimeErrorCodeTest();
+        runJUnitTest(__test, __test.test_constInstanceField);
+      });
       _ut.test('test_constWithInvalidTypeParameters', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_constWithInvalidTypeParameters);
@@ -5716,10 +5696,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_fieldInitializedByMultipleInitializers_multipleNames);
       });
-      _ut.test('test_fieldInitializedInInitializerAndDeclaration_const', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_fieldInitializedInInitializerAndDeclaration_const);
-      });
       _ut.test('test_fieldInitializedInInitializerAndDeclaration_final', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_fieldInitializedInInitializerAndDeclaration_final);
@@ -5775,38 +5751,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
       _ut.test('test_finalInitializedMultipleTimes_initializingFormals', () {
         final __test = new CompileTimeErrorCodeTest();
         runJUnitTest(__test, __test.test_finalInitializedMultipleTimes_initializingFormals);
-      });
-      _ut.test('test_finalNotInitialized_instanceField_const', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_finalNotInitialized_instanceField_const);
-      });
-      _ut.test('test_finalNotInitialized_instanceField_const_static', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_finalNotInitialized_instanceField_const_static);
-      });
-      _ut.test('test_finalNotInitialized_instanceField_final', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_finalNotInitialized_instanceField_final);
-      });
-      _ut.test('test_finalNotInitialized_instanceField_final_static', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_finalNotInitialized_instanceField_final_static);
-      });
-      _ut.test('test_finalNotInitialized_library_const', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_finalNotInitialized_library_const);
-      });
-      _ut.test('test_finalNotInitialized_library_final', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_finalNotInitialized_library_final);
-      });
-      _ut.test('test_finalNotInitialized_local_const', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_finalNotInitialized_local_const);
-      });
-      _ut.test('test_finalNotInitialized_local_final', () {
-        final __test = new CompileTimeErrorCodeTest();
-        runJUnitTest(__test, __test.test_finalNotInitialized_local_final);
       });
       _ut.test('test_getterAndMethodWithSameName', () {
         final __test = new CompileTimeErrorCodeTest();
@@ -7462,12 +7406,6 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE]);
     verify([source]);
   }
-  void fail_castToNonType() {
-    Source source = addSource(EngineTestCase.createSource(["var A = 0;", "f(String s) { var x = s as A; }"]));
-    resolve(source);
-    assertErrors([StaticWarningCode.CAST_TO_NON_TYPE]);
-    verify([source]);
-  }
   void fail_commentReferenceConstructorNotVisible() {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
@@ -7496,6 +7434,12 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
     assertErrors([StaticWarningCode.COMMENT_REFERENCE_URI_NOT_LIBRARY]);
+    verify([source]);
+  }
+  void fail_finalNotInitialized_inConstructor() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  final int x;", "  A() {}", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
     verify([source]);
   }
   void fail_incorrectNumberOfArguments_tooFew() {
@@ -7538,12 +7482,6 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  int get g { return 0; }", "  set g(int v) {}", "}", "class B extends A {", "  String get g { return ''; }", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES]);
-    verify([source]);
-  }
-  void fail_nonType() {
-    Source source = addSource(EngineTestCase.createSource(["var A = 0;", "f(var p) {", "  if (p is A) {", "  }", "}"]));
-    resolve(source);
-    assertErrors([StaticWarningCode.NON_TYPE]);
     verify([source]);
   }
   void fail_redirectToMissingConstructor() {
@@ -7751,6 +7689,12 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticWarningCode.CASE_BLOCK_NOT_TERMINATED]);
     verify([source]);
   }
+  void test_castToNonType() {
+    Source source = addSource(EngineTestCase.createSource(["var A = 0;", "f(String s) { var x = s as A; }"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.CAST_TO_NON_TYPE]);
+    verify([source]);
+  }
   void test_concreteClassWithAbstractMember() {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  m();", "}"]));
     resolve(source);
@@ -7867,6 +7811,48 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE]);
     verify([source]);
   }
+  void test_finalNotInitialized_instanceField_const_static() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  static const F;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    verify([source]);
+  }
+  void test_finalNotInitialized_instanceField_final() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  final F;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    verify([source]);
+  }
+  void test_finalNotInitialized_instanceField_final_static() {
+    Source source = addSource(EngineTestCase.createSource(["class A {", "  static final F;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    verify([source]);
+  }
+  void test_finalNotInitialized_library_const() {
+    Source source = addSource(EngineTestCase.createSource(["const F;"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    verify([source]);
+  }
+  void test_finalNotInitialized_library_final() {
+    Source source = addSource(EngineTestCase.createSource(["final F;"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    verify([source]);
+  }
+  void test_finalNotInitialized_local_const() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  const int x;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    verify([source]);
+  }
+  void test_finalNotInitialized_local_final() {
+    Source source = addSource(EngineTestCase.createSource(["f() {", "  final int x;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.FINAL_NOT_INITIALIZED]);
+    verify([source]);
+  }
   void test_importDuplicatedLibraryName() {
     Source source = addSource(EngineTestCase.createSource(["library test;", "import 'lib1.dart';", "import 'lib2.dart';"]));
     addSource2("/lib1.dart", "library lib;");
@@ -7875,10 +7861,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAME]);
     verify([source]);
   }
-  void test_inconsistentMethodInheritance() {
-    Source source = addSource(EngineTestCase.createSource(["abstract class A {", "  x(int i);", "}", "abstract class B {", "  x(String s);", "}", "abstract class C implements A, B {}"]));
+  void test_inconsistentMethodInheritanceGetterAndMethod() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A {", "  int x();", "}", "abstract class B {", "  int get x;", "}", "class C implements A, B {", "}"]));
     resolve(source);
-    assertErrors([StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
+    assertErrors([StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
     verify([source]);
   }
   void test_instanceMethodNameCollidesWithSuperclassStatic_field() {
@@ -8066,6 +8052,12 @@ class StaticWarningCodeTest extends ResolverTestCase {
     assertErrors([StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
     verify([source]);
   }
+  void test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount() {
+    Source source = addSource(EngineTestCase.createSource(["abstract class A {", "  int x(int a);", "}", "abstract class B {", "  int x(int a, [int b]);", "}", "class C implements A, B {", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
+  }
   void test_nonAbstractClassInheritsAbstractMemberOne_setter_fromInterface() {
     Source source = addSource(EngineTestCase.createSource(["class I {", "  set s(int i) {}", "}", "class C implements I {", "}"]));
     resolve(source);
@@ -8185,6 +8177,12 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["f(int p) {", "  switch (p) {", "    case 'a': break;", "  }", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE]);
+    verify([source]);
+  }
+  void test_typeTestNonType() {
+    Source source = addSource(EngineTestCase.createSource(["var A = 0;", "f(var p) {", "  if (p is A) {", "  }", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.TYPE_TEST_NON_TYPE]);
     verify([source]);
   }
   void test_undefinedClass_instanceCreation() {
@@ -8328,6 +8326,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_caseBlockNotTerminated);
       });
+      _ut.test('test_castToNonType', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_castToNonType);
+      });
       _ut.test('test_concreteClassWithAbstractMember', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_concreteClassWithAbstractMember);
@@ -8404,13 +8406,41 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_fieldInitializingFormalNotAssignable);
       });
+      _ut.test('test_finalNotInitialized_instanceField_const_static', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_finalNotInitialized_instanceField_const_static);
+      });
+      _ut.test('test_finalNotInitialized_instanceField_final', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_finalNotInitialized_instanceField_final);
+      });
+      _ut.test('test_finalNotInitialized_instanceField_final_static', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_finalNotInitialized_instanceField_final_static);
+      });
+      _ut.test('test_finalNotInitialized_library_const', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_finalNotInitialized_library_const);
+      });
+      _ut.test('test_finalNotInitialized_library_final', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_finalNotInitialized_library_final);
+      });
+      _ut.test('test_finalNotInitialized_local_const', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_finalNotInitialized_local_const);
+      });
+      _ut.test('test_finalNotInitialized_local_final', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_finalNotInitialized_local_final);
+      });
       _ut.test('test_importDuplicatedLibraryName', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_importDuplicatedLibraryName);
       });
-      _ut.test('test_inconsistentMethodInheritance', () {
+      _ut.test('test_inconsistentMethodInheritanceGetterAndMethod', () {
         final __test = new StaticWarningCodeTest();
-        runJUnitTest(__test, __test.test_inconsistentMethodInheritance);
+        runJUnitTest(__test, __test.test_inconsistentMethodInheritanceGetterAndMethod);
       });
       _ut.test('test_instanceMethodNameCollidesWithSuperclassStatic_field', () {
         final __test = new StaticWarningCodeTest();
@@ -8536,6 +8566,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_method_fromSuperclass);
       });
+      _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_method_optionalParamCount);
+      });
       _ut.test('test_nonAbstractClassInheritsAbstractMemberOne_setter_fromInterface', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_nonAbstractClassInheritsAbstractMemberOne_setter_fromInterface);
@@ -8615,6 +8649,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_switchExpressionNotAssignable', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_switchExpressionNotAssignable);
+      });
+      _ut.test('test_typeTestNonType', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_typeTestNonType);
       });
       _ut.test('test_undefinedClassBoolean_variableDeclaration', () {
         final __test = new StaticWarningCodeTest();

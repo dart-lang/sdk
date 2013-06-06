@@ -553,6 +553,7 @@ class ElementKind implements Comparable<ElementKind> {
    */
   String get displayName => _displayName;
   int compareTo(ElementKind other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**
@@ -3932,6 +3933,7 @@ class Modifier implements Comparable<Modifier> {
   Modifier(this.name, this.ordinal) {
   }
   int compareTo(Modifier other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**
@@ -5399,35 +5401,23 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     FunctionType t = this;
     FunctionType s = type as FunctionType;
-    if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
-      return false;
-    } else if (t.normalParameterTypes.length > 0) {
-      List<Type2> tTypes = t.normalParameterTypes;
-      List<Type2> sTypes = s.normalParameterTypes;
-      for (int i = 0; i < tTypes.length; i++) {
-        if (!tTypes[i].isAssignableTo(sTypes[i])) {
-          return false;
-        }
-      }
-    }
-    if (t.optionalParameterTypes.length > 0) {
-      List<Type2> tOpTypes = t.optionalParameterTypes;
-      List<Type2> sOpTypes = s.optionalParameterTypes;
-      if (tOpTypes.length < sOpTypes.length) {
-        return false;
-      }
-      for (int i = 0; i < sOpTypes.length; i++) {
-        if (!tOpTypes[i].isAssignableTo(sOpTypes[i])) {
-          return false;
-        }
-      }
-      if (t.namedParameterTypes.length > 0 || s.namedParameterTypes.length > 0) {
-        return false;
-      }
-    } else if (s.optionalParameterTypes.length > 0) {
+    List<Type2> tTypes = t.normalParameterTypes;
+    List<Type2> tOpTypes = t.optionalParameterTypes;
+    List<Type2> sTypes = s.normalParameterTypes;
+    List<Type2> sOpTypes = s.optionalParameterTypes;
+    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) || (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
       return false;
     }
     if (t.namedParameterTypes.length > 0) {
+      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+        return false;
+      } else if (t.normalParameterTypes.length > 0) {
+        for (int i = 0; i < tTypes.length; i++) {
+          if (!tTypes[i].isAssignableTo(sTypes[i])) {
+            return false;
+          }
+        }
+      }
       Map<String, Type2> namedTypesT = t.namedParameterTypes;
       Map<String, Type2> namedTypesS = s.namedParameterTypes;
       if (namedTypesT.length < namedTypesS.length) {
@@ -5446,6 +5436,31 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
     } else if (s.namedParameterTypes.length > 0) {
       return false;
+    } else {
+      int tArgLength = tTypes.length + tOpTypes.length;
+      int sArgLength = sTypes.length + sOpTypes.length;
+      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
+        return false;
+      }
+      List<Type2> tAllTypes = new List<Type2>(sArgLength);
+      for (int i = 0; i < tTypes.length; i++) {
+        tAllTypes[i] = tTypes[i];
+      }
+      for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+        tAllTypes[i] = tOpTypes[j];
+      }
+      List<Type2> sAllTypes = new List<Type2>(sArgLength);
+      for (int i = 0; i < sTypes.length; i++) {
+        sAllTypes[i] = sTypes[i];
+      }
+      for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+        sAllTypes[i] = sOpTypes[j];
+      }
+      for (int i = 0; i < sAllTypes.length; i++) {
+        if (!sAllTypes[i].isAssignableTo(tAllTypes[i])) {
+          return false;
+        }
+      }
     }
     return s.returnType == VoidTypeImpl.instance || t.returnType.isAssignableTo(s.returnType);
   }
@@ -5607,7 +5622,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #getLeastUpperBound(Type)
    */
   static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) => computeSuperinterfaceSet2(type, new Set<InterfaceType>());
-  List<TypeVariableElement> get typeVariables => element.typeVariables;
 
   /**
    * This method computes the longest inheritance path from some passed {@link Type} to Object. This
@@ -5846,6 +5860,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return supertype2.substitute2(_typeArguments, TypeVariableTypeImpl.getTypes(classElement.typeVariables));
   }
   List<Type2> get typeArguments => _typeArguments;
+  List<TypeVariableElement> get typeVariables => element.typeVariables;
   int get hashCode {
     ClassElement element2 = element;
     if (element2 == null) {
@@ -6117,6 +6132,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           return false;
         }
       }
+      return true;
+    } else if (typeS.isDartCoreFunction() && elementT.getMethod("call") != null) {
       return true;
     }
     InterfaceType supertype2 = elementT.supertype;

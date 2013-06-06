@@ -36,5 +36,10 @@ standalone/io/http_parser_test: Fail
 standalone/io/web_socket_protocol_processor_test: Fail
 standalone/io/url_encoding_test: Fail
 
+
 [ $compiler == dartanalyzer ]
+standalone/io/process_exit_negative_test: fail
+
+
+[ $compiler == dart2analyzer ]
 standalone/io/process_exit_negative_test: fail
