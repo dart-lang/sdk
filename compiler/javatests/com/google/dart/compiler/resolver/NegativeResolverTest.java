@@ -256,10 +256,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         "}"));
   }
 
-  public void tesClassImplementsUnknownInterfaceNegativeTest() {
-    checkNumErrors("ClassImplementsUnknownInterfaceNegativeTest.dart", 1);
-  }
-
   public void testConstSuperNegativeTest1() {
     checkNumErrors("ConstSuperNegativeTest1.dart", 0);
   }
@@ -355,7 +351,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         "set bar(x) {}",
         "get bar {}"));
   }
-  
+
   public void test_nameShadow_topLevel_setter_variable() {
     checkSourceErrors(
         makeCode(
@@ -1034,7 +1030,7 @@ public class NegativeResolverTest extends CompilerTestCase {
     Type boundType = typeParameter.getBound().getType();
     assertEquals("A", boundType.getElement().getName());
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3986
@@ -1163,7 +1159,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             ""),
         errEx(ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, 4, 22, 1));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=6489
