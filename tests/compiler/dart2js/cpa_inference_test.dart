@@ -159,9 +159,7 @@ const String CORELIB = r'''
   class Object {}
   class Function {}
   abstract class List<E> {
-    factory List([int length]) {}
-    E operator [](int index);
-    void operator []=(int index, E value);
+    factory List([int length]) => JS('=List', r'new Array(#)', length);
   }
   abstract class Map<K, V> {}
   class Closure {}
@@ -1203,23 +1201,6 @@ testSeenClasses() {
   result.checkNodeHasType('foo', [result.int]);
 }
 
-testGoodGuys() {
-  final String source = r"""
-      main() {
-        var a = 1.isEven;
-        var b = 3.14.isNaN;
-        var c = 1.floor();
-        var d = 3.14.floor();
-        a; b; c; d;
-      }
-      """;
-  AnalysisResult result = analyze(source);
-  result.checkNodeHasType('a', [result.bool]);
-  result.checkNodeHasType('b', [result.bool]);
-  result.checkNodeHasType('c', [result.num]);
-  result.checkNodeHasType('d', [result.num]);
-}
-
 testIntDoubleNum() {
   final String source = r"""
       main() {
@@ -1402,7 +1383,6 @@ void main() {
   testJsCall();
   testIsCheck();
   testSeenClasses();
-  testGoodGuys();
   testIntDoubleNum();
   testConcreteTypeToTypeMask();
   testSelectors();

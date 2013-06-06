@@ -307,15 +307,15 @@ class BaseTypes {
   final ClassBaseType typeBaseType;
 
   BaseTypes(Compiler compiler) :
-    intBaseType = new ClassBaseType(compiler.intClass),
-    doubleBaseType = new ClassBaseType(compiler.doubleClass),
-    numBaseType = new ClassBaseType(compiler.numClass),
-    boolBaseType = new ClassBaseType(compiler.boolClass),
-    stringBaseType = new ClassBaseType(compiler.stringClass),
-    listBaseType = new ClassBaseType(compiler.listClass),
-    mapBaseType = new ClassBaseType(compiler.mapClass),
+    intBaseType = new ClassBaseType(compiler.backend.intImplementation),
+    doubleBaseType = new ClassBaseType(compiler.backend.doubleImplementation),
+    numBaseType = new ClassBaseType(compiler.backend.numImplementation),
+    boolBaseType = new ClassBaseType(compiler.backend.boolImplementation),
+    stringBaseType = new ClassBaseType(compiler.backend.stringImplementation),
+    listBaseType = new ClassBaseType(compiler.backend.listImplementation),
+    mapBaseType = new ClassBaseType(compiler.backend.mapImplementation),
     objectBaseType = new ClassBaseType(compiler.objectClass),
-    typeBaseType = new ClassBaseType(compiler.typeClass);
+    typeBaseType = new ClassBaseType(compiler.backend.typeImplementation);
 }
 
 /**
@@ -414,7 +414,7 @@ class ConcreteTypesEnvironment {
     return true;
   }
 
-  String toString() => "{ this: $typeOfThis, env: ${environment.toString()} }";
+  String toString() => "{ this: $typeOfThis, env: $environment }";
 }
 
 /**
@@ -431,6 +431,20 @@ class InferenceWorkItem {
     return "{ $elementType = $elementRepresentation"
            ", environment = $environment }";
   }
+}
+
+/**
+ * A sentinel type mask class representing the dynamicType. It is absorbing
+ * for [:ConcreteTypesEnvironment.typeMaskUnion:].
+ */
+class DynamicTypeMask implements TypeMask {
+  const DynamicTypeMask();
+
+  bool operator==(other) {
+    return identical(this, other);
+  }
+
+  String toString() => 'sentinel type mask';
 }
 
 /**
@@ -488,15 +502,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   final Map<FunctionElement, Map<ConcreteTypesEnvironment, ConcreteType>> cache;
 
-  /**
-   * An ad-hoc cache that overrides the computed cache for very specific cases
-   * like [:int + {int}:] where we know better than the type annotations of
-   * [:int:] (which we trust as a special case already).
-   */
-  final Map<FunctionElement, Map<ConcreteTypesEnvironment, ConcreteType>>
-      adHocRules;
-
-
   /** A map from expressions to their inferred concrete types. */
   final Map<Node, ConcreteType> inferredTypes;
 
@@ -546,8 +551,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
       : this.compiler = compiler,
         cache = new Map<FunctionElement,
             Map<ConcreteTypesEnvironment, ConcreteType>>(),
-        adHocRules = new Map<FunctionElement,
-            Map<ConcreteTypesEnvironment, ConcreteType>>(),
         inferredTypes = new Map<Node, ConcreteType>(),
         inferredFieldTypes = new Map<Element, ConcreteType>(),
         inferredParameterTypes = new Map<VariableElement, ConcreteType>(),
@@ -558,60 +561,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
         dynamicCallers = new Map<SourceString, Set<FunctionElement>>(),
         inferredSelectorTypes = new Map<Selector, Map<TypeMask, TypeMask>>() {
     unknownConcreteType = new ConcreteType.unknown();
-  }
-
-  /**
-   * Populates [adHocRules] with ad hoc rules who know better than the corelib
-   * type annotations for types whose type annotations we trust, like:
-   *
-   *     {int}    + {int}    -> {int}
-   *     {double} + {double} -> {double}
-   *     ...
-   */
-  populateAdHocRules() {
-    // Builds the environment that would be looked up if we were to analyze
-    // o.method(arg) where o has concrete type {receiverType} and arg have
-    // concrete types {argumentTypes}.
-    ConcreteTypesEnvironment makeEnvironment(BaseType receiverType,
-                                             FunctionElement method,
-                                             List<BaseType> argumentTypes) {
-      ArgumentsTypes argumentsTypes = new ArgumentsTypes(
-          argumentTypes.map((type) => singletonConcreteType(type)).toList(),
-          new Map());
-      Map<Element, ConcreteType> argumentMap =
-          associateArguments(method, argumentsTypes);
-      return new ConcreteTypesEnvironment.of(this, argumentMap, receiverType);
-    }
-
-    // Adds the rule {receiverType}.method({arg1}, ..., {argn}) -> {returnType}
-    // to cache.
-    void rule(ClassBaseType receiverType, String method,
-              List<BaseType> argumentTypes, BaseType returnType) {
-      // The following line shouldn't be needed but the mock compiler doesn't
-      // resolve num for some reason.
-      receiverType.element.ensureResolved(compiler);
-      FunctionElement methodElement =
-          receiverType.element.lookupMember(new SourceString(method))
-              .implementation;
-      ConcreteTypesEnvironment environment =
-          makeEnvironment(receiverType, methodElement, argumentTypes);
-      Map<ConcreteTypesEnvironment, ConcreteType> map =
-          adHocRules.containsKey(methodElement)
-              ? adHocRules[methodElement]
-              : new Map<ConcreteTypesEnvironment, ConcreteType>();
-      map[environment] = singletonConcreteType(returnType);
-      adHocRules[methodElement] = map;
-    }
-
-    // The hardcoded typing rules.
-    final ClassBaseType int = baseTypes.intBaseType;
-    final ClassBaseType double = baseTypes.doubleBaseType;
-
-    for (String method in ['+', '*', '-']) {
-      for (ClassBaseType type in [int, double]) {
-        rule(type, method, [type], type);
-      }
-    }
   }
 
   // --- utility methods ---
@@ -629,6 +578,18 @@ class ConcreteTypesInferrer extends TypesInferrer {
   ConcreteType singletonConcreteType(BaseType baseType) {
     return new ConcreteType.singleton(compiler.maxConcreteTypeSize, baseTypes,
                                       baseType);
+  }
+
+  /**
+   * Computes the union of [mask1] and [mask2] where [mask1] and [mask2] are
+   * possibly equal to [: DynamicTypeMask.instance :].
+   */
+  TypeMask typeMaskUnion(TypeMask mask1, TypeMask mask2) {
+    if (mask1 == const DynamicTypeMask()
+        || mask2 == const DynamicTypeMask()) {
+      return const DynamicTypeMask();
+    }
+    return mask1.union(mask2, compiler);
   }
 
   /**
@@ -664,6 +625,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   void augmentInferredSelectorType(Selector selector, TypeMask typeOfThis,
                                    TypeMask returnType) {
+    assert(returnType != null);
     assert(typeOfThis != null);
     selector = selector.asUntyped;
     Map<TypeMask, TypeMask> currentMap = inferredSelectorTypes.putIfAbsent(
@@ -671,7 +633,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
     TypeMask currentReturnType = currentMap[typeOfThis];
     currentMap[typeOfThis] = (currentReturnType == null)
         ? returnType
-        : currentReturnType.union(returnType, compiler);
+        : typeMaskUnion(currentReturnType, returnType);
   }
 
   /**
@@ -827,22 +789,20 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   TypeMask baseTypeToTypeMask(BaseType baseType) {
     if (baseType.isUnknown()) {
-      return null;
+      return const DynamicTypeMask();
     } else if (baseType.isNull()) {
       return new TypeMask.empty();
     } else {
       ClassBaseType classBaseType = baseType;
       final element = classBaseType.element;
-      if (element != null) {
-        if (element == compiler.numClass) {
-          return new TypeMask.nonNullSubclass(compiler.numClass.rawType);
-        } else if (element == compiler.dynamicClass) {
-          return new TypeMask.nonNullSubclass(compiler.objectClass.rawType);
-        } else {
-          return new TypeMask.nonNullExact(element.rawType);
-        }
+      assert(element != null);
+      if (element == compiler.backend.numImplementation) {
+        return new TypeMask.nonNullSubclass(
+            compiler.backend.numImplementation.rawType);
+      } else if (element == compiler.dynamicClass) {
+        return new TypeMask.nonNullSubclass(compiler.objectClass.rawType);
       } else {
-        return null;
+        return new TypeMask.nonNullExact(element.rawType);
       }
     }
   }
@@ -854,9 +814,9 @@ class ConcreteTypesInferrer extends TypesInferrer {
     if (concreteType == null) return null;
     TypeMask typeMask = new TypeMask.nonNullEmpty();
     for (BaseType baseType in concreteType.baseTypes) {
-      TypeMask other = baseTypeToTypeMask(baseType);
-      if (other == null) return null;
-      typeMask = typeMask.union(baseTypeToTypeMask(baseType), compiler);
+      TypeMask baseMask = baseTypeToTypeMask(baseType);
+      if (baseMask == const DynamicTypeMask()) return baseMask;
+      typeMask = typeMask.union(baseMask, compiler);
     }
     return typeMask;
   }
@@ -865,19 +825,22 @@ class ConcreteTypesInferrer extends TypesInferrer {
    * Get the inferred concrete type of [node].
    */
   TypeMask getTypeOfNode(Element owner, Node node) {
-    return concreteTypeToTypeMask(inferredTypes[node]);
+    TypeMask result = concreteTypeToTypeMask(inferredTypes[node]);
+    return result == const DynamicTypeMask() ? null : result;
   }
 
   /**
    * Get the inferred concrete type of [element].
    */
   TypeMask getTypeOfElement(Element element) {
+    TypeMask result = null;
     if (element.isParameter()) {
-      return concreteTypeToTypeMask(inferredParameterTypes[element]);
+      result = concreteTypeToTypeMask(inferredParameterTypes[element]);
     } else if (element.isField()) {
-      return concreteTypeToTypeMask(inferredFieldTypes[element]);
+      result = concreteTypeToTypeMask(inferredFieldTypes[element]);
     }
     // TODO(polux): handle field parameters
+    return result == const DynamicTypeMask() ? null : result;
   }
 
   /**
@@ -891,7 +854,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
     templates.forEach((_, concreteType) {
       returnType = returnType.union(concreteType);
     });
-    return concreteTypeToTypeMask(returnType);
+    TypeMask result = concreteTypeToTypeMask(returnType);
+    return result == const DynamicTypeMask() ? null : result;
   }
 
   /**
@@ -907,18 +871,18 @@ class ConcreteTypesInferrer extends TypesInferrer {
     TypeMask result = new TypeMask.nonNullEmpty();
     if (selector.mask == null) {
       candidates.forEach((TypeMask receiverType, TypeMask returnType) {
-        result = result.union(returnType, compiler);
+        result = typeMaskUnion(result, returnType);
       });
     } else {
       candidates.forEach((TypeMask receiverType, TypeMask returnType) {
         TypeMask intersection =
             receiverType.intersection(selector.mask, compiler);
         if (!intersection.isEmpty || intersection.isNullable) {
-          result = result.union(returnType, compiler);
+          result = typeMaskUnion(result, returnType);
         }
       });
     }
-    return result;
+    return result == const DynamicTypeMask() ? null : result;
   }
 
   // --- analysis ---
@@ -950,7 +914,12 @@ class ConcreteTypesInferrer extends TypesInferrer {
     }
 
     if (selector != null && receiverType != null) {
-      TypeMask receiverMask = new TypeMask.nonNullExact(receiverType.rawType);
+      // TODO(polux): generalize to any abstract class if we ever handle other
+      // abstract classes than num.
+      TypeMask receiverMask =
+          (receiverType == compiler.backend.numImplementation)
+              ? new TypeMask.nonNullSubclass(receiverType.rawType)
+              : new TypeMask.nonNullExact(receiverType.rawType);
       TypeMask resultMask = concreteTypeToTypeMask(result);
       augmentInferredSelectorType(selector, receiverMask, resultMask);
     }
@@ -1048,22 +1017,19 @@ class ConcreteTypesInferrer extends TypesInferrer {
   ConcreteType getMonomorphicSendReturnType(
       FunctionElement function,
       ConcreteTypesEnvironment environment) {
-    ConcreteType specialType = getSpecialCaseReturnType(function, environment);
-    if (specialType != null) return specialType;
-
     Map<ConcreteTypesEnvironment, ConcreteType> template = cache[function];
     if (template == null) {
       template = new Map<ConcreteTypesEnvironment, ConcreteType>();
       cache[function] = template;
     }
     ConcreteType type = template[environment];
+    ConcreteType specialType = getSpecialCaseReturnType(function, environment);
     if (type != null) {
-      return type;
+      return specialType != null ? specialType : type;
     } else {
-      workQueue.addLast(
-        new InferenceWorkItem(function, environment));
+      workQueue.addLast(new InferenceWorkItem(function, environment));
       // in case of a constructor, optimize by returning the class
-      return emptyConcreteType;
+      return specialType != null ? specialType : emptyConcreteType;
     }
   }
 
@@ -1118,6 +1084,29 @@ class ConcreteTypesInferrer extends TypesInferrer {
     return result;
   }
 
+  /// Replaces native types by their backend implementation.
+  Element normalize(Element cls) {
+    if (cls == compiler.boolClass) {
+      return compiler.backend.boolImplementation;
+    }
+    if (cls == compiler.intClass) {
+      return compiler.backend.intImplementation;
+    }
+    if (cls == compiler.doubleClass) {
+      return compiler.backend.doubleImplementation;
+    }
+    if (cls == compiler.numClass) {
+      return compiler.backend.numImplementation;
+    }
+    if (cls == compiler.stringClass) {
+      return compiler.backend.stringImplementation;
+    }
+    if (cls == compiler.listClass) {
+      return compiler.backend.listImplementation;
+    }
+    return cls;
+  }
+
   /**
    * Handles external methods that cannot be cached because they depend on some
    * other state of [ConcreteTypesInferrer] like [:List#[]:] and
@@ -1126,20 +1115,30 @@ class ConcreteTypesInferrer extends TypesInferrer {
    */
   ConcreteType getSpecialCaseReturnType(FunctionElement function,
                                         ConcreteTypesEnvironment environment) {
-    Map<ConcreteTypesEnvironment, ConcreteType> template = adHocRules[function];
-    if (template != null) {
-      ConcreteType result = template[environment];
-      if (result != null) return result;
-    }
-    if (trustedClasses.contains(function.enclosingElement)) {
-      FunctionSignature signature = function.functionSignature;
-      if (environment.matches(signature)) {
-        return singletonConcreteType(
-            new ClassBaseType(signature.returnType.element));
-      } else {
-        return null;
+    // Handles int + int, double + double, int - int, ...
+    // We cannot compare function to int#+, int#-, etc. because int and double
+    // don't override these methods. So for 1+2, getSpecialCaseReturnType will
+    // be invoked with function = num#+. We use environment.typeOfThis instead.
+    BaseType baseType = environment.typeOfThis;
+    if (baseType != null && baseType.isClass()) {
+      ClassBaseType classBaseType = baseType;
+      ClassElement cls = classBaseType.element;
+      SourceString name = function.name;
+      if ((cls == baseTypes.intBaseType.element
+          || cls == baseTypes.doubleBaseType.element)
+          && (name == const SourceString('+')
+              || name == const SourceString('-')
+              || name == const SourceString('*'))) {
+        Link<Element> parameters =
+            function.functionSignature.requiredParameters;
+        ConcreteType argumentType = environment.lookupType(parameters.head);
+        if (argumentType.getUniqueType() == cls) {
+          return singletonConcreteType(new ClassBaseType(cls));
+        }
       }
-    } else if (function == listIndex) {
+    }
+
+    if (function == listIndex) {
       ConcreteType indexType = environment.lookupType(
           listIndex.functionSignature.requiredParameters.head);
       if (!indexType.baseTypes.contains(baseTypes.intBaseType)) {
@@ -1182,6 +1181,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
                              ConcreteTypesEnvironment environment) {
     TreeElements elements =
         compiler.enqueuer.resolution.resolvedElements[element.declaration];
+    assert(elements != null);
     ConcreteType specialResult = handleSpecialMethod(element, environment);
     if (specialResult != null) return specialResult;
     FunctionExpression tree = element.parseNode(compiler);
@@ -1203,6 +1203,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
   ConcreteType analyzeFieldInitialization(VariableElement element) {
     TreeElements elements =
         compiler.enqueuer.resolution.resolvedElements[element];
+    assert(elements != null);
     Visitor visitor = new TypeInferrerVisitor(elements, element, this,
         new ConcreteTypesEnvironment(this));
     Node tree = element.parseNode(compiler);
@@ -1241,7 +1242,8 @@ class ConcreteTypesInferrer extends TypesInferrer {
     // analyze initializers, including a possible call to super or a redirect
     FunctionExpression tree = compiler.parser.parse(element);
     TreeElements elements =
-        compiler.enqueuer.resolution.resolvedElements[element];
+        compiler.enqueuer.resolution.resolvedElements[element.declaration];
+    assert(elements != null);
     Visitor visitor =
         new TypeInferrerVisitor(elements, element, this, environment);
 
@@ -1285,8 +1287,7 @@ class ConcreteTypesInferrer extends TypesInferrer {
 
   /**
    * Hook that performs side effects on some special method calls (like
-   * [:List(length):]) and possibly returns a concrete type
-   * (like [:{JsArray}:]).
+   * [:List(length):]) and possibly returns a concrete type.
    */
   ConcreteType handleSpecialMethod(FunctionElement element,
                                    ConcreteTypesEnvironment environment) {
@@ -1299,7 +1300,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
       if (lengthType.baseTypes.contains(baseTypes.intBaseType)) {
         augmentListElementType(nullConcreteType);
       }
-      return singletonConcreteType(baseTypes.listBaseType);
     }
   }
 
@@ -1310,14 +1310,15 @@ class ConcreteTypesInferrer extends TypesInferrer {
     baseTypes = new BaseTypes(compiler);
     ClassElement jsArrayClass = baseTypes.listBaseType.element;
     listIndex = jsArrayClass.lookupMember(const SourceString('[]'));
-    listIndexSet =
-        jsArrayClass.lookupMember(const SourceString('[]='));
+    listIndexSet = jsArrayClass.lookupMember(const SourceString('[]='));
+    List<SourceString> typePreservingOps = const [const SourceString('+'),
+                                                  const SourceString('-'),
+                                                  const SourceString('*')];
     listConstructor =
         compiler.listClass.lookupConstructor(
-            new Selector.callConstructor(const SourceString(''),
-                                         compiler.listClass.getLibrary()));
-    trustedClasses = new Set.from([compiler.intClass, compiler.doubleClass,
-                                  compiler.numClass]);
+            new Selector.callConstructor(
+                const SourceString(''),
+                compiler.listClass.getLibrary())).implementation;
     emptyConcreteType = new ConcreteType.empty(compiler.maxConcreteTypeSize,
                                                baseTypes);
     nullConcreteType = singletonConcreteType(const NullBaseType());
@@ -1331,7 +1332,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
   bool analyzeMain(Element element) {
     initialize();
     cache[element] = new Map<ConcreteTypesEnvironment, ConcreteType>();
-    populateAdHocRules();
     try {
       workQueue.addLast(
           new InferenceWorkItem(element, new ConcreteTypesEnvironment(this)));
@@ -1424,14 +1424,35 @@ class ArgumentsTypes {
  */
 class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   final ConcreteTypesInferrer inferrer;
+  /// Invariant: backend = inferrer.compiler.backend
+  final Backend backend;
 
   final Element currentMethodOrField;
   ConcreteTypesEnvironment environment;
   Node lastSeenNode;
 
   TypeInferrerVisitor(TreeElements elements, this.currentMethodOrField,
-                      this.inferrer, this.environment)
-      : super(elements);
+                      ConcreteTypesInferrer inferrer, this.environment)
+      : this.inferrer = inferrer
+      , this.backend = inferrer.compiler.backend
+      , super(elements) {
+        for (Element element in elements.otherDependencies) {
+          if (element.isClass()) {
+            inferrer.augmentSeenClasses(inferrer.normalize(element));
+          } else {
+            FunctionElement functionElement = element;
+            List<ConcreteType> unknowns = new List.filled(
+                functionElement.computeSignature(inferrer.compiler)
+                               .requiredParameterCount,
+                inferrer.unknownConcreteType);
+            inferrer.getSendReturnType(
+                null,
+                functionElement,
+                functionElement.getEnclosingClass(),
+                new ArgumentsTypes(unknowns, new Map()));
+          }
+        }
+      }
 
   ArgumentsTypes analyzeArguments(Link<Node> arguments) {
     final positional = new List<ConcreteType>();
@@ -1533,8 +1554,14 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
     }
     Element element = elements[node];
     assert(element != null);
-    environment = environment.put(element, inferrer.nullConcreteType);
-    return inferrer.nullConcreteType;
+    ConcreteType result = environment.lookupType(element);
+    if (result != null) {
+      assert(element.isParameter());
+      return result;
+    } else {
+      environment = environment.put(element, inferrer.nullConcreteType);
+      return inferrer.nullConcreteType;
+    }
   }
 
   ConcreteType visitIf(If node) {
@@ -1680,19 +1707,19 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitLiteralInt(LiteralInt node) {
-    inferrer.augmentSeenClasses(inferrer.compiler.intClass);
-    inferrer.augmentSeenClasses(inferrer.compiler.numClass);
+    inferrer.augmentSeenClasses(backend.intImplementation);
+    inferrer.augmentSeenClasses(backend.numImplementation);
     return inferrer.singletonConcreteType(inferrer.baseTypes.intBaseType);
   }
 
   ConcreteType visitLiteralDouble(LiteralDouble node) {
-    inferrer.augmentSeenClasses(inferrer.compiler.doubleClass);
-    inferrer.augmentSeenClasses(inferrer.compiler.numClass);
+    inferrer.augmentSeenClasses(backend.doubleImplementation);
+    inferrer.augmentSeenClasses(backend.numImplementation);
     return inferrer.singletonConcreteType(inferrer.baseTypes.doubleBaseType);
   }
 
   ConcreteType visitLiteralBool(LiteralBool node) {
-    inferrer.augmentSeenClasses(inferrer.compiler.boolClass);
+    inferrer.augmentSeenClasses(backend.boolImplementation);
     return inferrer.singletonConcreteType(inferrer.baseTypes.boolBaseType);
   }
 
@@ -1718,7 +1745,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
   }
 
   ConcreteType visitNewExpression(NewExpression node) {
-    Element constructor = elements[node.send];
+    Element constructor = elements[node.send].implementation;
     inferrer.addCaller(constructor, currentMethodOrField);
     ClassElement cls = constructor.enclosingElement;
     return inferrer.getSendReturnType(null, constructor, cls,
@@ -1734,7 +1761,7 @@ class TypeInferrerVisitor extends ResolvedVisitor<ConcreteType> {
       elementsType = elementsType.union(analyze(link.head));
     }
     inferrer.augmentListElementType(elementsType);
-    inferrer.augmentSeenClasses(inferrer.compiler.listClass);
+    inferrer.augmentSeenClasses(backend.listImplementation);
     return inferrer.singletonConcreteType(inferrer.baseTypes.listBaseType);
   }
 
