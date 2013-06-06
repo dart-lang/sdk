@@ -25,7 +25,7 @@ if not defined DART_CONFIGURATION set DART_CONFIGURATION=ReleaseIA32
 
 set BUILD_DIR=%SDK_DIR%\..\build\%DART_CONFIGURATION%
 if exist "%SNAPSHOT%" (
-  "%DART%" "%SNAPSHOT%" "dartdoc" %*
+  "%DART%" "%SNAPSHOT%" "dartdoc" "--library-root=%SDK_DIR%" %*
 ) else (
   :: The trailing forward slash in --package-root is required because of issue
   :: 9499.
