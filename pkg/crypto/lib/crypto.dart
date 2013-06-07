@@ -91,15 +91,13 @@ class CryptoUtils {
   /**
    * Converts a Base 64 encoded String into list of bytes.
    *
-   * Decoder ignores "\r\n" sequences from input. By default it also ignores
-   * all illegal characters unless [ignoreInvalidCharacters] is false.
+   * Decoder ignores "\r\n" sequences from input.
    *
    * Accepts both URL safe and unsafe Base 64 encoded strings.
    *
    * Based on [RFC 4648](http://tools.ietf.org/html/rfc4648)
    */
-  static List<int> base64StringToBytes(String input,
-                                       {bool ignoreInvalidCharacters : true}) {
-    return _CryptoUtils.base64StringToBytes(input, ignoreInvalidCharacters);
+  static List<int> base64StringToBytes(String input) {
+    return _CryptoUtils.base64StringToBytes(input);
   }
 }

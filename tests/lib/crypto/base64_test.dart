@@ -81,16 +81,12 @@ testDecoder() {
 
 testDecoderForMalformedInput() {
   Expect.throws(() {
-      CryptoUtils.base64StringToBytes('AB~', ignoreInvalidCharacters: false);
+      CryptoUtils.base64StringToBytes('AB~');
     }, (e) => e is FormatException);
 
   Expect.throws(() {
     CryptoUtils.base64StringToBytes('A');
   }, (e) => e is FormatException);
-
-  Expect.listEquals('f'.codeUnits,
-      CryptoUtils.base64StringToBytes('~~Zg==@@@',
-          ignoreInvalidCharacters: true));
 }
 
 testUrlSafeEncodeDecode() {
