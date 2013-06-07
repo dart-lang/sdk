@@ -113,6 +113,10 @@ async/timer_not_available_test: Skip # only meant to test when there is no way t
 mirrors/library_uri_io_test: Skip # Not intended for drt as it uses dart:io.
 async/run_async6_test: Fail # Issue 10910
 
+[ $compiler == none && $runtime == drt && $system == windows ]
+async/multiple_timer_test: Fail, Pass # See Issue 10982
+async/timer_test: Fail, Pass # See Issue 10982
+
 [ $arch == arm ]
 *: Skip
 

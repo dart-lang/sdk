@@ -18,8 +18,7 @@ int iteration;
 // Some browsers (Firefox and IE so far) can trigger too early. Add a safety
 // margin. We use identical(1, 1.0) as an easy way to know if the test is
 // compiled by dart2js.
-// NOTE: 15 ms seems to be resolution of Stopwatch implementation on Windows.
-int get safetyMargin => identical(1, 1.0) ? 100 : 15;
+int get safetyMargin => identical(1, 1.0) ? 100 : 1;
 
 void timeoutHandler() {
   int endTime = (new DateTime.now()).millisecondsSinceEpoch;
