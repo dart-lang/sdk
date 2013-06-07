@@ -111,7 +111,7 @@ abstract class _CryptoUtils {
     }
 
     // Count '\r', '\n' and illegal characters, For illegal characters,
-    // if [ignoreInvalidCharacters] is false, throw an exception.
+    // throw an exception.
     int extrasLen = 0;
     for (int i = 0; i < len; i++) {
       int c = _decodeTable[input.codeUnitAt(i)];
