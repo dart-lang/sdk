@@ -2491,12 +2491,10 @@ class CssKeyframesRule extends CssRule {
   @DocsEditable
   void set name(String value) native "WebKitCSSKeyframesRule_name_Setter";
 
-  @DomName('WebKitCSSKeyframesRule')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  // http://www.w3.org/TR/css3-animations/#csskeyframesrule
-  CssKeyframeRule item(int index) native "WebKitCSSKeyframesRule_None_Callback";
+  @DomName('WebKitCSSKeyframesRule.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  CssKeyframeRule __getter__(int index) native "WebKitCSSKeyframesRule___getter___Callback";
 
   @DomName('WebKitCSSKeyframesRule.deleteRule')
   @DocsEditable
@@ -7564,8 +7562,10 @@ class DomSettableTokenList extends DomTokenList {
   @DocsEditable
   void set value(String value) native "DOMSettableTokenList_value_Setter";
 
-  @DomName('DOMSettableTokenList')
-  String item(int index) native "DOMSettableTokenList_None_Callback";
+  @DomName('DOMSettableTokenList.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  String __getter__(int index) native "DOMSettableTokenList___getter___Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7650,8 +7650,10 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
 class DomStringMap extends NativeFieldWrapperClass1 {
   DomStringMap.internal();
 
-  @DomName('DOMStringMap')
-  String item(String name) native "DOMStringMap_None_Callback";
+  @DomName('DOMStringMap.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  String __getter__(String name) native "DOMStringMap___getter___Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11006,8 +11008,10 @@ class FormElement extends _Element_Merged {
   @DocsEditable
   void set target(String value) native "HTMLFormElement_target_Setter";
 
-  @DomName('HTMLFormElement')
-  Node item(int index) native "HTMLFormElement_None_Callback";
+  @DomName('HTMLFormElement.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  Node __getter__(int index) native "HTMLFormElement___getter___Callback";
 
   @DomName('HTMLFormElement.checkValidity')
   @DocsEditable
@@ -11704,8 +11708,10 @@ class HtmlElement extends _Element_Merged {
 class HtmlFormControlsCollection extends HtmlCollection {
   HtmlFormControlsCollection.internal() : super.internal();
 
-  @DomName('HTMLFormControlsCollection')
-  Node item(int index) native "HTMLFormControlsCollection_None_Callback";
+  @DomName('HTMLFormControlsCollection.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  Node __getter__(int index) native "HTMLFormControlsCollection___getter___Callback";
 
   @DomName('HTMLFormControlsCollection.namedItem')
   @DocsEditable
@@ -21396,19 +21402,19 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
   @DocsEditable
   int get $dom_length native "Storage_length_Getter";
 
-  String anonymousIndexedGetter(index_OR_name) {
+  String __getter__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
-      return _None_1(index_OR_name);
+      return ___getter___1(index_OR_name);
     }
     if ((index_OR_name is String || index_OR_name == null)) {
-      return _None_2(index_OR_name);
+      return ___getter___2(index_OR_name);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  String _None_1(index_OR_name) native "Storage__None_1_Callback";
+  String ___getter___1(index_OR_name) native "Storage____getter___1_Callback";
 
-  String _None_2(index_OR_name) native "Storage__None_2_Callback";
+  String ___getter___2(index_OR_name) native "Storage____getter___2_Callback";
 
   @DomName('Storage.clear')
   @DocsEditable
@@ -24437,8 +24443,10 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   WindowBase get window native "DOMWindow_window_Getter";
 
-  @DomName('Window')
-  WindowBase anonymousIndexedGetter(int index) native "DOMWindow_None_Callback";
+  @DomName('Window.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  WindowBase __getter__(int index) native "DOMWindow___getter___Callback";
 
   @DomName('Window.addEventListener')
   @DocsEditable

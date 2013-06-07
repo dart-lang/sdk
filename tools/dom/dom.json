@@ -1086,6 +1086,9 @@
   "DOMSettableTokenList": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domsettabletokenlist-0",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "value": {}
     },
     "support_level": "stable"
@@ -1101,7 +1104,11 @@
   },
   "DOMStringMap": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domstringmap-0",
-    "members": {},
+    "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      }
+    },
     "support_level": "stable"
   },
   "DOMTokenList": {
@@ -1127,6 +1134,9 @@
       "TEMPORARY": {
         "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
         "support_level": "experimental"
+      },
+      "__getter__": {
+        "support_level": "untriaged"
       },
       "addEventListener": {},
       "alert": {},
@@ -3402,6 +3412,9 @@
   "HTMLFormControlsCollection": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/common-dom-interfaces.html#htmlformcontrolscollection-0",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "namedItem": {}
     },
     "support_level": "stable"
@@ -3410,6 +3423,9 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/forms.html#the-form-element",
     "members": {
       "HTMLFormElement": {},
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "acceptCharset": {},
       "action": {},
       "autocomplete": {
@@ -10108,6 +10124,9 @@
     "comment": "http://www.w3.org/TR/webstorage/#the-storage-interface",
     "dart_action": "unstable",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "clear": {},
       "getItem": {},
       "key": {},
@@ -11194,6 +11213,9 @@
   "WebKitCSSKeyframesRule": {
     "comment": "http://www.w3.org/TR/css3-animations/#csskeyframesrule",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "cssRules": {},
       "deleteRule": {},
       "findRule": {},
