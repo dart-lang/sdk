@@ -1314,6 +1314,16 @@ class WaveShaperNode extends AudioNode {
   @DocsEditable
   void set curve(Float32List value) native "WaveShaperNode_curve_Setter";
 
+  @DomName('WaveShaperNode.oversample')
+  @DocsEditable
+  @Experimental // untriaged
+  String get oversample native "WaveShaperNode_oversample_Getter";
+
+  @DomName('WaveShaperNode.oversample')
+  @DocsEditable
+  @Experimental // untriaged
+  void set oversample(String value) native "WaveShaperNode_oversample_Setter";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -2332,13 +2332,14 @@ class CssCharsetRule extends CssRule {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-// http://www.w3.org/TR/filter-effects/
+@Experimental // untriaged
 class CssFilterRule extends CssRule {
   CssFilterRule.internal() : super.internal();
 
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable
-  CssStyleDeclaration get style native "WebKitCSSFilterRule_style_Getter";
+  @Experimental // untriaged
+  CssStyleDeclaration get style native "CSSFilterRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2446,21 +2447,24 @@ class CssImportRule extends CssRule {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-// http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
+@Experimental // untriaged
 class CssKeyframeRule extends CssRule {
   CssKeyframeRule.internal() : super.internal();
 
   @DomName('WebKitCSSKeyframeRule.keyText')
   @DocsEditable
-  String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
+  @Experimental // untriaged
+  String get keyText native "CSSKeyframeRule_keyText_Getter";
 
   @DomName('WebKitCSSKeyframeRule.keyText')
   @DocsEditable
-  void set keyText(String value) native "WebKitCSSKeyframeRule_keyText_Setter";
+  @Experimental // untriaged
+  void set keyText(String value) native "CSSKeyframeRule_keyText_Setter";
 
   @DomName('WebKitCSSKeyframeRule.style')
   @DocsEditable
-  CssStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
+  @Experimental // untriaged
+  CssStyleDeclaration get style native "CSSKeyframeRule_style_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2475,38 +2479,44 @@ class CssKeyframeRule extends CssRule {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-// http://www.w3.org/TR/css3-animations/#csskeyframesrule
+@Experimental // untriaged
 class CssKeyframesRule extends CssRule {
   CssKeyframesRule.internal() : super.internal();
 
   @DomName('WebKitCSSKeyframesRule.cssRules')
   @DocsEditable
-  List<CssRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
+  @Experimental // untriaged
+  List<CssRule> get cssRules native "CSSKeyframesRule_cssRules_Getter";
 
   @DomName('WebKitCSSKeyframesRule.name')
   @DocsEditable
-  String get name native "WebKitCSSKeyframesRule_name_Getter";
+  @Experimental // untriaged
+  String get name native "CSSKeyframesRule_name_Getter";
 
   @DomName('WebKitCSSKeyframesRule.name')
   @DocsEditable
-  void set name(String value) native "WebKitCSSKeyframesRule_name_Setter";
+  @Experimental // untriaged
+  void set name(String value) native "CSSKeyframesRule_name_Setter";
 
   @DomName('WebKitCSSKeyframesRule.__getter__')
   @DocsEditable
   @Experimental // untriaged
-  CssKeyframeRule __getter__(int index) native "WebKitCSSKeyframesRule___getter___Callback";
+  CssKeyframeRule __getter__(int index) native "CSSKeyframesRule___getter___Callback";
 
   @DomName('WebKitCSSKeyframesRule.deleteRule')
   @DocsEditable
-  void deleteRule(String key) native "WebKitCSSKeyframesRule_deleteRule_Callback";
+  @Experimental // untriaged
+  void deleteRule(String key) native "CSSKeyframesRule_deleteRule_Callback";
 
   @DomName('WebKitCSSKeyframesRule.findRule')
   @DocsEditable
-  CssKeyframeRule findRule(String key) native "WebKitCSSKeyframesRule_findRule_Callback";
+  @Experimental // untriaged
+  CssKeyframeRule findRule(String key) native "CSSKeyframesRule_findRule_Callback";
 
   @DomName('WebKitCSSKeyframesRule.insertRule')
   @DocsEditable
-  void insertRule(String rule) native "WebKitCSSKeyframesRule_insertRule_Callback";
+  @Experimental // untriaged
+  void insertRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2575,13 +2585,14 @@ class CssPageRule extends CssRule {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-// http://dev.w3.org/csswg/css-regions/#region-style-rule-interface
+@Experimental // untriaged
 class CssRegionRule extends CssRule {
   CssRegionRule.internal() : super.internal();
 
   @DomName('WebKitCSSRegionRule.cssRules')
   @DocsEditable
-  List<CssRule> get cssRules native "WebKitCSSRegionRule_cssRules_Getter";
+  @Experimental // untriaged
+  List<CssRule> get cssRules native "CSSRegionRule_cssRules_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2713,6 +2724,11 @@ class CssStyleDeclaration extends NativeFieldWrapperClass1 {
   @DomName('CSSStyleDeclaration.parentRule')
   @DocsEditable
   CssRule get parentRule native "CSSStyleDeclaration_parentRule_Getter";
+
+  @DomName('CSSStyleDeclaration.__setter__')
+  @DocsEditable
+  @Experimental // untriaged
+  void __setter__(String propertyName, String propertyValue) native "CSSStyleDeclaration___setter___Callback";
 
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable
@@ -7650,10 +7666,20 @@ class DomStringList extends NativeFieldWrapperClass1 with ListMixin<String>, Imm
 class DomStringMap extends NativeFieldWrapperClass1 {
   DomStringMap.internal();
 
+  @DomName('DOMStringMap.__delete__')
+  @DocsEditable
+  @Experimental // untriaged
+  bool __delete__(String name) native "DOMStringMap___delete___Callback";
+
   @DomName('DOMStringMap.__getter__')
   @DocsEditable
   @Experimental // untriaged
   String __getter__(String name) native "DOMStringMap___getter___Callback";
+
+  @DomName('DOMStringMap.__setter__')
+  @DocsEditable
+  @Experimental // untriaged
+  void __setter__(String name, String value) native "DOMStringMap___setter___Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8820,14 +8846,6 @@ abstract class Element extends Node implements ElementTraversal {
   @DocsEditable
   String get tagName native "Element_tagName_Getter";
 
-  @DomName('Element.webkitInsertionParent')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=21067
-  Node get insertionParent native "Element_webkitInsertionParent_Getter";
-
   @DomName('Element.webkitPseudo')
   @DocsEditable
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -9520,6 +9538,16 @@ class EmbedElement extends _Element_Merged {
   @DocsEditable
   void set width(String value) native "HTMLEmbedElement_width_Setter";
 
+  @DomName('HTMLEmbedElement.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  bool __getter__(index_OR_name) native "HTMLEmbedElement___getter___Callback";
+
+  @DomName('HTMLEmbedElement.__setter__')
+  @DocsEditable
+  @Experimental // untriaged
+  void __setter__(index_OR_name, Node value) native "HTMLEmbedElement___setter___Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9889,6 +9917,12 @@ class Event extends NativeFieldWrapperClass1 {
   @DocsEditable
   int get eventPhase native "Event_eventPhase_Getter";
 
+  @DomName('Event.path')
+  @DocsEditable
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
+  @Experimental
+  List<Node> get path native "Event_path_Getter";
+
   @DomName('Event.target')
   @DocsEditable
   EventTarget get target native "Event_target_Getter";
@@ -9904,12 +9938,6 @@ class Event extends NativeFieldWrapperClass1 {
   @DomName('Event.initEvent')
   @DocsEditable
   void $dom_initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native "Event_initEvent_Callback";
-
-  @DomName('Event.path')
-  @DocsEditable
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  @Experimental
-  List<Node> path() native "Event_path_Callback";
 
   @DomName('Event.preventDefault')
   @DocsEditable
@@ -11459,6 +11487,11 @@ class HtmlAllCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, I
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
+  @DomName('HTMLAllCollection.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  Node __getter__(int index) native "HTMLAllCollection___getter___Callback";
+
   @DomName('HTMLAllCollection.item')
   @DocsEditable
   Node item(int index) native "HTMLAllCollection_item_Callback";
@@ -11532,6 +11565,11 @@ class HtmlCollection extends NativeFieldWrapperClass1 with ListMixin<Node>, Immu
 
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
+
+  @DomName('HTMLCollection.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  Node __getter__(String name) native "HTMLCollection___getter___Callback";
 
   @DomName('HTMLCollection.item')
   @DocsEditable
@@ -11759,10 +11797,6 @@ class HtmlFormControlsCollection extends HtmlCollection {
 @DomName('HTMLOptionsCollection')
 class HtmlOptionsCollection extends HtmlCollection {
   HtmlOptionsCollection.internal() : super.internal();
-
-  @DomName('HTMLOptionsCollection.numericIndexSetter')
-  @DocsEditable
-  void operator[]=(int index, Node value) native "HTMLOptionsCollection_numericIndexSetter_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14111,6 +14145,11 @@ class LinkElement extends _Element_Merged {
   @DocsEditable
   void set hreflang(String value) native "HTMLLinkElement_hreflang_Setter";
 
+  @DomName('HTMLLinkElement.import')
+  @DocsEditable
+  @Experimental // untriaged
+  DocumentFragment get import native "HTMLLinkElement_import_Getter";
+
   @DomName('HTMLLinkElement.media')
   @DocsEditable
   String get media native "HTMLLinkElement_media_Getter";
@@ -15972,6 +16011,45 @@ class MeterElement extends _Element_Merged {
 
 
 @DocsEditable
+@DomName('MIDIAccess')
+@Experimental // untriaged
+class MidiAccess extends EventTarget {
+  MidiAccess.internal() : super.internal();
+
+  @DomName('MIDIAccess.addEventListener')
+  @DocsEditable
+  @Experimental // untriaged
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_addEventListener_Callback";
+
+  @DomName('MIDIAccess.dispatchEvent')
+  @DocsEditable
+  @Experimental // untriaged
+  bool dispatchEvent(Event event) native "MIDIAccess_dispatchEvent_Callback";
+
+  @DomName('MIDIAccess.inputs')
+  @DocsEditable
+  @Experimental // untriaged
+  List<MidiInput> inputs() native "MIDIAccess_inputs_Callback";
+
+  @DomName('MIDIAccess.outputs')
+  @DocsEditable
+  @Experimental // untriaged
+  List<MidiOutput> outputs() native "MIDIAccess_outputs_Callback";
+
+  @DomName('MIDIAccess.removeEventListener')
+  @DocsEditable
+  @Experimental // untriaged
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MIDIAccess_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('MIDIConnectionEvent')
 // http://webaudio.github.io/web-midi-api/#midiconnectionevent-interface
 @Experimental
@@ -16195,6 +16273,11 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
 
   MimeType elementAt(int index) => this[index];
   // -- end List<MimeType> mixins.
+
+  @DomName('MimeTypeArray.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  MimeType __getter__(String name) native "MimeTypeArray___getter___Callback";
 
   @DomName('MimeTypeArray.item')
   @DocsEditable
@@ -16665,6 +16748,11 @@ class NamedFlowCollection extends NativeFieldWrapperClass1 {
   @DocsEditable
   int get length native "DOMNamedFlowCollection_length_Getter";
 
+  @DomName('WebKitNamedFlowCollection.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  NamedFlow __getter__(String name) native "DOMNamedFlowCollection___getter___Callback";
+
   @DomName('WebKitNamedFlowCollection.item')
   @DocsEditable
   NamedFlow item(int index) native "DOMNamedFlowCollection_item_Callback";
@@ -16877,15 +16965,20 @@ class Navigator extends NativeFieldWrapperClass1 {
 class NavigatorUserMediaError extends NativeFieldWrapperClass1 {
   NavigatorUserMediaError.internal();
 
-  @DomName('NavigatorUserMediaError.PERMISSION_DENIED')
+  @DomName('NavigatorUserMediaError.constraintName')
   @DocsEditable
-  @Experimental // nonstandard
-  static const int PERMISSION_DENIED = 1;
+  @Experimental // untriaged
+  String get constraintName native "NavigatorUserMediaError_constraintName_Getter";
 
-  @DomName('NavigatorUserMediaError.code')
+  @DomName('NavigatorUserMediaError.message')
   @DocsEditable
-  @Experimental // nonstandard
-  int get code native "NavigatorUserMediaError_code_Getter";
+  @Experimental // untriaged
+  String get message native "NavigatorUserMediaError_message_Getter";
+
+  @DomName('NavigatorUserMediaError.name')
+  @DocsEditable
+  @Experimental // untriaged
+  String get name native "NavigatorUserMediaError_name_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17888,6 +17981,16 @@ class ObjectElement extends _Element_Merged {
   @DocsEditable
   bool get willValidate native "HTMLObjectElement_willValidate_Getter";
 
+  @DomName('HTMLObjectElement.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  bool __getter__(index_OR_name) native "HTMLObjectElement___getter___Callback";
+
+  @DomName('HTMLObjectElement.__setter__')
+  @DocsEditable
+  @Experimental // untriaged
+  void __setter__(index_OR_name, Node value) native "HTMLObjectElement___setter___Callback";
+
   @DomName('HTMLObjectElement.checkValidity')
   @DocsEditable
   bool checkValidity() native "HTMLObjectElement_checkValidity_Callback";
@@ -18663,6 +18766,11 @@ class Plugin extends NativeFieldWrapperClass1 {
   @DocsEditable
   String get name native "Plugin_name_Getter";
 
+  @DomName('Plugin.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  MimeType __getter__(String name) native "Plugin___getter___Callback";
+
   @DomName('Plugin.item')
   @DocsEditable
   MimeType item(int index) native "Plugin_item_Callback";
@@ -18733,6 +18841,11 @@ class PluginArray extends NativeFieldWrapperClass1 with ListMixin<Plugin>, Immut
 
   Plugin elementAt(int index) => this[index];
   // -- end List<Plugin> mixins.
+
+  @DomName('PluginArray.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  Plugin __getter__(String name) native "PluginArray___getter___Callback";
 
   @DomName('PluginArray.item')
   @DocsEditable
@@ -19205,6 +19318,25 @@ class Range extends NativeFieldWrapperClass1 {
 
 @DomName('RequestAnimationFrameCallback')
 typedef void RequestAnimationFrameCallback(num highResTime);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('ResourceProgressEvent')
+@Experimental // untriaged
+class ResourceProgressEvent extends ProgressEvent {
+  ResourceProgressEvent.internal() : super.internal();
+
+  @DomName('ResourceProgressEvent.url')
+  @DocsEditable
+  @Experimental // untriaged
+  String get url native "ResourceProgressEvent_url_Getter";
+
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19793,6 +19925,11 @@ class RtcStatsReport extends NativeFieldWrapperClass1 {
 class RtcStatsResponse extends NativeFieldWrapperClass1 {
   RtcStatsResponse.internal();
 
+  @DomName('RTCStatsResponse.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  RtcStatsReport __getter__(String name) native "RTCStatsResponse___getter___Callback";
+
   @DomName('RTCStatsResponse.namedItem')
   @DocsEditable
   RtcStatsReport namedItem(String name) native "RTCStatsResponse_namedItem_Callback";
@@ -20193,6 +20330,11 @@ class SelectElement extends _Element_Merged {
   @DomName('HTMLSelectElement.willValidate')
   @DocsEditable
   bool get willValidate native "HTMLSelectElement_willValidate_Getter";
+
+  @DomName('HTMLSelectElement.__setter__')
+  @DocsEditable
+  @Experimental // untriaged
+  void __setter__(int index, OptionElement value) native "HTMLSelectElement___setter___Callback";
 
   @DomName('HTMLSelectElement.checkValidity')
   @DocsEditable
@@ -21432,6 +21574,20 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
   @DocsEditable
   int get $dom_length native "Storage_length_Getter";
 
+  bool __delete__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return ___delete___1(index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return ___delete___2(index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  bool ___delete___1(index_OR_name) native "Storage____delete___1_Callback";
+
+  bool ___delete___2(index_OR_name) native "Storage____delete___2_Callback";
+
   String __getter__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
       return ___getter___1(index_OR_name);
@@ -21445,6 +21601,22 @@ class Storage extends NativeFieldWrapperClass1 implements Map<String, String>
   String ___getter___1(index_OR_name) native "Storage____getter___1_Callback";
 
   String ___getter___2(index_OR_name) native "Storage____getter___2_Callback";
+
+  void __setter__(index_OR_name, String value) {
+    if ((value is String || value == null) && (index_OR_name is int || index_OR_name == null)) {
+      ___setter___1(index_OR_name, value);
+      return;
+    }
+    if ((value is String || value == null) && (index_OR_name is String || index_OR_name == null)) {
+      ___setter___2(index_OR_name, value);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void ___setter___1(index_OR_name, value) native "Storage____setter___1_Callback";
+
+  void ___setter___2(index_OR_name, value) native "Storage____setter___2_Callback";
 
   @DomName('Storage.clear')
   @DocsEditable
@@ -22197,14 +22369,6 @@ option[template] {
 class Text extends CharacterData {
   factory Text(String data) => document.$dom_createTextNode(data);
   Text.internal() : super.internal();
-
-  @DomName('Text.webkitInsertionParent')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  // https://www.w3.org/Bugs/Public/show_bug.cgi?id=21067
-  Node get insertionParent native "Text_webkitInsertionParent_Getter";
 
   @DomName('Text.wholeText')
   @DocsEditable
@@ -24473,10 +24637,19 @@ class Window extends EventTarget implements WindowBase {
   @DocsEditable
   WindowBase get window native "DOMWindow_window_Getter";
 
-  @DomName('Window.__getter__')
-  @DocsEditable
-  @Experimental // untriaged
-  WindowBase __getter__(int index) native "DOMWindow___getter___Callback";
+  WindowBase __getter__(index_OR_name) {
+    if ((index_OR_name is int || index_OR_name == null)) {
+      return ___getter___1(index_OR_name);
+    }
+    if ((index_OR_name is String || index_OR_name == null)) {
+      return ___getter___2(index_OR_name);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  WindowBase ___getter___1(index_OR_name) native "DOMWindow____getter___1_Callback";
+
+  WindowBase ___getter___2(index_OR_name) native "DOMWindow____getter___2_Callback";
 
   @DomName('Window.addEventListener')
   @DocsEditable
@@ -26447,6 +26620,11 @@ class _NamedNodeMap extends NativeFieldWrapperClass1 with ListMixin<Node>, Immut
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
+  @DomName('NamedNodeMap.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  Node __getter__(String name) native "NamedNodeMap___getter___Callback";
+
   @DomName('NamedNodeMap.getNamedItem')
   @DocsEditable
   Node getNamedItem(String name) native "NamedNodeMap_getNamedItem_Callback";
@@ -26766,6 +26944,11 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
   StyleSheet elementAt(int index) => this[index];
   // -- end List<StyleSheet> mixins.
 
+  @DomName('StyleSheetList.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  CssStyleSheet __getter__(String name) native "StyleSheetList___getter___Callback";
+
   @DomName('StyleSheetList.item')
   @DocsEditable
   StyleSheet item(int index) native "StyleSheetList_item_Callback";
@@ -26780,10 +26963,82 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
 
 @DocsEditable
 @DomName('WebKitCSSFilterValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-abstract class _WebKitCSSFilterValue extends _CssValueList {
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+@Experimental // untriaged
+class _WebKitCSSFilterValue extends _CssValueList {
   _WebKitCSSFilterValue.internal() : super.internal();
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_BLUR')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_BLUR = 10;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_BRIGHTNESS')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_BRIGHTNESS = 8;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_CONTRAST')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_CONTRAST = 9;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_CUSTOM')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_CUSTOM = 12;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_DROP_SHADOW')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_DROP_SHADOW = 11;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_GRAYSCALE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_GRAYSCALE = 2;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_HUE_ROTATE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_HUE_ROTATE = 5;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_INVERT')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_INVERT = 6;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_OPACITY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_OPACITY = 7;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_REFERENCE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_REFERENCE = 1;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_SATURATE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_SATURATE = 4;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_SEPIA')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_SEPIA = 3;
+
+  @DomName('WebKitCSSFilterValue.operationType')
+  @DocsEditable
+  @Experimental // untriaged
+  int get operationType native "CSSFilterValue_operationType_Getter";
+
+  @DomName('WebKitCSSFilterValue.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  _CSSValue __getter__(int index) native "CSSFilterValue___getter___Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26798,19 +27053,291 @@ abstract class _WebKitCSSFilterValue extends _CssValueList {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass1 {
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+@Experimental // untriaged
+class _WebKitCSSMatrix extends NativeFieldWrapperClass1 {
   _WebKitCSSMatrix.internal();
 
-  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
+  @DomName('WebKitCSSMatrix.CSSMatrix')
   @DocsEditable
   factory _WebKitCSSMatrix([String cssValue]) {
     return _WebKitCSSMatrix._create_1(cssValue);
   }
 
   @DocsEditable
-  static _WebKitCSSMatrix _create_1(cssValue) native "WebKitCSSMatrix__create_1constructorCallback";
+  static _WebKitCSSMatrix _create_1(cssValue) native "CSSMatrix__create_1constructorCallback";
+
+  @DomName('WebKitCSSMatrix.a')
+  @DocsEditable
+  @Experimental // untriaged
+  num get a native "CSSMatrix_a_Getter";
+
+  @DomName('WebKitCSSMatrix.a')
+  @DocsEditable
+  @Experimental // untriaged
+  void set a(num value) native "CSSMatrix_a_Setter";
+
+  @DomName('WebKitCSSMatrix.b')
+  @DocsEditable
+  @Experimental // untriaged
+  num get b native "CSSMatrix_b_Getter";
+
+  @DomName('WebKitCSSMatrix.b')
+  @DocsEditable
+  @Experimental // untriaged
+  void set b(num value) native "CSSMatrix_b_Setter";
+
+  @DomName('WebKitCSSMatrix.c')
+  @DocsEditable
+  @Experimental // untriaged
+  num get c native "CSSMatrix_c_Getter";
+
+  @DomName('WebKitCSSMatrix.c')
+  @DocsEditable
+  @Experimental // untriaged
+  void set c(num value) native "CSSMatrix_c_Setter";
+
+  @DomName('WebKitCSSMatrix.d')
+  @DocsEditable
+  @Experimental // untriaged
+  num get d native "CSSMatrix_d_Getter";
+
+  @DomName('WebKitCSSMatrix.d')
+  @DocsEditable
+  @Experimental // untriaged
+  void set d(num value) native "CSSMatrix_d_Setter";
+
+  @DomName('WebKitCSSMatrix.e')
+  @DocsEditable
+  @Experimental // untriaged
+  num get e native "CSSMatrix_e_Getter";
+
+  @DomName('WebKitCSSMatrix.e')
+  @DocsEditable
+  @Experimental // untriaged
+  void set e(num value) native "CSSMatrix_e_Setter";
+
+  @DomName('WebKitCSSMatrix.f')
+  @DocsEditable
+  @Experimental // untriaged
+  num get f native "CSSMatrix_f_Getter";
+
+  @DomName('WebKitCSSMatrix.f')
+  @DocsEditable
+  @Experimental // untriaged
+  void set f(num value) native "CSSMatrix_f_Setter";
+
+  @DomName('WebKitCSSMatrix.m11')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m11 native "CSSMatrix_m11_Getter";
+
+  @DomName('WebKitCSSMatrix.m11')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m11(num value) native "CSSMatrix_m11_Setter";
+
+  @DomName('WebKitCSSMatrix.m12')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m12 native "CSSMatrix_m12_Getter";
+
+  @DomName('WebKitCSSMatrix.m12')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m12(num value) native "CSSMatrix_m12_Setter";
+
+  @DomName('WebKitCSSMatrix.m13')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m13 native "CSSMatrix_m13_Getter";
+
+  @DomName('WebKitCSSMatrix.m13')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m13(num value) native "CSSMatrix_m13_Setter";
+
+  @DomName('WebKitCSSMatrix.m14')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m14 native "CSSMatrix_m14_Getter";
+
+  @DomName('WebKitCSSMatrix.m14')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m14(num value) native "CSSMatrix_m14_Setter";
+
+  @DomName('WebKitCSSMatrix.m21')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m21 native "CSSMatrix_m21_Getter";
+
+  @DomName('WebKitCSSMatrix.m21')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m21(num value) native "CSSMatrix_m21_Setter";
+
+  @DomName('WebKitCSSMatrix.m22')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m22 native "CSSMatrix_m22_Getter";
+
+  @DomName('WebKitCSSMatrix.m22')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m22(num value) native "CSSMatrix_m22_Setter";
+
+  @DomName('WebKitCSSMatrix.m23')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m23 native "CSSMatrix_m23_Getter";
+
+  @DomName('WebKitCSSMatrix.m23')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m23(num value) native "CSSMatrix_m23_Setter";
+
+  @DomName('WebKitCSSMatrix.m24')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m24 native "CSSMatrix_m24_Getter";
+
+  @DomName('WebKitCSSMatrix.m24')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m24(num value) native "CSSMatrix_m24_Setter";
+
+  @DomName('WebKitCSSMatrix.m31')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m31 native "CSSMatrix_m31_Getter";
+
+  @DomName('WebKitCSSMatrix.m31')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m31(num value) native "CSSMatrix_m31_Setter";
+
+  @DomName('WebKitCSSMatrix.m32')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m32 native "CSSMatrix_m32_Getter";
+
+  @DomName('WebKitCSSMatrix.m32')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m32(num value) native "CSSMatrix_m32_Setter";
+
+  @DomName('WebKitCSSMatrix.m33')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m33 native "CSSMatrix_m33_Getter";
+
+  @DomName('WebKitCSSMatrix.m33')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m33(num value) native "CSSMatrix_m33_Setter";
+
+  @DomName('WebKitCSSMatrix.m34')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m34 native "CSSMatrix_m34_Getter";
+
+  @DomName('WebKitCSSMatrix.m34')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m34(num value) native "CSSMatrix_m34_Setter";
+
+  @DomName('WebKitCSSMatrix.m41')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m41 native "CSSMatrix_m41_Getter";
+
+  @DomName('WebKitCSSMatrix.m41')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m41(num value) native "CSSMatrix_m41_Setter";
+
+  @DomName('WebKitCSSMatrix.m42')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m42 native "CSSMatrix_m42_Getter";
+
+  @DomName('WebKitCSSMatrix.m42')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m42(num value) native "CSSMatrix_m42_Setter";
+
+  @DomName('WebKitCSSMatrix.m43')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m43 native "CSSMatrix_m43_Getter";
+
+  @DomName('WebKitCSSMatrix.m43')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m43(num value) native "CSSMatrix_m43_Setter";
+
+  @DomName('WebKitCSSMatrix.m44')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m44 native "CSSMatrix_m44_Getter";
+
+  @DomName('WebKitCSSMatrix.m44')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m44(num value) native "CSSMatrix_m44_Setter";
+
+  @DomName('WebKitCSSMatrix.inverse')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCSSMatrix inverse() native "CSSMatrix_inverse_Callback";
+
+  @DomName('WebKitCSSMatrix.multiply')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCSSMatrix multiply(_WebKitCSSMatrix secondMatrix) native "CSSMatrix_multiply_Callback";
+
+  @DomName('WebKitCSSMatrix.rotate')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCSSMatrix rotate(num rotX, num rotY, num rotZ) native "CSSMatrix_rotate_Callback";
+
+  @DomName('WebKitCSSMatrix.rotateAxisAngle')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCSSMatrix rotateAxisAngle(num x, num y, num z, num angle) native "CSSMatrix_rotateAxisAngle_Callback";
+
+  @DomName('WebKitCSSMatrix.scale')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCSSMatrix scale(num scaleX, num scaleY, num scaleZ) native "CSSMatrix_scale_Callback";
+
+  @DomName('WebKitCSSMatrix.setMatrixValue')
+  @DocsEditable
+  @Experimental // untriaged
+  void setMatrixValue(String string) native "CSSMatrix_setMatrixValue_Callback";
+
+  @DomName('WebKitCSSMatrix.skewX')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCSSMatrix skewX(num angle) native "CSSMatrix_skewX_Callback";
+
+  @DomName('WebKitCSSMatrix.skewY')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCSSMatrix skewY(num angle) native "CSSMatrix_skewY_Callback";
+
+  @DomName('WebKitCSSMatrix.toString')
+  @DocsEditable
+  @Experimental // untriaged
+  String toString() native "CSSMatrix_toString_Callback";
+
+  @DomName('WebKitCSSMatrix.translate')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCSSMatrix translate(num x, num y, num z) native "CSSMatrix_translate_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26822,9 +27349,11 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebKitCSSMixFunctionValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+@Experimental // untriaged
+class _WebKitCSSMixFunctionValue extends _CssValueList {
   _WebKitCSSMixFunctionValue.internal() : super.internal();
 
 }
@@ -26837,10 +27366,127 @@ abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
 
 @DocsEditable
 @DomName('WebKitCSSTransformValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-abstract class _WebKitCSSTransformValue extends _CssValueList {
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+@Experimental // untriaged
+class _WebKitCSSTransformValue extends _CssValueList {
   _WebKitCSSTransformValue.internal() : super.internal();
+
+  @DomName('WebKitCSSTransformValue.CSS_MATRIX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_MATRIX = 11;
+
+  @DomName('WebKitCSSTransformValue.CSS_MATRIX3D')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_MATRIX3D = 21;
+
+  @DomName('WebKitCSSTransformValue.CSS_PERSPECTIVE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_PERSPECTIVE = 20;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATE = 4;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATE3D')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATE3D = 17;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATEX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATEX = 14;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATEY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATEY = 15;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATEZ')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATEZ = 16;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALE = 5;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALE3D')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALE3D = 19;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALEX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALEX = 6;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALEY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALEY = 7;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALEZ')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALEZ = 18;
+
+  @DomName('WebKitCSSTransformValue.CSS_SKEW')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SKEW = 8;
+
+  @DomName('WebKitCSSTransformValue.CSS_SKEWX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SKEWX = 9;
+
+  @DomName('WebKitCSSTransformValue.CSS_SKEWY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SKEWY = 10;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATE = 1;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATE3D')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATE3D = 13;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATEX = 2;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATEY = 3;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEZ')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATEZ = 12;
+
+  @DomName('WebKitCSSTransformValue.operationType')
+  @DocsEditable
+  @Experimental // untriaged
+  int get operationType native "CSSTransformValue_operationType_Getter";
+
+  @DomName('WebKitCSSTransformValue.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  _CSSValue __getter__(int index) native "CSSTransformValue___getter___Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
