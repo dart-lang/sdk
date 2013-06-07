@@ -90,6 +90,7 @@ io/http_parser_test: fail
 io/process_exit_negative_test: fail
 io/url_encoding_test: fail
 io/web_socket_protocol_processor_test: fail
+53bit_overflow_literal_test: fail, ok
 
 # Fails because checked-in dart executable is not up to date.
 io/test_runner_test: fail
@@ -104,6 +105,7 @@ io/http_parser_test: fail
 io/process_exit_negative_test: fail
 io/url_encoding_test: fail
 io/web_socket_protocol_processor_test: fail
+53bit_overflow_literal_test: fail, ok
 
 # Fails because checked-in dart executable is not up to date.
 io/test_runner_test: fail
