@@ -267,9 +267,12 @@ class _StringBase {
 
   bool contains(Pattern pattern, [int startIndex = 0]) {
     if (pattern is String) {
+      if (startIndex < 0 || startIndex > this.length) {
+        throw new RangeError.range(startIndex, 0, this.length);
+      }
       return indexOf(pattern, startIndex) >= 0;
     }
-    return pattern.allMatches(this.substring(startIndex)).iterator.moveNext();
+    return pattern.allMatches(this.substring(startIndex)).isNotEmpty;
   }
 
   String replaceFirst(Pattern pattern, String replacement) {

@@ -179,10 +179,14 @@ abstract class String implements Comparable<String>, Pattern {
   String trim();
 
   /**
-   * Returns whether this string contains [other] starting
-   * at [startIndex] (inclusive).
+   * Returns whether this string contains a match of [other].
+   *
+   * If [startIndex] is provided, only matches at or after that index
+   * are considered.
+   *
+   * It is an error if [startIndex] is negative or greater than [length].
    */
-  bool contains(Pattern other, [int startIndex]);
+  bool contains(Pattern other, [int startIndex = 0]);
 
   /**
    * Returns a new string where the first occurence of [from] in this string

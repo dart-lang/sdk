@@ -374,7 +374,8 @@ abstract class List<E> implements Iterable<E> {
    * Returns an unmodifiable [Map] view of `this`.
    *
    * It has the indices of this list as keys, and the corresponding elements
-   * as values.
+   * as values. The [Map.keys] [Iterable] will iterate the indices of this list
+   * in numerical order.
    */
   Map<int, E> asMap();
 }

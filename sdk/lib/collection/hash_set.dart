@@ -56,6 +56,20 @@ abstract class _HashSetBase<E> extends IterableBase<E> implements Set<E> {
   String toString() => ToString.iterableToString(this);
 }
 
+/**
+ * A [HashSet] is a hash-table based [Set] implementation.
+ *
+ * The elements of a `HashSet` must have consistent [Object.operator==]
+ * and [Object.hashCode] implementations. This means that the `==` operator
+ * must define a stable equivalence relation on the elements (reflexive,
+ * anti-symmetric, transitive, and consistent over time), and that `hashCode`
+ * must be the same for objects that are considered equal by `==`.
+ *
+ * The set allows `null` as an element.
+ *
+ * Most simple operations on `HashSet` are done in constant time: [add],
+ * [contains], [remove], and [length].
+ */
 class HashSet<E> extends _HashSetBase<E> {
   external HashSet();
 
@@ -74,7 +88,7 @@ class HashSet<E> extends _HashSetBase<E> {
 
   external bool contains(Object object);
 
-  // Collection.
+  // Set.
   external void add(E element);
 
   external void addAll(Iterable<E> objects);
@@ -89,6 +103,5 @@ class HashSet<E> extends _HashSetBase<E> {
 
   external void clear();
 
-  // Set.
   Set<E> _newSet() => new HashSet<E>();
 }

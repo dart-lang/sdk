@@ -5,7 +5,18 @@
 part of dart.collection;
 
 /**
- * A hash-based map that iterates keys and values in key insertion order.
+ * A hash-table based implementation of [Map].
+ *
+ * Keys insertion order is remembered, and keys are iterated in insertion order.
+ * Values are iterated in their corresponding key's order.
+ *
+ * The keys of a `HashMap` must have consistent [Object.operator==]
+ * and [Object.hashCode] implementations. This means that the `==` operator
+ * must define a stable equivalence relation on the keys (reflexive,
+ * anti-symmetric, transitive, and consistent over time), and that `hashCode`
+ * must be the same for objects that are considered equal by `==`.
+ *
+ * The map allows `null` as a key.
  */
 class LinkedHashMap<K, V> implements Map<K, V> {
   external LinkedHashMap();
@@ -32,7 +43,9 @@ class LinkedHashMap<K, V> implements Map<K, V> {
 
   external void forEach(void action (K key, V value));
 
+  /** The keys of the map, in insertion order. */
   external Iterable<K> get keys;
+  /** The values of the map, in the order of their corresponding [keys].*/
   external Iterable<V> get values;
 
   external int get length;
