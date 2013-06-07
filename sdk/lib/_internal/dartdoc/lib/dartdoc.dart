@@ -140,9 +140,8 @@ Future compileScript(int mode, Path outputDir, Path libPath, String tmpPath) {
       new Path(dartPath), libPath,
       options: const <String>['--categories=Client,Server', '--minify'])
   .then((jsCode) {
-    if (jsCode != null) {
-      writeString(new File(jsPath), jsCode);
-    }
+    if (jsCode == null) throw new StateError("No javascript was generated.");
+    writeString(new File(jsPath), jsCode);
   });
 }
 
@@ -800,8 +799,10 @@ class Dartdoc {
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import '${pathos.join(clientDir, 'client-shared.dart')}';
-        import '${pathos.join(clientDir, 'dropdown.dart')}';
+        import 'file://${pathos.join(clientDir, 'client-shared.dart')
+          .replaceAll('\\','\\\\')}';
+        import 'file://${pathos.join(clientDir, 'dropdown.dart')
+          .replaceAll('\\','\\\\')}';
 
         main() {
           setup();
