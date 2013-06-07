@@ -50,13 +50,17 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'RTCDTMFToneChangeEvent': 'RtcDtmfToneChangeEvent',
     'RTCErrorCallback': '_RtcErrorCallback',
     'RTCSessionDescriptionCallback': '_RtcSessionDescriptionCallback',
-    'StringCallback': '_StringCallback',
     'SVGDocument': 'SvgDocument', # Manual to avoid name conflicts.
     'SVGElement': 'SvgElement', # Manual to avoid name conflicts.
     'SVGException': 'SvgException', # Manual of avoid conflict with Exception.
     'SVGGradientElement': '_GradientElement',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
+    'StringCallback': '_StringCallback',
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
+    'WebKitCSSFilterRule': '_WebKitCssFilterRule',
+    'WebKitCSSKeyframeRule': '_WebKitCssKeyframeRule',
+    'WebKitCSSKeyframesRule': '_WebKitCssKeyframesRule',
+    'WebKitCSSRegionRule': '_WebKitCssRegionRule',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
@@ -653,7 +657,8 @@ class HtmlRenamer(object):
       if any(interface.id in ['Element', 'Document']
              for interface in self._database.Hierarchy(interface)):
         return interface.id[len('HTML'):]
-    return self.DartifyTypeName(interface.javascript_binding_name)
+    return self._DartifyName(interface.javascript_binding_name)
+
 
 
   def RenameMember(self, interface_name, member_node, member, member_prefix='',
@@ -752,8 +757,11 @@ class HtmlRenamer(object):
     if type_name in html_interface_renames:
       return html_interface_renames[type_name]
 
+    return self._DartifyName(type_name)
+
+  def _DartifyName(self, dart_name):
     # Strip off any standard prefixes.
-    name = re.sub(r'^SVG', '', type_name)
+    name = re.sub(r'^SVG', '', dart_name)
     name = re.sub(r'^IDB', '', name)
     name = re.sub(r'^WebGL', '', name)
     name = re.sub(r'^WebKit', '', name)

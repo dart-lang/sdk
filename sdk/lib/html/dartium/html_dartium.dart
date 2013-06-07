@@ -2350,17 +2350,83 @@ class CssFilterRule extends CssRule {
 
 
 @DocsEditable
-@DomName('WebKitCSSFilterRule')
+@DomName('WebKitCSSFilterValue')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-// http://www.w3.org/TR/filter-effects/
-class CssFilterRule extends CssRule {
-  CssFilterRule.internal() : super.internal();
+@Experimental // untriaged
+class CssFilterValue extends _CssValueList {
+  CssFilterValue.internal() : super.internal();
 
-  @DomName('WebKitCSSFilterRule.style')
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_BLUR')
   @DocsEditable
-  CssStyleDeclaration get style native "WebKitCSSFilterRule_style_Getter";
+  @Experimental // untriaged
+  static const int CSS_FILTER_BLUR = 10;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_BRIGHTNESS')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_BRIGHTNESS = 8;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_CONTRAST')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_CONTRAST = 9;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_CUSTOM')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_CUSTOM = 12;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_DROP_SHADOW')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_DROP_SHADOW = 11;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_GRAYSCALE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_GRAYSCALE = 2;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_HUE_ROTATE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_HUE_ROTATE = 5;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_INVERT')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_INVERT = 6;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_OPACITY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_OPACITY = 7;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_REFERENCE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_REFERENCE = 1;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_SATURATE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_SATURATE = 4;
+
+  @DomName('WebKitCSSFilterValue.CSS_FILTER_SEPIA')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_FILTER_SEPIA = 3;
+
+  @DomName('WebKitCSSFilterValue.operationType')
+  @DocsEditable
+  @Experimental // untriaged
+  int get operationType native "CSSFilterValue_operationType_Getter";
+
+  @DomName('WebKitCSSFilterValue.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  _CSSValue __getter__(int index) native "CSSFilterValue___getter___Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2496,35 +2562,6 @@ class CssKeyframeRule extends CssRule {
 
 
 @DocsEditable
-@DomName('WebKitCSSKeyframeRule')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-// http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
-class CssKeyframeRule extends CssRule {
-  CssKeyframeRule.internal() : super.internal();
-
-  @DomName('WebKitCSSKeyframeRule.keyText')
-  @DocsEditable
-  String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
-
-  @DomName('WebKitCSSKeyframeRule.keyText')
-  @DocsEditable
-  void set keyText(String value) native "WebKitCSSKeyframeRule_keyText_Setter";
-
-  @DomName('WebKitCSSKeyframeRule.style')
-  @DocsEditable
-  CssStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('WebKitCSSKeyframesRule')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2577,42 +2614,295 @@ class CssKeyframesRule extends CssRule {
 
 
 @DocsEditable
-@DomName('WebKitCSSKeyframesRule')
+@DomName('WebKitCSSMatrix')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-// http://www.w3.org/TR/css3-animations/#csskeyframesrule
-class CssKeyframesRule extends CssRule {
-  CssKeyframesRule.internal() : super.internal();
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+@Experimental // untriaged
+class CssMatrix extends NativeFieldWrapperClass1 {
+  CssMatrix.internal();
 
-  @DomName('WebKitCSSKeyframesRule.cssRules')
+  @DomName('WebKitCSSMatrix.CSSMatrix')
   @DocsEditable
-  List<CssRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
+  factory CssMatrix([String cssValue]) {
+    return CssMatrix._create_1(cssValue);
+  }
 
-  @DomName('WebKitCSSKeyframesRule.name')
   @DocsEditable
-  String get name native "WebKitCSSKeyframesRule_name_Getter";
+  static CssMatrix _create_1(cssValue) native "CSSMatrix__create_1constructorCallback";
 
-  @DomName('WebKitCSSKeyframesRule.name')
-  @DocsEditable
-  void set name(String value) native "WebKitCSSKeyframesRule_name_Setter";
-
-  @DomName('WebKitCSSKeyframesRule.__getter__')
+  @DomName('WebKitCSSMatrix.a')
   @DocsEditable
   @Experimental // untriaged
-  CssKeyframeRule __getter__(int index) native "WebKitCSSKeyframesRule___getter___Callback";
+  num get a native "CSSMatrix_a_Getter";
 
-  @DomName('WebKitCSSKeyframesRule.deleteRule')
+  @DomName('WebKitCSSMatrix.a')
   @DocsEditable
-  void deleteRule(String key) native "WebKitCSSKeyframesRule_deleteRule_Callback";
+  @Experimental // untriaged
+  void set a(num value) native "CSSMatrix_a_Setter";
 
-  @DomName('WebKitCSSKeyframesRule.findRule')
+  @DomName('WebKitCSSMatrix.b')
   @DocsEditable
-  CssKeyframeRule findRule(String key) native "WebKitCSSKeyframesRule_findRule_Callback";
+  @Experimental // untriaged
+  num get b native "CSSMatrix_b_Getter";
 
-  @DomName('WebKitCSSKeyframesRule.insertRule')
+  @DomName('WebKitCSSMatrix.b')
   @DocsEditable
-  void insertRule(String rule) native "WebKitCSSKeyframesRule_insertRule_Callback";
+  @Experimental // untriaged
+  void set b(num value) native "CSSMatrix_b_Setter";
+
+  @DomName('WebKitCSSMatrix.c')
+  @DocsEditable
+  @Experimental // untriaged
+  num get c native "CSSMatrix_c_Getter";
+
+  @DomName('WebKitCSSMatrix.c')
+  @DocsEditable
+  @Experimental // untriaged
+  void set c(num value) native "CSSMatrix_c_Setter";
+
+  @DomName('WebKitCSSMatrix.d')
+  @DocsEditable
+  @Experimental // untriaged
+  num get d native "CSSMatrix_d_Getter";
+
+  @DomName('WebKitCSSMatrix.d')
+  @DocsEditable
+  @Experimental // untriaged
+  void set d(num value) native "CSSMatrix_d_Setter";
+
+  @DomName('WebKitCSSMatrix.e')
+  @DocsEditable
+  @Experimental // untriaged
+  num get e native "CSSMatrix_e_Getter";
+
+  @DomName('WebKitCSSMatrix.e')
+  @DocsEditable
+  @Experimental // untriaged
+  void set e(num value) native "CSSMatrix_e_Setter";
+
+  @DomName('WebKitCSSMatrix.f')
+  @DocsEditable
+  @Experimental // untriaged
+  num get f native "CSSMatrix_f_Getter";
+
+  @DomName('WebKitCSSMatrix.f')
+  @DocsEditable
+  @Experimental // untriaged
+  void set f(num value) native "CSSMatrix_f_Setter";
+
+  @DomName('WebKitCSSMatrix.m11')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m11 native "CSSMatrix_m11_Getter";
+
+  @DomName('WebKitCSSMatrix.m11')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m11(num value) native "CSSMatrix_m11_Setter";
+
+  @DomName('WebKitCSSMatrix.m12')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m12 native "CSSMatrix_m12_Getter";
+
+  @DomName('WebKitCSSMatrix.m12')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m12(num value) native "CSSMatrix_m12_Setter";
+
+  @DomName('WebKitCSSMatrix.m13')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m13 native "CSSMatrix_m13_Getter";
+
+  @DomName('WebKitCSSMatrix.m13')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m13(num value) native "CSSMatrix_m13_Setter";
+
+  @DomName('WebKitCSSMatrix.m14')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m14 native "CSSMatrix_m14_Getter";
+
+  @DomName('WebKitCSSMatrix.m14')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m14(num value) native "CSSMatrix_m14_Setter";
+
+  @DomName('WebKitCSSMatrix.m21')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m21 native "CSSMatrix_m21_Getter";
+
+  @DomName('WebKitCSSMatrix.m21')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m21(num value) native "CSSMatrix_m21_Setter";
+
+  @DomName('WebKitCSSMatrix.m22')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m22 native "CSSMatrix_m22_Getter";
+
+  @DomName('WebKitCSSMatrix.m22')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m22(num value) native "CSSMatrix_m22_Setter";
+
+  @DomName('WebKitCSSMatrix.m23')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m23 native "CSSMatrix_m23_Getter";
+
+  @DomName('WebKitCSSMatrix.m23')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m23(num value) native "CSSMatrix_m23_Setter";
+
+  @DomName('WebKitCSSMatrix.m24')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m24 native "CSSMatrix_m24_Getter";
+
+  @DomName('WebKitCSSMatrix.m24')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m24(num value) native "CSSMatrix_m24_Setter";
+
+  @DomName('WebKitCSSMatrix.m31')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m31 native "CSSMatrix_m31_Getter";
+
+  @DomName('WebKitCSSMatrix.m31')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m31(num value) native "CSSMatrix_m31_Setter";
+
+  @DomName('WebKitCSSMatrix.m32')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m32 native "CSSMatrix_m32_Getter";
+
+  @DomName('WebKitCSSMatrix.m32')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m32(num value) native "CSSMatrix_m32_Setter";
+
+  @DomName('WebKitCSSMatrix.m33')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m33 native "CSSMatrix_m33_Getter";
+
+  @DomName('WebKitCSSMatrix.m33')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m33(num value) native "CSSMatrix_m33_Setter";
+
+  @DomName('WebKitCSSMatrix.m34')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m34 native "CSSMatrix_m34_Getter";
+
+  @DomName('WebKitCSSMatrix.m34')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m34(num value) native "CSSMatrix_m34_Setter";
+
+  @DomName('WebKitCSSMatrix.m41')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m41 native "CSSMatrix_m41_Getter";
+
+  @DomName('WebKitCSSMatrix.m41')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m41(num value) native "CSSMatrix_m41_Setter";
+
+  @DomName('WebKitCSSMatrix.m42')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m42 native "CSSMatrix_m42_Getter";
+
+  @DomName('WebKitCSSMatrix.m42')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m42(num value) native "CSSMatrix_m42_Setter";
+
+  @DomName('WebKitCSSMatrix.m43')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m43 native "CSSMatrix_m43_Getter";
+
+  @DomName('WebKitCSSMatrix.m43')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m43(num value) native "CSSMatrix_m43_Setter";
+
+  @DomName('WebKitCSSMatrix.m44')
+  @DocsEditable
+  @Experimental // untriaged
+  num get m44 native "CSSMatrix_m44_Getter";
+
+  @DomName('WebKitCSSMatrix.m44')
+  @DocsEditable
+  @Experimental // untriaged
+  void set m44(num value) native "CSSMatrix_m44_Setter";
+
+  @DomName('WebKitCSSMatrix.inverse')
+  @DocsEditable
+  @Experimental // untriaged
+  CssMatrix inverse() native "CSSMatrix_inverse_Callback";
+
+  @DomName('WebKitCSSMatrix.multiply')
+  @DocsEditable
+  @Experimental // untriaged
+  CssMatrix multiply(CssMatrix secondMatrix) native "CSSMatrix_multiply_Callback";
+
+  @DomName('WebKitCSSMatrix.rotate')
+  @DocsEditable
+  @Experimental // untriaged
+  CssMatrix rotate(num rotX, num rotY, num rotZ) native "CSSMatrix_rotate_Callback";
+
+  @DomName('WebKitCSSMatrix.rotateAxisAngle')
+  @DocsEditable
+  @Experimental // untriaged
+  CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native "CSSMatrix_rotateAxisAngle_Callback";
+
+  @DomName('WebKitCSSMatrix.scale')
+  @DocsEditable
+  @Experimental // untriaged
+  CssMatrix scale(num scaleX, num scaleY, num scaleZ) native "CSSMatrix_scale_Callback";
+
+  @DomName('WebKitCSSMatrix.setMatrixValue')
+  @DocsEditable
+  @Experimental // untriaged
+  void setMatrixValue(String string) native "CSSMatrix_setMatrixValue_Callback";
+
+  @DomName('WebKitCSSMatrix.skewX')
+  @DocsEditable
+  @Experimental // untriaged
+  CssMatrix skewX(num angle) native "CSSMatrix_skewX_Callback";
+
+  @DomName('WebKitCSSMatrix.skewY')
+  @DocsEditable
+  @Experimental // untriaged
+  CssMatrix skewY(num angle) native "CSSMatrix_skewY_Callback";
+
+  @DomName('WebKitCSSMatrix.toString')
+  @DocsEditable
+  @Experimental // untriaged
+  String toString() native "CSSMatrix_toString_Callback";
+
+  @DomName('WebKitCSSMatrix.translate')
+  @DocsEditable
+  @Experimental // untriaged
+  CssMatrix translate(num x, num y, num z) native "CSSMatrix_translate_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2642,6 +2932,23 @@ class CssMediaRule extends CssRule {
   @DomName('CSSMediaRule.insertRule')
   @DocsEditable
   int insertRule(String rule, int index) native "CSSMediaRule_insertRule_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSMixFunctionValue')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+@Experimental // untriaged
+class CssMixFunctionValue extends _CssValueList {
+  CssMixFunctionValue.internal() : super.internal();
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2689,27 +2996,6 @@ class CssRegionRule extends CssRule {
   @DocsEditable
   @Experimental // untriaged
   List<CssRule> get cssRules native "CSSRegionRule_cssRules_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WebKitCSSRegionRule')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-// http://dev.w3.org/csswg/css-regions/#region-style-rule-interface
-class CssRegionRule extends CssRule {
-  CssRegionRule.internal() : super.internal();
-
-  @DomName('WebKitCSSRegionRule.cssRules')
-  @DocsEditable
-  List<CssRule> get cssRules native "WebKitCSSRegionRule_cssRules_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6147,6 +6433,138 @@ class CssSupportsRule extends CssRule {
   @DomName('CSSSupportsRule.insertRule')
   @DocsEditable
   int insertRule(String rule, int index) native "CSSSupportsRule_insertRule_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSTransformValue')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+@Experimental // untriaged
+class CssTransformValue extends _CssValueList {
+  CssTransformValue.internal() : super.internal();
+
+  @DomName('WebKitCSSTransformValue.CSS_MATRIX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_MATRIX = 11;
+
+  @DomName('WebKitCSSTransformValue.CSS_MATRIX3D')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_MATRIX3D = 21;
+
+  @DomName('WebKitCSSTransformValue.CSS_PERSPECTIVE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_PERSPECTIVE = 20;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATE = 4;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATE3D')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATE3D = 17;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATEX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATEX = 14;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATEY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATEY = 15;
+
+  @DomName('WebKitCSSTransformValue.CSS_ROTATEZ')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_ROTATEZ = 16;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALE = 5;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALE3D')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALE3D = 19;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALEX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALEX = 6;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALEY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALEY = 7;
+
+  @DomName('WebKitCSSTransformValue.CSS_SCALEZ')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SCALEZ = 18;
+
+  @DomName('WebKitCSSTransformValue.CSS_SKEW')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SKEW = 8;
+
+  @DomName('WebKitCSSTransformValue.CSS_SKEWX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SKEWX = 9;
+
+  @DomName('WebKitCSSTransformValue.CSS_SKEWY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_SKEWY = 10;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATE')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATE = 1;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATE3D')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATE3D = 13;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEX')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATEX = 2;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEY')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATEY = 3;
+
+  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEZ')
+  @DocsEditable
+  @Experimental // untriaged
+  static const int CSS_TRANSLATEZ = 12;
+
+  @DomName('WebKitCSSTransformValue.operationType')
+  @DocsEditable
+  @Experimental // untriaged
+  int get operationType native "CSSTransformValue_operationType_Getter";
+
+  @DomName('WebKitCSSTransformValue.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  _CSSValue __getter__(int index) native "CSSTransformValue___getter___Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27080,396 +27498,10 @@ class _StyleSheetList extends NativeFieldWrapperClass1 with ListMixin<StyleSheet
 
 @DocsEditable
 @DomName('WebKitCSSFilterValue')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-@Experimental // untriaged
-class _WebKitCSSFilterValue extends _CssValueList {
-  _WebKitCSSFilterValue.internal() : super.internal();
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_BLUR')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_BLUR = 10;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_BRIGHTNESS')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_BRIGHTNESS = 8;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_CONTRAST')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_CONTRAST = 9;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_CUSTOM')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_CUSTOM = 12;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_DROP_SHADOW')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_DROP_SHADOW = 11;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_GRAYSCALE')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_GRAYSCALE = 2;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_HUE_ROTATE')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_HUE_ROTATE = 5;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_INVERT')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_INVERT = 6;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_OPACITY')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_OPACITY = 7;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_REFERENCE')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_REFERENCE = 1;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_SATURATE')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_SATURATE = 4;
-
-  @DomName('WebKitCSSFilterValue.CSS_FILTER_SEPIA')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_FILTER_SEPIA = 3;
-
-  @DomName('WebKitCSSFilterValue.operationType')
-  @DocsEditable
-  @Experimental // untriaged
-  int get operationType native "CSSFilterValue_operationType_Getter";
-
-  @DomName('WebKitCSSFilterValue.__getter__')
-  @DocsEditable
-  @Experimental // untriaged
-  _CSSValue __getter__(int index) native "CSSFilterValue___getter___Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WebKitCSSFilterValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
 abstract class _WebKitCSSFilterValue extends _CssValueList {
   _WebKitCSSFilterValue.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WebKitCSSMatrix')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-@Experimental // untriaged
-class _WebKitCSSMatrix extends NativeFieldWrapperClass1 {
-  _WebKitCSSMatrix.internal();
-
-  @DomName('WebKitCSSMatrix.CSSMatrix')
-  @DocsEditable
-  factory _WebKitCSSMatrix([String cssValue]) {
-    return _WebKitCSSMatrix._create_1(cssValue);
-  }
-
-  @DocsEditable
-  static _WebKitCSSMatrix _create_1(cssValue) native "CSSMatrix__create_1constructorCallback";
-
-  @DomName('WebKitCSSMatrix.a')
-  @DocsEditable
-  @Experimental // untriaged
-  num get a native "CSSMatrix_a_Getter";
-
-  @DomName('WebKitCSSMatrix.a')
-  @DocsEditable
-  @Experimental // untriaged
-  void set a(num value) native "CSSMatrix_a_Setter";
-
-  @DomName('WebKitCSSMatrix.b')
-  @DocsEditable
-  @Experimental // untriaged
-  num get b native "CSSMatrix_b_Getter";
-
-  @DomName('WebKitCSSMatrix.b')
-  @DocsEditable
-  @Experimental // untriaged
-  void set b(num value) native "CSSMatrix_b_Setter";
-
-  @DomName('WebKitCSSMatrix.c')
-  @DocsEditable
-  @Experimental // untriaged
-  num get c native "CSSMatrix_c_Getter";
-
-  @DomName('WebKitCSSMatrix.c')
-  @DocsEditable
-  @Experimental // untriaged
-  void set c(num value) native "CSSMatrix_c_Setter";
-
-  @DomName('WebKitCSSMatrix.d')
-  @DocsEditable
-  @Experimental // untriaged
-  num get d native "CSSMatrix_d_Getter";
-
-  @DomName('WebKitCSSMatrix.d')
-  @DocsEditable
-  @Experimental // untriaged
-  void set d(num value) native "CSSMatrix_d_Setter";
-
-  @DomName('WebKitCSSMatrix.e')
-  @DocsEditable
-  @Experimental // untriaged
-  num get e native "CSSMatrix_e_Getter";
-
-  @DomName('WebKitCSSMatrix.e')
-  @DocsEditable
-  @Experimental // untriaged
-  void set e(num value) native "CSSMatrix_e_Setter";
-
-  @DomName('WebKitCSSMatrix.f')
-  @DocsEditable
-  @Experimental // untriaged
-  num get f native "CSSMatrix_f_Getter";
-
-  @DomName('WebKitCSSMatrix.f')
-  @DocsEditable
-  @Experimental // untriaged
-  void set f(num value) native "CSSMatrix_f_Setter";
-
-  @DomName('WebKitCSSMatrix.m11')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m11 native "CSSMatrix_m11_Getter";
-
-  @DomName('WebKitCSSMatrix.m11')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m11(num value) native "CSSMatrix_m11_Setter";
-
-  @DomName('WebKitCSSMatrix.m12')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m12 native "CSSMatrix_m12_Getter";
-
-  @DomName('WebKitCSSMatrix.m12')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m12(num value) native "CSSMatrix_m12_Setter";
-
-  @DomName('WebKitCSSMatrix.m13')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m13 native "CSSMatrix_m13_Getter";
-
-  @DomName('WebKitCSSMatrix.m13')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m13(num value) native "CSSMatrix_m13_Setter";
-
-  @DomName('WebKitCSSMatrix.m14')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m14 native "CSSMatrix_m14_Getter";
-
-  @DomName('WebKitCSSMatrix.m14')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m14(num value) native "CSSMatrix_m14_Setter";
-
-  @DomName('WebKitCSSMatrix.m21')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m21 native "CSSMatrix_m21_Getter";
-
-  @DomName('WebKitCSSMatrix.m21')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m21(num value) native "CSSMatrix_m21_Setter";
-
-  @DomName('WebKitCSSMatrix.m22')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m22 native "CSSMatrix_m22_Getter";
-
-  @DomName('WebKitCSSMatrix.m22')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m22(num value) native "CSSMatrix_m22_Setter";
-
-  @DomName('WebKitCSSMatrix.m23')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m23 native "CSSMatrix_m23_Getter";
-
-  @DomName('WebKitCSSMatrix.m23')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m23(num value) native "CSSMatrix_m23_Setter";
-
-  @DomName('WebKitCSSMatrix.m24')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m24 native "CSSMatrix_m24_Getter";
-
-  @DomName('WebKitCSSMatrix.m24')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m24(num value) native "CSSMatrix_m24_Setter";
-
-  @DomName('WebKitCSSMatrix.m31')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m31 native "CSSMatrix_m31_Getter";
-
-  @DomName('WebKitCSSMatrix.m31')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m31(num value) native "CSSMatrix_m31_Setter";
-
-  @DomName('WebKitCSSMatrix.m32')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m32 native "CSSMatrix_m32_Getter";
-
-  @DomName('WebKitCSSMatrix.m32')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m32(num value) native "CSSMatrix_m32_Setter";
-
-  @DomName('WebKitCSSMatrix.m33')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m33 native "CSSMatrix_m33_Getter";
-
-  @DomName('WebKitCSSMatrix.m33')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m33(num value) native "CSSMatrix_m33_Setter";
-
-  @DomName('WebKitCSSMatrix.m34')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m34 native "CSSMatrix_m34_Getter";
-
-  @DomName('WebKitCSSMatrix.m34')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m34(num value) native "CSSMatrix_m34_Setter";
-
-  @DomName('WebKitCSSMatrix.m41')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m41 native "CSSMatrix_m41_Getter";
-
-  @DomName('WebKitCSSMatrix.m41')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m41(num value) native "CSSMatrix_m41_Setter";
-
-  @DomName('WebKitCSSMatrix.m42')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m42 native "CSSMatrix_m42_Getter";
-
-  @DomName('WebKitCSSMatrix.m42')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m42(num value) native "CSSMatrix_m42_Setter";
-
-  @DomName('WebKitCSSMatrix.m43')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m43 native "CSSMatrix_m43_Getter";
-
-  @DomName('WebKitCSSMatrix.m43')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m43(num value) native "CSSMatrix_m43_Setter";
-
-  @DomName('WebKitCSSMatrix.m44')
-  @DocsEditable
-  @Experimental // untriaged
-  num get m44 native "CSSMatrix_m44_Getter";
-
-  @DomName('WebKitCSSMatrix.m44')
-  @DocsEditable
-  @Experimental // untriaged
-  void set m44(num value) native "CSSMatrix_m44_Setter";
-
-  @DomName('WebKitCSSMatrix.inverse')
-  @DocsEditable
-  @Experimental // untriaged
-  _WebKitCSSMatrix inverse() native "CSSMatrix_inverse_Callback";
-
-  @DomName('WebKitCSSMatrix.multiply')
-  @DocsEditable
-  @Experimental // untriaged
-  _WebKitCSSMatrix multiply(_WebKitCSSMatrix secondMatrix) native "CSSMatrix_multiply_Callback";
-
-  @DomName('WebKitCSSMatrix.rotate')
-  @DocsEditable
-  @Experimental // untriaged
-  _WebKitCSSMatrix rotate(num rotX, num rotY, num rotZ) native "CSSMatrix_rotate_Callback";
-
-  @DomName('WebKitCSSMatrix.rotateAxisAngle')
-  @DocsEditable
-  @Experimental // untriaged
-  _WebKitCSSMatrix rotateAxisAngle(num x, num y, num z, num angle) native "CSSMatrix_rotateAxisAngle_Callback";
-
-  @DomName('WebKitCSSMatrix.scale')
-  @DocsEditable
-  @Experimental // untriaged
-  _WebKitCSSMatrix scale(num scaleX, num scaleY, num scaleZ) native "CSSMatrix_scale_Callback";
-
-  @DomName('WebKitCSSMatrix.setMatrixValue')
-  @DocsEditable
-  @Experimental // untriaged
-  void setMatrixValue(String string) native "CSSMatrix_setMatrixValue_Callback";
-
-  @DomName('WebKitCSSMatrix.skewX')
-  @DocsEditable
-  @Experimental // untriaged
-  _WebKitCSSMatrix skewX(num angle) native "CSSMatrix_skewX_Callback";
-
-  @DomName('WebKitCSSMatrix.skewY')
-  @DocsEditable
-  @Experimental // untriaged
-  _WebKitCSSMatrix skewY(num angle) native "CSSMatrix_skewY_Callback";
-
-  @DomName('WebKitCSSMatrix.toString')
-  @DocsEditable
-  @Experimental // untriaged
-  String toString() native "CSSMatrix_toString_Callback";
-
-  @DomName('WebKitCSSMatrix.translate')
-  @DocsEditable
-  @Experimental // untriaged
-  _WebKitCSSMatrix translate(num x, num y, num z) native "CSSMatrix_translate_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27505,23 +27537,6 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('WebKitCSSMixFunctionValue')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-@Experimental // untriaged
-class _WebKitCSSMixFunctionValue extends _CssValueList {
-  _WebKitCSSMixFunctionValue.internal() : super.internal();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
-@DomName('WebKitCSSMixFunctionValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
 abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
@@ -27537,127 +27552,10 @@ abstract class _WebKitCSSMixFunctionValue extends _CssValueList {
 
 @DocsEditable
 @DomName('WebKitCSSTransformValue')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental
-@Experimental // untriaged
-class _WebKitCSSTransformValue extends _CssValueList {
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSTransformValue extends _CssValueList {
   _WebKitCSSTransformValue.internal() : super.internal();
-
-  @DomName('WebKitCSSTransformValue.CSS_MATRIX')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_MATRIX = 11;
-
-  @DomName('WebKitCSSTransformValue.CSS_MATRIX3D')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_MATRIX3D = 21;
-
-  @DomName('WebKitCSSTransformValue.CSS_PERSPECTIVE')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_PERSPECTIVE = 20;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATE')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_ROTATE = 4;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATE3D')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_ROTATE3D = 17;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATEX')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_ROTATEX = 14;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATEY')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_ROTATEY = 15;
-
-  @DomName('WebKitCSSTransformValue.CSS_ROTATEZ')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_ROTATEZ = 16;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALE')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_SCALE = 5;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALE3D')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_SCALE3D = 19;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALEX')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_SCALEX = 6;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALEY')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_SCALEY = 7;
-
-  @DomName('WebKitCSSTransformValue.CSS_SCALEZ')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_SCALEZ = 18;
-
-  @DomName('WebKitCSSTransformValue.CSS_SKEW')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_SKEW = 8;
-
-  @DomName('WebKitCSSTransformValue.CSS_SKEWX')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_SKEWX = 9;
-
-  @DomName('WebKitCSSTransformValue.CSS_SKEWY')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_SKEWY = 10;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATE')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_TRANSLATE = 1;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATE3D')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_TRANSLATE3D = 13;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEX')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_TRANSLATEX = 2;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEY')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_TRANSLATEY = 3;
-
-  @DomName('WebKitCSSTransformValue.CSS_TRANSLATEZ')
-  @DocsEditable
-  @Experimental // untriaged
-  static const int CSS_TRANSLATEZ = 12;
-
-  @DomName('WebKitCSSTransformValue.operationType')
-  @DocsEditable
-  @Experimental // untriaged
-  int get operationType native "CSSTransformValue_operationType_Getter";
-
-  @DomName('WebKitCSSTransformValue.__getter__')
-  @DocsEditable
-  @Experimental // untriaged
-  _CSSValue __getter__(int index) native "CSSTransformValue___getter___Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27668,11 +27566,105 @@ class _WebKitCSSTransformValue extends _CssValueList {
 
 
 @DocsEditable
-@DomName('WebKitCSSTransformValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-abstract class _WebKitCSSTransformValue extends _CssValueList {
-  _WebKitCSSTransformValue.internal() : super.internal();
+@DomName('WebKitCSSFilterRule')
+// http://www.w3.org/TR/filter-effects/
+@Experimental
+class _WebKitCssFilterRule extends CssRule {
+  _WebKitCssFilterRule.internal() : super.internal();
+
+  @DomName('WebKitCSSFilterRule.style')
+  @DocsEditable
+  CssStyleDeclaration get style native "WebKitCSSFilterRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSKeyframeRule')
+// http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
+@Experimental
+class _WebKitCssKeyframeRule extends CssRule {
+  _WebKitCssKeyframeRule.internal() : super.internal();
+
+  @DomName('WebKitCSSKeyframeRule.keyText')
+  @DocsEditable
+  String get keyText native "WebKitCSSKeyframeRule_keyText_Getter";
+
+  @DomName('WebKitCSSKeyframeRule.keyText')
+  @DocsEditable
+  void set keyText(String value) native "WebKitCSSKeyframeRule_keyText_Setter";
+
+  @DomName('WebKitCSSKeyframeRule.style')
+  @DocsEditable
+  CssStyleDeclaration get style native "WebKitCSSKeyframeRule_style_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSKeyframesRule')
+// http://www.w3.org/TR/css3-animations/#csskeyframesrule
+@Experimental
+class _WebKitCssKeyframesRule extends CssRule {
+  _WebKitCssKeyframesRule.internal() : super.internal();
+
+  @DomName('WebKitCSSKeyframesRule.cssRules')
+  @DocsEditable
+  List<CssRule> get cssRules native "WebKitCSSKeyframesRule_cssRules_Getter";
+
+  @DomName('WebKitCSSKeyframesRule.name')
+  @DocsEditable
+  String get name native "WebKitCSSKeyframesRule_name_Getter";
+
+  @DomName('WebKitCSSKeyframesRule.name')
+  @DocsEditable
+  void set name(String value) native "WebKitCSSKeyframesRule_name_Setter";
+
+  @DomName('WebKitCSSKeyframesRule.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  _WebKitCssKeyframeRule __getter__(int index) native "WebKitCSSKeyframesRule___getter___Callback";
+
+  @DomName('WebKitCSSKeyframesRule.deleteRule')
+  @DocsEditable
+  void deleteRule(String key) native "WebKitCSSKeyframesRule_deleteRule_Callback";
+
+  @DomName('WebKitCSSKeyframesRule.findRule')
+  @DocsEditable
+  _WebKitCssKeyframeRule findRule(String key) native "WebKitCSSKeyframesRule_findRule_Callback";
+
+  @DomName('WebKitCSSKeyframesRule.insertRule')
+  @DocsEditable
+  void insertRule(String rule) native "WebKitCSSKeyframesRule_insertRule_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('WebKitCSSRegionRule')
+// http://dev.w3.org/csswg/css-regions/#region-style-rule-interface
+@Experimental
+class _WebKitCssRegionRule extends CssRule {
+  _WebKitCssRegionRule.internal() : super.internal();
+
+  @DomName('WebKitCSSRegionRule.cssRules')
+  @DocsEditable
+  List<CssRule> get cssRules native "WebKitCSSRegionRule_cssRules_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
