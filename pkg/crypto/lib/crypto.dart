@@ -95,6 +95,8 @@ class CryptoUtils {
    *
    * Accepts both URL safe and unsafe Base 64 encoded strings.
    *
+   * Throws an exception if input contains invalid characters.
+   *
    * Based on [RFC 4648](http://tools.ietf.org/html/rfc4648)
    */
   static List<int> base64StringToBytes(String input) {
