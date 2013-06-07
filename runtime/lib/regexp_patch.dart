@@ -78,26 +78,7 @@ class _JSSyntaxRegExp implements RegExp {
 
   Iterable<Match> allMatches(String str) {
     if (str is! String) throw new ArgumentError(str);
-    List<Match> result = new List<Match>();
-    int length = str.length;
-    int index = 0;
-    while (true) {
-      List match = _ExecuteMatch(str, index);
-      if (match == null) {
-        break;
-      }
-      result.add(new _JSRegExpMatch(this, str, match));
-      // Find the index at which to start searching for the next match.
-      index = match[1];
-      if (match[0] == index) {
-        // Zero-length match.
-        if (index == length) {
-          break;
-        }
-        index++;
-      }
-    }
-    return result;
+    return new _AllMatchesIterable(this, str);
   }
 
   bool hasMatch(String str) {
@@ -123,4 +104,48 @@ class _JSSyntaxRegExp implements RegExp {
 
   List _ExecuteMatch(String str, int start_index)
       native "JSSyntaxRegExp_ExecuteMatch";
+}
+
+class _AllMatchesIterable extends IterableBase<Match> {
+  final _JSSyntaxRegExp _re;
+  final String _str;
+
+  const _AllMatchesIterable(this._re, this._str);
+
+  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _str);
+}
+
+class _AllMatchesIterator implements Iterator<Match> {
+  final String _str;
+  _JSSyntaxRegExp _re;
+  Match _current;
+
+  _AllMatchesIterator(this._re, this._str);
+
+  Match get current => _current;
+
+  bool moveNext() {
+    if (_re == null) return false;  // Cleared after a failed match.
+    int nextIndex = 0;
+    if (_current != null) {
+      nextIndex = _current.end;
+      if (nextIndex == _current.start) {
+        // Zero-width match. Advance by one more.
+        nextIndex++;
+        if (nextIndex > _str.length) {
+          _re = null;
+          _current = null;
+          return false;
+        }
+      }
+    }
+    var match = _re._ExecuteMatch(_str, nextIndex);
+    if (match == null) {
+      _current = null;
+      _re = null;
+      return false;
+    }
+    _current = new _JSRegExpMatch(_re, _str, match);
+    return true;
+  }
 }
