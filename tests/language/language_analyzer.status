@@ -32,8 +32,6 @@ cast_test/05: fail
 class_cycle_test/03: fail
 closure_call_wrong_argument_count_negative_test: fail
 compile_time_constant10_test/none: fail
-compile_time_constant8_test: fail
-compile_time_constant_b_test: fail
 compile_time_constant_c_test/01: fail
 compile_time_constant_c_test/02: fail
 compile_time_constant_checked2_test/02: fail
@@ -44,7 +42,6 @@ compile_time_constant_checked3_test/02: fail
 compile_time_constant_checked3_test/03: fail
 compile_time_constant_checked3_test/04: fail
 compile_time_constant_checked3_test/06: fail
-compile_time_constant_d_test: fail
 compile_time_constant_e_test: fail
 const_syntax_test/06: fail
 constructor2_negative_test: fail
@@ -102,7 +99,6 @@ interface_static_non_final_fields_negative_test: fail
 interface_test/00: fail
 is_not_class2_negative_test: fail
 library_juxtaposition_test: fail
-licm_test: fail
 list_literal1_negative_test: fail
 list_literal_syntax_test/01: fail
 list_literal_syntax_test/02: fail
@@ -202,7 +198,6 @@ type_variable_bounds_test/07: fail
 type_variable_bounds_test/09: fail
 type_variable_identifier_expression_negative_test: fail
 type_variable_static_context_negative_test: fail
-typed_equality_test: fail
 unary2_test: fail
 unary_test: fail
 unresolved_in_factory_negative_test: fail
