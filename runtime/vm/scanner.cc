@@ -751,13 +751,10 @@ void Scanner::Scan() {
         }
         break;
 
-      case '!':  // !  !=  !==
+      case '!':  // !  !=
         Recognize(Token::kNOT);
         if (c0_ == '=') {
           Recognize(Token::kNE);
-          if (c0_ == '=') {
-            Recognize(Token::kNE_STRICT);
-          }
         }
         break;
 
@@ -771,13 +768,10 @@ void Scanner::Scan() {
         }
         break;
 
-      case '=':  // =  ==  ===  =>
+      case '=':  // =  ==  =>
         Recognize(Token::kASSIGN);
         if (c0_ == '=') {
           Recognize(Token::kEQ);
-          if (c0_ == '=') {
-            Recognize(Token::kEQ_STRICT);
-          }
         } else if (c0_ == '>') {
           Recognize(Token::kARROW);
         }

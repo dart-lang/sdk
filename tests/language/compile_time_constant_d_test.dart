@@ -28,7 +28,7 @@ main() {
   Expect.equals(100, a1.t);
   Expect.equals("A 3 499 99 100", a1.toString());
 
-  Expect.isTrue(a1 === a2);
+  Expect.isTrue(identical(a1, a2));
 
   Expect.equals(1, a3.x);
   Expect.equals(2, a3.y);

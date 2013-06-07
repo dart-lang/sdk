@@ -7,7 +7,7 @@
 // type C is conflicting.
 
 foo(a, b) {
-  if (a === b) return;
+  if (identical(a, b)) return;
   throw 'broken';
 }
 
