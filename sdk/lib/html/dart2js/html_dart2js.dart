@@ -25883,7 +25883,7 @@ class _DataAttributeMap implements Map<String, String> {
 /**
  * An object that can be drawn to a [CanvasRenderingContext2D] object with
  * [CanvasRenderingContext2D.drawImage],
- * [CanvasRenderingContext2D.drawImageRect],
+ * [CanvasRenderingContext2D.drawImageToRect],
  * [CanvasRenderingContext2D.drawImageScaled], or
  * [CanvasRenderingContext2D.drawImageScaledFromSource].
  *
