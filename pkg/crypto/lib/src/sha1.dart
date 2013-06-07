@@ -4,10 +4,12 @@
 
 part of crypto;
 
-// The SHA1 hasher is used to compute an SHA1 message digest.
-class _SHA1 extends _HashBase implements SHA1 {
+/**
+ * SHA1 hash function implementation.
+ */
+class SHA1 extends _HashBase {
   // Construct a SHA1 hasher object.
-  _SHA1() : _w = new List(80), super(16, 5, true) {
+  SHA1() : _w = new List(80), super(16, 5, true) {
     _h[0] = 0x67452301;
     _h[1] = 0xEFCDAB89;
     _h[2] = 0x98BADCFE;
