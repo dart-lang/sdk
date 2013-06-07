@@ -68,6 +68,7 @@ analyzer_experimental/test/generated/parser_test: Skip # Imports dart:io.
 analyzer_experimental/test/generated/resolver_test: Skip # Imports dart:io.
 analyzer_experimental/test/generated/scanner_test: Skip # Imports dart:io.
 analyzer_experimental/test/error_test: Skip # Imports dart:io.
+analyzer_experimental/test/services/formatter_test.dart: Skip #Imports dart:io
 
 # Issue 8440 forces us to use pathos in the scheduled_test tests, which would
 # otherwise be dart2js-compatible.
@@ -107,6 +108,7 @@ analyzer_experimental/test/generated/parser_test: Skip
 analyzer_experimental/test/generated/resolver_test: Skip
 analyzer_experimental/test/generated/scanner_test: Skip
 analyzer_experimental/test/error_test: Skip # Imports dart:io.
+analyzer_experimental/test/services/formatter_test.dart: Skip #Imports dart:io
 
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
