@@ -20,10 +20,6 @@ txt_layout_test: Skip # Might just go away.
 [ $system == macos || $system == windows ]
 *_layout_test: Skip
 
-[ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
-
 [ $arch == arm ]
 *: Skip
 
@@ -35,17 +31,3 @@ txt_layout_test: Skip # Might just go away.
 
 [ $arch == simmips ]
 *: Skip
-
-[ $compiler == dartanalyzer ]
-
-# Test issue 11123- Only static fields can be declared as 'const'
-dummy_compiler_test: fail, OK
-dart2js_test: fail, OK
-recursive_import_test: fail, OK
-
-[ $compiler == dart2analyzer ]
-
-# Test issue 11123- Only static fields can be declared as 'const'
-dummy_compiler_test: fail, OK
-dart2js_test: fail, OK
-recursive_import_test: fail, OK
