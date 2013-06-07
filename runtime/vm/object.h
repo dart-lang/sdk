@@ -4012,6 +4012,9 @@ class Integer : public Number {
   RawInteger* ArithmeticOp(Token::Kind operation, const Integer& other) const;
   RawInteger* BitOp(Token::Kind operation, const Integer& other) const;
 
+  // Returns true if the Integer does not fit in 53 bits.
+  bool CheckFiftyThreeBitOverflow() const;
+
  private:
   // Return an integer in the form of a RawBigint.
   RawBigint* AsBigint() const;

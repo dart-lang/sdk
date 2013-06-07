@@ -301,7 +301,7 @@ class Parser : public ValueObject {
   void Unimplemented(const char* msg);
 
   // Reports error message at given location.
-  void ErrorMsg(intptr_t token_pos, const char* msg, ...)
+  void ErrorMsg(intptr_t token_pos, const char* msg, ...) const
       PRINTF_ATTRIBUTE(3, 4);
   void Warning(intptr_t token_pos, const char* msg, ...)
       PRINTF_ATTRIBUTE(3, 4);

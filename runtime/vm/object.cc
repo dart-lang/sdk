@@ -10412,6 +10412,14 @@ const char* Integer::ToCString() const {
 }
 
 
+// Throw FiftyThreeBitOverflow exception.
+static void ThrowFiftyThreeBitOverflow(const Integer& i) {
+  const Array& exc_args = Array::Handle(Array::New(1));
+  exc_args.SetAt(0, i);
+  Exceptions::ThrowByType(Exceptions::kFiftyThreeBitOverflowError, exc_args);
+}
+
+
 RawInteger* Integer::New(const String& str, Heap::Space space) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
@@ -10420,12 +10428,19 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
     const Bigint& big = Bigint::Handle(Bigint::New(str, space));
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     ASSERT(!BigintOperations::FitsIntoInt64(big));
+    if (FLAG_throw_on_javascript_int_overflow) {
+      ThrowFiftyThreeBitOverflow(big);
+    }
     return big.raw();
   }
   return Integer::New(value, space);
 }
 
 
+// This is called from LiteralToken::New() in the parser, so we can't
+// raise an exception for 53-bit overflow here. Instead we do it in
+// Parser::CurrentIntegerLiteral(), which is the point in the parser where
+// integer literals escape, so we can call Parser::ErrorMsg().
 RawInteger* Integer::NewCanonical(const String& str) {
   // We are not supposed to have integers represented as two byte strings.
   ASSERT(str.IsOneByteString());
@@ -10440,14 +10455,6 @@ RawInteger* Integer::NewCanonical(const String& str) {
     return Smi::New(value);
   }
   return Mint::NewCanonical(value);
-}
-
-
-// Throw FiftyThreeBitOverflow exception.
-static void ThrowFiftyThreeBitOverflow(const Integer& i) {
-  const Array& exc_args = Array::Handle(Array::New(1));
-  exc_args.SetAt(0, i);
-  Exceptions::ThrowByType(Exceptions::kFiftyThreeBitOverflowError, exc_args);
 }
 
 
@@ -10495,31 +10502,32 @@ int Integer::CompareWith(const Integer& other) const {
 }
 
 
-static void CheckFiftyThreeBitOverflow(const Integer &i) {
+// Returns true if the signed Integer requires more than 53 bits.
+bool Integer::CheckFiftyThreeBitOverflow() const {
   // Always overflow if the value doesn't fit into an int64_t.
   int64_t value = 1ULL << 63;
-  if (i.IsSmi()) {
-    value = i.AsInt64Value();
-  } else if (i.IsMint()) {
+  if (IsSmi()) {
+    value = AsInt64Value();
+  } else if (IsMint()) {
     Mint& mint = Mint::Handle();
-    mint ^= i.raw();
+    mint ^= raw();
     value = mint.value();
   } else {
-    ASSERT(i.IsBigint());
+    ASSERT(IsBigint());
     Bigint& big_value = Bigint::Handle();
-    big_value ^= i.raw();
+    big_value ^= raw();
     if (BigintOperations::FitsIntoInt64(big_value)) {
       value = BigintOperations::ToInt64(big_value);
     }
   }
-  if (Utils::IsInt(53, value)) return;
-  ThrowFiftyThreeBitOverflow(i);
+  return !Utils::IsInt(53, value);
 }
 
 
 RawInteger* Integer::AsValidInteger() const {
-  if (FLAG_throw_on_javascript_int_overflow) {
-    CheckFiftyThreeBitOverflow(*this);
+  if (FLAG_throw_on_javascript_int_overflow &&
+      CheckFiftyThreeBitOverflow()) {
+    ThrowFiftyThreeBitOverflow(*this);
   }
   if (IsSmi()) return raw();
   if (IsMint()) {

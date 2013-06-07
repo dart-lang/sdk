@@ -29,6 +29,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -402,7 +403,15 @@ RawDouble* Parser::CurrentDoubleLiteral() const {
 RawInteger* Parser::CurrentIntegerLiteral() const {
   literal_token_ ^= tokens_iterator_.CurrentToken();
   ASSERT(literal_token_.kind() == Token::kINTEGER);
-  return Integer::RawCast(literal_token_.value());
+  RawInteger* ri = Integer::RawCast(literal_token_.value());
+  if (FLAG_throw_on_javascript_int_overflow) {
+    const Integer& i = Integer::Handle(ri);
+    if (i.CheckFiftyThreeBitOverflow()) {
+      ErrorMsg(TokenPos(), "Integer literal does not fit in 53 bits: %s.",
+               i.ToCString());
+    }
+  }
+  return ri;
 }
 
 
@@ -6571,7 +6580,7 @@ void Parser::PrintMessage(const Script& script,
 }
 
 
-void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) {
+void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) const {
   va_list args;
   va_start(args, format);
   const Error& error = Error::Handle(
