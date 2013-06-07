@@ -795,14 +795,18 @@ class Dartdoc {
         pathos.join(normalizedDartdocPath, 'lib', 'src', 'client'),
         from: tmpPath);
 
+    var fileBuilder = new pathos.Builder(style: pathos.Style.url);
+
+    var tmpDirUri = fileBuilder.normalize(fileBuilder.join(
+        'file:///',
+        fileBuilder.relative(normalizedDartdocPath, from: tmpPath)));
+
     writeString(new File(filePath),
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import 'file://${pathos.join(clientDir, 'client-shared.dart')
-          .replaceAll('\\','\\\\')}';
-        import 'file://${pathos.join(clientDir, 'dropdown.dart')
-          .replaceAll('\\','\\\\')}';
+        import '${fileBuilder.join(tmpDirUri, 'client-shared.dart')}';
+        import '${fileBuilder.join(tmpDirUri, 'dropdown.dart')}';
 
         main() {
           setup();
