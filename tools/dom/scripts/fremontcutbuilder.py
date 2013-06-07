@@ -33,10 +33,8 @@ FEATURE_DEFINES = [
     'ENABLE_LEGACY_NOTIFICATIONS', # Not on Android
     'ENABLE_NAVIGATOR_CONTENT_UTILS', # Not on Android
     'ENABLE_NOTIFICATIONS', # Not on Android
-    'ENABLE_SVG',
     'ENABLE_SVG_FONTS',
     'ENABLE_WEB_AUDIO', # Not on Android
-    'ENABLE_WEBGL',
 ]
 
 def build_database(idl_files, database_dir, feature_defines=None, parallel=False):
