@@ -456,7 +456,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     // Only right can be a stack slot.
     locs->set_in(1, locs->in(0).IsConstant()
                         ? Location::RequiresRegister()
-                        : Location::AnyOrConstant(right()));
+                        : Location::RegisterOrConstant(right()));
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
@@ -976,7 +976,7 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary() const {
     // operands should be handled by constant propagation.
     summary->set_in(1, summary->in(0).IsConstant()
                            ? Location::RequiresRegister()
-                           : Location::AnyOrConstant(right()));
+                           : Location::RegisterOrConstant(right()));
     summary->set_out(Location::RequiresRegister());
     return summary;
   }
