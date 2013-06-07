@@ -1010,7 +1010,7 @@ class _JsCopier extends _Copier {
     if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
     if (x is _WorkerSendPort) return visitWorkerSendPort(x);
     if (x is _BufferingSendPort) return visitBufferingSendPort(x);
-    throw "Illegal underlying port $p";
+    throw "Illegal underlying port $x";
   }
 
   SendPort visitNativeJsSendPort(_NativeJsSendPort port) {

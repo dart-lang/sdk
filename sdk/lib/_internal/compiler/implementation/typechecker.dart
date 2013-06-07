@@ -550,8 +550,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    */
   ElementAccess computeResolvedAccess(Send node, SourceString name,
                                       Element element, MemberKind memberKind) {
-    if (Elements.isUnresolved(element)) {
+    if (element == null) {
       // foo() where foo is unresolved.
+      return lookupMember(node, currentClass.computeType(compiler),
+          name, memberKind);
+    } else if (element.isErroneous()) {
+      // foo() where foo is erroneous.
       return const DynamicAccess();
     } else if (element.isMember()) {
       // foo() where foo is an instance member.

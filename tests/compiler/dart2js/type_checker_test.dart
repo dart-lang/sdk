@@ -38,6 +38,7 @@ main() {
                 testConstructorInvocationArgumentTypes,
                 testMethodInvocationArgumentCount,
                 testMethodInvocations,
+                testMethodInvocationsInClass,
                 testControlFlow,
                 // testNewExpression,
                 testConditionalExpression,
@@ -434,8 +435,166 @@ void testMethodInvocations() {
   check("foo('string');");
   check("foo(a: 'string');");
   check("foo(a: localMethod(1));", MessageKind.NOT_ASSIGNABLE);
+}
 
-  // TODO(johnniwinther): Add tests of invocations using implicit this.
+testMethodInvocationsInClass() {
+  LibraryElement library = mockLibrary(compiler, CLASS_WITH_METHODS);
+  compiler.parseScript(CLASS_WITH_METHODS, library);
+  ClassElement ClassWithMethods =
+      library.find(const SourceString("ClassWithMethods"));
+  ClassWithMethods.ensureResolved(compiler);
+  Element c = ClassWithMethods.lookupLocalMember(const SourceString('method'));
+  assert(c != null);
+  ClassElement SubClass = library.find(const SourceString("SubClass"));
+  SubClass.ensureResolved(compiler);
+  Element d = SubClass.lookupLocalMember(const SourceString('method'));
+  assert(d != null);
+
+  check(Element element, String text, [expectedWarnings]){
+    analyzeIn(element,
+              """{
+                   var e;
+                   int i;
+                   int j;
+                   int localMethod(String str) { return 0; }
+                   $text
+                 }""",
+              expectedWarnings);
+  }
+
+
+  check(c, "int k = untypedNoArgumentMethod();");
+  check(c, "ClassWithMethods x = untypedNoArgumentMethod();");
+  check(d, "ClassWithMethods x = untypedNoArgumentMethod();");
+  check(d, "int k = intMethod();");
+  check(c, "int k = untypedOneArgumentMethod(this);");
+  check(c, "ClassWithMethods x = untypedOneArgumentMethod(1);");
+  check(c, "int k = untypedOneArgumentMethod('string');");
+  check(c, "int k = untypedOneArgumentMethod(i);");
+  check(d, "int k = untypedOneArgumentMethod(this);");
+  check(d, "ClassWithMethods x = untypedOneArgumentMethod(1);");
+  check(d, "int k = untypedOneArgumentMethod('string');");
+  check(d, "int k = untypedOneArgumentMethod(i);");
+
+  check(c, "int k = untypedTwoArgumentMethod(1, 'string');");
+  check(c, "int k = untypedTwoArgumentMethod(i, j);");
+  check(c, "ClassWithMethods x = untypedTwoArgumentMethod(i, this);");
+  check(d, "int k = untypedTwoArgumentMethod(1, 'string');");
+  check(d, "int k = untypedTwoArgumentMethod(i, j);");
+  check(d, "ClassWithMethods x = untypedTwoArgumentMethod(i, this);");
+
+  check(c, "int k = intNoArgumentMethod();");
+  check(c, "ClassWithMethods x = intNoArgumentMethod();",
+        MessageKind.NOT_ASSIGNABLE);
+
+  check(c, "int k = intOneArgumentMethod('');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "ClassWithMethods x = intOneArgumentMethod(1);",
+        MessageKind.NOT_ASSIGNABLE);
+  check(c, "int k = intOneArgumentMethod('string');",
+        MessageKind.NOT_ASSIGNABLE);
+  check(c, "int k = intOneArgumentMethod(i);");
+
+  check(c, "int k = intTwoArgumentMethod(1, 'string');",
+        MessageKind.NOT_ASSIGNABLE);
+  check(c, "int k = intTwoArgumentMethod(i, j);");
+  check(c, "ClassWithMethods x = intTwoArgumentMethod(i, j);",
+        MessageKind.NOT_ASSIGNABLE);
+
+  check(c, "functionField();");
+  check(d, "functionField();");
+  check(c, "functionField(1);");
+  check(d, "functionField('string');");
+
+  check(c, "intField();", MessageKind.NOT_CALLABLE);
+  check(d, "intField();", MessageKind.NOT_CALLABLE);
+
+  check(c, "untypedField();");
+  check(d, "untypedField();");
+  check(c, "untypedField(1);");
+  check(d, "untypedField('string');");
+
+
+  check(c, "intOneArgumentOneOptionalMethod('');",
+        MessageKind.NOT_ASSIGNABLE);
+  check(c, "intOneArgumentOneOptionalMethod('', '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check(c, "intTwoOptionalMethod('');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "intTwoOptionalMethod('', '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check(c, "intOneArgumentOneNamedMethod('');",
+        MessageKind.NOT_ASSIGNABLE);
+  check(c, "intOneArgumentOneNamedMethod('', b: '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  check(c, "intTwoNamedMethod(a: '');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "intTwoNamedMethod(b: '');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "intTwoNamedMethod(a: '', b: '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+  check(c, "intTwoNamedMethod(b: '', a: '');",
+        [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
+
+  // Invocation of dynamic variable.
+  check(c, "e();");
+  check(c, "e(1);");
+  check(c, "e('string');");
+
+  // Invocation on local method.
+  check(c, "localMethod();", MessageKind.MISSING_ARGUMENT);
+  check(c, "localMethod(1);", MessageKind.NOT_ASSIGNABLE);
+  check(c, "localMethod('string');");
+  check(c, "int k = localMethod('string');");
+  check(c, "String k = localMethod('string');", MessageKind.NOT_ASSIGNABLE);
+
+  // Invocation on parenthesized expressions.
+  check(c, "(e)();");
+  check(c, "(e)(1);");
+  check(c, "(e)('string');");
+  check(c, "(foo)();", MessageKind.PROPERTY_NOT_FOUND);
+  check(c, "(foo)(1);", MessageKind.PROPERTY_NOT_FOUND);
+  check(c, "(foo)('string');", MessageKind.PROPERTY_NOT_FOUND);
+
+  // Invocations on function expressions.
+  check(c, "(foo){}();", MessageKind.MISSING_ARGUMENT);
+  check(c, "(foo){}(1);");
+  check(c, "(foo){}('string');");
+  check(c, "(int foo){}('string');", MessageKind.NOT_ASSIGNABLE);
+  check(c, "(String foo){}('string');");
+  check(c, "int k = int bar(String foo){ return 0; }('string');");
+  check(c, "int k = String bar(String foo){ return foo; }('string');",
+        MessageKind.NOT_ASSIGNABLE);
+
+  // Static invocations.
+  check(c, "staticMethod();",
+        MessageKind.MISSING_ARGUMENT);
+  check(c, "staticMethod(1);",
+        MessageKind.NOT_ASSIGNABLE);
+  check(c, "staticMethod('string');");
+  check(c, "int k = staticMethod('string');");
+  check(c, "String k = staticMethod('string');",
+        MessageKind.NOT_ASSIGNABLE);
+  check(d, "staticMethod();",
+        MessageKind.MISSING_ARGUMENT);
+  check(d, "staticMethod(1);",
+        MessageKind.NOT_ASSIGNABLE);
+  check(d, "staticMethod('string');");
+  check(d, "int k = staticMethod('string');");
+  check(d, "String k = staticMethod('string');",
+        MessageKind.NOT_ASSIGNABLE);
+
+  // Invocation on dynamic variable.
+  check(c, "e.foo();");
+  check(c, "e.foo(1);");
+  check(c, "e.foo('string');");
+
+  // Invocation on unresolved variable.
+  check(c, "foo();", MessageKind.METHOD_NOT_FOUND);
+  check(c, "foo(1);", MessageKind.METHOD_NOT_FOUND);
+  check(c, "foo('string');", MessageKind.METHOD_NOT_FOUND);
+  check(c, "foo(a: 'string');", MessageKind.METHOD_NOT_FOUND);
+  check(c, "foo(a: localMethod(1));",
+      [MessageKind.METHOD_NOT_FOUND, MessageKind.NOT_ASSIGNABLE]);
 }
 
 /** Tests analysis of returns (not required by the specification). */
@@ -545,13 +704,17 @@ testIfStatement() {
 }
 
 testThis() {
-  String script = "class Foo {}";
+  String script = """class Foo {
+                       void method() {}
+                     }""";
   LibraryElement library = mockLibrary(compiler, script);
   compiler.parseScript(script, library);
   ClassElement foo = library.find(const SourceString("Foo"));
-  analyzeIn(foo, "{ int i = this; }", MessageKind.NOT_ASSIGNABLE);
-  analyzeIn(foo, "{ Object o = this; }");
-  analyzeIn(foo, "{ Foo f = this; }");
+  foo.ensureResolved(compiler);
+  Element method = foo.lookupLocalMember(const SourceString('method'));
+  analyzeIn(method, "{ int i = this; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeIn(method, "{ Object o = this; }");
+  analyzeIn(method, "{ Foo f = this; }");
 }
 
 testSuper() {
@@ -562,14 +725,17 @@ testSuper() {
     
     class B extends A {
       Object field = 42;
+      void method() {}
     }
     ''';
   LibraryElement library = mockLibrary(compiler, script);
   compiler.parseScript(script, library);
   ClassElement B = library.find(const SourceString("B"));
-  analyzeIn(B, "{ int i = super.field; }", MessageKind.NOT_ASSIGNABLE);
-  analyzeIn(B, "{ Object o = super.field; }");
-  analyzeIn(B, "{ String s = super.field; }");
+  B.ensureResolved(compiler);
+  Element method = B.lookupLocalMember(const SourceString('method'));
+  analyzeIn(method, "{ int i = super.field; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeIn(method, "{ Object o = super.field; }");
+  analyzeIn(method, "{ String s = super.field; }");
 }
 
 const String CLASSES_WITH_OPERATORS = '''
@@ -880,11 +1046,15 @@ class ClassWithMethods {
   int intField;
 
   static int staticMethod(String str) {}
+
+  void method() {}
 }
 class I {
   int intMethod();
 }
-class SubClass extends ClassWithMethods implements I {}''';
+class SubClass extends ClassWithMethods implements I {
+  void method() {}
+}''';
 
 Types types;
 MockCompiler compiler;
@@ -1034,7 +1204,7 @@ void generateOutput(String text) {
   }
 }
 
-analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
+analyzeIn(Element element, String text, [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
@@ -1043,8 +1213,7 @@ analyzeIn(ClassElement classElement, String text, [expectedWarnings]) {
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
-  classElement.ensureResolved(compiler);
-  TreeElements elements = compiler.resolveNodeStatement(node, classElement);
+  TreeElements elements = compiler.resolveNodeStatement(node, element);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(compiler, elements,
                                                                 types);
   compiler.clearWarnings();
