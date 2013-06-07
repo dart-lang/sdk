@@ -1357,36 +1357,6 @@ class ElementInstance extends EventTarget {
 
 
 @DocsEditable
-@DomName('ElementTimeControl')
-@Unstable
-class ElementTimeControl extends NativeFieldWrapperClass1 {
-  ElementTimeControl.internal();
-
-  @DomName('ElementTimeControl.beginElement')
-  @DocsEditable
-  void beginElement() native "ElementTimeControl_beginElement_Callback";
-
-  @DomName('ElementTimeControl.beginElementAt')
-  @DocsEditable
-  void beginElementAt(num offset) native "ElementTimeControl_beginElementAt_Callback";
-
-  @DomName('ElementTimeControl.endElement')
-  @DocsEditable
-  void endElement() native "ElementTimeControl_endElement_Callback";
-
-  @DomName('ElementTimeControl.endElementAt')
-  @DocsEditable
-  void endElementAt(num offset) native "ElementTimeControl_endElementAt_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('SVGEllipseElement')
 @Unstable
 class EllipseElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {

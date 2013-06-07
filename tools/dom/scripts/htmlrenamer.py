@@ -727,18 +727,19 @@ class HtmlRenamer(object):
       return 'indexed_db'
     if interface.id.startswith("SQL"):
       return 'web_sql'
+    if interface.id.startswith("SVG"):
+      return 'svg'
+    if interface.id.startswith("WebGL") or interface.id.startswith("OES") \
+        or interface.id.startswith("EXT"):
+      return 'web_gl'
 
     if 'Conditional' in interface.ext_attrs:
       if 'WEB_AUDIO' in interface.ext_attrs['Conditional']:
         return 'web_audio'
-      if 'SVG' in interface.ext_attrs['Conditional']:
-        return 'svg'
       if 'INDEXED_DATABASE' in interface.ext_attrs['Conditional']:
         return 'indexed_db'
       if 'SQL_DATABASE' in interface.ext_attrs['Conditional']:
         return 'web_sql'
-      if 'WEBGL' in interface.ext_attrs['Conditional']:
-        return 'web_gl'
 
     if interface.id in typed_array_renames:
       return 'typed_data'

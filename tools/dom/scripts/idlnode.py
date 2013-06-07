@@ -482,9 +482,17 @@ class IDLOperation(IDLMember):
     # getter <ReturnType>(args).  For now force the name to be __getter__,
     # but it should be operator[] later.
     if self.id is None:
-      if len(self.specials) != 1:
+      if self.specials == ['getter']:
+        self.id = '__getter__'
+      elif self.specials == ['setter']:
+        self.id = '__setter__'
+        # Special case: if it's a setter, ignore 'declared' return type
+        self.type = IDLType([('VoidType', None)])
+      elif self.specials == ['deleter']:
+        self.id = '__delete__'
+      else:
         raise Exception('Cannot handle %s: operation has no id' % ast)
-      self.id = '__%s__' % self.specials[0]
+
   def _extra_repr(self):
     return [self.arguments]
 
