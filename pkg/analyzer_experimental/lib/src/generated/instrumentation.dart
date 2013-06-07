@@ -257,6 +257,7 @@ class InstrumentationLevel implements Comparable<InstrumentationLevel> {
   InstrumentationLevel(this.name, this.ordinal) {
   }
   int compareTo(InstrumentationLevel other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**

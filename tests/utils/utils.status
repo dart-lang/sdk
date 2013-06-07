@@ -20,10 +20,6 @@ txt_layout_test: Skip # Might just go away.
 [ $system == macos || $system == windows ]
 *_layout_test: Skip
 
-[ $compiler == dart2dart ]
-# Skip until we stabilize language tests.
-*: Skip
-
 [ $arch == arm ]
 *: Skip
 

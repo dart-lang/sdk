@@ -4,6 +4,23 @@
 
 part of dart.collection;
 
+/**
+ * A [LinkedHashSet] is a hash-table based [Set] implementation.
+ *
+ * The `LinkedHashSet` also keep track of the order that elements were inserted
+ * in, and iteration happens in first-to-last insertion order.
+ *
+ * The elements of a `LinkedHashSet` must have consistent [Object.operator==]
+ * and [Object.hashCode] implementations. This means that the `==` operator
+ * must define a stable equivalence relation on the elements (reflexive,
+ * anti-symmetric, transitive, and consistent over time), and that `hashCode`
+ * must be the same for objects that are considered equal by `==`.
+ *
+ * The set allows `null` as an element.
+ *
+ * Most simple operations on `HashSet` are done in constant time: [add],
+ * [contains], [remove], and [length].
+ */
 class LinkedHashSet<E> extends _HashSetBase<E> {
 
   external LinkedHashSet();
@@ -13,6 +30,8 @@ class LinkedHashSet<E> extends _HashSetBase<E> {
   }
 
   // Iterable.
+
+  /** Return an iterator that iterates over elements in insertion order. */
   external Iterator<E> get iterator;
 
   external int get length;
@@ -23,6 +42,7 @@ class LinkedHashSet<E> extends _HashSetBase<E> {
 
   external bool contains(Object object);
 
+  /** Perform an operation on each element in insertion order. */
   external void forEach(void action(E element));
 
   external E get first;

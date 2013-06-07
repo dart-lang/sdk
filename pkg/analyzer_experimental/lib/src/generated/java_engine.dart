@@ -1,7 +1,8 @@
 library java.engine;
 
 class StringUtilities {
-  static List<String> EMPTY_ARRAY = new List(0);
+  static const String EMPTY = '';
+  static const List<String> EMPTY_ARRAY = const <String> [];
   static String intern(String s) => s;
   static String substringBefore(String str, String separator) {
     if (str == null || str.isEmpty) {

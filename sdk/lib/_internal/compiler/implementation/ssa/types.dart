@@ -231,6 +231,7 @@ abstract class HType {
     // TODO(kasperl): Should we check if the refinement really is more
     // specialized than the starting point?
     TypeMask mask = computeMask(compiler);
+    if (selector.mask == mask) return selector;
     return new TypedSelector(mask, selector);
   }
 

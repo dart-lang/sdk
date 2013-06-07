@@ -390,53 +390,104 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
 }
 
 
+void FlowGraphOptimizer::ConvertUse(Value* use, Representation from_rep) {
+  const Representation to_rep =
+      use->instruction()->RequiredInputRepresentation(use->use_index());
+  if (from_rep == to_rep || to_rep == kNoRepresentation) {
+    return;
+  }
+
+  Instruction* insert_before;
+  Instruction* deopt_target;
+  PhiInstr* phi = use->instruction()->AsPhi();
+  if (phi != NULL) {
+    ASSERT(phi->is_alive());
+    // For phis conversions have to be inserted in the predecessor.
+    insert_before =
+        phi->block()->PredecessorAt(use->use_index())->last_instruction();
+    deopt_target = NULL;
+  } else {
+    deopt_target = insert_before = use->instruction();
+  }
+
+  InsertConversion(from_rep, to_rep, use, insert_before, deopt_target);
+}
+
 void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
   const Representation from_rep = def->representation();
 
   for (Value::Iterator it(def->input_use_list());
        !it.Done();
        it.Advance()) {
-    Value* use = it.Current();
-    const Representation to_rep =
-        use->instruction()->RequiredInputRepresentation(use->use_index());
-    if (from_rep == to_rep || to_rep == kNoRepresentation) {
-      continue;
-    }
+    ConvertUse(it.Current(), from_rep);
+  }
+}
 
-    Instruction* insert_before;
-    Instruction* deopt_target;
-    PhiInstr* phi = use->instruction()->AsPhi();
-    if (phi != NULL) {
-      ASSERT(phi->is_alive());
-      // For phis conversions have to be inserted in the predecessor.
-      insert_before =
-          phi->block()->PredecessorAt(use->use_index())->last_instruction();
-      deopt_target = NULL;
-    } else {
-      deopt_target = insert_before = use->instruction();
-    }
 
-    InsertConversion(from_rep, to_rep, use, insert_before, deopt_target);
+// Returns true if phi's representation was changed.
+static bool UnboxPhi(PhiInstr* phi) {
+  Representation current = phi->representation();
+  Representation unboxed = current;
+
+  switch (phi->Type()->ToCid()) {
+    case kDoubleCid:
+      unboxed = kUnboxedDouble;
+      break;
+    case kFloat32x4Cid:
+      unboxed = kUnboxedFloat32x4;
+      break;
+    case kUint32x4Cid:
+      unboxed = kUnboxedUint32x4;
+      break;
+  }
+
+  if (unboxed != current) {
+    phi->set_representation(unboxed);
+    return true;
+  }
+
+  return false;
+}
+
+
+void FlowGraphOptimizer::UnboxPhis() {
+  GrowableArray<PhiInstr*> worklist(5);
+
+  // Convervatively unbox all phis that were proven to be of Double,
+  // Float32x4, or Uint32x4 type.
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
+    if (join_entry != NULL) {
+      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
+        PhiInstr* phi = it.Current();
+        if (UnboxPhi(phi)) {
+          worklist.Add(phi);
+        }
+      }
+    }
+  }
+
+  while (!worklist.is_empty()) {
+    PhiInstr* phi = worklist.RemoveLast();
+    InsertConversionsFor(phi);
+
+    for (intptr_t i = 0; i < phi->InputCount(); i++) {
+      ConvertUse(phi->InputAt(i),
+                 phi->InputAt(i)->definition()->representation());
+    }
   }
 }
 
 
 void FlowGraphOptimizer::SelectRepresentations() {
   // Convervatively unbox all phis that were proven to be of Double,
-  // Float32x4, or Uint32x4.
+  // Float32x4, or Uint32x4 type.
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
     if (join_entry != NULL) {
       for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
         PhiInstr* phi = it.Current();
-        ASSERT(phi != NULL);
-        if (phi->Type()->ToCid() == kDoubleCid) {
-          phi->set_representation(kUnboxedDouble);
-        } else if (phi->Type()->ToCid() == kFloat32x4Cid) {
-          phi->set_representation(kUnboxedFloat32x4);
-        } else if (phi->Type()->ToCid() == kUint32x4Cid) {
-          phi->set_representation(kUnboxedUint32x4);
-        }
+        UnboxPhi(phi);
       }
     }
   }
@@ -706,7 +757,6 @@ intptr_t FlowGraphOptimizer::PrepareIndexedOp(InstanceCallInstr* call,
   InsertBefore(call,
                new CheckArrayBoundInstr(new Value(length),
                                         new Value(*index),
-                                        class_id,
                                         call),
                call->env(),
                Definition::kEffect);
@@ -1586,7 +1636,6 @@ LoadIndexedInstr* FlowGraphOptimizer::BuildStringCodeUnitAt(
     InsertBefore(call,
                  new CheckArrayBoundInstr(new Value(length),
                                           new Value(index),
-                                          cid,
                                           call),
                  call->env(),
                  Definition::kEffect);
@@ -2185,7 +2234,6 @@ void FlowGraphOptimizer::PrepareByteArrayViewOp(
   InsertBefore(call,
                new CheckArrayBoundInstr(new Value(len_in_bytes),
                                         new Value(byte_index),
-                                        receiver_cid,
                                         call),
                call->env(),
                Definition::kEffect);
@@ -3070,10 +3118,6 @@ void RangeAnalysis::InsertConstraintsFor(Definition* defn) {
 
 void RangeAnalysis::ConstrainValueAfterCheckArrayBound(
     Definition* defn, CheckArrayBoundInstr* check) {
-  if (!CheckArrayBoundInstr::IsFixedLengthArrayType(check->array_type())) {
-    return;
-  }
-
   Definition* length = check->length()->definition();
 
   Range* constraint_range = new Range(
@@ -6299,6 +6343,7 @@ void IfConverter::Simplify(FlowGraph* flow_graph) {
           // Update use lists to reflect changes in the graph.
           phi->UnuseAllInputs();
           branch->UnuseAllInputs();
+          block->UnuseAllInputs();
 
           // The graph has changed. Recompute dominators and block orders after
           // this pass is finished.

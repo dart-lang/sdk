@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.crypto;
+part of crypto;
 
 abstract class _CryptoUtils {
   static String bytesToHex(List<int> bytes) {
@@ -104,21 +104,20 @@ abstract class _CryptoUtils {
     return new String.fromCharCodes(out);
   }
 
-  static List<int> base64StringToBytes(String input,
-                                       [bool ignoreInvalidCharacters = true]) {
+  static List<int> base64StringToBytes(String input) {
     int len = input.length;
     if (len == 0) {
       return new List<int>(0);
     }
 
     // Count '\r', '\n' and illegal characters, For illegal characters,
-    // if [ignoreInvalidCharacters] is false, throw an exception.
+    // throw an exception.
     int extrasLen = 0;
     for (int i = 0; i < len; i++) {
       int c = _decodeTable[input.codeUnitAt(i)];
       if (c < 0) {
         extrasLen++;
-        if(c == -2 && !ignoreInvalidCharacters) {
+        if(c == -2) {
           throw new FormatException('Invalid character: ${input[i]}');
         }
       }
@@ -129,7 +128,7 @@ abstract class _CryptoUtils {
           must be a multiple of 4. Input: $input''');
     }
 
-    // Count pad characters, ignore illegal characters at the end.
+    // Count pad characters.
     int padLength = 0;
     for (int i = len - 1; i >= 0; i--) {
       int currentCodeUnit = input.codeUnitAt(i);

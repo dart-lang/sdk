@@ -276,6 +276,8 @@ class ElementX implements Element {
   bool isForeign(Compiler compiler) => getLibrary() == compiler.foreignLibrary;
 
   FunctionElement get targetConstructor => null;
+
+  void diagnose(Element context, DiagnosticListener listener) {}
 }
 
 /**
@@ -377,6 +379,36 @@ class AmbiguousElementX extends ElementX implements AmbiguousElement {
         super(existingElement.name, ElementKind.AMBIGUOUS, enclosingElement);
 
   bool isAmbiguous() => true;
+
+  Set flatten() {
+    Element element = this;
+    var set = new Set();
+    while (element.isAmbiguous()) {
+      AmbiguousElement ambiguous = element;
+      set.add(ambiguous.newElement);
+      element = ambiguous.existingElement;
+    }
+    set.add(element);
+    return set;
+  }
+
+  void diagnose(Element context, DiagnosticListener listener) {
+    Set ambiguousElements = flatten();
+    MessageKind code = (ambiguousElements.length == 1)
+        ? MessageKind.AMBIGUOUS_REEXPORT : MessageKind.AMBIGUOUS_LOCATION;
+    LibraryElementX importer = context.getLibrary();
+    for (Element element in ambiguousElements) {
+      var arguments = {'element': element};
+      listener.reportInfo(element, code, arguments);
+      Link<Import> importers = importer.importers[element];
+      listener.withCurrentElement(importer, () {
+        for (; !importers.isEmpty; importers = importers.tail) {
+          listener.reportInfo(
+              importers.head, MessageKind.IMPORTED_HERE, arguments);
+        }
+      });
+    }
+  }
 }
 
 class ScopeX {
@@ -566,6 +598,9 @@ class LibraryElementX extends ElementX implements LibraryElement {
    */
   final Map<SourceString, Element> importScope;
 
+  /// A mapping from an imported element to the "import" tag.
+  final Map<Element, Link<Import>> importers;
+
   /**
    * Link for elements exported either through export declarations or through
    * declaration. This field should not be accessed directly but instead through
@@ -582,6 +617,7 @@ class LibraryElementX extends ElementX implements LibraryElement {
   LibraryElementX(Script script, [Uri canonicalUri, LibraryElement this.origin])
     : this.canonicalUri = ((canonicalUri == null) ? script.uri : canonicalUri),
       importScope = new Map<SourceString, Element>(),
+      importers = new Map<Element, Link<Import>>(),
       super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElementX(script, this);
     if (isPatch) {
@@ -628,7 +664,10 @@ class LibraryElementX extends ElementX implements LibraryElement {
    * [ErroneousElement] will be put in the imported scope, allowing for the
    * detection of ambiguous uses of imported names.
    */
-  void addImport(Element element, DiagnosticListener listener) {
+  void addImport(Element element, Import import, DiagnosticListener listener) {
+    importers[element] =
+        importers.putIfAbsent(element, () => const Link<Import>())
+        .prepend(import);
     Element existing = importScope[element.name];
     if (existing != null) {
       // TODO(johnniwinther): Provide access to the import tags from which
@@ -1950,11 +1989,6 @@ class MixinApplicationElementX extends BaseClassElementX
 
   ClassElement mixin;
 
-  // TODO(kasperl): The analyzer complains when I don't have these two
-  // fields. This is pretty weird. I cannot replace them with getters.
-  final ClassElement patch = null;
-  final ClassElement origin = null;
-
   MixinApplicationElementX(SourceString name, Element enclosing, int id,
                            this.node, this.modifiers)
       : super(name, enclosing, id, STATE_NOT_STARTED);
@@ -1962,6 +1996,16 @@ class MixinApplicationElementX extends BaseClassElementX
   bool get isMixinApplication => true;
   bool get hasConstructor => !constructors.isEmpty;
   bool get hasLocalScopeMembers => !constructors.isEmpty;
+
+  unsupported(message) {
+    throw new UnsupportedError('$message is not supported on $this');
+  }
+
+  get patch => null;
+  get origin => null;
+
+  set patch(value) => unsupported('set patch');
+  set origin(value) => unsupported('set origin');
 
   Token position() => node.getBeginToken();
 

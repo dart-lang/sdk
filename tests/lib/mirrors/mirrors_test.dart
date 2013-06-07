@@ -203,11 +203,12 @@ testLibraryUri(var value, bool check(Uri)) {
 mainWithArgument({bool isDart2js: false, bool isMinified: false}) {
   var mirrors = currentMirrorSystem();
   test("Test reflective method invocation", () { testInvoke(mirrors); });
-  if (isMinified) return;
   test("Test instance field access", () { testInstanceFieldAccess(mirrors); });
   test('Test intercepted objects', () { testIntercepted(mirrors); });
+  if (!isMinified) // TODO(ahe): Remove this line.
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
+  if (!isMinified) // TODO(ahe): Remove this line.
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
   test("Test current library uri", () {
     testLibraryUri(new Class(),
@@ -216,6 +217,7 @@ mainWithArgument({bool isDart2js: false, bool isMinified: false}) {
   test("Test dart library uri", () {
     testLibraryUri("test", (Uri uri) => uri == Uri.parse('dart:core'));
   });
+  if (!isMinified) // TODO(ahe): Remove this line.
   test("Test simple and qualifiedName", () { testNames(mirrors, isDart2js); });
   if (isDart2js) return; // TODO(ahe): Remove this line.
   test("Test reflect type", () { testReflectClass(mirrors); });

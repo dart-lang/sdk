@@ -73,6 +73,7 @@ class CodeEmitterTask extends CompilerTask {
   final List<ClassElement> deferredClasses = <ClassElement>[];
   final List<ClassElement> nativeClasses = <ClassElement>[];
   final List<Selector> trivialNsmHandlers = <Selector>[];
+  final Map<String, String> mangledFieldNames = <String, String>{};
 
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
@@ -361,12 +362,12 @@ class CodeEmitterTask extends CompilerTask {
     ];
   }
 
-  const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
+  static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
 
   // If we need fewer than this many noSuchMethod handlers we can save space by
   // just emitting them in JS, rather than emitting the JS needed to generate
   // them at run time.
-  const VERY_FEW_NO_SUCH_METHOD_HANDLERS = 10;
+  static const VERY_FEW_NO_SUCH_METHOD_HANDLERS = 10;
 
   /**
    * Adds (at runtime) the handlers to the Object class which catch calls to
@@ -1460,6 +1461,21 @@ class CodeEmitterTask extends CompilerTask {
     /* Do nothing. */
   }
 
+  void recordMangledField(Element member,
+                          String accessorName,
+                          String memberName) {
+    String previousName = mangledFieldNames.putIfAbsent(
+        '${namer.getterPrefix}$accessorName',
+        () => memberName);
+    assert(invariant(member, previousName == memberName,
+                     message: '$previousName != ${memberName}'));
+    previousName = mangledFieldNames.putIfAbsent(
+        '${namer.setterPrefix}$accessorName',
+        () => '${memberName}=');
+    assert(invariant(member, previousName == '${memberName}=',
+                     message: '$previousName != ${memberName}='));
+  }
+
   /// Returns `true` if fields added.
   bool emitClassFields(ClassElement classElement,
                        ClassBuilder builder,
@@ -1501,6 +1517,9 @@ class CodeEmitterTask extends CompilerTask {
             metadata = new jsAst.LiteralNull();
           }
           fieldMetadata.add(metadata);
+        }
+        if (compiler.mirrorsEnabled) {
+          recordMangledField(member, accessorName, member.name.slowToString());
         }
         if (!needsAccessor) {
           // Emit field for constructor generation.
@@ -3088,6 +3107,22 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         classesCollector = r"$$";
         if (compiler.enableMinification) {
           mainBuffer.write(';');
+        }
+        if (!mangledFieldNames.isEmpty) {
+          var keys = mangledFieldNames.keys.toList();
+          keys.sort();
+          var properties = [];
+          for (String key in keys) {
+            var value = js.string('${mangledFieldNames[key]}');
+            properties.add(new jsAst.Property(js.string(key), value));
+          }
+          var map = new jsAst.ObjectInitializer(properties);
+          mainBuffer.write(
+              jsAst.prettyPrint(
+                  js('init.mangledNames = #', map).toStatement(), compiler));
+          if (compiler.enableMinification) {
+            mainBuffer.write(';');
+          }
         }
         mainBuffer
             ..write(getReflectionDataParser())

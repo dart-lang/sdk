@@ -478,6 +478,21 @@ class IDLOperation(IDLMember):
     self.arguments = self._convert_all(ast, 'Argument', IDLArgument)
     self.specials = self._find_all(ast, 'Special')
     self.is_stringifier = self._has(ast, 'Stringifier')
+    # Special case: there are getters of the form
+    # getter <ReturnType>(args).  For now force the name to be __getter__,
+    # but it should be operator[] later.
+    if self.id is None:
+      if self.specials == ['getter']:
+        self.id = '__getter__'
+      elif self.specials == ['setter']:
+        self.id = '__setter__'
+        # Special case: if it's a setter, ignore 'declared' return type
+        self.type = IDLType([('VoidType', None)])
+      elif self.specials == ['deleter']:
+        self.id = '__delete__'
+      else:
+        raise Exception('Cannot handle %s: operation has no id' % ast)
+
   def _extra_repr(self):
     return [self.arguments]
 

@@ -52,7 +52,11 @@ class BitmapBuilder : public ZoneAllocated {
   static const intptr_t kIncrementSizeInBytes = 16;
 
   bool InRange(intptr_t offset) const {
-    return (offset >= 0) && (offset < length_);
+    if (offset < 0) {
+      FATAL1("Fatal error in BitmapBuilder::InRange :"
+             " invalid bit_offset, %"Pd"\n", offset);
+    }
+    return (offset < length_);
   }
 
   // Get/Set a bit that is known to be covered by the backing store.

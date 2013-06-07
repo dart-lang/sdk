@@ -59,7 +59,9 @@ BENCHMARK(CorelibIsolateStartup) {
   const int kNumIterations = 100;
   char* err = NULL;
   Dart_Isolate base_isolate = Dart_CurrentIsolate();
-  Dart_Isolate test_isolate = Dart_CreateIsolate(NULL, NULL, NULL, NULL, &err);
+  Dart_Isolate test_isolate = Dart_CreateIsolate(NULL, NULL,
+                                                 bin::snapshot_buffer,
+                                                 NULL, &err);
   EXPECT(test_isolate != NULL);
   Dart_EnterScope();
   uint8_t* buffer = NULL;

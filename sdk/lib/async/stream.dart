@@ -1033,7 +1033,7 @@ abstract class StreamTransformer<S, T> {
  *
  * An example that duplicates all data events:
  *
- *     class DoubleTransformer<T> extends StreamEventTransformerBase<T, T> {
+ *     class DoubleTransformer<T> extends StreamEventTransformer<T, T> {
  *       void handleData(T data, EventSink<T> sink) {
  *         sink.add(value);
  *         sink.add(value);

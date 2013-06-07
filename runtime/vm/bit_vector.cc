@@ -55,8 +55,10 @@ bool BitVector::AddAll(const BitVector* from) {
   for (intptr_t i = 0; i < data_length_; i++) {
     const uword before = data_[i];
     const uword after = data_[i] | from->data_[i];
-    if (before != after) changed = true;
-    data_[i] = after;
+    if (before != after) {
+      changed = true;
+      data_[i] = after;
+    }
   }
   return changed;
 }
@@ -68,8 +70,10 @@ bool BitVector::RemoveAll(const BitVector* from) {
   for (intptr_t i = 0; i < data_length_; i++) {
     const uword before = data_[i];
     const uword after = data_[i] & ~from->data_[i];
-    if (before != after) changed = true;
-    data_[i] = after;
+    if (before != after) {
+      changed = true;
+      data_[i] = after;
+    }
   }
   return changed;
 }

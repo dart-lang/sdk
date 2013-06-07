@@ -56,7 +56,6 @@ namespace dart {
   V(StoreIndexedNode, "store indexed")                                         \
   V(SequenceNode, "seq")                                                       \
   V(LetNode, "let")                                                            \
-  V(CommaNode, "comma")                                                        \
   V(CatchClauseNode, "catch clause block")                                     \
   V(TryCatchNode, "try catch block")                                           \
   V(ThrowNode, "throw")                                                        \
@@ -182,35 +181,6 @@ class SequenceNode : public AstNode {
 };
 
 
-// Comma node represents a pair of expressions evaluated in sequence
-// and return the value of the second expression.
-class CommaNode : public AstNode {
- public:
-  CommaNode(intptr_t token_pos,
-            AstNode* first,
-            AstNode* second)
-      : AstNode(token_pos),
-        first_(first),
-        second_(second) { }
-
-  AstNode* first() const { return first_; }
-  AstNode* second() const { return second_; }
-
-  void VisitChildren(AstNodeVisitor* visitor) const {
-    first_->Visit(visitor);
-    second_->Visit(visitor);
-  }
-
-  DECLARE_COMMON_NODE_FUNCTIONS(CommaNode);
-
- private:
-  AstNode* first_;
-  AstNode* second_;
-
-  DISALLOW_COPY_AND_ASSIGN(CommaNode);
-};
-
-
 class CloneContextNode : public AstNode {
  public:
   explicit CloneContextNode(intptr_t token_pos)
@@ -303,12 +273,13 @@ class LetNode : public AstNode {
 
   LocalVariable* AddInitializer(AstNode* node);
 
+  const GrowableArray<AstNode*>& nodes() const { return nodes_; }
+
+  void AddNode(AstNode* node) { nodes_.Add(node); }
+
   intptr_t num_temps() const {
     return vars_.length();
   }
-
-  AstNode* body() const { return body_; }
-  void set_body(AstNode* node) { body_ = node; }
 
   void VisitChildren(AstNodeVisitor* visitor) const;
 
@@ -317,7 +288,7 @@ class LetNode : public AstNode {
  private:
   GrowableArray<LocalVariable*> vars_;
   GrowableArray<AstNode*> initializers_;
-  AstNode* body_;
+  GrowableArray<AstNode*> nodes_;
 
   DISALLOW_COPY_AND_ASSIGN(LetNode);
 };

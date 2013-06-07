@@ -132,7 +132,7 @@ def target_builder(arch, mode):
       run([GSUTIL, 'cp', uri, checked_recording])
       run(['python', execute_testcases_py, checked_recording,
            checked_recording_out])
-      run([GSUTIL, 'cp', recording_out, uri_out])
+      run([GSUTIL, 'cp', checked_recording_out, uri_out])
       run([GSUTIL, 'setacl', 'public-read', uri_out])
   finally:
     for path in temporary_files:

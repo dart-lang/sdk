@@ -38,5 +38,6 @@ class ParameterKind implements Comparable<ParameterKind> {
    */
   bool isOptional() => _isOptional2;
   int compareTo(ParameterKind other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }

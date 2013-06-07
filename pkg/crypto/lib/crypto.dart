@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart.crypto;
+library crypto;
 
 import 'dart:math';
 
@@ -54,75 +54,9 @@ abstract class Hash {
 }
 
 /**
- * SHA1 hash function implementation.
- */
-abstract class SHA1 implements Hash {
-  factory SHA1() => new _SHA1();
-}
-
-/**
- * SHA256 hash function implementation.
- */
-abstract class SHA256 implements Hash {
-  factory SHA256() => new _SHA256();
-}
-
-/**
- * MD5 hash function implementation.
- *
- * WARNING: MD5 has known collisions and should only be used when
- * required for backwards compatibility.
- */
-abstract class MD5 implements Hash {
-  factory MD5() => new _MD5();
-}
-
-/**
- * Hash-based Message Authentication Code support.
- *
- * The [add] method is used to add data to the message. The [digest] and
- * [close] methods are used to extract the message authentication code.
- */
-// TODO(floitsch): make Hash implement Sink, EventSink or similar.
-abstract class HMAC {
-  /**
-   * Create an [HMAC] object from a [Hash] and a key.
-   */
-  factory HMAC(Hash hash, List<int> key) => new _HMAC(hash, key);
-
-  /**
-   * Add a list of bytes to the message.
-   */
-  add(List<int> data);
-
-  /**
-   * Perform the actual computation and extract the message digest
-   * as a list of bytes.
-   */
-  List<int> close();
-
-  /**
-   * Extract the message digest as a list of bytes without closing [this].
-   */
-  List<int> get digest;
-
-  /**
-   * Verify that the HMAC computed for the data so far matches the
-   * given message digest.
-   *
-   * This method should be used instead of memcmp-style comparisons
-   * to avoid leaking information via timing.
-   *
-   * Throws an exception if the given digest does not have the same
-   * size as the digest computed by this HMAC instance.
-   */
-  bool verify(List<int> digest);
-}
-
-/**
  * Utility methods for working with message digests.
  */
-abstract class CryptoUtils {
+class CryptoUtils {
   /**
    * Convert a list of bytes (for example a message digest) into a hex
    * string.
@@ -157,26 +91,15 @@ abstract class CryptoUtils {
   /**
    * Converts a Base 64 encoded String into list of bytes.
    *
-   * Decoder ignores "\r\n" sequences from input. By default it also ignores
-   * all illegal characters unless [ignoreInvalidCharacters] is false.
+   * Decoder ignores "\r\n" sequences from input.
    *
    * Accepts both URL safe and unsafe Base 64 encoded strings.
    *
+   * Throws a FormatException exception if input contains invalid characters.
+   *
    * Based on [RFC 4648](http://tools.ietf.org/html/rfc4648)
    */
-  static List<int> base64StringToBytes(String input,
-                                       {bool ignoreInvalidCharacters : true}) {
-    return _CryptoUtils.base64StringToBytes(input, ignoreInvalidCharacters);
+  static List<int> base64StringToBytes(String input) {
+    return _CryptoUtils.base64StringToBytes(input);
   }
 }
-
-/**
- * HashExceptions are thrown on invalid use of a Hash
- * object.
- */
-class HashException {
-  HashException(String this.message);
-  toString() => "HashException: $message";
-  String message;
-}
-

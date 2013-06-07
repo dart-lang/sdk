@@ -103,6 +103,7 @@ Future copyDirectory(Path from, Path to) {
   print('Copying static files...');
   final completer = new Completer();
   final fromDir = new Directory.fromPath(from);
+  var futureList = [];
   fromDir.list(recursive: false).listen(
       (FileSystemEntity entity) {
         if (entity is File) {
@@ -112,10 +113,10 @@ Future copyDirectory(Path from, Path to) {
 
           File fromFile = entity;
           File toFile = new File.fromPath(to.append(name));
-          fromFile.openRead().pipe(toFile.openWrite());
+          futureList.add(fromFile.openRead().pipe(toFile.openWrite()));
         }
       },
-      onDone: () => completer.complete(),
+      onDone: () => Future.wait(futureList).then((_) => completer.complete()),
       onError: (e) => completer.completeError(e));
   return completer.future;
 }
@@ -123,42 +124,25 @@ Future copyDirectory(Path from, Path to) {
 /**
  * Compiles the dartdoc client-side code to JavaScript using Dart2js.
  */
-Future compileScript(int mode, Path outputDir, Path libPath) {
+Future compileScript(int mode, Path outputDir, Path libPath, String tmpPath) {
   print('Compiling client JavaScript...');
+  var clientScript = (mode == MODE_STATIC) ?  'static' : 'live-nav';
+  var dartdocLibPath = pathos.join(libPath.toNativePath(),
+      'lib', '_internal', 'dartdoc', 'lib');
+  var dartPath = mode == MODE_STATIC ?
+    pathos.join(tmpPath, 'client.dart') :
+    pathos.join(dartdocLibPath, 'src', 'client', 'client-live-nav.dart');
 
-  // TODO(nweiz): don't run this in an isolate when issue 9815 is fixed.
-  return spawnFunction(_compileScript).call({
-    'mode': mode,
-    'outputDir': outputDir.toNativePath(),
-    'libPath': libPath.toNativePath()
-  }).then((result) {
-    if (result.first == 'success') return;
-    throw result[1] + (result[2] == null ? '' : '\n' + result[2]);
-  });
-}
+  var jsPath = pathos.join(outputDir.toNativePath(),
+    'client-$clientScript.js');
 
-void _compileScript() {
-  port.receive((message, replyTo) {
-    new Future.sync(() {
-      var clientScript = (message['mode'] == MODE_STATIC) ?
-          'static' : 'live-nav';
-      var dartPath = pathos.join(message['libPath'], 'lib', '_internal',
-          'dartdoc', 'lib', 'src', 'client', 'client-$clientScript.dart');
-      var jsPath = pathos.join(message['outputDir'], 'client-$clientScript.js');
-
-      return dart2js.compile(
-          new Path(dartPath), new Path(message['libPath']),
-          options: const <String>['--categories=Client,Server', '--minify'])
-      .then((jsCode) {
-        writeString(new File(jsPath), jsCode);
-      });
-    }).then((_) {
-      replyTo.send(['success']);
-    }).catchError((error) {
-      var trace = getAttachedStackTrace(error);
-      var traceString = trace == null ? null : trace.toString();
-      replyTo.send(['error', error.toString(), traceString]);
-    });
+  return dart2js.compile(
+      new Path(dartPath), libPath,
+      options: const <String>['--categories=Client,Server', '--minify'])
+  .then((jsCode) {
+    if (jsCode != null) {
+      writeString(new File(jsPath), jsCode);
+    }
   });
 }
 
@@ -286,6 +270,9 @@ class Dartdoc {
   /** The map containing all the exports for each library. */
   ExportMap _exports;
 
+  /** The path to a temporary directory used by Dartdoc. */
+  String tmpPath;
+
   /**
    * This list contains the libraries sorted in by the library name.
    */
@@ -370,8 +357,8 @@ class Dartdoc {
   List<md.InlineSyntax> dartdocSyntaxes =
     [new md.CodeSyntax(r'\[:\s?((?:.|\n)*?)\s?:\]')];
 
-
   Dartdoc() {
+    tmpPath = new Directory('').createTempSync().path;
     dartdocResolver = (String name) => resolveNameReference(name,
         currentLibrary: _currentLibrary, currentType: _currentType,
         currentMember: _currentMember);
@@ -782,34 +769,54 @@ class Dartdoc {
     writeln(json.stringify(createNavigationInfo()));
     endFile();
   }
+  /// Whether dartdoc is running from within the Dart SDK or the
+  /// Dart source repository.
+  bool get runningFromSdk =>
+    pathos.extension(new Options().script) == '.snapshot';
+
+  /// Gets the path to the root directory of the SDK.
+  String get sdkDir =>
+    pathos.dirname(pathos.dirname(new Options().executable));
+
+  /// Gets the path to the dartdoc directory normalized for running in different
+  /// places.
+  String get normalizedDartdocPath => runningFromSdk ?
+      pathos.join(sdkDir, 'lib', '_internal', 'dartdoc') :
+      dartdocPath.toString();
 
   void docNavigationDart() {
-    final dir = new Directory.fromPath(tmpPath);
-    if (!dir.existsSync()) {
-      // TODO(3914): Hack to avoid 'file already exists' exception
-      // thrown due to invalid result from dir.existsSync() (probably due to
-      // race conditions).
-      try {
-        dir.createSync();
-      } on DirectoryIOException catch (e) {
-        // Ignore.
-      }
+    var tmpDir = new Directory(tmpPath);
+    if (!tmpDir.existsSync()) {
+        tmpDir.createSync();
     }
     String jsonString = json.stringify(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
-    final filePath = tmpPath.append('nav.dart');
-    writeString(new File.fromPath(filePath),
-        '''part of client;
-           get json => $dartString;''');
+    var filePath = pathos.join(tmpPath, 'client.dart');
+    var clientDir = pathos.relative(
+        pathos.join(normalizedDartdocPath, 'lib', 'src', 'client'),
+        from: tmpPath);
+
+    writeString(new File(filePath),
+        '''library client;
+        import 'dart:html';
+        import 'dart:json';
+        import '${pathos.join(clientDir, 'client-shared.dart')}';
+        import '${pathos.join(clientDir, 'dropdown.dart')}';
+
+        main() {
+          setup();
+          setupSearch(json);
+        }
+
+        get json => $dartString;''');
   }
 
-  Path get tmpPath => dartdocPath.append('tmp');
-
   void cleanup() {
-    final dir = new Directory.fromPath(tmpPath);
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
+    var tmpDir = new Directory(tmpPath);
+    if (tmpDir.existsSync()) {
+      tmpDir.deleteSync(recursive: true);
     }
+    tmpPath = null;
   }
 
   List createNavigationInfo() {

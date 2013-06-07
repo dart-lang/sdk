@@ -2058,13 +2058,10 @@ class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
   @DocsEditable
   String name;
 
-  @JSName('None')
-  @DomName('WebKitCSSKeyframesRule')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  // http://www.w3.org/TR/css3-animations/#csskeyframesrule
-  CssKeyframeRule item(int index) native;
+  @DomName('WebKitCSSKeyframesRule.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  CssKeyframeRule __getter__(int index) native;
 
   @DomName('WebKitCSSKeyframesRule.deleteRule')
   @DocsEditable
@@ -7129,9 +7126,10 @@ class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
   @DocsEditable
   String value;
 
-  @JSName('None')
-  @DomName('DOMSettableTokenList')
-  String item(int index) native;
+  @DomName('DOMSettableTokenList.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  String __getter__(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7206,7 +7204,7 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
 @DomName('DOMStringMap')
 abstract class DomStringMap {
 
-  String None(String name);
+  String __getter__(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9099,6 +9097,23 @@ class ScrollAlignment {
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DomName('ElementTimeControl')
+@Unstable
+abstract class ElementTimeControl {
+
+  void beginElement();
+
+  void beginElementAt(num offset);
+
+  void endElement();
+
+  void endElementAt(num offset);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 @DomName('ElementTraversal')
 @Unstable
 abstract class ElementTraversal {
@@ -10599,9 +10614,10 @@ class FormElement extends Element native "HTMLFormElement" {
   @DocsEditable
   String target;
 
-  @JSName('None')
-  @DomName('HTMLFormElement')
-  Node item(int index) native;
+  @DomName('HTMLFormElement.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  Node __getter__(int index) native;
 
   @DomName('HTMLFormElement.checkValidity')
   @DocsEditable
@@ -11283,9 +11299,10 @@ class HtmlElement extends Element native "HTMLHtmlElement" {
 @DomName('HTMLFormControlsCollection')
 class HtmlFormControlsCollection extends HtmlCollection native "HTMLFormControlsCollection" {
 
-  @JSName('None')
-  @DomName('HTMLFormControlsCollection')
-  Node item(int index) native;
+  @DomName('HTMLFormControlsCollection.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  Node __getter__(int index) native;
 
   @DomName('HTMLFormControlsCollection.namedItem')
   @DocsEditable
@@ -11859,7 +11876,7 @@ class HttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgr
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental
-class HttpRequestUpload extends EventTarget native "XMLHttpRequestUpload" {
+class HttpRequestUpload extends EventTarget native "XMLHttpRequestUpload,XMLHttpRequestEventTarget" {
 
   @DomName('XMLHttpRequestUpload.abortEvent')
   @DocsEditable
@@ -18862,7 +18879,8 @@ class SelectElement extends Element native "HTMLSelectElement" {
   // Override default options, since IE returns SelectElement itself and it
   // does not operate as a List.
   List<OptionElement> get options {
-    var options = this.children.where((e) => e is OptionElement).toList();
+    var options =
+        this.queryAll('option').where((e) => e is OptionElement).toList();
     return new UnmodifiableListView(options);
   }
 
@@ -19908,10 +19926,10 @@ class Storage implements Map<String, String>
   @DocsEditable
   final int $dom_length;
 
-  @JSName('None')
-  @DomName('Storage')
-  @Unstable
-  String anonymousIndexedGetter(index_OR_name) native;
+  @DomName('Storage.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  String __getter__(index_OR_name) native;
 
   @JSName('clear')
   @DomName('Storage.clear')
@@ -22903,17 +22921,21 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @Returns('Window|=Object')
   final dynamic _get_window;
 
-  @DomName('Window')
+  @DomName('Window.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  WindowBase anonymousIndexedGetter(int index) {
-    return _convertNativeToDart_Window(_anonymousIndexedGetter_1(index));
+  WindowBase __getter__(int index) {
+    return _convertNativeToDart_Window(___getter___1(index));
   }
-  @JSName('None')
-  @DomName('Window')
+  @JSName('__getter__')
+  @DomName('Window.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  _anonymousIndexedGetter_1(index) native;
+  ___getter___1(index) native;
 
   @JSName('addEventListener')
   @DomName('Window.addEventListener')
@@ -29139,7 +29161,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   int get _realCharCode => JS('int', '#.charCode', _parent);
 
   /** Accessor to the underlying altKey value is the parent event. */
-  bool get _realAltKey => JS('int', '#.altKey', _parent);
+  bool get _realAltKey => JS('bool', '#.altKey', _parent);
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
   KeyEvent(KeyboardEvent parent): super(parent) {

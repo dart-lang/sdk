@@ -360,6 +360,7 @@ LibTest/core/Date/toString_A02_t01: Fail, OK # inherited from VM
 LibTest/core/Date/year_A01_t01: Fail, OK # inherited from VM
 LibTest/core/Match/operator_subscript_A01_t01: Fail # inherited from VM
 LibTest/core/Match/operator_subscript_A01_t01: Fail, OK # co19 issue 294
+LibTest/core/Match/pattern_A01_t01: Fail, OK # Issue 400
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail, OK # co19 issue 294
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail # inherited from VM
@@ -371,6 +372,7 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fa
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail # inherited from VM
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 issue 294
+LibTest/core/RegExp/allMatches_A01_t01: Fail, OK # co19 issue 400
 LibTest/core/RegExp/firstMatch_A01_t01: Fail, OK # co19 issue 294
 LibTest/core/String/contains_A01_t02: Fail # inherited from VM
 LibTest/core/double/parse_A02_t01: Fail # Inherited from VM.

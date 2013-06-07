@@ -67,6 +67,8 @@ LibTest/core/List/List_A01_t02: Fail # TODO(vm-team): Please triage this failure
 LibTest/core/double/toStringAsExponential_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 LibTest/core/int/toStringAsExponential_A02_t01: Fail # TODO(vm-team): Please triage this failure.
 
+LibTest/core/Match/pattern_A01_t01: Fail # Issue 422
+LibTest/core/RegExp/allMatches_A01_t01: Fail # Issue 422
 
 [ $compiler == none && $runtime == vm && $checked ]
 LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
@@ -88,7 +90,6 @@ Language/11_Expressions/18_Assignment_A05_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A05_t05: Fail, OK # co19 issue 405
 Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 405
-
 
 
 [ $compiler == none && $runtime == vm ]
@@ -494,13 +495,11 @@ LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue 4
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
-LibTest/collection/Queue/Queue.from_A01_t01: fail # Issue 400
-LibTest/collection/Queue/Queue.from_A01_t02: fail # Issue 400
-LibTest/core/List/List.from_A01_t01: fail # Issue 400
-LibTest/core/List/every_A01_t01: fail # Issue 400
-LibTest/core/Match/pattern_A01_t01: fail # Issue 400
-LibTest/core/Match/str_A01_t01: fail # Issue 400
-LibTest/core/RegExp/allMatches_A01_t01: fail # Issue 400
+LibTest/collection/Queue/Queue.from_A01_t01: Fail # Issue 400
+LibTest/collection/Queue/Queue.from_A01_t02: Fail # Issue 400
+LibTest/core/List/List.from_A01_t01: Fail # Issue 400
+LibTest/core/List/every_A01_t01: Fail # Issue 400
+LibTest/core/Match/str_A01_t01: Fail # Issue 400
 
 LibTest/async/Completer/completeError_A03_t02: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Completer/complete_A02_t02: Fail # No AsyncError anymore. Issue 407
@@ -511,11 +510,12 @@ LibTest/async/Future/catchError_A01_t02: Fail # No AsyncError anymore. Issue 407
 LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issue 402
 
 [ $compiler == none && $runtime == vm && $arch == arm ]
-LibTest/math/tan_A01_t01: Fail
-LibTest/math/Random/nextDouble_A01_t01: Pass, Crash
+LibTest/math/tan_A01_t01: Pass, Fail
+LibTest/math/cos_A01_t01: Pass, Fail
+LibTest/math/sin_A01_t01: Pass, Fail
+LibTest/math/Random/nextDouble_A01_t01: Pass, Crash, Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail
 LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass
-LibTest/math/cos_A01_t01: Pass, Fail
 
 [ $compiler == none && $runtime == vm && $arch == arm && $mode == debug ]
 LibTest/core/Expect/throws_A01_t04: Crash
@@ -529,11 +529,12 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail
 LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass
 
 [ $compiler == none && $runtime == vm && $arch == simarm ]
-LibTest/math/tan_A01_t01: Fail
-LibTest/math/Random/nextDouble_A01_t01: Pass, Crash
+LibTest/math/tan_A01_t01: Pass, Fail
+LibTest/math/cos_A01_t01: Pass, Fail
+LibTest/math/sin_A01_t01: Pass, Fail
+LibTest/math/Random/nextDouble_A01_t01: Pass, Crash, Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail
 LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass
-LibTest/math/cos_A01_t01: Pass, Fail
 
 [ $compiler == none && $runtime == vm && $arch == simarm && $mode == debug ]
 LibTest/core/Expect/throws_A01_t04: Crash

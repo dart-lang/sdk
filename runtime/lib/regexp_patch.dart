@@ -13,21 +13,21 @@ patch class RegExp {
 }
 
 class _JSRegExpMatch implements Match {
-  _JSRegExpMatch(this.regexp, this.str, this._match);
+  _JSRegExpMatch(this._regexp, this.str, this._match);
 
   int get start => _start(0);
   int get end => _end(0);
 
   int _start(int groupIdx) {
-    return _match[(groupIdx * MATCH_PAIR)];
+    return _match[(groupIdx * _MATCH_PAIR)];
   }
 
   int _end(int groupIdx) {
-    return _match[(groupIdx * MATCH_PAIR) + 1];
+    return _match[(groupIdx * _MATCH_PAIR) + 1];
   }
 
   String group(int groupIdx) {
-    if (groupIdx < 0 || groupIdx > regexp._groupCount) {
+    if (groupIdx < 0 || groupIdx > _regexp._groupCount) {
       throw new RangeError.value(groupIdx);
     }
     int startIndex = _start(groupIdx);
@@ -51,14 +51,14 @@ class _JSRegExpMatch implements Match {
     return groupsList;
   }
 
-  int get groupCount => regexp._groupCount;
+  int get groupCount => _regexp._groupCount;
 
-  String get pattern => regexp.pattern;
+  Pattern get pattern => _regexp;
 
-  final RegExp regexp;
+  final RegExp _regexp;
   final String str;
   final List<int> _match;
-  static const int MATCH_PAIR = 2;
+  static const int _MATCH_PAIR = 2;
 }
 
 
@@ -78,25 +78,7 @@ class _JSSyntaxRegExp implements RegExp {
 
   Iterable<Match> allMatches(String str) {
     if (str is! String) throw new ArgumentError(str);
-    List<Match> result = new List<Match>();
-    int length = str.length;
-    int startIndex = 0;
-    while (true) {
-      List match = _ExecuteMatch(str, startIndex);
-      if (match == null) {
-        break;
-      }
-      result.add(new _JSRegExpMatch(this, str, match));
-      int endIndex = match[1];
-      if (endIndex == length) {
-        break;
-      } else if (match[0] == endIndex) {
-        ++startIndex;  // empty match, advance and restart
-      } else {
-        startIndex = endIndex;
-      }
-    }
-    return result;
+    return new _AllMatchesIterable(this, str);
   }
 
   bool hasMatch(String str) {
@@ -122,4 +104,48 @@ class _JSSyntaxRegExp implements RegExp {
 
   List _ExecuteMatch(String str, int start_index)
       native "JSSyntaxRegExp_ExecuteMatch";
+}
+
+class _AllMatchesIterable extends IterableBase<Match> {
+  final _JSSyntaxRegExp _re;
+  final String _str;
+
+  const _AllMatchesIterable(this._re, this._str);
+
+  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _str);
+}
+
+class _AllMatchesIterator implements Iterator<Match> {
+  final String _str;
+  _JSSyntaxRegExp _re;
+  Match _current;
+
+  _AllMatchesIterator(this._re, this._str);
+
+  Match get current => _current;
+
+  bool moveNext() {
+    if (_re == null) return false;  // Cleared after a failed match.
+    int nextIndex = 0;
+    if (_current != null) {
+      nextIndex = _current.end;
+      if (nextIndex == _current.start) {
+        // Zero-width match. Advance by one more.
+        nextIndex++;
+        if (nextIndex > _str.length) {
+          _re = null;
+          _current = null;
+          return false;
+        }
+      }
+    }
+    var match = _re._ExecuteMatch(_str, nextIndex);
+    if (match == null) {
+      _current = null;
+      _re = null;
+      return false;
+    }
+    _current = new _JSRegExpMatch(_re, _str, match);
+    return true;
+  }
 }

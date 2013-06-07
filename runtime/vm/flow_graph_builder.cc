@@ -1877,29 +1877,53 @@ void EffectGraphVisitor::BuildLetTempExpressions(LetNode* node) {
 
 
 void EffectGraphVisitor::VisitLetNode(LetNode* node) {
-  BuildLetTempExpressions(node);
   intptr_t num_temps = node->num_temps();
+  if (num_temps > 0) {
+    BuildLetTempExpressions(node);
+    // TODO(fschneider): Generate better code for effect context by visiting the
+    // body for effect. Currently, the value of the body expression is
+    // materialized and then dropped. This also requires changing DropTempsInstr
+    // to have zero or one inputs.
 
-  // TODO(fschneider): Generate better code for effect context by visiting the
-  // body for effect. Currently, the value of the body expression is
-  // materialized and then dropped. This also requires changing DropTempsInstr
-  // to have zero or one inputs.
-  ValueGraphVisitor for_value(owner(), temp_index());
-  node->body()->Visit(&for_value);
-  Append(for_value);
-  Value* result_value = for_value.value();
-  DeallocateTempIndex(num_temps);
-  Do(new DropTempsInstr(num_temps, result_value));
+    // Visit body.
+    for (intptr_t i = 0; i < node->nodes().length() - 1; ++i) {
+      EffectGraphVisitor for_effect(owner(), temp_index());
+      node->nodes()[i]->Visit(&for_effect);
+      Append(for_effect);
+    }
+    // Visit the last body expression for value.
+    ValueGraphVisitor for_value(owner(), temp_index());
+    node->nodes().Last()->Visit(&for_value);
+    Append(for_value);
+    Value* result_value = for_value.value();
+    DeallocateTempIndex(num_temps);
+    Do(new DropTempsInstr(num_temps, result_value));
+  } else {
+    ASSERT(num_temps == 0);
+    for (intptr_t i = 0; i < node->nodes().length(); ++i) {
+      EffectGraphVisitor for_effect(owner(), temp_index());
+      node->nodes()[i]->Visit(&for_effect);
+      Append(for_effect);
+    }
+  }
 }
 
 
 void ValueGraphVisitor::VisitLetNode(LetNode* node) {
   BuildLetTempExpressions(node);
 
+  // Visit body.
+  for (intptr_t i = 0; i < node->nodes().length() - 1; ++i) {
+    EffectGraphVisitor for_effect(owner(), temp_index());
+    node->nodes()[i]->Visit(&for_effect);
+    Append(for_effect);
+  }
+  // Visit the last body expression for value.
   ValueGraphVisitor for_value(owner(), temp_index());
-  node->body()->Visit(&for_value);
+  node->nodes().Last()->Visit(&for_value);
   Append(for_value);
   Value* result_value = for_value.value();
+
   intptr_t num_temps = node->num_temps();
   if (num_temps > 0) {
     DeallocateTempIndex(num_temps);
@@ -3212,29 +3236,6 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   EffectGraphVisitor for_catch(owner(), temp_index());
   node->VisitChildren(&for_catch);
   Append(for_catch);
-}
-
-
-void EffectGraphVisitor::VisitCommaNode(CommaNode* node) {
-  EffectGraphVisitor for_effect_first(owner(), temp_index());
-  node->first()->Visit(&for_effect_first);
-  Append(for_effect_first);
-
-  EffectGraphVisitor for_effect_second(owner(), temp_index());
-  node->second()->Visit(&for_effect_second);
-  Append(for_effect_second);
-}
-
-
-void ValueGraphVisitor::VisitCommaNode(CommaNode* node) {
-  EffectGraphVisitor for_effect(owner(), temp_index());
-  node->first()->Visit(&for_effect);
-  Append(for_effect);
-
-  ValueGraphVisitor for_value(owner(), temp_index());
-  node->second()->Visit(&for_value);
-  Append(for_value);
-  ReturnValue(for_value.value());
 }
 
 

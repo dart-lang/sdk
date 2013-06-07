@@ -50,8 +50,9 @@ abstract class Browser {
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
   bool debugPrint = false;
 
-  // We use this to gracefully handle double calls to close.
-  bool underTermination = false;
+  // This future will be lazily set when calling close() and will complete once
+  // the process did exit.
+  Future browserTerminationFuture;
 
   Browser();
 
@@ -95,75 +96,31 @@ abstract class Browser {
     _stderr.write(output);
   }
 
-  // Kill the underlying process using the supplied kill function
-  // If there is a alternativeKillFunction we will use that after trying
-  // the default killFunction.
-  Future _killIt(killFunction, retries, [alternativeKillFunction = null]) {
-    Completer<bool> completer = new Completer<bool>();
-
-    // To capture non successfull attempts we set up a timer that will
-    // trigger a retry (using the alternativeKillFunction if supplied).
-    Timer timer =  new Timer(killRepeatInternal, () {
-      // Remove the handler, we will set this again in the call to killIt
-      // below
-      if (retries <= 0) {
-        _logEvent("Could not kill the process, not trying anymore");
-        // TODO(ricow): Should we crash the test script here and
-        // write out all our log. This is basically not a situation
-        // that we want to ignore. We could potentially have a handler we
-        // can call if this happens, which will shutdown the main process
-        // with info that people should contact [ricow,kustermann,?]
-        completer.complete(false);
-      }
-      _logEvent("Could not kill the process, retrying");
-      var nextKillFunction = killFunction;
-      if (alternativeKillFunction != null) {
-        nextKillFunction = alternativeKillFunction;
-      }
-      _killIt(nextKillFunction, retries - 1).then((success) {
-        completer.complete(success);
-      });
-    });
-
-    // Make sure we intercept onExit calls and eliminate the timer.
-    _processClosed = () {
-      timer.cancel();
-      _logEvent("Proccess exited, cancel timer in kill loop");
-      _processClosed = null;
-      process = null;
-      completer.complete(true);
-    };
-
-
-    _logEvent("calling kill function");
-    if (process != null && killFunction()) {
-      // We successfully sent the signal.
-      _logEvent("killing signal sent");
-    } else {
-      _logEvent("The process is already dead, kill signal could not be send");
-      completer.complete(true);
-    }
-    return completer.future;
-  }
-
-
-  /** Close the browser */
-  Future<bool> close() {
+  Future close() {
     _logEvent("Close called on browser");
-    if (underTermination) {
-      _logEvent("Browser already under termination.");
-      return new Future.immediate(true);
+    if (browserTerminationFuture == null) {
+      var completer = new Completer();
+      browserTerminationFuture = completer.future;
+
+      if (process != null) {
+        // Make sure we intercept onExit calls and complete.
+        _processClosed = () {
+          _processClosed = null;
+          process = null;
+          completer.complete(true);
+        };
+
+        if (process.kill(ProcessSignal.SIGKILL)) {
+          _logEvent("Successfully sent kill signal to process.");
+        } else {
+          _logEvent("Sending kill signal failed.");
+        }
+      } else {
+        _logEvent("The process is already dead.");
+        completer.complete(true);
+      }
     }
-    underTermination = true;
-    if (process == null) {
-      _logEvent("No process open, nothing to kill.");
-      return new Future.immediate(true);
-    }
-    var killFunction = process.kill;
-    // We use a SIGKILL signal if we don't kill the process in the first go.
-    var alternativeKillFunction =
-        () { return process.kill(ProcessSignal.SIGKILL);};
-    return _killIt(killFunction, killRetries, alternativeKillFunction);
+    return browserTerminationFuture;
   }
 
   /**

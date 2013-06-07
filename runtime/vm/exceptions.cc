@@ -604,6 +604,10 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateUnhandledException();
       break;
+    case kFiftyThreeBitOverflowError:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::FiftyThreeBitOverflowError();
+      break;
   }
 
   return DartLibraryCalls::ExceptionCreate(library,

@@ -22,11 +22,13 @@ Future<String> getVersion(var options, var rootPath) {
 
 Future<String> getSnapshotGenerationFile(var options, var args, var rootPath) {
   var dart2js = rootPath.append(args["dart2js_main"]);
+  var dartdoc = rootPath.append(args["dartdoc_main"]);
 
   return getVersion(options, rootPath).then((version) {
     var snapshotGenerationText =
 """
 import '${dart2js}' as dart2jsMain;
+import '${dartdoc}' as dartdocMain;
 import 'dart:io';
 
 void main() {
@@ -36,6 +38,8 @@ void main() {
   if (tool == "dart2js") {
     dart2jsMain.BUILD_ID = "$version";
     dart2jsMain.mainWithErrorHandler(options);
+  } else if (tool == "dartdoc") {
+    dartdocMain.mainWithOptions(options);
   }
 }
 
@@ -51,9 +55,10 @@ void writeSnapshotFile(var path, var content) {
     writer.close();
 }
 
-Future createSnapshot(var options, var dart_file) {
+Future createSnapshot(var options, var dart_file, var packageRoot) {
   return Process.run(options.executable,
-                     ["--generate-script-snapshot=$dart_file.snapshot",
+                     ["--package-root=$packageRoot",
+                      "--generate-script-snapshot=$dart_file.snapshot",
                       dart_file])
       .then((result) {
         if (result.exitCode != 0) {
@@ -69,7 +74,8 @@ Future createSnapshot(var options, var dart_file) {
  */
 void main() {
   Options options = new Options();
-  var validArguments = ["--output_dir", "--dart2js_main"];
+  var validArguments = ["--output_dir", "--dart2js_main", "--dartdoc_main",
+                        "--package_root"];
   var args = {};
   for (var argument in options.arguments) {
     var argumentSplit = argument.split("=");
@@ -80,7 +86,9 @@ void main() {
     args[argumentSplit[0].substring(2)] = argumentSplit[1];
   }
   if (!args.containsKey("dart2js_main")) throw "Please specify dart2js_main";
+  if (!args.containsKey("dartdoc_main")) throw "Please specify dartdoc_main";
   if (!args.containsKey("output_dir")) throw "Please specify output_dir";
+  if (!args.containsKey("package_root")) throw "Please specify package_root";
 
   var scriptFile = new File(new File(options.script).fullPathSync());
   var path = new Path(scriptFile.directory.path);
@@ -88,6 +96,6 @@ void main() {
   getSnapshotGenerationFile(options, args, rootPath).then((result) {
     var wrapper = "${args['output_dir']}/utils_wrapper.dart";
     writeSnapshotFile(wrapper, result);
-    createSnapshot(options, wrapper);
+    createSnapshot(options, wrapper, args["package_root"]);
   });
 }

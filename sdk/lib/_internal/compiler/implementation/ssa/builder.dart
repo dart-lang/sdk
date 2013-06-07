@@ -1141,6 +1141,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     List<HInstruction> compiledArguments;
     bool isInstanceMember = function.isInstanceMember();
 
+    if (function.isGenerativeConstructor()) {
+      // The optimistic field type optimization requires
+      // to know all generative constructors seen in codegen.
+      backend.registerConstructor(function);
+    }
+
     if (currentNode == null
         || currentNode.asForIn() != null
         || !isInstanceMember

@@ -289,7 +289,7 @@ void test() {
 void testInvalidUse() {
   var sha = new SHA256();
   sha.close();
-  Expect.throws(() => sha.add([0]), (e) => e is HashException);
+  Expect.throws(() => sha.add([0]), (e) => e is StateError);
 }
 
 void testRepeatedDigest() {

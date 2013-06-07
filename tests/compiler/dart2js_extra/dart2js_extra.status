@@ -44,3 +44,4 @@ bailout8_test: Fail, OK # Mismatch in thrown exception.
 
 [ $csp ]
 mirrors_test: Fail # http://dartbug.com/6490
+minified_mirrors_test: Fail # http://dartbug.com/6490

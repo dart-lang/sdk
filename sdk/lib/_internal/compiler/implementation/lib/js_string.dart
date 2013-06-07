@@ -222,6 +222,9 @@ class JSString extends Interceptor implements String, JSIndexable {
 
   bool contains(Pattern other, [int startIndex = 0]) {
     checkNull(other);
+    if (startIndex < 0 || startIndex > this.length) {
+      throw new RangeError.range(startIndex, 0, this.length);
+    }
     return stringContainsUnchecked(this, other, startIndex);
   }
 

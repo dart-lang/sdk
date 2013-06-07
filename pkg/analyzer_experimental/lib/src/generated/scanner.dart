@@ -158,6 +158,7 @@ class ScannerErrorCode implements Comparable<ScannerErrorCode>, ErrorCode {
   String get message => _message;
   ErrorType get type => ErrorType.SYNTACTIC_ERROR;
   int compareTo(ScannerErrorCode other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**
@@ -312,6 +313,7 @@ class Keyword implements Comparable<Keyword> {
    */
   bool isPseudoKeyword() => _isPseudoKeyword2;
   int compareTo(Keyword other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**
@@ -1806,6 +1808,7 @@ class TokenClass implements Comparable<TokenClass> {
    */
   int get precedence => _precedence;
   int compareTo(TokenClass other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 /**
@@ -2033,6 +2036,7 @@ class TokenType implements Comparable<TokenType> {
    */
   bool isUserDefinableOperator() => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
   int compareTo(TokenType other) => ordinal - other.ordinal;
+  int get hashCode => ordinal;
   String toString() => name;
 }
 class TokenType_EOF extends TokenType {

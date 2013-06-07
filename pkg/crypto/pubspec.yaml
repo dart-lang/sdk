@@ -1,5 +1,6 @@
 name: crypto
 author: "Dart Team <misc@dartlang.org>"
 homepage: http://www.dartlang.org
+documentation: http://api.dartlang.org/docs/pkg/crypto
 description: >
  Library of cryptographic functions.

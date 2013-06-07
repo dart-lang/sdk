@@ -22,7 +22,7 @@ abstract class num implements Comparable<num> {
    *
    * Returns the remainder of the euclidean division. The euclidean division of
    * two integers `a` and `b` yields two integers `q` and `r` such that
-   * `a = b*q + r` and `0 <= r < |a|`.
+   * `a == b*q + r` and `0 <= r < a.abs()`.
    *
    * The euclidean division is only defined for integers, but can be easily
    * extended to work with doubles. In that case `r` may have a non-integer
@@ -51,10 +51,10 @@ abstract class num implements Comparable<num> {
   /** Negate operator. */
   num operator -();
 
-  /**
-   * Return the remainder of the truncating division of `this` by [other].
+ /**
+   * Returns the remainder of the truncating division of `this` by [other].
    *
-   * The result `r` of this operation satisfies: `this = this ~/ other + r`.
+   * The result `r` of this operation satisfies: `this == this ~/ other + r`.
    * As a consequence the remainder `r` has the same sign as the dividend
    * `this`.
    */
@@ -165,8 +165,8 @@ abstract class num implements Comparable<num> {
   double toDouble();
 
   /**
-   * Converts [this] to a string representation with [fractionDigits] digits
-   * after the decimal point.
+   * Converts [this] to a [double] and then gives string representation with
+   * [fractionDigits] digits after the decimal point.
    *
    * The parameter [fractionDigits] must be an integer satisfying:
    * [:0 <= fractionDigits <= 20:].
@@ -174,8 +174,8 @@ abstract class num implements Comparable<num> {
   String toStringAsFixed(int fractionDigits);
 
   /**
-   * Converts [this] to a string in decimal exponential notation with
-   * [fractionDigits] digits after the decimal point.
+   * Converts [this] to a [double] and then gives a string in decimal
+   * exponential notation with [fractionDigits] digits after the decimal point.
    *
    * If [fractionDigits] is given then it must be an integer satisfying:
    * [:0 <= fractionDigits <= 20:]. Without the parameter the returned string
@@ -184,13 +184,11 @@ abstract class num implements Comparable<num> {
   String toStringAsExponential([int fractionDigits]);
 
   /**
-   * Converts [this] to a string representation with [precision] significant
-   * digits.
+   * Converts [this] to a double and gives a string representation with
+   * [precision] significant digits.
    *
    * The parameter [precision] must be an integer satisfying:
    * [:1 <= precision <= 21:].
    */
   String toStringAsPrecision(int precision);
-
-
 }

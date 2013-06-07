@@ -6208,9 +6208,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
  public:
   CheckArrayBoundInstr(Value* length,
                        Value* index,
-                       intptr_t array_type,
-                       InstanceCallInstr* instance_call)
-      : array_type_(array_type) {
+                       InstanceCallInstr* instance_call) {
     SetInputAt(kLengthPos, length);
     SetInputAt(kIndexPos, index);
     deopt_id_ = instance_call->deopt_id();
@@ -6218,8 +6216,6 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
 
   Value* length() const { return inputs_[kLengthPos]; }
   Value* index() const { return inputs_[kIndexPos]; }
-
-  intptr_t array_type() const { return array_type_; }
 
   DECLARE_INSTRUCTION(CheckArrayBound)
 
@@ -6239,7 +6235,7 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
   virtual bool AllowsCSE() const { return true; }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const { return EffectSet::None(); }
-  virtual bool AttributesEqual(Instruction* other) const;
+  virtual bool AttributesEqual(Instruction* other) const { return true; }
 
   virtual bool MayThrow() const { return false; }
 
@@ -6249,7 +6245,6 @@ class CheckArrayBoundInstr : public TemplateInstruction<2> {
     kLengthPos = 0,
     kIndexPos = 1
   };
-  intptr_t array_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckArrayBoundInstr);
 };

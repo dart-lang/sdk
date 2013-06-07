@@ -5,22 +5,24 @@
 
 import "package:expect/expect.dart";
 
-class RegExpTest {
-  static test1() {
-    RegExp exp = new RegExp("(\\w+)");
-    String str = "Parse my string";
-    List<Match> matches = new List<Match>.from(exp.allMatches(str));
-    Expect.equals(3, matches.length);
-    Expect.equals("Parse", matches[0].group(0));
-    Expect.equals("my", matches[1].group(0));
-    Expect.equals("string", matches[2].group(0));
-  }
+void main() {
+  RegExp exp = new RegExp(r"(\w+)");
+  String str = "Parse my string";
+  List<Match> matches = exp.allMatches(str).toList();
+  Expect.equals(3, matches.length);
+  Expect.equals("Parse", matches[0].group(0));
+  Expect.equals("my", matches[1].group(0));
+  Expect.equals("string", matches[2].group(0));
 
-  static testMain() {
-    test1();
-  }
-}
+  // Check that allMatches progresses correctly for empty matches, and that
+  // it includes the empty match at the end position.
+  exp = new RegExp("a?");
+  str = "babba";
+  Expect.listEquals(["", "a", "", "", "a", ""],
+                    exp.allMatches(str).map((x)=>x[0]).toList());
 
-main() {
-  RegExpTest.testMain();
+  // Regression test for http://dartbug.com/2980
+  exp = new RegExp("^", multiLine: true);  // Any zero-length match will work.
+  str = "foo\nbar\nbaz";
+  Expect.equals(" foo\n bar\n baz", str.replaceAll(exp, " "));
 }

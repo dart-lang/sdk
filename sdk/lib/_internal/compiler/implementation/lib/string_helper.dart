@@ -65,7 +65,7 @@ stringContainsUnchecked(receiver, other, startIndex) {
     return other.hasMatch(receiver.substring(startIndex));
   } else {
     var substr = receiver.substring(startIndex);
-    return other.allMatches(substr).iterator.moveNext();
+    return other.allMatches(substr).isNotEmpty;
   }
 }
 

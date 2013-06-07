@@ -95,13 +95,14 @@ class Universe {
 
 class SelectorKind {
   final String name;
-  const SelectorKind(this.name);
+  final int hashCode;
+  const SelectorKind(this.name, this.hashCode);
 
-  static const SelectorKind GETTER = const SelectorKind('getter');
-  static const SelectorKind SETTER = const SelectorKind('setter');
-  static const SelectorKind CALL = const SelectorKind('call');
-  static const SelectorKind OPERATOR = const SelectorKind('operator');
-  static const SelectorKind INDEX = const SelectorKind('index');
+  static const SelectorKind GETTER = const SelectorKind('getter', 0);
+  static const SelectorKind SETTER = const SelectorKind('setter', 1);
+  static const SelectorKind CALL = const SelectorKind('call', 2);
+  static const SelectorKind OPERATOR = const SelectorKind('operator', 3);
+  static const SelectorKind INDEX = const SelectorKind('index', 4);
 
   String toString() => name;
 }
@@ -115,6 +116,8 @@ class Selector {
   final int argumentCount;
   final List<SourceString> namedArguments;
   final List<SourceString> orderedNamedArguments;
+
+  int cachedHashCode;
 
   Selector(
       this.kind,
@@ -205,7 +208,6 @@ class Selector {
   /** Check whether this is a call to 'assert'. */
   bool isAssert() => isCall() && identical(name.stringValue, "assert");
 
-  int get hashCode => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
 
@@ -366,16 +368,55 @@ class Selector {
 
   bool operator ==(other) {
     if (other is !Selector) return false;
+    if (identical(this, other)) return true;
     return mask == other.mask && equalsUntyped(other);
   }
 
   bool equalsUntyped(Selector other) {
-    return name == other.name
+    return hashCode == other.hashCode  // Fast because it is cached.
+           && name == other.name
            && kind == other.kind
            && identical(library, other.library)
            && argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
            && sameNames(namedArguments, other.namedArguments);
+  }
+
+  int get hashCode {
+    // Check the hash code cache first.
+    if (cachedHashCode != null) return cachedHashCode;
+    // Add bits from name and kind.
+    int hash = mixHashCodeBits(name.hashCode, kind.hashCode);
+    // Add bits from the type mask.
+    if (mask != null) hash = mixHashCodeBits(hash, mask.hashCode);
+    // Add bits from the library.
+    if (library != null) hash = mixHashCodeBits(hash, library.hashCode);
+    // Add bits from the unnamed arguments.
+    hash = mixHashCodeBits(hash, argumentCount);
+    // Add bits from the named arguments.
+    int named = namedArguments.length;
+    hash = mixHashCodeBits(hash, named);
+    for (int i = 0; i < named; i++) {
+      hash = mixHashCodeBits(hash, namedArguments[i].hashCode);
+    }
+    return cachedHashCode = hash;
+  }
+
+  // TODO(kasperl): Move this out so it becomes useful in other places too?
+  static int mixHashCodeBits(int existing, int value) {
+    // Spread the bits of value. Try to stay in the 30-bit range to
+    // avoid overflowing into a more expensive integer representation.
+    int h = value & 0x1fffffff;
+    h += ((h & 0x3fff) << 15) ^ 0x1fffcd7d;
+    h ^= (h >> 10);
+    h += ((h & 0x3ffffff) << 3);
+    h ^= (h >> 6);
+    h += ((h & 0x7ffffff) << 2) + ((h & 0x7fff) << 14);
+    h ^= (h >> 16);
+    // Combine the two hash values.
+    int high = existing >> 15;
+    int low = existing & 0x7fff;
+    return (high * 13) ^ (low * 997) ^ h;
   }
 
   List<SourceString> getOrderedNamedArguments() {

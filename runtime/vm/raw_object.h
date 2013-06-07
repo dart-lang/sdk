@@ -347,6 +347,9 @@ class RawObject {
   bool IsDartInstance() {
     return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
   }
+  bool IsFreeListElement() {
+    return ((GetClassId() == kFreeListElement));
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;

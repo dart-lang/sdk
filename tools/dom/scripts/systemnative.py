@@ -576,10 +576,12 @@ class DartiumBackend(HtmlDartGenerator):
           'static ' if operation.is_static else '',
           self.SecureOutputType(operation.type.id),
           overload_name, argument_list)
+      is_custom = 'Custom' in operation.ext_attrs
       cpp_callback_name = self._GenerateNativeBinding(
           overload_name, (0 if operation.is_static else 1) + argument_count,
-          dart_declaration, 'Callback', False, False)
-      self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
+          dart_declaration, 'Callback', is_custom, emit_metadata=False)
+      if not is_custom:
+        self._GenerateOperationNativeCallback(operation, operation.arguments[:argument_count], cpp_callback_name)
 
     self._GenerateDispatcherBody(
         info,
@@ -787,6 +789,7 @@ class DartiumBackend(HtmlDartGenerator):
     start_index = 1 if needs_receiver else 0
     for i, argument in enumerate(arguments):
       type_info = self._TypeInfo(argument.type.id)
+      self._cpp_impl_includes |= set(type_info.conversion_includes())
       argument_expression_template, type, cls, function = \
           type_info.to_native_info(argument, self._interface.id)
 

@@ -30,6 +30,7 @@ DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, trace_constant_propagation);
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 Definition::Definition()
     : range_(NULL),
@@ -126,13 +127,6 @@ EffectSet CheckClassInstr::Dependencies() const {
 
 bool GuardFieldInstr::AttributesEqual(Instruction* other) const {
   return field().raw() == other->AsGuardField()->field().raw();
-}
-
-
-bool CheckArrayBoundInstr::AttributesEqual(Instruction* other) const {
-  CheckArrayBoundInstr* other_check = other->AsCheckArrayBound();
-  ASSERT(other_check != NULL);
-  return array_type() == other_check->array_type();
 }
 
 
@@ -975,6 +969,7 @@ bool EqualityCompareInstr::IsPolymorphic() const {
 
 
 bool BinarySmiOpInstr::CanDeoptimize() const {
+  if (FLAG_throw_on_javascript_int_overflow) return true;
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
@@ -2347,11 +2342,6 @@ bool CheckArrayBoundInstr::IsFixedLengthArrayType(intptr_t cid) {
 
 
 bool CheckArrayBoundInstr::IsRedundant(RangeBoundary length) {
-  // Check that array has an immutable length.
-  if (!IsFixedLengthArrayType(array_type())) {
-    return false;
-  }
-
   Range* index_range = index()->definition()->range();
 
   // Range of the index is unknown can't decide if the check is redundant.

@@ -106,11 +106,8 @@ class CommandLineConfiguration extends Configuration {
     return result.toString();
   }
 
-  String _indent(String str) {
-    // TODO(nweiz): Use this simpler code once issue 2980 is fixed.
-    // return str.replaceAll(new RegExp("^", multiLine: true), "  ");
-    return str.split("\n").map((line) => "  $line").join("\n");
-  }
+  String _indent(String str) =>
+    str.replaceAll(new RegExp("^", multiLine: true), "  ");
 }
 
 class _StackFrame {

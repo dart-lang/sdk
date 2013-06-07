@@ -335,16 +335,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       return currentClass.supertype;
     } else {
       Element element = elements[node];
-      if (element != null) {
-        assert(invariant(node, element.isVariable() || element.isParameter(),
-            message: 'Unexpected context element ${element}'));
-        return element.computeType(compiler);
-      }
-
-      assert(invariant(node, elements.currentElement.isField(),
-          message: 'Unexpected context element ${elements.currentElement}'));
-      // This is an identifier of a field declaration.
-      return types.dynamicType;
+      assert(invariant(node, element != null,
+          message: 'Missing element for identifier'));
+      assert(invariant(node, element.isVariable() ||
+                             element.isParameter() ||
+                             element.isField(),
+          message: 'Unexpected context element ${element}'));
+      return element.computeType(compiler);
     }
   }
 
@@ -553,8 +550,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    */
   ElementAccess computeResolvedAccess(Send node, SourceString name,
                                       Element element, MemberKind memberKind) {
-    if (Elements.isUnresolved(element)) {
+    if (element == null) {
       // foo() where foo is unresolved.
+      return lookupMember(node, currentClass.computeType(compiler),
+          name, memberKind);
+    } else if (element.isErroneous()) {
+      // foo() where foo is erroneous.
       return const DynamicAccess();
     } else if (element.isMember()) {
       // foo() where foo is an instance member.

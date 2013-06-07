@@ -86,3 +86,7 @@ cc/RunLoop_ExceptionParent: Skip # Bug 6890
 # has compilation error, as designed
 dart/isolate_mirror_local_test: fail
 
+[ $compiler == dart2analyzer ]
+# has compilation error, as designed
+dart/isolate_mirror_local_test: fail
+

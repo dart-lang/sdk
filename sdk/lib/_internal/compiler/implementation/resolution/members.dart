@@ -422,6 +422,8 @@ class ResolverTask extends CompilerTask {
             MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
     ResolverVisitor visitor = visitorFor(element);
+    visitor.useElement(tree, element);
+
     // TODO(johnniwinther): Avoid analyzing initializers if
     // [Compiler.analyzeSignaturesOnly] is set.
     initializerDo(tree, visitor.visit);
@@ -1485,6 +1487,7 @@ class TypeResolver {
       AmbiguousElement ambiguous = element;
       type = reportFailureAndCreateType(
           ambiguous.messageKind, ambiguous.messageArguments);
+      ambiguous.diagnose(visitor.mapping.currentElement, compiler);
     } else if (!element.impliesType()) {
       type = reportFailureAndCreateType(
           MessageKind.NOT_A_TYPE, {'node': node.typeName});
@@ -1721,6 +1724,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         AmbiguousElement ambiguous = result;
         compiler.reportErrorCode(
             node, ambiguous.messageKind, ambiguous.messageArguments);
+        ambiguous.diagnose(enclosingElement, compiler);
         return new ErroneousElementX(ambiguous.messageKind,
                                      ambiguous.messageArguments,
                                      name, enclosingElement);

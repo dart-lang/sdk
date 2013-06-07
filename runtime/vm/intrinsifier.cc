@@ -11,7 +11,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, intrinsify, true, "Instrinsify when possible");
-
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 static bool CompareNames(const Library& lib,
                          const char* test_name,
@@ -117,11 +117,17 @@ void Intrinsifier::InitializeState() {
     func = cls.LookupFunctionAllowPrivate(str);                                \
   }                                                                            \
   ASSERT(!func.IsNull());                                                      \
-  func.set_is_intrinsic(true);                                                 \
+  func.set_is_intrinsic(true);
 
   // Set up all core lib functions that can be intrisified.
   lib = Library::CoreLibrary();
   CORE_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+
+  // Integer intrinsics are in the core library, but we don't want to intrinsify
+  // if we are looking for javascript integer overflow.
+  if (!FLAG_throw_on_javascript_int_overflow) {
+    CORE_INTEGER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+  }
 
   // Set up all math lib functions that can be intrisified.
   lib = Library::MathLibrary();
@@ -153,6 +159,9 @@ bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
 
   if (lib.raw() == Library::CoreLibrary()) {
     CORE_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
+    if (!FLAG_throw_on_javascript_int_overflow) {
+      CORE_INTEGER_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
+    }
   } else if (lib.raw() == Library::TypedDataLibrary()) {
     TYPED_DATA_LIB_INTRINSIC_LIST(FIND_INTRINSICS);
   } else if (lib.raw() == Library::MathLibrary()) {

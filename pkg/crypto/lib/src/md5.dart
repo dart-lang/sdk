@@ -2,11 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.crypto;
+part of crypto;
 
-// The MD5 hasher is used to compute an MD5 message digest.
-class _MD5 extends _HashBase implements MD5 {
-  _MD5() : super(16, 4, false) {
+/**
+ * MD5 hash function implementation.
+ *
+ * WARNING: MD5 has known collisions and should only be used when
+ * required for backwards compatibility.
+ */
+class MD5 extends _HashBase {
+  MD5() : super(16, 4, false) {
     _h[0] = 0x67452301;
     _h[1] = 0xefcdab89;
     _h[2] = 0x98badcfe;

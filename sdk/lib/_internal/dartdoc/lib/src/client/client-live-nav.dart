@@ -7,7 +7,6 @@ library client;
 
 import 'dart:html';
 import 'dart:json' as jsonlib;
-import '../../../../compiler/implementation/source_file.dart';
 // TODO(rnystrom): Use "package:" URL (#4968).
 import '../../classify.dart';
 import '../../markdown.dart' as md;

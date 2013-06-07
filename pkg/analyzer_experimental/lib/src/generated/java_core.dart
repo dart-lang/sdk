@@ -456,8 +456,8 @@ class MapEntry<K, V> {
   }
 }
 
-Set<MapEntry> getMapEntrySet(Map m) {
-  Set<MapEntry> result = new Set();
+Iterable<MapEntry> getMapEntrySet(Map m) {
+  List<MapEntry> result = [];
   m.forEach((k, v) {
     result.add(new MapEntry(m, k, v));
   });
