@@ -1260,6 +1260,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (compiler.disableInlining) return false;
     if (inliningStack.length > MAX_INLINING_DEPTH) return false;
 
+    // BUG(11136): The backend inferrer does not work when inlining
+    // these elements.
+    if (element.isGenerativeConstructor()
+        || element.isGenerativeConstructorBody()) {
+      return false;
+    }
+
     // Ensure that [element] is an implementation element.
     element = element.implementation;
     FunctionElement function = element;
