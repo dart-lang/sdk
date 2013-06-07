@@ -14,6 +14,19 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
+// Allow the use of ASan (AddressSanitizer). This is needed as ASan needs to be
+// told about areas where the VM does the equivalent of a long-jump.
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+extern "C" void __asan_unpoison_memory_region(void *, size_t);
+#else  // __has_feature(address_sanitizer)
+void __asan_unpoison_memory_region(void* ignore1, size_t ignore2) {}
+#endif  // __has_feature(address_sanitizer)
+#else  // defined(__has_feature)
+void __asan_unpoison_memory_region(void* ignore1, size_t ignore2) {}
+#endif  // defined(__has_feature)
+
+
 namespace dart {
 
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
@@ -243,6 +256,11 @@ static void JumpToExceptionHandler(uword program_counter,
   typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*);
   ExcpHandler func = reinterpret_cast<ExcpHandler>(
       StubCode::JumpToExceptionHandlerEntryPoint());
+
+  // Unpoison the stack before we tear it down in the generated stub code.
+  uword current_sp = reinterpret_cast<uword>(&program_counter) - 1024;
+  __asan_unpoison_memory_region(reinterpret_cast<void*>(current_sp),
+                                stack_pointer - current_sp);
   func(program_counter, stack_pointer, frame_pointer,
        raw_exception, raw_stacktrace);
 #endif
