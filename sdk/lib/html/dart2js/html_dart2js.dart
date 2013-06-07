@@ -1942,6 +1942,23 @@ class CssFilterRule extends CssRule native "WebKitCSSFilterRule" {
 
 
 @DocsEditable
+@DomName('WebKitCSSFilterRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+// http://www.w3.org/TR/filter-effects/
+class CssFilterRule extends CssRule native "WebKitCSSFilterRule" {
+
+  @DomName('WebKitCSSFilterRule.style')
+  @DocsEditable
+  final CssStyleDeclaration style;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('CSSFontFaceLoadEvent')
 // http://www.w3.org/TR/css3-fonts/
 @Experimental
@@ -2044,6 +2061,27 @@ class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
 
 
 @DocsEditable
+@DomName('WebKitCSSKeyframeRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+// http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
+class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
+
+  @DomName('WebKitCSSKeyframeRule.keyText')
+  @DocsEditable
+  String keyText;
+
+  @DomName('WebKitCSSKeyframeRule.style')
+  @DocsEditable
+  final CssStyleDeclaration style;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('WebKitCSSKeyframesRule')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2081,6 +2119,46 @@ class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
   @DomName('WebKitCSSKeyframesRule.insertRule')
   @DocsEditable
   @Experimental // untriaged
+  void insertRule(String rule) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitCSSKeyframesRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+// http://www.w3.org/TR/css3-animations/#csskeyframesrule
+class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
+
+  @DomName('WebKitCSSKeyframesRule.cssRules')
+  @DocsEditable
+  @Returns('_CssRuleList')
+  @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
+
+  @DomName('WebKitCSSKeyframesRule.name')
+  @DocsEditable
+  String name;
+
+  @DomName('WebKitCSSKeyframesRule.__getter__')
+  @DocsEditable
+  @Experimental // untriaged
+  CssKeyframeRule __getter__(int index) native;
+
+  @DomName('WebKitCSSKeyframesRule.deleteRule')
+  @DocsEditable
+  void deleteRule(String key) native;
+
+  @DomName('WebKitCSSKeyframesRule.findRule')
+  @DocsEditable
+  CssKeyframeRule findRule(String key) native;
+
+  @DomName('WebKitCSSKeyframesRule.insertRule')
+  @DocsEditable
   void insertRule(String rule) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2143,6 +2221,25 @@ class CssRegionRule extends CssRule native "WebKitCSSRegionRule" {
   @DomName('WebKitCSSRegionRule.cssRules')
   @DocsEditable
   @Experimental // untriaged
+  @Returns('_CssRuleList')
+  @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitCSSRegionRule')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental
+// http://dev.w3.org/csswg/css-regions/#region-style-rule-interface
+class CssRegionRule extends CssRule native "WebKitCSSRegionRule" {
+
+  @DomName('WebKitCSSRegionRule.cssRules')
+  @DocsEditable
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
@@ -25147,6 +25244,17 @@ class _WebKitCSSFilterValue extends _CssValueList native "WebKitCSSFilterValue" 
 
 
 @DocsEditable
+@DomName('WebKitCSSFilterValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSFilterValue extends _CssValueList native "WebKitCSSFilterValue" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('WebKitCSSMatrix')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -25334,12 +25442,45 @@ class _WebKitCSSMatrix native "WebKitCSSMatrix" {
 
 
 @DocsEditable
+@DomName('WebKitCSSMatrix')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSMatrix native "WebKitCSSMatrix" {
+
+  @DomName('WebKitCSSMatrix.WebKitCSSMatrix')
+  @DocsEditable
+  factory _WebKitCSSMatrix([String cssValue]) {
+    if (cssValue != null) {
+      return _WebKitCSSMatrix._create_1(cssValue);
+    }
+    return _WebKitCSSMatrix._create_2();
+  }
+  static _WebKitCSSMatrix _create_1(cssValue) => JS('_WebKitCSSMatrix', 'new WebKitCSSMatrix(#)', cssValue);
+  static _WebKitCSSMatrix _create_2() => JS('_WebKitCSSMatrix', 'new WebKitCSSMatrix()');
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
 @DomName('WebKitCSSMixFunctionValue')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
 @Experimental // untriaged
 class _WebKitCSSMixFunctionValue extends _CssValueList native "WebKitCSSMixFunctionValue" {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitCSSMixFunctionValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSMixFunctionValue extends _CssValueList native "WebKitCSSMixFunctionValue" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25468,6 +25609,17 @@ class _WebKitCSSTransformValue extends _CssValueList native "WebKitCSSTransformV
   @DocsEditable
   @Experimental // untriaged
   _CSSValue __getter__(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable
+@DomName('WebKitCSSTransformValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+abstract class _WebKitCSSTransformValue extends _CssValueList native "WebKitCSSTransformValue" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
