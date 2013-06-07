@@ -44,7 +44,8 @@ main() {
                 testIfStatement,
                 testThis,
                 testSuper,
-                testOperatorsAssignability];
+                testOperatorsAssignability,
+                testFieldInitializers];
   for (Function test in tests) {
     setup();
     test();
@@ -846,6 +847,19 @@ testOperatorsAssignability() {
       [MessageKind.NOT_ASSIGNABLE, MessageKind.NOT_ASSIGNABLE]);
 }
 
+void testFieldInitializers() {
+  analyzeTopLevel("""int i = 0;""");
+  analyzeTopLevel("""int i = '';""", MessageKind.NOT_ASSIGNABLE);
+
+  analyzeTopLevel("""class Class {
+                       int i = 0;
+                     }""");
+  analyzeTopLevel("""class Class {
+                       int i = '';
+                     }""", MessageKind.NOT_ASSIGNABLE);
+}
+
+
 const CLASS_WITH_METHODS = '''
 class ClassWithMethods {
   untypedNoArgumentMethod() {}
@@ -941,6 +955,8 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   if (expectedWarnings == null) expectedWarnings = [];
   if (expectedWarnings is !List) expectedWarnings = [expectedWarnings];
 
+  compiler.diagnosticHandler = createHandler(text);
+
   LibraryElement library = mockLibrary(compiler, text);
 
   Link<Element> topLevelElements = parseUnit(text, compiler, library);
@@ -948,14 +964,22 @@ analyzeTopLevel(String text, [expectedWarnings]) {
   for (Link<Element> elements = topLevelElements;
        !elements.isEmpty;
        elements = elements.tail) {
-    Node node = elements.head.parseNode(compiler);
-    TreeElements mapping = compiler.resolver.resolve(elements.head);
+    Element element = elements.head;
+    if (element.isClass()) {
+      ClassElement classElement = element;
+      classElement.ensureResolved(compiler);
+      // Analyze last class member.
+      classElement.forEachLocalMember((Element e) => element = e);
+    }
+    Node node = element.parseNode(compiler);
+    TreeElements mapping = compiler.resolver.resolve(element);
     TypeCheckerVisitor checker =
         new TypeCheckerVisitor(compiler, mapping, types);
     compiler.clearWarnings();
     checker.analyze(node);
     compareWarningKinds(text, expectedWarnings, compiler.warnings);
   }
+  compiler.diagnosticHandler = null;
 }
 
 api.DiagnosticHandler createHandler(String text) {

@@ -422,6 +422,8 @@ class ResolverTask extends CompilerTask {
             MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
     }
     ResolverVisitor visitor = visitorFor(element);
+    visitor.useElement(tree, element);
+
     // TODO(johnniwinther): Avoid analyzing initializers if
     // [Compiler.analyzeSignaturesOnly] is set.
     initializerDo(tree, visitor.visit);

@@ -719,16 +719,33 @@ testPatchAndSelector() {
 }
 
 void testAnalyzeAllInjectedMembers() {
-  String patchText = """
-                     void method() {
-                       String s = 0;
-                     }
-                     """;
-  var compiler = applyPatch('', patchText, analyzeAll: true, analyzeOnly: true);
-  compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
-  compiler.runCompiler(null);
-  compareWarningKinds(patchText,
-      [MessageKind.NOT_ASSIGNABLE], compiler.warnings);
+  void expect(String patchText, [expectedWarnings]) {
+    if (expectedWarnings == null) expectedWarnings = [];
+    if (expectedWarnings is! List) expectedWarnings = [expectedWarnings];
+
+    var compiler = applyPatch('', patchText,
+                              analyzeAll: true, analyzeOnly: true);
+    compiler.librariesToAnalyzeWhenRun = [Uri.parse('dart:core')];
+    compiler.runCompiler(null);
+    compareWarningKinds(patchText, expectedWarnings, compiler.warnings);
+  }
+
+  expect('String s = 0;', MessageKind.NOT_ASSIGNABLE);
+  expect('void method() { String s = 0; }', MessageKind.NOT_ASSIGNABLE);
+  expect('''
+         class Class {
+           String s = 0;
+         }
+         ''',
+         MessageKind.NOT_ASSIGNABLE);
+  expect('''
+         class Class {
+           void method() {
+             String s = 0;
+           }
+         }
+         ''',
+         MessageKind.NOT_ASSIGNABLE);
 }
 
 void testTypecheckPatchedMembers() {
