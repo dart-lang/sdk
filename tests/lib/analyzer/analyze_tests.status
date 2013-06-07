@@ -39,7 +39,9 @@ standalone/io/url_encoding_test: Fail
 
 [ $compiler == dartanalyzer ]
 standalone/io/process_exit_negative_test: fail
+53bit_overflow_literal_test/01: fail, ok
 
 
 [ $compiler == dart2analyzer ]
 standalone/io/process_exit_negative_test: fail
+53bit_overflow_literal_test/01: fail, ok

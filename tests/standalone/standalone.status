@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# WARNING:
+# Tests using the multitest feature where failure is expected should *also* be
+# listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
+# prefix.
+
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
