@@ -19,8 +19,8 @@ class MinifyNamer extends Namer {
   final String getterPrefix = 'g';
   final String setterPrefix = 's';
 
-  const ALPHABET_CHARACTERS = 52;  // a-zA-Z.
-  const ALPHANUMERIC_CHARACTERS = 62;  // a-zA-Z0-9.
+  static const ALPHABET_CHARACTERS = 52;  // a-zA-Z.
+  static const ALPHANUMERIC_CHARACTERS = 62;  // a-zA-Z0-9.
 
   // You can pass an invalid identifier to this and unlike its non-minifying
   // counterpart it will never return the proposedName as the new fresh name.

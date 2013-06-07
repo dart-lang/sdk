@@ -362,12 +362,12 @@ class CodeEmitterTask extends CompilerTask {
     ];
   }
 
-  const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
+  static const MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING = 4;
 
   // If we need fewer than this many noSuchMethod handlers we can save space by
   // just emitting them in JS, rather than emitting the JS needed to generate
   // them at run time.
-  const VERY_FEW_NO_SUCH_METHOD_HANDLERS = 10;
+  static const VERY_FEW_NO_SUCH_METHOD_HANDLERS = 10;
 
   /**
    * Adds (at runtime) the handlers to the Object class which catch calls to

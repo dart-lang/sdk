@@ -1989,11 +1989,6 @@ class MixinApplicationElementX extends BaseClassElementX
 
   ClassElement mixin;
 
-  // TODO(kasperl): The analyzer complains when I don't have these two
-  // fields. This is pretty weird. I cannot replace them with getters.
-  final ClassElement patch = null;
-  final ClassElement origin = null;
-
   MixinApplicationElementX(SourceString name, Element enclosing, int id,
                            this.node, this.modifiers)
       : super(name, enclosing, id, STATE_NOT_STARTED);
@@ -2001,6 +1996,16 @@ class MixinApplicationElementX extends BaseClassElementX
   bool get isMixinApplication => true;
   bool get hasConstructor => !constructors.isEmpty;
   bool get hasLocalScopeMembers => !constructors.isEmpty;
+
+  unsupported(message) {
+    throw new UnsupportedError('$message is not supported on $this');
+  }
+
+  get patch => null;
+  get origin => null;
+
+  set patch(value) => unsupported('set patch');
+  set origin(value) => unsupported('set origin');
 
   Token position() => node.getBeginToken();
 

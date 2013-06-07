@@ -142,8 +142,8 @@ class JavaScriptIdentityOperation implements BinaryOperation {
  * compiled to JavaScript.
  */
 class JavaScriptConstantSystem extends ConstantSystem {
-  const int BITS31 = 0x8FFFFFFF;
-  const int BITS32 = 0xFFFFFFFF;
+  final int BITS31 = 0x8FFFFFFF;
+  final int BITS32 = 0xFFFFFFFF;
 
   final add = const JavaScriptBinaryArithmeticOperation(const AddOperation());
   final bitAnd = const JavaScriptBinaryBitOperation(const BitAndOperation());

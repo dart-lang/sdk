@@ -336,28 +336,28 @@ class IdentityOperation implements BinaryOperation {
  * not return the correct values.
  */
 class DartConstantSystem extends ConstantSystem {
-  const add = const AddOperation();
-  const bitAnd = const BitAndOperation();
-  const bitNot = const BitNotOperation();
-  const bitOr = const BitOrOperation();
-  const bitXor = const BitXorOperation();
-  const booleanAnd = const BooleanAndOperation();
-  const booleanOr = const BooleanOrOperation();
-  const divide = const DivideOperation();
-  const equal = const EqualsOperation();
-  const greaterEqual = const GreaterEqualOperation();
-  const greater = const GreaterOperation();
-  const identity = const IdentityOperation();
-  const lessEqual = const LessEqualOperation();
-  const less = const LessOperation();
-  const modulo = const ModuloOperation();
-  const multiply = const MultiplyOperation();
-  const negate = const NegateOperation();
-  const not = const NotOperation();
-  const shiftLeft = const ShiftLeftOperation();
-  const shiftRight = const ShiftRightOperation();
-  const subtract = const SubtractOperation();
-  const truncatingDivide = const TruncatingDivideOperation();
+  final add = const AddOperation();
+  final bitAnd = const BitAndOperation();
+  final bitNot = const BitNotOperation();
+  final bitOr = const BitOrOperation();
+  final bitXor = const BitXorOperation();
+  final booleanAnd = const BooleanAndOperation();
+  final booleanOr = const BooleanOrOperation();
+  final divide = const DivideOperation();
+  final equal = const EqualsOperation();
+  final greaterEqual = const GreaterEqualOperation();
+  final greater = const GreaterOperation();
+  final identity = const IdentityOperation();
+  final lessEqual = const LessEqualOperation();
+  final less = const LessOperation();
+  final modulo = const ModuloOperation();
+  final multiply = const MultiplyOperation();
+  final negate = const NegateOperation();
+  final not = const NotOperation();
+  final shiftLeft = const ShiftLeftOperation();
+  final shiftRight = const ShiftRightOperation();
+  final subtract = const SubtractOperation();
+  final truncatingDivide = const TruncatingDivideOperation();
 
   const DartConstantSystem();
 
