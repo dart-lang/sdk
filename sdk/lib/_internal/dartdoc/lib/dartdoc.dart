@@ -794,11 +794,11 @@ class Dartdoc {
 
     var fileBuilder = new pathos.Builder(style: pathos.Style.url);
 
-    var clientDir = fileBuilder.normalize(fileBuilder.join(
+    var clientDir = fileBuilder.join(
         'file:///',
         fileBuilder.relative(
           fileBuilder.join(normalizedDartdocPath, 'lib', 'src', 'client'),
-          from: tmpPath)));
+          from: tmpPath));
 
     writeString(new File(filePath),
         '''library client;
