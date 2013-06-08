@@ -73,6 +73,10 @@ cpp_vtable Smi::handle_vtable_ = 0;
 #endif
 #define RAW_NULL kHeapObjectTag
 Object* Object::null_object_ = NULL;
+Array* Object::null_array_ = NULL;
+String* Object::null_string_ = NULL;
+Instance* Object::null_instance_ = NULL;
+AbstractTypeArguments* Object::null_abstract_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Instance* Object::sentinel_ = NULL;
 Instance* Object::transition_sentinel_ = NULL;
@@ -326,7 +330,11 @@ void Object::InitOnce() {
   Heap* heap = isolate->heap();
 
   // Allocate the read only object handles here.
-  null_object_ = Array::ReadOnlyHandle();
+  null_object_ = Object::ReadOnlyHandle();
+  null_array_ = Array::ReadOnlyHandle();
+  null_string_ = String::ReadOnlyHandle();
+  null_instance_ = Instance::ReadOnlyHandle();
+  null_abstract_type_arguments_ = AbstractTypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   sentinel_ = Instance::ReadOnlyHandle();
   transition_sentinel_ = Instance::ReadOnlyHandle();
@@ -347,7 +355,11 @@ void Object::InitOnce() {
     InitializeObject(address, kNullCid, Instance::InstanceSize());
   }
 
-  *null_object_ = null_;
+  *null_object_ = Object::null();
+  *null_array_ = Array::null();
+  *null_string_ = String::null();
+  *null_instance_ = Instance::null();
+  *null_abstract_type_arguments_ = AbstractTypeArguments::null();
 
   // Initialize the empty array handle to null_ in order to be able to check
   // if the empty array was allocated (RAW_NULL is not available).
@@ -547,6 +559,14 @@ void Object::InitOnce() {
       LanguageError::New(String::Handle(String::New("SnapshotWriter Error")));
 
   ASSERT(!null_object_->IsSmi());
+  ASSERT(!null_array_->IsSmi());
+  ASSERT(null_array_->IsArray());
+  ASSERT(!null_string_->IsSmi());
+  ASSERT(null_string_->IsString());
+  ASSERT(!null_instance_->IsSmi());
+  ASSERT(null_instance_->IsInstance());
+  ASSERT(!null_abstract_type_arguments_->IsSmi());
+  ASSERT(null_abstract_type_arguments_->IsAbstractTypeArguments());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!sentinel_->IsSmi());
@@ -1066,7 +1086,7 @@ RawError* Object::Init(Isolate* isolate) {
   // Remove the Object superclass cycle by setting the super type to null (not
   // to the type of null).
   cls = object_store->object_class();
-  cls.set_super_type(Type::null_object());
+  cls.set_super_type(AbstractType::Handle());
 
   ClassFinalizer::VerifyBootstrapClasses();
   MarkInvisibleFunctions();
@@ -1604,7 +1624,7 @@ intptr_t Class::NumTypeArguments() const {
     }
     num_type_args += cls.NumTypeParameters();
     // Object is its own super class during bootstrap.
-    if (cls.super_type() == Type::null() ||
+    if (cls.super_type() == AbstractType::null() ||
         cls.super_type() == isolate->object_store()->object_type()) {
       break;
     }
@@ -1626,7 +1646,7 @@ bool Class::HasTypeArguments() const {
 
 
 RawClass* Class::SuperClass() const {
-  if (super_type() == Type::null()) {
+  if (super_type() == AbstractType::null()) {
     return Class::null();
   }
   const AbstractType& sup_type = AbstractType::Handle(super_type());
@@ -4882,7 +4902,7 @@ RawField* Field::New(const String& name,
   result.set_name(name);
   result.set_is_static(is_static);
   if (is_static) {
-    result.set_value(Instance::null_object());
+    result.set_value(Object::null_instance());
   } else {
     result.SetOffset(0);
   }
@@ -4893,7 +4913,7 @@ RawField* Field::New(const String& name,
   result.set_has_initializer(false);
   result.set_guarded_cid(kIllegalCid);
   result.set_is_nullable(false);
-  result.set_dependent_code(Array::null_object());
+  result.set_dependent_code(Object::null_array());
   return result.raw();
 }
 
@@ -4906,7 +4926,7 @@ RawField* Field::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, owner));
   clone.set_owner(clone_owner);
-  clone.set_dependent_code(Array::null_object());
+  clone.set_dependent_code(Object::null_array());
   if (!clone.is_static()) {
     clone.SetOffset(0);
   }
@@ -5000,7 +5020,7 @@ void Field::DeoptimizeDependentCode() const {
   if (code_objects.IsNull()) {
     return;
   }
-  set_dependent_code(Array::null_object());
+  set_dependent_code(Object::null_array());
 
   // Deoptimize all dependent code on the stack.
   Code& code = Code::Handle();
@@ -5645,7 +5665,7 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
       const Array& symbols = Array::Handle(isolate,
                                            object_store->keyword_symbols());
       ASSERT(!symbols.IsNull());
-      ASSERT(symbols.At(kind - Token::kFirstKeyword) != String::null());
+      ASSERT(symbols.At(kind - Token::kFirstKeyword) != Object::null());
       return String::RawCast(symbols.At(kind - Token::kFirstKeyword));
     }
     return Symbols::New(Token::Str(kind));
@@ -6530,7 +6550,7 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
     const Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
     const Namespace& ns = Namespace::Handle(
-        Namespace::New(core_lib, Array::null_object(), Array::null_object()));
+        Namespace::New(core_lib, Object::null_array(), Object::null_array()));
     result.AddImport(ns);
   }
   return result.raw();
@@ -6548,7 +6568,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
   isolate->object_store()->set_bootstrap_library(ObjectStore::kCore, core_lib);
-  isolate->object_store()->set_root_library(Library::null_object());
+  isolate->object_store()->set_root_library(Library::Handle());
 
   // Hook up predefined classes without setting their library pointers. These
   // classes are coming from the VM isolate, and are shared between multiple
@@ -12647,7 +12667,7 @@ RawObject* GrowableObjectArray::RemoveLast() const {
   intptr_t index = Length() - 1;
   const Array& contents = Array::Handle(data());
   const Object& obj = Object::Handle(contents.At(index));
-  contents.SetAt(index, null_object());
+  contents.SetAt(index, Object::null_object());
   SetLength(index);
   return obj.raw();
 }

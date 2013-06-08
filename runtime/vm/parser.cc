@@ -4469,7 +4469,7 @@ void Parser::ParseLibraryDefinition() {
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
     const Namespace& core_ns = Namespace::Handle(
-        Namespace::New(core_lib, Array::null_object(), Array::null_object()));
+        Namespace::New(core_lib, Object::null_array(), Object::null_array()));
     library_.AddImport(core_ns);
   }
   while (CurrentToken() == Token::kPART) {
@@ -4523,8 +4523,9 @@ void Parser::ParseTopLevel() {
     ParsePartHeader();
   }
 
+  const Class& cls = Class::Handle(isolate());
   while (true) {
-    set_current_class(Class::null_object());  // No current class.
+    set_current_class(cls);  // No current class.
     SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
       ParseClassDeclaration(pending_classes);
@@ -8102,7 +8103,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
           // generated AST is not deterministic. Therefore mark the function as
           // not optimizable.
           current_function().set_is_optimizable(false);
-          field.set_value(Instance::null_object());
+          field.set_value(Object::null_instance());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
           AppendErrorMsg(error, TokenPos(),
@@ -8696,8 +8697,7 @@ RawAbstractType* Parser::ParseType(
     parameterized_type ^= type.raw();
     parameterized_type.set_type_class(
         Class::Handle(isolate(), Object::dynamic_class()));
-    parameterized_type.set_arguments(
-        AbstractTypeArguments::null_object());
+    parameterized_type.set_arguments(Object::null_abstract_type_arguments());
     parameterized_type.set_malformed_error(malformed_error);
   }
   if (finalization >= ClassFinalizer::kTryResolve) {

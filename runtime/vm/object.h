@@ -117,9 +117,6 @@ class Symbols;
   static Raw##object* null() {                                                 \
     return reinterpret_cast<Raw##object*>(Object::null());                     \
   }                                                                            \
-  static const object& null_object() {                                         \
-    return reinterpret_cast<const object&>(Object::null_object());             \
-  }                                                                            \
   virtual const char* ToCString() const;                                       \
   static const ClassId kClassId = k##object##Cid;                              \
  private:  /* NOLINT */                                                        \
@@ -283,6 +280,12 @@ class Object {
     initializeHandle(obj, raw_ptr);
     return *obj;
   }
+  static Object* ReadOnlyHandle() {
+    Object* obj = reinterpret_cast<Object*>(
+        Dart::AllocateReadOnlyHandle());
+    initializeHandle(obj, Object::null());
+    return obj;
+  }
 
   static Object& Handle() {
     return Handle(Isolate::Current(), null_);
@@ -315,6 +318,22 @@ class Object {
   static const Object& null_object() {
     ASSERT(null_object_ != NULL);
     return *null_object_;
+  }
+  static const Array& null_array() {
+    ASSERT(null_array_ != NULL);
+    return *null_array_;
+  }
+  static const String& null_string() {
+    ASSERT(null_string_ != NULL);
+    return *null_string_;
+  }
+  static const Instance& null_instance() {
+    ASSERT(null_instance_ != NULL);
+    return *null_instance_;
+  }
+  static const AbstractTypeArguments& null_abstract_type_arguments() {
+    ASSERT(null_abstract_type_arguments_ != NULL);
+    return *null_abstract_type_arguments_;
   }
   static const Array& empty_array() {
     ASSERT(empty_array_ != NULL);
@@ -550,6 +569,10 @@ class Object {
   // The static values below are read-only handle pointers for singleton
   // objects that are shared between the different isolates.
   static Object* null_object_;
+  static Array* null_array_;
+  static String* null_string_;
+  static Instance* null_instance_;
+  static AbstractTypeArguments* null_abstract_type_arguments_;
   static Array* empty_array_;
   static Instance* sentinel_;
   static Instance* transition_sentinel_;
