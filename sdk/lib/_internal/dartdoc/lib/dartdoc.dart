@@ -140,8 +140,7 @@ Future compileScript(int mode, Path outputDir, Path libPath, String tmpPath) {
       new Path(dartPath), libPath,
       options: const <String>['--categories=Client,Server', '--minify'])
   .then((jsCode) {
-    if (jsCode == null) throw new StateError("No javascript was generated.");
-    writeString(new File(jsPath), jsCode);
+    if (jsCode != null) writeString(new File(jsPath), jsCode);
   });
 }
 
