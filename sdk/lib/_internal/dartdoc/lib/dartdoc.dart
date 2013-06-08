@@ -791,22 +791,21 @@ class Dartdoc {
     String jsonString = json.stringify(createNavigationInfo());
     String dartString = jsonString.replaceAll(r"$", r"\$");
     var filePath = pathos.join(tmpPath, 'client.dart');
-    var clientDir = pathos.relative(
-        pathos.join(normalizedDartdocPath, 'lib', 'src', 'client'),
-        from: tmpPath);
 
     var fileBuilder = new pathos.Builder(style: pathos.Style.url);
 
-    var tmpDirUri = fileBuilder.normalize(fileBuilder.join(
+    var clientDir = fileBuilder.normalize(fileBuilder.join(
         'file:///',
-        fileBuilder.relative(normalizedDartdocPath, from: tmpPath)));
+        fileBuilder.relative(
+          fileBuilder.join(normalizedDartdocPath, 'lib', 'src', 'client'),
+          from: tmpPath)));
 
     writeString(new File(filePath),
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import '${fileBuilder.join(tmpDirUri, 'client-shared.dart')}';
-        import '${fileBuilder.join(tmpDirUri, 'dropdown.dart')}';
+        import '${fileBuilder.join(clientDir, 'client-shared.dart')}';
+        import '${fileBuilder.join(clientDir, 'dropdown.dart')}';
 
         main() {
           setup();
