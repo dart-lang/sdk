@@ -1913,36 +1913,24 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
   static final StaticWarningCode INVOCATION_OF_NON_FUNCTION = new StaticWarningCode('INVOCATION_OF_NON_FUNCTION', 34, "");
 
   /**
-   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
-   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
-   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
-   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
-   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
-   * and <i>G</i> is malformed.</li></ul>
-   * <p>
-   * Any use of a malformed type gives rise to a static warning.
-   */
-  static final StaticWarningCode MALFORMED_TYPE = new StaticWarningCode('MALFORMED_TYPE', 35, "");
-
-  /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i> with argument type
    * <i>T</i> and a getter named <i>v</i> with return type <i>S</i>, and <i>T</i> may not be
    * assigned to <i>S</i>.
    */
-  static final StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES = new StaticWarningCode('MISMATCHED_GETTER_AND_SETTER_TYPES', 36, "The parameter type for setter '%s' is %s which is not assignable to its getter (of type %s)");
+  static final StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES = new StaticWarningCode('MISMATCHED_GETTER_AND_SETTER_TYPES', 35, "The parameter type for setter '%s' is %s which is not assignable to its getter (of type %s)");
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an abstract class and
    * <i>q</i> is not a factory constructor.
    */
-  static final StaticWarningCode NEW_WITH_ABSTRACT_CLASS = new StaticWarningCode('NEW_WITH_ABSTRACT_CLASS', 37, "Abstract classes cannot be created with a 'new' expression");
+  static final StaticWarningCode NEW_WITH_ABSTRACT_CLASS = new StaticWarningCode('NEW_WITH_ABSTRACT_CLASS', 36, "Abstract classes cannot be created with a 'new' expression");
 
   /**
    * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible in the current scope,
    * optionally followed by type arguments.
    * @param name the name of the non-type element
    */
-  static final StaticWarningCode NEW_WITH_NON_TYPE = new StaticWarningCode('NEW_WITH_NON_TYPE', 38, "The name '%s' is not a class");
+  static final StaticWarningCode NEW_WITH_NON_TYPE = new StaticWarningCode('NEW_WITH_NON_TYPE', 37, "The name '%s' is not a class");
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the current scope then:
@@ -1953,7 +1941,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
-  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR = new StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR', 39, "The class '%s' does not have a constructor '%s'");
+  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR = new StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR', 38, "The class '%s' does not have a constructor '%s'");
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the current scope then:
@@ -1964,7 +1952,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
-  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = new StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 40, "The class '%s' does not have a default constructor");
+  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = new StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 39, "The class '%s' does not have a default constructor");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -1991,7 +1979,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param name fourth member name
    * @param additionalCount the number of additional missing members that aren't listed
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS', 41, "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s', %s'%s.%s' and %d more");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS', 40, "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s', %s'%s.%s' and %d more");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2017,7 +2005,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param enclosingClass enclosing class of the fourth missing member
    * @param name fourth member name
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR', 42, "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s' and %s'%s.%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR', 41, "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s' and %s'%s.%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2030,7 +2018,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param enclosingClass enclosing class of the missing member
    * @param name member name
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE', 43, "Missing inherited member %s'%s.%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE', 42, "Missing inherited member %s'%s.%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2052,7 +2040,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param enclosingClass enclosing class of the third missing member
    * @param name third member name
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE', 44, "Missing inherited members: %s'%s.%s', %s'%s.%s' and %s'%s.%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE', 43, "Missing inherited members: %s'%s.%s', %s'%s.%s' and %s'%s.%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
@@ -2070,7 +2058,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param enclosingClass enclosing class of the second missing member
    * @param name second member name
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO', 45, "Missing inherited members: %s'%s.%s' and %s'%s.%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO', 44, "Missing inherited members: %s'%s.%s' and %s'%s.%s'");
 
   /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
@@ -2079,18 +2067,31 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * catch clause.
    * @param name the name of the non-type element
    */
-  static final StaticWarningCode NON_TYPE_IN_CATCH_CLAUSE = new StaticWarningCode('NON_TYPE_IN_CATCH_CLAUSE', 46, "The name '%s' is not a type and cannot be used in an on-catch clause");
+  static final StaticWarningCode NON_TYPE_IN_CATCH_CLAUSE = new StaticWarningCode('NON_TYPE_IN_CATCH_CLAUSE', 45, "The name '%s' is not a type and cannot be used in an on-catch clause");
 
   /**
    * 7.1.1 Operators: It is a static warning if the return type of the user-declared operator \[\]= is
    * explicitly declared and not void.
    */
-  static final StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR = new StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR', 47, "The return type of the operator []= must be 'void'");
+  static final StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR = new StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR', 46, "The return type of the operator []= must be 'void'");
 
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type other than void.
    */
-  static final StaticWarningCode NON_VOID_RETURN_FOR_SETTER = new StaticWarningCode('NON_VOID_RETURN_FOR_SETTER', 48, "The return type of the setter must be 'void'");
+  static final StaticWarningCode NON_VOID_RETURN_FOR_SETTER = new StaticWarningCode('NON_VOID_RETURN_FOR_SETTER', 47, "The return type of the setter must be 'void'");
+
+  /**
+   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
+   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
+   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
+   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
+   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
+   * and <i>G</i> is malformed.</li></ul>
+   * <p>
+   * Any use of a malformed type gives rise to a static warning.
+   * @param nonTypeName the name that is not a type
+   */
+  static final StaticWarningCode NOT_A_TYPE = new StaticWarningCode('NOT_A_TYPE', 48, "%s is not a type");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
@@ -2167,17 +2168,29 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
   static final StaticWarningCode TYPE_TEST_NON_TYPE = new StaticWarningCode('TYPE_TEST_NON_TYPE', 58, "The name '%s' is not a type and cannot be used in an 'is' expression");
 
   /**
+   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
+   * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
+   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
+   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
+   * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
+   * and <i>G</i> is malformed.</li></ul>
+   * <p>
+   * Any use of a malformed type gives rise to a static warning.
+   */
+  static final StaticWarningCode TYPE_VARIABLE_IN_STATIC_SCOPE = new StaticWarningCode('TYPE_VARIABLE_IN_STATIC_SCOPE', 59, "");
+
+  /**
    * 12.15.3 Static Invocation: A static method invocation <i>i</i> has the form
    * <i>C.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a static warning if <i>C</i> does not denote a
    * class in the current scope.
    */
-  static final StaticWarningCode UNDEFINED_CLASS = new StaticWarningCode('UNDEFINED_CLASS', 59, "Undefined class '%s'");
+  static final StaticWarningCode UNDEFINED_CLASS = new StaticWarningCode('UNDEFINED_CLASS', 60, "Undefined class '%s'");
 
   /**
    * Same as {@link #UNDEFINED_CLASS}, but to catch using "boolean" instead of "bool".
    */
-  static final StaticWarningCode UNDEFINED_CLASS_BOOLEAN = new StaticWarningCode('UNDEFINED_CLASS_BOOLEAN', 60, "Undefined class 'boolean'; did you mean 'bool'?");
+  static final StaticWarningCode UNDEFINED_CLASS_BOOLEAN = new StaticWarningCode('UNDEFINED_CLASS_BOOLEAN', 61, "Undefined class 'boolean'; did you mean 'bool'?");
 
   /**
    * 12.17 Getter Invocation: It is a static warning if there is no class <i>C</i> in the enclosing
@@ -2186,7 +2199,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param getterName the name of the getter
    * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
-  static final StaticWarningCode UNDEFINED_GETTER = new StaticWarningCode('UNDEFINED_GETTER', 61, "There is no such getter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_GETTER = new StaticWarningCode('UNDEFINED_GETTER', 62, "There is no such getter '%s' in '%s'");
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier expression of the form
@@ -2194,7 +2207,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
    */
-  static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode('UNDEFINED_IDENTIFIER', 62, "Undefined name '%s'");
+  static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode('UNDEFINED_IDENTIFIER', 63, "Undefined name '%s'");
 
   /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
@@ -2202,7 +2215,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.
    * @param name the name of the requested named parameter
    */
-  static final StaticWarningCode UNDEFINED_NAMED_PARAMETER = new StaticWarningCode('UNDEFINED_NAMED_PARAMETER', 63, "The named parameter '%s' is not defined");
+  static final StaticWarningCode UNDEFINED_NAMED_PARAMETER = new StaticWarningCode('UNDEFINED_NAMED_PARAMETER', 64, "The named parameter '%s' is not defined");
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs
@@ -2216,7 +2229,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param setterName the name of the getter
    * @param enclosingType the name of the enclosing type where the setter is being looked for
    */
-  static final StaticWarningCode UNDEFINED_SETTER = new StaticWarningCode('UNDEFINED_SETTER', 64, "There is no such setter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_SETTER = new StaticWarningCode('UNDEFINED_SETTER', 65, "There is no such setter '%s' in '%s'");
 
   /**
    * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
@@ -2224,8 +2237,8 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param methodName the name of the method
    * @param enclosingType the name of the enclosing type where the method is being looked for
    */
-  static final StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER = new StaticWarningCode('UNDEFINED_STATIC_METHOD_OR_GETTER', 65, "There is no such static method '%s' in '%s'");
-  static final List<StaticWarningCode> values = [AMBIGUOUS_IMPORT, ARGUMENT_TYPE_NOT_ASSIGNABLE, ASSIGNMENT_TO_FINAL, CASE_BLOCK_NOT_TERMINATED, CAST_TO_NON_TYPE, COMMENT_REFERENCE_CONSTRUCTOR_NOT_VISIBLE, COMMENT_REFERENCE_IDENTIFIER_NOT_VISIBLE, COMMENT_REFERENCE_UNDECLARED_CONSTRUCTOR, COMMENT_REFERENCE_UNDECLARED_IDENTIFIER, COMMENT_REFERENCE_URI_NOT_LIBRARY, CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER, CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER, CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER, CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER, CONST_WITH_ABSTRACT_CLASS, EQUAL_KEYS_IN_MAP, EXPORT_DUPLICATED_LIBRARY_NAME, EXTRA_POSITIONAL_ARGUMENTS, FIELD_INITIALIZER_NOT_ASSIGNABLE, FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, FINAL_NOT_INITIALIZED, IMPORT_DUPLICATED_LIBRARY_NAME, INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD, INCORRECT_NUMBER_OF_ARGUMENTS, INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC, INVALID_FACTORY_NAME, INVALID_GETTER_OVERRIDE_RETURN_TYPE, INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE, INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE, INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE, INVALID_METHOD_OVERRIDE_RETURN_TYPE, INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES, INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE, INVOCATION_OF_NON_FUNCTION, MALFORMED_TYPE, MISMATCHED_GETTER_AND_SETTER_TYPES, NEW_WITH_ABSTRACT_CLASS, NEW_WITH_NON_TYPE, NEW_WITH_UNDEFINED_CONSTRUCTOR, NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO, NON_TYPE_IN_CATCH_CLAUSE, NON_VOID_RETURN_FOR_OPERATOR, NON_VOID_RETURN_FOR_SETTER, NOT_ENOUGH_REQUIRED_ARGUMENTS, PART_OF_DIFFERENT_LIBRARY, REDIRECT_TO_INVALID_FUNCTION_TYPE, REDIRECT_TO_INVALID_RETURN_TYPE, REDIRECT_TO_MISSING_CONSTRUCTOR, REDIRECT_TO_NON_CLASS, RETURN_WITHOUT_VALUE, STATIC_ACCESS_TO_INSTANCE_MEMBER, SWITCH_EXPRESSION_NOT_ASSIGNABLE, TYPE_TEST_NON_TYPE, UNDEFINED_CLASS, UNDEFINED_CLASS_BOOLEAN, UNDEFINED_GETTER, UNDEFINED_IDENTIFIER, UNDEFINED_NAMED_PARAMETER, UNDEFINED_SETTER, UNDEFINED_STATIC_METHOD_OR_GETTER];
+  static final StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER = new StaticWarningCode('UNDEFINED_STATIC_METHOD_OR_GETTER', 66, "There is no such static method '%s' in '%s'");
+  static final List<StaticWarningCode> values = [AMBIGUOUS_IMPORT, ARGUMENT_TYPE_NOT_ASSIGNABLE, ASSIGNMENT_TO_FINAL, CASE_BLOCK_NOT_TERMINATED, CAST_TO_NON_TYPE, COMMENT_REFERENCE_CONSTRUCTOR_NOT_VISIBLE, COMMENT_REFERENCE_IDENTIFIER_NOT_VISIBLE, COMMENT_REFERENCE_UNDECLARED_CONSTRUCTOR, COMMENT_REFERENCE_UNDECLARED_IDENTIFIER, COMMENT_REFERENCE_URI_NOT_LIBRARY, CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER, CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER, CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER, CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER, CONST_WITH_ABSTRACT_CLASS, EQUAL_KEYS_IN_MAP, EXPORT_DUPLICATED_LIBRARY_NAME, EXTRA_POSITIONAL_ARGUMENTS, FIELD_INITIALIZER_NOT_ASSIGNABLE, FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, FINAL_NOT_INITIALIZED, IMPORT_DUPLICATED_LIBRARY_NAME, INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD, INCORRECT_NUMBER_OF_ARGUMENTS, INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC, INVALID_FACTORY_NAME, INVALID_GETTER_OVERRIDE_RETURN_TYPE, INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE, INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE, INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE, INVALID_METHOD_OVERRIDE_RETURN_TYPE, INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES, INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE, INVOCATION_OF_NON_FUNCTION, MISMATCHED_GETTER_AND_SETTER_TYPES, NEW_WITH_ABSTRACT_CLASS, NEW_WITH_NON_TYPE, NEW_WITH_UNDEFINED_CONSTRUCTOR, NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO, NON_TYPE_IN_CATCH_CLAUSE, NON_VOID_RETURN_FOR_OPERATOR, NON_VOID_RETURN_FOR_SETTER, NOT_A_TYPE, NOT_ENOUGH_REQUIRED_ARGUMENTS, PART_OF_DIFFERENT_LIBRARY, REDIRECT_TO_INVALID_FUNCTION_TYPE, REDIRECT_TO_INVALID_RETURN_TYPE, REDIRECT_TO_MISSING_CONSTRUCTOR, REDIRECT_TO_NON_CLASS, RETURN_WITHOUT_VALUE, STATIC_ACCESS_TO_INSTANCE_MEMBER, SWITCH_EXPRESSION_NOT_ASSIGNABLE, TYPE_TEST_NON_TYPE, TYPE_VARIABLE_IN_STATIC_SCOPE, UNDEFINED_CLASS, UNDEFINED_CLASS_BOOLEAN, UNDEFINED_GETTER, UNDEFINED_IDENTIFIER, UNDEFINED_NAMED_PARAMETER, UNDEFINED_SETTER, UNDEFINED_STATIC_METHOD_OR_GETTER];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;

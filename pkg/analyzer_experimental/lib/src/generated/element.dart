@@ -252,6 +252,18 @@ abstract class ClassElement implements Element {
   PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library);
 }
 /**
+ * The interface {@code ClassMemberElement} defines the behavior of elements that are contained
+ * within a {@link ClassElement}.
+ */
+abstract class ClassMemberElement implements Element {
+
+  /**
+   * Return the type in which this constructor is defined.
+   * @return the type in which this constructor is defined
+   */
+  ClassElement get enclosingElement;
+}
+/**
  * The interface {@code CompilationUnitElement} defines the behavior of elements representing a
  * compilation unit.
  * @coverage dart.engine.element
@@ -308,13 +320,7 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
  * constructor or a factory method defined within a type.
  * @coverage dart.engine.element
  */
-abstract class ConstructorElement implements ExecutableElement {
-
-  /**
-   * Return the type in which this constructor is defined.
-   * @return the type in which this constructor is defined
-   */
-  ClassElement get enclosingElement;
+abstract class ConstructorElement implements ClassMemberElement, ExecutableElement {
 
   /**
    * Return the constructor to which this constructor is redirecting.
@@ -709,13 +715,7 @@ abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
  * within a type.
  * @coverage dart.engine.element
  */
-abstract class FieldElement implements PropertyInducingElement {
-
-  /**
-   * Return the type in which this field is defined.
-   * @return the type in which this field is defined
-   */
-  ClassElement get enclosingElement;
+abstract class FieldElement implements ClassMemberElement, PropertyInducingElement {
 }
 /**
  * The interface {@code FieldFormalParameterElement} defines the behavior of elements representing a
@@ -973,13 +973,7 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  * defined within a type.
  * @coverage dart.engine.element
  */
-abstract class MethodElement implements ExecutableElement {
-
-  /**
-   * Return the type in which this method is defined.
-   * @return the type in which this method is defined
-   */
-  ClassElement get enclosingElement;
+abstract class MethodElement implements ClassMemberElement, ExecutableElement {
 
   /**
    * Return {@code true} if this method is abstract. Methods are abstract if they are not external

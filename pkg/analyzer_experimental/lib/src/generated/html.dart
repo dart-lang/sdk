@@ -8,6 +8,7 @@ import 'source.dart';
 import 'error.dart';
 import 'instrumentation.dart';
 import 'element.dart' show HtmlElementImpl;
+import 'engine.dart' show AnalysisEngine;
 /**
  * Instances of the class {@code Token} represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.

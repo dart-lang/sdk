@@ -8064,6 +8064,15 @@ class TypeResolverVisitor extends ScopedVisitor {
         reportError(StaticWarningCode.CAST_TO_NON_TYPE, typeName, [typeName.name]);
       } else if (isTypeNameInIsExpression(node)) {
         reportError(StaticWarningCode.TYPE_TEST_NON_TYPE, typeName, [typeName.name]);
+      } else {
+        ASTNode parent3 = typeName.parent;
+        while (parent3 is TypeName) {
+          parent3 = parent3.parent;
+        }
+        if (parent3 is ExtendsClause || parent3 is ImplementsClause || parent3 is WithClause || parent3 is ClassTypeAlias) {
+        } else {
+          reportError(StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
+        }
       }
       setElement(typeName, _dynamicType.element);
       typeName.staticType = _dynamicType;
@@ -8440,13 +8449,16 @@ class TypeResolverVisitor extends ScopedVisitor {
   void setElement(Identifier typeName, Element element2) {
     if (element2 != null) {
       if (typeName is SimpleIdentifier) {
+        ((typeName as SimpleIdentifier)).staticElement = element2;
         ((typeName as SimpleIdentifier)).element = element2;
       } else if (typeName is PrefixedIdentifier) {
         PrefixedIdentifier identifier = typeName as PrefixedIdentifier;
+        identifier.identifier.staticElement = element2;
         identifier.identifier.element = element2;
         SimpleIdentifier prefix2 = identifier.prefix;
         Element prefixElement = nameScope.lookup(prefix2, definingLibrary);
         if (prefixElement != null) {
+          prefix2.staticElement = prefixElement;
           prefix2.element = prefixElement;
         }
       }

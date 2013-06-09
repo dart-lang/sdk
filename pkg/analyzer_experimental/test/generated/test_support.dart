@@ -388,6 +388,28 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
+   * Assert that the given array is non-{@code null} and contains the expected elements. The
+   * elements can appear in any order.
+   * @param array the array being tested
+   * @param expectedElements the expected elements
+   * @throws AssertionFailedError if the array is {@code null} or does not contain the expected
+   * elements
+   */
+  static void assertContains(List<Object> array, List<Object> expectedElements) {
+    int expectedSize = expectedElements.length;
+    if (array == null) {
+      JUnitTestCase.fail("Expected array of length ${expectedSize}; found null");
+    }
+    if (array.length != expectedSize) {
+      JUnitTestCase.fail("Expected array of length ${expectedSize}; contained ${array.length} elements");
+    }
+    List<bool> found = new List<bool>.filled(expectedSize, false);
+    for (int i = 0; i < expectedSize; i++) {
+      assertContains2(array, found, expectedElements[i]);
+    }
+  }
+
+  /**
    * Assert that the array of actual values contain exactly the same values as those in the array of
    * expected value, with the exception that the order of the elements is not required to be the
    * same.
@@ -457,7 +479,7 @@ class EngineTestCase extends JUnitTestCase {
     if (list.length != expectedSize) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; contained ${list.length} elements");
     }
-    for (int i = 0; i < expectedElements.length; i++) {
+    for (int i = 0; i < expectedSize; i++) {
       Object element = list[i];
       Object expectedElement = expectedElements[i];
       if (!element == expectedElement) {
@@ -481,7 +503,7 @@ class EngineTestCase extends JUnitTestCase {
     if (array.length != expectedSize) {
       JUnitTestCase.fail("Expected array of size ${expectedSize}; contained ${array.length} elements");
     }
-    for (int i = 0; i < expectedElements.length; i++) {
+    for (int i = 0; i < expectedSize; i++) {
       Object element = array[i];
       Object expectedElement = expectedElements[i];
       if (!element == expectedElement) {
@@ -504,7 +526,7 @@ class EngineTestCase extends JUnitTestCase {
     if (set.length != expectedSize) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; contained ${set.length} elements");
     }
-    for (int i = 0; i < expectedElements.length; i++) {
+    for (int i = 0; i < expectedSize; i++) {
       Object expectedElement = expectedElements[i];
       if (!set.contains(expectedElement)) {
         JUnitTestCase.fail("Expected ${expectedElement} in set${set}");
@@ -615,6 +637,29 @@ class EngineTestCase extends JUnitTestCase {
       writer.println(line);
     }
     return writer.toString();
+  }
+  static void assertContains2(List<Object> array, List<bool> found, Object element) {
+    if (element == null) {
+      for (int i = 0; i < array.length; i++) {
+        if (!found[i]) {
+          if (array[i] == null) {
+            found[i] = true;
+            return;
+          }
+        }
+      }
+      JUnitTestCase.fail("Does not contain null");
+    } else {
+      for (int i = 0; i < array.length; i++) {
+        if (!found[i]) {
+          if (element == array[i]) {
+            found[i] = true;
+            return;
+          }
+        }
+      }
+      JUnitTestCase.fail("Does not contain ${element}");
+    }
   }
 
   /**

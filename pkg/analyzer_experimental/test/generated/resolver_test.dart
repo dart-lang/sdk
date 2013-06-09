@@ -7997,7 +7997,7 @@ class StaticWarningCodeTest extends ResolverTestCase {
     verify([source]);
   }
   void test_newWithNonType() {
-    Source source = addSource(EngineTestCase.createSource(["var A = 0;", "void f() {", "  A a = new A();", "}"]));
+    Source source = addSource(EngineTestCase.createSource(["var A = 0;", "void f() {", "  var a = new A();", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.NEW_WITH_NON_TYPE]);
     verify([source]);
@@ -8107,6 +8107,12 @@ class StaticWarningCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["class A {", "  int set x(int v) {", "    return 42;", "  }", "}"]));
     resolve(source);
     assertErrors([StaticWarningCode.NON_VOID_RETURN_FOR_SETTER]);
+    verify([source]);
+  }
+  void test_notAType() {
+    Source source = addSource(EngineTestCase.createSource(["f() {}", "main() {", "  f v = null;", "}"]));
+    resolve(source);
+    assertErrors([StaticWarningCode.NOT_A_TYPE]);
     verify([source]);
   }
   void test_notEnoughRequiredArguments() {
@@ -8618,6 +8624,10 @@ class StaticWarningCodeTest extends ResolverTestCase {
       _ut.test('test_nonVoidReturnForSetter_method', () {
         final __test = new StaticWarningCodeTest();
         runJUnitTest(__test, __test.test_nonVoidReturnForSetter_method);
+      });
+      _ut.test('test_notAType', () {
+        final __test = new StaticWarningCodeTest();
+        runJUnitTest(__test, __test.test_notAType);
       });
       _ut.test('test_notEnoughRequiredArguments', () {
         final __test = new StaticWarningCodeTest();
