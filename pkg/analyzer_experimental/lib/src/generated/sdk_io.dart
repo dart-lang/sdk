@@ -173,9 +173,9 @@ class DirectoryBasedDartSdk implements DartSdk {
     initializeLibraryMap();
     _analysisContext = new AnalysisContextImpl();
     _analysisContext.sourceFactory = new SourceFactory.con2([new DartUriResolver(this)]);
-    List<String> uris2 = uris;
+    List<String> uris = this.uris;
     ChangeSet changeSet = new ChangeSet();
-    for (String uri in uris2) {
+    for (String uri in uris) {
       changeSet.added(_analysisContext.sourceFactory.forUri(uri));
     }
     _analysisContext.applyChanges(changeSet);
@@ -457,29 +457,29 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   LibraryMap get librariesMap => _librariesMap;
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
-    Expression key2 = node.key;
-    if (key2 is SimpleStringLiteral) {
-      libraryName = "${_LIBRARY_PREFIX}${((key2 as SimpleStringLiteral)).value}";
+    Expression key = node.key;
+    if (key is SimpleStringLiteral) {
+      libraryName = "${_LIBRARY_PREFIX}${((key as SimpleStringLiteral)).value}";
     }
-    Expression value2 = node.value;
-    if (value2 is InstanceCreationExpression) {
+    Expression value = node.value;
+    if (value is InstanceCreationExpression) {
       SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
-      List<Expression> arguments2 = ((value2 as InstanceCreationExpression)).argumentList.arguments;
-      for (Expression argument in arguments2) {
+      List<Expression> arguments = ((value as InstanceCreationExpression)).argumentList.arguments;
+      for (Expression argument in arguments) {
         if (argument is SimpleStringLiteral) {
           library.path = ((argument as SimpleStringLiteral)).value;
         } else if (argument is NamedExpression) {
-          String name2 = ((argument as NamedExpression)).name.label.name;
-          Expression expression2 = ((argument as NamedExpression)).expression;
-          if (name2 == _CATEGORY) {
-            library.category = ((expression2 as SimpleStringLiteral)).value;
-          } else if (name2 == _IMPLEMENTATION) {
-            library.implementation = ((expression2 as BooleanLiteral)).value;
-          } else if (name2 == _DOCUMENTED) {
-            library.documented = ((expression2 as BooleanLiteral)).value;
-          } else if (name2 == _PLATFORMS) {
-            if (expression2 is SimpleIdentifier) {
-              String identifier = ((expression2 as SimpleIdentifier)).name;
+          String name = ((argument as NamedExpression)).name.label.name;
+          Expression expression = ((argument as NamedExpression)).expression;
+          if (name == _CATEGORY) {
+            library.category = ((expression as SimpleStringLiteral)).value;
+          } else if (name == _IMPLEMENTATION) {
+            library.implementation = ((expression as BooleanLiteral)).value;
+          } else if (name == _DOCUMENTED) {
+            library.documented = ((expression as BooleanLiteral)).value;
+          } else if (name == _PLATFORMS) {
+            if (expression is SimpleIdentifier) {
+              String identifier = ((expression as SimpleIdentifier)).name;
               if (identifier == _VM_PLATFORM) {
                 library.setVmLibrary();
               } else {

@@ -30,8 +30,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body2.block.statements[0] as IfStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
     ReturnStatement statement = ((ifStatement.thenStatement as Block)).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -45,8 +45,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
   }
@@ -57,8 +57,8 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[2] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[2] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeProvider.intType, variableName.propagatedType);
   }
@@ -69,8 +69,8 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[2] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[2] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeProvider.doubleType, variableName.propagatedType);
   }
@@ -83,8 +83,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ForEachStatement forStatement = body2.block.statements[0] as ForEachStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ForEachStatement forStatement = body.block.statements[0] as ForEachStatement;
     ReturnStatement statement = ((forStatement.body as Block)).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -96,8 +96,8 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeProvider.intType, variableName.propagatedType);
   }
@@ -106,8 +106,8 @@ class TypePropagationTest extends ResolverTestCase {
     LibraryElement library = resolve(source);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ExpressionStatement statement = body2.block.statements[1] as ExpressionStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ExpressionStatement statement = body.block.statements[1] as ExpressionStatement;
     PrefixedIdentifier invocation = statement.expression as PrefixedIdentifier;
     SimpleIdentifier variableName = invocation.prefix;
     JUnitTestCase.assertSame(typeProvider.stringType, variableName.propagatedType);
@@ -121,8 +121,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[0] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[0] as ReturnStatement;
     ConditionalExpression conditional = statement.expression as ConditionalExpression;
     SimpleIdentifier variableName = conditional.thenExpression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -136,8 +136,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body2.block.statements[0] as IfStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
     ReturnStatement statement = ((ifStatement.thenStatement as Block)).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -149,8 +149,8 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body2.block.statements[0] as IfStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
     ReturnStatement statement = ((ifStatement.thenStatement as Block)).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(null, variableName.propagatedType);
@@ -164,8 +164,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body2.block.statements[0] as IfStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
     ReturnStatement statement = ((ifStatement.thenStatement as Block)).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -179,8 +179,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
   }
@@ -193,8 +193,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
   }
@@ -205,8 +205,8 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[2] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body2.block.statements[0] as IfStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
     ReturnStatement statement = ((ifStatement.thenStatement as Block)).statements[0] as ReturnStatement;
     MethodInvocation invocation = statement.expression as MethodInvocation;
     JUnitTestCase.assertNotNull(invocation.methodName.element);
@@ -220,8 +220,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    WhileStatement whileStatement = body2.block.statements[0] as WhileStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    WhileStatement whileStatement = body.block.statements[0] as WhileStatement;
     ReturnStatement statement = ((whileStatement.body as Block)).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -235,8 +235,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[0] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[0] as ReturnStatement;
     ConditionalExpression conditional = statement.expression as ConditionalExpression;
     SimpleIdentifier variableName = conditional.elseExpression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -250,8 +250,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body2.block.statements[0] as IfStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
     ReturnStatement statement = ((ifStatement.elseStatement as Block)).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -265,8 +265,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    IfStatement ifStatement = body2.block.statements[0] as IfStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    IfStatement ifStatement = body.block.statements[0] as IfStatement;
     ReturnStatement statement = ((ifStatement.elseStatement as Block)).statements[0] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
@@ -280,8 +280,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
   }
@@ -294,8 +294,8 @@ class TypePropagationTest extends ResolverTestCase {
     ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
     InterfaceType typeA = classA.element.type;
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
     JUnitTestCase.assertSame(typeA, variableName.propagatedType);
   }
@@ -306,8 +306,8 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     IndexExpression indexExpression = statement.expression as IndexExpression;
     JUnitTestCase.assertNull(indexExpression.propagatedType);
   }
@@ -318,8 +318,8 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     IndexExpression indexExpression = statement.expression as IndexExpression;
     JUnitTestCase.assertSame(typeProvider.intType, indexExpression.propagatedType);
   }
@@ -330,15 +330,15 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier identifier = statement.expression as SimpleIdentifier;
-    InterfaceType propagatedType2 = identifier.propagatedType as InterfaceType;
-    JUnitTestCase.assertSame(typeProvider.mapType.element, propagatedType2.element);
-    List<Type2> typeArguments2 = propagatedType2.typeArguments;
-    EngineTestCase.assertLength(2, typeArguments2);
-    JUnitTestCase.assertSame(typeProvider.dynamicType, typeArguments2[0]);
-    JUnitTestCase.assertSame(typeProvider.dynamicType, typeArguments2[1]);
+    InterfaceType propagatedType = identifier.propagatedType as InterfaceType;
+    JUnitTestCase.assertSame(typeProvider.mapType.element, propagatedType.element);
+    List<Type2> typeArguments = propagatedType.typeArguments;
+    EngineTestCase.assertLength(2, typeArguments);
+    JUnitTestCase.assertSame(typeProvider.dynamicType, typeArguments[0]);
+    JUnitTestCase.assertSame(typeProvider.dynamicType, typeArguments[1]);
   }
   void test_mapLiteral_same() {
     Source source = addSource(EngineTestCase.createSource(["f() {", "  var v = {'a' : 0, 'b' : 1, 'c' : 2};", "  return v;", "}"]));
@@ -347,15 +347,15 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = function.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[1] as ReturnStatement;
+    BlockFunctionBody body = function.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[1] as ReturnStatement;
     SimpleIdentifier identifier = statement.expression as SimpleIdentifier;
-    InterfaceType propagatedType2 = identifier.propagatedType as InterfaceType;
-    JUnitTestCase.assertSame(typeProvider.mapType.element, propagatedType2.element);
-    List<Type2> typeArguments2 = propagatedType2.typeArguments;
-    EngineTestCase.assertLength(2, typeArguments2);
-    JUnitTestCase.assertSame(typeProvider.stringType, typeArguments2[0]);
-    JUnitTestCase.assertSame(typeProvider.intType, typeArguments2[1]);
+    InterfaceType propagatedType = identifier.propagatedType as InterfaceType;
+    JUnitTestCase.assertSame(typeProvider.mapType.element, propagatedType.element);
+    List<Type2> typeArguments = propagatedType.typeArguments;
+    EngineTestCase.assertLength(2, typeArguments);
+    JUnitTestCase.assertSame(typeProvider.stringType, typeArguments[0]);
+    JUnitTestCase.assertSame(typeProvider.intType, typeArguments[1]);
   }
   void test_query() {
     Source source = addSource(EngineTestCase.createSource(["import 'dart:html';", "", "main() {", "  var v1 = query('a');", "  var v2 = query('A');", "  var v3 = query('body:active');", "  var v4 = query('button[foo=\"bar\"]');", "  var v5 = query('div.class');", "  var v6 = query('input#id');", "  var v7 = query('select#id');", "  // invocation of method", "  var m1 = document.query('div');", " // unsupported currently", "  var b1 = query('noSuchTag');", "  var b2 = query('DART_EDITOR_NO_SUCH_TYPE');", "  var b3 = query('body div');", "  return [v1, v2, v3, v4, v5, v6, v7, m1, b1, b2, b3];", "}"]));
@@ -364,20 +364,20 @@ class TypePropagationTest extends ResolverTestCase {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration main = unit.declarations[0] as FunctionDeclaration;
-    BlockFunctionBody body2 = main.functionExpression.body as BlockFunctionBody;
-    ReturnStatement statement = body2.block.statements[11] as ReturnStatement;
-    NodeList<Expression> elements2 = ((statement.expression as ListLiteral)).elements;
-    JUnitTestCase.assertEquals("AnchorElement", elements2[0].propagatedType.name);
-    JUnitTestCase.assertEquals("AnchorElement", elements2[1].propagatedType.name);
-    JUnitTestCase.assertEquals("BodyElement", elements2[2].propagatedType.name);
-    JUnitTestCase.assertEquals("ButtonElement", elements2[3].propagatedType.name);
-    JUnitTestCase.assertEquals("DivElement", elements2[4].propagatedType.name);
-    JUnitTestCase.assertEquals("InputElement", elements2[5].propagatedType.name);
-    JUnitTestCase.assertEquals("SelectElement", elements2[6].propagatedType.name);
-    JUnitTestCase.assertEquals("DivElement", elements2[7].propagatedType.name);
-    JUnitTestCase.assertEquals("Element", elements2[8].propagatedType.name);
-    JUnitTestCase.assertEquals("Element", elements2[9].propagatedType.name);
-    JUnitTestCase.assertEquals("Element", elements2[10].propagatedType.name);
+    BlockFunctionBody body = main.functionExpression.body as BlockFunctionBody;
+    ReturnStatement statement = body.block.statements[11] as ReturnStatement;
+    NodeList<Expression> elements = ((statement.expression as ListLiteral)).elements;
+    JUnitTestCase.assertEquals("AnchorElement", elements[0].propagatedType.name);
+    JUnitTestCase.assertEquals("AnchorElement", elements[1].propagatedType.name);
+    JUnitTestCase.assertEquals("BodyElement", elements[2].propagatedType.name);
+    JUnitTestCase.assertEquals("ButtonElement", elements[3].propagatedType.name);
+    JUnitTestCase.assertEquals("DivElement", elements[4].propagatedType.name);
+    JUnitTestCase.assertEquals("InputElement", elements[5].propagatedType.name);
+    JUnitTestCase.assertEquals("SelectElement", elements[6].propagatedType.name);
+    JUnitTestCase.assertEquals("DivElement", elements[7].propagatedType.name);
+    JUnitTestCase.assertEquals("Element", elements[8].propagatedType.name);
+    JUnitTestCase.assertEquals("Element", elements[9].propagatedType.name);
+    JUnitTestCase.assertEquals("Element", elements[10].propagatedType.name);
   }
   static dartSuite() {
     _ut.group('TypePropagationTest', () {
@@ -2299,17 +2299,17 @@ class LibraryTest extends EngineTestCase {
   void test_addExport() {
     Library exportLibrary = library("/exported.dart");
     _library5.addExport(ASTFactory.exportDirective2("exported.dart", []), exportLibrary);
-    List<Library> exports2 = _library5.exports;
-    EngineTestCase.assertLength(1, exports2);
-    JUnitTestCase.assertSame(exportLibrary, exports2[0]);
+    List<Library> exports = _library5.exports;
+    EngineTestCase.assertLength(1, exports);
+    JUnitTestCase.assertSame(exportLibrary, exports[0]);
     _errorListener.assertNoErrors();
   }
   void test_addImport() {
     Library importLibrary = library("/imported.dart");
     _library5.addImport(ASTFactory.importDirective2("imported.dart", null, []), importLibrary);
-    List<Library> imports2 = _library5.imports;
-    EngineTestCase.assertLength(1, imports2);
-    JUnitTestCase.assertSame(importLibrary, imports2[0]);
+    List<Library> imports = _library5.imports;
+    EngineTestCase.assertLength(1, imports);
+    JUnitTestCase.assertSame(importLibrary, imports[0]);
     _errorListener.assertNoErrors();
   }
   void test_getExplicitlyImportsCore() {
@@ -2879,17 +2879,17 @@ class TypeResolverVisitorTest extends EngineTestCase {
   }
   void test_visitCatchClause_exception() {
     CatchClause clause = ASTFactory.catchClause("e", []);
-    SimpleIdentifier exceptionParameter2 = clause.exceptionParameter;
-    exceptionParameter2.element = new LocalVariableElementImpl(exceptionParameter2);
+    SimpleIdentifier exceptionParameter = clause.exceptionParameter;
+    exceptionParameter.element = new LocalVariableElementImpl(exceptionParameter);
     resolve(clause, _typeProvider.objectType, null, []);
     _listener.assertNoErrors();
   }
   void test_visitCatchClause_exception_stackTrace() {
     CatchClause clause = ASTFactory.catchClause2("e", "s", []);
-    SimpleIdentifier exceptionParameter2 = clause.exceptionParameter;
-    exceptionParameter2.element = new LocalVariableElementImpl(exceptionParameter2);
-    SimpleIdentifier stackTraceParameter2 = clause.stackTraceParameter;
-    stackTraceParameter2.element = new LocalVariableElementImpl(stackTraceParameter2);
+    SimpleIdentifier exceptionParameter = clause.exceptionParameter;
+    exceptionParameter.element = new LocalVariableElementImpl(exceptionParameter);
+    SimpleIdentifier stackTraceParameter = clause.stackTraceParameter;
+    stackTraceParameter.element = new LocalVariableElementImpl(stackTraceParameter);
     resolve(clause, _typeProvider.objectType, _typeProvider.stackTraceType, []);
     _listener.assertNoErrors();
   }
@@ -2897,8 +2897,8 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement exceptionElement = ElementFactory.classElement2("E", []);
     TypeName exceptionType = ASTFactory.typeName(exceptionElement, []);
     CatchClause clause = ASTFactory.catchClause4(exceptionType, "e", []);
-    SimpleIdentifier exceptionParameter2 = clause.exceptionParameter;
-    exceptionParameter2.element = new LocalVariableElementImpl(exceptionParameter2);
+    SimpleIdentifier exceptionParameter = clause.exceptionParameter;
+    exceptionParameter.element = new LocalVariableElementImpl(exceptionParameter);
     resolve(clause, exceptionElement.type, null, [exceptionElement]);
     _listener.assertNoErrors();
   }
@@ -2907,10 +2907,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
     TypeName exceptionType = ASTFactory.typeName(exceptionElement, []);
     ((exceptionType.name as SimpleIdentifier)).element = exceptionElement;
     CatchClause clause = ASTFactory.catchClause5(exceptionType, "e", "s", []);
-    SimpleIdentifier exceptionParameter2 = clause.exceptionParameter;
-    exceptionParameter2.element = new LocalVariableElementImpl(exceptionParameter2);
-    SimpleIdentifier stackTraceParameter2 = clause.stackTraceParameter;
-    stackTraceParameter2.element = new LocalVariableElementImpl(stackTraceParameter2);
+    SimpleIdentifier exceptionParameter = clause.exceptionParameter;
+    exceptionParameter.element = new LocalVariableElementImpl(exceptionParameter);
+    SimpleIdentifier stackTraceParameter = clause.stackTraceParameter;
+    stackTraceParameter.element = new LocalVariableElementImpl(stackTraceParameter);
     resolve(clause, exceptionElement.type, _typeProvider.stackTraceType, [exceptionElement]);
     _listener.assertNoErrors();
   }
@@ -2919,19 +2919,19 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement elementB = ElementFactory.classElement2("B", []);
     ClassElement elementC = ElementFactory.classElement2("C", []);
     ClassElement elementD = ElementFactory.classElement2("D", []);
-    ExtendsClause extendsClause2 = ASTFactory.extendsClause(ASTFactory.typeName(elementB, []));
-    WithClause withClause2 = ASTFactory.withClause([ASTFactory.typeName(elementC, [])]);
-    ImplementsClause implementsClause2 = ASTFactory.implementsClause([ASTFactory.typeName(elementD, [])]);
-    ClassDeclaration declaration = ASTFactory.classDeclaration(null, "A", null, extendsClause2, withClause2, implementsClause2, []);
+    ExtendsClause extendsClause = ASTFactory.extendsClause(ASTFactory.typeName(elementB, []));
+    WithClause withClause = ASTFactory.withClause([ASTFactory.typeName(elementC, [])]);
+    ImplementsClause implementsClause = ASTFactory.implementsClause([ASTFactory.typeName(elementD, [])]);
+    ClassDeclaration declaration = ASTFactory.classDeclaration(null, "A", null, extendsClause, withClause, implementsClause, []);
     declaration.name.element = elementA;
     resolveNode(declaration, [elementA, elementB, elementC, elementD]);
     JUnitTestCase.assertSame(elementB.type, elementA.supertype);
-    List<InterfaceType> mixins2 = elementA.mixins;
-    EngineTestCase.assertLength(1, mixins2);
-    JUnitTestCase.assertSame(elementC.type, mixins2[0]);
-    List<InterfaceType> interfaces2 = elementA.interfaces;
-    EngineTestCase.assertLength(1, interfaces2);
-    JUnitTestCase.assertSame(elementD.type, interfaces2[0]);
+    List<InterfaceType> mixins = elementA.mixins;
+    EngineTestCase.assertLength(1, mixins);
+    JUnitTestCase.assertSame(elementC.type, mixins[0]);
+    List<InterfaceType> interfaces = elementA.interfaces;
+    EngineTestCase.assertLength(1, interfaces);
+    JUnitTestCase.assertSame(elementD.type, interfaces[0]);
     _listener.assertNoErrors();
   }
   void test_visitClassTypeAlias() {
@@ -2939,18 +2939,18 @@ class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement elementB = ElementFactory.classElement2("B", []);
     ClassElement elementC = ElementFactory.classElement2("C", []);
     ClassElement elementD = ElementFactory.classElement2("D", []);
-    WithClause withClause2 = ASTFactory.withClause([ASTFactory.typeName(elementC, [])]);
-    ImplementsClause implementsClause2 = ASTFactory.implementsClause([ASTFactory.typeName(elementD, [])]);
-    ClassTypeAlias alias = ASTFactory.classTypeAlias("A", null, null, ASTFactory.typeName(elementB, []), withClause2, implementsClause2);
+    WithClause withClause = ASTFactory.withClause([ASTFactory.typeName(elementC, [])]);
+    ImplementsClause implementsClause = ASTFactory.implementsClause([ASTFactory.typeName(elementD, [])]);
+    ClassTypeAlias alias = ASTFactory.classTypeAlias("A", null, null, ASTFactory.typeName(elementB, []), withClause, implementsClause);
     alias.name.element = elementA;
     resolveNode(alias, [elementA, elementB, elementC, elementD]);
     JUnitTestCase.assertSame(elementB.type, elementA.supertype);
-    List<InterfaceType> mixins2 = elementA.mixins;
-    EngineTestCase.assertLength(1, mixins2);
-    JUnitTestCase.assertSame(elementC.type, mixins2[0]);
-    List<InterfaceType> interfaces2 = elementA.interfaces;
-    EngineTestCase.assertLength(1, interfaces2);
-    JUnitTestCase.assertSame(elementD.type, interfaces2[0]);
+    List<InterfaceType> mixins = elementA.mixins;
+    EngineTestCase.assertLength(1, mixins);
+    JUnitTestCase.assertSame(elementC.type, mixins[0]);
+    List<InterfaceType> interfaces = elementA.interfaces;
+    EngineTestCase.assertLength(1, interfaces);
+    JUnitTestCase.assertSame(elementD.type, interfaces[0]);
     _listener.assertNoErrors();
   }
   void test_visitSimpleFormalParameter_noType() {
@@ -2960,30 +2960,30 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitSimpleFormalParameter_type() {
-    InterfaceType intType2 = _typeProvider.intType;
-    ClassElement intElement = intType2.element;
+    InterfaceType intType = _typeProvider.intType;
+    ClassElement intElement = intType.element;
     FormalParameter node = ASTFactory.simpleFormalParameter4(ASTFactory.typeName(intElement, []), "p");
-    SimpleIdentifier identifier2 = node.identifier;
-    ParameterElementImpl element = new ParameterElementImpl(identifier2);
-    identifier2.element = element;
-    JUnitTestCase.assertSame(intType2, resolve6(node, [intElement]));
+    SimpleIdentifier identifier = node.identifier;
+    ParameterElementImpl element = new ParameterElementImpl(identifier);
+    identifier.element = element;
+    JUnitTestCase.assertSame(intType, resolve6(node, [intElement]));
     _listener.assertNoErrors();
   }
   void test_visitTypeName_noParameters_noArguments() {
     ClassElement classA = ElementFactory.classElement2("A", []);
-    TypeName typeName2 = ASTFactory.typeName(classA, []);
-    typeName2.type = null;
-    resolveNode(typeName2, [classA]);
-    JUnitTestCase.assertSame(classA.type, typeName2.type);
+    TypeName typeName = ASTFactory.typeName(classA, []);
+    typeName.type = null;
+    resolveNode(typeName, [classA]);
+    JUnitTestCase.assertSame(classA.type, typeName.type);
     _listener.assertNoErrors();
   }
   void test_visitTypeName_parameters_arguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B", []);
-    TypeName typeName2 = ASTFactory.typeName(classA, [ASTFactory.typeName(classB, [])]);
-    typeName2.type = null;
-    resolveNode(typeName2, [classA, classB]);
-    InterfaceType resultType = typeName2.type as InterfaceType;
+    TypeName typeName = ASTFactory.typeName(classA, [ASTFactory.typeName(classB, [])]);
+    typeName.type = null;
+    resolveNode(typeName, [classA, classB]);
+    InterfaceType resultType = typeName.type as InterfaceType;
     JUnitTestCase.assertSame(classA, resultType.element);
     List<Type2> resultArguments = resultType.typeArguments;
     EngineTestCase.assertLength(1, resultArguments);
@@ -2992,10 +2992,10 @@ class TypeResolverVisitorTest extends EngineTestCase {
   }
   void test_visitTypeName_parameters_noArguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
-    TypeName typeName2 = ASTFactory.typeName(classA, []);
-    typeName2.type = null;
-    resolveNode(typeName2, [classA]);
-    InterfaceType resultType = typeName2.type as InterfaceType;
+    TypeName typeName = ASTFactory.typeName(classA, []);
+    typeName.type = null;
+    resolveNode(typeName, [classA]);
+    InterfaceType resultType = typeName.type as InterfaceType;
     JUnitTestCase.assertSame(classA, resultType.element);
     List<Type2> resultArguments = resultType.typeArguments;
     EngineTestCase.assertLength(1, resultArguments);
@@ -3022,13 +3022,13 @@ class TypeResolverVisitorTest extends EngineTestCase {
    */
   void resolve(CatchClause node, InterfaceType exceptionType, InterfaceType stackTraceType, List<Element> definedElements) {
     resolveNode(node, definedElements);
-    SimpleIdentifier exceptionParameter2 = node.exceptionParameter;
-    if (exceptionParameter2 != null) {
-      JUnitTestCase.assertSame(exceptionType, exceptionParameter2.staticType);
+    SimpleIdentifier exceptionParameter = node.exceptionParameter;
+    if (exceptionParameter != null) {
+      JUnitTestCase.assertSame(exceptionType, exceptionParameter.staticType);
     }
-    SimpleIdentifier stackTraceParameter2 = node.stackTraceParameter;
-    if (stackTraceParameter2 != null) {
-      JUnitTestCase.assertSame(stackTraceType, stackTraceParameter2.staticType);
+    SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
+    if (stackTraceParameter != null) {
+      JUnitTestCase.assertSame(stackTraceType, stackTraceParameter.staticType);
     }
   }
 
@@ -6404,16 +6404,16 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
     return super.visitPrefixedIdentifier(node);
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    ASTNode parent2 = node.parent;
-    if (parent2 is MethodInvocation && identical(node, ((parent2 as MethodInvocation)).methodName)) {
+    ASTNode parent = node.parent;
+    if (parent is MethodInvocation && identical(node, ((parent as MethodInvocation)).methodName)) {
       return null;
-    } else if (parent2 is RedirectingConstructorInvocation && identical(node, ((parent2 as RedirectingConstructorInvocation)).constructorName)) {
+    } else if (parent is RedirectingConstructorInvocation && identical(node, ((parent as RedirectingConstructorInvocation)).constructorName)) {
       return null;
-    } else if (parent2 is SuperConstructorInvocation && identical(node, ((parent2 as SuperConstructorInvocation)).constructorName)) {
+    } else if (parent is SuperConstructorInvocation && identical(node, ((parent as SuperConstructorInvocation)).constructorName)) {
       return null;
-    } else if (parent2 is ConstructorName && identical(node, ((parent2 as ConstructorName)).name)) {
+    } else if (parent is ConstructorName && identical(node, ((parent as ConstructorName)).name)) {
       return null;
-    } else if (parent2 is ConstructorFieldInitializer && identical(node, ((parent2 as ConstructorFieldInitializer)).fieldName)) {
+    } else if (parent is ConstructorFieldInitializer && identical(node, ((parent as ConstructorFieldInitializer)).fieldName)) {
       return null;
     } else if (node.element is PrefixElement) {
       return null;
@@ -6430,9 +6430,9 @@ class StaticTypeVerifier extends GeneralizingASTVisitor<Object> {
   }
   String getFileName(ASTNode node) {
     if (node != null) {
-      ASTNode root2 = node.root;
-      if (root2 is CompilationUnit) {
-        CompilationUnit rootCU = (root2 as CompilationUnit);
+      ASTNode root = node.root;
+      if (root is CompilationUnit) {
+        CompilationUnit rootCU = (root as CompilationUnit);
         if (rootCU.element != null) {
           return rootCU.element.source.fullName;
         } else {
@@ -6634,9 +6634,9 @@ class ElementResolverTest extends EngineTestCase {
     _resolver = createResolver();
   }
   void test_lookUpMethodInInterfaces() {
-    InterfaceType intType2 = _typeProvider.intType;
+    InterfaceType intType = _typeProvider.intType;
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    MethodElement operator = ElementFactory.methodElement("[]", intType2, [intType2]);
+    MethodElement operator = ElementFactory.methodElement("[]", intType, [intType]);
     classA.methods = <MethodElement> [operator];
     ClassElementImpl classB = ElementFactory.classElement2("B", []);
     classB.interfaces = <InterfaceType> [classA.type];
@@ -6650,9 +6650,9 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitAssignmentExpression_compound() {
-    InterfaceType intType2 = _typeProvider.intType;
+    InterfaceType intType = _typeProvider.intType;
     SimpleIdentifier leftHandSide = ASTFactory.identifier3("a");
-    leftHandSide.staticType = intType2;
+    leftHandSide.staticType = intType;
     AssignmentExpression assignment = ASTFactory.assignmentExpression(leftHandSide, TokenType.PLUS_EQ, ASTFactory.integer(1));
     resolveNode(assignment, []);
     JUnitTestCase.assertSame(getMethod(_typeProvider.numType, "+"), assignment.element);
@@ -6665,12 +6665,12 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitBinaryExpression() {
-    InterfaceType numType2 = _typeProvider.numType;
+    InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier left = ASTFactory.identifier3("i");
-    left.staticType = numType2;
+    left.staticType = numType;
     BinaryExpression expression = ASTFactory.binaryExpression(left, TokenType.PLUS, ASTFactory.identifier3("j"));
     resolveNode(expression, []);
-    JUnitTestCase.assertEquals(getMethod(numType2, "+"), expression.element);
+    JUnitTestCase.assertEquals(getMethod(numType, "+"), expression.element);
     _listener.assertNoErrors();
   }
   void test_visitBreakStatement_withLabel() {
@@ -6724,14 +6724,14 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitFieldFormalParameter() {
-    InterfaceType intType2 = _typeProvider.intType;
+    InterfaceType intType = _typeProvider.intType;
     String fieldName = "f";
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    classA.fields = <FieldElement> [ElementFactory.fieldElement(fieldName, false, false, false, intType2)];
+    classA.fields = <FieldElement> [ElementFactory.fieldElement(fieldName, false, false, false, intType)];
     FieldFormalParameter parameter = ASTFactory.fieldFormalParameter2(fieldName);
     parameter.identifier.element = ElementFactory.fieldFormalParameter(parameter.identifier);
     resolveInClass(parameter, classA);
-    JUnitTestCase.assertSame(intType2, parameter.element.type);
+    JUnitTestCase.assertSame(intType, parameter.element.type);
   }
   void test_visitImportDirective_noCombinators_noPrefix() {
     ImportDirective directive = ASTFactory.importDirective2(null, null, []);
@@ -6750,8 +6750,8 @@ class ElementResolverTest extends EngineTestCase {
   }
   void test_visitIndexExpression_get() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    InterfaceType intType2 = _typeProvider.intType;
-    MethodElement getter = ElementFactory.methodElement("[]", intType2, [intType2]);
+    InterfaceType intType = _typeProvider.intType;
+    MethodElement getter = ElementFactory.methodElement("[]", intType, [intType]);
     classA.methods = <MethodElement> [getter];
     SimpleIdentifier array = ASTFactory.identifier3("a");
     array.staticType = classA.type;
@@ -6761,8 +6761,8 @@ class ElementResolverTest extends EngineTestCase {
   }
   void test_visitIndexExpression_set() {
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
-    InterfaceType intType2 = _typeProvider.intType;
-    MethodElement setter = ElementFactory.methodElement("[]=", intType2, [intType2]);
+    InterfaceType intType = _typeProvider.intType;
+    MethodElement setter = ElementFactory.methodElement("[]=", intType, [intType]);
     classA.methods = <MethodElement> [setter];
     SimpleIdentifier array = ASTFactory.identifier3("a");
     array.staticType = classA.type;
@@ -6812,13 +6812,13 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitMethodInvocation() {
-    InterfaceType numType2 = _typeProvider.numType;
+    InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier left = ASTFactory.identifier3("i");
-    left.staticType = numType2;
+    left.staticType = numType;
     String methodName = "abs";
     MethodInvocation invocation = ASTFactory.methodInvocation(left, methodName, []);
     resolveNode(invocation, []);
-    JUnitTestCase.assertSame(getMethod(numType2, methodName), invocation.methodName.element);
+    JUnitTestCase.assertSame(getMethod(numType, methodName), invocation.methodName.element);
     _listener.assertNoErrors();
   }
   void test_visitMethodInvocation_namedParameter() {
@@ -6838,25 +6838,25 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitPostfixExpression() {
-    InterfaceType numType2 = _typeProvider.numType;
+    InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier operand = ASTFactory.identifier3("i");
-    operand.staticType = numType2;
+    operand.staticType = numType;
     PostfixExpression expression = ASTFactory.postfixExpression(operand, TokenType.PLUS_PLUS);
     resolveNode(expression, []);
-    JUnitTestCase.assertEquals(getMethod(numType2, "+"), expression.element);
+    JUnitTestCase.assertEquals(getMethod(numType, "+"), expression.element);
     _listener.assertNoErrors();
   }
   void test_visitPrefixedIdentifier_dynamic() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     SimpleIdentifier target = ASTFactory.identifier3("a");
     VariableElementImpl variable = ElementFactory.localVariableElement(target);
-    variable.type = dynamicType2;
+    variable.type = dynamicType;
     target.element = variable;
-    target.staticType = dynamicType2;
-    PrefixedIdentifier identifier2 = ASTFactory.identifier(target, ASTFactory.identifier3("b"));
-    resolveNode(identifier2, []);
-    JUnitTestCase.assertNull(identifier2.element);
-    JUnitTestCase.assertNull(identifier2.identifier.element);
+    target.staticType = dynamicType;
+    PrefixedIdentifier identifier = ASTFactory.identifier(target, ASTFactory.identifier3("b"));
+    resolveNode(identifier, []);
+    JUnitTestCase.assertNull(identifier.element);
+    JUnitTestCase.assertNull(identifier.identifier.element);
     _listener.assertNoErrors();
   }
   void test_visitPrefixedIdentifier_nonDynamic() {
@@ -6869,19 +6869,19 @@ class ElementResolverTest extends EngineTestCase {
     variable.type = classA.type;
     target.element = variable;
     target.staticType = classA.type;
-    PrefixedIdentifier identifier2 = ASTFactory.identifier(target, ASTFactory.identifier3(getterName));
-    resolveNode(identifier2, []);
-    JUnitTestCase.assertSame(getter, identifier2.element);
-    JUnitTestCase.assertSame(getter, identifier2.identifier.element);
+    PrefixedIdentifier identifier = ASTFactory.identifier(target, ASTFactory.identifier3(getterName));
+    resolveNode(identifier, []);
+    JUnitTestCase.assertSame(getter, identifier.element);
+    JUnitTestCase.assertSame(getter, identifier.identifier.element);
     _listener.assertNoErrors();
   }
   void test_visitPrefixExpression() {
-    InterfaceType numType2 = _typeProvider.numType;
+    InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier operand = ASTFactory.identifier3("i");
-    operand.staticType = numType2;
+    operand.staticType = numType;
     PrefixExpression expression = ASTFactory.prefixExpression(TokenType.PLUS_PLUS, operand);
     resolveNode(expression, []);
-    JUnitTestCase.assertEquals(getMethod(numType2, "+"), expression.element);
+    JUnitTestCase.assertEquals(getMethod(numType, "+"), expression.element);
     _listener.assertNoErrors();
   }
   void test_visitPropertyAccess_getter_identifier() {
@@ -6923,11 +6923,11 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitSimpleIdentifier_classScope() {
-    InterfaceType doubleType2 = _typeProvider.doubleType;
+    InterfaceType doubleType = _typeProvider.doubleType;
     String fieldName = "NAN";
     SimpleIdentifier node = ASTFactory.identifier3(fieldName);
-    resolveInClass(node, doubleType2.element);
-    JUnitTestCase.assertEquals(getGetter(doubleType2, fieldName), node.element);
+    resolveInClass(node, doubleType.element);
+    JUnitTestCase.assertEquals(getGetter(doubleType, fieldName), node.element);
     _listener.assertNoErrors();
   }
   void test_visitSimpleIdentifier_lexicalScope() {
@@ -6937,18 +6937,18 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitSimpleIdentifier_lexicalScope_field_setter() {
-    InterfaceType intType2 = _typeProvider.intType;
+    InterfaceType intType = _typeProvider.intType;
     ClassElementImpl classA = ElementFactory.classElement2("A", []);
     String fieldName = "a";
-    FieldElement field = ElementFactory.fieldElement(fieldName, false, false, false, intType2);
+    FieldElement field = ElementFactory.fieldElement(fieldName, false, false, false, intType);
     classA.fields = <FieldElement> [field];
     classA.accessors = <PropertyAccessorElement> [field.getter, field.setter];
     SimpleIdentifier node = ASTFactory.identifier3(fieldName);
     ASTFactory.assignmentExpression(node, TokenType.EQ, ASTFactory.integer(0));
     resolveInClass(node, classA);
-    Element element2 = node.element;
-    EngineTestCase.assertInstanceOf(PropertyAccessorElement, element2);
-    JUnitTestCase.assertTrue(((element2 as PropertyAccessorElement)).isSetter());
+    Element element = node.element;
+    EngineTestCase.assertInstanceOf(PropertyAccessorElement, element);
+    JUnitTestCase.assertTrue(((element as PropertyAccessorElement)).isSetter());
     _listener.assertNoErrors();
   }
   void test_visitSuperConstructorInvocation() {
@@ -7301,19 +7301,19 @@ class TypeOverrideManagerTest extends EngineTestCase {
   void test_getType_enclosedOverride() {
     TypeOverrideManager manager = new TypeOverrideManager();
     LocalVariableElementImpl element = ElementFactory.localVariableElement2("v");
-    InterfaceType type2 = ElementFactory.classElement2("C", []).type;
+    InterfaceType type = ElementFactory.classElement2("C", []).type;
     manager.enterScope();
-    manager.setType(element, type2);
+    manager.setType(element, type);
     manager.enterScope();
-    JUnitTestCase.assertSame(type2, manager.getType(element));
+    JUnitTestCase.assertSame(type, manager.getType(element));
   }
   void test_getType_immediateOverride() {
     TypeOverrideManager manager = new TypeOverrideManager();
     LocalVariableElementImpl element = ElementFactory.localVariableElement2("v");
-    InterfaceType type2 = ElementFactory.classElement2("C", []).type;
+    InterfaceType type = ElementFactory.classElement2("C", []).type;
     manager.enterScope();
-    manager.setType(element, type2);
-    JUnitTestCase.assertSame(type2, manager.getType(element));
+    manager.setType(element, type);
+    JUnitTestCase.assertSame(type, manager.getType(element));
   }
   void test_getType_noOverride() {
     TypeOverrideManager manager = new TypeOverrideManager();
@@ -8979,17 +8979,17 @@ class AnalysisContextFactory {
    */
   static AnalysisContextImpl contextWithCore() {
     AnalysisContextImpl sdkContext = DirectoryBasedDartSdk.defaultSdk.context as AnalysisContextImpl;
-    SourceFactory sourceFactory2 = sdkContext.sourceFactory;
+    SourceFactory sourceFactory = sdkContext.sourceFactory;
     TestTypeProvider provider = new TestTypeProvider();
     CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
-    Source coreSource = sourceFactory2.forUri(DartSdk.DART_CORE);
+    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     sdkContext.setContents(coreSource, "");
     coreUnit.source = coreSource;
     coreUnit.types = <ClassElement> [provider.boolType.element, provider.doubleType.element, provider.functionType.element, provider.intType.element, provider.listType.element, provider.mapType.element, provider.numType.element, provider.objectType.element, provider.stackTraceType.element, provider.stringType.element, provider.typeType.element];
     LibraryElementImpl coreLibrary = new LibraryElementImpl(sdkContext, ASTFactory.libraryIdentifier2(["dart", "core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
     CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
-    Source htmlSource = sourceFactory2.forUri(DartSdk.DART_HTML);
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     sdkContext.setContents(htmlSource, "");
     htmlUnit.source = htmlSource;
     ClassElementImpl elementElement = ElementFactory.classElement2("Element", []);
@@ -9009,8 +9009,8 @@ class AnalysisContextFactory {
     elementMap[htmlSource] = htmlLibrary;
     sdkContext.recordLibraryElements(elementMap);
     AnalysisContextImpl context = new DelegatingAnalysisContextImpl();
-    sourceFactory2 = new SourceFactory.con2([new DartUriResolver(sdkContext.sourceFactory.dartSdk), new FileUriResolver()]);
-    context.sourceFactory = sourceFactory2;
+    sourceFactory = new SourceFactory.con2([new DartUriResolver(sdkContext.sourceFactory.dartSdk), new FileUriResolver()]);
+    context.sourceFactory = sourceFactory;
     return context;
   }
 }
@@ -9042,10 +9042,10 @@ class LibraryImportScopeTest extends ResolverTestCase {
       Element element = scope.lookup(ASTFactory.identifier3(typeNameB), importingLibrary);
       errorListener.assertErrors2([CompileTimeErrorCode.AMBIGUOUS_IMPORT]);
       EngineTestCase.assertInstanceOf(MultiplyDefinedElement, element);
-      List<Element> conflictingElements2 = ((element as MultiplyDefinedElement)).conflictingElements;
-      JUnitTestCase.assertEquals(typeB1, conflictingElements2[0]);
-      JUnitTestCase.assertEquals(typeB2, conflictingElements2[1]);
-      JUnitTestCase.assertEquals(2, conflictingElements2.length);
+      List<Element> conflictingElements = ((element as MultiplyDefinedElement)).conflictingElements;
+      JUnitTestCase.assertEquals(typeB1, conflictingElements[0]);
+      JUnitTestCase.assertEquals(typeB2, conflictingElements[1]);
+      JUnitTestCase.assertEquals(2, conflictingElements.length);
     }
     {
       GatheringErrorListener errorListener = new GatheringErrorListener();
@@ -9234,11 +9234,11 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
   }
   Object visitImportDirective(ImportDirective node) {
     checkResolved2(node, node.element, ImportElement);
-    SimpleIdentifier prefix2 = node.prefix;
-    if (prefix2 == null) {
+    SimpleIdentifier prefix = node.prefix;
+    if (prefix == null) {
       return null;
     }
-    return checkResolved2(prefix2, prefix2.element, PrefixElement);
+    return checkResolved2(prefix, prefix.element, PrefixElement);
   }
   Object visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
@@ -9285,9 +9285,9 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
   }
   String getFileName(ASTNode node) {
     if (node != null) {
-      ASTNode root2 = node.root;
-      if (root2 is CompilationUnit) {
-        CompilationUnit rootCU = (root2 as CompilationUnit);
+      ASTNode root = node.root;
+      if (root is CompilationUnit) {
+        CompilationUnit rootCU = (root as CompilationUnit);
         if (rootCU.element != null) {
           return rootCU.element.source.fullName;
         } else {
@@ -9421,19 +9421,19 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitAssignmentExpression_compound() {
-    InterfaceType numType2 = _typeProvider.numType;
+    InterfaceType numType = _typeProvider.numType;
     SimpleIdentifier identifier = resolvedVariable(_typeProvider.intType, "i");
     AssignmentExpression node = ASTFactory.assignmentExpression(identifier, TokenType.PLUS_EQ, resolvedInteger(1));
-    MethodElement plusMethod = getMethod(numType2, "+");
+    MethodElement plusMethod = getMethod(numType, "+");
     node.staticElement = plusMethod;
     node.element = plusMethod;
-    JUnitTestCase.assertSame(numType2, analyze(node));
+    JUnitTestCase.assertSame(numType, analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitAssignmentExpression_simple() {
-    InterfaceType intType2 = _typeProvider.intType;
-    Expression node = ASTFactory.assignmentExpression(resolvedVariable(intType2, "i"), TokenType.EQ, resolvedInteger(0));
-    JUnitTestCase.assertSame(intType2, analyze(node));
+    InterfaceType intType = _typeProvider.intType;
+    Expression node = ASTFactory.assignmentExpression(resolvedVariable(intType, "i"), TokenType.EQ, resolvedInteger(0));
+    JUnitTestCase.assertSame(intType, analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitBinaryExpression_equals() {
@@ -9511,181 +9511,181 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_named_block() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p1"), resolvedInteger(0));
-    setType(p1, dynamicType2);
+    setType(p1, dynamicType);
     FormalParameter p2 = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
-    setType(p2, dynamicType2);
+    setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody([]));
     analyze3(p1);
     analyze3(p2);
     Type2 resultType = analyze(node);
     Map<String, Type2> expectedNamedTypes = new Map<String, Type2>();
-    expectedNamedTypes["p1"] = dynamicType2;
-    expectedNamedTypes["p2"] = dynamicType2;
-    assertFunctionType(dynamicType2, null, null, expectedNamedTypes, resultType);
+    expectedNamedTypes["p1"] = dynamicType;
+    expectedNamedTypes["p2"] = dynamicType;
+    assertFunctionType(dynamicType, null, null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_named_expression() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p"), resolvedInteger(0));
-    setType(p, dynamicType2);
+    setType(p, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
     analyze3(p);
     Type2 resultType = analyze(node);
     Map<String, Type2> expectedNamedTypes = new Map<String, Type2>();
-    expectedNamedTypes["p"] = dynamicType2;
+    expectedNamedTypes["p"] = dynamicType;
     assertFunctionType(_typeProvider.intType, null, null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_normal_block() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = ASTFactory.simpleFormalParameter3("p1");
-    setType(p1, dynamicType2);
+    setType(p1, dynamicType);
     FormalParameter p2 = ASTFactory.simpleFormalParameter3("p2");
-    setType(p2, dynamicType2);
+    setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody([]));
     analyze3(p1);
     analyze3(p2);
     Type2 resultType = analyze(node);
-    assertFunctionType(dynamicType2, <Type2> [dynamicType2, dynamicType2], null, null, resultType);
+    assertFunctionType(dynamicType, <Type2> [dynamicType, dynamicType], null, null, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_normal_expression() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p = ASTFactory.simpleFormalParameter3("p");
-    setType(p, dynamicType2);
+    setType(p, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
     analyze3(p);
     Type2 resultType = analyze(node);
-    assertFunctionType(_typeProvider.intType, <Type2> [dynamicType2], null, null, resultType);
+    assertFunctionType(_typeProvider.intType, <Type2> [dynamicType], null, null, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_normalAndNamed_block() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = ASTFactory.simpleFormalParameter3("p1");
-    setType(p1, dynamicType2);
+    setType(p1, dynamicType);
     FormalParameter p2 = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
-    setType(p2, dynamicType2);
+    setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody([]));
     analyze3(p2);
     Type2 resultType = analyze(node);
     Map<String, Type2> expectedNamedTypes = new Map<String, Type2>();
-    expectedNamedTypes["p2"] = dynamicType2;
-    assertFunctionType(dynamicType2, <Type2> [dynamicType2], null, expectedNamedTypes, resultType);
+    expectedNamedTypes["p2"] = dynamicType;
+    assertFunctionType(dynamicType, <Type2> [dynamicType], null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_normalAndNamed_expression() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = ASTFactory.simpleFormalParameter3("p1");
-    setType(p1, dynamicType2);
+    setType(p1, dynamicType);
     FormalParameter p2 = ASTFactory.namedFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
-    setType(p2, dynamicType2);
+    setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
     analyze3(p2);
     Type2 resultType = analyze(node);
     Map<String, Type2> expectedNamedTypes = new Map<String, Type2>();
-    expectedNamedTypes["p2"] = dynamicType2;
-    assertFunctionType(_typeProvider.intType, <Type2> [dynamicType2], null, expectedNamedTypes, resultType);
+    expectedNamedTypes["p2"] = dynamicType;
+    assertFunctionType(_typeProvider.intType, <Type2> [dynamicType], null, expectedNamedTypes, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_normalAndPositional_block() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = ASTFactory.simpleFormalParameter3("p1");
-    setType(p1, dynamicType2);
+    setType(p1, dynamicType);
     FormalParameter p2 = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
-    setType(p2, dynamicType2);
+    setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody([]));
     analyze3(p1);
     analyze3(p2);
     Type2 resultType = analyze(node);
-    assertFunctionType(dynamicType2, <Type2> [dynamicType2], <Type2> [dynamicType2], null, resultType);
+    assertFunctionType(dynamicType, <Type2> [dynamicType], <Type2> [dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_normalAndPositional_expression() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = ASTFactory.simpleFormalParameter3("p1");
-    setType(p1, dynamicType2);
+    setType(p1, dynamicType);
     FormalParameter p2 = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
-    setType(p2, dynamicType2);
+    setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
     analyze3(p1);
     analyze3(p2);
     Type2 resultType = analyze(node);
-    assertFunctionType(_typeProvider.intType, <Type2> [dynamicType2], <Type2> [dynamicType2], null, resultType);
+    assertFunctionType(_typeProvider.intType, <Type2> [dynamicType], <Type2> [dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_positional_block() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p1 = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p1"), resolvedInteger(0));
-    setType(p1, dynamicType2);
+    setType(p1, dynamicType);
     FormalParameter p2 = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p2"), resolvedInteger(0));
-    setType(p2, dynamicType2);
+    setType(p2, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p1, p2]), ASTFactory.blockFunctionBody([]));
     analyze3(p1);
     analyze3(p2);
     Type2 resultType = analyze(node);
-    assertFunctionType(dynamicType2, null, <Type2> [dynamicType2, dynamicType2], null, resultType);
+    assertFunctionType(dynamicType, null, <Type2> [dynamicType, dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
   void test_visitFunctionExpression_positional_expression() {
-    Type2 dynamicType2 = _typeProvider.dynamicType;
+    Type2 dynamicType = _typeProvider.dynamicType;
     FormalParameter p = ASTFactory.positionalFormalParameter(ASTFactory.simpleFormalParameter3("p"), resolvedInteger(0));
-    setType(p, dynamicType2);
+    setType(p, dynamicType);
     FunctionExpression node = resolvedFunctionExpression(ASTFactory.formalParameterList([p]), ASTFactory.expressionFunctionBody(resolvedInteger(0)));
     analyze3(p);
     Type2 resultType = analyze(node);
-    assertFunctionType(_typeProvider.intType, null, <Type2> [dynamicType2], null, resultType);
+    assertFunctionType(_typeProvider.intType, null, <Type2> [dynamicType], null, resultType);
     _listener.assertNoErrors();
   }
   void test_visitIndexExpression_getter() {
-    InterfaceType listType2 = _typeProvider.listType;
-    SimpleIdentifier identifier = resolvedVariable(listType2, "a");
+    InterfaceType listType = _typeProvider.listType;
+    SimpleIdentifier identifier = resolvedVariable(listType, "a");
     IndexExpression node = ASTFactory.indexExpression(identifier, resolvedInteger(2));
-    MethodElement indexMethod = listType2.element.methods[0];
+    MethodElement indexMethod = listType.element.methods[0];
     node.staticElement = indexMethod;
     node.element = indexMethod;
-    JUnitTestCase.assertSame(listType2.typeArguments[0], analyze(node));
+    JUnitTestCase.assertSame(listType.typeArguments[0], analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitIndexExpression_setter() {
-    InterfaceType listType2 = _typeProvider.listType;
-    SimpleIdentifier identifier = resolvedVariable(listType2, "a");
+    InterfaceType listType = _typeProvider.listType;
+    SimpleIdentifier identifier = resolvedVariable(listType, "a");
     IndexExpression node = ASTFactory.indexExpression(identifier, resolvedInteger(2));
-    MethodElement indexMethod = listType2.element.methods[1];
+    MethodElement indexMethod = listType.element.methods[1];
     node.staticElement = indexMethod;
     node.element = indexMethod;
     ASTFactory.assignmentExpression(node, TokenType.EQ, ASTFactory.integer(0));
-    JUnitTestCase.assertSame(listType2.typeArguments[0], analyze(node));
+    JUnitTestCase.assertSame(listType.typeArguments[0], analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitIndexExpression_typeParameters() {
-    InterfaceType intType2 = _typeProvider.intType;
-    InterfaceType listType2 = _typeProvider.listType;
-    MethodElement methodElement = getMethod(listType2, "[]");
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType listType = _typeProvider.listType;
+    MethodElement methodElement = getMethod(listType, "[]");
     SimpleIdentifier identifier = ASTFactory.identifier3("list");
-    InterfaceType listOfIntType = listType2.substitute5(<Type2> [intType2]);
+    InterfaceType listOfIntType = listType.substitute5(<Type2> [intType]);
     identifier.staticType = listOfIntType;
-    IndexExpression indexExpression2 = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
+    IndexExpression indexExpression = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
     MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
-    indexExpression2.staticElement = indexMethod;
-    indexExpression2.element = indexMethod;
-    JUnitTestCase.assertSame(intType2, analyze(indexExpression2));
+    indexExpression.staticElement = indexMethod;
+    indexExpression.element = indexMethod;
+    JUnitTestCase.assertSame(intType, analyze(indexExpression));
     _listener.assertNoErrors();
   }
   void test_visitIndexExpression_typeParameters_inSetterContext() {
-    InterfaceType intType2 = _typeProvider.intType;
-    InterfaceType listType2 = _typeProvider.listType;
-    MethodElement methodElement = getMethod(listType2, "[]=");
+    InterfaceType intType = _typeProvider.intType;
+    InterfaceType listType = _typeProvider.listType;
+    MethodElement methodElement = getMethod(listType, "[]=");
     SimpleIdentifier identifier = ASTFactory.identifier3("list");
-    InterfaceType listOfIntType = listType2.substitute5(<Type2> [intType2]);
+    InterfaceType listOfIntType = listType.substitute5(<Type2> [intType]);
     identifier.staticType = listOfIntType;
-    IndexExpression indexExpression2 = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
+    IndexExpression indexExpression = ASTFactory.indexExpression(identifier, ASTFactory.integer(0));
     MethodElement indexMethod = MethodMember.from(methodElement, listOfIntType);
-    indexExpression2.staticElement = indexMethod;
-    indexExpression2.element = indexMethod;
-    ASTFactory.assignmentExpression(indexExpression2, TokenType.EQ, ASTFactory.integer(0));
-    JUnitTestCase.assertSame(intType2, analyze(indexExpression2));
+    indexExpression.staticElement = indexMethod;
+    indexExpression.element = indexMethod;
+    ASTFactory.assignmentExpression(indexExpression, TokenType.EQ, ASTFactory.integer(0));
+    JUnitTestCase.assertSame(intType, analyze(indexExpression));
     _listener.assertNoErrors();
   }
   void test_visitInstanceCreationExpression_named() {
@@ -9709,9 +9709,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
     constructorType.returnType = elementC.type;
     constructor.type = constructorType;
-    TypeName typeName2 = ASTFactory.typeName(elementC, [ASTFactory.typeName(elementI, [])]);
-    typeName2.type = elementC.type.substitute5(<Type2> [elementI.type]);
-    InstanceCreationExpression node = ASTFactory.instanceCreationExpression2(null, typeName2, []);
+    TypeName typeName = ASTFactory.typeName(elementC, [ASTFactory.typeName(elementI, [])]);
+    typeName.type = elementC.type.substitute5(<Type2> [elementI.type]);
+    InstanceCreationExpression node = ASTFactory.instanceCreationExpression2(null, typeName, []);
     node.element = constructor;
     InterfaceType interfaceType = analyze(node) as InterfaceType;
     List<Type2> typeArgs = interfaceType.typeArguments;
@@ -9796,20 +9796,20 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitPrefixedIdentifier_getter() {
-    Type2 boolType2 = _typeProvider.boolType;
-    PropertyAccessorElementImpl getter = ElementFactory.getterElement("b", false, boolType2);
+    Type2 boolType = _typeProvider.boolType;
+    PropertyAccessorElementImpl getter = ElementFactory.getterElement("b", false, boolType);
     PrefixedIdentifier node = ASTFactory.identifier5("a", "b");
     node.identifier.element = getter;
-    JUnitTestCase.assertSame(boolType2, analyze(node));
+    JUnitTestCase.assertSame(boolType, analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitPrefixedIdentifier_setter() {
-    Type2 boolType2 = _typeProvider.boolType;
-    FieldElementImpl field = ElementFactory.fieldElement("b", false, false, false, boolType2);
-    PropertyAccessorElement setter2 = field.setter;
+    Type2 boolType = _typeProvider.boolType;
+    FieldElementImpl field = ElementFactory.fieldElement("b", false, false, false, boolType);
+    PropertyAccessorElement setter = field.setter;
     PrefixedIdentifier node = ASTFactory.identifier5("a", "b");
-    node.identifier.element = setter2;
-    JUnitTestCase.assertSame(boolType2, analyze(node));
+    node.identifier.element = setter;
+    JUnitTestCase.assertSame(boolType, analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitPrefixedIdentifier_variable() {
@@ -9863,20 +9863,20 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
   void test_visitPropertyAccess_getter() {
-    Type2 boolType2 = _typeProvider.boolType;
-    PropertyAccessorElementImpl getter = ElementFactory.getterElement("b", false, boolType2);
+    Type2 boolType = _typeProvider.boolType;
+    PropertyAccessorElementImpl getter = ElementFactory.getterElement("b", false, boolType);
     PropertyAccess node = ASTFactory.propertyAccess2(ASTFactory.identifier3("a"), "b");
     node.propertyName.element = getter;
-    JUnitTestCase.assertSame(boolType2, analyze(node));
+    JUnitTestCase.assertSame(boolType, analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitPropertyAccess_setter() {
-    Type2 boolType2 = _typeProvider.boolType;
-    FieldElementImpl field = ElementFactory.fieldElement("b", false, false, false, boolType2);
-    PropertyAccessorElement setter2 = field.setter;
+    Type2 boolType = _typeProvider.boolType;
+    FieldElementImpl field = ElementFactory.fieldElement("b", false, false, false, boolType);
+    PropertyAccessorElement setter = field.setter;
     PropertyAccess node = ASTFactory.propertyAccess2(ASTFactory.identifier3("a"), "b");
-    node.propertyName.element = setter2;
-    JUnitTestCase.assertSame(boolType2, analyze(node));
+    node.propertyName.element = setter;
+    JUnitTestCase.assertSame(boolType, analyze(node));
     _listener.assertNoErrors();
   }
   void test_visitSimpleStringLiteral() {
@@ -9995,10 +9995,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     JUnitTestCase.assertEquals(expectedType.displayName, actualType.displayName);
     JUnitTestCase.assertEquals(expectedType.element, actualType.element);
     List<Type2> expectedArguments = expectedType.typeArguments;
-    int length2 = expectedArguments.length;
+    int length = expectedArguments.length;
     List<Type2> actualArguments = actualType.typeArguments;
-    EngineTestCase.assertLength(length2, actualArguments);
-    for (int i = 0; i < length2; i++) {
+    EngineTestCase.assertLength(length, actualArguments);
+    for (int i = 0; i < length; i++) {
       assertType2(expectedArguments[i], actualArguments[i]);
     }
   }
@@ -10117,13 +10117,13 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @param type the new type of the given parameter
    */
   void setType(FormalParameter parameter, Type2 type2) {
-    SimpleIdentifier identifier2 = parameter.identifier;
-    Element element2 = identifier2.element;
-    if (element2 is! ParameterElement) {
-      element2 = new ParameterElementImpl(identifier2);
-      identifier2.element = element2;
+    SimpleIdentifier identifier = parameter.identifier;
+    Element element = identifier.element;
+    if (element is! ParameterElement) {
+      element = new ParameterElementImpl(identifier);
+      identifier.element = element;
     }
-    ((element2 as ParameterElementImpl)).type = type2;
+    ((element as ParameterElementImpl)).type = type2;
   }
   static dartSuite() {
     _ut.group('StaticTypeAnalyzerTest', () {
@@ -10547,9 +10547,9 @@ class LibraryElementBuilderTest extends EngineTestCase {
    */
   void assertTypes(CompilationUnitElement unit, List<String> typeNames) {
     JUnitTestCase.assertNotNull(unit);
-    List<ClassElement> types2 = unit.types;
-    EngineTestCase.assertLength(typeNames.length, types2);
-    for (ClassElement type in types2) {
+    List<ClassElement> types = unit.types;
+    EngineTestCase.assertLength(typeNames.length, types);
+    for (ClassElement type in types) {
       JUnitTestCase.assertNotNull(type);
       String actualTypeName = type.displayName;
       bool wasExpected = false;
@@ -11045,25 +11045,25 @@ class SimpleResolverTest extends ResolverTestCase {
     LibraryElement library = resolve(source);
     JUnitTestCase.assertNotNull(library);
     ClassElement classElement = library.definingCompilationUnit.types[0];
-    List<ParameterElement> parameters2 = classElement.methods[1].parameters;
+    List<ParameterElement> parameters = classElement.methods[1].parameters;
     CompilationUnit unit = resolveCompilationUnit(source, library);
     JUnitTestCase.assertNotNull(unit);
     ClassDeclaration classDeclaration = unit.declarations[0] as ClassDeclaration;
     MethodDeclaration methodDeclaration = (classDeclaration.members[0] as MethodDeclaration);
-    Block block2 = ((methodDeclaration.body as BlockFunctionBody)).block;
-    ExpressionStatement statement = block2.statements[0] as ExpressionStatement;
+    Block block = ((methodDeclaration.body as BlockFunctionBody)).block;
+    ExpressionStatement statement = block.statements[0] as ExpressionStatement;
     MethodInvocation invocation = statement.expression as MethodInvocation;
-    NodeList<Expression> arguments2 = invocation.argumentList.arguments;
-    int argumentCount = arguments2.length;
+    NodeList<Expression> arguments = invocation.argumentList.arguments;
+    int argumentCount = arguments.length;
     JUnitTestCase.assertEquals(indices.length, argumentCount);
     for (int i = 0; i < argumentCount; i++) {
-      Expression argument = arguments2[i];
+      Expression argument = arguments[i];
       ParameterElement element = argument.staticParameterElement;
       int index = indices[i];
       if (index < 0) {
         JUnitTestCase.assertNull(element);
       } else {
-        JUnitTestCase.assertSame(parameters2[index], element);
+        JUnitTestCase.assertSame(parameters[index], element);
       }
     }
   }
@@ -11249,25 +11249,25 @@ class SimpleResolverTest extends ResolverTestCase {
   }
 }
 main() {
-//  ElementResolverTest.dartSuite();
-//  InheritanceManagerTest.dartSuite();
-//  LibraryElementBuilderTest.dartSuite();
-//  LibraryTest.dartSuite();
-//  StaticTypeAnalyzerTest.dartSuite();
-//  TypeOverrideManagerTest.dartSuite();
-//  TypeProviderImplTest.dartSuite();
-//  TypeResolverVisitorTest.dartSuite();
-//  EnclosedScopeTest.dartSuite();
-//  LibraryImportScopeTest.dartSuite();
-//  LibraryScopeTest.dartSuite();
-//  ScopeTest.dartSuite();
-//  CompileTimeErrorCodeTest.dartSuite();
-//  ErrorResolverTest.dartSuite();
-//  NonErrorResolverTest.dartSuite();
-//  PubSuggestionCodeTest.dartSuite();
-//  SimpleResolverTest.dartSuite();
-//  StaticTypeWarningCodeTest.dartSuite();
-//  StaticWarningCodeTest.dartSuite();
-//  StrictModeTest.dartSuite();
-//  TypePropagationTest.dartSuite();
+  ElementResolverTest.dartSuite();
+  InheritanceManagerTest.dartSuite();
+  LibraryElementBuilderTest.dartSuite();
+  LibraryTest.dartSuite();
+  StaticTypeAnalyzerTest.dartSuite();
+  TypeOverrideManagerTest.dartSuite();
+  TypeProviderImplTest.dartSuite();
+  TypeResolverVisitorTest.dartSuite();
+  EnclosedScopeTest.dartSuite();
+  LibraryImportScopeTest.dartSuite();
+  LibraryScopeTest.dartSuite();
+  ScopeTest.dartSuite();
+  CompileTimeErrorCodeTest.dartSuite();
+  ErrorResolverTest.dartSuite();
+  NonErrorResolverTest.dartSuite();
+  PubSuggestionCodeTest.dartSuite();
+  SimpleResolverTest.dartSuite();
+  StaticTypeWarningCodeTest.dartSuite();
+  StaticWarningCodeTest.dartSuite();
+  StrictModeTest.dartSuite();
+  TypePropagationTest.dartSuite();
 }

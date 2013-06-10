@@ -228,12 +228,12 @@ abstract class XmlNode {
    * @return the number of characters in the node's source range
    */
   int get length {
-    Token beginToken2 = beginToken;
-    Token endToken2 = endToken;
-    if (beginToken2 == null || endToken2 == null) {
+    Token beginToken = this.beginToken;
+    Token endToken = this.endToken;
+    if (beginToken == null || endToken == null) {
       return -1;
     }
-    return endToken2.offset + endToken2.length - beginToken2.offset;
+    return endToken.offset + endToken.length - beginToken.offset;
   }
 
   /**
@@ -243,8 +243,8 @@ abstract class XmlNode {
    * range
    */
   int get offset {
-    Token beginToken2 = beginToken;
-    if (beginToken2 == null) {
+    Token beginToken = this.beginToken;
+    if (beginToken == null) {
       return -1;
     }
     return beginToken.offset;
@@ -807,18 +807,18 @@ class ToSourceVisitor implements XmlVisitor<Object> {
     return null;
   }
   Object visitXmlAttributeNode(XmlAttributeNode node) {
-    String name2 = node.name.lexeme;
-    Token value2 = node.value;
-    if (name2.length == 0) {
+    String name = node.name.lexeme;
+    Token value = node.value;
+    if (name.length == 0) {
       _writer.print("__");
     } else {
-      _writer.print(name2);
+      _writer.print(name);
     }
     _writer.print("=");
-    if (value2 == null) {
+    if (value == null) {
       _writer.print("__");
     } else {
-      _writer.print(value2.lexeme);
+      _writer.print(value.lexeme);
     }
     return null;
   }
@@ -1162,8 +1162,8 @@ class XmlParser {
    * @return a collection of zero or more attributes (not {@code null}, contains no {@code null}s)
    */
   List<XmlAttributeNode> parseAttributes() {
-    TokenType type2 = _currentToken.type;
-    if (identical(type2, TokenType.GT) || identical(type2, TokenType.SLASH_GT) || identical(type2, TokenType.EOF)) {
+    TokenType type = _currentToken.type;
+    if (identical(type, TokenType.GT) || identical(type, TokenType.SLASH_GT) || identical(type, TokenType.EOF)) {
       return XmlTagNode.NO_ATTRIBUTES;
     }
     List<XmlAttributeNode> attributes = new List<XmlAttributeNode>();
@@ -1188,8 +1188,8 @@ class XmlParser {
    * @return a list of nodes (not {@code null}, contains no {@code null}s)
    */
   List<XmlTagNode> parseChildTagNodes() {
-    TokenType type2 = _currentToken.type;
-    if (identical(type2, TokenType.LT_SLASH) || identical(type2, TokenType.EOF)) {
+    TokenType type = _currentToken.type;
+    if (identical(type, TokenType.LT_SLASH) || identical(type, TokenType.EOF)) {
       return XmlTagNode.NO_TAG_NODES;
     }
     List<XmlTagNode> nodes = new List<XmlTagNode>();

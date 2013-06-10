@@ -1690,9 +1690,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
           ClassElement mixinElement = mixinType.element;
           classesToVisit.add(mixinElement);
         }
-        InterfaceType supertype2 = currentElement.supertype;
-        if (supertype2 != null) {
-          ClassElement superElement = supertype2.element;
+        InterfaceType supertype = currentElement.supertype;
+        if (supertype != null) {
+          ClassElement superElement = supertype.element;
           if (superElement != null) {
             classesToVisit.add(superElement);
           }
@@ -1723,11 +1723,11 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
           }
         }
       }
-      InterfaceType supertype2 = currentElement.supertype;
-      if (supertype2 == null) {
+      InterfaceType supertype = currentElement.supertype;
+      if (supertype == null) {
         return null;
       }
-      currentElement = supertype2.element;
+      currentElement = supertype.element;
     }
     return null;
   }
@@ -1749,11 +1749,11 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
           }
         }
       }
-      InterfaceType supertype2 = currentElement.supertype;
-      if (supertype2 == null) {
+      InterfaceType supertype = currentElement.supertype;
+      if (supertype == null) {
         return null;
       }
-      currentElement = supertype2.element;
+      currentElement = supertype.element;
     }
     return null;
   }
@@ -1775,11 +1775,11 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
           }
         }
       }
-      InterfaceType supertype2 = currentElement.supertype;
-      if (supertype2 == null) {
+      InterfaceType supertype = currentElement.supertype;
+      if (supertype == null) {
         return null;
       }
-      currentElement = supertype2.element;
+      currentElement = supertype.element;
     }
     return null;
   }
@@ -1950,8 +1950,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
           typesToVisit.add(type);
         }
         for (InterfaceType type in currentElement.mixins) {
-          ClassElement element2 = type.element;
-          if (!visitedClasses.contains(element2)) {
+          ClassElement element = type.element;
+          if (!visitedClasses.contains(element)) {
             supertypes.add(type);
           }
         }
@@ -2408,11 +2408,11 @@ abstract class ElementImpl implements Element {
     this._nameOffset = nameOffset2;
   }
   String computeDocumentationComment() {
-    AnalysisContext context2 = context;
-    if (context2 == null) {
+    AnalysisContext context = this.context;
+    if (context == null) {
       return null;
     }
-    return context2.computeDocumentationComment(this);
+    return context.computeDocumentationComment(this);
   }
   bool operator ==(Object object) => object != null && object.runtimeType == runtimeType && ((object as Element)).location == location;
   Element getAncestor(Type elementClass) {
@@ -2635,8 +2635,8 @@ class ElementLocationImpl implements ElementLocation {
   List<String> get components => _components;
   String get encoding {
     JavaStringBuilder builder = new JavaStringBuilder();
-    int length2 = _components.length;
-    for (int i = 0; i < length2; i++) {
+    int length = _components.length;
+    for (int i = 0; i < length; i++) {
       if (i > 0) {
         builder.appendChar(_SEPARATOR_CHAR);
       }
@@ -2656,11 +2656,11 @@ class ElementLocationImpl implements ElementLocation {
     List<String> components = new List<String>();
     JavaStringBuilder builder = new JavaStringBuilder();
     int index = 0;
-    int length2 = encoding.length;
-    while (index < length2) {
+    int length = encoding.length;
+    while (index < length) {
       int currentChar = encoding.codeUnitAt(index);
       if (currentChar == _SEPARATOR_CHAR) {
-        if (index + 1 < length2 && encoding.codeUnitAt(index + 1) == _SEPARATOR_CHAR) {
+        if (index + 1 < length && encoding.codeUnitAt(index + 1) == _SEPARATOR_CHAR) {
           builder.appendChar(_SEPARATOR_CHAR);
           index += 2;
         } else {
@@ -2685,8 +2685,8 @@ class ElementLocationImpl implements ElementLocation {
    * @param component the component to be appended to the builder
    */
   void encode(JavaStringBuilder builder, String component) {
-    int length2 = component.length;
-    for (int i = 0; i < length2; i++) {
+    int length = component.length;
+    for (int i = 0; i < length; i++) {
       int currentChar = component.codeUnitAt(i);
       if (currentChar == _SEPARATOR_CHAR) {
         builder.appendChar(_SEPARATOR_CHAR);
@@ -3646,9 +3646,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   List<PrefixElement> get prefixes {
     Set<PrefixElement> prefixes = new Set<PrefixElement>();
     for (ImportElement element in _imports) {
-      PrefixElement prefix2 = element.prefix;
-      if (prefix2 != null) {
-        javaSetAdd(prefixes, prefix2);
+      PrefixElement prefix = element.prefix;
+      if (prefix != null) {
+        javaSetAdd(prefixes, prefix);
       }
     }
     return new List.from(prefixes);
@@ -3715,9 +3715,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   void set imports(List<ImportElement> imports2) {
     for (ImportElement importElement in imports2) {
       ((importElement as ImportElementImpl)).enclosingElement = this;
-      PrefixElementImpl prefix2 = importElement.prefix as PrefixElementImpl;
-      if (prefix2 != null) {
-        prefix2.enclosingElement = this;
+      PrefixElementImpl prefix = importElement.prefix as PrefixElementImpl;
+      if (prefix != null) {
+        prefix.enclosingElement = this;
       }
     }
     this._imports = imports2;
@@ -3751,8 +3751,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     visited.add(this);
     for (int index = 0; index < visited.length; index++) {
       LibraryElement library = visited[index];
-      Source source2 = library.definingCompilationUnit.source;
-      if (source2 == htmlLibSource) {
+      Source source = library.definingCompilationUnit.source;
+      if (source == htmlLibSource) {
         return true;
       }
       for (LibraryElement importedLibrary in library.importedLibraries) {
@@ -3859,8 +3859,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
   ElementKind get kind => ElementKind.METHOD;
   String get name {
-    String name2 = super.name;
-    if (isOperator() && name2 == "-") {
+    String name = super.name;
+    if (isOperator() && name == "-") {
       if (parameters.length == 0) {
         return "unary-";
       }
@@ -4631,28 +4631,28 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   bool isConst() => baseElement.isConst();
   bool isFactory() => baseElement.isFactory();
   String toString() {
-    ConstructorElement baseElement2 = baseElement;
-    List<ParameterElement> parameters2 = parameters;
-    FunctionType type2 = type;
+    ConstructorElement baseElement = this.baseElement;
+    List<ParameterElement> parameters = this.parameters;
+    FunctionType type = this.type;
     JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(baseElement2.enclosingElement.displayName);
+    builder.append(baseElement.enclosingElement.displayName);
     String name = displayName;
     if (name != null && !name.isEmpty) {
       builder.append(".");
       builder.append(name);
     }
     builder.append("(");
-    int parameterCount = parameters2.length;
+    int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
         builder.append(", ");
       }
-      builder.append(parameters2[i]).toString();
+      builder.append(parameters[i]).toString();
     }
     builder.append(")");
-    if (type2 != null) {
+    if (type != null) {
       builder.append(" -> ");
-      builder.append(type2.returnType);
+      builder.append(type.returnType);
     }
     return builder.toString();
   }
@@ -4898,25 +4898,25 @@ class MethodMember extends ExecutableMember implements MethodElement {
   ClassElement get enclosingElement => baseElement.enclosingElement;
   bool isAbstract() => baseElement.isAbstract();
   String toString() {
-    MethodElement baseElement2 = baseElement;
-    List<ParameterElement> parameters2 = parameters;
-    FunctionType type2 = type;
+    MethodElement baseElement = this.baseElement;
+    List<ParameterElement> parameters = this.parameters;
+    FunctionType type = this.type;
     JavaStringBuilder builder = new JavaStringBuilder();
-    builder.append(baseElement2.enclosingElement.displayName);
+    builder.append(baseElement.enclosingElement.displayName);
     builder.append(".");
-    builder.append(baseElement2.displayName);
+    builder.append(baseElement.displayName);
     builder.append("(");
-    int parameterCount = parameters2.length;
+    int parameterCount = parameters.length;
     for (int i = 0; i < parameterCount; i++) {
       if (i > 0) {
         builder.append(", ");
       }
-      builder.append(parameters2[i]).toString();
+      builder.append(parameters[i]).toString();
     }
     builder.append(")");
-    if (type2 != null) {
+    if (type != null) {
       builder.append(" -> ");
-      builder.append(type2.returnType);
+      builder.append(type.returnType);
     }
     return builder.toString();
   }
@@ -4961,9 +4961,9 @@ class ParameterMember extends VariableMember implements ParameterElement {
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
   Element getAncestor(Type elementClass) {
     Element element = baseElement.getAncestor(elementClass);
-    ParameterizedType definingType2 = definingType;
-    if (definingType2 is InterfaceType) {
-      InterfaceType definingInterfaceType = definingType2 as InterfaceType;
+    ParameterizedType definingType = this.definingType;
+    if (definingType is InterfaceType) {
+      InterfaceType definingInterfaceType = definingType as InterfaceType;
       if (element is ConstructorElement) {
         return ConstructorMember.from((element as ConstructorElement), definingInterfaceType) as Element;
       } else if (element is MethodElement) {
@@ -4992,14 +4992,14 @@ class ParameterMember extends VariableMember implements ParameterElement {
   SourceRange get visibleRange => baseElement.visibleRange;
   bool isInitializingFormal() => baseElement.isInitializingFormal();
   String toString() {
-    ParameterElement baseElement2 = baseElement;
+    ParameterElement baseElement = this.baseElement;
     String left = "";
     String right = "";
     while (true) {
-      if (baseElement2.parameterKind == ParameterKind.NAMED) {
+      if (baseElement.parameterKind == ParameterKind.NAMED) {
         left = "{";
         right = "}";
-      } else if (baseElement2.parameterKind == ParameterKind.POSITIONAL) {
+      } else if (baseElement.parameterKind == ParameterKind.POSITIONAL) {
         left = "[";
         right = "]";
       }
@@ -5009,7 +5009,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
     builder.append(left);
     builder.append(type);
     builder.append(" ");
-    builder.append(baseElement2.displayName);
+    builder.append(baseElement.displayName);
     builder.append(right);
     return builder.toString();
   }
@@ -5062,11 +5062,11 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
   PropertyAccessorElement get correspondingSetter => from(baseElement.correspondingSetter, definingType);
   Element get enclosingElement => baseElement.enclosingElement;
   PropertyInducingElement get variable {
-    PropertyInducingElement variable2 = baseElement.variable;
-    if (variable2 is FieldElement) {
-      return FieldMember.from(((variable2 as FieldElement)), definingType);
+    PropertyInducingElement variable = baseElement.variable;
+    if (variable is FieldElement) {
+      return FieldMember.from(((variable as FieldElement)), definingType);
     }
-    return variable2;
+    return variable;
   }
   bool isAbstract() => baseElement.isAbstract();
   bool isGetter() => baseElement.isGetter();
@@ -5291,8 +5291,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return element == otherType.element && JavaArrays.equals(_normalParameterTypes, otherType._normalParameterTypes) && JavaArrays.equals(_optionalParameterTypes, otherType._optionalParameterTypes) && equals2(_namedParameterTypes, otherType._namedParameterTypes) && _returnType == otherType._returnType;
   }
   String get displayName {
-    String name2 = name;
-    if (name2 == null) {
+    String name = this.name;
+    if (name == null) {
       JavaStringBuilder builder = new JavaStringBuilder();
       builder.append("(");
       bool needsComma = false;
@@ -5348,40 +5348,40 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       } else {
         builder.append(_returnType.displayName);
       }
-      name2 = builder.toString();
+      name = builder.toString();
     }
-    return name2;
+    return name;
   }
   Map<String, Type2> get namedParameterTypes => _namedParameterTypes;
   List<Type2> get normalParameterTypes => _normalParameterTypes;
   List<Type2> get optionalParameterTypes => _optionalParameterTypes;
   List<ParameterElement> get parameters {
-    List<ParameterElement> baseParameters2 = baseParameters;
-    int parameterCount = baseParameters2.length;
+    List<ParameterElement> baseParameters = this.baseParameters;
+    int parameterCount = baseParameters.length;
     if (parameterCount == 0) {
-      return baseParameters2;
+      return baseParameters;
     }
     List<ParameterElement> specializedParameters = new List<ParameterElement>(parameterCount);
     for (int i = 0; i < parameterCount; i++) {
-      specializedParameters[i] = ParameterMember.from(baseParameters2[i], this);
+      specializedParameters[i] = ParameterMember.from(baseParameters[i], this);
     }
     return specializedParameters;
   }
   Type2 get returnType => _returnType;
   List<Type2> get typeArguments => _typeArguments;
   List<TypeVariableElement> get typeVariables {
-    Element element2 = element;
-    if (element2 is FunctionTypeAliasElement) {
-      return ((element2 as FunctionTypeAliasElement)).typeVariables;
+    Element element = this.element;
+    if (element is FunctionTypeAliasElement) {
+      return ((element as FunctionTypeAliasElement)).typeVariables;
     }
     return TypeVariableElementImpl.EMPTY_ARRAY;
   }
   int get hashCode {
-    Element element2 = element;
-    if (element2 == null) {
+    Element element = this.element;
+    if (element == null) {
       return 0;
     }
-    return element2.hashCode;
+    return element.hashCode;
   }
   bool isSubtypeOf(Type2 type) {
     if (type == null) {
@@ -5510,8 +5510,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (argumentTypes.length == 0) {
       return this;
     }
-    Element element2 = element;
-    FunctionTypeImpl newType = (element2 is ExecutableElement) ? new FunctionTypeImpl.con1((element2 as ExecutableElement)) : new FunctionTypeImpl.con2((element2 as FunctionTypeAliasElement));
+    Element element = this.element;
+    FunctionTypeImpl newType = (element is ExecutableElement) ? new FunctionTypeImpl.con1((element as ExecutableElement)) : new FunctionTypeImpl.con2((element as FunctionTypeAliasElement));
     newType.returnType = _returnType.substitute2(argumentTypes, parameterTypes);
     newType.normalParameterTypes = TypeImpl.substitute(_normalParameterTypes, argumentTypes, parameterTypes);
     newType.optionalParameterTypes = TypeImpl.substitute(_optionalParameterTypes, argumentTypes, parameterTypes);
@@ -5580,11 +5580,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @return the base parameter elements of this function element, not {@code null}.
    */
   List<ParameterElement> get baseParameters {
-    Element element2 = element;
-    if (element2 is ExecutableElement) {
-      return ((element2 as ExecutableElement)).parameters;
+    Element element = this.element;
+    if (element is ExecutableElement) {
+      return ((element as ExecutableElement)).parameters;
     } else {
-      return ((element2 as FunctionTypeAliasElement)).parameters;
+      return ((element as FunctionTypeAliasElement)).parameters;
     }
   }
 }
@@ -5645,8 +5645,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
           }
         }
       }
-      InterfaceType supertype2 = classElement.supertype;
-      pathLength = computeLongestInheritancePathToObject2(supertype2, depth + 1, visitedClasses);
+      InterfaceType supertype = classElement.supertype;
+      pathLength = computeLongestInheritancePathToObject2(supertype, depth + 1, visitedClasses);
       if (pathLength > longestPath) {
         longestPath = pathLength;
       }
@@ -5666,19 +5666,19 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #getLeastUpperBound(Type)
    */
   static Set<InterfaceType> computeSuperinterfaceSet2(InterfaceType type, Set<InterfaceType> set) {
-    Element element2 = type.element;
-    if (element2 != null && element2 is ClassElement) {
-      ClassElement classElement = element2 as ClassElement;
+    Element element = type.element;
+    if (element != null && element is ClassElement) {
+      ClassElement classElement = element as ClassElement;
       List<InterfaceType> superinterfaces = classElement.interfaces;
       for (InterfaceType superinterface in superinterfaces) {
         if (javaSetAdd(set, superinterface)) {
           computeSuperinterfaceSet2(superinterface, set);
         }
       }
-      InterfaceType supertype2 = classElement.supertype;
-      if (supertype2 != null) {
-        if (javaSetAdd(set, supertype2)) {
-          computeSuperinterfaceSet2(supertype2, set);
+      InterfaceType supertype = classElement.supertype;
+      if (supertype != null) {
+        if (javaSetAdd(set, supertype)) {
+          computeSuperinterfaceSet2(supertype, set);
         }
       }
     }
@@ -5779,15 +5779,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   PropertyAccessorElement getGetter(String getterName) => PropertyAccessorMember.from(((element as ClassElementImpl)).getGetter(getterName), this);
   List<InterfaceType> get interfaces {
     ClassElement classElement = element;
-    List<InterfaceType> interfaces2 = classElement.interfaces;
-    List<TypeVariableElement> typeVariables2 = classElement.typeVariables;
-    if (typeVariables2.length == 0) {
-      return interfaces2;
+    List<InterfaceType> interfaces = classElement.interfaces;
+    List<TypeVariableElement> typeVariables = classElement.typeVariables;
+    if (typeVariables.length == 0) {
+      return interfaces;
     }
-    int count = interfaces2.length;
+    int count = interfaces.length;
     List<InterfaceType> typedInterfaces = new List<InterfaceType>(count);
     for (int i = 0; i < count; i++) {
-      typedInterfaces[i] = interfaces2[i].substitute2(_typeArguments, TypeVariableTypeImpl.getTypes(typeVariables2));
+      typedInterfaces[i] = interfaces[i].substitute2(_typeArguments, TypeVariableTypeImpl.getTypes(typeVariables));
     }
     return typedInterfaces;
   }
@@ -5835,51 +5835,51 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   MethodElement getMethod(String methodName) => MethodMember.from(((element as ClassElementImpl)).getMethod(methodName), this);
   List<InterfaceType> get mixins {
     ClassElement classElement = element;
-    List<InterfaceType> mixins2 = classElement.mixins;
-    List<TypeVariableElement> typeVariables2 = classElement.typeVariables;
-    if (typeVariables2.length == 0) {
-      return mixins2;
+    List<InterfaceType> mixins = classElement.mixins;
+    List<TypeVariableElement> typeVariables = classElement.typeVariables;
+    if (typeVariables.length == 0) {
+      return mixins;
     }
-    int count = mixins2.length;
+    int count = mixins.length;
     List<InterfaceType> typedMixins = new List<InterfaceType>(count);
     for (int i = 0; i < count; i++) {
-      typedMixins[i] = mixins2[i].substitute2(_typeArguments, TypeVariableTypeImpl.getTypes(typeVariables2));
+      typedMixins[i] = mixins[i].substitute2(_typeArguments, TypeVariableTypeImpl.getTypes(typeVariables));
     }
     return typedMixins;
   }
   PropertyAccessorElement getSetter(String setterName) => PropertyAccessorMember.from(((element as ClassElementImpl)).getSetter(setterName), this);
   InterfaceType get superclass {
     ClassElement classElement = element;
-    InterfaceType supertype2 = classElement.supertype;
-    if (supertype2 == null) {
+    InterfaceType supertype = classElement.supertype;
+    if (supertype == null) {
       return null;
     }
-    return supertype2.substitute2(_typeArguments, TypeVariableTypeImpl.getTypes(classElement.typeVariables));
+    return supertype.substitute2(_typeArguments, TypeVariableTypeImpl.getTypes(classElement.typeVariables));
   }
   List<Type2> get typeArguments => _typeArguments;
   List<TypeVariableElement> get typeVariables => element.typeVariables;
   int get hashCode {
-    ClassElement element2 = element;
-    if (element2 == null) {
+    ClassElement element = this.element;
+    if (element == null) {
       return 0;
     }
-    return element2.hashCode;
+    return element.hashCode;
   }
   bool isDartCoreFunction() {
-    ClassElement element2 = element;
-    if (element2 == null) {
+    ClassElement element = this.element;
+    if (element == null) {
       return false;
     }
-    return element2.name == "Function" && element2.library.isDartCore();
+    return element.name == "Function" && element.library.isDartCore();
   }
   bool isDirectSupertypeOf(InterfaceType type) {
     ClassElement i = element;
     ClassElement j = type.element;
-    InterfaceType supertype2 = j.supertype;
-    if (supertype2 == null) {
+    InterfaceType supertype = j.supertype;
+    if (supertype == null) {
       return false;
     }
-    ClassElement supertypeElement = supertype2.element;
+    ClassElement supertypeElement = supertype.element;
     if (supertypeElement == i) {
       return true;
     }
@@ -6086,21 +6086,21 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
       return true;
     }
-    ClassElement element2 = element;
-    if (element2 == null || visitedClasses.contains(element2)) {
+    ClassElement element = this.element;
+    if (element == null || visitedClasses.contains(element)) {
       return false;
     }
-    javaSetAdd(visitedClasses, element2);
-    InterfaceType supertype2 = element2.supertype;
-    if (supertype2 != null && ((supertype2 as InterfaceTypeImpl)).isMoreSpecificThan2(s, visitedClasses)) {
+    javaSetAdd(visitedClasses, element);
+    InterfaceType supertype = element.supertype;
+    if (supertype != null && ((supertype as InterfaceTypeImpl)).isMoreSpecificThan2(s, visitedClasses)) {
       return true;
     }
-    for (InterfaceType interfaceType in element2.interfaces) {
+    for (InterfaceType interfaceType in element.interfaces) {
       if (((interfaceType as InterfaceTypeImpl)).isMoreSpecificThan2(s, visitedClasses)) {
         return true;
       }
     }
-    for (InterfaceType mixinType in element2.mixins) {
+    for (InterfaceType mixinType in element.mixins) {
       if (((mixinType as InterfaceTypeImpl)).isMoreSpecificThan2(s, visitedClasses)) {
         return true;
       }
@@ -6133,8 +6133,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     } else if (typeS.isDartCoreFunction() && elementT.getMethod("call") != null) {
       return true;
     }
-    InterfaceType supertype2 = elementT.supertype;
-    if (supertype2 != null && ((supertype2 as InterfaceTypeImpl)).isSubtypeOf2(typeS, visitedClasses)) {
+    InterfaceType supertype = elementT.supertype;
+    if (supertype != null && ((supertype as InterfaceTypeImpl)).isSubtypeOf2(typeS, visitedClasses)) {
       return true;
     }
     List<InterfaceType> interfaceTypes = elementT.interfaces;
@@ -6168,12 +6168,12 @@ abstract class TypeImpl implements Type2 {
    * @return the result of performing the substitution on each of the types
    */
   static List<Type2> substitute(List<Type2> types, List<Type2> argumentTypes, List<Type2> parameterTypes) {
-    int length2 = types.length;
-    if (length2 == 0) {
+    int length = types.length;
+    if (length == 0) {
       return types;
     }
-    List<Type2> newTypes = new List<Type2>(length2);
-    for (int i = 0; i < length2; i++) {
+    List<Type2> newTypes = new List<Type2>(length);
+    for (int i = 0; i < length; i++) {
       newTypes[i] = types[i].substitute2(argumentTypes, parameterTypes);
     }
     return newTypes;
@@ -6271,8 +6271,8 @@ class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
   }
   bool isSubtypeOf(Type2 type) => true;
   Type2 substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) {
-    int length2 = parameterTypes.length;
-    for (int i = 0; i < length2; i++) {
+    int length = parameterTypes.length;
+    for (int i = 0; i < length; i++) {
       if (parameterTypes[i] == this) {
         return argumentTypes[i];
       }

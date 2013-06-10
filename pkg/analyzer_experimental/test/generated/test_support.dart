@@ -316,15 +316,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(expectedErrors.length);
     writer.print(" errors:");
     for (AnalysisError error in expectedErrors) {
-      Source source2 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source2];
+      Source source = error.source;
+      LineInfo lineInfo = _lineInfoMap[source];
       writer.newLine();
       if (lineInfo == null) {
-        int offset2 = error.offset;
-        writer.printf("  %s %s (%d..%d)", [source2 == null ? "" : source2.shortName, error.errorCode, offset2, offset2 + error.length]);
+        int offset = error.offset;
+        writer.printf("  %s %s (%d..%d)", [source == null ? "" : source.shortName, error.errorCode, offset, offset + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [source2 == null ? "" : source2.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
+        writer.printf("  %s %s (%d, %d/%d)", [source == null ? "" : source.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
       }
     }
     writer.newLine();
@@ -332,15 +332,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(_errors.length);
     writer.print(" errors:");
     for (AnalysisError error in _errors) {
-      Source source3 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source3];
+      Source source = error.source;
+      LineInfo lineInfo = _lineInfoMap[source];
       writer.newLine();
       if (lineInfo == null) {
-        int offset3 = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [source3 == null ? "" : source3.shortName, error.errorCode, offset3, offset3 + error.length, error.message]);
+        int offset = error.offset;
+        writer.printf("  %s %s (%d..%d): %s", [source == null ? "" : source.shortName, error.errorCode, offset, offset + error.length, error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [source3 == null ? "" : source3.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
+        writer.printf("  %s %s (%d, %d/%d): %s", [source == null ? "" : source.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
       }
     }
     JUnitTestCase.fail(writer.toString());

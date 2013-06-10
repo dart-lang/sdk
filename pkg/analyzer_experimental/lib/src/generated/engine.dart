@@ -1919,20 +1919,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (element == null) {
       return null;
     }
-    Source source2 = element.source;
-    if (source2 == null) {
+    Source source = element.source;
+    if (source == null) {
       return null;
     }
     List<CharSequence> contentHolder = new List<CharSequence>(1);
     try {
-      source2.getContents(new Source_ContentReceiver_6(contentHolder));
+      source.getContents(new Source_ContentReceiver_6(contentHolder));
     } catch (exception) {
-      throw new AnalysisException.con2("Could not get contents of ${source2.fullName}", exception);
+      throw new AnalysisException.con2("Could not get contents of ${source.fullName}", exception);
     }
     if (contentHolder[0] == null) {
       return null;
     }
-    CompilationUnit unit = parseCompilationUnit(source2);
+    CompilationUnit unit = parseCompilationUnit(source);
     if (unit == null) {
       return null;
     }
@@ -1944,8 +1944,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (comment == null) {
           return null;
         }
-        int offset2 = comment.offset;
-        return contentHolder[0].subSequence(offset2, offset2 + comment.length).toString();
+        int offset = comment.offset;
+        return contentHolder[0].subSequence(offset, offset + comment.length).toString();
       }
       nameNode = nameNode.parent;
     }
@@ -2101,21 +2101,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
   AnalysisOptions get analysisOptions => _options;
   Element getElement(ElementLocation location) {
-    List<String> components2 = ((location as ElementLocationImpl)).components;
+    List<String> components = ((location as ElementLocationImpl)).components;
     ElementImpl element;
     {
-      Source librarySource = _sourceFactory.fromEncoding(components2[0]);
+      Source librarySource = _sourceFactory.fromEncoding(components[0]);
       try {
         element = computeLibraryElement(librarySource) as ElementImpl;
       } on AnalysisException catch (exception) {
         return null;
       }
     }
-    for (int i = 1; i < components2.length; i++) {
+    for (int i = 1; i < components.length; i++) {
       if (element == null) {
         return null;
       }
-      element = element.getChild(components2[i]);
+      element = element.getChild(components[i]);
     }
     return element;
   }
@@ -2246,9 +2246,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return null;
   }
   Namespace getPublicNamespace(LibraryElement library) {
-    Source source2 = library.definingCompilationUnit.source;
+    Source source = library.definingCompilationUnit.source;
     {
-      DartEntry dartEntry = getDartEntry(source2);
+      DartEntry dartEntry = getDartEntry(source);
       if (dartEntry == null) {
         return null;
       }
@@ -2258,7 +2258,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         namespace = builder.createPublicNamespace(library);
         DartEntryImpl dartCopy = dartEntry.writableCopy;
         dartCopy.setValue(DartEntry.PUBLIC_NAMESPACE, namespace);
-        _sourceMap[source2] = dartCopy;
+        _sourceMap[source] = dartCopy;
       }
       return namespace;
     }
@@ -3075,9 +3075,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void recordResolutionResults(LibraryResolver resolver) {
     Source htmlSource = _sourceFactory.forUri(DartSdk.DART_HTML);
-    RecordingErrorListener errorListener2 = resolver.errorListener;
+    RecordingErrorListener errorListener = resolver.errorListener;
     for (Library library in resolver.resolvedLibraries) {
-      Source librarySource2 = library.librarySource;
+      Source librarySource = library.librarySource;
       Set<Source> referencedLibraries = new Set<Source>();
       for (Library referencedLibrary in library.exports) {
         javaSetAdd(referencedLibraries, referencedLibrary.librarySource);
@@ -3087,18 +3087,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       for (Source source in library.compilationUnitSources) {
         CompilationUnit unit = library.getAST(source);
-        List<AnalysisError> errors = errorListener2.getErrors2(source);
+        List<AnalysisError> errors = errorListener.getErrors2(source);
         unit.resolutionErrors = errors;
-        LineInfo lineInfo2 = unit.lineInfo;
+        LineInfo lineInfo = unit.lineInfo;
         {
           DartEntry dartEntry = getDartEntry(source);
           if (dartEntry != null) {
             DartEntryImpl dartCopy = dartEntry.writableCopy;
-            dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo2);
+            dartCopy.setValue(SourceEntry.LINE_INFO, lineInfo);
             dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.FLUSHED);
-            dartCopy.setValue2(DartEntry.RESOLVED_UNIT, librarySource2, unit);
-            dartCopy.setValue2(DartEntry.RESOLUTION_ERRORS, librarySource2, errors);
-            if (identical(source, librarySource2)) {
+            dartCopy.setValue2(DartEntry.RESOLVED_UNIT, librarySource, unit);
+            dartCopy.setValue2(DartEntry.RESOLUTION_ERRORS, librarySource, errors);
+            if (identical(source, librarySource)) {
               recordElementData(dartCopy, library.libraryElement, htmlSource);
               List<Source> libraries;
               if (referencedLibraries.isEmpty) {
@@ -3111,7 +3111,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             _sourceMap[source] = dartCopy;
             ChangeNoticeImpl notice = getNotice(source);
             notice.compilationUnit = unit;
-            notice.setErrors(dartCopy.allErrors, lineInfo2);
+            notice.setErrors(dartCopy.allErrors, lineInfo);
           }
         }
       }
@@ -3629,8 +3629,8 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
     }
   }
   Namespace getPublicNamespace(LibraryElement library) {
-    Source source2 = library.source;
-    if (source2.isInSystemLibrary()) {
+    Source source = library.source;
+    if (source.isInSystemLibrary()) {
       return _sdkAnalysisContext.getPublicNamespace(library);
     } else {
       return super.getPublicNamespace(library);
@@ -4296,12 +4296,12 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not {@code null}, contains no {@code null}s)
    */
   List<AnalysisError> get errors {
-    Set<MapEntry<Source, List<AnalysisError>>> entrySet2 = getMapEntrySet(_errors);
-    if (entrySet2.length == 0) {
+    Set<MapEntry<Source, List<AnalysisError>>> entrySet = getMapEntrySet(_errors);
+    if (entrySet.length == 0) {
       return AnalysisError.NO_ERRORS;
     }
     List<AnalysisError> resultList = new List<AnalysisError>();
-    for (MapEntry<Source, List<AnalysisError>> entry in entrySet2) {
+    for (MapEntry<Source, List<AnalysisError>> entry in entrySet) {
       resultList.addAll(entry.getValue());
     }
     return new List.from(resultList);
@@ -4322,11 +4322,11 @@ class RecordingErrorListener implements AnalysisErrorListener {
     }
   }
   void onError(AnalysisError event) {
-    Source source2 = event.source;
-    List<AnalysisError> errorsForSource = _errors[source2];
-    if (_errors[source2] == null) {
+    Source source = event.source;
+    List<AnalysisError> errorsForSource = _errors[source];
+    if (_errors[source] == null) {
       errorsForSource = new List<AnalysisError>();
-      _errors[source2] = errorsForSource;
+      _errors[source] = errorsForSource;
     }
     errorsForSource.add(event);
   }
