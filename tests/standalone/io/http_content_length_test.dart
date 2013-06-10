@@ -1,6 +1,11 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// VMOptions=
+// VMOptions=--short_socket_read
+// VMOptions=--short_socket_write
+// VMOptions=--short_socket_read --short_socket_write
 
 import "package:expect/expect.dart";
 import "dart:async";
@@ -8,7 +13,7 @@ import "dart:isolate";
 import "dart:io";
 
 void testNoBody(int totalConnections, bool explicitContentLength) {
-  var errors = 0;
+  int count = 0;
   HttpServer.bind("127.0.0.1", 0, backlog: totalConnections).then((server) {
     server.listen(
         (HttpRequest request) {
@@ -22,6 +27,9 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
             })
             .catchError((error) {
               Expect.isTrue(error is HttpException);
+              if (++count == totalConnections) {
+                server.close();
+              }
             });
           // write with content length 0 closes the connection and
           // reports an error.
@@ -42,7 +50,6 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
           Expect.fail(msg);
         });
 
-    int count = 0;
     HttpClient client = new HttpClient();
     for (int i = 0; i < totalConnections; i++) {
       client.get("127.0.0.1", server.port, "/")
@@ -55,14 +62,7 @@ void testNoBody(int totalConnections, bool explicitContentLength) {
           .then((response) {
             Expect.equals("0", response.headers.value('content-length'));
             Expect.equals(0, response.contentLength);
-            response.listen(
-                (d) {},
-                onDone: () {
-                  if (++count == totalConnections) {
-                    client.close();
-                    server.close();
-                  }
-                });
+            response.drain();
           })
           .catchError((e) {
             String msg = "Unexpected error $e";
@@ -258,7 +258,9 @@ void testSetContentLength() {
 
 void main() {
   testNoBody(5, false);
+  testNoBody(25, false);
   testNoBody(5, true);
+  testNoBody(25, true);
   testBody(5, false);
   testBody(5, true);
   testBodyChunked(5, false);

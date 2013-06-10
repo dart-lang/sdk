@@ -16,8 +16,6 @@ io/test_runner_test: Fail
 # Skip this because it is leaving temp directories behind when it fails.
 io/skipping_dart2js_compilations_test: Skip
 
-io/http_content_length_test: Pass, Fail # Issue 10934
-
 [ $runtime == vm && ( $system == windows ) ]
 io/raw_socket_test: Pass, Fail # Issue 8901
 
