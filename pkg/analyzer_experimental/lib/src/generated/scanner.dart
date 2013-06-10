@@ -76,10 +76,10 @@ class KeywordState {
    * @return the state that was created
    */
   static KeywordState createKeywordStateTable() {
-    List<Keyword> values2 = Keyword.values;
-    List<String> strings = new List<String>(values2.length);
-    for (int i = 0; i < values2.length; i++) {
-      strings[i] = values2[i].syntax;
+    List<Keyword> values = Keyword.values;
+    List<String> strings = new List<String>(values.length);
+    for (int i = 0; i < values.length; i++) {
+      strings[i] = values[i].syntax;
     }
     strings.sort();
     return computeKeywordStateTable(0, strings, 0, strings.length);

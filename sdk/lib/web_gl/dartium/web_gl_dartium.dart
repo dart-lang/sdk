@@ -744,6 +744,20 @@ class ExtDrawBuffers extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
+@DomName('EXTFragDepth')
+@Experimental // untriaged
+class ExtFragDepth extends NativeFieldWrapperClass1 {
+  ExtFragDepth.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
 @DomName('EXTTextureFilterAnisotropic')
 // http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/
 @Experimental

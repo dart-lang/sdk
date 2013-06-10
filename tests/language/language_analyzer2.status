@@ -32,8 +32,6 @@ cast_test/05: fail
 class_cycle_test/03: fail
 closure_call_wrong_argument_count_negative_test: fail
 compile_time_constant10_test/none: fail
-compile_time_constant8_test: fail
-compile_time_constant_b_test: fail
 compile_time_constant_c_test/01: fail
 compile_time_constant_c_test/02: fail
 compile_time_constant_checked2_test/02: fail
@@ -44,7 +42,6 @@ compile_time_constant_checked3_test/02: fail
 compile_time_constant_checked3_test/03: fail
 compile_time_constant_checked3_test/04: fail
 compile_time_constant_checked3_test/06: fail
-compile_time_constant_d_test: fail
 compile_time_constant_e_test: fail
 const_syntax_test/06: fail
 constructor2_negative_test: fail
@@ -102,7 +99,6 @@ interface_static_non_final_fields_negative_test: fail
 interface_test/00: fail
 is_not_class2_negative_test: fail
 library_juxtaposition_test: fail
-licm_test: fail
 list_literal1_negative_test: fail
 list_literal_syntax_test/01: fail
 list_literal_syntax_test/02: fail
@@ -202,7 +198,6 @@ type_variable_bounds_test/07: fail
 type_variable_bounds_test/09: fail
 type_variable_identifier_expression_negative_test: fail
 type_variable_static_context_negative_test: fail
-typed_equality_test: fail
 unary2_test: fail
 unary_test: fail
 unresolved_in_factory_negative_test: fail
@@ -210,59 +205,59 @@ unresolved_top_level_method_negative_test: fail
 unresolved_top_level_var_negative_test: fail
 
 # test issue 10683, It is a compile-time error if e refers to the name v or the name v=.
-block_scope_test: fail, OK
-lazy_static3_test: fail, OK
+block_scope_test: fail
+lazy_static3_test: fail
 
 # test issue 10752, there are 'implicit' scopes for 'if', 'while' and 'do-while'
-implicit_scope_test: fail, OK
+implicit_scope_test: fail
 
 # test issue 10889, "throw" requires expression, "rethrow" should be used instead
-execute_finally10_test: fail, OK
-execute_finally11_test: fail, OK
-final_used_in_try_test: fail, OK
-full_stacktrace2_test: fail, OK
-stack_trace_test: fail, OK
-throw3_test: fail, OK
-try_catch3_test: fail, OK
+execute_finally10_test: fail
+execute_finally11_test: fail
+final_used_in_try_test: fail
+full_stacktrace2_test: fail
+stack_trace_test: fail
+throw3_test: fail
+try_catch3_test: fail
 
 # test issue 10890; on-catch UnknownType is a static warning, not error
-try_catch_on_syntax_test/01: fail, OK
-try_catch_on_syntax_test/07: fail, OK
-try_catch_syntax_test/08: fail, OK
+try_catch_on_syntax_test/01: fail
+try_catch_on_syntax_test/07: fail
+try_catch_syntax_test/08: fail
 
 # test issue 10899; it is static warning, not error, to call methods of class literal
-class_literal_test/02: fail, OK
-class_literal_test/05: fail, OK
-class_literal_test/07: fail, OK
-class_literal_test/10: fail, OK
-class_literal_test/11: fail, OK
-class_literal_test/12: fail, OK
-class_literal_test/14: fail, OK
-class_literal_test/17: fail, OK
-class_literal_test/18: fail, OK
-class_literal_test/19: fail, OK
-class_literal_test/22: fail, OK
-class_literal_test/23: fail, OK
-class_literal_test/24: fail, OK
-class_literal_test/27: fail, OK
-class_literal_test/28: fail, OK
-class_literal_test/29: fail, OK
-class_literal_test/none: fail, OK
+class_literal_test/02: fail
+class_literal_test/05: fail
+class_literal_test/07: fail
+class_literal_test/10: fail
+class_literal_test/11: fail
+class_literal_test/12: fail
+class_literal_test/14: fail
+class_literal_test/17: fail
+class_literal_test/18: fail
+class_literal_test/19: fail
+class_literal_test/22: fail
+class_literal_test/23: fail
+class_literal_test/24: fail
+class_literal_test/27: fail
+class_literal_test/28: fail
+class_literal_test/29: fail
+class_literal_test/none: fail
 
 # Test issue 11124, Uninitialized finals are warnings not errors
-field3a_negative_test: fail, OK
-const_syntax_test/01: fail, OK
-const_syntax_test/04: fail, OK
-const_syntax_test/02: fail, OK
-const_syntax_test/03: fail, OK
-final_syntax_test/01: fail, OK
-final_syntax_test/04: fail, OK
-final_syntax_test/02: fail, OK
-final_syntax_test/03: fail, OK
+field3a_negative_test: fail
+const_syntax_test/01: fail
+const_syntax_test/04: fail
+const_syntax_test/02: fail
+const_syntax_test/03: fail
+final_syntax_test/01: fail
+final_syntax_test/04: fail
+final_syntax_test/02: fail
+final_syntax_test/03: fail
 
 # Test issue 11123, Only static fields can be declared as 'const'
-const_escape_frog_test: fail, OK
-compile_time_constant_test/none: fail, OK
+const_escape_frog_test: fail
+compile_time_constant_test/none: fail
 
 [ $compiler == dart2analyzer && $checked ]
 factory1_test/00: fail

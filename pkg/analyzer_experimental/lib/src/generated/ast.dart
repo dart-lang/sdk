@@ -81,12 +81,12 @@ abstract class ASTNode {
    * @return the number of characters in the node's source range
    */
   int get length {
-    Token beginToken2 = beginToken;
-    Token endToken2 = endToken;
-    if (beginToken2 == null || endToken2 == null) {
+    Token beginToken = this.beginToken;
+    Token endToken = this.endToken;
+    if (beginToken == null || endToken == null) {
       return -1;
     }
-    return endToken2.offset + endToken2.length - beginToken2.offset;
+    return endToken.offset + endToken.length - beginToken.offset;
   }
 
   /**
@@ -96,8 +96,8 @@ abstract class ASTNode {
    * range
    */
   int get offset {
-    Token beginToken2 = beginToken;
-    if (beginToken2 == null) {
+    Token beginToken = this.beginToken;
+    if (beginToken == null) {
       return -1;
     }
     return beginToken.offset;
@@ -131,10 +131,10 @@ abstract class ASTNode {
    */
   ASTNode get root {
     ASTNode root = this;
-    ASTNode parent2 = parent;
-    while (parent2 != null) {
-      root = parent2;
-      parent2 = root.parent;
+    ASTNode parent = this.parent;
+    while (parent != null) {
+      root = parent;
+      parent = root.parent;
     }
     return root;
   }
@@ -1460,11 +1460,11 @@ class BinaryExpression extends Expression {
     if (_propagatedElement == null) {
       return null;
     }
-    List<ParameterElement> parameters2 = _propagatedElement.parameters;
-    if (parameters2.length < 1) {
+    List<ParameterElement> parameters = _propagatedElement.parameters;
+    if (parameters.length < 1) {
       return null;
     }
-    return parameters2[0];
+    return parameters[0];
   }
 
   /**
@@ -1480,11 +1480,11 @@ class BinaryExpression extends Expression {
     if (_staticElement == null) {
       return null;
     }
-    List<ParameterElement> parameters2 = _staticElement.parameters;
-    if (parameters2.length < 1) {
+    List<ParameterElement> parameters = _staticElement.parameters;
+    if (parameters.length < 1) {
       return null;
     }
-    return parameters2[0];
+    return parameters[0];
   }
 }
 /**
@@ -2984,11 +2984,11 @@ class CompilationUnit extends ASTNode {
     }
   }
   int get length {
-    Token endToken2 = endToken;
-    if (endToken2 == null) {
+    Token endToken = this.endToken;
+    if (endToken == null) {
       return 0;
     }
-    return endToken2.offset + endToken2.length;
+    return endToken.offset + endToken.length;
   }
 
   /**
@@ -4084,11 +4084,11 @@ class DeclaredIdentifier extends Declaration {
   DeclaredIdentifier({Comment comment, List<Annotation> metadata, Token keyword, TypeName type, SimpleIdentifier identifier}) : this.full(comment, metadata, keyword, type, identifier);
   accept(ASTVisitor visitor) => visitor.visitDeclaredIdentifier(this);
   LocalVariableElement get element {
-    SimpleIdentifier identifier2 = identifier;
-    if (identifier2 == null) {
+    SimpleIdentifier identifier = this.identifier;
+    if (identifier == null) {
       return null;
     }
-    return identifier2.element as LocalVariableElement;
+    return identifier.element as LocalVariableElement;
   }
   Token get endToken => _identifier.endToken;
 
@@ -4740,9 +4740,9 @@ class ExportDirective extends NamespaceDirective {
   ExportDirective({Comment comment, List<Annotation> metadata, Token keyword, StringLiteral libraryUri, List<Combinator> combinators, Token semicolon}) : this.full(comment, metadata, keyword, libraryUri, combinators, semicolon);
   accept(ASTVisitor visitor) => visitor.visitExportDirective(this);
   LibraryElement get uriElement {
-    Element element2 = element;
-    if (element2 is ExportElement) {
-      return ((element2 as ExportElement)).exportedLibrary;
+    Element element = this.element;
+    if (element is ExportElement) {
+      return ((element as ExportElement)).exportedLibrary;
     }
     return null;
   }
@@ -4782,23 +4782,23 @@ abstract class Expression extends ASTNode {
    * will be bound
    */
   ParameterElement get parameterElement {
-    ASTNode parent2 = parent;
-    if (parent2 is ArgumentList) {
-      return ((parent2 as ArgumentList)).getPropagatedParameterElementFor(this);
-    } else if (parent2 is IndexExpression) {
-      IndexExpression indexExpression = parent2 as IndexExpression;
+    ASTNode parent = this.parent;
+    if (parent is ArgumentList) {
+      return ((parent as ArgumentList)).getPropagatedParameterElementFor(this);
+    } else if (parent is IndexExpression) {
+      IndexExpression indexExpression = parent as IndexExpression;
       if (identical(indexExpression.index, this)) {
         return indexExpression.propagatedParameterElementForIndex;
       }
-    } else if (parent2 is BinaryExpression) {
-      BinaryExpression binaryExpression = parent2 as BinaryExpression;
+    } else if (parent is BinaryExpression) {
+      BinaryExpression binaryExpression = parent as BinaryExpression;
       if (identical(binaryExpression.rightOperand, this)) {
         return binaryExpression.propagatedParameterElementForRightOperand;
       }
-    } else if (parent2 is PrefixExpression) {
-      return ((parent2 as PrefixExpression)).propagatedParameterElementForOperand;
-    } else if (parent2 is PostfixExpression) {
-      return ((parent2 as PostfixExpression)).propagatedParameterElementForOperand;
+    } else if (parent is PrefixExpression) {
+      return ((parent as PrefixExpression)).propagatedParameterElementForOperand;
+    } else if (parent is PostfixExpression) {
+      return ((parent as PostfixExpression)).propagatedParameterElementForOperand;
     }
     return null;
   }
@@ -4820,23 +4820,23 @@ abstract class Expression extends ASTNode {
    * will be bound
    */
   ParameterElement get staticParameterElement {
-    ASTNode parent2 = parent;
-    if (parent2 is ArgumentList) {
-      return ((parent2 as ArgumentList)).getStaticParameterElementFor(this);
-    } else if (parent2 is IndexExpression) {
-      IndexExpression indexExpression = parent2 as IndexExpression;
+    ASTNode parent = this.parent;
+    if (parent is ArgumentList) {
+      return ((parent as ArgumentList)).getStaticParameterElementFor(this);
+    } else if (parent is IndexExpression) {
+      IndexExpression indexExpression = parent as IndexExpression;
       if (identical(indexExpression.index, this)) {
         return indexExpression.staticParameterElementForIndex;
       }
-    } else if (parent2 is BinaryExpression) {
-      BinaryExpression binaryExpression = parent2 as BinaryExpression;
+    } else if (parent is BinaryExpression) {
+      BinaryExpression binaryExpression = parent as BinaryExpression;
       if (identical(binaryExpression.rightOperand, this)) {
         return binaryExpression.staticParameterElementForRightOperand;
       }
-    } else if (parent2 is PrefixExpression) {
-      return ((parent2 as PrefixExpression)).staticParameterElementForOperand;
-    } else if (parent2 is PostfixExpression) {
-      return ((parent2 as PostfixExpression)).staticParameterElementForOperand;
+    } else if (parent is PrefixExpression) {
+      return ((parent as PrefixExpression)).staticParameterElementForOperand;
+    } else if (parent is PostfixExpression) {
+      return ((parent as PostfixExpression)).staticParameterElementForOperand;
     }
     return null;
   }
@@ -5811,11 +5811,11 @@ abstract class FormalParameter extends ASTNode {
    * @return the element representing this parameter
    */
   ParameterElement get element {
-    SimpleIdentifier identifier2 = identifier;
-    if (identifier2 == null) {
+    SimpleIdentifier identifier = this.identifier;
+    if (identifier == null) {
       return null;
     }
-    return identifier2.element as ParameterElement;
+    return identifier.element as ParameterElement;
   }
 
   /**
@@ -7072,9 +7072,9 @@ class ImportDirective extends NamespaceDirective {
    */
   SimpleIdentifier get prefix => _prefix;
   LibraryElement get uriElement {
-    Element element2 = element;
-    if (element2 is ImportElement) {
-      return ((element2 as ImportElement)).importedLibrary;
+    Element element = this.element;
+    if (element is ImportElement) {
+      return ((element as ImportElement)).importedLibrary;
     }
     return null;
   }
@@ -7287,9 +7287,9 @@ class IndexExpression extends Expression {
    * @return {@code true} if this expression is in a context where the operator '\[\]' will be invoked
    */
   bool inGetterContext() {
-    ASTNode parent2 = parent;
-    if (parent2 is AssignmentExpression) {
-      AssignmentExpression assignment = parent2 as AssignmentExpression;
+    ASTNode parent = this.parent;
+    if (parent is AssignmentExpression) {
+      AssignmentExpression assignment = parent as AssignmentExpression;
       if (identical(assignment.leftHandSide, this) && identical(assignment.operator.type, TokenType.EQ)) {
         return false;
       }
@@ -7306,13 +7306,13 @@ class IndexExpression extends Expression {
    * invoked
    */
   bool inSetterContext() {
-    ASTNode parent2 = parent;
-    if (parent2 is PrefixExpression) {
-      return ((parent2 as PrefixExpression)).operator.type.isIncrementOperator();
-    } else if (parent2 is PostfixExpression) {
+    ASTNode parent = this.parent;
+    if (parent is PrefixExpression) {
+      return ((parent as PrefixExpression)).operator.type.isIncrementOperator();
+    } else if (parent is PostfixExpression) {
       return true;
-    } else if (parent2 is AssignmentExpression) {
-      return identical(((parent2 as AssignmentExpression)).leftHandSide, this);
+    } else if (parent is AssignmentExpression) {
+      return identical(((parent as AssignmentExpression)).leftHandSide, this);
     }
     return false;
   }
@@ -7400,11 +7400,11 @@ class IndexExpression extends Expression {
     if (_propagatedElement == null) {
       return null;
     }
-    List<ParameterElement> parameters2 = _propagatedElement.parameters;
-    if (parameters2.length < 1) {
+    List<ParameterElement> parameters = _propagatedElement.parameters;
+    if (parameters.length < 1) {
       return null;
     }
-    return parameters2[0];
+    return parameters[0];
   }
 
   /**
@@ -7420,11 +7420,11 @@ class IndexExpression extends Expression {
     if (_staticElement == null) {
       return null;
     }
-    List<ParameterElement> parameters2 = _staticElement.parameters;
-    if (parameters2.length < 1) {
+    List<ParameterElement> parameters = _staticElement.parameters;
+    if (parameters.length < 1) {
       return null;
     }
-    return parameters2[0];
+    return parameters[0];
   }
 }
 /**
@@ -8291,9 +8291,9 @@ class ListLiteral extends TypedLiteral {
     if (token != null) {
       return token;
     }
-    TypeArgumentList typeArguments2 = typeArguments;
-    if (typeArguments2 != null) {
-      return typeArguments2.beginToken;
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
     }
     return _leftBracket;
   }
@@ -8403,9 +8403,9 @@ class MapLiteral extends TypedLiteral {
     if (token != null) {
       return token;
     }
-    TypeArgumentList typeArguments2 = typeArguments;
-    if (typeArguments2 != null) {
-      return typeArguments2.beginToken;
+    TypeArgumentList typeArguments = this.typeArguments;
+    if (typeArguments != null) {
+      return typeArguments.beginToken;
     }
     return _leftBracket;
   }
@@ -9019,9 +9019,9 @@ class NamedExpression extends Expression {
    * @return the element representing the parameter being named by this expression
    */
   ParameterElement get element {
-    Element element2 = _name.label.element;
-    if (element2 is ParameterElement) {
-      return element2 as ParameterElement;
+    Element element = _name.label.element;
+    if (element is ParameterElement) {
+      return element as ParameterElement;
     }
     return null;
   }
@@ -9268,9 +9268,9 @@ abstract class NormalFormalParameter extends FormalParameter {
   Comment get documentationComment => _comment;
   SimpleIdentifier get identifier => _identifier;
   ParameterKind get kind {
-    ASTNode parent2 = parent;
-    if (parent2 is DefaultFormalParameter) {
-      return ((parent2 as DefaultFormalParameter)).kind;
+    ASTNode parent = this.parent;
+    if (parent is DefaultFormalParameter) {
+      return ((parent as DefaultFormalParameter)).kind;
     }
     return ParameterKind.REQUIRED;
   }
@@ -9812,11 +9812,11 @@ class PostfixExpression extends Expression {
     if (_propagatedElement == null) {
       return null;
     }
-    List<ParameterElement> parameters2 = _propagatedElement.parameters;
-    if (parameters2.length < 1) {
+    List<ParameterElement> parameters = _propagatedElement.parameters;
+    if (parameters.length < 1) {
       return null;
     }
-    return parameters2[0];
+    return parameters[0];
   }
 
   /**
@@ -9832,11 +9832,11 @@ class PostfixExpression extends Expression {
     if (_staticElement == null) {
       return null;
     }
-    List<ParameterElement> parameters2 = _staticElement.parameters;
-    if (parameters2.length < 1) {
+    List<ParameterElement> parameters = _staticElement.parameters;
+    if (parameters.length < 1) {
       return null;
     }
-    return parameters2[0];
+    return parameters[0];
   }
 }
 /**
@@ -9967,11 +9967,11 @@ class PrefixExpression extends Expression {
     if (_propagatedElement == null) {
       return null;
     }
-    List<ParameterElement> parameters2 = _propagatedElement.parameters;
-    if (parameters2.length < 1) {
+    List<ParameterElement> parameters = _propagatedElement.parameters;
+    if (parameters.length < 1) {
       return null;
     }
-    return parameters2[0];
+    return parameters[0];
   }
 
   /**
@@ -9987,11 +9987,11 @@ class PrefixExpression extends Expression {
     if (_staticElement == null) {
       return null;
     }
-    List<ParameterElement> parameters2 = _staticElement.parameters;
-    if (parameters2.length < 1) {
+    List<ParameterElement> parameters = _staticElement.parameters;
+    if (parameters.length < 1) {
       return null;
     }
-    return parameters2[0];
+    return parameters[0];
   }
 }
 /**
@@ -10784,30 +10784,30 @@ class SimpleIdentifier extends Identifier {
    * @return {@code true} if this identifier is the name being declared in a declaration
    */
   bool inDeclarationContext() {
-    ASTNode parent2 = parent;
-    if (parent2 is CatchClause) {
-      CatchClause clause = parent2 as CatchClause;
+    ASTNode parent = this.parent;
+    if (parent is CatchClause) {
+      CatchClause clause = parent as CatchClause;
       return identical(this, clause.exceptionParameter) || identical(this, clause.stackTraceParameter);
-    } else if (parent2 is ClassDeclaration) {
-      return identical(this, ((parent2 as ClassDeclaration)).name);
-    } else if (parent2 is ClassTypeAlias) {
-      return identical(this, ((parent2 as ClassTypeAlias)).name);
-    } else if (parent2 is ConstructorDeclaration) {
-      return identical(this, ((parent2 as ConstructorDeclaration)).name);
-    } else if (parent2 is FunctionDeclaration) {
-      return identical(this, ((parent2 as FunctionDeclaration)).name);
-    } else if (parent2 is FunctionTypeAlias) {
-      return identical(this, ((parent2 as FunctionTypeAlias)).name);
-    } else if (parent2 is Label) {
-      return identical(this, ((parent2 as Label)).label) && (parent2.parent is LabeledStatement);
-    } else if (parent2 is MethodDeclaration) {
-      return identical(this, ((parent2 as MethodDeclaration)).name);
-    } else if (parent2 is FunctionTypedFormalParameter || parent2 is SimpleFormalParameter) {
-      return identical(this, ((parent2 as NormalFormalParameter)).identifier);
-    } else if (parent2 is TypeParameter) {
-      return identical(this, ((parent2 as TypeParameter)).name);
-    } else if (parent2 is VariableDeclaration) {
-      return identical(this, ((parent2 as VariableDeclaration)).name);
+    } else if (parent is ClassDeclaration) {
+      return identical(this, ((parent as ClassDeclaration)).name);
+    } else if (parent is ClassTypeAlias) {
+      return identical(this, ((parent as ClassTypeAlias)).name);
+    } else if (parent is ConstructorDeclaration) {
+      return identical(this, ((parent as ConstructorDeclaration)).name);
+    } else if (parent is FunctionDeclaration) {
+      return identical(this, ((parent as FunctionDeclaration)).name);
+    } else if (parent is FunctionTypeAlias) {
+      return identical(this, ((parent as FunctionTypeAlias)).name);
+    } else if (parent is Label) {
+      return identical(this, ((parent as Label)).label) && (parent.parent is LabeledStatement);
+    } else if (parent is MethodDeclaration) {
+      return identical(this, ((parent as MethodDeclaration)).name);
+    } else if (parent is FunctionTypedFormalParameter || parent is SimpleFormalParameter) {
+      return identical(this, ((parent as NormalFormalParameter)).identifier);
+    } else if (parent is TypeParameter) {
+      return identical(this, ((parent as TypeParameter)).name);
+    } else if (parent is VariableDeclaration) {
+      return identical(this, ((parent as VariableDeclaration)).name);
     }
     return false;
   }
@@ -10820,28 +10820,28 @@ class SimpleIdentifier extends Identifier {
    * @return {@code true} if this expression is in a context where a getter will be invoked
    */
   bool inGetterContext() {
-    ASTNode parent2 = parent;
+    ASTNode parent = this.parent;
     ASTNode target = this;
-    if (parent2 is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = parent2 as PrefixedIdentifier;
+    if (parent is PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
       if (identical(prefixed.prefix, this)) {
         return true;
       }
-      parent2 = prefixed.parent;
+      parent = prefixed.parent;
       target = prefixed;
-    } else if (parent2 is PropertyAccess) {
-      PropertyAccess access = parent2 as PropertyAccess;
+    } else if (parent is PropertyAccess) {
+      PropertyAccess access = parent as PropertyAccess;
       if (identical(access.target, this)) {
         return true;
       }
-      parent2 = access.parent;
+      parent = access.parent;
       target = access;
     }
-    if (parent2 is Label) {
+    if (parent is Label) {
       return false;
     }
-    if (parent2 is AssignmentExpression) {
-      AssignmentExpression expr = parent2 as AssignmentExpression;
+    if (parent is AssignmentExpression) {
+      AssignmentExpression expr = parent as AssignmentExpression;
       if (identical(expr.leftHandSide, target) && identical(expr.operator.type, TokenType.EQ)) {
         return false;
       }
@@ -10857,29 +10857,29 @@ class SimpleIdentifier extends Identifier {
    * @return {@code true} if this expression is in a context where a setter will be invoked
    */
   bool inSetterContext() {
-    ASTNode parent2 = parent;
+    ASTNode parent = this.parent;
     ASTNode target = this;
-    if (parent2 is PrefixedIdentifier) {
-      PrefixedIdentifier prefixed = parent2 as PrefixedIdentifier;
+    if (parent is PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = parent as PrefixedIdentifier;
       if (identical(prefixed.prefix, this)) {
         return false;
       }
-      parent2 = prefixed.parent;
+      parent = prefixed.parent;
       target = prefixed;
-    } else if (parent2 is PropertyAccess) {
-      PropertyAccess access = parent2 as PropertyAccess;
+    } else if (parent is PropertyAccess) {
+      PropertyAccess access = parent as PropertyAccess;
       if (identical(access.target, this)) {
         return false;
       }
-      parent2 = access.parent;
+      parent = access.parent;
       target = access;
     }
-    if (parent2 is PrefixExpression) {
-      return ((parent2 as PrefixExpression)).operator.type.isIncrementOperator();
-    } else if (parent2 is PostfixExpression) {
+    if (parent is PrefixExpression) {
+      return ((parent as PrefixExpression)).operator.type.isIncrementOperator();
+    } else if (parent is PostfixExpression) {
       return true;
-    } else if (parent2 is AssignmentExpression) {
-      return identical(((parent2 as AssignmentExpression)).leftHandSide, target);
+    } else if (parent is AssignmentExpression) {
+      return identical(((parent as AssignmentExpression)).leftHandSide, target);
     }
     return false;
   }
@@ -12703,8 +12703,8 @@ class VariableDeclaration extends Declaration {
    * @return {@code true} if this variable was declared with the 'const' modifier
    */
   bool isConst() {
-    ASTNode parent2 = parent;
-    return parent2 is VariableDeclarationList && ((parent2 as VariableDeclarationList)).isConst();
+    ASTNode parent = this.parent;
+    return parent is VariableDeclarationList && ((parent as VariableDeclarationList)).isConst();
   }
 
   /**
@@ -12714,8 +12714,8 @@ class VariableDeclaration extends Declaration {
    * @return {@code true} if this variable was declared with the 'final' modifier
    */
   bool isFinal() {
-    ASTNode parent2 = parent;
-    return parent2 is VariableDeclarationList && ((parent2 as VariableDeclarationList)).isFinal();
+    ASTNode parent = this.parent;
+    return parent is VariableDeclarationList && ((parent as VariableDeclarationList)).isFinal();
   }
 
   /**
@@ -13228,130 +13228,130 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
     return builder.toString();
   }
   Object visitBinaryExpression(BinaryExpression node) {
-    Object leftOperand2 = node.leftOperand.accept(this);
-    if (identical(leftOperand2, NOT_A_CONSTANT)) {
-      return leftOperand2;
+    Object leftOperand = node.leftOperand.accept(this);
+    if (identical(leftOperand, NOT_A_CONSTANT)) {
+      return leftOperand;
     }
-    Object rightOperand2 = node.rightOperand.accept(this);
-    if (identical(rightOperand2, NOT_A_CONSTANT)) {
-      return rightOperand2;
+    Object rightOperand = node.rightOperand.accept(this);
+    if (identical(rightOperand, NOT_A_CONSTANT)) {
+      return rightOperand;
     }
     while (true) {
       if (node.operator.type == TokenType.AMPERSAND) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) & (rightOperand2 as int);
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) & (rightOperand as int);
         }
       } else if (node.operator.type == TokenType.AMPERSAND_AMPERSAND) {
-        if (leftOperand2 is bool && rightOperand2 is bool) {
-          return ((leftOperand2 as bool)) && ((rightOperand2 as bool));
+        if (leftOperand is bool && rightOperand is bool) {
+          return ((leftOperand as bool)) && ((rightOperand as bool));
         }
       } else if (node.operator.type == TokenType.BANG_EQ) {
-        if (leftOperand2 is bool && rightOperand2 is bool) {
-          return ((leftOperand2 as bool)) != ((rightOperand2 as bool));
-        } else if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) != rightOperand2;
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) != rightOperand2;
-        } else if (leftOperand2 is String && rightOperand2 is String) {
-          return ((leftOperand2 as String)) != rightOperand2;
+        if (leftOperand is bool && rightOperand is bool) {
+          return ((leftOperand as bool)) != ((rightOperand as bool));
+        } else if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) != rightOperand;
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)) != rightOperand;
+        } else if (leftOperand is String && rightOperand is String) {
+          return ((leftOperand as String)) != rightOperand;
         }
       } else if (node.operator.type == TokenType.BAR) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) | (rightOperand2 as int);
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) | (rightOperand as int);
         }
       } else if (node.operator.type == TokenType.BAR_BAR) {
-        if (leftOperand2 is bool && rightOperand2 is bool) {
-          return ((leftOperand2 as bool)) || ((rightOperand2 as bool));
+        if (leftOperand is bool && rightOperand is bool) {
+          return ((leftOperand as bool)) || ((rightOperand as bool));
         }
       } else if (node.operator.type == TokenType.CARET) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) ^ (rightOperand2 as int);
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) ^ (rightOperand as int);
         }
       } else if (node.operator.type == TokenType.EQ_EQ) {
-        if (leftOperand2 is bool && rightOperand2 is bool) {
-          return identical(((leftOperand2 as bool)), ((rightOperand2 as bool)));
-        } else if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) == rightOperand2;
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) == rightOperand2;
-        } else if (leftOperand2 is String && rightOperand2 is String) {
-          return ((leftOperand2 as String)) == rightOperand2;
+        if (leftOperand is bool && rightOperand is bool) {
+          return identical(((leftOperand as bool)), ((rightOperand as bool)));
+        } else if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) == rightOperand;
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)) == rightOperand;
+        } else if (leftOperand is String && rightOperand is String) {
+          return ((leftOperand as String)) == rightOperand;
         }
       } else if (node.operator.type == TokenType.GT) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) > 0;
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) > 0;
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)).compareTo((rightOperand as int)) > 0;
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)).compareTo((rightOperand as double)) > 0;
         }
       } else if (node.operator.type == TokenType.GT_EQ) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) >= 0;
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) >= 0;
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)).compareTo((rightOperand as int)) >= 0;
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)).compareTo((rightOperand as double)) >= 0;
         }
       } else if (node.operator.type == TokenType.GT_GT) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) >> ((rightOperand2 as int));
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) >> ((rightOperand as int));
         }
       } else if (node.operator.type == TokenType.LT) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) < 0;
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) < 0;
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)).compareTo((rightOperand as int)) < 0;
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)).compareTo((rightOperand as double)) < 0;
         }
       } else if (node.operator.type == TokenType.LT_EQ) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)).compareTo((rightOperand2 as int)) <= 0;
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)).compareTo((rightOperand2 as double)) <= 0;
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)).compareTo((rightOperand as int)) <= 0;
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)).compareTo((rightOperand as double)) <= 0;
         }
       } else if (node.operator.type == TokenType.LT_LT) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) << ((rightOperand2 as int));
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) << ((rightOperand as int));
         }
       } else if (node.operator.type == TokenType.MINUS) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) - (rightOperand2 as int);
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) - ((rightOperand2 as double));
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) - (rightOperand as int);
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)) - ((rightOperand as double));
         }
       } else if (node.operator.type == TokenType.PERCENT) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)).remainder((rightOperand2 as int));
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) % ((rightOperand2 as double));
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)).remainder((rightOperand as int));
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)) % ((rightOperand as double));
         }
       } else if (node.operator.type == TokenType.PLUS) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) + (rightOperand2 as int);
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) + ((rightOperand2 as double));
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) + (rightOperand as int);
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)) + ((rightOperand as double));
         }
       } else if (node.operator.type == TokenType.STAR) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          return ((leftOperand2 as int)) * (rightOperand2 as int);
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) * ((rightOperand2 as double));
+        if (leftOperand is int && rightOperand is int) {
+          return ((leftOperand as int)) * (rightOperand as int);
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)) * ((rightOperand as double));
         }
       } else if (node.operator.type == TokenType.SLASH) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          if (rightOperand2 != 0) {
-            return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
+        if (leftOperand is int && rightOperand is int) {
+          if (rightOperand != 0) {
+            return ((leftOperand as int)) ~/ (rightOperand as int);
           } else {
-            return ((leftOperand2 as int)).toDouble() / ((rightOperand2 as int)).toDouble();
+            return ((leftOperand as int)).toDouble() / ((rightOperand as int)).toDouble();
           }
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) / ((rightOperand2 as double));
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)) / ((rightOperand as double));
         }
       } else if (node.operator.type == TokenType.TILDE_SLASH) {
-        if (leftOperand2 is int && rightOperand2 is int) {
-          if (rightOperand2 != 0) {
-            return ((leftOperand2 as int)) ~/ (rightOperand2 as int);
+        if (leftOperand is int && rightOperand is int) {
+          if (rightOperand != 0) {
+            return ((leftOperand as int)) ~/ (rightOperand as int);
           } else {
             return 0;
           }
-        } else if (leftOperand2 is double && rightOperand2 is double) {
-          return ((leftOperand2 as double)) ~/ ((rightOperand2 as double));
+        } else if (leftOperand is double && rightOperand is double) {
+          return ((leftOperand as double)) ~/ ((rightOperand as double));
         }
       }
       break;
@@ -13383,12 +13383,12 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   Object visitMapLiteral(MapLiteral node) {
     Map<String, Object> map = new Map<String, Object>();
     for (MapLiteralEntry entry in node.entries) {
-      Object key2 = entry.key.accept(this);
-      Object value2 = entry.value.accept(this);
-      if (key2 is! String || identical(value2, NOT_A_CONSTANT)) {
+      Object key = entry.key.accept(this);
+      Object value = entry.value.accept(this);
+      if (key is! String || identical(value, NOT_A_CONSTANT)) {
         return NOT_A_CONSTANT;
       }
-      map[(key2 as String)] = value2;
+      map[(key as String)] = value;
     }
     return map;
   }
@@ -13398,28 +13398,28 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   Object visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
   Object visitPrefixedIdentifier(PrefixedIdentifier node) => getConstantValue(null);
   Object visitPrefixExpression(PrefixExpression node) {
-    Object operand2 = node.operand.accept(this);
-    if (identical(operand2, NOT_A_CONSTANT)) {
-      return operand2;
+    Object operand = node.operand.accept(this);
+    if (identical(operand, NOT_A_CONSTANT)) {
+      return operand;
     }
     while (true) {
       if (node.operator.type == TokenType.BANG) {
-        if (identical(operand2, true)) {
+        if (identical(operand, true)) {
           return false;
-        } else if (identical(operand2, false)) {
+        } else if (identical(operand, false)) {
           return true;
         }
       } else if (node.operator.type == TokenType.TILDE) {
-        if (operand2 is int) {
-          return ~((operand2 as int));
+        if (operand is int) {
+          return ~((operand as int));
         }
       } else if (node.operator.type == TokenType.MINUS) {
-        if (operand2 == null) {
+        if (operand == null) {
           return null;
-        } else if (operand2 is int) {
-          return -((operand2 as int));
-        } else if (operand2 is double) {
-          return -((operand2 as double));
+        } else if (operand is int) {
+          return -((operand as int));
+        } else if (operand is double) {
+          return -((operand as double));
         }
       }
       break;
@@ -13482,27 +13482,27 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   Element visitConstructorDeclaration(ConstructorDeclaration node) => node.element;
   Element visitFunctionDeclaration(FunctionDeclaration node) => node.element;
   Element visitIdentifier(Identifier node) {
-    ASTNode parent2 = node.parent;
-    if (parent2 is ConstructorDeclaration) {
-      ConstructorDeclaration decl = parent2 as ConstructorDeclaration;
-      Identifier returnType2 = decl.returnType;
-      if (identical(returnType2, node)) {
-        SimpleIdentifier name2 = decl.name;
-        if (name2 != null) {
-          return name2.element;
+    ASTNode parent = node.parent;
+    if (parent is ConstructorDeclaration) {
+      ConstructorDeclaration decl = parent as ConstructorDeclaration;
+      Identifier returnType = decl.returnType;
+      if (identical(returnType, node)) {
+        SimpleIdentifier name = decl.name;
+        if (name != null) {
+          return name.element;
         }
-        Element element2 = node.element;
-        if (element2 is ClassElement) {
-          return ((element2 as ClassElement)).unnamedConstructor;
+        Element element = node.element;
+        if (element is ClassElement) {
+          return ((element as ClassElement)).unnamedConstructor;
         }
       }
     }
-    if (parent2 is LibraryIdentifier) {
-      ASTNode grandParent = ((parent2 as LibraryIdentifier)).parent;
+    if (parent is LibraryIdentifier) {
+      ASTNode grandParent = ((parent as LibraryIdentifier)).parent;
       if (grandParent is PartOfDirective) {
-        Element element3 = ((grandParent as PartOfDirective)).element;
-        if (element3 is LibraryElement) {
-          return ((element3 as LibraryElement)).definingCompilationUnit;
+        Element element = ((grandParent as PartOfDirective)).element;
+        if (element is LibraryElement) {
+          return ((element as LibraryElement)).definingCompilationUnit;
         }
       }
     }
@@ -13518,9 +13518,9 @@ class ElementLocator_ElementMapper extends GeneralizingASTVisitor<Element> {
   Element visitPrefixedIdentifier(PrefixedIdentifier node) => node.element;
   Element visitPrefixExpression(PrefixExpression node) => node.element;
   Element visitStringLiteral(StringLiteral node) {
-    ASTNode parent2 = node.parent;
-    if (parent2 is UriBasedDirective) {
-      return ((parent2 as UriBasedDirective)).uriElement;
+    ASTNode parent = node.parent;
+    if (parent is UriBasedDirective) {
+      return ((parent as UriBasedDirective)).uriElement;
     }
     return null;
   }
@@ -14443,12 +14443,12 @@ class ToSourceVisitor implements ASTVisitor<Object> {
   Object visitComment(Comment node) => null;
   Object visitCommentReference(CommentReference node) => null;
   Object visitCompilationUnit(CompilationUnit node) {
-    ScriptTag scriptTag2 = node.scriptTag;
-    NodeList<Directive> directives2 = node.directives;
-    visit(scriptTag2);
-    String prefix = scriptTag2 == null ? "" : " ";
-    visitList4(prefix, directives2, " ");
-    prefix = scriptTag2 == null && directives2.isEmpty ? "" : " ";
+    ScriptTag scriptTag = node.scriptTag;
+    NodeList<Directive> directives = node.directives;
+    visit(scriptTag);
+    String prefix = scriptTag == null ? "" : " ";
+    visitList4(prefix, directives, " ");
+    prefix = scriptTag == null && directives.isEmpty ? "" : " ";
     visitList4(prefix, node.declarations, " ");
     return null;
   }
@@ -14575,10 +14575,10 @@ class ToSourceVisitor implements ASTVisitor<Object> {
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
-    NodeList<FormalParameter> parameters2 = node.parameters;
-    int size2 = parameters2.length;
-    for (int i = 0; i < size2; i++) {
-      FormalParameter parameter = parameters2[i];
+    NodeList<FormalParameter> parameters = node.parameters;
+    int size = parameters.length;
+    for (int i = 0; i < size; i++) {
+      FormalParameter parameter = parameters[i];
       if (i > 0) {
         _writer.print(", ");
       }
@@ -14600,10 +14600,10 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitForStatement(ForStatement node) {
-    Expression initialization2 = node.initialization;
+    Expression initialization = node.initialization;
     _writer.print("for (");
-    if (initialization2 != null) {
-      visit(initialization2);
+    if (initialization != null) {
+      visit(initialization);
     } else {
       visit(node.variables);
     }
@@ -14866,12 +14866,12 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitReturnStatement(ReturnStatement node) {
-    Expression expression2 = node.expression;
-    if (expression2 == null) {
+    Expression expression = node.expression;
+    if (expression == null) {
       _writer.print("return;");
     } else {
       _writer.print("return ");
-      expression2.accept(this);
+      expression.accept(this);
       _writer.print(";");
     }
     return null;
@@ -15080,8 +15080,8 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList2(NodeList<ASTNode> nodes, String separator) {
     if (nodes != null) {
-      int size2 = nodes.length;
-      for (int i = 0; i < size2; i++) {
+      int size = nodes.length;
+      for (int i = 0; i < size; i++) {
         if (i > 0) {
           _writer.print(separator);
         }
@@ -15098,9 +15098,9 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList3(NodeList<ASTNode> nodes, String separator, String suffix) {
     if (nodes != null) {
-      int size2 = nodes.length;
-      if (size2 > 0) {
-        for (int i = 0; i < size2; i++) {
+      int size = nodes.length;
+      if (size > 0) {
+        for (int i = 0; i < size; i++) {
           if (i > 0) {
             _writer.print(separator);
           }
@@ -15119,10 +15119,10 @@ class ToSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList4(String prefix, NodeList<ASTNode> nodes, String separator) {
     if (nodes != null) {
-      int size2 = nodes.length;
-      if (size2 > 0) {
+      int size = nodes.length;
+      if (size > 0) {
         _writer.print(prefix);
-        for (int i = 0; i < size2; i++) {
+        for (int i = 0; i < size; i++) {
           if (i > 0) {
             _writer.print(separator);
           }
@@ -15201,11 +15201,11 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   ImplementsClause visitImplementsClause(ImplementsClause node) => new ImplementsClause.full(node.keyword, clone3(node.interfaces));
   ImportDirective visitImportDirective(ImportDirective node) => new ImportDirective.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.uri), node.asToken, clone2(node.prefix), clone3(node.combinators), node.semicolon);
   IndexExpression visitIndexExpression(IndexExpression node) {
-    Token period2 = node.period;
-    if (period2 == null) {
+    Token period = node.period;
+    if (period == null) {
       return new IndexExpression.forTarget_full(clone2(node.array), node.leftBracket, clone2(node.index), node.rightBracket);
     } else {
-      return new IndexExpression.forCascade_full(period2, node.leftBracket, clone2(node.index), node.rightBracket);
+      return new IndexExpression.forCascade_full(period, node.leftBracket, clone2(node.index), node.rightBracket);
     }
   }
   InstanceCreationExpression visitInstanceCreationExpression(InstanceCreationExpression node) => new InstanceCreationExpression.full(node.keyword, clone2(node.constructorName), clone2(node.argumentList));
@@ -15352,9 +15352,9 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   }
   Object visitNode(ASTNode node) {
     _immediateChild = node;
-    ASTNode parent2 = node.parent;
-    if (parent2 != null) {
-      parent2.accept(this);
+    ASTNode parent = node.parent;
+    if (parent != null) {
+      parent.accept(this);
     }
     return null;
   }
@@ -15377,9 +15377,9 @@ class ScopedNameFinder extends GeneralizingASTVisitor<Object> {
   }
   void addToScope(SimpleIdentifier identifier) {
     if (identifier != null && isInRange(identifier)) {
-      String name2 = identifier.name;
-      if (!_locals.containsKey(name2)) {
-        _locals[name2] = identifier;
+      String name = identifier.name;
+      if (!_locals.containsKey(name)) {
+        _locals[name] = identifier;
       }
     }
   }

@@ -1061,7 +1061,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
       "  static Fields testMain() {"
       "    Fields obj = new Fields(10, 20);"
       "    Fields.fld3 = 100;"
-      "    if (obj === null) {"
+      "    if (obj == null) {"
       "      throw new Exception('Allocation failure');"
       "    }"
       "    if (obj.fld1 != 10) {"

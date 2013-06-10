@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# WARNING:
+# Tests using the multitest feature where failure is expected should *also* be
+# listed in tests/lib/analyzer/analyze_tests.status without the "standalone"
+# prefix.
+
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
@@ -90,10 +95,11 @@ io/http_parser_test: fail
 io/process_exit_negative_test: fail
 io/url_encoding_test: fail
 io/web_socket_protocol_processor_test: fail
+53bit_overflow_literal_test/01: fail, ok
 
 # Fails because checked-in dart executable is not up to date.
-io/test_runner_test: fail, OK
-io/skipping_dart2js_compilations_test: fail, OK
+io/test_runner_test: fail
+io/skipping_dart2js_compilations_test: fail
 
 
 [ $compiler == dart2analyzer ]
@@ -104,10 +110,11 @@ io/http_parser_test: fail
 io/process_exit_negative_test: fail
 io/url_encoding_test: fail
 io/web_socket_protocol_processor_test: fail
+53bit_overflow_literal_test/01: fail, ok
 
 # Fails because checked-in dart executable is not up to date.
-io/test_runner_test: fail, OK
-io/skipping_dart2js_compilations_test: fail, OK
+io/test_runner_test: fail
+io/skipping_dart2js_compilations_test: fail
 
 
 [ $compiler == dart2js ]
@@ -133,6 +140,7 @@ io/test_runner_test: Fail # Library dart:uri removed.
 io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
 http_launch_test: Skip
 53bit_overflow_test: Skip
+53bit_overflow_literal_test: Skip
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.

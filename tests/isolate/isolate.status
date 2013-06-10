@@ -42,8 +42,8 @@ spawn_uri_vm_negative_test: fail
 unresolved_ports_negative_test: fail
 
 # test issue 10888
-global_error_handler_stream_test: fail, OK
-global_error_handler_test: fail, OK
+global_error_handler_stream_test: fail
+global_error_handler_test: fail
 
 [ $compiler == dart2analyzer ]
 isolate2_negative_test: fail
@@ -55,8 +55,8 @@ spawn_uri_vm_negative_test: fail
 unresolved_ports_negative_test: fail
 
 # test issue 10888
-global_error_handler_stream_test: fail, OK
-global_error_handler_test: fail, OK
+global_error_handler_stream_test: fail
+global_error_handler_test: fail
 
 [ $compiler == dart2js && ($runtime == d8 || $jscl) ]
 illegal_msg_stream_test: Fail # Issue 6750

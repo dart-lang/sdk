@@ -165,27 +165,27 @@ class PackageUriResolver extends UriResolver {
     if (!isPackageUri(uri)) {
       return null;
     }
-    String path2 = uri.path;
-    if (path2 == null) {
-      path2 = uri.path;
-      if (path2 == null) {
+    String path = uri.path;
+    if (path == null) {
+      path = uri.path;
+      if (path == null) {
         return null;
       }
     }
     String pkgName;
     String relPath;
-    int index = path2.indexOf('/');
+    int index = path.indexOf('/');
     if (index == -1) {
-      pkgName = path2;
+      pkgName = path;
       relPath = "";
     } else if (index == 0) {
       return null;
     } else {
-      pkgName = path2.substring(0, index);
-      relPath = path2.substring(index + 1);
+      pkgName = path.substring(0, index);
+      relPath = path.substring(index + 1);
     }
     for (JavaFile packagesDirectory in _packagesDirectories) {
-      JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path2);
+      JavaFile resolvedFile = new JavaFile.relative(packagesDirectory, path);
       if (resolvedFile.exists()) {
         return new FileBasedSource.con2(contentCache, getCanonicalFile(packagesDirectory, pkgName, relPath), UriKind.PACKAGE_URI);
       }

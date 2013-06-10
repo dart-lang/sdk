@@ -16,18 +16,18 @@ class KeywordStateTest extends JUnitTestCase {
     int keywordCount = keywords.length;
     List<String> textToTest = new List<String>(keywordCount * 3);
     for (int i = 0; i < keywordCount; i++) {
-      String syntax2 = keywords[i].syntax;
-      textToTest[i] = syntax2;
-      textToTest[i + keywordCount] = "${syntax2}x";
-      textToTest[i + keywordCount * 2] = syntax2.substring(0, syntax2.length - 1);
+      String syntax = keywords[i].syntax;
+      textToTest[i] = syntax;
+      textToTest[i + keywordCount] = "${syntax}x";
+      textToTest[i + keywordCount * 2] = syntax.substring(0, syntax.length - 1);
     }
     KeywordState firstState = KeywordState.KEYWORD_STATE;
     for (int i = 0; i < textToTest.length; i++) {
       String text = textToTest[i];
       int index = 0;
-      int length2 = text.length;
+      int length = text.length;
       KeywordState state = firstState;
-      while (index < length2 && state != null) {
+      while (index < length && state != null) {
         state = state.next(text.codeUnitAt(index));
         index++;
       }
@@ -805,10 +805,10 @@ class StringScannerTest extends AbstractScannerTest {
     StringScanner scanner = new StringScanner(null, "a", listener);
     scanner.setSourceStart(3, 9, offsetDelta);
     scanner.tokenize();
-    List<int> lineStarts2 = scanner.lineStarts;
-    JUnitTestCase.assertNotNull(lineStarts2);
-    JUnitTestCase.assertEquals(3, lineStarts2.length);
-    JUnitTestCase.assertEquals(33, lineStarts2[2]);
+    List<int> lineStarts = scanner.lineStarts;
+    JUnitTestCase.assertNotNull(lineStarts);
+    JUnitTestCase.assertEquals(3, lineStarts.length);
+    JUnitTestCase.assertEquals(33, lineStarts[2]);
   }
   Token scan(String source, GatheringErrorListener listener) {
     StringScanner scanner = new StringScanner(null, source, listener);
@@ -1499,8 +1499,8 @@ class TokenStreamValidator {
     Token currentToken = token;
     while (currentToken != null && currentToken.type != TokenType.EOF) {
       validateStream(builder, currentToken.precedingComments);
-      TokenType type2 = currentToken.type;
-      if (identical(type2, TokenType.OPEN_CURLY_BRACKET) || identical(type2, TokenType.OPEN_PAREN) || identical(type2, TokenType.OPEN_SQUARE_BRACKET) || identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+      TokenType type = currentToken.type;
+      if (identical(type, TokenType.OPEN_CURLY_BRACKET) || identical(type, TokenType.OPEN_PAREN) || identical(type, TokenType.OPEN_SQUARE_BRACKET) || identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         if (currentToken is! BeginToken) {
           builder.append("\r\nExpected BeginToken, found ");
           builder.append(currentToken.runtimeType.toString());
@@ -1939,12 +1939,12 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
   void test_startAndEnd() {
     Token token = scan2("a");
-    Token previous2 = token.previous;
-    JUnitTestCase.assertEquals(token, previous2.next);
-    JUnitTestCase.assertEquals(previous2, previous2.previous);
-    Token next2 = token.next;
-    JUnitTestCase.assertEquals(next2, next2.next);
-    JUnitTestCase.assertEquals(token, next2.previous);
+    Token previous = token.previous;
+    JUnitTestCase.assertEquals(token, previous.next);
+    JUnitTestCase.assertEquals(previous, previous.previous);
+    Token next = token.next;
+    JUnitTestCase.assertEquals(next, next.next);
+    JUnitTestCase.assertEquals(token, next.previous);
   }
   void test_string_multi_double() {
     assertToken(TokenType.STRING, "\"\"\"multi-line\nstring\"\"\"");
@@ -2068,18 +2068,18 @@ abstract class AbstractScannerTest extends JUnitTestCase {
     JUnitTestCase.assertEquals(0, token.offset);
     JUnitTestCase.assertEquals(source.length, token.length);
     JUnitTestCase.assertEquals(source, token.lexeme);
-    Object value2 = token.value();
-    JUnitTestCase.assertTrue(value2 is Keyword);
-    JUnitTestCase.assertEquals(source, ((value2 as Keyword)).syntax);
+    Object value = token.value();
+    JUnitTestCase.assertTrue(value is Keyword);
+    JUnitTestCase.assertEquals(source, ((value as Keyword)).syntax);
     token = scan2(" ${source} ");
     JUnitTestCase.assertNotNull(token);
     JUnitTestCase.assertEquals(TokenType.KEYWORD, token.type);
     JUnitTestCase.assertEquals(1, token.offset);
     JUnitTestCase.assertEquals(source.length, token.length);
     JUnitTestCase.assertEquals(source, token.lexeme);
-    value2 = token.value();
-    JUnitTestCase.assertTrue(value2 is Keyword);
-    JUnitTestCase.assertEquals(source, ((value2 as Keyword)).syntax);
+    value = token.value();
+    JUnitTestCase.assertTrue(value is Keyword);
+    JUnitTestCase.assertEquals(source, ((value as Keyword)).syntax);
     JUnitTestCase.assertEquals(TokenType.EOF, token.next.type);
   }
   void assertLineInfo(String source, List<AbstractScannerTest_ExpectedLocation> expectedLocations) {

@@ -10,9 +10,9 @@ var bar = 1;
 
 test() {
   while (true) {
-    if (0 === foo) {
+    if (0 == foo) {
       sum += 2;
-      if (1 === bar) {
+      if (1 == bar) {
         sum += 3;
         break;
       }

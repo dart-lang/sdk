@@ -298,6 +298,61 @@
     },
     "support_level": "experimental"
   },
+  "CSSFilterRule": {
+    "members": {
+      "style": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "CSSFilterValue": {
+    "members": {
+      "CSS_FILTER_BLUR": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_BRIGHTNESS": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_CONTRAST": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_CUSTOM": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_DROP_SHADOW": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_GRAYSCALE": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_HUE_ROTATE": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_INVERT": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_OPACITY": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_REFERENCE": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_SATURATE": {
+        "support_level": "untriaged"
+      },
+      "CSS_FILTER_SEPIA": {
+        "support_level": "untriaged"
+      },
+      "__getter__": {
+        "support_level": "untriaged"
+      },
+      "operationType": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "CSSFontFaceLoadEvent": {
     "comment": "http://www.w3.org/TR/css3-fonts/",
     "members": {
@@ -331,6 +386,142 @@
     },
     "support_level": "stable"
   },
+  "CSSKeyframeRule": {
+    "members": {
+      "keyText": {
+        "support_level": "untriaged"
+      },
+      "style": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "CSSKeyframesRule": {
+    "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
+      "cssRules": {
+        "support_level": "untriaged"
+      },
+      "deleteRule": {
+        "support_level": "untriaged"
+      },
+      "findRule": {
+        "support_level": "untriaged"
+      },
+      "insertRule": {
+        "support_level": "untriaged"
+      },
+      "name": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "CSSMatrix": {
+    "members": {
+      "CSSMatrix": {},
+      "a": {
+        "support_level": "untriaged"
+      },
+      "b": {
+        "support_level": "untriaged"
+      },
+      "c": {
+        "support_level": "untriaged"
+      },
+      "d": {
+        "support_level": "untriaged"
+      },
+      "e": {
+        "support_level": "untriaged"
+      },
+      "f": {
+        "support_level": "untriaged"
+      },
+      "inverse": {
+        "support_level": "untriaged"
+      },
+      "m11": {
+        "support_level": "untriaged"
+      },
+      "m12": {
+        "support_level": "untriaged"
+      },
+      "m13": {
+        "support_level": "untriaged"
+      },
+      "m14": {
+        "support_level": "untriaged"
+      },
+      "m21": {
+        "support_level": "untriaged"
+      },
+      "m22": {
+        "support_level": "untriaged"
+      },
+      "m23": {
+        "support_level": "untriaged"
+      },
+      "m24": {
+        "support_level": "untriaged"
+      },
+      "m31": {
+        "support_level": "untriaged"
+      },
+      "m32": {
+        "support_level": "untriaged"
+      },
+      "m33": {
+        "support_level": "untriaged"
+      },
+      "m34": {
+        "support_level": "untriaged"
+      },
+      "m41": {
+        "support_level": "untriaged"
+      },
+      "m42": {
+        "support_level": "untriaged"
+      },
+      "m43": {
+        "support_level": "untriaged"
+      },
+      "m44": {
+        "support_level": "untriaged"
+      },
+      "multiply": {
+        "support_level": "untriaged"
+      },
+      "rotate": {
+        "support_level": "untriaged"
+      },
+      "rotateAxisAngle": {
+        "support_level": "untriaged"
+      },
+      "scale": {
+        "support_level": "untriaged"
+      },
+      "setMatrixValue": {
+        "support_level": "untriaged"
+      },
+      "skewX": {
+        "support_level": "untriaged"
+      },
+      "skewY": {
+        "support_level": "untriaged"
+      },
+      "toString": {
+        "support_level": "untriaged"
+      },
+      "translate": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "CSSMediaRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSMediaRule",
     "members": {
@@ -340,6 +531,10 @@
       "media": {}
     },
     "support_level": "stable"
+  },
+  "CSSMixFunctionValue": {
+    "members": {},
+    "support_level": "untriaged"
   },
   "CSSPageRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSPageRule",
@@ -394,6 +589,14 @@
     },
     "support_level": "deprecated"
   },
+  "CSSRegionRule": {
+    "members": {
+      "cssRules": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "CSSRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSRule",
     "members": {
@@ -447,6 +650,9 @@
   "CSSStyleDeclaration": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
     "members": {
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "cssText": {},
       "getPropertyCSSValue": {
         "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
@@ -499,6 +705,80 @@
       "insertRule": {}
     },
     "support_level": "standard"
+  },
+  "CSSTransformValue": {
+    "members": {
+      "CSS_MATRIX": {
+        "support_level": "untriaged"
+      },
+      "CSS_MATRIX3D": {
+        "support_level": "untriaged"
+      },
+      "CSS_PERSPECTIVE": {
+        "support_level": "untriaged"
+      },
+      "CSS_ROTATE": {
+        "support_level": "untriaged"
+      },
+      "CSS_ROTATE3D": {
+        "support_level": "untriaged"
+      },
+      "CSS_ROTATEX": {
+        "support_level": "untriaged"
+      },
+      "CSS_ROTATEY": {
+        "support_level": "untriaged"
+      },
+      "CSS_ROTATEZ": {
+        "support_level": "untriaged"
+      },
+      "CSS_SCALE": {
+        "support_level": "untriaged"
+      },
+      "CSS_SCALE3D": {
+        "support_level": "untriaged"
+      },
+      "CSS_SCALEX": {
+        "support_level": "untriaged"
+      },
+      "CSS_SCALEY": {
+        "support_level": "untriaged"
+      },
+      "CSS_SCALEZ": {
+        "support_level": "untriaged"
+      },
+      "CSS_SKEW": {
+        "support_level": "untriaged"
+      },
+      "CSS_SKEWX": {
+        "support_level": "untriaged"
+      },
+      "CSS_SKEWY": {
+        "support_level": "untriaged"
+      },
+      "CSS_TRANSLATE": {
+        "support_level": "untriaged"
+      },
+      "CSS_TRANSLATE3D": {
+        "support_level": "untriaged"
+      },
+      "CSS_TRANSLATEX": {
+        "support_level": "untriaged"
+      },
+      "CSS_TRANSLATEY": {
+        "support_level": "untriaged"
+      },
+      "CSS_TRANSLATEZ": {
+        "support_level": "untriaged"
+      },
+      "__getter__": {
+        "support_level": "untriaged"
+      },
+      "operationType": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "CSSUnknownRule": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface",
@@ -1060,6 +1340,9 @@
   "DOMNamedFlowCollection": {
     "comment": "http://dev.w3.org/csswg/css-regions/#dom-named-flow-collection",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {},
       "namedItem": {}
@@ -1105,7 +1388,13 @@
   "DOMStringMap": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domstringmap-0",
     "members": {
+      "__delete__": {
+        "support_level": "untriaged"
+      },
       "__getter__": {
+        "support_level": "untriaged"
+      },
+      "__setter__": {
         "support_level": "untriaged"
       }
     },
@@ -2030,6 +2319,10 @@
     },
     "support_level": "stable"
   },
+  "EXTFragDepth": {
+    "members": {},
+    "support_level": "untriaged"
+  },
   "EXTTextureFilterAnisotropic": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/",
     "members": {
@@ -2913,6 +3206,9 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all",
     "dart_action": "suppress",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {},
       "namedItem": {},
@@ -3155,6 +3451,9 @@
   "HTMLCollection": {
     "comment": "http://www.w3.org/TR/domcore/#interface-htmlcollection",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {},
       "namedItem": {}
@@ -3363,6 +3662,12 @@
     "dart_action": "unstable",
     "members": {
       "HTMLEmbedElement": {},
+      "__getter__": {
+        "support_level": "untriaged"
+      },
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "align": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLEmbedElement-partial",
         "dart_action": "suppress",
@@ -3844,6 +4149,9 @@
       "disabled": {},
       "href": {},
       "hreflang": {},
+      "import": {
+        "support_level": "untriaged"
+      },
       "media": {},
       "rel": {},
       "rev": {
@@ -4125,6 +4433,12 @@
     "dart_action": "unstable",
     "members": {
       "HTMLObjectElement": {},
+      "__getter__": {
+        "support_level": "untriaged"
+      },
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "align": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLObjectElement-partial",
         "dart_action": "suppress",
@@ -4357,6 +4671,9 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#the-select-element",
     "members": {
       "HTMLSelectElement": {},
+      "__setter__": {
+        "support_level": "untriaged"
+      },
       "autofocus": {},
       "checkValidity": {},
       "disabled": {},
@@ -5150,6 +5467,26 @@
     },
     "support_level": "stable"
   },
+  "MIDIAccess": {
+    "members": {
+      "addEventListener": {
+        "support_level": "untriaged"
+      },
+      "dispatchEvent": {
+        "support_level": "untriaged"
+      },
+      "inputs": {
+        "support_level": "untriaged"
+      },
+      "outputs": {
+        "support_level": "untriaged"
+      },
+      "removeEventListener": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "MIDIConnectionEvent": {
     "comment": "http://webaudio.github.io/web-midi-api/#midiconnectionevent-interface",
     "members": {
@@ -5492,6 +5829,9 @@
   },
   "MimeTypeArray": {
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {},
       "namedItem": {}
@@ -5616,6 +5956,9 @@
     "comment": "http://dom.spec.whatwg.org/#namednodemap",
     "dart_action": "suppress",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "getNamedItem": {},
       "getNamedItemNS": {},
       "item": {},
@@ -5737,6 +6080,15 @@
       "code": {
         "dart_action": "experimental",
         "support_level": "nonstandard"
+      },
+      "constraintName": {
+        "support_level": "untriaged"
+      },
+      "message": {
+        "support_level": "untriaged"
+      },
+      "name": {
+        "support_level": "untriaged"
       }
     },
     "support_level": "experimental"
@@ -6324,6 +6676,9 @@
   },
   "Plugin": {
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "description": {},
       "filename": {},
       "item": {},
@@ -6335,6 +6690,9 @@
   },
   "PluginArray": {
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {},
       "namedItem": {},
@@ -6560,6 +6918,9 @@
   "RTCStatsResponse": {
     "comment": "http://dev.w3.org/2011/webrtc/editor/webrtc.html#widl-RTCStatsReport-RTCStats-getter-DOMString-id",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "namedItem": {},
       "result": {}
     },
@@ -6675,6 +7036,14 @@
       "handleEvent": {}
     },
     "support_level": "stable"
+  },
+  "ResourceProgressEvent": {
+    "members": {
+      "url": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "SQLError": {
     "comment": "http://www.w3.org/TR/webdatabase/#sqlerror",
@@ -10124,7 +10493,13 @@
     "comment": "http://www.w3.org/TR/webstorage/#the-storage-interface",
     "dart_action": "unstable",
     "members": {
+      "__delete__": {
+        "support_level": "untriaged"
+      },
       "__getter__": {
+        "support_level": "untriaged"
+      },
+      "__setter__": {
         "support_level": "untriaged"
       },
       "clear": {},
@@ -10220,6 +10595,9 @@
   "StyleSheetList": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-stylesheetlist-sequence",
     "members": {
+      "__getter__": {
+        "support_level": "untriaged"
+      },
       "item": {},
       "length": {}
     },
@@ -10569,7 +10947,10 @@
   "WaveShaperNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-WaveShaperNode",
     "members": {
-      "curve": {}
+      "curve": {},
+      "oversample": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },

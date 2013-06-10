@@ -40,10 +40,10 @@ patch class Expando<T> {
         _data[i] = null;
       }
     }
-    if (i !== _data.length && value == null) {
+    if (i != _data.length && value == null) {
       doCompact = true;
       _data[i] = null;
-    } else if (i !== _data.length) {
+    } else if (i != _data.length) {
       _data[i].value = value;
     } else {
       _data.add(new _WeakProperty(object, value));

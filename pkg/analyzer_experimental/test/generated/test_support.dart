@@ -316,15 +316,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(expectedErrors.length);
     writer.print(" errors:");
     for (AnalysisError error in expectedErrors) {
-      Source source2 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source2];
+      Source source = error.source;
+      LineInfo lineInfo = _lineInfoMap[source];
       writer.newLine();
       if (lineInfo == null) {
-        int offset2 = error.offset;
-        writer.printf("  %s %s (%d..%d)", [source2 == null ? "" : source2.shortName, error.errorCode, offset2, offset2 + error.length]);
+        int offset = error.offset;
+        writer.printf("  %s %s (%d..%d)", [source == null ? "" : source.shortName, error.errorCode, offset, offset + error.length]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d)", [source2 == null ? "" : source2.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
+        writer.printf("  %s %s (%d, %d/%d)", [source == null ? "" : source.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length]);
       }
     }
     writer.newLine();
@@ -332,15 +332,15 @@ class GatheringErrorListener implements AnalysisErrorListener {
     writer.print(_errors.length);
     writer.print(" errors:");
     for (AnalysisError error in _errors) {
-      Source source3 = error.source;
-      LineInfo lineInfo = _lineInfoMap[source3];
+      Source source = error.source;
+      LineInfo lineInfo = _lineInfoMap[source];
       writer.newLine();
       if (lineInfo == null) {
-        int offset3 = error.offset;
-        writer.printf("  %s %s (%d..%d): %s", [source3 == null ? "" : source3.shortName, error.errorCode, offset3, offset3 + error.length, error.message]);
+        int offset = error.offset;
+        writer.printf("  %s %s (%d..%d): %s", [source == null ? "" : source.shortName, error.errorCode, offset, offset + error.length, error.message]);
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        writer.printf("  %s %s (%d, %d/%d): %s", [source3 == null ? "" : source3.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
+        writer.printf("  %s %s (%d, %d/%d): %s", [source == null ? "" : source.shortName, error.errorCode, location.lineNumber, location.columnNumber, error.length, error.message]);
       }
     }
     JUnitTestCase.fail(writer.toString());
@@ -384,6 +384,28 @@ class EngineTestCase extends JUnitTestCase {
       assertMatches(left, right);
       left = left.next;
       right = right.next;
+    }
+  }
+
+  /**
+   * Assert that the given array is non-{@code null} and contains the expected elements. The
+   * elements can appear in any order.
+   * @param array the array being tested
+   * @param expectedElements the expected elements
+   * @throws AssertionFailedError if the array is {@code null} or does not contain the expected
+   * elements
+   */
+  static void assertContains(List<Object> array, List<Object> expectedElements) {
+    int expectedSize = expectedElements.length;
+    if (array == null) {
+      JUnitTestCase.fail("Expected array of length ${expectedSize}; found null");
+    }
+    if (array.length != expectedSize) {
+      JUnitTestCase.fail("Expected array of length ${expectedSize}; contained ${array.length} elements");
+    }
+    List<bool> found = new List<bool>.filled(expectedSize, false);
+    for (int i = 0; i < expectedSize; i++) {
+      assertContains2(array, found, expectedElements[i]);
     }
   }
 
@@ -457,7 +479,7 @@ class EngineTestCase extends JUnitTestCase {
     if (list.length != expectedSize) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; contained ${list.length} elements");
     }
-    for (int i = 0; i < expectedElements.length; i++) {
+    for (int i = 0; i < expectedSize; i++) {
       Object element = list[i];
       Object expectedElement = expectedElements[i];
       if (!element == expectedElement) {
@@ -481,7 +503,7 @@ class EngineTestCase extends JUnitTestCase {
     if (array.length != expectedSize) {
       JUnitTestCase.fail("Expected array of size ${expectedSize}; contained ${array.length} elements");
     }
-    for (int i = 0; i < expectedElements.length; i++) {
+    for (int i = 0; i < expectedSize; i++) {
       Object element = array[i];
       Object expectedElement = expectedElements[i];
       if (!element == expectedElement) {
@@ -504,7 +526,7 @@ class EngineTestCase extends JUnitTestCase {
     if (set.length != expectedSize) {
       JUnitTestCase.fail("Expected list of size ${expectedSize}; contained ${set.length} elements");
     }
-    for (int i = 0; i < expectedElements.length; i++) {
+    for (int i = 0; i < expectedSize; i++) {
       Object expectedElement = expectedElements[i];
       if (!set.contains(expectedElement)) {
         JUnitTestCase.fail("Expected ${expectedElement} in set${set}");
@@ -615,6 +637,29 @@ class EngineTestCase extends JUnitTestCase {
       writer.println(line);
     }
     return writer.toString();
+  }
+  static void assertContains2(List<Object> array, List<bool> found, Object element) {
+    if (element == null) {
+      for (int i = 0; i < array.length; i++) {
+        if (!found[i]) {
+          if (array[i] == null) {
+            found[i] = true;
+            return;
+          }
+        }
+      }
+      JUnitTestCase.fail("Does not contain null");
+    } else {
+      for (int i = 0; i < array.length; i++) {
+        if (!found[i]) {
+          if (element == array[i]) {
+            found[i] = true;
+            return;
+          }
+        }
+      }
+      JUnitTestCase.fail("Does not contain ${element}");
+    }
   }
 
   /**

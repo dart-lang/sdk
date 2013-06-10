@@ -408,9 +408,9 @@ class ASTFactory {
    * @return the type name that was created
    */
   static TypeName typeName(ClassElement element2, List<TypeName> arguments) {
-    SimpleIdentifier name2 = identifier3(element2.name);
-    name2.element = element2;
-    TypeName typeName = typeName3(name2, arguments);
+    SimpleIdentifier name = identifier3(element2.name);
+    name.element = element2;
+    TypeName typeName = typeName3(name, arguments);
     typeName.type = element2.type;
     return typeName;
   }
@@ -446,8 +446,8 @@ class ASTFactory {
 }
 class SimpleIdentifierTest extends ParserTestCase {
   void test_inDeclarationContext_argumentDefinition() {
-    SimpleIdentifier identifier2 = ASTFactory.argumentDefinitionTest("p").identifier;
-    JUnitTestCase.assertFalse(identifier2.inDeclarationContext());
+    SimpleIdentifier identifier = ASTFactory.argumentDefinitionTest("p").identifier;
+    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_catch_exception() {
     SimpleIdentifier identifier = ASTFactory.catchClause("e", []).exceptionParameter;
@@ -470,8 +470,8 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_fieldFormalParameter() {
-    SimpleIdentifier identifier2 = ASTFactory.fieldFormalParameter2("p").identifier;
-    JUnitTestCase.assertFalse(identifier2.inDeclarationContext());
+    SimpleIdentifier identifier = ASTFactory.fieldFormalParameter2("p").identifier;
+    JUnitTestCase.assertFalse(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_functionDeclaration() {
     SimpleIdentifier identifier = ASTFactory.functionDeclaration(null, null, "f", null).name;
@@ -497,8 +497,8 @@ class SimpleIdentifierTest extends ParserTestCase {
     JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_simpleFormalParameter() {
-    SimpleIdentifier identifier2 = ASTFactory.simpleFormalParameter3("p").identifier;
-    JUnitTestCase.assertTrue(identifier2.inDeclarationContext());
+    SimpleIdentifier identifier = ASTFactory.simpleFormalParameter3("p").identifier;
+    JUnitTestCase.assertTrue(identifier.inDeclarationContext());
   }
   void test_inDeclarationContext_typeParameter_bound() {
     TypeName bound = ASTFactory.typeName4("A", []);
@@ -599,10 +599,10 @@ class SimpleIdentifierTest extends ParserTestCase {
    */
   ASTNode topMostNode(SimpleIdentifier identifier) {
     ASTNode child = identifier;
-    ASTNode parent2 = identifier.parent;
-    while (parent2 != null) {
-      child = parent2;
-      parent2 = parent2.parent;
+    ASTNode parent = identifier.parent;
+    while (parent != null) {
+      child = parent;
+      parent = parent.parent;
     }
     return child;
   }

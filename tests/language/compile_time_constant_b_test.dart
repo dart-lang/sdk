@@ -73,5 +73,5 @@ main() {
                 isUnsupportedError);
   Expect.throws(() => m2['a'] = 499, isUnsupportedError);
 
-  Expect.isTrue(m1 === m3);
+  Expect.isTrue(identical(m1, m3));
 }

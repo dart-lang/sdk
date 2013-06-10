@@ -3697,6 +3697,7 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                             kDeoptUnaryOp);
       __ negq(value);
       __ j(OVERFLOW, deopt);
+      Emit53BitOverflowCheck(compiler, deopt, value);
       break;
     }
     case Token::kBIT_NOT:

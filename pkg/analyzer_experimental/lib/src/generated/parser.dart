@@ -590,21 +590,21 @@ class Parser {
    */
   List<List<int>> getCodeBlockRanges(String comment) {
     List<List<int>> ranges = new List<List<int>>();
-    int length2 = comment.length;
+    int length = comment.length;
     int index = 0;
     if (comment.startsWith("/**") || comment.startsWith("///")) {
       index = 3;
     }
-    while (index < length2) {
+    while (index < length) {
       int currentChar = comment.codeUnitAt(index);
       if (currentChar == 0xD || currentChar == 0xA) {
         index = index + 1;
-        while (index < length2 && Character.isWhitespace(comment.codeUnitAt(index))) {
+        while (index < length && Character.isWhitespace(comment.codeUnitAt(index))) {
           index = index + 1;
         }
         if (JavaString.startsWithBefore(comment, "*     ", index)) {
           int end = index + 6;
-          while (end < length2 && comment.codeUnitAt(end) != 0xD && comment.codeUnitAt(end) != 0xA) {
+          while (end < length && comment.codeUnitAt(end) != 0xD && comment.codeUnitAt(end) != 0xA) {
             end = end + 1;
           }
           ranges.add(<int> [index, end]);
@@ -613,7 +613,7 @@ class Parser {
       } else if (JavaString.startsWithBefore(comment, "[:", index)) {
         int end = comment.indexOf(":]", index + 2);
         if (end < 0) {
-          end = length2;
+          end = length;
         }
         ranges.add(<int> [index, end]);
         index = end + 1;
@@ -732,8 +732,8 @@ class Parser {
     if (token == null) {
       return false;
     }
-    TokenType type2 = token.type;
-    return identical(type2, TokenType.EQ) || identical(type2, TokenType.COMMA) || identical(type2, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
+    TokenType type = token.type;
+    return identical(type, TokenType.EQ) || identical(type, TokenType.COMMA) || identical(type, TokenType.SEMICOLON) || matches3(token, Keyword.IN);
   }
 
   /**
@@ -748,9 +748,9 @@ class Parser {
    * @return {@code true} if the bracketed text is followed by a link address
    */
   bool isLinkText(String comment, int rightIndex) {
-    int length2 = comment.length;
+    int length = comment.length;
     int index = rightIndex + 1;
-    if (index >= length2) {
+    if (index >= length) {
       return false;
     }
     int nextChar = comment.codeUnitAt(index);
@@ -759,7 +759,7 @@ class Parser {
     }
     while (Character.isWhitespace(nextChar)) {
       index = index + 1;
-      if (index >= length2) {
+      if (index >= length) {
         return false;
       }
       nextChar = comment.codeUnitAt(index);
@@ -793,8 +793,8 @@ class Parser {
       token = token.next.next;
     }
     if (identical(token.type, TokenType.KEYWORD)) {
-      Keyword keyword2 = ((token as KeywordToken)).keyword;
-      return identical(keyword2, Keyword.CASE) || identical(keyword2, Keyword.DEFAULT);
+      Keyword keyword = ((token as KeywordToken)).keyword;
+      return identical(keyword, Keyword.CASE) || identical(keyword, Keyword.DEFAULT);
     }
     return false;
   }
@@ -812,10 +812,10 @@ class Parser {
     int firstOffset = 2147483647;
     for (Token token in tokens) {
       if (token != null) {
-        int offset2 = token.offset;
-        if (offset2 < firstOffset) {
+        int offset = token.offset;
+        if (offset < firstOffset) {
           first = token;
-          firstOffset = offset2;
+          firstOffset = offset;
         }
       }
     }
@@ -865,28 +865,28 @@ class Parser {
     if (currentType != type2) {
       if (identical(type2, TokenType.GT)) {
         if (identical(currentType, TokenType.GT_GT)) {
-          int offset2 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset2);
-          Token second = new Token(TokenType.GT, offset2 + 1);
+          int offset = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset);
+          Token second = new Token(TokenType.GT, offset + 1);
           second.setNext(_currentToken.next);
           first.setNext(second);
           _currentToken.previous.setNext(first);
           _currentToken = first;
           return true;
         } else if (identical(currentType, TokenType.GT_EQ)) {
-          int offset3 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset3);
-          Token second = new Token(TokenType.EQ, offset3 + 1);
+          int offset = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset);
+          Token second = new Token(TokenType.EQ, offset + 1);
           second.setNext(_currentToken.next);
           first.setNext(second);
           _currentToken.previous.setNext(first);
           _currentToken = first;
           return true;
         } else if (identical(currentType, TokenType.GT_GT_EQ)) {
-          int offset4 = _currentToken.offset;
-          Token first = new Token(TokenType.GT, offset4);
-          Token second = new Token(TokenType.GT, offset4 + 1);
-          Token third = new Token(TokenType.EQ, offset4 + 2);
+          int offset = _currentToken.offset;
+          Token first = new Token(TokenType.GT, offset);
+          Token second = new Token(TokenType.GT, offset + 1);
+          Token third = new Token(TokenType.EQ, offset + 2);
           third.setNext(_currentToken.next);
           second.setNext(third);
           first.setNext(second);
@@ -1723,10 +1723,10 @@ class Parser {
     List<CommentReference> references = new List<CommentReference>();
     for (Token token in tokens) {
       String comment = token.lexeme;
-      int length2 = comment.length;
+      int length = comment.length;
       List<List<int>> codeBlockRanges = getCodeBlockRanges(comment);
       int leftIndex = comment.indexOf('[');
-      while (leftIndex >= 0 && leftIndex + 1 < length2) {
+      while (leftIndex >= 0 && leftIndex + 1 < length) {
         List<int> range = findRange(codeBlockRanges, leftIndex);
         if (range == null) {
           int rightIndex = comment.indexOf(']', leftIndex);
@@ -2558,11 +2558,11 @@ class Parser {
           if (variableList == null) {
             reportError7(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH, []);
           } else {
-            NodeList<VariableDeclaration> variables2 = variableList.variables;
-            if (variables2.length > 1) {
-              reportError7(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables2.length.toString()]);
+            NodeList<VariableDeclaration> variables = variableList.variables;
+            if (variables.length > 1) {
+              reportError7(ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH, [variables.length.toString()]);
             }
-            VariableDeclaration variable = variables2[0];
+            VariableDeclaration variable = variables[0];
             if (variable.initializer != null) {
               reportError7(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH, []);
             }
@@ -3313,34 +3313,34 @@ class Parser {
       }
       return parseBlock();
     } else if (matches5(TokenType.KEYWORD) && !((_currentToken as KeywordToken)).keyword.isPseudoKeyword()) {
-      Keyword keyword2 = ((_currentToken as KeywordToken)).keyword;
-      if (identical(keyword2, Keyword.ASSERT)) {
+      Keyword keyword = ((_currentToken as KeywordToken)).keyword;
+      if (identical(keyword, Keyword.ASSERT)) {
         return parseAssertStatement();
-      } else if (identical(keyword2, Keyword.BREAK)) {
+      } else if (identical(keyword, Keyword.BREAK)) {
         return parseBreakStatement();
-      } else if (identical(keyword2, Keyword.CONTINUE)) {
+      } else if (identical(keyword, Keyword.CONTINUE)) {
         return parseContinueStatement();
-      } else if (identical(keyword2, Keyword.DO)) {
+      } else if (identical(keyword, Keyword.DO)) {
         return parseDoStatement();
-      } else if (identical(keyword2, Keyword.FOR)) {
+      } else if (identical(keyword, Keyword.FOR)) {
         return parseForStatement();
-      } else if (identical(keyword2, Keyword.IF)) {
+      } else if (identical(keyword, Keyword.IF)) {
         return parseIfStatement();
-      } else if (identical(keyword2, Keyword.RETHROW)) {
+      } else if (identical(keyword, Keyword.RETHROW)) {
         return new ExpressionStatement.full(parseRethrowExpression(), expect2(TokenType.SEMICOLON));
-      } else if (identical(keyword2, Keyword.RETURN)) {
+      } else if (identical(keyword, Keyword.RETURN)) {
         return parseReturnStatement();
-      } else if (identical(keyword2, Keyword.SWITCH)) {
+      } else if (identical(keyword, Keyword.SWITCH)) {
         return parseSwitchStatement();
-      } else if (identical(keyword2, Keyword.THROW)) {
+      } else if (identical(keyword, Keyword.THROW)) {
         return new ExpressionStatement.full(parseThrowExpression(), expect2(TokenType.SEMICOLON));
-      } else if (identical(keyword2, Keyword.TRY)) {
+      } else if (identical(keyword, Keyword.TRY)) {
         return parseTryStatement();
-      } else if (identical(keyword2, Keyword.WHILE)) {
+      } else if (identical(keyword, Keyword.WHILE)) {
         return parseWhileStatement();
-      } else if (identical(keyword2, Keyword.VAR) || identical(keyword2, Keyword.FINAL)) {
+      } else if (identical(keyword, Keyword.VAR) || identical(keyword, Keyword.FINAL)) {
         return parseVariableDeclarationStatement(commentAndMetadata);
-      } else if (identical(keyword2, Keyword.VOID)) {
+      } else if (identical(keyword, Keyword.VOID)) {
         TypeName returnType = parseReturnType();
         if (matchesIdentifier() && matchesAny(peek(), [TokenType.OPEN_PAREN, TokenType.OPEN_CURLY_BRACKET, TokenType.FUNCTION])) {
           return parseFunctionDeclarationStatement2(commentAndMetadata, returnType);
@@ -3356,7 +3356,7 @@ class Parser {
           reportError7(ParserErrorCode.MISSING_STATEMENT, []);
           return new EmptyStatement.full(createSyntheticToken2(TokenType.SEMICOLON));
         }
-      } else if (identical(keyword2, Keyword.CONST)) {
+      } else if (identical(keyword, Keyword.CONST)) {
         if (matchesAny(peek(), [TokenType.LT, TokenType.OPEN_CURLY_BRACKET, TokenType.OPEN_SQUARE_BRACKET, TokenType.INDEX])) {
           return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
         } else if (matches4(peek(), TokenType.IDENTIFIER)) {
@@ -3368,7 +3368,7 @@ class Parser {
           }
         }
         return parseVariableDeclarationStatement(commentAndMetadata);
-      } else if (identical(keyword2, Keyword.NEW) || identical(keyword2, Keyword.TRUE) || identical(keyword2, Keyword.FALSE) || identical(keyword2, Keyword.NULL) || identical(keyword2, Keyword.SUPER) || identical(keyword2, Keyword.THIS)) {
+      } else if (identical(keyword, Keyword.NEW) || identical(keyword, Keyword.TRUE) || identical(keyword, Keyword.FALSE) || identical(keyword, Keyword.NULL) || identical(keyword, Keyword.SUPER) || identical(keyword, Keyword.THIS)) {
         return new ExpressionStatement.full(parseExpression2(), expect2(TokenType.SEMICOLON));
       } else {
         reportError7(ParserErrorCode.MISSING_STATEMENT, []);
@@ -3421,9 +3421,9 @@ class Parser {
       FormalParameterList parameters = parseFormalParameterList();
       return new FunctionTypedFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.type, identifier, parameters);
     }
-    TypeName type2 = holder.type;
-    if (type2 != null && matches3(type2.name.beginToken, Keyword.VOID)) {
-      reportError8(ParserErrorCode.VOID_PARAMETER, type2.name.beginToken, []);
+    TypeName type = holder.type;
+    if (type != null && matches3(type.name.beginToken, Keyword.VOID)) {
+      reportError8(ParserErrorCode.VOID_PARAMETER, type.name.beginToken, []);
     }
     if (thisKeyword != null) {
       return new FieldFormalParameter.full(commentAndMetadata.comment, commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword, period, identifier);
@@ -3459,9 +3459,9 @@ class Parser {
     }
     SimpleIdentifier name = new SimpleIdentifier.full(andAdvance);
     if (matches5(TokenType.EQ)) {
-      Token previous2 = _currentToken.previous;
-      if ((matches4(previous2, TokenType.EQ_EQ) || matches4(previous2, TokenType.BANG_EQ)) && _currentToken.offset == previous2.offset + 2) {
-        reportError7(ParserErrorCode.INVALID_OPERATOR, ["${previous2.lexeme}${_currentToken.lexeme}"]);
+      Token previous = _currentToken.previous;
+      if ((matches4(previous, TokenType.EQ_EQ) || matches4(previous, TokenType.BANG_EQ)) && _currentToken.offset == previous.offset + 2) {
+        reportError7(ParserErrorCode.INVALID_OPERATOR, ["${previous.lexeme}${_currentToken.lexeme}"]);
         advance();
       }
     }
@@ -4263,9 +4263,9 @@ class Parser {
           return new PrefixExpression.full(operator, parseUnaryExpression());
         }
         if (identical(operator.type, TokenType.MINUS_MINUS)) {
-          int offset2 = operator.offset;
-          Token firstOperator = new Token(TokenType.MINUS, offset2);
-          Token secondOperator = new Token(TokenType.MINUS, offset2 + 1);
+          int offset = operator.offset;
+          Token firstOperator = new Token(TokenType.MINUS, offset);
+          Token secondOperator = new Token(TokenType.MINUS, offset + 1);
           secondOperator.setNext(_currentToken);
           firstOperator.setNext(secondOperator);
           operator.previous.setNext(firstOperator);
@@ -4480,15 +4480,15 @@ class Parser {
    */
   Token skipFinalConstVarOrType(Token startToken) {
     if (matches3(startToken, Keyword.FINAL) || matches3(startToken, Keyword.CONST)) {
-      Token next2 = startToken.next;
-      if (matchesIdentifier2(next2.next) || matches4(next2.next, TokenType.LT) || matches3(next2.next, Keyword.THIS)) {
-        return skipTypeName(next2);
+      Token next = startToken.next;
+      if (matchesIdentifier2(next.next) || matches4(next.next, TokenType.LT) || matches3(next.next, Keyword.THIS)) {
+        return skipTypeName(next);
       }
     } else if (matches3(startToken, Keyword.VAR)) {
       return startToken.next;
     } else if (matchesIdentifier2(startToken)) {
-      Token next3 = startToken.next;
-      if (matchesIdentifier2(next3) || matches4(next3, TokenType.LT) || matches3(next3, Keyword.THIS) || (matches4(next3, TokenType.PERIOD) && matchesIdentifier2(next3.next) && (matchesIdentifier2(next3.next.next) || matches4(next3.next.next, TokenType.LT) || matches3(next3.next.next, Keyword.THIS)))) {
+      Token next = startToken.next;
+      if (matchesIdentifier2(next) || matches4(next, TokenType.LT) || matches3(next, Keyword.THIS) || (matches4(next, TokenType.PERIOD) && matchesIdentifier2(next.next) && (matchesIdentifier2(next.next.next) || matches4(next.next.next, TokenType.LT) || matches3(next.next.next, Keyword.THIS)))) {
         return skipReturnType(startToken);
       }
     }
@@ -4530,20 +4530,20 @@ class Parser {
     if (!matches4(startToken, TokenType.OPEN_PAREN)) {
       return null;
     }
-    Token next2 = startToken.next;
-    if (matches4(next2, TokenType.CLOSE_PAREN)) {
-      return next2.next;
+    Token next = startToken.next;
+    if (matches4(next, TokenType.CLOSE_PAREN)) {
+      return next.next;
     }
-    if (matchesAny(next2, [TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET]) || matches3(next2, Keyword.VOID) || (matchesIdentifier2(next2) && (matchesAny(next2.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
+    if (matchesAny(next, [TokenType.AT, TokenType.OPEN_SQUARE_BRACKET, TokenType.OPEN_CURLY_BRACKET]) || matches3(next, Keyword.VOID) || (matchesIdentifier2(next) && (matchesAny(next.next, [TokenType.COMMA, TokenType.CLOSE_PAREN])))) {
       return skipPastMatchingToken(startToken);
     }
-    if (matchesIdentifier2(next2) && matches4(next2.next, TokenType.OPEN_PAREN)) {
-      Token afterParameters = skipFormalParameterList(next2.next);
+    if (matchesIdentifier2(next) && matches4(next.next, TokenType.OPEN_PAREN)) {
+      Token afterParameters = skipFormalParameterList(next.next);
       if (afterParameters != null && (matchesAny(afterParameters, [TokenType.COMMA, TokenType.CLOSE_PAREN]))) {
         return skipPastMatchingToken(startToken);
       }
     }
-    Token afterType = skipFinalConstVarOrType(next2);
+    Token afterType = skipFinalConstVarOrType(next);
     if (afterType == null) {
       return null;
     }
@@ -4648,20 +4648,20 @@ class Parser {
    */
   Token skipStringInterpolation(Token startToken) {
     Token token = startToken;
-    TokenType type2 = token.type;
-    while (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type2, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
-      if (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
+    TokenType type = token.type;
+    while (identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      if (identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         token = token.next;
-        type2 = token.type;
+        type = token.type;
         int bracketNestingLevel = 1;
         while (bracketNestingLevel > 0) {
-          if (identical(type2, TokenType.EOF)) {
+          if (identical(type, TokenType.EOF)) {
             return null;
-          } else if (identical(type2, TokenType.OPEN_CURLY_BRACKET)) {
+          } else if (identical(type, TokenType.OPEN_CURLY_BRACKET)) {
             bracketNestingLevel++;
-          } else if (identical(type2, TokenType.CLOSE_CURLY_BRACKET)) {
+          } else if (identical(type, TokenType.CLOSE_CURLY_BRACKET)) {
             bracketNestingLevel--;
-          } else if (identical(type2, TokenType.STRING)) {
+          } else if (identical(type, TokenType.STRING)) {
             token = skipStringLiteral(token);
             if (token == null) {
               return null;
@@ -4669,10 +4669,10 @@ class Parser {
           } else {
             token = token.next;
           }
-          type2 = token.type;
+          type = token.type;
         }
         token = token.next;
-        type2 = token.type;
+        type = token.type;
       } else {
         token = token.next;
         if (token.type != TokenType.IDENTIFIER) {
@@ -4680,10 +4680,10 @@ class Parser {
         }
         token = token.next;
       }
-      type2 = token.type;
-      if (identical(type2, TokenType.STRING)) {
+      type = token.type;
+      if (identical(type, TokenType.STRING)) {
         token = token.next;
-        type2 = token.type;
+        type = token.type;
       }
     }
     return token;
@@ -4707,8 +4707,8 @@ class Parser {
     Token token = startToken;
     while (token != null && matches4(token, TokenType.STRING)) {
       token = token.next;
-      TokenType type2 = token.type;
-      if (identical(type2, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type2, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
+      TokenType type = token.type;
+      if (identical(type, TokenType.STRING_INTERPOLATION_EXPRESSION) || identical(type, TokenType.STRING_INTERPOLATION_IDENTIFIER)) {
         token = skipStringInterpolation(token);
       }
     }
@@ -4800,36 +4800,36 @@ class Parser {
       return null;
     }
     int depth = 1;
-    Token next2 = startToken.next;
+    Token next = startToken.next;
     while (depth > 0) {
-      if (matches4(next2, TokenType.EOF)) {
+      if (matches4(next, TokenType.EOF)) {
         return null;
-      } else if (matches4(next2, TokenType.LT)) {
+      } else if (matches4(next, TokenType.LT)) {
         depth++;
-      } else if (matches4(next2, TokenType.GT)) {
+      } else if (matches4(next, TokenType.GT)) {
         depth--;
-      } else if (matches4(next2, TokenType.GT_EQ)) {
+      } else if (matches4(next, TokenType.GT_EQ)) {
         if (depth == 1) {
-          Token fakeEquals = new Token(TokenType.EQ, next2.offset + 2);
-          fakeEquals.setNextWithoutSettingPrevious(next2.next);
+          Token fakeEquals = new Token(TokenType.EQ, next.offset + 2);
+          fakeEquals.setNextWithoutSettingPrevious(next.next);
           return fakeEquals;
         }
         depth--;
-      } else if (matches4(next2, TokenType.GT_GT)) {
+      } else if (matches4(next, TokenType.GT_GT)) {
         depth -= 2;
-      } else if (matches4(next2, TokenType.GT_GT_EQ)) {
+      } else if (matches4(next, TokenType.GT_GT_EQ)) {
         if (depth < 2) {
           return null;
         } else if (depth == 2) {
-          Token fakeEquals = new Token(TokenType.EQ, next2.offset + 2);
-          fakeEquals.setNextWithoutSettingPrevious(next2.next);
+          Token fakeEquals = new Token(TokenType.EQ, next.offset + 2);
+          fakeEquals.setNextWithoutSettingPrevious(next.next);
           return fakeEquals;
         }
         depth -= 2;
       }
-      next2 = next2.next;
+      next = next.next;
     }
-    return next2;
+    return next;
   }
 
   /**
@@ -4846,10 +4846,10 @@ class Parser {
       builder.appendChar(currentChar);
       return index + 1;
     }
-    int length2 = lexeme.length;
+    int length = lexeme.length;
     int currentIndex = index + 1;
-    if (currentIndex >= length2) {
-      return length2;
+    if (currentIndex >= length) {
+      return length;
     }
     currentChar = lexeme.codeUnitAt(currentIndex);
     if (currentChar == 0x6E) {
@@ -4865,9 +4865,9 @@ class Parser {
     } else if (currentChar == 0x76) {
       builder.appendChar(0xB);
     } else if (currentChar == 0x78) {
-      if (currentIndex + 2 >= length2) {
+      if (currentIndex + 2 >= length) {
         reportError7(ParserErrorCode.INVALID_HEX_ESCAPE, []);
-        return length2;
+        return length;
       }
       int firstDigit = lexeme.codeUnitAt(currentIndex + 1);
       int secondDigit = lexeme.codeUnitAt(currentIndex + 2);
@@ -4879,16 +4879,16 @@ class Parser {
       return currentIndex + 3;
     } else if (currentChar == 0x75) {
       currentIndex++;
-      if (currentIndex >= length2) {
+      if (currentIndex >= length) {
         reportError7(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-        return length2;
+        return length;
       }
       currentChar = lexeme.codeUnitAt(currentIndex);
       if (currentChar == 0x7B) {
         currentIndex++;
-        if (currentIndex >= length2) {
+        if (currentIndex >= length) {
           reportError7(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-          return length2;
+          return length;
         }
         currentChar = lexeme.codeUnitAt(currentIndex);
         int digitCount = 0;
@@ -4897,7 +4897,7 @@ class Parser {
           if (!isHexDigit(currentChar)) {
             reportError7(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
             currentIndex++;
-            while (currentIndex < length2 && lexeme.codeUnitAt(currentIndex) != 0x7D) {
+            while (currentIndex < length && lexeme.codeUnitAt(currentIndex) != 0x7D) {
               currentIndex++;
             }
             return currentIndex + 1;
@@ -4905,9 +4905,9 @@ class Parser {
           digitCount++;
           value = (value << 4) + Character.digit(currentChar, 16);
           currentIndex++;
-          if (currentIndex >= length2) {
+          if (currentIndex >= length) {
             reportError7(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-            return length2;
+            return length;
           }
           currentChar = lexeme.codeUnitAt(currentIndex);
         }
@@ -4917,9 +4917,9 @@ class Parser {
         appendScalarValue(builder, lexeme.substring(index, currentIndex + 1), value, index, currentIndex);
         return currentIndex + 1;
       } else {
-        if (currentIndex + 3 >= length2) {
+        if (currentIndex + 3 >= length) {
           reportError7(ParserErrorCode.INVALID_UNICODE_ESCAPE, []);
-          return length2;
+          return length;
         }
         int firstDigit = currentChar;
         int secondDigit = lexeme.codeUnitAt(currentIndex + 1);
@@ -4991,16 +4991,16 @@ class Parser {
     if (modifiers.varKeyword != null) {
       reportError8(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, modifiers.varKeyword, []);
     }
-    Token externalKeyword2 = modifiers.externalKeyword;
-    Token constKeyword2 = modifiers.constKeyword;
-    Token factoryKeyword2 = modifiers.factoryKeyword;
-    if (externalKeyword2 != null && constKeyword2 != null && constKeyword2.offset < externalKeyword2.offset) {
-      reportError8(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword2, []);
+    Token externalKeyword = modifiers.externalKeyword;
+    Token constKeyword = modifiers.constKeyword;
+    Token factoryKeyword = modifiers.factoryKeyword;
+    if (externalKeyword != null && constKeyword != null && constKeyword.offset < externalKeyword.offset) {
+      reportError8(ParserErrorCode.EXTERNAL_AFTER_CONST, externalKeyword, []);
     }
-    if (externalKeyword2 != null && factoryKeyword2 != null && factoryKeyword2.offset < externalKeyword2.offset) {
-      reportError8(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword2, []);
+    if (externalKeyword != null && factoryKeyword != null && factoryKeyword.offset < externalKeyword.offset) {
+      reportError8(ParserErrorCode.EXTERNAL_AFTER_FACTORY, externalKeyword, []);
     }
-    return constKeyword2;
+    return constKeyword;
   }
 
   /**
@@ -5019,31 +5019,31 @@ class Parser {
     if (modifiers.factoryKeyword != null) {
       reportError8(ParserErrorCode.NON_CONSTRUCTOR_FACTORY, modifiers.factoryKeyword, []);
     }
-    Token staticKeyword2 = modifiers.staticKeyword;
-    Token constKeyword2 = modifiers.constKeyword;
-    Token finalKeyword2 = modifiers.finalKeyword;
-    Token varKeyword2 = modifiers.varKeyword;
-    if (constKeyword2 != null) {
-      if (finalKeyword2 != null) {
-        reportError8(ParserErrorCode.CONST_AND_FINAL, finalKeyword2, []);
+    Token staticKeyword = modifiers.staticKeyword;
+    Token constKeyword = modifiers.constKeyword;
+    Token finalKeyword = modifiers.finalKeyword;
+    Token varKeyword = modifiers.varKeyword;
+    if (constKeyword != null) {
+      if (finalKeyword != null) {
+        reportError8(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
       }
-      if (varKeyword2 != null) {
-        reportError8(ParserErrorCode.CONST_AND_VAR, varKeyword2, []);
+      if (varKeyword != null) {
+        reportError8(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
       }
-      if (staticKeyword2 != null && constKeyword2.offset < staticKeyword2.offset) {
-        reportError8(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword2, []);
+      if (staticKeyword != null && constKeyword.offset < staticKeyword.offset) {
+        reportError8(ParserErrorCode.STATIC_AFTER_CONST, staticKeyword, []);
       }
-    } else if (finalKeyword2 != null) {
-      if (varKeyword2 != null) {
-        reportError8(ParserErrorCode.FINAL_AND_VAR, varKeyword2, []);
+    } else if (finalKeyword != null) {
+      if (varKeyword != null) {
+        reportError8(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
       }
-      if (staticKeyword2 != null && finalKeyword2.offset < staticKeyword2.offset) {
-        reportError8(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword2, []);
+      if (staticKeyword != null && finalKeyword.offset < staticKeyword.offset) {
+        reportError8(ParserErrorCode.STATIC_AFTER_FINAL, staticKeyword, []);
       }
-    } else if (varKeyword2 != null && staticKeyword2 != null && varKeyword2.offset < staticKeyword2.offset) {
-      reportError8(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword2, []);
+    } else if (varKeyword != null && staticKeyword != null && varKeyword.offset < staticKeyword.offset) {
+      reportError8(ParserErrorCode.STATIC_AFTER_VAR, staticKeyword, []);
     }
-    return lexicallyFirst([constKeyword2, finalKeyword2, varKeyword2]);
+    return lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
   }
 
   /**
@@ -5066,10 +5066,10 @@ class Parser {
     if (modifiers.varKeyword != null) {
       reportError8(ParserErrorCode.VAR_RETURN_TYPE, modifiers.varKeyword, []);
     }
-    Token externalKeyword2 = modifiers.externalKeyword;
-    Token staticKeyword2 = modifiers.staticKeyword;
-    if (externalKeyword2 != null && staticKeyword2 != null && staticKeyword2.offset < externalKeyword2.offset) {
-      reportError8(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword2, []);
+    Token externalKeyword = modifiers.externalKeyword;
+    Token staticKeyword = modifiers.staticKeyword;
+    if (externalKeyword != null && staticKeyword != null && staticKeyword.offset < externalKeyword.offset) {
+      reportError8(ParserErrorCode.EXTERNAL_AFTER_STATIC, externalKeyword, []);
     }
   }
 
@@ -5145,22 +5145,22 @@ class Parser {
     if (modifiers.externalKeyword != null) {
       reportError8(ParserErrorCode.EXTERNAL_FIELD, modifiers.externalKeyword, []);
     }
-    Token constKeyword2 = modifiers.constKeyword;
-    Token finalKeyword2 = modifiers.finalKeyword;
-    Token varKeyword2 = modifiers.varKeyword;
-    if (constKeyword2 != null) {
-      if (finalKeyword2 != null) {
-        reportError8(ParserErrorCode.CONST_AND_FINAL, finalKeyword2, []);
+    Token constKeyword = modifiers.constKeyword;
+    Token finalKeyword = modifiers.finalKeyword;
+    Token varKeyword = modifiers.varKeyword;
+    if (constKeyword != null) {
+      if (finalKeyword != null) {
+        reportError8(ParserErrorCode.CONST_AND_FINAL, finalKeyword, []);
       }
-      if (varKeyword2 != null) {
-        reportError8(ParserErrorCode.CONST_AND_VAR, varKeyword2, []);
+      if (varKeyword != null) {
+        reportError8(ParserErrorCode.CONST_AND_VAR, varKeyword, []);
       }
-    } else if (finalKeyword2 != null) {
-      if (varKeyword2 != null) {
-        reportError8(ParserErrorCode.FINAL_AND_VAR, varKeyword2, []);
+    } else if (finalKeyword != null) {
+      if (varKeyword != null) {
+        reportError8(ParserErrorCode.FINAL_AND_VAR, varKeyword, []);
       }
     }
-    return lexicallyFirst([constKeyword2, finalKeyword2, varKeyword2]);
+    return lexicallyFirst([constKeyword, finalKeyword, varKeyword]);
   }
 
   /**
@@ -5548,12 +5548,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   }
   Object visitCommentReference(CommentReference node) => null;
   Object visitCompilationUnit(CompilationUnit node) {
-    ScriptTag scriptTag2 = node.scriptTag;
-    NodeList<Directive> directives2 = node.directives;
-    visit(scriptTag2);
-    String prefix = scriptTag2 == null ? "" : " ";
-    visitList7(prefix, directives2, "\n");
-    prefix = scriptTag2 == null && directives2.isEmpty ? "" : "\n\n";
+    ScriptTag scriptTag = node.scriptTag;
+    NodeList<Directive> directives = node.directives;
+    visit(scriptTag);
+    String prefix = scriptTag == null ? "" : " ";
+    visitList7(prefix, directives, "\n");
+    prefix = scriptTag == null && directives.isEmpty ? "" : "\n\n";
     visitList7(prefix, node.declarations, "\n");
     return null;
   }
@@ -5685,10 +5685,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
   Object visitFormalParameterList(FormalParameterList node) {
     String groupEnd = null;
     _writer.print('(');
-    NodeList<FormalParameter> parameters2 = node.parameters;
-    int size2 = parameters2.length;
-    for (int i = 0; i < size2; i++) {
-      FormalParameter parameter = parameters2[i];
+    NodeList<FormalParameter> parameters = node.parameters;
+    int size = parameters.length;
+    for (int i = 0; i < size; i++) {
+      FormalParameter parameter = parameters[i];
       if (i > 0) {
         _writer.print(", ");
       }
@@ -5710,10 +5710,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitForStatement(ForStatement node) {
-    Expression initialization2 = node.initialization;
+    Expression initialization = node.initialization;
     _writer.print("for (");
-    if (initialization2 != null) {
-      visit(initialization2);
+    if (initialization != null) {
+      visit(initialization);
     } else {
       visit(node.variables);
     }
@@ -5980,12 +5980,12 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitReturnStatement(ReturnStatement node) {
-    Expression expression2 = node.expression;
-    if (expression2 == null) {
+    Expression expression = node.expression;
+    if (expression == null) {
       _writer.print("return;");
     } else {
       _writer.print("return ");
-      expression2.accept(this);
+      expression.accept(this);
       _writer.print(";");
     }
     return null;
@@ -6214,8 +6214,8 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList5(NodeList<ASTNode> nodes, String separator) {
     if (nodes != null) {
-      int size2 = nodes.length;
-      for (int i = 0; i < size2; i++) {
+      int size = nodes.length;
+      for (int i = 0; i < size; i++) {
         if ("\n" == separator) {
           _writer.print("\n");
           indent();
@@ -6235,9 +6235,9 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList6(NodeList<ASTNode> nodes, String separator, String suffix) {
     if (nodes != null) {
-      int size2 = nodes.length;
-      if (size2 > 0) {
-        for (int i = 0; i < size2; i++) {
+      int size = nodes.length;
+      if (size > 0) {
+        for (int i = 0; i < size; i++) {
           if (i > 0) {
             _writer.print(separator);
           }
@@ -6256,10 +6256,10 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
    */
   void visitList7(String prefix, NodeList<ASTNode> nodes, String separator) {
     if (nodes != null) {
-      int size2 = nodes.length;
-      if (size2 > 0) {
+      int size = nodes.length;
+      if (size > 0) {
         _writer.print(prefix);
-        for (int i = 0; i < size2; i++) {
+        for (int i = 0; i < size; i++) {
           if (i > 0) {
             _writer.print(separator);
           }

@@ -377,7 +377,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
   // Update redirection data with resolved target.
   factory.SetRedirectionTarget(target);
   // Not needed anymore.
-  factory.SetRedirectionIdentifier(String::null_object());
+  factory.SetRedirectionIdentifier(Object::null_string());
   if (!target.IsRedirectingFactory()) {
     return;
   }
@@ -885,7 +885,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
                                   parameterized_type_name.ToCString()));
     return BoundedType::New(parameterized_type,
                             malformed_bound,
-                            TypeParameter::null_object());
+                            TypeParameter::Handle());
   }
 
   if (finalization >= kCanonicalize) {
@@ -1917,7 +1917,7 @@ void ClassFinalizer::ReportMalformedType(const Error& prev_error,
   if (FLAG_enable_type_checks || !type.HasResolvedTypeClass()) {
     type.set_malformed_error(error);
   }
-  type.set_arguments(AbstractTypeArguments::null_object());
+  type.set_arguments(Object::null_abstract_type_arguments());
   if (!type.IsFinalized()) {
     type.SetIsFinalized();
     // Do not canonicalize malformed types, since they may not be resolved.

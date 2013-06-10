@@ -29,6 +29,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -402,7 +403,15 @@ RawDouble* Parser::CurrentDoubleLiteral() const {
 RawInteger* Parser::CurrentIntegerLiteral() const {
   literal_token_ ^= tokens_iterator_.CurrentToken();
   ASSERT(literal_token_.kind() == Token::kINTEGER);
-  return Integer::RawCast(literal_token_.value());
+  RawInteger* ri = Integer::RawCast(literal_token_.value());
+  if (FLAG_throw_on_javascript_int_overflow) {
+    const Integer& i = Integer::Handle(ri);
+    if (i.CheckFiftyThreeBitOverflow()) {
+      ErrorMsg(TokenPos(), "Integer literal does not fit in 53 bits: %s.",
+               i.ToCString());
+    }
+  }
+  return ri;
 }
 
 
@@ -4460,7 +4469,7 @@ void Parser::ParseLibraryDefinition() {
     Library& core_lib = Library::Handle(Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
     const Namespace& core_ns = Namespace::Handle(
-        Namespace::New(core_lib, Array::null_object(), Array::null_object()));
+        Namespace::New(core_lib, Object::null_array(), Object::null_array()));
     library_.AddImport(core_ns);
   }
   while (CurrentToken() == Token::kPART) {
@@ -4514,8 +4523,9 @@ void Parser::ParseTopLevel() {
     ParsePartHeader();
   }
 
+  const Class& cls = Class::Handle(isolate());
   while (true) {
-    set_current_class(Class::null_object());  // No current class.
+    set_current_class(cls);  // No current class.
     SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
       ParseClassDeclaration(pending_classes);
@@ -6571,7 +6581,7 @@ void Parser::PrintMessage(const Script& script,
 }
 
 
-void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) {
+void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) const {
   va_list args;
   va_start(args, format);
   const Error& error = Error::Handle(
@@ -8093,7 +8103,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
           // generated AST is not deterministic. Therefore mark the function as
           // not optimizable.
           current_function().set_is_optimizable(false);
-          field.set_value(Instance::null_object());
+          field.set_value(Object::null_instance());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
           AppendErrorMsg(error, TokenPos(),
@@ -8687,8 +8697,7 @@ RawAbstractType* Parser::ParseType(
     parameterized_type ^= type.raw();
     parameterized_type.set_type_class(
         Class::Handle(isolate(), Object::dynamic_class()));
-    parameterized_type.set_arguments(
-        AbstractTypeArguments::null_object());
+    parameterized_type.set_arguments(Object::null_abstract_type_arguments());
     parameterized_type.set_malformed_error(malformed_error);
   }
   if (finalization >= ClassFinalizer::kTryResolve) {

@@ -60,8 +60,8 @@ class ConstantEvaluator {
     }
     List<AnalysisError> errors = new List<AnalysisError>();
     for (ErrorResult_ErrorData data in ((result as ErrorResult)).errorData) {
-      ASTNode node2 = data.node;
-      errors.add(new AnalysisError.con2(_source, node2.offset, node2.length, data.errorCode, []));
+      ASTNode node = data.node;
+      errors.add(new AnalysisError.con2(_source, node.offset, node.length, data.errorCode, []));
     }
     return EvaluationResult.forErrors(new List.from(errors));
   }
@@ -150,11 +150,11 @@ class ConstantFinder extends RecursiveASTVisitor<Object> {
   Map<VariableElement, VariableDeclaration> get variableMap => _variableMap;
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
-    Expression initializer2 = node.initializer;
-    if (initializer2 != null && node.isConst()) {
-      VariableElement element2 = node.element;
-      if (element2 != null) {
-        _variableMap[element2] = node;
+    Expression initializer = node.initializer;
+    if (initializer != null && node.isConst()) {
+      VariableElement element = node.element;
+      if (element != null) {
+        _variableMap[element] = node;
       }
     }
     return null;
@@ -238,9 +238,9 @@ class ConstantValueComputer {
     if (result is ErrorResult) {
       List<AnalysisError> errors = new List<AnalysisError>();
       for (ErrorResult_ErrorData data in ((result as ErrorResult)).errorData) {
-        ASTNode node2 = data.node;
-        Source source2 = variable.getAncestor(CompilationUnitElement).source;
-        errors.add(new AnalysisError.con2(source2, node2.offset, node2.length, data.errorCode, []));
+        ASTNode node = data.node;
+        Source source = variable.getAncestor(CompilationUnitElement).source;
+        errors.add(new AnalysisError.con2(source, node.offset, node.length, data.errorCode, []));
       }
     }
   }
@@ -390,18 +390,18 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
     return ValidResult.RESULT_OBJECT;
   }
   EvaluationResultImpl visitMethodInvocation(MethodInvocation node) {
-    Element element2 = node.methodName.element;
-    if (element2 is FunctionElement) {
-      FunctionElement function = element2 as FunctionElement;
+    Element element = node.methodName.element;
+    if (element is FunctionElement) {
+      FunctionElement function = element as FunctionElement;
       if (function.name == "identical") {
-        NodeList<Expression> arguments2 = node.argumentList.arguments;
-        if (arguments2.length == 2) {
-          Element enclosingElement2 = function.enclosingElement;
-          if (enclosingElement2 is CompilationUnitElement) {
-            LibraryElement library2 = ((enclosingElement2 as CompilationUnitElement)).library;
-            if (library2.isDartCore()) {
-              EvaluationResultImpl leftArgument = arguments2[0].accept(this);
-              EvaluationResultImpl rightArgument = arguments2[1].accept(this);
+        NodeList<Expression> arguments = node.argumentList.arguments;
+        if (arguments.length == 2) {
+          Element enclosingElement = function.enclosingElement;
+          if (enclosingElement is CompilationUnitElement) {
+            LibraryElement library = ((enclosingElement as CompilationUnitElement)).library;
+            if (library.isDartCore()) {
+              EvaluationResultImpl leftArgument = arguments[0].accept(this);
+              EvaluationResultImpl rightArgument = arguments[1].accept(this);
               return leftArgument.equalEqual(node, rightArgument);
             }
           }
@@ -415,17 +415,17 @@ class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl> {
   EvaluationResultImpl visitParenthesizedExpression(ParenthesizedExpression node) => node.expression.accept(this);
   EvaluationResultImpl visitPrefixedIdentifier(PrefixedIdentifier node) => getConstantValue(node, node.element);
   EvaluationResultImpl visitPrefixExpression(PrefixExpression node) {
-    EvaluationResultImpl operand2 = node.operand.accept(this);
-    if (operand2 is ValidResult && ((operand2 as ValidResult)).isNull()) {
+    EvaluationResultImpl operand = node.operand.accept(this);
+    if (operand is ValidResult && ((operand as ValidResult)).isNull()) {
       return error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
     while (true) {
       if (node.operator.type == TokenType.BANG) {
-        return operand2.logicalNot(node);
+        return operand.logicalNot(node);
       } else if (node.operator.type == TokenType.TILDE) {
-        return operand2.bitNot(node);
+        return operand.bitNot(node);
       } else if (node.operator.type == TokenType.MINUS) {
-        return operand2.negated(node);
+        return operand.negated(node);
       }
       break;
     }
@@ -879,12 +879,12 @@ class ReferenceFinder extends RecursiveASTVisitor<Object> {
     this._referenceGraph = referenceGraph;
   }
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element2 = node.element;
-    if (element2 is PropertyAccessorElement) {
-      element2 = ((element2 as PropertyAccessorElement)).variable;
+    Element element = node.element;
+    if (element is PropertyAccessorElement) {
+      element = ((element as PropertyAccessorElement)).variable;
     }
-    if (element2 is VariableElement) {
-      VariableElement variable = element2 as VariableElement;
+    if (element is VariableElement) {
+      VariableElement variable = element as VariableElement;
       if (variable.isConst()) {
         _referenceGraph.addEdge(_source, variable);
       }
