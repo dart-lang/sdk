@@ -135,6 +135,11 @@ unittest/test/unittest_test: Pass, Crash # Issue 10935
 unittest/test/mock_test: Fail
 unittest/test/mock_regexp_negative_test: Fail
 
+# The unminified unittest tests test that the real names of Dart types are
+# printed. Minified versions of these tests exist that test the behavior when
+# minified.
+unittest/test/*_unminified_test: Skip
+
 [ $compiler == dart2js && $unchecked && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
 crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail?id=2692
 
@@ -145,11 +150,6 @@ crypto/test/sha1_test: Slow, Pass
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
 crypto/test/hmac_md5_test: Fail, Pass
-
-# The unminified unittest tests test that the real names of Dart types are
-# printed. Minified versions of these tests exist that test the behavior when
-# minified.
-unittest/test/*_unminified_test: Skip
 
 [ $minified == false ]
 # The minified unittest tests test that the minified names of Dart types are
