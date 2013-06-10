@@ -12,7 +12,7 @@ import 'utilities_dart.dart';
 import 'ast.dart';
 import 'parser.dart' show Parser, ParserErrorCode;
 import 'sdk.dart' show DartSdk, SdkLibrary;
-import 'element.dart' hide Annotation, HideCombinator, ShowCombinator;
+import 'element.dart' hide HideCombinator, ShowCombinator;
 import 'html.dart' as ht;
 import 'engine.dart';
 import 'constant.dart';
@@ -217,6 +217,10 @@ class ElementBuilder extends RecursiveASTVisitor<Object> {
     parameter.final2 = node.isFinal();
     parameter.initializer = initializer;
     parameter.parameterKind = node.kind;
+    Expression defaultValue = node.defaultValue;
+    if (defaultValue != null) {
+      parameter.setDefaultValueRange(defaultValue.offset, defaultValue.length);
+    }
     FunctionBody body = getFunctionBody(node);
     if (body != null) {
       parameter.setVisibleRange(body.offset, body.length);
@@ -2216,11 +2220,11 @@ class ElementResolver extends SimpleASTVisitor<Object> {
    * @param annotationList the list of elements to which new elements are to be added
    * @param annotations the AST nodes used to generate new elements
    */
-  void addAnnotations(List<AnnotationImpl> annotationList, NodeList<Annotation> annotations) {
+  void addAnnotations(List<ElementAnnotationImpl> annotationList, NodeList<Annotation> annotations) {
     for (Annotation annotationNode in annotations) {
       Element resolvedElement = annotationNode.element;
       if (resolvedElement != null) {
-        annotationList.add(new AnnotationImpl(resolvedElement));
+        annotationList.add(new ElementAnnotationImpl(resolvedElement));
       }
     }
   }
@@ -3218,7 +3222,7 @@ class ElementResolver extends SimpleASTVisitor<Object> {
     if (element is! ElementImpl) {
       return;
     }
-    List<AnnotationImpl> annotationList = new List<AnnotationImpl>();
+    List<ElementAnnotationImpl> annotationList = new List<ElementAnnotationImpl>();
     addAnnotations(annotationList, node.metadata);
     if (node is VariableDeclaration && node.parent is VariableDeclarationList) {
       VariableDeclarationList list = node.parent as VariableDeclarationList;
@@ -4827,7 +4831,7 @@ class LibraryResolver {
       CompilationUnit unit = library.getAST(source);
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, library.libraryElement, _typeProvider, library.inheritanceManager);
       unit.accept(errorVerifier);
-      unit.accept(new PubVerifier(errorReporter));
+      unit.accept(new PubVerifier(_analysisContext, errorReporter));
       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter, _typeProvider);
       unit.accept(constantVerifier);
     }
@@ -11908,17 +11912,20 @@ class ErrorVerifier extends RecursiveASTVisitor<Object> {
         stringTypeArray[i] = ((missingOverridesArray[i] as PropertyAccessorElement)).isGetter() ? GET : SET;
       }
     }
+    AnalysisErrorWithProperties analysisError;
     if (missingOverridesSize == 1) {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName]);
+      analysisError = _errorReporter.newErrorWithProperties(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName]);
     } else if (missingOverridesSize == 2) {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName]);
+      analysisError = _errorReporter.newErrorWithProperties(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName]);
     } else if (missingOverridesSize == 3) {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName]);
+      analysisError = _errorReporter.newErrorWithProperties(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName]);
     } else if (missingOverridesSize == 4) {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName, stringTypeArray[3], missingOverridesArray[3].enclosingElement.displayName, missingOverridesArray[3].displayName]);
+      analysisError = _errorReporter.newErrorWithProperties(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName, stringTypeArray[3], missingOverridesArray[3].enclosingElement.displayName, missingOverridesArray[3].displayName]);
     } else {
-      _errorReporter.reportError2(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName, stringTypeArray[3], missingOverridesArray[3].enclosingElement.displayName, missingOverridesArray[3].displayName, missingOverridesArray.length - 4]);
+      analysisError = _errorReporter.newErrorWithProperties(StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS, node.name, [stringTypeArray[0], missingOverridesArray[0].enclosingElement.displayName, missingOverridesArray[0].displayName, stringTypeArray[1], missingOverridesArray[1].enclosingElement.displayName, missingOverridesArray[1].displayName, stringTypeArray[2], missingOverridesArray[2].enclosingElement.displayName, missingOverridesArray[2].displayName, stringTypeArray[3], missingOverridesArray[3].enclosingElement.displayName, missingOverridesArray[3].displayName, missingOverridesArray.length - 4]);
     }
+    analysisError.setProperty(ErrorProperty.UNIMPLEMENTED_METHODS, missingOverridesArray);
+    _errorReporter.reportError(analysisError);
     return true;
   }
 
@@ -12642,12 +12649,19 @@ class INIT_STATE implements Comparable<INIT_STATE> {
  * pub best practices.
  */
 class PubVerifier extends RecursiveASTVisitor<Object> {
+  static String _PUBSPEC_YAML = "pubspec.yaml";
+
+  /**
+   * The analysis context containing the sources to be analyzed
+   */
+  AnalysisContext _context;
 
   /**
    * The error reporter by which errors will be reported.
    */
   ErrorReporter _errorReporter;
-  PubVerifier(ErrorReporter errorReporter) {
+  PubVerifier(AnalysisContext context, ErrorReporter errorReporter) {
+    this._context = context;
     this._errorReporter = errorReporter;
   }
   Object visitImportDirective(ImportDirective directive) {
@@ -12655,14 +12669,17 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
   }
 
   /**
-   * Determine if the file file path lies inside the "lib" directory hierarchy but references a file
-   * outside that directory hierarchy.
-   * @param directive the import directive (not {@code null})
+   * This verifies that the passed file import directive is not contained in a source inside a
+   * package "lib" directory hierarchy referencing a source outside that package "lib" directory
+   * hierarchy.
+   * @param uriLiteral the import URL (not {@code null})
    * @param path the file path being verified (not {@code null})
-   * @return {@code true} if the file is inside but references a file outside
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE
    */
-  bool checkForFileImportInsideLibReferencesFileOutside(ImportDirective directive, String path) {
-    String fullName = getSourceFullName(directive);
+  bool checkForFileImportInsideLibReferencesFileOutside(StringLiteral uriLiteral, String path) {
+    Source source = getSource(uriLiteral);
+    String fullName = getSourceFullName(source);
     if (fullName != null) {
       int pathIndex = 0;
       int fullNameIndex = fullName.length;
@@ -12672,6 +12689,11 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
           return false;
         }
         if (JavaString.startsWithBefore(fullName, "/lib", fullNameIndex - 4)) {
+          String relativePubspecPath = path.substring(0, pathIndex + 3) + _PUBSPEC_YAML;
+          Source pubspecSource = _context.sourceFactory.resolveUri(source, relativePubspecPath);
+          if (pubspecSource.exists()) {
+            _errorReporter.reportError2(PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, uriLiteral, []);
+          }
           return true;
         }
         pathIndex += 3;
@@ -12681,49 +12703,88 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
   }
 
   /**
-   * Determine if the given file path lies outside the "lib" directory hierarchy but references a
-   * file inside that directory hierarchy.
-   * @param directive the import directive (not {@code null})
+   * This verifies that the passed file import directive is not contained in a source outside a
+   * package "lib" directory hierarchy referencing a source inside that package "lib" directory
+   * hierarchy.
+   * @param uriLiteral the import URL (not {@code null})
    * @param path the file path being verified (not {@code null})
-   * @return {@code true} if the file is outside but references a file inside
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE
    */
-  bool checkForFileImportOutsideLibReferencesFileInside(ImportDirective directive, String path) {
-    if (path.startsWith("lib/") || path.contains("/lib/")) {
-      String fullName = getSourceFullName(directive);
-      if (fullName != null) {
-        if (!fullName.contains("/lib/")) {
-          return true;
-        }
+  bool checkForFileImportOutsideLibReferencesFileInside(StringLiteral uriLiteral, String path) {
+    if (path.startsWith("lib/")) {
+      if (checkForFileImportOutsideLibReferencesFileInside2(uriLiteral, path, 0)) {
+        return true;
+      }
+    }
+    int pathIndex = path.indexOf("/lib/");
+    while (pathIndex != -1) {
+      if (checkForFileImportOutsideLibReferencesFileInside2(uriLiteral, path, pathIndex + 1)) {
+        return true;
+      }
+      pathIndex = path.indexOf("/lib/", pathIndex + 4);
+    }
+    return false;
+  }
+  bool checkForFileImportOutsideLibReferencesFileInside2(StringLiteral uriLiteral, String path, int pathIndex) {
+    Source source = getSource(uriLiteral);
+    String relativePubspecPath = path.substring(0, pathIndex) + _PUBSPEC_YAML;
+    Source pubspecSource = _context.sourceFactory.resolveUri(source, relativePubspecPath);
+    if (!pubspecSource.exists()) {
+      return false;
+    }
+    String fullName = getSourceFullName(source);
+    if (fullName != null) {
+      if (!fullName.contains("/lib/")) {
+        _errorReporter.reportError2(PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, uriLiteral, []);
+        return true;
       }
     }
     return false;
   }
 
   /**
-   * Determine if the given package import path contains ".."
+   * This verifies that the passed package import directive does not contain ".."
+   * @param uriLiteral the import URL (not {@code null})
    * @param path the path to be validated (not {@code null})
-   * @return {@code true} if the import path contains ".."
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT
    */
-  bool checkForPackageImportContainsDotDot(String path) => path.startsWith("../") || path.contains("/../");
+  bool checkForPackageImportContainsDotDot(StringLiteral uriLiteral, String path) {
+    if (path.startsWith("../") || path.contains("/../")) {
+      _errorReporter.reportError2(PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT, uriLiteral, []);
+      return true;
+    }
+    return false;
+  }
 
   /**
-   * Answer the full name of the source associated with the compilation unit containing the given
-   * AST node. The returned value will have all {@link File#separatorChar} replace by '/'.
+   * Answer the source associated with the compilation unit containing the given AST node.
    * @param node the node (not {@code null})
-   * @return the full name or {@code null} if it could not be determined
+   * @return the source or {@code null} if it could not be determined
    */
-  String getSourceFullName(ASTNode node) {
+  Source getSource(ASTNode node) {
+    Source source = null;
     CompilationUnit unit = node.getAncestor(CompilationUnit);
     if (unit != null) {
       CompilationUnitElement element = unit.element;
       if (element != null) {
-        Source librarySource = element.source;
-        if (librarySource != null) {
-          String fullName = librarySource.fullName;
-          if (fullName != null) {
-            return fullName.replaceAll(r'\', '/');
-          }
-        }
+        source = element.source;
+      }
+    }
+    return source;
+  }
+
+  /**
+   * Answer the full name of the given source. The returned value will have all{@link File#separatorChar} replace by '/'.
+   * @param source the source
+   * @return the full name or {@code null} if it could not be determined
+   */
+  String getSourceFullName(Source source) {
+    if (source != null) {
+      String fullName = source.fullName;
+      if (fullName != null) {
+        return fullName.replaceAll(r'\', '/');
       }
     }
     return null;

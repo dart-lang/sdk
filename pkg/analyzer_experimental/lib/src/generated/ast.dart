@@ -9,7 +9,7 @@ import 'source.dart' show LineInfo;
 import 'scanner.dart';
 import 'engine.dart' show AnalysisEngine;
 import 'utilities_dart.dart';
-import 'element.dart' hide Annotation;
+import 'element.dart';
 /**
  * The abstract class {@code ASTNode} defines the behavior common to all nodes in the AST structure
  * for a Dart program.

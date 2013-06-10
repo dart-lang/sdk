@@ -11,8 +11,8 @@ import 'package:analyzer_experimental/src/generated/source_io.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
 import 'package:analyzer_experimental/src/generated/utilities_dart.dart';
-import 'package:analyzer_experimental/src/generated/ast.dart' hide Annotation;
-import 'package:analyzer_experimental/src/generated/element.dart' hide Annotation;
+import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl;
 import 'package:unittest/unittest.dart' as _ut;
 import 'test_support.dart';
@@ -793,6 +793,13 @@ class InterfaceTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertFalse(dynamicType.isSubtypeOf(typeA));
     JUnitTestCase.assertTrue(typeA.isSubtypeOf(dynamicType));
   }
+  void test_isSubtypeOf_function() {
+    InterfaceType stringType = _typeProvider.stringType;
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    classA.methods = <MethodElement> [ElementFactory.methodElement("call", VoidTypeImpl.instance, [stringType])];
+    FunctionType functionType = ElementFactory.functionElement5("f", <ClassElement> [stringType.element]).type;
+    JUnitTestCase.assertTrue(classA.type.isSubtypeOf(functionType));
+  }
   void test_isSubtypeOf_interface() {
     ClassElement classA = ElementFactory.classElement2("A", []);
     ClassElement classB = ElementFactory.classElement("B", classA.type, []);
@@ -1367,6 +1374,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
       _ut.test('test_isSubtypeOf_dynamic', () {
         final __test = new InterfaceTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_dynamic);
+      });
+      _ut.test('test_isSubtypeOf_function', () {
+        final __test = new InterfaceTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_function);
       });
       _ut.test('test_isSubtypeOf_interface', () {
         final __test = new InterfaceTypeImplTest();

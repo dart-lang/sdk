@@ -170,6 +170,14 @@ class ErrorReporter {
   }
 
   /**
+   * Creates an error with properties with the given error code and arguments.
+   * @param errorCode the error code of the error to be reported
+   * @param node the node specifying the location of the error
+   * @param arguments the arguments to the error, used to compose the error message
+   */
+  AnalysisErrorWithProperties newErrorWithProperties(ErrorCode errorCode, ASTNode node, List<Object> arguments) => new AnalysisErrorWithProperties.con2(_source, node.offset, node.length, errorCode, arguments);
+
+  /**
    * Report a passed error.
    * @param error the error to report
    */

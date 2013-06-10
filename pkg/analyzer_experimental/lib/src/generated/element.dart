@@ -13,20 +13,6 @@ import 'engine.dart' show AnalysisContext;
 import 'constant.dart' show EvaluationResultImpl;
 import 'utilities_dart.dart';
 /**
- * The interface {@code Annotation} defines the behavior of objects representing a single annotation
- * associated with an element.
- * @coverage dart.engine.element
- */
-abstract class Annotation {
-
-  /**
-   * Return the element representing the field, variable, or const constructor being used as an
-   * annotation.
-   * @return the field, variable, or constructor being used as an annotation
-   */
-  Element get element;
-}
-/**
  * The interface {@code ClassElement} defines the behavior of elements that represent a class.
  * @coverage dart.engine.element
  */
@@ -258,8 +244,8 @@ abstract class ClassElement implements Element {
 abstract class ClassMemberElement implements Element {
 
   /**
-   * Return the type in which this constructor is defined.
-   * @return the type in which this constructor is defined
+   * Return the type in which this member is defined.
+   * @return the type in which this member is defined
    */
   ClassElement get enclosingElement;
 }
@@ -441,7 +427,7 @@ abstract class Element {
    * Return an array containing all of the metadata associated with this element.
    * @return the metadata associated with this element
    */
-  List<Annotation> get metadata;
+  List<ElementAnnotation> get metadata;
 
   /**
    * Return the name of this element, or {@code null} if this element does not have a name.
@@ -488,6 +474,20 @@ abstract class Element {
    * @param visitor the visitor that will be used to visit the children of this element
    */
   void visitChildren(ElementVisitor<Object> visitor);
+}
+/**
+ * The interface {@code ElementAnnotation} defines the behavior of objects representing a single
+ * annotation associated with an element.
+ * @coverage dart.engine.element
+ */
+abstract class ElementAnnotation {
+
+  /**
+   * Return the element representing the field, variable, or const constructor being used as an
+   * annotation.
+   * @return the field, variable, or constructor being used as an annotation
+   */
+  Element get element;
 }
 /**
  * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
@@ -1019,6 +1019,13 @@ abstract class NamespaceCombinator {
 abstract class ParameterElement implements LocalElement, VariableElement {
 
   /**
+   * Return a source range that covers the portion of the source in which the default value for this
+   * parameter is specified, or {@code null} if there is no default value.
+   * @return the range of characters in which the default value of this parameter is specified
+   */
+  SourceRange get defaultValueRange;
+
+  /**
    * Return the kind of this parameter.
    * @return the kind of this parameter
    */
@@ -1479,33 +1486,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitPropertyAccessorElement(PropertyAccessorElement element) => null;
   R visitTopLevelVariableElement(TopLevelVariableElement element) => null;
   R visitTypeVariableElement(TypeVariableElement element) => null;
-}
-/**
- * Instances of the class {@code AnnotationImpl} implement an {@link Annotation}.
- * @coverage dart.engine.element
- */
-class AnnotationImpl implements Annotation {
-
-  /**
-   * The element representing the field, variable, or constructor being used as an annotation.
-   */
-  Element _element;
-
-  /**
-   * An empty array of annotations.
-   */
-  static List<AnnotationImpl> EMPTY_ARRAY = new List<AnnotationImpl>(0);
-
-  /**
-   * Initialize a newly created annotation.
-   * @param element the element representing the field, variable, or constructor being used as an
-   * annotation
-   */
-  AnnotationImpl(Element element) {
-    this._element = element;
-  }
-  Element get element => _element;
-  String toString() => "@${_element.toString()}";
 }
 /**
  * Instances of the class {@code ClassElementImpl} implement a {@code ClassElement}.
@@ -2345,6 +2325,33 @@ class DynamicElementImpl extends ElementImpl {
   }
 }
 /**
+ * Instances of the class {@code ElementAnnotationImpl} implement an {@link ElementAnnotation}.
+ * @coverage dart.engine.element
+ */
+class ElementAnnotationImpl implements ElementAnnotation {
+
+  /**
+   * The element representing the field, variable, or constructor being used as an annotation.
+   */
+  Element _element;
+
+  /**
+   * An empty array of annotations.
+   */
+  static List<ElementAnnotationImpl> EMPTY_ARRAY = new List<ElementAnnotationImpl>(0);
+
+  /**
+   * Initialize a newly created annotation.
+   * @param element the element representing the field, variable, or constructor being used as an
+   * annotation
+   */
+  ElementAnnotationImpl(Element element) {
+    this._element = element;
+  }
+  Element get element => _element;
+  String toString() => "@${_element.toString()}";
+}
+/**
  * The abstract class {@code ElementImpl} implements the behavior common to objects that implement
  * an {@link Element}.
  * @coverage dart.engine.element
@@ -2376,7 +2383,7 @@ abstract class ElementImpl implements Element {
   /**
    * An array containing all of the metadata associated with this element.
    */
-  List<Annotation> _metadata = AnnotationImpl.EMPTY_ARRAY;
+  List<ElementAnnotation> _metadata = ElementAnnotationImpl.EMPTY_ARRAY;
 
   /**
    * A cached copy of the calculated hashCode for this element.
@@ -2439,7 +2446,7 @@ abstract class ElementImpl implements Element {
   Element get enclosingElement => _enclosingElement;
   LibraryElement get library => getAncestor(LibraryElement);
   ElementLocation get location => new ElementLocationImpl.con1(this);
-  List<Annotation> get metadata => _metadata;
+  List<ElementAnnotation> get metadata => _metadata;
   String get name => _name;
   int get nameOffset => _nameOffset;
   Source get source {
@@ -2466,7 +2473,7 @@ abstract class ElementImpl implements Element {
    * Set the metadata associate with this element to the given array of annotations.
    * @param metadata the metadata to be associated with this element
    */
-  void set metadata(List<Annotation> metadata2) {
+  void set metadata(List<ElementAnnotation> metadata2) {
     this._metadata = metadata2;
   }
 
@@ -3972,7 +3979,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   ElementKind get kind => ElementKind.ERROR;
   LibraryElement get library => null;
   ElementLocation get location => null;
-  List<Annotation> get metadata => AnnotationImpl.EMPTY_ARRAY;
+  List<ElementAnnotation> get metadata => ElementAnnotationImpl.EMPTY_ARRAY;
   String get name => _name;
   int get nameOffset => -1;
   Source get source => null;
@@ -4050,6 +4057,17 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   ParameterKind _parameterKind;
 
   /**
+   * The offset to the beginning of the default value range for this element.
+   */
+  int _defaultValueRangeOffset = 0;
+
+  /**
+   * The length of the default value range for this element, or {@code -1} if this element does not
+   * have a default value.
+   */
+  int _defaultValueRangeLength = -1;
+
+  /**
    * The offset to the beginning of the visible range for this element.
    */
   int _visibleRangeOffset = 0;
@@ -4072,6 +4090,12 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
   ParameterElementImpl(Identifier name) : super.con1(name) {
   }
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+  SourceRange get defaultValueRange {
+    if (_defaultValueRangeLength < 0) {
+      return null;
+    }
+    return new SourceRange(_defaultValueRangeOffset, _defaultValueRangeLength);
+  }
   ElementKind get kind => ElementKind.PARAMETER;
   ParameterKind get parameterKind => _parameterKind;
   List<ParameterElement> get parameters => _parameters;
@@ -4082,6 +4106,18 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
   bool isInitializingFormal() => false;
+
+  /**
+   * Set the range of the default value for this parameter to the range starting at the given offset
+   * with the given length.
+   * @param offset the offset to the beginning of the default value range for this element
+   * @param length the length of the default value range for this element, or {@code -1} if this
+   * element does not have a default value
+   */
+  void setDefaultValueRange(int offset, int length) {
+    _defaultValueRangeOffset = offset;
+    _defaultValueRangeLength = length;
+  }
 
   /**
    * Set the kind of this parameter to the given kind.
@@ -4790,7 +4826,7 @@ abstract class Member implements Element {
   ElementKind get kind => _baseElement.kind;
   LibraryElement get library => _baseElement.library;
   ElementLocation get location => _baseElement.location;
-  List<Annotation> get metadata => _baseElement.metadata;
+  List<ElementAnnotation> get metadata => _baseElement.metadata;
   String get name => _baseElement.name;
   int get nameOffset => _baseElement.nameOffset;
   Source get source => _baseElement.source;
@@ -4975,6 +5011,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
     return element;
   }
   ParameterElement get baseElement => super.baseElement as ParameterElement;
+  SourceRange get defaultValueRange => baseElement.defaultValueRange;
   Element get enclosingElement => baseElement.enclosingElement;
   ParameterKind get parameterKind => baseElement.parameterKind;
   List<ParameterElement> get parameters {
@@ -5904,17 +5941,24 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return isMoreSpecificThan2((type as InterfaceType), new Set<ClassElement>());
   }
   bool isObject() => element.supertype == null;
-  bool isSubtypeOf(Type2 type) {
-    if (identical(type, DynamicTypeImpl.instance)) {
+  bool isSubtypeOf(Type2 type2) {
+    if (identical(type2, DynamicTypeImpl.instance)) {
       return true;
-    } else if (type is TypeVariableType) {
+    } else if (type2 is TypeVariableType) {
       return true;
-    } else if (type is! InterfaceType) {
+    } else if (type2 is FunctionType) {
+      ClassElement element = this.element;
+      MethodElement callMethod = element.lookUpMethod("call", element.library);
+      if (callMethod != null) {
+        return callMethod.type.isSubtypeOf(type2);
+      }
       return false;
-    } else if (this == type) {
+    } else if (type2 is! InterfaceType) {
+      return false;
+    } else if (this == type2) {
       return true;
     }
-    return isSubtypeOf2((type as InterfaceType), new Set<ClassElement>());
+    return isSubtypeOf2((type2 as InterfaceType), new Set<ClassElement>());
   }
   ConstructorElement lookUpConstructor(String constructorName, LibraryElement library) {
     ConstructorElement constructorElement;

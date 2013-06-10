@@ -8,7 +8,7 @@ import 'package:analyzer_experimental/src/generated/java_junit.dart';
 import 'package:analyzer_experimental/src/generated/source_io.dart';
 import 'package:analyzer_experimental/src/generated/error.dart';
 import 'package:analyzer_experimental/src/generated/scanner.dart';
-import 'package:analyzer_experimental/src/generated/ast.dart' hide Annotation;
+import 'package:analyzer_experimental/src/generated/ast.dart';
 import 'package:analyzer_experimental/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer_experimental/src/generated/element.dart';
 import 'package:analyzer_experimental/src/generated/resolver.dart';
@@ -3141,8 +3141,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the added file
    */
   Source addSource2(String filePath, String contents) {
-    Source source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(filePath));
-    _sourceFactory.setContents(source, contents);
+    Source source = cacheSource(filePath, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     _analysisContext.applyChanges(changeSet);
@@ -3179,6 +3178,19 @@ class ResolverTestCase extends EngineTestCase {
       }
     }
     errorListener.assertNoErrors();
+  }
+
+  /**
+   * Cache the source file content in the source factory but don't add the source to the analysis
+   * context. The file path should be absolute.
+   * @param filePath the path of the file being cached
+   * @param contents the contents to be returned by the content provider for the specified file
+   * @return the source object representing the cached file
+   */
+  Source cacheSource(String filePath, String contents) {
+    Source source = new FileBasedSource.con1(_sourceFactory.contentCache, FileUtilities2.createFile(filePath));
+    _sourceFactory.setContents(source, contents);
+    return source;
   }
 
   /**
@@ -7358,6 +7370,11 @@ class TypeOverrideManagerTest extends EngineTestCase {
   }
 }
 class PubSuggestionCodeTest extends ResolverTestCase {
+  void test_import_package() {
+    Source source = addSource(EngineTestCase.createSource(["import 'package:somepackage/other.dart';"]));
+    resolve(source);
+    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+  }
   void test_import_packageWithDotDot() {
     Source source = addSource(EngineTestCase.createSource(["import 'package:somepackage/../other.dart';"]));
     resolve(source);
@@ -7369,22 +7386,58 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST, PubSuggestionCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT]);
   }
   void test_import_referenceIntoLibDirectory() {
-    Source source = addSource(EngineTestCase.createSource(["import '../lib/other.dart';"]));
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/lib/other.dart", "");
+    Source source = addSource2("/myproj/web/test.dart", EngineTestCase.createSource(["import '../lib/other.dart';"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST, PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
+    assertErrors([PubSuggestionCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
+  }
+  void test_import_referenceIntoLibDirectory_no_pubspec() {
+    cacheSource("/myproj/lib/other.dart", "");
+    Source source = addSource2("/myproj/web/test.dart", EngineTestCase.createSource(["import '../lib/other.dart';"]));
+    resolve(source);
+    assertNoErrors();
   }
   void test_import_referenceOutOfLibDirectory() {
-    Source source = addSource2("lib/test.dart", EngineTestCase.createSource(["import '../web/other.dart';"]));
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/web/other.dart", "");
+    Source source = addSource2("/myproj/lib/test.dart", EngineTestCase.createSource(["import '../web/other.dart';"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST, PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
+    assertErrors([PubSuggestionCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
   }
-  void test_import_valid() {
-    Source source = addSource2("lib2/test.dart", EngineTestCase.createSource(["import '../web/other.dart';"]));
+  void test_import_referenceOutOfLibDirectory_no_pubspec() {
+    cacheSource("/myproj/web/other.dart", "");
+    Source source = addSource2("/myproj/lib/test.dart", EngineTestCase.createSource(["import '../web/other.dart';"]));
     resolve(source);
-    assertErrors([CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+    assertNoErrors();
+  }
+  void test_import_valid_inside_lib1() {
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/lib/other.dart", "");
+    Source source = addSource2("/myproj/lib/test.dart", EngineTestCase.createSource(["import 'other.dart';"]));
+    resolve(source);
+    assertNoErrors();
+  }
+  void test_import_valid_inside_lib2() {
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/lib/bar/other.dart", "");
+    Source source = addSource2("/myproj/lib/foo/test.dart", EngineTestCase.createSource(["import '../bar/other.dart';"]));
+    resolve(source);
+    assertNoErrors();
+  }
+  void test_import_valid_outside_lib() {
+    cacheSource("/myproj/pubspec.yaml", "");
+    cacheSource("/myproj/web/other.dart", "");
+    Source source = addSource2("/myproj/lib2/test.dart", EngineTestCase.createSource(["import '../web/other.dart';"]));
+    resolve(source);
+    assertNoErrors();
   }
   static dartSuite() {
     _ut.group('PubSuggestionCodeTest', () {
+      _ut.test('test_import_package', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_package);
+      });
       _ut.test('test_import_packageWithDotDot', () {
         final __test = new PubSuggestionCodeTest();
         runJUnitTest(__test, __test.test_import_packageWithDotDot);
@@ -7397,13 +7450,29 @@ class PubSuggestionCodeTest extends ResolverTestCase {
         final __test = new PubSuggestionCodeTest();
         runJUnitTest(__test, __test.test_import_referenceIntoLibDirectory);
       });
+      _ut.test('test_import_referenceIntoLibDirectory_no_pubspec', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_referenceIntoLibDirectory_no_pubspec);
+      });
       _ut.test('test_import_referenceOutOfLibDirectory', () {
         final __test = new PubSuggestionCodeTest();
         runJUnitTest(__test, __test.test_import_referenceOutOfLibDirectory);
       });
-      _ut.test('test_import_valid', () {
+      _ut.test('test_import_referenceOutOfLibDirectory_no_pubspec', () {
         final __test = new PubSuggestionCodeTest();
-        runJUnitTest(__test, __test.test_import_valid);
+        runJUnitTest(__test, __test.test_import_referenceOutOfLibDirectory_no_pubspec);
+      });
+      _ut.test('test_import_valid_inside_lib1', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_valid_inside_lib1);
+      });
+      _ut.test('test_import_valid_inside_lib2', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_valid_inside_lib2);
+      });
+      _ut.test('test_import_valid_outside_lib', () {
+        final __test = new PubSuggestionCodeTest();
+        runJUnitTest(__test, __test.test_import_valid_outside_lib);
       });
     });
   }
@@ -10936,7 +11005,7 @@ class SimpleResolverTest extends ResolverTestCase {
     JUnitTestCase.assertNotNull(unit);
     List<ClassElement> classes = unit.types;
     EngineTestCase.assertLength(1, classes);
-    List<Annotation> annotations = classes[0].metadata;
+    List<ElementAnnotation> annotations = classes[0].metadata;
     EngineTestCase.assertLength(1, annotations);
     assertNoErrors();
     verify([source]);
@@ -10950,7 +11019,7 @@ class SimpleResolverTest extends ResolverTestCase {
     List<ClassElement> classes = unit.types;
     EngineTestCase.assertLength(1, classes);
     FieldElement field = classes[0].fields[0];
-    List<Annotation> annotations = field.metadata;
+    List<ElementAnnotation> annotations = field.metadata;
     EngineTestCase.assertLength(1, annotations);
     assertNoErrors();
     verify([source]);
@@ -10959,7 +11028,7 @@ class SimpleResolverTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource(["@A library lib;", "const A = null;"]));
     LibraryElement library = resolve(source);
     JUnitTestCase.assertNotNull(library);
-    List<Annotation> annotations = library.metadata;
+    List<ElementAnnotation> annotations = library.metadata;
     EngineTestCase.assertLength(1, annotations);
     assertNoErrors();
     verify([source]);
@@ -10973,7 +11042,7 @@ class SimpleResolverTest extends ResolverTestCase {
     List<ClassElement> classes = unit.types;
     EngineTestCase.assertLength(1, classes);
     MethodElement method = classes[0].methods[0];
-    List<Annotation> annotations = method.metadata;
+    List<ElementAnnotation> annotations = method.metadata;
     EngineTestCase.assertLength(1, annotations);
     assertNoErrors();
     verify([source]);
