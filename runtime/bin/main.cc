@@ -112,6 +112,9 @@ static bool ProcessVerboseOption(const char* arg) {
 
 static bool ProcessBreakpointOption(const char* funcname) {
   ASSERT(funcname != NULL);
+  if (*funcname == '\0') {
+    return false;
+  }
   breakpoint_at = funcname;
   return true;
 }
@@ -119,6 +122,9 @@ static bool ProcessBreakpointOption(const char* funcname) {
 
 static bool ProcessPackageRootOption(const char* arg) {
   ASSERT(arg != NULL);
+  if (*arg == '\0' || *arg == '-') {
+    return false;
+  }
   package_root = arg;
   return true;
 }
@@ -197,6 +203,9 @@ static bool ProcessPrintScriptOption(const char* arg) {
 
 static bool ProcessVmStatsRootOption(const char* arg) {
   ASSERT(arg != NULL);
+  if (*arg == '\0') {
+    return false;
+  }
   vmstats_root = arg;
   return true;
 }
@@ -217,8 +226,9 @@ static bool ProcessGenScriptSnapshotOption(const char* filename) {
       return false;
     }
     generate_script_snapshot = true;
+    return true;
   }
-  return true;
+  return false;
 }
 
 
@@ -233,12 +243,11 @@ static struct {
   { "--verbose", ProcessVerboseOption },
   { "-v", ProcessVerboseOption },
   { "--package-root=", ProcessPackageRootOption },
-  { "-p", ProcessPackageRootOption },
   // VM specific options to the standalone dart program.
-  { "--break_at=", ProcessBreakpointOption },
+  { "--break-at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
-  { "--generate-script-snapshot=", ProcessGenScriptSnapshotOption },
+  { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--stats-root=", ProcessVmStatsRootOption },
   { "--stats", ProcessVmStatsOption },
   { "--print-script", ProcessPrintScriptOption },
@@ -250,10 +259,14 @@ static struct {
 static bool ProcessMainOptions(const char* option) {
   int i = 0;
   const char* name = main_options[0].option_name;
+  int option_length = strlen(option);
   while (name != NULL) {
     int length = strlen(name);
-    if (strncmp(option, name, length) == 0) {
-      return main_options[i].process(option + length);
+    if ((option_length >= length) && (strncmp(option, name, length) == 0)) {
+      if (!main_options[i].process(option + length)) {
+        Log::PrintErr("Invalid option specification : '%s'\n", option);
+      }
+      return true;
     }
     i += 1;
     name = main_options[i].option_name;
@@ -305,7 +318,20 @@ static int ParseArguments(int argc,
       i++;
     } else {
       // Check if this flag is a potentially valid VM flag.
-      if (!IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
+      const char* kChecked = "-c";
+      const char* kPackageRoot = "-p";
+      if (strncmp(argv[i], kPackageRoot, strlen(kPackageRoot)) == 0) {
+        if (!ProcessPackageRootOption(argv[i] + strlen(kPackageRoot))) {
+          i++;
+          if (!ProcessPackageRootOption(argv[i])) {
+            Log::PrintErr("Invalid option specification : '%s'\n", argv[i - 1]);
+            i++;
+            break;
+          }
+        }
+      } else if (strncmp(argv[i], kChecked, strlen(kChecked)) == 0) {
+        vm_options->AddArgument("--checked");
+      } else if (!IsValidFlag(argv[i], kPrefix, kPrefixLen)) {
         break;
       }
       const char* kPrintFlags1 = "--print-flags";
@@ -516,35 +542,38 @@ static void PrintUsage() {
   if (!has_verbose_option) {
     Log::PrintErr(
 "Common options:\n"
-"--checked Insert runtime type checks and enable assertions (checked mode).\n"
-"--version Print the VM version.\n"
-"--help    Display this message (add --verbose for information about all\n"
-"          VM options).\n");
+"--checked or -c\n"
+"  Insert runtime type checks and enable assertions (checked mode).\n"
+"--help or -h\n"
+"  Display this message (add -v or --verbose for information about\n"
+"  all VM options).\n"
+"--package-root=<path> or -p<path>\n"
+"  Where to find packages, that is, \"package:...\" imports.\n"
+"--version\n"
+"  Print the VM version.\n");
   } else {
     Log::PrintErr(
 "Supported options:\n"
-"--checked\n"
+"--checked or -c\n"
 "  Insert runtime type checks and enable assertions (checked mode).\n"
-"\n"
+"--help or -h\n"
+"  Display this message (add -v or --verbose for information about\n"
+"  all VM options).\n"
+"--package-root=<path> or -p<path>\n"
+"  Where to find packages, that is, \"package:...\" imports.\n"
 "--version\n"
 "  Print the VM version.\n"
-"\n"
-"--help\n"
-"  Display this message (add --verbose for information about all VM options).\n"
-"\n"
-"--package-root=<path>\n"
-"  Where to find packages, that is, \"package:...\" imports.\n"
 "\n"
 "--debug[:<port number>]\n"
 "  enables debugging and listens on specified port for debugger connections\n"
 "  (default port number is 5858)\n"
 "\n"
-"--break_at=<location>\n"
+"--break-at=<location>\n"
 "  sets a breakpoint at specified location where <location> is one of :\n"
 "  url:<line_num> e.g. test.dart:10\n"
 "  [<class_name>.]<function_name> e.g. B.foo\n"
 "\n"
-"--generate-script-snapshot=<file_name>\n"
+"--snapshot=<file_name>\n"
 "  loads Dart script and generates a snapshot in the specified file\n"
 "\n"
 "--print-script\n"
