@@ -116,79 +116,93 @@ class Selector {
   final int argumentCount;
   final List<SourceString> namedArguments;
   final List<SourceString> orderedNamedArguments;
+  final int hashCode;
 
-  int cachedHashCode;
+  static const SourceString INDEX_NAME = const SourceString("[]");
+  static const SourceString INDEX_SET_NAME = const SourceString("[]=");
+  static const SourceString CALL_NAME = Compiler.CALL_OPERATOR_NAME;
 
-  Selector(
-      this.kind,
-      SourceString name,
-      LibraryElement library,
-      this.argumentCount,
-      [List<SourceString> namedArguments = const <SourceString>[]])
-    : this.name = name,
-      this.library = name.isPrivate() ? library : null,
-      this.namedArguments = namedArguments,
-      this.orderedNamedArguments = namedArguments.isEmpty
-          ? namedArguments
-          : <SourceString>[] {
+  Selector.internal(this.kind,
+                    this.name,
+                    this.library,
+                    this.argumentCount,
+                    this.namedArguments,
+                    this.orderedNamedArguments,
+                    this.hashCode) {
     assert(!name.isPrivate() || library != null);
   }
 
-  Selector.getter(SourceString name, LibraryElement library)
-      : this(SelectorKind.GETTER, name, library, 0);
+  factory Selector(SelectorKind kind,
+                   SourceString name,
+                   LibraryElement library,
+                   int argumentCount,
+                   [List<SourceString> namedArguments]) {
+    if (!name.isPrivate()) library = null;
+    List<SourceString> orderedNamedArguments = const <SourceString>[];
+    if (namedArguments == null) {
+      namedArguments = const <SourceString>[];
+    } else if (!namedArguments.isEmpty) {
+      orderedNamedArguments = <SourceString>[];
+    }
+    int hashCode = computeHashCode(
+        kind, name, library, argumentCount, namedArguments);
+    return new Selector.internal(
+        kind, name, library, argumentCount,
+        namedArguments, orderedNamedArguments,
+        hashCode);
+  }
 
-  Selector.getterFrom(Selector selector)
-      : this(SelectorKind.GETTER, selector.name, selector.library, 0);
+  factory Selector.getter(SourceString name, LibraryElement library)
+      => new Selector(SelectorKind.GETTER, name, library, 0);
 
-  Selector.setter(SourceString name, LibraryElement library)
-      : this(SelectorKind.SETTER, name, library, 1);
+  factory Selector.getterFrom(Selector selector)
+      => new Selector(SelectorKind.GETTER, selector.name, selector.library, 0);
 
-  Selector.unaryOperator(SourceString name)
-      : this(SelectorKind.OPERATOR,
-             Elements.constructOperatorName(name, true),
-             null, 0);
+  factory Selector.setter(SourceString name, LibraryElement library)
+      => new Selector(SelectorKind.SETTER, name, library, 1);
 
-  Selector.binaryOperator(SourceString name)
-      : this(SelectorKind.OPERATOR,
-             Elements.constructOperatorName(name, false),
-             null, 1);
+  factory Selector.unaryOperator(SourceString name)
+      => new Selector(SelectorKind.OPERATOR,
+                      Elements.constructOperatorName(name, true),
+                      null, 0);
 
-  Selector.index()
-      : this(SelectorKind.INDEX,
-             Elements.constructOperatorName(const SourceString("[]"), false),
-             null, 1);
+  factory Selector.binaryOperator(SourceString name)
+      => new Selector(SelectorKind.OPERATOR,
+                      Elements.constructOperatorName(name, false),
+                      null, 1);
 
-  Selector.indexSet()
-      : this(SelectorKind.INDEX,
-             Elements.constructOperatorName(const SourceString("[]="), false),
-             null, 2);
+  factory Selector.index()
+      => new Selector(SelectorKind.INDEX,
+                      Elements.constructOperatorName(INDEX_NAME, false),
+                      null, 1);
 
-  Selector.call(SourceString name,
-                LibraryElement library,
-                int arity,
-                [List<SourceString> named = const []])
-      : this(SelectorKind.CALL, name, library, arity, named);
+  factory Selector.indexSet()
+      => new Selector(SelectorKind.INDEX,
+                      Elements.constructOperatorName(INDEX_SET_NAME, false),
+                      null, 2);
 
-  Selector.callClosure(int arity, [List<SourceString> named = const []])
-      : this(SelectorKind.CALL, Compiler.CALL_OPERATOR_NAME, null,
-             arity, named);
+  factory Selector.call(SourceString name,
+                        LibraryElement library,
+                        int arity,
+                        [List<SourceString> namedArguments])
+      => new Selector(SelectorKind.CALL, name, library, arity, namedArguments);
 
-  Selector.callClosureFrom(Selector selector)
-      : this(SelectorKind.CALL, Compiler.CALL_OPERATOR_NAME, null,
-             selector.argumentCount, selector.namedArguments);
+  factory Selector.callClosure(int arity, [List<SourceString> namedArguments])
+      => new Selector(SelectorKind.CALL, CALL_NAME, null,
+                      arity, namedArguments);
 
-  Selector.callConstructor(SourceString constructorName,
-                           LibraryElement library,
-                           [int arity = 0,
-                            List<SourceString> named = const []])
-      : this(SelectorKind.CALL,
-             constructorName,
-             library,
-             arity,
-             named);
+  factory Selector.callClosureFrom(Selector selector)
+      => new Selector(SelectorKind.CALL, CALL_NAME, null,
+                      selector.argumentCount, selector.namedArguments);
 
-  Selector.callDefaultConstructor(LibraryElement library)
-      : this(SelectorKind.CALL, const SourceString(""), library, 0, const []);
+  factory Selector.callConstructor(SourceString name, LibraryElement library,
+                                   [int arity = 0,
+                                    List<SourceString> namedArguments])
+      => new Selector(SelectorKind.CALL, name, library,
+                      arity, namedArguments);
+
+  factory Selector.callDefaultConstructor(LibraryElement library)
+      => new Selector(SelectorKind.CALL, const SourceString(""), library, 0);
 
   bool isGetter() => identical(kind, SelectorKind.GETTER);
   bool isSetter() => identical(kind, SelectorKind.SETTER);
@@ -369,26 +383,23 @@ class Selector {
   bool operator ==(other) {
     if (other is !Selector) return false;
     if (identical(this, other)) return true;
-    return mask == other.mask && equalsUntyped(other);
-  }
-
-  bool equalsUntyped(Selector other) {
     return hashCode == other.hashCode  // Fast because it is cached.
-           && name == other.name
-           && kind == other.kind
-           && identical(library, other.library)
-           && argumentCount == other.argumentCount
-           && namedArguments.length == other.namedArguments.length
-           && sameNames(namedArguments, other.namedArguments);
+        && kind == other.kind
+        && name == other.name
+        && mask == other.mask
+        && identical(library, other.library)
+        && argumentCount == other.argumentCount
+        && namedArguments.length == other.namedArguments.length
+        && sameNames(namedArguments, other.namedArguments);
   }
 
-  int get hashCode {
-    // Check the hash code cache first.
-    if (cachedHashCode != null) return cachedHashCode;
+  static int computeHashCode(SelectorKind kind,
+                             SourceString name,
+                             LibraryElement library,
+                             int argumentCount,
+                             List<SourceString> namedArguments) {
     // Add bits from name and kind.
     int hash = mixHashCodeBits(name.hashCode, kind.hashCode);
-    // Add bits from the type mask.
-    if (mask != null) hash = mixHashCodeBits(hash, mask.hashCode);
     // Add bits from the library.
     if (library != null) hash = mixHashCodeBits(hash, library.hashCode);
     // Add bits from the unnamed arguments.
@@ -399,7 +410,7 @@ class Selector {
     for (int i = 0; i < named; i++) {
       hash = mixHashCodeBits(hash, namedArguments[i].hashCode);
     }
-    return cachedHashCode = hash;
+    return hash;
   }
 
   // TODO(kasperl): Move this out so it becomes useful in other places too?
@@ -456,25 +467,33 @@ class TypedSelector extends Selector {
   final Selector asUntyped;
   final TypeMask mask;
 
-  TypedSelector(this.mask, Selector selector)
-      : asUntyped = selector.asUntyped,
-        super(selector.kind,
-              selector.name,
-              selector.library,
-              selector.argumentCount,
-              selector.namedArguments) {
+  TypedSelector.internal(this.mask, Selector selector, int hashCode)
+      : asUntyped = selector,
+        super.internal(selector.kind,
+                       selector.name,
+                       selector.library,
+                       selector.argumentCount,
+                       selector.namedArguments,
+                       selector.orderedNamedArguments,
+                       hashCode) {
+    assert(mask != null);
     assert(asUntyped.mask == null);
   }
 
-  TypedSelector.exact(DartType base, Selector selector)
-      : this(new TypeMask.exact(base), selector);
+  factory TypedSelector(TypeMask mask, Selector selector) {
+    Selector untyped = selector.asUntyped;
+    int hashCode = Selector.mixHashCodeBits(untyped.hashCode, mask.hashCode);
+    return new TypedSelector.internal(mask, untyped, hashCode);
+  }
 
-  TypedSelector.subclass(DartType base, Selector selector)
-      : this(new TypeMask.subclass(base), selector);
+  factory TypedSelector.exact(DartType base, Selector selector)
+      => new TypedSelector(new TypeMask.exact(base), selector);
 
-  TypedSelector.subtype(DartType base, Selector selector)
-      : this(new TypeMask.subtype(base), selector);
+  factory TypedSelector.subclass(DartType base, Selector selector)
+      => new TypedSelector(new TypeMask.subclass(base), selector);
 
+  factory TypedSelector.subtype(DartType base, Selector selector)
+      => new TypedSelector(new TypeMask.subtype(base), selector);
 
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));

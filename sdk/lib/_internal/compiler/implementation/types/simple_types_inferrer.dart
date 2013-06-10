@@ -1170,7 +1170,9 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         if (constraint.isOperator()) {
           // If the constraint is on an operator, we type the receiver
           // to be the field.
-          constraint = new TypedSelector(fieldType, constraint);
+          if (fieldType != null) {
+            constraint = new TypedSelector(fieldType, constraint);
+          }
         } else {
           // Otherwise the constraint is on the form [: field = other.field :].
           assert(constraint.isGetter());
