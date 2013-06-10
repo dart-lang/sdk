@@ -198,7 +198,9 @@ InstanceMirror reflect(Object reflectee) {
 
 final Expando<ClassMirror> classMirrors = new Expando<ClassMirror>();
 
-ClassMirror reflectType(Type key) => reflectClassByName(s('$key'));
+ClassMirror reflectType(Type key) {
+  return reflectClassByName(s('$key'.split('<')[0]));
+}
 
 ClassMirror reflectClassByName(Symbol symbol) {
   String className = n(symbol);
