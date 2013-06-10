@@ -57,10 +57,6 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'StringCallback': '_StringCallback',
     'WebGLVertexArrayObjectOES': 'VertexArrayObject',
-    'WebKitCSSFilterRule': '_WebKitCssFilterRule',
-    'WebKitCSSKeyframeRule': '_WebKitCssKeyframeRule',
-    'WebKitCSSKeyframesRule': '_WebKitCssKeyframesRule',
-    'WebKitCSSRegionRule': '_WebKitCssRegionRule',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestProgressEvent': 'HttpRequestProgressEvent',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
@@ -119,10 +115,6 @@ _removed_html_interfaces = [
   'SVGVKernElement',
   'SharedWorker', # Workers
   'SharedWorkerContext', # Workers
-  'WebKitCSSFilterValue',
-  'WebKitCSSMatrix',
-  'WebKitCSSMixFunctionValue',
-  'WebKitCSSTransformValue',
   'WorkerContext', # Workers
   'WorkerLocation', # Workers
   'WorkerNavigator', # Workers
