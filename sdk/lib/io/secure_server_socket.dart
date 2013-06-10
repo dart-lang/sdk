@@ -227,18 +227,14 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
         _controller.add(secureConnection);
       }
     }).catchError((e) {
-      if (_closed) {
-        throw e;
-      } else {
+      if (!_closed) {
         _controller.addError(e);
-        close();
       }
     });
   }
 
   void _onError(e) {
     _controller.addError(e);
-    close();
   }
 
   void _onDone() {

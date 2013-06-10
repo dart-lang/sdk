@@ -82,7 +82,7 @@ void testSimpleConnect(String certificate) {
   });
 }
 
-void testSimpleConnectFail(String certificate) {
+void testSimpleConnectFail(String certificate, bool cancelOnError) {
   ReceivePort port = new ReceivePort();
   SecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port)
@@ -97,8 +97,12 @@ void testSimpleConnectFail(String certificate) {
     },
     onError: (error) {
       Expect.isTrue(error is SocketIOException);
-      clientEndFuture.then((_) => port.close());
-    });
+      clientEndFuture.then((_) {
+        if (!cancelOnError) server.close();
+        port.close();
+      });
+    },
+    cancelOnError: cancelOnError);
   });
 }
 
@@ -198,8 +202,10 @@ main() {
   testInvalidBind();
   testSimpleConnect(CERTIFICATE);
   testSimpleConnect("CN=localhost");
-  testSimpleConnectFail("not_a_nickname");
-  testSimpleConnectFail("CN=notARealDistinguishedName");
+  testSimpleConnectFail("not_a_nickname", false);
+  testSimpleConnectFail("CN=notARealDistinguishedName", false);
+  testSimpleConnectFail("not_a_nickname", true);
+  testSimpleConnectFail("CN=notARealDistinguishedName", true);
   testServerListenAfterConnect();
   testSimpleReadWrite();
 }

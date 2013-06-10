@@ -1842,10 +1842,16 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
         });
   }
 
-  _HttpServer._(this._serverSocket, this._closeServer);
+  _HttpServer._(this._serverSocket, this._closeServer) {
+    _controller = new StreamController<HttpRequest>(sync: true,
+                                                    onCancel: close);
+  }
 
   _HttpServer.listenOn(ServerSocket this._serverSocket)
-      : _closeServer = false;
+      : _closeServer = false {
+    _controller = new StreamController<HttpRequest>(sync: true,
+                                                    onCancel: close);
+  }
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event),
                                          {void onError(error),
@@ -1937,8 +1943,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
 
   // Set of currently connected clients.
   final Set<_HttpConnection> _connections = new Set<_HttpConnection>();
-  final StreamController<HttpRequest> _controller
-      = new StreamController<HttpRequest>(sync: true);
+  StreamController<HttpRequest> _controller;
 
   // TODO(ajohnsen): Use close queue?
 }
