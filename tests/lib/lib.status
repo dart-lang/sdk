@@ -26,7 +26,7 @@ mirrors/mirrors_resolve_fields_test: Fail # Issue 6490
 mirrors/metadata_test: Fail # Issue 6490
 mirrors/reflect_runtime_type_test: Fail # Issue 6490
 mirrors/reflect_uninstantiated_class_test: Fail # Issue 6490
-
+mirrors/superclass_test: Fail # Issue 6490
 
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.
@@ -105,6 +105,7 @@ async/timer_isolate_test: Skip # See Issue 4997
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
 mirrors/metadata_test: Fail # http://dartbug.com/10906
+mirrors/superclass_test: Fail # http://dartbug.com/11142
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997

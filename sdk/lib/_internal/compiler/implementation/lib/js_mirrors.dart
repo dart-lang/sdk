@@ -316,6 +316,8 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
   final String _fields;
   final List _fieldsMetadata;
   List _metadata;
+  JsClassMirror _superclass;
+
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
 
@@ -346,8 +348,8 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
 
   Map<Symbol, VariableMirror> get variables {
     var result = new Map<Symbol, VariableMirror>();
-    var s = _fields.split(";");
-    var fields = s[1] == "" ? [] : s[1].split(",");
+    var s = _fields.split(';');
+    var fields = s[1] == '' ? [] : s[1].split(',');
     int fieldNumber = 0;
     for (String field in fields) {
       var metadata;
@@ -439,6 +441,16 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
     return _metadata.map(reflect).toList();
   }
 
+  ClassMirror get superclass {
+    if (_superclass == null) {
+      var superclassName = _fields.split(';')[0];
+      // Use _superclass == this to represent class with no superclass (Object).
+      _superclass =
+          (superclassName == '') ? this : reflectClassByName(s(superclassName));
+    }
+    return _superclass == this ? null : _superclass;
+  }
+
   String toString() => 'ClassMirror(${n(simpleName)})';
 }
 
@@ -473,7 +485,7 @@ class JsVariableMirror implements VariableMirror {
     }
     String jsName;
     String accessorName = jsName = descriptor.substring(0, length);
-    int divider = descriptor.indexOf(":");
+    int divider = descriptor.indexOf(':');
     if (divider > 0) {
       accessorName = accessorName.substring(0, divider);
       jsName = accessorName.substring(divider + 1);
