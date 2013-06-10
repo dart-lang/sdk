@@ -86,35 +86,67 @@ class _FutureListenerWrapper<T> implements _FutureListener<T> {
 }
 
 class _FutureImpl<T> implements Future<T> {
+  // State of the future. The state determines the interpretation of the
+  // [resultOrListeners] field.
+  // TODO(lrn): rename field since it can also contain a chained future.
+
+  /// Initial state, waiting for a result. In this state, the
+  /// [resultOrListeners] field holds a single-linked list of
+  /// [FutureListener] listeners.
   static const int _INCOMPLETE = 0;
-  static const int _VALUE = 1;
-  static const int _ERROR = 2;
-  static const int _UNHANDLED_ERROR = 4;
+  /// The future has been chained to another future. The result of that
+  /// other future becomes the result of this future as well.
+  /// In this state, the [resultOrListeners] field holds the future that
+  /// will give the result to this future. Both existing and new listeners are
+  /// forwarded directly to the other future.
+  static const int _CHAINED = 1;
+  /// The future has been chained to another future, but there hasn't been
+  /// any listeners added to this future yet. If it is completed with an
+  /// error, the error will be considered unhandled.
+  static const int _CHAINED_UNLISTENED = 3;
+  /// The future has been completed with a value result.
+  static const int _VALUE = 4;
+  /// The future has been completed with an error result.
+  static const int _ERROR = 6;
+  /// Extra bit set when the future has been completed with an error result.
+  /// but no listener has been scheduled to receive the error.
+  /// If the bit is still set when a [runAsync] call triggers, the error will
+  /// be reported to the top-level handler.
+  /// Assigning a listener before that time will clear the bit.
+  static const int _UNHANDLED_ERROR = 8;
 
   /** Whether the future is complete, and as what. */
   int _state = _INCOMPLETE;
 
-  bool get _isComplete => _state != _INCOMPLETE;
+  bool get _isChained => (_state & _CHAINED) != 0;
+  bool get _hasChainedListener => _state == _CHAINED;
+  bool get _isComplete => _state >= _VALUE;
   bool get _hasValue => _state == _VALUE;
-  bool get _hasError => (_state & _ERROR) != 0;
-  bool get _hasUnhandledError => (_state & _UNHANDLED_ERROR) != 0;
+  bool get _hasError => _state >= _ERROR;
+  bool get _hasUnhandledError => _state >= _UNHANDLED_ERROR;
 
   void _clearUnhandledError() {
-    // Works because _UNHANDLED_ERROR is highest bit in use.
     _state &= ~_UNHANDLED_ERROR;
   }
 
   /**
-   * Either the result, or a list of listeners until the future completes.
+   * Either the result, a list of listeners or another future.
    *
    * The result of the future is either a value or an error.
    * A result is only stored when the future has completed.
    *
    * The listeners is an internally linked list of [_FutureListener]s.
-   * Listeners are only remembered while the future is not yet complete.
+   * Listeners are only remembered while the future is not yet complete,
+   * and it is not chained to another future.
    *
-   * Since the result and the listeners cannot occur at the same time,
-   * we can use the same field for both.
+   * The future is another future that his future is chained to. This future
+   * is waiting for the other future to complete, and when it does, this future
+   * will complete with the same result.
+   * All listeners are forwarded to the other future.
+   *
+   * The cases are disjoint (incomplete and unchained, incomplete and
+   * chained, or completed with value or error), so the field only needs to hold
+   * one value at a time.
    */
   var _resultOrListeners;
 
@@ -185,7 +217,7 @@ class _FutureImpl<T> implements Future<T> {
 
   void _setValue(T value) {
     if (_isComplete) throw new StateError("Future already completed");
-    _FutureListener listeners = _removeListeners();
+    _FutureListener listeners = _isChained ? null : _removeListeners();
     _state = _VALUE;
     _resultOrListeners = value;
     while (listeners != null) {
@@ -198,29 +230,42 @@ class _FutureImpl<T> implements Future<T> {
 
   void _setError(error) {
     if (_isComplete) throw new StateError("Future already completed");
-    _FutureListener listeners = _removeListeners();
+
+    _FutureListener listeners;
+    bool hasListeners;
+    if (_isChained) {
+      listeners = null;
+      hasListeners = (_state == _CHAINED);  // and not _CHAINED_UNLISTENED.
+    } else {
+      listeners = _removeListeners();
+      hasListeners = (listeners != null);
+    }
+
     _state = _ERROR;
     _resultOrListeners = error;
-    if (listeners == null) {
+
+    if (!hasListeners) {
       _scheduleUnhandledError();
       return;
     }
-    do {
+    while (listeners != null) {
       _FutureListener listener = listeners;
       listeners = listener._nextListener;
       listener._nextListener = null;
       listener._sendError(error);
-    } while (listeners != null);
+    }
   }
 
   void _scheduleUnhandledError() {
-    _state |= _UNHANDLED_ERROR;
+    assert(_state == _ERROR);
+    _state = _ERROR | _UNHANDLED_ERROR;
     // Wait for the rest of the current event's duration to see
     // if a subscriber is added to handle the error.
     runAsync(() {
       if (_hasUnhandledError) {
         // No error handler has been added since the error was set.
         _clearUnhandledError();
+        // TODO(floitsch): Hook this into unhandled error handling.
         var error = _resultOrListeners;
         print("Uncaught Error: ${error}");
         var trace = getAttachedStackTrace(error);
@@ -233,6 +278,12 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   void _addListener(_FutureListener listener) {
+    if (_isChained) {
+      _state = _CHAINED;  // In case it was _CHAINED_UNLISTENED.
+      _FutureImpl resultSource = _chainSource;
+      resultSource._addListener(listener);
+      return;
+    }
     if (_isComplete) {
       _clearUnhandledError();
       // Handle late listeners asynchronously.
@@ -278,7 +329,7 @@ class _FutureImpl<T> implements Future<T> {
    */
   void _chain(_FutureImpl future) {
     if (!_isComplete) {
-      _addListener(future._asListener());
+      future._chainFromFuture(this);
     } else if (_hasValue) {
       future._setValue(_resultOrListeners);
     } else {
@@ -289,12 +340,67 @@ class _FutureImpl<T> implements Future<T> {
   }
 
   /**
+   * Returns the future that this future is chained to.
+   *
+   * If that future is itself chained to something else,
+   * get the [_chainSource] of that future instead, and make this
+   * future chain directly to the earliest source.
+   */
+  _FutureImpl get _chainSource {
+    assert(_isChained);
+    _FutureImpl future = _resultOrListeners;
+    if (future._isChained) {
+      future = _resultOrListeners = future._chainSource;
+    }
+    return future;
+  }
+
+  /**
+   * Make this incomplete future end up with the same result as [resultSource].
+   *
+   * This is done by moving all listeners to [resultSource] and forwarding all
+   * future [_addListener] calls to [resultSource] directly.
+   */
+  void _chainFromFuture(_FutureImpl resultSource) {
+    assert(!_isComplete);
+    assert(!_isChained);
+    if (resultSource._isChained) {
+      resultSource = resultSource._chainSource;
+    }
+    assert(!resultSource._isChained);
+    if (identical(this, resultSource)) {
+      // The only unchained future in a future dependency tree (as defined
+      // by the chain-relations) is the "root" that every other future depends
+      // on. The future we are adding is unchained, so if it is already in the
+      // tree, it must be the root, so that's the only one we need to check
+      // against to detect a cycle.
+      _setError(new StateError("Cyclic future dependency."));
+      return;
+    }
+    _FutureListener cursor = _removeListeners();
+    bool hadListeners = cursor != null;
+    while (cursor != null) {
+      _FutureListener listener = cursor;
+      cursor = cursor._nextListener;
+      listener._nextListener = null;
+      resultSource._addListener(listener);
+    }
+    // Listen with this future as well, so that when the other future completes,
+    // this future will be completed as well.
+    resultSource._addListener(this._asListener());
+    _resultOrListeners = resultSource;
+    _state = hadListeners ? _CHAINED : _CHAINED_UNLISTENED;
+  }
+
+  /**
    * Helper function to handle the result of transforming an incoming event.
    *
    * If the result is itself a [Future], this future is linked to that
    * future's output. If not, this future is completed with the result.
    */
   void _setOrChainValue(var result) {
+    assert(!_isChained);
+    assert(!_isComplete);
     if (result is Future) {
       // Result should be a Future<T>.
       if (result is _FutureImpl) {
