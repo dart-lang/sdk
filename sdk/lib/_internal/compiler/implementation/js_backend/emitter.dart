@@ -63,7 +63,8 @@ class CodeEmitterTask extends CompilerTask {
   ConstantEmitter constantEmitter;
   NativeEmitter nativeEmitter;
   CodeBuffer mainBuffer;
-  final CodeBuffer deferredBuffer = new CodeBuffer();
+  final CodeBuffer deferredLibraries = new CodeBuffer();
+  final CodeBuffer deferredConstants = new CodeBuffer();
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
@@ -1901,9 +1902,7 @@ class CodeEmitterTask extends CompilerTask {
     for (FunctionElement element in
              Elements.sortedByPosition(staticGetters.keys)) {
       Element closure = staticGetters[element];
-      // TODO(ahe): This should be emitted as a constant.  Currently,
-      // this breaks deferred loading.
-      CodeBuffer buffer = eagerBuffer;
+      CodeBuffer buffer = isDeferred(element) ? deferredConstants : eagerBuffer;
       String closureClass = namer.isolateAccess(closure);
       String name = namer.getStaticClosureName(element);
       String staticName = namer.getName(element);
@@ -3127,12 +3126,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         mainBuffer
             ..write(getReflectionDataParser())
             ..write('([$n');
-        emitDeferredPreambleWhenEmpty(deferredBuffer);
-        deferredBuffer.add('\$\$$_=$_{};$n');
 
-        deferredBuffer
-            ..write(getReflectionDataParser())
-            ..write('([$n');
         var sortedLibraries = Elements.sortedByPosition(libraryBuffers.keys);
         for (LibraryElement library in sortedLibraries) {
           List<CodeBuffer> buffers = libraryBuffers[library];
@@ -3159,7 +3153,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
           }
           buffer = buffers[1];
           if (buffer != null) {
-            deferredBuffer
+            deferredLibraries
                 ..write('["${library.getLibraryOrScriptName()}",$_')
                 ..write('"${uri}",$_')
                 ..write('[],$_')
@@ -3171,15 +3165,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
         }
         mainBuffer.write('])$N');
 
-        deferredBuffer.write('])$N');
-        if (!deferredClasses.isEmpty) {
-          deferredBuffer.add('$finishClassesName(\$\$,'
-                             '$_${namer.CURRENT_ISOLATE},'
-                             '$_$isolatePropertiesName)$N');
-        }
-
-        // Reset the map.
-        deferredBuffer.add("\$\$$_=${_}null$N$n");
         emitFinishClassesInvocationIfNecessary(mainBuffer);
         classesCollector = oldClassesCollector;
       }
@@ -3213,7 +3198,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       compiler.assembledCode = mainBuffer.getText();
       outputSourceMap(mainBuffer, compiler.assembledCode, '');
 
-      emitDeferredCode(deferredBuffer);
+      emitDeferredCode();
 
     });
     return compiler.assembledCode;
@@ -3235,8 +3220,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     return buffer;
   }
 
-  bool firstDeferredConstant = true;
-
   /**
    * Returns the appropriate buffer for [constant].  If [constant] is
    * itself an instance of a deferred type (or built from constants
@@ -3249,50 +3232,64 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     while (!queue.isEmpty) {
       constant = queue.removeFirst();
       if (isDeferred(constant.computeType(compiler).element)) {
-        emitDeferredPreambleWhenEmpty(deferredBuffer);
-        if (firstDeferredConstant) {
-          deferredBuffer.write(
-              '${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
-          deferredBuffer.write(
-              'old${namer.CURRENT_ISOLATE}$_=${_}${namer.CURRENT_ISOLATE}$N');
-        }
-        firstDeferredConstant = false;
-        return deferredBuffer;
+        return deferredConstants;
       }
       queue.addAll(constant.getDependencies());
     }
     return eagerBuffer;
   }
 
-  void emitDeferredCode(CodeBuffer buffer) {
-    if (buffer.isEmpty) return;
 
-    buffer.write(n);
+
+  void emitDeferredCode() {
+    if (deferredLibraries.isEmpty && deferredConstants.isEmpty) return;
+
+    var oldClassesCollector = classesCollector;
+    classesCollector = r"$$";
+
+    // It does not make sense to defer constants if there are no
+    // deferred elements.
+    assert(!deferredLibraries.isEmpty);
+
+    var buffer = new CodeBuffer()
+        ..write(buildGeneratedBy())
+        ..write('var old${namer.CURRENT_ISOLATE}$_='
+                '$_${namer.CURRENT_ISOLATE}$N'
+                // TODO(ahe): This defines a lot of properties on the
+                // Isolate.prototype object.  We know this will turn it into a
+                // slow object in V8, so instead we should do something similar
+                // to Isolate.$finishIsolateConstructor.
+                '${namer.CURRENT_ISOLATE}$_='
+                '$_${namer.isolateName}.prototype$N$n'
+                // The classesCollector object ($$).
+                '$classesCollector$_=$_{};$n')
+        ..write(getReflectionDataParser())
+        ..write('([$n')
+        ..addBuffer(deferredLibraries)
+        ..write('])$N');
+
+    if (!deferredClasses.isEmpty) {
+      buffer.write(
+          '$finishClassesName($classesCollector,$_${namer.CURRENT_ISOLATE},'
+          '$_$isolatePropertiesName)$N');
+    }
 
     buffer.write(
+        // Reset the classesCollector ($$).
+        '$classesCollector$_=${_}null$N$n'
         '${namer.CURRENT_ISOLATE}$_=${_}old${namer.CURRENT_ISOLATE}$N');
+
+    classesCollector = oldClassesCollector;
+
+    if (!deferredConstants.isEmpty) {
+      buffer.addBuffer(deferredConstants);
+    }
 
     String code = buffer.getText();
     compiler.outputProvider('part', 'js')
       ..add(code)
       ..close();
     outputSourceMap(buffer, compiler.assembledCode, 'part');
-  }
-
-  void emitDeferredPreambleWhenEmpty(CodeBuffer buffer) {
-    if (!buffer.isEmpty) return;
-
-    buffer.write(buildGeneratedBy());
-
-    buffer.write('var old${namer.CURRENT_ISOLATE}$_='
-                 '$_${namer.CURRENT_ISOLATE}$N');
-
-    // TODO(ahe): This defines a lot of properties on the
-    // Isolate.prototype object.  We know this will turn it into a
-    // slow object in V8, so instead we should do something similar to
-    // Isolate.$finishIsolateConstructor.
-    buffer.write('${namer.CURRENT_ISOLATE}$_='
-                 '$_${namer.isolateName}.prototype$N$n');
   }
 
   String buildGeneratedBy() {
