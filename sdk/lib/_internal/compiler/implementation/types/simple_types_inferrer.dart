@@ -342,6 +342,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     buildWorkQueue();
     int analyzed = 0;
     compiler.progress.reset();
+    int maxReanalysis = (numberOfElementsToAnalyze * 1.5).toInt();
     do {
       if (compiler.progress.elapsedMilliseconds > 500) {
         compiler.log('Inferred $analyzed methods.');
@@ -353,7 +354,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       bool wasAnalyzed = analyzeCount.containsKey(element);
       if (wasAnalyzed) {
         recompiles++;
-        if (recompiles >= numberOfElementsToAnalyze) {
+        if (recompiles >= maxReanalysis) {
           compiler.log('Ran out of budget for inferring.');
           break;
         }

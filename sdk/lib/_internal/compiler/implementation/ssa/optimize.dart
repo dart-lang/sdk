@@ -59,9 +59,6 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaSimplifyInterceptors(compiler, constantSystem, work),
           new SsaDeadCodeEliminator()];
       runPhases(graph, phases);
-      if (!speculative) {
-        runPhase(graph, new SsaConstructionFieldTypes(backend, work));
-      }
     });
   }
 
@@ -693,17 +690,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
           native.NativeBehavior.ofFieldLoad(field, compiler),
           compiler);
     } else {
-      HType type = new HType.inferredTypeForElement(field, compiler);
-      if (type.isUnknown()) {
-        type = backend.optimisticFieldType(field);
-        if (type != null) {
-          backend.registerFieldTypesOptimization(
-              work.element, field, result.instructionType);
-        }
-      }
-      if (type != null) {
-        result.instructionType = type;
-      }
+      result.instructionType =
+          new HType.inferredTypeForElement(field, compiler);
     }
     return result;
   }
@@ -1345,152 +1333,5 @@ class SsaTypeConversionInserter extends HBaseVisitor
       // TODO(ngeoffray): Also change uses for the then block on a HType
       // that knows it is not of a specific Type.
     }
-  }
-}
-
-
-// Analyze the constructors to see if some fields will always have a specific
-// type after construction. If this is the case we can ignore the type given
-// by the field initializer. This is especially useful when the field
-// initializer is initializing the field to null.
-class SsaConstructionFieldTypes
-    extends HBaseVisitor implements OptimizationPhase {
-  final JavaScriptBackend backend;
-  final CodegenWorkItem work;
-  final String name = "SsaConstructionFieldTypes";
-  final Set<HInstruction> thisUsers;
-  final Set<Element> allSetters;
-  final Map<HBasicBlock, Map<Element, HType>> blockFieldSetters;
-  bool thisExposed = false;
-  HGraph currentGraph;
-  Map<Element, HType> currentFieldSetters;
-
-  SsaConstructionFieldTypes(this.backend, this.work)
-      : thisUsers = new Set<HInstruction>(),
-        allSetters = new Set<Element>(),
-        blockFieldSetters = new Map<HBasicBlock, Map<Element, HType>>();
-
-  void visitGraph(HGraph graph) {
-    currentGraph = graph;
-    if (!work.element.isGenerativeConstructorBody() &&
-        !work.element.isGenerativeConstructor()) return;
-    visitDominatorTree(graph);
-    if (work.element.isGenerativeConstructor()) {
-      backend.registerConstructor(work.element);
-    }
-  }
-
-  visitBasicBlock(HBasicBlock block) {
-    if (block.predecessors.length == 0) {
-      // Create a new empty map for the first block.
-      currentFieldSetters = new Map<Element, HType>();
-    } else {
-      // Build a map which intersects the fields from all predecessors. For
-      // each field in this intersection it unions the types.
-      currentFieldSetters =
-          new Map.from(blockFieldSetters[block.predecessors[0]]);
-      // Loop headers are the only nodes with back edges.
-      if (!block.isLoopHeader()) {
-        for (int i = 1; i < block.predecessors.length; i++) {
-          Map<Element, HType> predecessorsFieldSetters =
-              blockFieldSetters[block.predecessors[i]];
-          Map<Element, HType> newFieldSetters = new Map<Element, HType>();
-          predecessorsFieldSetters.forEach((Element element, HType type) {
-            HType currentType = currentFieldSetters[element];
-            if (currentType != null) {
-              newFieldSetters[element] =
-                  currentType.union(type, backend.compiler);
-            }
-          });
-          currentFieldSetters = newFieldSetters;
-        }
-      } else {
-        assert(block.predecessors.length <= 2);
-      }
-    }
-    block.forEachPhi((HPhi phi) => phi.accept(this));
-    block.forEachInstruction(
-        (HInstruction instruction) => instruction.accept(this));
-    assert(currentFieldSetters != null);
-    blockFieldSetters[block] = currentFieldSetters;
-  }
-
-  visitInstruction(HInstruction instruction) {
-    // All instructions not explicitly handled below will flag the this
-    // exposure if using this.
-    thisExposed = thisExposed || thisUsers.contains(instruction);
-  }
-
-  visitPhi(HPhi phi) {
-    if (thisUsers.contains(phi)) {
-      thisUsers.addAll(phi.usedBy);
-    }
-  }
-
-  visitThis(HThis instruction) {
-    // Collect all users of this in a set to make the this exposed check simple
-    // and cheap.
-    thisUsers.addAll(instruction.usedBy);
-  }
-
-  visitFieldGet(HInstruction _) {
-    // The field get instruction is allowed to use this.
-  }
-
-  visitForeignNew(HForeignNew node) {
-    if (!work.element.isGenerativeConstructor()) return;
-    // Check if this is the new object allocated by this generative
-    // constructor. Inlining might add other [HForeignNew]
-    // instructions in the graph.
-    if (!node.usedBy.any((user) => user is HReturn)) return;
-    // The HForeignNew instruction is used in the generative constructor to
-    // initialize all fields in newly created objects. The fields are
-    // initialized to the value present in the initializer list or set to null
-    // if not otherwise initialized.
-    // Here we handle members in superclasses as well, as the handling of
-    // the generative constructor bodies will ensure, that the initializer
-    // type will not be used if the field is in any of these.
-    int j = 0;
-    node.element.forEachInstanceField(
-        (ClassElement enclosingClass, Element element) {
-          backend.registerFieldInitializer(
-              element, node.inputs[j].instructionType);
-          j++;
-        },
-        includeSuperAndInjectedMembers: true);
-  }
-
-  visitFieldSet(HFieldSet node) {
-    Element field = node.element;
-    HInstruction value = node.value;
-    HType type = value.instructionType;
-    // [HFieldSet] is also used for variables in try/catch.
-    if (field.isField()) allSetters.add(field);
-    // Don't handle fields defined in superclasses. Given that the field is
-    // always added to the [allSetters] set, setting a field defined in a
-    // superclass will get an inferred type of UNKNOWN.
-    if (work.element.getEnclosingClass() == field.getEnclosingClass()) {
-      currentFieldSetters[field] = type;
-    }
-  }
-
-  visitExit(HExit node) {
-    // If this has been exposed then we cannot say anything about types after
-    // construction.
-    if (!thisExposed) {
-      // Register the known field types.
-      currentFieldSetters.forEach((Element element, HType type) {
-        if (type.isUnknown()) return;
-        backend.registerFieldConstructor(element, type);
-        allSetters.remove(element);
-      });
-    }
-
-    // For other fields having setters in the generative constructor body, set
-    // the type to UNKNOWN to avoid relying on the type set in the initializer
-    // list.
-    allSetters.forEach((Element element) {
-      backend.registerFieldConstructor(element, HType.UNKNOWN);
-    });
   }
 }
