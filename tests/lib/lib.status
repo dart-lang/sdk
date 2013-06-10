@@ -31,9 +31,6 @@ mirrors/superclass_test: Fail # Issue 6490
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.
 
-[ $compiler == dart2js && $unchecked && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
-crypto/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail?id=2692
-
 [ $compiler == dart2js && $jscl ]
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.
@@ -57,8 +54,6 @@ async/stream_periodic4_test: Fail # Timer interface not supported; dartbug.com/7
 async/stream_periodic5_test: Fail # Timer interface not supported; dartbug.com/7728.
 
 [ $compiler == dart2js && $browser ]
-crypto/sha256_test: Slow, Pass
-crypto/sha1_test: Slow, Pass
 async/timer_not_available_test: Fail, OK # only meant to test when there is no way to
                                          # implement timer (currently only in d8)
 
@@ -76,10 +71,6 @@ typed_data/float32x4_unbox_regress_test: Fail  # Issue 10961
 mirrors/reflect_runtime_type_test: Fail
 mirrors/reflect_uninstantiated_class_test: Fail
 
-
-[ $runtime == safari]
- # Bug in JSC: the test only passes when being debugged.
-crypto/hmac_md5_test: Fail, Pass
 
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
