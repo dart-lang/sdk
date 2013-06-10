@@ -248,6 +248,9 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
   SplayTreeMap([int compare(K key1, K key2)])
       : _comparator = (compare == null) ? Comparable.compare : compare;
 
+  factory SplayTreeMap.from(Map<K, V> other, [int compare(K key1, K key2)]) =>
+      new SplayTreeMap(compare)..addAll(other);
+
   int _compare(K key1, K key2) => _comparator(key1, key2);
 
   SplayTreeMap._internal();
@@ -307,9 +310,11 @@ class SplayTreeMap<K, V> extends _SplayTree<K> implements Map<K, V> {
     return value;
   }
 
+  void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) { this[key] = value; });
+  }
+
   bool get isEmpty {
-    // assert(!((_root == null) && (_count != 0)));
-    // assert(!((_count == 0) && (_root != null)));
     return (_root == null);
   }
 
