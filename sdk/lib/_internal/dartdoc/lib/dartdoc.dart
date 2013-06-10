@@ -779,9 +779,10 @@ class Dartdoc {
 
   /// Gets the path to the dartdoc directory normalized for running in different
   /// places.
-  String get normalizedDartdocPath => pathos.absolute(runningFromSdk ?
-      pathos.join(sdkDir, 'lib', '_internal', 'dartdoc') :
-      dartdocPath.toString());
+  String get normalizedDartdocPath => pathos.normalize(
+      pathos.absolute(runningFromSdk ?
+          pathos.join(sdkDir, 'lib', '_internal', 'dartdoc') :
+          dartdocPath.toString()));
 
   void docNavigationDart() {
     var tmpDir = new Directory(tmpPath);
@@ -792,19 +793,15 @@ class Dartdoc {
     String dartString = jsonString.replaceAll(r"$", r"\$");
     var filePath = pathos.join(tmpPath, 'client.dart');
 
-    var fileBuilder = new pathos.Builder(style: pathos.Style.url);
-
-    var clientDir = fileBuilder.normalize(fileBuilder.join(
-        'file:///',
-        fileBuilder.joinAll(fileBuilder.split(normalizedDartdocPath)),
-        'lib', 'src', 'client'));
+    var clientDir = pathos.join(normalizedDartdocPath,'lib', 'src', 'client');
 
     writeString(new File(filePath),
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import r'${fileBuilder.join(clientDir, 'client-shared.dart')}';
-        import r'${fileBuilder.join(clientDir, 'dropdown.dart')}';
+        import r'${pathToFileUri(
+          pathos.join(clientDir, 'client-shared.dart'))}';
+        import r'${pathToFileUri(pathos.join(clientDir, 'dropdown.dart'))}';
 
         main() {
           setup();
