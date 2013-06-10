@@ -8076,8 +8076,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
   Rect get offset => new Rect(offsetLeft, offsetTop, offsetWidth, offsetHeight);
 
   /**
-   * Adds the specified text as a text node after the last child of this
-   * element.
+   * Adds the specified text after the last child of this element.
    */
   void appendText(String text) {
     this.insertAdjacentText('beforeend', text);
@@ -8211,7 +8210,7 @@ abstract class Element extends Node implements ElementTraversal native "Element"
     return 'transitionend';
   }
   /**
-   * Creates a text node and inserts it into the DOM at the specified location.
+   * Inserts text into the DOM at the specified location.
    *
    * To see the possible values for [where], read the doc for
    * [insertAdjacentHtml].

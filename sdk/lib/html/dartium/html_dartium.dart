@@ -8669,8 +8669,7 @@ abstract class Element extends Node implements ElementTraversal {
   Rect get offset => new Rect(offsetLeft, offsetTop, offsetWidth, offsetHeight);
 
   /**
-   * Adds the specified text as a text node after the last child of this
-   * element.
+   * Adds the specified text after the last child of this element.
    */
   void appendText(String text) {
     this.insertAdjacentText('beforeend', text);
