@@ -675,7 +675,7 @@ Map packageVersionApiMap(Map pubspec, {bool full: false}) {
   };
 
   if (full) {
-    mapAddAll(map, {
+    map.addAll({
       'downloads': 0,
       'created': '2012-09-25T18:38:28.685260',
       'libraries': ['$name.dart'],

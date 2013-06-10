@@ -298,7 +298,7 @@ List<String> split1(String toSplit, String pattern) {
 /// parameters if a name conflict occurs.
 Uri addQueryParameters(Uri url, Map<String, String> parameters) {
   var queryMap = queryToMap(url.query);
-  mapAddAll(queryMap, parameters);
+  queryMap.addAll(parameters);
   return url.resolve("?${mapToQuery(queryMap)}");
 }
 
@@ -341,11 +341,6 @@ bool urisEqual(Uri uri1, Uri uri2) =>
 Uri canonicalizeUri(Uri uri) {
   return uri;
 }
-
-/// Add all key/value pairs from [source] to [destination], overwriting any
-/// pre-existing values.
-void mapAddAll(Map destination, Map source) =>
-  source.forEach((key, value) => destination[key] = value);
 
 /// Decodes a URL-encoded string. Unlike [Uri.decodeComponent], this includes
 /// replacing `+` with ` `.

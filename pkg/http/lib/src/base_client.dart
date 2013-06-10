@@ -112,7 +112,7 @@ abstract class BaseClient implements Client {
       if (url is String) url = Uri.parse(url);
       var request = new Request(method, url);
 
-      if (headers != null) mapAddAll(request.headers, headers);
+      if (headers != null) request.headers.addAll(headers);
       if (fields != null && !fields.isEmpty) request.bodyFields = fields;
 
       return send(request);
