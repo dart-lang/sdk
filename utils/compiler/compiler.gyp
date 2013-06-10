@@ -12,6 +12,7 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
+        '../../pkg/pkg.gyp:pkg_packages',
       ],
       'actions': [
         {
@@ -21,6 +22,7 @@
             '../../sdk/lib/_internal/libraries.dart',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib/_internal/compiler", "../../runtime/lib", "../../sdk/lib/_internal/dartdoc"])',
             'create_snapshot.dart',
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/utils_wrapper.dart.snapshot',
