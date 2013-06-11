@@ -98,6 +98,7 @@ crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
+[ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
