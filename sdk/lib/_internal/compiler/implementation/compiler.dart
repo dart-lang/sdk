@@ -251,14 +251,14 @@ abstract class Compiler implements DiagnosticListener {
   final bool enableUserAssertions;
   final bool trustTypeAnnotations;
   final bool enableConcreteTypeInference;
-  final bool disableTypeInference;
+  final bool disableTypeInferenceFlag;
 
   /**
    * The maximum size of a concrete type before it widens to dynamic during
    * concrete type inference.
    */
   final int maxConcreteTypeSize;
-  final bool analyzeAll;
+  final bool analyzeAllFlag;
   final bool analyzeOnly;
   /**
    * If true, skip analysis of method bodies and field initializers. Implies
@@ -454,14 +454,14 @@ abstract class Compiler implements DiagnosticListener {
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.enableConcreteTypeInference: false,
-            this.disableTypeInference: false,
+            this.disableTypeInferenceFlag: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
             this.enableNativeLiveTypeAnalysis: false,
             bool emitJavaScript: true,
             bool generateSourceMap: true,
             bool disallowUnsafeEval: false,
-            this.analyzeAll: false,
+            this.analyzeAllFlag: false,
             bool analyzeOnly: false,
             bool analyzeSignaturesOnly: false,
             this.rejectDeprecatedFeatures: false,
@@ -521,6 +521,12 @@ abstract class Compiler implements DiagnosticListener {
   bool get hasBuildId => buildId != UNDETERMINED_BUILD_ID;
 
   bool get mirrorsEnabled => mirrorSystemClass != null;
+
+  bool get analyzeAll => analyzeAllFlag || compileAll;
+
+  bool get compileAll => mirrorsEnabled;
+
+  bool get disableTypeInference => disableTypeInferenceFlag || mirrorsEnabled;
 
   int getNextFreeClassId() => nextFreeClassId++;
 
@@ -833,7 +839,8 @@ abstract class Compiler implements DiagnosticListener {
     log('Resolving...');
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
-      libraries.forEach((_, lib) => fullyEnqueueLibrary(lib));
+      libraries.forEach(
+          (_, lib) => fullyEnqueueLibrary(lib, enqueuer.resolution));
     }
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
@@ -871,6 +878,9 @@ abstract class Compiler implements DiagnosticListener {
       enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, noSuchMethodSelector);
       enqueuer.codegen.addToWorkList(createInvocationMirrorElement);
     }
+    if (compileAll) {
+      libraries.forEach((_, lib) => fullyEnqueueLibrary(lib, enqueuer.codegen));
+    }
     processQueue(enqueuer.codegen, main);
     enqueuer.codegen.logSummary(log);
 
@@ -892,19 +902,21 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
-  void fullyEnqueueLibrary(LibraryElement library) {
-    library.implementation.forEachLocalMember(fullyEnqueueTopLevelElement);
+  void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {
+    void enqueueAll(Element element) {
+      fullyEnqueueTopLevelElement(element, world);
+    }
+    library.implementation.forEachLocalMember(enqueueAll);
   }
 
-  void fullyEnqueueTopLevelElement(Element element) {
+  void fullyEnqueueTopLevelElement(Element element, Enqueuer world) {
     if (element.isClass()) {
       ClassElement cls = element;
       cls.ensureResolved(this);
-      cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-      enqueuer.resolution.registerInstantiatedClass(
-          element, globalDependencies);
+      cls.forEachLocalMember(world.addToWorkList);
+      world.registerInstantiatedClass(element, globalDependencies);
     } else {
-      enqueuer.resolution.addToWorkList(element);
+      world.addToWorkList(element);
     }
   }
 

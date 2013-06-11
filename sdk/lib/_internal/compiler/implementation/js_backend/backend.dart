@@ -758,7 +758,13 @@ class JavaScriptBackend extends Backend {
 
   void codegen(CodegenWorkItem work) {
     Element element = work.element;
-    if (element.kind.category == ElementCategory.VARIABLE) {
+    var kind = element.kind;
+    if (kind == ElementKind.TYPEDEF) return;
+    if (element.isConstructor() && element.getEnclosingClass() == jsNullClass) {
+      // Work around a problem compiling JSNull's constructor.
+      return;
+    }
+    if (kind.category == ElementCategory.VARIABLE) {
       Constant initialValue = compiler.constantHandler.compileWorkItem(work);
       if (initialValue != null) {
         return;

@@ -21,6 +21,7 @@ typed_data/byte_data_test: Fail, OK # d8/ie9 doesn't support DataView
 
 [ $compiler == dart2js && $minified ]
 mirrors/mirrors_resolve_fields_test: Fail # Issue 6490
+mirrors/disable_tree_shaking_test: Fail # Issue 6490
 
 [ $csp ]
 mirrors/metadata_test: Fail # Issue 6490
