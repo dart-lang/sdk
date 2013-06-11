@@ -299,59 +299,32 @@
     "support_level": "experimental"
   },
   "CSSFilterRule": {
+    "comment": "http://www.w3.org/TR/filter-effects/",
     "members": {
-      "style": {
-        "support_level": "untriaged"
-      }
+      "style": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "CSSFilterValue": {
+    "comment": "http://dev.w3.org/csswg/cssom/",
+    "dart_action": "suppress",
     "members": {
-      "CSS_FILTER_BLUR": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_BRIGHTNESS": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_CONTRAST": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_CUSTOM": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_DROP_SHADOW": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_GRAYSCALE": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_HUE_ROTATE": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_INVERT": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_OPACITY": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_REFERENCE": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_SATURATE": {
-        "support_level": "untriaged"
-      },
-      "CSS_FILTER_SEPIA": {
-        "support_level": "untriaged"
-      },
-      "__getter__": {
-        "support_level": "untriaged"
-      },
-      "operationType": {
-        "support_level": "untriaged"
-      }
+      "CSS_FILTER_BLUR": {},
+      "CSS_FILTER_BRIGHTNESS": {},
+      "CSS_FILTER_CONTRAST": {},
+      "CSS_FILTER_CUSTOM": {},
+      "CSS_FILTER_DROP_SHADOW": {},
+      "CSS_FILTER_GRAYSCALE": {},
+      "CSS_FILTER_HUE_ROTATE": {},
+      "CSS_FILTER_INVERT": {},
+      "CSS_FILTER_OPACITY": {},
+      "CSS_FILTER_REFERENCE": {},
+      "CSS_FILTER_SATURATE": {},
+      "CSS_FILTER_SEPIA": {},
+      "__getter__": {},
+      "operationType": {}
     },
-    "support_level": "untriaged"
+    "support_level": "deprecated"
   },
   "CSSFontFaceLoadEvent": {
     "comment": "http://www.w3.org/TR/css3-fonts/",
@@ -387,140 +360,64 @@
     "support_level": "stable"
   },
   "CSSKeyframeRule": {
+    "comment": "http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface",
     "members": {
-      "keyText": {
-        "support_level": "untriaged"
-      },
-      "style": {
-        "support_level": "untriaged"
-      }
+      "keyText": {},
+      "style": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "CSSKeyframesRule": {
+    "comment": "http://www.w3.org/TR/css3-animations/#csskeyframesrule",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
-      "cssRules": {
-        "support_level": "untriaged"
-      },
-      "deleteRule": {
-        "support_level": "untriaged"
-      },
-      "findRule": {
-        "support_level": "untriaged"
-      },
-      "insertRule": {
-        "support_level": "untriaged"
-      },
-      "name": {
-        "support_level": "untriaged"
-      }
+      "__getter__": {},
+      "cssRules": {},
+      "deleteRule": {},
+      "findRule": {},
+      "insertRule": {},
+      "name": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "CSSMatrix": {
+    "comment": "http://dev.w3.org/csswg/cssom/",
+    "dart_action": "suppress",
     "members": {
       "CSSMatrix": {},
-      "a": {
-        "support_level": "untriaged"
-      },
-      "b": {
-        "support_level": "untriaged"
-      },
-      "c": {
-        "support_level": "untriaged"
-      },
-      "d": {
-        "support_level": "untriaged"
-      },
-      "e": {
-        "support_level": "untriaged"
-      },
-      "f": {
-        "support_level": "untriaged"
-      },
-      "inverse": {
-        "support_level": "untriaged"
-      },
-      "m11": {
-        "support_level": "untriaged"
-      },
-      "m12": {
-        "support_level": "untriaged"
-      },
-      "m13": {
-        "support_level": "untriaged"
-      },
-      "m14": {
-        "support_level": "untriaged"
-      },
-      "m21": {
-        "support_level": "untriaged"
-      },
-      "m22": {
-        "support_level": "untriaged"
-      },
-      "m23": {
-        "support_level": "untriaged"
-      },
-      "m24": {
-        "support_level": "untriaged"
-      },
-      "m31": {
-        "support_level": "untriaged"
-      },
-      "m32": {
-        "support_level": "untriaged"
-      },
-      "m33": {
-        "support_level": "untriaged"
-      },
-      "m34": {
-        "support_level": "untriaged"
-      },
-      "m41": {
-        "support_level": "untriaged"
-      },
-      "m42": {
-        "support_level": "untriaged"
-      },
-      "m43": {
-        "support_level": "untriaged"
-      },
-      "m44": {
-        "support_level": "untriaged"
-      },
-      "multiply": {
-        "support_level": "untriaged"
-      },
-      "rotate": {
-        "support_level": "untriaged"
-      },
-      "rotateAxisAngle": {
-        "support_level": "untriaged"
-      },
-      "scale": {
-        "support_level": "untriaged"
-      },
-      "setMatrixValue": {
-        "support_level": "untriaged"
-      },
-      "skewX": {
-        "support_level": "untriaged"
-      },
-      "skewY": {
-        "support_level": "untriaged"
-      },
-      "toString": {
-        "support_level": "untriaged"
-      },
-      "translate": {
-        "support_level": "untriaged"
-      }
+      "a": {},
+      "b": {},
+      "c": {},
+      "d": {},
+      "e": {},
+      "f": {},
+      "inverse": {},
+      "m11": {},
+      "m12": {},
+      "m13": {},
+      "m14": {},
+      "m21": {},
+      "m22": {},
+      "m23": {},
+      "m24": {},
+      "m31": {},
+      "m32": {},
+      "m33": {},
+      "m34": {},
+      "m41": {},
+      "m42": {},
+      "m43": {},
+      "m44": {},
+      "multiply": {},
+      "rotate": {},
+      "rotateAxisAngle": {},
+      "scale": {},
+      "setMatrixValue": {},
+      "skewX": {},
+      "skewY": {},
+      "toString": {},
+      "translate": {}
     },
-    "support_level": "untriaged"
+    "support_level": "deprecated"
   },
   "CSSMediaRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSMediaRule",
@@ -533,8 +430,10 @@
     "support_level": "stable"
   },
   "CSSMixFunctionValue": {
+    "comment": "http://dev.w3.org/csswg/cssom/",
+    "dart_action": "suppress",
     "members": {},
-    "support_level": "untriaged"
+    "support_level": "deprecated"
   },
   "CSSPageRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSPageRule",
@@ -590,12 +489,11 @@
     "support_level": "deprecated"
   },
   "CSSRegionRule": {
+    "comment": "http://dev.w3.org/csswg/css-regions/#region-style-rule-interface",
     "members": {
-      "cssRules": {
-        "support_level": "untriaged"
-      }
+      "cssRules": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "CSSRule": {
     "comment": "http://www.w3.org/TR/DOM-Level-2-Style/css.html#CSS-CSSRule",
@@ -650,9 +548,7 @@
   "CSSStyleDeclaration": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
     "members": {
-      "__setter__": {
-        "support_level": "untriaged"
-      },
+      "__setter__": {},
       "cssText": {},
       "getPropertyCSSValue": {
         "comment": "http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface",
@@ -707,78 +603,34 @@
     "support_level": "standard"
   },
   "CSSTransformValue": {
+    "comment": "http://dev.w3.org/csswg/cssom/",
+    "dart_action": "suppress",
     "members": {
-      "CSS_MATRIX": {
-        "support_level": "untriaged"
-      },
-      "CSS_MATRIX3D": {
-        "support_level": "untriaged"
-      },
-      "CSS_PERSPECTIVE": {
-        "support_level": "untriaged"
-      },
-      "CSS_ROTATE": {
-        "support_level": "untriaged"
-      },
-      "CSS_ROTATE3D": {
-        "support_level": "untriaged"
-      },
-      "CSS_ROTATEX": {
-        "support_level": "untriaged"
-      },
-      "CSS_ROTATEY": {
-        "support_level": "untriaged"
-      },
-      "CSS_ROTATEZ": {
-        "support_level": "untriaged"
-      },
-      "CSS_SCALE": {
-        "support_level": "untriaged"
-      },
-      "CSS_SCALE3D": {
-        "support_level": "untriaged"
-      },
-      "CSS_SCALEX": {
-        "support_level": "untriaged"
-      },
-      "CSS_SCALEY": {
-        "support_level": "untriaged"
-      },
-      "CSS_SCALEZ": {
-        "support_level": "untriaged"
-      },
-      "CSS_SKEW": {
-        "support_level": "untriaged"
-      },
-      "CSS_SKEWX": {
-        "support_level": "untriaged"
-      },
-      "CSS_SKEWY": {
-        "support_level": "untriaged"
-      },
-      "CSS_TRANSLATE": {
-        "support_level": "untriaged"
-      },
-      "CSS_TRANSLATE3D": {
-        "support_level": "untriaged"
-      },
-      "CSS_TRANSLATEX": {
-        "support_level": "untriaged"
-      },
-      "CSS_TRANSLATEY": {
-        "support_level": "untriaged"
-      },
-      "CSS_TRANSLATEZ": {
-        "support_level": "untriaged"
-      },
-      "__getter__": {
-        "support_level": "untriaged"
-      },
-      "operationType": {
-        "support_level": "untriaged"
-      }
+      "CSS_MATRIX": {},
+      "CSS_MATRIX3D": {},
+      "CSS_PERSPECTIVE": {},
+      "CSS_ROTATE": {},
+      "CSS_ROTATE3D": {},
+      "CSS_ROTATEX": {},
+      "CSS_ROTATEY": {},
+      "CSS_ROTATEZ": {},
+      "CSS_SCALE": {},
+      "CSS_SCALE3D": {},
+      "CSS_SCALEX": {},
+      "CSS_SCALEY": {},
+      "CSS_SCALEZ": {},
+      "CSS_SKEW": {},
+      "CSS_SKEWX": {},
+      "CSS_SKEWY": {},
+      "CSS_TRANSLATE": {},
+      "CSS_TRANSLATE3D": {},
+      "CSS_TRANSLATEX": {},
+      "CSS_TRANSLATEY": {},
+      "CSS_TRANSLATEZ": {},
+      "__getter__": {},
+      "operationType": {}
     },
-    "support_level": "untriaged"
+    "support_level": "deprecated"
   },
   "CSSUnknownRule": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface",
@@ -1340,9 +1192,7 @@
   "DOMNamedFlowCollection": {
     "comment": "http://dev.w3.org/csswg/css-regions/#dom-named-flow-collection",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "item": {},
       "length": {},
       "namedItem": {}
@@ -1369,9 +1219,7 @@
   "DOMSettableTokenList": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domsettabletokenlist-0",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "value": {}
     },
     "support_level": "stable"
@@ -1388,15 +1236,9 @@
   "DOMStringMap": {
     "comment": "http://dev.w3.org/html5/spec-LC/common-dom-interfaces.html#domstringmap-0",
     "members": {
-      "__delete__": {
-        "support_level": "untriaged"
-      },
-      "__getter__": {
-        "support_level": "untriaged"
-      },
-      "__setter__": {
-        "support_level": "untriaged"
-      }
+      "__delete__": {},
+      "__getter__": {},
+      "__setter__": {}
     },
     "support_level": "stable"
   },
@@ -1424,9 +1266,7 @@
         "comment": "http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem",
         "support_level": "experimental"
       },
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "addEventListener": {},
       "alert": {},
       "applicationCache": {},
@@ -2122,8 +1962,7 @@
         "support_level": "experimental"
       },
       "preferredStylesheetSet": {
-        "comment": "http://dev.w3.org/csswg/cssom/#widl-Document-preferredStyleSheetSet",
-        "dart_action": "private"
+        "comment": "http://dev.w3.org/csswg/cssom/#widl-Document-preferredStyleSheetSet"
       },
       "queryCommandEnabled": {},
       "queryCommandIndeterm": {},
@@ -2139,8 +1978,7 @@
         "support_level": "experimental"
       },
       "selectedStylesheetSet": {
-        "comment": "http://dev.w3.org/csswg/cssom/#widl-Document-selectedStyleSheetSet",
-        "dart_action": "private"
+        "comment": "http://dev.w3.org/csswg/cssom/#widl-Document-selectedStyleSheetSet"
       },
       "styleSheets": {},
       "title": {},
@@ -2320,8 +2158,9 @@
     "support_level": "stable"
   },
   "EXTFragDepth": {
+    "comment": "http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/",
     "members": {},
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "EXTTextureFilterAnisotropic": {
     "comment": "http://www.khronos.org/registry/webgl/extensions/EXT_texture_filter_anisotropic/",
@@ -2656,12 +2495,13 @@
     "support_level": "stable"
   },
   "Entity": {
+    "dart_action": "suppress",
     "members": {
       "notationName": {},
       "publicId": {},
       "systemId": {}
     },
-    "support_level": "untriaged"
+    "support_level": "deprecated"
   },
   "EntityReference": {
     "dart_action": "suppress",
@@ -3206,9 +3046,7 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all",
     "dart_action": "suppress",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "item": {},
       "length": {},
       "namedItem": {},
@@ -3451,9 +3289,7 @@
   "HTMLCollection": {
     "comment": "http://www.w3.org/TR/domcore/#interface-htmlcollection",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "item": {},
       "length": {},
       "namedItem": {}
@@ -3662,12 +3498,8 @@
     "dart_action": "unstable",
     "members": {
       "HTMLEmbedElement": {},
-      "__getter__": {
-        "support_level": "untriaged"
-      },
-      "__setter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
+      "__setter__": {},
       "align": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLEmbedElement-partial",
         "dart_action": "suppress",
@@ -3717,9 +3549,7 @@
   "HTMLFormControlsCollection": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/common-dom-interfaces.html#htmlformcontrolscollection-0",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "namedItem": {}
     },
     "support_level": "stable"
@@ -3728,9 +3558,7 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/forms.html#the-form-element",
     "members": {
       "HTMLFormElement": {},
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "acceptCharset": {},
       "action": {},
       "autocomplete": {
@@ -4150,7 +3978,8 @@
       "href": {},
       "hreflang": {},
       "import": {
-        "support_level": "untriaged"
+        "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/imports/index.html#interface-import",
+        "support_level": "experimental"
       },
       "media": {},
       "rel": {},
@@ -4434,12 +4263,8 @@
     "dart_action": "unstable",
     "members": {
       "HTMLObjectElement": {},
-      "__getter__": {
-        "support_level": "untriaged"
-      },
-      "__setter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
+      "__setter__": {},
       "align": {
         "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#HTMLObjectElement-partial",
         "dart_action": "suppress",
@@ -4673,9 +4498,7 @@
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#the-select-element",
     "members": {
       "HTMLSelectElement": {},
-      "__setter__": {
-        "support_level": "untriaged"
-      },
+      "__setter__": {},
       "autofocus": {},
       "checkValidity": {},
       "disabled": {},
@@ -5471,24 +5294,17 @@
     "support_level": "stable"
   },
   "MIDIAccess": {
+    "comment": "http://webaudio.github.io/web-midi-api/#midiaccess-interface",
     "members": {
-      "addEventListener": {
-        "support_level": "untriaged"
-      },
-      "dispatchEvent": {
-        "support_level": "untriaged"
-      },
-      "inputs": {
-        "support_level": "untriaged"
-      },
-      "outputs": {
-        "support_level": "untriaged"
-      },
-      "removeEventListener": {
-        "support_level": "untriaged"
-      }
+      "addEventListener": {},
+      "dispatchEvent": {},
+      "inputs": {},
+      "onconnect": {},
+      "ondisconnect": {},
+      "outputs": {},
+      "removeEventListener": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "MIDIConnectionEvent": {
     "comment": "http://webaudio.github.io/web-midi-api/#midiconnectionevent-interface",
@@ -5504,7 +5320,9 @@
   },
   "MIDIInput": {
     "comment": "http://webaudio.github.io/web-midi-api/#idl-def-MIDIInput",
-    "members": {},
+    "members": {
+      "onmidimessage": {}
+    },
     "support_level": "experimental"
   },
   "MIDIMessageEvent": {
@@ -5638,6 +5456,9 @@
       "dispatchEvent": {},
       "error": {},
       "keySystem": {},
+      "onwebkitkeyadded": {},
+      "onwebkitkeyerror": {},
+      "onwebkitkeymessage": {},
       "removeEventListener": {},
       "sessionId": {},
       "update": {}
@@ -5832,9 +5653,7 @@
   },
   "MimeTypeArray": {
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "item": {},
       "length": {},
       "namedItem": {}
@@ -5959,9 +5778,7 @@
     "comment": "http://dom.spec.whatwg.org/#namednodemap",
     "dart_action": "suppress",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "getNamedItem": {},
       "getNamedItemNS": {},
       "item": {},
@@ -6084,15 +5901,9 @@
         "dart_action": "experimental",
         "support_level": "nonstandard"
       },
-      "constraintName": {
-        "support_level": "untriaged"
-      },
-      "message": {
-        "support_level": "untriaged"
-      },
-      "name": {
-        "support_level": "untriaged"
-      }
+      "constraintName": {},
+      "message": {},
+      "name": {}
     },
     "support_level": "experimental"
   },
@@ -6679,9 +6490,7 @@
   },
   "Plugin": {
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "description": {},
       "filename": {},
       "item": {},
@@ -6693,9 +6502,7 @@
   },
   "PluginArray": {
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "item": {},
       "length": {},
       "namedItem": {},
@@ -6921,9 +6728,7 @@
   "RTCStatsResponse": {
     "comment": "http://dev.w3.org/2011/webrtc/editor/webrtc.html#widl-RTCStatsReport-RTCStats-getter-DOMString-id",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "namedItem": {},
       "result": {}
     },
@@ -7041,12 +6846,12 @@
     "support_level": "stable"
   },
   "ResourceProgressEvent": {
+    "comment": "https://chromiumcodereview.appspot.com/14773025/",
+    "dart_action": "suppress",
     "members": {
-      "url": {
-        "support_level": "untriaged"
-      }
+      "url": {}
     },
-    "support_level": "untriaged"
+    "support_level": "experimental"
   },
   "SQLError": {
     "comment": "http://www.w3.org/TR/webdatabase/#sqlerror",
@@ -10496,15 +10301,9 @@
     "comment": "http://www.w3.org/TR/webstorage/#the-storage-interface",
     "dart_action": "unstable",
     "members": {
-      "__delete__": {
-        "support_level": "untriaged"
-      },
-      "__getter__": {
-        "support_level": "untriaged"
-      },
-      "__setter__": {
-        "support_level": "untriaged"
-      },
+      "__delete__": {},
+      "__getter__": {},
+      "__setter__": {},
       "clear": {},
       "getItem": {},
       "key": {},
@@ -10598,9 +10397,7 @@
   "StyleSheetList": {
     "comment": "http://dev.w3.org/csswg/cssom/#the-stylesheetlist-sequence",
     "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
+      "__getter__": {},
       "item": {},
       "length": {}
     },
@@ -10951,9 +10748,7 @@
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-WaveShaperNode",
     "members": {
       "curve": {},
-      "oversample": {
-        "support_level": "untriaged"
-      }
+      "oversample": {}
     },
     "support_level": "experimental"
   },
@@ -11558,137 +11353,6 @@
     "dart_action": "experimental",
     "members": {},
     "support_level": "experimental"
-  },
-  "WebKitCSSFilterRule": {
-    "comment": "http://www.w3.org/TR/filter-effects/",
-    "members": {
-      "style": {}
-    },
-    "support_level": "experimental"
-  },
-  "WebKitCSSFilterValue": {
-    "comment": "http://dev.w3.org/csswg/cssom/",
-    "dart_action": "suppress",
-    "members": {
-      "CSS_FILTER_BLUR": {},
-      "CSS_FILTER_BRIGHTNESS": {},
-      "CSS_FILTER_CONTRAST": {},
-      "CSS_FILTER_CUSTOM": {},
-      "CSS_FILTER_DROP_SHADOW": {},
-      "CSS_FILTER_GRAYSCALE": {},
-      "CSS_FILTER_HUE_ROTATE": {},
-      "CSS_FILTER_INVERT": {},
-      "CSS_FILTER_OPACITY": {},
-      "CSS_FILTER_REFERENCE": {},
-      "CSS_FILTER_SATURATE": {},
-      "CSS_FILTER_SEPIA": {},
-      "operationType": {}
-    },
-    "support_level": "deprecated"
-  },
-  "WebKitCSSKeyframeRule": {
-    "comment": "http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface",
-    "members": {
-      "keyText": {},
-      "style": {}
-    },
-    "support_level": "experimental"
-  },
-  "WebKitCSSKeyframesRule": {
-    "comment": "http://www.w3.org/TR/css3-animations/#csskeyframesrule",
-    "members": {
-      "__getter__": {
-        "support_level": "untriaged"
-      },
-      "cssRules": {},
-      "deleteRule": {},
-      "findRule": {},
-      "insertRule": {},
-      "name": {}
-    },
-    "support_level": "experimental"
-  },
-  "WebKitCSSMatrix": {
-    "comment": "http://dev.w3.org/csswg/cssom/",
-    "dart_action": "suppress",
-    "members": {
-      "WebKitCSSMatrix": {},
-      "a": {},
-      "b": {},
-      "c": {},
-      "d": {},
-      "e": {},
-      "f": {},
-      "inverse": {},
-      "m11": {},
-      "m12": {},
-      "m13": {},
-      "m14": {},
-      "m21": {},
-      "m22": {},
-      "m23": {},
-      "m24": {},
-      "m31": {},
-      "m32": {},
-      "m33": {},
-      "m34": {},
-      "m41": {},
-      "m42": {},
-      "m43": {},
-      "m44": {},
-      "multiply": {},
-      "rotate": {},
-      "rotateAxisAngle": {},
-      "scale": {},
-      "setMatrixValue": {},
-      "skewX": {},
-      "skewY": {},
-      "toString": {},
-      "translate": {}
-    },
-    "support_level": "deprecated"
-  },
-  "WebKitCSSMixFunctionValue": {
-    "comment": "http://dev.w3.org/csswg/cssom/",
-    "dart_action": "suppress",
-    "members": {},
-    "support_level": "deprecated"
-  },
-  "WebKitCSSRegionRule": {
-    "comment": "http://dev.w3.org/csswg/css-regions/#region-style-rule-interface",
-    "members": {
-      "cssRules": {}
-    },
-    "support_level": "experimental"
-  },
-  "WebKitCSSTransformValue": {
-    "comment": "http://dev.w3.org/csswg/cssom/",
-    "dart_action": "suppress",
-    "members": {
-      "CSS_MATRIX": {},
-      "CSS_MATRIX3D": {},
-      "CSS_PERSPECTIVE": {},
-      "CSS_ROTATE": {},
-      "CSS_ROTATE3D": {},
-      "CSS_ROTATEX": {},
-      "CSS_ROTATEY": {},
-      "CSS_ROTATEZ": {},
-      "CSS_SCALE": {},
-      "CSS_SCALE3D": {},
-      "CSS_SCALEX": {},
-      "CSS_SCALEY": {},
-      "CSS_SCALEZ": {},
-      "CSS_SKEW": {},
-      "CSS_SKEWX": {},
-      "CSS_SKEWY": {},
-      "CSS_TRANSLATE": {},
-      "CSS_TRANSLATE3D": {},
-      "CSS_TRANSLATEX": {},
-      "CSS_TRANSLATEY": {},
-      "CSS_TRANSLATEZ": {},
-      "operationType": {}
-    },
-    "support_level": "deprecated"
   },
   "WebKitMediaSource": {
     "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource",

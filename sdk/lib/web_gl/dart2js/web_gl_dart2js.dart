@@ -677,7 +677,8 @@ class ExtDrawBuffers native "EXTDrawBuffers" {
 
 @DocsEditable
 @DomName('EXTFragDepth')
-@Experimental // untriaged
+// http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
+@Experimental
 class ExtFragDepth native "EXTFragDepth" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

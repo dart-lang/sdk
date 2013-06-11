@@ -1929,12 +1929,11 @@ class CssCharsetRule extends CssRule native "CSSCharsetRule" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// http://www.w3.org/TR/filter-effects/
 class CssFilterRule extends CssRule native "WebKitCSSFilterRule" {
 
   @DomName('WebKitCSSFilterRule.style')
   @DocsEditable
-  @Experimental // untriaged
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1947,77 +1946,64 @@ class CssFilterRule extends CssRule native "WebKitCSSFilterRule" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 class CssFilterValue extends _CssValueList native "WebKitCSSFilterValue" {
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_BLUR')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_BLUR = 10;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_BRIGHTNESS')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_BRIGHTNESS = 8;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_CONTRAST')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_CONTRAST = 9;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_CUSTOM')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_CUSTOM = 12;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_DROP_SHADOW')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_DROP_SHADOW = 11;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_GRAYSCALE')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_GRAYSCALE = 2;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_HUE_ROTATE')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_HUE_ROTATE = 5;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_INVERT')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_INVERT = 6;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_OPACITY')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_OPACITY = 7;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_REFERENCE')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_REFERENCE = 1;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_SATURATE')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_SATURATE = 4;
 
   @DomName('WebKitCSSFilterValue.CSS_FILTER_SEPIA')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_FILTER_SEPIA = 3;
 
   @DomName('WebKitCSSFilterValue.operationType')
   @DocsEditable
-  @Experimental // untriaged
   final int operationType;
 
   @DomName('WebKitCSSFilterValue.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   _CSSValue __getter__(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2109,17 +2095,15 @@ class CssImportRule extends CssRule native "CSSImportRule" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
 class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
 
   @DomName('WebKitCSSKeyframeRule.keyText')
   @DocsEditable
-  @Experimental // untriaged
   String keyText;
 
   @DomName('WebKitCSSKeyframeRule.style')
   @DocsEditable
-  @Experimental // untriaged
   final CssStyleDeclaration style;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2132,39 +2116,33 @@ class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// http://www.w3.org/TR/css3-animations/#csskeyframesrule
 class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
 
   @DomName('WebKitCSSKeyframesRule.cssRules')
   @DocsEditable
-  @Experimental // untriaged
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
 
   @DomName('WebKitCSSKeyframesRule.name')
   @DocsEditable
-  @Experimental // untriaged
   String name;
 
   @DomName('WebKitCSSKeyframesRule.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   CssKeyframeRule __getter__(int index) native;
 
   @DomName('WebKitCSSKeyframesRule.deleteRule')
   @DocsEditable
-  @Experimental // untriaged
   void deleteRule(String key) native;
 
   @DomName('WebKitCSSKeyframesRule.findRule')
   @DocsEditable
-  @Experimental // untriaged
   CssKeyframeRule findRule(String key) native;
 
   @DomName('WebKitCSSKeyframesRule.insertRule')
   @DocsEditable
-  @Experimental // untriaged
   void insertRule(String rule) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2180,7 +2158,8 @@ class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 class CssMatrix native "WebKitCSSMatrix" {
 
   @DomName('WebKitCSSMatrix.CSSMatrix')
@@ -2196,162 +2175,130 @@ class CssMatrix native "WebKitCSSMatrix" {
 
   @DomName('WebKitCSSMatrix.a')
   @DocsEditable
-  @Experimental // untriaged
   num a;
 
   @DomName('WebKitCSSMatrix.b')
   @DocsEditable
-  @Experimental // untriaged
   num b;
 
   @DomName('WebKitCSSMatrix.c')
   @DocsEditable
-  @Experimental // untriaged
   num c;
 
   @DomName('WebKitCSSMatrix.d')
   @DocsEditable
-  @Experimental // untriaged
   num d;
 
   @DomName('WebKitCSSMatrix.e')
   @DocsEditable
-  @Experimental // untriaged
   num e;
 
   @DomName('WebKitCSSMatrix.f')
   @DocsEditable
-  @Experimental // untriaged
   num f;
 
   @DomName('WebKitCSSMatrix.m11')
   @DocsEditable
-  @Experimental // untriaged
   num m11;
 
   @DomName('WebKitCSSMatrix.m12')
   @DocsEditable
-  @Experimental // untriaged
   num m12;
 
   @DomName('WebKitCSSMatrix.m13')
   @DocsEditable
-  @Experimental // untriaged
   num m13;
 
   @DomName('WebKitCSSMatrix.m14')
   @DocsEditable
-  @Experimental // untriaged
   num m14;
 
   @DomName('WebKitCSSMatrix.m21')
   @DocsEditable
-  @Experimental // untriaged
   num m21;
 
   @DomName('WebKitCSSMatrix.m22')
   @DocsEditable
-  @Experimental // untriaged
   num m22;
 
   @DomName('WebKitCSSMatrix.m23')
   @DocsEditable
-  @Experimental // untriaged
   num m23;
 
   @DomName('WebKitCSSMatrix.m24')
   @DocsEditable
-  @Experimental // untriaged
   num m24;
 
   @DomName('WebKitCSSMatrix.m31')
   @DocsEditable
-  @Experimental // untriaged
   num m31;
 
   @DomName('WebKitCSSMatrix.m32')
   @DocsEditable
-  @Experimental // untriaged
   num m32;
 
   @DomName('WebKitCSSMatrix.m33')
   @DocsEditable
-  @Experimental // untriaged
   num m33;
 
   @DomName('WebKitCSSMatrix.m34')
   @DocsEditable
-  @Experimental // untriaged
   num m34;
 
   @DomName('WebKitCSSMatrix.m41')
   @DocsEditable
-  @Experimental // untriaged
   num m41;
 
   @DomName('WebKitCSSMatrix.m42')
   @DocsEditable
-  @Experimental // untriaged
   num m42;
 
   @DomName('WebKitCSSMatrix.m43')
   @DocsEditable
-  @Experimental // untriaged
   num m43;
 
   @DomName('WebKitCSSMatrix.m44')
   @DocsEditable
-  @Experimental // untriaged
   num m44;
 
   @DomName('WebKitCSSMatrix.inverse')
   @DocsEditable
-  @Experimental // untriaged
   CssMatrix inverse() native;
 
   @DomName('WebKitCSSMatrix.multiply')
   @DocsEditable
-  @Experimental // untriaged
   CssMatrix multiply(CssMatrix secondMatrix) native;
 
   @DomName('WebKitCSSMatrix.rotate')
   @DocsEditable
-  @Experimental // untriaged
   CssMatrix rotate(num rotX, num rotY, num rotZ) native;
 
   @DomName('WebKitCSSMatrix.rotateAxisAngle')
   @DocsEditable
-  @Experimental // untriaged
   CssMatrix rotateAxisAngle(num x, num y, num z, num angle) native;
 
   @DomName('WebKitCSSMatrix.scale')
   @DocsEditable
-  @Experimental // untriaged
   CssMatrix scale(num scaleX, num scaleY, num scaleZ) native;
 
   @DomName('WebKitCSSMatrix.setMatrixValue')
   @DocsEditable
-  @Experimental // untriaged
   void setMatrixValue(String string) native;
 
   @DomName('WebKitCSSMatrix.skewX')
   @DocsEditable
-  @Experimental // untriaged
   CssMatrix skewX(num angle) native;
 
   @DomName('WebKitCSSMatrix.skewY')
   @DocsEditable
-  @Experimental // untriaged
   CssMatrix skewY(num angle) native;
 
   @DomName('WebKitCSSMatrix.toString')
   @DocsEditable
-  @Experimental // untriaged
   String toString() native;
 
   @DomName('WebKitCSSMatrix.translate')
   @DocsEditable
-  @Experimental // untriaged
   CssMatrix translate(num x, num y, num z) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2391,7 +2338,8 @@ class CssMediaRule extends CssRule native "CSSMediaRule" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 class CssMixFunctionValue extends _CssValueList native "WebKitCSSMixFunctionValue" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2421,12 +2369,11 @@ class CssPageRule extends CssRule native "CSSPageRule" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// http://dev.w3.org/csswg/css-regions/#region-style-rule-interface
 class CssRegionRule extends CssRule native "WebKitCSSRegionRule" {
 
   @DomName('WebKitCSSRegionRule.cssRules')
   @DocsEditable
-  @Experimental // untriaged
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
   final List<CssRule> cssRules;
@@ -2550,7 +2497,6 @@ class CssStyleDeclaration native "CSSStyleDeclaration" {
 
   @DomName('CSSStyleDeclaration.__setter__')
   @DocsEditable
-  @Experimental // untriaged
   void __setter__(String propertyName, String propertyValue) native;
 
   @DomName('CSSStyleDeclaration.getPropertyPriority')
@@ -5859,122 +5805,100 @@ class CssSupportsRule extends CssRule native "CSSSupportsRule" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-@Experimental // untriaged
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
 class CssTransformValue extends _CssValueList native "WebKitCSSTransformValue" {
 
   @DomName('WebKitCSSTransformValue.CSS_MATRIX')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_MATRIX = 11;
 
   @DomName('WebKitCSSTransformValue.CSS_MATRIX3D')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_MATRIX3D = 21;
 
   @DomName('WebKitCSSTransformValue.CSS_PERSPECTIVE')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_PERSPECTIVE = 20;
 
   @DomName('WebKitCSSTransformValue.CSS_ROTATE')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_ROTATE = 4;
 
   @DomName('WebKitCSSTransformValue.CSS_ROTATE3D')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_ROTATE3D = 17;
 
   @DomName('WebKitCSSTransformValue.CSS_ROTATEX')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_ROTATEX = 14;
 
   @DomName('WebKitCSSTransformValue.CSS_ROTATEY')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_ROTATEY = 15;
 
   @DomName('WebKitCSSTransformValue.CSS_ROTATEZ')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_ROTATEZ = 16;
 
   @DomName('WebKitCSSTransformValue.CSS_SCALE')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_SCALE = 5;
 
   @DomName('WebKitCSSTransformValue.CSS_SCALE3D')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_SCALE3D = 19;
 
   @DomName('WebKitCSSTransformValue.CSS_SCALEX')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_SCALEX = 6;
 
   @DomName('WebKitCSSTransformValue.CSS_SCALEY')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_SCALEY = 7;
 
   @DomName('WebKitCSSTransformValue.CSS_SCALEZ')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_SCALEZ = 18;
 
   @DomName('WebKitCSSTransformValue.CSS_SKEW')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_SKEW = 8;
 
   @DomName('WebKitCSSTransformValue.CSS_SKEWX')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_SKEWX = 9;
 
   @DomName('WebKitCSSTransformValue.CSS_SKEWY')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_SKEWY = 10;
 
   @DomName('WebKitCSSTransformValue.CSS_TRANSLATE')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_TRANSLATE = 1;
 
   @DomName('WebKitCSSTransformValue.CSS_TRANSLATE3D')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_TRANSLATE3D = 13;
 
   @DomName('WebKitCSSTransformValue.CSS_TRANSLATEX')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_TRANSLATEX = 2;
 
   @DomName('WebKitCSSTransformValue.CSS_TRANSLATEY')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_TRANSLATEY = 3;
 
   @DomName('WebKitCSSTransformValue.CSS_TRANSLATEZ')
   @DocsEditable
-  @Experimental // untriaged
   static const int CSS_TRANSLATEZ = 12;
 
   @DomName('WebKitCSSTransformValue.operationType')
   @DocsEditable
-  @Experimental // untriaged
   final int operationType;
 
   @DomName('WebKitCSSTransformValue.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   _CSSValue __getter__(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7555,7 +7479,6 @@ class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
 
   @DomName('DOMSettableTokenList.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   String __getter__(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9597,12 +9520,10 @@ class EmbedElement extends Element native "HTMLEmbedElement" {
 
   @DomName('HTMLEmbedElement.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   bool __getter__(index_OR_name) native;
 
   @DomName('HTMLEmbedElement.__setter__')
   @DocsEditable
-  @Experimental // untriaged
   void __setter__(index_OR_name, Node value) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11049,7 +10970,6 @@ class FormElement extends Element native "HTMLFormElement" {
 
   @DomName('HTMLFormElement.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   Node __getter__(int index) native;
 
   @DomName('HTMLFormElement.checkValidity')
@@ -11470,7 +11390,6 @@ class HtmlAllCollection extends Interceptor with ListMixin<Node>, ImmutableListM
 
   @DomName('HTMLAllCollection.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   Node __getter__(int index) native;
 
   @DomName('HTMLAllCollection.item')
@@ -11546,7 +11465,6 @@ class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixi
 
   @DomName('HTMLCollection.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   Node __getter__(String name) native;
 
   @DomName('HTMLCollection.item')
@@ -11744,7 +11662,6 @@ class HtmlFormControlsCollection extends HtmlCollection native "HTMLFormControls
 
   @DomName('HTMLFormControlsCollection.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   Node __getter__(int index) native;
 
   @DomName('HTMLFormControlsCollection.namedItem')
@@ -13754,7 +13671,8 @@ class LinkElement extends Element native "HTMLLinkElement" {
 
   @DomName('HTMLLinkElement.import')
   @DocsEditable
-  @Experimental // untriaged
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/imports/index.html#interface-import
+  @Experimental
   final DocumentFragment import;
 
   @DomName('HTMLLinkElement.media')
@@ -14623,6 +14541,27 @@ class MediaKeyNeededEvent extends Event native "MediaKeyNeededEvent" {
 @Experimental
 class MediaKeySession extends EventTarget native "MediaKeySession" {
 
+  @DomName('MediaKeySession.webkitkeyaddedEvent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  static const EventStreamProvider<MediaKeyEvent> keyAddedEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyadded');
+
+  @DomName('MediaKeySession.webkitkeyerrorEvent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  static const EventStreamProvider<MediaKeyEvent> keyErrorEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeyerror');
+
+  @DomName('MediaKeySession.webkitkeymessageEvent')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  static const EventStreamProvider<MediaKeyEvent> keyMessageEvent = const EventStreamProvider<MediaKeyEvent>('webkitkeymessage');
+
   @DomName('MediaKeySession.error')
   @DocsEditable
   final MediaKeyError error;
@@ -14656,6 +14595,18 @@ class MediaKeySession extends EventTarget native "MediaKeySession" {
   @DomName('MediaKeySession.update')
   @DocsEditable
   void update(Uint8List key) native;
+
+  @DomName('MediaKeySession.onwebkitkeyadded')
+  @DocsEditable
+  Stream<MediaKeyEvent> get onKeyAdded => keyAddedEvent.forTarget(this);
+
+  @DomName('MediaKeySession.onwebkitkeyerror')
+  @DocsEditable
+  Stream<MediaKeyEvent> get onKeyError => keyErrorEvent.forTarget(this);
+
+  @DomName('MediaKeySession.onwebkitkeymessage')
+  @DocsEditable
+  Stream<MediaKeyEvent> get onKeyMessage => keyMessageEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15350,35 +15301,47 @@ class MeterElement extends Element native "HTMLMeterElement" {
 
 @DocsEditable
 @DomName('MIDIAccess')
-@Experimental // untriaged
+// http://webaudio.github.io/web-midi-api/#midiaccess-interface
+@Experimental
 class MidiAccess extends EventTarget native "MIDIAccess" {
+
+  @DomName('MIDIAccess.connectEvent')
+  @DocsEditable
+  static const EventStreamProvider<MidiConnectionEvent> connectEvent = const EventStreamProvider<MidiConnectionEvent>('connect');
+
+  @DomName('MIDIAccess.disconnectEvent')
+  @DocsEditable
+  static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
   @JSName('addEventListener')
   @DomName('MIDIAccess.addEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   @DomName('MIDIAccess.dispatchEvent')
   @DocsEditable
-  @Experimental // untriaged
   bool dispatchEvent(Event event) native;
 
   @DomName('MIDIAccess.inputs')
   @DocsEditable
-  @Experimental // untriaged
   List<MidiInput> inputs() native;
 
   @DomName('MIDIAccess.outputs')
   @DocsEditable
-  @Experimental // untriaged
   List<MidiOutput> outputs() native;
 
   @JSName('removeEventListener')
   @DomName('MIDIAccess.removeEventListener')
   @DocsEditable
-  @Experimental // untriaged
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  @DomName('MIDIAccess.onconnect')
+  @DocsEditable
+  Stream<MidiConnectionEvent> get onConnect => connectEvent.forTarget(this);
+
+  @DomName('MIDIAccess.ondisconnect')
+  @DocsEditable
+  Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15405,6 +15368,14 @@ class MidiConnectionEvent extends Event native "MIDIConnectionEvent" {
 // http://webaudio.github.io/web-midi-api/#idl-def-MIDIInput
 @Experimental
 class MidiInput extends MidiPort implements EventTarget native "MIDIInput" {
+
+  @DomName('MIDIInput.midimessageEvent')
+  @DocsEditable
+  static const EventStreamProvider<MidiMessageEvent> midiMessageEvent = const EventStreamProvider<MidiMessageEvent>('midimessage');
+
+  @DomName('MIDIInput.onmidimessage')
+  @DocsEditable
+  Stream<MidiMessageEvent> get onMidiMessage => midiMessageEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15579,7 +15550,6 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
 
   @DomName('MimeTypeArray.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   MimeType __getter__(String name) native;
 
   @DomName('MimeTypeArray.item')
@@ -16071,7 +16041,6 @@ class NamedFlowCollection native "WebKitNamedFlowCollection" {
 
   @DomName('WebKitNamedFlowCollection.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   NamedFlow __getter__(String name) native;
 
   @DomName('WebKitNamedFlowCollection.item')
@@ -16293,17 +16262,14 @@ class NavigatorUserMediaError native "NavigatorUserMediaError" {
 
   @DomName('NavigatorUserMediaError.constraintName')
   @DocsEditable
-  @Experimental // untriaged
   final String constraintName;
 
   @DomName('NavigatorUserMediaError.message')
   @DocsEditable
-  @Experimental // untriaged
   final String message;
 
   @DomName('NavigatorUserMediaError.name')
   @DocsEditable
-  @Experimental // untriaged
   final String name;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17252,12 +17218,10 @@ class ObjectElement extends Element native "HTMLObjectElement" {
 
   @DomName('HTMLObjectElement.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   bool __getter__(index_OR_name) native;
 
   @DomName('HTMLObjectElement.__setter__')
   @DocsEditable
-  @Experimental // untriaged
   void __setter__(index_OR_name, Node value) native;
 
   @DomName('HTMLObjectElement.checkValidity')
@@ -17937,7 +17901,6 @@ class Plugin native "Plugin" {
 
   @DomName('Plugin.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   MimeType __getter__(String name) native;
 
   @DomName('Plugin.item')
@@ -18008,7 +17971,6 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
 
   @DomName('PluginArray.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   Plugin __getter__(String name) native;
 
   @DomName('PluginArray.item')
@@ -18450,12 +18412,12 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 
 @DocsEditable
 @DomName('ResourceProgressEvent')
-@Experimental // untriaged
+// https://chromiumcodereview.appspot.com/14773025/
+@deprecated // experimental
 class ResourceProgressEvent extends ProgressEvent native "ResourceProgressEvent" {
 
   @DomName('ResourceProgressEvent.url')
   @DocsEditable
-  @Experimental // untriaged
   final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19086,7 +19048,6 @@ class RtcStatsResponse native "RTCStatsResponse" {
 
   @DomName('RTCStatsResponse.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   RtcStatsReport __getter__(String name) native;
 
   @DomName('RTCStatsResponse.namedItem')
@@ -19407,7 +19368,6 @@ class SelectElement extends Element native "HTMLSelectElement" {
 
   @DomName('HTMLSelectElement.__setter__')
   @DocsEditable
-  @Experimental // untriaged
   void __setter__(int index, OptionElement value) native;
 
   @DomName('HTMLSelectElement.checkValidity')
@@ -20483,17 +20443,14 @@ class Storage implements Map<String, String>
 
   @DomName('Storage.__delete__')
   @DocsEditable
-  @Experimental // untriaged
   bool __delete__(index_OR_name) native;
 
   @DomName('Storage.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   String __getter__(index_OR_name) native;
 
   @DomName('Storage.__setter__')
   @DocsEditable
-  @Experimental // untriaged
   void __setter__(index_OR_name, String value) native;
 
   @JSName('clear')
@@ -23480,7 +23437,6 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   @DomName('Window.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   WindowBase __getter__(index_OR_name) {
@@ -23495,14 +23451,12 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   @JSName('__getter__')
   @DomName('Window.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   ___getter___1(int index) native;
   @JSName('__getter__')
   @DomName('Window.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   ___getter___2(String name) native;
@@ -24794,7 +24748,7 @@ class _DomPoint native "WebKitPoint" {
 
 @DocsEditable
 @DomName('Entity')
-@Experimental // untriaged
+@deprecated // deprecated
 class _Entity extends Node native "Entity" {
 
   @DomName('Entity.notationName')
@@ -25187,7 +25141,6 @@ class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin
 
   @DomName('NamedNodeMap.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   Node __getter__(String name) native;
 
   @DomName('NamedNodeMap.getNamedItem')
@@ -25477,7 +25430,6 @@ class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableL
 
   @DomName('StyleSheetList.__getter__')
   @DocsEditable
-  @Experimental // untriaged
   CssStyleSheet __getter__(String name) native;
 
   @DomName('StyleSheetList.item')

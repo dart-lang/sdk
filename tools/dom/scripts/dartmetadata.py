@@ -725,6 +725,8 @@ class DartMetadata(object):
         annotations.append('@deprecated // %s' % support_level)
         # TODO (blois): suppress generation of these APIs as a separate CL.
         pass
+      elif dart_action == 'stable':
+        pass
       else:
         _logger.warn('Unknown dart_action - %s:%s' % (interface_id, member_id))
     elif support_level == 'untriaged':
