@@ -71,6 +71,7 @@ typed_data/float32x4_unbox_phi_test: Fail      # Issue 10961
 typed_data/float32x4_unbox_regress_test: Fail  # Issue 10961
 mirrors/reflect_runtime_type_test: Fail
 mirrors/reflect_uninstantiated_class_test: Fail
+mirrors/disable_tree_shaking_test: Fail
 
 
 [ $runtime == ff ]
