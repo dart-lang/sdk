@@ -2,7 +2,7 @@
 // significant change. Please see the README file for more information.
 library engine.sdk.io;
 import 'dart:io';
-import 'java_core.dart';
+import 'java_core.dart' hide IOException;
 import 'java_io.dart';
 import 'java_engine.dart';
 import 'java_engine_io.dart';
