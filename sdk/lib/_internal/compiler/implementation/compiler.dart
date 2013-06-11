@@ -66,6 +66,8 @@ class CodegenWorkItem extends WorkItem {
     if (world.isProcessed(element)) return;
     resolutionTree =
         compiler.enqueuer.resolution.getCachedElements(element);
+    assert(invariant(element, resolutionTree != null,
+        message: 'Resolution tree is null for $element in codegen work item'));
     compiler.codegen(this, world);
   }
 }
