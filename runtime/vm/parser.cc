@@ -3334,10 +3334,12 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes) {
       super_type = ParseMixins(super_type);
     }
   } else {
-    // No extends clause: implicitly extend Object.
-    super_type = Type::ObjectType();
+    // No extends clause: implicitly extend Object, unless Object itself.
+    if (!cls.IsObjectClass()) {
+      super_type = Type::ObjectType();
+    }
   }
-  ASSERT(!super_type.IsNull());
+  ASSERT(!super_type.IsNull() || cls.IsObjectClass());
   cls.set_super_type(super_type);
 
   if (CurrentToken() == Token::kIMPLEMENTS) {

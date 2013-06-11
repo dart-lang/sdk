@@ -1083,11 +1083,6 @@ RawError* Object::Init(Isolate* isolate) {
     return error.raw();
   }
 
-  // Remove the Object superclass cycle by setting the super type to null (not
-  // to the type of null).
-  cls = object_store->object_class();
-  cls.set_super_type(AbstractType::Handle());
-
   ClassFinalizer::VerifyBootstrapClasses();
   MarkInvisibleFunctions();
 
