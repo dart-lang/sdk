@@ -41,6 +41,12 @@ abstract class Options {
    * string is returned.
    */
   String get script;
+
+
+  /**
+   * Returns the version of the current dart runtime.
+   */
+  String get version;
 }
 
 class _OptionsImpl implements Options {
@@ -59,6 +65,8 @@ class _OptionsImpl implements Options {
   String get script {
     return _nativeScript;
   }
+
+  String get version;
 
   List<String> _arguments = null;
 

@@ -28,7 +28,8 @@ main() {
       expect(startServer().then((_) {
         expect(http.get(serverUrl, headers: {
           'X-Random-Header': 'Value',
-          'X-Other-Header': 'Other Value'
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
         }).then((response) {
           expect(response.statusCode, equals(200));
           expect(response.body, parse(equals({
@@ -37,6 +38,7 @@ main() {
             'headers': {
               'content-length': ['0'],
               'accept-encoding': ['gzip'],
+              'user-agent': ['Dart'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             },
@@ -49,7 +51,8 @@ main() {
       expect(startServer().then((_) {
         expect(http.post(serverUrl, headers: {
           'X-Random-Header': 'Value',
-          'X-Other-Header': 'Other Value'
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
         }, fields: {
           'some-field': 'value',
           'other-field': 'other value'
@@ -64,6 +67,7 @@ main() {
               ],
               'content-length': ['40'],
               'accept-encoding': ['gzip'],
+              'user-agent': ['Dart'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             },
@@ -78,7 +82,8 @@ main() {
         expect(http.post(serverUrl, headers: {
           'X-Random-Header': 'Value',
           'X-Other-Header': 'Other Value',
-          'Content-Type': 'text/plain'
+          'Content-Type': 'text/plain',
+          'User-Agent': 'Dart'
         }).then((response) {
           expect(response.statusCode, equals(200));
           expect(response.body, parse(equals({
@@ -88,6 +93,7 @@ main() {
               'accept-encoding': ['gzip'],
               'content-length': ['0'],
               'content-type': ['text/plain'],
+              'user-agent': ['Dart'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             }
@@ -100,7 +106,8 @@ main() {
       expect(startServer().then((_) {
         expect(http.put(serverUrl, headers: {
           'X-Random-Header': 'Value',
-          'X-Other-Header': 'Other Value'
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
         }, fields: {
           'some-field': 'value',
           'other-field': 'other value'
@@ -115,6 +122,7 @@ main() {
               ],
               'accept-encoding': ['gzip'],
               'content-length': ['40'],
+              'user-agent': ['Dart'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             },
@@ -129,7 +137,8 @@ main() {
         expect(http.put(serverUrl, headers: {
           'X-Random-Header': 'Value',
           'X-Other-Header': 'Other Value',
-          'Content-Type': 'text/plain'
+          'Content-Type': 'text/plain',
+          'User-Agent': 'Dart'
         }).then((response) {
           expect(response.statusCode, equals(200));
           expect(response.body, parse(equals({
@@ -139,6 +148,7 @@ main() {
               'content-length': ['0'],
               'accept-encoding': ['gzip'],
               'content-type': ['text/plain'],
+              'user-agent': ['Dart'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             }
@@ -151,7 +161,8 @@ main() {
       expect(startServer().then((_) {
         expect(http.delete(serverUrl, headers: {
           'X-Random-Header': 'Value',
-          'X-Other-Header': 'Other Value'
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
         }).then((response) {
           expect(response.statusCode, equals(200));
           expect(response.body, parse(equals({
@@ -160,6 +171,7 @@ main() {
             'headers': {
               'content-length': ['0'],
               'accept-encoding': ['gzip'],
+              'user-agent': ['Dart'],
               'x-random-header': ['Value'],
               'x-other-header': ['Other Value']
             }
@@ -172,13 +184,15 @@ main() {
       expect(startServer().then((_) {
         expect(http.read(serverUrl, headers: {
           'X-Random-Header': 'Value',
-          'X-Other-Header': 'Other Value'
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
         }).then((val) => val), completion(parse(equals({
           'method': 'GET',
           'path': '/',
           'headers': {
             'content-length': ['0'],
             'accept-encoding': ['gzip'],
+            'user-agent': ['Dart'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },
@@ -196,7 +210,8 @@ main() {
       expect(startServer().then((_) {
         var future = http.readBytes(serverUrl, headers: {
           'X-Random-Header': 'Value',
-          'X-Other-Header': 'Other Value'
+          'X-Other-Header': 'Other Value',
+          'User-Agent': 'Dart'
         }).then((bytes) => new String.fromCharCodes(bytes));
 
         expect(future, completion(parse(equals({
@@ -205,6 +220,7 @@ main() {
           'headers': {
             'content-length': ['0'],
             'accept-encoding': ['gzip'],
+            'user-agent': ['Dart'],
             'x-random-header': ['Value'],
             'x-other-header': ['Other Value']
           },

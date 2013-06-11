@@ -21,6 +21,7 @@ void main() {
       var request = new http.StreamedRequest("POST", serverUrl);
       request.headers[HttpHeaders.CONTENT_TYPE] =
         'application/json; charset=utf-8';
+      request.headers[HttpHeaders.USER_AGENT] = 'Dart';
 
       expect(client.send(request).then((response) {
         expect(response.request, equals(request));
@@ -37,6 +38,7 @@ void main() {
         'headers': {
           'content-type': ['application/json; charset=utf-8'],
           'accept-encoding': ['gzip'],
+          'user-agent': ['Dart'],
           'transfer-encoding': ['chunked']
         },
         'body': '{"hello": "world"}'

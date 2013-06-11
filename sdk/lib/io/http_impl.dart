@@ -676,8 +676,11 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   _HttpRequest _httpRequest;
 
   _HttpResponse(String protocolVersion,
-                _HttpOutgoing _outgoing)
-      : super(protocolVersion, _outgoing);
+                _HttpOutgoing _outgoing,
+                String serverHeader)
+      : super(protocolVersion, _outgoing) {
+    if (serverHeader != null) headers.set('Server', serverHeader);
+  }
 
   List<Cookie> get cookies {
     if (_cookies == null) _cookies = new List<Cookie>();
@@ -1149,6 +1152,9 @@ class _HttpClientConnection {
     request.headers.host = uri.host;
     request.headers.port = port;
     request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
+    if (_httpClient.userAgent != null) {
+      request.headers.set('User-Agent', _httpClient.userAgent);
+    }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
@@ -1346,6 +1352,8 @@ class _HttpClient implements HttpClient {
 
   Duration get idleTimeout => _idleTimeout;
 
+  String userAgent = _getHttpVersion();
+
   void set idleTimeout(Duration timeout) {
     _idleTimeout = timeout;
     _idleConnections.values.forEach(
@@ -1355,6 +1363,7 @@ class _HttpClient implements HttpClient {
           c.startTimer();
         }));
   }
+
 
   Future<HttpClientRequest> open(String method,
                                  String host,
@@ -1755,7 +1764,8 @@ class _HttpConnection {
           _state = _ACTIVE;
           var outgoing = new _HttpOutgoing(_socket);
           var response = new _HttpResponse(incoming.headers.protocolVersion,
-                                           outgoing);
+                                           outgoing,
+                                           _httpServer.serverHeader);
           var request = new _HttpRequest(response, incoming, _httpServer, this);
           _streamFuture = outgoing.done
               .then((_) {
@@ -1819,6 +1829,7 @@ class _HttpConnection {
 
 // HTTP server waiting for socket connections.
 class _HttpServer extends Stream<HttpRequest> implements HttpServer {
+  String serverHeader = _getHttpVersion();
 
   static Future<HttpServer> bind(address, int port, int backlog) {
     return ServerSocket.bind(address, port, backlog: backlog).then((socket) {
@@ -2348,4 +2359,12 @@ class _RedirectInfo implements RedirectInfo {
   final int statusCode;
   final String method;
   final Uri location;
+}
+
+String _getHttpVersion() {
+  var version = new Options().version;
+  // Only include major and minor version numbers.
+  int index = version.indexOf('.', version.indexOf('.') + 1);
+  version = version.substring(0, index);
+  return 'Dart/$version (dart:io)';
 }

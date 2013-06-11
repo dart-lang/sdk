@@ -11,3 +11,7 @@ patch class _IOCrypto {
   /* patch */ static Uint8List getRandomBytes(int count)
       native "Crypto_GetRandomBytes";
 }
+
+patch class _OptionsImpl {
+  /* patch */ String get version native "Common_GetVersion";
+}

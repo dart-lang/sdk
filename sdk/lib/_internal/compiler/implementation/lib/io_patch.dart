@@ -303,3 +303,9 @@ patch class _Filter {
     throw new UnsupportedError("newZLibInflateFilter");
   }
 }
+
+patch class _OptionsImpl {
+  patch String get version {
+    throw new UnsupportedError("_OptionsImpl.version");
+  }
+}
