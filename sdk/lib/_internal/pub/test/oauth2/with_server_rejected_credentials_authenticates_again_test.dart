@@ -41,9 +41,7 @@ main() {
     // TODO(rnystrom): The confirm line is run together with this one because
     // in normal usage, the user will have entered a newline on stdin which
     // gets echoed to the terminal. Do something better here?
-    expect(pub.nextLine(), completion(equals(
-        'Looks great! Are you ready to upload your package (y/n)? '
-        'Pub needs your authorization to upload packages on your behalf.')));
+    expect(pub.nextLine(), completion(equals('Uploading...')));
     pub.kill();
   });
 }

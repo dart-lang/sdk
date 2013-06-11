@@ -3,7 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 test/pub_uploader_test: Pass, Fail # Issue 9357
-test/oauth2/with_server_rejected_credentials_authenticates_again_test: Pass, Fail # Issue 9839.
 
 # Pub only runs on the VM, so just rule out all compilers.
 [ $compiler == dart2js || $compiler == dart2dart ]
