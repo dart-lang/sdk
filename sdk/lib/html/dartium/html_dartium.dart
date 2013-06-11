@@ -16396,6 +16396,10 @@ class MessagePort extends EventTarget {
 class MetaElement extends _Element_Merged {
   MetaElement.internal() : super.internal();
 
+  @DomName('HTMLMetaElement.HTMLMetaElement')
+  @DocsEditable
+  factory MetaElement() => document.$dom_createElement("meta");
+
   @DomName('HTMLMetaElement.content')
   @DocsEditable
   String get content native "HTMLMetaElement_content_Getter";
@@ -19610,6 +19614,10 @@ class ProgressEvent extends Event {
 class QuoteElement extends _Element_Merged {
   QuoteElement.internal() : super.internal();
 
+  @DomName('HTMLQuoteElement.HTMLQuoteElement')
+  @DocsEditable
+  factory QuoteElement() => document.$dom_createElement("q");
+
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable
   String get cite native "HTMLQuoteElement_cite_Getter";
@@ -21041,6 +21049,10 @@ class Selection extends NativeFieldWrapperClass1 {
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#shadow-element
 class ShadowElement extends _Element_Merged {
   ShadowElement.internal() : super.internal();
+
+  @DomName('HTMLShadowElement.HTMLShadowElement')
+  @DocsEditable
+  factory ShadowElement() => document.$dom_createElement("shadow");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;

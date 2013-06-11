@@ -15243,6 +15243,10 @@ class MessagePort extends EventTarget native "MessagePort" {
 @DomName('HTMLMetaElement')
 class MetaElement extends Element native "HTMLMetaElement" {
 
+  @DomName('HTMLMetaElement.HTMLMetaElement')
+  @DocsEditable
+  factory MetaElement() => document.$dom_createElement("meta");
+
   @DomName('HTMLMetaElement.content')
   @DocsEditable
   String content;
@@ -18201,6 +18205,10 @@ class ProgressEvent extends Event native "ProgressEvent" {
 @DomName('HTMLQuoteElement')
 class QuoteElement extends Element native "HTMLQuoteElement" {
 
+  @DomName('HTMLQuoteElement.HTMLQuoteElement')
+  @DocsEditable
+  factory QuoteElement() => document.$dom_createElement("q");
+
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable
   String cite;
@@ -19571,6 +19579,10 @@ class Selection native "Selection" {
 @Experimental
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#shadow-element
 class ShadowElement extends Element native "HTMLShadowElement" {
+
+  @DomName('HTMLShadowElement.HTMLShadowElement')
+  @DocsEditable
+  factory ShadowElement() => document.$dom_createElement("shadow");
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('shadow');

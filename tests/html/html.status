@@ -260,9 +260,6 @@ shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 
-[ $runtime == ie9 && $checked ]
-element_types_test/constructors: Fail # Issue 10796
-
 [ $runtime == opera ]
 blob_constructor_test: Fail
 canvas_test: Fail

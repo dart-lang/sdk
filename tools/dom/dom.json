@@ -4375,6 +4375,7 @@
   "HTMLMetaElement": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/semantics.html#the-meta-element",
     "members": {
+      "HTMLMetaElement": {},
       "content": {},
       "httpEquiv": {},
       "name": {},
@@ -4632,6 +4633,7 @@
   "HTMLQuoteElement": {
     "comment": "http://www.whatwg.org/specs/web-apps/current-work/multipage/grouping-content.html#the-blockquote-element",
     "members": {
+      "HTMLQuoteElement": {},
       "cite": {}
     },
     "support_level": "stable"
@@ -4704,6 +4706,7 @@
   "HTMLShadowElement": {
     "comment": "https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#shadow-element",
     "members": {
+      "HTMLShadowElement": {},
       "olderShadowRoot": {},
       "resetStyleInheritance": {}
     },
