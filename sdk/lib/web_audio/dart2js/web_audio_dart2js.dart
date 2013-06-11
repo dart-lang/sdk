@@ -340,7 +340,7 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   ScriptProcessorNode createScriptProcessor(int bufferSize,
       [int numberOfInputChannels, int numberOfOutputChannels]) {
-    var function = JS('dynamic', '#.createScriptProcessor || '
+    var function = JS('=Object', '#.createScriptProcessor || '
         '#.createJavaScriptNode', this, this);
     if (numberOfOutputChannels != null) {
       return JS('ScriptProcessorNode', '#.call(#, #, #, #)', function, this,

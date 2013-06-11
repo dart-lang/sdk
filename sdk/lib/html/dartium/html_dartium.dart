@@ -14822,11 +14822,6 @@ class Location extends NativeFieldWrapperClass1 implements LocationBase {
   @DocsEditable
   String toString() native "Location_toString_Callback";
 
-  @DomName('Location.valueOf')
-  @DocsEditable
-  @Experimental // nonstandard
-  Object valueOf() native "Location_valueOf_Callback";
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

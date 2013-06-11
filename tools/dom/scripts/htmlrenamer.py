@@ -584,6 +584,7 @@ _removed_html_members = monitored.Set('htmlrenamer._removed_html_members', [
     'HTMLTitleElement.text',
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
+    'Location.valueOf',
     'MessageEvent.webkitInitMessageEvent',
     'MouseEvent.x',
     'MouseEvent.y',

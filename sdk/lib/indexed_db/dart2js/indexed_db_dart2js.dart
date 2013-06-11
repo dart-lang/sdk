@@ -171,10 +171,14 @@ class Cursor native "IDBCursor" {
 
   @DomName('IDBCursor.primaryKey')
   @DocsEditable
+  @_annotation_Creates_IDBKey
+  @_annotation_Returns_IDBKey
   final Object primaryKey;
 
   @DomName('IDBCursor.source')
   @DocsEditable
+  @Creates('Null')
+  @Returns('ObjectStore|Index|Null')
   final dynamic source;
 
   @DomName('IDBCursor.advance')
@@ -291,6 +295,8 @@ class Database extends EventTarget native "IDBDatabase" {
 
   @DomName('IDBDatabase.version')
   @DocsEditable
+  @Creates('int|String|Null')
+  @Returns('int|String|Null')
   final dynamic version;
 
   @JSName('addEventListener')
@@ -588,6 +594,7 @@ class Index native "IDBIndex" {
   
   @DomName('IDBIndex.keyPath')
   @DocsEditable
+  @annotation_Creates_SerializedScriptValue
   final dynamic keyPath;
 
   @DomName('IDBIndex.multiEntry')
@@ -674,6 +681,7 @@ class KeyRange native "IDBKeyRange" {
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable
+  @annotation_Creates_SerializedScriptValue
   final Object lower;
 
   @DomName('IDBKeyRange.lowerOpen')
@@ -682,6 +690,7 @@ class KeyRange native "IDBKeyRange" {
 
   @DomName('IDBKeyRange.upper')
   @DocsEditable
+  @annotation_Creates_SerializedScriptValue
   final Object upper;
 
   @DomName('IDBKeyRange.upperOpen')
@@ -862,6 +871,7 @@ class ObjectStore native "IDBObjectStore" {
 
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable
+  @annotation_Creates_SerializedScriptValue
   final dynamic keyPath;
 
   @DomName('IDBObjectStore.name')
@@ -1249,10 +1259,14 @@ class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable
+  @Creates('int|String|Null')
+  @Returns('int|String|Null')
   final dynamic newVersion;
 
   @DomName('IDBVersionChangeEvent.oldVersion')
   @DocsEditable
+  @Creates('int|String|Null')
+  @Returns('int|String|Null')
   final dynamic oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

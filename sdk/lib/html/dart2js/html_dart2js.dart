@@ -6019,6 +6019,7 @@ class CustomEvent extends Event native "CustomEvent" {
 
   @DomName('CustomEvent.detail')
   @DocsEditable
+  @Creates('Null')
   final Object detail;
 
   @JSName('initCustomEvent')
@@ -10286,6 +10287,7 @@ class File extends Blob native "File" {
   @JSName('lastModifiedDate')
   @DomName('File.lastModifiedDate')
   @DocsEditable
+  @Creates('Null')
   final dynamic _get_lastModifiedDate;
 
   @DomName('File.name')
@@ -10855,6 +10857,7 @@ class FocusEvent extends UIEvent native "FocusEvent" {
   @JSName('relatedTarget')
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable
+  @Creates('Null')
   final dynamic _get_relatedTarget;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12811,6 +12814,7 @@ class InputElement extends Element implements
   @JSName('valueAsDate')
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable
+  @Creates('Null')
   final dynamic _get_valueAsDate;
 
   void set valueAsDate(DateTime value) {
@@ -13836,11 +13840,6 @@ class Location implements LocationBase native "Location" {
   @DomName('Location.toString')
   @DocsEditable
   String toString() native;
-
-  @DomName('Location.valueOf')
-  @DocsEditable
-  @Experimental // nonstandard
-  Object valueOf() native;
 
 
   @DomName('Location.origin')
@@ -15271,6 +15270,7 @@ class Metadata native "Metadata" {
   @JSName('modificationTime')
   @DomName('Metadata.modificationTime')
   @DocsEditable
+  @Creates('Null')
   final dynamic _get_modificationTime;
 
   @DomName('Metadata.size')
@@ -19050,6 +19050,7 @@ class RtcStatsReport native "RTCStatsReport" {
   @JSName('timestamp')
   @DomName('RTCStatsReport.timestamp')
   @DocsEditable
+  @Creates('Null')
   final dynamic _get_timestamp;
 
   @DomName('RTCStatsReport.type')
@@ -22091,6 +22092,7 @@ class TrackEvent extends Event native "TrackEvent" {
 
   @DomName('TrackEvent.track')
   @DocsEditable
+  @Creates('Null')
   final Object track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23638,6 +23640,7 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
 
   @DomName('Window.showModalDialog')
   @DocsEditable
+  @Creates('Null')
   Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
   @DomName('Window.stop')

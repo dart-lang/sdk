@@ -56,6 +56,10 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('String|CanvasGradient|CanvasPattern')",
     ],
 
+    'CustomEvent.detail': [
+      "@Creates('Null')",
+    ],
+
     # Normally DOMWindow is nevernull, but starting from a <template> element in
     # JavaScript, this will be null:
     #     template.content.ownerDocument.defaultView
@@ -75,6 +79,10 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('SqlDatabase')",
     ],
 
+    'DOMWindow.showModalDialog': [
+      "@Creates('Null')",
+    ],
+
     # To be in callback with the browser-created Event, we had to have called
     # addEventListener on the target, so we avoid
     'Event.currentTarget': [
@@ -88,18 +96,19 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('EventTarget|=Object')",
     ],
 
-    'MouseEvent.relatedTarget': [
-      "@Creates('Node')",
-      "@Returns('EventTarget|=Object')",
-    ],
-
-    # Touch targets are Elements in a Document, or the Document.
-    'Touch.target': [
-      "@Creates('Element|Document')",
-      "@Returns('Element|Document')",
+    'File.lastModifiedDate': [
+      "@Creates('Null')", # JS date object.
     ],
 
     'FileReader.result': ["@Creates('String|ByteBuffer|Null')"],
+
+    'FocusEvent.relatedTarget': [
+      "@Creates('Null')",
+    ],
+
+    'HTMLInputElement.valueAsDate': [
+      "@Creates('Null')", # JS date object.
+    ],
 
     # Rather than have the result of an IDBRequest as a union over all possible
     # results, we mark the result as instantiating any classes, and mark
@@ -138,14 +147,55 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@_annotation_Returns_IDBKey",
     ],
 
-    '+IDBRequest': [
-      "@Returns('Request')",
-      "@Creates('Request')",
+    'IDBCursor.primaryKey': [
+      "@_annotation_Creates_IDBKey",
+      "@_annotation_Returns_IDBKey",
+    ],
+
+    'IDBCursor.source': [
+      "@Creates('Null')",
+      "@Returns('ObjectStore|Index|Null')",
+    ],
+
+    'IDBDatabase.version': [
+      "@Creates('int|String|Null')",
+      "@Returns('int|String|Null')",
+    ],
+
+    'IDBIndex.keyPath': [
+      "@annotation_Creates_SerializedScriptValue",
+    ],
+
+    'IDBKeyRange.lower': [
+      "@annotation_Creates_SerializedScriptValue",
+    ],
+
+    'IDBKeyRange.upper': [
+      "@annotation_Creates_SerializedScriptValue",
+    ],
+
+    'IDBObjectStore.keyPath': [
+      "@annotation_Creates_SerializedScriptValue",
     ],
 
     '+IDBOpenDBRequest': [
       "@Returns('Request')",
       "@Creates('Request')",
+    ],
+
+    '+IDBRequest': [
+      "@Returns('Request')",
+      "@Creates('Request')",
+    ],
+
+    'IDBVersionChangeEvent.newVersion': [
+      "@Creates('int|String|Null')",
+      "@Returns('int|String|Null')",
+    ],
+
+    'IDBVersionChangeEvent.oldVersion': [
+      "@Creates('int|String|Null')",
+      "@Returns('int|String|Null')",
     ],
 
     'MessageEvent.ports': ["@Creates('=List')"],
@@ -154,16 +204,81 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
     ],
+
+    'Metadata.modificationTime': [
+      "@Creates('Null')", # JS date object.
+    ],
+
+    'MouseEvent.relatedTarget': [
+      "@Creates('Node')",
+      "@Returns('EventTarget|=Object')",
+    ],
+
     'PopStateEvent.state': [
       "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
     ],
+
+    'RTCStatsReport.timestamp': [
+      "@Creates('Null')", # JS date object.
+    ],
+
     'SerializedScriptValue': [
       "@annotation_Creates_SerializedScriptValue",
       "@annotation_Returns_SerializedScriptValue",
     ],
 
     'SQLResultSetRowList.item': ["@Creates('=Object')"],
+
+    # Touch targets are Elements in a Document, or the Document.
+    'Touch.target': [
+      "@Creates('Element|Document')",
+      "@Returns('Element|Document')",
+    ],
+
+    'TrackEvent.track': [
+      "@Creates('Null')",
+    ],
+
+    'WebGLRenderingContext.getBufferParameter': [
+      "@Creates('int|Null')",
+      "@Returns('int|Null')",
+    ],
+
+    'WebGLRenderingContext.getFramebufferAttachmentParameter': [
+      "@Creates('int|Renderbuffer|Texture|Null')",
+      "@Returns('int|Renderbuffer|Texture|Null')",
+    ],
+
+    'WebGLRenderingContext.getProgramParameter': [
+      "@Creates('int|bool|Null')",
+      "@Returns('int|bool|Null')",
+    ],
+
+    'WebGLRenderingContext.getRenderbufferParameter': [
+      "@Creates('int|Null')",
+      "@Returns('int|Null')",
+    ],
+
+    'WebGLRenderingContext.getShaderParameter': [
+      "@Creates('int|Null')",
+      "@Returns('int|Null')",
+    ],
+
+    'WebGLRenderingContext.getTexParameter': [
+      "@Creates('int|Null')",
+      "@Returns('int|Null')",
+    ],
+
+    'WebGLRenderingContext.getUniform': [
+      "@Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List')",
+      "@Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List')",
+    ],
+
+    'WebGLRenderingContext.getVertexAttrib': [
+      "@Creates('Null|num|bool|Float32List|Buffer')",
+      "@Returns('Null|num|bool|Float32List|Buffer')",
+    ],
 
     'WebGLRenderingContext.getParameter': [
       # Taken from http://www.khronos.org/registry/webgl/specs/latest/

@@ -7,10 +7,14 @@
 Dart:html APIs from the IDL database."""
 
 import emitter
+import logging
 import monitored
 import os
+import re
 from generator import *
 from htmldartgenerator import *
+
+_logger = logging.getLogger('systemhtml')
 
 HTML_LIBRARY_NAMES = ['chrome', 'html', 'indexed_db', 'svg',
                       'web_audio', 'web_gl', 'web_sql']
@@ -794,7 +798,7 @@ class Dart2JSBackend(HtmlDartGenerator):
 
     output_type = self.SecureOutputType(attribute.type.id)
     input_type = self._NarrowInputType(attribute.type.id)
-    metadata = self._Metadata(attribute.type.id, attribute.id)
+    metadata = self._Metadata(attribute.type.id, attribute.id, output_type)
     rename = self._RenamingAnnotation(attribute.id, html_name)
     if not read_only:
       self._members_emitter.Emit(
@@ -867,7 +871,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         "\n  @JSName('$NAME')"
         '\n  $(METADATA)final $NATIVE_TYPE _get_$HTML_NAME;'
         '\n',
-        METADATA=self._Metadata(attr.type.id, html_name),
+        METADATA=self._Metadata(attr.type.id, html_name, conversion.input_type),
         CONVERT=conversion.function_name,
         HTML_NAME=html_name,
         NAME=attr.id,
@@ -916,7 +920,8 @@ class Dart2JSBackend(HtmlDartGenerator):
         '\n'
         '  $RENAME$METADATA$MODIFIERS$TYPE $NAME($PARAMS) native;\n',
         RENAME=self._RenamingAnnotation(info.declared_name, html_name),
-        METADATA=self._Metadata(info.type_name, info.declared_name),
+        METADATA=self._Metadata(info.type_name, info.declared_name,
+            self.SecureOutputType(info.type_name)),
         MODIFIERS='static ' if info.IsStatic() else '',
         TYPE=self.SecureOutputType(info.type_name),
         NAME=html_name,
@@ -998,14 +1003,14 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._members_emitter.Emit(
           '  $RENAME$METADATA$MODIFIERS$TYPE$TARGET($PARAMS) native;\n',
           RENAME=self._RenamingAnnotation(info.declared_name, target),
-          METADATA=self._Metadata(info.type_name, info.declared_name),
+          METADATA=self._Metadata(info.type_name, info.declared_name, None),
           MODIFIERS='static ' if info.IsStatic() else '',
           TYPE=TypeOrNothing(native_return_type),
           TARGET=target,
           PARAMS=', '.join(target_parameters))
 
     declaration = '%s%s%s %s(%s)' % (
-        self._Metadata(info.type_name, info.declared_name),
+        self._Metadata(info.type_name, info.declared_name, return_type),
         'static ' if info.IsStatic() else '',
         return_type,
         html_name,
@@ -1053,7 +1058,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       return  "@JSName('%s')\n  " % idl_name
     return ''
 
-  def _Metadata(self, idl_type, idl_member_name, indent='  '):
+  def _Metadata(self, idl_type, idl_member_name, dart_type, indent='  '):
     anns = self._metadata.GetDart2JSMetadata(
         idl_type, self._library_name, self._interface, idl_member_name)
 
@@ -1066,6 +1071,13 @@ class Dart2JSBackend(HtmlDartGenerator):
           "@Returns('%s')" % native_type,
           "@Creates('%s')" % native_type,
         ]
+    if dart_type == 'dynamic' or dart_type == 'Object':
+      def js_type_annotation(ann):
+        return re.search('^@.*Returns', ann) or re.search('^@.*Creates', ann)
+      if not filter(js_type_annotation, anns):
+        _logger.warn('Member with wildcard native type: %s.%s' %
+            (self._interface.id, idl_member_name))
+
     return self._metadata.FormatMetadata(anns, indent);
 
   def CustomJSMembers(self):
