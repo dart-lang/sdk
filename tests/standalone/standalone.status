@@ -273,7 +273,6 @@ io/test_extension_test: Crash # Issue: 11207
 io/web_socket_protocol_processor_test: Crash # Issue: 11207
 io/web_socket_test: Crash # Issue: 11207
 left_shift_bit_and_op_test: Fail # Issue: 11207
-pow_test: Fail # Issue: 11207
 typed_data_test: Crash # Issue: 11207
 
 
