@@ -66,7 +66,7 @@ class _OptionsImpl implements Options {
     return _nativeScript;
   }
 
-  String get version;
+  external String get version;
 
   List<String> _arguments = null;
 
