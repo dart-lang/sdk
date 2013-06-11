@@ -1026,7 +1026,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // into the runtime system.
   uword entry = reinterpret_cast<uword>(native_c_function());
 #if defined(USING_SIMULATOR)
-  entry = Simulator::RedirectExternalReference(entry, Simulator::kNativeCall);
+  entry = Simulator::RedirectExternalReference(entry,
+                                               Simulator::kNativeCall,
+                                               function().NumParameters());
 #endif
   __ LoadImmediate(R5, entry);
   __ LoadImmediate(R1, NativeArguments::ComputeArgcTag(function()));
@@ -3053,11 +3055,11 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* result =
       new LocationSummary(InputCount(), kNumTemps, LocationSummary::kCall);
-  result->set_in(0, Location::FpuRegisterLocation(D1));
+  result->set_in(0, Location::FpuRegisterLocation(D0));
   if (InputCount() == 2) {
-    result->set_in(1, Location::FpuRegisterLocation(D2));
+    result->set_in(1, Location::FpuRegisterLocation(D1));
   }
-  result->set_out(Location::FpuRegisterLocation(D1));
+  result->set_out(Location::FpuRegisterLocation(D0));
   return result;
 }
 
@@ -3075,12 +3077,11 @@ void InvokeMathCFunctionInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ b(&skip_call);
   }
   __ Bind(&do_call);
-  __ vmovrrd(R0, R1, locs()->in(0).fpu_reg());
-  __ vmovrrd(R2, R3, locs()->in(1).fpu_reg());
-  // TODO(regis): This leaf runtime call is not yet supported by the simulator.
-  // We need a new leaf floating point runtime call kind.
+  // We currently use 'hardfp' ('gnueabihf') rather than 'softfp'
+  // ('gnueabi') float ABI for leaf runtime calls, i.e. double values
+  // are passed and returned in vfp registers rather than in integer
+  // register pairs.
   __ CallRuntime(TargetFunction());
-  __ vmovdrr(locs()->out().fpu_reg(), R0, R1);
   __ Bind(&skip_call);
 }
 

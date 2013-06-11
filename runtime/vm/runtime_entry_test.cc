@@ -49,7 +49,7 @@ DEFINE_RUNTIME_ENTRY(TestSmiSub, 2) {
 // arg0: a smi.
 // arg1: a smi.
 // returns a smi representing arg0 + arg1.
-DEFINE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd,
+DEFINE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, 2,
                           RawObject* arg0, RawObject* arg1) {
   // Ignoring overflow in the calculation below and using the internal
   // representation of Smi directly without using any handlized code.
