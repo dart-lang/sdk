@@ -435,8 +435,8 @@ main() {
 
       var rect = element.getBoundingClientRect();
       expect(rect is Rect, isTrue);
-      expect(rect.width, 100);
-      expect(rect.height, 100);
+      expect(rect.width, closeTo(100, 1));
+      expect(rect.height, closeTo(100, 1));
     });
   });
 }
