@@ -17,15 +17,16 @@ import 'descriptor.dart' as d;
 import 'test_pub.dart';
 
 final USAGE_STRING = '''
-    Manage uploaders for a package on pub.dartlang.org.
+Manage uploaders for a package on pub.dartlang.org.
 
-    Usage: pub uploader [options] {add/remove} <email>
-    --server     The package server on which the package is hosted
+Usage: pub uploader [options] {add/remove} <email>
+-h, --help       Print usage information for this command.
+    --server     The package server on which the package is hosted.
                  (defaults to "https://pub.dartlang.org")
 
-    --package    The package whose uploaders will be modified
+    --package    The package whose uploaders will be modified.
                  (defaults to the current package)
-    ''';
+''';
 
 ScheduledProcess startPubUploader(ScheduledServer server, List<String> args) {
   var tokenEndpoint = server.url.then((url) =>
