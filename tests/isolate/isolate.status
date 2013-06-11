@@ -141,6 +141,18 @@ isolate_stress_test: Pass, Timeout # http://dartbug.com/10697
 [ $arch == simarm ]
 *: Skip
 
+[ $arch == arm ]
+count_stream_test: Crash # Issue: 11207
+cross_isolate_message_stream_test: Crash # Issue: 11207
+mandel_isolate_stream_test: Crash # Issue: 11207
+message2_test: Crash # Issue: 11207
+message_stream2_test: Crash # Issue: 11207
+nested_spawn_stream2_test: Crash # Issue: 11207
+nested_spawn_stream_test: Crash # Issue: 11207
+spawn_function_negative_test: Crash # Issue: 11207
+spawn_uri_vm_negative_test: Crash # Issue: 11207
+stream_mangling_test: Crash # Issue: 11207
+
 [ $arch == mips ]
 *: Skip
 

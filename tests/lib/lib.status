@@ -113,6 +113,26 @@ async/timer_test: Fail, Pass # See Issue 10982
 [ $arch == simarm ]
 *: Skip
 
+[ $arch == arm ]
+async/slow_consumer2_test: Crash # Issue: 11207
+async/slow_consumer3_test: Crash # Issue: 11207
+async/slow_consumer_test: Crash # Issue: 11207
+async/stream_controller_async_test: Crash # Issue: 11207
+async/stream_from_iterable_test: Crash # Issue: 11207
+async/stream_periodic3_test: Crash # Issue: 11207
+async/stream_periodic4_test: Crash # Issue: 11207
+async/stream_periodic5_test: Crash # Issue: 11207
+async/stream_state_nonzero_timer_test: Crash # Issue: 11207
+async/stream_state_test: Crash # Issue: 11207
+async/stream_subscription_as_future_test: Crash # Issue: 11207
+async/stream_transform_test: Crash # Issue: 11207
+math/pi_test: Fail # Issue: 11207
+math/random_test: Fail # Issue: 11207
+typed_data/float32x4_list_test: Crash # Issue: 11207
+typed_data/float32x4_test: Crash # Issue: 11207
+typed_data/float32x4_unbox_phi_test: Crash # Issue: 11207
+typed_data/float32x4_unbox_regress_test: Crash # Issue: 11207
+
 [ $arch == mips ]
 *: Skip
 
