@@ -1194,8 +1194,9 @@ abstract class HttpClientRequest implements IOSink {
   /**
    * Set this property to the maximum number of redirects to follow
    * when [followRedirects] is [:true:]. If this number is exceeded the
-   * [onError] callback will be called with a [RedirectLimitExceeded]
-   * exception. The default value is 5.
+   * [onError] callback will be called with a [RedirectException].
+   *
+   * The default value is 5.
    */
   int maxRedirects;
 

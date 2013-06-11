@@ -193,7 +193,7 @@ class _RedirectLimitExceededException extends TypeMatcher {
       super("RedirectLimitExceededException");
 
   bool matches(item, MatchState matchState) =>
-    item is RedirectLimitExceededException;
+    item is RedirectException && item.message == "Redirect limit exceeded";
 }
 
 /// A matcher for SocketExceptions.
