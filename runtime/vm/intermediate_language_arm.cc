@@ -2101,7 +2101,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     } else if ((value < 0) || (value >= kCountLimit)) {
       // This condition may not be known earlier in some cases because
       // of constant propagation, inlining, etc.
-      if ((value >=kCountLimit) && is_truncating) {
+      if ((value >= kCountLimit) && is_truncating) {
         __ mov(result, ShifterOperand(0));
       } else {
         // Result is Mint or exception.
@@ -2161,7 +2161,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
         __ cmp(right, ShifterOperand(0));
         __ b(deopt, MI);
       }
-      Label done, is_not_zero;
+
       __ cmp(right,
              ShifterOperand(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
       __ mov(result, ShifterOperand(0), CS);

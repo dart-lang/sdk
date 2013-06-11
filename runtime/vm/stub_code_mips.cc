@@ -40,13 +40,14 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
+  __ SetPrologueOffset();
   __ TraceSimMsg("CallToRuntimeStub");
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(RA, Address(SP, 1 * kWordSize));
   __ sw(FP, Address(SP, 0 * kWordSize));
   __ mov(FP, SP);
 
-  // Load current Isolate pointer from Context structure into R0.
+  // Load current Isolate pointer from Context structure into A0.
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
 
   // Save exit frame information to enable stack walking as we are about
@@ -142,6 +143,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
+  __ SetPrologueOffset();
   __ TraceSimMsg("CallNativeCFunctionStub");
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(RA, Address(SP, 1 * kWordSize));
@@ -170,10 +172,10 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   ASSERT(argc_tag_offset == 1 * kWordSize);
-  // Set argc in NativeArguments: T1 already contains argc.
+  // Set argc in NativeArguments: A1 already contains argc.
 
   ASSERT(argv_offset == 2 * kWordSize);
-  // Set argv in NativeArguments: T2 already contains argv.
+  // Set argv in NativeArguments: A2 already contains argv.
 
   ASSERT(retval_offset == 3 * kWordSize);
   __ addiu(A3, FP, Immediate(2 * kWordSize));  // Set retval in NativeArgs.
@@ -352,8 +354,6 @@ DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 
 
-
-
 // Used by eager and lazy deoptimization. Preserve result in V0 if necessary.
 // This stub translates optimized frame into unoptimized frame. The optimized
 // frame can contain values in registers and on stack, the unoptimized
@@ -380,12 +380,13 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
                                            bool preserve_result) {
-  __ TraceSimMsg("GenerateDeoptimizationSequence");
   const intptr_t kPushedRegistersSize =
       kNumberOfCpuRegisters * kWordSize +
       4 * kWordSize +  // PP, FP, RA, PC marker.
       kNumberOfFRegisters * kWordSize;
 
+  __ SetPrologueOffset();
+  __ TraceSimMsg("GenerateDeoptimizationSequence");
   // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ addiu(SP, SP, Immediate(-kPushedRegistersSize * kWordSize));
@@ -419,7 +420,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   __ mov(A0, SP);  // Pass address of saved registers block.
-  __ ReserveAlignedFrameSpace(0);
+  __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (V0) is stack-size (FP - SP) in bytes, incl. the return address.
 
@@ -447,7 +448,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   if (preserve_result) {
     __ Push(T1);  // Preserve result as first local.
   }
-  __ ReserveAlignedFrameSpace(0);
+  __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);  // Pass last FP in A0.
   if (preserve_result) {
     // Restore result into T1.
@@ -1644,8 +1645,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   __ lw(T3, FieldAddress(T3, Code::instructions_offset()));
   __ AddImmediate(T3, Instructions::HeaderSize() - kHeapObjectTag);
   __ jr(T3);
-  __ delay_slot()->addiu(T3, T3,
-      Immediate(Instructions::HeaderSize() - kHeapObjectTag));
 
   // Instance in T3, return its class-id in T3 as Smi.
   __ Bind(&get_class_id_as_smi);
@@ -1947,6 +1946,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // V0: result.
 // TODO(srdjan): Move to VM stubs once Boolean objects become VM objects.
 void StubCode::GenerateEqualityWithNullArgStub(Assembler* assembler) {
+  __ TraceSimMsg("EqualityWithNullArgStub");
   __ EnterStubFrame();
   static const intptr_t kNumArgsTested = 2;
 #if defined(DEBUG)

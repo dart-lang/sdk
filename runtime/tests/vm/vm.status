@@ -72,17 +72,8 @@ cc/IntToFloatConversion: Fail # Issue: 11207
 
 [ $arch == simmips ]
 # Tests missing code generation support.
-cc/CorelibCompileAll: Skip
-cc/Dart2JSCompileAll: Skip
-cc/ParsePatchLibrary: Skip
 dart/byte_array_test: Skip
 dart/byte_array_optimized_test: Skip
-dart/inline_stack_frame_test: Skip
-
-# Bug in optimized code generation.
-cc/ExternalStringDeoptimize: Skip
-dart/inline_stack_frame_test: Skip
-dart/isolate_mirror_local_test: Skip
 
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]

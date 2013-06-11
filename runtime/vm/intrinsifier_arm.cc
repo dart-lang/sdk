@@ -1530,7 +1530,7 @@ bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   __ SmiTag(R0);
   __ str(R0, FieldAddress(R1, String::hash_offset()));
   __ Ret();
-  return false;
+  return true;
 }
 
 

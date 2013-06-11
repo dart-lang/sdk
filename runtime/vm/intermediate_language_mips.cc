@@ -268,13 +268,37 @@ void AssertBooleanInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ArgumentDefinitionTestInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_out(Location::RegisterLocation(T0));
+  return locs;
 }
 
 
 void ArgumentDefinitionTestInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register saved_args_desc = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ TraceSimMsg("ArgumentDefinitionTestInstr");
+
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  // Push the result place holder initialized to NULL.
+  __ LoadObject(TMP1, Object::ZoneHandle());
+  __ sw(TMP1, Address(SP, 3 * kWordSize));
+  __ LoadImmediate(TMP1, Smi::RawValue(formal_parameter_index()));
+  __ sw(TMP1, Address(SP, 2 * kWordSize));
+  __ LoadObject(TMP1, formal_parameter_name());
+  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ sw(saved_args_desc, Address(SP, 0 * kWordSize));
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kArgumentDefinitionTestRuntimeEntry,
+                                locs());
+  __ lw(result, Address(SP, 3 * kWordSize));  // Pop bool result.
+  __ addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 
@@ -355,7 +379,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                        Token::Kind kind,
                                        LocationSummary* locs,
                                        const ICData& original_ic_data) {
-  __ TraceSimMsg("EmitEqualityAsInstanceCall");
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                    deopt_id,
@@ -365,7 +388,10 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
 
+  __ TraceSimMsg("EmitEqualityAsInstanceCall");
   Label check_identity;
+  __ lw(A1, Address(SP, 1 * kWordSize));
+  __ lw(A0, Address(SP, 0 * kWordSize));
   __ beq(A1, NULLREG, &check_identity);
   __ beq(A0, NULLREG, &check_identity);
 
@@ -385,9 +411,6 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A1, Address(SP, 1 * kWordSize));
-  __ sw(A0, Address(SP, 0 * kWordSize));
   compiler->GenerateInstanceCall(deopt_id,
                                  token_pos,
                                  kNumberOfArguments,
@@ -402,6 +425,9 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   if (compiler->is_optimizing()) {
     // No need to update IC data.
     Label is_true;
+    __ lw(A1, Address(SP, 1 * kWordSize));
+    __ lw(A0, Address(SP, 0 * kWordSize));
+    __ addiu(SP, SP, Immediate(2 * kWordSize));
     __ beq(A1, A0, &is_true);
     __ LoadObject(V0, (kind == Token::kEQ) ? Bool::False() : Bool::True());
     __ b(&equality_done);
@@ -422,6 +448,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                            &StubCode::EqualityWithNullArgLabel(),
                            PcDescriptors::kRuntimeCall,
                            locs);
+    __ Drop(2);
   }
   __ Bind(&check_ne);
   if (kind == Token::kNE) {
@@ -458,6 +485,129 @@ static void LoadValueCid(FlowGraphCompiler* compiler,
 }
 
 
+static Condition TokenKindToSmiCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQ;
+    case Token::kNE: return NE;
+    case Token::kLT: return LT;
+    case Token::kGT: return GT;
+    case Token::kLTE: return LE;
+    case Token::kGTE: return GE;
+    default:
+      UNREACHABLE();
+      return VS;
+  }
+}
+
+
+// Branches on condition c assuming comparison results in CMPRES and TMP1.
+static void EmitBranchAfterCompare(
+    FlowGraphCompiler* compiler, Condition c, Label* is_true) {
+  switch (c) {
+    case EQ: __ beq(CMPRES, TMP1, is_true); break;
+    case NE: __ bne(CMPRES, TMP1, is_true); break;
+    case GT: __ bne(TMP1, ZR, is_true); break;
+    case GE: __ beq(CMPRES, ZR, is_true); break;
+    case LT: __ bne(CMPRES, ZR, is_true); break;
+    case LE: __ beq(TMP1, ZR, is_true); break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+// A1: left, also on stack.
+// A0: right, also on stack.
+static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
+                                          const ICData& orig_ic_data,
+                                          LocationSummary* locs,
+                                          BranchInstr* branch,
+                                          Token::Kind kind,
+                                          intptr_t deopt_id,
+                                          intptr_t token_pos) {
+  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+  const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
+  ASSERT(ic_data.NumberOfChecks() > 0);
+  ASSERT(ic_data.num_args_tested() == 1);
+  Label* deopt = compiler->AddDeoptStub(deopt_id, kDeoptEquality);
+  Register left = locs->in(0).reg();
+  Register right = locs->in(1).reg();
+  ASSERT(left == A1);
+  ASSERT(right == A0);
+  Register temp = locs->temp(0).reg();
+
+  __ TraceSimMsg("EmitEqualityAsPolymorphicCall");
+
+  LoadValueCid(compiler, temp, left,
+               (ic_data.GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
+  // 'temp' contains class-id of the left argument.
+  ObjectStore* object_store = Isolate::Current()->object_store();
+  Condition cond = TokenKindToSmiCondition(kind);
+  Label done;
+  const intptr_t len = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < len; i++) {
+    // Assert that the Smi is at position 0, if at all.
+    ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
+    Label next_test;
+    if (i < len - 1) {
+      __ BranchNotEqual(temp, ic_data.GetReceiverClassIdAt(i), &next_test);
+    } else {
+      __ BranchNotEqual(temp, ic_data.GetReceiverClassIdAt(i), deopt);
+    }
+    const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
+    if (target.Owner() == object_store->object_class()) {
+      // Object.== is same as ===.
+      __ Drop(2);
+      __ slt(CMPRES, left, right);
+      __ slt(TMP1, right, left);
+      if (branch != NULL) {
+        branch->EmitBranchOnCondition(compiler, cond);
+      } else {
+        Register result = locs->out().reg();
+        Label load_true;
+        EmitBranchAfterCompare(compiler, cond, &load_true);
+        __ LoadObject(result, Bool::False());
+        __ b(&done);
+        __ Bind(&load_true);
+        __ LoadObject(result, Bool::True());
+      }
+    } else {
+      const int kNumberOfArguments = 2;
+      const Array& kNoArgumentNames = Array::Handle();
+      compiler->GenerateStaticCall(deopt_id,
+                                   token_pos,
+                                   target,
+                                   kNumberOfArguments,
+                                   kNoArgumentNames,
+                                   locs);
+      if (branch == NULL) {
+        if (kind == Token::kNE) {
+          Label is_true;
+          __ CompareObject(CMPRES, TMP1, V0, Bool::True());
+          __ beq(CMPRES, TMP1, &is_true);
+          __ LoadObject(V0, Bool::True());
+          __ b(&done);
+          __ Bind(&is_true);
+          __ LoadObject(V0, Bool::False());
+        }
+      } else {
+        if (branch->is_checked()) {
+          EmitAssertBoolean(V0, token_pos, deopt_id, locs, compiler);
+        }
+        __ CompareObject(CMPRES, TMP1, V0, Bool::True());
+        branch->EmitBranchOnCondition(compiler, cond);
+      }
+    }
+    if (i < len - 1) {
+      __ b(&done);
+      __ Bind(&next_test);
+    }
+  }
+  __ Bind(&done);
+}
+
+
 // Emit code when ICData's targets are all Object == (which is ===).
 static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
                                    const ICData& ic_data,
@@ -479,45 +629,56 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
                                        const ICData& ic_data,
                                        intptr_t deopt_id,
                                        intptr_t token_pos) {
-  UNIMPLEMENTED();
-}
+  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  Register left = locs->in(0).reg();
+  Register right = locs->in(1).reg();
+  Label done, identity_compare, non_null_compare;
+  __ TraceSimMsg("EmitGenericEqualityCompare");
+  __ beq(right, NULLREG, &identity_compare);
+  __ bne(left, NULLREG, &non_null_compare);
 
-
-static Condition TokenKindToSmiCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ: return EQ;
-    case Token::kNE: return NE;
-    case Token::kLT: return LT;
-    case Token::kGT: return GT;
-    case Token::kLTE: return LE;
-    case Token::kGTE: return GE;
-    default:
-      UNREACHABLE();
-      return VS;
+  // Comparison with NULL is "===".
+  __ Bind(&identity_compare);
+  Condition cond = TokenKindToSmiCondition(kind);
+  __ slt(CMPRES, left, right);
+  __ slt(TMP1, right, left);
+  if (branch != NULL) {
+    branch->EmitBranchOnCondition(compiler, cond);
+  } else {
+    Register result = locs->out().reg();
+    Label load_true;
+    EmitBranchAfterCompare(compiler, cond, &load_true);
+    __ LoadObject(result, Bool::False());
+    __ b(&done);
+    __ Bind(&load_true);
+    __ LoadObject(result, Bool::True());
   }
-}
-
-
-// Branches on condition c assuming comparison results in CMPRES and TMP1.
-static void EmitBranchAfterCompare(
-    FlowGraphCompiler* compiler, Condition c, Label* is_true) {
-    switch (c) {
-      case EQ: __ beq(CMPRES, TMP1, is_true); break;
-      case NE: __ bne(CMPRES, TMP1, is_true); break;
-      case GT: __ bne(TMP1, ZR, is_true); break;
-      case GE: __ beq(CMPRES, ZR, is_true); break;
-      case LT: __ bne(CMPRES, ZR, is_true); break;
-      case LE: __ beq(TMP1, ZR, is_true); break;
-      default:
-        UNREACHABLE();
-        break;
-    }
+  __ b(&done);
+  __ Bind(&non_null_compare);  // Receiver is not null.
+  ASSERT(left == A1);
+  ASSERT(right == A0);
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(A1, Address(SP, 1 * kWordSize));
+  __ sw(A0, Address(SP, 0 * kWordSize));
+  EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
+                                deopt_id, token_pos);
+  __ Bind(&done);
 }
 
 
 static Condition FlipCondition(Condition condition) {
-  UNIMPLEMENTED();
-  return condition;
+  switch (condition) {
+    case EQ: return EQ;
+    case NE: return NE;
+    case LT: return GT;
+    case LE: return GE;
+    case GT: return LT;
+    case GE: return LE;
+    default:
+      UNREACHABLE();
+      return EQ;
+  }
 }
 
 
@@ -612,6 +773,9 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register right = locs()->in(1).reg();
   ASSERT(left == A1);
   ASSERT(right == A0);
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(A1, Address(SP, 1 * kWordSize));
+  __ sw(A0, Address(SP, 0 * kWordSize));
   EmitEqualityAsInstanceCall(compiler,
                              deopt_id(),
                              token_pos(),
@@ -655,6 +819,9 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
   Register right = locs()->in(1).reg();
   ASSERT(left == A1);
   ASSERT(right == A0);
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ sw(A1, Address(SP, 1 * kWordSize));
+  __ sw(A0, Address(SP, 0 * kWordSize));
   EmitEqualityAsInstanceCall(compiler,
                              deopt_id(),
                              token_pos(),
@@ -853,13 +1020,26 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StringFromCharCodeInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  // TODO(fschneider): Allow immediate operands for the char code.
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register char_code = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ TraceSimMsg("StringFromCharCodeInstr");
+
+  __ LoadImmediate(result,
+                   reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
+  __ sll(TMP1, char_code, 1);  // Char code is a smi.
+  __ addu(TMP1, TMP1, result);
+  __ lw(result, Address(TMP1));
 }
 
 
@@ -986,6 +1166,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary() const {
 
 
 void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  __ TraceSimMsg("LoadIndexedInstr");
   Register array = locs()->in(0).reg();
   Location index = locs()->in(1);
 
@@ -1745,13 +1926,33 @@ void AllocateContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CloneContextInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(T0));
+  locs->set_out(Location::RegisterLocation(T0));
+  return locs;
 }
 
 
 void CloneContextInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register context_value = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+
+  __ TraceSimMsg("CloneContextInstr");
+
+  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ LoadObject(TMP1, Object::ZoneHandle());  // Make room for the result.
+  __ sw(TMP1, Address(SP, 1 * kWordSize));
+  __ sw(context_value, Address(SP, 0 * kWordSize));
+
+  compiler->GenerateCallRuntime(token_pos(),
+                                deopt_id(),
+                                kCloneContextRuntimeEntry,
+                                locs());
+  __ lw(result, Address(SP, 1 * kWordSize));  // Get result (cloned context).
+  __ addiu(SP, SP, Immediate(2 * kWordSize));
 }
 
 
@@ -1850,6 +2051,118 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
+                             BinarySmiOpInstr* shift_left) {
+  const bool is_truncating = shift_left->is_truncating();
+  const LocationSummary& locs = *shift_left->locs();
+  Register left = locs.in(0).reg();
+  Register result = locs.out().reg();
+  Label* deopt = shift_left->CanDeoptimize() ?
+      compiler->AddDeoptStub(shift_left->deopt_id(), kDeoptBinarySmiOp) : NULL;
+
+  __ TraceSimMsg("EmitSmiShiftLeft");
+
+  if (locs.in(1).IsConstant()) {
+    const Object& constant = locs.in(1).constant();
+    ASSERT(constant.IsSmi());
+    // Immediate shift operation takes 5 bits for the count.
+    const intptr_t kCountLimit = 0x1F;
+    const intptr_t value = Smi::Cast(constant).Value();
+    if (value == 0) {
+      // No code needed.
+    } else if ((value < 0) || (value >= kCountLimit)) {
+      // This condition may not be known earlier in some cases because
+      // of constant propagation, inlining, etc.
+      if ((value >= kCountLimit) && is_truncating) {
+        __ mov(result, ZR);
+      } else {
+        // Result is Mint or exception.
+        __ b(deopt);
+      }
+    } else {
+      if (!is_truncating) {
+        // Check for overflow (preserve left).
+        __ sll(TMP1, left, value);
+        __ sra(TMP1, TMP1, value);
+        __ bne(TMP1, left, deopt);  // Overflow.
+      }
+      // Shift for result now we know there is no overflow.
+      __ sll(result, left, value);
+    }
+    return;
+  }
+
+  // Right (locs.in(1)) is not constant.
+  Register right = locs.in(1).reg();
+  Range* right_range = shift_left->right()->definition()->range();
+  if (shift_left->left()->BindsToConstant() && !is_truncating) {
+    // TODO(srdjan): Implement code below for is_truncating().
+    // If left is constant, we know the maximal allowed size for right.
+    const Object& obj = shift_left->left()->BoundConstant();
+    if (obj.IsSmi()) {
+      const intptr_t left_int = Smi::Cast(obj).Value();
+      if (left_int == 0) {
+        __ bltz(right, deopt);
+        return;
+      }
+      const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
+      const bool right_needs_check =
+          (right_range == NULL) ||
+          !right_range->IsWithin(0, max_right - 1);
+      if (right_needs_check) {
+        __ BranchUnsignedGreaterEqual(
+            right, reinterpret_cast<int32_t>(Smi::New(max_right)), deopt);
+      }
+      __ SmiUntag(right);
+      __ sllv(result, left, right);
+    }
+    return;
+  }
+
+  const bool right_needs_check =
+      (right_range == NULL) || !right_range->IsWithin(0, (Smi::kBits - 1));
+  if (is_truncating) {
+    if (right_needs_check) {
+      const bool right_may_be_negative =
+          (right_range == NULL) ||
+          !right_range->IsWithin(0, RangeBoundary::kPlusInfinity);
+      if (right_may_be_negative) {
+        ASSERT(shift_left->CanDeoptimize());
+        __ bltz(right, deopt);
+      }
+      Label done, is_not_zero;
+
+      __ sltiu(CMPRES,
+          right, Immediate(reinterpret_cast<int32_t>(Smi::New(Smi::kBits))));
+      __ movz(result, ZR, CMPRES);  // result = right >= kBits ? 0 : result.
+      __ mov(TMP1, right);
+      __ SmiUntag(TMP1);
+      __ sllv(TMP1, left, TMP1);
+      // result = right < kBits ? left << right : result.
+      __ movn(result, TMP1, CMPRES);
+    } else {
+      __ SmiUntag(right);
+      __ sllv(result, left, right);
+    }
+  } else {
+    if (right_needs_check) {
+      ASSERT(shift_left->CanDeoptimize());
+      __ BranchUnsignedGreaterEqual(
+          right, reinterpret_cast<int32_t>(Smi::New(Smi::kBits)), deopt);
+    }
+    // Left is not a constant.
+    // Check if count too large for handling it inlined.
+    __ SmiUntag(right);
+    // Overflow test (preserve left and right);
+    __ sllv(TMP1, left, right);
+    __ srav(TMP1, TMP1, right);
+    __ bne(TMP1, left, deopt);  // Overflow.
+    // Shift for result now we know there is no overflow.
+    __ sllv(result, left, right);
+  }
+}
+
+
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (op_kind() == Token::kTRUNCDIV) {
@@ -1876,7 +2189,7 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
 void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("BinarySmiOpInstr");
   if (op_kind() == Token::kSHL) {
-    UNIMPLEMENTED();
+    EmitSmiShiftLeft(compiler, this);
     return;
   }
 
@@ -1894,6 +2207,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     int32_t imm = reinterpret_cast<int32_t>(constant.raw());
     switch (op_kind()) {
       case Token::kSUB: {
+        __ TraceSimMsg("kSUB imm");
         if (deopt == NULL) {
           __ AddImmediate(result, left, -imm);
         } else {
@@ -1973,7 +2287,27 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       }
       case Token::kSHR: {
-        UNIMPLEMENTED();
+        // sarl operation masks the count to 5 bits.
+        const intptr_t kCountLimit = 0x1F;
+        intptr_t value = Smi::Cast(constant).Value();
+
+        __ TraceSimMsg("kSHR");
+
+        if (value == 0) {
+          // TODO(vegorov): should be handled outside.
+          __ break_(0);
+          break;
+        } else if (value < 0) {
+          // TODO(vegorov): should be handled outside.
+          __ b(deopt);
+          break;
+        }
+
+        value = value + kSmiTagSize;
+        if (value >= kCountLimit) value = kCountLimit;
+
+        __ sra(result, left, value);
+        __ SmiTag(result);
         break;
       }
 
@@ -1997,6 +2331,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSUB: {
+      __ TraceSimMsg("kSUB");
       if (deopt == NULL) {
         __ subu(result, left, right);
       } else {
@@ -2006,11 +2341,14 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kMUL: {
+      __ TraceSimMsg("kMUL");
       __ SmiUntag(left);
       __ mult(left, right);
       __ mflo(result);
       if (deopt != NULL) {
-        UNIMPLEMENTED();
+        __ mfhi(TMP1);
+        __ sra(CMPRES, result, 31);
+        __ bne(TMP1, CMPRES, deopt);
       }
       break;
     }
@@ -2442,9 +2780,9 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary() const {
 
 
 void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ TraceSimMsg("PolymorphicInstanceCallInstr");
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
                                         kDeoptPolymorphicInstanceCallTestFail);
+  __ TraceSimMsg("PolymorphicInstanceCallInstr");
   if (ic_data().NumberOfChecks() == 0) {
     __ b(deopt);
     return;
@@ -2826,10 +3164,10 @@ void StrictCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   Label load_true, done;
   if (kind() == Token::kEQ_STRICT) {
-    __ beq(CMPRES, ZR, &load_true);
+    __ beq(CMPRES, TMP1, &load_true);
   } else {
     ASSERT(kind() == Token::kNE_STRICT);
-    __ bne(CMPRES, ZR, &load_true);
+    __ bne(CMPRES, TMP1, &load_true);
   }
   __ LoadObject(result, Bool::False());
   __ b(&done);

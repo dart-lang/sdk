@@ -335,6 +335,7 @@ void Assembler::LoadClass(Register result, Register object) {
 
 
 void Assembler::EnterStubFrame(bool uses_pp) {
+  SetPrologueOffset();
   if (uses_pp) {
     addiu(SP, SP, Immediate(-4 * kWordSize));
     sw(ZR, Address(SP, 3 * kWordSize));  // PC marker is 0 in stubs.
@@ -442,6 +443,8 @@ void Assembler::CallRuntime(const RuntimeEntry& entry) {
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   const intptr_t offset = CodeSize();
 
+  SetPrologueOffset();
+
   addiu(SP, SP, Immediate(-4 * kWordSize));
   sw(RA, Address(SP, 2 * kWordSize));
   sw(FP, Address(SP, 1 * kWordSize));
@@ -451,7 +454,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
   // Branch and link to the instruction after the delay slot to get the PC.
   bal(&next);
   // RA is the address of the sw instruction below. Save it in T0.
-  delay_slot()->mov(T0, RA);
+  delay_slot()->mov(TMP1, RA);
 
   // Calculate the offset of the pool pointer from the PC.
   const intptr_t object_pool_pc_dist =
@@ -464,19 +467,19 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 
   // Save PC in frame for fast identification of corresponding code.
   if (offset == 0) {
-    sw(T0, Address(SP, 3 * kWordSize));
+    sw(TMP1, Address(SP, 3 * kWordSize));
   } else {
     // Adjust saved PC for any intrinsic code that could have been generated
     // before a frame is created.
-    AddImmediate(T1, T0, -offset);
-    sw(T1, Address(SP, 3 * kWordSize));
+    addiu(TMP1, TMP1, Immediate(-offset));
+    sw(TMP1, Address(SP, 3 * kWordSize));
   }
 
   // Set FP to the saved previous FP.
   addiu(FP, SP, Immediate(kWordSize));
 
-  // Load the pool pointer.
-  lw(PP, Address(T0, -object_pool_pc_dist));
+  // Load the pool pointer. offset has already been subtracted from TMP1.
+  lw(PP, Address(TMP1, -object_pool_pc_dist + offset));
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
@@ -513,11 +516,9 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
       2 * kWordSize +  // FP and RA.
       kDartVolatileFpuRegCount * kWordSize;
 
-  TraceSimMsg("EnterCallRuntimeFrame");
+  SetPrologueOffset();
 
-  if (prologue_offset_ == -1) {
-    prologue_offset_ = CodeSize();
-  }
+  TraceSimMsg("EnterCallRuntimeFrame");
 
   // Save volatile CPU and FPU registers on the stack:
   // -------------
@@ -598,6 +599,32 @@ int32_t Assembler::AddExternalLabel(const ExternalLabel* label) {
   // independently.
   object_pool_.Add(smi, Heap::kOld);
   return object_pool_.Length() - 1;
+}
+
+
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+  "zr", "tmp", "v0", "v1", "a0", "a1", "a2", "a3",
+  "t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7",
+  "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7",
+  "t8", "t9", "k0", "k1", "gp", "sp", "fp", "ra",
+};
+
+
+const char* Assembler::RegisterName(Register reg) {
+  ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
+  return cpu_reg_names[reg];
+}
+
+
+static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
+  "d0", "d1", "d2", "d3", "d4", "d5", "d6", "d7",
+  "d8", "d9", "d10", "d11", "d12", "d13", "d14", "d15",
+};
+
+
+const char* Assembler::FpuRegisterName(FpuRegister reg) {
+  ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
+  return fpu_reg_names[reg];
 }
 
 

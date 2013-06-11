@@ -158,7 +158,7 @@ class Assembler : public ValueObject {
 
   // Misc. functionality
   int CodeSize() const { return buffer_.Size(); }
-  int prologue_offset() const { return -1; }
+  int prologue_offset() const { return prologue_offset_; }
   const ZoneGrowableArray<int>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
@@ -205,14 +205,14 @@ class Assembler : public ValueObject {
 
   const Code::Comments& GetCodeComments() const;
 
-  static const char* RegisterName(Register reg) {
-    UNIMPLEMENTED();
-    return NULL;
-  }
+  static const char* RegisterName(Register reg);
 
-  static const char* FpuRegisterName(FpuRegister reg) {
-    UNIMPLEMENTED();
-    return NULL;
+  static const char* FpuRegisterName(FpuRegister reg);
+
+  void SetPrologueOffset() {
+    if (prologue_offset_ == -1) {
+      prologue_offset_ = CodeSize();
+    }
   }
 
   // A utility to be able to assemble an instruction into the delay slot.
@@ -816,7 +816,8 @@ class Assembler : public ValueObject {
   }
 
   void AddImmediate(Register rd, Register rs, int32_t value) {
-    if (value == 0) return;
+    if ((value == 0) && (rd == rs)) return;
+    // If value is 0, we still want to move rs to rd if they aren't the same.
     if (Utils::IsInt(kImmBits, value)) {
       addiu(rd, rs, Immediate(value));
     } else {
