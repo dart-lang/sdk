@@ -1066,7 +1066,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(0 * kWordSize);
-  __ lw(T0, FieldAddress(CTX, Context::isolate_offset()));
+  __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
   __ TraceSimMsg("UpdateStoreBufferStub return");
   // Restore callee-saved registers, tear down frame.
