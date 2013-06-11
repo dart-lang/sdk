@@ -422,4 +422,21 @@ main() {
       expect(el.classes.length, 0);
     });
   });
+
+  group('getBoundingClientRect', () {
+    test('is a Rect', () {
+      var element = new svg.RectElement();
+      element.attributes['width'] = '100';
+      element.attributes['height'] = '100';
+      var root = new svg.SvgSvgElement();
+      root.append(element);
+
+      document.body.append(root);
+
+      var rect = element.getBoundingClientRect();
+      expect(rect is Rect, isTrue);
+      expect(rect.width, 100);
+      expect(rect.height, 100);
+    });
+  });
 }
