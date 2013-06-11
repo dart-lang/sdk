@@ -30,21 +30,18 @@ abstract class WorkItem {
    * Invariant: [element] must be a declaration element.
    */
   final Element element;
-  TreeElements get resolutionTree;
+  TreeElements resolutionTree;
 
   WorkItem(this.element, this.compilationContext) {
     assert(invariant(element, element.isDeclaration));
   }
 
-  bool isAnalyzed() => resolutionTree != null;
 
   void run(Compiler compiler, Enqueuer world);
 }
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
-  TreeElements resolutionTree;
-
   ResolutionWorkItem(Element element,
                      ItemCompilationContext compilationContext)
       : super(element, compilationContext);
@@ -52,25 +49,23 @@ class ResolutionWorkItem extends WorkItem {
   void run(Compiler compiler, ResolutionEnqueuer world) {
     resolutionTree = compiler.analyze(this, world);
   }
+
+  bool isAnalyzed() => resolutionTree != null;
 }
 
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
-  final TreeElements resolutionTree;
-
   bool allowSpeculativeOptimization = true;
   List<HTypeGuard> guards = const <HTypeGuard>[];
 
   CodegenWorkItem(Element element,
-                  TreeElements this.resolutionTree,
                   ItemCompilationContext compilationContext)
-      : super(element, compilationContext) {
-    assert(invariant(element, resolutionTree != null,
-        message: 'Resolution tree is null for $element in codegen work item'));
-  }
+      : super(element, compilationContext);
 
   void run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return;
+    resolutionTree =
+        compiler.enqueuer.resolution.getCachedElements(element);
     compiler.codegen(this, world);
   }
 }

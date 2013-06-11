@@ -1530,10 +1530,19 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
+    if (node.element != null) {
+      // Create an artificial type mask to make sure only
+      // [node.element] will be enqueued. We're not using the receiver
+      // type because our optimizations might end up in a state where the
+      // invoke dynamic knows more than the receiver.
+      HType receiverType = new HType.fromMask(
+          new TypeMask.nonNullExact(node.element.getEnclosingClass().rawType),
+          compiler);
+      return receiverType.refine(selector, compiler);
+    }
     // If [JSInvocationMirror._invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
-    if (node.element == null && // Invocation is not exact.
-        backend.compiler.enabledInvokeOn) {
+    if (backend.compiler.enabledInvokeOn) {
       return selector.asUntyped;
     }
     HType receiverType = node.getDartReceiver(compiler).instructionType;

@@ -110,42 +110,22 @@ abstract class Enqueuer {
    *
    * Invariant: [element] must be a declaration element.
    */
-  void addToWorkList(Element element, [TreeElements elements]) {
+  void addToWorkList(Element element) {
     assert(invariant(element, element.isDeclaration));
     if (element.isForeign(compiler)) return;
 
     if (element.isForwardingConstructor) {
-      addToWorkList(element.targetConstructor, elements);
+      addToWorkList(element.targetConstructor);
       return;
     }
 
-    if (!addElementToWorkList(element, elements)) return;
-
-    // Enable runtime type support if we discover a getter called runtimeType.
-    // We have to enable runtime type before hitting the codegen, so
-    // that constructors know whether they need to generate code for
-    // runtime type.
-    if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
-      compiler.enabledRuntimeType = true;
-      // TODO(ahe): Record precise dependency here.
-      compiler.backend.registerRuntimeType(compiler.globalDependencies);
-    } else if (element == compiler.functionApplyMethod) {
-      compiler.enabledFunctionApply = true;
-    } else if (element == compiler.invokeOnMethod) {
-      compiler.enabledInvokeOn = true;
-    }
-
-    nativeEnqueuer.registerElement(element);
+    internalAddToWorkList(element);
   }
 
   /**
    * Adds [element] to the work list if it has not already been processed.
-   *
-   * Returns [:true:] if the [element] should be processed.
    */
-  // TODO(johnniwinther): Change to 'Returns true if the element was added to
-  // the work list'?
-  bool addElementToWorkList(Element element, [TreeElements elements]);
+  void internalAddToWorkList(Element element);
 
   void registerInstantiatedType(InterfaceType type, TreeElements elements) {
     ClassElement cls = type.element;
@@ -611,6 +591,9 @@ class ResolutionEnqueuer extends Enqueuer {
     if (element.enclosingElement.isClosure()) {
       closureMapping.ClosureClassElement cls = element.enclosingElement;
       element = cls.methodElement;
+    } else if (element.isGenerativeConstructorBody()) {
+      ConstructorBodyElement body = element;
+      element = body.constructor;
     }
     Element owner = element.getOutermostEnclosingMemberOrTopLevel();
     if (owner == null) {
@@ -619,35 +602,15 @@ class ResolutionEnqueuer extends Enqueuer {
     return resolvedElements[owner.declaration];
   }
 
-  /**
-   * Sets the resolved elements of [element] to [elements], or if [elements] is
-   * [:null:], to the elements found through [getCachedElements].
-   *
-   * Returns the resolved elements.
-   */
-  TreeElements ensureCachedElements(Element element, TreeElements elements) {
-    if (elements == null) {
-      elements = getCachedElements(element);
-    }
-    resolvedElements[element] = elements;
-    return elements;
-  }
-
-  bool addElementToWorkList(Element element, [TreeElements elements]) {
+  void internalAddToWorkList(Element element) {
+    if (getCachedElements(element) != null) return;
     if (queueIsClosed) {
-      if (getCachedElements(element) != null) return false;
       throw new SpannableAssertionFailure(element,
                                           "Resolution work list is closed.");
     }
-    if (elements == null) {
-      elements = getCachedElements(element);
-    }
     compiler.world.registerUsedElement(element);
 
-    if (elements == null) {
-      queue.add(
-          new ResolutionWorkItem(element, itemCompilationContextCreator()));
-    }
+    queue.add(new ResolutionWorkItem(element, itemCompilationContextCreator()));
 
     // Enable isolate support if we start using something from the
     // isolate library, or timers for the async library.
@@ -666,7 +629,21 @@ class ResolutionEnqueuer extends Enqueuer {
       }
     }
 
-    return true;
+    if (element.isGetter() && element.name == Compiler.RUNTIME_TYPE) {
+      // Enable runtime type support if we discover a getter called runtimeType.
+      // We have to enable runtime type before hitting the codegen, so
+      // that constructors know whether they need to generate code for
+      // runtime type.
+      compiler.enabledRuntimeType = true;
+      // TODO(ahe): Record precise dependency here.
+      compiler.backend.registerRuntimeType(compiler.globalDependencies);
+    } else if (element == compiler.functionApplyMethod) {
+      compiler.enabledFunctionApply = true;
+    } else if (element == compiler.invokeOnMethod) {
+      compiler.enabledInvokeOn = true;
+    }
+
+    nativeEnqueuer.registerElement(element);
   }
 
   void enableIsolateSupport(LibraryElement element) {
@@ -745,23 +722,18 @@ class CodegenEnqueuer extends Enqueuer {
   bool isProcessed(Element member) =>
       member.isAbstract(compiler) || generatedCode.containsKey(member);
 
-  bool addElementToWorkList(Element element, [TreeElements elements]) {
+  void internalAddToWorkList(Element element) {
     // Codegen inlines field initializers, so it does not need to add
     // individual fields in the work list.
-    if (element.isField() && element.isInstanceMember()) return true;
+    if (element.isField() && element.isInstanceMember()) return;
 
     if (queueIsClosed) {
       throw new SpannableAssertionFailure(element,
                                           "Codegen work list is closed.");
     }
-    elements =
-        compiler.enqueuer.resolution.ensureCachedElements(element, elements);
-
     CodegenWorkItem workItem = new CodegenWorkItem(
-        element, elements, itemCompilationContextCreator());
+        element, itemCompilationContextCreator());
     queue.add(workItem);
-
-    return true;
   }
 
   void forEach(f(WorkItem work)) {

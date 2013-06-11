@@ -1070,11 +1070,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     });
     if (bodyElement == null) {
       bodyElement = new ConstructorBodyElementX(constructor);
-      // [:resolveMethodElement:] require the passed element to be a
-      // declaration.
-      TreeElements treeElements =
-          compiler.enqueuer.resolution.getCachedElements(
-              constructor.declaration);
       classElement.addBackendMember(bodyElement);
 
       if (constructor.isPatch) {
@@ -1083,11 +1078,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         bodyElement.origin.patch = bodyElement;
         classElement.origin.addBackendMember(bodyElement.origin);
       }
-      // Set the [TreeElements] of the generative constructor body to
-      // be the same as the generative constructor.
-      compiler.enqueuer.resolution.ensureCachedElements(
-          bodyElement.declaration,
-          treeElements);
     }
     assert(bodyElement.isGenerativeConstructorBody());
     return bodyElement;
@@ -2426,7 +2416,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
     // TODO(ahe): This should be registered in codegen, not here.
-    compiler.enqueuer.codegen.addToWorkList(callElement, elements);
+    compiler.enqueuer.codegen.addToWorkList(callElement);
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.registerInstantiatedClass(
         closureClassElement, work.resolutionTree);
