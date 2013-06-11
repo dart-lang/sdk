@@ -65,7 +65,8 @@ _callPortSync(int id, message) {
   return JS('var', r'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
-spawnDomFunction(Function f) => IsolateNatives.spawnDomFunction(f);
+Future<SendPort> spawnDomFunction(Function f) =>
+  new Future.value(IsolateNatives.spawnDomFunction(f));
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
