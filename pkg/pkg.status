@@ -34,56 +34,17 @@ unittest/test/unittest_test: Pass, Fail # http://dartbug.com/10109
 [$compiler == dart2dart]
 *: Skip
 
-# Don't compile tests that use dart:io to JS
 [ $compiler == dart2js || $compiler == dart2dart ]
-http/test/*: Skip
-oauth2/test/*: Skip
-pathos/test/*: Skip
-
-# Issue 8440 forces us to use pathos in the scheduled_test tests, which would
-# otherwise be dart2js-compatible.
-scheduled_test/test/*: Skip
-
-# We use pathos in the stack_trace tests. We can run them on dart2js when issue
-# 6943 is fixed.
-stack_trace/test/*: Skip
-
 source_maps/test/vlq_test: Fail # A VLQ test checks for large numbers that
                                 # overflow in JS (numbers slightly larger than
                                 # 32 bits where we do bitwise operations).
-
-# Skip tests that use local file access if we're running in any browser
-[ $runtime == opera || $runtime == ff || $runtime == ie9 || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == safari || $runtime == drt  || $runtime == jsshell]
-http/test/*: Skip
-oauth2/test/*: Skip
-pathos/test/*: Skip
-intl/test/date_time_format_file_even_test: Skip
-intl/test/date_time_format_file_odd_test: Skip
-intl/test/find_default_locale_standalone_test: Skip
-intl/test/message_extraction/message_extraction_test: Skip
-analyzer_experimental/test/options_test: Skip # Imports dart:io.
-analyzer_experimental/test/generated/ast_test: Skip # Imports dart:io.
-analyzer_experimental/test/generated/element_test: Skip # Imports dart:io.
-analyzer_experimental/test/generated/parser_test: Skip # Imports dart:io.
-analyzer_experimental/test/generated/resolver_test: Skip # Imports dart:io.
-analyzer_experimental/test/generated/scanner_test: Skip # Imports dart:io.
-analyzer_experimental/test/error_test: Skip # Imports dart:io.
-analyzer_experimental/test/services/formatter_test: Skip #Imports dart:io
-
-# Issue 8440 forces us to use pathos in the scheduled_test tests, which would
-# otherwise be dart2js-compatible.
-scheduled_test/test/*: Skip
-
-# We use pathos in the stack_trace tests. We can run them on dart2js when issue
-# 6943 is fixed.
-stack_trace/test/*: Skip
 
 [ $runtime == opera && $compiler == dart2js ]
 intl/test/find_default_locale_browser_test: Fail
 intl/test/date_time_format_http_request_test: Skip # Timeout.
 
 [ $runtime == ie9 ]
-intl/test/date_time_format_http_request_test: Skip # Issue 8983
+intl/test/date_time_format_http_request_test: Fail # Issue 8983
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
@@ -98,17 +59,10 @@ intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
 [ $compiler == dart2js ]
-# Skip intl_message tests that use mirrors on dart2js until it's been
-# implemented there.
-serialization/test/serialization_test: Skip # Issue 6490
-serialization/test/no_library_test: Skip # Issue 6490
-analyzer_experimental/test/generated/ast_test: Skip
-analyzer_experimental/test/generated/element_test: Skip
-analyzer_experimental/test/generated/parser_test: Skip
-analyzer_experimental/test/generated/resolver_test: Skip
-analyzer_experimental/test/generated/scanner_test: Skip
-analyzer_experimental/test/error_test: Skip # Imports dart:io.
-analyzer_experimental/test/services/formatter_test.dart: Skip #Imports dart:io
+serialization/test/serialization_test: Fail # Issue 6490
+serialization/test/no_library_test: Fail # Issue 6490
+analyzer_experimental/test/generated/ast_test: Fail
+unittest/test/instance_test: Fail # http://dartbug.com/11191
 
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
@@ -121,9 +75,6 @@ unittest/test/mock_stepwise_negative_test: fail
 [ $compiler == dart2analyzer ]
 unittest/test/mock_regexp_negative_test: fail
 unittest/test/mock_stepwise_negative_test: fail
-
-[ $compiler == dart2js ]
-unittest/test/instance_test: Skip
 
 [ $compiler == dart2js && $csp ]
 unittest/test/unittest_test: Pass, Crash # Issue 10935
@@ -138,7 +89,7 @@ unittest/test/mock_regexp_negative_test: Fail
 # The unminified unittest tests test that the real names of Dart types are
 # printed. Minified versions of these tests exist that test the behavior when
 # minified.
-unittest/test/*_unminified_test: Skip
+unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
 [ $compiler == dart2js && $unchecked && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
 crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail?id=2692
@@ -146,6 +97,58 @@ crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail
 [ $compiler == dart2js && $browser ]
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
+
+analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/generated/resolver_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/options_test: Fail, OK # Uses dart:io.
+analyzer_experimental/test/services/formatter_test: Fail, OK # Uses dart:io.
+http/test/client_test: Fail, OK # Uses dart:io.
+http/test/http_test: Fail, OK # Uses dart:io.
+http/test/mock_client_test: Fail, OK # Uses dart:io.
+http/test/multipart_test: Fail, OK # Uses dart:io.
+http/test/request_test: Fail, OK # Uses dart:io.
+http/test/response_test: Fail, OK # Uses dart:io.
+http/test/streamed_request_test: Fail, OK # Uses dart:io.
+intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
+intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
+intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
+intl/test/message_extraction/message_extraction_test: Fail, OK # Uses dart:io.
+oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
+oauth2/test/client_test: Fail, OK # Uses dart:io.
+oauth2/test/credentials_test: Fail, OK # Uses dart:io.
+oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
+pathos/test/pathos_posix_test: Fail, OK # Uses dart:io.
+pathos/test/pathos_test: Fail, OK # Uses dart:io.
+pathos/test/pathos_url_test: Fail, OK # Uses dart:io.
+pathos/test/pathos_windows_test: Fail, OK # Uses dart:io.
+
+scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/file_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/nothing_test: Fail # http://dartbug.com/8440
+scheduled_test/test/descriptor/pattern_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_future_matchers_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_process_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/abort_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/current_schedule_current_task_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/current_schedule_errors_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/current_schedule_state_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/nested_task_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/on_complete_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/on_exception_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/out_of_band_task_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/set_up_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/signal_error_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/simple_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/task_return_value_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/timeout_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/wrap_async_test: Fail # http://dartbug.com/8440
+scheduled_test/test/scheduled_test/wrap_future_test: Fail # http://dartbug.com/8440
+
+stack_trace/test/frame_test: Fail # http://dartbug.com/6943
+stack_trace/test/trace_test: Fail # http://dartbug.com/6943
+
 
 [ $runtime == safari]
  # Bug in JSC: the test only passes when being debugged.
@@ -155,7 +158,7 @@ crypto/test/hmac_md5_test: Fail, Pass
 # The minified unittest tests test that the minified names of Dart types are
 # printed. Unminified versions of these tests exist that test the behavior when
 # not minified.
-unittest/test/*_minified_test: Skip
+unittest/test/*_minified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
 [ $compiler == none && $runtime == drt ]
 dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
