@@ -4932,6 +4932,10 @@ class Array : public Instance {
     StorePointer(ObjectAddr(index), value.raw());
   }
 
+  bool IsImmutable() const {
+    return raw()->GetClassId() == kImmutableArrayCid;
+  }
+
   virtual RawAbstractTypeArguments* GetTypeArguments() const {
     return raw_ptr()->type_arguments_;
   }
@@ -5005,19 +5009,38 @@ class Array : public Instance {
     raw_ptr()->length_ = Smi::New(value);
   }
 
-  HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Array, Instance);
   friend class Class;
+  friend class ImmutableArray;
   friend class Object;
   friend class String;
 };
 
 
-class ImmutableArray : public Array {
+class ImmutableArray : public AllStatic {
  public:
   static RawImmutableArray* New(intptr_t len, Heap::Space space = Heap::kNew);
 
+  static RawImmutableArray* ReadFrom(SnapshotReader* reader,
+                                     intptr_t object_id,
+                                     intptr_t tags,
+                                     Snapshot::Kind kind);
+
+  static const ClassId kClassId = kImmutableArrayCid;
+
+  static intptr_t InstanceSize() {
+    return Array::InstanceSize();
+  }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    return Array::InstanceSize(len);
+  }
+
  private:
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(ImmutableArray, Array);
+  static RawImmutableArray* raw(const Array& array) {
+    return reinterpret_cast<RawImmutableArray*>(array.raw());
+  }
+
   friend class Class;
 };
 

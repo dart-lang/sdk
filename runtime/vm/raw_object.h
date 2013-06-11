@@ -13,7 +13,7 @@
 namespace dart {
 
 // Macrobatics to define the Object hierarchy of VM implementation classes.
-#define CLASS_LIST_NO_OBJECT_OR_STRING(V)                                      \
+#define CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                           \
   V(Class)                                                                     \
   V(UnresolvedClass)                                                           \
   V(AbstractTypeArguments)                                                     \
@@ -60,8 +60,6 @@ namespace dart {
         V(Bigint)                                                              \
       V(Double)                                                                \
     V(Bool)                                                                    \
-    V(Array)                                                                   \
-      V(ImmutableArray)                                                        \
     V(GrowableObjectArray)                                                     \
     V(TypedData)                                                               \
     V(ExternalTypedData)                                                       \
@@ -72,6 +70,9 @@ namespace dart {
     V(Float32x4)                                                               \
     V(Uint32x4)                                                                \
 
+#define CLASS_LIST_ARRAYS(V)                                                   \
+  V(Array)                                                                     \
+    V(ImmutableArray)                                                          \
 
 #define CLASS_LIST_STRINGS(V)                                                  \
   V(String)                                                                    \
@@ -95,11 +96,13 @@ namespace dart {
   V(Float32x4Array)                                                            \
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
-  CLASS_LIST_NO_OBJECT_OR_STRING(V)                                            \
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
+  V(Array)                                                                     \
   V(String)
 
 #define CLASS_LIST_NO_OBJECT(V)                                                \
-  CLASS_LIST_NO_OBJECT_OR_STRING(V)                                            \
+  CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
+  CLASS_LIST_ARRAYS(V)                                                         \
   CLASS_LIST_STRINGS(V)
 
 #define CLASS_LIST(V)                                                          \
@@ -1602,9 +1605,9 @@ inline bool RawObject::IsExternalStringClassId(intptr_t index) {
 inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
   ASSERT(kImmutableArrayCid == kArrayCid + 1 &&
-         kGrowableObjectArrayCid == kArrayCid + 2 &&
-         kTypedDataCid == kArrayCid + 3);
-  return ((index >= kArrayCid && index < kTypedDataCid) ||
+         kTypedDataCid == kGrowableObjectArrayCid + 1);
+  return ((index >= kArrayCid && index < kImmutableArrayCid) ||
+          (index >= kGrowableObjectArrayCid && index < kTypedDataCid) ||
           IsTypedDataClassId(index) ||
           IsTypedDataViewClassId(index) ||
           IsExternalTypedDataClassId(index));

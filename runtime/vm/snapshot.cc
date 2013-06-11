@@ -33,6 +33,8 @@ static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
           (class_id >= kInstanceCid && class_id <= kWeakPropertyCid) ||
+          class_id == kArrayCid ||
+          class_id == kImmutableArrayCid ||
           RawObject::IsStringClassId(class_id) ||
           RawObject::IsTypedDataClassId(class_id) ||
           RawObject::IsExternalTypedDataClassId(class_id));
@@ -296,7 +298,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
   if (class_id == kImmutableArrayCid) {
     // Read the length and allocate an object based on the len.
     intptr_t len = ReadSmiValue();
-    ImmutableArray& array = ImmutableArray::ZoneHandle(
+    Array& array = Array::ZoneHandle(
         isolate(),
         (kind_ == Snapshot::kFull) ?
         NewImmutableArray(len) : ImmutableArray::New(len, HEAP_SPACE(kind_)));

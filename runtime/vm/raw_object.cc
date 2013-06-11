@@ -211,7 +211,7 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
   if (class_id < kNumPredefinedCids) {
     switch (class_id) {
 #define RAW_VISITPOINTERS(clazz)                                               \
-      case clazz::kClassId: {                                                  \
+      case k##clazz##Cid: {                                                    \
         Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(this);             \
         size = Raw##clazz::Visit##clazz##Pointers(raw_obj, visitor);           \
         break;                                                                 \
