@@ -109,9 +109,6 @@ async/run_async6_test: Fail # Issue 10910
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
 
-[ $arch == arm ]
-*: Skip
-
 [ $arch == simarm ]
 *: Skip
 
