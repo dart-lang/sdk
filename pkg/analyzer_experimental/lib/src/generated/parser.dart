@@ -495,7 +495,7 @@ class Parser {
    * Create a synthetic token representing the given keyword.
    * @return the synthetic token that was created
    */
-  Token createSyntheticToken(Keyword keyword) => new KeywordToken_11(keyword, _currentToken.offset);
+  Token createSyntheticToken(Keyword keyword) => new KeywordToken_10(keyword, _currentToken.offset);
 
   /**
    * Create a synthetic token with the given type.
@@ -1672,7 +1672,7 @@ class Parser {
     }
     try {
       List<bool> errorFound = [false];
-      AnalysisErrorListener listener = new AnalysisErrorListener_12(errorFound);
+      AnalysisErrorListener listener = new AnalysisErrorListener_11(errorFound);
       StringScanner scanner = new StringScanner(null, referenceSource, listener);
       scanner.setSourceStart(1, 1, sourceOffset);
       Token firstToken = scanner.tokenize();
@@ -5187,13 +5187,13 @@ class Parser {
     }
   }
 }
-class KeywordToken_11 extends KeywordToken {
-  KeywordToken_11(Keyword arg0, int arg1) : super(arg0, arg1);
+class KeywordToken_10 extends KeywordToken {
+  KeywordToken_10(Keyword arg0, int arg1) : super(arg0, arg1);
   int get length => 0;
 }
-class AnalysisErrorListener_12 implements AnalysisErrorListener {
+class AnalysisErrorListener_11 implements AnalysisErrorListener {
   List<bool> errorFound;
-  AnalysisErrorListener_12(this.errorFound);
+  AnalysisErrorListener_11(this.errorFound);
   void onError(AnalysisError error) {
     errorFound[0] = true;
   }

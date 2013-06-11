@@ -293,10 +293,6 @@ class URISyntaxException implements Exception {
   String toString() => "URISyntaxException";
 }
 
-class IOException implements Exception {
-  String toString() => "IOException";
-}
-
 class MissingFormatArgumentException implements Exception {
   final String s;
 

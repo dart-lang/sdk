@@ -12,11 +12,10 @@ import 'utilities_dart.dart';
 import 'ast.dart';
 import 'parser.dart' show Parser, ParserErrorCode;
 import 'sdk.dart' show DartSdk, SdkLibrary;
-import 'element.dart' hide HideCombinator, ShowCombinator;
+import 'element.dart';
 import 'html.dart' as ht;
 import 'engine.dart';
 import 'constant.dart';
-import 'element.dart' as __imp_combi show HideCombinator, ShowCombinator;
 /**
  * Instances of the class {@code CompilationUnitBuilder} build an element model for a single
  * compilation unit.
@@ -4488,11 +4487,11 @@ class LibraryResolver {
     List<NamespaceCombinator> combinators = new List<NamespaceCombinator>();
     for (Combinator combinator in directive.combinators) {
       if (combinator is HideCombinator) {
-        HideCombinatorImpl hide = new HideCombinatorImpl();
+        HideElementCombinatorImpl hide = new HideElementCombinatorImpl();
         hide.hiddenNames = getIdentifiers(((combinator as HideCombinator)).hiddenNames);
         combinators.add(hide);
       } else {
-        ShowCombinatorImpl show = new ShowCombinatorImpl();
+        ShowElementCombinatorImpl show = new ShowElementCombinatorImpl();
         show.shownNames = getIdentifiers(((combinator as ShowCombinator)).shownNames);
         combinators.add(show);
       }
@@ -7304,7 +7303,7 @@ class StaticTypeAnalyzer extends SimpleASTVisitor<Object> {
     }
     if (identical(operator, sc.TokenType.MINUS) || identical(operator, sc.TokenType.PERCENT) || identical(operator, sc.TokenType.PLUS) || identical(operator, sc.TokenType.STAR)) {
       Type2 doubleType = _typeProvider.doubleType;
-      if (identical(getStaticType(node.leftOperand), doubleType) || identical(getStaticType(node.rightOperand), doubleType)) {
+      if (identical(getStaticType(node.leftOperand), _typeProvider.intType) && identical(getStaticType(node.rightOperand), doubleType)) {
         return doubleType;
       }
     }
@@ -9112,10 +9111,10 @@ class NamespaceBuilder {
    */
   Map<String, Element> apply(Map<String, Element> definedNames, List<NamespaceCombinator> combinators) {
     for (NamespaceCombinator combinator in combinators) {
-      if (combinator is __imp_combi.HideCombinator) {
-        hide(definedNames, ((combinator as __imp_combi.HideCombinator)).hiddenNames);
-      } else if (combinator is __imp_combi.ShowCombinator) {
-        definedNames = show(definedNames, ((combinator as __imp_combi.ShowCombinator)).shownNames);
+      if (combinator is HideElementCombinator) {
+        hide(definedNames, ((combinator as HideElementCombinator)).hiddenNames);
+      } else if (combinator is ShowElementCombinator) {
+        definedNames = show(definedNames, ((combinator as ShowElementCombinator)).shownNames);
       } else {
         AnalysisEngine.instance.logger.logError("Unknown type of combinator: ${combinator.runtimeType.toString()}");
       }
@@ -9583,7 +9582,7 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
    * @param expression the expression to validate
    */
   void validateInitializerExpression(List<ParameterElement> parameterElements, Expression expression) {
-    EvaluationResultImpl result = expression.accept(new ConstantVisitor_10(this, parameterElements));
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor_9(this, parameterElements));
     reportErrors(result, CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
   }
 
@@ -9626,10 +9625,10 @@ class ConstantVerifier extends RecursiveASTVisitor<Object> {
     }
   }
 }
-class ConstantVisitor_10 extends ConstantVisitor {
+class ConstantVisitor_9 extends ConstantVisitor {
   final ConstantVerifier ConstantVerifier_this;
   List<ParameterElement> parameterElements;
-  ConstantVisitor_10(this.ConstantVerifier_this, this.parameterElements) : super();
+  ConstantVisitor_9(this.ConstantVerifier_this, this.parameterElements) : super();
   EvaluationResultImpl visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.element;
     for (ParameterElement parameterElement in parameterElements) {

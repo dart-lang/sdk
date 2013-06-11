@@ -31,6 +31,11 @@ class ElementLocationImplTest extends EngineTestCase {
     ElementLocationImpl second = new ElementLocationImpl.con2(encoding);
     JUnitTestCase.assertTrue(first == second);
   }
+  void test_equals_equalWithDifferentUriKind() {
+    ElementLocationImpl first = new ElementLocationImpl.con2("fa;fb;c");
+    ElementLocationImpl second = new ElementLocationImpl.con2("pa;pb;c");
+    JUnitTestCase.assertTrue(first == second);
+  }
   void test_equals_notEqual_differentLengths() {
     ElementLocationImpl first = new ElementLocationImpl.con2("a;b;c");
     ElementLocationImpl second = new ElementLocationImpl.con2("a;b;c;d");
@@ -68,6 +73,10 @@ class ElementLocationImplTest extends EngineTestCase {
       _ut.test('test_equals_equal', () {
         final __test = new ElementLocationImplTest();
         runJUnitTest(__test, __test.test_equals_equal);
+      });
+      _ut.test('test_equals_equalWithDifferentUriKind', () {
+        final __test = new ElementLocationImplTest();
+        runJUnitTest(__test, __test.test_equals_equalWithDifferentUriKind);
       });
       _ut.test('test_equals_notEqual_differentLengths', () {
         final __test = new ElementLocationImplTest();
@@ -2217,7 +2226,7 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
   void test_isSubtypeOf_baseCase_classFunction() {
     ClassElementImpl functionElement = ElementFactory.classElement2("Function", []);
-    InterfaceTypeImpl functionType = new InterfaceTypeImpl_19(functionElement);
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl_18(functionElement);
     FunctionType f = ElementFactory.functionElement("f").type;
     JUnitTestCase.assertTrue(f.isSubtypeOf(functionType));
   }
@@ -2399,6 +2408,30 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionType t = ElementFactory.functionElement2("t", ElementFactory.classElement2("A", [])).type;
     FunctionType s = ElementFactory.functionElement2("s", ElementFactory.classElement2("B", [])).type;
     JUnitTestCase.assertFalse(t.isSubtypeOf(s));
+  }
+  void test_isSubtypeOf_typeParameters_matchesBounds() {
+    TestTypeProvider provider = new TestTypeProvider();
+    InterfaceType boolType = provider.boolType;
+    InterfaceType stringType = provider.stringType;
+    TypeVariableElementImpl variableB = new TypeVariableElementImpl(ASTFactory.identifier3("B"));
+    variableB.bound = boolType;
+    TypeVariableTypeImpl typeB = new TypeVariableTypeImpl(variableB);
+    TypeVariableElementImpl variableS = new TypeVariableElementImpl(ASTFactory.identifier3("S"));
+    variableS.bound = stringType;
+    TypeVariableTypeImpl typeS = new TypeVariableTypeImpl(variableS);
+    FunctionElementImpl functionAliasElement = new FunctionElementImpl.con1(ASTFactory.identifier3("func"));
+    FunctionTypeImpl functionAliasType = new FunctionTypeImpl.con1(functionAliasElement);
+    functionAliasElement.type = functionAliasType;
+    functionAliasType.returnType = stringType;
+    functionAliasType.normalParameterTypes = <Type2> [typeB];
+    functionAliasType.optionalParameterTypes = <Type2> [typeS];
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
+    functionElement.type = functionType;
+    functionType.returnType = provider.dynamicType;
+    functionType.normalParameterTypes = <Type2> [boolType];
+    functionType.optionalParameterTypes = <Type2> [stringType];
+    JUnitTestCase.assertTrue(functionType.isAssignableTo(functionAliasType));
   }
   void test_isSubtypeOf_wrongFunctionType_normal_named() {
     ClassElement a = ElementFactory.classElement2("A", []);
@@ -2640,6 +2673,10 @@ class FunctionTypeImplTest extends EngineTestCase {
         final __test = new FunctionTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_returnType_tNotAssignableToS);
       });
+      _ut.test('test_isSubtypeOf_typeParameters_matchesBounds', () {
+        final __test = new FunctionTypeImplTest();
+        runJUnitTest(__test, __test.test_isSubtypeOf_typeParameters_matchesBounds);
+      });
       _ut.test('test_isSubtypeOf_wrongFunctionType_normal_named', () {
         final __test = new FunctionTypeImplTest();
         runJUnitTest(__test, __test.test_isSubtypeOf_wrongFunctionType_normal_named);
@@ -2675,8 +2712,8 @@ class FunctionTypeImplTest extends EngineTestCase {
     });
   }
 }
-class InterfaceTypeImpl_19 extends InterfaceTypeImpl {
-  InterfaceTypeImpl_19(ClassElement arg0) : super.con1(arg0);
+class InterfaceTypeImpl_18 extends InterfaceTypeImpl {
+  InterfaceTypeImpl_18(ClassElement arg0) : super.con1(arg0);
   bool isDartCoreFunction() => true;
 }
 main() {

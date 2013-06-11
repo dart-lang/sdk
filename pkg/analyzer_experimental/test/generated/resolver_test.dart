@@ -9543,6 +9543,16 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     JUnitTestCase.assertSame(_typeProvider.doubleType, analyze(node));
     _listener.assertNoErrors();
   }
+  void test_visitBinaryExpression_star_notSpecial() {
+    ClassElementImpl classA = ElementFactory.classElement2("A", []);
+    InterfaceType typeA = classA.type;
+    MethodElement operator = ElementFactory.methodElement("*", typeA, [_typeProvider.doubleType]);
+    classA.methods = <MethodElement> [operator];
+    BinaryExpression node = ASTFactory.binaryExpression(ASTFactory.asExpression(ASTFactory.identifier3("a"), ASTFactory.typeName(classA, [])), TokenType.PLUS, resolvedDouble(2.0));
+    setStaticElement(node, operator);
+    JUnitTestCase.assertSame(typeA, analyze(node));
+    _listener.assertNoErrors();
+  }
   void test_visitBinaryExpression_starID() {
     BinaryExpression node = ASTFactory.binaryExpression(resolvedInteger(1), TokenType.PLUS, resolvedDouble(2.0));
     setStaticElement(node, getMethod(_typeProvider.numType, "*"));
@@ -10248,6 +10258,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         final __test = new StaticTypeAnalyzerTest();
         runJUnitTest(__test, __test.test_visitBinaryExpression_starID);
       });
+      _ut.test('test_visitBinaryExpression_star_notSpecial', () {
+        final __test = new StaticTypeAnalyzerTest();
+        runJUnitTest(__test, __test.test_visitBinaryExpression_star_notSpecial);
+      });
       _ut.test('test_visitBooleanLiteral_false', () {
         final __test = new StaticTypeAnalyzerTest();
         runJUnitTest(__test, __test.test_visitBooleanLiteral_false);
@@ -10463,7 +10477,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
     LibraryElement definingLibrary2 = createTestLibrary();
     GatheringErrorListener errorListener2 = new GatheringErrorListener();
-    Scope rootScope = new Scope_17(definingLibrary2, errorListener2);
+    Scope rootScope = new Scope_16(definingLibrary2, errorListener2);
     EnclosedScope scope = new EnclosedScope(rootScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
     VariableElement element2 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -10474,7 +10488,7 @@ class EnclosedScopeTest extends ResolverTestCase {
   void test_define_normal() {
     LibraryElement definingLibrary3 = createTestLibrary();
     GatheringErrorListener errorListener3 = new GatheringErrorListener();
-    Scope rootScope = new Scope_18(definingLibrary3, errorListener3);
+    Scope rootScope = new Scope_17(definingLibrary3, errorListener3);
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
     VariableElement element1 = ElementFactory.localVariableElement(ASTFactory.identifier3("v1"));
@@ -10496,18 +10510,18 @@ class EnclosedScopeTest extends ResolverTestCase {
     });
   }
 }
-class Scope_17 extends Scope {
+class Scope_16 extends Scope {
   LibraryElement definingLibrary2;
   GatheringErrorListener errorListener2;
-  Scope_17(this.definingLibrary2, this.errorListener2) : super();
+  Scope_16(this.definingLibrary2, this.errorListener2) : super();
   LibraryElement get definingLibrary => definingLibrary2;
   AnalysisErrorListener get errorListener => errorListener2;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;
 }
-class Scope_18 extends Scope {
+class Scope_17 extends Scope {
   LibraryElement definingLibrary3;
   GatheringErrorListener errorListener3;
-  Scope_18(this.definingLibrary3, this.errorListener3) : super();
+  Scope_17(this.definingLibrary3, this.errorListener3) : super();
   LibraryElement get definingLibrary => definingLibrary3;
   AnalysisErrorListener get errorListener => errorListener3;
   Element lookup3(Identifier identifier, String name, LibraryElement referencingLibrary) => null;

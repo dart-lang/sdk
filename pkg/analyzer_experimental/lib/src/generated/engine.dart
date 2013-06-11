@@ -1923,15 +1923,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return null;
     }
-    List<CharSequence> contentHolder = new List<CharSequence>(1);
-    try {
-      source.getContents(new Source_ContentReceiver_6(contentHolder));
-    } catch (exception) {
-      throw new AnalysisException.con2("Could not get contents of ${source.fullName}", exception);
-    }
-    if (contentHolder[0] == null) {
-      return null;
-    }
     CompilationUnit unit = parseCompilationUnit(source);
     if (unit == null) {
       return null;
@@ -1944,8 +1935,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         if (comment == null) {
           return null;
         }
-        int offset = comment.offset;
-        return contentHolder[0].subSequence(offset, offset + comment.length).toString();
+        JavaStringBuilder builder = new JavaStringBuilder();
+        for (Token token in comment.tokens) {
+          builder.append(token.lexeme);
+        }
+        return builder.toString();
       }
       nameNode = nameNode.parent;
     }
@@ -2738,7 +2732,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   List<Source> getLibrarySources2(Source htmlSource, HtmlUnit htmlUnit) {
     List<Source> libraries = new List<Source>();
-    htmlUnit.accept(new RecursiveXmlVisitor_7(this, htmlSource, libraries));
+    htmlUnit.accept(new RecursiveXmlVisitor_6(this, htmlSource, libraries));
     if (libraries.isEmpty) {
       return Source.EMPTY_ARRAY;
     }
@@ -2893,7 +2887,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
   AnalysisContextImpl_ScanResult internalScan(Source source, AnalysisErrorListener errorListener) {
     AnalysisContextImpl_ScanResult result = new AnalysisContextImpl_ScanResult();
-    Source_ContentReceiver receiver = new Source_ContentReceiver_8(source, errorListener, result);
+    Source_ContentReceiver receiver = new Source_ContentReceiver_7(source, errorListener, result);
     try {
       source.getContents(receiver);
     } catch (exception) {
@@ -3219,21 +3213,11 @@ class AnalysisContextImpl_ScanResult {
    */
   List<int> _lineStarts;
 }
-class Source_ContentReceiver_6 implements Source_ContentReceiver {
-  List<CharSequence> contentHolder;
-  Source_ContentReceiver_6(this.contentHolder);
-  void accept(CharBuffer contents, int modificationTime) {
-    contentHolder[0] = contents;
-  }
-  void accept2(String contents, int modificationTime) {
-    contentHolder[0] = new CharSequence(contents);
-  }
-}
-class RecursiveXmlVisitor_7 extends RecursiveXmlVisitor<Object> {
+class RecursiveXmlVisitor_6 extends RecursiveXmlVisitor<Object> {
   final AnalysisContextImpl AnalysisContextImpl_this;
   Source htmlSource;
   List<Source> libraries;
-  RecursiveXmlVisitor_7(this.AnalysisContextImpl_this, this.htmlSource, this.libraries) : super();
+  RecursiveXmlVisitor_6(this.AnalysisContextImpl_this, this.htmlSource, this.libraries) : super();
   Object visitXmlTagNode(XmlTagNode node) {
     if (javaStringEqualsIgnoreCase(node.tag.lexeme, AnalysisContextImpl._TAG_SCRIPT)) {
       bool isDartScript = false;
@@ -3263,11 +3247,11 @@ class RecursiveXmlVisitor_7 extends RecursiveXmlVisitor<Object> {
     return super.visitXmlTagNode(node);
   }
 }
-class Source_ContentReceiver_8 implements Source_ContentReceiver {
+class Source_ContentReceiver_7 implements Source_ContentReceiver {
   Source source;
   AnalysisErrorListener errorListener;
   AnalysisContextImpl_ScanResult result;
-  Source_ContentReceiver_8(this.source, this.errorListener, this.result);
+  Source_ContentReceiver_7(this.source, this.errorListener, this.result);
   void accept(CharBuffer contents, int modificationTime2) {
     CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
     result._modificationTime = modificationTime2;
@@ -4296,8 +4280,9 @@ class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not {@code null}, contains no {@code null}s)
    */
   List<AnalysisError> get errors {
-    Set<MapEntry<Source, List<AnalysisError>>> entrySet = getMapEntrySet(_errors);
-    if (entrySet.length == 0) {
+    Iterable<MapEntry<Source, List<AnalysisError>>> entrySet = getMapEntrySet(_errors);
+    int numEntries = entrySet.length;
+    if (numEntries == 0) {
       return AnalysisError.NO_ERRORS;
     }
     List<AnalysisError> resultList = new List<AnalysisError>();

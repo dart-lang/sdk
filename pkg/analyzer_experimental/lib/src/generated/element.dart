@@ -768,11 +768,11 @@ abstract class FunctionTypeAliasElement implements Element {
   List<TypeVariableElement> get typeVariables;
 }
 /**
- * The interface {@code HideCombinator} defines the behavior of combinators that cause some of the
- * names in a namespace to be hidden when being imported.
+ * The interface {@code HideElementCombinator} defines the behavior of combinators that cause some
+ * of the names in a namespace to be hidden when being imported.
  * @coverage dart.engine.element
  */
-abstract class HideCombinator implements NamespaceCombinator {
+abstract class HideElementCombinator implements NamespaceCombinator {
 
   /**
    * Return an array containing the names that are not to be made visible in the importing library
@@ -1164,11 +1164,11 @@ abstract class PropertyInducingElement implements VariableElement {
   bool isStatic();
 }
 /**
- * The interface {@code ShowCombinator} defines the behavior of combinators that cause some of the
- * names in a namespace to be visible (and the rest hidden) when being imported.
+ * The interface {@code ShowElementCombinator} defines the behavior of combinators that cause some
+ * of the names in a namespace to be visible (and the rest hidden) when being imported.
  * @coverage dart.engine.element
  */
-abstract class ShowCombinator implements NamespaceCombinator {
+abstract class ShowElementCombinator implements NamespaceCombinator {
 
   /**
    * Return an array containing the names that are to be made visible in the importing library if
@@ -2632,7 +2632,23 @@ class ElementLocationImpl implements ElementLocation {
       return false;
     }
     ElementLocationImpl location = object as ElementLocationImpl;
-    return JavaArrays.equals(_components, location._components);
+    List<String> otherComponents = location._components;
+    int length = _components.length;
+    if (otherComponents.length != length) {
+      return false;
+    }
+    if (length > 0 && !equalSourceComponents(_components[0], otherComponents[0])) {
+      return false;
+    }
+    if (length > 1 && !equalSourceComponents(_components[1], otherComponents[1])) {
+      return false;
+    }
+    for (int i = 2; i < length; i++) {
+      if (_components[i] != otherComponents[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -2700,6 +2716,25 @@ class ElementLocationImpl implements ElementLocation {
       }
       builder.appendChar(currentChar);
     }
+  }
+
+  /**
+   * Return {@code true} if the given components, when interpreted to be encoded sources with a
+   * leading source type indicator, are equal when the source type's are ignored.
+   * @param left the left component being compared
+   * @param right the right component being compared
+   * @return {@code true} if the given components are equal when the source type's are ignored
+   */
+  bool equalSourceComponents(String left, String right) {
+    if (left == null) {
+      return right == null;
+    } else if (right == null) {
+      return false;
+    }
+    if (left.length <= 1 || right.length <= 1) {
+      return left == right;
+    }
+    return left.substring(1) == right.substring(1);
   }
 }
 /**
@@ -3115,7 +3150,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
   _jtd_constructor_208_impl(int nameOffset) {
   }
   accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
-  String get identifier => name;
+  String get identifier => "${name}@${nameOffset}";
   ElementKind get kind => ElementKind.FUNCTION;
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
@@ -3262,10 +3297,10 @@ class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAl
   }
 }
 /**
- * Instances of the class {@code ShowCombinatorImpl} implement a {@link ShowCombinator}.
+ * Instances of the class {@code HideElementCombinatorImpl} implement a{@link HideElementCombinator}.
  * @coverage dart.engine.element
  */
-class HideCombinatorImpl implements HideCombinator {
+class HideElementCombinatorImpl implements HideElementCombinator {
 
   /**
    * The names that are not to be made visible in the importing library even if they are defined in
@@ -3829,6 +3864,7 @@ class LocalVariableElementImpl extends VariableElementImpl implements LocalVaria
     builder.append(" ");
     builder.append(displayName);
   }
+  String get identifier => "${super.identifier}@${nameOffset}";
 }
 /**
  * Instances of the class {@code MethodElementImpl} implement a {@code MethodElement}.
@@ -4391,10 +4427,10 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl implement
   }
 }
 /**
- * Instances of the class {@code ShowCombinatorImpl} implement a {@link ShowCombinator}.
+ * Instances of the class {@code ShowElementCombinatorImpl} implement a{@link ShowElementCombinator}.
  * @coverage dart.engine.element
  */
-class ShowCombinatorImpl implements ShowCombinator {
+class ShowElementCombinatorImpl implements ShowElementCombinator {
 
   /**
    * The names that are to be made visible in the importing library if they are defined in the
@@ -5239,7 +5275,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     }
     JavaIterator<MapEntry<String, Type2>> firstIterator = new JavaIterator(getMapEntrySet(firstTypes));
-    JavaIterator<MapEntry<String, Type2>> secondIterator = new JavaIterator(getMapEntrySet(firstTypes));
+    JavaIterator<MapEntry<String, Type2>> secondIterator = new JavaIterator(getMapEntrySet(secondTypes));
     while (firstIterator.hasNext) {
       MapEntry<String, Type2> firstEntry = firstIterator.next();
       MapEntry<String, Type2> secondEntry = secondIterator.next();
