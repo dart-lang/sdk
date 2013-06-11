@@ -263,10 +263,9 @@ static bool ProcessMainOptions(const char* option) {
   while (name != NULL) {
     int length = strlen(name);
     if ((option_length >= length) && (strncmp(option, name, length) == 0)) {
-      if (!main_options[i].process(option + length)) {
-        Log::PrintErr("Invalid option specification : '%s'\n", option);
+      if (main_options[i].process(option + length)) {
+        return true;
       }
-      return true;
     }
     i += 1;
     name = main_options[i].option_name;
