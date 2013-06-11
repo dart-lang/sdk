@@ -485,8 +485,7 @@ class ResolverTask extends CompilerTask {
         cls.supertypeLoadState = STATE_DONE;
         cls.allSupertypes = const Link<DartType>().prepend(
             compiler.objectClass.computeType(compiler));
-        // TODO(ahe): We should also set cls.supertype here to avoid
-        // creating a malformed class hierarchy.
+        cls.supertype = cls.allSupertypes.head;
         return;
       }
       cls.supertypeLoadState = STATE_STARTED;
@@ -3234,9 +3233,9 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     // resolve this class again.
     resolveTypeVariableBounds(node.typeParameters);
 
-    // Setup the supertype for the element.
-    assert(element.supertype == null);
-    if (node.superclass != null) {
+    // Setup the supertype for the element (if there is a cycle in the
+    // class hierarchy, it has already been set to Object).
+    if (element.supertype == null && node.superclass != null) {
       MixinApplication superMixin = node.superclass.asMixinApplication();
       if (superMixin != null) {
         DartType supertype = resolveSupertype(element, superMixin.superclass);
