@@ -10,6 +10,7 @@ import "dart:collection";
 import "dart:typed_data";
 import "dart:isolate";
 
+part '../../../sdk/lib/io/common.dart';
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/buffer_list.dart";
 part "../../../sdk/lib/io/io_sink.dart";

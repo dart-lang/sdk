@@ -216,7 +216,7 @@ class _HttpClientResponse
       for (var redirect in redirects) {
         if (redirect.location == url) {
           return new Future.error(
-              new RedirectLoopException(redirects));
+              new RedirectException("Redirect loop detected", redirects));
         }
       }
     }
@@ -573,7 +573,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
               },
               onError: (error) {
                 _socketError = true;
-                if (error is SocketIOException &&
+                if (error is SocketException &&
                     _outbound is HttpResponse) {
                   _cancel();
                   _done();
@@ -897,7 +897,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         // End with exception, too many redirects.
         future = response.drain()
             .then((_) => new Future.error(
-                new RedirectLimitExceededException(response.redirects)));
+                new RedirectException("Redirect limit exceeded",
+                                      response.redirects)));
       }
     } else if (response._shouldAuthenticateProxy) {
       future = response._authenticate(true);
@@ -1233,10 +1234,8 @@ class _HttpClientConnection {
               })
               // If we see a state error, we failed to get the 'first'
               // element.
-              // Transform the error to a HttpParserException, for
-              // consistency.
               .catchError((error) {
-                throw new HttpParserException(
+                throw new HttpException(
                     "Connection closed before data was received");
               }, test: (error) => error is StateError)
               .catchError((error) {

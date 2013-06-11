@@ -20,7 +20,7 @@ class SocketExceptionTest {
       server.close();
       try {
         server.close();
-      } on SocketIOException catch(ex) {
+      } on SocketException catch(ex) {
         exceptionCaught = true;
       } catch (ex) {
         wrongExceptionCaught = true;
@@ -31,7 +31,7 @@ class SocketExceptionTest {
       // Test invalid host.
       ServerSocket.bind("__INVALID_HOST__", 0)
         .then((server) { })
-        .catchError((e) => e is SocketIOException);
+        .catchError((e) => e is SocketException);
     });
   }
 
@@ -70,7 +70,7 @@ class SocketExceptionTest {
         client.close();
         try {
           client.close();
-        } on SocketIOException catch(ex) {
+        } on SocketException catch(ex) {
           exceptionCaught = true;
         } catch (ex) {
           wrongExceptionCaught = true;
@@ -79,7 +79,7 @@ class SocketExceptionTest {
         Expect.isFalse(wrongExceptionCaught);
         try {
           client.destroy();
-        } on SocketIOException catch(ex) {
+        } on SocketException catch(ex) {
           exceptionCaught = true;
         } catch (ex) {
           print(ex);
@@ -164,7 +164,7 @@ class SocketExceptionTest {
         client.listen(
             (data) => Expect.fail("Unexpected data"),
             onError: (error) {
-              Expect.isTrue(error is SocketIOException);
+              Expect.isTrue(error is SocketException);
               errors++;
             },
             onDone: () {
@@ -184,7 +184,7 @@ class SocketExceptionTest {
               Expect.fail("Expected error");
             },
             onError: (error) {
-              Expect.isTrue(error is SocketIOException);
+              Expect.isTrue(error is SocketException);
               port.close();
             });
       });
@@ -218,7 +218,7 @@ class SocketExceptionTest {
 
     Socket.connect("hede.hule.hest", 1234)
         .then((socket) => Expect.fail("Connection completed"))
-        .catchError((e) => port.close(), test: (e) => e is SocketIOException);
+        .catchError((e) => port.close(), test: (e) => e is SocketException);
 
   }
 

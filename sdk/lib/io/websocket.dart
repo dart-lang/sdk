@@ -153,7 +153,7 @@ abstract class WebSocket implements Stream, StreamSink {
 }
 
 
-class WebSocketException implements Exception {
+class WebSocketException implements IOException {
   const WebSocketException([String this.message = ""]);
   String toString() => "WebSocketException: $message";
   final String message;

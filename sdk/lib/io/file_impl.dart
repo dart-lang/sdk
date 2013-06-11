@@ -393,7 +393,7 @@ class _File implements File {
     if (mode != FileMode.READ &&
         mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
-      throw new FileIOException("Unknown file mode. Use FileMode.READ, "
+      throw new FileException("Unknown file mode. Use FileMode.READ, "
                                 "FileMode.WRITE or FileMode.APPEND.");
     }
     var id = _open(_path, mode._mode);
@@ -406,7 +406,7 @@ class _File implements File {
   static RandomAccessFile _openStdioSync(int fd) {
     var id = _openStdio(fd);
     if (id == 0) {
-      throw new FileIOException("Cannot open stdio file for: $fd");
+      throw new FileException("Cannot open stdio file for: $fd");
     }
     return new _RandomAccessFile(id, "");
   }
@@ -442,7 +442,7 @@ class _File implements File {
                     Encoding encoding: Encoding.UTF_8}) {
     if (mode != FileMode.WRITE &&
         mode != FileMode.APPEND) {
-      throw new FileIOException(
+      throw new FileException(
           "Wrong FileMode. Use FileMode.WRITE or FileMode.APPEND");
     }
     var consumer = new _FileStreamConsumer(this, mode);
@@ -559,7 +559,7 @@ class _File implements File {
 
   static throwIfError(Object result, String msg) {
     if (result is OSError) {
-      throw new FileIOException(msg, result);
+      throw new FileException(msg, result);
     }
   }
 
@@ -586,7 +586,7 @@ class _RandomAccessFile implements RandomAccessFile {
         _id = result;
         return this;
       } else {
-        throw new FileIOException("Cannot close file '$_path'");
+        throw new FileException("Cannot close file '$_path'");
       }
     });
   }
@@ -597,7 +597,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkNotClosed();
     var id = _close(_id);
     if (id == -1) {
-      throw new FileIOException("Cannot close file '$_path'");
+      throw new FileException("Cannot close file '$_path'");
     }
     _id = id;
   }
@@ -623,7 +623,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkNotClosed();
     var result = _readByte(_id);
     if (result is OSError) {
-      throw new FileIOException("readByte failed for file '$_path'", result);
+      throw new FileException("readByte failed for file '$_path'", result);
     }
     return result;
   }
@@ -631,7 +631,7 @@ class _RandomAccessFile implements RandomAccessFile {
   Future<List<int>> read(int bytes) {
     _ensureFileService();
     if (bytes is !int) {
-      return new Future.error(new FileIOException(
+      return new Future.error(new FileException(
           "Invalid arguments to read for file '$_path'"));
     }
     if (closed) return _closedException();
@@ -653,12 +653,12 @@ class _RandomAccessFile implements RandomAccessFile {
   List<int> readSync(int bytes) {
     _checkNotClosed();
     if (bytes is !int) {
-      throw new FileIOException(
+      throw new FileException(
           "Invalid arguments to readSync for file '$_path'");
     }
     var result = _read(_id, bytes);
     if (result is OSError) {
-      throw new FileIOException("readSync failed for file '$_path'",
+      throw new FileException("readSync failed for file '$_path'",
                                 result);
     }
     return result;
@@ -669,7 +669,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
-      return new Future.error(new FileIOException(
+      return new Future.error(new FileException(
           "Invalid arguments to readInto for file '$_path'"));
     };
     if (closed) return _closedException();
@@ -706,7 +706,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
-      throw new FileIOException(
+      throw new FileException(
           "Invalid arguments to readInto for file '$_path'");
     }
     if (start == null) start = 0;
@@ -715,7 +715,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkReadWriteListArguments(buffer.length, start, end);
     var result = _readInto(_id, buffer, start, end);
     if (result is OSError) {
-      throw new FileIOException("readInto failed for file '$_path'",
+      throw new FileException("readInto failed for file '$_path'",
                                 result);
     }
     return result;
@@ -724,7 +724,7 @@ class _RandomAccessFile implements RandomAccessFile {
   Future<RandomAccessFile> writeByte(int value) {
     _ensureFileService();
     if (value is !int) {
-      return new Future.error(new FileIOException(
+      return new Future.error(new FileException(
           "Invalid argument to writeByte for file '$_path'"));
     }
     if (closed) return _closedException();
@@ -746,12 +746,12 @@ class _RandomAccessFile implements RandomAccessFile {
   int writeByteSync(int value) {
     _checkNotClosed();
     if (value is !int) {
-      throw new FileIOException(
+      throw new FileException(
           "Invalid argument to writeByte for file '$_path'");
     }
     var result = _writeByte(_id, value);
     if (result is OSError) {
-      throw new FileIOException("writeByte failed for file '$_path'",
+      throw new FileException("writeByte failed for file '$_path'",
                                 result);
     }
     return result;
@@ -762,7 +762,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if ((buffer is !List && buffer is !ByteData) ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
-      return new Future.error(new FileIOException(
+      return new Future.error(new FileException(
           "Invalid arguments to writeFrom for file '$_path'"));
     }
 
@@ -797,7 +797,7 @@ class _RandomAccessFile implements RandomAccessFile {
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
-      throw new FileIOException(
+      throw new FileException(
           "Invalid arguments to writeFrom for file '$_path'");
     }
     if (start == null) start = 0;
@@ -811,14 +811,14 @@ class _RandomAccessFile implements RandomAccessFile {
                             bufferAndStart.start,
                             end - (start - bufferAndStart.start));
     if (result is OSError) {
-      throw new FileIOException("writeFrom failed for file '$_path'", result);
+      throw new FileException("writeFrom failed for file '$_path'", result);
     }
   }
 
   Future<RandomAccessFile> writeString(String string,
                                        {Encoding encoding: Encoding.UTF_8}) {
     if (encoding is! Encoding) {
-      return new Future.error(new FileIOException(
+      return new Future.error(new FileException(
           "Invalid encoding in writeString: $encoding"));
     }
     var data = _encodeString(string, encoding);
@@ -827,7 +827,7 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void writeStringSync(String string, {Encoding encoding: Encoding.UTF_8}) {
     if (encoding is! Encoding) {
-      throw new FileIOException(
+      throw new FileException(
           "Invalid encoding in writeStringSync: $encoding");
     }
     var data = _encodeString(string, encoding);
@@ -855,7 +855,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkNotClosed();
     var result = _position(_id);
     if (result is OSError) {
-      throw new FileIOException("position failed for file '$_path'", result);
+      throw new FileException("position failed for file '$_path'", result);
     }
     return result;
   }
@@ -882,7 +882,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkNotClosed();
     var result = _setPosition(_id, position);
     if (result is OSError) {
-      throw new FileIOException("setPosition failed for file '$_path'", result);
+      throw new FileException("setPosition failed for file '$_path'", result);
     }
   }
 
@@ -908,7 +908,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkNotClosed();
     var result = _truncate(_id, length);
     if (result is OSError) {
-      throw new FileIOException("truncate failed for file '$_path'", result);
+      throw new FileException("truncate failed for file '$_path'", result);
     }
   }
 
@@ -933,7 +933,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkNotClosed();
     var result = _length(_id);
     if (result is OSError) {
-      throw new FileIOException("length failed for file '$_path'", result);
+      throw new FileException("length failed for file '$_path'", result);
     }
     return result;
   }
@@ -959,7 +959,7 @@ class _RandomAccessFile implements RandomAccessFile {
     _checkNotClosed();
     var result = _flush(_id);
     if (result is OSError) {
-      throw new FileIOException("flush failed for file '$_path'", result);
+      throw new FileException("flush failed for file '$_path'", result);
     }
   }
 
@@ -975,12 +975,12 @@ class _RandomAccessFile implements RandomAccessFile {
 
   void _checkNotClosed() {
     if (closed) {
-      throw new FileIOException("File closed '$_path'");
+      throw new FileException("File closed '$_path'");
     }
   }
 
   Future _closedException() {
-    return new Future.error(new FileIOException("File closed '$_path'"));
+    return new Future.error(new FileException("File closed '$_path'"));
   }
 
   final String _path;

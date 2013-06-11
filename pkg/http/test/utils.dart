@@ -196,14 +196,14 @@ class _RedirectLimitExceededException extends TypeMatcher {
     item is RedirectLimitExceededException;
 }
 
-/// A matcher for SocketIOExceptions.
-const isSocketIOException = const _SocketIOException();
+/// A matcher for SocketExceptions.
+const isSocketException = const _SocketException();
 
-/// A matcher for functions that throw SocketIOException.
-const Matcher throwsSocketIOException =
-    const Throws(isSocketIOException);
+/// A matcher for functions that throw SocketException.
+const Matcher throwsSocketException =
+    const Throws(isSocketException);
 
-class _SocketIOException extends TypeMatcher {
-  const _SocketIOException() : super("SocketIOException");
-  bool matches(item, MatchState matchState) => item is SocketIOException;
+class _SocketException extends TypeMatcher {
+  const _SocketException() : super("SocketException");
+  bool matches(item, MatchState matchState) => item is SocketException;
 }

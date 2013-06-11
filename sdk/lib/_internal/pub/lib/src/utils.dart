@@ -529,14 +529,14 @@ void fail(String message) {
 bool isUserFacingException(error) {
   return error is ApplicationException ||
     // TODO(nweiz): clean up this branch when issue 9955 is fixed.
-    error is DirectoryIOException ||
-    error is FileIOException ||
+    error is DirectoryException ||
+    error is FileException ||
     error is HttpException ||
-    error is HttpParserException ||
-    error is LinkIOException ||
+    error is HttpException ||
+    error is LinkException ||
     error is MimeMultipartException ||
     error is OSError ||
     error is ProcessException ||
-    error is SocketIOException ||
+    error is SocketException ||
     error is WebSocketException;
 }

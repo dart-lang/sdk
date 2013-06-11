@@ -713,7 +713,7 @@ class FileTest {
     openedFile.closeSync();
     try {
       openedFile.readByteSync();
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -723,7 +723,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.writeByteSync(1);
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -733,7 +733,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.writeStringSync("Test");
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -744,7 +744,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(100);
       openedFile.readIntoSync(buffer, 0, 10);
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -755,7 +755,7 @@ class FileTest {
     try {
       List<int> buffer = new List<int>(100);
       openedFile.writeFromSync(buffer, 0, 10);
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -765,7 +765,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.positionSync();
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -775,7 +775,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.lengthSync();
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -785,7 +785,7 @@ class FileTest {
     exceptionCaught = false;
     try {
       openedFile.flushSync();
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       exceptionCaught = true;
     } on Exception catch (ex) {
       wrongExceptionCaught = true;
@@ -922,7 +922,7 @@ class FileTest {
       f.openSync();
       Expect.fail("Expected exception opening directory as file");
     } catch (e) {
-      Expect.isTrue(e is FileIOException);
+      Expect.isTrue(e is FileException);
     }
   }
 
@@ -1086,9 +1086,9 @@ class FileTest {
       Expect.equals(1, message);
     });
     var f = new File('.');
-    Expect.throws(f.readAsBytesSync, (e) => e is FileIOException);
-    Expect.throws(f.readAsStringSync, (e) => e is FileIOException);
-    Expect.throws(f.readAsLinesSync, (e) => e is FileIOException);
+    Expect.throws(f.readAsBytesSync, (e) => e is FileException);
+    Expect.throws(f.readAsStringSync, (e) => e is FileException);
+    Expect.throws(f.readAsLinesSync, (e) => e is FileException);
     var readAsBytesFuture = f.readAsBytes();
     readAsBytesFuture.then((bytes) => Expect.fail("no bytes expected"))
     .catchError((e) {

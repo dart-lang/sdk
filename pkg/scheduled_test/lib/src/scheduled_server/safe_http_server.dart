@@ -50,9 +50,9 @@ class SafeHttpServer extends StreamView<HttpRequest> implements HttpServer {
       // Ignore socket error 104, which is caused by a request being cancelled
       // before it writes any headers. There's no reason to care about such
       // requests.
-      if (error is SocketIOException && error.osError.errorCode == 104) return;
+      if (error is SocketException && error.osError.errorCode == 104) return;
       // Ignore any parsing errors, which come from malformed requests.
-      if (error is HttpParserException) return;
+      if (error is HttpException) return;
       // Manually handle cancelOnError so the above (ignored) errors don't
       // cause unsubscription.
       if (cancelOnError) subscription.cancel();

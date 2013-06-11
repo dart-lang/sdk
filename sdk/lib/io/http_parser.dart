@@ -273,10 +273,10 @@ class _HttpParser
     assert(!_parserCalled);
     _parserCalled = true;
     if (_state == _State.CLOSED) {
-      throw new HttpParserException("Data on closed connection");
+      throw new HttpException("Data on closed connection");
     }
     if (_state == _State.FAILURE) {
-      throw new HttpParserException("Data on failed connection");
+      throw new HttpException("Data on failed connection");
     }
     while (_buffer != null &&
            _index < _buffer.length &&
@@ -298,11 +298,11 @@ class _HttpParser
           } else {
             // Start parsing method.
             if (!_isTokenChar(byte)) {
-              throw new HttpParserException("Invalid request method");
+              throw new HttpException("Invalid request method");
             }
             _method_or_status_code.add(byte);
             if (!_requestParser) {
-              throw new HttpParserException("Invalid response line");
+              throw new HttpException("Invalid response line");
             }
             _state = _State.REQUEST_LINE_METHOD;
           }
@@ -319,7 +319,7 @@ class _HttpParser
             // method anymore.
             _httpVersionIndex++;
             if (_requestParser) {
-              throw new HttpParserException("Invalid request line");
+              throw new HttpException("Invalid request line");
             }
             _state = _State.RESPONSE_HTTP_VERSION;
           } else {
@@ -333,7 +333,7 @@ class _HttpParser
               _method_or_status_code.add(byte);
               _httpVersion = _HttpVersion.UNDETERMINED;
               if (!_requestParser) {
-                throw new HttpParserException("Invalid response line");
+                throw new HttpException("Invalid response line");
               }
               _state = _State.REQUEST_LINE_METHOD;
             }
@@ -362,7 +362,7 @@ class _HttpParser
             // HTTP version parsed.
             _state = _State.RESPONSE_LINE_STATUS_CODE;
           } else {
-            throw new HttpParserException("Invalid response line");
+            throw new HttpException("Invalid response line");
           }
           break;
 
@@ -371,7 +371,7 @@ class _HttpParser
             _state = _State.REQUEST_LINE_URI;
           } else {
             if (_Const.SEPARATORS_AND_CR_LF.indexOf(byte) != -1) {
-              throw new HttpParserException("Invalid request method");
+              throw new HttpException("Invalid request method");
             }
             _method_or_status_code.add(byte);
           }
@@ -380,13 +380,13 @@ class _HttpParser
         case _State.REQUEST_LINE_URI:
           if (byte == _CharCode.SP) {
             if (_uri_or_reason_phrase.length == 0) {
-              throw new HttpParserException("Invalid request URI");
+              throw new HttpException("Invalid request URI");
             }
             _state = _State.REQUEST_LINE_HTTP_VERSION;
             _httpVersionIndex = 0;
           } else {
             if (byte == _CharCode.CR || byte == _CharCode.LF) {
-              throw new HttpParserException("Invalid request URI");
+              throw new HttpException("Invalid request URI");
             }
             _uri_or_reason_phrase.add(byte);
           }
@@ -408,7 +408,7 @@ class _HttpParser
               _persistentConnection = false;
               _httpVersionIndex++;
             } else {
-              throw new HttpParserException("Invalid response line");
+              throw new HttpException("Invalid response line");
             }
           } else {
             _expect(byte, _CharCode.CR);
@@ -425,12 +425,12 @@ class _HttpParser
         case _State.RESPONSE_LINE_STATUS_CODE:
           if (byte == _CharCode.SP) {
             if (_method_or_status_code.length != 3) {
-              throw new HttpParserException("Invalid response status code");
+              throw new HttpException("Invalid response status code");
             }
             _state = _State.RESPONSE_LINE_REASON_PHRASE;
           } else {
             if (byte < 0x30 && 0x39 < byte) {
-              throw new HttpParserException("Invalid response status code");
+              throw new HttpException("Invalid response status code");
             } else {
               _method_or_status_code.add(byte);
             }
@@ -442,7 +442,7 @@ class _HttpParser
             _state = _State.RESPONSE_LINE_ENDING;
           } else {
             if (byte == _CharCode.CR || byte == _CharCode.LF) {
-              throw new HttpParserException("Invalid response reason phrase");
+              throw new HttpException("Invalid response reason phrase");
             }
             _uri_or_reason_phrase.add(byte);
           }
@@ -454,7 +454,7 @@ class _HttpParser
           _statusCode = int.parse(
               new String.fromCharCodes(_method_or_status_code));
           if (_statusCode < 100 || _statusCode > 599) {
-            throw new HttpParserException("Invalid response status code");
+            throw new HttpException("Invalid response status code");
           } else {
             // Check whether this response will never have a body.
             _noMessageBody = _statusCode <= 199 || _statusCode == 204 ||
@@ -479,7 +479,7 @@ class _HttpParser
             _state = _State.HEADER_VALUE_START;
           } else {
             if (!_isTokenChar(byte)) {
-              throw new HttpParserException("Invalid header field name");
+              throw new HttpException("Invalid header field name");
             }
             _headerField.add(_toLowerCase(byte));
           }
@@ -728,8 +728,7 @@ class _HttpParser
           !(_state == _State.START && !_requestParser) &&
           !(_state == _State.BODY && !_chunked && _transferLength == -1)) {
         _bodyController.addError(
-              new HttpParserException(
-                  "Connection closed while receiving data"));
+              new HttpException("Connection closed while receiving data"));
       }
       _closeIncoming(true);
       _controller.close();
@@ -738,7 +737,7 @@ class _HttpParser
     // If the connection is idle the HTTP stream is closed.
     if (_state == _State.START) {
       if (!_requestParser) {
-        error(new HttpParserException(
+        error(new HttpException(
                     "Connection closed before full header was received"));
       }
       _controller.close();
@@ -754,7 +753,7 @@ class _HttpParser
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
-      error(new HttpParserException(
+      error(new HttpException(
                   "Connection closed before full header was received"));
       _controller.close();
       return;
@@ -766,7 +765,7 @@ class _HttpParser
       _state = _State.FAILURE;
       // Report the error through the error callback if any. Otherwise
       // throw the error.
-      error(new HttpParserException(
+      error(new HttpException(
                   "Connection closed before full body was received"));
     }
     _controller.close();
@@ -863,7 +862,7 @@ class _HttpParser
 
   int _expect(int val1, int val2) {
     if (val1 != val2) {
-      throw new HttpParserException("Failed to parse HTTP");
+      throw new HttpException("Failed to parse HTTP");
     }
   }
 
@@ -875,7 +874,7 @@ class _HttpParser
     } else if (0x61 <= byte && byte <= 0x66) {
       return byte - 0x61 + 10;  // a - f
     } else {
-      throw new HttpParserException("Failed to parse HTTP");
+      throw new HttpException("Failed to parse HTTP");
     }
   }
 
@@ -987,11 +986,4 @@ class _HttpParser
   bool _bodyPaused = false;
   StreamController<_HttpIncoming> _controller;
   StreamController<List<int>> _bodyController;
-}
-
-
-class HttpParserException implements Exception {
-  const HttpParserException([String this.message = ""]);
-  String toString() => "HttpParserException: $message";
-  final String message;
 }

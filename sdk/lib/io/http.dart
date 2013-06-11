@@ -1373,27 +1373,21 @@ abstract class DetachedSocket {
 }
 
 
-class HttpException implements Exception {
-  const HttpException([String this.message = ""]);
-  String toString() => "HttpException: $message";
+class HttpException implements IOException {
   final String message;
+
+  const HttpException([String this.message = ""]);
+
+  String toString() => "HttpException: $message";
 }
 
 
-class RedirectException extends HttpException {
-  const RedirectException(String message,
-                          List<RedirectInfo> this.redirects) : super(message);
+class RedirectException implements HttpException {
+  final String message;
   final List<RedirectInfo> redirects;
-}
 
+  const RedirectException(String this.message,
+                          List<RedirectInfo> this.redirects);
 
-class RedirectLimitExceededException extends RedirectException {
-  const RedirectLimitExceededException(List<RedirectInfo> redirects)
-      : super("Redirect limit exceeded", redirects);
-}
-
-
-class RedirectLoopException extends RedirectException {
-  const RedirectLoopException(List<RedirectInfo> redirects)
-      : super("Redirect loop detected", redirects);
+  String toString() => "RedirectException: $message";
 }

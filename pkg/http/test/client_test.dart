@@ -57,7 +57,7 @@ void main() {
       request.headers[HttpHeaders.CONTENT_TYPE] =
           'application/json; charset=utf-8';
 
-      expect(client.send(request), throwsSocketIOException);
+      expect(client.send(request), throwsSocketException);
 
       request.sink.add('{"hello": "world"}'.codeUnits);
       request.sink.close();

@@ -31,19 +31,26 @@ _exceptionFromResponse(response, String message) {
     case _OSERROR_RESPONSE:
       var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                             response[_OSERROR_RESPONSE_ERROR_CODE]);
-      return new FileIOException(message, err);
+      return new FileException(message, err);
     case _FILE_CLOSED_RESPONSE:
-      return new FileIOException("File closed");
+      return new FileException("File closed");
     default:
       return new Exception("Unknown error");
   }
 }
 
 /**
+ * Base class for all IO related exceptions.
+ */
+abstract class IOException implements Exception {
+  String toString() => "IOException";
+}
+
+/**
   * An [OSError] object holds information about an error from the
   * operating system.
   */
-class OSError implements Error {
+class OSError {
   /** Constant used to indicate that no OS error code is available. */
   static const int noErrorCode = -1;
 

@@ -6,6 +6,7 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:utf";
 
+part '../../../sdk/lib/io/common.dart';
 part '../../../sdk/lib/io/io_sink.dart';
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/http_impl.dart";

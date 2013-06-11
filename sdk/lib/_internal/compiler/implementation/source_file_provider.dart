@@ -37,7 +37,7 @@ class SourceFileProvider {
     String source;
     try {
       source = readAll(uriPathToNative(resourceUri.path));
-    } on FileIOException catch (ex) {
+    } on FileException catch (ex) {
       throw 'Error: Cannot read "${relativize(cwd, resourceUri, isWindows)}" '
             '(${ex.osError}).';
     }

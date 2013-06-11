@@ -76,7 +76,7 @@ void testGetServerClose() {
         Expect.fail("Request not expected");
       })
         .catchError((error) => port.close(),
-                    test: (error) => error is HttpParserException);
+                    test: (error) => error is HttpException);
   });
 }
 

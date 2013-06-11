@@ -33,7 +33,7 @@ void testInvalidBind() {
   SecureServerSocket.bind("ko.faar.__hest__", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
-    Expect.isTrue(error is SocketIOException);
+    Expect.isTrue(error is SocketException);
     port.toSendPort().send(1);
   });
 
@@ -41,7 +41,7 @@ void testInvalidBind() {
   SecureServerSocket.bind("8.8.8.8", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
-    Expect.isTrue(error is SocketIOException);
+    Expect.isTrue(error is SocketException);
     port.toSendPort().send(1);
   });
 
@@ -60,7 +60,7 @@ void testInvalidBind() {
       port.toSendPort().send(1);
     }).catchError((error) {
       Expect.notEquals('windows', Platform.operatingSystem);
-      Expect.isTrue(error is SocketIOException);
+      Expect.isTrue(error is SocketException);
       s.close();
       port.toSendPort().send(1);
     });
@@ -90,13 +90,13 @@ void testSimpleConnectFail(String certificate, bool cancelOnError) {
         Expect.fail("No client connection expected.");
       })
       .catchError((error) {
-        Expect.isTrue(error is SocketIOException);
+        Expect.isTrue(error is SocketException);
       });
     server.listen((serverEnd) {
       Expect.fail("No server connection expected.");
     },
     onError: (error) {
-      Expect.isTrue(error is SocketIOException);
+      Expect.isTrue(error is SocketException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         port.close();

@@ -173,8 +173,8 @@ and include the results in a bug report on http://dartbug.com/new.
   /// Returns the appropriate exit code for [exception], falling back on 1 if no
   /// appropriate exit code could be found.
   int _chooseExitCode(exception) {
-    if (exception is HttpException || exception is HttpParserException ||
-        exception is SocketIOException || exception is PubHttpException) {
+    if (exception is HttpException || exception is HttpException ||
+        exception is SocketException || exception is PubHttpException) {
       return exit_codes.UNAVAILABLE;
     } else if (exception is FormatException) {
       return exit_codes.DATA;

@@ -614,7 +614,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   List<int> read([int len]) {
     if (_closedRead) {
-      throw new SocketIOException("Reading from a closed socket");
+      throw new SocketException("Reading from a closed socket");
     }
     if (_status != CONNECTED) {
       return null;
@@ -663,7 +663,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   // up handlers to flush the pipeline when possible.
   int write(List<int> data, [int offset, int bytes]) {
     if (_closedWrite) {
-      _controller.addError(new SocketIOException("Writing to a closed socket"));
+      _controller.addError(new SocketException("Writing to a closed socket"));
       return 0;
     }
     if (_status != CONNECTED) return 0;
@@ -750,7 +750,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     } else {
       if (_status != CONNECTED) {
         // Cannot happen.
-        throw new SocketIOException("Internal SocketIO Error");
+        throw new SocketException("Internal SocketIO Error");
       }
       try {
         _readEncryptedData();
@@ -783,12 +783,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   void _reportError(e, String message) {
     // TODO(whesse): Call _reportError from all internal functions that throw.
-    if (e is SocketIOException) {
-      e = new SocketIOException('$message (${e.message})', e.osError);
+    if (e is SocketException) {
+      e = new SocketException('$message (${e.message})', e.osError);
     } else if (e is OSError) {
-      e = new SocketIOException(message, e);
+      e = new SocketException(message, e);
     } else {
-      e = new SocketIOException('$message (${e.toString()})', null);
+      e = new SocketException('$message (${e.toString()})', null);
     }
     if (_connectPending) {
       _handshakeComplete.completeError(e);
@@ -811,7 +811,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
     } else if (_status == HANDSHAKE) {
       _reportError(
-          new SocketIOException('Connection terminated during handshake'),
+          new SocketException('Connection terminated during handshake'),
           'handshake error');
     }
   }

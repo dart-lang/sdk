@@ -43,12 +43,12 @@ void testServerRequest(void handler(server, request),
               client.close();
             },
             onError: (error) {
-              Expect.isTrue(error is HttpParserException);
+              Expect.isTrue(error is HttpException);
             });
       })
       .catchError((error) {
          client.close();
-      }, test: (e) => e is HttpParserException);
+      }, test: (e) => e is HttpException);
   });
 }
 

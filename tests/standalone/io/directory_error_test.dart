@@ -15,7 +15,7 @@ Directory tempDir() {
 
 
 bool checkCreateInNonExistentFileException(e) {
-  Expect.isTrue(e is DirectoryIOException);
+  Expect.isTrue(e is DirectoryException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Creation failed") != -1);
   if (Platform.operatingSystem == "linux") {
@@ -43,7 +43,7 @@ void testCreateInNonExistent(Directory temp, Function done) {
 
 
 bool checkCreateTempInNonExistentFileException(e) {
-  Expect.isTrue(e is DirectoryIOException);
+  Expect.isTrue(e is DirectoryException);
   Expect.isTrue(e.osError != null);
   if (Platform.operatingSystem == "linux") {
     Expect.equals(2, e.osError.errorCode);
@@ -70,7 +70,7 @@ void testCreateTempInNonExistent(Directory temp, Function done) {
 
 
 bool checkDeleteNonExistentFileException(e) {
-  Expect.isTrue(e is DirectoryIOException);
+  Expect.isTrue(e is DirectoryException);
   Expect.isTrue(e.osError != null);
   // File not not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
@@ -92,7 +92,7 @@ void testDeleteNonExistent(Directory temp, Function done) {
 
 
 bool checkDeleteRecursivelyNonExistentFileException(e) {
-  Expect.isTrue(e is DirectoryIOException);
+  Expect.isTrue(e is DirectoryException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Deletion failed") != -1);
   // File not not found has error code 2 on all supported platforms.
@@ -115,7 +115,7 @@ void testDeleteRecursivelyNonExistent(Directory temp, Function done) {
 
 
 bool checkListNonExistentFileException(e) {
-  Expect.isTrue(e is DirectoryIOException);
+  Expect.isTrue(e is DirectoryException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Directory listing failed") != -1);
   if (Platform.operatingSystem == "linux") {
@@ -137,7 +137,7 @@ bool checkAsyncListNonExistentFileException(error) {
 
 void testListNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
-  Expect.throws(() => nonExistent.listSync(), (e) => e is DirectoryIOException);
+  Expect.throws(() => nonExistent.listSync(), (e) => e is DirectoryException);
   nonExistent.list().listen(
       (_) => Expect.fail("listing should not succeed"),
       onError: (e) {
@@ -151,11 +151,11 @@ void testRenameNonExistent(Directory temp, Function done) {
   Directory nonExistent = new Directory("${temp.path}/nonExistent");
   var newPath = "${temp.path}/nonExistent2";
   Expect.throws(() => nonExistent.renameSync(newPath),
-                (e) => e is DirectoryIOException);
+                (e) => e is DirectoryException);
   var renameDone = nonExistent.rename(newPath);
   renameDone.then((ignore) => Expect.fail('rename non existent'))
             .catchError((error) {
-              Expect.isTrue(error is DirectoryIOException);
+              Expect.isTrue(error is DirectoryException);
             done();
   });
 }
@@ -167,11 +167,11 @@ void testRenameFileAsDirectory(Directory temp, Function done) {
   f.createSync();
   var d = new Directory(f.path);
   Expect.throws(() => d.renameSync(newPath),
-                (e) => e is DirectoryIOException);
+                (e) => e is DirectoryException);
   var renameDone = d.rename(newPath);
   renameDone.then((ignore) => Expect.fail('rename file as directory'))
             .catchError((error) {
-              Expect.isTrue(error is DirectoryIOException);
+              Expect.isTrue(error is DirectoryException);
               done();
             });
 }
@@ -183,11 +183,11 @@ testRenameOverwriteFile(Directory temp, Function done) {
   var fileName = '${temp.path}/x';
   new File(fileName).createSync();
   Expect.throws(() => temp1.renameSync(fileName),
-                (e) => e is DirectoryIOException);
+                (e) => e is DirectoryException);
   var renameDone = temp1.rename(fileName);
   renameDone.then((ignore) => Expect.fail('rename dir overwrite file'))
             .catchError((error) {
-              Expect.isTrue(error is DirectoryIOException);
+              Expect.isTrue(error is DirectoryException);
               temp1.deleteSync(recursive: true);
               done();
             });
