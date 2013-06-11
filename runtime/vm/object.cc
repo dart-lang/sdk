@@ -11709,7 +11709,15 @@ RawString* String::ConcatAll(const Array& strings,
   intptr_t char_size = kOneByteChar;
   for (intptr_t i = 0; i < strings_len; i++) {
     str ^= strings.At(i);
-    result_len += str.Length();
+    intptr_t str_len = str.Length();
+    if ((kMaxElements - result_len) < str_len) {
+      Isolate* isolate = Isolate::Current();
+      const Instance& exception =
+          Instance::Handle(isolate->object_store()->out_of_memory());
+      Exceptions::Throw(exception);
+      UNREACHABLE();
+    }
+    result_len += str_len;
     char_size = Utils::Maximum(char_size, str.CharSize());
   }
   if (char_size == kOneByteChar) {
@@ -12183,6 +12191,7 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
     str ^= strings.At(i);
     intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
+    ASSERT((kMaxElements - pos) >= str_len);
     pos += str_len;
   }
   return OneByteString::raw(result);
@@ -12346,6 +12355,7 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
     str ^= strings.At(i);
     intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
+    ASSERT((kMaxElements - pos) >= str_len);
     pos += str_len;
   }
   return TwoByteString::raw(result);
