@@ -622,7 +622,9 @@ class HBasicBlock extends HInstructionList {
   void rewriteWithBetterUser(HInstruction from, HInstruction to) {
     Link<HCheck> better = const Link<HCheck>();
     for (HInstruction user in to.usedBy) {
-      if (user is HCheck && identical((user as HCheck).checkedInput, to)) {
+      if (user == from || user is! HCheck) continue;
+      HCheck check = user;
+      if (check.checkedInput == to) {
         better = better.prepend(user);
       }
     }
@@ -820,6 +822,10 @@ abstract class HInstruction implements Spannable {
         && !canThrow();
   }
 
+  // Overridden by [HCheck] to return the actual non-[HCheck]
+  // instruction it checks against.
+  HInstruction nonCheck() => this;
+
   // Can this node throw an exception?
   bool canThrow() => false;
 
@@ -905,7 +911,9 @@ abstract class HInstruction implements Spannable {
     final List<HInstruction> otherInputs = other.inputs;
     if (inputsLength != otherInputs.length) return false;
     for (int i = 0; i < inputsLength; i++) {
-      if (!identical(inputs[i], otherInputs[i])) return false;
+      if (!identical(inputs[i].nonCheck(), otherInputs[i].nonCheck())) {
+        return false;
+      }
     }
     // Check that the data in the instruction matches.
     return dataEquals(other);
@@ -915,7 +923,7 @@ abstract class HInstruction implements Spannable {
     int result = typeCode();
     int length = inputs.length;
     for (int i = 0; i < length; i++) {
-      result = (result * 19) + (inputs[i].id) + (result >> 7);
+      result = (result * 19) + (inputs[i].nonCheck().id) + (result >> 7);
     }
     return result;
   }
@@ -1162,11 +1170,7 @@ abstract class HCheck extends HInstruction {
   bool isJsStatement() => true;
   bool canThrow() => true;
 
-  HInstruction unwrap() {
-    var checked = checkedInput;
-    while (checked is HCheck) checked = checked.checkedInput;
-    return checked;
-  }
+  HInstruction nonCheck() => checkedInput.nonCheck();
 }
 
 class HBailoutTarget extends HInstruction {
@@ -1324,7 +1328,11 @@ abstract class HInvokeDynamic extends HInvoke {
   int typeCode() => HInstruction.INVOKE_DYNAMIC_TYPECODE;
   bool typeEquals(other) => other is HInvokeDynamic;
   bool dataEquals(HInvokeDynamic other) {
-    return selector == other.selector && element == other.element;
+    // Use the name and the kind instead of [Selector.operator==]
+    // because we don't need to check the arity (already checked in
+    // [gvnEquals]), and the receiver types may not be in sync.
+    return selector.name == other.selector.name
+        && selector.kind == other.selector.kind;
   }
 }
 

@@ -233,7 +233,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
       // [HCheck] will share the same live ranges.
       if (instruction is HCheck) {
         HCheck check = instruction;
-        HInstruction checked = check.unwrap();
+        HInstruction checked = check.nonCheck();
         if (!generateAtUseSite.contains(checked)) {
           environment.add(checked, instructionId);
         }
@@ -248,7 +248,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     // interval as the instruction it is checking.
     if (instruction is HCheck) {
       HCheck check = instruction;
-      HInstruction checked = check.unwrap();
+      HInstruction checked = check.nonCheck();
       if (!generateAtUseSite.contains(checked)) {
         liveIntervals.putIfAbsent(checked, () => new LiveInterval());
         // Unconditionally force the live ranges of the HCheck to
@@ -625,12 +625,7 @@ class SsaVariableAllocator extends HBaseVisitor {
     if (instruction is HParameterValue) return true;
     if (instruction.usedBy.isEmpty) return false;
     if (generateAtUseSite.contains(instruction)) return false;
-    // A [HCheck] instruction needs a name only if its
-    // checked input does not have a fixed name or value.
-    if (instruction is HCheck) {
-      return !instruction.unwrap().isCodeMotionInvariant();
-    }
-    return true;
+    return !instruction.nonCheck().isCodeMotionInvariant();
   }
 
   /**

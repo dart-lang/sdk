@@ -41,6 +41,25 @@ void foo(a) {
 }
 """;
 
+// Check that [HCheck] instructions do not prevent GVN.
+const String TEST_FIVE = r"""
+class A {
+  var foo = 21;
+}
+
+class B {}
+
+main() {
+  var a = [new B(), new A()][0];
+  var b = a.foo;
+  var c = a.foo;
+  if (a is B) {
+    c = a.foo;
+  }
+  return b + c;
+}
+""";
+
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
   RegExp regexp = new RegExp(r"1 \+ [a-z]+");
@@ -54,4 +73,8 @@ main() {
 
   generated = compile(TEST_FOUR, entry: 'foo');
   checkNumberOfMatches(new RegExp("shr").allMatches(generated).iterator, 1);
+
+  generated = compileAll(TEST_FIVE);
+  checkNumberOfMatches(
+      new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
 }
