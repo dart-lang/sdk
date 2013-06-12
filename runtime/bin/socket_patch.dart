@@ -299,7 +299,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
     if (isClosed) return 0;
     if (bytes == 0) return 0;
     _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableBuffer(buffer, offset, offset + bytes);
+        _ensureFastAndSerializableByteData(buffer, offset, offset + bytes);
     var result =
         nativeWrite(bufferAndStart.buffer, bufferAndStart.start, bytes);
     if (result is OSError) {

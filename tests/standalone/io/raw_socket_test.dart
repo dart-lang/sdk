@@ -138,11 +138,7 @@ void testSimpleReadWrite() {
   const messageSize = 1000;
 
   List<int> createTestData() {
-    List<int> data = new List<int>(messageSize);
-    for (int i = 0; i < messageSize; i++) {
-      data[i] = i & 0xff;
-    }
-    return data;
+    return new List<int>.generate(messageSize, (index) => index & 0xff);
   }
 
   void verifyTestData(List<int> data) {

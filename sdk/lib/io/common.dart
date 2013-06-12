@@ -100,7 +100,7 @@ class _BufferAndStart {
 // Only builtin Lists can be serialized through. If user-defined Lists
 // get here, the contents is copied to a Uint8List. This has the added
 // benefit that it is faster to access from the C code as well.
-_BufferAndStart _ensureFastAndSerializableBuffer(
+_BufferAndStart _ensureFastAndSerializableData(
     List buffer, int start, int end) {
   if (buffer is Uint8List ||
       buffer is Int8List ||
@@ -123,6 +123,28 @@ _BufferAndStart _ensureFastAndSerializableBuffer(
     int value = buffer[j];
     if (value is! int) {
       throw new ArgumentError("List element is not an integer at index $j");
+    }
+    newBuffer[i] = value;
+    j++;
+  }
+  return new _BufferAndStart(newBuffer, 0);
+}
+
+
+_BufferAndStart _ensureFastAndSerializableByteData(
+    List buffer, int start, int end) {
+  if (buffer is Uint8List) {
+    return new _BufferAndStart(buffer, start);
+  }
+  int length = end - start;
+  var newBuffer = new Uint8List(length);
+  int j = start;
+  for (int i = 0; i < length; i++) {
+    int value = buffer[j];
+    if (value is! int ||
+        value < 0 || 255 < value) {
+      throw new ArgumentError(
+          "List element is not a byte value (value $value at index $j)");
     }
     newBuffer[i] = value;
     j++;
