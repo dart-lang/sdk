@@ -12,8 +12,9 @@ library docgen;
 
 import 'dart:io';
 import 'dart:async';
-import 'lib/src/dart2js_mirrors.dart';
 import 'lib/dart2yaml.dart';
+import 'lib/src/dart2js_mirrors.dart';
+import 'package:markdown/markdown.dart' as markdown;
 import '../../../../pkg/args/lib/args.dart';
 import '../compiler/implementation/mirrors/mirrors.dart';
 import '../compiler/implementation/mirrors/mirrors_util.dart';
@@ -24,6 +25,7 @@ import '../compiler/implementation/mirrors/mirrors_util.dart';
 void main() {
   // TODO(tmandel): Use args library once flags are clear.
   Options opts = new Options();
+  Docgen docgen = new Docgen();
   
   if (opts.arguments.length > 0) {
     List<Path> libraries = [new Path(opts.arguments[0])];
@@ -31,144 +33,324 @@ void main() {
     var workingMirrors = analyze(libraries, sdkDirectory, 
         options: ['--preserve-comments', '--categories=Client,Server']);
     workingMirrors.then( (MirrorSystem mirrorSystem) {
-      var mirrors = mirrorSystem.libraries;
+      var mirrors = mirrorSystem.libraries.values;
       if (mirrors.isEmpty) {
         print("no LibraryMirrors");
       } else {
-        mirrors.values.forEach( (library) {
-          // TODO(tmandel): Use flags to filter libraries.
-          if (library.uri.scheme != "dart") {
-            String result = _getDocumentation(library);
-            if (result != null) {
-              _writeToFile(result, "${library.qualifiedName}.yaml");
-            }
-          }
-        });
+        docgen.libraries = mirrors;
+        docgen.documentLibraries();
       }
     });
   }
 }
 
 /**
- *  Creates YAML output from relevant libraries.
+ * This class documents a list of libraries.
  */
-//TODO(tmandel): Also allow for output to JSON based on flags
-String _getDocumentation(LibraryMirror library) {
-  Map libMap = new Map();
-  String libraryName = library.qualifiedName;
-  
-  // Get library top-level information.
-  libMap[libraryName] = new Map();
-  
-  libMap[libraryName]["variables"] = new Map();
-  _getVariables(libMap[libraryName]["variables"], library.variables);
-  
-  libMap[libraryName]["functions"] = new Map();
-  _getMethods(libMap[libraryName]["functions"], library.functions);
-  
-  String comment = _getComment(library);
-  libMap[libraryName]["comment"] = comment != null ? comment.trim() : null;
-  
-  // Get specific information about each class.
-  Map classes = new Map();
-  library.classes.forEach( (String cName, ClassMirror mir) {
-    
-    classes[cName] = new Map();
-    _getMethods(classes[cName], mir.methods);
-    
-    classes[cName]["variables"] = new Map();
-    _getVariables(classes[cName]["variables"], mir.variables);
-    
-    classes[cName]["superclass"] = mir.superclass;
-    classes[cName]["interfaces"] = mir.superinterfaces;
-    classes[cName]["abstract"]   = mir.isAbstract;
-    
-    String comment = _getComment(mir);
-    classes[cName]["comment"] = comment != null ? comment.trim() : null;
+class Docgen {
 
-  });
-  libMap[libraryName]["classes"] = classes;
-  return getYamlString(libMap);
+  /// Libraries to be documented.
+  List<LibraryMirror> _libraries;
+  
+  /// Saves list of libraries for Docgen object.
+  void set libraries(value) => _libraries = value;
+  
+  /// Current library being documented to be used for comment links.
+  LibraryMirror _currentLibrary;
+  
+  /// Current class being documented to be used for comment links.
+  ClassMirror _currentClass;
+  
+  /// Current member being documented to be used for comment links.
+  MemberMirror _currentMember;
+  
+  /**
+   * Creates documentation for filtered libraries.
+   */
+  void documentLibraries() {
+    //TODO(tmandel): Filter libraries and determine output type using flags.
+    _libraries.forEach((library) {
+      _currentLibrary = library;
+      var result = new Library(library.qualifiedName, _getComment(library),
+          _getVariables(library.variables), _getMethods(library.functions),
+          _getClasses(library.classes));
+      _writeToFile(getYamlString(result.toMap()), "${result.name}.yaml");
+    });
+   }
+  
+  /**
+   * Returns any documentation comments associated with a mirror with
+   * simple markdown converted to html.
+   */
+  String _getComment(DeclarationMirror mirror) {
+    String commentText;
+    mirror.metadata.forEach((metadata) {
+      if (metadata is CommentInstanceMirror) {
+        CommentInstanceMirror comment = metadata;
+        if (comment.isDocComment) {
+          if (commentText == null) {
+            commentText = comment.trimmedText;
+          } else {
+            commentText = "$commentText ${comment.trimmedText}";
+          }
+        } 
+      }
+    });
+    // TODO(tmandel): Resolve links to members in markdown using _currentClass,
+    // _currentMember, and _currentLibrary.
+    return commentText == null ? "" : 
+      markdown.markdownToHtml(commentText.trim());
+  }
+  
+  /**
+   * Returns a map of [Variable] objects constructed from inputted mirrors.
+   */
+  Map<String, Variable> _getVariables(Map<String, VariableMirror> mirrorMap) {
+    var data = {};
+    mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
+      _currentMember = mirror;
+      data[mirrorName] = new Variable(mirrorName, mirror.isFinal,
+          mirror.isStatic, mirror.type.toString(), _getComment(mirror));
+    });
+    return data;
+  }
+  
+  /**
+   * Returns a map of [Method] objects constructed from inputted mirrors.
+   */
+  Map<String, Method> _getMethods(Map<String, MethodMirror> mirrorMap) {
+    var data = {};
+    mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
+      _currentMember = mirror;
+      data[mirrorName] = new Method(mirrorName, mirror.isSetter,
+          mirror.isGetter, mirror.isConstructor, mirror.isOperator, 
+          mirror.isStatic, mirror.returnType.toString(), _getComment(mirror),
+          _getParameters(mirror.parameters));
+    });
+    return data;
+  } 
+  
+  /**
+   * Returns a map of [Class] objects constructed from inputted mirrors.
+   */
+  Map<String, Class> _getClasses(Map<String, ClassMirror> mirrorMap) {
+    var data = {};
+    mirrorMap.forEach((String mirrorName, ClassMirror mirror) {
+      _currentClass = mirror;
+      var superclass;
+      if (mirror.superclass != null) {
+        superclass = mirror.superclass.qualifiedName;
+      }
+      var interfaces = 
+          mirror.superinterfaces.map((interface) => interface.qualifiedName);
+      data[mirrorName] = new Class(mirrorName, superclass, mirror.isAbstract,
+          mirror.isTypedef, _getComment(mirror), interfaces,
+          _getVariables(mirror.variables), _getMethods(mirror.methods));
+    });
+    return data;
+  }
+  
+  /**
+   * Returns a map of [Parameter] objects constructed from inputted mirrors.
+   */
+  Map<String, Parameter> _getParameters(List<ParameterMirror> mirrorList) {
+    var data = {};
+    mirrorList.forEach((ParameterMirror mirror) {
+      _currentMember = mirror;
+      data[mirror.simpleName] = new Parameter(mirror.simpleName, 
+          mirror.isOptional, mirror.isNamed, mirror.hasDefaultValue, 
+          mirror.type.toString(), mirror.defaultValue);
+    });
+    return data;
+  }
 }
 
 /**
- * Returns any documentation comments associated with a mirror.
+ * Transforms the map by calling toMap on each value in it.
  */
-// TODO(tmandel): Handle reference links in comments.
-String _getComment(DeclarationMirror mirror) {
-  String commentText;
-  mirror.metadata.forEach( (metadata) {
-    if (metadata is CommentInstanceMirror) {
-      CommentInstanceMirror comment = metadata;
-      if (comment.isDocComment) {
-        if (commentText == null) {
-          commentText = comment.trimmedText;
-        } else {
-          commentText = "$commentText ${comment.trimmedText}";
-        }
-      } 
-    }
+Map recurseMap(Map inputMap) {
+  var outputMap = {};
+  inputMap.forEach((key, value) {
+    outputMap[key] = value.toMap();
   });
-  return commentText;
+  return outputMap;
 }
+
+/**
+ * A class containing contents of a Dart library.
+ */
+class Library {
   
-/**
- * Populates an input Map with characteristics of variables.
- */
-void _getVariables(Map data, Map<String, VariableMirror> mirrorMap) {
-  mirrorMap.forEach( (String name, VariableMirror mirror) {
-    data[name] = new Map();
-    data[name]["final"] = mirror.isFinal.toString();
-    data[name]["static"] = mirror.isStatic.toString();
-    data[name]["type"] = mirror.type.toString();
-    
-    String comment = _getComment(mirror);
-    data[name]["comment"] = comment != null ? comment.trim() : null;  
-  });
+  /// Documentation comment with converted markdown.
+  String comment;
+  
+  /// Top-level variables in the library.
+  Map<String, Variable> variables;
+  
+  /// Top-level functions in the library.
+  Map<String, Method> functions;
+  
+  /// Classes defined within the library
+  Map<String, Class> classes;
+  
+  String name;
+  
+  Library(this.name, this.comment, this.variables, 
+      this.functions, this.classes);
+  
+  /// Generates a map describing the [Library] object.
+  Map toMap() {
+    var libraryMap = {};
+    libraryMap["name"] = name;
+    libraryMap["comment"] = comment;
+    libraryMap["variables"] = recurseMap(variables);
+    libraryMap["functions"] = recurseMap(functions);
+    libraryMap["classes"] = recurseMap(classes);
+    return libraryMap;
+  }
 }
 
 /**
- * Populates an input Map with characteristics of methods.
+ * A class containing contents of a Dart class.
  */
-void _getMethods(Map data, Map<String, MethodMirror> mirrorMap) {
-  mirrorMap.forEach( (String mirrorName, MethodMirror mirror) {
-    String category = mirror.isSetter ? "setters" : 
-        mirror.isGetter ? "getters" :
-        mirror.isConstructor ? "constructors" : 
-        mirror.isTopLevel ? "functions" : "methods";
-    
-    if (data[category] == null) {
-      data[category] = new Map();
-    }
-    data[category][mirrorName] = new Map();
-    data[category][mirrorName]["operator"] = mirror.isOperator;
-    data[category][mirrorName]["static"] = mirror.isStatic;
-    data[category][mirrorName]["rtype"] = mirror.returnType;
-    data[category][mirrorName]["parameters"] = new Map();
-    List parameters = mirror.parameters;
-    parameters.forEach( (ParameterMirror param) {
-      String pName = param.simpleName;
-      data[category][mirrorName]
-        ["parameters"][pName] = new Map();
-      data[category][mirrorName]
-        ["parameters"][pName]["optional"] = param.isOptional;
-      data[category][mirrorName]
-        ["parameters"][pName]["default"] = param.defaultValue;
-      data[category][mirrorName]
-        ["parameters"][pName]["type"] = param.type.toString();
-    });  
-    String comment = _getComment(mirror);
-    data[category][mirrorName]["comment"] = 
-        comment != null ? comment.trim() : null;
-  });
+// TODO(tmandel): Figure out how to do typedefs (what is needed)
+class Class {
+  
+  /// Documentation comment with converted markdown.
+  String comment;
+  
+  /// List of the names of interfaces that this class implements.
+  List<String> interfaces;
+  
+  /// Top-level variables in the class.
+  Map<String, Variable> variables;
+  
+  /// Methods in the class.
+  Map<String, Method> methods;
+  
+  String name;
+  String superclass;
+  bool isAbstract;
+  bool isTypedef;
+ 
+  Class(this.name, this.superclass, this.isAbstract, this.isTypedef,
+      this.comment, this.interfaces, this.variables, this.methods); 
+  
+  /// Generates a map describing the [Class] object.
+  Map toMap() {
+    var classMap = {};
+    classMap["name"] = name;
+    classMap["comment"] = comment;
+    classMap["superclass"] = superclass;
+    classMap["abstract"] = isAbstract;
+    classMap["typedef"] = isTypedef;
+    classMap["implements"] = interfaces;
+    classMap["variables"] = recurseMap(variables);
+    classMap["methods"] = recurseMap(methods);
+    return classMap;
+  }
 }
 
 /**
- * Writes documentation for a library to a file.
+ * A class containing properties of a Dart variable.
  */
-//TODO(tmandel): Use flags to put files in specific directory if supported.
+class Variable {
+  
+  /// Documentation comment with converted markdown.
+  String comment;
+  
+  String name;
+  bool isFinal;
+  bool isStatic;
+  String type;
+  
+  Variable(this.name, this.isFinal, this.isStatic, this.type, this.comment);
+  
+  /// Generates a map describing the [Variable] object.
+  Map toMap() {
+    var variableMap = {};
+    variableMap["name"] = name;
+    variableMap["comment"] = comment;
+    variableMap["final"] = isFinal;
+    variableMap["static"] = isStatic;
+    variableMap["type"] = type;
+    return variableMap;
+  }
+}
+
+/**
+ * A class containing properties of a Dart method.
+ */
+class Method {
+  
+  /// Documentation comment with converted markdown.
+  String comment;
+  
+  /// Parameters for this method.
+  Map<String, Parameter> parameters;
+  
+  String name;
+  bool isSetter;
+  bool isGetter;
+  bool isConstructor;
+  bool isOperator;
+  bool isStatic;
+  String returnType;
+  
+  Method(this.name, this.isSetter, this.isGetter, this.isConstructor,
+      this.isOperator, this.isStatic, this.returnType, this.comment,
+      this.parameters);
+  
+  /// Generates a map describing the [Method] object.
+  Map toMap() {
+    var methodMap = {};
+    methodMap["name"] = name;
+    methodMap["comment"] = comment;
+    methodMap["type"] = isSetter ? "Setter" : isGetter ? "Getter" :
+      isOperator ? "Operator" : isConstructor ? "Constructor" : "Method";
+    methodMap["static"] = isStatic;
+    methodMap["return"] = returnType;
+    methodMap["parameters"] = recurseMap(parameters);
+    return methodMap;
+  }  
+}
+
+/**
+ * A class containing properties of a Dart method/function parameter.
+ */
+class Parameter {
+  
+  String name;
+  bool isOptional;
+  bool isNamed;
+  bool hasDefaultValue;
+  String type;
+  String defaultValue;
+  
+  Parameter(this.name, this.isOptional, this.isNamed, this.hasDefaultValue,
+      this.type, this.defaultValue);
+  
+  /// Generates a map describing the [Parameter] object.
+  Map toMap() {
+    var parameterMap = {};
+    parameterMap["name"] = name;
+    parameterMap["optional"] = isOptional;
+    parameterMap["default"] = hasDefaultValue;
+    parameterMap["type"] = type;
+    parameterMap["value"] = defaultValue;
+    return parameterMap;
+  } 
+}
+
+/**
+ * Writes text to a file in the 'docs' directory.
+ */
 void _writeToFile(String text, String filename) {
-  File file = new File(filename);
+  Directory dir = new Directory('docs');
+  if (!dir.existsSync()) {
+    dir.createSync();
+  }
+  File file = new File('docs/$filename');
   if (!file.exists()) {
     file.createSync();
   }

@@ -45,14 +45,10 @@ void _addLevel(StringBuffer yaml, Map documentData, int level) {
 }
 
 /**
- * Writes to a StringBuffer the correct output for the inputted element.
+ * Returns an escaped String form of the inputted element.
  */
 String _processElement(var element) {
-  if (element.toString().contains("\"")) {
-    return "$element\n";
-  } else {
-    return "\"$element\"\n";
-  }
+  return "\"${element.toString().replaceAll("\"", "\\\"")}\"\n";
 }
 
 /**

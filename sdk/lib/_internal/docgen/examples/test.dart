@@ -6,6 +6,7 @@
 library DummyLibrary;
 
 import 'dart:json';
+import 'dart:math';
 
 /// Doc comment for top-level variable.
 int _variable1 = 0;
@@ -24,6 +25,9 @@ abstract class B {
  */
 class A implements B {
 
+  /**
+   * Markdown _test_ for **class** `A` 
+   */
   int _someNumber;
 
   A() {
