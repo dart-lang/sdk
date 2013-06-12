@@ -882,9 +882,9 @@ class WebDriverSession extends WebDriverBase {
    * Potential Errors: NoSuchWindow, XPathLookupError.
    */
   Future<String>
-      findElementFromId(String id, String strategy, String searchValue) {
-    _post('element/$id/element', { 'using': strategy, 'value' : searchValue });
-  }
+      findElementFromId(String id, String strategy, String searchValue) =>
+          _post('element/$id/element',
+              { 'using': strategy, 'value' : searchValue });
 
   /**
    * Search for multiple elements on the page, starting from the element with
@@ -897,8 +897,7 @@ class WebDriverSession extends WebDriverBase {
   Future<List<String>>
       findElementsFromId(String id, String strategy, String searchValue) =>
           _post('element/$id/elements',
-              params: { 'using': strategy, 'value' : searchValue });
-
+              { 'using': strategy, 'value' : searchValue });
   /**
    * Click on an element specified by [id].
    *
