@@ -289,7 +289,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionMerger(generateAtUseSite).visitGraph(graph);
+    new SsaInstructionMerger(generateAtUseSite, compiler).visitGraph(graph);
     new SsaConditionMerger(
         generateAtUseSite, controlFlowOperators).visitGraph(graph);
     SsaLiveIntervalBuilder intervalBuilder =
@@ -1221,7 +1221,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void emitIdentityComparison(HInstruction left,
                               HInstruction right,
                               bool inverse) {
-    String op = singleIdentityComparison(left, right);
+    String op = singleIdentityComparison(left, right, compiler);
     if (op != null) {
       use(left);
       js.Expression jsLeft = pop();
@@ -1806,8 +1806,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
-      if (left.instructionType.isUseful() && left.isString() &&
-          right.instructionType.isUseful() && right.isString()) {
+      if (left.instructionType.isUseful() && left.isString(compiler) &&
+          right.instructionType.isUseful() && right.isString(compiler)) {
         return true;
       }
 
@@ -2037,7 +2037,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStringify(HStringify node) {
     HInstruction input = node.inputs.first;
-    if (input.isString()) {
+    if (input.isString(compiler)) {
       use(input);
     } else if (input.isInteger() || input.isBoolean()) {
       // JavaScript's + operator with a string for the left operand will convert
@@ -2433,7 +2433,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // input is !bool
       checkBool(input, '!==');
       test = pop();
-    } else if (node.isString()) {
+    } else if (node.isString(compiler)) {
       // input is !string
       checkString(input, '!==');
       test = pop();
@@ -3002,7 +3002,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 }
 
-String singleIdentityComparison(HInstruction left, HInstruction right) {
+String singleIdentityComparison(HInstruction left,
+                                HInstruction right,
+                                Compiler compiler) {
   // Returns the single identity comparison (== or ===) or null if a more
   // complex expression is required.
   if ((left.isConstant() && left.isConstantSentinel()) ||
@@ -3011,7 +3013,7 @@ String singleIdentityComparison(HInstruction left, HInstruction right) {
   HType rightType = right.instructionType;
   if (leftType.canBeNull() && rightType.canBeNull()) {
     if (left.isConstantNull() || right.isConstantNull() ||
-        (leftType.isPrimitive() && leftType == rightType)) {
+        (leftType.isPrimitive(compiler) && leftType == rightType)) {
       return '==';
     }
     return null;

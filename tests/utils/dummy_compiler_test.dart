@@ -49,14 +49,14 @@ Future<String> provider(Uri uri) {
                     get length;
                   }
                   class JSMutableIndexable {}
-                  class JSArray {
+                  class JSArray implements JSIndexable {
                     var removeLast;
                     var add;
                   }
-                  class JSMutableArray {}
+                  class JSMutableArray extends JSArray {}
                   class JSFixedArray extends JSMutableArray {}
                   class JSExtendableArray extends JSMutableArray {}
-                  class JSString {
+                  class JSString implements JSIndexable {
                     var split;
                     var concat;
                     var toString;

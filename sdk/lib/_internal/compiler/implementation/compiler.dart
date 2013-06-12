@@ -1314,7 +1314,9 @@ class Tracer {
 
   const Tracer();
 
-  void traceCompilation(String methodName, ItemCompilationContext context) {
+  void traceCompilation(String methodName,
+                        ItemCompilationContext context,
+                        Compiler compiler) {
   }
 
   void traceGraph(String name, var graph) {

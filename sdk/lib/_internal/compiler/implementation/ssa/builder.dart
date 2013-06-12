@@ -73,7 +73,8 @@ class SsaBuilderTask extends CompilerTask {
         } else {
           name = "${element.name.slowToString()}";
         }
-        compiler.tracer.traceCompilation(name, work.compilationContext);
+        compiler.tracer.traceCompilation(
+            name, work.compilationContext, compiler);
         compiler.tracer.traceGraph('builder', graph);
       }
       return graph;
@@ -829,7 +830,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
       assert(label != null);
       HInstruction value = builder.graph.addConstantInt(
           targetIndexMap[label.target],
-          builder.constantSystem);
+          builder.compiler);
       builder.localsHandler.updateLocal(target, value);
 
       assert(label.target.labels.contains(label));
@@ -1017,11 +1018,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             () {
               HParameterValue parameter = parameters.values.first;
               push(new HIdentity(
-                  parameter, graph.addConstantNull(constantSystem)));
+                  parameter, graph.addConstantNull(compiler)));
             },
             () {
               closeAndGotoExit(new HReturn(
-                  graph.addConstantBool(false, constantSystem)));
+                  graph.addConstantBool(false, compiler)));
             },
             null);
       }
@@ -1183,7 +1184,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                  ElementKind.VARIABLE,
                                  function);
     newLocalsHandler.updateLocal(returnElement,
-                                 graph.addConstantNull(constantSystem));
+                                 graph.addConstantNull(compiler));
     elements = compiler.enqueuer.resolution.getCachedElements(function);
     assert(elements != null);
     returnType = signature.returnType;
@@ -1343,7 +1344,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                || superclass.typeVariables == typeVariables);
         while (!typeVariables.isEmpty) {
           localsHandler.updateLocal(typeVariables.head.element,
-              graph.addConstantNull(constantSystem));
+              graph.addConstantNull(compiler));
           typeVariables = typeVariables.tail;
         }
       }
@@ -1490,7 +1491,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             SendSet assignment = node.asSendSet();
             HInstruction value;
             if (assignment == null) {
-              value = graph.addConstantNull(constantSystem);
+              value = graph.addConstantNull(compiler);
             } else {
               Node right = assignment.arguments.head;
               TreeElements savedElements = elements;
@@ -1677,11 +1678,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Fetch the original default value of [element];
       Constant constant = compileVariable(element);
       HConstant defaultValue = constant == null
-          ? graph.addConstantNull(constantSystem)
-          : graph.addConstant(constant);
+          ? graph.addConstantNull(compiler)
+          : graph.addConstant(constant, compiler);
 
       // Emit the equality check with the sentinel.
-      HConstant sentinel = graph.addConstant(SentinelConstant.SENTINEL);
+      HConstant sentinel =
+          graph.addConstant(SentinelConstant.SENTINEL, compiler);
       HInstruction operand = parameters[element];
       check = new HIdentity(sentinel, operand);
       add(check);
@@ -2243,7 +2245,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     HInstruction buildCondition() {
       if (node.condition == null) {
-        return graph.addConstantBool(true, constantSystem);
+        return graph.addConstantBool(true, compiler);
       }
       visit(node.condition);
       return popBoolified();
@@ -2504,7 +2506,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HConstant constant = operand;
       Constant folded = operation.fold(constant.constant);
       if (folded != null) {
-        stack.add(graph.addConstant(folded));
+        stack.add(graph.addConstant(folded, compiler));
         return;
       }
     }
@@ -2572,7 +2574,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         value = compileVariable(element);
       }
       if (value != null) {
-        stack.add(graph.addConstant(value));
+        stack.add(graph.addConstant(value, compiler));
       } else if (element.isField() && isLazilyInitialized(element)) {
         HInstruction instruction = new HLazyStatic(element);
         instruction.instructionType =
@@ -2689,13 +2691,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return pop();
   }
 
+  HLiteralList buildLiteralList(List<HInstruction> inputs) {
+    return new HLiteralList(inputs, backend.extendableArrayType);
+  }
+
   // TODO(karlklose): change construction of the representations to be GVN'able
   // (dartbug.com/7182).
   HInstruction buildTypeArgumentRepresentations(DartType type) {
     // Compute the representation of the type arguments, including access
     // to the runtime type information for type variables as instructions.
     if (type.kind == TypeKind.TYPE_VARIABLE) {
-      return new HLiteralList(<HInstruction>[addTypeVariableReference(type)]);
+      return buildLiteralList(<HInstruction>[addTypeVariableReference(type)]);
     } else {
       assert(type.element.isClass());
       InterfaceType interface = type;
@@ -2710,7 +2716,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       String template = '[${templates.join(', ')}]';
       HInstruction representation =
-        createForeign(template, HType.READABLE_ARRAY, inputs);
+        createForeign(template, backend.readableArrayType, inputs);
       return representation;
     }
   }
@@ -2789,7 +2795,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction isFieldName = addConstantString(node, operator);
       HInstruction asFieldName = compiler.world.hasAnySubtype(element)
           ? addConstantString(node, backend.namer.substitutionName(element))
-          : graph.addConstantNull(constantSystem);
+          : graph.addConstantNull(compiler);
       List<HInstruction> inputs = <HInstruction>[expression,
                                                  isFieldName,
                                                  representations,
@@ -2848,7 +2854,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else {
       constant = compileConstant(parameter);
     }
-    return graph.addConstant(constant);
+    return graph.addConstant(constant, compiler);
   }
 
   /**
@@ -3131,7 +3137,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         constantSystem.createString(new DartString.literal(internalName), node);
 
     Element createInvocationMirror = backend.getCreateInvocationMirror();
-    var argumentsInstruction = new HLiteralList(arguments);
+    var argumentsInstruction = buildLiteralList(arguments);
     add(argumentsInstruction);
 
     var argumentNames = new List<HInstruction>();
@@ -3139,9 +3145,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Constant argumentNameConstant =
           constantSystem.createString(new DartString.literal(
               argumentName.slowToString()), node);
-      argumentNames.add(graph.addConstant(argumentNameConstant));
+      argumentNames.add(graph.addConstant(argumentNameConstant, compiler));
     }
-    var argumentNamesInstruction = new HLiteralList(argumentNames);
+    var argumentNamesInstruction = buildLiteralList(argumentNames);
     add(argumentNamesInstruction);
 
     Constant kindConstant =
@@ -3149,9 +3155,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     pushInvokeStatic(null,
                      createInvocationMirror,
-                     [graph.addConstant(nameConstant),
-                      graph.addConstant(internalNameConstant),
-                      graph.addConstant(kindConstant),
+                     [graph.addConstant(nameConstant, compiler),
+                      graph.addConstant(internalNameConstant, compiler),
+                      graph.addConstant(kindConstant, compiler),
                       argumentsInstruction,
                       argumentNamesInstruction],
                       HType.UNKNOWN);
@@ -3214,7 +3220,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     int index = RuntimeTypes.getTypeVariableIndex(variable);
     String substitutionNameString = backend.namer.substitutionName(cls);
     HInstruction substitutionName = graph.addConstantString(
-        new LiteralDartString(substitutionNameString), null, constantSystem);
+        new LiteralDartString(substitutionNameString), null, compiler);
     HInstruction target = localsHandler.readThis();
     HInstruction substitution = createForeign('#[#]', HType.UNKNOWN,
         <HInstruction>[target, substitutionName]);
@@ -3223,7 +3229,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                      backend.getGetRuntimeTypeArgument(),
                      [target,
                       substitution,
-                      graph.addConstantInt(index, constantSystem)],
+                      graph.addConstantInt(index, compiler)],
                       HType.UNKNOWN);
     return pop();
   }
@@ -3271,7 +3277,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                      message: '$argument is malformed in checked mode'));
     if (argument == compiler.types.dynamicType || argument.isMalformed) {
       // Represent [dynamic] as [null].
-      return graph.addConstantNull(constantSystem);
+      return graph.addConstantNull(compiler);
     }
 
     List<HInstruction> inputs = <HInstruction>[];
@@ -3280,7 +3286,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(addTypeVariableReference(variable));
     });
 
-    HInstruction result = createForeign(template, HType.STRING, inputs);
+    HInstruction result = createForeign(template, backend.stringType, inputs);
     add(result);
     return result;
   }
@@ -3305,7 +3311,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       return;
     }
 
-    HInstruction typeInfo = new HLiteralList(rtiInputs);
+    HInstruction typeInfo = buildLiteralList(rtiInputs);
     add(typeInfo);
 
     // Set the runtime type information on the object.
@@ -3334,11 +3340,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (Elements.isFixedListConstructorCall(
               originalElement, send, compiler)) {
         isListConstructor = true;
-        return HType.FIXED_ARRAY;
+        return backend.fixedArrayType;
       } else if (Elements.isGrowableListConstructorCall(
                     originalElement, send, compiler)) {
         isListConstructor = true;
-        return HType.EXTENDABLE_ARRAY;
+        return backend.extendableArrayType;
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
         return new HType.nonNullExact(cls.thisType, compiler);
@@ -3413,7 +3419,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // Also add null to non-provided type variables to call the
       // constructor with the right number of arguments.
       while (!typeVariable.isEmpty) {
-        inputs.add(graph.addConstantNull(constantSystem));
+        inputs.add(graph.addConstantNull(compiler));
         typeVariable = typeVariable.tail;
       }
     }
@@ -3458,7 +3464,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
     if (identical(element, compiler.assertMethod)
         && !compiler.enableUserAssertions) {
-      stack.add(graph.addConstantNull(constantSystem));
+      stack.add(graph.addConstantNull(compiler));
       return;
     }
     compiler.ensure(!element.isGenerativeConstructor());
@@ -3492,7 +3498,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HConstant addConstantString(Node node, String string) {
     DartString dartString = new DartString.literal(string);
     Constant constant = constantSystem.createString(dartString, node);
-    return graph.addConstant(constant);
+    return graph.addConstant(constant, compiler);
   }
 
   visitTypeReferenceSend(Send node) {
@@ -3501,14 +3507,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant));
+      stack.add(graph.addConstant(constant, compiler));
     } else if (element.isTypeVariable()) {
       HInstruction value =
           addTypeVariableReference(element.computeType(compiler));
       pushInvokeStatic(node,
                        backend.getRuntimeTypeToString(),
                        [value],
-                       HType.STRING);
+                       backend.stringType);
       pushInvokeStatic(node,
                        backend.getCreateRuntimeType(),
                        [pop()]);
@@ -3561,11 +3567,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     Element helper = backend.getThrowNoSuchMethod();
     Constant receiverConstant =
         constantSystem.createString(new DartString.empty(), diagnosticNode);
-    HInstruction receiver = graph.addConstant(receiverConstant);
+    HInstruction receiver = graph.addConstant(receiverConstant, compiler);
     DartString dartString = new DartString.literal(methodName);
     Constant nameConstant =
         constantSystem.createString(dartString, diagnosticNode);
-    HInstruction name = graph.addConstant(nameConstant);
+    HInstruction name = graph.addConstant(nameConstant, compiler);
     if (argumentValues == null) {
       argumentValues = <HInstruction>[];
       argumentNodes.forEach((argumentNode) {
@@ -3574,7 +3580,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         argumentValues.add(value);
       });
     }
-    HInstruction arguments = new HLiteralList(argumentValues);
+    HInstruction arguments = buildLiteralList(argumentValues);
     add(arguments);
     HInstruction existingNamesList;
     if (existingArguments != null) {
@@ -3582,13 +3588,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       for (String name in existingArguments) {
         HInstruction nameConstant =
             graph.addConstantString(new DartString.literal(name),
-                                    diagnosticNode, constantSystem);
+                                    diagnosticNode, compiler);
         existingNames.add(nameConstant);
       }
-      existingNamesList = new HLiteralList(existingNames);
+      existingNamesList = buildLiteralList(existingNames);
       add(existingNamesList);
     } else {
-      existingNamesList = graph.addConstantNull(constantSystem);
+      existingNamesList = graph.addConstantNull(compiler);
     }
     pushInvokeStatic(diagnosticNode,
                      helper,
@@ -3643,7 +3649,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant));
+      stack.add(graph.addConstant(constant, compiler));
       if (isSymbolConstructor) {
         ConstructedConstant symbol = constant;
         StringConstant stringConstant = symbol.fields.single;
@@ -3794,7 +3800,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                  Link<Node> arguments) {
     HInstruction rhs;
     if (node.isPrefix || node.isPostfix) {
-      rhs = graph.addConstantInt(1, constantSystem);
+      rhs = graph.addConstantInt(1, compiler);
     } else {
       visit(arguments.head);
       assert(arguments.tail.isEmpty);
@@ -3945,25 +3951,25 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitLiteralInt(LiteralInt node) {
-    stack.add(graph.addConstantInt(node.value, constantSystem));
+    stack.add(graph.addConstantInt(node.value, compiler));
   }
 
   void visitLiteralDouble(LiteralDouble node) {
-    stack.add(graph.addConstantDouble(node.value, constantSystem));
+    stack.add(graph.addConstantDouble(node.value, compiler));
   }
 
   void visitLiteralBool(LiteralBool node) {
-    stack.add(graph.addConstantBool(node.value, constantSystem));
+    stack.add(graph.addConstantBool(node.value, compiler));
   }
 
   void visitLiteralString(LiteralString node) {
-    stack.add(graph.addConstantString(node.dartString, node, constantSystem));
+    stack.add(graph.addConstantString(node.dartString, node, compiler));
   }
 
   void visitStringJuxtaposition(StringJuxtaposition node) {
     if (!node.isInterpolation) {
       // This is a simple string with no interpolations.
-      stack.add(graph.addConstantString(node.dartString, node, constantSystem));
+      stack.add(graph.addConstantString(node.dartString, node, compiler));
       return;
     }
     StringBuilderVisitor stringBuilder = new StringBuilderVisitor(this, node);
@@ -3972,7 +3978,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitLiteralNull(LiteralNull node) {
-    stack.add(graph.addConstantNull(constantSystem));
+    stack.add(graph.addConstantNull(compiler));
   }
 
   visitNodeList(NodeList node) {
@@ -4016,7 +4022,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitRethrow(Rethrow node) {
     HInstruction exception = rethrowableException;
     if (exception == null) {
-      exception = graph.addConstantNull(constantSystem);
+      exception = graph.addConstantNull(compiler);
       compiler.internalError(
           'rethrowableException should not be null', node: node);
     }
@@ -4032,9 +4038,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction value;
     if (node.isRedirectingFactoryBody) {
       // TODO(ahe): This is only for reflection, and it is not correct yet.
-      value = graph.addConstantNull(constantSystem);
+      value = graph.addConstantNull(compiler);
     } else if (node.expression == null) {
-      value = graph.addConstantNull(constantSystem);
+      value = graph.addConstantNull(compiler);
     } else {
       visit(node.expression);
       value = pop();
@@ -4071,7 +4077,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
          link = link.tail) {
       Node definition = link.head;
       if (definition is Identifier) {
-        HInstruction initialValue = graph.addConstantNull(constantSystem);
+        HInstruction initialValue = graph.addConstantNull(compiler);
         localsHandler.updateLocal(elements[definition], initialValue);
       } else {
         assert(definition is SendSet);
@@ -4085,7 +4091,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (node.isConst()) {
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant));
+      stack.add(graph.addConstant(constant, compiler));
       return;
     }
 
@@ -4096,7 +4102,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(link.head);
       inputs.add(pop());
     }
-    push(new HLiteralList(inputs));
+    push(buildLiteralList(inputs));
   }
 
   visitConditional(Conditional node) {
@@ -4280,7 +4286,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (node.isConst()) {
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
-      stack.add(graph.addConstant(constant));
+      stack.add(graph.addConstant(constant, compiler));
       return;
     }
     List<HInstruction> inputs = <HInstruction>[];
@@ -4291,7 +4297,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.add(pop());
       inputs.add(pop());
     }
-    HLiteralList keyValuePairs = new HLiteralList(inputs);
+    HLiteralList keyValuePairs = buildLiteralList(inputs);
     add(keyValuePairs);
     HType mapType = new HType.nonNullSubtype(
         backend.mapLiteralClass.computeType(compiler), compiler);
@@ -4452,7 +4458,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     //   }
 
     TargetElement switchTarget = elements[node];
-    HInstruction initialValue = graph.addConstantNull(constantSystem);
+    HInstruction initialValue = graph.addConstantNull(compiler);
     localsHandler.updateLocal(switchTarget, initialValue);
 
     JumpHandler jumpHandler = createJumpHandler(node, isLoopJump: false);
@@ -4485,11 +4491,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (switchCase != null) {
         // Generate 'target = i; break;' for switch case i.
         int index = caseIndex[switchCase];
-        HInstruction value = graph.addConstantInt(index, constantSystem);
+        HInstruction value = graph.addConstantInt(index, compiler);
         localsHandler.updateLocal(switchTarget, value);
       } else {
         // Generate synthetic default case 'target = null; break;'.
-        HInstruction value = graph.addConstantNull(constantSystem);
+        HInstruction value = graph.addConstantNull(compiler);
         localsHandler.updateLocal(switchTarget, value);
       }
       jumpTargets[switchTarget].generateBreak();
@@ -4504,7 +4510,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     jumpHandler.close();
 
     HInstruction buildCondition() =>
-        graph.addConstantBool(true, constantSystem);
+        graph.addConstantBool(true, compiler);
 
     void buildSwitch() {
       HInstruction buildExpression() {
@@ -4599,7 +4605,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HBasicBlock block = graph.addNewBlock();
       for (Constant constant in getConstants(switchCase)) {
         caseConstants.add(constant);
-        HConstant hConstant = graph.addConstant(constant);
+        HConstant hConstant = graph.addConstant(constant, compiler);
         switchInstruction.inputs.add(hConstant);
         hConstant.usedBy.add(switchInstruction);
         expressionBlock.addSuccessor(block);
@@ -4786,7 +4792,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           if (type.isMalformed) {
             // TODO(johnniwinther): Handle malformed types in [HIs] instead.
             HInstruction condition =
-                graph.addConstantBool(true, constantSystem);
+                graph.addConstantBool(true, compiler);
             stack.add(condition);
           } else {
             // TODO(karlkose): support type arguments here.
@@ -4799,7 +4805,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           VariableDefinitions declaration = catchBlock.formals.nodes.head;
           HInstruction condition = null;
           if (declaration.type == null) {
-            condition = graph.addConstantBool(true, constantSystem);
+            condition = graph.addConstantBool(true, compiler);
             stack.add(condition);
           } else {
             // TODO(aprelev@gmail.com): Once old catch syntax is removed
@@ -4992,7 +4998,7 @@ class StringBuilderVisitor extends Visitor {
     node.accept(builder);
     HInstruction expression = builder.pop();
     if (!expression.isConstantString()) {
-      expression = new HStringify(expression, node);
+      expression = new HStringify(expression, node, builder.backend.stringType);
       builder.add(expression);
     }
     result = (result == null) ? expression : concat(result, expression);
@@ -5016,7 +5022,8 @@ class StringBuilderVisitor extends Visitor {
   }
 
   HInstruction concat(HInstruction left, HInstruction right) {
-    HInstruction instruction = new HStringConcat(left, right, diagnosticNode);
+    HInstruction instruction = new HStringConcat(
+        left, right, diagnosticNode, builder.backend.stringType);
     builder.add(instruction);
     return instruction;
   }
@@ -5290,7 +5297,7 @@ class SsaBranchBuilder {
 
     handleIf(visitCondition, visitThen, null);
     HConstant notIsAnd =
-        builder.graph.addConstantBool(!isAnd, builder.constantSystem);
+        builder.graph.addConstantBool(!isAnd, builder.compiler);
     HPhi result = new HPhi.manyInputs(null,
                                       <HInstruction>[boolifiedRight, notIsAnd]);
     builder.current.addPhi(result);

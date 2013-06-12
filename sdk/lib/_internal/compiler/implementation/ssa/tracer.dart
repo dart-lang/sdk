@@ -14,6 +14,7 @@ const bool GENERATE_SSA_TRACE = false;
 const String SSA_TRACE_FILTER = null;
 
 class HTracer extends HGraphVisitor implements Tracer {
+  Compiler compiler;
   JavaScriptItemCompilationContext context;
   int indent = 0;
   final EventSink<String> output;
@@ -27,9 +28,11 @@ class HTracer extends HGraphVisitor implements Tracer {
   }
 
   void traceCompilation(String methodName,
-                        JavaScriptItemCompilationContext compilationContext) {
+                        JavaScriptItemCompilationContext compilationContext,
+                        Compiler compiler) {
     if (!enabled) return;
     this.context = compilationContext;
+    this.compiler = compiler;
     traceActive =
         SSA_TRACE_FILTER == null || methodName.contains(SSA_TRACE_FILTER);
     if (!traceActive) return;
@@ -92,7 +95,7 @@ class HTracer extends HGraphVisitor implements Tracer {
 
   void visitBasicBlock(HBasicBlock block) {
     HInstructionStringifier stringifier =
-        new HInstructionStringifier(context, block);
+        new HInstructionStringifier(context, block, compiler);
     assert(block.id != null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -165,21 +168,22 @@ class HTracer extends HGraphVisitor implements Tracer {
 }
 
 class HInstructionStringifier implements HVisitor<String> {
-  JavaScriptItemCompilationContext context;
-  HBasicBlock currentBlock;
+  final Compiler compiler;
+  final JavaScriptItemCompilationContext context;
+  final HBasicBlock currentBlock;
 
-  HInstructionStringifier(this.context, this.currentBlock);
+  HInstructionStringifier(this.context, this.currentBlock, this.compiler);
 
   visit(HInstruction node) => node.accept(this);
 
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.instructionType;
-    if (type == HType.MUTABLE_ARRAY) {
+    if (type.isMutableArray(compiler)) {
       prefix = 'm';
-    } else if (type == HType.READABLE_ARRAY) {
+    } else if (type.isReadableArray(compiler)) {
       prefix = 'a';
-    } else if (type == HType.EXTENDABLE_ARRAY) {
+    } else if (type.isExtendableArray(compiler)) {
       prefix = 'e';
     } else if (type == HType.BOOLEAN) {
       prefix = 'b';
@@ -189,13 +193,13 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 'd';
     } else if (type == HType.NUMBER) {
       prefix = 'n';
-    } else if (type == HType.STRING) {
+    } else if (type.isString(compiler)) {
       prefix = 's';
     } else if (type == HType.UNKNOWN) {
       prefix = 'v';
     } else if (type == HType.CONFLICTING) {
       prefix = 'c';
-    } else if (type == HType.INDEXABLE_PRIMITIVE) {
+    } else if (type.isIndexable(compiler)) {
       prefix = 'r';
     } else if (type == HType.NULL) {
       prefix = 'u';
@@ -505,12 +509,12 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitTypeGuard(HTypeGuard node) {
     String type;
     HType guardedType = node.guardedType;
-    if (guardedType == HType.MUTABLE_ARRAY) {
-      type = "mutable_array";
-    } else if (guardedType == HType.READABLE_ARRAY) {
-      type = "readable_array";
-    } else if (guardedType == HType.EXTENDABLE_ARRAY) {
+    if (guardedType.isExtendableArray(compiler)) {
       type = "extendable_array";
+    } else if (guardedType.isMutableArray(compiler)) {
+      type = "mutable_array";
+    } else if (guardedType.isReadableArray(compiler)) {
+      type = "readable_array";
     } else if (guardedType == HType.BOOLEAN) {
       type = "bool";
     } else if (guardedType == HType.INTEGER) {
@@ -519,9 +523,9 @@ class HInstructionStringifier implements HVisitor<String> {
       type = "double";
     } else if (guardedType == HType.NUMBER) {
       type = "number";
-    } else if (guardedType == HType.STRING) {
+    } else if (guardedType.isString(compiler)) {
       type = "string";
-    } else if (guardedType == HType.INDEXABLE_PRIMITIVE) {
+    } else if (guardedType.isIndexable(compiler)) {
       type = "string_or_array";
     } else if (guardedType == HType.UNKNOWN) {
       type = 'unknown';

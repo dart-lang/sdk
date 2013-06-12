@@ -14,17 +14,10 @@ const BOOLEAN = HType.BOOLEAN;
 const NUMBER = HType.NUMBER;
 const INTEGER = HType.INTEGER;
 const DOUBLE = HType.DOUBLE;
-const INDEXABLE_PRIMITIVE = HType.INDEXABLE_PRIMITIVE;
-const STRING = HType.STRING;
-const READABLE_ARRAY = HType.READABLE_ARRAY;
-const MUTABLE_ARRAY = HType.MUTABLE_ARRAY;
-const FIXED_ARRAY = HType.FIXED_ARRAY;
-const EXTENDABLE_ARRAY = HType.EXTENDABLE_ARRAY;
 const BOOLEAN_OR_NULL = HType.BOOLEAN_OR_NULL;
 const NUMBER_OR_NULL = HType.NUMBER_OR_NULL;
 const INTEGER_OR_NULL = HType.INTEGER_OR_NULL;
 const DOUBLE_OR_NULL = HType.DOUBLE_OR_NULL;
-const STRING_OR_NULL = HType.STRING_OR_NULL;
 const NULL = HType.NULL;
 const NON_NULL = HType.NON_NULL;
 
@@ -35,6 +28,13 @@ HType potentialArray;
 HType potentialString;
 HType jsInterceptor;
 
+HType jsIndexable;
+HType jsReadableArray;
+HType jsMutableArray;
+HType jsFixedArray;
+HType jsExtendableArray;
+HType jsString;
+HType jsStringOrNull;
 HType jsArrayOrNull;
 HType jsMutableArrayOrNull;
 HType jsFixedArrayOrNull;
@@ -107,11 +107,11 @@ void testUnion(MockCompiler compiler) {
   rule(CONFLICTING, NUMBER, NUMBER);
   rule(CONFLICTING, INTEGER, INTEGER);
   rule(CONFLICTING, DOUBLE, DOUBLE);
-  rule(CONFLICTING, INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE);
-  rule(CONFLICTING, STRING, STRING);
-  rule(CONFLICTING, READABLE_ARRAY, READABLE_ARRAY);
-  rule(CONFLICTING, MUTABLE_ARRAY, MUTABLE_ARRAY);
-  rule(CONFLICTING, EXTENDABLE_ARRAY, EXTENDABLE_ARRAY);
+  rule(CONFLICTING, jsIndexable, jsIndexable);
+  rule(CONFLICTING, jsString, jsString);
+  rule(CONFLICTING, jsReadableArray, jsReadableArray);
+  rule(CONFLICTING, jsMutableArray, jsMutableArray);
+  rule(CONFLICTING, jsExtendableArray, jsExtendableArray);
   rule(CONFLICTING, nonPrimitive1, nonPrimitive1);
   rule(CONFLICTING, nonPrimitive2, nonPrimitive2);
   rule(CONFLICTING, potentialArray, potentialArray);
@@ -120,20 +120,20 @@ void testUnion(MockCompiler compiler) {
   rule(CONFLICTING, NUMBER_OR_NULL, NUMBER_OR_NULL);
   rule(CONFLICTING, INTEGER_OR_NULL, INTEGER_OR_NULL);
   rule(CONFLICTING, DOUBLE_OR_NULL, DOUBLE_OR_NULL);
-  rule(CONFLICTING, STRING_OR_NULL, STRING_OR_NULL);
+  rule(CONFLICTING, jsStringOrNull, jsStringOrNull);
   rule(CONFLICTING, NULL, NULL);
-  rule(CONFLICTING, FIXED_ARRAY, FIXED_ARRAY);
+  rule(CONFLICTING, jsFixedArray, jsFixedArray);
 
   rule(UNKNOWN, UNKNOWN, UNKNOWN);
   rule(UNKNOWN, BOOLEAN, UNKNOWN);
   rule(UNKNOWN, NUMBER, UNKNOWN);
   rule(UNKNOWN, INTEGER, UNKNOWN);
   rule(UNKNOWN, DOUBLE, UNKNOWN);
-  rule(UNKNOWN, INDEXABLE_PRIMITIVE, UNKNOWN);
-  rule(UNKNOWN, STRING, UNKNOWN);
-  rule(UNKNOWN, READABLE_ARRAY, UNKNOWN);
-  rule(UNKNOWN, MUTABLE_ARRAY, UNKNOWN);
-  rule(UNKNOWN, EXTENDABLE_ARRAY, UNKNOWN);
+  rule(UNKNOWN, jsIndexable, UNKNOWN);
+  rule(UNKNOWN, jsString, UNKNOWN);
+  rule(UNKNOWN, jsReadableArray, UNKNOWN);
+  rule(UNKNOWN, jsMutableArray, UNKNOWN);
+  rule(UNKNOWN, jsExtendableArray, UNKNOWN);
   rule(UNKNOWN, nonPrimitive1, UNKNOWN);
   rule(UNKNOWN, nonPrimitive2, UNKNOWN);
   rule(UNKNOWN, potentialArray, UNKNOWN);
@@ -142,19 +142,19 @@ void testUnion(MockCompiler compiler) {
   rule(UNKNOWN, NUMBER_OR_NULL, UNKNOWN);
   rule(UNKNOWN, INTEGER_OR_NULL, UNKNOWN);
   rule(UNKNOWN, DOUBLE_OR_NULL, UNKNOWN);
-  rule(UNKNOWN, STRING_OR_NULL, UNKNOWN);
+  rule(UNKNOWN, jsStringOrNull, UNKNOWN);
   rule(UNKNOWN, NULL, UNKNOWN);
-  rule(UNKNOWN, FIXED_ARRAY, UNKNOWN);
+  rule(UNKNOWN, jsFixedArray, UNKNOWN);
 
   rule(BOOLEAN, BOOLEAN, BOOLEAN);
   rule(BOOLEAN, NUMBER, jsInterceptor);
   rule(BOOLEAN, INTEGER, jsInterceptor);
   rule(BOOLEAN, DOUBLE, jsInterceptor);
-  rule(BOOLEAN, INDEXABLE_PRIMITIVE, NON_NULL);
-  rule(BOOLEAN, STRING, jsInterceptor);
-  rule(BOOLEAN, READABLE_ARRAY, jsInterceptor);
-  rule(BOOLEAN, MUTABLE_ARRAY, jsInterceptor);
-  rule(BOOLEAN, EXTENDABLE_ARRAY, jsInterceptor);
+  rule(BOOLEAN, jsIndexable, NON_NULL);
+  rule(BOOLEAN, jsString, jsInterceptor);
+  rule(BOOLEAN, jsReadableArray, jsInterceptor);
+  rule(BOOLEAN, jsMutableArray, jsInterceptor);
+  rule(BOOLEAN, jsExtendableArray, jsInterceptor);
   rule(BOOLEAN, nonPrimitive1, NON_NULL);
   rule(BOOLEAN, nonPrimitive2, NON_NULL);
   rule(BOOLEAN, potentialArray, UNKNOWN);
@@ -163,18 +163,18 @@ void testUnion(MockCompiler compiler) {
   rule(BOOLEAN, NUMBER_OR_NULL, jsInterceptorOrNull);
   rule(BOOLEAN, INTEGER_OR_NULL, jsInterceptorOrNull);
   rule(BOOLEAN, DOUBLE_OR_NULL, jsInterceptorOrNull);
-  rule(BOOLEAN, STRING_OR_NULL, jsInterceptorOrNull);
+  rule(BOOLEAN, jsStringOrNull, jsInterceptorOrNull);
   rule(BOOLEAN, NULL, BOOLEAN_OR_NULL);
-  rule(BOOLEAN, FIXED_ARRAY, jsInterceptor);
+  rule(BOOLEAN, jsFixedArray, jsInterceptor);
 
   rule(NUMBER, NUMBER, NUMBER);
   rule(NUMBER, INTEGER, NUMBER);
   rule(NUMBER, DOUBLE, NUMBER);
-  rule(NUMBER, INDEXABLE_PRIMITIVE, NON_NULL);
-  rule(NUMBER, STRING, jsInterceptor);
-  rule(NUMBER, READABLE_ARRAY, jsInterceptor);
-  rule(NUMBER, MUTABLE_ARRAY, jsInterceptor);
-  rule(NUMBER, EXTENDABLE_ARRAY, jsInterceptor);
+  rule(NUMBER, jsIndexable, NON_NULL);
+  rule(NUMBER, jsString, jsInterceptor);
+  rule(NUMBER, jsReadableArray, jsInterceptor);
+  rule(NUMBER, jsMutableArray, jsInterceptor);
+  rule(NUMBER, jsExtendableArray, jsInterceptor);
   rule(NUMBER, nonPrimitive1, NON_NULL);
   rule(NUMBER, nonPrimitive2, NON_NULL);
   rule(NUMBER, potentialArray, UNKNOWN);
@@ -183,17 +183,17 @@ void testUnion(MockCompiler compiler) {
   rule(NUMBER, NUMBER_OR_NULL, NUMBER_OR_NULL);
   rule(NUMBER, INTEGER_OR_NULL, NUMBER_OR_NULL);
   rule(NUMBER, DOUBLE_OR_NULL, NUMBER_OR_NULL);
-  rule(NUMBER, STRING_OR_NULL, jsInterceptorOrNull);
+  rule(NUMBER, jsStringOrNull, jsInterceptorOrNull);
   rule(NUMBER, NULL, NUMBER_OR_NULL);
-  rule(NUMBER, FIXED_ARRAY, jsInterceptor);
+  rule(NUMBER, jsFixedArray, jsInterceptor);
 
   rule(INTEGER, INTEGER, INTEGER);
   rule(INTEGER, DOUBLE, NUMBER);
-  rule(INTEGER, INDEXABLE_PRIMITIVE, NON_NULL);
-  rule(INTEGER, STRING, jsInterceptor);
-  rule(INTEGER, READABLE_ARRAY, jsInterceptor);
-  rule(INTEGER, MUTABLE_ARRAY, jsInterceptor);
-  rule(INTEGER, EXTENDABLE_ARRAY, jsInterceptor);
+  rule(INTEGER, jsIndexable, NON_NULL);
+  rule(INTEGER, jsString, jsInterceptor);
+  rule(INTEGER, jsReadableArray, jsInterceptor);
+  rule(INTEGER, jsMutableArray, jsInterceptor);
+  rule(INTEGER, jsExtendableArray, jsInterceptor);
   rule(INTEGER, nonPrimitive1, NON_NULL);
   rule(INTEGER, nonPrimitive2, NON_NULL);
   rule(INTEGER, potentialArray, UNKNOWN);
@@ -202,16 +202,16 @@ void testUnion(MockCompiler compiler) {
   rule(INTEGER, NUMBER_OR_NULL, NUMBER_OR_NULL);
   rule(INTEGER, INTEGER_OR_NULL, INTEGER_OR_NULL);
   rule(INTEGER, DOUBLE_OR_NULL, NUMBER_OR_NULL);
-  rule(INTEGER, STRING_OR_NULL, jsInterceptorOrNull);
+  rule(INTEGER, jsStringOrNull, jsInterceptorOrNull);
   rule(INTEGER, NULL, INTEGER_OR_NULL);
-  rule(INTEGER, FIXED_ARRAY, jsInterceptor);
+  rule(INTEGER, jsFixedArray, jsInterceptor);
 
   rule(DOUBLE, DOUBLE, DOUBLE);
-  rule(DOUBLE, INDEXABLE_PRIMITIVE, NON_NULL);
-  rule(DOUBLE, STRING, jsInterceptor);
-  rule(DOUBLE, READABLE_ARRAY, jsInterceptor);
-  rule(DOUBLE, MUTABLE_ARRAY, jsInterceptor);
-  rule(DOUBLE, EXTENDABLE_ARRAY, jsInterceptor);
+  rule(DOUBLE, jsIndexable, NON_NULL);
+  rule(DOUBLE, jsString, jsInterceptor);
+  rule(DOUBLE, jsReadableArray, jsInterceptor);
+  rule(DOUBLE, jsMutableArray, jsInterceptor);
+  rule(DOUBLE, jsExtendableArray, jsInterceptor);
   rule(DOUBLE, nonPrimitive1, NON_NULL);
   rule(DOUBLE, nonPrimitive2, NON_NULL);
   rule(DOUBLE, potentialArray, UNKNOWN);
@@ -220,84 +220,84 @@ void testUnion(MockCompiler compiler) {
   rule(DOUBLE, NUMBER_OR_NULL, NUMBER_OR_NULL);
   rule(DOUBLE, INTEGER_OR_NULL, NUMBER_OR_NULL);
   rule(DOUBLE, DOUBLE_OR_NULL, DOUBLE_OR_NULL);
-  rule(DOUBLE, STRING_OR_NULL, jsInterceptorOrNull);
+  rule(DOUBLE, jsStringOrNull, jsInterceptorOrNull);
   rule(DOUBLE, NULL, DOUBLE_OR_NULL);
-  rule(DOUBLE, FIXED_ARRAY, jsInterceptor);
+  rule(DOUBLE, jsFixedArray, jsInterceptor);
 
-  rule(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE);
-  rule(INDEXABLE_PRIMITIVE, STRING, INDEXABLE_PRIMITIVE);
-  rule(INDEXABLE_PRIMITIVE, READABLE_ARRAY, INDEXABLE_PRIMITIVE);
-  rule(INDEXABLE_PRIMITIVE, MUTABLE_ARRAY, INDEXABLE_PRIMITIVE);
-  rule(INDEXABLE_PRIMITIVE, EXTENDABLE_ARRAY, INDEXABLE_PRIMITIVE);
-  rule(INDEXABLE_PRIMITIVE, nonPrimitive1, NON_NULL);
-  rule(INDEXABLE_PRIMITIVE, nonPrimitive2, NON_NULL);
-  rule(INDEXABLE_PRIMITIVE, potentialArray, UNKNOWN);
-  rule(INDEXABLE_PRIMITIVE, potentialString, UNKNOWN);
-  rule(INDEXABLE_PRIMITIVE, BOOLEAN_OR_NULL, UNKNOWN);
-  rule(INDEXABLE_PRIMITIVE, NUMBER_OR_NULL, UNKNOWN);
-  rule(INDEXABLE_PRIMITIVE, INTEGER_OR_NULL, UNKNOWN);
-  rule(INDEXABLE_PRIMITIVE, DOUBLE_OR_NULL, UNKNOWN);
-  rule(INDEXABLE_PRIMITIVE, STRING_OR_NULL, jsIndexableOrNull);
-  rule(INDEXABLE_PRIMITIVE, NULL, jsIndexableOrNull);
-  rule(INDEXABLE_PRIMITIVE, FIXED_ARRAY, INDEXABLE_PRIMITIVE);
+  rule(jsIndexable, jsIndexable, jsIndexable);
+  rule(jsIndexable, jsString, jsIndexable);
+  rule(jsIndexable, jsReadableArray, jsIndexable);
+  rule(jsIndexable, jsMutableArray, jsIndexable);
+  rule(jsIndexable, jsExtendableArray, jsIndexable);
+  rule(jsIndexable, nonPrimitive1, NON_NULL);
+  rule(jsIndexable, nonPrimitive2, NON_NULL);
+  rule(jsIndexable, potentialArray, UNKNOWN);
+  rule(jsIndexable, potentialString, UNKNOWN);
+  rule(jsIndexable, BOOLEAN_OR_NULL, UNKNOWN);
+  rule(jsIndexable, NUMBER_OR_NULL, UNKNOWN);
+  rule(jsIndexable, INTEGER_OR_NULL, UNKNOWN);
+  rule(jsIndexable, DOUBLE_OR_NULL, UNKNOWN);
+  rule(jsIndexable, jsStringOrNull, jsIndexableOrNull);
+  rule(jsIndexable, NULL, jsIndexableOrNull);
+  rule(jsIndexable, jsFixedArray, jsIndexable);
 
-  rule(STRING, STRING, STRING);
-  rule(STRING, READABLE_ARRAY, INDEXABLE_PRIMITIVE);
-  rule(STRING, MUTABLE_ARRAY, INDEXABLE_PRIMITIVE);
-  rule(STRING, EXTENDABLE_ARRAY, INDEXABLE_PRIMITIVE);
-  rule(STRING, nonPrimitive1, NON_NULL);
-  rule(STRING, nonPrimitive2, NON_NULL);
-  rule(STRING, potentialArray, UNKNOWN);
-  rule(STRING, potentialString, potentialString);
-  rule(STRING, BOOLEAN_OR_NULL, jsInterceptorOrNull);
-  rule(STRING, NUMBER_OR_NULL, jsInterceptorOrNull);
-  rule(STRING, INTEGER_OR_NULL, jsInterceptorOrNull);
-  rule(STRING, DOUBLE_OR_NULL, jsInterceptorOrNull);
-  rule(STRING, STRING_OR_NULL, STRING_OR_NULL);
-  rule(STRING, NULL, STRING_OR_NULL);
-  rule(STRING, FIXED_ARRAY, INDEXABLE_PRIMITIVE);
+  rule(jsString, jsString, jsString);
+  rule(jsString, jsReadableArray, jsIndexable);
+  rule(jsString, jsMutableArray, jsIndexable);
+  rule(jsString, jsExtendableArray, jsIndexable);
+  rule(jsString, nonPrimitive1, NON_NULL);
+  rule(jsString, nonPrimitive2, NON_NULL);
+  rule(jsString, potentialArray, UNKNOWN);
+  rule(jsString, potentialString, potentialString);
+  rule(jsString, BOOLEAN_OR_NULL, jsInterceptorOrNull);
+  rule(jsString, NUMBER_OR_NULL, jsInterceptorOrNull);
+  rule(jsString, INTEGER_OR_NULL, jsInterceptorOrNull);
+  rule(jsString, DOUBLE_OR_NULL, jsInterceptorOrNull);
+  rule(jsString, jsStringOrNull, jsStringOrNull);
+  rule(jsString, NULL, jsStringOrNull);
+  rule(jsString, jsFixedArray, jsIndexable);
 
-  rule(READABLE_ARRAY, READABLE_ARRAY, READABLE_ARRAY);
-  rule(READABLE_ARRAY, MUTABLE_ARRAY, READABLE_ARRAY);
-  rule(READABLE_ARRAY, EXTENDABLE_ARRAY, READABLE_ARRAY);
-  rule(READABLE_ARRAY, nonPrimitive1, NON_NULL);
-  rule(READABLE_ARRAY, nonPrimitive2, NON_NULL);
-  rule(READABLE_ARRAY, potentialArray, potentialArray);
-  rule(READABLE_ARRAY, potentialString, UNKNOWN);
-  rule(READABLE_ARRAY, BOOLEAN_OR_NULL, jsInterceptorOrNull);
-  rule(READABLE_ARRAY, NUMBER_OR_NULL, jsInterceptorOrNull);
-  rule(READABLE_ARRAY, INTEGER_OR_NULL, jsInterceptorOrNull);
-  rule(READABLE_ARRAY, DOUBLE_OR_NULL, jsInterceptorOrNull);
-  rule(READABLE_ARRAY, STRING_OR_NULL, jsIndexableOrNull);
-  rule(READABLE_ARRAY, NULL, jsArrayOrNull);
-  rule(READABLE_ARRAY, FIXED_ARRAY, READABLE_ARRAY);
+  rule(jsReadableArray, jsReadableArray, jsReadableArray);
+  rule(jsReadableArray, jsMutableArray, jsReadableArray);
+  rule(jsReadableArray, jsExtendableArray, jsReadableArray);
+  rule(jsReadableArray, nonPrimitive1, NON_NULL);
+  rule(jsReadableArray, nonPrimitive2, NON_NULL);
+  rule(jsReadableArray, potentialArray, potentialArray);
+  rule(jsReadableArray, potentialString, UNKNOWN);
+  rule(jsReadableArray, BOOLEAN_OR_NULL, jsInterceptorOrNull);
+  rule(jsReadableArray, NUMBER_OR_NULL, jsInterceptorOrNull);
+  rule(jsReadableArray, INTEGER_OR_NULL, jsInterceptorOrNull);
+  rule(jsReadableArray, DOUBLE_OR_NULL, jsInterceptorOrNull);
+  rule(jsReadableArray, jsStringOrNull, jsIndexableOrNull);
+  rule(jsReadableArray, NULL, jsArrayOrNull);
+  rule(jsReadableArray, jsFixedArray, jsReadableArray);
 
-  rule(MUTABLE_ARRAY, MUTABLE_ARRAY, MUTABLE_ARRAY);
-  rule(MUTABLE_ARRAY, EXTENDABLE_ARRAY, MUTABLE_ARRAY);
-  rule(MUTABLE_ARRAY, nonPrimitive1, NON_NULL);
-  rule(MUTABLE_ARRAY, nonPrimitive2, NON_NULL);
-  rule(MUTABLE_ARRAY, potentialArray, potentialArray);
-  rule(MUTABLE_ARRAY, potentialString, UNKNOWN);
-  rule(MUTABLE_ARRAY, BOOLEAN_OR_NULL, jsInterceptorOrNull);
-  rule(MUTABLE_ARRAY, NUMBER_OR_NULL, jsInterceptorOrNull);
-  rule(MUTABLE_ARRAY, INTEGER_OR_NULL, jsInterceptorOrNull);
-  rule(MUTABLE_ARRAY, DOUBLE_OR_NULL, jsInterceptorOrNull);
-  rule(MUTABLE_ARRAY, STRING_OR_NULL, jsIndexableOrNull);
-  rule(MUTABLE_ARRAY, NULL, jsMutableArrayOrNull);
-  rule(MUTABLE_ARRAY, FIXED_ARRAY, MUTABLE_ARRAY);
+  rule(jsMutableArray, jsMutableArray, jsMutableArray);
+  rule(jsMutableArray, jsExtendableArray, jsMutableArray);
+  rule(jsMutableArray, nonPrimitive1, NON_NULL);
+  rule(jsMutableArray, nonPrimitive2, NON_NULL);
+  rule(jsMutableArray, potentialArray, potentialArray);
+  rule(jsMutableArray, potentialString, UNKNOWN);
+  rule(jsMutableArray, BOOLEAN_OR_NULL, jsInterceptorOrNull);
+  rule(jsMutableArray, NUMBER_OR_NULL, jsInterceptorOrNull);
+  rule(jsMutableArray, INTEGER_OR_NULL, jsInterceptorOrNull);
+  rule(jsMutableArray, DOUBLE_OR_NULL, jsInterceptorOrNull);
+  rule(jsMutableArray, jsStringOrNull, jsIndexableOrNull);
+  rule(jsMutableArray, NULL, jsMutableArrayOrNull);
+  rule(jsMutableArray, jsFixedArray, jsMutableArray);
 
-  rule(EXTENDABLE_ARRAY, EXTENDABLE_ARRAY, EXTENDABLE_ARRAY);
-  rule(EXTENDABLE_ARRAY, nonPrimitive1, NON_NULL);
-  rule(EXTENDABLE_ARRAY, nonPrimitive2, NON_NULL);
-  rule(EXTENDABLE_ARRAY, potentialArray, potentialArray);
-  rule(EXTENDABLE_ARRAY, potentialString, UNKNOWN);
-  rule(EXTENDABLE_ARRAY, BOOLEAN_OR_NULL, jsInterceptorOrNull);
-  rule(EXTENDABLE_ARRAY, NUMBER_OR_NULL, jsInterceptorOrNull);
-  rule(EXTENDABLE_ARRAY, INTEGER_OR_NULL, jsInterceptorOrNull);
-  rule(EXTENDABLE_ARRAY, DOUBLE_OR_NULL, jsInterceptorOrNull);
-  rule(EXTENDABLE_ARRAY, STRING_OR_NULL, jsIndexableOrNull);
-  rule(EXTENDABLE_ARRAY, NULL, jsExtendableArrayOrNull);
-  rule(EXTENDABLE_ARRAY, FIXED_ARRAY, MUTABLE_ARRAY);
+  rule(jsExtendableArray, jsExtendableArray, jsExtendableArray);
+  rule(jsExtendableArray, nonPrimitive1, NON_NULL);
+  rule(jsExtendableArray, nonPrimitive2, NON_NULL);
+  rule(jsExtendableArray, potentialArray, potentialArray);
+  rule(jsExtendableArray, potentialString, UNKNOWN);
+  rule(jsExtendableArray, BOOLEAN_OR_NULL, jsInterceptorOrNull);
+  rule(jsExtendableArray, NUMBER_OR_NULL, jsInterceptorOrNull);
+  rule(jsExtendableArray, INTEGER_OR_NULL, jsInterceptorOrNull);
+  rule(jsExtendableArray, DOUBLE_OR_NULL, jsInterceptorOrNull);
+  rule(jsExtendableArray, jsStringOrNull, jsIndexableOrNull);
+  rule(jsExtendableArray, NULL, jsExtendableArrayOrNull);
+  rule(jsExtendableArray, jsFixedArray, jsMutableArray);
 
   rule(nonPrimitive1, nonPrimitive1, nonPrimitive1);
   rule(nonPrimitive1, nonPrimitive2, NON_NULL);
@@ -307,8 +307,8 @@ void testUnion(MockCompiler compiler) {
   rule(nonPrimitive1, NUMBER_OR_NULL, UNKNOWN);
   rule(nonPrimitive1, INTEGER_OR_NULL, UNKNOWN);
   rule(nonPrimitive1, DOUBLE_OR_NULL, UNKNOWN);
-  rule(nonPrimitive1, STRING_OR_NULL, UNKNOWN);
-  rule(nonPrimitive1, FIXED_ARRAY, NON_NULL);
+  rule(nonPrimitive1, jsStringOrNull, UNKNOWN);
+  rule(nonPrimitive1, jsFixedArray, NON_NULL);
 
   rule(nonPrimitive2, nonPrimitive2, nonPrimitive2);
   rule(nonPrimitive2, potentialArray, UNKNOWN);
@@ -317,8 +317,8 @@ void testUnion(MockCompiler compiler) {
   rule(nonPrimitive2, NUMBER_OR_NULL, UNKNOWN);
   rule(nonPrimitive2, INTEGER_OR_NULL, UNKNOWN);
   rule(nonPrimitive2, DOUBLE_OR_NULL, UNKNOWN);
-  rule(nonPrimitive2, STRING_OR_NULL, UNKNOWN);
-  rule(nonPrimitive2, FIXED_ARRAY, NON_NULL);
+  rule(nonPrimitive2, jsStringOrNull, UNKNOWN);
+  rule(nonPrimitive2, jsFixedArray, NON_NULL);
 
   rule(potentialArray, potentialArray, potentialArray);
   rule(potentialArray, potentialString, UNKNOWN);
@@ -326,53 +326,53 @@ void testUnion(MockCompiler compiler) {
   rule(potentialArray, NUMBER_OR_NULL, UNKNOWN);
   rule(potentialArray, INTEGER_OR_NULL, UNKNOWN);
   rule(potentialArray, DOUBLE_OR_NULL, UNKNOWN);
-  rule(potentialArray, STRING_OR_NULL, UNKNOWN);
+  rule(potentialArray, jsStringOrNull, UNKNOWN);
   rule(potentialArray, NULL, potentialArray);
-  rule(potentialArray, FIXED_ARRAY, potentialArray);
+  rule(potentialArray, jsFixedArray, potentialArray);
 
   rule(potentialString, potentialString, potentialString);
   rule(potentialString, BOOLEAN_OR_NULL, UNKNOWN);
   rule(potentialString, NUMBER_OR_NULL, UNKNOWN);
   rule(potentialString, INTEGER_OR_NULL, UNKNOWN);
   rule(potentialString, DOUBLE_OR_NULL, UNKNOWN);
-  rule(potentialString, STRING_OR_NULL, potentialString);
+  rule(potentialString, jsStringOrNull, potentialString);
   rule(potentialString, NULL, potentialString);
-  rule(potentialString, FIXED_ARRAY, UNKNOWN);
+  rule(potentialString, jsFixedArray, UNKNOWN);
 
   rule(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL, BOOLEAN_OR_NULL);
   rule(BOOLEAN_OR_NULL, NUMBER_OR_NULL, jsInterceptorOrNull);
   rule(BOOLEAN_OR_NULL, INTEGER_OR_NULL, jsInterceptorOrNull);
   rule(BOOLEAN_OR_NULL, DOUBLE_OR_NULL, jsInterceptorOrNull);
-  rule(BOOLEAN_OR_NULL, STRING_OR_NULL, jsInterceptorOrNull);
+  rule(BOOLEAN_OR_NULL, jsStringOrNull, jsInterceptorOrNull);
   rule(BOOLEAN_OR_NULL, NULL, BOOLEAN_OR_NULL);
-  rule(BOOLEAN_OR_NULL, FIXED_ARRAY, jsInterceptorOrNull);
+  rule(BOOLEAN_OR_NULL, jsFixedArray, jsInterceptorOrNull);
 
   rule(NUMBER_OR_NULL, NUMBER_OR_NULL, NUMBER_OR_NULL);
   rule(NUMBER_OR_NULL, INTEGER_OR_NULL, NUMBER_OR_NULL);
   rule(NUMBER_OR_NULL, DOUBLE_OR_NULL, NUMBER_OR_NULL);
-  rule(NUMBER_OR_NULL, STRING_OR_NULL, jsInterceptorOrNull);
+  rule(NUMBER_OR_NULL, jsStringOrNull, jsInterceptorOrNull);
   rule(NUMBER_OR_NULL, NULL, NUMBER_OR_NULL);
-  rule(NUMBER_OR_NULL, FIXED_ARRAY, jsInterceptorOrNull);
+  rule(NUMBER_OR_NULL, jsFixedArray, jsInterceptorOrNull);
 
   rule(INTEGER_OR_NULL, INTEGER_OR_NULL, INTEGER_OR_NULL);
   rule(INTEGER_OR_NULL, DOUBLE_OR_NULL, NUMBER_OR_NULL);
-  rule(INTEGER_OR_NULL, STRING_OR_NULL, jsInterceptorOrNull);
+  rule(INTEGER_OR_NULL, jsStringOrNull, jsInterceptorOrNull);
   rule(INTEGER_OR_NULL, NULL, INTEGER_OR_NULL);
-  rule(INTEGER_OR_NULL, FIXED_ARRAY, jsInterceptorOrNull);
+  rule(INTEGER_OR_NULL, jsFixedArray, jsInterceptorOrNull);
 
   rule(DOUBLE_OR_NULL, DOUBLE_OR_NULL, DOUBLE_OR_NULL);
-  rule(DOUBLE_OR_NULL, STRING_OR_NULL, jsInterceptorOrNull);
+  rule(DOUBLE_OR_NULL, jsStringOrNull, jsInterceptorOrNull);
   rule(DOUBLE_OR_NULL, NULL, DOUBLE_OR_NULL);
-  rule(DOUBLE_OR_NULL, FIXED_ARRAY, jsInterceptorOrNull);
+  rule(DOUBLE_OR_NULL, jsFixedArray, jsInterceptorOrNull);
 
-  rule(STRING_OR_NULL, STRING_OR_NULL, STRING_OR_NULL);
-  rule(STRING_OR_NULL, NULL, STRING_OR_NULL);
-  rule(STRING_OR_NULL, FIXED_ARRAY, jsIndexableOrNull);
+  rule(jsStringOrNull, jsStringOrNull, jsStringOrNull);
+  rule(jsStringOrNull, NULL, jsStringOrNull);
+  rule(jsStringOrNull, jsFixedArray, jsIndexableOrNull);
 
   rule(NULL, NULL, NULL);
-  rule(NULL, FIXED_ARRAY, jsFixedArrayOrNull);
+  rule(NULL, jsFixedArray, jsFixedArrayOrNull);
 
-  rule(FIXED_ARRAY, FIXED_ARRAY, FIXED_ARRAY);
+  rule(jsFixedArray, jsFixedArray, jsFixedArray);
 
   check(nonPrimitive1, NULL, (type) => type is HBoundedType);
   check(nonPrimitive2, NULL, (type) => type is HBoundedType);
@@ -393,11 +393,11 @@ void testIntersection(MockCompiler compiler) {
   rule(CONFLICTING, NUMBER, CONFLICTING);
   rule(CONFLICTING, INTEGER, CONFLICTING);
   rule(CONFLICTING, DOUBLE, CONFLICTING);
-  rule(CONFLICTING, INDEXABLE_PRIMITIVE, CONFLICTING);
-  rule(CONFLICTING, STRING, CONFLICTING);
-  rule(CONFLICTING, READABLE_ARRAY, CONFLICTING);
-  rule(CONFLICTING, MUTABLE_ARRAY, CONFLICTING);
-  rule(CONFLICTING, EXTENDABLE_ARRAY, CONFLICTING);
+  rule(CONFLICTING, jsIndexable, CONFLICTING);
+  rule(CONFLICTING, jsString, CONFLICTING);
+  rule(CONFLICTING, jsReadableArray, CONFLICTING);
+  rule(CONFLICTING, jsMutableArray, CONFLICTING);
+  rule(CONFLICTING, jsExtendableArray, CONFLICTING);
   rule(CONFLICTING, nonPrimitive1, CONFLICTING);
   rule(CONFLICTING, nonPrimitive2, CONFLICTING);
   rule(CONFLICTING, potentialArray, CONFLICTING);
@@ -406,20 +406,20 @@ void testIntersection(MockCompiler compiler) {
   rule(CONFLICTING, NUMBER_OR_NULL, CONFLICTING);
   rule(CONFLICTING, INTEGER_OR_NULL, CONFLICTING);
   rule(CONFLICTING, DOUBLE_OR_NULL, CONFLICTING);
-  rule(CONFLICTING, STRING_OR_NULL, CONFLICTING);
+  rule(CONFLICTING, jsStringOrNull, CONFLICTING);
   rule(CONFLICTING, NULL, CONFLICTING);
-  rule(CONFLICTING, FIXED_ARRAY, CONFLICTING);
+  rule(CONFLICTING, jsFixedArray, CONFLICTING);
 
   rule(UNKNOWN, UNKNOWN, UNKNOWN);
   rule(UNKNOWN, BOOLEAN, BOOLEAN);
   rule(UNKNOWN, NUMBER, NUMBER);
   rule(UNKNOWN, INTEGER, INTEGER);
   rule(UNKNOWN, DOUBLE, DOUBLE);
-  rule(UNKNOWN, INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE);
-  rule(UNKNOWN, STRING, STRING);
-  rule(UNKNOWN, READABLE_ARRAY, READABLE_ARRAY);
-  rule(UNKNOWN, MUTABLE_ARRAY, MUTABLE_ARRAY);
-  rule(UNKNOWN, EXTENDABLE_ARRAY, EXTENDABLE_ARRAY);
+  rule(UNKNOWN, jsIndexable, jsIndexable);
+  rule(UNKNOWN, jsString, jsString);
+  rule(UNKNOWN, jsReadableArray, jsReadableArray);
+  rule(UNKNOWN, jsMutableArray, jsMutableArray);
+  rule(UNKNOWN, jsExtendableArray, jsExtendableArray);
   rule(UNKNOWN, nonPrimitive1, nonPrimitive1);
   rule(UNKNOWN, nonPrimitive2, nonPrimitive2);
   rule(UNKNOWN, potentialArray, potentialArray);
@@ -428,19 +428,19 @@ void testIntersection(MockCompiler compiler) {
   rule(UNKNOWN, NUMBER_OR_NULL, NUMBER_OR_NULL);
   rule(UNKNOWN, INTEGER_OR_NULL, INTEGER_OR_NULL);
   rule(UNKNOWN, DOUBLE_OR_NULL, DOUBLE_OR_NULL);
-  rule(UNKNOWN, STRING_OR_NULL, STRING_OR_NULL);
+  rule(UNKNOWN, jsStringOrNull, jsStringOrNull);
   rule(UNKNOWN, NULL, NULL);
-  rule(UNKNOWN, FIXED_ARRAY, FIXED_ARRAY);
+  rule(UNKNOWN, jsFixedArray, jsFixedArray);
 
   rule(BOOLEAN, BOOLEAN, BOOLEAN);
   rule(BOOLEAN, NUMBER, CONFLICTING);
   rule(BOOLEAN, INTEGER, CONFLICTING);
   rule(BOOLEAN, DOUBLE, CONFLICTING);
-  rule(BOOLEAN, INDEXABLE_PRIMITIVE, CONFLICTING);
-  rule(BOOLEAN, STRING, CONFLICTING);
-  rule(BOOLEAN, READABLE_ARRAY, CONFLICTING);
-  rule(BOOLEAN, MUTABLE_ARRAY, CONFLICTING);
-  rule(BOOLEAN, EXTENDABLE_ARRAY, CONFLICTING);
+  rule(BOOLEAN, jsIndexable, CONFLICTING);
+  rule(BOOLEAN, jsString, CONFLICTING);
+  rule(BOOLEAN, jsReadableArray, CONFLICTING);
+  rule(BOOLEAN, jsMutableArray, CONFLICTING);
+  rule(BOOLEAN, jsExtendableArray, CONFLICTING);
   rule(BOOLEAN, nonPrimitive1, CONFLICTING);
   rule(BOOLEAN, nonPrimitive2, CONFLICTING);
   rule(BOOLEAN, potentialArray, CONFLICTING);
@@ -449,18 +449,18 @@ void testIntersection(MockCompiler compiler) {
   rule(BOOLEAN, NUMBER_OR_NULL, CONFLICTING);
   rule(BOOLEAN, INTEGER_OR_NULL, CONFLICTING);
   rule(BOOLEAN, DOUBLE_OR_NULL, CONFLICTING);
-  rule(BOOLEAN, STRING_OR_NULL, CONFLICTING);
+  rule(BOOLEAN, jsStringOrNull, CONFLICTING);
   rule(BOOLEAN, NULL, CONFLICTING);
-  rule(BOOLEAN, FIXED_ARRAY, CONFLICTING);
+  rule(BOOLEAN, jsFixedArray, CONFLICTING);
 
   rule(NUMBER, NUMBER, NUMBER);
   rule(NUMBER, INTEGER, INTEGER);
   rule(NUMBER, DOUBLE, DOUBLE);
-  rule(NUMBER, INDEXABLE_PRIMITIVE, CONFLICTING);
-  rule(NUMBER, STRING, CONFLICTING);
-  rule(NUMBER, READABLE_ARRAY, CONFLICTING);
-  rule(NUMBER, MUTABLE_ARRAY, CONFLICTING);
-  rule(NUMBER, EXTENDABLE_ARRAY, CONFLICTING);
+  rule(NUMBER, jsIndexable, CONFLICTING);
+  rule(NUMBER, jsString, CONFLICTING);
+  rule(NUMBER, jsReadableArray, CONFLICTING);
+  rule(NUMBER, jsMutableArray, CONFLICTING);
+  rule(NUMBER, jsExtendableArray, CONFLICTING);
   rule(NUMBER, nonPrimitive1, CONFLICTING);
   rule(NUMBER, nonPrimitive2, CONFLICTING);
   rule(NUMBER, potentialArray, CONFLICTING);
@@ -469,17 +469,17 @@ void testIntersection(MockCompiler compiler) {
   rule(NUMBER, NUMBER_OR_NULL, NUMBER);
   rule(NUMBER, INTEGER_OR_NULL, INTEGER);
   rule(NUMBER, DOUBLE_OR_NULL, DOUBLE);
-  rule(NUMBER, STRING_OR_NULL, CONFLICTING);
+  rule(NUMBER, jsStringOrNull, CONFLICTING);
   rule(NUMBER, NULL, CONFLICTING);
-  rule(NUMBER, FIXED_ARRAY, CONFLICTING);
+  rule(NUMBER, jsFixedArray, CONFLICTING);
 
   rule(INTEGER, INTEGER, INTEGER);
   rule(INTEGER, DOUBLE, CONFLICTING);
-  rule(INTEGER, INDEXABLE_PRIMITIVE, CONFLICTING);
-  rule(INTEGER, STRING, CONFLICTING);
-  rule(INTEGER, READABLE_ARRAY, CONFLICTING);
-  rule(INTEGER, MUTABLE_ARRAY, CONFLICTING);
-  rule(INTEGER, EXTENDABLE_ARRAY, CONFLICTING);
+  rule(INTEGER, jsIndexable, CONFLICTING);
+  rule(INTEGER, jsString, CONFLICTING);
+  rule(INTEGER, jsReadableArray, CONFLICTING);
+  rule(INTEGER, jsMutableArray, CONFLICTING);
+  rule(INTEGER, jsExtendableArray, CONFLICTING);
   rule(INTEGER, nonPrimitive1, CONFLICTING);
   rule(INTEGER, nonPrimitive2, CONFLICTING);
   rule(INTEGER, potentialArray, CONFLICTING);
@@ -488,16 +488,16 @@ void testIntersection(MockCompiler compiler) {
   rule(INTEGER, NUMBER_OR_NULL, INTEGER);
   rule(INTEGER, INTEGER_OR_NULL, INTEGER);
   rule(INTEGER, DOUBLE_OR_NULL, CONFLICTING);
-  rule(INTEGER, STRING_OR_NULL, CONFLICTING);
+  rule(INTEGER, jsStringOrNull, CONFLICTING);
   rule(INTEGER, NULL, CONFLICTING);
-  rule(INTEGER, FIXED_ARRAY, CONFLICTING);
+  rule(INTEGER, jsFixedArray, CONFLICTING);
 
   rule(DOUBLE, DOUBLE, DOUBLE);
-  rule(DOUBLE, INDEXABLE_PRIMITIVE, CONFLICTING);
-  rule(DOUBLE, STRING, CONFLICTING);
-  rule(DOUBLE, READABLE_ARRAY, CONFLICTING);
-  rule(DOUBLE, MUTABLE_ARRAY, CONFLICTING);
-  rule(DOUBLE, EXTENDABLE_ARRAY, CONFLICTING);
+  rule(DOUBLE, jsIndexable, CONFLICTING);
+  rule(DOUBLE, jsString, CONFLICTING);
+  rule(DOUBLE, jsReadableArray, CONFLICTING);
+  rule(DOUBLE, jsMutableArray, CONFLICTING);
+  rule(DOUBLE, jsExtendableArray, CONFLICTING);
   rule(DOUBLE, nonPrimitive1, CONFLICTING);
   rule(DOUBLE, nonPrimitive2, CONFLICTING);
   rule(DOUBLE, potentialArray, CONFLICTING);
@@ -506,84 +506,85 @@ void testIntersection(MockCompiler compiler) {
   rule(DOUBLE, NUMBER_OR_NULL, DOUBLE);
   rule(DOUBLE, INTEGER_OR_NULL, CONFLICTING);
   rule(DOUBLE, DOUBLE_OR_NULL, DOUBLE);
-  rule(DOUBLE, STRING_OR_NULL, CONFLICTING);
+  rule(DOUBLE, jsStringOrNull, CONFLICTING);
   rule(DOUBLE, NULL, CONFLICTING);
-  rule(DOUBLE, FIXED_ARRAY, CONFLICTING);
+  rule(DOUBLE, jsFixedArray, CONFLICTING);
 
-  rule(INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE, INDEXABLE_PRIMITIVE);
-  rule(INDEXABLE_PRIMITIVE, STRING, STRING);
-  rule(INDEXABLE_PRIMITIVE, READABLE_ARRAY, READABLE_ARRAY);
-  rule(INDEXABLE_PRIMITIVE, MUTABLE_ARRAY, MUTABLE_ARRAY);
-  rule(INDEXABLE_PRIMITIVE, EXTENDABLE_ARRAY, EXTENDABLE_ARRAY);
-  rule(INDEXABLE_PRIMITIVE, nonPrimitive1, CONFLICTING);
-  rule(INDEXABLE_PRIMITIVE, nonPrimitive2, CONFLICTING);
-  rule(INDEXABLE_PRIMITIVE, potentialArray, READABLE_ARRAY);
-  rule(INDEXABLE_PRIMITIVE, potentialString, STRING);
-  rule(INDEXABLE_PRIMITIVE, BOOLEAN_OR_NULL, CONFLICTING);
-  rule(INDEXABLE_PRIMITIVE, NUMBER_OR_NULL, CONFLICTING);
-  rule(INDEXABLE_PRIMITIVE, INTEGER_OR_NULL, CONFLICTING);
-  rule(INDEXABLE_PRIMITIVE, DOUBLE_OR_NULL, CONFLICTING);
-  rule(INDEXABLE_PRIMITIVE, STRING_OR_NULL, STRING);
-  rule(INDEXABLE_PRIMITIVE, NULL, CONFLICTING);
-  rule(INDEXABLE_PRIMITIVE, FIXED_ARRAY, FIXED_ARRAY);
+  rule(jsIndexable, jsIndexable, jsIndexable);
+  rule(jsIndexable, jsString, jsString);
+  rule(jsIndexable, jsReadableArray, jsReadableArray);
+  rule(jsIndexable, jsMutableArray, jsMutableArray);
+  rule(jsIndexable, jsExtendableArray, jsExtendableArray);
+  rule(jsIndexable, nonPrimitive1, CONFLICTING);
+  rule(jsIndexable, nonPrimitive2, CONFLICTING);
+  rule(jsIndexable, potentialArray, new HType.nonNullSubtype(
+      compiler.backend.jsArrayClass.computeType(compiler), compiler));
+  rule(jsIndexable, potentialString, jsString);
+  rule(jsIndexable, BOOLEAN_OR_NULL, CONFLICTING);
+  rule(jsIndexable, NUMBER_OR_NULL, CONFLICTING);
+  rule(jsIndexable, INTEGER_OR_NULL, CONFLICTING);
+  rule(jsIndexable, DOUBLE_OR_NULL, CONFLICTING);
+  rule(jsIndexable, jsStringOrNull, jsString);
+  rule(jsIndexable, NULL, CONFLICTING);
+  rule(jsIndexable, jsFixedArray, jsFixedArray);
 
-  rule(STRING, STRING, STRING);
-  rule(STRING, READABLE_ARRAY, CONFLICTING);
-  rule(STRING, MUTABLE_ARRAY, CONFLICTING);
-  rule(STRING, EXTENDABLE_ARRAY, CONFLICTING);
-  rule(STRING, nonPrimitive1, CONFLICTING);
-  rule(STRING, nonPrimitive2, CONFLICTING);
-  rule(STRING, potentialArray, CONFLICTING);
-  rule(STRING, potentialString, STRING);
-  rule(STRING, BOOLEAN_OR_NULL, CONFLICTING);
-  rule(STRING, NUMBER_OR_NULL, CONFLICTING);
-  rule(STRING, INTEGER_OR_NULL, CONFLICTING);
-  rule(STRING, DOUBLE_OR_NULL, CONFLICTING);
-  rule(STRING, STRING_OR_NULL, STRING);
-  rule(STRING, NULL, CONFLICTING);
-  rule(STRING, FIXED_ARRAY, CONFLICTING);
+  rule(jsString, jsString, jsString);
+  rule(jsString, jsReadableArray, CONFLICTING);
+  rule(jsString, jsMutableArray, CONFLICTING);
+  rule(jsString, jsExtendableArray, CONFLICTING);
+  rule(jsString, nonPrimitive1, CONFLICTING);
+  rule(jsString, nonPrimitive2, CONFLICTING);
+  rule(jsString, potentialArray, CONFLICTING);
+  rule(jsString, potentialString, jsString);
+  rule(jsString, BOOLEAN_OR_NULL, CONFLICTING);
+  rule(jsString, NUMBER_OR_NULL, CONFLICTING);
+  rule(jsString, INTEGER_OR_NULL, CONFLICTING);
+  rule(jsString, DOUBLE_OR_NULL, CONFLICTING);
+  rule(jsString, jsStringOrNull, jsString);
+  rule(jsString, NULL, CONFLICTING);
+  rule(jsString, jsFixedArray, CONFLICTING);
 
-  rule(READABLE_ARRAY, READABLE_ARRAY, READABLE_ARRAY);
-  rule(READABLE_ARRAY, MUTABLE_ARRAY, MUTABLE_ARRAY);
-  rule(READABLE_ARRAY, EXTENDABLE_ARRAY, EXTENDABLE_ARRAY);
-  rule(READABLE_ARRAY, nonPrimitive1, CONFLICTING);
-  rule(READABLE_ARRAY, nonPrimitive2, CONFLICTING);
-  rule(READABLE_ARRAY, potentialArray, READABLE_ARRAY);
-  rule(READABLE_ARRAY, potentialString, CONFLICTING);
-  rule(READABLE_ARRAY, BOOLEAN_OR_NULL, CONFLICTING);
-  rule(READABLE_ARRAY, NUMBER_OR_NULL, CONFLICTING);
-  rule(READABLE_ARRAY, INTEGER_OR_NULL, CONFLICTING);
-  rule(READABLE_ARRAY, DOUBLE_OR_NULL, CONFLICTING);
-  rule(READABLE_ARRAY, STRING_OR_NULL, CONFLICTING);
-  rule(READABLE_ARRAY, NULL, CONFLICTING);
-  rule(READABLE_ARRAY, FIXED_ARRAY, FIXED_ARRAY);
+  rule(jsReadableArray, jsReadableArray, jsReadableArray);
+  rule(jsReadableArray, jsMutableArray, jsMutableArray);
+  rule(jsReadableArray, jsExtendableArray, jsExtendableArray);
+  rule(jsReadableArray, nonPrimitive1, CONFLICTING);
+  rule(jsReadableArray, nonPrimitive2, CONFLICTING);
+  rule(jsReadableArray, potentialArray, jsReadableArray);
+  rule(jsReadableArray, potentialString, CONFLICTING);
+  rule(jsReadableArray, BOOLEAN_OR_NULL, CONFLICTING);
+  rule(jsReadableArray, NUMBER_OR_NULL, CONFLICTING);
+  rule(jsReadableArray, INTEGER_OR_NULL, CONFLICTING);
+  rule(jsReadableArray, DOUBLE_OR_NULL, CONFLICTING);
+  rule(jsReadableArray, jsStringOrNull, CONFLICTING);
+  rule(jsReadableArray, NULL, CONFLICTING);
+  rule(jsReadableArray, jsFixedArray, jsFixedArray);
 
-  rule(MUTABLE_ARRAY, MUTABLE_ARRAY, MUTABLE_ARRAY);
-  rule(MUTABLE_ARRAY, EXTENDABLE_ARRAY, EXTENDABLE_ARRAY);
-  rule(MUTABLE_ARRAY, nonPrimitive1, CONFLICTING);
-  rule(MUTABLE_ARRAY, nonPrimitive2, CONFLICTING);
-  rule(MUTABLE_ARRAY, potentialArray, MUTABLE_ARRAY);
-  rule(MUTABLE_ARRAY, potentialString, CONFLICTING);
-  rule(MUTABLE_ARRAY, BOOLEAN_OR_NULL, CONFLICTING);
-  rule(MUTABLE_ARRAY, NUMBER_OR_NULL, CONFLICTING);
-  rule(MUTABLE_ARRAY, INTEGER_OR_NULL, CONFLICTING);
-  rule(MUTABLE_ARRAY, DOUBLE_OR_NULL, CONFLICTING);
-  rule(MUTABLE_ARRAY, STRING_OR_NULL, CONFLICTING);
-  rule(MUTABLE_ARRAY, NULL, CONFLICTING);
-  rule(MUTABLE_ARRAY, FIXED_ARRAY, FIXED_ARRAY);
+  rule(jsMutableArray, jsMutableArray, jsMutableArray);
+  rule(jsMutableArray, jsExtendableArray, jsExtendableArray);
+  rule(jsMutableArray, nonPrimitive1, CONFLICTING);
+  rule(jsMutableArray, nonPrimitive2, CONFLICTING);
+  rule(jsMutableArray, potentialArray, jsMutableArray);
+  rule(jsMutableArray, potentialString, CONFLICTING);
+  rule(jsMutableArray, BOOLEAN_OR_NULL, CONFLICTING);
+  rule(jsMutableArray, NUMBER_OR_NULL, CONFLICTING);
+  rule(jsMutableArray, INTEGER_OR_NULL, CONFLICTING);
+  rule(jsMutableArray, DOUBLE_OR_NULL, CONFLICTING);
+  rule(jsMutableArray, jsStringOrNull, CONFLICTING);
+  rule(jsMutableArray, NULL, CONFLICTING);
+  rule(jsMutableArray, jsFixedArray, jsFixedArray);
 
-  rule(EXTENDABLE_ARRAY, EXTENDABLE_ARRAY, EXTENDABLE_ARRAY);
-  rule(EXTENDABLE_ARRAY, nonPrimitive1, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, nonPrimitive2, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, potentialArray, EXTENDABLE_ARRAY);
-  rule(EXTENDABLE_ARRAY, potentialString, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, BOOLEAN_OR_NULL, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, NUMBER_OR_NULL, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, INTEGER_OR_NULL, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, DOUBLE_OR_NULL, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, STRING_OR_NULL, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, NULL, CONFLICTING);
-  rule(EXTENDABLE_ARRAY, FIXED_ARRAY, CONFLICTING);
+  rule(jsExtendableArray, jsExtendableArray, jsExtendableArray);
+  rule(jsExtendableArray, nonPrimitive1, CONFLICTING);
+  rule(jsExtendableArray, nonPrimitive2, CONFLICTING);
+  rule(jsExtendableArray, potentialArray, jsExtendableArray);
+  rule(jsExtendableArray, potentialString, CONFLICTING);
+  rule(jsExtendableArray, BOOLEAN_OR_NULL, CONFLICTING);
+  rule(jsExtendableArray, NUMBER_OR_NULL, CONFLICTING);
+  rule(jsExtendableArray, INTEGER_OR_NULL, CONFLICTING);
+  rule(jsExtendableArray, DOUBLE_OR_NULL, CONFLICTING);
+  rule(jsExtendableArray, jsStringOrNull, CONFLICTING);
+  rule(jsExtendableArray, NULL, CONFLICTING);
+  rule(jsExtendableArray, jsFixedArray, CONFLICTING);
 
   rule(nonPrimitive1, nonPrimitive1, nonPrimitive1);
   rule(nonPrimitive1, nonPrimitive2, CONFLICTING);
@@ -593,9 +594,9 @@ void testIntersection(MockCompiler compiler) {
   rule(nonPrimitive1, NUMBER_OR_NULL, CONFLICTING);
   rule(nonPrimitive1, INTEGER_OR_NULL, CONFLICTING);
   rule(nonPrimitive1, DOUBLE_OR_NULL, CONFLICTING);
-  rule(nonPrimitive1, STRING_OR_NULL, CONFLICTING);
+  rule(nonPrimitive1, jsStringOrNull, CONFLICTING);
   rule(nonPrimitive1, NULL, CONFLICTING);
-  rule(nonPrimitive1, FIXED_ARRAY, CONFLICTING);
+  rule(nonPrimitive1, jsFixedArray, CONFLICTING);
 
   rule(nonPrimitive2, nonPrimitive2, nonPrimitive2);
   rule(nonPrimitive2, potentialArray, CONFLICTING);
@@ -604,9 +605,9 @@ void testIntersection(MockCompiler compiler) {
   rule(nonPrimitive2, NUMBER_OR_NULL, CONFLICTING);
   rule(nonPrimitive2, INTEGER_OR_NULL, CONFLICTING);
   rule(nonPrimitive2, DOUBLE_OR_NULL, CONFLICTING);
-  rule(nonPrimitive2, STRING_OR_NULL, CONFLICTING);
+  rule(nonPrimitive2, jsStringOrNull, CONFLICTING);
   rule(nonPrimitive2, NULL, CONFLICTING);
-  rule(nonPrimitive2, FIXED_ARRAY, CONFLICTING);
+  rule(nonPrimitive2, jsFixedArray, CONFLICTING);
 
   rule(potentialArray, potentialArray, potentialArray);
   rule(potentialArray, potentialString, NULL);
@@ -614,53 +615,53 @@ void testIntersection(MockCompiler compiler) {
   rule(potentialArray, NUMBER_OR_NULL, NULL);
   rule(potentialArray, INTEGER_OR_NULL, NULL);
   rule(potentialArray, DOUBLE_OR_NULL, NULL);
-  rule(potentialArray, STRING_OR_NULL, NULL);
+  rule(potentialArray, jsStringOrNull, NULL);
   rule(potentialArray, NULL, NULL);
-  rule(potentialArray, FIXED_ARRAY, FIXED_ARRAY);
+  rule(potentialArray, jsFixedArray, jsFixedArray);
 
   rule(potentialString, potentialString, potentialString);
   rule(potentialString, BOOLEAN_OR_NULL, NULL);
   rule(potentialString, NUMBER_OR_NULL, NULL);
   rule(potentialString, INTEGER_OR_NULL, NULL);
   rule(potentialString, DOUBLE_OR_NULL, NULL);
-  rule(potentialString, STRING_OR_NULL, STRING_OR_NULL);
+  rule(potentialString, jsStringOrNull, jsStringOrNull);
   rule(potentialString, NULL, NULL);
-  rule(potentialString, FIXED_ARRAY, CONFLICTING);
+  rule(potentialString, jsFixedArray, CONFLICTING);
 
   rule(BOOLEAN_OR_NULL, BOOLEAN_OR_NULL, BOOLEAN_OR_NULL);
   rule(BOOLEAN_OR_NULL, NUMBER_OR_NULL, NULL);
   rule(BOOLEAN_OR_NULL, INTEGER_OR_NULL, NULL);
   rule(BOOLEAN_OR_NULL, DOUBLE_OR_NULL, NULL);
-  rule(BOOLEAN_OR_NULL, STRING_OR_NULL, NULL);
+  rule(BOOLEAN_OR_NULL, jsStringOrNull, NULL);
   rule(BOOLEAN_OR_NULL, NULL, NULL);
-  rule(BOOLEAN_OR_NULL, FIXED_ARRAY, CONFLICTING);
+  rule(BOOLEAN_OR_NULL, jsFixedArray, CONFLICTING);
 
   rule(NUMBER_OR_NULL, NUMBER_OR_NULL, NUMBER_OR_NULL);
   rule(NUMBER_OR_NULL, INTEGER_OR_NULL, INTEGER_OR_NULL);
   rule(NUMBER_OR_NULL, DOUBLE_OR_NULL, DOUBLE_OR_NULL);
-  rule(NUMBER_OR_NULL, STRING_OR_NULL, NULL);
+  rule(NUMBER_OR_NULL, jsStringOrNull, NULL);
   rule(NUMBER_OR_NULL, NULL, NULL);
-  rule(NUMBER_OR_NULL, FIXED_ARRAY, CONFLICTING);
+  rule(NUMBER_OR_NULL, jsFixedArray, CONFLICTING);
 
   rule(INTEGER_OR_NULL, INTEGER_OR_NULL, INTEGER_OR_NULL);
   rule(INTEGER_OR_NULL, DOUBLE_OR_NULL, NULL);
-  rule(INTEGER_OR_NULL, STRING_OR_NULL, NULL);
+  rule(INTEGER_OR_NULL, jsStringOrNull, NULL);
   rule(INTEGER_OR_NULL, NULL, NULL);
-  rule(INTEGER_OR_NULL, FIXED_ARRAY, CONFLICTING);
+  rule(INTEGER_OR_NULL, jsFixedArray, CONFLICTING);
 
   rule(DOUBLE_OR_NULL, DOUBLE_OR_NULL, DOUBLE_OR_NULL);
-  rule(DOUBLE_OR_NULL, STRING_OR_NULL, NULL);
+  rule(DOUBLE_OR_NULL, jsStringOrNull, NULL);
   rule(DOUBLE_OR_NULL, NULL, NULL);
-  rule(DOUBLE_OR_NULL, FIXED_ARRAY, CONFLICTING);
+  rule(DOUBLE_OR_NULL, jsFixedArray, CONFLICTING);
 
-  rule(STRING_OR_NULL, STRING_OR_NULL, STRING_OR_NULL);
-  rule(STRING_OR_NULL, NULL, NULL);
-  rule(STRING_OR_NULL, FIXED_ARRAY, CONFLICTING);
+  rule(jsStringOrNull, jsStringOrNull, jsStringOrNull);
+  rule(jsStringOrNull, NULL, NULL);
+  rule(jsStringOrNull, jsFixedArray, CONFLICTING);
 
   rule(NULL, NULL, NULL);
-  rule(NULL, FIXED_ARRAY, CONFLICTING);
+  rule(NULL, jsFixedArray, CONFLICTING);
 
-  rule(FIXED_ARRAY, FIXED_ARRAY, FIXED_ARRAY);
+  rule(jsFixedArray, jsFixedArray, jsFixedArray);
 
   ruleSet.validateCoverage();
 }
@@ -669,7 +670,7 @@ void testRegressions(MockCompiler compiler) {
   HType nonNullPotentialString = new HType.nonNullSubtype(
       patternClass.computeType(compiler), compiler);
   Expect.equals(
-      potentialString, STRING_OR_NULL.union(nonNullPotentialString, compiler));
+      potentialString, jsStringOrNull.union(nonNullPotentialString, compiler));
 }
 
 void main() {
@@ -700,16 +701,30 @@ void main() {
       compiler.backend.jsInterceptorClass.computeType(compiler), compiler);
   jsArrayOrNull = new HType.subclass(
       compiler.backend.jsArrayClass.computeType(compiler), compiler);
+  jsReadableArray = new HType.nonNullSubclass(
+      compiler.backend.jsArrayClass.computeType(compiler), compiler);
   jsMutableArrayOrNull = new HType.subclass(
+      compiler.backend.jsMutableArrayClass.computeType(compiler), compiler);
+  jsMutableArray = new HType.nonNullSubclass(
       compiler.backend.jsMutableArrayClass.computeType(compiler), compiler);
   jsFixedArrayOrNull = new HType.exact(
       compiler.backend.jsFixedArrayClass.computeType(compiler), compiler);
+  jsFixedArray = new HType.nonNullExact(
+      compiler.backend.jsFixedArrayClass.computeType(compiler), compiler);
   jsExtendableArrayOrNull = new HType.exact(
+      compiler.backend.jsExtendableArrayClass.computeType(compiler), compiler);
+  jsExtendableArray = new HType.nonNullExact(
       compiler.backend.jsExtendableArrayClass.computeType(compiler), compiler);
   jsIndexableOrNull = new HType.subtype(
       compiler.backend.jsIndexableClass.computeType(compiler), compiler);
+  jsIndexable = new HType.nonNullSubtype(
+      compiler.backend.jsIndexableClass.computeType(compiler), compiler);
   jsInterceptorOrNull = new HType.subclass(
       compiler.backend.jsInterceptorClass.computeType(compiler), compiler);
+  jsStringOrNull = new HType.exact(
+      compiler.backend.jsStringClass.computeType(compiler), compiler);
+  jsString = new HType.nonNullExact(
+      compiler.backend.jsStringClass.computeType(compiler), compiler);
 
   testUnion(compiler);
   testIntersection(compiler);

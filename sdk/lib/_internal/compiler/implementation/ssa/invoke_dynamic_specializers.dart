@@ -99,7 +99,8 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
     HInstruction index = instruction.inputs[2];
     if (input == instruction.inputs[1] &&
         index.instructionType.canBePrimitiveNumber(compiler)) {
-      return HType.MUTABLE_ARRAY;
+      JavaScriptBackend backend = compiler.backend;
+      return backend.mutableArrayType;
     }
     // The index should be an int when the receiver is a string or array.
     // However it turns out that inserting an integer check in the optimized
@@ -133,7 +134,8 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     HInstruction index = instruction.inputs[2];
     if (input == instruction.inputs[1] &&
         index.instructionType.canBePrimitiveNumber(compiler)) {
-      return HType.INDEXABLE_PRIMITIVE;
+      JavaScriptBackend backend = compiler.backend;
+      return backend.indexablePrimitiveType;
     }
     // The index should be an int when the receiver is a string or array.
     // However it turns out that inserting an integer check in the optimized
@@ -182,7 +184,7 @@ class BitNotSpecializer extends InvokeDynamicSpecializer {
                                   Compiler compiler) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
-    if (instruction.inputs[1].isPrimitiveOrNull()) return HType.INTEGER;
+    if (instruction.inputs[1].isPrimitiveOrNull(compiler)) return HType.INTEGER;
     return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
@@ -399,7 +401,7 @@ abstract class BinaryBitOpSpecializer extends BinaryArithmeticSpecializer {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
     HInstruction left = instruction.inputs[1];
-    if (left.isPrimitiveOrNull()) return HType.INTEGER;
+    if (left.isPrimitiveOrNull(compiler)) return HType.INTEGER;
     return super.computeTypeFromInputTypes(instruction, compiler);
   }
 
@@ -502,7 +504,7 @@ abstract class RelationalSpecializer extends InvokeDynamicSpecializer {
 
   HType computeTypeFromInputTypes(HInvokeDynamic instruction,
                                   Compiler compiler) {
-    if (instruction.inputs[1].instructionType.isPrimitiveOrNull()) {
+    if (instruction.inputs[1].instructionType.isPrimitiveOrNull(compiler)) {
       return HType.BOOLEAN;
     }
     return super.computeTypeFromInputTypes(instruction, compiler);
@@ -557,12 +559,13 @@ class EqualsSpecializer extends RelationalSpecializer {
       return right.instructionType;
     }
     // String equality testing is much more common than array equality testing.
+    JavaScriptBackend backend = compiler.backend;
     if (input == left && left.isIndexablePrimitive(compiler)) {
-      return HType.READABLE_ARRAY;
+      return backend.readableArrayType;
     }
     // String equality testing is much more common than array equality testing.
     if (input == right && right.isIndexablePrimitive(compiler)) {
-      return HType.STRING;
+      return backend.stringType;
     }
     return HType.UNKNOWN;
   }
@@ -572,7 +575,7 @@ class EqualsSpecializer extends RelationalSpecializer {
     HInstruction left = instruction.inputs[1];
     HInstruction right = instruction.inputs[2];
     HType instructionType = left.instructionType;
-    if (right.isConstantNull() || instructionType.isPrimitiveOrNull()) {
+    if (right.isConstantNull() || instructionType.isPrimitiveOrNull(compiler)) {
       return newBuiltinVariant(instruction);
     }
     Selector selector = instructionType.refine(instruction.selector, compiler);

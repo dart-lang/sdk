@@ -130,18 +130,9 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool satisfies(ClassElement cls, Compiler compiler) {
-    if (isEmpty) {
-      return false;
-    } else if (base.element == cls) {
-      return true;
-    } else if (isExact) {
-      return false;
-    } else if (isSubclass) {
-      return isSubclassOf(base, cls.computeType(compiler).asRaw(), compiler);
-    } else {
-      assert(isSubtype);
-      return isSubtypeOf(base, cls.computeType(compiler).asRaw(), compiler);
-    }
+    if (isEmpty) return false;
+    return base.element == cls
+        || isSubtypeOf(base, cls.computeType(compiler).asRaw(), compiler);
   }
 
   /**

@@ -355,7 +355,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     }
     // TODO(ngeoffray): Allow speculative optimizations on
     // non-primitive types?
-    if (!desiredType.isPrimitive()) return newType;
+    if (!desiredType.isPrimitive(compiler)) return newType;
     desiredType = newType.intersection(desiredType, compiler);
     if (desiredType != newType && !hasBeenSpeculativelyOptimized(instruction)) {
       savedTypes[instruction] = oldType;
