@@ -126,12 +126,17 @@ abstract class Browser {
   Future<bool> startBrowser(String command, List<String> arguments) {
     return Process.start(command, arguments).then((startedProcess) {
       process = startedProcess;
+      Completer stdoutDone = new Completer();
+      Completer stderrDone = new Completer();
+
       process.stdout.transform(new StringDecoder()).listen((data) {
         _addStdout(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stdout handling: $error");
+      }, onDone: () {
+        stdoutDone.complete(true);
       });
 
       process.stderr.transform(new StringDecoder()).listen((data) {
@@ -140,13 +145,17 @@ abstract class Browser {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stderr handling: $error");
+      },  onDone: () {
+        stderrDone.complete(true);
       });
 
       process.exitCode.then((exitCode) {
         _logEvent("Browser closed with exitcode $exitCode");
-        if (_processClosed != null) _processClosed();
-        if (_cleanup != null) _cleanup();
-        if (onClose != null) onClose(exitCode);
+        Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
+          if (_processClosed != null) _processClosed();
+          if (_cleanup != null) _cleanup();
+          if (onClose != null) onClose(exitCode);
+        });
       });
       return true;
     }).catchError((error) {
@@ -469,6 +478,7 @@ class BrowserTestRunner {
   int maxNumBrowsers;
   // Used to send back logs from the browser (start, stop etc)
   Function logger;
+  int browserIdCount = 0;
 
   bool underTermination = false;
 
@@ -540,7 +550,8 @@ class BrowserTestRunner {
     } else {
       var browsers = [];
       for (int i = 0; i < maxNumBrowsers; i++) {
-        var id = "BROWSER$i";
+        var id = "BROWSER$browserIdCount";
+        browserIdCount++;
         var browser = getInstance();
         browsers.add(browser);
         // We store this in case we need to kill the browser.
@@ -555,6 +566,7 @@ class BrowserTestRunner {
 
   void handleResults(String browserId, String output, int testId) {
     var status = browserStatus[browserId];
+    DebugLogger.info("Handling result for browser ${browserId}");
     if (testCache.containsKey(testId)) {
       doubleReportingTests.add(testId);
       return;
@@ -590,6 +602,7 @@ class BrowserTestRunner {
   void handleTimeout(BrowserTestingStatus status) {
     // We simply kill the browser and starts up a new one!
     // We could be smarter here, but it does not seems like it is worth it.
+    DebugLogger.info("Handling timeout for browser ${status.browser.id}");
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
@@ -601,14 +614,19 @@ class BrowserTestRunner {
       }
       // We don't want to start a new browser if we are terminating.
       if (underTermination) return;
-
       var browser;
+      var new_id = id;
       if (browserName == 'chromeOnAndroid') {
         browser = new AndroidChrome(adbDeviceMapping[id]);
       } else {
+        browserStatus.remove(id);
         browser = getInstance();
+        new_id = "BROWSER$browserIdCount";
+        browserIdCount++;
+        browserStatus[browser.id] = new BrowserTestingStatus(browser);
       }
-      browser.start(testingServer.getDriverUrl(id)).then((success) {
+      browser.id = new_id;
+      browser.start(testingServer.getDriverUrl(new_id)).then((success) {
         // We may have started terminating in the mean time.
         if (underTermination) {
           browser.close().then((success) {
@@ -620,9 +638,7 @@ class BrowserTestRunner {
           return;
         }
         if (success) {
-          browser.id = id;
-          status.browser = browser;
-          status.timeout = false;
+          browserStatus[browser.id] = new BrowserTestingStatus(browser);
         } else {
           // TODO(ricow): Handle this better.
           print("This is bad, should never happen, could not start browser");
@@ -639,6 +655,9 @@ class BrowserTestRunner {
     if (testQueue.isEmpty) return null;
     var status = browserStatus[browserId];
     if (status == null) return null;
+    DebugLogger.info("Handling getNext for browser ${browserId}"
+                     " timeout status: ${status.timeout}");
+
     // We are currently terminating this browser, don't start a new test.
     if (status.timeout) return null;
     BrowserTest test = testQueue.removeLast();
@@ -647,6 +666,7 @@ class BrowserTestRunner {
     } else {
       // TODO(ricow): Handle this better.
       print("This is bad, should never happen, getNextTest all full");
+      print("This happened for browser $browserId");
       print("Old test was: ${status.currentTest.url}");
       print("Timed out tests:");
       for (var v in timedOut) {
