@@ -59,8 +59,6 @@ intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
 [ $compiler == dart2js ]
-serialization/test/serialization_test: Fail # Issue 6490
-serialization/test/no_library_test: Fail # Issue 6490
 analyzer_experimental/test/generated/ast_test: Fail
 unittest/test/instance_test: Fail # http://dartbug.com/11191
 
@@ -79,12 +77,18 @@ unittest/test/mock_stepwise_negative_test: fail
 [ $compiler == dart2js && $csp ]
 unittest/test/unittest_test: Pass, Crash # Issue 10935
 
+serialization/test/serialization_test: Fail # Issue 6490
+serialization/test/no_library_test: Fail # Issue 6490
+
 [ $compiler == dart2js && $minified ]
 # The unittest package relies on getting the original (non-minified) method
 # names in Invocation.  You can't get that when minifying.
 # TODO(ahe/erikcorry): But soon you can, now that we use Symbol.
 unittest/test/mock_test: Fail
 unittest/test/mock_regexp_negative_test: Fail
+
+serialization/test/serialization_test: Fail # Issue 6490
+serialization/test/no_library_test: Fail # Issue 6490
 
 # The unminified unittest tests test that the real names of Dart types are
 # printed. Minified versions of these tests exist that test the behavior when

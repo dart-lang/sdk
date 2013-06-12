@@ -21,6 +21,11 @@ import 'dart:_interceptors' show Interceptor;
 
 String getName(Symbol symbol) => n(symbol);
 
+final Map<String, String> mangledNames = JsMirrorSystem.computeMangledNames();
+
+final Map<String, String> reflectiveNames =
+    JsMirrorSystem.computeReflectiveNames();
+
 class JsMirrorSystem implements MirrorSystem {
   TypeMirror get dynamicType => _dynamicType;
   TypeMirror get voidType => _voidType;
@@ -31,10 +36,6 @@ class JsMirrorSystem implements MirrorSystem {
 
   static final Map<String, List<LibraryMirror>> librariesByName =
       computeLibrariesByName();
-
-  static final Map<String, String> mangledNames = computeMangledNames();
-
-  static final Map<String, String> reflectiveNames = computeReflectiveNames();
 
   Iterable<LibraryMirror> findLibrary(Symbol libraryName) {
     return new List<LibraryMirror>.from(librariesByName[n(libraryName)]);
@@ -61,14 +62,7 @@ class JsMirrorSystem implements MirrorSystem {
 
   static Map<String, String> computeMangledNames() {
     var mangledNames = JS('', 'init.mangledNames');
-    var keys = JS('List', '''
-(function(mangled, hasOwnProperty) {
-  var result = [];
-  for (var key in mangled) {
-    if (hasOwnProperty.call(mangled, key)) result.push(key);
-  }
-  return result;
-})(#, Object.prototype.hasOwnProperty)''', mangledNames);
+    var keys = extractKeys(mangledNames);
     var result = <String, String>{};
     for (String key in keys) {
       result[key] = JS('String', '#[#]', mangledNames, key);
@@ -133,12 +127,15 @@ class JsLibraryMirror extends JsObjectMirror implements LibraryMirror {
       String name = _functions[i];
       Symbol symbol = s(name);
       int parameterCount = null; // TODO(ahe): Compute this.
+      bool isStatic = true; // Top-level functions are static.
+      bool isSetter = false; // TODO(ahe): Compute this.
+      bool isGetter = false; // TODO(ahe): Compute this.
       JsMethodMirror mirror =
           // TODO(ahe): Create accessor for accessing $.  It is also
           // used in js_helper.
           new JsMethodMirror(
               symbol, JS('', '#[#]', JS_CURRENT_ISOLATE(), name),
-              parameterCount);
+              parameterCount, isGetter, isSetter, isStatic);
       // TODO(ahe): Cache mirrors.
       result[symbol] = mirror;
       mirror._owner = this;
@@ -276,7 +273,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // JavaScript.
     var jsList = new List.from(positionalArguments);
     String reflectiveName = '${n(memberName)}:${positionalArguments.length}:0';
-    String mangledName = JsMirrorSystem.reflectiveNames[reflectiveName];
+    String mangledName = reflectiveNames[reflectiveName];
     return _invoke(memberName, JSInvocationMirror.METHOD, mangledName, jsList);
   }
 
@@ -294,14 +291,14 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
   InstanceMirror setField(Symbol fieldName, Object arg) {
     String reflectiveName = '${n(fieldName)}=';
-    String mangledName = JsMirrorSystem.reflectiveNames[reflectiveName];
+    String mangledName = reflectiveNames[reflectiveName];
     _invoke(s(reflectiveName), JSInvocationMirror.SETTER, mangledName, [arg]);
     return reflect(arg);
   }
 
   InstanceMirror getField(Symbol fieldName) {
     String reflectiveName = n(fieldName);
-    String mangledName = JsMirrorSystem.reflectiveNames[reflectiveName];
+    String mangledName = reflectiveNames[reflectiveName];
     return _invoke(fieldName, JSInvocationMirror.GETTER, mangledName, []);
   }
 
@@ -319,6 +316,7 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
   final List _fieldsMetadata;
   List _metadata;
   JsClassMirror _superclass;
+  List<JsMethodMirror> _cachedMethods;
 
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
@@ -330,21 +328,57 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
 
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
 
-  Map<Symbol, MethodMirror> get functions {
+  List<JsMethodMirror> get _methods {
+    if (_cachedMethods != null) return _cachedMethods;
+    var prototype = JS('', '#.prototype', _jsConstructor);
+    List<String> keys = extractKeys(prototype);
+    var result = <JsMethodMirror>[];
+    int i = 0;
+    for (String key in keys) {
+      if (key == '') continue;
+      String simpleName = mangledNames[key];
+      // [simpleName] can be null if [key] represents an implementation
+      // detail, for example, a bailout method, or runtime type support.
+      // It might also be null if the user has limited what is reified for
+      // reflection with metadata.
+      if (simpleName == null) continue;
+      var function = JS('', '#[#]', prototype, key);
+      var mirror = new JsMethodMirror.fromUnmangledName(simpleName, function);
+      result.add(mirror);
+      mirror._owner = this;
+    }
+    return _cachedMethods = result;
+  }
+
+  Map<Symbol, MethodMirror> get methods {
     var result = new Map<Symbol, MethodMirror>();
-    // TODO(ahe): Implement this.
+    for (JsMethodMirror method in _methods) {
+      if (!method.isGetter && !method.isSetter) {
+        result[method.simpleName] = method;
+      }
+    }
     return result;
   }
 
   Map<Symbol, MethodMirror> get getters {
+    // TODO(ahe): Should this include getters for fields?
     var result = new Map<Symbol, MethodMirror>();
-    // TODO(ahe): Implement this.
+    for (JsMethodMirror method in _methods) {
+      if (method.isGetter) {
+        result[method.simpleName] = method;
+      }
+    }
     return result;
   }
 
   Map<Symbol, MethodMirror> get setters {
+    // TODO(ahe): Should this include setters for fields?
     var result = new Map<Symbol, MethodMirror>();
-    // TODO(ahe): Implement this.
+    for (JsMethodMirror method in _methods) {
+      if (method.isSetter) {
+        result[method.simpleName] = method;
+      }
+    }
     return result;
   }
 
@@ -359,20 +393,26 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
         metadata = _fieldsMetadata[fieldNumber++];
       }
       JsVariableMirror mirror = new JsVariableMirror.from(field, metadata);
-      result[mirror.simpleName] = mirror;
-      mirror._owner = this;
+      if (mirror != null) {
+        result[mirror.simpleName] = mirror;
+        mirror._owner = this;
+      }
     }
     return result;
   }
 
   Map<Symbol, Mirror> get members {
-    Map<Symbol, Mirror> result = new Map<Symbol, Mirror>.from(functions);
-    addToResult(Symbol key, Mirror value) {
-      result[key] = value;
+    Map<Symbol, Mirror> result = variables;
+    for (JsMethodMirror method in _methods) {
+      if (method.isSetter) {
+        String name = n(method.simpleName);
+        name = name.substring(0, name.length - 1);
+        // Filter-out setters corresponding to variables.
+        if (result[s(name)] is VariableMirror) continue;
+      }
+      // Use putIfAbsent to filter-out getters corresponding to variables.
+      result.putIfAbsent(method.simpleName, () => method);
     }
-    getters.forEach(addToResult);
-    setters.forEach(addToResult);
-    variables.forEach(addToResult);
     return result;
   }
 
@@ -485,15 +525,11 @@ class JsVariableMirror implements VariableMirror {
     int length = descriptor.length;
     var code = fieldCode(descriptor.codeUnitAt(length - 1));
     bool isFinal = false;
-    // code might be 0 if the accessors aren't needed, or if they are
-    // inherited.
-    // TODO(ahe): Ensure code is only 0 for inherited fields.
-    if (code != 0) {
-      bool hasGetter = (code & 3) != 0;
-      bool hasSetter = (code >> 2) != 0;
-      isFinal = !hasSetter;
-      length--;
-    }
+    if (code == 0) return null; // Inherited field.
+    bool hasGetter = (code & 3) != 0;
+    bool hasSetter = (code >> 2) != 0;
+    isFinal = !hasSetter;
+    length--;
     String jsName;
     String accessorName = jsName = descriptor.substring(0, length);
     int divider = descriptor.indexOf(':');
@@ -520,6 +556,8 @@ class JsVariableMirror implements VariableMirror {
   }
 
   bool get isPrivate => n(simpleName).startsWith('_');
+
+  bool get isTopLevel => owner != null && owner is LibraryMirror;
 
   String toString() => 'VariableMirror(${n(qualifiedName)})';
 
@@ -549,14 +587,17 @@ function(reflectee) {
       throw new RuntimeError('Cannot find callName on "$reflectee"');
     }
     int parameterCount = int.parse(callName.split(r'$')[1]);
+    bool isStatic = true; // TODO(ahe): Compute isStatic correctly.
     if (reflectee is BoundClosure) {
       var target = BoundClosure.targetOf(reflectee);
       var self = BoundClosure.selfOf(reflectee);
       return new JsMethodMirror(
-          s(target), JS('', '#[#]', self, target), parameterCount);
+          s(target), JS('', '#[#]', self, target), parameterCount,
+          false, false, isStatic);
     } else {
       var jsFunction = JS('', '#[#]', reflectee, callName);
-      return new JsMethodMirror(s(callName), jsFunction, parameterCount);
+      return new JsMethodMirror(
+          s(callName), jsFunction, parameterCount, false, false, isStatic);
     }
   }
 
@@ -577,10 +618,41 @@ class JsMethodMirror implements MethodMirror {
   final Symbol simpleName;
   final _jsFunction;
   final int _parameterCount;
+  final bool isGetter;
+  final bool isSetter;
+  final bool isStatic;
   DeclarationMirror _owner;
   List _metadata;
 
-  JsMethodMirror(this.simpleName, this._jsFunction, this._parameterCount);
+  JsMethodMirror(this.simpleName,
+                 this._jsFunction,
+                 this._parameterCount,
+                 this.isGetter,
+                 this.isSetter,
+                 this.isStatic);
+
+  factory JsMethodMirror.fromUnmangledName(String name, jsFunction) {
+    List<String> info = name.split(':');
+    name = info[0];
+    bool isSetter = name.endsWith('=');
+    int requiredParameterCount = 0;
+    int optionalParameterCount = 0;
+    bool isGetter = false;
+    if (info.length == 1) {
+      if (isSetter) {
+        requiredParameterCount = 2;
+      } else {
+        isGetter = true;
+        requiredParameterCount = 1;
+      }
+    } else {
+      requiredParameterCount = int.parse(info[1]);
+      optionalParameterCount = int.parse(info[2]);
+    }
+    return new JsMethodMirror(
+        s(name), jsFunction, requiredParameterCount + optionalParameterCount,
+        isGetter, isSetter, false);
+  }
 
   List<ParameterMirror> get parameters {
     // TODO(ahe): Fill the list with parameter mirrors.
@@ -597,6 +669,18 @@ class JsMethodMirror implements MethodMirror {
     }
     return _metadata.map(reflect).toList();
   }
+
+  // TODO(ahe): Share with VariableMirror.
+  bool get isPrivate => n(simpleName).startsWith('_');
+
+  // TODO(ahe): Share with VariableMirror.
+  bool get isTopLevel => owner != null && owner is LibraryMirror;
+
+  String toString() {
+    return
+        'MethodMirror(${n(simpleName)}'
+        '${isSetter ? ", setter" : (isGetter ? ", getter" : "")})';
+  }
 }
 
 Symbol computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
@@ -610,4 +694,15 @@ List extractMetadata(victim) {
   var metadataFunction = JS('', '#["@"]', victim);
   return (metadataFunction == null)
       ? const [] : JS('', '#()', metadataFunction);
+}
+
+List extractKeys(victim) {
+  return JS('List', '''
+(function(victim, hasOwnProperty) {
+  var result = [];
+  for (var key in victim) {
+    if (hasOwnProperty.call(victim, key)) result.push(key);
+  }
+  return result;
+})(#, Object.prototype.hasOwnProperty)''', victim);
 }

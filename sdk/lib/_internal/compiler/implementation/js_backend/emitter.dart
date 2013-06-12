@@ -1132,14 +1132,16 @@ class CodeEmitterTask extends CompilerTask {
   bool instanceFieldNeedsGetter(Element member) {
     assert(member.isField());
     if (fieldAccessNeverThrows(member)) return false;
-    return compiler.codegenWorld.hasInvokedGetter(member, compiler);
+    return compiler.mirrorsEnabled
+        || compiler.codegenWorld.hasInvokedGetter(member, compiler);
   }
 
   bool instanceFieldNeedsSetter(Element member) {
     assert(member.isField());
     if (fieldAccessNeverThrows(member)) return false;
     return (!member.modifiers.isFinalOrConst())
-        && compiler.codegenWorld.hasInvokedSetter(member, compiler);
+        && (compiler.mirrorsEnabled
+            || compiler.codegenWorld.hasInvokedSetter(member, compiler));
   }
 
   // We never access a field in a closure (a captured variable) without knowing

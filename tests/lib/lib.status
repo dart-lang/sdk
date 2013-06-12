@@ -23,12 +23,14 @@ typed_data/byte_data_test: Fail, OK # d8/ie9 doesn't support DataView
 mirrors/mirrors_resolve_fields_test: Fail # Issue 6490
 mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # Issue 6490
 mirrors/disable_tree_shaking_test: Fail # Issue 6490
+mirrors/reflect_model_test: Fail # Issue 6490
 
 [ $csp ]
 mirrors/metadata_test: Fail # Issue 6490
 mirrors/reflect_runtime_type_test: Fail # Issue 6490
 mirrors/reflect_uninstantiated_class_test: Fail # Issue 6490
 mirrors/superclass_test: Fail # Issue 6490
+mirrors/reflect_model_test: Fail # Issue 6490
 
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.
@@ -63,6 +65,7 @@ async/timer_not_available_test: Fail, OK # only meant to test when there is no w
 mirrors/mirrors_test: Fail              # Issue 10957
 mirrors/library_uri_package_test: Fail  # Issue 10957
 async/run_async6_test: Fail             # Issue 10957 - may be related to issue 10910
+mirrors/reflect_model_test: Fail # http://dartbug.com/11219
 
 [ $compiler == dart2dart && $minified ]
 json/json_test: Fail                           # Issue 10961
@@ -101,6 +104,7 @@ async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug
 mirrors/metadata_test: Fail # http://dartbug.com/10906
 mirrors/superclass_test: Fail # http://dartbug.com/11142
 mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # http://dartbug.com/11187
+mirrors/reflect_model_test: Fail # http://dartbug.com/11219
 
 [ $compiler == none && $runtime == drt ]
 async/timer_isolate_test: Skip # See Issue 4997
