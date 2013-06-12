@@ -3234,7 +3234,7 @@ TEST_CASE(Metadata) {
       "}                              \n"
       "                               \n"
       "@Meta('main')                  \n"
-      "void main() {                  \n"
+      "A main() {                     \n"
       "  return new A();              \n"
       "}                              \n";
 
