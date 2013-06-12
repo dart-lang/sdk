@@ -101,6 +101,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'RTCSessionDescription': 'RTCSessionDescription,mozRTCSessionDescription',
 
+    'RTCDataChannel': 'RTCDataChannel,DataChannel',
+
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
 
     'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',

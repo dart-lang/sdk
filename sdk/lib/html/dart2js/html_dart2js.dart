@@ -18429,7 +18429,7 @@ class ResourceProgressEvent extends ProgressEvent native "ResourceProgressEvent"
 @DomName('RTCDataChannel')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDataChannel
 @Experimental
-class RtcDataChannel extends EventTarget native "RTCDataChannel" {
+class RtcDataChannel extends EventTarget native "RTCDataChannel,DataChannel" {
 
   @DomName('RTCDataChannel.closeEvent')
   @DocsEditable
