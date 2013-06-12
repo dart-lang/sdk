@@ -12,10 +12,6 @@ import 'utils.dart';
 
 /** Class describing the interface for communicating with browsers. */
 abstract class Browser {
-  // Browsers actually takes a while to cleanup after itself when closing
-  // Give it sufficient time to do that.
-  static final Duration killRepeatInternal = const Duration(seconds: 10);
-  static final int killRetries = 5;
   StringBuffer _stdout = new StringBuffer();
   StringBuffer _stderr = new StringBuffer();
   StringBuffer _usageLog = new StringBuffer();
