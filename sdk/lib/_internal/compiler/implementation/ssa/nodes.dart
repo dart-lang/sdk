@@ -2303,6 +2303,7 @@ class HTypeConversion extends HCheck {
 
   int typeCode() => HInstruction.TYPE_CONVERSION_TYPECODE;
   bool typeEquals(HInstruction other) => other is HTypeConversion;
+  bool isCodeMotionInvariant() => kind == NO_CHECK;
 
   bool dataEquals(HTypeConversion other) {
     return kind == other.kind
