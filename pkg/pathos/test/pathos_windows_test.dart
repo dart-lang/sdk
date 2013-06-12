@@ -4,8 +4,6 @@
 
 library pathos_windows_test;
 
-import 'dart:io' as io;
-
 import 'package:unittest/unittest.dart';
 import 'package:pathos/path.dart' as path;
 
@@ -333,6 +331,12 @@ main() {
         expect(builder.relative(r'..\a\b.txt'), r'..\a\b.txt');
         expect(builder.relative(r'a\.\b\..\c.txt'), r'a\c.txt');
       });
+
+      // Regression
+      test('from root-only path', () {
+        expect(builder.relative(r'C:\', from: r'C:\'), '.');
+        expect(builder.relative(r'C:\root\path', from: r'C:\'), r'root\path');
+      });
     });
 
     group('from relative root', () {
@@ -384,6 +388,12 @@ main() {
     test('given absolute with different root prefix', () {
       expect(builder.relative(r'D:\a\b'), r'D:\a\b');
       expect(builder.relative(r'\\a\b'), r'\\a\b');
+    });
+
+    test('from a . root', () {
+      var r = new path.Builder(style: path.Style.windows, root: '.');
+      expect(r.relative(r'C:\foo\bar\baz'), equals(r'C:\foo\bar\baz'));
+      expect(r.relative(r'foo\bar\baz'), equals(r'foo\bar\baz'));
     });
   });
 

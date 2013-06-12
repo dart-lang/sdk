@@ -21,7 +21,7 @@
 /// [pkg]: http://pub.dartlang.org/packages/pathos
 library path;
 
-import 'dart:io' as io;
+import 'dart:mirrors';
 
 /// An internal builder for the current OS so we can provide a straight
 /// functional interface and not require users to create one.
@@ -34,8 +34,47 @@ final _builder = new Builder();
 void _growListFront(List list, int length, fillValue) =>
   list.insertAll(0, new List.filled(length, fillValue));
 
+/// If we're running in the server-side Dart VM, this will return a
+/// [LibraryMirror] that gives access to the `dart:io` library.
+///
+/// If `dart:io` is not available, this returns null.
+LibraryMirror get _io {
+  try {
+    return currentMirrorSystem().libraries[Uri.parse('dart:io')];
+  } catch (_) {
+    return null;
+  }
+}
+
+// TODO(nweiz): when issue 6490 or 6943 are fixed, make this work under dart2js.
+/// If we're running in Dartium, this will return a [LibraryMirror] that gives
+/// access to the `dart:html` library.
+///
+/// If `dart:html` is not available, this returns null.
+LibraryMirror get _html {
+  try {
+    return currentMirrorSystem().libraries[Uri.parse('dart:html')];
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Gets the path to the current working directory.
-String get current => io.Directory.current.path;
+///
+/// In the browser, this means the current URL. When using dart2js, this
+/// currently returns `.` due to technical constraints. In the future, it will
+/// return the current URL.
+String get current {
+  if (_io != null) {
+    return _io.classes[const Symbol('Directory')]
+        .getField(const Symbol('current')).reflectee.path;
+  } else if (_html != null) {
+    return _html.getField(const Symbol('window'))
+        .reflectee.location.href;
+  } else {
+    return '.';
+  }
+}
 
 /// Gets the path separator for the current platform. On Mac and Linux, this
 /// is `/`. On Windows, it's `\`.
@@ -104,6 +143,11 @@ String extension(String path) => _builder.extension(path);
 ///     // Windows
 ///     path.rootPrefix(r'path\to\foo'); // -> ''
 ///     path.rootPrefix(r'C:\path\to\foo'); // -> r'C:\'
+///
+///     // URL
+///     path.rootPrefix('path/to/foo'); // -> ''
+///     path.rootPrefix('http://dartlang.org/path/to/foo');
+///       // -> 'http://dartlang.org'
 String rootPrefix(String path) => _builder.rootPrefix(path);
 
 /// Returns `true` if [path] is an absolute path and `false` if it is a
@@ -187,6 +231,10 @@ String joinAll(Iterable<String> parts) => _builder.joinAll(parts);
 ///
 ///     // Windows
 ///     path.split(r'C:\path\to\foo'); // -> [r'C:\', 'path', 'to', 'foo']
+///
+///     // Browser
+///     path.split('http://dartlang.org/path/to/foo');
+///       // -> ['http://dartlang.org', 'path', 'to', 'foo']
 List<String> split(String path) => _builder.split(path);
 
 /// Normalizes [path], simplifying it by handling `..`, and `.`, and
@@ -210,9 +258,15 @@ String normalize(String path) => _builder.normalize(path);
 ///         from: '/root/path'); // -> '../other.dart'
 ///
 /// Since there is no relative path from one drive letter to another on Windows,
-/// this will return an absolute path in that case.
+/// or from one hostname to another for URLs, this will return an absolute path
+/// in those cases.
 ///
+///     // Windows
 ///     path.relative(r'D:\other', from: r'C:\home'); // -> 'D:\other'
+///
+///     // URL
+///     path.relative('http://dartlang.org', from: 'http://pub.dartlang.org');
+///       // -> 'http://dartlang.org'
 String relative(String path, {String from}) =>
     _builder.relative(path, from: from);
 
@@ -252,9 +306,16 @@ class Builder {
   /// If [style] is omitted, it uses the host operating system's path style. If
   /// [root] is omitted, it defaults to the current working directory. If [root]
   /// is relative, it is considered relative to the current working directory.
+  ///
+  /// On the browser, the path style is [Style.url]. In Dartium, [root] defaults
+  /// to the current URL. When using dart2js, it currently defaults to `.` due
+  /// to technical constraints.
   factory Builder({Style style, String root}) {
     if (style == null) {
-      if (io.Platform.operatingSystem == 'windows') {
+      if (_io == null) {
+        style = Style.url;
+      } else if (_io.classes[const Symbol('Platform')]
+          .getField(const Symbol('operatingSystem')).reflectee == 'windows') {
         style = Style.windows;
       } else {
         style = Style.posix;
@@ -347,6 +408,11 @@ class Builder {
   ///     // Windows
   ///     builder.rootPrefix(r'path\to\foo'); // -> ''
   ///     builder.rootPrefix(r'C:\path\to\foo'); // -> r'C:\'
+  ///
+  ///     // URL
+  ///     builder.rootPrefix('path/to/foo'); // -> ''
+  ///     builder.rootPrefix('http://dartlang.org/path/to/foo');
+  ///       // -> 'http://dartlang.org'
   String rootPrefix(String path) {
     var root = _parse(path).root;
     return root == null ? '' : root;
@@ -549,6 +615,10 @@ class Builder {
 
     var fromParsed = _parse(from)..normalize();
     var pathParsed = _parse(path)..normalize();
+
+    if (fromParsed.parts.length > 0 && fromParsed.parts[0] == '.') {
+      return pathParsed.toString();
+    }
 
     // If the root prefixes don't match (for example, different drive letters
     // on Windows), then there is no relative path, so just return the absolute

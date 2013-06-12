@@ -49,8 +49,10 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
 
-# Skip browser-specific Intl tests on VM
+# Skip browser-specific tests on VM
 [ $runtime == vm ]
+pathos/test/pathos_dartium_test: Fail, OK # Uses dart:html
+pathos/test/pathos_dart2js_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
@@ -59,6 +61,7 @@ intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
 [ $compiler == dart2js ]
+pathos/test/pathos_dartium_test: Fail, OK # Issue 6490
 analyzer_experimental/test/generated/ast_test: Fail
 unittest/test/instance_test: Fail # http://dartbug.com/11191
 
@@ -123,10 +126,7 @@ oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
 oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
 oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_posix_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_url_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_windows_test: Fail, OK # Uses dart:io.
+pathos/test/pathos_io_test: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
@@ -183,6 +183,7 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # Skip serialization test that explicitly has no library declaration in the
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
+pathos/test/pathos_dart2js_test: Fail, OK # Issue 6490
 serialization/test/no_library_test: Skip # Expected Failure
 
 # Skip mdv_observe tests on command line VM, they only run in the browser.
