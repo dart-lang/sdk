@@ -12,12 +12,12 @@ library docgen;
 
 import 'dart:io';
 import 'dart:async';
-import 'lib/dart2yaml.dart';
-import 'lib/src/dart2js_mirrors.dart';
+import '../lib/dart2yaml.dart';
+import '../lib/src/dart2js_mirrors.dart';
 import 'package:markdown/markdown.dart' as markdown;
-import '../../../../pkg/args/lib/args.dart';
-import '../compiler/implementation/mirrors/mirrors.dart';
-import '../compiler/implementation/mirrors/mirrors_util.dart';
+import '../../args/lib/args.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
+import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 
 /**
  * Entry function to create YAML documentation from Dart files.
@@ -29,7 +29,7 @@ void main() {
   
   if (opts.arguments.length > 0) {
     List<Path> libraries = [new Path(opts.arguments[0])];
-    Path sdkDirectory = new Path("../../../");
+    Path sdkDirectory = new Path("../../../sdk/");
     var workingMirrors = analyze(libraries, sdkDirectory, 
         options: ['--preserve-comments', '--categories=Client,Server']);
     workingMirrors.then( (MirrorSystem mirrorSystem) {

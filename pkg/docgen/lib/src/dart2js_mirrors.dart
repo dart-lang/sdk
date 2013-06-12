@@ -11,14 +11,14 @@ library dart2js_util;
 import 'dart:async' show Future;
 import 'dart:io' show Path;
 
-import '../../../compiler/compiler.dart' as api;
-import '../../../compiler/implementation/mirrors/dart2js_mirror.dart' as dart2js
-    show analyze, Dart2JsMirrorSystem;
-import '../../../compiler/implementation/mirrors/mirrors.dart'
+import '../../../../sdk/lib/_internal/compiler/compiler.dart' as api;
+import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart' 
+    as dart2js show analyze, Dart2JsMirrorSystem;
+import '../../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart'
     show MirrorSystem;
-import '../../../compiler/implementation/source_file_provider.dart'
+import '../../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart'
     show FormattingDiagnosticHandler, SourceFileProvider;
-import '../../../compiler/implementation/filenames.dart'
+import '../../../../sdk/lib/_internal/compiler/implementation/filenames.dart'
     show appendSlash, currentDirectory;
 
 // TODO(johnniwinther): Support client configurable providers.
