@@ -5,9 +5,12 @@
 import 'dart:html';
 
 import 'package:unittest/unittest.dart';
+import 'package:unittest/html_config.dart';
 import 'package:pathos/path.dart' as path;
 
 main() {
+  useHtmlConfiguration();
+
   group('new Builder()', () {
     test('uses the current working directory if root is omitted', () {
       var builder = new path.Builder();
