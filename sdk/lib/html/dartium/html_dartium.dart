@@ -2541,8 +2541,6 @@ class CssKeyframeRule extends CssRule {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable
 @DomName('WebKitCSSKeyframesRule')
@@ -2579,7 +2577,8 @@ class CssKeyframesRule extends CssRule {
 
   @DomName('WebKitCSSKeyframesRule.insertRule')
   @DocsEditable
-  void insertRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
+  void appendRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

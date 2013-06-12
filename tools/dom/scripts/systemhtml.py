@@ -46,6 +46,7 @@ _js_custom_members = monitored.Set('systemhtml._js_custom_members', [
     'Console.timeStamp',
     'Console.trace',
     'Console.warn',
+    'WebKitCSSKeyframesRule.insertRule',
     'CSSStyleDeclaration.setProperty',
     'Element.insertAdjacentElement',
     'Element.insertAdjacentHTML',

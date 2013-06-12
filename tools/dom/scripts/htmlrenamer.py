@@ -305,6 +305,7 @@ _private_html_members = monitored.Set('htmlrenamer._private_html_members', [
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
     'CanvasRenderingContext2D.drawImage': '_drawImage',
+    'CSSKeyframesRule.insertRule': 'appendRule',
     'CSSStyleDeclaration.getPropertyValue': '_getPropertyValue',
     'CSSStyleDeclaration.setProperty': '_setProperty',
     'DirectoryEntry.getDirectory': '_getDirectory',

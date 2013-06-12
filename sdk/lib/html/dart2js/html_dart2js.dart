@@ -2096,7 +2096,7 @@ class CssImportRule extends CssRule native "CSSImportRule" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
 // http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
-class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
+class CssKeyframeRule extends CssRule native "CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule" {
 
   @DomName('WebKitCSSKeyframeRule.keyText')
   @DocsEditable
@@ -2117,7 +2117,7 @@ class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
 // http://www.w3.org/TR/css3-animations/#csskeyframesrule
-class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
+class CssKeyframesRule extends CssRule native "CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule" {
 
   @DomName('WebKitCSSKeyframesRule.cssRules')
   @DocsEditable
@@ -2141,9 +2141,14 @@ class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
   @DocsEditable
   CssKeyframeRule findRule(String key) native;
 
-  @DomName('WebKitCSSKeyframesRule.insertRule')
-  @DocsEditable
-  void insertRule(String rule) native;
+
+  void appendRule(String rule) {
+    if (JS('bool', '("appendRule" in #)', this)) {
+      JS('', '#.appendRule(#)', this, rule);
+    } else {
+      JS('', '#.insertRule(#)', this, rule);
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

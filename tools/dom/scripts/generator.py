@@ -105,6 +105,12 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
 
+    'WebKitCSSKeyframeRule':
+        'CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule',
+
+    'WebKitCSSKeyframesRule':
+        'CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule',
+
     'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',
 
     'XMLHttpRequestUpload': 'XMLHttpRequestUpload,XMLHttpRequestEventTarget',
