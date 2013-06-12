@@ -25,6 +25,20 @@ class JSString extends Interceptor implements String, JSIndexable {
     return allMatchesInStringUnchecked(this, str);
   }
 
+  Match matchAsPrefix(String string, [int start = 0]) {
+    if (start < 0 || start > string.length) {
+      throw new RangeError.range(start, 0, string.length);
+    }
+    if (start + this.length > string.length) return null;
+    // TODO(lrn): See if this can be optimized.
+    for (int i = 0; i < this.length; i++) {
+      if (string.codeUnitAt(start + i) != this.codeUnitAt(i)) {
+        return null;
+      }
+    }
+    return new StringMatch(start, string, this);
+  }
+
   String operator +(String other) {
     if (other is !String) throw new ArgumentError(other);
     return JS('String', r'# + #', this, other);

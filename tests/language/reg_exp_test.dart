@@ -25,4 +25,40 @@ void main() {
   exp = new RegExp("^", multiLine: true);  // Any zero-length match will work.
   str = "foo\nbar\nbaz";
   Expect.equals(" foo\n bar\n baz", str.replaceAll(exp, " "));
+
+  exp = new RegExp(r"(\w+)");
+  Expect.isNull(exp.matchAsPrefix(" xyz ab"));
+  Expect.isNull(exp.matchAsPrefix(" xyz ab", 0));
+
+  var m = exp.matchAsPrefix(" xyz ab", 1);
+  Expect.equals("xyz", m[0]);
+  Expect.equals("xyz", m[1]);
+  Expect.equals(1, m.groupCount);
+
+  m = exp.matchAsPrefix(" xyz ab", 2);
+  Expect.equals("yz", m[0]);
+  Expect.equals("yz", m[1]);
+  Expect.equals(1, m.groupCount);
+
+  m = exp.matchAsPrefix(" xyz ab", 3);
+  Expect.equals("z", m[0]);
+  Expect.equals("z", m[1]);
+  Expect.equals(1, m.groupCount);
+
+  Expect.isNull(exp.matchAsPrefix(" xyz ab", 4));
+
+  m = exp.matchAsPrefix(" xyz ab", 5);
+  Expect.equals("ab", m[0]);
+  Expect.equals("ab", m[1]);
+  Expect.equals(1, m.groupCount);
+
+  m = exp.matchAsPrefix(" xyz ab", 6);
+  Expect.equals("b", m[0]);
+  Expect.equals("b", m[1]);
+  Expect.equals(1, m.groupCount);
+
+  Expect.isNull(exp.matchAsPrefix(" xyz ab", 7));
+
+  Expect.throws(() => exp.matchAsPrefix(" xyz ab", -1));
+  Expect.throws(() => exp.matchAsPrefix(" xyz ab", 8));
 }
