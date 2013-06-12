@@ -347,7 +347,6 @@ mixin_type_parameters_errors_test/*: Skip
 # Mixins fail on the VM.
 mixin_mixin_test: Fail                      # VM issue
 mixin_issue10216_2_test: Fail               # VM issue
-mixin_illegal_constructor_test/none: Fail   # VM issue
 
 
 # Malformed types not handled as unresolved:

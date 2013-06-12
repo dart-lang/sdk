@@ -12,7 +12,7 @@ import 'model.dart';
 
 isNoSuchMethodError(e) => e is NoSuchMethodError;
 
-name(Declaration mirror) {
+name(DeclarationMirror mirror) {
   return (mirror == null) ? '<null>' : stringify(mirror.simpleName);
 }
 

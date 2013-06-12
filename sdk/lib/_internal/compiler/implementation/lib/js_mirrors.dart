@@ -402,7 +402,7 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
   }
 
   Map<Symbol, Mirror> get members {
-    Map<Symbol, Mirror> result = variables;
+    Map<Symbol, Mirror> result = new Map<Symbol, Mirror>.from(variables);
     for (JsMethodMirror method in _methods) {
       if (method.isSetter) {
         String name = n(method.simpleName);
