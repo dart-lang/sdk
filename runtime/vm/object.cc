@@ -1619,7 +1619,7 @@ intptr_t Class::NumTypeArguments() const {
       }
     }
     num_type_args += cls.NumTypeParameters();
-    // Object is its own super class during bootstrap.
+    // Super type of Object class is null.
     if (cls.super_type() == AbstractType::null() ||
         cls.super_type() == isolate->object_store()->object_type()) {
       break;
