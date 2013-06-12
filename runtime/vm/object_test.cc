@@ -6,6 +6,7 @@
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
 #include "vm/class_finalizer.h"
+#include "vm/dart_api_impl.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -2770,14 +2771,14 @@ TEST_CASE(StackTraceFormat) {
       "MyException\n"
       "#0      baz (dart:test-lib:2:3)\n"
       "#1      _OtherClass._OtherClass._named (dart:test-lib:7:8)\n"
-      "#2      globalVar= (dart:test-lib:12:3)\n"
+      "#2      globalVar= (dart:test-lib:12:7)\n"
       "#3      _bar (dart:test-lib:16:3)\n"
       "#4      MyClass.field (dart:test-lib:25:9)\n"
       "#5      MyClass.foo.fooHelper (dart:test-lib:30:7)\n"
       "#6      MyClass.foo (dart:test-lib:32:14)\n"
       "#7      MyClass.MyClass.<anonymous closure> (dart:test-lib:21:15)\n"
       "#8      MyClass.MyClass (dart:test-lib:21:18)\n"
-      "#9      main.<anonymous closure> (dart:test-lib:37:10)\n"
+      "#9      main.<anonymous closure> (dart:test-lib:37:14)\n"
       "#10     main (dart:test-lib:37:24)");
 }
 
@@ -3168,6 +3169,112 @@ static RawFunction* GetFunction(const Class& cls, const char* name) {
       String::Handle(String::New(name))));
   ASSERT(!result.IsNull());
   return result.raw();
+}
+
+
+static RawField* GetField(const Class& cls, const char* name) {
+  const Field& field =
+      Field::Handle(cls.LookupField(String::Handle(String::New(name))));
+  ASSERT(!field.IsNull());
+  return field.raw();
+}
+
+
+static RawClass* GetClass(const Library& lib, const char* name) {
+  const Class& cls =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(name))));
+  ASSERT(!cls.IsNull());
+  return cls.raw();
+}
+
+
+static void PrintMetadata(const char* name, const Object& data) {
+  if (data.IsError()) {
+    OS::Print("Error in metadata evaluation for %s: '%s'\n",
+              name,
+              Error::Cast(data).ToErrorCString());
+  }
+  ASSERT(data.IsArray());
+  const Array& metadata = Array::Cast(data);
+  OS::Print("Metadata for %s has %"Pd" values:\n", name, metadata.Length());
+  Object& elem = Object::Handle();
+  for (int i = 0; i < metadata.Length(); i++) {
+    elem = metadata.At(i);
+    OS::Print("  %d: %s\n", i, elem.ToCString());
+  }
+}
+
+
+TEST_CASE(Metadata) {
+  const char* kScriptChars =
+      "@metafoo                       \n"
+      "class Meta {                   \n"
+      "  final m;                     \n"
+      "  const Meta(this.m);          \n"
+      "}                              \n"
+      "                               \n"
+      "const metafoo = 'metafoo';     \n"
+      "const metabar = 'meta' 'bar';  \n"
+      "                               \n"
+      "@metafoo                       \n"
+      "@Meta(0) String gVar;          \n"
+      "                               \n"
+      "@metafoo                       \n"
+      "get tlGetter => gVar;          \n"
+      "                               \n"
+      "@metabar                       \n"
+      "class A {                      \n"
+      "  @metafoo                     \n"
+      "  @metabar                     \n"
+      "  @Meta('baz')                 \n"
+      "  var aField;                  \n"
+      "                               \n"
+      "  @metabar @Meta('baa')        \n"
+      "  int aFunc(a,b) => a + b;     \n"
+      "}                              \n"
+      "                               \n"
+      "@Meta('main')                  \n"
+      "void main() {                  \n"
+      "  return new A();              \n"
+      "}                              \n";
+
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(h_lib);
+  Dart_Handle result = Dart_Invoke(h_lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  ASSERT(!lib.IsNull());
+  const Class& class_a = Class::Handle(GetClass(lib, "A"));
+  Object& res = Object::Handle(lib.GetMetadata(class_a));
+  PrintMetadata("A", res);
+
+  const Class& class_meta = Class::Handle(GetClass(lib, "Meta"));
+  res = lib.GetMetadata(class_meta);
+  PrintMetadata("Meta", res);
+
+  Field& field = Field::Handle(GetField(class_a, "aField"));
+  res = lib.GetMetadata(field);
+  PrintMetadata("A.aField", res);
+
+  Function& func = Function::Handle(GetFunction(class_a, "aFunc"));
+  res = lib.GetMetadata(func);
+  PrintMetadata("A.aFunc", res);
+
+  func = lib.LookupLocalFunction(String::Handle(Symbols::New("main")));
+  ASSERT(!func.IsNull());
+  res = lib.GetMetadata(func);
+  PrintMetadata("main", res);
+
+  func = lib.LookupLocalFunction(String::Handle(Symbols::New("get:tlGetter")));
+  ASSERT(!func.IsNull());
+  res = lib.GetMetadata(func);
+  PrintMetadata("tlGetter", res);
+
+  field = lib.LookupLocalField(String::Handle(Symbols::New("gVar")));
+  ASSERT(!field.IsNull());
+  res = lib.GetMetadata(field);
+  PrintMetadata("gVar", res);
 }
 
 

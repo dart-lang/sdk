@@ -141,6 +141,11 @@ class Parser : public ValueObject {
 
   static void ParseFunction(ParsedFunction* parsed_function);
 
+  // Parse and evaluate the metadata expressions at token_pos in the
+  // class namespace of class cls (which can be the implicit toplevel
+  // class if the metadata is at the top-level).
+  static RawObject* ParseMetadata(const Class& cls, intptr_t token_pos);
+
   // Format and print a message with source location.
   // A null script means no source and a negative token_pos means no position.
   static void PrintMessage(const Script& script,
@@ -261,7 +266,7 @@ class Parser : public ValueObject {
 
   void SkipIf(Token::Kind);
   void SkipBlock();
-  void SkipMetadata();
+  intptr_t SkipMetadata();
   void SkipToMatchingParenthesis();
   void SkipTypeArguments();
   void SkipType(bool allow_void);
@@ -325,13 +330,15 @@ class Parser : public ValueObject {
 
   // Support for parsing of scripts.
   void ParseTopLevel();
-  void ParseClassDeclaration(const GrowableObjectArray& pending_classes);
+  void ParseClassDeclaration(const GrowableObjectArray& pending_classes,
+                             intptr_t metadata_pos);
   void ParseClassDefinition(const Class& cls);
   void ParseMixinTypedef(const GrowableObjectArray& pending_classes);
   void ParseTypedef(const GrowableObjectArray& pending_classes);
-  void ParseTopLevelVariable(TopLevel* top_level);
-  void ParseTopLevelFunction(TopLevel* top_level);
-  void ParseTopLevelAccessor(TopLevel* top_level);
+  void ParseTopLevelVariable(TopLevel* top_level, intptr_t metadata_pos);
+  void ParseTopLevelFunction(TopLevel* top_level, intptr_t metadata_pos);
+  void ParseTopLevelAccessor(TopLevel* top_level, intptr_t metadata_pos);
+  RawArray* EvaluateMetadata();
 
   // Support for parsing libraries.
   RawObject* CallLibraryTagHandler(Dart_LibraryTag tag,
@@ -358,7 +365,8 @@ class Parser : public ValueObject {
   void ParseQualIdent(QualIdent* qual_ident);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
-  void ParseClassMemberDefinition(ClassDesc* members);
+  void ParseClassMemberDefinition(ClassDesc* members,
+                                  intptr_t metadata_pos);
   void ParseFormalParameter(bool allow_explicit_default_value,
                             ParamList* params);
   void ParseFormalParameters(bool allow_explicit_default_values,
@@ -522,7 +530,7 @@ class Parser : public ValueObject {
   AstNode* ParseMapLiteral(intptr_t type_pos,
                            bool is_const,
                            const AbstractTypeArguments& type_arguments);
-  AstNode* ParseNewOperator();
+  AstNode* ParseNewOperator(Token::Kind op_kind);
   AstNode* ParseArgumentDefinitionTest();
 
   // An implicit argument, if non-null, is prepended to the returned list.

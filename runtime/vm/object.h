@@ -2251,6 +2251,11 @@ class Library : public Object {
 
   void AddExport(const Namespace& ns) const;
 
+  void AddClassMetadata(const Class& cls, intptr_t token_pos) const;
+  void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
+  void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
+  RawObject* GetMetadata(const Object& obj) const;
+
   // Library imports.
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
@@ -2333,6 +2338,7 @@ class Library : public Object {
   RawArray* exports() const { return raw_ptr()->exports_; }
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
+  RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
   void InitImportList() const;
@@ -2340,6 +2346,12 @@ class Library : public Object {
   static RawLibrary* NewLibraryHelper(const String& url,
                                       bool import_core_lib);
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
+
+  RawString* MakeMetadataName(const Object& obj) const;
+  RawField* GetMetadataField(const String& metaname) const;
+  void AddMetadata(const Class& cls,
+                   const String& name,
+                   intptr_t token_pos) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 

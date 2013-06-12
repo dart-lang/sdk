@@ -63,7 +63,7 @@ class GenericTest {
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("generic_test.dart", subs);
       Expect.equals(31, error.line);  // new B<T>(t); AX does not extend A.
-      Expect.equals(17, error.column);
+      Expect.equals(21, error.column);
     }
     return result;
   }

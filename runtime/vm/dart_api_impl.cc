@@ -4348,6 +4348,28 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
 }
 
 
+// --- Metadata ----
+
+DART_EXPORT Dart_Handle Dart_GetMetadata(Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  Class& cls = Class::Handle(isolate);
+  if (obj.IsClass()) {
+    cls ^= obj.raw();
+  } else if (obj.IsFunction()) {
+    cls = Function::Cast(obj).origin();
+  } else if (obj.IsField()) {
+    cls = Field::Cast(obj).origin();
+  } else {
+    return Api::NewHandle(isolate, Object::empty_array().raw());
+  }
+  const Library& lib = Library::Handle(cls.library());
+  return Api::NewHandle(isolate, lib.GetMetadata(obj));
+}
+
+
 // --- Scripts and Libraries ---
 
 

@@ -511,6 +511,7 @@ struct MemberDesc {
     has_var = false;
     has_factory = false;
     has_operator = false;
+    metadata_pos = -1;
     operator_token = Token::kILLEGAL;
     type = NULL;
     name_pos = 0;
@@ -543,6 +544,7 @@ struct MemberDesc {
   bool has_var;
   bool has_factory;
   bool has_operator;
+  intptr_t metadata_pos;
   Token::Kind operator_token;
   const AbstractType* type;
   intptr_t name_pos;
@@ -647,8 +649,8 @@ class ClassDesc : public ValueObject {
     return fields_;
   }
 
-  RawClass* clazz() const {
-    return clazz_.raw();
+  const Class& clazz() const {
+    return clazz_;
   }
 
   const String& class_name() const {
@@ -838,6 +840,63 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   }
 
   parsed_function->set_default_parameter_values(default_parameter_values);
+}
+
+
+RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
+  Isolate* isolate = Isolate::Current();
+  StackZone zone(isolate);
+  LongJump* base = isolate->long_jump_base();
+  LongJump jump;
+  isolate->set_long_jump_base(&jump);
+  if (setjmp(*jump.Set()) == 0) {
+    const Script& script = Script::Handle(cls.script());
+    const Library& lib = Library::Handle(cls.library());
+    Parser parser(script, lib, token_pos);
+    parser.set_current_class(cls);
+    return parser.EvaluateMetadata();
+  } else {
+    Error& error = Error::Handle();
+    error = isolate->object_store()->sticky_error();
+    isolate->object_store()->clear_sticky_error();
+    isolate->set_long_jump_base(base);
+    return error.raw();
+  }
+  UNREACHABLE();
+  return Object::null();
+}
+
+
+RawArray* Parser::EvaluateMetadata() {
+  if (CurrentToken() != Token::kAT) {
+    ErrorMsg("Metadata character '@' expected");
+  }
+  GrowableObjectArray& meta_values =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  while (CurrentToken() == Token::kAT) {
+    ConsumeToken();
+    intptr_t expr_pos = TokenPos();
+    if (!IsIdentifier()) {
+      ExpectIdentifier("identifier expected");
+    }
+    AstNode* expr = NULL;
+    if ((LookaheadToken(1) == Token::kLPAREN) ||
+        ((LookaheadToken(1) == Token::kPERIOD) &&
+            (LookaheadToken(3) == Token::kLPAREN)) ||
+        ((LookaheadToken(1) == Token::kPERIOD) &&
+            (LookaheadToken(3) == Token::kPERIOD) &&
+            (LookaheadToken(5) == Token::kLPAREN))) {
+      expr = ParseNewOperator(Token::kCONST);
+    } else {
+      expr = ParsePrimary();
+    }
+    if (expr->EvalConstExpr() == NULL) {
+      ErrorMsg(expr_pos, "expression must be a compile-time constant");
+    }
+    const Instance& val = EvaluateConstExpr(expr);
+    meta_values.Add(val);
+  }
+  return Array::MakeArray(meta_values);
 }
 
 
@@ -2824,6 +2883,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method_pos));
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
+  if (method->metadata_pos > 0) {
+    library_.AddFunctionMetadata(func, method->metadata_pos);
+  }
 
   // If this method is a redirecting factory, set the redirection information.
   if (!redirection_type.IsNull()) {
@@ -2911,6 +2973,9 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     class_field.set_type(*field->type);
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
+    if (field->metadata_pos >= 0) {
+      library_.AddFieldMetadata(class_field, field->metadata_pos);
+    }
 
     // For static const fields, set value to "uninitialized" and
     // create a kConstImplicitGetter getter method.
@@ -3001,10 +3066,12 @@ void Parser::CheckOperatorArity(const MemberDesc& member) {
 }
 
 
-void Parser::ParseClassMemberDefinition(ClassDesc* members) {
+void Parser::ParseClassMemberDefinition(ClassDesc* members,
+                                        intptr_t metadata_pos) {
   TRACE_PARSER("ParseClassMemberDefinition");
   MemberDesc member;
   current_member_ = &member;
+  member.metadata_pos = metadata_pos;
   if ((CurrentToken() == Token::kEXTERNAL) &&
       (LookaheadToken(1) != Token::kLPAREN)) {
     ConsumeToken();
@@ -3217,7 +3284,8 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
 }
 
 
-void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes) {
+void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
+                                   intptr_t metadata_pos) {
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
   bool is_abstract = false;
@@ -3359,6 +3427,9 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes) {
     cls.set_is_patch();
   }
   pending_classes.Add(cls, Heap::kOld);
+  if (metadata_pos >= 0) {
+    library_.AddClassMetadata(cls, metadata_pos);
+  }
 
   if (CurrentToken() != Token::kLBRACE) {
     ErrorMsg("{ expected");
@@ -3379,8 +3450,8 @@ void Parser::ParseClassDefinition(const Class& cls) {
   }
   ExpectToken(Token::kLBRACE);
   while (CurrentToken() != Token::kRBRACE) {
-    SkipMetadata();
-    ParseClassMemberDefinition(&members);
+    intptr_t metadata_pos = SkipMetadata();
+    ParseClassMemberDefinition(&members, metadata_pos);
   }
   ExpectToken(Token::kRBRACE);
 
@@ -3719,7 +3790,11 @@ void Parser::ConsumeRightAngleBracket() {
 }
 
 
-void Parser::SkipMetadata() {
+intptr_t Parser::SkipMetadata() {
+  if (CurrentToken() != Token::kAT) {
+    return -1;
+  }
+  intptr_t metadata_pos = TokenPos();
   while (CurrentToken() == Token::kAT) {
     ConsumeToken();
     ExpectIdentifier("identifier expected");
@@ -3735,6 +3810,7 @@ void Parser::SkipMetadata() {
       SkipToMatchingParenthesis();
     }
   }
+  return metadata_pos;
 }
 
 
@@ -3973,7 +4049,8 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
 }
 
 
-void Parser::ParseTopLevelVariable(TopLevel* top_level) {
+void Parser::ParseTopLevelVariable(TopLevel* top_level,
+                                   intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelVariable");
   const bool is_const = (CurrentToken() == Token::kCONST);
   // Const fields are implicitly final.
@@ -4013,6 +4090,9 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
     field.set_value(Instance::Handle(Instance::null()));
     top_level->fields.Add(field);
     library_.AddObject(field, var_name);
+    if (metadata_pos >= 0) {
+      library_.AddFieldMetadata(field, metadata_pos);
+    }
     if (CurrentToken() == Token::kASSIGN) {
       ConsumeToken();
       Instance& field_value = Instance::Handle(Object::sentinel().raw());
@@ -4052,7 +4132,8 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
 }
 
 
-void Parser::ParseTopLevelFunction(TopLevel* top_level) {
+void Parser::ParseTopLevelFunction(TopLevel* top_level,
+                                   intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelFunction");
   AbstractType& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
@@ -4137,10 +4218,14 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   } else {
     library_.ReplaceObject(func, func_name);
   }
+  if (metadata_pos >= 0) {
+    library_.AddFunctionMetadata(func, metadata_pos);
+  }
 }
 
 
-void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
+void Parser::ParseTopLevelAccessor(TopLevel* top_level,
+                                   intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelAccessor");
   const bool is_static = true;
   bool is_external = false;
@@ -4257,6 +4342,9 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
     library_.AddObject(func, accessor_name);
   } else {
     library_.ReplaceObject(func, accessor_name);
+  }
+  if (metadata_pos >= 0) {
+    library_.AddFunctionMetadata(func, metadata_pos);
   }
 }
 
@@ -4528,27 +4616,27 @@ void Parser::ParseTopLevel() {
   const Class& cls = Class::Handle(isolate());
   while (true) {
     set_current_class(cls);  // No current class.
-    SkipMetadata();
+    intptr_t metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
-      ParseClassDeclaration(pending_classes);
+      ParseClassDeclaration(pending_classes, metadata_pos);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
       ParseTypedef(pending_classes);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes);
+      ParseClassDeclaration(pending_classes, metadata_pos);
     } else if (is_patch_source() && IsLiteral("patch") &&
                (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes);
+      ParseClassDeclaration(pending_classes, metadata_pos);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
-        ParseTopLevelVariable(&top_level);
+        ParseTopLevelVariable(&top_level, metadata_pos);
       } else if (IsFunctionDeclaration()) {
-        ParseTopLevelFunction(&top_level);
+        ParseTopLevelFunction(&top_level, metadata_pos);
       } else if (IsTopLevelAccessor()) {
-        ParseTopLevelAccessor(&top_level);
+        ParseTopLevelAccessor(&top_level, metadata_pos);
       } else if (CurrentToken() == Token::kEOS) {
         break;
       } else {
@@ -9146,12 +9234,11 @@ static const String& BuildConstructorName(const String& type_class_name,
 }
 
 
-AstNode* Parser::ParseNewOperator() {
+AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   TRACE_PARSER("ParseNewOperator");
   const intptr_t new_pos = TokenPos();
-  ASSERT((CurrentToken() == Token::kNEW) || (CurrentToken() == Token::kCONST));
-  bool is_const = (CurrentToken() == Token::kCONST);
-  ConsumeToken();
+  ASSERT((op_kind == Token::kNEW) || (op_kind == Token::kCONST));
+  bool is_const = (op_kind == Token::kCONST);
   if (!IsIdentifier()) {
     ErrorMsg("type name expected");
   }
@@ -9619,7 +9706,8 @@ AstNode* Parser::ParsePrimary() {
   } else if (CurrentToken() == Token::kSTRING) {
     primary = ParseStringLiteral();
   } else if (CurrentToken() == Token::kNEW) {
-    primary = ParseNewOperator();
+    ConsumeToken();
+    primary = ParseNewOperator(Token::kNEW);
   } else if (CurrentToken() == Token::kCONST) {
     if ((LookaheadToken(1) == Token::kLT) ||
         (LookaheadToken(1) == Token::kLBRACK) ||
@@ -9627,7 +9715,8 @@ AstNode* Parser::ParsePrimary() {
         (LookaheadToken(1) == Token::kLBRACE)) {
       primary = ParseCompoundLiteral();
     } else {
-      primary = ParseNewOperator();
+      ConsumeToken();
+      primary = ParseNewOperator(Token::kCONST);
     }
   } else if (CurrentToken() == Token::kLT ||
              CurrentToken() == Token::kLBRACK ||
