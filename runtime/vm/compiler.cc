@@ -406,6 +406,13 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       flow_graph->RemoveRedefinitions();
 
       if (FLAG_range_analysis) {
+        if (FLAG_propagate_types) {
+          // Propagate types after store-load-forwarding. Some phis may have
+          // become smi phis that can be processed by range analysis.
+          FlowGraphTypePropagator propagator(flow_graph);
+          propagator.Propagate();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
         // We have to perform range analysis after LICM because it
         // optimistically moves CheckSmi through phis into loop preheaders
         // making some phis smi.
@@ -420,7 +427,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
       }
 
-      // The final canonicalization pass before the code generation.
       if (FLAG_propagate_types) {
         // Recompute types after code movement was done to ensure correct
         // reaching types for hoisted values.
@@ -447,7 +453,7 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
 
       // Ensure that all phis inserted by optimization passes have consistent
       // representations.
-      optimizer.UnboxPhis();
+      optimizer.SelectRepresentations();
 
       if (optimizer.Canonicalize()) {
         // To fully remove redundant boxing (e.g. BoxDouble used only in

@@ -450,35 +450,6 @@ static bool UnboxPhi(PhiInstr* phi) {
 }
 
 
-void FlowGraphOptimizer::UnboxPhis() {
-  GrowableArray<PhiInstr*> worklist(5);
-
-  // Convervatively unbox all phis that were proven to be of Double,
-  // Float32x4, or Uint32x4 type.
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
-    if (join_entry != NULL) {
-      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
-        PhiInstr* phi = it.Current();
-        if (UnboxPhi(phi)) {
-          worklist.Add(phi);
-        }
-      }
-    }
-  }
-
-  while (!worklist.is_empty()) {
-    PhiInstr* phi = worklist.RemoveLast();
-    InsertConversionsFor(phi);
-
-    for (intptr_t i = 0; i < phi->InputCount(); i++) {
-      ConvertUse(phi->InputAt(i),
-                 phi->InputAt(i)->definition()->representation());
-    }
-  }
-}
-
-
 void FlowGraphOptimizer::SelectRepresentations() {
   // Convervatively unbox all phis that were proven to be of Double,
   // Float32x4, or Uint32x4 type.
@@ -4822,6 +4793,7 @@ void ConstantPropagator::Optimize(FlowGraph* graph) {
 void ConstantPropagator::OptimizeBranches(FlowGraph* graph) {
   GrowableArray<BlockEntryInstr*> ignored;
   ConstantPropagator cp(graph, ignored);
+  cp.Analyze();
   cp.VisitBranches();
   cp.Transform();
 }
@@ -5160,6 +5132,15 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
 
+  if (instr->left()->definition() == instr->right()->definition()) {
+    // Fold x === x, and x !== x to true/false.
+    SetValue(instr,
+             (instr->kind() == Token::kEQ_STRICT)
+               ? Bool::True()
+               : Bool::False());
+    return;
+  }
+
   if (IsNonConstant(left) || IsNonConstant(right)) {
     // TODO(vegorov): incorporate nullability information into the lattice.
     if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
@@ -5200,6 +5181,19 @@ static bool CompareIntegers(Token::Kind kind,
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
+
+  if (instr->left()->definition() == instr->right()->definition()) {
+    // Fold x == x, and x != x to true/false for numbers and checked strict
+    // comparisons.
+    if (instr->is_checked_strict_equal() ||
+        RawObject::IsNumberClassId(instr->receiver_class_id())) {
+      return SetValue(instr,
+                      (instr->kind() == Token::kEQ)
+                        ? Bool::True()
+                        : Bool::False());
+    }
+  }
+
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
