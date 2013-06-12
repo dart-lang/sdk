@@ -3529,7 +3529,12 @@ class UnwindError : public Error {
 class Instance : public Object {
  public:
   virtual bool Equals(const Instance& other) const;
-  virtual RawInstance* Canonicalize() const;
+  // Returns Instance::null() if instance cannot be canonicalized.
+  // Any non-canonical number of string will be canonicalized here.
+  // An instance cannot be canonicalized if it still contains non-canonical
+  // instances in its fields.
+  // Returns error in error_str, pass NULL if an error cannot occur.
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
   RawObject* GetField(const Field& field) const {
     return *FieldAddr(field);
@@ -3619,6 +3624,10 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
       Error* malformed_error) const;
+
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
+    return Canonicalize();
+  }
 
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize() const;
@@ -4073,7 +4082,7 @@ class Smi : public Integer {
   virtual bool IsZero() const { return Value() == 0; }
   virtual bool IsNegative() const { return Value() < 0; }
   // Smi values are implicitly canonicalized.
-  virtual RawInstance* Canonicalize() const {
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     return reinterpret_cast<RawSmi*>(raw_value());
   }
 
@@ -4403,7 +4412,7 @@ class String : public Instance {
 
   bool StartsWith(const String& other) const;
 
-  virtual RawInstance* Canonicalize() const;
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
   bool IsSymbol() const { return raw()->IsCanonical(); }
 
@@ -5112,6 +5121,11 @@ class GrowableObjectArray : public Instance {
   }
 
   virtual bool Equals(const Instance& other) const;
+
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
+    UNREACHABLE();
+    return Instance::null();
+  }
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawGrowableObjectArray, type_arguments_);

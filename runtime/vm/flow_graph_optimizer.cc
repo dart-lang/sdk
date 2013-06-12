@@ -5430,7 +5430,8 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
         case Token::kMOD: {
           Instance& result = Integer::ZoneHandle(
               left_int.ArithmeticOp(op_kind, right_int));
-          result = result.Canonicalize();
+          result = result.CheckAndCanonicalize(NULL);
+          ASSERT(!result.IsNull());
           SetValue(instr, result);
           break;
         }
@@ -5439,7 +5440,8 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
           if (left.IsSmi() && right.IsSmi()) {
             Instance& result = Integer::ZoneHandle(
                 Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
-            result = result.Canonicalize();
+            result = result.CheckAndCanonicalize(NULL);
+            ASSERT(!result.IsNull());
             SetValue(instr, result);
           } else {
             SetValue(instr, non_constant_);
@@ -5450,7 +5452,8 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
         case Token::kBIT_XOR: {
           Instance& result = Integer::ZoneHandle(
               left_int.BitOp(op_kind, right_int));
-          result = result.Canonicalize();
+          result = result.CheckAndCanonicalize(NULL);
+          ASSERT(!result.IsNull());
           SetValue(instr, result);
           break;
         }

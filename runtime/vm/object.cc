@@ -9209,13 +9209,43 @@ bool Instance::Equals(const Instance& other) const {
 }
 
 
-RawInstance* Instance::Canonicalize() const {
+RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   ASSERT(!IsNull());
   if (this->IsCanonical()) {
     return this->raw();
   }
   Instance& result = Instance::Handle();
   const Class& cls = Class::Handle(this->clazz());
+  // TODO(srdjan): Check that predefined classes do not have fields that need
+  // to be checked/canonicalized as well.
+  if ((cls.id() >= kNumPredefinedCids) || cls.IsArray()) {
+    // Iterate over all fields, canonicalize numbers and strings, expect all
+    // other instances to be canonical otherwise report error (return
+    // Instance::null()).
+    Object& obj = Object::Handle();
+    const intptr_t end_field_offset = cls.instance_size() - kWordSize;
+    for (intptr_t field_offset = 0;
+         field_offset <= end_field_offset;
+         field_offset += kWordSize) {
+      obj = *this->FieldAddrAtOffset(field_offset);
+      if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
+        if (obj.IsNumber() || obj.IsString()) {
+          obj = Instance::Cast(obj).CheckAndCanonicalize(NULL);
+          ASSERT(!obj.IsNull());
+          this->SetFieldAtOffset(field_offset, obj);
+        } else {
+          ASSERT(error_str != NULL);
+          const char* kFormat = "field: %s\n";
+          const intptr_t len =
+              OS::SNPrint(NULL, 0, kFormat, obj.ToCString()) + 1;
+          char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+          OS::SNPrint(chars, len, kFormat, obj.ToCString());
+          *error_str = chars;
+          return Instance::null();
+        }
+      }
+    }
+  }
   Array& constants = Array::Handle(cls.constants());
   const intptr_t constants_len = constants.Length();
   // Linear search to see whether this value is already present in the
@@ -11563,7 +11593,7 @@ bool String::StartsWith(const String& other) const {
 }
 
 
-RawInstance* String::Canonicalize() const {
+RawInstance* String::CheckAndCanonicalize(const char** error_str) const {
   if (IsCanonical()) {
     return this->raw();
   }

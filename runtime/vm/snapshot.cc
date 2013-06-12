@@ -795,7 +795,8 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     if (kind_ == Snapshot::kFull) {
       result->SetCreatedFromSnapshot();
     } else if (result->IsCanonical()) {
-      *result = result->Canonicalize();
+      *result = result->CheckAndCanonicalize(NULL);
+      ASSERT(!result->IsNull());
     }
     return result->raw();
   }

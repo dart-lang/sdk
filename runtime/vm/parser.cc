@@ -6891,8 +6891,8 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
     arguments->Add(new LiteralNode(call_pos, Array::ZoneHandle()));
   } else {
     const int total_num_parameters = function.NumParameters();
-    Array& array = Array::ZoneHandle(Array::New(total_num_parameters));
-    array ^= array.Canonicalize();
+    Array& array =
+        Array::ZoneHandle(Array::New(total_num_parameters, Heap::kOld));
     // Skip receiver.
     for (int i = 0; i < total_num_parameters; i++) {
       array.SetAt(i, String::Handle(function.ParameterNameAt(i)));
@@ -8147,11 +8147,24 @@ bool Parser::IsInstantiatorRequired() const {
 }
 
 
+RawInstance* Parser::TryCanonicalize(const Instance& instance,
+                                     intptr_t token_pos) {
+  if (instance.IsNull()) {
+    return instance.raw();
+  }
+  const char* error_str = NULL;
+  Instance& result =
+      Instance::Handle(instance.CheckAndCanonicalize(&error_str));
+  if (result.IsNull()) {
+    ErrorMsg(token_pos, "Invalid const object %s", error_str);
+  }
+  return result.raw();
+}
 
-// If the field is constant, initialize the field if necessary and return
-// no ast (NULL).
-// Otherwise return NULL if no implicit getter exists (either never created
-// because trivial, or not needed or field not readable).
+
+// If the field is already initialized, return no ast (NULL).
+// Otherwise, if the field is constant, initialize the field and return no ast.
+// If the field is not initialized and not const, return the ast for the getter.
 AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
   ASSERT(field.is_static());
   const Class& field_owner = Class::ZoneHandle(field.owner());
@@ -8209,9 +8222,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       ASSERT(const_value.IsNull() || const_value.IsInstance());
       Instance& instance = Instance::Handle();
       instance ^= const_value.raw();
-      if (!instance.IsNull()) {
-        instance ^= instance.Canonicalize();
-      }
+      instance = TryCanonicalize(instance, TokenPos());
       field.set_value(instance);
       return NULL;   // Constant
     } else {
@@ -8276,10 +8287,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
         return Object::null();
       }
   } else {
-    if (!instance.IsNull()) {
-      instance ^= instance.Canonicalize();
-    }
-    return instance.raw();
+    return TryCanonicalize(instance, TokenPos());
   }
 }
 
@@ -8919,7 +8927,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       }
       const_list.SetAt(i, elem->AsLiteralNode()->literal());
     }
-    const_list ^= const_list.Canonicalize();
+    const_list ^= TryCanonicalize(const_list, literal_pos);
     const_list.MakeImmutable();
     return new LiteralNode(literal_pos, const_list);
   } else {
@@ -9116,7 +9124,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       }
       key_value_array.SetAt(i, arg->AsLiteralNode()->literal());
     }
-    key_value_array ^= key_value_array.Canonicalize();
+    key_value_array ^= TryCanonicalize(key_value_array, TokenPos());
     key_value_array.MakeImmutable();
 
     // Construct the map object.
@@ -9790,9 +9798,7 @@ const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
     ASSERT(result.IsInstance());
     Instance& value = Instance::ZoneHandle();
     value ^= result.raw();
-    if (!value.IsNull()) {
-      value ^= value.Canonicalize();
-    }
+    value = TryCanonicalize(value, TokenPos());
     return value;
   }
 }

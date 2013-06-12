@@ -637,6 +637,8 @@ class Parser : public ValueObject {
       const Function& constructor,
       ArgumentListNode* arguments);
 
+  RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
+
   Isolate* isolate() const { return isolate_; }
 
   Isolate* isolate_;  // Cached current isolate.

@@ -107,11 +107,8 @@ Language/07_Classes/4_Abstract_Instance_Members_A03_t05: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A04_t05: Fail # Dart issue 978
 Language/07_Classes/4_Abstract_Instance_Members_A04_t06: Fail # Dart issue 978
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # Dart issue 6954
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t01: Fail # Dart issue 811
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t02: Fail # Dart issue 811
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A04_t03: Fail # Dart issue 811
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # Dart issue 811
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: Fail # Dart issue 811
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: Fail # co19 issue 426
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t04: Fail # Dart issue 7246
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t05: Fail # Dart issue 7246
 Language/11_Expressions/05_Strings/1_String_Interpolation_A01_t06: Fail # Dart issue 7246
