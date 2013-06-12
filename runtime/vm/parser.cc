@@ -7525,8 +7525,23 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
     ASSERT(field.value() != Object::transition_sentinel().raw());
     return new LiteralNode(ident_pos, Instance::ZoneHandle(field.value()));
   }
-  // Access the field directly.
-  return new LoadStaticFieldNode(ident_pos, Field::ZoneHandle(field.raw()));
+  ASSERT(field.is_static());
+  const Class& field_owner = Class::ZoneHandle(field.owner());
+  const String& field_name = String::ZoneHandle(field.name());
+  const String& getter_name = String::Handle(Field::GetterName(field_name));
+  const Function& getter =
+      Function::Handle(field_owner.LookupStaticFunction(getter_name));
+  // Never load field directly if there is a getter (deterministic AST).
+  if (getter.IsNull()) {
+    return new LoadStaticFieldNode(ident_pos, Field::ZoneHandle(field.raw()));
+  } else {
+    ASSERT(getter.kind() == RawFunction::kConstImplicitGetter);
+    return new StaticGetterNode(ident_pos,
+                                NULL,  // Receiver.
+                                false,  // is_super_getter.
+                                field_owner,
+                                field_name);
+  }
 }
 
 
