@@ -4047,7 +4047,10 @@
       },
       "autoplay": {},
       "buffered": {},
-      "canPlayType": {},
+      "canPlayType": {
+        "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/encrypted-media/encrypted-media.html#dom-htmlmediaelement",
+        "dart_action": "unstable"
+      },
       "controller": {},
       "controls": {},
       "currentSrc": {},

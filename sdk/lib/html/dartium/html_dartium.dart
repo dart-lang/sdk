@@ -15284,6 +15284,7 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.canPlayType')
   @DocsEditable
+  @Unstable
   String canPlayType(String type, String keySystem) native "HTMLMediaElement_canPlayType_Callback";
 
   @DomName('HTMLMediaElement.load')
