@@ -110,8 +110,8 @@ uri_query_test: Crash # Issue 11245
 [ $compiler == dart2js && $unchecked && $host_unchecked && $system == windows ]
 uri_query_test: Crash, Pass # Issue 11245
 
-[ $arch == simarm ]
-*: Skip
+[ $arch == simarm && $mode == debug ]
+collection_to_string_test: Crash # Issue: 11207
 
 [ $arch == mips ]
 *: Skip

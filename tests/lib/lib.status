@@ -117,24 +117,28 @@ async/run_async6_test: Fail # Issue 10910
 async/multiple_timer_test: Fail, Pass # See Issue 10982
 async/timer_test: Fail, Pass # See Issue 10982
 
-[ $arch == simarm ]
-*: Skip
 
-[ $arch == arm ]
-async/slow_consumer2_test: Crash # Issue: 11207
-async/slow_consumer3_test: Crash # Issue: 11207
-async/slow_consumer_test: Crash # Issue: 11207
-async/stream_controller_async_test: Crash # Issue: 11207
-async/stream_from_iterable_test: Crash # Issue: 11207
-async/stream_periodic3_test: Crash # Issue: 11207
-async/stream_periodic4_test: Crash # Issue: 11207
-async/stream_periodic5_test: Crash # Issue: 11207
-async/stream_state_nonzero_timer_test: Crash # Issue: 11207
-async/stream_state_test: Crash # Issue: 11207
-async/stream_subscription_as_future_test: Crash # Issue: 11207
-async/stream_transform_test: Crash # Issue: 11207
-math/pi_test: Fail # Issue: 11207
+[ $arch == arm || $arch == simarm ]
+async/future_test: Pass, Crash # Issue: 11207
+async/run_async6_test: Pass, Fail # Issue: 11207
+async/run_async_test: Pass, Fail # Issue: 11207
+async/slow_consumer2_test: Pass, Crash # Issue: 11207
+async/slow_consumer3_test: Pass, Crash # Issue: 11207
+async/slow_consumer_test: Pass, Crash # Issue: 11207
+async/stream_controller_async_test: Pass, Crash # Issue: 11207
+async/stream_from_iterable_test: Pass, Crash # Issue: 11207
+async/stream_periodic2_test: Pass, Crash # Issue: 11207
+async/stream_periodic3_test: Pass, Crash # Issue: 11207
+async/stream_periodic4_test: Pass, Crash # Issue: 11207
+async/stream_periodic5_test: Pass, Crash # Issue: 11207
+async/stream_single_to_multi_subscriber_test: Pass, Crash # Issue: 11207
+async/stream_state_nonzero_timer_test: Pass, Crash # Issue: 11207
+async/stream_state_test: Pass, Crash # Issue: 11207
+async/stream_subscription_as_future_test: Pass, Crash # Issue: 11207
+async/stream_transform_test: Pass, Crash # Issue: 11207
+math/pi_test: Crash, Fail # Issue: 11207
 math/random_test: Fail # Issue: 11207
+mirrors/reflect_model_test: Pass, Crash # Issue: 11207
 typed_data/float32x4_list_test: Crash # Issue: 11207
 typed_data/float32x4_test: Crash # Issue: 11207
 typed_data/float32x4_unbox_phi_test: Crash # Issue: 11207
