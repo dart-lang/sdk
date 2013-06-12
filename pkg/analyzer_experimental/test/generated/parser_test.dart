@@ -3674,7 +3674,7 @@ class SimpleParserTest extends ParserTestCase {
    * @throws Exception if the method could not be invoked or throws an exception
    */
   String computeStringValue(String lexeme) {
-    AnalysisErrorListener listener = new AnalysisErrorListener_20();
+    AnalysisErrorListener listener = new AnalysisErrorListener_19();
     Parser parser = new Parser(null, listener);
     return invokeParserMethodImpl(parser, "computeStringValue", <Object> [lexeme], null) as String;
   }
@@ -5847,7 +5847,7 @@ class SimpleParserTest extends ParserTestCase {
     });
   }
 }
-class AnalysisErrorListener_20 implements AnalysisErrorListener {
+class AnalysisErrorListener_19 implements AnalysisErrorListener {
   void onError(AnalysisError event) {
     JUnitTestCase.fail("Unexpected compilation error: ${event.message} (${event.offset}, ${event.length})");
   }

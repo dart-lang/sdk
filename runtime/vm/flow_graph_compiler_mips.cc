@@ -387,6 +387,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  __ TraceSimMsg("UninstantiatedTypeTest");
   __ Comment("UninstantiatedTypeTest");
   ASSERT(!type.IsInstantiated());
   // Skip check if destination is a dynamic type.
@@ -717,6 +718,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ AddImmediate(T0, FP, (kFirstLocalSlotFromFp + 1) * kWordSize);
   __ sll(T2, T2, 1);  // T2 is a Smi.
 
+  __ Comment("Argument Copy Loop");
   Label loop, loop_exit;
   __ blez(T2, &loop_exit);
   __ delay_slot()->subu(T0, T0, T2);
@@ -732,6 +734,7 @@ void FlowGraphCompiler::CopyParameters() {
   // Copy or initialize optional named arguments.
   Label all_arguments_processed;
   if (num_opt_named_params > 0) {
+    __ Comment("There are named parameters");
     // Start by alphabetically sorting the names of the optional parameters.
     LocalVariable** opt_param = new LocalVariable*[num_opt_named_params];
     int* opt_param_position = new int[num_opt_named_params];
@@ -804,6 +807,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ beq(T3, NULLREG, &all_arguments_processed);
   } else {
     ASSERT(num_opt_pos_params > 0);
+    __ Comment("There are optional positional parameters");
     __ lw(T2,
           FieldAddress(S4, ArgumentsDescriptor::positional_count_offset()));
     __ SmiUntag(T2);
@@ -882,6 +886,7 @@ void FlowGraphCompiler::CopyParameters() {
   __ lw(T2, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
   __ sll(T2, T2, 1);  // T2 is a Smi.
 
+  __ Comment("Null arguments loop");
   Label null_args_loop, null_args_loop_exit;
   __ blez(T2, &null_args_loop_exit);
   __ delay_slot()->addiu(T1, FP,
@@ -919,7 +924,6 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 
 
 void FlowGraphCompiler::EmitFrameEntry() {
-  __ TraceSimMsg("FrameEntry");
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() && function.is_optimizable()) {
     const bool can_optimize = !is_optimizing() || may_reoptimize();
@@ -1144,7 +1148,6 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  __ TraceSimMsg("Call");
   __ BranchLinkPatchable(label);
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
@@ -1156,7 +1159,6 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          const ExternalLabel* label,
                                          PcDescriptors::Kind kind,
                                          LocationSummary* locs) {
-  __ TraceSimMsg("DartCall");
   __ BranchLinkPatchable(label);
   AddCurrentDescriptor(kind, deopt_id, token_pos);
   RecordSafepoint(locs);
@@ -1179,7 +1181,6 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                                             intptr_t deopt_id,
                                             const RuntimeEntry& entry,
                                             LocationSummary* locs) {
-  __ TraceSimMsg("CallRuntime");
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
@@ -1197,7 +1198,6 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
                            token_pos);
     }
   }
-  __ TraceSimMsg("CallRuntime return");
 }
 
 
@@ -1215,6 +1215,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // top-level function (parsed_function().function()) which could be
   // reoptimized and which counter needs to be incremented.
   // Pass the function explicitly, it is used in IC stub.
+  __ TraceSimMsg("OptimizedInstanceCall");
   __ LoadObject(T0, parsed_function().function());
   __ LoadObject(S4, arguments_descriptor);
   __ LoadObject(S5, ic_data);
@@ -1254,7 +1255,66 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  UNIMPLEMENTED();
+  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
+  const String& name = String::Handle(ic_data.target_name());
+  const MegamorphicCache& cache =
+      MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
+  Label not_smi, load_cache;
+  __ TraceSimMsg("MegamorphicInstanceCall");
+  __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
+  __ andi(CMPRES, T0, Immediate(kSmiTagMask));
+  __ bne(CMPRES, ZR, &not_smi);
+  __ LoadImmediate(T0, Smi::RawValue(kSmiCid));
+  __ b(&load_cache);
+
+  __ Bind(&not_smi);
+  __ LoadClassId(T0, T0);
+  __ SmiTag(T0);
+
+  // T0: class ID of the receiver (smi).
+  __ Bind(&load_cache);
+  __ LoadObject(T1, cache);
+  __ lw(T2, FieldAddress(T1, MegamorphicCache::buckets_offset()));
+  __ lw(T1, FieldAddress(T1, MegamorphicCache::mask_offset()));
+  // T2: cache buckets array.
+  // T1: mask.
+  __ mov(T3, T0);
+
+  Label loop, update, call_target_function;
+  __ b(&loop);
+
+  __ Bind(&update);
+  __ addiu(T3, T3, Immediate(Smi::RawValue(1)));
+  __ Bind(&loop);
+  __ and_(T3, T3, T1);
+  const intptr_t base = Array::data_offset();
+  // T3 is smi tagged, but table entries are two words, so LSL 2.
+  __ sll(TMP1, T3, 2);
+  __ addu(TMP1, T2, TMP1);
+  __ lw(T4, FieldAddress(TMP, base));
+
+  ASSERT(kIllegalCid == 0);
+  __ beq(T4, ZR, &call_target_function);
+  __ bne(T4, T0, &update);
+
+  __ Bind(&call_target_function);
+  // Call the target found in the cache.  For a class id match, this is a
+  // proper target for the given name and arguments descriptor.  If the
+  // illegal class id was found, the target is a cache miss handler that can
+  // be invoked as a normal Dart function.
+  __ sll(TMP1, T3, 2);
+  __ addu(TMP1, T2, TMP1);
+  __ lw(T0, FieldAddress(TMP, base + kWordSize));
+  __ lw(T0, FieldAddress(T0, Function::code_offset()));
+  __ lw(T0, FieldAddress(T0, Code::instructions_offset()));
+  __ LoadObject(S5, ic_data);
+  __ LoadObject(S4, arguments_descriptor);
+  __ AddImmediate(T0, Instructions::HeaderSize() - kHeapObjectTag);
+  __ jalr(T0);
+  AddCurrentDescriptor(PcDescriptors::kOther, Isolate::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  AddDeoptIndexAtCall(Isolate::ToDeoptAfter(deopt_id), token_pos);
+  __ Drop(argument_count);
 }
 
 
@@ -1282,6 +1342,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
                                                     bool needs_number_check,
                                                     intptr_t token_pos) {
+  __ TraceSimMsg("EqualityRegConstCompare");
   if (needs_number_check &&
       (obj.IsMint() || obj.IsDouble() || obj.IsBigint())) {
     __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -1292,6 +1353,7 @@ void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                          Isolate::kNoDeoptId,
                          token_pos);
     __ delay_slot()->sw(TMP1, Address(SP, 0 * kWordSize));
+    __ TraceSimMsg("EqualityRegConstCompare return");
     __ lw(reg, Address(SP, 1 * kWordSize));  // Restore 'reg'.
     __ addiu(SP, SP, Immediate(2 * kWordSize));  // Discard constant.
     return;
@@ -1325,9 +1387,27 @@ void FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
 }
 
 
+// Implement equality spec: if any of the arguments is null do identity check.
+// Fallthrough calls super equality.
 void FlowGraphCompiler::EmitSuperEqualityCallPrologue(Register result,
                                                       Label* skip_call) {
-  UNIMPLEMENTED();
+  Label check_identity, is_false, fall_through;
+  __ TraceSimMsg("SuperEqualityCallPrologue");
+  __ lw(result, Address(SP, 0 * kWordSize));  // Load right operand.
+  __ lw(TMP1, Address(SP, 1 * kWordSize));  // Load left operand.
+  __ beq(result, NULLREG, &check_identity);  // Is right null?
+  __ bne(TMP1, NULLREG, &fall_through);  // If right is non-null, check left.
+
+  __ Bind(&check_identity);
+  __ bne(result, TMP1, &is_false);
+  __ LoadObject(result, Bool::True());
+  __ Drop(2);
+  __ b(skip_call);
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False());
+  __ Drop(2);
+  __ b(skip_call);
+  __ Bind(&fall_through);
 }
 
 
@@ -1384,13 +1464,48 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
 
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Register class_id_reg,
-                                        intptr_t arg_count,
-                                        const Array& arg_names,
+                                        intptr_t argument_count,
+                                        const Array& argument_names,
                                         Label* deopt,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
-  UNIMPLEMENTED();
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
+  Label match_found;
+  const intptr_t len = ic_data.NumberOfChecks();
+  GrowableArray<CidTarget> sorted(len);
+  SortICDataByCount(ic_data, &sorted);
+  ASSERT(class_id_reg != S4);
+  ASSERT(len > 0);  // Why bother otherwise.
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
+                                                 argument_names));
+  __ TraceSimMsg("EmitTestAndCall");
+  __ LoadObject(S4, arguments_descriptor);
+  for (intptr_t i = 0; i < len; i++) {
+    const bool is_last_check = (i == (len - 1));
+    Label next_test;
+    if (is_last_check) {
+      __ BranchNotEqual(class_id_reg, sorted[i].cid, deopt);
+    } else {
+      __ BranchNotEqual(class_id_reg, sorted[i].cid, &next_test);
+    }
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    GenerateDartCall(deopt_id,
+                     token_index,
+                     &StubCode::CallStaticFunctionLabel(),
+                     PcDescriptors::kFuncCall,
+                     locs);
+    const Function& function = *sorted[i].target;
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
+    if (!is_last_check) {
+      __ b(&match_found);
+    }
+    __ Bind(&next_test);
+  }
+  __ Bind(&match_found);
 }
 
 

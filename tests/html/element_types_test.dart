@@ -82,229 +82,107 @@ main() {
     });
   });
 
+  check(String name, bool fn(), [bool supported = true]) {
+    test(name, () {
+      var expectation = supported ? returnsNormally : throws;
+      expect(() {
+        expect(fn(), isTrue);
+      }, expectation);
+    });
+
+  }
+
   group('constructors', () {
-    test('a', () {
-      expect((new AnchorElement()) is AnchorElement, true);
-    });
-    test('area', () {
-      expect((new AreaElement()) is AreaElement, true);
-    });
-    test('audio', () {
-      expect((new AudioElement()) is AudioElement, true);
-    });
-    test('body', () {
-      expect((new BodyElement()) is BodyElement, true);
-    });
-    test('br', () {
-      expect((new BRElement()) is BRElement, true);
-    });
-    test('base', () {
-      expect((new BaseElement()) is BaseElement, true);
-    });
-    test('button', () {
-      expect((new ButtonElement()) is ButtonElement, true);
-    });
-    test('canvas', () {
-      expect((new CanvasElement()) is CanvasElement, true);
-    });
-    test('caption', () {
-      expect((new TableCaptionElement()) is TableCaptionElement, true);
-    });
-    test('content', () {
-      expect((new ContentElement()) is ContentElement,
-          ContentElement.supported);
-    });
-    test('details', () {
-      expect((new DetailsElement()) is DetailsElement,
-          DetailsElement.supported);
-    });
-    test('dl', () {
-      expect((new DListElement()) is DListElement, true);
-    });
-    test('datalist', () {
-      expect((new DataListElement()) is DataListElement,
-          DataListElement.supported);
-    });
-    test('div', () {
-      expect((new DivElement()) is DivElement, true);
-    });
-    test('embed', () {
-      expect((new EmbedElement()) is EmbedElement, EmbedElement.supported);
-    });
-    test('fieldset', () {
-      expect((new FieldSetElement()) is FieldSetElement, true);
-    });
-    test('form', () {
-      expect((new FormElement()) is FormElement, true);
-    });
-    test('head', () {
-      expect((new HeadElement()) is HeadElement, true);
-    });
-    test('hr', () {
-      expect((new HRElement()) is HRElement, true);
-    });
-    test('html', () {
-      expect((new HtmlElement()) is HtmlElement, true);
-    });
-    test('h1', () {
-      expect((new HeadingElement.h1()) is HeadingElement, true);
-      expect(new Element.tag('h1') is HeadingElement, true);
-    });
-    test('h2', () {
-      expect((new HeadingElement.h2()) is HeadingElement, true);
-      expect(new Element.tag('h2') is HeadingElement, true);
-    });
-    test('h3', () {
-      expect((new HeadingElement.h3()) is HeadingElement, true);
-      expect(new Element.tag('h3') is HeadingElement, true);
-    });
-    test('h4', () {
-      expect((new HeadingElement.h4()) is HeadingElement, true);
-      expect(new Element.tag('h4') is HeadingElement, true);
-    });
-    test('h5', () {
-      expect((new HeadingElement.h5()) is HeadingElement, true);
-      expect(new Element.tag('h5') is HeadingElement, true);
-    });
-    test('h6', () {
-      expect((new HeadingElement.h6()) is HeadingElement, true);
-      expect(new Element.tag('h6') is HeadingElement, true);
-    });
-    test('iframe', () {
-      expect((new IFrameElement()) is IFrameElement, true);
-    });
-    test('img', () {
-      expect((new ImageElement()) is ImageElement, true);
-    });
-    test('input', () {
-      expect((new InputElement()) is InputElement, true);
-    });
-    test('keygen', () {
-      expect((new KeygenElement()) is KeygenElement, KeygenElement.supported);
-    });
-    test('li', () {
-      expect((new LIElement()) is LIElement, true);
-    });
-    test('label', () {
-      expect((new LabelElement()) is LabelElement, true);
-    });
-    test('legend', () {
-      expect((new LegendElement()) is LegendElement, true);
-    });
-    test('link', () {
-      expect((new LinkElement()) is LinkElement, true);
-    });
-    test('map', () {
-      expect((new MapElement()) is MapElement, true);
-    });
-    test('menu', () {
-      expect((new MenuElement()) is MenuElement, true);
-    });
-    test('meta', () {
-      expect((new Element.tag('meta')) is MetaElement, true);
-    });
-    test('meter', () {
-      expect((new Element.tag('meter')) is MeterElement, MeterElement.supported);
-    });
-    test('del', () {
-      expect((new Element.tag('del')) is ModElement, true);
-    });
-    test('ins', () {
-      expect((new Element.tag('ins')) is ModElement, true);
-    });
-    test('object', () {
-      expect((new ObjectElement()) is ObjectElement, ObjectElement.supported);
-    });
-    test('ol', () {
-      expect((new OListElement()) is OListElement, true);
-    });
-    test('optgroup', () {
-      expect((new OptGroupElement()) is OptGroupElement, true);
-    });
-    test('option', () {
-      expect((new OptionElement()) is OptionElement, true);
-    });
-    test('output', () {
-      expect((new OutputElement()) is OutputElement, OutputElement.supported);
-    });
-    test('p', () {
-      expect((new ParagraphElement()) is ParagraphElement, true);
-    });
-    test('param', () {
-      expect((new ParamElement()) is ParamElement, true);
-    });
-    test('pre', () {
-      expect((new PreElement()) is PreElement, true);
-    });
-    test('progress', () {
-      expect((new ProgressElement()) is ProgressElement,
-          ProgressElement.supported);
-    });
-    test('q', () {
-      expect((new Element.tag('q')) is QuoteElement, true);
-    });
-    test('script', () {
-      expect((new ScriptElement()) is ScriptElement, true);
-    });
-    test('select', () {
-      expect((new SelectElement()) is SelectElement, true);
-    });
-    test('shadow', () {
-      expect((new Element.tag('shadow')) is ShadowElement,
-          ShadowElement.supported);
-    });
-    test('source', () {
-      expect((new SourceElement()) is SourceElement, true);
-    });
-    test('span', () {
-      expect((new SpanElement()) is SpanElement, true);
-    });
-    test('style', () {
-      expect((new StyleElement()) is StyleElement, true);
-    });
-    test('table', () {
-      expect((new TableElement()) is TableElement, true);
-    });
-    test('template', () {
-      expect((new TemplateElement()) is TemplateElement,
-          TemplateElement.supported);
-    });
-    test('textarea', () {
-      expect((new TextAreaElement()) is TextAreaElement, true);
-    });
-    test('title', () {
-      expect((new TitleElement()) is TitleElement, true);
-    });
-    test('td', () {
-      expect((new TableCellElement()) is TableCellElement, true);
-    });
-    test('col', () {
-      expect((new TableColElement()) is TableColElement, true);
-      expect((new Element.tag('colgroup')) is TableColElement, true);
-    });
-    test('tr', () {
-      expect((new TableRowElement()) is TableRowElement, true);
-    });
-    test('table section', () {
-      expect((new Element.tag('tbody')) is TableSectionElement, true);
-      expect((new Element.tag('tfoot')) is TableSectionElement, true);
-      expect((new Element.tag('thead')) is TableSectionElement, true);
-    });
-    test('track', () {
-      expect((new Element.tag('track')) is TrackElement,
-          TrackElement.supported);
-    });
-    test('ul', () {
-      expect((new UListElement()) is UListElement, true);
-      var ul = new UListElement();
-      var li = new LIElement();
-      ul.append(li);
-    });
-    test('video', () {
-      expect((new VideoElement()) is VideoElement, true);
-    });
-    test('unknown', () {
-      expect((new Element.tag('someunknown')) is UnknownElement, true);
-    });;
+    check('a', () => new AnchorElement() is AnchorElement);
+    check('area', () => new AreaElement() is AreaElement);
+    check('audio', () => new AudioElement() is AudioElement);
+    check('body', () => new BodyElement() is BodyElement);
+    check('br', () => new BRElement() is BRElement);
+    check('base', () => new BaseElement() is BaseElement);
+    check('button', () => new ButtonElement() is ButtonElement);
+    check('canvas', () => new CanvasElement() is CanvasElement);
+    check('caption', () => new TableCaptionElement() is TableCaptionElement);
+    check('content', () => new ContentElement() is ContentElement,
+        ContentElement.supported);
+    check('details', () => new DetailsElement() is DetailsElement,
+        DetailsElement.supported);
+    check('datalist', () => new DataListElement() is DataListElement,
+        DataListElement.supported);
+    check('dl', () => new DListElement() is DListElement);
+    check('div', () => new DivElement() is DivElement);
+    check('embed', () => new EmbedElement() is EmbedElement,
+        EmbedElement.supported);
+    check('fieldset', () => new FieldSetElement() is FieldSetElement);
+    check('form', () => new FormElement() is FormElement);
+    check('head', () => new HeadElement() is HeadElement);
+    check('hr', () => new HRElement() is HRElement);
+    check('html', () => new HtmlElement() is HtmlElement);
+    check('h1', () => new HeadingElement.h1() is HeadingElement);
+    check('h2', () => new HeadingElement.h2() is HeadingElement);
+    check('h3', () => new HeadingElement.h3() is HeadingElement);
+    check('h4', () => new HeadingElement.h4() is HeadingElement);
+    check('h5', () => new HeadingElement.h5() is HeadingElement);
+    check('h6', () => new HeadingElement.h6() is HeadingElement);
+    check('iframe', () => new IFrameElement() is IFrameElement);
+    check('img', () => new ImageElement() is ImageElement);
+    check('input', () => new InputElement() is InputElement);
+    check('keygen', () => new KeygenElement() is KeygenElement,
+        KeygenElement.supported);
+    check('li', () => new LIElement() is LIElement);
+    check('label', () => new LabelElement() is LabelElement);
+    check('legen', () => new LegendElement() is LegendElement);
+    check('link', () => new LinkElement() is LinkElement);
+    check('map', () => new MapElement() is MapElement);
+    check('menu', () => new MenuElement() is MenuElement);
+    check('meta', () => new MetaElement() is MetaElement);
+    check('meter', () => new MeterElement() is MeterElement,
+        MeterElement.supported);
+    check('del', () => new Element.tag('del') is ModElement);
+    check('ins', () => new Element.tag('ins') is ModElement);
+    check('object', () => new ObjectElement() is ObjectElement,
+        ObjectElement.supported);
+    check('ol', () => new OListElement() is OListElement);
+    check('optgroup', () => new OptGroupElement() is OptGroupElement);
+    check('option', () => new OptionElement() is OptionElement);
+    check('output', () => new OutputElement() is OutputElement,
+        OutputElement.supported);
+    check('p', () => new ParagraphElement() is ParagraphElement);
+    check('param', () => new ParamElement() is ParamElement);
+    check('pre', () => new PreElement() is PreElement);
+    check('progress', () => new ProgressElement() is ProgressElement,
+        ProgressElement.supported);
+    check('q', () => new QuoteElement() is QuoteElement);
+    check('script', () => new ScriptElement() is ScriptElement);
+    check('select', () => new SelectElement() is SelectElement);
+    check('shadow', () => new ShadowElement() is ShadowElement,
+        ShadowElement.supported);
+    check('source', () => new SourceElement() is SourceElement);
+    check('span', () => new SpanElement() is SpanElement);
+    check('style', () => new StyleElement() is StyleElement);
+    check('table', () => new TableElement() is TableElement);
+    check('template', () => new TemplateElement() is TemplateElement,
+        TemplateElement.supported);
+    check('textarea', () => new TextAreaElement() is TextAreaElement);
+    check('title', () => new TitleElement() is TitleElement);
+    check('td', () => new TableCellElement() is TableCellElement);
+    check('col', () => new TableColElement() is TableColElement);
+    check('colgroup', () => new Element.tag('colgroup') is TableColElement);
+    check('tr', () => new TableRowElement() is TableRowElement);
+    check('tbody', () => new Element.tag('tbody') is TableSectionElement);
+    check('tfoot', () => new Element.tag('tfoot') is TableSectionElement);
+    check('thead', () => new Element.tag('thead') is TableSectionElement);
+    check('track', () => new TrackElement() is TrackElement,
+        TrackElement.supported);
+    group('ul', () {
+      check('ul', () => new UListElement() is UListElement);
+
+      test('accepts li', () {
+        var ul = new UListElement();
+        var li = new LIElement();
+        ul.append(li);
+      });
+    });
+    check('video', () => new VideoElement() is VideoElement);
+    check('unknown', () => new Element.tag('someunknown') is UnknownElement);
   });
 }

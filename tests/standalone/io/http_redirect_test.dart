@@ -391,7 +391,7 @@ void testAutoRedirectLimit() {
         Expect.equals(5, error.redirects.length);
         server.close();
         client.close();
-      }, test: (e) => e is RedirectLimitExceededException);
+      }, test: (e) => e is RedirectException);
   });
 }
 
@@ -406,7 +406,7 @@ void testRedirectLoop() {
         Expect.equals(2, error.redirects.length);
         server.close();
         client.close();
-      }, test: (e) => e is RedirectLoopException);
+      }, test: (e) => e is RedirectException);
   });
 }
 

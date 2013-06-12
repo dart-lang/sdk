@@ -101,7 +101,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
 
 // Print the stop message.
-DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, const char* message) {
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, 1, const char* message) {
   OS::Print("Stop message: %s\n", message);
 }
 END_LEAF_RUNTIME_ENTRY

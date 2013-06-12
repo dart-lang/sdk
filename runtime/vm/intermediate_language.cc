@@ -2453,27 +2453,27 @@ typedef double (*BinaryMathCFunction) (double x, double y);
 
 extern const RuntimeEntry kPowRuntimeEntry(
     "libc_pow", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&pow)), 0, true);
+        static_cast<BinaryMathCFunction>(&pow)), 2, true, true);
 
 extern const RuntimeEntry kModRuntimeEntry(
     "DartModulo", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&DartModulo)), 0, true);
+        static_cast<BinaryMathCFunction>(&DartModulo)), 2, true, true);
 
 extern const RuntimeEntry kFloorRuntimeEntry(
     "libc_floor", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&floor)), 0, true);
+        static_cast<UnaryMathCFunction>(&floor)), 1, true, true);
 
 extern const RuntimeEntry kCeilRuntimeEntry(
     "libc_ceil", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&ceil)), 0, true);
+        static_cast<UnaryMathCFunction>(&ceil)), 1, true, true);
 
 extern const RuntimeEntry kTruncRuntimeEntry(
     "libc_trunc", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&trunc)), 0, true);
+        static_cast<UnaryMathCFunction>(&trunc)), 1, true, true);
 
 extern const RuntimeEntry kRoundRuntimeEntry(
     "libc_round", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&round)), 0, true);
+        static_cast<UnaryMathCFunction>(&round)), 1, true, true);
 
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {

@@ -27,7 +27,7 @@
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--package-root=<(PRODUCT_DIR)/packages/',
-            '--generate-script-snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
+            '--snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
             '../../sdk/lib/_internal/pub/bin/pub.dart',
           ],
         },

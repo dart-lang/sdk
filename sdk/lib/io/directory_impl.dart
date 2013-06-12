@@ -32,7 +32,7 @@ class _Directory implements Directory {
     var result = _setCurrent(path);
     if (result is ArgumentError) throw result;
     if (result is OSError) {
-      throw new DirectoryIOException(
+      throw new DirectoryException(
           "Setting current working directory failed", path, result);
     }
   }
@@ -56,7 +56,7 @@ class _Directory implements Directory {
     }
     var result = _exists(_path);
     if (result is OSError) {
-      throw new DirectoryIOException("Exists failed", _path, result);
+      throw new DirectoryException("Exists failed", _path, result);
     }
     return (result == 1);
   }
@@ -155,7 +155,7 @@ class _Directory implements Directory {
     if (recursive) return createRecursivelySync();
     var result = _create(_path);
     if (result is OSError) {
-      throw new DirectoryIOException("Creation failed", _path, result);
+      throw new DirectoryException("Creation failed", _path, result);
     }
   }
 
@@ -179,7 +179,7 @@ class _Directory implements Directory {
     }
     var result = _createTemp(path);
     if (result is OSError) {
-      throw new DirectoryIOException("Creation of temporary directory failed",
+      throw new DirectoryException("Creation of temporary directory failed",
                                      _path,
                                      result);
     }
@@ -209,7 +209,7 @@ class _Directory implements Directory {
     }
     var result = _delete(_path, recursive);
     if (result is OSError) {
-      throw new DirectoryIOException("Deletion failed", _path, result);
+      throw new DirectoryException("Deletion failed", _path, result);
     }
   }
 
@@ -233,7 +233,7 @@ class _Directory implements Directory {
     }
     var result = _rename(_path, newPath);
     if (result is OSError) {
-      throw new DirectoryIOException("Rename failed", _path, result);
+      throw new DirectoryException("Rename failed", _path, result);
     }
     return new Directory(newPath);
   }
@@ -261,7 +261,7 @@ class _Directory implements Directory {
     responsePort.receive((message, replyTo) {
       if (message is !List || message[RESPONSE_TYPE] is !int) {
         responsePort.close();
-        controller.addError(new DirectoryIOException("Internal error"));
+        controller.addError(new DirectoryException("Internal error"));
         return;
       }
       switch (message[RESPONSE_TYPE]) {
@@ -287,11 +287,11 @@ class _Directory implements Directory {
             var errorPath = message[RESPONSE_PATH];
             if (errorPath == null) errorPath = path;
             controller.addError(
-                new DirectoryIOException("Directory listing failed",
+                new DirectoryException("Directory listing failed",
                                          errorPath,
                                          err));
           } else {
-            controller.addError(new DirectoryIOException("Internal error"));
+            controller.addError(new DirectoryException("Internal error"));
           }
           break;
         case LIST_DONE:
@@ -327,7 +327,7 @@ class _Directory implements Directory {
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                               response[_OSERROR_RESPONSE_ERROR_CODE]);
-        return new DirectoryIOException(message, _path, err);
+        return new DirectoryException(message, _path, err);
       default:
         return new Exception("Unknown error");
     }

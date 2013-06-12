@@ -119,7 +119,8 @@ def ProcessOptions(options, args):
 def SetTools(arch, toolchainprefix):
   toolsOverride = None
   if arch == 'arm' and toolchainprefix == None:
-    toolchainprefix = DEFAULT_ARM_CROSS_COMPILER_PATH + "/bin/arm-linux-gnueabi"
+    toolchainprefix = (DEFAULT_ARM_CROSS_COMPILER_PATH +
+                       "/bin/arm-linux-gnueabihf")
   if toolchainprefix:
     toolsOverride = {
       "CC.target"  :  toolchainprefix + "-gcc",

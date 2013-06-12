@@ -54,33 +54,11 @@ class SsaBuilderTask extends CompilerTask {
       if (!identical(kind, ElementKind.FIELD)) {
         FunctionElement function = element;
         graph.calledInLoop = compiler.world.isCalledInLoop(function);
-        OptionalParameterTypes defaultValueTypes = null;
         FunctionSignature signature = function.computeSignature(compiler);
-        if (signature.optionalParameterCount > 0) {
-          defaultValueTypes =
-              new OptionalParameterTypes(signature.optionalParameterCount);
-          int index = 0;
-          signature.forEachOptionalParameter((Element parameter) {
-            Constant defaultValue = builder.compileVariable(parameter);
-            HType type = HGraph.mapConstantTypeToSsaType(defaultValue);
-            defaultValueTypes.update(index, parameter.name, type);
-            index++;
-          });
-        } else {
-          // BUG(10938): the types are stored in the wrong order.
-          // order.
-          HTypeList parameterTypes =
-              backend.optimisticParameterTypes(element.declaration,
-                                               defaultValueTypes);
-          if (!parameterTypes.allUnknown) {
-            int i = 0;
-            signature.forEachParameter((Element param) {
-              builder.parameters[param].instructionType = parameterTypes[i++];
-            });
-          }
-          backend.registerParameterTypesOptimization(
-              element.declaration, parameterTypes, defaultValueTypes);
-        }
+        signature.forEachOptionalParameter((Element parameter) {
+          // This ensures the default value will be computed.
+          builder.compileVariable(parameter);
+        });
       }
 
       if (compiler.tracer.enabled) {
@@ -1092,11 +1070,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     });
     if (bodyElement == null) {
       bodyElement = new ConstructorBodyElementX(constructor);
-      // [:resolveMethodElement:] require the passed element to be a
-      // declaration.
-      TreeElements treeElements =
-          compiler.enqueuer.resolution.getCachedElements(
-              constructor.declaration);
       classElement.addBackendMember(bodyElement);
 
       if (constructor.isPatch) {
@@ -1105,11 +1078,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         bodyElement.origin.patch = bodyElement;
         classElement.origin.addBackendMember(bodyElement.origin);
       }
-      // Set the [TreeElements] of the generative constructor body to
-      // be the same as the generative constructor.
-      compiler.enqueuer.resolution.ensureCachedElements(
-          bodyElement.declaration,
-          treeElements);
     }
     assert(bodyElement.isGenerativeConstructorBody());
     return bodyElement;
@@ -1140,12 +1108,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     List<HInstruction> compiledArguments;
     bool isInstanceMember = function.isInstanceMember();
-
-    if (function.isGenerativeConstructor()) {
-      // The optimistic field type optimization requires
-      // to know all generative constructors seen in codegen.
-      backend.registerConstructor(function);
-    }
 
     if (currentNode == null
         || currentNode.asForIn() != null
@@ -2454,7 +2416,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         nestedClosureData.closureClassElement;
     FunctionElement callElement = nestedClosureData.callElement;
     // TODO(ahe): This should be registered in codegen, not here.
-    compiler.enqueuer.codegen.addToWorkList(callElement, elements);
+    compiler.enqueuer.codegen.addToWorkList(callElement);
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.registerInstantiatedClass(
         closureClassElement, work.resolutionTree);
@@ -3790,14 +3752,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     if (type == null) {
       type = new HType.inferredReturnTypeForElement(element, compiler);
-      if (type.isUnknown()) {
-        // TODO(ngeoffray): Only do this if knowing the return type is
-        // useful.
-        type =
-            builder.backend.optimisticReturnTypesWithRecompilationOnTypeChange(
-                currentElement, element);
-        if (type == null) type = HType.UNKNOWN;
-      }
     }
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HInvokeStatic].

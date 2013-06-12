@@ -26,7 +26,6 @@ call_nonexistent_static_test/07: fail
 call_nonexistent_static_test/09: fail
 call_nonexistent_static_test/10: fail
 call_through_getter_test: fail
-callable_test/none: fail
 cast_test/04: fail
 cast_test/05: fail
 class_cycle_test/03: fail

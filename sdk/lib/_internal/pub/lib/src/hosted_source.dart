@@ -156,7 +156,7 @@ class HostedSource extends Source {
       fail('Timed out trying to find package "$package" at $url.');
     }
 
-    if (error is io.SocketIOException) {
+    if (error is io.SocketException) {
       fail('Got socket error trying to find package "$package" at $url.\n'
           '${error.osError}');
     }

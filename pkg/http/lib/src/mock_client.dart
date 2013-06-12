@@ -38,7 +38,7 @@ class MockClient extends BaseClient {
         request.persistentConnection = baseRequest.persistentConnection;
         request.followRedirects = baseRequest.followRedirects;
         request.maxRedirects = baseRequest.maxRedirects;
-        mapAddAll(request.headers, baseRequest.headers);
+        request.headers.addAll(baseRequest.headers);
         request.bodyBytes = bodyBytes;
         request.finalize();
 

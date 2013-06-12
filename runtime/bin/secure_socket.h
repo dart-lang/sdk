@@ -26,9 +26,9 @@ namespace dart {
 namespace bin {
 
 static void ThrowException(const char* message) {
-  Dart_Handle socket_io_exception =
-      DartUtils::NewDartSocketIOException(message, Dart_Null());
-  Dart_ThrowException(socket_io_exception);
+  Dart_Handle socket_exception =
+      DartUtils::NewDartSocketException(message, Dart_Null());
+  Dart_ThrowException(socket_exception);
 }
 
 
@@ -38,9 +38,9 @@ static void ThrowPRException(const char* message) {
   const char* error_message = PR_ErrorToString(error_code, PR_LANGUAGE_EN);
   OSError os_error_struct(error_code, error_message, OSError::kNSS);
   Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
-  Dart_Handle socket_io_exception =
-      DartUtils::NewDartSocketIOException(message, os_error);
-  Dart_ThrowException(socket_io_exception);
+  Dart_Handle socket_exception =
+      DartUtils::NewDartSocketException(message, os_error);
+  Dart_ThrowException(socket_exception);
 }
 
 /*

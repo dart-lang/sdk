@@ -340,7 +340,7 @@ class AudioContext extends EventTarget native "AudioContext" {
 
   ScriptProcessorNode createScriptProcessor(int bufferSize,
       [int numberOfInputChannels, int numberOfOutputChannels]) {
-    var function = JS('dynamic', '#.createScriptProcessor || '
+    var function = JS('=Object', '#.createScriptProcessor || '
         '#.createJavaScriptNode', this, this);
     if (numberOfOutputChannels != null) {
       return JS('ScriptProcessorNode', '#.call(#, #, #, #)', function, this,
@@ -1050,7 +1050,6 @@ class WaveShaperNode extends AudioNode native "WaveShaperNode" {
 
   @DomName('WaveShaperNode.oversample')
   @DocsEditable
-  @Experimental // untriaged
   String oversample;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

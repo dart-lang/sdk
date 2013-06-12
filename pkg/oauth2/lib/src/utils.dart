@@ -13,7 +13,7 @@ import "package:crypto/crypto.dart";
 /// parameters if a name conflict occurs.
 Uri addQueryParameters(Uri url, Map<String, String> parameters) {
   var queryMap = queryToMap(url.query);
-  mapAddAll(queryMap, parameters);
+  queryMap.addAll(parameters);
   return url.resolve("?${mapToQuery(queryMap)}");
 }
 
@@ -46,11 +46,6 @@ String mapToQuery(Map<String, String> map) {
     return "${pair[0]}=${pair[1]}";
   }).join("&");
 }
-
-/// Add all key/value pairs from [source] to [destination], overwriting any
-/// pre-existing values.
-void mapAddAll(Map destination, Map source) =>
-  source.forEach((key, value) => destination[key] = value);
 
 /// Decode a URL-encoded string. Unlike [Uri.decodeComponent], this includes
 /// replacing `+` with ` `.

@@ -51,7 +51,6 @@
             '-marm',
             '-march=armv7-a',
             '-mfpu=vfp',
-            '-mfloat-abi=softfp',
             '-Wno-psabi', # suppresses va_list warning
             '-fno-strict-overflow',
           ],

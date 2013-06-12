@@ -1711,7 +1711,7 @@ void Simulator::InstructionDecode(Instr* instr) {
       if (Simulator::IsIllegalAddress(addr)) {
         HandleIllegalAccess(addr, instr);
       } else {
-        int32_t res = ReadBU(addr);
+        uint32_t res = ReadBU(addr);
         set_register(instr->RtField(), res);
       }
       break;

@@ -1515,7 +1515,7 @@ static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                          uword saved_registers_address) {
+                          1, uword saved_registers_address) {
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
@@ -1639,7 +1639,7 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
 
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
-DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
+DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
@@ -1726,6 +1726,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                           BigintCompare,
+                          2,
                           RawBigint* left,
                           RawBigint* right) {
   Isolate* isolate = Isolate::Current();

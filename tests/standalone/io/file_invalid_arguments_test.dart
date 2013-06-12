@@ -15,7 +15,7 @@ void testReadInvalidArgs(arg) {
     file.readSync(arg);
     Expect.fail('exception expected');
   } catch (e) {
-    Expect.isTrue(e is FileIOException);
+    Expect.isTrue(e is FileException);
     Expect.isTrue(e.toString().contains('Invalid arguments'));
   }
 
@@ -25,7 +25,7 @@ void testReadInvalidArgs(arg) {
     Expect.fail('exception expected');
   }).catchError((error) {
     errors++;
-    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error is FileException);
     Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       Expect.equals(1, errors);
@@ -42,7 +42,7 @@ void testReadIntoInvalidArgs(buffer, start, end) {
     file.readIntoSync(buffer, start, end);
     Expect.fail('exception expected');
   } catch (e) {
-    Expect.isTrue(e is FileIOException);
+    Expect.isTrue(e is FileException);
     Expect.isTrue(e.toString().contains('Invalid arguments'));
   }
 
@@ -52,7 +52,7 @@ void testReadIntoInvalidArgs(buffer, start, end) {
     Expect.fail('exception expected');
   }).catchError((error) {
     errors++;
-    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error is FileException);
     Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       Expect.equals(1, errors);
@@ -69,7 +69,7 @@ void testWriteByteInvalidArgs(value) {
     file.writeByteSync(value);
     Expect.fail('exception expected');
   } catch (e) {
-    Expect.isTrue(e is FileIOException);
+    Expect.isTrue(e is FileException);
     Expect.isTrue(e.toString().contains('Invalid argument'));
   }
 
@@ -77,7 +77,7 @@ void testWriteByteInvalidArgs(value) {
   writeByteFuture.then((ignore) {
     Expect.fail('exception expected');
   }).catchError((error) {
-    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error is FileException);
     Expect.isTrue(error.toString().contains('Invalid argument'));
     file.close().then((ignore) {
       port.close();
@@ -93,7 +93,7 @@ void testWriteFromInvalidArgs(buffer, start, end) {
     file.writeFromSync(buffer, start, end);
     Expect.fail('exception expected');
   } catch (e) {
-    Expect.isTrue(e is FileIOException);
+    Expect.isTrue(e is FileException);
     Expect.isTrue(e.toString().contains('Invalid arguments'));
   }
 
@@ -101,7 +101,7 @@ void testWriteFromInvalidArgs(buffer, start, end) {
   writeFromFuture.then((ignore) {
     Expect.fail('exception expected');
   }).catchError((error) {
-    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error is FileException);
     Expect.isTrue(error.toString().contains('Invalid arguments'));
     file.close().then((ignore) {
       port.close();
@@ -117,14 +117,14 @@ void testWriteStringInvalidArgs(string, encoding) {
     file.writeStringSync(string, encoding: encoding);
     Expect.fail('exception expected');
   } catch (e) {
-    Expect.isTrue(e is FileIOException);
+    Expect.isTrue(e is FileException);
   }
 
   var writeStringFuture = file.writeString(string, encoding: encoding);
   writeStringFuture.then((ignore) {
     Expect.fail('exception expected');
   }).catchError((error) {
-    Expect.isTrue(error is FileIOException);
+    Expect.isTrue(error is FileException);
     file.close().then((ignore) {
       port.close();
     });

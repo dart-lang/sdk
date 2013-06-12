@@ -19,7 +19,6 @@ abstract class Map<K, V> {
    */
   factory Map.from(Map<K, V> other) => new HashMap<K, V>.from(other);
 
-
   /**
    * Returns whether this map contains the given [value].
    */
@@ -52,6 +51,17 @@ abstract class Map<K, V> {
    * [ifAbsent].
    */
   V putIfAbsent(K key, V ifAbsent());
+
+  /**
+   * Adds all key-value pairs of [other] to this map.
+   *
+   * If a key of [other] is already in this map, its value is overwritten.
+   *
+   * The operation is equivalent to doing `this[key] = value` for each key
+   * and associated value in other. It iterates over [other], which must
+   * therefore not change during the iteration.
+   */
+  void addAll(Map<K, V> other);
 
   /**
    * Removes the association for the given [key]. Returns the value for

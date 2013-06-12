@@ -458,7 +458,7 @@ class HtmlDartGenerator(object):
     metadata = ''
     if '_RenamingAnnotation' in dir(self):
       metadata = (self._RenamingAnnotation(info.declared_name, html_name) +
-          self._Metadata(info.type_name, info.declared_name))
+          self._Metadata(info.type_name, info.declared_name, None))
     self._members_emitter.Emit(
         '\n'
         '  $METADATA$MODIFIERS$TYPE$FUTURE_GENERIC $NAME($PARAMS) {\n'

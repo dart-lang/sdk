@@ -1,0 +1,65 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Test that no parts are emitted when deferred loading isn't used.
+
+import 'package:expect/expect.dart';
+import 'memory_source_file_helper.dart';
+
+import '../../../sdk/lib/_internal/compiler/implementation/dart2jslib.dart'
+       show NullSink;
+
+import '../../../sdk/lib/_internal/compiler/compiler.dart'
+       show Diagnostic;
+
+import 'dart:async';
+
+main() {
+  Uri script = currentDirectory.resolve(nativeToUriPath(new Options().script));
+  Uri libraryRoot = script.resolve('../../../sdk/');
+  Uri packageRoot = script.resolve('./packages/');
+
+  MemorySourceFileProvider.MEMORY_SOURCE_FILES = MEMORY_SOURCE_FILES;
+  var provider = new MemorySourceFileProvider();
+  void diagnosticHandler(Uri uri, int begin, int end,
+                         String message, Diagnostic kind) {
+    if (kind == Diagnostic.VERBOSE_INFO) {
+      return;
+    }
+    throw '$uri:$begin:$end:$message:$kind';
+  }
+
+  EventSink<String> outputProvider(String name, String extension) {
+    if (name != '') throw 'Attempt to output file "$name.$extension"';
+    return new NullSink('$name.$extension');
+  }
+
+  Compiler compiler = new Compiler(provider.readStringFromUri,
+                                   outputProvider,
+                                   diagnosticHandler,
+                                   libraryRoot,
+                                   packageRoot,
+                                   []);
+  compiler.run(Uri.parse('memory:main.dart'));
+  Expect.isFalse(compiler.compilationFailed);
+}
+
+const Map MEMORY_SOURCE_FILES = const {
+  'main.dart': """
+class Greeting {
+  final message;
+  const Greeting(this.message);
+}
+
+const fisk = const Greeting('Hello, World!');
+
+main() {
+  var x = fisk;
+  if (new DateTime.now().millisecondsSinceEpoch == 42) {
+    x = new Greeting(\"I\'m confused\");
+  }
+  print(x.message);
+}
+""",
+};

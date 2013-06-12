@@ -60,7 +60,7 @@ abstract class BaseRequest {
 
   /// The maximum number of redirects to follow when [followRedirects] is true.
   /// If this number is exceeded the [BaseResponse] future will signal a
-  /// [RedirectLimitExceeded] exception. Defaults to 5.
+  /// [RedirectException]. Defaults to 5.
   int get maxRedirects => _maxRedirects;
   int _maxRedirects = 5;
 

@@ -42,15 +42,6 @@ String mapToQuery(Map<String, String> map) {
   return pairs.map((pair) => "${pair[0]}=${pair[1]}").join("&");
 }
 
-/// Adds all key/value pairs from [source] to [destination], overwriting any
-/// pre-existing values.
-///
-///     var a = {"foo": "bar", "baz": "bang"};
-///     mapAddAll(a, {"baz": "zap", "qux": "quux"});
-///     a; //=> {"foo": "bar", "baz": "zap", "qux": "quux"}
-void mapAddAll(Map destination, Map source) =>
-  source.forEach((key, value) => destination[key] = value);
-
 /// Decodes a URL-encoded string. Unlike [Uri.decodeComponent], this includes
 /// replacing `+` with ` `.
 String urlDecode(String encoded) =>

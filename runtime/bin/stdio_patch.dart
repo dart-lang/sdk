@@ -12,7 +12,7 @@ patch class _StdIOUtils {
       case _STDIO_HANDLE_TYPE_FILE:
         return new _StdStream(new _FileStream.forStdin());
       default:
-        throw new FileIOException("Unsupported stdin type");
+        throw new FileException("Unsupported stdin type");
     }
   }
 
@@ -26,14 +26,14 @@ patch class _StdIOUtils {
       case _STDIO_HANDLE_TYPE_FILE:
         return new _StdSink(new IOSink(new _FileStreamConsumer.fromStdio(fd)));
       default:
-        throw new FileIOException("Unsupported stdin type");
+        throw new FileException("Unsupported stdin type");
     }
   }
 
   static int _socketType(nativeSocket) {
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
-      throw new FileIOException("Error retreiving socket type", result);
+      throw new FileException("Error retreiving socket type", result);
     }
     return result;
   }

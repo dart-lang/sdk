@@ -44,7 +44,7 @@ class Compiler extends leg.Compiler {
                 !hasOption(options, '--disable-native-live-type-analysis'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
             disallowUnsafeEval: hasOption(options, '--disallow-unsafe-eval'),
-            analyzeAll: hasOption(options, '--analyze-all'),
+            analyzeAllFlag: hasOption(options, '--analyze-all'),
             analyzeOnly: hasOption(options, '--analyze-only'),
             analyzeSignaturesOnly:
                 hasOption(options, '--analyze-signatures-only'),
@@ -56,7 +56,7 @@ class Compiler extends leg.Compiler {
             strips: extractCsvOption(options, '--force-strip='),
             enableConcreteTypeInference:
                 hasOption(options, '--enable-concrete-type-inference'),
-            disableTypeInference:
+            disableTypeInferenceFlag:
                 hasOption(options, '--disable-type-inference'),
             preserveComments: hasOption(options, '--preserve-comments'),
             verbose: hasOption(options, '--verbose'),

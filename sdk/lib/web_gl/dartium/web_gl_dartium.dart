@@ -745,7 +745,8 @@ class ExtDrawBuffers extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('EXTFragDepth')
-@Experimental // untriaged
+// http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
+@Experimental
 class ExtFragDepth extends NativeFieldWrapperClass1 {
   ExtFragDepth.internal();
 

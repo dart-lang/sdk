@@ -14,7 +14,7 @@ Directory tempDir() {
 
 
 bool checkNonExistentFileException(e, str) {
-  Expect.isTrue(e is FileIOException);
+  Expect.isTrue(e is FileException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf(str) != -1);
   // File not not found has error code 2 on all supported platforms.
@@ -105,7 +105,7 @@ void testLengthNonExistent() {
 
 
 bool checkCreateInNonExistentDirectoryException(e) {
-  Expect.isTrue(e is FileIOException);
+  Expect.isTrue(e is FileException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot create file") != -1);
   if (Platform.operatingSystem == "linux") {
@@ -141,7 +141,7 @@ void testCreateInNonExistentDirectory() {
 }
 
 bool checkFullPathOnNonExistentDirectoryException(e) {
-  Expect.isTrue(e is FileIOException);
+  Expect.isTrue(e is FileException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot retrieve full path") != -1);
   // File not not found has error code 2 on all supported platforms.
@@ -235,7 +235,7 @@ testReadAsLinesNonExistent() {
 }
 
 bool checkWriteReadOnlyFileException(e) {
-  Expect.isTrue(e is FileIOException);
+  Expect.isTrue(e is FileException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.osError.errorCode != OSError.noErrorCode);
   return true;
@@ -313,7 +313,7 @@ testTruncateReadOnlyFile() {
 }
 
 bool checkFileClosedException(e) {
-  Expect.isTrue(e is FileIOException);
+  Expect.isTrue(e is FileException);
   Expect.isTrue(e.toString().indexOf("File closed") != -1);
   Expect.isTrue(e.osError == null);
   return true;
@@ -405,7 +405,7 @@ testRepeatedlyCloseFile() {
       var closeFuture = openedFile.close();
       closeFuture.then((ignore) => null)
       .catchError((error) {
-        Expect.isTrue(error is FileIOException);
+        Expect.isTrue(error is FileException);
         port.send(null);
       });
     });
@@ -417,7 +417,7 @@ testRepeatedlyCloseFileSync() {
     var openedFile = file.openSync();
     openedFile.closeSync();
     Expect.throws(openedFile.closeSync,
-                  (e) => e is FileIOException);
+                  (e) => e is FileException);
     port.send(null);
   });
 }
@@ -427,7 +427,7 @@ testReadSyncBigInt() {
     var bigint = 100000000000000000000000000000000000000000;
     var openedFile = file.openSync();
     Expect.throws(() => openedFile.readSync(bigint),
-                  (e) => e is FileIOException);
+                  (e) => e is FileException);
     openedFile.closeSync();
     port.send(null);
   });
@@ -438,7 +438,7 @@ testReadSyncClosedFile() {
     var openedFile = file.openSync();
     openedFile.closeSync();
     Expect.throws(() => openedFile.readSync(1),
-                  (e) => e is FileIOException);
+                  (e) => e is FileException);
     port.send(null);
   });
 }

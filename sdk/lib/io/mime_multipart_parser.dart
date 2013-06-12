@@ -398,7 +398,7 @@ class MimeMultipartTransformer
 }
 
 
-class MimeMultipartException implements Exception {
+class MimeMultipartException implements IOException {
   const MimeMultipartException([String this.message = ""]);
   String toString() => "MimeMultipartException: $message";
   final String message;

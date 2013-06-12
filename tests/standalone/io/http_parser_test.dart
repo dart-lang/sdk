@@ -8,6 +8,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:isolate';
 
+part '../../../sdk/lib/io/common.dart';
 part '../../../sdk/lib/io/io_sink.dart';
 part '../../../sdk/lib/io/http.dart';
 part '../../../sdk/lib/io/http_impl.dart';

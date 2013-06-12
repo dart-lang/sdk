@@ -13,6 +13,7 @@ import "dart:isolate";
 
 void testServerDetachSocket() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
+    server.serverHeader = null;
     server.listen((request) {
       var response = request.response;
       response.contentLength = 0;
@@ -89,6 +90,7 @@ void testClientDetachSocket() {
     });
 
     var client = new HttpClient();
+    client.userAgent = null;
     client.get("127.0.0.1", server.port, "/")
       .then((request) => request.close())
       .then((response) {

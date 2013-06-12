@@ -204,8 +204,8 @@ class MockCompiler extends Compiler {
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
               maxConcreteTypeSize: maxConcreteTypeSize,
-              disableTypeInference: disableTypeInference,
-              analyzeAll: analyzeAll,
+              disableTypeInferenceFlag: disableTypeInference,
+              analyzeAllFlag: analyzeAll,
               analyzeOnly: analyzeOnly,
               preserveComments: preserveComments) {
     coreLibrary = createLibrary("core", coreSource);

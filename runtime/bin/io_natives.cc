@@ -21,6 +21,7 @@ namespace bin {
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
   V(Common_IsBuiltinList, 1)                                                   \
+  V(Common_GetVersion, 1)                                                      \
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \

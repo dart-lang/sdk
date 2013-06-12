@@ -303,21 +303,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     allocator.visitGraph(graph);
     variableNames = allocator.names;
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
-
-    // Don't register a return type for lazily initialized variables.
-    if (work.element is! FunctionElement) return;
-
-    // Register return types to the backend.
-    graph.exit.predecessors.forEach((HBasicBlock block) {
-      HInstruction last = block.last;
-      assert(last is HGoto || last is HReturn || last is HThrow);
-      if (last is HReturn) {
-        backend.registerReturnType(
-            work.element, last.inputs[0].instructionType);
-      } else if (last is HGoto) {
-        backend.registerReturnType(work.element, HType.NULL);
-      }
-    });
   }
 
   void handleDelayedVariableDeclarations() {
@@ -1545,10 +1530,19 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
+    if (node.element != null) {
+      // Create an artificial type mask to make sure only
+      // [node.element] will be enqueued. We're not using the receiver
+      // type because our optimizations might end up in a state where the
+      // invoke dynamic knows more than the receiver.
+      HType receiverType = new HType.fromMask(
+          new TypeMask.nonNullExact(node.element.getEnclosingClass().rawType),
+          compiler);
+      return receiverType.refine(selector, compiler);
+    }
     // If [JSInvocationMirror._invokeOn] has been called, we must not create a
     // typed selector based on the receiver type.
-    if (node.element == null && // Invocation is not exact.
-        backend.compiler.enabledInvokeOn) {
+    if (backend.compiler.enabledInvokeOn) {
       return selector.asUntyped;
     }
     HType receiverType = node.getDartReceiver(compiler).instructionType;
@@ -1563,8 +1557,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void registerMethodInvoke(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
-    // Register this invocation to collect the types used at all call sites.
-    backend.registerDynamicInvocation(node, selector);
 
     // If we don't know what we're calling or if we are calling a getter,
     // we need to register that fact that we may be calling a closure
@@ -1595,7 +1587,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HType valueType = node.isInterceptedCall
         ? node.inputs[2].instructionType
         : node.inputs[1].instructionType;
-    backend.addedDynamicSetter(selector, valueType);
     registerInvoke(node, selector);
   }
 
@@ -1632,10 +1623,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    if (node.typeCode() == HInstruction.INVOKE_STATIC_TYPECODE) {
-      // Register this invocation to collect the types used at all call sites.
-      backend.registerStaticInvocation(node);
-    }
     Element element = node.element;
     world.registerStaticUse(element);
     ClassElement cls = element.getEnclosingClass();
@@ -1674,8 +1661,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.PropertyAccess.field(prototype, methodName);
       push(jsPropertyCall(
           method, "call", visitArguments(node.inputs, start: 0)), node);
-      // Register this invocation to collect the types used at all call sites.
-      backend.registerDynamicInvocation(node, node.selector);
     }
   }
 
@@ -1696,16 +1681,8 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitFieldSet(HFieldSet node) {
     Element element = node.element;
+    world.registerFieldSetter(element);
     String name = _fieldPropertyName(element);
-    if (!node.receiver.instructionType.isUnknown()) {
-      // Field setters in the generative constructor body are handled in a
-      // step "SsaConstructionFieldTypes" in the ssa optimizer.
-      if (!work.element.isGenerativeConstructorBody()) {
-        world.registerFieldSetter(element);
-        backend.registerFieldSetter(
-            work.element, element, node.value.instructionType);
-      }
-    }
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
@@ -2020,7 +1997,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitStatic(HStatic node) {
     Element element = node.element;
     if (element.isFunction()) {
-      backend.registerNonCallStaticUse(node);
       world.registerInstantiatedClass(
           compiler.functionClass, work.resolutionTree);
       push(new js.VariableUse(

@@ -33,7 +33,7 @@ void testInvalidBind() {
   SecureServerSocket.bind("ko.faar.__hest__", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
-    Expect.isTrue(error is SocketIOException);
+    Expect.isTrue(error is SocketException);
     port.toSendPort().send(1);
   });
 
@@ -41,7 +41,7 @@ void testInvalidBind() {
   SecureServerSocket.bind("8.8.8.8", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
-    Expect.isTrue(error is SocketIOException);
+    Expect.isTrue(error is SocketException);
     port.toSendPort().send(1);
   });
 
@@ -60,7 +60,7 @@ void testInvalidBind() {
       port.toSendPort().send(1);
     }).catchError((error) {
       Expect.notEquals('windows', Platform.operatingSystem);
-      Expect.isTrue(error is SocketIOException);
+      Expect.isTrue(error is SocketException);
       s.close();
       port.toSendPort().send(1);
     });
@@ -82,7 +82,7 @@ void testSimpleConnect(String certificate) {
   });
 }
 
-void testSimpleConnectFail(String certificate) {
+void testSimpleConnectFail(String certificate, bool cancelOnError) {
   ReceivePort port = new ReceivePort();
   SecureServerSocket.bind(HOST_NAME, 0, certificate).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST_NAME, server.port)
@@ -90,15 +90,19 @@ void testSimpleConnectFail(String certificate) {
         Expect.fail("No client connection expected.");
       })
       .catchError((error) {
-        Expect.isTrue(error is SocketIOException);
+        Expect.isTrue(error is SocketException);
       });
     server.listen((serverEnd) {
       Expect.fail("No server connection expected.");
     },
     onError: (error) {
-      Expect.isTrue(error is SocketIOException);
-      clientEndFuture.then((_) => port.close());
-    });
+      Expect.isTrue(error is SocketException);
+      clientEndFuture.then((_) {
+        if (!cancelOnError) server.close();
+        port.close();
+      });
+    },
+    cancelOnError: cancelOnError);
   });
 }
 
@@ -198,8 +202,10 @@ main() {
   testInvalidBind();
   testSimpleConnect(CERTIFICATE);
   testSimpleConnect("CN=localhost");
-  testSimpleConnectFail("not_a_nickname");
-  testSimpleConnectFail("CN=notARealDistinguishedName");
+  testSimpleConnectFail("not_a_nickname", false);
+  testSimpleConnectFail("CN=notARealDistinguishedName", false);
+  testSimpleConnectFail("not_a_nickname", true);
+  testSimpleConnectFail("CN=notARealDistinguishedName", true);
   testServerListenAfterConnect();
   testSimpleReadWrite();
 }

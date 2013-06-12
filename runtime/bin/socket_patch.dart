@@ -237,7 +237,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
                                                      backlog,
                                                      v6Only);
           if (result is OSError) {
-            throw new SocketIOException(
+            throw new SocketException(
                 "Failed to create server socket", result);
           }
           if (port != 0) socket.localPort = port;
@@ -490,20 +490,20 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   // error objects.
   static createError(error, String message) {
     if (error is OSError) {
-      return new SocketIOException(message, error);
+      return new SocketException(message, error);
     } else if (error is List) {
       assert(isErrorResponse(error));
       switch (error[0]) {
         case _ILLEGAL_ARGUMENT_RESPONSE:
           return new ArgumentError();
         case _OSERROR_RESPONSE:
-          return new SocketIOException(
+          return new SocketException(
               message, new OSError(error[2], error[1]));
         default:
           return new Exception("Unknown error");
       }
     } else {
-      return new SocketIOException(message);
+      return new SocketException(message);
     }
   }
 

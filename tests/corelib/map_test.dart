@@ -207,6 +207,41 @@ void testMap(Map map, key1, key2, key3, key4, key5, key6, key7, key8) {
   Expect.equals(10, map[key1]);
   Expect.equals(10,
       map.putIfAbsent(key1, () => 11));
+
+  // Test Map.addAll.
+  map.clear();
+  otherMap.clear();
+  otherMap[99] = 1;
+  otherMap[50] = 50;
+  otherMap[1] = 99;
+  map.addAll(otherMap);
+  Expect.equals(3, map.length);
+  Expect.equals(1, map[99]);
+  Expect.equals(50, map[50]);
+  Expect.equals(99, map[1]);
+  otherMap[50] = 42;
+  map.addAll(new HashMap.from(otherMap));
+  Expect.equals(3, map.length);
+  Expect.equals(1, map[99]);
+  Expect.equals(42, map[50]);
+  Expect.equals(99, map[1]);
+  otherMap[99] = 7;
+  map.addAll(new SplayTreeMap.from(otherMap));
+  Expect.equals(3, map.length);
+  Expect.equals(7, map[99]);
+  Expect.equals(42, map[50]);
+  Expect.equals(99, map[1]);
+  otherMap.remove(99);
+  map[99] = 0;
+  map.addAll(otherMap);
+  Expect.equals(3, map.length);
+  Expect.equals(0, map[99]);
+  Expect.equals(42, map[50]);
+  Expect.equals(99, map[1]);
+  map.clear();
+  otherMap.clear();
+  map.addAll(otherMap);
+  Expect.equals(0, map.length);
 }
 
 void testDeletedElement(Map map) {

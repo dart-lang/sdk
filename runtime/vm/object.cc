@@ -530,7 +530,7 @@ void Object::InitOnce() {
   cls = Class::New<Array>();
   isolate->object_store()->set_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
-  cls = Class::New<ImmutableArray>();
+  cls = Class::New<Array>(kImmutableArrayCid);
   isolate->object_store()->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls = Class::NewStringClass(kOneByteStringCid);
@@ -832,10 +832,11 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::GrowableObjectArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
-  cls = Class::New<ImmutableArray>();
+  cls = Class::New<Array>(kImmutableArrayCid);
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
+  cls.set_is_prefinalized();
   RegisterPrivateClass(cls, Symbols::ImmutableArray(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
@@ -1083,11 +1084,6 @@ RawError* Object::Init(Isolate* isolate) {
     return error.raw();
   }
 
-  // Remove the Object superclass cycle by setting the super type to null (not
-  // to the type of null).
-  cls = object_store->object_class();
-  cls.set_super_type(AbstractType::Handle());
-
   ClassFinalizer::VerifyBootstrapClasses();
   MarkInvisibleFunctions();
 
@@ -1125,7 +1121,7 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
 
-  cls = Class::New<ImmutableArray>();
+  cls = Class::New<Array>(kImmutableArrayCid);
   object_store->set_immutable_array_class(cls);
 
   cls = Class::New<GrowableObjectArray>();
@@ -11713,7 +11709,15 @@ RawString* String::ConcatAll(const Array& strings,
   intptr_t char_size = kOneByteChar;
   for (intptr_t i = 0; i < strings_len; i++) {
     str ^= strings.At(i);
-    result_len += str.Length();
+    intptr_t str_len = str.Length();
+    if ((kMaxElements - result_len) < str_len) {
+      Isolate* isolate = Isolate::Current();
+      const Instance& exception =
+          Instance::Handle(isolate->object_store()->out_of_memory());
+      Exceptions::Throw(exception);
+      UNREACHABLE();
+    }
+    result_len += str_len;
     char_size = Utils::Maximum(char_size, str.CharSize());
   }
   if (char_size == kOneByteChar) {
@@ -12187,6 +12191,7 @@ RawOneByteString* OneByteString::ConcatAll(const Array& strings,
     str ^= strings.At(i);
     intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
+    ASSERT((kMaxElements - pos) >= str_len);
     pos += str_len;
   }
   return OneByteString::raw(result);
@@ -12350,6 +12355,7 @@ RawTwoByteString* TwoByteString::ConcatAll(const Array& strings,
     str ^= strings.At(i);
     intptr_t str_len = str.Length();
     String::Copy(result, pos, str, 0, str_len);
+    ASSERT((kMaxElements - pos) >= str_len);
     pos += str_len;
   }
   return TwoByteString::raw(result);
@@ -12547,9 +12553,10 @@ void Array::MakeImmutable() const {
 
 const char* Array::ToCString() const {
   if (IsNull()) {
-    return "Array NULL";
+    return IsImmutable() ? "ImmutableArray NULL" : "Array NULL";
   }
-  const char* format = "Array len:%"Pd"";
+  const char* format = !IsImmutable() ? "Array len:%"Pd"" :
+      "Immutable Array len:%"Pd"";
   intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, Length());
@@ -12614,18 +12621,6 @@ RawImmutableArray* ImmutableArray::New(intptr_t len,
   ASSERT(Isolate::Current()->object_store()->immutable_array_class() !=
          Class::null());
   return reinterpret_cast<RawImmutableArray*>(Array::New(kClassId, len, space));
-}
-
-
-const char* ImmutableArray::ToCString() const {
-  if (IsNull()) {
-    return "ImmutableArray NULL";
-  }
-  const char* format = "ImmutableArray len:%"Pd"";
-  intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, Length());
-  return chars;
 }
 
 

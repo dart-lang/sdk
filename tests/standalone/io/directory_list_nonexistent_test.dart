@@ -15,9 +15,9 @@ void testListNonExistent() {
   var keepAlive = new ReceivePort();
   new Directory("").createTemp().then((d) {
     d.delete().then((ignore) {
-      Expect.throws(() => d.listSync(), (e) => e is DirectoryIOException);
+      Expect.throws(() => d.listSync(), (e) => e is DirectoryException);
       Expect.throws(() => d.listSync(recursive: true),
-                    (e) => e is DirectoryIOException);
+                    (e) => e is DirectoryException);
       keepAlive.close();
     });
   });
@@ -38,9 +38,9 @@ void testListTooLongName() {
       }
       var long = new Directory("${buffer.toString()}");
       Expect.throws(() => long.listSync(),
-                    (e) => e is DirectoryIOException);
+                    (e) => e is DirectoryException);
       Expect.throws(() => long.listSync(recursive: true),
-                    (e) => e is DirectoryIOException);
+                    (e) => e is DirectoryException);
       d.deleteSync(recursive: true);
       keepAlive.close();
     });

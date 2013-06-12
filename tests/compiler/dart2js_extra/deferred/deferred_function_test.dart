@@ -13,16 +13,25 @@ const lazy = const DeferredLibrary('deferred_function_library');
 
 isNoSuchMethodError(e) => e is NoSuchMethodError;
 
+readFoo() {
+  // TODO(ahe): There is a problem with type inference of deferred
+  // function closures.  We think they are never null.
+  if (new DateTime.now().millisecondsSinceEpoch == 87) return null;
+  return foo;
+}
+
 main() {
   print('unittest-suite-wait-for-done');
 
   Expect.throws(() { foo('a'); }, isNoSuchMethodError);
+  Expect.isNull(readFoo());
   int counter = 0;
   lazy.load().then((bool didLoad) {
     Expect.isTrue(didLoad);
     Expect.equals(1, ++counter);
     print('lazy was loaded');
     Expect.equals(42, foo('b'));
+    Expect.isNotNull(readFoo());
   });
   Expect.equals(0, counter);
   lazy.load().then((bool didLoad) {
@@ -30,8 +39,10 @@ main() {
     Expect.equals(2, ++counter);
     print('lazy was loaded');
     Expect.equals(42, foo('b'));
+    Expect.isNotNull(readFoo());
     print('unittest-suite-success');
   });
   Expect.equals(0, counter);
   Expect.throws(() { foo('a'); }, isNoSuchMethodError);
+  Expect.isNull(readFoo());
 }

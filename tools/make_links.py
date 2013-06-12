@@ -11,14 +11,22 @@ SOURCE ends with .../lib, the lib suffix is ignored when determining
 the name of the target link.
 
 Usage:
-  python tools/make_links.py TARGET SOURCES...
+  python tools/make_links.py OPTIONS TARGET SOURCES...
 '''
 
+import optparse
 import os
 import subprocess
 import sys
 import utils
 
+
+def get_options():
+  result = optparse.OptionParser()
+  result.add_option("--timestamp_file", "",
+      help='Create a timestamp file when done creating the links.',
+      default='')
+  return result.parse_args()
 
 def make_link(source, target):
   if os.path.islink(target):
@@ -39,12 +47,20 @@ def make_link(source, target):
   else:
     return subprocess.call(['ln', '-s', source, target])
 
+def create_timestamp_file(options):
+  if options.timestamp_file != '':
+    dir_name = os.path.dirname(options.timestamp_file)
+    if not os.path.exists(dir_name):
+      os.mkdir(dir_name)
+    open(options.timestamp_file, 'w').close()
+  
 
 def main(argv):
-  target = os.path.relpath(argv[1])
+  (options, args) = get_options()
+  target = os.path.relpath(args[0])
   if not os.path.exists(target):
     os.makedirs(target)
-  for source in argv[2:]:
+  for source in args[1:]:
     # Assume the source directory is named ".../NAME/lib".
     (name, lib) = os.path.split(source)
     if lib != 'lib':
@@ -58,6 +74,7 @@ def main(argv):
     exit_code = make_link(source, os.path.join(target, name))
     if exit_code != 0:
       return exit_code
+  create_timestamp_file(options)
   return 0
 
 

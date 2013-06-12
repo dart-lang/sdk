@@ -1316,12 +1316,10 @@ class WaveShaperNode extends AudioNode {
 
   @DomName('WaveShaperNode.oversample')
   @DocsEditable
-  @Experimental // untriaged
   String get oversample native "WaveShaperNode_oversample_Getter";
 
   @DomName('WaveShaperNode.oversample')
   @DocsEditable
-  @Experimental // untriaged
   void set oversample(String value) native "WaveShaperNode_oversample_Setter";
 
 }

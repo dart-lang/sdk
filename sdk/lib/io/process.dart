@@ -255,7 +255,7 @@ class ProcessSignal {
 }
 
 
-class ProcessException implements Exception {
+class ProcessException implements IOException {
   const ProcessException(String this.executable,
                          List<String> this.arguments,
                          [String this.message = "",

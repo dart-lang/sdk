@@ -1556,10 +1556,10 @@ bool Intrinsifier::String_getIsEmpty(Assembler* assembler) {
 
 bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   Label no_hash;
-  __ Untested("Intrinsifier::OneByteString_getHashCode");
+
   __ lw(T1, Address(SP, 0 * kWordSize));
-  __ lw(T0, FieldAddress(T1, String::hash_offset()));
-  __ beq(T0, ZR, &no_hash);
+  __ lw(V0, FieldAddress(T1, String::hash_offset()));
+  __ beq(V0, ZR, &no_hash);
   __ Ret();  // Return if already computed.
   __ Bind(&no_hash);
 
@@ -1568,12 +1568,12 @@ bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   Label done;
   // If the string is empty, set the hash to 1, and return.
   __ BranchEqual(T2, Smi::RawValue(0), &done);
-  __ delay_slot()->mov(T0, ZR);
+  __ delay_slot()->mov(V0, ZR);
 
   __ SmiUntag(T2);
   __ AddImmediate(T3, T1, OneByteString::data_offset() - kHeapObjectTag);
   __ addu(T4, T3, T2);
-  // T0: Hash code, untagged integer.
+  // V0: Hash code, untagged integer.
   // T1: Instance of OneByteString.
   // T2: String length, untagged integer.
   // T3: String data start.
@@ -1586,37 +1586,38 @@ bool Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   // hash_ ^= hash_ >> 6;
   // Get one characters (ch).
   __ Bind(&loop);
-  __ lw(T5, Address(T3));
+  __ lbu(T5, Address(T3));
   // T5: ch.
   __ addiu(T3, T3, Immediate(1));
-  __ addu(T0, T0, T5);
-  __ sll(TMP, T0, 10);
-  __ addu(T0, T0, TMP);
-  __ srl(TMP, T0, 6);
-  __ BranchUnsignedLess(T3, T4, &loop);
-  __ delay_slot()->xor_(T0, T0, TMP);
+  __ addu(V0, V0, T5);
+  __ sll(TMP, V0, 10);
+  __ addu(V0, V0, TMP);
+  __ srl(TMP, V0, 6);
+  __ bne(T3, T4, &loop);
+  __ delay_slot()->xor_(V0, V0, TMP);
 
   // Finalize.
   // hash_ += hash_ << 3;
   // hash_ ^= hash_ >> 11;
   // hash_ += hash_ << 15;
-  __ sll(TMP, T0, 3);
-  __ addu(T0, T0, TMP);
-  __ srl(TMP, T0, 11);
-  __ xor_(T0, T0, TMP);
-  __ sll(TMP, T0, 15);
-  __ addu(T0, T0, TMP);
+  __ sll(TMP, V0, 3);
+  __ addu(V0, V0, TMP);
+  __ srl(TMP, V0, 11);
+  __ xor_(V0, V0, TMP);
+  __ sll(TMP, V0, 15);
+  __ addu(V0, V0, TMP);
   // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
   __ LoadImmediate(TMP, (static_cast<intptr_t>(1) << String::kHashBits) - 1);
-  __ and_(T0, T0, TMP);
+  __ and_(V0, V0, TMP);
   __ Bind(&done);
 
   __ LoadImmediate(T2, 1);
-  __ movz(T0, T2, T0);  // If T0 is 0, set to 1.
-  __ SmiTag(T0);
+  __ movz(V0, T2, V0);  // If V0 is 0, set to 1.
+  __ SmiTag(V0);
+
   __ Ret();
-  __ delay_slot()->sw(T0, FieldAddress(T1, String::hash_offset()));
-  return false;
+  __ delay_slot()->sw(V0, FieldAddress(T1, String::hash_offset()));
+  return true;
 }
 
 
@@ -1628,7 +1629,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure) {
   const Register length_reg = T2;
-  Label fail;
 
   __ mov(T6, length_reg);  // Save the length register.
   __ SmiUntag(length_reg);
@@ -1645,7 +1645,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // length_reg: allocation size.
   __ AdduDetectOverflow(T1, V0, length_reg, CMPRES);
-  __ bltz(CMPRES, &fail);  // Fail on overflow.
+  __ bltz(CMPRES, failure);  // Fail on overflow.
 
   // Check if the allocation fits into the remaining space.
   // V0: potential new object start.
@@ -1654,7 +1654,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // T3: heap->TopAddress().
   __ LoadImmediate(T4, heap->EndAddress());
   __ lw(T4, Address(T4, 0));
-  __ BranchUnsignedGreaterEqual(T1, T4, &fail);
+  __ BranchUnsignedGreaterEqual(T1, T4, failure);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
@@ -1692,9 +1692,6 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // Clear hash.
   __ b(ok);
   __ delay_slot()->sw(ZR, FieldAddress(V0, String::hash_offset()));
-
-  __ Bind(&fail);
-  __ b(failure);
 }
 
 

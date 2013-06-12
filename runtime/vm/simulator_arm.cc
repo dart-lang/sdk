@@ -801,13 +801,16 @@ class Redirection {
 
   Simulator::CallKind call_kind() const { return call_kind_; }
 
+  int argument_count() const { return argument_count_; }
+
   static Redirection* Get(uword external_function,
-                          Simulator::CallKind call_kind) {
+                          Simulator::CallKind call_kind,
+                          int argument_count) {
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
-    return new Redirection(external_function, call_kind);
+    return new Redirection(external_function, call_kind, argument_count);
   }
 
   static Redirection* FromSvcInstruction(Instr* svc_instruction) {
@@ -820,9 +823,12 @@ class Redirection {
  private:
   static const int32_t kRedirectSvcInstruction =
     ((AL << kConditionShift) | (0xf << 24) | kRedirectionSvcCode);
-  Redirection(uword external_function, Simulator::CallKind call_kind)
+  Redirection(uword external_function,
+              Simulator::CallKind call_kind,
+              int argument_count)
       : external_function_(external_function),
         call_kind_(call_kind),
+        argument_count_(argument_count),
         svc_instruction_(kRedirectSvcInstruction),
         next_(list_) {
     list_ = this;
@@ -830,6 +836,7 @@ class Redirection {
 
   uword external_function_;
   Simulator::CallKind call_kind_;
+  int argument_count_;
   uint32_t svc_instruction_;
   Redirection* next_;
   static Redirection* list_;
@@ -839,8 +846,11 @@ class Redirection {
 Redirection* Redirection::list_ = NULL;
 
 
-uword Simulator::RedirectExternalReference(uword function, CallKind call_kind) {
-  Redirection* redirection = Redirection::Get(function, call_kind);
+uword Simulator::RedirectExternalReference(uword function,
+                                           CallKind call_kind,
+                                           int argument_count) {
+  Redirection* redirection =
+      Redirection::Get(function, call_kind, argument_count);
   return redirection->address_of_svc_instruction();
 }
 
@@ -1430,6 +1440,9 @@ typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 typedef int32_t (*SimulatorLeafRuntimeCall)(
     int32_t r0, int32_t r1, int32_t r2, int32_t r3);
 
+// Calls to leaf float Dart runtime functions are based on this interface.
+typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
+
 // Calls to native Dart functions are based on this interface.
 typedef void (*SimulatorNativeCall)(NativeArguments* arguments);
 
@@ -1448,7 +1461,8 @@ void Simulator::SupervisorCall(Instr* instr) {
           OS::Print("Call to host function at 0x%"Pd"\n", external);
         }
 
-        if (redirection->call_kind() != kLeafRuntimeCall) {
+        if ((redirection->call_kind() == kRuntimeCall) ||
+            (redirection->call_kind() == kNativeCall)) {
           // The top_exit_frame_info of the current isolate points to the top of
           // the simulator stack.
           ASSERT((StackTop() - Isolate::Current()->top_exit_frame_info()) <
@@ -1468,6 +1482,8 @@ void Simulator::SupervisorCall(Instr* instr) {
           target(arguments);
           set_register(R0, icount_);  // Zap result register from void function.
         } else if (redirection->call_kind() == kLeafRuntimeCall) {
+          ASSERT((0 <= redirection->argument_count()) &&
+                 (redirection->argument_count() <= 4));
           int32_t r0 = get_register(R0);
           int32_t r1 = get_register(R1);
           int32_t r2 = get_register(R2);
@@ -1476,6 +1492,19 @@ void Simulator::SupervisorCall(Instr* instr) {
               reinterpret_cast<SimulatorLeafRuntimeCall>(external);
           r0 = target(r0, r1, r2, r3);
           set_register(R0, r0);  // Set returned result from function.
+        } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
+          ASSERT((0 <= redirection->argument_count()) &&
+                 (redirection->argument_count() <= 2));
+          // We currently use 'hardfp' ('gnueabihf') rather than 'softfp'
+          // ('gnueabi') float ABI for leaf runtime calls, i.e. double values
+          // are passed and returned in vfp registers rather than in integer
+          // register pairs.
+          SimulatorLeafFloatRuntimeCall target =
+              reinterpret_cast<SimulatorLeafFloatRuntimeCall>(external);
+          double d0 = get_dregister(D0);
+          double d1 = get_dregister(D1);
+          d0 = target(d0, d1);
+          set_dregister(D0, d0);
         } else {
           ASSERT(redirection->call_kind() == kNativeCall);
           NativeArguments* arguments;
@@ -1495,10 +1524,11 @@ void Simulator::SupervisorCall(Instr* instr) {
         set_register(IP, icount_);
         set_register(LR, icount_);
         double zap_dvalue = static_cast<double>(icount_);
-        for (int i = D0; i <= D7; i++) {
+        // Do not zap D0, as it may contain a float result.
+        for (int i = D1; i <= D7; i++) {
           set_dregister(static_cast<DRegister>(i), zap_dvalue);
         }
-        // The above loop also zaps overlapping registers S0-S15.
+        // The above loop also zaps overlapping registers S2-S15.
         // Registers D8-D15 (overlapping with S16-S31) are preserved.
 #ifdef VFPv3_D32
         for (int i = D16; i <= D31; i++) {

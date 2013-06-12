@@ -10,7 +10,7 @@ import 'dart:isolate';
 
 const Duration MS = const Duration(milliseconds: 1);
 
-testValue() {
+void testValue() {
   final future = new Future<String>.value("42");
   var port = new ReceivePort();
   future.then((x) {
@@ -19,7 +19,7 @@ testValue() {
   });
 }
 
-testSync() {
+void testSync() {
   compare(func) {
     // Compare the results of the following two futures.
     Future f1 = new Future.sync(func);
@@ -52,14 +52,14 @@ testSync() {
   Expect.isTrue(hasExecuted);
 }
 
-testNeverComplete() {
+void testNeverComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
   future.then((v) => Expect.fails("Value not expected"));
   future.catchError((e) => Expect.fails("Value not expected"));
 }
 
-testComplete() {
+void testComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
   Expect.isFalse(completer.isCompleted);
@@ -72,7 +72,7 @@ testComplete() {
 
 // Tests for [then]
 
-testCompleteWithSuccessHandlerBeforeComplete() {
+void testCompleteWithSuccessHandlerBeforeComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
 
@@ -89,7 +89,7 @@ testCompleteWithSuccessHandlerBeforeComplete() {
   Expect.isNull(after);
 }
 
-testCompleteWithSuccessHandlerAfterComplete() {
+void testCompleteWithSuccessHandlerAfterComplete() {
   final completer = new Completer<int>();
   final future = completer.future;
 
@@ -105,7 +105,7 @@ testCompleteWithSuccessHandlerAfterComplete() {
     });
 }
 
-testCompleteManySuccessHandlers() {
+void testCompleteManySuccessHandlers() {
   final completer = new Completer<int>();
   final future = completer.future;
   int before;
@@ -129,7 +129,7 @@ testCompleteManySuccessHandlers() {
 
 // Tests for [catchError]
 
-testException() {
+void testException() {
   final completer = new Completer<int>();
   final future = completer.future;
   final ex = new Exception();
@@ -144,7 +144,7 @@ testException() {
   completer.completeError(ex);
 }
 
-testExceptionHandler() {
+void testExceptionHandler() {
   final completer = new Completer<int>();
   final future = completer.future;
   final ex = new Exception();
@@ -163,7 +163,7 @@ testExceptionHandler() {
   });
 }
 
-testExceptionHandlerReturnsTrue() {
+void testExceptionHandlerReturnsTrue() {
   final completer = new Completer<int>();
   final future = completer.future;
   final ex = new Exception();
@@ -178,7 +178,7 @@ testExceptionHandlerReturnsTrue() {
   Expect.isFalse(reached);
 }
 
-testExceptionHandlerReturnsTrue2() {
+void testExceptionHandlerReturnsTrue2() {
   final completer = new Completer<int>();
   final future = completer.future;
   final ex = new Exception();
@@ -196,7 +196,7 @@ testExceptionHandlerReturnsTrue2() {
   });
 }
 
-testExceptionHandlerReturnsFalse() {
+void testExceptionHandlerReturnsFalse() {
   final completer = new Completer<int>();
   final future = completer.future;
   final ex = new Exception();
@@ -213,7 +213,7 @@ testExceptionHandlerReturnsFalse() {
   Expect.isFalse(reached);
 }
 
-testFutureAsStreamCompleteAfter() {
+void testFutureAsStreamCompleteAfter() {
   var completer = new Completer();
   bool gotValue = false;
   var port = new ReceivePort();
@@ -230,7 +230,7 @@ testFutureAsStreamCompleteAfter() {
   completer.complete("value");
 }
 
-testFutureAsStreamCompleteBefore() {
+void testFutureAsStreamCompleteBefore() {
   var completer = new Completer();
   bool gotValue = false;
   var port = new ReceivePort();
@@ -247,7 +247,7 @@ testFutureAsStreamCompleteBefore() {
       });
 }
 
-testFutureAsStreamCompleteImmediate() {
+void testFutureAsStreamCompleteImmediate() {
   bool gotValue = false;
   var port = new ReceivePort();
   new Future.value("value").asStream().listen(
@@ -262,7 +262,7 @@ testFutureAsStreamCompleteImmediate() {
       });
 }
 
-testFutureAsStreamCompleteErrorAfter() {
+void testFutureAsStreamCompleteErrorAfter() {
   var completer = new Completer();
   bool gotError = false;
   var port = new ReceivePort();
@@ -282,7 +282,7 @@ testFutureAsStreamCompleteErrorAfter() {
   completer.completeError("error");
 }
 
-testFutureAsStreamWrapper() {
+void testFutureAsStreamWrapper() {
   var completer = new Completer();
   bool gotValue = false;
   var port = new ReceivePort();
@@ -301,7 +301,7 @@ testFutureAsStreamWrapper() {
         });
 }
 
-testFutureWhenCompleteValue() {
+void testFutureWhenCompleteValue() {
   var port = new ReceivePort();
   int counter = 2;
   countDown() {
@@ -317,7 +317,7 @@ testFutureWhenCompleteValue() {
   completer.complete(42);
 }
 
-testFutureWhenCompleteError() {
+void testFutureWhenCompleteError() {
   var port = new ReceivePort();
   int counter = 2;
   countDown() {
@@ -333,7 +333,7 @@ testFutureWhenCompleteError() {
   completer.completeError("error");
 }
 
-testFutureWhenCompleteValueNewError() {
+void testFutureWhenCompleteValueNewError() {
   var port = new ReceivePort();
   int counter = 2;
   countDown() {
@@ -352,7 +352,7 @@ testFutureWhenCompleteValueNewError() {
   completer.complete(42);
 }
 
-testFutureWhenCompleteErrorNewError() {
+void testFutureWhenCompleteErrorNewError() {
   var port = new ReceivePort();
   int counter = 2;
   countDown() {
@@ -371,7 +371,7 @@ testFutureWhenCompleteErrorNewError() {
   completer.completeError("error");
 }
 
-testFutureWhenCompletePreValue() {
+void testFutureWhenCompletePreValue() {
   var port = new ReceivePort();
   int counter = 2;
   countDown() {
@@ -389,7 +389,7 @@ testFutureWhenCompletePreValue() {
   });
 }
 
-testFutureWhenValueFutureValue() {
+void testFutureWhenValueFutureValue() {
 
   var port = new ReceivePort();
   int counter = 3;
@@ -414,7 +414,7 @@ testFutureWhenValueFutureValue() {
   completer.complete(42);
 }
 
-testFutureWhenValueFutureError() {
+void testFutureWhenValueFutureError() {
   var port = new ReceivePort();
   int counter = 3;
   countDown(int expect) {
@@ -440,7 +440,7 @@ testFutureWhenValueFutureError() {
   completer.complete(42);
 }
 
-testFutureWhenErrorFutureValue() {
+void testFutureWhenErrorFutureValue() {
   var port = new ReceivePort();
   int counter = 3;
   countDown(int expect) {
@@ -466,7 +466,7 @@ testFutureWhenErrorFutureValue() {
   completer.completeError("Error");
 }
 
-testFutureWhenErrorFutureError() {
+void testFutureWhenErrorFutureError() {
   var port = new ReceivePort();
   int counter = 3;
   countDown(int expect) {
@@ -492,7 +492,7 @@ testFutureWhenErrorFutureError() {
   completer.completeError("Error");
 }
 
-testFutureThenThrowsAsync() {
+void testFutureThenThrowsAsync() {
   final completer = new Completer<int>();
   final future = completer.future;
   int error = 42;
@@ -507,7 +507,7 @@ testFutureThenThrowsAsync() {
   completer.complete(0);
 }
 
-testFutureCatchThrowsAsync() {
+void testFutureCatchThrowsAsync() {
   final completer = new Completer<int>();
   final future = completer.future;
   int error = 42;
@@ -522,7 +522,7 @@ testFutureCatchThrowsAsync() {
   completer.completeError(0);
 }
 
-testFutureCatchRethrowsAsync() {
+void testFutureCatchRethrowsAsync() {
   final completer = new Completer<int>();
   final future = completer.future;
   var error;
@@ -538,7 +538,7 @@ testFutureCatchRethrowsAsync() {
   completer.completeError(0);
 }
 
-testFutureWhenThrowsAsync() {
+void testFutureWhenThrowsAsync() {
   final completer = new Completer<int>();
   final future = completer.future;
   var error = 42;
@@ -553,7 +553,7 @@ testFutureWhenThrowsAsync() {
   completer.complete(0);
 }
 
-testCompleteWithError() {
+void testCompleteWithError() {
   final completer = new Completer<int>();
   final future = completer.future;
   var error = 42;
@@ -567,7 +567,7 @@ testCompleteWithError() {
   completer.completeError(error);
 }
 
-testChainedFutureValue() {
+void testChainedFutureValue() {
   final completer = new Completer();
   final future = completer.future;
   var port = new ReceivePort();
@@ -580,7 +580,7 @@ testChainedFutureValue() {
   completer.complete(21);
 }
 
-testChainedFutureValueDelay() {
+void testChainedFutureValueDelay() {
   final completer = new Completer();
   final future = completer.future;
   var port = new ReceivePort();
@@ -594,7 +594,7 @@ testChainedFutureValueDelay() {
   completer.complete(21);
 }
 
-testChainedFutureValue2Delay() {
+void testChainedFutureValue2Delay() {
   var port = new ReceivePort();
 
   new Future.delayed(const Duration(milliseconds: 10))
@@ -603,7 +603,8 @@ testChainedFutureValue2Delay() {
       port.close();
     });
 }
-testChainedFutureError() {
+
+void testChainedFutureError() {
   final completer = new Completer();
   final future = completer.future;
   var port = new ReceivePort();
@@ -614,6 +615,22 @@ testChainedFutureError() {
           port.close();
         });
   completer.complete(21);
+}
+
+void testChainedFutureCycle() {
+  var port = new ReceivePort();  // Keep alive until port is closed.
+  var completer = new Completer();
+  var future, future2;
+  future  = completer.future.then((_) => future2);
+  future2 = completer.future.then((_) => future);
+  completer.complete(42);
+  int ctr = 2;
+  void receiveError(e) {
+    Expect.isTrue(e is StateError);
+    if (--ctr == 0) port.close();
+  }
+  future.catchError(receiveError);
+  future.catchError(receiveError);
 }
 
 main() {
@@ -657,6 +674,5 @@ main() {
   testChainedFutureValue();
   testChainedFutureValueDelay();
   testChainedFutureError();
+  testChainedFutureCycle();
 }
-
-

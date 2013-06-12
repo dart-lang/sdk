@@ -104,9 +104,6 @@ int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 
-[ $arch == arm ]
-*: Skip
-
 [ $arch == simarm ]
 *: Skip
 

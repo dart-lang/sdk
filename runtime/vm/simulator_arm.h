@@ -82,12 +82,12 @@ class Simulator {
   enum CallKind {
     kRuntimeCall,
     kLeafRuntimeCall,
+    kLeafFloatRuntimeCall,
     kNativeCall
   };
-  // TODO(regis): In order to simulate leaf runtime calls taking floating point
-  // arguments, we need to add a 'kLeafFloatRuntimeCall' CallKind and pass the
-  // number of arguments.
-  static uword RedirectExternalReference(uword function, CallKind call_kind);
+  static uword RedirectExternalReference(uword function,
+                                         CallKind call_kind,
+                                         int argument_count);
 
   void Longjmp(uword pc,
                uword sp,

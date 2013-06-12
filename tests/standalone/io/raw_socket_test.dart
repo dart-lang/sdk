@@ -35,7 +35,7 @@ void testInvalidBind() {
   RawServerSocket.bind("ko.faar.__hest__", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
-        Expect.isTrue(error is SocketIOException);
+        Expect.isTrue(error is SocketException);
         port.toSendPort().send(1);
       });
 
@@ -43,7 +43,7 @@ void testInvalidBind() {
   RawServerSocket.bind("8.8.8.8", 0)
       .then((_) { Expect.fail("Failure expected"); } )
       .catchError((error) {
-        Expect.isTrue(error is SocketIOException);
+        Expect.isTrue(error is SocketException);
         port.toSendPort().send(1);
       });
 
@@ -61,7 +61,7 @@ void testInvalidBind() {
             })
             .catchError((error) {
               Expect.notEquals('windows', Platform.operatingSystem);
-              Expect.isTrue(error is SocketIOException);
+              Expect.isTrue(error is SocketException);
               port.toSendPort().send(1);
             });
       });

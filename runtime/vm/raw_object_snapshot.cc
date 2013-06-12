@@ -2082,16 +2082,15 @@ RawImmutableArray* ImmutableArray::ReadFrom(SnapshotReader* reader,
 
   // Read the length so that we can determine instance size to allocate.
   intptr_t len = reader->ReadSmiValue();
-  ImmutableArray* array = reinterpret_cast<ImmutableArray*>(
-      reader->GetBackRef(object_id));
+  Array* array = reinterpret_cast<Array*>(reader->GetBackRef(object_id));
   if (array == NULL) {
-    array = &(ImmutableArray::ZoneHandle(
+    array = &(Array::ZoneHandle(
         reader->isolate(),
         NEW_OBJECT_WITH_LEN_SPACE(ImmutableArray, len, kind)));
     reader->AddBackRef(object_id, array, kIsDeserialized);
   }
   reader->ArrayReadFrom(*array, len, tags);
-  return array->raw();
+  return raw(*array);
 }
 
 

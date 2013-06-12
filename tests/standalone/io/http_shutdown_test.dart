@@ -173,7 +173,7 @@ void test5(int totalConnections) {
             return request.close();
           })
         .then((response) { })
-        .catchError((e) { }, test: (e) => e is HttpParserException);
+        .catchError((e) { }, test: (e) => e is HttpException);
     }
     bool clientClosed = false;
     new Timer.periodic(new Duration(milliseconds: 100), (timer) {

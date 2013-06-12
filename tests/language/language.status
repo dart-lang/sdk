@@ -548,11 +548,6 @@ large_implicit_getter_test: Crash, Pass
 stack_overflow_test: Crash, Pass
 stack_overflow_stacktrace_test: Crash, Pass
 
-# math_vm_test and double_modulo test fail on SIMARM because the simulator
-# isn't implementing the softfp calling convention correctly.
-math_vm_test: Fail, Pass
-double_modulo_test: Fail, Pass
-
 [ $arch == mips ]
 *: Skip
 

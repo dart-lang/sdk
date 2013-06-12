@@ -28,11 +28,17 @@ void RuntimeEntry::Call(Assembler* assembler) const {
   uword entry = GetEntryPoint();
 #if defined(USING_SIMULATOR)
   // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
-  // in registers.
-  ASSERT(!is_leaf() || (argument_count() <= 4));
+  // in registers (maximum 2 double arguments for leaf float runtime calls).
+  ASSERT(argument_count() >= 0);
+  ASSERT(!is_leaf() ||
+         (!is_float() && (argument_count() <= 4)) ||
+         (argument_count() <= 2));
   Simulator::CallKind call_kind =
-      is_leaf() ? Simulator::kLeafRuntimeCall : Simulator::kRuntimeCall;
-  entry = Simulator::RedirectExternalReference(entry, call_kind);
+      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
+                              : Simulator::kLeafRuntimeCall)
+                : Simulator::kRuntimeCall;
+  entry =
+      Simulator::RedirectExternalReference(entry, call_kind, argument_count());
 #endif
   if (is_leaf()) {
     ExternalLabel label(name(), entry);

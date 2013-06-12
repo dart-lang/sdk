@@ -71,7 +71,7 @@ String compile(String code, {String entry: 'main',
       new leg.ResolutionWorkItem(element, context);
   resolutionWork.run(compiler, compiler.enqueuer.resolution);
   leg.CodegenWorkItem work =
-      new leg.CodegenWorkItem(element, resolutionWork.resolutionTree, context);
+      new leg.CodegenWorkItem(element, context);
   compiler.phase = Compiler.PHASE_COMPILING;
   work.run(compiler, compiler.enqueuer.codegen);
   js.JavaScriptBackend backend = compiler.backend;

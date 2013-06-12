@@ -216,7 +216,7 @@ class _HttpClientResponse
       for (var redirect in redirects) {
         if (redirect.location == url) {
           return new Future.error(
-              new RedirectLoopException(redirects));
+              new RedirectException("Redirect loop detected", redirects));
         }
       }
     }
@@ -573,7 +573,7 @@ class _HttpOutboundConsumer implements StreamConsumer {
               },
               onError: (error) {
                 _socketError = true;
-                if (error is SocketIOException &&
+                if (error is SocketException &&
                     _outbound is HttpResponse) {
                   _cancel();
                   _done();
@@ -676,8 +676,11 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   _HttpRequest _httpRequest;
 
   _HttpResponse(String protocolVersion,
-                _HttpOutgoing _outgoing)
-      : super(protocolVersion, _outgoing);
+                _HttpOutgoing _outgoing,
+                String serverHeader)
+      : super(protocolVersion, _outgoing) {
+    if (serverHeader != null) headers.set('Server', serverHeader);
+  }
 
   List<Cookie> get cookies {
     if (_cookies == null) _cookies = new List<Cookie>();
@@ -894,7 +897,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         // End with exception, too many redirects.
         future = response.drain()
             .then((_) => new Future.error(
-                new RedirectLimitExceededException(response.redirects)));
+                new RedirectException("Redirect limit exceeded",
+                                      response.redirects)));
       }
     } else if (response._shouldAuthenticateProxy) {
       future = response._authenticate(true);
@@ -1149,6 +1153,9 @@ class _HttpClientConnection {
     request.headers.host = uri.host;
     request.headers.port = port;
     request.headers.set(HttpHeaders.ACCEPT_ENCODING, "gzip");
+    if (_httpClient.userAgent != null) {
+      request.headers.set('User-Agent', _httpClient.userAgent);
+    }
     if (proxy.isAuthenticated) {
       // If the proxy configuration contains user information use that
       // for proxy basic authorization.
@@ -1227,10 +1234,8 @@ class _HttpClientConnection {
               })
               // If we see a state error, we failed to get the 'first'
               // element.
-              // Transform the error to a HttpParserException, for
-              // consistency.
               .catchError((error) {
-                throw new HttpParserException(
+                throw new HttpException(
                     "Connection closed before data was received");
               }, test: (error) => error is StateError)
               .catchError((error) {
@@ -1346,6 +1351,8 @@ class _HttpClient implements HttpClient {
 
   Duration get idleTimeout => _idleTimeout;
 
+  String userAgent = _getHttpVersion();
+
   void set idleTimeout(Duration timeout) {
     _idleTimeout = timeout;
     _idleConnections.values.forEach(
@@ -1355,6 +1362,7 @@ class _HttpClient implements HttpClient {
           c.startTimer();
         }));
   }
+
 
   Future<HttpClientRequest> open(String method,
                                  String host,
@@ -1755,7 +1763,8 @@ class _HttpConnection {
           _state = _ACTIVE;
           var outgoing = new _HttpOutgoing(_socket);
           var response = new _HttpResponse(incoming.headers.protocolVersion,
-                                           outgoing);
+                                           outgoing,
+                                           _httpServer.serverHeader);
           var request = new _HttpRequest(response, incoming, _httpServer, this);
           _streamFuture = outgoing.done
               .then((_) {
@@ -1819,6 +1828,7 @@ class _HttpConnection {
 
 // HTTP server waiting for socket connections.
 class _HttpServer extends Stream<HttpRequest> implements HttpServer {
+  String serverHeader = _getHttpVersion();
 
   static Future<HttpServer> bind(address, int port, int backlog) {
     return ServerSocket.bind(address, port, backlog: backlog).then((socket) {
@@ -1842,10 +1852,16 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
         });
   }
 
-  _HttpServer._(this._serverSocket, this._closeServer);
+  _HttpServer._(this._serverSocket, this._closeServer) {
+    _controller = new StreamController<HttpRequest>(sync: true,
+                                                    onCancel: close);
+  }
 
   _HttpServer.listenOn(ServerSocket this._serverSocket)
-      : _closeServer = false;
+      : _closeServer = false {
+    _controller = new StreamController<HttpRequest>(sync: true,
+                                                    onCancel: close);
+  }
 
   StreamSubscription<HttpRequest> listen(void onData(HttpRequest event),
                                          {void onError(error),
@@ -1937,8 +1953,7 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
 
   // Set of currently connected clients.
   final Set<_HttpConnection> _connections = new Set<_HttpConnection>();
-  final StreamController<HttpRequest> _controller
-      = new StreamController<HttpRequest>(sync: true);
+  StreamController<HttpRequest> _controller;
 
   // TODO(ajohnsen): Use close queue?
 }
@@ -2343,4 +2358,12 @@ class _RedirectInfo implements RedirectInfo {
   final int statusCode;
   final String method;
   final Uri location;
+}
+
+String _getHttpVersion() {
+  var version = new Options().version;
+  // Only include major and minor version numbers.
+  int index = version.indexOf('.', version.indexOf('.') + 1);
+  version = version.substring(0, index);
+  return 'Dart/$version (dart:io)';
 }

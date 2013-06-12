@@ -394,7 +394,7 @@ bool SyncDirectoryListing::HandleError(const char* dir_name) {
   args[1] = DartUtils::NewString(dir_name);
   args[2] = dart_os_error;
   Dart_ThrowException(Dart_New(
-      DartUtils::GetDartClass(DartUtils::kIOLibURL, "DirectoryIOException"),
+      DartUtils::GetDartClass(DartUtils::kIOLibURL, "DirectoryException"),
       Dart_Null(),
       3,
       args));

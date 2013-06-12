@@ -18,6 +18,7 @@ void main() {
 
       var request = new http.Request('POST', serverUrl);
       request.body = "hello";
+      request.headers['User-Agent'] = 'Dart';
 
       expect(request.send().then((response) {
         expect(response.statusCode, equals(200));
@@ -28,6 +29,7 @@ void main() {
         'headers': {
           'content-type': ['text/plain; charset=utf-8'],
           'accept-encoding': ['gzip'],
+          'user-agent': ['Dart'],
           'content-length': ['5']
         },
         'body': 'hello'

@@ -9,7 +9,7 @@
 
 namespace dart {
 
-DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate) {
+DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Isolate* isolate) {
   StoreBuffer* buffer = isolate->store_buffer();
   buffer->Expand(true);
 }

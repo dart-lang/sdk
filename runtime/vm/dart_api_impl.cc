@@ -2043,7 +2043,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(list));
   // If the list is immutable we call into Dart for the indexed setter to
   // get the unsupported operation exception as the result.
-  if (obj.IsArray() && !obj.IsImmutableArray()) {
+  if (obj.IsArray() && !Array::Cast(obj).IsImmutable()) {
     SET_LIST_ELEMENT(isolate, Array, obj, index, value);
   } else if (obj.IsGrowableObjectArray()) {
     SET_LIST_ELEMENT(isolate, GrowableObjectArray, obj, index, value);
@@ -2297,7 +2297,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
       return Api::NewError("Invalid length passed in to access list elements");
     }
   }
-  if (obj.IsArray() && !obj.IsImmutableArray()) {
+  if (obj.IsArray() && !Array::Cast(obj).IsImmutable()) {
     // If the list is immutable we call into Dart for the indexed setter to
     // get the unsupported operation exception as the result.
     SET_LIST_ELEMENT_AS_BYTES(isolate,

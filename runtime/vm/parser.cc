@@ -3334,10 +3334,12 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes) {
       super_type = ParseMixins(super_type);
     }
   } else {
-    // No extends clause: implicitly extend Object.
-    super_type = Type::ObjectType();
+    // No extends clause: implicitly extend Object, unless Object itself.
+    if (!cls.IsObjectClass()) {
+      super_type = Type::ObjectType();
+    }
   }
-  ASSERT(!super_type.IsNull());
+  ASSERT(!super_type.IsNull() || cls.IsObjectClass());
   cls.set_super_type(super_type);
 
   if (CurrentToken() == Token::kIMPLEMENTS) {
@@ -8057,23 +8059,30 @@ bool Parser::IsInstantiatorRequired() const {
 }
 
 
-// If the field is already initialized, return no ast (NULL).
-// Otherwise, if the field is constant, initialize the field and return no ast.
-// If the field is not initialized and not const, return the ast for the getter.
+
+// If the field is constant, initialize the field if necessary and return
+// no ast (NULL).
+// Otherwise return NULL if no implicit getter exists (either never created
+// because trivial, or not needed or field not readable).
 AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
   ASSERT(field.is_static());
+  const Class& field_owner = Class::ZoneHandle(field.owner());
+  const String& field_name = String::ZoneHandle(field.name());
+  const String& getter_name = String::Handle(Field::GetterName(field_name));
+  const Function& getter =
+      Function::Handle(field_owner.LookupStaticFunction(getter_name));
   const Instance& value = Instance::Handle(field.value());
   if (value.raw() == Object::transition_sentinel().raw()) {
     if (field.is_const()) {
       ErrorMsg("circular dependency while initializing static field '%s'",
-               String::Handle(field.name()).ToCString());
+               field_name.ToCString());
     } else {
       // The implicit static getter will throw the exception if necessary.
       return new StaticGetterNode(TokenPos(),
                                   NULL,
                                   false,
-                                  Class::ZoneHandle(field.owner()),
-                                  String::ZoneHandle(field.name()));
+                                  field_owner,
+                                  field_name);
     }
   } else if (value.raw() == Object::sentinel().raw()) {
     // This field has not been referenced yet and thus the value has
@@ -8081,13 +8090,9 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
     // to evaluate the expression and canonicalize the value.
     if (field.is_const()) {
       field.set_value(Object::transition_sentinel());
-      const String& field_name = String::Handle(field.name());
-      const String& getter_name =
-          String::Handle(Field::GetterName(field_name));
-      const Class& cls = Class::Handle(field.owner());
       const int kNumArguments = 0;  // no arguments.
       const Function& func =
-          Function::Handle(Resolver::ResolveStatic(cls,
+          Function::Handle(Resolver::ResolveStatic(field_owner,
                                                    getter_name,
                                                    kNumArguments,
                                                    Object::empty_array(),
@@ -8120,15 +8125,20 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
         instance ^= instance.Canonicalize();
       }
       field.set_value(instance);
+      return NULL;   // Constant
     } else {
       return new StaticGetterNode(TokenPos(),
                                   NULL,
                                   false,
-                                  Class::ZoneHandle(field.owner()),
-                                  String::ZoneHandle(field.name()));
+                                  field_owner,
+                                  field_name);
     }
   }
-  return NULL;
+  if (getter.IsNull() || (getter.kind() == RawFunction::kConstImplicitGetter)) {
+    return NULL;
+  }
+  ASSERT(getter.kind() == RawFunction::kImplicitGetter);
+  return new StaticGetterNode(TokenPos(), NULL, false, field_owner, field_name);
 }
 
 

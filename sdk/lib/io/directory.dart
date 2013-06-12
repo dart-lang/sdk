@@ -210,13 +210,13 @@ abstract class Directory implements FileSystemEntity {
 }
 
 
-class DirectoryIOException implements Exception {
-  const DirectoryIOException([String this.message = "",
+class DirectoryException implements IOException {
+  const DirectoryException([String this.message = "",
                               String this.path = "",
                               OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write("DirectoryIOException");
+    sb.write("DirectoryException");
     if (!message.isEmpty) {
       sb.write(": $message");
       if (path != null) {

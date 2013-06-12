@@ -20,7 +20,7 @@ class NotAList {
 testSocketCreation(host, port) {
   Socket.connect(host, port)
       .then((socket) => Expect.fail("Shouldn't get connected"))
-      .catchError((e) => null, test: (e) => e is SocketIOException)
+      .catchError((e) => null, test: (e) => e is SocketException)
       .catchError((e) => null, test: (e) => e is ArgumentError);
 }
 

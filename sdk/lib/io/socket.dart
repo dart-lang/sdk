@@ -409,12 +409,12 @@ abstract class Socket implements Stream<List<int>>, IOSink {
 }
 
 
-class SocketIOException implements Exception {
-  const SocketIOException([String this.message = "",
-                           OSError this.osError = null]);
+class SocketException implements IOException {
+  const SocketException([String this.message = "",
+                         OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write("SocketIOException");
+    sb.write("SocketException");
     if (!message.isEmpty) {
       sb.write(": $message");
       if (osError != null) {

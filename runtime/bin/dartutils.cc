@@ -760,10 +760,10 @@ Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
 }
 
 
-Dart_Handle DartUtils::NewDartSocketIOException(const char* message,
-                                                Dart_Handle os_error) {
-  // Create a dart:io SocketIOException object.
-  Dart_Handle clazz = GetDartClass(kIOLibURL, "SocketIOException");
+Dart_Handle DartUtils::NewDartSocketException(const char* message,
+                                              Dart_Handle os_error) {
+  // Create a dart:io SocketException object.
+  Dart_Handle clazz = GetDartClass(kIOLibURL, "SocketException");
   Dart_Handle args[2];
   args[0] = NewString(message);
   args[1] = os_error;

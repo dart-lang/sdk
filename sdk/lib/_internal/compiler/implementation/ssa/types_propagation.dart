@@ -327,6 +327,10 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     }
     return desiredType;
   }
+  
+  bool hasBeenSpeculativelyOptimized(HInstruction instruction) {
+    return savedTypes.containsKey(instruction);
+  }
 
   HType computeType(HInstruction instruction) {
     // Once we are in a conflicting state don't update the type anymore.
@@ -334,7 +338,7 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     if (oldType.isConflicting()) return oldType;
 
     HType newType = super.computeType(instruction);
-    if (oldType != newType && !savedTypes.containsKey(instruction)) {
+    if (oldType != newType && !hasBeenSpeculativelyOptimized(instruction)) {
       savedTypes[instruction] = oldType;
     }
     // [computeDesiredType] goes to all usedBys and lets them compute their
@@ -344,11 +348,16 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     HType desiredType = computeDesiredType(instruction);
     // If the desired type is conflicting just return the computed type.
     if (desiredType.isConflicting()) return newType;
+    if (desiredType.isUnknown() && hasBeenSpeculativelyOptimized(instruction)) {
+      // If we ever change our decision for a desired type to unknown,
+      // we stop the computation on this instruction.
+      return HType.CONFLICTING;
+    }
     // TODO(ngeoffray): Allow speculative optimizations on
     // non-primitive types?
     if (!desiredType.isPrimitive()) return newType;
     desiredType = newType.intersection(desiredType, compiler);
-    if (desiredType != newType && !savedTypes.containsKey(instruction)) {
+    if (desiredType != newType && !hasBeenSpeculativelyOptimized(instruction)) {
       savedTypes[instruction] = oldType;
     }
     return desiredType;

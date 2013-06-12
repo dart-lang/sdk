@@ -677,7 +677,8 @@ class ExtDrawBuffers native "EXTDrawBuffers" {
 
 @DocsEditable
 @DomName('EXTFragDepth')
-@Experimental // untriaged
+// http://www.khronos.org/registry/webgl/extensions/EXT_frag_depth/
+@Experimental
 class ExtFragDepth native "EXTFragDepth" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2295,6 +2296,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getBufferParameter')
   @DocsEditable
+  @Creates('int|Null')
+  @Returns('int|Null')
   Object getBufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getContextAttributes')
@@ -2311,6 +2314,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getFramebufferAttachmentParameter')
   @DocsEditable
+  @Creates('int|Renderbuffer|Texture|Null')
+  @Returns('int|Renderbuffer|Texture|Null')
   Object getFramebufferAttachmentParameter(int target, int attachment, int pname) native;
 
   @DomName('WebGLRenderingContext.getParameter')
@@ -2325,10 +2330,14 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getProgramParameter')
   @DocsEditable
+  @Creates('int|bool|Null')
+  @Returns('int|bool|Null')
   Object getProgramParameter(Program program, int pname) native;
 
   @DomName('WebGLRenderingContext.getRenderbufferParameter')
   @DocsEditable
+  @Creates('int|Null')
+  @Returns('int|Null')
   Object getRenderbufferParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderInfoLog')
@@ -2337,6 +2346,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getShaderParameter')
   @DocsEditable
+  @Creates('int|Null')
+  @Returns('int|Null')
   Object getShaderParameter(Shader shader, int pname) native;
 
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
@@ -2353,10 +2364,14 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getTexParameter')
   @DocsEditable
+  @Creates('int|Null')
+  @Returns('int|Null')
   Object getTexParameter(int target, int pname) native;
 
   @DomName('WebGLRenderingContext.getUniform')
   @DocsEditable
+  @Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List')
+  @Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List')
   Object getUniform(Program program, UniformLocation location) native;
 
   @DomName('WebGLRenderingContext.getUniformLocation')
@@ -2365,6 +2380,8 @@ class RenderingContext extends CanvasRenderingContext native "WebGLRenderingCont
 
   @DomName('WebGLRenderingContext.getVertexAttrib')
   @DocsEditable
+  @Creates('Null|num|bool|Float32List|Buffer')
+  @Returns('Null|num|bool|Float32List|Buffer')
   Object getVertexAttrib(int index, int pname) native;
 
   @DomName('WebGLRenderingContext.getVertexAttribOffset')

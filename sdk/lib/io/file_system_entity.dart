@@ -371,7 +371,7 @@ abstract class FileSystemEntity {
 
   static _throwIfError(Object result, String msg) {
     if (result is OSError) {
-      throw new FileIOException(msg, result);
+      throw new FileException(msg, result);
     } else if (result is ArgumentError) {
       throw result;
     }

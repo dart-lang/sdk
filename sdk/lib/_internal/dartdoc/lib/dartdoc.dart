@@ -87,7 +87,7 @@ void cleanOutputDirectory(Path path) {
     // due to invalid result from dir.existsSync() (probably due to race
     // conditions).
     outputDir.createSync();
-  } on DirectoryIOException catch (e) {
+  } on DirectoryException catch (e) {
     // Ignore.
   }
 }
@@ -140,7 +140,8 @@ Future compileScript(int mode, Path outputDir, Path libPath, String tmpPath) {
       new Path(dartPath), libPath,
       options: const <String>['--categories=Client,Server', '--minify'])
   .then((jsCode) {
-    if (jsCode != null) writeString(new File(jsPath), jsCode);
+    if (jsCode == null) throw new StateError("No javascript was generated.");
+    writeString(new File(jsPath), jsCode);
   });
 }
 
@@ -601,7 +602,7 @@ class Dartdoc {
       // race conditions).
       try {
         dir.createSync();
-      } on DirectoryIOException catch (e) {
+      } on DirectoryException catch (e) {
         // Ignore.
       }
     }
@@ -778,9 +779,10 @@ class Dartdoc {
 
   /// Gets the path to the dartdoc directory normalized for running in different
   /// places.
-  String get normalizedDartdocPath => runningFromSdk ?
-      pathos.join(sdkDir, 'lib', '_internal', 'dartdoc') :
-      dartdocPath.toString();
+  String get normalizedDartdocPath => pathos.normalize(
+      pathos.absolute(runningFromSdk ?
+          pathos.join(sdkDir, 'lib', '_internal', 'dartdoc') :
+          dartdocPath.toString()));
 
   void docNavigationDart() {
     var tmpDir = new Directory(tmpPath);
@@ -791,20 +793,15 @@ class Dartdoc {
     String dartString = jsonString.replaceAll(r"$", r"\$");
     var filePath = pathos.join(tmpPath, 'client.dart');
 
-    var fileBuilder = new pathos.Builder(style: pathos.Style.url);
-
-    var clientDir = fileBuilder.join(
-        'file:///',
-        fileBuilder.relative(
-          fileBuilder.join(normalizedDartdocPath, 'lib', 'src', 'client'),
-          from: tmpPath));
+    var clientDir = pathos.join(normalizedDartdocPath,'lib', 'src', 'client');
 
     writeString(new File(filePath),
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import '${fileBuilder.join(clientDir, 'client-shared.dart')}';
-        import '${fileBuilder.join(clientDir, 'dropdown.dart')}';
+        import r'${pathToFileUri(
+          pathos.join(clientDir, 'client-shared.dart'))}';
+        import r'${pathToFileUri(pathos.join(clientDir, 'dropdown.dart'))}';
 
         main() {
           setup();

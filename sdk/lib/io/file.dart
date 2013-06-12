@@ -60,7 +60,7 @@ abstract class File implements FileSystemEntity {
    * by [createSync]. Calling [createSync] on an existing file might fail
    * if there are restrictive permissions on the file.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void createSync();
 
@@ -75,7 +75,7 @@ abstract class File implements FileSystemEntity {
    * Synchronously delete the file. Only a file or a link to a file
    * can be deleted with this method, not a directory or a broken link.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void deleteSync();
 
@@ -94,7 +94,7 @@ abstract class File implements FileSystemEntity {
   /**
    * Synchronously get the length of the file.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   int lengthSync();
 
@@ -109,7 +109,7 @@ abstract class File implements FileSystemEntity {
    * Get the last-modified time of the file. Throws an exception
    * if the file does not exist.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   DateTime lastModifiedSync();
 
@@ -140,7 +140,7 @@ abstract class File implements FileSystemEntity {
    *
    * See [open] for information on the [mode] argument.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   RandomAccessFile openSync({FileMode mode: FileMode.READ});
 
@@ -153,7 +153,7 @@ abstract class File implements FileSystemEntity {
   /**
    * Synchronously get the canonical full path corresponding to the file path.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   String fullPathSync();
 
@@ -201,7 +201,7 @@ abstract class File implements FileSystemEntity {
   /**
    * Synchronously read the entire file contents as a list of bytes.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   List<int> readAsBytesSync();
 
@@ -218,7 +218,7 @@ abstract class File implements FileSystemEntity {
    * Synchronously read the entire file contents as a string using the
    * given [Encoding].
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   String readAsStringSync({Encoding encoding: Encoding.UTF_8});
 
@@ -235,7 +235,7 @@ abstract class File implements FileSystemEntity {
    * Synchronously read the entire file contents as lines of text
    * using the given [Encoding].
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   List<String> readAsLinesSync({Encoding encoding: Encoding.UTF_8});
 
@@ -261,7 +261,7 @@ abstract class File implements FileSystemEntity {
    * the file if it already exists. In order to append the bytes to an existing
    * file, pass [FileMode.APPEND] as the optional mode parameter.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void writeAsBytesSync(List<int> bytes, {FileMode mode: FileMode.WRITE});
 
@@ -291,7 +291,7 @@ abstract class File implements FileSystemEntity {
    * to an existing file, pass [FileMode.APPEND] as the optional mode
    * parameter.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void writeAsStringSync(String contents,
                          {FileMode mode: FileMode.WRITE,
@@ -319,7 +319,7 @@ abstract class RandomAccessFile {
   /**
    * Synchronously closes the file.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void closeSync();
 
@@ -333,7 +333,7 @@ abstract class RandomAccessFile {
    * Synchronously reads a single byte from the file. If end-of-file
    * has been reached -1 is returned.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   int readByteSync();
 
@@ -346,7 +346,7 @@ abstract class RandomAccessFile {
    * Synchronously reads a maximum of [bytes] bytes from a file and
    * returns the result in a list of bytes.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   List<int> readSync(int bytes);
 
@@ -368,7 +368,7 @@ abstract class RandomAccessFile {
    * read into [buffer], otherwise up to [buffer.length]. If [end] == [start]
    * nothing happends.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   int readIntoSync(List<int> buffer, [int start, int end]);
 
@@ -383,7 +383,7 @@ abstract class RandomAccessFile {
    * Synchronously writes a single byte to the file. Returns the
    * number of bytes successfully written.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   int writeByteSync(int value);
 
@@ -403,7 +403,7 @@ abstract class RandomAccessFile {
    * start from index 0. If [end] is omitted, it will write to the end of
    * [buffer].
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void writeFromSync(List<int> buffer, [int start, int end]);
 
@@ -419,7 +419,7 @@ abstract class RandomAccessFile {
    * Synchronously writes a single string to the file using the given
    * [Encoding].
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void writeStringSync(String string,
                        {Encoding encoding: Encoding.UTF_8});
@@ -433,7 +433,7 @@ abstract class RandomAccessFile {
   /**
    * Synchronously gets the current byte position in the file.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   int positionSync();
 
@@ -447,7 +447,7 @@ abstract class RandomAccessFile {
   /**
    * Synchronously sets the byte position in the file.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void setPositionSync(int position);
 
@@ -461,7 +461,7 @@ abstract class RandomAccessFile {
   /**
    * Synchronously truncates (or extends) the file to [length] bytes.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void truncateSync(int length);
 
@@ -474,7 +474,7 @@ abstract class RandomAccessFile {
   /**
    * Synchronously gets the length of the file.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   int lengthSync();
 
@@ -488,7 +488,7 @@ abstract class RandomAccessFile {
   /**
    * Synchronously flushes the contents of the file to disk.
    *
-   * Throws a [FileIOException] if the operation fails.
+   * Throws a [FileException] if the operation fails.
    */
   void flushSync();
 
@@ -504,12 +504,12 @@ abstract class RandomAccessFile {
 }
 
 
-class FileIOException implements Exception {
-  const FileIOException([String this.message = "",
+class FileException implements IOException {
+  const FileException([String this.message = "",
                          OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write("FileIOException");
+    sb.write("FileException");
     if (!message.isEmpty) {
       sb.write(": $message");
       if (osError != null) {

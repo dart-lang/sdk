@@ -15,10 +15,11 @@
             '<!@(["python", "../tools/list_pkg_directories.py", "."])',
           ],
           'outputs': [
-            '<(PRODUCT_DIR)/packages',
+            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
           ],
           'action': [
             'python', '../tools/make_links.py',
+            '--timestamp_file=<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '<(PRODUCT_DIR)/packages',
             '<@(_inputs)',
           ],

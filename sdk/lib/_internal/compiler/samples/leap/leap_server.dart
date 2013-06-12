@@ -71,7 +71,7 @@ class Conversation {
   }
 
   static onError(error) {
-    if (error is HttpParserException) {
+    if (error is HttpException) {
       print('Error: ${error.message}');
     } else {
       print('Error: ${error}');

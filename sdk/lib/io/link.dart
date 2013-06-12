@@ -68,7 +68,7 @@ abstract class Link implements FileSystemEntity {
    * the link when it has been deleted. This does not delete, or otherwise
    * affect, the target of the link. It also works on broken links, but if
    * the link does not exist or is not actually a link, it completes the
-   * future with a LinkIOException.
+   * future with a LinkException.
    */
   Future<Link> delete();
 
@@ -76,7 +76,7 @@ abstract class Link implements FileSystemEntity {
    * Synchronously deletes the link. This does not delete, or otherwise
    * affect, the target of the link.  It also works on broken links, but if
    * the link does not exist or is not actually a link, it throws a
-   * LinkIOException.
+   * LinkException.
    */
   void deleteSync();
 
@@ -88,7 +88,7 @@ abstract class Link implements FileSystemEntity {
    * directory containing the link.
    *
    * If the link does not exist, or is not a link, the future completes with
-   * a LinkIOException.
+   * a LinkException.
    */
   Future<String> target();
 
@@ -98,7 +98,7 @@ abstract class Link implements FileSystemEntity {
    * If the returned target is a relative path, it is relative to the
    * directory containing the link.
    *
-   * If the link does not exist, or is not a link, throws a LinkIOException.
+   * If the link does not exist, or is not a link, throws a LinkException.
    */
   String targetSync();
 }
@@ -213,7 +213,7 @@ class _Link extends FileSystemEntity implements Link {
 
   static throwIfError(Object result, String msg) {
     if (result is OSError) {
-      throw new LinkIOException(msg, result);
+      throw new LinkException(msg, result);
     }
   }
 
@@ -235,7 +235,7 @@ class _Link extends FileSystemEntity implements Link {
       case _OSERROR_RESPONSE:
         var err = new OSError(response[_OSERROR_RESPONSE_MESSAGE],
                               response[_OSERROR_RESPONSE_ERROR_CODE]);
-        return new LinkIOException(message, err);
+        return new LinkException(message, err);
       default:
         return new Exception("Unknown error");
     }
@@ -243,13 +243,13 @@ class _Link extends FileSystemEntity implements Link {
 }
 
 
-class LinkIOException implements Exception {
-  const LinkIOException([String this.message = "",
+class LinkException implements IOException {
+  const LinkException([String this.message = "",
                          String this.path = "",
                          OSError this.osError = null]);
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.write("LinkIOException");
+    sb.write("LinkException");
     if (!message.isEmpty) {
       sb.write(": $message");
       if (path != null) {

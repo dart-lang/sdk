@@ -13,6 +13,14 @@ import 'dart:mirrors';
 export 'dart:mirrors';
 import 'serialization_helpers.dart';
 
+// TODO(alanknight): Remove this method.  It is working around a bug
+// in the Dart VM which incorrectly returns Object as the superclass
+// of Object.
+_getSuperclass(ClassMirror mirror) {
+  var superclass = mirror.superclass;
+  return (superclass == mirror) ? null : superclass;
+}
+
 /**
  * Return a list of all the public fields of a class, including inherited
  * fields.
@@ -20,9 +28,9 @@ import 'serialization_helpers.dart';
 Iterable<VariableMirror> publicFields(ClassMirror mirror) {
   var mine = mirror.variables.values.where(
       (x) => !(x.isPrivate || x.isStatic));
-  var mySuperclass = mirror.superclass;
-  if (mySuperclass != mirror) {
-    return append(publicFields(mirror.superclass), mine);
+  var mySuperclass = _getSuperclass(mirror);
+  if (mySuperclass != null) {
+    return append(publicFields(mySuperclass), mine);
   } else {
     return mine;
   }
@@ -34,8 +42,8 @@ bool hasField(Symbol name, ClassMirror mirror) {
   if (name == null) return false;
   var field = mirror.variables[name];
   if (field != null && !field.isStatic) return true;
-  var superclass = mirror.superclass;
-  if (superclass == mirror) return false;
+  var superclass = _getSuperclass(mirror);
+  if (superclass == null) return false;
   return hasField(name, superclass);
 }
 
@@ -45,9 +53,9 @@ bool hasField(Symbol name, ClassMirror mirror) {
  */
 Iterable<MethodMirror> publicGetters(ClassMirror mirror) {
   var mine = mirror.getters.values.where((x) => !(x.isPrivate || x.isStatic));
-  var mySuperclass = mirror.superclass;
-  if (mySuperclass != mirror) {
-    return append(publicGetters(mirror.superclass), mine);
+  var mySuperclass = _getSuperclass(mirror);
+  if (mySuperclass != null) {
+    return append(publicGetters(mySuperclass), mine);
   } else {
     return mine.toList();
   }
@@ -58,8 +66,8 @@ bool hasGetter(Symbol name, ClassMirror mirror) {
   if (name == null) return false;
   var getter = mirror.getters[name];
   if (getter != null && !getter.isStatic) return true;
-  var superclass = mirror.superclass;
-  if (superclass == mirror) return false;
+  var superclass = _getSuperclass(mirror);
+  if (superclass == null) return false;
   return hasField(name, superclass);
 }
 
