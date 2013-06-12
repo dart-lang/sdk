@@ -30,6 +30,22 @@ abstract class TypesInferrer {
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeOfNode(Element owner, Node node);
   TypeMask getTypeOfSelector(Selector selector);
+
+  TypeMask get dynamicType;
+  TypeMask get nullType;
+  TypeMask get intType;
+  TypeMask get doubleType;
+  TypeMask get numType;
+  TypeMask get boolType;
+  TypeMask get functionType;
+  TypeMask get listType;
+  TypeMask get constListType;
+  TypeMask get fixedListType;
+  TypeMask get growableListType;
+  TypeMask get mapType;
+  TypeMask get constMapType;
+  TypeMask get stringType;
+  TypeMask get typeType;
 }
 
 /**

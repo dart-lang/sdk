@@ -21,6 +21,8 @@ import 'types.dart' show TypesInferrer, FlatTypeMask, TypeMask;
 import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../universe/universe.dart' show Selector, SideEffects, TypedSelector;
 
+part 'inferrer_visitor.dart';
+
 /**
  * A work queue that ensures there are no duplicates, and adds and
  * removes in FIFO.
@@ -97,32 +99,6 @@ class ClassInfoForFinalFields {
   bool get isDone => constructorsToVisitCount == 0;
 }
 
-/**
- * A sentinel type mask class used by the inferrer for the give up
- * type, and the dynamic type.
- */
-class SentinelTypeMask extends FlatTypeMask {
-  final String name;
-
-  SentinelTypeMask(this.name) : super(null, 0, false);
-
-  bool operator==(other) {
-    return identical(this, other);
-  }
-
-  TypeMask nullable() {
-    throw 'Unsupported operation';
-  }
-
-  TypeMask intersection(TypeMask other, Compiler compiler) {
-    return other;
-  }
-
-  bool get isNullable => true;
-
-  String toString() => '$name sentinel type mask';
-}
-
 final OPTIMISTIC = 0;
 final RETRY = 1;
 final PESSIMISTIC = 2;
@@ -179,8 +155,6 @@ class SimpleTypesInferrer extends TypesInferrer {
     return internal.analyzeMain(element);
   }
 }
-
-
 
 class InternalSimpleTypesInferrer extends TypesInferrer {
   /**
@@ -267,10 +241,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
 
   int optimismState;
 
-  /**
-   * Sentinel used by the inferrer to notify that it does not know
-   * the type of a specific element.
-   */
   TypeMask dynamicType;
   bool isDynamicType(TypeMask type) => identical(type, dynamicType);
 
@@ -383,23 +353,23 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * Query method after the analysis to know the type of [element].
    */
   TypeMask getReturnTypeOfElement(Element element) {
-    return getTypeIfValuable(returnTypeOf[element]);
+    return getNonNullType(returnTypeOf[element]);
   }
 
   TypeMask getTypeOfElement(Element element) {
-    return getTypeIfValuable(typeOf[element]);
+    return getNonNullType(typeOf[element]);
   }
 
   TypeMask getTypeOfSelector(Selector selector) {
-    return getTypeIfValuable(typeOfSelector(selector));
+    return getNonNullType(typeOfSelector(selector));
   }
 
   bool isTypeValuable(TypeMask returnType) {
     return !isDynamicType(returnType);
   }
 
-  TypeMask getTypeIfValuable(TypeMask returnType) {
-    return isTypeValuable(returnType) ? returnType : null;
+  TypeMask getNonNullType(TypeMask returnType) {
+    return returnType != null ? returnType : dynamicType;
   }
 
   /**
@@ -417,7 +387,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     if (selector == null || selector.isSetter() || selector.isIndexSet()) {
       return null;
     }
-    return getTypeIfValuable(typeOfSelector(selector));
+    return getNonNullType(typeOfSelector(selector));
   }
 
   void checkAnalyzedAll() {
@@ -678,7 +648,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         assert(annotation is FunctionType);
         annotation = annotation.returnType;
       }
-      newType = narrowType(newType, annotation);
+      newType = narrowType(newType, annotation, compiler);
     }
 
     // Fields and native methods of native classes are handled
@@ -721,7 +691,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
               || element.isGetter()
               || element.isFactoryConstructor())) {
         FunctionType functionType = element.computeType(compiler);
-        returnType = narrowType(dynamicType, functionType.returnType);
+        returnType = narrowType(dynamicType, functionType.returnType, compiler);
       } else {
         returnType = dynamicType;
       }
@@ -763,7 +733,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       } else {
         mappedType = new TypeMask.nonNullExact(rawTypeOf(type.element));
       }
-      returnType = computeLUB(returnType, mappedType);
+      returnType = computeLUB(returnType, mappedType, compiler);
       if (!isTypeValuable(returnType)) {
         returnType = dynamicType;
         break;
@@ -797,7 +767,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
           // therefore only trust their type after the checks.
           || (compiler.enableTypeAssertions
               && (element.isField() || element.isVariable()))) {
-        type = narrowType(dynamicType, element.computeType(compiler));
+        type = narrowType(dynamicType, element.computeType(compiler), compiler);
       } else {
         type = dynamicType;
       }
@@ -818,7 +788,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     iterateOverElements(selector, (Element element) {
       assert(element.isImplementation);
       TypeMask type = typeOfElementWithSelector(element, selector);
-      result = computeLUB(result, type);
+      result = computeLUB(result, type, compiler);
       return isTypeValuable(result);
     });
     if (result == null) {
@@ -1023,7 +993,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       TypeMask type;
       typeOfArguments[element].forEach((_, ArgumentsTypes arguments) {
         if (!visitingOptionalParameter) {
-          type = computeLUB(type, arguments.positional[parameterIndex]);
+          type = computeLUB(
+              type, arguments.positional[parameterIndex], compiler);
         } else {
           TypeMask argumentType = signature.optionalParametersAreNamed
               ? arguments.named[parameter.name]
@@ -1034,7 +1005,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
             argumentType = defaultTypeOfParameter[parameter];
           }
           assert(argumentType != null);
-          type = computeLUB(type, argumentType);
+          type = computeLUB(type, argumentType, compiler);
         }
       });
       if (recordType(parameter, type)) {
@@ -1100,7 +1071,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         if (!selector.isSetter()) {
           TypeMask type = handleIntrisifiedSelector(selector, arguments);
           if (type == null) type = typeOfElementWithSelector(element, selector);
-          result = computeLUB(result, type);
+          result = computeLUB(result, type, compiler);
         }
       }
     }
@@ -1155,7 +1126,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         // use its type.
         constraints.add(constraint);
       } else {
-        fieldType = computeLUB(fieldType, mask);
+        fieldType = computeLUB(fieldType, mask, compiler);
       }
     });
 
@@ -1178,7 +1149,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
           // Otherwise the constraint is on the form [: field = other.field :].
           assert(constraint.isGetter());
         }
-        fieldType = computeLUB(fieldType, typeOfSelector(constraint));
+        fieldType = computeLUB(fieldType, typeOfSelector(constraint), compiler);
       }
       if (existing == null) {
         typeOf.remove(element);
@@ -1262,47 +1233,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       }
     });
   }
-
-  /**
-   * Returns the least upper bound between [firstType] and
-   * [secondType].
-   */
-  TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
-    if (firstType == null) {
-      return secondType;
-    } else if (isDynamicType(secondType)) {
-      return secondType;
-    } else if (isDynamicType(firstType)) {
-      return firstType;
-    } else {
-      TypeMask union = firstType.union(secondType, compiler);
-      // TODO(kasperl): If the union isn't nullable it seems wasteful
-      // to use dynamic. Fix that.
-      return union.containsAll(compiler) ? dynamicType : union;
-    }
-  }
-
-  TypeMask narrowType(TypeMask type,
-                      DartType annotation,
-                      {bool isNullable: true}) {
-    if (annotation.isDynamic) return type;
-    if (annotation.isMalformed) return type;
-    if (annotation.isVoid) return nullType;
-    if (annotation.element == compiler.objectClass) return type;
-    TypeMask otherType;
-    if (annotation.kind == TypeKind.TYPEDEF
-        || annotation.kind == TypeKind.FUNCTION) {
-      otherType = functionType;
-    } else if (annotation.kind == TypeKind.TYPE_VARIABLE) {
-      return type;
-    } else {
-      assert(annotation.kind == TypeKind.INTERFACE);
-      otherType = new TypeMask.nonNullSubtype(annotation);
-    }
-    if (isNullable) otherType = otherType.nullable();
-    if (type == null) return otherType;
-    return type.intersection(otherType, compiler);
-  }
 }
 
 /**
@@ -1337,183 +1267,19 @@ class ArgumentsTypes {
   }
 }
 
-/**
- * Placeholder for inferred types of local variables.
- */
-class LocalsHandler {
-  final InternalSimpleTypesInferrer inferrer;
-  final Map<Element, TypeMask> locals;
-  final Map<Element, Element> capturedAndBoxed;
-  final Map<Element, TypeMask> fieldsInitializedInConstructor;
-  final bool inTryBlock;
-  bool isThisExposed;
-  bool seenReturn = false;
-  bool seenBreakOrContinue = false;
-
-  bool get aborts {
-    return seenReturn || seenBreakOrContinue;
-  }
-
-  LocalsHandler(this.inferrer)
-      : locals = new Map<Element, TypeMask>(),
-        capturedAndBoxed = new Map<Element, Element>(),
-        fieldsInitializedInConstructor = new Map<Element, TypeMask>(),
-        inTryBlock = false,
-        isThisExposed = true;
-  LocalsHandler.from(LocalsHandler other, {bool inTryBlock: false})
-      : locals = new Map<Element, TypeMask>.from(other.locals),
-        capturedAndBoxed = new Map<Element, Element>.from(
-            other.capturedAndBoxed),
-        fieldsInitializedInConstructor = new Map<Element, TypeMask>.from(
-            other.fieldsInitializedInConstructor),
-        inTryBlock = other.inTryBlock || inTryBlock,
-        inferrer = other.inferrer,
-        isThisExposed = other.isThisExposed;
-
-  TypeMask use(Element local) {
-    if (capturedAndBoxed.containsKey(local)) {
-      return inferrer.typeOfElement(capturedAndBoxed[local]);
-    }
-    return locals[local];
-  }
-
-  void update(Element local, TypeMask type) {
-    assert(type != null);
-    if (inferrer.compiler.trustTypeAnnotations
-        || inferrer.compiler.enableTypeAssertions) {
-      type = inferrer.narrowType(type, local.computeType(inferrer.compiler));
-    }
-    if (capturedAndBoxed.containsKey(local) || inTryBlock) {
-      // If a local is captured and boxed, or is set in a try block,
-      // we compute the LUB of its assignments.
-      //
-      // We don't know if an assignment in a try block
-      // will be executed, so all assigments in that block are
-      // potential types after we have left it.
-      type = inferrer.computeLUB(locals[local], type);
-    }
-    locals[local] = type;
-  }
-
-  void setCapturedAndBoxed(Element local, Element field) {
-    capturedAndBoxed[local] = field;
-  }
-
-  /**
-   * Merge handlers [first] and [second] into [:this:] and returns
-   * whether the merge changed one of the variables types in [first].
-   */
-  bool merge(LocalsHandler other, {bool discardIfAborts: true}) {
-    bool changed = false;
-    List<Element> toRemove = <Element>[];
-    // Iterating over a map and just updating its entries is OK.
-    locals.forEach((Element local, TypeMask oldType) {
-      TypeMask otherType = other.locals[local];
-      bool isCaptured = capturedAndBoxed.containsKey(local);
-      if (otherType == null) {
-        if (!isCaptured) {
-          // If [local] is not in the other map and is not captured
-          // and boxed, we know it is not a
-          // local we want to keep. For example, in an if/else, we don't
-          // want to keep variables declared in the if or in the else
-          // branch at the merge point.
-          toRemove.add(local);
-        }
-        return;
-      }
-      if (!isCaptured && aborts && discardIfAborts) {
-        locals[local] = otherType;
-      } else if (!isCaptured && other.aborts && discardIfAborts) {
-        // Don't do anything.
-      } else {
-        TypeMask type = inferrer.computeLUB(oldType, otherType);
-        if (type != oldType) changed = true;
-        locals[local] = type;
-      }
-    });
-
-    // Remove locals that will not be used anymore.
-    toRemove.forEach((Element element) {
-      locals.remove(element);
-    });
-
-    // Update the locals that are captured and boxed. We
-    // unconditionally add them to [this] because we register the type
-    // of boxed variables after analyzing all closures.
-    other.capturedAndBoxed.forEach((Element local, Element field) {
-      capturedAndBoxed[local] =  field;
-      // If [element] is not in our [locals], we need to update it.
-      // Otherwise, we have already computed the LUB of it.
-      if (locals[local] == null) {
-        locals[local] = other.locals[local];
-      }
-    });
-
-    // Merge instance fields initialized in both handlers. This is
-    // only relevant for generative constructors.
-    toRemove = <Element>[];
-    // Iterate over the map in [:this:]. The map in [other] may
-    // contain different fields, but if this map does not contain it,
-    // then we know the field can be null and we don't need to track
-    // it.
-    fieldsInitializedInConstructor.forEach((Element element, TypeMask type) {
-      TypeMask otherType = other.fieldsInitializedInConstructor[element];
-      if (otherType == null) {
-        toRemove.add(element);
-      } else {
-        fieldsInitializedInConstructor[element] =
-            inferrer.computeLUB(type, otherType);
-      }
-    });
-    // Remove fields that were not initialized in [other].
-    toRemove.forEach((Element element) {
-      fieldsInitializedInConstructor.remove(element);
-    });
-    isThisExposed = isThisExposed || other.isThisExposed;
-    seenReturn = seenReturn && other.seenReturn;
-    seenBreakOrContinue = seenBreakOrContinue && other.seenBreakOrContinue;
-
-    return changed;
-  }
-
-  void updateField(Element element, TypeMask type) {
-    if (isThisExposed) return;
-    fieldsInitializedInConstructor[element] = type;
-  }
-}
-
-class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
-  final Element analyzedElement;
-  final Element outermostElement;
-  final InternalSimpleTypesInferrer inferrer;
-  final Compiler compiler;
-  final Map<TargetElement, List<LocalsHandler>> breaksFor =
-      new Map<TargetElement, List<LocalsHandler>>();
-  final Map<TargetElement, List<LocalsHandler>> continuesFor =
-      new Map<TargetElement, List<LocalsHandler>>();
-  LocalsHandler locals;
+class SimpleTypeInferrerVisitor extends InferrerVisitor {
   TypeMask returnType;
-
   bool visitingInitializers = false;
   bool isConstructorRedirect = false;
-  bool accumulateIsChecks = false;
-  bool conditionIsSimple = false;
-
-  List<Send> isChecks;
-  int loopLevel = 0;
   SideEffects sideEffects = new SideEffects.empty();
+  final Element outermostElement;
 
-  bool get inLoop => loopLevel > 0;
-  bool get isThisExposed => locals.isThisExposed;
-  void set isThisExposed(value) { locals.isThisExposed = value; }
-
-  SimpleTypeInferrerVisitor.internal(TreeElements mapping,
-                                     this.analyzedElement,
+  SimpleTypeInferrerVisitor.internal(analyzedElement,
                                      this.outermostElement,
-                                     this.inferrer,
-                                     this.compiler,
-                                     this.locals)
-    : super(mapping);
+                                     inferrer,
+                                     compiler,
+                                     locals)
+    : super(analyzedElement, inferrer, compiler, locals);
 
   factory SimpleTypeInferrerVisitor(Element element,
                                     Compiler compiler,
@@ -1521,13 +1287,10 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
                                     [LocalsHandler handler]) {
     Element outermostElement =
         element.getOutermostEnclosingMemberOrTopLevel().implementation;
-    TreeElements elements = compiler.enqueuer.resolution.resolvedElements[
-        outermostElement.declaration];
-    assert(elements != null);
     assert(outermostElement != null);
     handler = handler != null ? handler : new LocalsHandler(inferrer);
     return new SimpleTypeInferrerVisitor.internal(
-        elements, element, outermostElement, inferrer, compiler, handler);
+        element, outermostElement, inferrer, compiler, handler);
   }
 
   TypeMask run() {
@@ -1637,7 +1400,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
         // bool.
         signature.forEachParameter((Element parameter) {
           if (inferrer.typeOfElement(parameter).isNullable){
-            returnType = inferrer.computeLUB(returnType, inferrer.boolType);
+            returnType = computeLUB(returnType, inferrer.boolType, compiler);
           }
         });
       }
@@ -1656,43 +1419,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;
-  }
-
-  TypeMask _thisType;
-  TypeMask get thisType {
-    if (_thisType != null) return _thisType;
-    ClassElement cls = outermostElement.getEnclosingClass();
-    if (compiler.world.isUsedAsMixin(cls)) {
-      return _thisType = new TypeMask.nonNullSubtype(inferrer.rawTypeOf(cls));
-    } else if (compiler.world.hasAnySubclass(cls)) {
-      return _thisType = new TypeMask.nonNullSubclass(inferrer.rawTypeOf(cls));
-    } else {
-      return _thisType = new TypeMask.nonNullExact(inferrer.rawTypeOf(cls));
-    }
-  }
-
-  TypeMask _superType;
-  TypeMask get superType {
-    if (_superType != null) return _superType;
-    return _superType = new TypeMask.nonNullExact(
-        inferrer.rawTypeOf(outermostElement.getEnclosingClass().superclass));
-  }
-
-  void recordReturnType(TypeMask type) {
-    returnType = inferrer.computeLUB(returnType, type);
-  }
-
-  TypeMask visitNode(Node node) {
-    node.visitChildren(this);
-    return inferrer.dynamicType;
-  }
-
-  TypeMask visitNewExpression(NewExpression node) {
-    return node.send.accept(this);
-  }
-
-  TypeMask visit(Node node) {
-    return node == null ? inferrer.dynamicType : node.accept(this);
   }
 
   TypeMask visitFunctionExpression(FunctionExpression node) {
@@ -1723,59 +1449,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     });
 
     return inferrer.functionType;
-  }
-
-  TypeMask visitFunctionDeclaration(FunctionDeclaration node) {
-    locals.update(elements[node], inferrer.functionType);
-    return visit(node.function);
-  }
-
-  TypeMask visitLiteralString(LiteralString node) {
-    return inferrer.stringType;
-  }
-
-  TypeMask visitStringInterpolation(StringInterpolation node) {
-    node.visitChildren(this);
-    return inferrer.stringType;
-  }
-
-  TypeMask visitStringJuxtaposition(StringJuxtaposition node) {
-    node.visitChildren(this);
-    return inferrer.stringType;
-  }
-
-  TypeMask visitLiteralBool(LiteralBool node) {
-    return inferrer.boolType;
-  }
-
-  TypeMask visitLiteralDouble(LiteralDouble node) {
-    return inferrer.doubleType;
-  }
-
-  TypeMask visitLiteralInt(LiteralInt node) {
-    return inferrer.intType;
-  }
-
-  TypeMask visitLiteralList(LiteralList node) {
-    node.visitChildren(this);
-    return node.isConst()
-        ? inferrer.constListType
-        : inferrer.growableListType;
-  }
-
-  TypeMask visitLiteralMap(LiteralMap node) {
-    node.visitChildren(this);
-    return node.isConst()
-        ? inferrer.constMapType
-        : inferrer.mapType;
-  }
-
-  TypeMask visitLiteralNull(LiteralNull node) {
-    return inferrer.nullType;
-  }
-
-  TypeMask visitTypeReferenceSend(Send node) {
-    return inferrer.typeType;
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
@@ -1995,15 +1668,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return rhsType;
   }
 
-  TypeMask visitIdentifier(Identifier node) {
-    if (node.isThis()) {
-      return thisType;
-    } else if (node.isSuper()) {
-      return superType;
-    }
-    return inferrer.dynamicType;
-  }
-
   TypeMask visitSuperSend(Send node) {
     Element element = elements[node];
     if (Elements.isUnresolved(element)) {
@@ -2091,92 +1755,6 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     }
     return new ArgumentsTypes(positional, named);
   }
-
-  void potentiallyAddIsCheck(Send node) {
-    if (!accumulateIsChecks) return;
-    if (!Elements.isLocal(elements[node.receiver])) return;
-    isChecks.add(node);
-  }
-
-  void updateIsChecks(List<Node> tests, {bool usePositive}) {
-    if (tests == null) return;
-    for (Send node in tests) {
-      if (node.isIsNotCheck) {
-        if (usePositive) continue;
-      } else {
-        if (!usePositive) continue;
-      }
-      DartType type = elements.getType(node.typeAnnotationFromIsCheck);
-      Element element = elements[node.receiver];
-      TypeMask existing = locals.use(element);
-      TypeMask newType = inferrer.narrowType(existing, type, isNullable: false);
-      locals.update(element, newType);
-    }
-  }
-
-  TypeMask visitOperatorSend(Send node) {
-    Operator op = node.selector;
-    if (const SourceString("[]") == op.source) {
-      return visitDynamicSend(node);
-    } else if (const SourceString("&&") == op.source) {
-      conditionIsSimple = false;
-      bool oldAccumulateIsChecks = accumulateIsChecks;
-      accumulateIsChecks = true;
-      if (isChecks == null) isChecks = <Send>[];
-      visit(node.receiver);
-      accumulateIsChecks = oldAccumulateIsChecks;
-      if (!accumulateIsChecks) isChecks = null;
-      LocalsHandler saved = new LocalsHandler.from(locals);
-      updateIsChecks(isChecks, usePositive: true);
-      visit(node.arguments.head);
-      locals.merge(saved);
-      return inferrer.boolType;
-    } else if (const SourceString("||") == op.source) {
-      conditionIsSimple = false;
-      visit(node.receiver);
-      LocalsHandler saved = new LocalsHandler.from(locals);
-      updateIsChecks(isChecks, usePositive: false);
-      bool oldAccumulateIsChecks = accumulateIsChecks;
-      accumulateIsChecks = false;
-      visit(node.arguments.head);
-      accumulateIsChecks = oldAccumulateIsChecks;
-      locals.merge(saved);
-      return inferrer.boolType;
-    } else if (const SourceString("!") == op.source) {
-      bool oldAccumulateIsChecks = accumulateIsChecks;
-      accumulateIsChecks = false;
-      node.visitChildren(this);
-      accumulateIsChecks = oldAccumulateIsChecks;
-      return inferrer.boolType;
-    } else if (const SourceString("is") == op.source) {
-      potentiallyAddIsCheck(node);
-      node.visitChildren(this);
-      return inferrer.boolType;
-    } else if (const SourceString("as") == op.source) {
-      TypeMask receiverType = visit(node.receiver);
-      DartType type = elements.getType(node.arguments.head);
-      return inferrer.narrowType(receiverType, type);
-    } else if (node.isParameterCheck) {
-      node.visitChildren(this);
-      return inferrer.boolType;
-    } else if (node.argumentsNode is Prefix) {
-      // Unary operator.
-      return visitDynamicSend(node);
-    } else if (const SourceString('===') == op.source
-               || const SourceString('!==') == op.source) {
-      node.visitChildren(this);
-      return inferrer.boolType;
-    } else {
-      // Binary operator.
-      return visitDynamicSend(node);
-    }
-  }
-
-  // Because some nodes just visit their children, we may end up
-  // visiting a type annotation, that may contain a send in case of a
-  // prefixed type. Therefore we explicitly visit the type annotation
-  // to avoid confusing the [ResolvedVisitor].
-  visitTypeAnnotation(TypeAnnotation node) {}
 
   TypeMask visitGetterSend(Send node) {
     Element element = elements[node];
@@ -2292,6 +1870,10 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return handleDynamicSend(node, selector, receiverType, arguments);
   }
 
+  void recordReturnType(TypeMask type) {
+    returnType = computeLUB(returnType, type, compiler);
+  }
+
   TypeMask visitReturn(Return node) {
     if (node.isRedirectingFactoryBody) {
       Element element = elements[node.expression];
@@ -2332,143 +1914,7 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return inferrer.dynamicType;
   }
 
-  TypeMask visitConditional(Conditional node) {
-    List<Send> tests = <Send>[];
-    bool simpleCondition = handleCondition(node.condition, tests);
-    LocalsHandler saved = new LocalsHandler.from(locals);
-    updateIsChecks(tests, usePositive: true);
-    TypeMask firstType = visit(node.thenExpression);
-    LocalsHandler thenLocals = locals;
-    locals = saved;
-    if (simpleCondition) updateIsChecks(tests, usePositive: false);
-    TypeMask secondType = visit(node.elseExpression);
-    locals.merge(thenLocals);
-    TypeMask type = inferrer.computeLUB(firstType, secondType);
-    return type;
-  }
-
-  TypeMask visitVariableDefinitions(VariableDefinitions node) {
-    for (Link<Node> link = node.definitions.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      Node definition = link.head;
-      if (definition is Identifier) {
-        locals.update(elements[definition], inferrer.nullType);
-      } else {
-        assert(definition.asSendSet() != null);
-        visit(definition);
-      }
-    }
-    return inferrer.dynamicType;
-  }
-
-  bool handleCondition(Node node, List<Send> tests) {
-    bool oldConditionIsSimple = conditionIsSimple;
-    bool oldAccumulateIsChecks = accumulateIsChecks;
-    List<Send> oldIsChecks = isChecks;
-    accumulateIsChecks = true;
-    conditionIsSimple = true;
-    isChecks = tests;
-    visit(node);
-    bool simpleCondition = conditionIsSimple;
-    accumulateIsChecks = oldAccumulateIsChecks;
-    isChecks = oldIsChecks;
-    conditionIsSimple = oldConditionIsSimple;
-    return simpleCondition;
-  }
-
-  TypeMask visitIf(If node) {
-    List<Send> tests = <Send>[];
-    bool simpleCondition = handleCondition(node.condition, tests);
-    LocalsHandler saved = new LocalsHandler.from(locals);
-    updateIsChecks(tests, usePositive: true);
-    visit(node.thenPart);
-    LocalsHandler thenLocals = locals;
-    locals = saved;
-    if (simpleCondition) updateIsChecks(tests, usePositive: false);
-    visit(node.elsePart);
-    locals.merge(thenLocals);
-    return inferrer.dynamicType;
-  }
-
-  void setupBreaksAndContinues(TargetElement element) {
-    if (element == null) return;
-    if (element.isContinueTarget) continuesFor[element] = <LocalsHandler>[];
-    if (element.isBreakTarget) breaksFor[element] = <LocalsHandler>[];
-  }
-
-  void clearBreaksAndContinues(TargetElement element) {
-    continuesFor.remove(element);
-    breaksFor.remove(element);
-  }
-
-  void mergeBreaks(TargetElement element) {
-    if (element == null) return;
-    if (!element.isBreakTarget) return;
-    for (LocalsHandler handler in breaksFor[element]) {
-      locals.merge(handler, discardIfAborts: false);
-    }
-  }
-
-  bool mergeContinues(TargetElement element) {
-    if (element == null) return false;
-    if (!element.isContinueTarget) return false;
-    bool changed = false;
-    for (LocalsHandler handler in continuesFor[element]) {
-      changed = locals.merge(handler, discardIfAborts: false) || changed;
-    }
-    return changed;
-  }
-
-  TypeMask handleLoop(Node node, void logic()) {
-    loopLevel++;
-    bool changed = false;
-    TargetElement target = elements[node];
-    setupBreaksAndContinues(target);
-    do {
-      LocalsHandler saved = new LocalsHandler.from(locals);
-      logic();
-      changed = saved.merge(locals);
-      locals = saved;
-      changed = mergeContinues(target) || changed;
-    } while (changed);
-    loopLevel--;
-    mergeBreaks(target);
-    clearBreaksAndContinues(target);
-    return inferrer.dynamicType;
-  }
-
-  TypeMask visitWhile(While node) {
-    return handleLoop(node, () {
-      List<Send> tests = <Send>[];
-      handleCondition(node.condition, tests);
-      updateIsChecks(tests, usePositive: true);
-      visit(node.body);
-    });
-  }
-
-  TypeMask visitDoWhile(DoWhile node) {
-    return handleLoop(node, () {
-      visit(node.body);
-      List<Send> tests = <Send>[];
-      handleCondition(node.condition, tests);
-      updateIsChecks(tests, usePositive: true);
-    });
-  }
-
-  TypeMask visitFor(For node) {
-    visit(node.initializer);
-    return handleLoop(node, () {
-      List<Send> tests = <Send>[];
-      handleCondition(node.condition, tests);
-      updateIsChecks(tests, usePositive: true);
-      visit(node.body);
-      visit(node.update);
-    });
-  }
-
   TypeMask visitForIn(ForIn node) {
-    bool changed = false;
     TypeMask expressionType = visit(node.expression);
     Selector iteratorSelector = elements.getIteratorSelector(node);
     Selector currentSelector = elements.getCurrentSelector(node);
@@ -2508,165 +1954,5 @@ class SimpleTypeInferrerVisitor extends ResolvedVisitor<TypeMask> {
     return handleLoop(node, () {
       visit(node.body);
     });
-  }
-
-  TypeMask visitTryStatement(TryStatement node) {
-    LocalsHandler saved = locals;
-    locals = new LocalsHandler.from(locals, inTryBlock: true);
-    visit(node.tryBlock);
-    saved.merge(locals);
-    locals = saved;
-    for (Node catchBlock in node.catchBlocks) {
-      saved = new LocalsHandler.from(locals);
-      visit(catchBlock);
-      saved.merge(locals);
-      locals = saved;
-    }
-    visit(node.finallyBlock);
-    return inferrer.dynamicType;
-  }
-
-  TypeMask visitThrow(Throw node) {
-    node.visitChildren(this);
-    locals.seenReturn = true;
-    return inferrer.dynamicType;
-  }
-
-  TypeMask visitCatchBlock(CatchBlock node) {
-    Node exception = node.exception;
-    if (exception != null) {
-      DartType type = elements.getType(node.type);
-      TypeMask mask = type == null
-          ? inferrer.dynamicType
-          : new TypeMask.nonNullSubtype(type.asRaw());
-      locals.update(elements[exception], mask);
-    }
-    Node trace = node.trace;
-    if (trace != null) {
-      locals.update(elements[trace], inferrer.dynamicType);
-    }
-    visit(node.block);
-    return inferrer.dynamicType;
-  }
-
-  TypeMask visitParenthesizedExpression(ParenthesizedExpression node) {
-    return visit(node.expression);
-  }
-
-  TypeMask visitBlock(Block node) {
-    if (node.statements != null) {
-      for (Node statement in node.statements) {
-        visit(statement);
-        if (locals.aborts) break;
-      }
-    }
-    return inferrer.dynamicType;
-  }
-
-  TypeMask visitLabeledStatement(LabeledStatement node) {
-    Statement body = node.statement;
-    if (body is Loop
-        || body is SwitchStatement
-        || Elements.isUnusedLabel(node, elements)) {
-      // Loops and switches handle their own labels.
-      visit(body);
-      return inferrer.dynamicType;
-    }
-
-    TargetElement targetElement = elements[body];
-    setupBreaksAndContinues(targetElement);
-    visit(body);
-    mergeBreaks(targetElement);
-    clearBreaksAndContinues(targetElement);
-    return inferrer.dynamicType;
-  }
-
-  TypeMask visitBreakStatement(BreakStatement node) {
-    TargetElement target = elements[node];
-    breaksFor[target].add(locals);
-    locals.seenBreakOrContinue = true;
-    return inferrer.dynamicType;
-  }
-
-  TypeMask visitContinueStatement(ContinueStatement node) {
-    TargetElement target = elements[node];
-    continuesFor[target].add(locals);
-    locals.seenBreakOrContinue = true;
-    return inferrer.dynamicType;
-  }
-
-  void internalError(String reason, {Node node}) {
-    compiler.internalError(reason, node: node);
-  }
-
-  TypeMask visitSwitchStatement(SwitchStatement node) {
-    visit(node.parenthesizedExpression);
-
-    setupBreaksAndContinues(elements[node]);
-    if (Elements.switchStatementHasContinue(node, elements)) {
-      void forEachLabeledCase(void action(TargetElement target)) {
-        for (SwitchCase switchCase in node.cases) {
-          for (Node labelOrCase in switchCase.labelsAndCases) {
-            if (labelOrCase.asLabel() == null) continue;
-            LabelElement labelElement = elements[labelOrCase];
-            if (labelElement != null) {
-              action(labelElement.target);
-            }
-          }
-        }
-      }
-
-      forEachLabeledCase((TargetElement target) {
-        setupBreaksAndContinues(target);
-      });
-
-      // If the switch statement has a continue, we conservatively
-      // visit all cases and update [locals] until we have reached a
-      // fixed point.
-      bool changed;
-      do {
-        changed = false;
-        for (Node switchCase in node.cases) {
-          LocalsHandler saved = new LocalsHandler.from(locals);
-          visit(switchCase);
-          changed = saved.merge(locals, discardIfAborts: false) || changed;
-          locals = saved;
-        }
-      } while (changed);
-
-      forEachLabeledCase((TargetElement target) {
-        clearBreaksAndContinues(target);
-      });
-    } else {
-      LocalsHandler saved = new LocalsHandler.from(locals);
-      // If there is a default case, the current values of the local
-      // variable might be overwritten, so we don't need the current
-      // [locals] for the join block.
-      LocalsHandler result = Elements.switchStatementHasDefault(node)
-          ? null
-          : new LocalsHandler.from(locals);
-
-      for (Node switchCase in node.cases) {
-        locals = new LocalsHandler.from(saved);
-        visit(switchCase);
-        if (result == null) {
-          result = locals;
-        } else {
-          result.merge(locals, discardIfAborts: false);
-        }
-      }
-      locals = result;
-    }
-    clearBreaksAndContinues(elements[node]);
-    // In case there is a default in the switch we discard the
-    // incoming localsHandler, because the types it holds do not need
-    // to be merged after the switch statement. This means that, if all
-    // cases, including the default, break or continue, the [result]
-    // handler may think it just aborts the current block. Therefore
-    // we set the current locals to not have any break or continue, so
-    // that the [visitBlock] method does not assume the code after the
-    // switch is dead code.
-    locals.seenBreakOrContinue = false;
-    return inferrer.dynamicType;
   }
 }
