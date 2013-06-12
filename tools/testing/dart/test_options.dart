@@ -645,7 +645,7 @@ Note: currently only implemented for dart2js.''',
           break;
         default:
           if (configuration['arch'] == 'simarm') {
-            timeout *= 2;
+            timeout *= 4;
           } else if (configuration['arch'] == 'arm') {
             timeout *= 4;
           }
