@@ -34,6 +34,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
+DECLARE_FLAG(bool, verify_handles);
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -97,7 +98,8 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ASSERT(state->IsValidLocalHandle(object) ||
+  ASSERT(!FLAG_verify_handles ||
+         state->IsValidLocalHandle(object) ||
          Dart::vm_isolate()->api_state()->IsValidLocalHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
          PersistentHandle::raw_offset() == 0 &&
