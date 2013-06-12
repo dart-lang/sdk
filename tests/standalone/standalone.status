@@ -191,6 +191,7 @@ io/file_read_special_device_test: Crash, Fail # Issue: 11207
 io/file_stat_test: Crash # Issue: 11207
 io/file_system_async_links_test: Crash # Issue: 11207
 io/file_system_delete_test: Pass, Crash # Issue: 11207
+io/file_system_links_test: Timeout, Pass, Crash # Issue: 11207
 io/file_test: Timeout, Crash # Issue: 11207
 io/file_write_as_test: Crash # Issue: 11207
 io/http_10_test: Crash # Issue: 11207
@@ -266,7 +267,7 @@ io/regress_9194_test: Crash # Issue: 11207
 io/secure_builtin_roots_database_test: Crash # Issue: 11207
 io/secure_builtin_roots_test: Crash # Issue: 11207
 io/secure_client_raw_server_test: Crash # Issue: 11207
-io/secure_client_server_test: Crash # Issue: 11207
+io/secure_client_server_test: Timeout, Crash # Issue: 11207
 io/secure_multiple_client_server_test: Crash # Issue: 11207
 io/secure_no_builtin_roots_database_test: Crash # Issue: 11207
 io/secure_no_builtin_roots_test: Crash # Issue: 11207
