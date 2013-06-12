@@ -2091,7 +2091,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     const intptr_t kCountLimit = 0x1F;
     const intptr_t value = Smi::Cast(constant).Value();
     if (value == 0) {
-      // No code needed.
+      __ MoveRegister(result, left);
     } else if ((value < 0) || (value >= kCountLimit)) {
       // This condition may not be known earlier in some cases because
       // of constant propagation, inlining, etc.
@@ -2272,7 +2272,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kTRUNCDIV: {
         const intptr_t value = Smi::Cast(constant).Value();
         if (value == 1) {
-          // Do nothing.
+          __ MoveRegister(result, left);
           break;
         } else if (value == -1) {
           // Check the corner case of dividing the 'MIN_SMI' with -1, in which

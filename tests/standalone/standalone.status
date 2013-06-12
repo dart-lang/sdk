@@ -184,11 +184,13 @@ io/directory_test: Crash # Issue: 11207
 io/echo_server_stream_test: Crash # Issue: 11207
 io/file_error_test: Pass, Crash # Issue: 11207
 io/file_fuzz_test: Crash # Issue: 11207
+io/file_input_stream_test: Pass, Crash # Issue: 11207
 io/file_non_ascii_test: Pass, Crash # Issue: 11207
 io/file_output_stream_test: Pass, Crash # Issue 11207
 io/file_read_special_device_test: Crash, Fail # Issue: 11207
 io/file_stat_test: Crash # Issue: 11207
 io/file_system_async_links_test: Crash # Issue: 11207
+io/file_system_delete_test: Pass, Crash # Issue: 11207
 io/file_test: Timeout, Crash # Issue: 11207
 io/file_write_as_test: Crash # Issue: 11207
 io/http_10_test: Crash # Issue: 11207
@@ -241,7 +243,7 @@ io/process_kill_test: Pass, Crash # Issue: 11207
 io/process_non_ascii_test: Pass, Crash # Issue: 11207
 io/process_path_environment_test: Crash # Issue: 11207
 io/process_path_test: Crash # Issue: 11207
-io/process_pid_test: Crash # Issue: 11207
+io/process_pid_test: Pass, Crash # Issue: 11207
 io/process_run_output_test: Pass, Crash # Issue: 11207
 io/process_segfault_test: Crash # Issue: 11207
 io/process_set_exit_code_test: Crash # Issue: 11207

@@ -93,9 +93,9 @@ int CallPattern::DecodeLoadWordFromPool(int end, Register* reg, int* index) {
     offset = instr & 0xfff;
     instr = Back(++end);
     if ((instr & 0xffff0000) == 0xe28a0000) {  // add reg, pp, shifter_op
-      const int rot = (instr & 0xf00) * 2;
+      const int rot = (instr & 0xf00) >> 7;
       const int imm8 = instr & 0xff;
-      offset |= (imm8 >> rot) | (imm8 << (32 - rot));
+      offset += (imm8 >> rot) | (imm8 << (32 - rot));
       *reg = static_cast<Register>((instr & 0xf000) >> 12);
     } else {
       ASSERT((instr & 0xffff0000) == 0xe08a0000);  // add reg, pp, reg

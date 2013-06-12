@@ -121,11 +121,12 @@ async/timer_test: Fail, Pass # See Issue 10982
 [ $arch == arm || $arch == simarm ]
 async/future_test: Pass, Crash # Issue: 11207
 async/run_async6_test: Pass, Fail # Issue: 11207
-async/run_async_test: Pass, Fail # Issue: 11207
+async/run_async_test: Pass, Crash # Issue: 11207
 async/slow_consumer2_test: Pass, Crash # Issue: 11207
 async/slow_consumer3_test: Pass, Crash # Issue: 11207
 async/slow_consumer_test: Pass, Crash # Issue: 11207
 async/stream_controller_async_test: Pass, Crash # Issue: 11207
+async/stream_controller_test: Pass, Crash # Issue: 11207
 async/stream_from_iterable_test: Pass, Crash # Issue: 11207
 async/stream_periodic2_test: Pass, Crash # Issue: 11207
 async/stream_periodic3_test: Pass, Crash # Issue: 11207

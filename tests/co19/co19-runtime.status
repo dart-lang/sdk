@@ -510,42 +510,30 @@ LibTest/async/Future/catchError_A01_t02: Fail # No AsyncError anymore. Issue 407
 LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issue 402
 
 [ $compiler == none && $runtime == vm && $arch == arm ]
-LibTest/math/tan_A01_t01: Pass, Fail
-LibTest/math/cos_A01_t01: Pass, Fail
-LibTest/math/sin_A01_t01: Pass, Fail
-LibTest/math/Random/nextDouble_A01_t01: Pass, Crash, Fail
-LibTest/core/int/operator_left_shift_A01_t02: Fail
-LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass
+LibTest/math/tan_A01_t01: Fail
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
+LibTest/core/int/operator_unary_minus_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == arm && $mode == debug ]
 LibTest/core/Expect/throws_A01_t04: Crash
-LibTest/core/List/sort_A01_t04: Crash
 LibTest/core/List/sort_A01_t05: Crash
 LibTest/core/List/sort_A01_t06: Crash
-LibTest/core/double/ceil_A01_t02: Fail, Pass
-LibTest/core/double/floor_A01_t02: Fail, Pass
-LibTest/core/double/truncate_A01_t01: Fail, Pass
-LibTest/core/int/operator_left_shift_A01_t02: Fail
-LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass
+LibTest/core/double/ceil_A01_t02: Fail
+LibTest/core/double/floor_A01_t02: Fail
+LibTest/core/double/truncate_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == simarm ]
-LibTest/math/tan_A01_t01: Pass, Fail
-LibTest/math/cos_A01_t01: Pass, Fail
-LibTest/math/sin_A01_t01: Pass, Fail
-LibTest/math/Random/nextDouble_A01_t01: Pass, Crash, Fail
-LibTest/core/int/operator_left_shift_A01_t02: Fail
-LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass
+LibTest/math/tan_A01_t01: Fail
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
+LibTest/core/int/operator_unary_minus_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == simarm && $mode == debug ]
 LibTest/core/Expect/throws_A01_t04: Crash
-LibTest/core/List/sort_A01_t04: Crash
 LibTest/core/List/sort_A01_t05: Crash
 LibTest/core/List/sort_A01_t06: Crash
-LibTest/core/double/ceil_A01_t02: Fail, Pass
-LibTest/core/double/floor_A01_t02: Fail, Pass
-LibTest/core/double/truncate_A01_t01: Fail, Pass
-LibTest/core/int/operator_left_shift_A01_t02: Fail
-LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass
+LibTest/core/double/ceil_A01_t02: Fail
+LibTest/core/double/floor_A01_t02: Fail
+LibTest/core/double/truncate_A01_t01: Fail
 
 [ $compiler == none && $runtime == vm && $arch == mips ]
 *: Skip

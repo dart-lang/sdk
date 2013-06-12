@@ -55,9 +55,9 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 *: Skip
 
 [ $arch == simarm || $arch == arm ]
-# Bug in optimized code generation.
-dart/byte_array_test: Fail
-dart/byte_array_optimized_test: Fail
+# Bug in optimized code generation results in timeout.
+dart/byte_array_test: Skip
+dart/byte_array_optimized_test: Skip
 
 [ $arch == arm ]
 cc/DoubleToFloatConversion: Fail # Issue: 11207

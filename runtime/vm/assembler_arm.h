@@ -66,10 +66,7 @@ class Label : public ValueObject {
 class CPUFeatures : public AllStatic {
  public:
   static void InitOnce();
-  static bool double_truncate_round_supported() {
-    UNIMPLEMENTED();
-    return false;
-  }
+  static bool double_truncate_round_supported() { return false; }
   static bool integer_division_supported();
 #if defined(USING_SIMULATOR)
   static void set_integer_division_supported(bool supported);
