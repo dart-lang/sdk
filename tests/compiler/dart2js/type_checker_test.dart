@@ -1139,7 +1139,9 @@ analyzeTopLevel(String text, [expectedWarnings]) {
       ClassElement classElement = element;
       classElement.ensureResolved(compiler);
       // Analyze last class member.
-      classElement.forEachLocalMember((Element e) => element = e);
+      classElement.forEachLocalMember((Element e) {
+        if (!e.isSynthesized) element = e;
+      });
     }
     Node node = element.parseNode(compiler);
     TreeElements mapping = compiler.resolver.resolve(element);

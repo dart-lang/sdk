@@ -392,15 +392,24 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
 
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
-                             [Map<Symbol,dynamic> namedArguments]) {
+                             [Map<Symbol, dynamic> namedArguments]) {
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented');
     }
-    String constructorName = '${n(simpleName)}\$${n(constructorName)}';
-    return reflect(JS('', r'#[#].apply(#, #)', JS_CURRENT_ISOLATE(),
-                       constructorName,
-                       JS_CURRENT_ISOLATE(),
-                       new List.from(positionalArguments)));
+    String mangledName = '${n(simpleName)}\$${n(constructorName)}';
+    var factory = JS('', '#[#]', JS_CURRENT_ISOLATE(), mangledName);
+    if (factory == null) {
+      // TODO(ahe): Pass namedArguments when NoSuchMethodError has
+      // been fixed to use Symbol.
+      // TODO(ahe): What receiver to use?
+      throw new NoSuchMethodError(
+          this, "constructor ${n(constructorName)}", positionalArguments,
+          null);
+    }
+    return reflect(JS('', r'#.apply(#, #)',
+                      factory,
+                      JS_CURRENT_ISOLATE(),
+                      new List.from(positionalArguments)));
   }
 
   Future<InstanceMirror> newInstanceAsync(
