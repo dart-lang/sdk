@@ -104,7 +104,6 @@ list_literal_syntax_test/02: fail
 list_literal_syntax_test/03: fail
 map_literal1_negative_test: fail
 map_literal3_test: fail
-method_override2_test/03: fail
 mixin_illegal_constructor_test/13: fail
 mixin_illegal_constructor_test/14: fail
 mixin_illegal_constructor_test/15: fail
