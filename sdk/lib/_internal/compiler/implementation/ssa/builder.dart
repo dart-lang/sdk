@@ -1945,7 +1945,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitExpressionStatement(ExpressionStatement node) {
-    assert(isReachable);
+    if (!isReachable) return;
     Throw throwExpression = node.expression.asThrow();
     if (throwExpression != null && inliningStack.isEmpty) {
       visit(throwExpression.expression);
