@@ -185,7 +185,7 @@ abstract class TestSuite {
       case 'dartanalyzer':
         return 'sdk/bin/dartanalyzer_developer$suffix';
       case 'dart2analyzer':
-        return 'sdk/bin/dart2analyzer_developer$suffix';
+        return 'editor/tools/analyzer_experimental';
       default:
         throw "Unknown executable for: ${configuration['compiler']}";
     }
