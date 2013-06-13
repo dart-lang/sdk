@@ -178,14 +178,14 @@ float_array_test: Crash # Issue: 11207
 http_launch_test: Crash # Issue: 11207
 io/dart_std_io_pipe_test: Fail, Crash # Issue: 11207
 io/delete_symlink_test: Crash # Issue: 11207
-io/directory_test: Crash # Issue: 11207
+io/directory_test: Crash, Timeout # Issue: 11207
 io/echo_server_stream_test: Crash # Issue: 11207
 io/file_error_test: Pass, Crash # Issue: 11207
 io/file_fuzz_test: Crash # Issue: 11207
 io/file_input_stream_test: Pass, Crash # Issue: 11207
 io/file_non_ascii_test: Pass, Crash # Issue: 11207
 io/file_output_stream_test: Pass, Crash # Issue 11207
-io/file_read_special_device_test: Crash, Fail # Issue: 11207
+io/file_read_special_device_test: Crash, Fail, Timeout # Issue: 11207
 io/file_stat_test: Crash # Issue: 11207
 io/file_system_async_links_test: Crash # Issue: 11207
 io/file_system_delete_test: Pass, Crash # Issue: 11207
