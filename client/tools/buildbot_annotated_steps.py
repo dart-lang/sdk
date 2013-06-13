@@ -104,7 +104,11 @@ def ProcessTools(mode, name, version):
   cmds = [sys.executable, toolsBuildScript,
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
-  local_env = os.environ
+  local_env = os.environ.copy()
+  # The buildbot sets BOTO_CONFIG to the chromium specific file, we use the one
+  # in home.
+  if 'BOTO_CONFIG' in local_env:
+    del local_env['BOTO_CONFIG']
   #if 'linux' in name:
   #  javahome = os.path.join(os.path.expanduser('~'), 'jdk1.6.0_25')
   #  local_env['JAVA_HOME'] = javahome
