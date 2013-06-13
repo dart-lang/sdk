@@ -1,3 +1,7 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /**
  * The docgen tool takes in a library as input and produces documentation
  * for the library as well as all libraries it imports and uses. The tool can
@@ -10,7 +14,9 @@
  */
 library docgen;
 
+// TODO(tmandel): Use 'package:' references for imports with relative paths.
 import 'dart:io';
+import 'dart:json';
 import 'dart:async';
 import '../lib/dart2yaml.dart';
 import '../lib/src/dart2js_mirrors.dart';
@@ -64,6 +70,21 @@ class Docgen {
   /// Current member being documented to be used for comment links.
   MemberMirror _currentMember;
   
+  /// Should the output file type be JSON?
+  // TODO(tmandel): Add flag to allow for output to JSON.
+  bool outputToJson = false;
+  
+  /// Resolves reference links
+  markdown.Resolver linkResolver;
+  
+  /**
+   * Docgen constructor initializes the link resolver for markdown parsing.
+   */
+  Docgen() {
+    this.linkResolver = (name) => 
+        fixReference(name, _currentLibrary, _currentClass, _currentMember);
+  }
+  
   /**
    * Creates documentation for filtered libraries.
    */
@@ -74,7 +95,11 @@ class Docgen {
       var result = new Library(library.qualifiedName, _getComment(library),
           _getVariables(library.variables), _getMethods(library.functions),
           _getClasses(library.classes));
-      _writeToFile(getYamlString(result.toMap()), "${result.name}.yaml");
+      if (outputToJson) {
+        _writeToFile(stringify(result.toMap()), "${result.name}.json");
+      } else {
+        _writeToFile(getYamlString(result.toMap()), "${result.name}.yaml");
+      }
     });
    }
   
@@ -96,10 +121,18 @@ class Docgen {
         } 
       }
     });
-    // TODO(tmandel): Resolve links to members in markdown using _currentClass,
-    // _currentMember, and _currentLibrary.
     return commentText == null ? "" : 
-      markdown.markdownToHtml(commentText.trim());
+      markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver);
+  }
+
+  /**
+   * Converts all [_] references in comments to <code>_</code>.
+   */
+  // TODO(tmandel): Create proper links for [_] style markdown based
+  // on scope once layout of viewer is finished.
+  markdown.Node fixReference(String name, LibraryMirror currentLibrary, 
+      ClassMirror currentClass, MemberMirror currentMember) {
+    return new markdown.Element.text('code', name);
   }
   
   /**
@@ -242,9 +275,9 @@ class Class {
     classMap["name"] = name;
     classMap["comment"] = comment;
     classMap["superclass"] = superclass;
-    classMap["abstract"] = isAbstract;
-    classMap["typedef"] = isTypedef;
-    classMap["implements"] = interfaces;
+    classMap["abstract"] = isAbstract.toString();
+    classMap["typedef"] = isTypedef.toString();
+    classMap["implements"] = new List.from(interfaces);
     classMap["variables"] = recurseMap(variables);
     classMap["methods"] = recurseMap(methods);
     return classMap;
@@ -271,8 +304,8 @@ class Variable {
     var variableMap = {};
     variableMap["name"] = name;
     variableMap["comment"] = comment;
-    variableMap["final"] = isFinal;
-    variableMap["static"] = isStatic;
+    variableMap["final"] = isFinal.toString();
+    variableMap["static"] = isStatic.toString();
     variableMap["type"] = type;
     return variableMap;
   }
@@ -306,9 +339,9 @@ class Method {
     var methodMap = {};
     methodMap["name"] = name;
     methodMap["comment"] = comment;
-    methodMap["type"] = isSetter ? "Setter" : isGetter ? "Getter" :
-      isOperator ? "Operator" : isConstructor ? "Constructor" : "Method";
-    methodMap["static"] = isStatic;
+    methodMap["type"] = isSetter ? "setter" : isGetter ? "getter" :
+      isOperator ? "operator" : isConstructor ? "constructor" : "method";
+    methodMap["static"] = isStatic.toString();
     methodMap["return"] = returnType;
     methodMap["parameters"] = recurseMap(parameters);
     return methodMap;
@@ -334,8 +367,9 @@ class Parameter {
   Map toMap() {
     var parameterMap = {};
     parameterMap["name"] = name;
-    parameterMap["optional"] = isOptional;
-    parameterMap["default"] = hasDefaultValue;
+    parameterMap["optional"] = isOptional.toString();
+    parameterMap["named"] = isNamed.toString();
+    parameterMap["default"] = hasDefaultValue.toString();
     parameterMap["type"] = type;
     parameterMap["value"] = defaultValue;
     return parameterMap;

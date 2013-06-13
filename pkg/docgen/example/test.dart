@@ -30,7 +30,7 @@ abstract class B {
 class A implements B {
 
   /**
-   * Markdown _test_ for **class** `A` 
+   * Markdown _test_ for **class** [A] 
    */
   int _someNumber;
 
