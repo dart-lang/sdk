@@ -24719,11 +24719,16 @@ class Window extends EventTarget implements WindowBase {
   }
 
   /**
-   * Returns a Future that completes just before the window is about to repaint
-   * so the user can draw an animation frame
+   * Returns a Future that completes just before the window is about to 
+   * repaint so the user can draw an animation frame.
    *
    * If you need to later cancel this animation, use [requestAnimationFrame]
    * instead.
+   *
+   * The [Future] completes to a timestamp that represents a floating
+   * point value of the number of milliseconds that have elapsed since the page 
+   * started to load (which is also the timestamp at this call to 
+   * animationFrame).
    *
    * Note: The code that runs when the future completes should call
    * [animationFrame] again for the animation to continue.
