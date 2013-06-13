@@ -5,6 +5,7 @@
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:utf";
+import 'dart:collection';
 
 part '../../../sdk/lib/io/common.dart';
 part '../../../sdk/lib/io/io_sink.dart';

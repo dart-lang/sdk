@@ -7,6 +7,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 import 'dart:isolate';
+import 'dart:collection';
 
 part '../../../sdk/lib/io/common.dart';
 part '../../../sdk/lib/io/io_sink.dart';
