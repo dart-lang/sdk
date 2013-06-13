@@ -163,7 +163,7 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 io/file_system_links_test: Crash # Issue: 11207
 io/process_exit_negative_test: Pass, Crash # Issue: 11207
 io/socket_many_connections_test: Pass, Crash # Issue: 11207
-out_of_memory_test: Crash # Issue: 11207
+out_of_memory_test: Pass, Crash # Issue: 11207 (Pass on Mac)
 
 [ $arch == arm ]
 io/process_shell_test: Crash # Issue: 11207
@@ -266,7 +266,7 @@ io/regress_8828_test: Crash # Issue: 11207
 io/regress_9194_test: Crash # Issue: 11207
 io/secure_builtin_roots_database_test: Crash # Issue: 11207
 io/secure_builtin_roots_test: Crash # Issue: 11207
-io/secure_client_raw_server_test: Crash # Issue: 11207
+io/secure_client_raw_server_test: Crash, Timeout # Issue: 11207
 io/secure_client_server_test: Timeout, Crash # Issue: 11207
 io/secure_multiple_client_server_test: Crash # Issue: 11207
 io/secure_no_builtin_roots_database_test: Crash # Issue: 11207
@@ -296,8 +296,7 @@ io/web_socket_typed_data_test: Pass, Crash # Issue: 11207
 left_shift_bit_and_op_test: Fail # Issue: 11207
 package/package_isolate_test: Pass, Crash # Issue: 11207
 typed_data_test: Crash # Issue: 11207
-
-
+io/regress_7679_test: Pass, Crash
 
 [ $arch == mips ]
 *: Skip
