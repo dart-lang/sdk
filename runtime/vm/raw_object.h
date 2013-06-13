@@ -443,6 +443,7 @@ class RawObject {
   friend class HeapProfilerRootVisitor;
   friend class MarkingVisitor;
   friend class Object;
+  friend class ObjectHistogram;
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;

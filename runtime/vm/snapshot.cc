@@ -479,7 +479,7 @@ RawClass* SnapshotReader::NewClass(intptr_t class_id) {
   obj->ptr()->handle_vtable_ = fake.vtable();
   cls_ = obj;
   cls_.set_id(kIllegalCid);
-  isolate()->class_table()->Register(cls_);
+  isolate()->RegisterClass(cls_);
   return cls_.raw();
 }
 

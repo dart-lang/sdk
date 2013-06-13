@@ -46,6 +46,7 @@ class StackZone;
 class StubCode;
 class RawFloat32x4;
 class RawUint32x4;
+class ObjectHistogram;
 
 
 // Used by the deoptimization infrastructure to defer allocation of unboxed
@@ -231,6 +232,9 @@ class Isolate : public BaseIsolate {
   static Isolate* Init(const char* name_prefix);
   void Shutdown();
 
+  // Register a newly introduced class.
+  void RegisterClass(const Class& cls);
+
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            bool visit_prologue_weak_persistent_handles,
@@ -249,6 +253,8 @@ class Isolate : public BaseIsolate {
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
   }
+
+  ObjectHistogram* object_histogram() { return object_histogram_; }
 
   MegamorphicCacheTable* megamorphic_cache_table() {
     return &megamorphic_cache_table_;
@@ -635,6 +641,7 @@ class Isolate : public BaseIsolate {
   // Status support.
   char* stacktrace_;
   intptr_t stack_frame_index_;
+  ObjectHistogram* object_histogram_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;

@@ -390,7 +390,7 @@ void Object::InitOnce() {
         Class::kNoTypeArguments;
     cls.raw_ptr()->num_native_fields_ = 0;
     cls.InitEmptyFields();
-    isolate->class_table()->Register(cls);
+    isolate->RegisterClass(cls);
   }
 
   // Allocate and initialize the null class.
@@ -1468,7 +1468,7 @@ RawClass* Class::New() {
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
-  Isolate::Current()->class_table()->Register(result);
+  Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
 
@@ -1879,7 +1879,7 @@ RawClass* Class::New(intptr_t index) {
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
-  Isolate::Current()->class_table()->Register(result);
+  Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
 
