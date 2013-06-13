@@ -446,6 +446,7 @@ class BrowserTest {
   Function doneCallback;
   String url;
   int timeout;
+  Stopwatch stopwatch;
   // We store this here for easy access when tests time out (instead of
   // capturing this in a closure)
   Timer timeoutTimer;
@@ -573,6 +574,8 @@ class BrowserTestRunner {
       // replaced.
     } else if (status.currentTest != null) {
       status.currentTest.timeoutTimer.cancel();
+      status.currentTest.stopwatch.stop();
+
       if (status.currentTest.id != testId) {
         print("Expected test id ${status.currentTest.id} for"
               "${status.currentTest.url}");
@@ -582,7 +585,8 @@ class BrowserTestRunner {
         throw("This should never happen, wrong test id");
       }
       testCache[testId] = status.currentTest.url;
-      status.currentTest.doneCallback(output);
+      status.currentTest.doneCallback(output,
+                                      status.currentTest.stopwatch.elapsed);
       status.lastTest = status.currentTest;
       status.currentTest = null;
     } else {
@@ -643,8 +647,9 @@ class BrowserTestRunner {
         }
       });
     });
-
-    status.currentTest.doneCallback("TIMEOUT");
+    status.currentTest.stopwatch.stop();
+    status.currentTest.doneCallback("TIMEOUT",
+                                    status.currentTest.stopwatch.elapsed);
     status.currentTest = null;
   }
 
@@ -674,6 +679,7 @@ class BrowserTestRunner {
     Timer timer = new Timer(new Duration(seconds: test.timeout),
                             () { handleTimeout(status); });
     status.currentTest.timeoutTimer = timer;
+    status.currentTest.stopwatch = new Stopwatch()..start();
     return test;
   }
 
