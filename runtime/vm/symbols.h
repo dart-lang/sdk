@@ -70,6 +70,8 @@ class ObjectPointerVisitor;
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
   V(TypeParameter, "_TypeParameter")                                           \
+  V(BoundedType, "_BoundedType")                                               \
+  V(MixinAppType, "_MixinAppType")                                             \
   V(TypeArguments, "TypeArguments")                                            \
   V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
   V(PatchClass, "PatchClass")                                                  \

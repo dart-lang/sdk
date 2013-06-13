@@ -16,3 +16,11 @@ class _Type extends _AbstractType {
 // Equivalent of RawTypeParameter.
 class _TypeParameter extends _AbstractType {
 }
+
+// Equivalent of RawBoundedType.
+class _BoundedType extends _AbstractType {
+}
+
+// Equivalent of RawMixinAppType.
+class _MixinAppType extends _AbstractType {
+}

@@ -892,6 +892,14 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterPrivateClass(cls, Symbols::TypeParameter(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
+  cls = object_store->bounded_type_class();
+  RegisterPrivateClass(cls, Symbols::BoundedType(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = object_store->mixin_app_type_class();
+  RegisterPrivateClass(cls, Symbols::MixinAppType(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
   RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
