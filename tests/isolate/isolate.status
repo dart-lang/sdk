@@ -140,7 +140,7 @@ isolate_stress_test: Pass, Timeout # http://dartbug.com/10697
 
 [ $arch == simarm && $mode == debug ]
 message_test: Crash # Issue: 11207
-mint_maker_test: Crash # Issue: 11207
+unresolved_ports_test: Pass, Crash # Issue: 11207
 
 [ ($arch == arm || $arch == simarm) && $checked ]
 count_test: Pass, Crash # Issue: 11207
@@ -163,7 +163,8 @@ nested_spawn_stream2_test: Pass, Crash # Issue: 11207
 spawn_function_negative_test: Pass, Crash # Issue: 11207
 spawn_uri_vm_negative_test: Crash, Pass # Issue: 11207 (Pass on Mac)
 stream_mangling_test: Crash # Issue: 11207
-message_test: Pass, Crash
+message_test: Pass, Crash # Issue: 11207
+mint_maker_test: Pass, Crash # Issue: 11207
 
 [ $arch == mips ]
 *: Skip

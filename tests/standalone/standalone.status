@@ -164,7 +164,7 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 
 [ $arch == simarm ]
 io/file_system_links_test: Crash # Issue: 11207
-io/process_exit_negative_test: Pass, Crash # Issue: 11207
+io/process_exit_negative_test: Timeout, Pass, Crash # Issue: 11207
 io/socket_many_connections_test: Pass, Crash # Issue: 11207
 out_of_memory_test: Pass, Crash # Issue: 11207 (Pass on Mac)
 

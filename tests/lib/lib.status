@@ -137,6 +137,8 @@ async/stream_state_nonzero_timer_test: Pass, Crash # Issue: 11207
 async/stream_state_test: Pass, Crash # Issue: 11207
 async/stream_subscription_as_future_test: Pass, Crash # Issue: 11207
 async/stream_transform_test: Pass, Crash # Issue: 11207
+async/timer_cancel1_test: Pass, Crash # Issue: 11207
+async/timer_cancel2_test: Pass, Crash # Issue: 11207
 math/pi_test: Crash, Fail # Issue: 11207
 math/random_test: Fail # Issue: 11207
 mirrors/reflect_model_test: Pass, Crash # Issue: 11207
