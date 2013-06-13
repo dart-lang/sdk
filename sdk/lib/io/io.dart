@@ -15,6 +15,8 @@ library dart.io;
 import 'dart:async';
 import 'dart:collection' show Queue,
                               LinkedHashSet,
+                              LinkedList,
+                              LinkedListEntry,
                               DoubleLinkedQueue,
                               DoubleLinkedQueueEntry;
 import 'dart:isolate';

@@ -1733,7 +1733,7 @@ class _HttpClient implements HttpClient {
 }
 
 
-class _HttpConnection {
+class _HttpConnection extends LinkedListEntry<_HttpConnection> {
   static const _ACTIVE = 0;
   static const _IDLE = 1;
   static const _CLOSING = 2;
@@ -1952,9 +1952,9 @@ class _HttpServer extends Stream<HttpRequest> implements HttpServer {
   final bool _closeServer;
 
   // Set of currently connected clients.
-  final Set<_HttpConnection> _connections = new Set<_HttpConnection>();
+  final LinkedList<_HttpConnection> _connections
+      = new LinkedList<_HttpConnection>();
   StreamController<HttpRequest> _controller;
-
   // TODO(ajohnsen): Use close queue?
 }
 
