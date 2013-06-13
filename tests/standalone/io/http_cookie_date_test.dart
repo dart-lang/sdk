@@ -5,9 +5,9 @@
 import "package:expect/expect.dart";
 import "dart:async";
 import "dart:math";
-import 'dart:collection';
+import "dart:collection";
 
-part '../../../sdk/lib/io/common.dart';
+part "../../../sdk/lib/io/common.dart";
 part "../../../sdk/lib/io/io_sink.dart";
 part "../../../sdk/lib/io/http.dart";
 part "../../../sdk/lib/io/http_impl.dart";
