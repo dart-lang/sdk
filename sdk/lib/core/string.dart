@@ -105,23 +105,29 @@ abstract class String implements Comparable<String>, Pattern {
   bool endsWith(String other);
 
   /**
-   * Returns whether this string starts with [other].
+   * Returns whether this string starts with a match of [pattern].
    */
-  bool startsWith(String other);
+  bool startsWith(Pattern pattern);
 
   /**
-   * Returns the first location of [other] in this string starting at
-   * [start] (inclusive).
-   * Returns -1 if [other] could not be found.
+   * Returns the first position of a match of [pattern] in this string,
+   * starting at [start] (inclusive).
+   *
+   * Returns -1 if a match could not be found.
+   *
+   * It is an error if start is negative or greater than [length].
    */
-  int indexOf(String other, [int start]);
+  int indexOf(Pattern pattern, [int start]);
 
   /**
-   * Returns the last location of [other] in this string, searching
+   * Returns the last position of a match [pattern] in this string, searching
    * backward starting at [start] (inclusive).
+   *
    * Returns -1 if [other] could not be found.
+   *
+   * It is an error if start is negative or greater than [length].
    */
-  int lastIndexOf(String other, [int start]);
+  int lastIndexOf(Pattern pattern, [int start]);
 
   /**
    * Returns whether this string is empty.

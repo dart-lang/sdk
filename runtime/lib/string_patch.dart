@@ -113,11 +113,8 @@ class _StringBase {
 
   bool _substringMatches(int start, String other) {
     if (other.isEmpty) return true;
-    if ((start < 0) || (start >= this.length)) {
-      return false;
-    }
     final int len = other.length;
-    if ((start + len) > this.length) {
+    if ((start < 0) || (start + len > this.length)) {
       return false;
     }
     for (int i = 0; i < len; i++) {
@@ -132,38 +129,57 @@ class _StringBase {
     return _substringMatches(this.length - other.length, other);
   }
 
-  bool startsWith(String other) {
-    return _substringMatches(0, other);
+  bool startsWith(Pattern pattern) {
+    if (pattern is String) {
+      return _substringMatches(0, pattern);
+    }
+    return pattern.matchAsPrefix(this, 0) != null;
   }
 
-  int indexOf(String other, [int start = 0]) {
-    if (other.isEmpty) {
-      return start < this.length ? start : this.length;
+  int indexOf(Pattern pattern, [int start = 0]) {
+    if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
     }
-    if ((start < 0) || (start >= this.length)) {
+    if (pattern is String) {
+      String other = pattern;
+      int maxIndex = this.length - other.length;
+      // TODO: Use an efficient string search (e.g. BMH).
+      for (int index = start; index <= maxIndex; index++) {
+        if (_substringMatches(index, other)) {
+          return index;
+        }
+      }
       return -1;
     }
-    int len = this.length - other.length + 1;
-    for (int index = start; index < len; index++) {
-      if (_substringMatches(index, other)) {
-        return index;
-      }
+    for (int i = start; i <= this.length; i++) {
+      // TODO(11276); This has quadratic behavior because matchAsPrefix tries
+      // to find a later match too. Optimize matchAsPrefix to avoid this.
+      if (pattern.matchAsPrefix(this, i) != null) return i;
     }
     return -1;
   }
 
-  int lastIndexOf(String other, [int start = null]) {
-    if (start == null) start = length - 1;
-    if (other.isEmpty) {
-      return min(this.length, start);
+  int lastIndexOf(Pattern pattern, [int start = null]) {
+    if (start == null) {
+      start = this.length;
+    } else if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
     }
-    if (start >= this.length) {
-      start = this.length - 1;
-    }
-    for (int index = start; index >= 0; index--) {
-      if (_substringMatches(index, other)) {
-        return index;
+    if (pattern is String) {
+      String other = pattern;
+      int maxIndex = this.length - other.length;
+      if (maxIndex < start) start = maxIndex;
+      for (int index = start; index >= 0; index--) {
+        if (_substringMatches(index, other)) {
+          return index;
+        }
       }
+      return -1;
+    }
+    for (int i = start; i >= 0; i--) {
+      // TODO(11276); This has quadratic behavior because matchAsPrefix tries
+      // to find a later match too. Optimize matchAsPrefix to avoid this.
+      if (pattern.matchAsPrefix(this, i) != null) return i;
     }
     return -1;
   }

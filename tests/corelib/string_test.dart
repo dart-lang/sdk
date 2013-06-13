@@ -40,7 +40,7 @@ class StringTest {
     } on RangeError catch (e) {
       exception_caught = true;
     }
-    Expect.equals(true, exception_caught);
+    Expect.isTrue(exception_caught);
   }
 
   static testIllegalArgument() {
@@ -48,19 +48,19 @@ class StringTest {
     bool exception_caught = false;
     try {
       var c = a[2.2];  // Throw exception.
-      Expect.equals(true, false);
+      Expect.fail("Accepting double as index");
     } on ArgumentError catch (e) {
       exception_caught = true;
     } on TypeError catch (e) {  // Thrown in checked mode only.
       exception_caught = true;
     }
-    Expect.equals(true, exception_caught);
+    Expect.isTrue(exception_caught);
   }
 
   static testIndex() {
     String str = "string";
     for (int i = 0; i < str.length; i++) {
-      Expect.equals(true, str[i] is String);
+      Expect.isTrue(str[i] is String);
       testStringLength(1, str[i]);
     }
   }
@@ -68,7 +68,7 @@ class StringTest {
   static testCodeUnitAt() {
     String str = "string";
     for (int i = 0; i < str.length; i++) {
-      Expect.equals(true, str.codeUnitAt(i) is int);
+      Expect.isTrue(str.codeUnitAt(i) is int);
     }
   }
 
@@ -86,46 +86,60 @@ class StringTest {
     Expect.equals("str", "s" + "t" + "r");
     Expect.equals("s" + "t" + "r", "str");
 
-    Expect.equals(false, "str" == "s");
-    Expect.equals(false, "str" == "r");
-    Expect.equals(false, "str" == "st");
-    Expect.equals(false, "str" == "tr");
+    Expect.isFalse("str" == "s");
+    Expect.isFalse("str" == "r");
+    Expect.isFalse("str" == "st");
+    Expect.isFalse("str" == "tr");
 
-    Expect.equals(false, "s" == "str");
-    Expect.equals(false, "r" == "str");
-    Expect.equals(false, "st" == "str");
-    Expect.equals(false, "tr" == "str");
+    Expect.isFalse("s" == "str");
+    Expect.isFalse("r" == "str");
+    Expect.isFalse("st" == "str");
+    Expect.isFalse("tr" == "str");
 
-    Expect.equals(false, "" == "s");
+    Expect.isFalse("" == "s");
     Expect.equals("", "");
   }
 
   static testEndsWith() {
-    Expect.equals(true, "str".endsWith("r"));
-    Expect.equals(true, "str".endsWith("tr"));
-    Expect.equals(true, "str".endsWith("str"));
+    Expect.isTrue("str".endsWith("r"));
+    Expect.isTrue("str".endsWith("tr"));
+    Expect.isTrue("str".endsWith("str"));
 
-    Expect.equals(false, "str".endsWith("stri"));
-    Expect.equals(false, "str".endsWith("t"));
-    Expect.equals(false, "str".endsWith("st"));
-    Expect.equals(false, "str".endsWith("s"));
+    Expect.isFalse("str".endsWith("stri"));
+    Expect.isFalse("str".endsWith("t"));
+    Expect.isFalse("str".endsWith("st"));
+    Expect.isFalse("str".endsWith("s"));
 
-    Expect.equals(true, "".endsWith(""));
-    Expect.equals(false, "".endsWith("s"));
+    Expect.isTrue("".endsWith(""));
+    Expect.isFalse("".endsWith("s"));
   }
 
   static testStartsWith() {
-    Expect.equals(true, "str".startsWith("s"));
-    Expect.equals(true, "str".startsWith("st"));
-    Expect.equals(true, "str".startsWith("str"));
+    Expect.isTrue("str".startsWith("s"));
+    Expect.isTrue("str".startsWith("st"));
+    Expect.isTrue("str".startsWith("str"));
 
-    Expect.equals(false, "str".startsWith("stri"));
-    Expect.equals(false, "str".startsWith("r"));
-    Expect.equals(false, "str".startsWith("tr"));
-    Expect.equals(false, "str".startsWith("t"));
+    Expect.isFalse("str".startsWith("stri"));
+    Expect.isFalse("str".startsWith("r"));
+    Expect.isFalse("str".startsWith("tr"));
+    Expect.isFalse("str".startsWith("t"));
 
-    Expect.equals(true, "".startsWith(""));
-    Expect.equals(false, "".startsWith("s"));
+    Expect.isTrue("".startsWith(""));
+    Expect.isFalse("".startsWith("s"));
+
+    var regexp = new RegExp("s(?:tr?)?");
+    Expect.isTrue("s".startsWith(regexp));
+    Expect.isTrue("st".startsWith(regexp));
+    Expect.isTrue("str".startsWith(regexp));
+    Expect.isTrue("sX".startsWith(regexp));
+    Expect.isTrue("stX".startsWith(regexp));
+    Expect.isTrue("strX".startsWith(regexp));
+
+    Expect.isFalse("".startsWith(regexp));
+    Expect.isFalse("astr".startsWith(regexp));
+
+    Expect.isTrue("".startsWith(new RegExp("")));
+    Expect.isTrue("".startsWith(new RegExp("a?")));
   }
 
   static testIndexOf() {
@@ -162,12 +176,28 @@ class StringTest {
 
     String str = "hello";
     for (int i = 0; i < 10; i++) {
-      int result = str.indexOf("", i);
       if (i > str.length) {
-        Expect.equals(str.length, result);
+        Expect.throws(() => str.indexOf("", i));
       } else {
+        int result = str.indexOf("", i);
         Expect.equals(i, result);
       }
+    }
+
+    var re = new RegExp("an?");
+    Expect.equals(1, "banana".indexOf(re));
+    Expect.equals(1, "banana".indexOf(re, 0));
+    Expect.equals(1, "banana".indexOf(re, 1));
+    Expect.equals(3, "banana".indexOf(re, 2));
+    Expect.equals(3, "banana".indexOf(re, 3));
+    Expect.equals(5, "banana".indexOf(re, 4));
+    Expect.equals(5, "banana".indexOf(re, 5));
+    Expect.equals(-1, "banana".indexOf(re, 6));
+    Expect.throws(() => "banana".indexOf(re, -1));
+    Expect.throws(() => "banana".indexOf(re, 7));
+    re = new RegExp("x?");
+    for (int i = 0; i <= str.length; i++) {
+      Expect.equals(i, str.indexOf(re, i));
     }
   }
 
@@ -190,8 +220,9 @@ class StringTest {
     Expect.equals(3, "strstr".lastIndexOf("st", 5));
     Expect.equals(3, "strstr".lastIndexOf("s", 5));
     Expect.equals(5, "strstr".lastIndexOf("r", 5));
-    Expect.equals(-1, "str".lastIndexOf("string", 5));
-
+    Expect.throws(() {
+        "str".lastIndexOf("string", 5);
+    });
     Expect.equals(4, "strstr".lastIndexOf("t", 5));
     Expect.equals(4, "strstr".lastIndexOf("tr", 5));
     Expect.equals(3, "strstr".lastIndexOf("str", 5));
@@ -203,33 +234,49 @@ class StringTest {
     Expect.equals(2, "strstr".lastIndexOf("r", 4));
     Expect.equals(2, "strstr".lastIndexOf("r", 3));
     Expect.equals(5, "strstr".lastIndexOf("r"));
-    Expect.equals(5, "strstr".lastIndexOf("r"), null);
+    Expect.equals(5, "strstr".lastIndexOf("r", null));
 
     String str = "hello";
     for (int i = 0; i < 10; i++) {
-      int result = str.lastIndexOf("", i);
       if (i > str.length) {
-        Expect.equals(str.length, result);
+        Expect.throws(() => str.indexOf("", i));
       } else {
+        int result = str.lastIndexOf("", i);
         Expect.equals(i, result);
       }
+    }
+
+    var re = new RegExp("an?");
+    Expect.equals(5, "banana".lastIndexOf(re));
+    Expect.equals(5, "banana".lastIndexOf(re, 6));
+    Expect.equals(5, "banana".lastIndexOf(re, 5));
+    Expect.equals(3, "banana".lastIndexOf(re, 4));
+    Expect.equals(3, "banana".lastIndexOf(re, 3));
+    Expect.equals(1, "banana".lastIndexOf(re, 2));
+    Expect.equals(1, "banana".lastIndexOf(re, 1));
+    Expect.equals(-1, "banana".lastIndexOf(re, 0));
+    Expect.throws(() => "banana".lastIndexOf(re, -1));
+    Expect.throws(() => "banana".lastIndexOf(re, 7));
+    re = new RegExp("x?");
+    for (int i = 0; i <= str.length; i++) {
+      Expect.equals(i, str.indexOf(re, i));
     }
   }
 
   static testContains() {
-    Expect.equals(true, "str".contains("s", 0));
-    Expect.equals(true, "str".contains("st", 0));
-    Expect.equals(true, "str".contains("str", 0));
-    Expect.equals(true, "str".contains("t", 0));
-    Expect.equals(true, "str".contains("r", 0));
-    Expect.equals(true, "str".contains("tr", 0));
+    Expect.isTrue("str".contains("s", 0));
+    Expect.isTrue("str".contains("st", 0));
+    Expect.isTrue("str".contains("str", 0));
+    Expect.isTrue("str".contains("t", 0));
+    Expect.isTrue("str".contains("r", 0));
+    Expect.isTrue("str".contains("tr", 0));
 
-    Expect.equals(false, "str".contains("sr", 0));
-    Expect.equals(false, "str".contains("string", 0));
+    Expect.isFalse("str".contains("sr", 0));
+    Expect.isFalse("str".contains("string", 0));
 
-    Expect.equals(true, "str".contains("", 0));
-    Expect.equals(true, "".contains("", 0));
-    Expect.equals(false, "".contains("s", 0));
+    Expect.isTrue("str".contains("", 0));
+    Expect.isTrue("".contains("", 0));
+    Expect.isFalse("".contains("s", 0));
   }
 
   static testReplaceAll() {

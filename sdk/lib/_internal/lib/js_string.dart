@@ -85,12 +85,15 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
   }
 
-  bool startsWith(String other) {
-    checkString(other);
-    int otherLength = other.length;
-    if (otherLength > length) return false;
-    return JS('bool', r'# == #', other,
-              JS('String', r'#.substring(0, #)', this, otherLength));
+  bool startsWith(Pattern pattern) {
+    if (pattern is String) {
+      String other = pattern;
+      int otherLength = other.length;
+      if (otherLength > length) return false;
+      return JS('bool', r'# == #', other,
+                JS('String', r'#.substring(0, #)', this, otherLength));
+    }
+    return pattern.matchAsPrefix(this, 0) != null;
   }
 
   String substring(int startIndex, [int endIndex]) {
@@ -210,28 +213,46 @@ class JSString extends Interceptor implements String, JSIndexable {
 
   Runes get runes => new Runes(this);
 
-  int indexOf(String other, [int start = 0]) {
-    checkNull(other);
-    if (start is !int) throw new ArgumentError(start);
-    if (other is !String) throw new ArgumentError(other);
-    if (start < 0) return -1;
-    return JS('int', r'#.indexOf(#, #)', this, other, start);
+  int indexOf(Pattern pattern, [int start = 0]) {
+    checkNull(pattern);
+    if (start is! int) throw new ArgumentError(start);
+    if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
+    }
+    if (pattern is String) {
+      return JS('int', r'#.indexOf(#, #)', this, pattern, start);
+    }
+    if (pattern is JSSyntaxRegExp) {
+      JSSyntaxRegExp re = pattern;
+      Match match = firstMatchAfter(re, this, start);
+      return (match == null) ? -1 : match.start;
+    }
+    for (int i = start; i <= this.length; i++) {
+      if (pattern.matchAsPrefix(this, i) != null) return i;
+    }
+    return -1;
   }
 
-  int lastIndexOf(String other, [int start]) {
-    checkNull(other);
-    if (other is !String) throw new ArgumentError(other);
-    if (start != null) {
-      if (start is !num) throw new ArgumentError(start);
-      if (start < 0) return -1;
-      if (start >= length) {
-        if (other == "") return length;
-        start = length - 1;
-      }
-    } else {
-      start = length - 1;
+  int lastIndexOf(Pattern pattern, [int start]) {
+    checkNull(pattern);
+    if (start == null) {
+      start = length;
+    } else if (start is! int) {
+      throw new ArgumentError(start);
+    } else if (start < 0 || start > this.length) {
+      throw new RangeError.range(start, 0, this.length);
     }
-    return stringLastIndexOfUnchecked(this, other, start);
+    if (pattern is String) {
+      String other = pattern;
+      if (start + other.length > this.length) {
+        start = this.length - other.length;
+      }
+      return stringLastIndexOfUnchecked(this, other, start);
+    }
+    for (int i = start; i >= 0; i--) {
+      if (pattern.matchAsPrefix(this, i) != null) return i;
+    }
+    return -1;
   }
 
   bool contains(Pattern other, [int startIndex = 0]) {

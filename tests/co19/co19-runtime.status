@@ -6,17 +6,6 @@
 Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # http://dartbug.com/9597
 Language/07_Classes/6_Constructors_A02_t01: Skip # co19 issue 415.
 
-[ $compiler == none && $runtime == vm && $unchecked ]
-Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
-
-
-[ $compiler == none && $runtime == vm && $checked ]
-LibTest/core/AssertionError/line_A01_t02: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/Set/intersection_A03_t01: Fail # TODO(vm-team): Please triage this failure.
-LibTest/core/TypeError/line_A01_t01: Fail # TODO(vm-team): Please triage this failure.
-
-
-
 [ $compiler == none && $runtime == vm ]
 Language/05_Variables/05_Variables_A07_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t02: Fail # TODO(vm-team): Please triage this failure.
@@ -70,29 +59,6 @@ LibTest/core/int/toStringAsExponential_A02_t01: Fail # TODO(vm-team): Please tri
 LibTest/core/Match/pattern_A01_t01: Fail # Issue 422
 LibTest/core/RegExp/allMatches_A01_t01: Fail # Issue 422
 
-[ $compiler == none && $runtime == vm && $checked ]
-LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
-LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
-
-LibTest/core/int/operator_division_A01_t01: Fail # ~/ returns ints, issue 361
-
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail, OK # co19 issue 405
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail, OK # co19 issue 405
-Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail, OK # co19 issue 405
-Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail, OK # co19 issue 405
-Language/11_Expressions/18_Assignment_A05_t02: Fail, OK # co19 issue 405
-Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 405
-Language/11_Expressions/18_Assignment_A05_t05: Fail, OK # co19 issue 405
-Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 405
-
-
-[ $compiler == none && $runtime == vm ]
 Language/13_Libraries_and_Scripts/1_Imports_A02_t21: Crash # Dart issue 6060
 Language/13_Libraries_and_Scripts/1_Imports_A02_t22: Crash # Dart issue 6060
 
@@ -230,12 +196,6 @@ Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 409
 Language/11_Expressions/18_Assignment_A05_t05: Fail, OK # co19 issue 409
 Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 409
 
-
-[ $compiler == none && $runtime == vm && $checked ]
-Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
-
-
-[ $compiler == none && $runtime == vm ]
 Language/11_Expressions/01_Constants_A16_t01: Fail # Not properly reporting exception in initializer expressions
 Language/11_Expressions/01_Constants_A16_t02: Fail # Not properly reporting exception in initializer expressions
 
@@ -279,8 +239,6 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fa
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail
 
-
-[ $compiler == none && $runtime == vm ]
 LibTest/core/Date/Date.fromString_A03_t01: Pass # Issue co19 - 121  (currently passing due to co19 issues 373 and 374)
 LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
@@ -289,33 +247,8 @@ LibTest/core/RegExp/firstMatch_A01_t01: Fail
 LibTest/core/double/toRadixString_A01_t01: Fail # Issue 463
 LibTest/core/int/toRadixString_A01_t01: Fail # Issue 461
 
-
-[ $compiler == none && $runtime == vm ]
 LibTest/math/sin_A01_t01: Fail, OK # Issue co19 - 44
 
-
-[ $compiler == none && $runtime == vm && $system == macos ]
-LibTest/math/exp_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/acos_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/asin_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/atan_A01_t01: Fail, OK # Issue co19 - 44
-LibTest/math/tan_A01_t01: Fail, OK  # Issue co19 - 44
-
-
-[ $compiler == none && $runtime == vm && $system == linux ]
-LibTest/math/exp_A01_t01: Fail
-
-
-[ $compiler == none && $runtime == vm && $system == linux && $arch == ia32 ]
-LibTest/math/sin_A01_t01: Fail
-LibTest/math/tan_A01_t01: Fail
-
-
-[ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
-LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
-
-
-[ $compiler == none && $runtime == vm ]
 LibTest/core/Date/toString_A02_t01: Fail # Argument error. Year 999999 is out of range. Needs to be specified (and then potentially reported to co19): issue 1878.
 LibTest/core/Date/year_A01_t01: Fail # Year out of range. Needs to be specified: issue 8808. Possibly a co19 bug.
 
@@ -330,18 +263,10 @@ LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail, OK # co19 i
 Language/11_Expressions/07_Maps_A07_t03: Fail, OK # co19 issue 287
 Language/11_Expressions/07_Maps_A04_t02: Fail, OK # co19 issue 287
 
-
-[ $compiler == none && $runtime == vm ]
 LibTest/core/String/contains_A01_t03: Skip # Times out.
 
 LibTest/core/String/contains_A01_t02: Fail
 
-
-[ $compiler == none && $runtime == vm && $arch == ia32 ]
-LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
-
-
-[ $compiler == none && $runtime == vm ]
 Language/07_Classes/07_Classes_A02_t29: Fail
 Language/07_Classes/07_Classes_A02_t31: Fail
 Language/11_Expressions/05_Strings_A20_t01: Fail
@@ -355,16 +280,6 @@ LibTest/core/StringBuffer/isEmpty_A01_t01:  Fail, OK # co19 issue 355
 # parameter name or type expected
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: Fail
 
-
-[ $compiler == none && $runtime == vm && $checked ]
-Language/03_Overview/1_Scoping_A02_t30: Fail
-
-
-[ $compiler == none && $runtime == vm && $mode == debug ]
-LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
-
-
-[ $compiler == none && $runtime == vm ]
 LibTest/core/Strings/join_A01_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/join_A04_t01: Fail # Strings class has been removed. co19 issue 380
 LibTest/core/Strings/concatAll_A01_t01: Fail # Strings class has been removed. co19 issue 380
@@ -488,7 +403,44 @@ LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. 
 LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue 419
 LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue 419
 
+# end [ $compiler == none && $runtime == vm ]
+
+
+[ $compiler == none && $runtime == vm && $unchecked ]
+Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(vm-team): Please triage this failure.
+
+LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issue 402
+
+
 [ $compiler == none && $runtime == vm && $checked ]
+LibTest/core/AssertionError/line_A01_t02: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/Set/intersection_A03_t01: Fail # TODO(vm-team): Please triage this failure.
+LibTest/core/TypeError/line_A01_t01: Fail # TODO(vm-team): Please triage this failure.
+
+LibTest/core/Strings/concatAll_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
+LibTest/core/Strings/join_A04_t01: Fail, OK # checks for ArgumentError. TypeError is ok too. co19 issue 366
+
+LibTest/core/int/operator_division_A01_t01: Fail # ~/ returns ints, issue 361
+
+Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03: Fail, OK # co19 issue 405
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04: Fail, OK # co19 issue 405
+Language/11_Expressions/17_Getter_Invocation_A02_t01: Fail, OK # co19 issue 405
+Language/11_Expressions/17_Getter_Invocation_A02_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/18_Assignment_A05_t02: Fail, OK # co19 issue 405
+Language/11_Expressions/18_Assignment_A05_t04: Fail, OK # co19 issue 405
+Language/11_Expressions/18_Assignment_A05_t05: Fail, OK # co19 issue 405
+Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 405
+
+Language/12_Statements/09_Switch_A05_t01: Fail # TODO(vm-team): Please triage this failure.
+
+Language/03_Overview/1_Scoping_A02_t30: Fail
+
 LibTest/core/Set/intersection_A01_t01: Fail # issue 390
 LibTest/core/Set/intersection_A01_t02: Fail # issue 390
 LibTest/core/Set/intersection_A01_t03: Fail # issue 390
@@ -503,13 +455,46 @@ LibTest/async/Completer/complete_A02_t02: Fail # No AsyncError anymore. Issue 40
 LibTest/async/Future/catchError_A01_t01: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Future/catchError_A01_t02: Fail # No AsyncError anymore. Issue 407
 
-[ $compiler == none && $runtime == vm && $unchecked ]
-LibTest/core/List/setRange_A05_t01: Fail # setRange now takes end-argument. Issue 402
+LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
+LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
+
+#end [ $compiler == none && $runtime == vm && $checked ]
+
+
+[ $compiler == none && $runtime == vm && $mode == debug ]
+LibTest/isolate/isolate_api/spawnFunction_A02_t01: Crash
+
+
+[ $compiler == none && $runtime == vm && $system == macos ]
+LibTest/math/exp_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/acos_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/asin_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/atan_A01_t01: Fail, OK # Issue co19 - 44
+LibTest/math/tan_A01_t01: Fail, OK  # Issue co19 - 44
+
+
+[ $compiler == none && $runtime == vm && $system == linux ]
+LibTest/math/exp_A01_t01: Fail
+
+
+[ $compiler == none && $runtime == vm && $system == linux && $arch == ia32 ]
+LibTest/math/sin_A01_t01: Fail
+LibTest/math/tan_A01_t01: Fail
+
+
+[ $compiler == none && $runtime == vm && $arch == x64 && $mode == debug ]
+LibTest/core/Map/Map_class_A01_t04: Skip # Timeout
+
+
+[ $compiler == none && $runtime == vm && $arch == ia32 ]
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
+
 
 [ $compiler == none && $runtime == vm && $arch == arm ]
 LibTest/math/tan_A01_t01: Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 LibTest/core/int/operator_unary_minus_A01_t01: Fail
+
 
 [ $compiler == none && $runtime == vm && $arch == arm && $mode == debug ]
 LibTest/core/Expect/throws_A01_t04: Crash
@@ -519,11 +504,13 @@ LibTest/core/double/ceil_A01_t02: Fail
 LibTest/core/double/floor_A01_t02: Fail
 LibTest/core/double/truncate_A01_t01: Fail
 
+
 [ $compiler == none && $runtime == vm && $arch == simarm ]
 LibTest/math/tan_A01_t01: Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 LibTest/core/int/operator_unary_minus_A01_t01: Fail, Pass # Pass on Mac
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
+
 
 [ $compiler == none && $runtime == vm && $arch == simarm && $mode == debug ]
 LibTest/core/Expect/throws_A01_t04: Crash
@@ -533,8 +520,10 @@ LibTest/core/double/ceil_A01_t02: Fail, Pass # Pass on Mac
 LibTest/core/double/floor_A01_t02: Fail, Pass # Pass on Mac
 LibTest/core/double/truncate_A01_t01: Fail, Pass # Pass on Mac
 
+
 [ $compiler == none && $runtime == vm && $arch == mips ]
 *: Skip
+
 
 [ $compiler == none && $runtime == vm && $arch == simmips ]
 *: Skip
