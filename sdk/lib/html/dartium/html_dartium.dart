@@ -19606,6 +19606,9 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 @Unstable
 class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
+
+  factory Range.fromPoint(Point point) =>
+      document.$dom_caretRangeFromPoint(point.x, point.y);
   Range.internal();
 
   @DomName('Range.END_TO_END')

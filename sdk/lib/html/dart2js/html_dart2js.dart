@@ -18226,6 +18226,9 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 class Range native "Range" {
   factory Range() => document.$dom_createRange();
 
+  factory Range.fromPoint(Point point) =>
+      document.$dom_caretRangeFromPoint(point.x, point.y);
+
   @DomName('Range.END_TO_END')
   @DocsEditable
   static const int END_TO_END = 2;
