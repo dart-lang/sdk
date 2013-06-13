@@ -104,12 +104,6 @@ int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
 
-[ $compiler == dart2js && $unchecked && $host_unchecked && $system == linux ]
-uri_query_test: Crash # Issue 11245
-
-[ $compiler == dart2js && $unchecked && $host_unchecked && $system == windows ]
-uri_query_test: Crash, Pass # Issue 11245
-
 [ $arch == simarm && $mode == debug ]
 collection_to_string_test: Crash # Issue: 11207
 
