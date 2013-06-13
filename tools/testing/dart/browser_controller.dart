@@ -16,12 +16,11 @@ abstract class Browser {
   StringBuffer _stderr = new StringBuffer();
   StringBuffer _usageLog = new StringBuffer();
   // This function is called when the process is closed.
-  // This is extracted to an external function so that we can do additional
-  // functionality when the process closes (cleanup and call onExit)
-  Function _processClosed;
-  // This is called after the process is closed, after _processClosed has
-  // been called, but before onExit. Subclasses can use this to cleanup
+  Completer _processClosedCompleter = new Completer();
+  // This is called after the process is closed, after _processClosedCompleter
+  // has been called, but before onExit. Subclasses can use this to cleanup
   // any browser specific resources (temp directories, profiles, etc)
+  // The function is expected to do it's work synchronously.
   Function _cleanup;
 
   /** The version of the browser - normally set when starting a browser */
@@ -39,9 +38,6 @@ abstract class Browser {
    * Id of the browser
    */
   String id;
-
-  /** Callback that will be executed when the browser has closed */
-  Function onClose;
 
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
   bool debugPrint = false;
@@ -99,12 +95,13 @@ abstract class Browser {
       browserTerminationFuture = completer.future;
 
       if (process != null) {
-        // Make sure we intercept onExit calls and complete.
-        _processClosed = () {
-          _processClosed = null;
+        _processClosedCompleter.future.then((_) {
           process = null;
           completer.complete(true);
-        };
+          if (_cleanup != null) {
+            _cleanup();
+          }
+        });
 
         if (process.kill(ProcessSignal.SIGKILL)) {
           _logEvent("Successfully sent kill signal to process.");
@@ -152,9 +149,7 @@ abstract class Browser {
       process.exitCode.then((exitCode) {
         _logEvent("Browser closed with exitcode $exitCode");
         Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
-          if (_processClosed != null) _processClosed();
-          if (_cleanup != null) _cleanup();
-          if (onClose != null) onClose(exitCode);
+          _processClosedCompleter.complete(exitCode);
         });
       });
       return true;
@@ -256,7 +251,7 @@ class Safari extends Browser {
         _logEvent("Got version: $version");
         var args = ["'$url'"];
         return new Directory('').createTemp().then((userDir) {
-          _cleanup = () { userDir.delete(recursive: true); };
+          _cleanup = () { userDir.deleteSync(recursive: true); };
           _createLaunchHTML(userDir.path, url);
           var args = ["${userDir.path}/launch.html"];
           return startBrowser(binary, args);
@@ -292,7 +287,7 @@ class Chrome extends Browser {
       _logEvent("Got version: $version");
 
       return new Directory('').createTemp().then((userDir) {
-        _cleanup = () { userDir.delete(recursive: true); };
+        _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["--user-data-dir=${userDir.path}", url,
                     "--disable-extensions", "--disable-popup-blocking",
                     "--bwsi", "--no-first-run"];
@@ -409,7 +404,7 @@ class Firefox extends Browser {
 
       return new Directory('').createTemp().then((userDir) {
         _createPreferenceFile(userDir.path);
-        _cleanup = () { userDir.delete(recursive: true); };
+        _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["-profile", "${userDir.path}",
                     "-no-remote", "-new-instance", url];
         return startBrowser(binary, args);
