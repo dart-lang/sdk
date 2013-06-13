@@ -508,10 +508,6 @@ class HtmlDartInterfaceGenerator(object):
       supertype = self._interface.parents[0].type.id
       if not IsDartCollectionType(supertype) and not IsPureInterface(supertype):
         base_type_info = self._type_registry.TypeInfo(supertype)
-        if base_type_info.merged_into() \
-            and self._backend.ImplementsMergedMembers():
-          base_type_info = self._type_registry.TypeInfo(
-              base_type_info.merged_into())
 
     if base_type_info:
       base_class = base_type_info.implementation_name()
