@@ -68,7 +68,7 @@ class LinkedList<E extends LinkedListEntry<E>>
     _modificationCount++;
     _LinkedListLink next = _next;
     while (!identical(next, this)) {
-      _LinkedListLink entry = next;
+      E entry = next;
       next = entry._next;
       entry._next = entry._previous = entry._list = null;
     }
@@ -107,7 +107,7 @@ class LinkedList<E extends LinkedListEntry<E>>
    */
   void forEach(void action(E entry)) {
     int modificationCount = _modificationCount;
-    _LinkedListLink current = _next;
+    E current = _next;
     while (!identical(current, this)) {
       action(current);
       if (modificationCount != _modificationCount) {
@@ -135,7 +135,7 @@ class LinkedList<E extends LinkedListEntry<E>>
     _length++;
   }
 
-  void _unlink(E entry) {
+  void _unlink(LinkedListEntry<E> entry) {
     _modificationCount++;
     entry._next._previous = entry._previous;
     entry._previous._next = entry._next;
@@ -204,16 +204,16 @@ abstract class LinkedListEntry<E> implements _LinkedListLink {
    * Return the succeeding element in the list.
    */
   E get next {
-    if (_next == _list) return null;
-    return _next;
+    if (identical(_next, _list)) return null;
+    return _next as E;
   }
 
   /**
    * Return the preceeding element in the list.
    */
   E get previous {
-    if (_previous == _list) return null;
-    return _previous;
+    if (identical(_previous, _list)) return null;
+    return _previous as E;
   }
 
   /**
