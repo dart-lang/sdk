@@ -9,11 +9,19 @@ import "dart:io";
 
 writeData(data, encoding, stream) {
   if (stream == "stdout") {
-    stdout.encoding = encoding;
-    stdout.write(data);
+    if (encoding == Encoding.BINARY) {
+      stdout.add(data);
+    } else {
+      stdout.encoding = encoding;
+      stdout.write(data);
+    }
   } else if (stream == "stderr") {
-    stderr.encoding = encoding;
-    stderr.write(data);
+    if (encoding == Encoding.BINARY) {
+      stderr.add(data);
+    } else {
+      stderr.encoding = encoding;
+      stderr.write(data);
+    }
   }
 }
 
@@ -21,6 +29,7 @@ main() {
   var asciiString = 'abc';
   var latin1String = 'æøå';
   var utf8String = new String.fromCharCodes([955]);
+  var binary = [0, 1, 2];
   var options = new Options();
   if (options.arguments.length > 1) {
     var stream = options.arguments[1];
@@ -30,6 +39,8 @@ main() {
       writeData(latin1String, Encoding.ISO_8859_1, stream);
     } else if (options.arguments[0] == "utf8") {
       writeData(utf8String, Encoding.UTF_8, stream);
+    } else if (options.arguments[0] == "binary") {
+      writeData(binary, Encoding.BINARY, stream);
     }
   }
 }

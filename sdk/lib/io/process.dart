@@ -200,14 +200,20 @@ abstract class ProcessResult {
   int get exitCode;
 
   /**
-   * Standard output from the process as a string.
+   * Standard output from the process. The value used for the
+   * `stdoutEncoding` argument to `Process.run` determins the type. If
+   * `Encoding.BINARY` was used this value is of type `List<int>
+   * otherwise it is of type `String`.
    */
-  String get stdout;
+  get stdout;
 
   /**
-   * Standard error from the process as a string.
+   * Standard error from the process. The value used for the
+   * `stderrEncoding` argument to `Process.run` determins the type. If
+   * `Encoding.BINARY` was used this value is of type `List<int>
+   * otherwise it is of type `String`.
    */
-  String get stderr;
+  get stderr;
 
   /**
    * Process id from the process.

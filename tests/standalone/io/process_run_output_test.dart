@@ -16,6 +16,9 @@ checkOutput(encoding, output) {
     Expect.equals(output, 'æøå');
   } else if (encoding == 'utf8') {
     Expect.listEquals(output.codeUnits, [955]);
+  } else if (encoding == 'binary') {
+    print(output);
+    Expect.listEquals(output, [0, 1, 2]);
   }
 }
 
@@ -27,6 +30,8 @@ test(scriptFile, encoding, stream) {
     enc = Encoding.ISO_8859_1;
   } else if (encoding == 'utf8') {
     enc = Encoding.UTF_8;
+  } else if (encoding == 'binary') {
+    enc = Encoding.BINARY;
   }
 
   if (stream == 'stdout') {
@@ -61,5 +66,6 @@ main() {
   test(scriptFile.path, 'latin1', 'stderr');
   test(scriptFile.path, 'utf8', 'stdout');
   test(scriptFile.path, 'utf8', 'stderr');
-
+  test(scriptFile.path, 'binary', 'stdout');
+  test(scriptFile.path, 'binary', 'stderr');
 }

@@ -18,6 +18,12 @@ class Encoding {
    */
   static const Encoding SYSTEM = const Encoding._internal("system");
 
+  /**
+   * BINARY encoding is used to specify that no encoding is used and
+   * binary data is expected.
+   */
+  static const Encoding BINARY = const Encoding._internal("binary");
+
   // All aliasses (in lowercase) of supported encoding from
   // http://www.iana.org/assignments/character-sets/character-sets.xml.
   static Map<String, Encoding> _nameToEncoding = <String, Encoding> {
