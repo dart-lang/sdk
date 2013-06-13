@@ -103,7 +103,7 @@ abstract class SecureSocket implements Socket {
    * the right thing to do.
    *
    * If some of the data of the TLS handshake has already been read
-   * from the socket this data can be passed in the [carryOverData]
+   * from the socket this data can be passed in the [bufferedData]
    * parameter. This data will be processed before any other data
    * available on the socket.
    *
@@ -114,7 +114,7 @@ abstract class SecureSocket implements Socket {
   static Future<SecureSocket> secureServer(
       Socket socket,
       String certificateName,
-      {List<int> carryOverData,
+      {List<int> bufferedData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false}) {
     var completer = new Completer();
@@ -124,7 +124,7 @@ abstract class SecureSocket implements Socket {
             detachedRaw[0],
             certificateName,
             subscription: detachedRaw[1],
-            carryOverData: carryOverData,
+            bufferedData: bufferedData,
             requestClientCertificate: requestClientCertificate,
             requireClientCertificate: requireClientCertificate);
           })
@@ -284,7 +284,7 @@ abstract class RawSecureSocket implements RawSocket {
    * events.
    *
    * If some of the data of the TLS handshake has already been read
-   * from the socket this data can be passed in the [carryOverData]
+   * from the socket this data can be passed in the [bufferedData]
    * parameter. This data will be processed before any other data
    * available on the socket.
    *
@@ -296,7 +296,7 @@ abstract class RawSecureSocket implements RawSocket {
       RawSocket socket,
       String certificateName,
       {StreamSubscription subscription,
-       List<int> carryOverData,
+       List<int> bufferedData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false}) {
     socket.readEventsEnabled = false;
@@ -308,7 +308,7 @@ abstract class RawSecureSocket implements RawSocket {
         is_server: true,
         socket: socket,
         subscription: subscription,
-        carryOverData: carryOverData,
+        bufferedData: bufferedData,
         requestClientCertificate: requestClientCertificate,
         requireClientCertificate: requireClientCertificate);
   }
@@ -362,8 +362,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   StreamController<RawSocketEvent> _controller;
   Stream<RawSocketEvent> _stream;
   StreamSubscription<RawSocketEvent> _socketSubscription;
-  List<int> _carryOverData;
-  int _carryOverDataIndex = 0;
+  List<int> _bufferedData;
+  int _bufferedDataIndex = 0;
   final InternetAddress address;
   final bool is_server;
   final String certificateName;
@@ -391,7 +391,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       {bool is_server,
        RawSocket socket,
        StreamSubscription subscription,
-       List<int> carryOverData,
+       List<int> bufferedData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
        bool sendClientCertificate: false,
@@ -409,7 +409,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                                  is_server,
                                  socket,
                                  subscription,
-                                 carryOverData,
+                                 bufferedData,
                                  requestClientCertificate,
                                  requireClientCertificate,
                                  sendClientCertificate,
@@ -425,7 +425,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       bool this.is_server,
       RawSocket socket,
       StreamSubscription this._socketSubscription,
-      List<int> this._carryOverData,
+      List<int> this._bufferedData,
       bool this.requestClientCertificate,
       bool this.requireClientCertificate,
       bool this.sendClientCertificate,
@@ -441,7 +441,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     // errors will be reported through the future or the stream.
     _verifyFields();
     _secureFilter.init();
-    if (_carryOverData != null) _readFromCarryOver();
+    if (_bufferedData != null) _readFromBuffered();
     _secureFilter.registerHandshakeCompleteCallback(
         _secureHandshakeCompleteHandler);
     if (onBadCertificate != null) {
@@ -723,19 +723,19 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  void _readFromCarryOver() {
-    assert(_carryOverData != null);
+  void _readFromBuffered() {
+    assert(_bufferedData != null);
     var encrypted = _secureFilter.buffers[READ_ENCRYPTED];
-    var bytes = _carryOverData.length - _carryOverDataIndex;
+    var bytes = _bufferedData.length - _bufferedDataIndex;
     int startIndex = encrypted.start + encrypted.length;
     encrypted.data.setRange(startIndex,
                             startIndex + bytes,
-                            _carryOverData,
-                            _carryOverDataIndex);
+                            _bufferedData,
+                            _bufferedDataIndex);
     encrypted.length += bytes;
-    _carryOverDataIndex += bytes;
-    if (_carryOverData.length == _carryOverDataIndex) {
-      _carryOverData = null;
+    _bufferedDataIndex += bytes;
+    if (_bufferedData.length == _bufferedDataIndex) {
+      _bufferedData = null;
     }
   }
 
@@ -873,7 +873,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         }
       }
       if (!_socketClosedRead && encrypted.free > 0) {
-        if (_carryOverData != null) {
+        if (_bufferedData != null) {
           _readFromCarryOver();
           progress = true;
         } else {
