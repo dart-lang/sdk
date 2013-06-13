@@ -28,7 +28,6 @@ standalone/io/skipping_dart2js_compilations_test: Skip
 standalone/typed_data_view_test: Fail
 
 # Tests using fake "part" and/or "part of" directive.
-standalone/crypto/base64_test: Fail
 standalone/typed_data_test: Fail
 standalone/io/http_date_test: Fail
 standalone/io/http_headers_test: Fail
