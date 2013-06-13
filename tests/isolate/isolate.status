@@ -161,7 +161,7 @@ message_stream2_test: Crash # Issue: 11207
 nested_spawn_stream_test: Crash, Pass # Issue: 11207
 nested_spawn_stream2_test: Pass, Crash # Issue: 11207
 spawn_function_negative_test: Pass, Crash # Issue: 11207
-spawn_uri_vm_negative_test: Crash # Issue: 11207
+spawn_uri_vm_negative_test: Crash, Pass # Issue: 11207 (Pass on Mac)
 stream_mangling_test: Crash # Issue: 11207
 message_test: Pass, Crash
 
