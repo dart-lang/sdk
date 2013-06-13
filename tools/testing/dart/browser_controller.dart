@@ -72,7 +72,7 @@ abstract class Browser {
   }
 
   void _logEvent(String event) {
-    String toLog = "$this ($id) - ${new DateTime.now()}: $event \n";
+    String toLog = "$this ($id) - $event \n";
     if (debugPrint) print("usageLog: $toLog");
     if (logger != null) logger(toLog);
     _usageLog.write(toLog);
@@ -562,8 +562,7 @@ class BrowserTestRunner {
 
   void handleResults(String browserId, String output, int testId) {
     var status = browserStatus[browserId];
-    DebugLogger.info("${new DateTime.now()}: Handling result for "
-                     "browser ${browserId}");
+    DebugLogger.info("Handling result for browser ${browserId}");
     if (testCache.containsKey(testId)) {
       doubleReportingTests.add(testId);
       return;
@@ -602,8 +601,7 @@ class BrowserTestRunner {
   void handleTimeout(BrowserTestingStatus status) {
     // We simply kill the browser and starts up a new one!
     // We could be smarter here, but it does not seems like it is worth it.
-    DebugLogger.info("${new DateTime.now()}: Handling timeout for "
-                     "browser ${status.browser.id}");
+    DebugLogger.info("Handling timeout for browser ${status.browser.id}");
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
@@ -657,7 +655,7 @@ class BrowserTestRunner {
     if (testQueue.isEmpty) return null;
     var status = browserStatus[browserId];
     if (status == null) return null;
-    DebugLogger.info("${new DateTime.now()}: Handling getNext for browser "
+    DebugLogger.info("Handling getNext for browser "
                      "${browserId} timeout status: ${status.timeout}");
 
     // We are currently terminating this browser, don't start a new test.
