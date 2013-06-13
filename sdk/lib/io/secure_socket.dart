@@ -874,7 +874,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
       if (!_socketClosedRead && encrypted.free > 0) {
         if (_bufferedData != null) {
-          _readFromCarryOver();
+          _readFromBuffered();
           progress = true;
         } else {
           List<int> data = _socket.read(encrypted.free);
