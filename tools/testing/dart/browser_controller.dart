@@ -584,8 +584,12 @@ class BrowserTestRunner {
         throw("This should never happen, wrong test id");
       }
       testCache[testId] = status.currentTest.url;
+      DebugLogger.info("Size of output for test $testId : ${output.length}");
+      Stopwatch watch = new Stopwatch()..start();
       status.currentTest.doneCallback(output,
                                       status.currentTest.stopwatch.elapsed);
+      watch.stop();
+      DebugLogger.info("Handling of test $testId took : ${watch.elapsed}");
       status.lastTest = status.currentTest;
       status.currentTest = null;
     } else {
