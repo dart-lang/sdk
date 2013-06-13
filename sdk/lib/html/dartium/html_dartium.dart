@@ -994,6 +994,14 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass1 {
 class CanvasElement extends _HTMLElement implements CanvasImageSource {
   CanvasElement.internal() : super.internal();
 
+  @DomName('HTMLCanvasElement.webglcontextlostEvent')
+  @DocsEditable
+  static const EventStreamProvider<gl.ContextEvent> webGlContextLostEvent = const EventStreamProvider<gl.ContextEvent>('webglcontextlost');
+
+  @DomName('HTMLCanvasElement.webglcontextrestoredEvent')
+  @DocsEditable
+  static const EventStreamProvider<gl.ContextEvent> webGlContextRestoredEvent = const EventStreamProvider<gl.ContextEvent>('webglcontextrestored');
+
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable
   factory CanvasElement({int width, int height}) {
@@ -1070,6 +1078,14 @@ class CanvasElement extends _HTMLElement implements CanvasImageSource {
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable
   String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
+
+  @DomName('HTMLCanvasElement.onwebglcontextlost')
+  @DocsEditable
+  Stream<gl.ContextEvent> get onWebGlContextLost => webGlContextLostEvent.forTarget(this);
+
+  @DomName('HTMLCanvasElement.onwebglcontextrestored')
+  @DocsEditable
+  Stream<gl.ContextEvent> get onWebGlContextRestored => webGlContextRestoredEvent.forTarget(this);
 
   /** An API for drawing on this canvas. */
   CanvasRenderingContext2D get context2D => getContext('2d');

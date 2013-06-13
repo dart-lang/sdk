@@ -3281,6 +3281,12 @@
       "HTMLCanvasElement": {},
       "getContext": {},
       "height": {},
+      "onwebglcontextlost": {
+        "comment": "http://www.khronos.org/registry/webgl/specs/latest/#5.15.2"
+      },
+      "onwebglcontextrestored": {
+        "comment": "http://www.khronos.org/registry/webgl/specs/latest/#5.15.3"
+      },
       "toDataURL": {},
       "width": {}
     },
