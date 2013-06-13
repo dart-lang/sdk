@@ -107,7 +107,7 @@ class LinkedList<E extends LinkedListEntry<E>>
    */
   void forEach(void action(E entry)) {
     int modificationCount = _modificationCount;
-    E current = _next;
+    _LinkedListLink current = _next;
     while (!identical(current, this)) {
       action(current);
       if (modificationCount != _modificationCount) {
