@@ -153,7 +153,7 @@ nested_spawn_test: Pass, Crash # Issue: 11207
 request_reply_test: Pass, Crash # Issue: 11207
 nested_spawn_test: Pass, Crash # Issue: 11207
 nested_spawn2_test: Pass, Crash # Issue: 11207
-count_stream_test: Crash # Issue: 11207
+count_stream_test: Pass, Crash # Issue: 11207
 cross_isolate_message_stream_test: Crash # Issue: 11207
 mandel_isolate_stream_test: Crash # Issue: 11207
 message2_test: Pass, Crash # Issue: 11207
