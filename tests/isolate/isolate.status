@@ -140,6 +140,7 @@ isolate_stress_test: Pass, Timeout # http://dartbug.com/10697
 
 [ $arch == simarm && $mode == debug ]
 message_test: Crash # Issue: 11207
+mint_maker_test: Crash # Issue: 11207
 
 [ ($arch == arm || $arch == simarm) && $checked ]
 count_test: Pass, Crash # Issue: 11207

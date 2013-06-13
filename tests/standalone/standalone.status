@@ -229,7 +229,7 @@ io/http_session_test: Crash # Issue: 11207
 io/http_shutdown_test: Crash # Issue: 11207
 io/https_server_test: Crash # Issue: 11207
 io/http_stream_close_test: Crash # Issue: 11207
-io/link_async_test: Crash # Issue: 11207
+io/link_async_test: Pass, Crash # Issue: 11207
 io/link_test: Pass, Crash # Issue: 11207
 io/mime_multipart_parser_test: Pass, Crash # Issue 11207
 io/pipe_server_test: Crash # Issue: 11207
@@ -241,7 +241,7 @@ io/process_invalid_arguments_test: Crash # Issue: 11207
 io/process_kill_test: Pass, Crash # Issue: 11207
 io/process_non_ascii_test: Pass, Crash # Issue: 11207
 io/process_path_environment_test: Crash # Issue: 11207
-io/process_path_test: Crash # Issue: 11207
+io/process_path_test: Pass, Crash # Issue: 11207
 io/process_pid_test: Pass, Crash # Issue: 11207
 io/process_run_output_test: Pass, Crash # Issue: 11207
 io/process_segfault_test: Crash # Issue: 11207
