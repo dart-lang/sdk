@@ -1705,7 +1705,7 @@ class _HttpClient implements HttpClient {
     }
 
     // Default to using the process current environment.
-    if (environment == null) environment = Platform.environment;
+    if (environment == null) environment = _platformEnvironmentCache;
 
     String proxyCfg;
 
@@ -1730,6 +1730,8 @@ class _HttpClient implements HttpClient {
     }
     return "DIRECT";
   }
+
+  static Map<String, String> _platformEnvironmentCache = Platform.environment;
 }
 
 
