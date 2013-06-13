@@ -258,7 +258,6 @@ LibTest/core/AssertionError/failedAssertion_A01_t01: Fail # TODO(ahe): Please tr
 LibTest/core/AssertionError/line_A01_t02: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/AssertionError/url_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Match/str_A01_t01: Fail # TODO(ahe): Please triage this failure.
-LibTest/core/RegExp/allMatches_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/Set/intersection_A03_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/column_A01_t01: Fail # TODO(ahe): Please triage this failure.
 LibTest/core/TypeError/dstName_A01_t01: Fail # TODO(ahe): Please triage this failure.
@@ -537,6 +536,7 @@ Language/14_Types/5_Function_Types_A01_t10: Fail # co19 issue 410
 Language/14_Types/5_Function_Types_A02_t06: Fail # co19 issue 410
 
 LibTest/core/Match/pattern_A01_t01: Fail # co19 Issue 400, 422
+LibTest/core/RegExp/allMatches_A01_t01: Fail # co19 Issue 400, 422
 
 LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
 LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
