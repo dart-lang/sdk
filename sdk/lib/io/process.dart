@@ -115,13 +115,16 @@ abstract class Process {
    * passed in.
    *
    * If [runInShell] is true, the process will be spawned through a system
-   * shell. On Linux and Mac OS, [:/bin/sh:] is used, while
-   * [:%WINDIR%\system32\cmd.exe:] is used on Windows.
+   * shell. On Linux and Mac OS, `/bin/sh` is used, while
+   * `%WINDIR%\system32\cmd.exe` is used on Windows.
    *
-   * The encoding used for text on stdout and stderr can be set by changing
-   * [stdoutEncoding] and [stderrEncoding]. The default encoding is SYSTEM.
+   * The encoding used for decoding `stdout` and `stderr` into text is
+   * controlled through [stdoutEncoding] and [stderrEncoding]. The
+   * default encoding is `Encoding.SYSTEM`. If `null` is used no
+   * decoding will happen and the [ProcessResult] will hold binary
+   * data.
    *
-   * Returns a [:Future<ProcessResult>:] that completes with the
+   * Returns a `Future<ProcessResult>` that completes with the
    * result of running the process, i.e., exit code, standard out and
    * standard in.
    */
@@ -202,15 +205,15 @@ abstract class ProcessResult {
   /**
    * Standard output from the process. The value used for the
    * `stdoutEncoding` argument to `Process.run` determins the type. If
-   * `Encoding.BINARY` was used this value is of type `List<int>
-   * otherwise it is of type `String`.
+   * `null` was used this value is of type `List<int> otherwise it is
+   * of type `String`.
    */
   get stdout;
 
   /**
    * Standard error from the process. The value used for the
    * `stderrEncoding` argument to `Process.run` determins the type. If
-   * `Encoding.BINARY` was used this value is of type `List<int>
+   * `null` was used this value is of type `List<int>
    * otherwise it is of type `String`.
    */
   get stderr;

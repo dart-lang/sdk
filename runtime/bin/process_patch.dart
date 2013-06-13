@@ -336,10 +336,6 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
                                                 bool runInShell,
                                                 Encoding stdoutEncoding,
                                                 Encoding stderrEncoding) {
-  // Extract output encoding options and verify arguments.
-  if (stdoutEncoding == null) stdoutEncoding = Encoding.BINARY;
-  if (stderrEncoding == null) stderrEncoding = Encoding.BINARY;
-
   // Start the underlying process.
   return Process.start(path,
                        arguments,
@@ -353,7 +349,7 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
 
     // Setup stdout and stderr handling.
     Future foldStream(Stream<List<int>> stream, Encoding encoding) {
-      if (encoding == Encoding.BINARY) {
+      if (encoding == null) {
         return stream
             .fold(
                 new _BufferList(),

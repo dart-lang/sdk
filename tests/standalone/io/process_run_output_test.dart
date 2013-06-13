@@ -31,7 +31,7 @@ test(scriptFile, encoding, stream) {
   } else if (encoding == 'utf8') {
     enc = Encoding.UTF_8;
   } else if (encoding == 'binary') {
-    enc = Encoding.BINARY;
+    enc = null;
   }
 
   if (stream == 'stdout') {

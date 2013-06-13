@@ -9,14 +9,14 @@ import "dart:io";
 
 writeData(data, encoding, stream) {
   if (stream == "stdout") {
-    if (encoding == Encoding.BINARY) {
+    if (encoding == null) {
       stdout.add(data);
     } else {
       stdout.encoding = encoding;
       stdout.write(data);
     }
   } else if (stream == "stderr") {
-    if (encoding == Encoding.BINARY) {
+    if (encoding == null) {
       stderr.add(data);
     } else {
       stderr.encoding = encoding;
@@ -40,7 +40,7 @@ main() {
     } else if (options.arguments[0] == "utf8") {
       writeData(utf8String, Encoding.UTF_8, stream);
     } else if (options.arguments[0] == "binary") {
-      writeData(binary, Encoding.BINARY, stream);
+      writeData(binary, null, stream);
     }
   }
 }
