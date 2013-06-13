@@ -706,6 +706,7 @@ class BrowserTestRunner {
     }
     return Future.wait(futures).then((values) {
       testingServer.httpServer.close();
+      testingServer.errorReportingServer.close();
       printDoubleReportingTests();
       return !values.contains(false);
     });
@@ -741,6 +742,7 @@ class BrowserTestingServer {
 
   var testCount = 0;
   var httpServer;
+  var errorReportingServer;
   bool underTermination = false;
   bool useIframe = false;
 
@@ -785,8 +787,33 @@ class BrowserTestingServer {
       void errorHandler(e) {
         if (!underTermination) print("Error occured in httpserver: $e");
       };
+
       httpServer.listen(handler, onError: errorHandler);
-      return true;
+
+      // Set up the error reporting server that enables us to send back
+      // errors from the browser.
+      return HttpServer.bind(local_ip, 0).then((createdReportServer) {
+        errorReportingServer = createdReportServer;
+        void errorReportingHandler(HttpRequest request) {
+          StringBuffer buffer = new StringBuffer();
+          request.transform(new StringDecoder()).listen((data) {
+            buffer.write(data);
+          }, onDone: () {
+              String back = buffer.toString();
+              request.response.headers.set("Access-Control-Allow-Origin", "*");
+
+              request.response.close().then((_) {}, onError: (error) {
+                DebugLogger.error("Error getting error from browser"
+                                  "on uri ${request.uri.path}");
+              });
+              DebugLogger.error("Error from browser on : "
+                               "${request.uri.path}, data:  $back");
+          }, onError: (error) { print(error); });
+        }
+        errorReportingServer.listen(errorReportingHandler,
+                                    onError: errorHandler);
+        return true;
+      });
     });
   }
 
@@ -827,6 +854,8 @@ class BrowserTestingServer {
 
 
   String getDriverPage(String browserId) {
+    var errorReportingUrl =
+        "http://$local_ip:${errorReportingServer.port}/$browserId";
     String driverContent = """
 <!DOCTYPE html><html>
 <head>
@@ -864,7 +893,7 @@ class BrowserTestingServer {
               run(nextTask);
             }
           } else {
-            // We are basically in trouble - do something clever.
+            reportError('Could not contact the server and get a new task');
           }
         }
       }
@@ -890,6 +919,29 @@ class BrowserTestingServer {
         }
       }
 
+      window.onerror = function (message, url, lineNumber) {
+        if (url) {
+          reportError(url + ':' + lineNumber + ':' + message);
+        } else {
+          reportError(message);
+        }
+      }
+
+      function reportError(msg) {
+        var client = new XMLHttpRequest();
+        function handleReady() {
+          if (this.readyState == this.DONE && this.status != 200) {
+            // We could not report, pop up to notify if running interactively.
+            alert(this.status);
+          }
+        }
+        client.onreadystatechange = handleReady;
+        client.open('POST', '$errorReportingUrl?test=1');
+        client.setRequestHeader('Content-type',
+                                'application/x-www-form-urlencoded');
+        client.send(msg);
+      }
+
       function reportMessage(msg) {
         if (msg == 'STARTING') {
           did_start = true;
@@ -898,9 +950,13 @@ class BrowserTestingServer {
         var client = new XMLHttpRequest();
         function handleReady() {
           if (this.readyState == this.DONE) {
-            if (last_reported_id != current_id && did_start) {
-              getNextTask();
-              last_reported_id = current_id;
+            if (this.status == 200) {
+              if (last_reported_id != current_id && did_start) {
+                getNextTask();
+                last_reported_id = current_id;
+              }
+            } else {
+              reportError('Error sending result to server');
             }
           }
         }
@@ -914,8 +970,6 @@ class BrowserTestingServer {
         client.setRequestHeader('Content-type',
                                 'application/x-www-form-urlencoded');
         client.send(msg);
-        // TODO(ricow) add error handling to somehow report the fact that
-        // we could not send back a result.
       }
 
       function messageHandler(e) {
