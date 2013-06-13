@@ -61,7 +61,7 @@ intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
 [ $compiler == dart2js ]
-analyzer_experimental/test/generated/ast_test: Fail
+analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 unittest/test/instance_test: Fail # http://dartbug.com/11191
 
 [ $compiler == dart2js && $runtime == d8 && $checked ]
