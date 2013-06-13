@@ -620,7 +620,7 @@ class BrowserTestRunner {
         browser = getInstance();
         new_id = "BROWSER$browserIdCount";
         browserIdCount++;
-        browserStatus[browser.id] = new BrowserTestingStatus(browser);
+        browserStatus[new_id] = new BrowserTestingStatus(browser);
       }
       browser.id = new_id;
       browser.start(testingServer.getDriverUrl(new_id)).then((success) {
