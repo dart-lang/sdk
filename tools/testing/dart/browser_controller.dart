@@ -802,10 +802,11 @@ class BrowserTestingServer {
               String back = buffer.toString();
               request.response.headers.set("Access-Control-Allow-Origin", "*");
 
-              request.response.close().catchError((error) {
+              request.response.done.catchError((error) {
                 DebugLogger.error("Error getting error from browser"
                                   "on uri ${request.uri.path}: $error");
               });
+              request.response.close();
               DebugLogger.error("Error from browser on : "
                                "${request.uri.path}, data:  $back");
           }, onError: (error) { print(error); });
