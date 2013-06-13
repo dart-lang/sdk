@@ -105,10 +105,12 @@ def ProcessTools(mode, name, version):
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
   local_env = os.environ.copy()
-  # The buildbot sets BOTO_CONFIG to the chromium specific file, we use the one
-  # in home.
+  # The buildbot sets AWS_CREDENTIAL_FILE/BOTO_CONFIG to the chromium specific
+  # file, we use the one in home.
   if 'BOTO_CONFIG' in local_env:
     del local_env['BOTO_CONFIG']
+  if 'AWS_CREDENTIAL_FILE' in local_env:
+    del local_env['AWS_CREDENTIAL_FILE']
   #if 'linux' in name:
   #  javahome = os.path.join(os.path.expanduser('~'), 'jdk1.6.0_25')
   #  local_env['JAVA_HOME'] = javahome
