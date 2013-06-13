@@ -29,7 +29,7 @@ standalone/typed_data_view_test: Fail
 
 # Tests using fake "part" and/or "part of" directive.
 standalone/typed_data_test: Fail
-standalone/io/http_date_test: Fail
+standalone/io/http_cookie_date_test: Fail
 standalone/io/http_headers_test: Fail
 standalone/io/http_parser_test: Fail
 standalone/io/web_socket_protocol_processor_test: Fail

@@ -4,112 +4,14 @@
 
 part of dart.io;
 
-class _HttpUtils {
-  static String decodeUrlEncodedString(
-      String urlEncoded,
-      {Encoding encoding: Encoding.UTF_8}) {
-    // First check the string for any encoding.
-    int index = 0;
-    bool encoded = false;
-    while (!encoded && index < urlEncoded.length) {
-      encoded = urlEncoded[index] == "+" || urlEncoded[index] == "%";
-      index++;
-    }
-    if (!encoded) return urlEncoded;
-    index--;
-
-    // Start decoding from the first encoded character.
-    List<int> bytes = new List<int>();
-    for (int i = 0; i < index; i++) bytes.add(urlEncoded.codeUnitAt(i));
-    for (int i = index; i < urlEncoded.length; i++) {
-      if (urlEncoded[i] == "+") {
-        bytes.add(32);
-      } else if (urlEncoded[i] == "%") {
-        if (urlEncoded.length - i < 2) {
-          throw new HttpException("Invalid URL encoding");
-        }
-        int byte = 0;
-        for (int j = 0; j < 2; j++) {
-          var charCode = urlEncoded.codeUnitAt(i + j + 1);
-          if (0x30 <= charCode && charCode <= 0x39) {
-            byte = byte * 16 + charCode - 0x30;
-          } else {
-            // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
-            charCode |= 0x20;
-            if (0x61 <= charCode && charCode <= 0x66) {
-              byte = byte * 16 + charCode - 0x57;
-            } else {
-              throw new ArgumentError("Invalid URL encoding");
-            }
-          }
-        }
-        bytes.add(byte);
-        i += 2;
-      } else {
-        bytes.add(urlEncoded.codeUnitAt(i));
-      }
-    }
-    return _decodeString(bytes, encoding);
-  }
-
-  static Map<String, String> splitQueryString(
-      String queryString,
-      {Encoding encoding: Encoding.UTF_8}) {
-    Map<String, String> result = new Map<String, String>();
-    int currentPosition = 0;
-    int length = queryString.length;
-
-    while (currentPosition < length) {
-
-      // Find the first equals character between current position and
-      // the provided end.
-      int indexOfEquals(int end) {
-        int index = currentPosition;
-        while (index < end) {
-          if (queryString.codeUnitAt(index) == _CharCode.EQUAL) return index;
-          index++;
-        }
-        return -1;
-      }
-
-      // Find the next separator (either & or ;), see
-      // http://www.w3.org/TR/REC-html40/appendix/notes.html#ampersands-in-uris
-      // relating the ; separator. If no separator is found returns
-      // the length of the query string.
-      int indexOfSeparator() {
-        int end = length;
-        int index = currentPosition;
-        while (index < end) {
-          int codeUnit = queryString.codeUnitAt(index);
-          if (codeUnit == _CharCode.AMPERSAND ||
-              codeUnit == _CharCode.SEMI_COLON) {
-            return index;
-          }
-          index++;
-        }
-        return end;
-      }
-
-      int seppos = indexOfSeparator();
-      int equalspos = indexOfEquals(seppos);
-      String name;
-      String value;
-      if (equalspos == -1) {
-        name = queryString.substring(currentPosition, seppos);
-        value = '';
-      } else {
-        name = queryString.substring(currentPosition, equalspos);
-        value = queryString.substring(equalspos + 1, seppos);
-      }
-      currentPosition = seppos + 1;  // This also works when seppos == length.
-      if (name == '') continue;
-      result[_HttpUtils.decodeUrlEncodedString(name, encoding: encoding)] =
-        _HttpUtils.decodeUrlEncodedString(value, encoding: encoding);
-    }
-    return result;
-  }
-
-  // From RFC 2616 section "3.3.1 Full Date"
+/**
+ * Utility functions for working with dates with HTTP specific date
+ * formats.
+ */
+class HttpDate {
+  // From RFC-2616 section "3.3.1 Full Date",
+  // http://tools.ietf.org/html/rfc2616#section-3.3.1
+  //
   // HTTP-date    = rfc1123-date | rfc850-date | asctime-date
   // rfc1123-date = wkday "," SP date1 SP time SP "GMT"
   // rfc850-date  = weekday "," SP date2 SP time SP "GMT"
@@ -130,8 +32,12 @@ class _HttpUtils {
   //              | "May" | "Jun" | "Jul" | "Aug"
   //              | "Sep" | "Oct" | "Nov" | "Dec"
 
-  // Format as RFC 1123 date.
-  static String formatDate(DateTime date) {
+  /**
+   * Format a date according to
+   * [RFC-1123](http://tools.ietf.org/html/rfc1123 "RFC-1123"),
+   * e.g. `Thu, 1 Jan 1970 00:00:00 GMT`.
+   */
+  static String format(DateTime date) {
     const List wkday = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const List month = const ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -155,7 +61,21 @@ class _HttpUtils {
     return sb.toString();
   }
 
-  static DateTime parseDate(String date) {
+  /**
+   * Parse a date string in either of the formats
+   * [RFC-1123](http://tools.ietf.org/html/rfc1123 "RFC-1123"),
+   * [RFC-850](http://tools.ietf.org/html/rfc850 "RFC-850") or
+   * ANSI C's asctime() format. These formats are listed here.
+   *
+   *     Thu, 1 Jan 1970 00:00:00 GMT
+   *     Thursday, 1-Jan-1970 00:00:00 GMT
+   *     Thu Jan  1 00:00:00 1970
+   *
+   * For more information see [RFC-2616 section 3.1.1]
+   * (http://tools.ietf.org/html/rfc2616#section-3.3.1
+   * "RFC-2616 section 3.1.1").
+   */
+  static DateTime parse(String date) {
     final int SP = 32;
     const List wkdays = const ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const List weekdays = const ["Monday", "Tuesday", "Wednesday", "Thursday",
@@ -281,6 +201,112 @@ class _HttpUtils {
     }
     expectEnd();
     return new DateTime.utc(year, month + 1, day, hours, minutes, seconds, 0);
+  }
+}
+
+class _HttpUtils {
+  static String decodeUrlEncodedString(
+      String urlEncoded,
+      {Encoding encoding: Encoding.UTF_8}) {
+    // First check the string for any encoding.
+    int index = 0;
+    bool encoded = false;
+    while (!encoded && index < urlEncoded.length) {
+      encoded = urlEncoded[index] == "+" || urlEncoded[index] == "%";
+      index++;
+    }
+    if (!encoded) return urlEncoded;
+    index--;
+
+    // Start decoding from the first encoded character.
+    List<int> bytes = new List<int>();
+    for (int i = 0; i < index; i++) bytes.add(urlEncoded.codeUnitAt(i));
+    for (int i = index; i < urlEncoded.length; i++) {
+      if (urlEncoded[i] == "+") {
+        bytes.add(32);
+      } else if (urlEncoded[i] == "%") {
+        if (urlEncoded.length - i < 2) {
+          throw new HttpException("Invalid URL encoding");
+        }
+        int byte = 0;
+        for (int j = 0; j < 2; j++) {
+          var charCode = urlEncoded.codeUnitAt(i + j + 1);
+          if (0x30 <= charCode && charCode <= 0x39) {
+            byte = byte * 16 + charCode - 0x30;
+          } else {
+            // Check ranges A-F (0x41-0x46) and a-f (0x61-0x66).
+            charCode |= 0x20;
+            if (0x61 <= charCode && charCode <= 0x66) {
+              byte = byte * 16 + charCode - 0x57;
+            } else {
+              throw new ArgumentError("Invalid URL encoding");
+            }
+          }
+        }
+        bytes.add(byte);
+        i += 2;
+      } else {
+        bytes.add(urlEncoded.codeUnitAt(i));
+      }
+    }
+    return _decodeString(bytes, encoding);
+  }
+
+  static Map<String, String> splitQueryString(
+      String queryString,
+      {Encoding encoding: Encoding.UTF_8}) {
+    Map<String, String> result = new Map<String, String>();
+    int currentPosition = 0;
+    int length = queryString.length;
+
+    while (currentPosition < length) {
+
+      // Find the first equals character between current position and
+      // the provided end.
+      int indexOfEquals(int end) {
+        int index = currentPosition;
+        while (index < end) {
+          if (queryString.codeUnitAt(index) == _CharCode.EQUAL) return index;
+          index++;
+        }
+        return -1;
+      }
+
+      // Find the next separator (either & or ;), see
+      // http://www.w3.org/TR/REC-html40/appendix/notes.html#ampersands-in-uris
+      // relating the ; separator. If no separator is found returns
+      // the length of the query string.
+      int indexOfSeparator() {
+        int end = length;
+        int index = currentPosition;
+        while (index < end) {
+          int codeUnit = queryString.codeUnitAt(index);
+          if (codeUnit == _CharCode.AMPERSAND ||
+              codeUnit == _CharCode.SEMI_COLON) {
+            return index;
+          }
+          index++;
+        }
+        return end;
+      }
+
+      int seppos = indexOfSeparator();
+      int equalspos = indexOfEquals(seppos);
+      String name;
+      String value;
+      if (equalspos == -1) {
+        name = queryString.substring(currentPosition, seppos);
+        value = '';
+      } else {
+        name = queryString.substring(currentPosition, equalspos);
+        value = queryString.substring(equalspos + 1, seppos);
+      }
+      currentPosition = seppos + 1;  // This also works when seppos == length.
+      if (name == '') continue;
+      result[_HttpUtils.decodeUrlEncodedString(name, encoding: encoding)] =
+        _HttpUtils.decodeUrlEncodedString(value, encoding: encoding);
+    }
+    return result;
   }
 
   static DateTime parseCookieDate(String date) {

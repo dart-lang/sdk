@@ -107,7 +107,7 @@ class Uri {
          query: _emptyIfNull(m[_COMPONENT_QUERY_DATA]),
          fragment: _emptyIfNull(m[_COMPONENT_FRAGMENT]));
 
-  /*
+  /**
    * Create a new URI from its components.
    *
    * Each component is set through a named argument. Any number of
@@ -177,7 +177,7 @@ class Uri {
     _path = _makePath(path, pathSegments);
   }
 
-  /*
+  /**
    * Returns the URI path split into its segments. Each of the
    * segments in the returned list have been decoded. If the path is
    * empty the empty list will be returned. A leading slash `/` does
@@ -200,30 +200,22 @@ class Uri {
     return _pathSegments;
   }
 
-  /*
+  /**
    * Returns the URI query split into a map according to the rules
-   * specified for FORM post in the HTML 4.01 specification. Each key
-   * and value in the returned map have been decoded. If there is no
-   * query the empty map will be returned.
+   * specified for FORM post in the [HTML 4.01 specification section 17.13.4]
+   * (http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
+   * "HTML 4.01 section 17.13.4"). Each key and value in the returned map
+   * has been decoded. If there is no query the empty map is returned.
+   *
+   * Keys in the query string that have no value are mapped to the
+   * empty string.
    *
    * The returned map is unmodifiable and will throw [UnsupportedError] on any
    * calls that would mutate it.
    */
   Map<String, String> get queryParameters {
     if (_queryParameters == null) {
-      var map;
-      map = query.split("&").fold({}, (map, element) {
-        int index = element.indexOf("=");
-        if (index == -1) {
-          if (!element.isEmpty) map[decodeQueryComponent(element)] = "";
-        } else if (index != 0) {
-          var key = element.substring(0, index);
-          var value = element.substring(index + 1);
-          map[Uri.decodeQueryComponent(key)] = decodeQueryComponent(value);
-        }
-        return map;
-      });
-      _queryParameters = new _UnmodifiableMap(map);
+      _queryParameters = new _UnmodifiableMap(splitQueryString(query));
     }
     return _queryParameters;
   }
@@ -549,6 +541,9 @@ class Uri {
                    fragment: reference.fragment);
   }
 
+  /**
+   * Returns whether the URI has an [authority] component.
+   */
   bool get hasAuthority => host != "";
 
   /**
@@ -647,7 +642,7 @@ class Uri {
     return _uriEncode(_unreserved2396Table, component);
   }
 
-  /*
+  /**
    * Encode the string [component] according to the HTML 4.01 rules
    * for encoding the posting of a HTML form as a query string
    * component.
@@ -716,6 +711,32 @@ class Uri {
    */
   static String decodeFull(String uri) {
     return _uriDecode(uri);
+  }
+
+  /**
+   * Returns the [query] split into a map according to the rules
+   * specified for FORM post in the
+   * [HTML 4.01 specification section 17.13.4]
+   * (http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
+   * "HTML 4.01 section 17.13.4"). Each key and value in the returned
+   * map has been decoded. If the [query]
+   * is the empty string an empty map is returned.
+   *
+   * Keys in the query string that have no value are mapped to the
+   * empty string.
+   */
+  static Map<String, String> splitQueryString(String query) {
+    return query.split("&").fold({}, (map, element) {
+      int index = element.indexOf("=");
+      if (index == -1) {
+        if (element != "") map[decodeQueryComponent(element)] = "";
+      } else if (index != 0) {
+        var key = element.substring(0, index);
+        var value = element.substring(index + 1);
+        map[Uri.decodeQueryComponent(key)] = decodeQueryComponent(value);
+      }
+      return map;
+    });
   }
 
   // Frequently used character codes.

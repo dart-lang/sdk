@@ -72,7 +72,7 @@ io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
 # members and methods of dart:io.
 # Dartc spots the misuse of 'part' directives in these unit tests.
 io/http_headers_test: Skip  # dartc cannot parse dart:io unit tests.
-io/http_date_test: Skip  # dartc cannot parse dart:io unit tests.
+io/http_cookie_date_test: Skip  # dartc cannot parse dart:io unit tests.
 io/url_encoding_test: Skip  # dartc cannot parse dart:io unit tests.
 io/http_parser_test: Skip  # dartc cannot parse dart:io unit tests.
 io/web_socket_protocol_processor_test: Skip  # dart:io unit test.
@@ -82,7 +82,7 @@ io/process_exit_negative_test: Fail  # This is a compilation-time negative test.
 
 [ $compiler == dartanalyzer ]
 io/file_constructor_test: fail
-io/http_date_test: fail
+io/http_cookie_date_test: fail
 io/http_headers_test: fail
 io/http_parser_test: fail
 io/process_exit_negative_test: fail
@@ -97,7 +97,7 @@ io/skipping_dart2js_compilations_test: fail
 
 [ $compiler == dart2analyzer ]
 io/file_constructor_test: fail
-io/http_date_test: fail
+io/http_cookie_date_test: fail
 io/http_headers_test: fail
 io/http_parser_test: fail
 io/process_exit_negative_test: fail
