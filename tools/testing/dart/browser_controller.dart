@@ -874,6 +874,7 @@ class BrowserTestingServer {
 
       var embedded_iframe = document.getElementById('embedded_iframe');
       var use_iframe = ${useIframe};
+      var start = new Date();
 
       function newTaskHandler() {
         if (this.readyState == this.DONE) {
@@ -883,6 +884,8 @@ class BrowserTestingServer {
             } else if (this.responseText == '$terminateSignal') {
               // Don't do anything, we will be killed shortly.
             } else {
+              var elapsed = new Date() - start;
+              reportError('Done getting task at: ' + elapsed);
               // TODO(ricow): Do something more clever here.
               if (nextTask != undefined) alert('This is really bad');
               // The task is send to us as:
@@ -900,6 +903,8 @@ class BrowserTestingServer {
       }
 
       function getNextTask() {
+        var elapsed = new Date() - start;
+        reportError('Getting task at: ' + elapsed);
         var client = new XMLHttpRequest();
         client.onreadystatechange = newTaskHandler;
         client.open('GET', '$nextTestPath/$browserId');
@@ -953,6 +958,8 @@ class BrowserTestingServer {
           if (this.readyState == this.DONE) {
             if (this.status == 200) {
               if (last_reported_id != current_id && did_start) {
+                var elapsed = new Date() - start;
+                reportError('Done sending results at: ' + elapsed);
                 getNextTask();
                 last_reported_id = current_id;
               }
@@ -971,6 +978,8 @@ class BrowserTestingServer {
         client.setRequestHeader('Content-type',
                                 'application/x-www-form-urlencoded');
         client.send(msg);
+        var elapsed = new Date() - start;
+        reportError('Sending results at: ' + elapsed);
       }
 
       function messageHandler(e) {
