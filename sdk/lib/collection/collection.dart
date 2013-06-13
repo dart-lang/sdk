@@ -12,6 +12,7 @@ part 'iterator.dart';
 part 'maps.dart';
 part 'queue.dart';
 part 'splay_tree.dart';
+part 'linked_list.dart';
 part 'hash_set.dart';
 part 'hash_map.dart';
 part 'list.dart';

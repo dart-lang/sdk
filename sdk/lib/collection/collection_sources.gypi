@@ -14,6 +14,7 @@
     'iterator.dart',
     'linked_hash_map.dart',
     'linked_hash_set.dart',
+    'linked_list.dart',
     'list.dart',
     'maps.dart',
     'queue.dart',
