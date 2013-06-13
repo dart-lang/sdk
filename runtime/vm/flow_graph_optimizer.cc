@@ -3432,6 +3432,8 @@ LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
+  // TODO(fschneider): Avoid repeated deoptimization when
+  // speculatively hoisting checks.
   if (FLAG_trace_optimization) {
     OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
               current->DebugName(),
@@ -3487,7 +3489,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   }
 
   // Host CheckSmi instruction and make this phi smi one.
-  if (MayHoist(current, pre_header)) Hoist(it, pre_header, current);
+  Hoist(it, pre_header, current);
 
   // Replace value we are checking with phi's input.
   current->value()->BindTo(phi->InputAt(non_smi_input)->definition());
@@ -3503,31 +3505,6 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
       instr->HasExprId() &&
       ((*sets)[loop_header_index] != NULL) &&
       (*sets)[loop_header_index]->Contains(instr->expr_id());
-}
-
-
-bool LICM::MayHoist(Instruction* instr, BlockEntryInstr* pre_header) {
-  // TODO(fschneider): Enable hoisting of Assert-instructions
-  // if it safe to do.
-  if (instr->IsAssertAssignable()) return false;
-  if (instr->IsAssertBoolean()) return false;
-
-  if (instr->CanDeoptimize()) {
-    intptr_t target_deopt_id =
-        pre_header->last_instruction()->AsGoto()->GetDeoptId();
-    const Function& function = flow_graph_->parsed_function().function();
-    const Array& deopt_history = Array::Handle(function.deopt_history());
-    if (deopt_history.IsNull()) return true;
-
-    Smi& deopt_id = Smi::Handle();
-    for (intptr_t i = 0; i < deopt_history.Length(); ++i) {
-      deopt_id ^= deopt_history.At(i);
-      if (!deopt_id.IsNull() && (deopt_id.Value() == target_deopt_id)) {
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 
@@ -3565,7 +3542,11 @@ void LICM::Optimize() {
               break;
             }
           }
-          if (inputs_loop_invariant && MayHoist(current, pre_header)) {
+          if (inputs_loop_invariant &&
+              !current->IsAssertAssignable() &&
+              !current->IsAssertBoolean()) {
+            // TODO(fschneider): Enable hoisting of Assert-instructions
+            // if it safe to do.
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {

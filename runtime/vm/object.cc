@@ -55,7 +55,6 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(int, deoptimization_counter_threshold);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -3451,20 +3450,6 @@ void Function::SwitchToUnoptimizedCode() const {
 
 void Function::set_unoptimized_code(const Code& value) const {
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
-}
-
-
-void Function::set_deopt_history(const Array& value) const {
-  StorePointer(&raw_ptr()->deopt_history_, value.raw());
-}
-
-
-void Function::EnsureDeoptHistory() const {
-  Array& array = Array::Handle(deopt_history());
-  if (array.IsNull()) {
-    array = Array::New(FLAG_deoptimization_counter_threshold);
-    set_deopt_history(array);
-  }
 }
 
 

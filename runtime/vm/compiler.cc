@@ -515,9 +515,6 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
                     Code::Handle(function.unoptimized_code()).EntryPoint());
         }
 
-        // If not yet present, allocate deoptimization history array.
-        function.EnsureDeoptHistory();
-
         for (intptr_t i = 0; i < guarded_fields.length(); i++) {
           const Field& field = *guarded_fields[i];
           field.RegisterDependentCode(code);

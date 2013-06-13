@@ -612,7 +612,6 @@ class RawFunction : public RawObject {
   RawArray* parameter_names_;
   RawCode* code_;  // Compiled code for the function.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
-  RawArray* deopt_history_;  // Deopt Ids of past deoptimizations.
   RawObject* data_;  // Additional data specific to the function kind.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);

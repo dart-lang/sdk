@@ -202,8 +202,6 @@ class LICM : public ValueObject {
  private:
   FlowGraph* flow_graph() const { return flow_graph_; }
 
-  bool MayHoist(Instruction* instr, BlockEntryInstr* pre_header);
-
   void Hoist(ForwardInstructionIterator* it,
              BlockEntryInstr* pre_header,
              Instruction* current);
