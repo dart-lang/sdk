@@ -403,6 +403,9 @@ LibTest/async/Completer/complete_A01_t04: Fail # Completer is now asynchronous. 
 LibTest/async/Future/then_A01_t01: Fail # Completer is now asynchronous. Issue 419
 LibTest/async/Future/then_A01_t04: Fail # Completer is now asynchronous. Issue 419
 
+LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
+LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
+
 # end [ $compiler == none && $runtime == vm ]
 
 
@@ -454,9 +457,6 @@ LibTest/async/Completer/completeError_A03_t02: Fail # No AsyncError anymore. Iss
 LibTest/async/Completer/complete_A02_t02: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Future/catchError_A01_t01: Fail # No AsyncError anymore. Issue 407
 LibTest/async/Future/catchError_A01_t02: Fail # No AsyncError anymore. Issue 407
-
-LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
-LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 
 #end [ $compiler == none && $runtime == vm && $checked ]
 
