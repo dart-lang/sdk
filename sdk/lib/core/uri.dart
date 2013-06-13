@@ -1004,6 +1004,9 @@ class _UnmodifiableMap<K, V> implements Map<K, V> {
   V putIfAbsent(K key, V ifAbsent()) {
     throw new UnsupportedError("Cannot modify an unmodifiable map");
   }
+  addAll(Map other) {
+    throw new UnsupportedError("Cannot modify an unmodifiable map");
+  }
   V remove(K key) {
     throw new UnsupportedError("Cannot modify an unmodifiable map");
   }
