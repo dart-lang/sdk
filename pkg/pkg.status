@@ -64,7 +64,7 @@ intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 analyzer_experimental/test/generated/ast_test: Fail
 unittest/test/instance_test: Fail # http://dartbug.com/11191
 
-[ $compiler == dart2js && $runtime == d8 ]
+[ $compiler == dart2js && $runtime == d8 && $checked ]
 pathos/test/pathos_io_test: Fail # Issue 11258
 oauth2/*: Fail # Issue 11258
 oauth2/test/utils_test: Pass
@@ -200,7 +200,7 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
 
-[ $runtime == dartium ]
+[ ($runtime == dartium || $runtime == drt) && $compiler == none ]
 pathos/test/pathos_dart2js_test: Fail, OK # Issue 6490
 
 # Skip mdv_observe tests on command line VM, they only run in the browser.
