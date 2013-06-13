@@ -172,17 +172,6 @@ class NativeEmitter {
         needed = true;
       }
 
-      // BUG.  There is a missing proto in the picture the DOM gives of the
-      // proto chain.
-      // TODO(9907): Fix DOM generation. We might need an annotation.
-      if (classElement.isNative()) {
-        List<String> nativeTags = nativeTagsOfClass(classElement);
-        if (nativeTags.contains('HTMLElement')) {
-          nonleafClasses.add(classElement);
-          needed = true;
-        }
-      }
-
       if (needed || neededClasses.contains(classElement)) {
         neededClasses.add(classElement);
         neededClasses.add(classElement.superclass);
