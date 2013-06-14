@@ -110,7 +110,7 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
   // Primitive types that are not null are valuable. These include
   // indexable arrays.
   bool typeValuable(HType type) {
-    return type.isPrimitive() && !type.isNull();
+    return type.isPrimitive(compiler) && !type.isNull();
   }
 
   bool get hasTypeGuards => work.guards.length != 0;
@@ -219,7 +219,8 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
   bool willThrowArgumentError(Selector selector,
                               HInstruction receiver,
                               HType speculativeType) {
-    if (receiver != null && (receiver.isInteger() || receiver.isString())) {
+    if (receiver != null
+        && (receiver.isInteger() || receiver.isString(compiler))) {
       return selector.isOperator()
           && selector.name != const SourceString('==')
           && (speculativeType.isNumber() && !speculativeType.isInteger());

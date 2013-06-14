@@ -114,7 +114,7 @@ class AbstractWorker extends EventTarget {
 
 @DocsEditable
 @DomName('HTMLAnchorElement')
-class AnchorElement extends _Element_Merged {
+class AnchorElement extends _HTMLElement {
   AnchorElement.internal() : super.internal();
 
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
@@ -445,7 +445,7 @@ class ApplicationCache extends EventTarget {
  * on MDN.
  */
 @DomName('HTMLAreaElement')
-class AreaElement extends _Element_Merged {
+class AreaElement extends _HTMLElement {
   AreaElement.internal() : super.internal();
 
   @DomName('HTMLAreaElement.HTMLAreaElement')
@@ -583,7 +583,7 @@ class AutocompleteErrorEvent extends Event {
 
 @DocsEditable
 @DomName('HTMLBRElement')
-class BRElement extends _Element_Merged {
+class BRElement extends _HTMLElement {
   BRElement.internal() : super.internal();
 
   @DomName('HTMLBRElement.HTMLBRElement')
@@ -619,7 +619,7 @@ class BarProp extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLBaseElement')
-class BaseElement extends _Element_Merged {
+class BaseElement extends _HTMLElement {
   BaseElement.internal() : super.internal();
 
   @DomName('HTMLBaseElement.HTMLBaseElement')
@@ -717,7 +717,7 @@ class Blob extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLBodyElement')
-class BodyElement extends _Element_Merged {
+class BodyElement extends _HTMLElement {
   BodyElement.internal() : super.internal();
 
   @DomName('HTMLBodyElement.blurEvent')
@@ -830,7 +830,7 @@ class BodyElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLButtonElement')
-class ButtonElement extends _Element_Merged {
+class ButtonElement extends _HTMLElement {
   ButtonElement.internal() : super.internal();
 
   @DomName('HTMLButtonElement.HTMLButtonElement')
@@ -991,8 +991,16 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass1 {
 
 
 @DomName('HTMLCanvasElement')
-class CanvasElement extends _Element_Merged implements CanvasImageSource {
+class CanvasElement extends _HTMLElement implements CanvasImageSource {
   CanvasElement.internal() : super.internal();
+
+  @DomName('HTMLCanvasElement.webglcontextlostEvent')
+  @DocsEditable
+  static const EventStreamProvider<gl.ContextEvent> webGlContextLostEvent = const EventStreamProvider<gl.ContextEvent>('webglcontextlost');
+
+  @DomName('HTMLCanvasElement.webglcontextrestoredEvent')
+  @DocsEditable
+  static const EventStreamProvider<gl.ContextEvent> webGlContextRestoredEvent = const EventStreamProvider<gl.ContextEvent>('webglcontextrestored');
 
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable
@@ -1070,6 +1078,14 @@ class CanvasElement extends _Element_Merged implements CanvasImageSource {
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable
   String toDataUrl(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
+
+  @DomName('HTMLCanvasElement.onwebglcontextlost')
+  @DocsEditable
+  Stream<gl.ContextEvent> get onWebGlContextLost => webGlContextLostEvent.forTarget(this);
+
+  @DomName('HTMLCanvasElement.onwebglcontextrestored')
+  @DocsEditable
+  Stream<gl.ContextEvent> get onWebGlContextRestored => webGlContextRestoredEvent.forTarget(this);
 
   /** An API for drawing on this canvas. */
   CanvasRenderingContext2D get context2D => getContext('2d');
@@ -2172,7 +2188,7 @@ class Console extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#content-element
-class ContentElement extends _Element_Merged {
+class ContentElement extends _HTMLElement {
   ContentElement.internal() : super.internal();
 
   @DomName('HTMLContentElement.HTMLContentElement')
@@ -2541,8 +2557,6 @@ class CssKeyframeRule extends CssRule {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable
 @DomName('WebKitCSSKeyframesRule')
@@ -2579,7 +2593,8 @@ class CssKeyframesRule extends CssRule {
 
   @DomName('WebKitCSSKeyframesRule.insertRule')
   @DocsEditable
-  void insertRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
+  void appendRule(String rule) native "CSSKeyframesRule_insertRule_Callback";
+
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6534,7 +6549,7 @@ class CustomEvent extends Event {
 
 @DocsEditable
 @DomName('HTMLDListElement')
-class DListElement extends _Element_Merged {
+class DListElement extends _HTMLElement {
   DListElement.internal() : super.internal();
 
   @DomName('HTMLDListElement.HTMLDListElement')
@@ -6555,7 +6570,7 @@ class DListElement extends _Element_Merged {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class DataListElement extends _Element_Merged {
+class DataListElement extends _HTMLElement {
   DataListElement.internal() : super.internal();
 
   @DomName('HTMLDataListElement.HTMLDataListElement')
@@ -6754,7 +6769,7 @@ typedef void DatabaseCallback(database);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class DetailsElement extends _Element_Merged {
+class DetailsElement extends _HTMLElement {
   DetailsElement.internal() : super.internal();
 
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
@@ -6910,7 +6925,7 @@ class DeviceRotationRate extends NativeFieldWrapperClass1 {
 @DocsEditable
 @DomName('HTMLDialogElement')
 @Unstable
-class DialogElement extends _Element_Merged {
+class DialogElement extends _HTMLElement {
   DialogElement.internal() : super.internal();
 
   @DomName('HTMLDialogElement.open')
@@ -7081,7 +7096,7 @@ class DirectoryReader extends NativeFieldWrapperClass1 {
  * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
  */
 @DomName('HTMLDivElement')
-class DivElement extends _Element_Merged {
+class DivElement extends _HTMLElement {
   DivElement.internal() : super.internal();
 
   @DomName('HTMLDivElement.HTMLDivElement')
@@ -9906,7 +9921,7 @@ class ElementTraversal extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
-class EmbedElement extends _Element_Merged {
+class EmbedElement extends _HTMLElement {
   EmbedElement.internal() : super.internal();
 
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
@@ -10603,7 +10618,7 @@ class EventTarget extends NativeFieldWrapperClass1 {
 @DocsEditable
 @DomName('HTMLFieldSetElement')
 @Unstable
-class FieldSetElement extends _Element_Merged {
+class FieldSetElement extends _HTMLElement {
   FieldSetElement.internal() : super.internal();
 
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
@@ -11395,7 +11410,7 @@ class FormData extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLFormElement')
-class FormElement extends _Element_Merged {
+class FormElement extends _HTMLElement {
   FormElement.internal() : super.internal();
 
   @DomName('HTMLFormElement.autocompleteEvent')
@@ -11695,7 +11710,7 @@ class Geoposition extends NativeFieldWrapperClass1 {
  * An `<hr>` tag.
  */
 @DomName('HTMLHRElement')
-class HRElement extends _Element_Merged {
+class HRElement extends _HTMLElement {
   HRElement.internal() : super.internal();
 
   @DomName('HTMLHRElement.HTMLHRElement')
@@ -11750,7 +11765,7 @@ class HashChangeEvent extends Event {
 
 @DocsEditable
 @DomName('HTMLHeadElement')
-class HeadElement extends _Element_Merged {
+class HeadElement extends _HTMLElement {
   HeadElement.internal() : super.internal();
 
   @DomName('HTMLHeadElement.HTMLHeadElement')
@@ -11767,7 +11782,7 @@ class HeadElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLHeadingElement')
-class HeadingElement extends _Element_Merged {
+class HeadingElement extends _HTMLElement {
   HeadingElement.internal() : super.internal();
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
@@ -12181,7 +12196,7 @@ class HtmlDocument extends Document {
 
 @DocsEditable
 @DomName('HTMLHtmlElement')
-class HtmlElement extends _Element_Merged {
+class HtmlElement extends _HTMLElement {
   HtmlElement.internal() : super.internal();
 
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
@@ -12878,7 +12893,7 @@ class HttpRequestUpload extends EventTarget {
 
 @DocsEditable
 @DomName('HTMLIFrameElement')
-class IFrameElement extends _Element_Merged {
+class IFrameElement extends _HTMLElement {
   IFrameElement.internal() : super.internal();
 
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
@@ -12983,7 +12998,7 @@ class ImageData extends NativeFieldWrapperClass1 {
 
 
 @DomName('HTMLImageElement')
-class ImageElement extends _Element_Merged implements CanvasImageSource {
+class ImageElement extends _HTMLElement implements CanvasImageSource {
   ImageElement.internal() : super.internal();
 
   @DomName('HTMLImageElement.HTMLImageElement')
@@ -13101,7 +13116,7 @@ class ImageElement extends _Element_Merged implements CanvasImageSource {
 
 
 @DomName('HTMLInputElement')
-class InputElement extends _Element_Merged implements
+class InputElement extends _HTMLElement implements
     HiddenInputElement,
     SearchInputElement,
     TextInputElement,
@@ -14354,7 +14369,7 @@ class KeyboardEvent extends UIEvent {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#the-keygen-element
-class KeygenElement extends _Element_Merged {
+class KeygenElement extends _HTMLElement {
   KeygenElement.internal() : super.internal();
 
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
@@ -14447,7 +14462,7 @@ class KeygenElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLLIElement')
-class LIElement extends _Element_Merged {
+class LIElement extends _HTMLElement {
   LIElement.internal() : super.internal();
 
   @DomName('HTMLLIElement.HTMLLIElement')
@@ -14484,7 +14499,7 @@ class LIElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLLabelElement')
-class LabelElement extends _Element_Merged {
+class LabelElement extends _HTMLElement {
   LabelElement.internal() : super.internal();
 
   @DomName('HTMLLabelElement.HTMLLabelElement')
@@ -14517,7 +14532,7 @@ class LabelElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLLegendElement')
-class LegendElement extends _Element_Merged {
+class LegendElement extends _HTMLElement {
   LegendElement.internal() : super.internal();
 
   @DomName('HTMLLegendElement.HTMLLegendElement')
@@ -14538,7 +14553,7 @@ class LegendElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLLinkElement')
-class LinkElement extends _Element_Merged {
+class LinkElement extends _HTMLElement {
   LinkElement.internal() : super.internal();
 
   @DomName('HTMLLinkElement.HTMLLinkElement')
@@ -14735,7 +14750,7 @@ typedef void MidiErrorCallback(DomError error);
 
 @DocsEditable
 @DomName('HTMLMapElement')
-class MapElement extends _Element_Merged {
+class MapElement extends _HTMLElement {
   MapElement.internal() : super.internal();
 
   @DomName('HTMLMapElement.HTMLMapElement')
@@ -14877,7 +14892,7 @@ class MediaController extends EventTarget {
 @DocsEditable
 @DomName('HTMLMediaElement')
 @Unstable
-class MediaElement extends _Element_Merged {
+class MediaElement extends _HTMLElement {
   MediaElement.internal() : super.internal();
 
   @DomName('HTMLMediaElement.canplayEvent')
@@ -15285,6 +15300,7 @@ class MediaElement extends _Element_Merged {
 
   @DomName('HTMLMediaElement.canPlayType')
   @DocsEditable
+  @Unstable
   String canPlayType(String type, String keySystem) native "HTMLMediaElement_canPlayType_Callback";
 
   @DomName('HTMLMediaElement.load')
@@ -16175,7 +16191,7 @@ class MemoryInfo extends NativeFieldWrapperClass1 {
  *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
  */
 @DomName('HTMLMenuElement')
-class MenuElement extends _Element_Merged {
+class MenuElement extends _HTMLElement {
   MenuElement.internal() : super.internal();
 
   @DomName('HTMLMenuElement.HTMLMenuElement')
@@ -16317,7 +16333,7 @@ class MessagePort extends EventTarget {
 
 @DocsEditable
 @DomName('HTMLMetaElement')
-class MetaElement extends _Element_Merged {
+class MetaElement extends _HTMLElement {
   MetaElement.internal() : super.internal();
 
   @DomName('HTMLMetaElement.HTMLMetaElement')
@@ -16396,7 +16412,7 @@ typedef void MetadataCallback(Metadata metadata);
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
-class MeterElement extends _Element_Merged {
+class MeterElement extends _HTMLElement {
   MeterElement.internal() : super.internal();
 
   @DomName('HTMLMeterElement.HTMLMeterElement')
@@ -16774,7 +16790,7 @@ class MimeTypeArray extends NativeFieldWrapperClass1 with ListMixin<MimeType>, I
 @DocsEditable
 @DomName('HTMLModElement')
 @Unstable
-class ModElement extends _Element_Merged {
+class ModElement extends _HTMLElement {
   ModElement.internal() : super.internal();
 
   @DomName('HTMLModElement.cite')
@@ -18322,7 +18338,7 @@ typedef void _NotificationPermissionCallback(String permission);
 
 @DocsEditable
 @DomName('HTMLOListElement')
-class OListElement extends _Element_Merged {
+class OListElement extends _HTMLElement {
   OListElement.internal() : super.internal();
 
   @DomName('HTMLOListElement.HTMLOListElement')
@@ -18367,7 +18383,7 @@ class OListElement extends _Element_Merged {
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
-class ObjectElement extends _Element_Merged {
+class ObjectElement extends _HTMLElement {
   ObjectElement.internal() : super.internal();
 
   @DomName('HTMLObjectElement.HTMLObjectElement')
@@ -18479,7 +18495,7 @@ class ObjectElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLOptGroupElement')
-class OptGroupElement extends _Element_Merged {
+class OptGroupElement extends _HTMLElement {
   OptGroupElement.internal() : super.internal();
 
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
@@ -18512,7 +18528,7 @@ class OptGroupElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLOptionElement')
-class OptionElement extends _Element_Merged {
+class OptionElement extends _HTMLElement {
   OptionElement.internal() : super.internal();
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
@@ -18585,7 +18601,7 @@ class OptionElement extends _Element_Merged {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class OutputElement extends _Element_Merged {
+class OutputElement extends _HTMLElement {
   OutputElement.internal() : super.internal();
 
   @DomName('HTMLOutputElement.HTMLOutputElement')
@@ -18723,7 +18739,7 @@ class PageTransitionEvent extends Event {
 
 @DocsEditable
 @DomName('HTMLParagraphElement')
-class ParagraphElement extends _Element_Merged {
+class ParagraphElement extends _HTMLElement {
   ParagraphElement.internal() : super.internal();
 
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
@@ -18741,7 +18757,7 @@ class ParagraphElement extends _Element_Merged {
 @DocsEditable
 @DomName('HTMLParamElement')
 @Unstable
-class ParamElement extends _Element_Merged {
+class ParamElement extends _HTMLElement {
   ParamElement.internal() : super.internal();
 
   @DomName('HTMLParamElement.HTMLParamElement')
@@ -19412,7 +19428,7 @@ typedef void _PositionErrorCallback(PositionError error);
 
 @DocsEditable
 @DomName('HTMLPreElement')
-class PreElement extends _Element_Merged {
+class PreElement extends _HTMLElement {
   PreElement.internal() : super.internal();
 
   @DomName('HTMLPreElement.HTMLPreElement')
@@ -19476,7 +19492,7 @@ class ProcessingInstruction extends Node {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class ProgressElement extends _Element_Merged {
+class ProgressElement extends _HTMLElement {
   ProgressElement.internal() : super.internal();
 
   @DomName('HTMLProgressElement.HTMLProgressElement')
@@ -19546,7 +19562,7 @@ class ProgressEvent extends Event {
 
 @DocsEditable
 @DomName('HTMLQuoteElement')
-class QuoteElement extends _Element_Merged {
+class QuoteElement extends _HTMLElement {
   QuoteElement.internal() : super.internal();
 
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
@@ -19606,6 +19622,9 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 @Unstable
 class Range extends NativeFieldWrapperClass1 {
   factory Range() => document.$dom_createRange();
+
+  factory Range.fromPoint(Point point) =>
+      document.$dom_caretRangeFromPoint(point.x, point.y);
   Range.internal();
 
   @DomName('Range.END_TO_END')
@@ -20470,7 +20489,7 @@ class Screen extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLScriptElement')
-class ScriptElement extends _Element_Merged {
+class ScriptElement extends _HTMLElement {
   ScriptElement.internal() : super.internal();
 
   @DomName('HTMLScriptElement.HTMLScriptElement')
@@ -20698,7 +20717,7 @@ class SecurityPolicyViolationEvent extends Event {
 
 
 @DomName('HTMLSelectElement')
-class SelectElement extends _Element_Merged {
+class SelectElement extends _HTMLElement {
   SelectElement.internal() : super.internal();
 
   @DomName('HTMLSelectElement.HTMLSelectElement')
@@ -20980,7 +20999,7 @@ class Selection extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#shadow-element
-class ShadowElement extends _Element_Merged {
+class ShadowElement extends _HTMLElement {
   ShadowElement.internal() : super.internal();
 
   @DomName('HTMLShadowElement.HTMLShadowElement')
@@ -21200,7 +21219,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
 @DocsEditable
 @DomName('HTMLSourceElement')
-class SourceElement extends _Element_Merged {
+class SourceElement extends _HTMLElement {
   SourceElement.internal() : super.internal();
 
   @DomName('HTMLSourceElement.HTMLSourceElement')
@@ -21241,7 +21260,7 @@ class SourceElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLSpanElement')
-class SpanElement extends _Element_Merged {
+class SpanElement extends _HTMLElement {
   SpanElement.internal() : super.internal();
 
   @DomName('HTMLSpanElement.HTMLSpanElement')
@@ -22291,7 +22310,7 @@ typedef void _StringCallback(String data);
 
 @DocsEditable
 @DomName('HTMLStyleElement')
-class StyleElement extends _Element_Merged {
+class StyleElement extends _HTMLElement {
   StyleElement.internal() : super.internal();
 
   @DomName('HTMLStyleElement.HTMLStyleElement')
@@ -22412,7 +22431,7 @@ class StyleSheet extends NativeFieldWrapperClass1 {
 
 @DocsEditable
 @DomName('HTMLTableCaptionElement')
-class TableCaptionElement extends _Element_Merged {
+class TableCaptionElement extends _HTMLElement {
   TableCaptionElement.internal() : super.internal();
 
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
@@ -22429,7 +22448,7 @@ class TableCaptionElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLTableCellElement')
-class TableCellElement extends _Element_Merged {
+class TableCellElement extends _HTMLElement {
   TableCellElement.internal() : super.internal();
 
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
@@ -22474,7 +22493,7 @@ class TableCellElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLTableColElement')
-class TableColElement extends _Element_Merged {
+class TableColElement extends _HTMLElement {
   TableColElement.internal() : super.internal();
 
   @DomName('HTMLTableColElement.HTMLTableColElement')
@@ -22497,7 +22516,7 @@ class TableColElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLTableElement')
-class TableElement extends _Element_Merged {
+class TableElement extends _HTMLElement {
 
   @DomName('HTMLTableElement.tBodies')
   List<TableSectionElement> get tBodies =>
@@ -22611,7 +22630,7 @@ class TableElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLTableRowElement')
-class TableRowElement extends _Element_Merged {
+class TableRowElement extends _HTMLElement {
 
   @DomName('HTMLTableRowElement.cells')
   List<TableCellElement> get cells =>
@@ -22656,7 +22675,7 @@ class TableRowElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLTableSectionElement')
-class TableSectionElement extends _Element_Merged {
+class TableSectionElement extends _HTMLElement {
 
   @DomName('HTMLTableSectionElement.rows')
   List<TableRowElement> get rows =>
@@ -22694,7 +22713,7 @@ class TableSectionElement extends _Element_Merged {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#template-element
-class TemplateElement extends _Element_Merged {
+class TemplateElement extends _HTMLElement {
   TemplateElement.internal() : super.internal();
 
   @DomName('HTMLTemplateElement.HTMLTemplateElement')
@@ -22903,7 +22922,7 @@ class Text extends CharacterData {
 
 @DocsEditable
 @DomName('HTMLTextAreaElement')
-class TextAreaElement extends _Element_Merged {
+class TextAreaElement extends _HTMLElement {
   TextAreaElement.internal() : super.internal();
 
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
@@ -23598,7 +23617,7 @@ typedef void TimeoutHandler();
 
 @DocsEditable
 @DomName('HTMLTitleElement')
-class TitleElement extends _Element_Merged {
+class TitleElement extends _HTMLElement {
   TitleElement.internal() : super.internal();
 
   @DomName('HTMLTitleElement.HTMLTitleElement')
@@ -23851,7 +23870,7 @@ class TouchList extends NativeFieldWrapperClass1 with ListMixin<Touch>, Immutabl
 @SupportedBrowser(SupportedBrowser.SAFARI)
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#the-track-element
 @Experimental
-class TrackElement extends _Element_Merged {
+class TrackElement extends _HTMLElement {
   TrackElement.internal() : super.internal();
 
   @DomName('HTMLTrackElement.HTMLTrackElement')
@@ -24143,7 +24162,7 @@ class UIEvent extends Event {
 
 @DocsEditable
 @DomName('HTMLUListElement')
-class UListElement extends _Element_Merged {
+class UListElement extends _HTMLElement {
   UListElement.internal() : super.internal();
 
   @DomName('HTMLUListElement.HTMLUListElement')
@@ -24160,7 +24179,7 @@ class UListElement extends _Element_Merged {
 
 @DocsEditable
 @DomName('HTMLUnknownElement')
-class UnknownElement extends _Element_Merged {
+class UnknownElement extends _HTMLElement {
   UnknownElement.internal() : super.internal();
 
 }
@@ -24719,11 +24738,16 @@ class Window extends EventTarget implements WindowBase {
   }
 
   /**
-   * Returns a Future that completes just before the window is about to repaint
-   * so the user can draw an animation frame
+   * Returns a Future that completes just before the window is about to 
+   * repaint so the user can draw an animation frame.
    *
    * If you need to later cancel this animation, use [requestAnimationFrame]
    * instead.
+   *
+   * The [Future] completes to a timestamp that represents a floating
+   * point value of the number of milliseconds that have elapsed since the page 
+   * started to load (which is also the timestamp at this call to 
+   * animationFrame).
    *
    * Note: The code that runs when the future completes should call
    * [animationFrame] again for the animation to continue.
@@ -26482,159 +26506,6 @@ class _DomPoint extends NativeFieldWrapperClass1 {
 
 
 @DocsEditable
-@DomName('HTMLElement')
-class _Element_Merged extends Element {
-  _Element_Merged.internal() : super.internal();
-
-  @DomName('HTMLElement.contentEditable')
-  @DocsEditable
-  String get contentEditable native "HTMLElement_contentEditable_Getter";
-
-  @DomName('HTMLElement.contentEditable')
-  @DocsEditable
-  void set contentEditable(String value) native "HTMLElement_contentEditable_Setter";
-
-  @DomName('HTMLElement.dir')
-  @DocsEditable
-  String get dir native "HTMLElement_dir_Getter";
-
-  @DomName('HTMLElement.dir')
-  @DocsEditable
-  void set dir(String value) native "HTMLElement_dir_Setter";
-
-  @DomName('HTMLElement.draggable')
-  @DocsEditable
-  bool get draggable native "HTMLElement_draggable_Getter";
-
-  @DomName('HTMLElement.draggable')
-  @DocsEditable
-  void set draggable(bool value) native "HTMLElement_draggable_Setter";
-
-  @DomName('HTMLElement.hidden')
-  @DocsEditable
-  bool get hidden native "HTMLElement_hidden_Getter";
-
-  @DomName('HTMLElement.hidden')
-  @DocsEditable
-  void set hidden(bool value) native "HTMLElement_hidden_Setter";
-
-  @DomName('HTMLElement.id')
-  @DocsEditable
-  String get id native "HTMLElement_id_Getter";
-
-  @DomName('HTMLElement.id')
-  @DocsEditable
-  void set id(String value) native "HTMLElement_id_Setter";
-
-  @DomName('HTMLElement.innerHTML')
-  @DocsEditable
-  String get innerHtml native "HTMLElement_innerHTML_Getter";
-
-  @DomName('HTMLElement.innerHTML')
-  @DocsEditable
-  void set innerHtml(String value) native "HTMLElement_innerHTML_Setter";
-
-  @DomName('HTMLElement.isContentEditable')
-  @DocsEditable
-  bool get isContentEditable native "HTMLElement_isContentEditable_Getter";
-
-  @DomName('HTMLElement.lang')
-  @DocsEditable
-  String get lang native "HTMLElement_lang_Getter";
-
-  @DomName('HTMLElement.lang')
-  @DocsEditable
-  void set lang(String value) native "HTMLElement_lang_Setter";
-
-  @DomName('HTMLElement.outerHTML')
-  @DocsEditable
-  String get outerHtml native "HTMLElement_outerHTML_Getter";
-
-  @DomName('HTMLElement.spellcheck')
-  @DocsEditable
-  // http://blog.whatwg.org/the-road-to-html-5-spellchecking
-  @Experimental // nonstandard
-  bool get spellcheck native "HTMLElement_spellcheck_Getter";
-
-  @DomName('HTMLElement.spellcheck')
-  @DocsEditable
-  // http://blog.whatwg.org/the-road-to-html-5-spellchecking
-  @Experimental // nonstandard
-  void set spellcheck(bool value) native "HTMLElement_spellcheck_Setter";
-
-  @DomName('HTMLElement.tabIndex')
-  @DocsEditable
-  int get tabIndex native "HTMLElement_tabIndex_Getter";
-
-  @DomName('HTMLElement.tabIndex')
-  @DocsEditable
-  void set tabIndex(int value) native "HTMLElement_tabIndex_Setter";
-
-  @DomName('HTMLElement.title')
-  @DocsEditable
-  String get title native "HTMLElement_title_Getter";
-
-  @DomName('HTMLElement.title')
-  @DocsEditable
-  void set title(String value) native "HTMLElement_title_Setter";
-
-  @DomName('HTMLElement.translate')
-  @DocsEditable
-  bool get translate native "HTMLElement_translate_Getter";
-
-  @DomName('HTMLElement.translate')
-  @DocsEditable
-  void set translate(bool value) native "HTMLElement_translate_Setter";
-
-  @DomName('HTMLElement.webkitdropzone')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
-  String get dropzone native "HTMLElement_webkitdropzone_Getter";
-
-  @DomName('HTMLElement.webkitdropzone')
-  @DocsEditable
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
-  void set dropzone(String value) native "HTMLElement_webkitdropzone_Setter";
-
-  @DomName('HTMLElement.click')
-  @DocsEditable
-  void click() native "HTMLElement_click_Callback";
-
-  @DomName('HTMLElement.getInputContext')
-  @DocsEditable
-  // http://www.w3.org/TR/ime-api/#the-getinputcontext-method
-  @Experimental
-  InputMethodContext getInputContext() native "HTMLElement_getInputContext_Callback";
-
-  @DomName('HTMLElement.insertAdjacentElement')
-  @DocsEditable
-  @Experimental // non-standard
-  Element insertAdjacentElement(String where, Element element) native "HTMLElement_insertAdjacentElement_Callback";
-
-  @DomName('HTMLElement.insertAdjacentHTML')
-  @DocsEditable
-  void insertAdjacentHtml(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
-
-  @DomName('HTMLElement.insertAdjacentText')
-  @DocsEditable
-  @Experimental // non-standard
-  void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable
 @DomName('Entity')
 @deprecated // deprecated
 class _Entity extends Node {
@@ -26937,7 +26808,7 @@ class _GamepadList extends NativeFieldWrapperClass1 with ListMixin<Gamepad>, Imm
 @DomName('HTMLAppletElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
 @deprecated // deprecated
-abstract class _HTMLAppletElement extends _Element_Merged {
+abstract class _HTMLAppletElement extends _HTMLElement {
   _HTMLAppletElement.internal() : super.internal();
 
 }
@@ -26952,7 +26823,7 @@ abstract class _HTMLAppletElement extends _Element_Merged {
 @DomName('HTMLBaseFontElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#basefont
 @deprecated // deprecated
-abstract class _HTMLBaseFontElement extends _Element_Merged {
+abstract class _HTMLBaseFontElement extends _HTMLElement {
   _HTMLBaseFontElement.internal() : super.internal();
 
 }
@@ -26967,8 +26838,161 @@ abstract class _HTMLBaseFontElement extends _Element_Merged {
 @DomName('HTMLDirectoryElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
 @deprecated // deprecated
-abstract class _HTMLDirectoryElement extends _Element_Merged {
+abstract class _HTMLDirectoryElement extends _HTMLElement {
   _HTMLDirectoryElement.internal() : super.internal();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable
+@DomName('HTMLElement')
+class _HTMLElement extends Element {
+  _HTMLElement.internal() : super.internal();
+
+  @DomName('HTMLElement.contentEditable')
+  @DocsEditable
+  String get contentEditable native "HTMLElement_contentEditable_Getter";
+
+  @DomName('HTMLElement.contentEditable')
+  @DocsEditable
+  void set contentEditable(String value) native "HTMLElement_contentEditable_Setter";
+
+  @DomName('HTMLElement.dir')
+  @DocsEditable
+  String get dir native "HTMLElement_dir_Getter";
+
+  @DomName('HTMLElement.dir')
+  @DocsEditable
+  void set dir(String value) native "HTMLElement_dir_Setter";
+
+  @DomName('HTMLElement.draggable')
+  @DocsEditable
+  bool get draggable native "HTMLElement_draggable_Getter";
+
+  @DomName('HTMLElement.draggable')
+  @DocsEditable
+  void set draggable(bool value) native "HTMLElement_draggable_Setter";
+
+  @DomName('HTMLElement.hidden')
+  @DocsEditable
+  bool get hidden native "HTMLElement_hidden_Getter";
+
+  @DomName('HTMLElement.hidden')
+  @DocsEditable
+  void set hidden(bool value) native "HTMLElement_hidden_Setter";
+
+  @DomName('HTMLElement.id')
+  @DocsEditable
+  String get id native "HTMLElement_id_Getter";
+
+  @DomName('HTMLElement.id')
+  @DocsEditable
+  void set id(String value) native "HTMLElement_id_Setter";
+
+  @DomName('HTMLElement.innerHTML')
+  @DocsEditable
+  String get innerHtml native "HTMLElement_innerHTML_Getter";
+
+  @DomName('HTMLElement.innerHTML')
+  @DocsEditable
+  void set innerHtml(String value) native "HTMLElement_innerHTML_Setter";
+
+  @DomName('HTMLElement.isContentEditable')
+  @DocsEditable
+  bool get isContentEditable native "HTMLElement_isContentEditable_Getter";
+
+  @DomName('HTMLElement.lang')
+  @DocsEditable
+  String get lang native "HTMLElement_lang_Getter";
+
+  @DomName('HTMLElement.lang')
+  @DocsEditable
+  void set lang(String value) native "HTMLElement_lang_Setter";
+
+  @DomName('HTMLElement.outerHTML')
+  @DocsEditable
+  String get outerHtml native "HTMLElement_outerHTML_Getter";
+
+  @DomName('HTMLElement.spellcheck')
+  @DocsEditable
+  // http://blog.whatwg.org/the-road-to-html-5-spellchecking
+  @Experimental // nonstandard
+  bool get spellcheck native "HTMLElement_spellcheck_Getter";
+
+  @DomName('HTMLElement.spellcheck')
+  @DocsEditable
+  // http://blog.whatwg.org/the-road-to-html-5-spellchecking
+  @Experimental // nonstandard
+  void set spellcheck(bool value) native "HTMLElement_spellcheck_Setter";
+
+  @DomName('HTMLElement.tabIndex')
+  @DocsEditable
+  int get tabIndex native "HTMLElement_tabIndex_Getter";
+
+  @DomName('HTMLElement.tabIndex')
+  @DocsEditable
+  void set tabIndex(int value) native "HTMLElement_tabIndex_Setter";
+
+  @DomName('HTMLElement.title')
+  @DocsEditable
+  String get title native "HTMLElement_title_Getter";
+
+  @DomName('HTMLElement.title')
+  @DocsEditable
+  void set title(String value) native "HTMLElement_title_Setter";
+
+  @DomName('HTMLElement.translate')
+  @DocsEditable
+  bool get translate native "HTMLElement_translate_Getter";
+
+  @DomName('HTMLElement.translate')
+  @DocsEditable
+  void set translate(bool value) native "HTMLElement_translate_Setter";
+
+  @DomName('HTMLElement.webkitdropzone')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
+  String get dropzone native "HTMLElement_webkitdropzone_Getter";
+
+  @DomName('HTMLElement.webkitdropzone')
+  @DocsEditable
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
+  void set dropzone(String value) native "HTMLElement_webkitdropzone_Setter";
+
+  @DomName('HTMLElement.click')
+  @DocsEditable
+  void click() native "HTMLElement_click_Callback";
+
+  @DomName('HTMLElement.getInputContext')
+  @DocsEditable
+  // http://www.w3.org/TR/ime-api/#the-getinputcontext-method
+  @Experimental
+  InputMethodContext getInputContext() native "HTMLElement_getInputContext_Callback";
+
+  @DomName('HTMLElement.insertAdjacentElement')
+  @DocsEditable
+  @Experimental // non-standard
+  Element insertAdjacentElement(String where, Element element) native "HTMLElement_insertAdjacentElement_Callback";
+
+  @DomName('HTMLElement.insertAdjacentHTML')
+  @DocsEditable
+  void insertAdjacentHtml(String where, String html) native "HTMLElement_insertAdjacentHTML_Callback";
+
+  @DomName('HTMLElement.insertAdjacentText')
+  @DocsEditable
+  @Experimental // non-standard
+  void insertAdjacentText(String where, String text) native "HTMLElement_insertAdjacentText_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26982,7 +27006,7 @@ abstract class _HTMLDirectoryElement extends _Element_Merged {
 @DomName('HTMLFontElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlfontelement
 @deprecated // deprecated
-abstract class _HTMLFontElement extends _Element_Merged {
+abstract class _HTMLFontElement extends _HTMLElement {
   _HTMLFontElement.internal() : super.internal();
 
 }
@@ -26997,7 +27021,7 @@ abstract class _HTMLFontElement extends _Element_Merged {
 @DomName('HTMLFrameElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlframeelement
 @deprecated // deprecated
-abstract class _HTMLFrameElement extends _Element_Merged {
+abstract class _HTMLFrameElement extends _HTMLElement {
   _HTMLFrameElement.internal() : super.internal();
 
 }
@@ -27012,7 +27036,7 @@ abstract class _HTMLFrameElement extends _Element_Merged {
 @DomName('HTMLFrameSetElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#frameset
 @deprecated // deprecated
-abstract class _HTMLFrameSetElement extends _Element_Merged {
+abstract class _HTMLFrameSetElement extends _HTMLElement {
   _HTMLFrameSetElement.internal() : super.internal();
 
 }
@@ -27027,7 +27051,7 @@ abstract class _HTMLFrameSetElement extends _Element_Merged {
 @DomName('HTMLMarqueeElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-marquee-element
 @deprecated // deprecated
-abstract class _HTMLMarqueeElement extends _Element_Merged {
+abstract class _HTMLMarqueeElement extends _HTMLElement {
   _HTMLMarqueeElement.internal() : super.internal();
 
 }

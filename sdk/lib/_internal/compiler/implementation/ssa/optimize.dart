@@ -195,7 +195,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // TODO(kasperl): Get rid of the null check here once all HTypes
     // have a proper mask.
     if (mask != null && !mask.contains(booleanType, compiler)) {
-      return graph.addConstantBool(false, constantSystem);
+      return graph.addConstantBool(false, compiler);
     }
     return node;
   }
@@ -207,7 +207,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (input is HConstant) {
       HConstant constant = input;
       bool isTrue = constant.constant.isTrue();
-      return graph.addConstantBool(!isTrue, constantSystem);
+      return graph.addConstantBool(!isTrue, compiler);
     } else if (input is HNot) {
       return input.inputs[0];
     }
@@ -224,7 +224,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (operand is HConstant) {
       HConstant receiver = operand;
       Constant folded = operation.fold(receiver.constant);
-      if (folded != null) return graph.addConstant(folded);
+      if (folded != null) return graph.addConstant(folded, compiler);
     }
     return null;
   }
@@ -235,15 +235,15 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (actualReceiver.isConstantString()) {
         HConstant constantInput = actualReceiver;
         StringConstant constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, constantSystem);
+        return graph.addConstantInt(constant.length, compiler);
       } else if (actualReceiver.isConstantList()) {
         HConstant constantInput = actualReceiver;
         ListConstant constant = constantInput.constant;
-        return graph.addConstantInt(constant.length, constantSystem);
+        return graph.addConstantInt(constant.length, compiler);
       }
       Element element = backend.jsIndexableLength;
       bool isAssignable = !actualReceiver.isFixedArray(compiler) &&
-          !actualReceiver.isString();
+          !actualReceiver.isString(compiler);
       HFieldGet result = new HFieldGet(
           element, actualReceiver, isAssignable: isAssignable);
       result.instructionType = HType.INTEGER;
@@ -251,7 +251,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     } else if (actualReceiver.isConstantMap()) {
       HConstant constantInput = actualReceiver;
       MapConstant constant = constantInput.constant;
-      return graph.addConstantInt(constant.length, constantSystem);
+      return graph.addConstantInt(constant.length, compiler);
     }
     return null;
   }
@@ -286,13 +286,13 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
             target = backend.jsArrayAdd;
           }
         }
-      } else if (input.isString()) {
+      } else if (input.isString(compiler)) {
         if (selector.applies(backend.jsStringSplit, compiler)) {
-          if (node.inputs[2].isString()) {
+          if (node.inputs[2].isString(compiler)) {
             target = backend.jsStringSplit;
           }
         } else if (selector.applies(backend.jsStringConcat, compiler)) {
-          if (node.inputs[2].isString()) {
+          if (node.inputs[2].isString(compiler)) {
             target = backend.jsStringConcat;
           }
         } else if (selector.applies(backend.jsStringToString, compiler)) {
@@ -439,7 +439,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       HConstant op1 = left;
       HConstant op2 = right;
       Constant folded = operation.fold(op1.constant, op2.constant);
-      if (folded != null) return graph.addConstant(folded);
+      if (folded != null) return graph.addConstant(folded, compiler);
     }
     return null;
   }
@@ -482,11 +482,11 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull() && right.isNumberOrNull()) &&
         leftType.intersection(rightType, compiler).isConflicting()) {
-      return graph.addConstantBool(false, constantSystem);
+      return graph.addConstantBool(false, compiler);
     }
 
     if (left.isNull() && right.isNull()) {
-      return graph.addConstantBool(true, constantSystem);
+      return graph.addConstantBool(true, compiler);
     }
 
     if (left.isConstantBoolean() && right.isBoolean()) {
@@ -538,7 +538,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (element == compiler.objectClass || element == compiler.dynamicClass) {
-      return graph.addConstantBool(true, constantSystem);
+      return graph.addConstantBool(true, compiler);
     }
 
     HType expressionType = node.expression.instructionType;
@@ -546,40 +546,33 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (identical(element, compiler.intClass)
           || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
-        return graph.addConstantBool(true, constantSystem);
+        return graph.addConstantBool(true, compiler);
       } else if (identical(element, compiler.doubleClass)) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will always return true.
         return node;
       } else {
-        return graph.addConstantBool(false, constantSystem);
+        return graph.addConstantBool(false, compiler);
       }
     } else if (expressionType.isDouble()) {
       if (identical(element, compiler.doubleClass)
           || identical(element, compiler.numClass)
           || Elements.isNumberOrStringSupertype(element, compiler)) {
-        return graph.addConstantBool(true, constantSystem);
+        return graph.addConstantBool(true, compiler);
       } else if (identical(element, compiler.intClass)) {
         // We let the JS semantics decide for that check. Currently
         // the code we emit will return true for a double that can be
         // represented as a 31-bit integer and for -0.0.
         return node;
       } else {
-        return graph.addConstantBool(false, constantSystem);
+        return graph.addConstantBool(false, compiler);
       }
     } else if (expressionType.isNumber()) {
       if (identical(element, compiler.numClass)) {
-        return graph.addConstantBool(true, constantSystem);
-      }
-      // We cannot just return false, because the expression may be of
-      // type int or double.
-    } else if (expressionType.isString()) {
-      if (identical(element, compiler.stringClass)
-               || Elements.isStringOnlySupertype(element, compiler)
-               || Elements.isNumberOrStringSupertype(element, compiler)) {
-        return graph.addConstantBool(true, constantSystem);
+        return graph.addConstantBool(true, compiler);
       } else {
-        return graph.addConstantBool(false, constantSystem);
+        // We cannot just return false, because the expression may be of
+        // type int or double.
       }
     // We need the [:hasTypeArguments:] check because we don't have
     // the notion of generics in the backend. For example, [:this:] in
@@ -589,9 +582,9 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       TypeMask expressionMask = expressionType.computeMask(compiler);
       TypeMask typeMask = new TypeMask.nonNullSubtype(type);
       if (expressionMask.union(typeMask, compiler) == typeMask) {
-        return graph.addConstantBool(true, constantSystem);
+        return graph.addConstantBool(true, compiler);
       } else if (expressionMask.intersection(typeMask, compiler).isEmpty) {
-        return graph.addConstantBool(false, constantSystem);
+        return graph.addConstantBool(false, compiler);
       }
     }
     return node;
@@ -637,7 +630,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
                  node.receiver.isConstantString()) {
         var instruction = node.receiver;
         return graph.addConstantInt(
-            instruction.constant.length, backend.constantSystem);
+            instruction.constant.length, compiler);
       }
     }
     return node;
@@ -650,7 +643,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       instruction = node.index;
       int index = instruction.constant.value;
       if (index >= 0 && index < entries.length) {
-        return graph.addConstant(entries[index]);
+        return graph.addConstant(entries[index], compiler);
       }
     }
     return node;
@@ -760,23 +753,24 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
       if (leftString == null) return node;
     }
 
-    HInstruction folded =
-        graph.addConstant(constantSystem.createString(
+    HInstruction folded = graph.addConstant(
+        constantSystem.createString(
             new DartString.concat(leftString.value, rightString.value),
-            node.node));
+            node.node),
+        compiler);
     if (prefix == null) return folded;
-    return new HStringConcat(prefix, folded, node.node);
+    return new HStringConcat(prefix, folded, node.node, backend.stringType);
   }
 
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
-    if (input.isString()) return input;
+    if (input.isString(compiler) && !input.canBeNull()) return input;
     if (input.isConstant()) {
       HConstant constant = input;
       if (!constant.constant.isPrimitive()) return node;
       PrimitiveConstant primitive = constant.constant;
       return graph.addConstant(constantSystem.createString(
-          primitive.toDartString(), node.node));
+          primitive.toDartString(), node.node), compiler);
     }
     return node;
   }
@@ -814,8 +808,9 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HBoundsCheck insertBoundsCheck(HInstruction indexNode,
                                  HInstruction array,
                                  HInstruction indexArgument) {
+    Compiler compiler = backend.compiler;
     bool isAssignable =
-        !array.isFixedArray(backend.compiler) && !array.isString();
+        !array.isFixedArray(compiler) && !array.isString(compiler);
     HFieldGet length = new HFieldGet(
         backend.jsIndexableLength, array, isAssignable: isAssignable);
     length.instructionType = HType.INTEGER;
@@ -855,7 +850,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
     if (element != backend.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
     insertBoundsCheck(
-        node, node.receiver, graph.addConstantInt(0, backend.constantSystem));
+        node, node.receiver, graph.addConstantInt(0, backend.compiler));
   }
 }
 

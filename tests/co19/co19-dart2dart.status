@@ -404,6 +404,8 @@ Language/11_Expressions/18_Assignment_A05_t02: Fail, OK # co19 issue 409
 Language/11_Expressions/18_Assignment_A05_t05: Fail, OK # co19 issue 409
 Language/11_Expressions/18_Assignment_A08_t04: Fail, OK # co19 issue 409
 
+LibTest/core/String/indexOf_A01_t02: Fail # Issue 427
+LibTest/core/String/lastIndexOf_A01_t02: Fail # Issue 427
 
 [ $compiler == dart2dart && $minified ]
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 396

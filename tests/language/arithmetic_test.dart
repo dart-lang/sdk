@@ -435,11 +435,24 @@ class ArithmeticTest {
     Expect.throws(() => mySqrt("abc"));
   }
 
+  static self_equality(x) {
+    return x == x;
+  }
+
+  static testDoubleEquality() {
+    Expect.isFalse(self_equality(double.NAN));
+    for (int i = 0; i < 2000; i++) {
+      self_equality(3.0);
+    }
+    Expect.isFalse(self_equality(double.NAN));
+  }
+
   static testMain() {
     for (int i = 0; i < 1500; i++) {
       runOne();
       testSmiDivDeopt();
       testSqrtDeopt();
+      testDoubleEquality();
     }
   }
 }

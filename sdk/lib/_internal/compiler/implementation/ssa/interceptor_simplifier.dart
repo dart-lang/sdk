@@ -91,18 +91,20 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     HType type = input.instructionType;
     ClassElement constantInterceptor;
     JavaScriptBackend backend = compiler.backend;
-    if (type.isInteger()) {
+    if (type.canBeNull()) {
+      if (type.isNull()) {
+        constantInterceptor = backend.jsNullClass;
+      }
+    } else if (type.isInteger()) {
       constantInterceptor = backend.jsIntClass;
     } else if (type.isDouble()) {
       constantInterceptor = backend.jsDoubleClass;
     } else if (type.isBoolean()) {
       constantInterceptor = backend.jsBoolClass;
-    } else if (type.isString()) {
+    } else if (type.isString(compiler)) {
       constantInterceptor = backend.jsStringClass;
     } else if (type.isArray(compiler)) {
       constantInterceptor = backend.jsArrayClass;
-    } else if (type.isNull()) {
-      constantInterceptor = backend.jsNullClass;
     } else if (type.isNumber()
         && !interceptedClasses.contains(backend.jsIntClass)
         && !interceptedClasses.contains(backend.jsDoubleClass)) {
@@ -122,12 +124,9 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // for a subclass or call methods defined on a subclass.  Provided the
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
-
-      if (!type.canBeNull()) {
-        ClassElement element = type.computeMask(compiler).singleClass(compiler);
-        if (element != null && element.isNative()) {
-          constantInterceptor = element;
-        }
+      ClassElement element = type.computeMask(compiler).singleClass(compiler);
+      if (element != null && element.isNative()) {
+        constantInterceptor = element;
       }
     }
 
@@ -138,7 +137,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     Constant constant = new InterceptorConstant(
         constantInterceptor.computeType(compiler));
-    return graph.addConstant(constant);
+    return graph.addConstant(constant, compiler);
   }
 
   HInstruction findDominator(Iterable<HInstruction> instructions) {
@@ -229,7 +228,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     if (!user.hasSameLoopHeaderAs(node)) return false;
 
     // Replace the user with a [HOneShotInterceptor].
-    HConstant nullConstant = graph.addConstantNull(constantSystem);
+    HConstant nullConstant = graph.addConstantNull(compiler);
     List<HInstruction> inputs = new List<HInstruction>.from(user.inputs);
     inputs[0] = nullConstant;
     HOneShotInterceptor interceptor = new HOneShotInterceptor(

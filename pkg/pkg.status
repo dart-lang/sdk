@@ -49,8 +49,10 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
 
-# Skip browser-specific Intl tests on VM
+# Skip browser-specific tests on VM
 [ $runtime == vm ]
+pathos/test/pathos_dartium_test: Fail, OK # Uses dart:html
+pathos/test/pathos_dart2js_test: Fail, OK # Uses dart:html
 intl/test/find_default_locale_browser_test: Skip
 intl/test/date_time_format_http_request_test: Skip
 
@@ -59,10 +61,23 @@ intl/test/find_default_locale_standalone_test: Fail # Issue 8110
 intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 
 [ $compiler == dart2js ]
-serialization/test/serialization_test: Fail # Issue 6490
-serialization/test/no_library_test: Fail # Issue 6490
-analyzer_experimental/test/generated/ast_test: Fail
+analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 unittest/test/instance_test: Fail # http://dartbug.com/11191
+
+[ $compiler == dart2js && $runtime == d8 && $checked ]
+pathos/test/pathos_io_test: Fail # Issue 11258
+oauth2/*: Fail # Issue 11258
+oauth2/test/utils_test: Pass
+http/*: Fail # Issue 11258
+stack_trace/*: Fail # Issue 11258
+intl/test/date_time_format_file_odd_test: Fail # Issue 11258
+intl/test/date_time_format_file_even_test: Fail # Issue 11258
+intl/test/message_extraction/message_extraction_test: Fail # Issue 11258
+scheduled_test/*: Fail # Issue 11258
+scheduled_test/test/substitute_future_test: Pass
+scheduled_test/test/value_future_test: Pass
+analyzer_experimental/test/error_test: Fail # Issue 11258
+analyzer_experimental/test/services/formatter_test: Fail # Issue 11258
 
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
@@ -79,12 +94,18 @@ unittest/test/mock_stepwise_negative_test: fail
 [ $compiler == dart2js && $csp ]
 unittest/test/unittest_test: Pass, Crash # Issue 10935
 
+serialization/test/serialization_test: Fail # Issue 6490
+serialization/test/no_library_test: Fail # Issue 6490
+
 [ $compiler == dart2js && $minified ]
 # The unittest package relies on getting the original (non-minified) method
 # names in Invocation.  You can't get that when minifying.
 # TODO(ahe/erikcorry): But soon you can, now that we use Symbol.
 unittest/test/mock_test: Fail
 unittest/test/mock_regexp_negative_test: Fail
+
+serialization/test/serialization_test: Fail # Issue 6490
+serialization/test/no_library_test: Fail # Issue 6490
 
 # The unminified unittest tests test that the real names of Dart types are
 # printed. Minified versions of these tests exist that test the behavior when
@@ -95,6 +116,7 @@ unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART
 crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail?id=2692
 
 [ $compiler == dart2js && $browser ]
+pathos/test/pathos_dartium_test: Fail, OK # Issue 6490
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
@@ -119,10 +141,7 @@ oauth2/test/authorization_code_grant_test: Fail, OK # Uses dart:io.
 oauth2/test/client_test: Fail, OK # Uses dart:io.
 oauth2/test/credentials_test: Fail, OK # Uses dart:io.
 oauth2/test/handle_access_token_response_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_posix_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_url_test: Fail, OK # Uses dart:io.
-pathos/test/pathos_windows_test: Fail, OK # Uses dart:io.
+pathos/test/pathos_io_test: Fail, OK # Uses dart:io.
 
 scheduled_test/test/descriptor/async_test: Fail # http://dartbug.com/8440
 scheduled_test/test/descriptor/directory_test: Fail # http://dartbug.com/8440
@@ -180,6 +199,9 @@ dartdoc/test/dartdoc_test: Skip # See dartbug.com/4541.
 # test on Dartium, which requires all tests to have a library.
 [ $runtime == dartium || $runtime == drt ]
 serialization/test/no_library_test: Skip # Expected Failure
+
+[ ($runtime == dartium || $runtime == drt) && $compiler == none ]
+pathos/test/pathos_dart2js_test: Fail, OK # Issue 6490
 
 # Skip mdv_observe tests on command line VM, they only run in the browser.
 [ $runtime == vm ]

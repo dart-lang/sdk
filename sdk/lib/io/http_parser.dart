@@ -99,13 +99,13 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
   StreamController<List<int>> controller;
   final StreamSubscription subscription;
 
-  List<int> carryOverData;
+  List<int> bufferedData;
   bool paused;
 
   Completer resumeCompleter;
 
   _HttpDetachedIncoming(StreamSubscription this.subscription,
-                        List<int> this.carryOverData) {
+                        List<int> this.bufferedData) {
     controller = new StreamController<List<int>>(
         sync: true,
         onListen: resume,
@@ -114,7 +114,7 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
         onCancel: () => subscription.cancel());
     if (subscription == null) {
       // Socket was already closed.
-      if (carryOverData != null) controller.add(carryOverData);
+      if (bufferedData != null) controller.add(bufferedData);
       controller.close();
     } else {
       pause();
@@ -138,9 +138,9 @@ class _HttpDetachedIncoming extends Stream<List<int>> {
 
   void resume() {
     paused = false;
-    if (carryOverData != null) {
-      var data = carryOverData;
-      carryOverData = null;
+    if (bufferedData != null) {
+      var data = bufferedData;
+      bufferedData = null;
       controller.add(data);
       // If the consumer pauses again after the carry-over data, we'll not
       // continue our subscriber until the next resume.

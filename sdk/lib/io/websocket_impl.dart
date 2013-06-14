@@ -531,9 +531,27 @@ class _WebSocketOutgoingTransformer extends StreamEventTransformer {
       header.setRange(index, index + 4, maskBytes);
       index += 4;
       if (data != null) {
-        var list = new Uint8List(data.length);
-        for (int i = 0; i < data.length; i++) {
-          list[i] = data[i] ^ maskBytes[i % 4];
+        var list;
+        // If this is a text message just do the masking inside the
+        // encoded data.
+        if (opcode == _WebSocketOpcode.TEXT) {
+          list = data;
+        } else {
+          list = new Uint8List(data.length);
+        }
+        if (data is Uint8List) {
+          for (int i = 0; i < data.length; i++) {
+            list[i] = data[i] ^ maskBytes[i % 4];
+          }
+        } else {
+          for (int i = 0; i < data.length; i++) {
+            if (data[i] < 0 || 255 < data[i]) {
+              throw new ArgumentError(
+                  "List element is not a byte value "
+                  "(value ${data[i]} at index $i)");
+            }
+            list[i] = data[i] ^ maskBytes[i % 4];
+          }
         }
         data = list;
       }

@@ -81,6 +81,18 @@ class _JSSyntaxRegExp implements RegExp {
     return new _AllMatchesIterable(this, str);
   }
 
+  Match matchAsPrefix(String string, [int start = 0]) {
+    if (start < 0 || start > string.length) {
+      throw new RangeError.range(start, 0, string.length);
+    }
+    // Inefficient check that searches for a later match too.
+    // Change this when possible.
+    List<int> list = _ExecuteMatch(string, start);
+    if (list == null) return null;
+    if (list[0] != start) return null;
+    return new _JSRegExpMatch(this, string, list);
+  }
+
   bool hasMatch(String str) {
     List match = _ExecuteMatch(str, 0);
     return (match == null) ? false : true;

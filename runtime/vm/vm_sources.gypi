@@ -170,6 +170,8 @@
     'hash_map_test.cc',
     'heap.cc',
     'heap.h',
+    'heap_histogram.cc',
+    'heap_histogram.h',
     'heap_profiler.cc',
     'heap_profiler.h',
     'heap_profiler_test.cc',

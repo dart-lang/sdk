@@ -1667,7 +1667,7 @@ class ProcessQueue {
   }
 
   void _startBrowserControllerTest(var test) {
-    var callback = (var output) {
+    var callback = (var output, var duration) {
       var nextCommandIndex = test.commandOutputs.keys.length;
       new CommandOutput.fromCase(test,
                                  test.commands[nextCommandIndex],
@@ -1676,7 +1676,7 @@ class ProcessQueue {
                                  output == "TIMEOUT",
                                  encodeUtf8(output),
                                  [],
-                                 const Duration(seconds: 1),
+                                 duration,
                                  false);
       test.completedHandler(test);
     };

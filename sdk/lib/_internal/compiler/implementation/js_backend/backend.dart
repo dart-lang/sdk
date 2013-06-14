@@ -69,6 +69,14 @@ class JavaScriptBackend extends Backend {
   Element getInterceptorMethod;
   Element interceptedNames;
 
+  HType stringType;
+  HType indexablePrimitiveType;
+  HType readableArrayType;
+  HType mutableArrayType;
+  HType fixedArrayType;
+  HType extendableArrayType;
+  
+
   // TODO(9577): Make it so that these are not needed when there are no native
   // classes.
   Element dispatchPropertyName;
@@ -371,6 +379,19 @@ class JavaScriptBackend extends Backend {
         ..add(jsNullClass);
 
     validateInterceptorImplementsAllObjectMethods(jsInterceptorClass);
+
+    stringType = new HBoundedType(
+        new TypeMask.nonNullExact(jsStringClass.rawType));
+    indexablePrimitiveType = new HBoundedType(
+        new TypeMask.nonNullSubtype(jsIndexableClass.rawType));
+    readableArrayType = new HBoundedType(
+        new TypeMask.nonNullSubclass(jsArrayClass.rawType));
+    mutableArrayType = new HBoundedType(
+        new TypeMask.nonNullSubclass(jsMutableArrayClass.rawType));
+    fixedArrayType = new HBoundedType(
+        new TypeMask.nonNullExact(jsFixedArrayClass.rawType));
+    extendableArrayType = new HBoundedType(
+        new TypeMask.nonNullExact(jsExtendableArrayClass.rawType));
   }
 
   void validateInterceptorImplementsAllObjectMethods(

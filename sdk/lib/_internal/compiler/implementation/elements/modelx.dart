@@ -1959,6 +1959,8 @@ abstract class ClassElementX extends BaseClassElementX {
 
   void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
     addToScope(constructor, compiler);
+    // The default constructor, although synthetic, is part of a class' API.
+    localMembers = localMembers.prepend(constructor);
   }
 
   Link<DartType> computeTypeParameters(Compiler compiler) {

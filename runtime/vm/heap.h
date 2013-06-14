@@ -212,7 +212,7 @@ class Heap {
       intptr_t new_capacity_;
       intptr_t old_used_;
       intptr_t old_capacity_;
-
+    private:
       DISALLOW_COPY_AND_ASSIGN(Data);
     };
 
@@ -225,6 +225,7 @@ class Heap {
     int64_t times_[kDataEntries];
     intptr_t data_[kDataEntries];
 
+   private:
     DISALLOW_COPY_AND_ASSIGN(GCStats);
   };
 
@@ -239,6 +240,7 @@ class Heap {
   void RecordBeforeGC(Space space, GCReason reason);
   void RecordAfterGC();
   void PrintStats();
+  void UpdateObjectHistogram();
 
   // The different spaces used for allocation.
   Scavenger* new_space_;

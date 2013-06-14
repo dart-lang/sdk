@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' as io;
-
 import 'package:unittest/unittest.dart';
 import 'package:pathos/path.dart' as path;
 
@@ -436,6 +434,16 @@ main() {
         expect(builder.relative('../a/b.txt'), '../a/b.txt');
         expect(builder.relative('a/./b/../c.txt'), 'a/c.txt');
       });
+
+      // Regression
+      test('from root-only path', () {
+        expect(builder.relative('http://dartlang.org',
+                from: 'http://dartlang.org'),
+            '.');
+        expect(builder.relative('http://dartlang.org/root/path',
+                from: 'http://dartlang.org'),
+            'root/path');
+      });
     });
 
     group('from relative root', () {
@@ -554,6 +562,15 @@ main() {
           equals('/foo/bar/baz'));
 
       expect(r.relative('..', from: 'foo/bar'), equals('../../..'));
+    });
+
+    test('from a . root', () {
+      var r = new path.Builder(style: path.Style.url, root: '.');
+      expect(r.relative('http://dartlang.org/foo/bar/baz'),
+          equals('http://dartlang.org/foo/bar/baz'));
+      expect(r.relative('file:///foo/bar/baz'), equals('file:///foo/bar/baz'));
+      expect(r.relative('/foo/bar/baz'), equals('/foo/bar/baz'));
+      expect(r.relative('foo/bar/baz'), equals('foo/bar/baz'));
     });
   });
 

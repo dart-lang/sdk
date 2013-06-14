@@ -4,25 +4,29 @@
 
 part of dart.io;
 
-class _Timer implements Timer {
-  // Set jitter to wake up timer events that would happen in _TIMER_JITTER ms.
-  static const int _TIMER_JITTER = 0;
-
+class _Timer extends LinkedListEntry<_Timer> implements Timer {
   // Disables the timer.
   static const int _NO_TIMER = -1;
 
+  // Timers are ordered by wakeup time.
+  static LinkedList<_Timer> _timers = new LinkedList<_Timer>();
+
+  static ReceivePort _receivePort;
+  static bool _handling_callbacks = false;
+
+  Function _callback;
+  int _milliSeconds;
+  int _wakeupTime;
+
   static Timer _createTimer(void callback(Timer timer),
-                           int milliSeconds,
-                           bool repeating) {
+                            int milliSeconds,
+                            bool repeating) {
     _EventHandler._start();
-    if (_timers == null) {
-      _timers = new DoubleLinkedQueue<_Timer>();
-    }
     _Timer timer = new _Timer._internal();
     timer._callback = callback;
-    timer._milliSeconds = milliSeconds;
-    timer._wakeupTime = (new DateTime.now()).millisecondsSinceEpoch + milliSeconds;
-    timer._repeating = repeating;
+    timer._wakeupTime =
+        new DateTime.now().millisecondsSinceEpoch + milliSeconds;
+    timer._milliSeconds = repeating ? milliSeconds : -1;
     timer._addTimerToList();
     timer._notifyEventHandler();
     return timer;
@@ -42,50 +46,43 @@ class _Timer implements Timer {
     _callback = null;
     _milliSeconds = 0;
     _wakeupTime = 0;
-    _repeating = false;
   }
+
+  bool get _repeating => _milliSeconds >= 0;
 
 
   // Cancels a set timer. The timer is removed from the timer list and if
   // the given timer is the earliest timer the native timer is reset.
   void cancel() {
     _clear();
-    DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
-    DoubleLinkedQueueEntry<_Timer> first = _timers.firstEntry();
-
-     while (entry != null) {
-      if (identical(entry.element, this)) {
-        entry.remove();
-        if (first.element == this) {
-          entry = _timers.firstEntry();
-          _notifyEventHandler();
-        }
-        return;
-      }
-      entry = entry.nextEntry();
+    // Return if already canceled.
+    if (list == null) return;
+    assert(!_timers.isEmpty);
+    _Timer first = _timers.first;
+    unlink();
+    if (identical(first, this)) {
+      _notifyEventHandler();
     }
   }
 
   void _advanceWakeupTime() {
+    assert(_milliSeconds >= 0);
     _wakeupTime += _milliSeconds;
   }
 
   // Adds a timer to the timer list and resets the native timer if it is the
-  // earliest timer in the list.  Timers with the same wakeup time are enqueued
+  // earliest timer in the list. Timers with the same wakeup time are enqueued
   // in order and notified in FIFO order.
   void _addTimerToList() {
-    if (_callback != null) {
-
-      DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
-      while (entry != null) {
-        if (_wakeupTime < entry.element._wakeupTime) {
-          entry.prepend(this);
-          return;
-        }
-        entry = entry.nextEntry();
+    _Timer entry = _timers.isEmpty ? null : _timers.first;
+    while (entry != null) {
+      if (_wakeupTime < entry._wakeupTime) {
+        entry.insertBefore(this);
+        return;
       }
-      _timers.add(this);
+      entry = entry.next;
     }
+    _timers.add(this);
   }
 
 
@@ -97,7 +94,7 @@ class _Timer implements Timer {
       return;
     }
 
-    if (_timers.firstEntry() == null) {
+    if (_timers.isEmpty) {
       // No pending timers: Close the receive port and let the event handler
       // know.
       if (_receivePort != null) {
@@ -112,7 +109,7 @@ class _Timer implements Timer {
       }
       _EventHandler._sendData(null,
                               _receivePort,
-                              _timers.firstEntry().element._wakeupTime);
+                              _timers.first._wakeupTime);
     }
   }
 
@@ -122,18 +119,15 @@ class _Timer implements Timer {
   void _createTimerHandler() {
 
     void _handleTimeout() {
-      int currentTime =
-          (new DateTime.now()).millisecondsSinceEpoch + _TIMER_JITTER;
+      int currentTime = new DateTime.now().millisecondsSinceEpoch;
 
       // Collect all pending timers.
-      DoubleLinkedQueueEntry<_Timer> entry = _timers.firstEntry();
       var pending_timers = new List();
-      while (entry != null) {
-        _Timer timer = entry.element;
-        if (timer._wakeupTime <= currentTime) {
-          entry.remove();
-          pending_timers.add(timer);
-          entry = _timers.firstEntry();
+      while (!_timers.isEmpty) {
+        _Timer entry = _timers.first;
+        if (entry._wakeupTime <= currentTime) {
+          entry.unlink();
+          pending_timers.add(entry);
         } else {
           break;
         }
@@ -174,18 +168,6 @@ class _Timer implements Timer {
     _receivePort.close();
     _receivePort = null;
   }
-
-
-  // Timers are ordered by wakeup time.
-  static DoubleLinkedQueue<_Timer> _timers;
-
-  static ReceivePort _receivePort;
-  static bool _handling_callbacks = false;
-
-  var _callback;
-  int _milliSeconds;
-  int _wakeupTime;
-  bool _repeating;
 }
 
 // Provide a closure which will allocate a Timer object to be able to hook

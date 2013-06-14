@@ -194,7 +194,7 @@ void test(bool hostnameInConnect,
           SecureSocket.secureServer(
               client,
               CERTIFICATE,
-              carryOverData: carryOverData).then((secureClient) {
+              bufferedData: carryOverData).then((secureClient) {
             Expect.throws(() => client.add([0]));
             runServer(secureClient).then((_) => server.close());
           });

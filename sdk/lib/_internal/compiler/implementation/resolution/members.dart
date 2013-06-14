@@ -3336,10 +3336,17 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   void doApplyMixinTo(MixinApplicationElement mixinApplication,
                       DartType supertype,
                       DartType mixinType) {
-    assert(mixinApplication.supertype == null);
-    mixinApplication.supertype = supertype;
-
     Node node = mixinApplication.parseNode(compiler);
+
+    if (mixinApplication.supertype != null) {
+      // [supertype] is not null if there was a cycle.
+      assert(invariant(node, compiler.compilationFailed));
+      supertype = mixinApplication.supertype;
+      assert(invariant(node, supertype.element == compiler.objectClass));
+    } else {
+      mixinApplication.supertype = supertype;
+    }
+
     // Named mixin application may have an 'implements' clause.
     NamedMixinApplication namedMixinApplication =
         node.asNamedMixinApplication();

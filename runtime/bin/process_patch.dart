@@ -336,10 +336,6 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
                                                 bool runInShell,
                                                 Encoding stdoutEncoding,
                                                 Encoding stderrEncoding) {
-  // Extract output encoding options and verify arguments.
-  if (stdoutEncoding == null) stdoutEncoding = Encoding.SYSTEM;
-  if (stderrEncoding == null) stderrEncoding = Encoding.SYSTEM;
-
   // Start the underlying process.
   return Process.start(path,
                        arguments,
@@ -351,30 +347,35 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
     // Make sure the process stdin is closed.
     p.stdin.close();
 
-    // Setup stdout handling.
-    Future<StringBuffer> stdout = p.stdout
-        .transform(new StringDecoder(stdoutEncoding))
-        .fold(
-            new StringBuffer(),
-            (buf, data) {
-              buf.write(data);
-              return buf;
-            });
+    // Setup stdout and stderr handling.
+    Future foldStream(Stream<List<int>> stream, Encoding encoding) {
+      if (encoding == null) {
+        return stream
+            .fold(
+                new _BufferList(),
+                (buf, data) {
+                  buf.add(data);
+                  return buf;
+                })
+            .then((buf) => buf.readBytes());
+      } else {
+        return stream
+            .transform(new StringDecoder(encoding))
+            .fold(
+                new StringBuffer(),
+                (buf, data) {
+                  buf.write(data);
+                  return buf;
+                })
+            .then((sb) => sb.toString());
+      }
+    }
 
-    Future<StringBuffer> stderr = p.stderr
-        .transform(new StringDecoder(stderrEncoding))
-        .fold(
-            new StringBuffer(),
-            (buf, data) {
-              buf.write(data);
-              return buf;
-            });
+    Future stdout = foldStream(p.stdout, stdoutEncoding);
+    Future stderr = foldStream(p.stderr, stderrEncoding);
 
     return Future.wait([p.exitCode, stdout, stderr]).then((result) {
-      return new _ProcessResult(pid,
-                                result[0],
-                                result[1].toString(),
-                                result[2].toString());
+      return new _ProcessResult(pid, result[0], result[1], result[2]);
     });
   });
 }
@@ -383,11 +384,11 @@ Future<ProcessResult> _runNonInteractiveProcess(String path,
 class _ProcessResult implements ProcessResult {
   const _ProcessResult(int this.pid,
                        int this.exitCode,
-                       String this.stdout,
-                       String this.stderr);
+                       this.stdout,
+                       this.stderr);
 
   final int pid;
   final int exitCode;
-  final String stdout;
-  final String stderr;
+  final stdout;
+  final stderr;
 }

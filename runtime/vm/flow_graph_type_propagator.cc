@@ -742,7 +742,6 @@ CompileType ConstantInstr::ComputeType() const {
         value().GetClassId(),
         AbstractType::ZoneHandle(Instance::Cast(value()).GetType()));
   } else {
-    ASSERT(value().IsAbstractTypeArguments());
     return CompileType::Dynamic();
   }
 }

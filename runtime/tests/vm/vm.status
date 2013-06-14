@@ -55,9 +55,9 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 *: Skip
 
 [ $arch == simarm || $arch == arm ]
-# Bug in optimized code generation.
-dart/byte_array_test: Fail
-dart/byte_array_optimized_test: Fail
+# Bug in optimized code generation results in timeout.
+dart/byte_array_test: Skip
+dart/byte_array_optimized_test: Skip
 
 [ $arch == arm ]
 cc/DoubleToFloatConversion: Fail # Issue: 11207
@@ -74,6 +74,10 @@ cc/IntToFloatConversion: Fail # Issue: 11207
 # Tests missing code generation support.
 dart/byte_array_test: Skip
 dart/byte_array_optimized_test: Skip
+dart/isolate_mirror_local_test: Skip
+cc/ParsePatchLibrary: Skip
+cc/CorelibCompileAll: Skip
+cc/Dart2JSCompileAll: Skip
 
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]

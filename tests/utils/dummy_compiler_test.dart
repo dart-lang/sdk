@@ -1,6 +1,8 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=
+// VMOptions=--print-object-histogram
 
 // Smoke test of the dart2js compiler API.
 library dummy_compiler;
@@ -49,14 +51,14 @@ Future<String> provider(Uri uri) {
                     get length;
                   }
                   class JSMutableIndexable {}
-                  class JSArray {
+                  class JSArray implements JSIndexable {
                     var removeLast;
                     var add;
                   }
-                  class JSMutableArray {}
+                  class JSMutableArray extends JSArray {}
                   class JSFixedArray extends JSMutableArray {}
                   class JSExtendableArray extends JSMutableArray {}
-                  class JSString {
+                  class JSString implements JSIndexable {
                     var split;
                     var concat;
                     var toString;

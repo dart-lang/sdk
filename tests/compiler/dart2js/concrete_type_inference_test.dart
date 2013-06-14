@@ -33,7 +33,8 @@ void checkPrintType(String expression, checkType(compiler, type)) {
         var parameter =
           printElement.computeSignature(compiler).requiredParameters.head;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
-        Expect.isNull(type);
+        var inferrer = compiler.typesTask.typesInferrer;
+        Expect.identical(inferrer.dynamicType, type);
       });
 
   compileAndFind(

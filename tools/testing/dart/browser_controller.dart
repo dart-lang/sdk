@@ -12,20 +12,15 @@ import 'utils.dart';
 
 /** Class describing the interface for communicating with browsers. */
 abstract class Browser {
-  // Browsers actually takes a while to cleanup after itself when closing
-  // Give it sufficient time to do that.
-  static final Duration killRepeatInternal = const Duration(seconds: 10);
-  static final int killRetries = 5;
   StringBuffer _stdout = new StringBuffer();
   StringBuffer _stderr = new StringBuffer();
   StringBuffer _usageLog = new StringBuffer();
   // This function is called when the process is closed.
-  // This is extracted to an external function so that we can do additional
-  // functionality when the process closes (cleanup and call onExit)
-  Function _processClosed;
-  // This is called after the process is closed, after _processClosed has
-  // been called, but before onExit. Subclasses can use this to cleanup
+  Completer _processClosedCompleter = new Completer();
+  // This is called after the process is closed, after _processClosedCompleter
+  // has been called, but before onExit. Subclasses can use this to cleanup
   // any browser specific resources (temp directories, profiles, etc)
+  // The function is expected to do it's work synchronously.
   Function _cleanup;
 
   /** The version of the browser - normally set when starting a browser */
@@ -43,9 +38,6 @@ abstract class Browser {
    * Id of the browser
    */
   String id;
-
-  /** Callback that will be executed when the browser has closed */
-  Function onClose;
 
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
   bool debugPrint = false;
@@ -80,7 +72,7 @@ abstract class Browser {
   }
 
   void _logEvent(String event) {
-    String toLog = "$this ($id) - ${new DateTime.now()}: $event \n";
+    String toLog = "$this ($id) - $event \n";
     if (debugPrint) print("usageLog: $toLog");
     if (logger != null) logger(toLog);
     _usageLog.write(toLog);
@@ -103,12 +95,13 @@ abstract class Browser {
       browserTerminationFuture = completer.future;
 
       if (process != null) {
-        // Make sure we intercept onExit calls and complete.
-        _processClosed = () {
-          _processClosed = null;
+        _processClosedCompleter.future.then((_) {
           process = null;
           completer.complete(true);
-        };
+          if (_cleanup != null) {
+            _cleanup();
+          }
+        });
 
         if (process.kill(ProcessSignal.SIGKILL)) {
           _logEvent("Successfully sent kill signal to process.");
@@ -130,12 +123,17 @@ abstract class Browser {
   Future<bool> startBrowser(String command, List<String> arguments) {
     return Process.start(command, arguments).then((startedProcess) {
       process = startedProcess;
+      Completer stdoutDone = new Completer();
+      Completer stderrDone = new Completer();
+
       process.stdout.transform(new StringDecoder()).listen((data) {
         _addStdout(data);
       }, onError: (error) {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stdout handling: $error");
+      }, onDone: () {
+        stdoutDone.complete(true);
       });
 
       process.stderr.transform(new StringDecoder()).listen((data) {
@@ -144,13 +142,15 @@ abstract class Browser {
         // This should _never_ happen, but we really want this in the log
         // if it actually does due to dart:io or vm bug.
         _logEvent("An error occured in the process stderr handling: $error");
+      },  onDone: () {
+        stderrDone.complete(true);
       });
 
       process.exitCode.then((exitCode) {
         _logEvent("Browser closed with exitcode $exitCode");
-        if (_processClosed != null) _processClosed();
-        if (_cleanup != null) _cleanup();
-        if (onClose != null) onClose(exitCode);
+        Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
+          _processClosedCompleter.complete(exitCode);
+        });
       });
       return true;
     }).catchError((error) {
@@ -251,7 +251,7 @@ class Safari extends Browser {
         _logEvent("Got version: $version");
         var args = ["'$url'"];
         return new Directory('').createTemp().then((userDir) {
-          _cleanup = () { userDir.delete(recursive: true); };
+          _cleanup = () { userDir.deleteSync(recursive: true); };
           _createLaunchHTML(userDir.path, url);
           var args = ["${userDir.path}/launch.html"];
           return startBrowser(binary, args);
@@ -287,7 +287,7 @@ class Chrome extends Browser {
       _logEvent("Got version: $version");
 
       return new Directory('').createTemp().then((userDir) {
-        _cleanup = () { userDir.delete(recursive: true); };
+        _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["--user-data-dir=${userDir.path}", url,
                     "--disable-extensions", "--disable-popup-blocking",
                     "--bwsi", "--no-first-run"];
@@ -404,7 +404,7 @@ class Firefox extends Browser {
 
       return new Directory('').createTemp().then((userDir) {
         _createPreferenceFile(userDir.path);
-        _cleanup = () { userDir.delete(recursive: true); };
+        _cleanup = () { userDir.deleteSync(recursive: true); };
         var args = ["-profile", "${userDir.path}",
                     "-no-remote", "-new-instance", url];
         return startBrowser(binary, args);
@@ -446,6 +446,7 @@ class BrowserTest {
   Function doneCallback;
   String url;
   int timeout;
+  Stopwatch stopwatch;
   // We store this here for easy access when tests time out (instead of
   // capturing this in a closure)
   Timer timeoutTimer;
@@ -473,6 +474,7 @@ class BrowserTestRunner {
   int maxNumBrowsers;
   // Used to send back logs from the browser (start, stop etc)
   Function logger;
+  int browserIdCount = 0;
 
   bool underTermination = false;
 
@@ -544,7 +546,8 @@ class BrowserTestRunner {
     } else {
       var browsers = [];
       for (int i = 0; i < maxNumBrowsers; i++) {
-        var id = "BROWSER$i";
+        var id = "BROWSER$browserIdCount";
+        browserIdCount++;
         var browser = getInstance();
         browsers.add(browser);
         // We store this in case we need to kill the browser.
@@ -559,6 +562,7 @@ class BrowserTestRunner {
 
   void handleResults(String browserId, String output, int testId) {
     var status = browserStatus[browserId];
+    DebugLogger.info("Handling result for browser ${browserId}");
     if (testCache.containsKey(testId)) {
       doubleReportingTests.add(testId);
       return;
@@ -569,6 +573,8 @@ class BrowserTestRunner {
       // replaced.
     } else if (status.currentTest != null) {
       status.currentTest.timeoutTimer.cancel();
+      status.currentTest.stopwatch.stop();
+
       if (status.currentTest.id != testId) {
         print("Expected test id ${status.currentTest.id} for"
               "${status.currentTest.url}");
@@ -578,7 +584,12 @@ class BrowserTestRunner {
         throw("This should never happen, wrong test id");
       }
       testCache[testId] = status.currentTest.url;
-      status.currentTest.doneCallback(output);
+      DebugLogger.info("Size of output for test $testId : ${output.length}");
+      Stopwatch watch = new Stopwatch()..start();
+      status.currentTest.doneCallback(output,
+                                      status.currentTest.stopwatch.elapsed);
+      watch.stop();
+      DebugLogger.info("Handling of test $testId took : ${watch.elapsed}");
       status.lastTest = status.currentTest;
       status.currentTest = null;
     } else {
@@ -594,6 +605,7 @@ class BrowserTestRunner {
   void handleTimeout(BrowserTestingStatus status) {
     // We simply kill the browser and starts up a new one!
     // We could be smarter here, but it does not seems like it is worth it.
+    DebugLogger.info("Handling timeout for browser ${status.browser.id}");
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
@@ -605,14 +617,19 @@ class BrowserTestRunner {
       }
       // We don't want to start a new browser if we are terminating.
       if (underTermination) return;
-
       var browser;
+      var new_id = id;
       if (browserName == 'chromeOnAndroid') {
         browser = new AndroidChrome(adbDeviceMapping[id]);
       } else {
+        browserStatus.remove(id);
         browser = getInstance();
+        new_id = "BROWSER$browserIdCount";
+        browserIdCount++;
+        browserStatus[new_id] = new BrowserTestingStatus(browser);
       }
-      browser.start(testingServer.getDriverUrl(id)).then((success) {
+      browser.id = new_id;
+      browser.start(testingServer.getDriverUrl(new_id)).then((success) {
         // We may have started terminating in the mean time.
         if (underTermination) {
           browser.close().then((success) {
@@ -624,9 +641,7 @@ class BrowserTestRunner {
           return;
         }
         if (success) {
-          browser.id = id;
-          status.browser = browser;
-          status.timeout = false;
+          browserStatus[browser.id] = new BrowserTestingStatus(browser);
         } else {
           // TODO(ricow): Handle this better.
           print("This is bad, should never happen, could not start browser");
@@ -634,8 +649,9 @@ class BrowserTestRunner {
         }
       });
     });
-
-    status.currentTest.doneCallback("TIMEOUT");
+    status.currentTest.stopwatch.stop();
+    status.currentTest.doneCallback("TIMEOUT",
+                                    status.currentTest.stopwatch.elapsed);
     status.currentTest = null;
   }
 
@@ -643,6 +659,9 @@ class BrowserTestRunner {
     if (testQueue.isEmpty) return null;
     var status = browserStatus[browserId];
     if (status == null) return null;
+    DebugLogger.info("Handling getNext for browser "
+                     "${browserId} timeout status: ${status.timeout}");
+
     // We are currently terminating this browser, don't start a new test.
     if (status.timeout) return null;
     BrowserTest test = testQueue.removeLast();
@@ -651,6 +670,7 @@ class BrowserTestRunner {
     } else {
       // TODO(ricow): Handle this better.
       print("This is bad, should never happen, getNextTest all full");
+      print("This happened for browser $browserId");
       print("Old test was: ${status.currentTest.url}");
       print("Timed out tests:");
       for (var v in timedOut) {
@@ -661,6 +681,7 @@ class BrowserTestRunner {
     Timer timer = new Timer(new Duration(seconds: test.timeout),
                             () { handleTimeout(status); });
     status.currentTest.timeoutTimer = timer;
+    status.currentTest.stopwatch = new Stopwatch()..start();
     return test;
   }
 
@@ -689,6 +710,7 @@ class BrowserTestRunner {
     }
     return Future.wait(futures).then((values) {
       testingServer.httpServer.close();
+      testingServer.errorReportingServer.close();
       printDoubleReportingTests();
       return !values.contains(false);
     });
@@ -724,6 +746,7 @@ class BrowserTestingServer {
 
   var testCount = 0;
   var httpServer;
+  var errorReportingServer;
   bool underTermination = false;
   bool useIframe = false;
 
@@ -736,6 +759,7 @@ class BrowserTestingServer {
     return HttpServer.bind(local_ip, 0).then((createdServer) {
       httpServer = createdServer;
       void handler(HttpRequest request) {
+        DebugLogger.info("Handling request to: ${request.uri.path}");
         if (request.uri.path.startsWith(reportPath)) {
           var browserId = request.uri.path.substring(reportPath.length + 1);
           var testId = int.parse(request.queryParameters["id"].split("=")[1]);
@@ -753,11 +777,14 @@ class BrowserTestingServer {
           var browserId = request.uri.path.substring(nextTestPath.length + 1);
           textResponse = getNextTest(browserId);
         } else {
-          // We silently ignore other requests.
+          DebugLogger.info("Handling non standard request to: "
+                           "${request.uri.path}");
         }
         request.response.write(textResponse);
         request.listen((_) {}, onDone: request.response.close);
-        request.response.done.catchError((error) {
+        request.response.done.then((_) {
+          DebugLogger.info("Done handling request to: ${request.uri.path}");
+        }).catchError((error) {
           if (!underTermination) {
             print("URI ${request.uri}");
             print("Textresponse $textResponse");
@@ -768,8 +795,34 @@ class BrowserTestingServer {
       void errorHandler(e) {
         if (!underTermination) print("Error occured in httpserver: $e");
       };
+
       httpServer.listen(handler, onError: errorHandler);
-      return true;
+
+      // Set up the error reporting server that enables us to send back
+      // errors from the browser.
+      return HttpServer.bind(local_ip, 0).then((createdReportServer) {
+        errorReportingServer = createdReportServer;
+        void errorReportingHandler(HttpRequest request) {
+          StringBuffer buffer = new StringBuffer();
+          request.transform(new StringDecoder()).listen((data) {
+            buffer.write(data);
+          }, onDone: () {
+              String back = buffer.toString();
+              request.response.headers.set("Access-Control-Allow-Origin", "*");
+
+              request.response.done.catchError((error) {
+                DebugLogger.error("Error getting error from browser"
+                                  "on uri ${request.uri.path}: $error");
+              });
+              request.response.close();
+              DebugLogger.error("Error from browser on : "
+                               "${request.uri.path}, data:  $back");
+          }, onError: (error) { print(error); });
+        }
+        errorReportingServer.listen(errorReportingHandler,
+                                    onError: errorHandler);
+        return true;
+      });
     });
   }
 
@@ -781,6 +834,7 @@ class BrowserTestingServer {
         String back = buffer.toString();
         request.response.close();
         testDoneCallBack(browserId, back, testId);
+        DebugLogger.info("Done handling request to: ${request.uri.path}");
       }, onError: (error) { print(error); });
   }
 
@@ -810,6 +864,8 @@ class BrowserTestingServer {
 
 
   String getDriverPage(String browserId) {
+    var errorReportingUrl =
+        "http://$local_ip:${errorReportingServer.port}/$browserId";
     String driverContent = """
 <!DOCTYPE html><html>
 <head>
@@ -827,6 +883,7 @@ class BrowserTestingServer {
 
       var embedded_iframe = document.getElementById('embedded_iframe');
       var use_iframe = ${useIframe};
+      var start = new Date();
 
       function newTaskHandler() {
         if (this.readyState == this.DONE) {
@@ -836,6 +893,8 @@ class BrowserTestingServer {
             } else if (this.responseText == '$terminateSignal') {
               // Don't do anything, we will be killed shortly.
             } else {
+              var elapsed = new Date() - start;
+              reportError('Done getting task at: ' + elapsed);
               // TODO(ricow): Do something more clever here.
               if (nextTask != undefined) alert('This is really bad');
               // The task is send to us as:
@@ -847,12 +906,14 @@ class BrowserTestingServer {
               run(nextTask);
             }
           } else {
-            // We are basically in trouble - do something clever.
+            reportError('Could not contact the server and get a new task');
           }
         }
       }
 
       function getNextTask() {
+        var elapsed = new Date() - start;
+        reportError('Getting task at: ' + elapsed);
         var client = new XMLHttpRequest();
         client.onreadystatechange = newTaskHandler;
         client.open('GET', '$nextTestPath/$browserId');
@@ -873,6 +934,29 @@ class BrowserTestingServer {
         }
       }
 
+      window.onerror = function (message, url, lineNumber) {
+        if (url) {
+          reportError(url + ':' + lineNumber + ':' + message);
+        } else {
+          reportError(message);
+        }
+      }
+
+      function reportError(msg) {
+        var client = new XMLHttpRequest();
+        function handleReady() {
+          if (this.readyState == this.DONE && this.status != 200) {
+            // We could not report, pop up to notify if running interactively.
+            alert(this.status);
+          }
+        }
+        client.onreadystatechange = handleReady;
+        client.open('POST', '$errorReportingUrl?test=1');
+        client.setRequestHeader('Content-type',
+                                'application/x-www-form-urlencoded');
+        client.send(msg);
+      }
+
       function reportMessage(msg) {
         if (msg == 'STARTING') {
           did_start = true;
@@ -881,9 +965,15 @@ class BrowserTestingServer {
         var client = new XMLHttpRequest();
         function handleReady() {
           if (this.readyState == this.DONE) {
-            if (last_reported_id != current_id && did_start) {
-              getNextTask();
-              last_reported_id = current_id;
+            if (this.status == 200) {
+              if (last_reported_id != current_id && did_start) {
+                var elapsed = new Date() - start;
+                reportError('Done sending results at: ' + elapsed);
+                getNextTask();
+                last_reported_id = current_id;
+              }
+            } else {
+              reportError('Error sending result to server');
             }
           }
         }
@@ -897,8 +987,8 @@ class BrowserTestingServer {
         client.setRequestHeader('Content-type',
                                 'application/x-www-form-urlencoded');
         client.send(msg);
-        // TODO(ricow) add error handling to somehow report the fact that
-        // we could not send back a result.
+        var elapsed = new Date() - start;
+        reportError('Sending results at: ' + elapsed);
       }
 
       function messageHandler(e) {

@@ -55,7 +55,6 @@ DEFINE_FLAG(bool, throw_on_javascript_int_overflow, false,
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(int, deoptimization_counter_threshold);
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -390,7 +389,7 @@ void Object::InitOnce() {
         Class::kNoTypeArguments;
     cls.raw_ptr()->num_native_fields_ = 0;
     cls.InitEmptyFields();
-    isolate->class_table()->Register(cls);
+    isolate->RegisterClass(cls);
   }
 
   // Allocate and initialize the null class.
@@ -890,6 +889,14 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = object_store->type_parameter_class();
   RegisterPrivateClass(cls, Symbols::TypeParameter(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = object_store->bounded_type_class();
+  RegisterPrivateClass(cls, Symbols::BoundedType(), core_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
+  cls = object_store->mixin_app_type_class();
+  RegisterPrivateClass(cls, Symbols::MixinAppType(), core_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Integer>();
@@ -1468,7 +1475,7 @@ RawClass* Class::New() {
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
-  Isolate::Current()->class_table()->Register(result);
+  Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
 
@@ -1619,7 +1626,7 @@ intptr_t Class::NumTypeArguments() const {
       }
     }
     num_type_args += cls.NumTypeParameters();
-    // Object is its own super class during bootstrap.
+    // Super type of Object class is null.
     if (cls.super_type() == AbstractType::null() ||
         cls.super_type() == isolate->object_store()->object_type()) {
       break;
@@ -1879,7 +1886,7 @@ RawClass* Class::New(intptr_t index) {
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
-  Isolate::Current()->class_table()->Register(result);
+  Isolate::Current()->RegisterClass(result);
   return result.raw();
 }
 
@@ -3443,20 +3450,6 @@ void Function::SwitchToUnoptimizedCode() const {
 
 void Function::set_unoptimized_code(const Code& value) const {
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
-}
-
-
-void Function::set_deopt_history(const Array& value) const {
-  StorePointer(&raw_ptr()->deopt_history_, value.raw());
-}
-
-
-void Function::EnsureDeoptHistory() const {
-  Array& array = Array::Handle(deopt_history());
-  if (array.IsNull()) {
-    array = Array::New(FLAG_deoptimization_counter_threshold);
-    set_deopt_history(array);
-  }
 }
 
 
@@ -5992,6 +5985,123 @@ void Library::SetLoadError() const {
 }
 
 
+static RawString* MakeClassMetaName(const Class& cls) {
+  String& cname = String::Handle(cls.Name());
+  return String::Concat(Symbols::At(), cname);
+}
+
+
+static RawString* MakeFieldMetaName(const Field& field) {
+  const String& cname =
+      String::Handle(MakeClassMetaName(Class::Handle(field.origin())));
+  String& fname = String::Handle(field.name());
+  fname = String::Concat(Symbols::At(), fname);
+  return String::Concat(cname, fname);
+}
+
+
+static RawString* MakeFunctionMetaName(const Function& func) {
+  const String& cname =
+      String::Handle(MakeClassMetaName(Class::Handle(func.origin())));
+  String& fname = String::Handle(func.name());
+  fname = String::Concat(Symbols::At(), fname);
+  return String::Concat(cname, fname);
+}
+
+
+void Library::AddMetadata(const Class& cls,
+                          const String& name,
+                          intptr_t token_pos) const {
+  const String& metaname = String::Handle(Symbols::New(name));
+  Field& field = Field::Handle(Field::New(metaname,
+                                          true,   // is_static
+                                          false,  // is_final
+                                          false,  // is_const
+                                          cls,
+                                          token_pos));
+  field.set_type(Type::Handle(Type::DynamicType()));
+  field.set_value(Array::empty_array());
+  GrowableObjectArray& metadata =
+      GrowableObjectArray::Handle(this->metadata());
+  metadata.Add(field, Heap::kOld);
+}
+
+
+void Library::AddClassMetadata(const Class& cls, intptr_t token_pos) const {
+  AddMetadata(cls, String::Handle(MakeClassMetaName(cls)), token_pos);
+}
+
+
+void Library::AddFieldMetadata(const Field& field,
+                               intptr_t token_pos) const {
+  AddMetadata(Class::Handle(field.origin()),
+              String::Handle(MakeFieldMetaName(field)),
+              token_pos);
+}
+
+
+void Library::AddFunctionMetadata(const Function& func,
+                                  intptr_t token_pos) const {
+  AddMetadata(Class::Handle(func.origin()),
+              String::Handle(MakeFunctionMetaName(func)),
+              token_pos);
+}
+
+
+RawString* Library::MakeMetadataName(const Object& obj) const {
+  if (obj.IsClass()) {
+    return MakeClassMetaName(Class::Cast(obj));
+  } else if (obj.IsField()) {
+    return MakeFieldMetaName(Field::Cast(obj));
+  } else if (obj.IsFunction()) {
+    return MakeFunctionMetaName(Function::Cast(obj));
+  }
+  UNIMPLEMENTED();
+  return String::null();
+}
+
+
+RawField* Library::GetMetadataField(const String& metaname) const {
+  const GrowableObjectArray& metadata =
+      GrowableObjectArray::Handle(this->metadata());
+  Field& entry = Field::Handle();
+  String& entryname = String::Handle();
+  intptr_t num_entries = metadata.Length();
+  for (intptr_t i = 0; i < num_entries; i++) {
+    entry ^= metadata.At(i);
+    entryname = entry.name();
+    if (entryname.Equals(metaname)) {
+      return entry.raw();
+    }
+  }
+  return Field::null();
+}
+
+
+RawObject* Library::GetMetadata(const Object& obj) const {
+  if (!obj.IsClass() && !obj.IsField() && !obj.IsFunction()) {
+    return Object::null();
+  }
+  const String& metaname = String::Handle(MakeMetadataName(obj));
+  Field& field = Field::Handle(GetMetadataField(metaname));
+  if (field.IsNull()) {
+    // There is no metadata for this object.
+    return Object::empty_array().raw();;
+  }
+  Object& metadata = Object::Handle();
+  metadata = field.value();
+  if (field.value() == Object::empty_array().raw()) {
+    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
+                                     field.token_pos());
+    if (metadata.IsArray()) {
+      ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
+      field.set_value(Array::Cast(metadata));
+    }
+  }
+  return metadata.raw();
+}
+
+
 void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
   // TODO(iposva): Avoid exponential growth.
   intptr_t new_dict_size = dict_size * 2;
@@ -6530,6 +6640,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
   result.raw_ptr()->dictionary_ = Object::empty_array().raw();
+  result.StorePointer(&result.raw_ptr()->metadata_,
+                      GrowableObjectArray::New(4, Heap::kOld));
   result.raw_ptr()->anonymous_classes_ = Object::empty_array().raw();
   result.raw_ptr()->num_anonymous_ = 0;
   result.raw_ptr()->imports_ = Object::empty_array().raw();
@@ -9090,13 +9202,43 @@ bool Instance::Equals(const Instance& other) const {
 }
 
 
-RawInstance* Instance::Canonicalize() const {
+RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   ASSERT(!IsNull());
   if (this->IsCanonical()) {
     return this->raw();
   }
   Instance& result = Instance::Handle();
   const Class& cls = Class::Handle(this->clazz());
+  // TODO(srdjan): Check that predefined classes do not have fields that need
+  // to be checked/canonicalized as well.
+  if ((cls.id() >= kNumPredefinedCids) || cls.IsArray()) {
+    // Iterate over all fields, canonicalize numbers and strings, expect all
+    // other instances to be canonical otherwise report error (return
+    // Instance::null()).
+    Object& obj = Object::Handle();
+    const intptr_t end_field_offset = cls.instance_size() - kWordSize;
+    for (intptr_t field_offset = 0;
+         field_offset <= end_field_offset;
+         field_offset += kWordSize) {
+      obj = *this->FieldAddrAtOffset(field_offset);
+      if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
+        if (obj.IsNumber() || obj.IsString()) {
+          obj = Instance::Cast(obj).CheckAndCanonicalize(NULL);
+          ASSERT(!obj.IsNull());
+          this->SetFieldAtOffset(field_offset, obj);
+        } else {
+          ASSERT(error_str != NULL);
+          const char* kFormat = "field: %s\n";
+          const intptr_t len =
+              OS::SNPrint(NULL, 0, kFormat, obj.ToCString()) + 1;
+          char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+          OS::SNPrint(chars, len, kFormat, obj.ToCString());
+          *error_str = chars;
+          return Instance::null();
+        }
+      }
+    }
+  }
   Array& constants = Array::Handle(cls.constants());
   const intptr_t constants_len = constants.Length();
   // Linear search to see whether this value is already present in the
@@ -11444,7 +11586,7 @@ bool String::StartsWith(const String& other) const {
 }
 
 
-RawInstance* String::Canonicalize() const {
+RawInstance* String::CheckAndCanonicalize(const char** error_str) const {
   if (IsCanonical()) {
     return this->raw();
   }

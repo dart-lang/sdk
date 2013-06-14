@@ -105,7 +105,7 @@ class AbstractWorker extends EventTarget native "AbstractWorker" {
 
 @DocsEditable
 @DomName('HTMLAnchorElement')
-class AnchorElement extends Element native "HTMLAnchorElement" {
+class AnchorElement extends _HTMLElement native "HTMLAnchorElement" {
 
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable
@@ -362,7 +362,7 @@ class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicati
  * on MDN.
  */
 @DomName('HTMLAreaElement')
-class AreaElement extends Element native "HTMLAreaElement" {
+class AreaElement extends _HTMLElement native "HTMLAreaElement" {
 
   @DomName('HTMLAreaElement.HTMLAreaElement')
   @DocsEditable
@@ -464,7 +464,7 @@ class AutocompleteErrorEvent extends Event native "AutocompleteErrorEvent" {
 
 @DocsEditable
 @DomName('HTMLBRElement')
-class BRElement extends Element native "HTMLBRElement" {
+class BRElement extends _HTMLElement native "HTMLBRElement" {
 
   @DomName('HTMLBRElement.HTMLBRElement')
   @DocsEditable
@@ -492,7 +492,7 @@ class BarProp native "BarProp" {
 
 @DocsEditable
 @DomName('HTMLBaseElement')
-class BaseElement extends Element native "HTMLBaseElement" {
+class BaseElement extends _HTMLElement native "HTMLBaseElement" {
 
   @DomName('HTMLBaseElement.HTMLBaseElement')
   @DocsEditable
@@ -567,7 +567,7 @@ class Blob native "Blob" {
 
 @DocsEditable
 @DomName('HTMLBodyElement')
-class BodyElement extends Element native "HTMLBodyElement" {
+class BodyElement extends _HTMLElement native "HTMLBodyElement" {
 
   @DomName('HTMLBodyElement.blurEvent')
   @DocsEditable
@@ -676,7 +676,7 @@ class BodyElement extends Element native "HTMLBodyElement" {
 
 @DocsEditable
 @DomName('HTMLButtonElement')
-class ButtonElement extends Element native "HTMLButtonElement" {
+class ButtonElement extends _HTMLElement native "HTMLButtonElement" {
 
   @DomName('HTMLButtonElement.HTMLButtonElement')
   @DocsEditable
@@ -785,7 +785,15 @@ class Canvas2DContextAttributes native "Canvas2DContextAttributes" {
 
 
 @DomName('HTMLCanvasElement')
-class CanvasElement extends Element implements CanvasImageSource native "HTMLCanvasElement" {
+class CanvasElement extends _HTMLElement implements CanvasImageSource native "HTMLCanvasElement" {
+
+  @DomName('HTMLCanvasElement.webglcontextlostEvent')
+  @DocsEditable
+  static const EventStreamProvider<gl.ContextEvent> webGlContextLostEvent = const EventStreamProvider<gl.ContextEvent>('webglcontextlost');
+
+  @DomName('HTMLCanvasElement.webglcontextrestoredEvent')
+  @DocsEditable
+  static const EventStreamProvider<gl.ContextEvent> webGlContextRestoredEvent = const EventStreamProvider<gl.ContextEvent>('webglcontextrestored');
 
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable
@@ -868,6 +876,14 @@ class CanvasElement extends Element implements CanvasImageSource native "HTMLCan
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable
   String toDataUrl(String type, [num quality]) native;
+
+  @DomName('HTMLCanvasElement.onwebglcontextlost')
+  @DocsEditable
+  Stream<gl.ContextEvent> get onWebGlContextLost => webGlContextLostEvent.forTarget(this);
+
+  @DomName('HTMLCanvasElement.onwebglcontextrestored')
+  @DocsEditable
+  Stream<gl.ContextEvent> get onWebGlContextRestored => webGlContextRestoredEvent.forTarget(this);
 
   /** An API for drawing on this canvas. */
   CanvasRenderingContext2D get context2D =>
@@ -1807,7 +1823,7 @@ class Console {
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#content-element
-class ContentElement extends Element native "HTMLContentElement" {
+class ContentElement extends _HTMLElement native "HTMLContentElement" {
 
   @DomName('HTMLContentElement.HTMLContentElement')
   @DocsEditable
@@ -2096,7 +2112,7 @@ class CssImportRule extends CssRule native "CSSImportRule" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
 // http://www.w3.org/TR/css3-animations/#CSSKeyframeRule-interface
-class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
+class CssKeyframeRule extends CssRule native "CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule" {
 
   @DomName('WebKitCSSKeyframeRule.keyText')
   @DocsEditable
@@ -2117,7 +2133,7 @@ class CssKeyframeRule extends CssRule native "WebKitCSSKeyframeRule" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
 // http://www.w3.org/TR/css3-animations/#csskeyframesrule
-class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
+class CssKeyframesRule extends CssRule native "CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule" {
 
   @DomName('WebKitCSSKeyframesRule.cssRules')
   @DocsEditable
@@ -2141,9 +2157,14 @@ class CssKeyframesRule extends CssRule native "WebKitCSSKeyframesRule" {
   @DocsEditable
   CssKeyframeRule findRule(String key) native;
 
-  @DomName('WebKitCSSKeyframesRule.insertRule')
-  @DocsEditable
-  void insertRule(String rule) native;
+
+  void appendRule(String rule) {
+    if (JS('bool', '("appendRule" in #)', this)) {
+      JS('', '#.appendRule(#)', this, rule);
+    } else {
+      JS('', '#.insertRule(#)', this, rule);
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5959,7 +5980,7 @@ class CustomEvent extends Event native "CustomEvent" {
 
 @DocsEditable
 @DomName('HTMLDListElement')
-class DListElement extends Element native "HTMLDListElement" {
+class DListElement extends _HTMLElement native "HTMLDListElement" {
 
   @DomName('HTMLDListElement.HTMLDListElement')
   @DocsEditable
@@ -5976,7 +5997,7 @@ class DListElement extends Element native "HTMLDListElement" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class DataListElement extends Element native "HTMLDataListElement" {
+class DataListElement extends _HTMLElement native "HTMLDataListElement" {
 
   @DomName('HTMLDataListElement.HTMLDataListElement')
   @DocsEditable
@@ -6146,7 +6167,7 @@ typedef void DatabaseCallback(database);
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
-class DetailsElement extends Element native "HTMLDetailsElement" {
+class DetailsElement extends _HTMLElement native "HTMLDetailsElement" {
 
   @DomName('HTMLDetailsElement.HTMLDetailsElement')
   @DocsEditable
@@ -6282,7 +6303,7 @@ class DeviceRotationRate native "DeviceRotationRate" {
 @DocsEditable
 @DomName('HTMLDialogElement')
 @Unstable
-class DialogElement extends Element native "HTMLDialogElement" {
+class DialogElement extends _HTMLElement native "HTMLDialogElement" {
 
   @DomName('HTMLDialogElement.open')
   @DocsEditable
@@ -6522,7 +6543,7 @@ class DirectoryReader native "DirectoryReader" {
  * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
  */
 @DomName('HTMLDivElement')
-class DivElement extends Element native "HTMLDivElement" {
+class DivElement extends _HTMLElement native "HTMLDivElement" {
 
   @DomName('HTMLDivElement.HTMLDivElement')
   @DocsEditable
@@ -9483,7 +9504,7 @@ abstract class ElementTraversal {
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
-class EmbedElement extends Element native "HTMLEmbedElement" {
+class EmbedElement extends _HTMLElement native "HTMLEmbedElement" {
 
   @DomName('HTMLEmbedElement.HTMLEmbedElement')
   @DocsEditable
@@ -10149,7 +10170,7 @@ class EventTarget native "EventTarget" {
 @DocsEditable
 @DomName('HTMLFieldSetElement')
 @Unstable
-class FieldSetElement extends Element native "HTMLFieldSetElement" {
+class FieldSetElement extends _HTMLElement native "HTMLFieldSetElement" {
 
   @DomName('HTMLFieldSetElement.HTMLFieldSetElement')
   @DocsEditable
@@ -10908,7 +10929,7 @@ class FormData native "FormData" {
 
 @DocsEditable
 @DomName('HTMLFormElement')
-class FormElement extends Element native "HTMLFormElement" {
+class FormElement extends _HTMLElement native "HTMLFormElement" {
 
   @DomName('HTMLFormElement.autocompleteEvent')
   @DocsEditable
@@ -11178,7 +11199,7 @@ class Geoposition native "Geoposition" {
  * An `<hr>` tag.
  */
 @DomName('HTMLHRElement')
-class HRElement extends Element native "HTMLHRElement" {
+class HRElement extends _HTMLElement native "HTMLHRElement" {
 
   @DomName('HTMLHRElement.HTMLHRElement')
   @DocsEditable
@@ -11231,7 +11252,7 @@ class HashChangeEvent extends Event native "HashChangeEvent" {
 
 @DocsEditable
 @DomName('HTMLHeadElement')
-class HeadElement extends Element native "HTMLHeadElement" {
+class HeadElement extends _HTMLElement native "HTMLHeadElement" {
 
   @DomName('HTMLHeadElement.HTMLHeadElement')
   @DocsEditable
@@ -11244,7 +11265,7 @@ class HeadElement extends Element native "HTMLHeadElement" {
 
 @DocsEditable
 @DomName('HTMLHeadingElement')
-class HeadingElement extends Element native "HTMLHeadingElement" {
+class HeadingElement extends _HTMLElement native "HTMLHeadingElement" {
 
   @DomName('HTMLHeadingElement.HTMLHeadingElement')
   @DocsEditable
@@ -11645,7 +11666,7 @@ class HtmlDocument extends Document native "HTMLDocument" {
 
 @DocsEditable
 @DomName('HTMLHtmlElement')
-class HtmlElement extends Element native "HTMLHtmlElement" {
+class HtmlElement extends _HTMLElement native "HTMLHtmlElement" {
 
   @DomName('HTMLHtmlElement.HTMLHtmlElement')
   @DocsEditable
@@ -12307,7 +12328,7 @@ class HttpRequestUpload extends EventTarget native "XMLHttpRequestUpload,XMLHttp
 
 @DocsEditable
 @DomName('HTMLIFrameElement')
-class IFrameElement extends Element native "HTMLIFrameElement" {
+class IFrameElement extends _HTMLElement native "HTMLIFrameElement" {
 
   @DomName('HTMLIFrameElement.HTMLIFrameElement')
   @DocsEditable
@@ -12377,7 +12398,7 @@ class ImageData native "ImageData" {
 
 
 @DomName('HTMLImageElement')
-class ImageElement extends Element implements CanvasImageSource native "HTMLImageElement" {
+class ImageElement extends _HTMLElement implements CanvasImageSource native "HTMLImageElement" {
 
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable
@@ -12456,7 +12477,7 @@ class ImageElement extends Element implements CanvasImageSource native "HTMLImag
 
 
 @DomName('HTMLInputElement')
-class InputElement extends Element implements
+class InputElement extends _HTMLElement implements
     HiddenInputElement,
     SearchInputElement,
     TextInputElement,
@@ -13515,7 +13536,7 @@ class KeyboardEvent extends UIEvent native "KeyboardEvent" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#the-keygen-element
-class KeygenElement extends Element native "HTMLKeygenElement" {
+class KeygenElement extends _HTMLElement native "HTMLKeygenElement" {
 
   @DomName('HTMLKeygenElement.HTMLKeygenElement')
   @DocsEditable
@@ -13586,7 +13607,7 @@ class KeygenElement extends Element native "HTMLKeygenElement" {
 
 @DocsEditable
 @DomName('HTMLLIElement')
-class LIElement extends Element native "HTMLLIElement" {
+class LIElement extends _HTMLElement native "HTMLLIElement" {
 
   @DomName('HTMLLIElement.HTMLLIElement')
   @DocsEditable
@@ -13609,7 +13630,7 @@ class LIElement extends Element native "HTMLLIElement" {
 
 @DocsEditable
 @DomName('HTMLLabelElement')
-class LabelElement extends Element native "HTMLLabelElement" {
+class LabelElement extends _HTMLElement native "HTMLLabelElement" {
 
   @DomName('HTMLLabelElement.HTMLLabelElement')
   @DocsEditable
@@ -13634,7 +13655,7 @@ class LabelElement extends Element native "HTMLLabelElement" {
 
 @DocsEditable
 @DomName('HTMLLegendElement')
-class LegendElement extends Element native "HTMLLegendElement" {
+class LegendElement extends _HTMLElement native "HTMLLegendElement" {
 
   @DomName('HTMLLegendElement.HTMLLegendElement')
   @DocsEditable
@@ -13651,7 +13672,7 @@ class LegendElement extends Element native "HTMLLegendElement" {
 
 @DocsEditable
 @DomName('HTMLLinkElement')
-class LinkElement extends Element native "HTMLLinkElement" {
+class LinkElement extends _HTMLElement native "HTMLLinkElement" {
 
   @DomName('HTMLLinkElement.HTMLLinkElement')
   @DocsEditable
@@ -13786,7 +13807,7 @@ typedef void MidiErrorCallback(DomError error);
 
 @DocsEditable
 @DomName('HTMLMapElement')
-class MapElement extends Element native "HTMLMapElement" {
+class MapElement extends _HTMLElement native "HTMLMapElement" {
 
   @DomName('HTMLMapElement.HTMLMapElement')
   @DocsEditable
@@ -13896,7 +13917,7 @@ class MediaController extends EventTarget native "MediaController" {
 @DocsEditable
 @DomName('HTMLMediaElement')
 @Unstable
-class MediaElement extends Element native "HTMLMediaElement" {
+class MediaElement extends _HTMLElement native "HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.canplayEvent')
   @DocsEditable
@@ -14224,6 +14245,7 @@ class MediaElement extends Element native "HTMLMediaElement" {
 
   @DomName('HTMLMediaElement.canPlayType')
   @DocsEditable
+  @Unstable
   String canPlayType(String type, String keySystem) native;
 
   @DomName('HTMLMediaElement.load')
@@ -15034,7 +15056,7 @@ class MemoryInfo native "MemoryInfo" {
  *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
  */
 @DomName('HTMLMenuElement')
-class MenuElement extends Element native "HTMLMenuElement" {
+class MenuElement extends _HTMLElement native "HTMLMenuElement" {
 
   @DomName('HTMLMenuElement.HTMLMenuElement')
   @DocsEditable
@@ -15192,7 +15214,7 @@ class MessagePort extends EventTarget native "MessagePort" {
 
 @DocsEditable
 @DomName('HTMLMetaElement')
-class MetaElement extends Element native "HTMLMetaElement" {
+class MetaElement extends _HTMLElement native "HTMLMetaElement" {
 
   @DomName('HTMLMetaElement.HTMLMetaElement')
   @DocsEditable
@@ -15254,7 +15276,7 @@ typedef void MetadataCallback(Metadata metadata);
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
-class MeterElement extends Element native "HTMLMeterElement" {
+class MeterElement extends _HTMLElement native "HTMLMeterElement" {
 
   @DomName('HTMLMeterElement.HTMLMeterElement')
   @DocsEditable
@@ -15568,7 +15590,7 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
 @DocsEditable
 @DomName('HTMLModElement')
 @Unstable
-class ModElement extends Element native "HTMLModElement" {
+class ModElement extends _HTMLElement native "HTMLModElement" {
 
   @DomName('HTMLModElement.cite')
   @DocsEditable
@@ -17132,7 +17154,7 @@ typedef void _NotificationPermissionCallback(String permission);
 
 @DocsEditable
 @DomName('HTMLOListElement')
-class OListElement extends Element native "HTMLOListElement" {
+class OListElement extends _HTMLElement native "HTMLOListElement" {
 
   @DomName('HTMLOListElement.HTMLOListElement')
   @DocsEditable
@@ -17161,7 +17183,7 @@ class OListElement extends Element native "HTMLOListElement" {
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
-class ObjectElement extends Element native "HTMLObjectElement" {
+class ObjectElement extends _HTMLElement native "HTMLObjectElement" {
 
   @DomName('HTMLObjectElement.HTMLObjectElement')
   @DocsEditable
@@ -17239,7 +17261,7 @@ class ObjectElement extends Element native "HTMLObjectElement" {
 
 @DocsEditable
 @DomName('HTMLOptGroupElement')
-class OptGroupElement extends Element native "HTMLOptGroupElement" {
+class OptGroupElement extends _HTMLElement native "HTMLOptGroupElement" {
 
   @DomName('HTMLOptGroupElement.HTMLOptGroupElement')
   @DocsEditable
@@ -17260,7 +17282,7 @@ class OptGroupElement extends Element native "HTMLOptGroupElement" {
 
 @DocsEditable
 @DomName('HTMLOptionElement')
-class OptionElement extends Element native "HTMLOptionElement" {
+class OptionElement extends _HTMLElement native "HTMLOptionElement" {
 
   @DomName('HTMLOptionElement.HTMLOptionElement')
   @DocsEditable
@@ -17323,7 +17345,7 @@ class OptionElement extends Element native "HTMLOptionElement" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class OutputElement extends Element native "HTMLOutputElement" {
+class OutputElement extends _HTMLElement native "HTMLOutputElement" {
 
   @DomName('HTMLOutputElement.HTMLOutputElement')
   @DocsEditable
@@ -17439,7 +17461,7 @@ class PageTransitionEvent extends Event native "PageTransitionEvent" {
 
 @DocsEditable
 @DomName('HTMLParagraphElement')
-class ParagraphElement extends Element native "HTMLParagraphElement" {
+class ParagraphElement extends _HTMLElement native "HTMLParagraphElement" {
 
   @DomName('HTMLParagraphElement.HTMLParagraphElement')
   @DocsEditable
@@ -17453,7 +17475,7 @@ class ParagraphElement extends Element native "HTMLParagraphElement" {
 @DocsEditable
 @DomName('HTMLParamElement')
 @Unstable
-class ParamElement extends Element native "HTMLParamElement" {
+class ParamElement extends _HTMLElement native "HTMLParamElement" {
 
   @DomName('HTMLParamElement.HTMLParamElement')
   @DocsEditable
@@ -18063,7 +18085,7 @@ typedef void _PositionErrorCallback(PositionError error);
 
 @DocsEditable
 @DomName('HTMLPreElement')
-class PreElement extends Element native "HTMLPreElement" {
+class PreElement extends _HTMLElement native "HTMLPreElement" {
 
   @DomName('HTMLPreElement.HTMLPreElement')
   @DocsEditable
@@ -18109,7 +18131,7 @@ class ProcessingInstruction extends Node native "ProcessingInstruction" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class ProgressElement extends Element native "HTMLProgressElement" {
+class ProgressElement extends _HTMLElement native "HTMLProgressElement" {
 
   @DomName('HTMLProgressElement.HTMLProgressElement')
   @DocsEditable
@@ -18165,7 +18187,7 @@ class ProgressEvent extends Event native "ProgressEvent" {
 
 @DocsEditable
 @DomName('HTMLQuoteElement')
-class QuoteElement extends Element native "HTMLQuoteElement" {
+class QuoteElement extends _HTMLElement native "HTMLQuoteElement" {
 
   @DomName('HTMLQuoteElement.HTMLQuoteElement')
   @DocsEditable
@@ -18219,6 +18241,9 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 @Unstable
 class Range native "Range" {
   factory Range() => document.$dom_createRange();
+
+  factory Range.fromPoint(Point point) =>
+      document.$dom_caretRangeFromPoint(point.x, point.y);
 
   @DomName('Range.END_TO_END')
   @DocsEditable
@@ -18429,7 +18454,7 @@ class ResourceProgressEvent extends ProgressEvent native "ResourceProgressEvent"
 @DomName('RTCDataChannel')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDataChannel
 @Experimental
-class RtcDataChannel extends EventTarget native "RTCDataChannel" {
+class RtcDataChannel extends EventTarget native "RTCDataChannel,DataChannel" {
 
   @DomName('RTCDataChannel.closeEvent')
   @DocsEditable
@@ -19119,7 +19144,7 @@ class Screen native "Screen" {
 
 @DocsEditable
 @DomName('HTMLScriptElement')
-class ScriptElement extends Element native "HTMLScriptElement" {
+class ScriptElement extends _HTMLElement native "HTMLScriptElement" {
 
   @DomName('HTMLScriptElement.HTMLScriptElement')
   @DocsEditable
@@ -19297,7 +19322,7 @@ class SecurityPolicyViolationEvent extends Event native "SecurityPolicyViolation
 
 
 @DomName('HTMLSelectElement')
-class SelectElement extends Element native "HTMLSelectElement" {
+class SelectElement extends _HTMLElement native "HTMLSelectElement" {
 
   @DomName('HTMLSelectElement.HTMLSelectElement')
   @DocsEditable
@@ -19538,7 +19563,7 @@ class Selection native "Selection" {
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#shadow-element
-class ShadowElement extends Element native "HTMLShadowElement" {
+class ShadowElement extends _HTMLElement native "HTMLShadowElement" {
 
   @DomName('HTMLShadowElement.HTMLShadowElement')
   @DocsEditable
@@ -19733,7 +19758,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
 @DocsEditable
 @DomName('HTMLSourceElement')
-class SourceElement extends Element native "HTMLSourceElement" {
+class SourceElement extends _HTMLElement native "HTMLSourceElement" {
 
   @DomName('HTMLSourceElement.HTMLSourceElement')
   @DocsEditable
@@ -19758,7 +19783,7 @@ class SourceElement extends Element native "HTMLSourceElement" {
 
 @DocsEditable
 @DomName('HTMLSpanElement')
-class SpanElement extends Element native "HTMLSpanElement" {
+class SpanElement extends _HTMLElement native "HTMLSpanElement" {
 
   @DomName('HTMLSpanElement.HTMLSpanElement')
   @DocsEditable
@@ -20655,7 +20680,7 @@ typedef void _StringCallback(String data);
 
 @DocsEditable
 @DomName('HTMLStyleElement')
-class StyleElement extends Element native "HTMLStyleElement" {
+class StyleElement extends _HTMLElement native "HTMLStyleElement" {
 
   @DomName('HTMLStyleElement.HTMLStyleElement')
   @DocsEditable
@@ -20744,7 +20769,7 @@ class StyleSheet native "StyleSheet" {
 
 @DocsEditable
 @DomName('HTMLTableCaptionElement')
-class TableCaptionElement extends Element native "HTMLTableCaptionElement" {
+class TableCaptionElement extends _HTMLElement native "HTMLTableCaptionElement" {
 
   @DomName('HTMLTableCaptionElement.HTMLTableCaptionElement')
   @DocsEditable
@@ -20757,7 +20782,7 @@ class TableCaptionElement extends Element native "HTMLTableCaptionElement" {
 
 @DocsEditable
 @DomName('HTMLTableCellElement')
-class TableCellElement extends Element native "HTMLTableCellElement" {
+class TableCellElement extends _HTMLElement native "HTMLTableCellElement" {
 
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable
@@ -20786,7 +20811,7 @@ class TableCellElement extends Element native "HTMLTableCellElement" {
 
 @DocsEditable
 @DomName('HTMLTableColElement')
-class TableColElement extends Element native "HTMLTableColElement" {
+class TableColElement extends _HTMLElement native "HTMLTableColElement" {
 
   @DomName('HTMLTableColElement.HTMLTableColElement')
   @DocsEditable
@@ -20803,7 +20828,7 @@ class TableColElement extends Element native "HTMLTableColElement" {
 
 @DocsEditable
 @DomName('HTMLTableElement')
-class TableElement extends Element native "HTMLTableElement" {
+class TableElement extends _HTMLElement native "HTMLTableElement" {
 
   @DomName('HTMLTableElement.tBodies')
   List<TableSectionElement> get tBodies =>
@@ -20911,7 +20936,7 @@ class TableElement extends Element native "HTMLTableElement" {
 
 @DocsEditable
 @DomName('HTMLTableRowElement')
-class TableRowElement extends Element native "HTMLTableRowElement" {
+class TableRowElement extends _HTMLElement native "HTMLTableRowElement" {
 
   @DomName('HTMLTableRowElement.cells')
   List<TableCellElement> get cells =>
@@ -20957,7 +20982,7 @@ class TableRowElement extends Element native "HTMLTableRowElement" {
 
 @DocsEditable
 @DomName('HTMLTableSectionElement')
-class TableSectionElement extends Element native "HTMLTableSectionElement" {
+class TableSectionElement extends _HTMLElement native "HTMLTableSectionElement" {
 
   @DomName('HTMLTableSectionElement.rows')
   List<TableRowElement> get rows =>
@@ -20996,7 +21021,7 @@ class TableSectionElement extends Element native "HTMLTableSectionElement" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#template-element
-class TemplateElement extends Element native "HTMLTemplateElement" {
+class TemplateElement extends _HTMLElement native "HTMLTemplateElement" {
 
   @DomName('HTMLTemplateElement.HTMLTemplateElement')
   @DocsEditable
@@ -21203,7 +21228,7 @@ class Text extends CharacterData native "Text" {
 
 @DocsEditable
 @DomName('HTMLTextAreaElement')
-class TextAreaElement extends Element native "HTMLTextAreaElement" {
+class TextAreaElement extends _HTMLElement native "HTMLTextAreaElement" {
 
   @DomName('HTMLTextAreaElement.HTMLTextAreaElement')
   @DocsEditable
@@ -21735,7 +21760,7 @@ typedef void TimeoutHandler();
 
 @DocsEditable
 @DomName('HTMLTitleElement')
-class TitleElement extends Element native "HTMLTitleElement" {
+class TitleElement extends _HTMLElement native "HTMLTitleElement" {
 
   @DomName('HTMLTitleElement.HTMLTitleElement')
   @DocsEditable
@@ -21995,7 +22020,7 @@ class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<To
 @SupportedBrowser(SupportedBrowser.SAFARI)
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#the-track-element
 @Experimental
-class TrackElement extends Element native "HTMLTrackElement" {
+class TrackElement extends _HTMLElement native "HTMLTrackElement" {
 
   @DomName('HTMLTrackElement.HTMLTrackElement')
   @DocsEditable
@@ -22262,7 +22287,7 @@ class UIEvent extends Event native "UIEvent" {
 
 @DocsEditable
 @DomName('HTMLUListElement')
-class UListElement extends Element native "HTMLUListElement" {
+class UListElement extends _HTMLElement native "HTMLUListElement" {
 
   @DomName('HTMLUListElement.HTMLUListElement')
   @DocsEditable
@@ -22275,7 +22300,7 @@ class UListElement extends Element native "HTMLUListElement" {
 
 @DocsEditable
 @DomName('HTMLUnknownElement')
-class UnknownElement extends Element native "HTMLUnknownElement" {
+class UnknownElement extends _HTMLElement native "HTMLUnknownElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22916,11 +22941,16 @@ class Window extends EventTarget implements WindowBase native "Window,DOMWindow"
   }
 
   /**
-   * Returns a Future that completes just before the window is about to repaint
-   * so the user can draw an animation frame
+   * Returns a Future that completes just before the window is about to 
+   * repaint so the user can draw an animation frame.
    *
    * If you need to later cancel this animation, use [requestAnimationFrame]
    * instead.
+   *
+   * The [Future] completes to a timestamp that represents a floating
+   * point value of the number of milliseconds that have elapsed since the page 
+   * started to load (which is also the timestamp at this call to 
+   * animationFrame).
    *
    * Note: The code that runs when the future completes should call
    * [animationFrame] again for the animation to continue.
@@ -25012,7 +25042,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
 @DomName('HTMLAppletElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
 @deprecated // deprecated
-abstract class _HTMLAppletElement extends Element native "HTMLAppletElement" {
+abstract class _HTMLAppletElement extends _HTMLElement native "HTMLAppletElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25023,7 +25053,7 @@ abstract class _HTMLAppletElement extends Element native "HTMLAppletElement" {
 @DomName('HTMLBaseFontElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#basefont
 @deprecated // deprecated
-abstract class _HTMLBaseFontElement extends Element native "HTMLBaseFontElement" {
+abstract class _HTMLBaseFontElement extends _HTMLElement native "HTMLBaseFontElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25034,7 +25064,7 @@ abstract class _HTMLBaseFontElement extends Element native "HTMLBaseFontElement"
 @DomName('HTMLDirectoryElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
 @deprecated // deprecated
-abstract class _HTMLDirectoryElement extends Element native "HTMLDirectoryElement" {
+abstract class _HTMLDirectoryElement extends _HTMLElement native "HTMLDirectoryElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25045,7 +25075,7 @@ abstract class _HTMLDirectoryElement extends Element native "HTMLDirectoryElemen
 @DomName('HTMLFontElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlfontelement
 @deprecated // deprecated
-abstract class _HTMLFontElement extends Element native "HTMLFontElement" {
+abstract class _HTMLFontElement extends _HTMLElement native "HTMLFontElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25056,7 +25086,7 @@ abstract class _HTMLFontElement extends Element native "HTMLFontElement" {
 @DomName('HTMLFrameElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlframeelement
 @deprecated // deprecated
-abstract class _HTMLFrameElement extends Element native "HTMLFrameElement" {
+abstract class _HTMLFrameElement extends _HTMLElement native "HTMLFrameElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25067,7 +25097,7 @@ abstract class _HTMLFrameElement extends Element native "HTMLFrameElement" {
 @DomName('HTMLFrameSetElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#frameset
 @deprecated // deprecated
-abstract class _HTMLFrameSetElement extends Element native "HTMLFrameSetElement" {
+abstract class _HTMLFrameSetElement extends _HTMLElement native "HTMLFrameSetElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25078,7 +25108,7 @@ abstract class _HTMLFrameSetElement extends Element native "HTMLFrameSetElement"
 @DomName('HTMLMarqueeElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-marquee-element
 @deprecated // deprecated
-abstract class _HTMLMarqueeElement extends Element native "HTMLMarqueeElement" {
+abstract class _HTMLMarqueeElement extends _HTMLElement native "HTMLMarqueeElement" {
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

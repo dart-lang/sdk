@@ -1368,11 +1368,6 @@ class Function : public Object {
   static intptr_t code_offset() { return OFFSET_OF(RawFunction, code_); }
   inline bool HasCode() const;
 
-  RawArray* deopt_history() const { return raw_ptr()->deopt_history_; }
-  void set_deopt_history(const Array& value) const;
-  // If not yet present, allocate deoptimization history array.
-  void EnsureDeoptHistory() const;
-
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
   bool HasBreakpoint() const;
@@ -2251,6 +2246,11 @@ class Library : public Object {
 
   void AddExport(const Namespace& ns) const;
 
+  void AddClassMetadata(const Class& cls, intptr_t token_pos) const;
+  void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
+  void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
+  RawObject* GetMetadata(const Object& obj) const;
+
   // Library imports.
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
@@ -2333,6 +2333,7 @@ class Library : public Object {
   RawArray* exports() const { return raw_ptr()->exports_; }
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
+  RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
   RawArray* dictionary() const { return raw_ptr()->dictionary_; }
   void InitClassDictionary() const;
   void InitImportList() const;
@@ -2340,6 +2341,12 @@ class Library : public Object {
   static RawLibrary* NewLibraryHelper(const String& url,
                                       bool import_core_lib);
   RawObject* LookupEntry(const String& name, intptr_t *index) const;
+
+  RawString* MakeMetadataName(const Object& obj) const;
+  RawField* GetMetadataField(const String& metaname) const;
+  void AddMetadata(const Class& cls,
+                   const String& name,
+                   intptr_t token_pos) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
@@ -3517,7 +3524,12 @@ class UnwindError : public Error {
 class Instance : public Object {
  public:
   virtual bool Equals(const Instance& other) const;
-  virtual RawInstance* Canonicalize() const;
+  // Returns Instance::null() if instance cannot be canonicalized.
+  // Any non-canonical number of string will be canonicalized here.
+  // An instance cannot be canonicalized if it still contains non-canonical
+  // instances in its fields.
+  // Returns error in error_str, pass NULL if an error cannot occur.
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
   RawObject* GetField(const Field& field) const {
     return *FieldAddr(field);
@@ -3607,6 +3619,10 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments,
       Error* malformed_error) const;
+
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
+    return Canonicalize();
+  }
 
   // Return the canonical version of this type.
   virtual RawAbstractType* Canonicalize() const;
@@ -4061,7 +4077,7 @@ class Smi : public Integer {
   virtual bool IsZero() const { return Value() == 0; }
   virtual bool IsNegative() const { return Value() < 0; }
   // Smi values are implicitly canonicalized.
-  virtual RawInstance* Canonicalize() const {
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     return reinterpret_cast<RawSmi*>(raw_value());
   }
 
@@ -4391,7 +4407,7 @@ class String : public Instance {
 
   bool StartsWith(const String& other) const;
 
-  virtual RawInstance* Canonicalize() const;
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
   bool IsSymbol() const { return raw()->IsCanonical(); }
 
@@ -5100,6 +5116,11 @@ class GrowableObjectArray : public Instance {
   }
 
   virtual bool Equals(const Instance& other) const;
+
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
+    UNREACHABLE();
+    return Instance::null();
+  }
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawGrowableObjectArray, type_arguments_);

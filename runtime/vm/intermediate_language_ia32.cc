@@ -269,8 +269,6 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 
 LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const bool is_checked_strict_equal =
-      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
   if (receiver_class_id() == kMintCid) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
@@ -304,7 +302,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (is_checked_strict_equal) {
+  if (is_checked_strict_equal()) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -843,9 +841,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  const bool is_checked_strict_equal =
-      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
-  if (is_checked_strict_equal) {
+  if (is_checked_strict_equal()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
                            deopt_id());
     return;
@@ -885,9 +881,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  const bool is_checked_strict_equal =
-      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
-  if (is_checked_strict_equal) {
+  if (is_checked_strict_equal()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
                            deopt_id());
     return;

@@ -1731,7 +1731,7 @@ uword Debugger::GetPatchedStubAddress(uword breakpoint_address) {
     return bpt->saved_bytes_.target_address_;
   }
   UNREACHABLE();
-  return NULL;
+  return 0L;
 }
 
 

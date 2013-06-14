@@ -101,7 +101,15 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'RTCSessionDescription': 'RTCSessionDescription,mozRTCSessionDescription',
 
+    'RTCDataChannel': 'RTCDataChannel,DataChannel',
+
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
+
+    'WebKitCSSKeyframeRule':
+        'CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule',
+
+    'WebKitCSSKeyframesRule':
+        'CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule',
 
     'WheelEvent': 'WheelEvent,MouseWheelEvent,MouseScrollEvent',
 
@@ -701,7 +709,7 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
   def implementation_name(self):
     implementation_name = self._dart_interface_name
     if self.merged_into():
-      implementation_name = '_%s_Merged' % implementation_name
+      return '_%s' % self.idl_type()
 
     if not self.has_generated_interface():
       implementation_name = '_%s' % implementation_name

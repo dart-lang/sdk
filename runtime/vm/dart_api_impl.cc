@@ -34,6 +34,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
+DECLARE_FLAG(bool, verify_handles);
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -97,7 +98,8 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ASSERT(state->IsValidLocalHandle(object) ||
+  ASSERT(!FLAG_verify_handles ||
+         state->IsValidLocalHandle(object) ||
          Dart::vm_isolate()->api_state()->IsValidLocalHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
          PersistentHandle::raw_offset() == 0 &&
@@ -4345,6 +4347,28 @@ DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
   NoGCScope no_gc_scope;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(ret_obj);
+}
+
+
+// --- Metadata ----
+
+DART_EXPORT Dart_Handle Dart_GetMetadata(Dart_Handle object) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  Class& cls = Class::Handle(isolate);
+  if (obj.IsClass()) {
+    cls ^= obj.raw();
+  } else if (obj.IsFunction()) {
+    cls = Function::Cast(obj).origin();
+  } else if (obj.IsField()) {
+    cls = Field::Cast(obj).origin();
+  } else {
+    return Api::NewHandle(isolate, Object::empty_array().raw());
+  }
+  const Library& lib = Library::Handle(cls.library());
+  return Api::NewHandle(isolate, lib.GetMetadata(obj));
 }
 
 

@@ -22,7 +22,9 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               stringReplaceAllFuncUnchecked,
                               stringReplaceAllUnchecked,
                               stringReplaceFirstUnchecked,
-                              lookupDispatchRecord;
+                              lookupDispatchRecord,
+                              StringMatch,
+                              firstMatchAfter;
 import 'dart:_foreign_helper' show JS;
 
 part 'js_array.dart';

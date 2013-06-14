@@ -418,7 +418,7 @@ void testSimpleReadWrite(bool listenSecure,
                 client,
                 CERTIFICATE,
                 subscription: secure[0],
-                carryOverData: secure[1]).then((client) {
+                bufferedData: secure[1]).then((client) {
             runServer(client).then((_) => server.close());
           });
         });

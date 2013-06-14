@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import 'compiler_helper.dart';
 
 const String FIB = r"""
@@ -34,6 +35,19 @@ bar() {
 }
 """;
 
+// Test that a synthesized [HTypeConversion] node added due to the is
+// check is code motion invariant. No 'else' should be generated in
+// this code snippet (the new [HTypeConversion] is put in the else
+// branch, but the else branch dominates the rest of the code in this
+// snippet).
+const String TEST = r"""
+foo(a) {
+  if (a is !int) throw a;
+  if (a < 0) throw a;
+  return a + a;
+}
+""";
+
 main() {
   // Make sure we don't introduce a new variable.
   RegExp regexp = new RegExp("var $anyIdentifier =");
@@ -41,4 +55,10 @@ main() {
 
   regexp = new RegExp("isLeaf");
   compileAndDoNotMatch(BAR, 'bar', regexp);
+
+  String generated = compile(TEST, entry: 'foo');
+  Expect.isFalse(generated.contains('else'));
+  // Regression check to ensure that there is no floating variable
+  // expression.
+  Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
 }

@@ -1711,7 +1711,8 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
       (RawObject::IsCreatedFromSnapshot(tags) ||
        (kind == Snapshot::kMessage))) {
-    obj ^= obj.Canonicalize();
+    obj ^= obj.CheckAndCanonicalize(NULL);
+    ASSERT(!obj.IsNull());
   }
   reader->AddBackRef(object_id, &obj, kIsDeserialized);
 

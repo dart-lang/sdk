@@ -13,10 +13,9 @@
 library dart.io;
 
 import 'dart:async';
-import 'dart:collection' show Queue,
-                              LinkedHashSet,
-                              DoubleLinkedQueue,
-                              DoubleLinkedQueueEntry;
+import 'dart:collection' show LinkedHashSet,
+                              LinkedList,
+                              LinkedListEntry;
 import 'dart:isolate';
 import 'dart:json' as JSON;
 import 'dart:math';

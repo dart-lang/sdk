@@ -29,6 +29,9 @@ void testQueryParameters() {
         Expect.equals("?$normalizedQuery", uri.toString());
       }
       if (parameters.containsValue(null)) {
+        var map = new Map.from(parameters);
+        map.forEach((k, v) { if (v == null) map[k] = ""; });
+        Expect.mapEquals(map, uri.queryParameters);
       } else {
         Expect.mapEquals(parameters, uri.queryParameters);
       }
@@ -42,6 +45,13 @@ void testQueryParameters() {
     check(uri3);
     Expect.equals(uri1, uri3);
     Expect.equals(uri2, uri3);
+    if (parameters.containsValue(null)) {
+      var map = new Map.from(parameters);
+      map.forEach((k, v) { if (v == null) map[k] = ""; });
+      Expect.mapEquals(map, Uri.splitQueryString(query));
+    } else {
+      Expect.mapEquals(parameters, Uri.splitQueryString(query));
+    }
   }
 
   test("", {});

@@ -15,8 +15,9 @@ _logger = logging.getLogger('dartgenerator')
 # onEventName methods in the IDL but some events aren't listed so we need
 # to manually add them here so that they are easy for users to find.
 _html_manual_events = monitored.Dict('htmleventgenerator._html_manual_events', {
-  'Element': ['touchleave', 'touchenter', 'transitionend'],
-  'Window': ['DOMContentLoaded']
+  'Element': ['ontouchleave', 'ontouchenter', 'ontransitionend'],
+  'HTMLCanvasElement': ['onwebglcontextlost', 'onwebglcontextrestored'],
+  'Window': ['onDOMContentLoaded']
 })
 
 # These event names must be camel case when attaching event listeners
@@ -140,6 +141,8 @@ _html_event_types = monitored.Dict('htmleventgenerator._html_event_types', {
   'FontLoader.loadingdone': ('loadingDone', 'CssFontFaceLoadEvent'),
   'FontLoader.loadstart': ('loadStart', 'CssFontFaceLoadEvent'),
   'HTMLBodyElement.storage': ('storage', 'StorageEvent'),
+  'HTMLCanvasElement.webglcontextlost': ('webGlContextLost', 'gl.ContextEvent'),
+  'HTMLCanvasElement.webglcontextrestored': ('webGlContextRestored', 'gl.ContextEvent'),
   'HTMLInputElement.webkitSpeechChange': ('speechChange', 'Event'),
   'HTMLFormElement.autocomplete': ('autocomplete', 'Event'),
   'HTMLFormElement.autocompleteerror': ('autocompleteError', 'AutocompleteErrorEvent'),
@@ -300,20 +303,22 @@ class HtmlEventGenerator(object):
   def _GetEvents(self, interface, custom_events):
     """ Gets a list of all of the events for the specified interface.
     """
-    events = set([attr for attr in interface.attributes
-                  if attr.type.id == 'EventListener'])
-    if not events and interface.id not in _html_explicit_event_classes:
-      return None
-
     html_interface_name = interface.doc_js_name
+
+    events = set([attr.id for attr in interface.attributes
+                  if attr.type.id == 'EventListener'])
+
+    if html_interface_name in _html_manual_events:
+      events.update(_html_manual_events[html_interface_name])
+
+    if not events and interface.id not in _html_explicit_event_classes :
+      return None
 
     dom_event_names = set()
     for event in events:
-      dom_name = event.id[2:]
+      dom_name = event[2:]
       dom_name = _on_attribute_to_event_name_mapping.get(dom_name, dom_name)
       dom_event_names.add(dom_name)
-    if html_interface_name in _html_manual_events:
-      dom_event_names.update(_html_manual_events[html_interface_name])
 
     events = []
     for dom_name in sorted(dom_event_names):

@@ -450,35 +450,6 @@ static bool UnboxPhi(PhiInstr* phi) {
 }
 
 
-void FlowGraphOptimizer::UnboxPhis() {
-  GrowableArray<PhiInstr*> worklist(5);
-
-  // Convervatively unbox all phis that were proven to be of Double,
-  // Float32x4, or Uint32x4 type.
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    JoinEntryInstr* join_entry = block_order_[i]->AsJoinEntry();
-    if (join_entry != NULL) {
-      for (PhiIterator it(join_entry); !it.Done(); it.Advance()) {
-        PhiInstr* phi = it.Current();
-        if (UnboxPhi(phi)) {
-          worklist.Add(phi);
-        }
-      }
-    }
-  }
-
-  while (!worklist.is_empty()) {
-    PhiInstr* phi = worklist.RemoveLast();
-    InsertConversionsFor(phi);
-
-    for (intptr_t i = 0; i < phi->InputCount(); i++) {
-      ConvertUse(phi->InputAt(i),
-                 phi->InputAt(i)->definition()->representation());
-    }
-  }
-}
-
-
 void FlowGraphOptimizer::SelectRepresentations() {
   // Convervatively unbox all phis that were proven to be of Double,
   // Float32x4, or Uint32x4 type.
@@ -3461,6 +3432,8 @@ LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
 void LICM::Hoist(ForwardInstructionIterator* it,
                  BlockEntryInstr* pre_header,
                  Instruction* current) {
+  // TODO(fschneider): Avoid repeated deoptimization when
+  // speculatively hoisting checks.
   if (FLAG_trace_optimization) {
     OS::Print("Hoisting instruction %s:%"Pd" from B%"Pd" to B%"Pd"\n",
               current->DebugName(),
@@ -3516,7 +3489,7 @@ void LICM::TryHoistCheckSmiThroughPhi(ForwardInstructionIterator* it,
   }
 
   // Host CheckSmi instruction and make this phi smi one.
-  if (MayHoist(current, pre_header)) Hoist(it, pre_header, current);
+  Hoist(it, pre_header, current);
 
   // Replace value we are checking with phi's input.
   current->value()->BindTo(phi->InputAt(non_smi_input)->definition());
@@ -3532,31 +3505,6 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
       instr->HasExprId() &&
       ((*sets)[loop_header_index] != NULL) &&
       (*sets)[loop_header_index]->Contains(instr->expr_id());
-}
-
-
-bool LICM::MayHoist(Instruction* instr, BlockEntryInstr* pre_header) {
-  // TODO(fschneider): Enable hoisting of Assert-instructions
-  // if it safe to do.
-  if (instr->IsAssertAssignable()) return false;
-  if (instr->IsAssertBoolean()) return false;
-
-  if (instr->CanDeoptimize()) {
-    intptr_t target_deopt_id =
-        pre_header->last_instruction()->AsGoto()->GetDeoptId();
-    const Function& function = flow_graph_->parsed_function().function();
-    const Array& deopt_history = Array::Handle(function.deopt_history());
-    if (deopt_history.IsNull()) return true;
-
-    Smi& deopt_id = Smi::Handle();
-    for (intptr_t i = 0; i < deopt_history.Length(); ++i) {
-      deopt_id ^= deopt_history.At(i);
-      if (!deopt_id.IsNull() && (deopt_id.Value() == target_deopt_id)) {
-        return false;
-      }
-    }
-  }
-  return true;
 }
 
 
@@ -3594,7 +3542,11 @@ void LICM::Optimize() {
               break;
             }
           }
-          if (inputs_loop_invariant && MayHoist(current, pre_header)) {
+          if (inputs_loop_invariant &&
+              !current->IsAssertAssignable() &&
+              !current->IsAssertBoolean()) {
+            // TODO(fschneider): Enable hoisting of Assert-instructions
+            // if it safe to do.
             Hoist(&it, pre_header, current);
           } else if (current->IsCheckSmi() &&
                      current->InputAt(0)->definition()->IsPhi()) {
@@ -4822,6 +4774,7 @@ void ConstantPropagator::Optimize(FlowGraph* graph) {
 void ConstantPropagator::OptimizeBranches(FlowGraph* graph) {
   GrowableArray<BlockEntryInstr*> ignored;
   ConstantPropagator cp(graph, ignored);
+  cp.Analyze();
   cp.VisitBranches();
   cp.Transform();
 }
@@ -5160,6 +5113,15 @@ void ConstantPropagator::VisitStrictCompare(StrictCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
 
+  if (instr->left()->definition() == instr->right()->definition()) {
+    // Fold x === x, and x !== x to true/false.
+    SetValue(instr,
+             (instr->kind() == Token::kEQ_STRICT)
+               ? Bool::True()
+               : Bool::False());
+    return;
+  }
+
   if (IsNonConstant(left) || IsNonConstant(right)) {
     // TODO(vegorov): incorporate nullability information into the lattice.
     if ((left.IsNull() && instr->right()->Type()->HasDecidableNullability()) ||
@@ -5200,6 +5162,19 @@ static bool CompareIntegers(Token::Kind kind,
 void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
+
+  if (instr->left()->definition() == instr->right()->definition()) {
+    // Fold x == x, and x != x to true/false for numbers and checked strict
+    // comparisons.
+    if (instr->is_checked_strict_equal() ||
+        RawObject::IsIntegerClassId(instr->receiver_class_id())) {
+      return SetValue(instr,
+                      (instr->kind() == Token::kEQ)
+                        ? Bool::True()
+                        : Bool::False());
+    }
+  }
+
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
@@ -5436,7 +5411,8 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
         case Token::kMOD: {
           Instance& result = Integer::ZoneHandle(
               left_int.ArithmeticOp(op_kind, right_int));
-          result = result.Canonicalize();
+          result = result.CheckAndCanonicalize(NULL);
+          ASSERT(!result.IsNull());
           SetValue(instr, result);
           break;
         }
@@ -5445,7 +5421,8 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
           if (left.IsSmi() && right.IsSmi()) {
             Instance& result = Integer::ZoneHandle(
                 Smi::Cast(left_int).ShiftOp(op_kind, Smi::Cast(right_int)));
-            result = result.Canonicalize();
+            result = result.CheckAndCanonicalize(NULL);
+            ASSERT(!result.IsNull());
             SetValue(instr, result);
           } else {
             SetValue(instr, non_constant_);
@@ -5456,7 +5433,8 @@ void ConstantPropagator::HandleBinaryOp(Definition* instr,
         case Token::kBIT_XOR: {
           Instance& result = Integer::ZoneHandle(
               left_int.BitOp(op_kind, right_int));
-          result = result.Canonicalize();
+          result = result.CheckAndCanonicalize(NULL);
+          ASSERT(!result.IsNull());
           SetValue(instr, result);
           break;
         }

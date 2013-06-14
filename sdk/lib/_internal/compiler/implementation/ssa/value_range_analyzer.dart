@@ -714,11 +714,11 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       handleEqualityCheck(relational);
     } else if (operation.apply(leftRange, rightRange)) {
       relational.block.rewrite(
-          relational, graph.addConstantBool(true, constantSystem));
+          relational, graph.addConstantBool(true, compiler));
       relational.block.remove(relational);
     } else if (reverseOperation(operation).apply(leftRange, rightRange)) {
       relational.block.rewrite(
-          relational, graph.addConstantBool(false, constantSystem));
+          relational, graph.addConstantBool(false, compiler));
       relational.block.remove(relational);
     }
     return info.newUnboundRange();
@@ -729,7 +729,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range left = ranges[node.left];
     if (left.isSingleValue && right.isSingleValue && left == right) {
       node.block.rewrite(
-          node, graph.addConstantBool(true, constantSystem));
+          node, graph.addConstantBool(true, compiler));
       node.block.remove(node);
     }
   }

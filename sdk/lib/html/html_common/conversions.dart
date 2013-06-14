@@ -173,38 +173,10 @@ _convertDartToNative_PrepareForStructuredClone(value) {
 
       int i = 0;
 
-      if (isJavaScriptArray(e) &&
-          // We have to copy immutable lists, otherwise the structured clone
-          // algorithm will copy the .immutable$list marker property, making the
-          // list immutable when received!
-          !isImmutableJavaScriptArray(e)) {
-        writeSlot(slot, true);  // Deferred copy.
-        for ( ; i < length; i++) {
-          var element = e[i];
-          var elementCopy = walk(element);
-          if (!identical(elementCopy, element)) {
-            copy = readSlot(slot);   // Cyclic reference may have created it.
-            if (true == copy) {
-              copy = JS('=List', 'new Array(#)', length);
-              writeSlot(slot, copy);
-            }
-            for (int j = 0; j < i; j++) {
-              copy[j] = e[j];
-            }
-            copy[i] = elementCopy;
-            i++;
-            break;
-          }
-        }
-        if (copy == null) {
-          copy = e;
-          writeSlot(slot, copy);
-        }
-      } else {
-        // Not a JavaScript Array.  We are forced to make a copy.
-        copy = JS('=List', 'new Array(#)', length);
-        writeSlot(slot, copy);
-      }
+      // Always clone the list, as it may have non-native properties or methods
+      // from interceptors and such.
+      copy = JS('=List', 'new Array(#)', length);
+      writeSlot(slot, copy);
 
       for ( ; i < length; i++) {
         copy[i] = walk(e[i]);

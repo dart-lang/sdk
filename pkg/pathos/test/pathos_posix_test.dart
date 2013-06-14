@@ -4,8 +4,6 @@
 
 library pathos_posix_test;
 
-import 'dart:io' as io;
-
 import 'package:unittest/unittest.dart';
 import 'package:pathos/path.dart' as path;
 
@@ -300,6 +298,12 @@ main() {
         expect(builder.relative('../a/b.txt'), '../a/b.txt');
         expect(builder.relative('a/./b/../c.txt'), 'a/c.txt');
       });
+
+      // Regression
+      test('from root-only path', () {
+        expect(builder.relative('/', from: '/'), '.');
+        expect(builder.relative('/root/path', from: '/'), 'root/path');
+      });
     });
 
     group('from relative root', () {
@@ -343,6 +347,12 @@ main() {
       expect(r.relative('/foo/bar/baz', from: 'foo/bar'),
           equals('/foo/bar/baz'));
       expect(r.relative('..', from: 'foo/bar'), equals('../../..'));
+    });
+
+    test('from a . root', () {
+      var r = new path.Builder(style: path.Style.posix, root: '.');
+      expect(r.relative('/foo/bar/baz'), equals('/foo/bar/baz'));
+      expect(r.relative('foo/bar/baz'), equals('foo/bar/baz'));
     });
   });
 

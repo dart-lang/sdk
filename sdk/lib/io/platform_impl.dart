@@ -80,6 +80,9 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   V putIfAbsent(String key, V ifAbsent()) {
     _map.putIfAbsent(key.toUpperCase(), ifAbsent);
   }
+  addAll(Map other) {
+    other.forEach((key, value) => this[key.toUpperCase()] = value);
+  }
   V remove(String key) => _map.remove(key.toUpperCase());
   void clear() => _map.clear();
   void forEach(void f(String key, V value)) => _map.forEach(f);

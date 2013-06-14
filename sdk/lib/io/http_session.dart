@@ -53,6 +53,7 @@ class _HttpSession implements HttpSession {
   operator [](key) => _data[key];
   void operator []=(key, value) { _data[key] = value; }
   putIfAbsent(key, ifAbsent) => _data.putIfAbsent(key, ifAbsent);
+  addAll(Map other) => _data.addAll(other);
   remove(key) => _data.remove(key);
   void clear() => _data.clear();
   void forEach(void f(key, value)) => _data.forEach(f);

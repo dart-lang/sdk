@@ -14,6 +14,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/heap.h"
+#include "vm/heap_histogram.h"
 #include "vm/message_handler.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -33,6 +34,13 @@ DEFINE_FLAG(bool, report_usage_count, false,
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
+
+
+void Isolate::RegisterClass(const Class& cls) {
+  class_table()->Register(cls);
+  if (object_histogram() != NULL) object_histogram()->RegisterClass(cls);
+}
+
 
 class IsolateMessageHandler : public MessageHandler {
  public:
@@ -400,7 +408,11 @@ Isolate::Isolate()
       deferred_objects_count_(0),
       deferred_objects_(NULL),
       stacktrace_(NULL),
-      stack_frame_index_(-1) {
+      stack_frame_index_(-1),
+      object_histogram_(NULL) {
+  if (FLAG_print_object_histogram && (Dart::vm_isolate() != NULL)) {
+    object_histogram_ = new ObjectHistogram(this);
+  }
 }
 
 
@@ -418,6 +430,7 @@ Isolate::~Isolate() {
   mutex_ = NULL;  // Fail fast if interrupts are scheduled on a dead isolate.
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
+  delete object_histogram_;
 }
 
 void Isolate::SetCurrent(Isolate* current) {
@@ -728,6 +741,13 @@ void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   ASSERT(top_resource() == NULL);
   ASSERT((heap_ == NULL) || heap_->Verify());
+
+  if (FLAG_print_object_histogram) {
+    StackZone stack_zone(this);
+    HandleScope handle_scope(this);
+    heap()->CollectAllGarbage();
+    object_histogram()->Print();
+  }
 
   // Clean up debugger resources. Shutting down the debugger
   // requires a handle zone. We must set up a temporary zone because

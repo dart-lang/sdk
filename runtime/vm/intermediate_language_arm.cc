@@ -310,8 +310,6 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 
 LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  const bool is_checked_strict_equal =
-      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
   if (receiver_class_id() == kMintCid) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
@@ -344,7 +342,7 @@ LocationSummary* EqualityCompareInstr::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
-  if (is_checked_strict_equal) {
+  if (is_checked_strict_equal()) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -783,9 +781,7 @@ void EqualityCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), kNoBranch);
     return;
   }
-  const bool is_checked_strict_equal =
-      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
-  if (is_checked_strict_equal) {
+  if (is_checked_strict_equal()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), kNoBranch,
                            deopt_id());
     return;
@@ -826,9 +822,7 @@ void EqualityCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
     EmitDoubleComparisonOp(compiler, *locs(), kind(), branch);
     return;
   }
-  const bool is_checked_strict_equal =
-      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
-  if (is_checked_strict_equal) {
+  if (is_checked_strict_equal()) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), branch,
                            deopt_id());
     return;
@@ -2097,7 +2091,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     const intptr_t kCountLimit = 0x1F;
     const intptr_t value = Smi::Cast(constant).Value();
     if (value == 0) {
-      // No code needed.
+      __ MoveRegister(result, left);
     } else if ((value < 0) || (value >= kCountLimit)) {
       // This condition may not be known earlier in some cases because
       // of constant propagation, inlining, etc.
@@ -2278,7 +2272,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       case Token::kTRUNCDIV: {
         const intptr_t value = Smi::Cast(constant).Value();
         if (value == 1) {
-          // Do nothing.
+          __ MoveRegister(result, left);
           break;
         } else if (value == -1) {
           // Check the corner case of dividing the 'MIN_SMI' with -1, in which

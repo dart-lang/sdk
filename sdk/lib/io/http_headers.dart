@@ -140,7 +140,7 @@ class _HttpHeaders implements HttpHeaders {
     List<String> values = _headers[HttpHeaders.IF_MODIFIED_SINCE];
     if (values != null) {
       try {
-        return _HttpUtils.parseDate(values[0]);
+        return HttpDate.parse(values[0]);
       } on Exception catch (e) {
         return null;
       }
@@ -151,7 +151,7 @@ class _HttpHeaders implements HttpHeaders {
   void set ifModifiedSince(DateTime ifModifiedSince) {
     _checkMutable();
     // Format "ifModifiedSince" header with date in Greenwich Mean Time (GMT).
-    String formatted = _HttpUtils.formatDate(ifModifiedSince.toUtc());
+    String formatted = HttpDate.format(ifModifiedSince.toUtc());
     _set(HttpHeaders.IF_MODIFIED_SINCE, formatted);
   }
 
@@ -159,7 +159,7 @@ class _HttpHeaders implements HttpHeaders {
     List<String> values = _headers[HttpHeaders.DATE];
     if (values != null) {
       try {
-        return _HttpUtils.parseDate(values[0]);
+        return HttpDate.parse(values[0]);
       } on Exception catch (e) {
         return null;
       }
@@ -170,7 +170,7 @@ class _HttpHeaders implements HttpHeaders {
   void set date(DateTime date) {
     _checkMutable();
     // Format "DateTime" header with date in Greenwich Mean Time (GMT).
-    String formatted = _HttpUtils.formatDate(date.toUtc());
+    String formatted = HttpDate.format(date.toUtc());
     _set("date", formatted);
   }
 
@@ -178,7 +178,7 @@ class _HttpHeaders implements HttpHeaders {
     List<String> values = _headers[HttpHeaders.EXPIRES];
     if (values != null) {
       try {
-        return _HttpUtils.parseDate(values[0]);
+        return HttpDate.parse(values[0]);
       } on Exception catch (e) {
         return null;
       }
@@ -189,7 +189,7 @@ class _HttpHeaders implements HttpHeaders {
   void set expires(DateTime expires) {
     _checkMutable();
     // Format "Expires" header with date in Greenwich Mean Time (GMT).
-    String formatted = _HttpUtils.formatDate(expires.toUtc());
+    String formatted = HttpDate.format(expires.toUtc());
     _set(HttpHeaders.EXPIRES, formatted);
   }
 
@@ -288,7 +288,7 @@ class _HttpHeaders implements HttpHeaders {
       _headers[name] = values;
     }
     if (value is DateTime) {
-      values.add(_HttpUtils.formatDate(value));
+      values.add(HttpDate.format(value));
     } else {
       values.add(value.toString());
     }
@@ -750,7 +750,7 @@ class _Cookie implements Cookie {
     sb.write(value);
     if (expires != null) {
       sb.write("; Expires=");
-      sb.write(_HttpUtils.formatDate(expires));
+      sb.write(HttpDate.format(expires));
     }
     if (maxAge != null) {
       sb.write("; Max-Age=");

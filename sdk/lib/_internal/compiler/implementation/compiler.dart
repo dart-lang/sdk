@@ -913,7 +913,13 @@ abstract class Compiler implements DiagnosticListener {
     if (element.isClass()) {
       ClassElement cls = element;
       cls.ensureResolved(this);
-      cls.forEachLocalMember(world.addToWorkList);
+      cls.forEachLocalMember((e) {
+        if (e.isSynthesized) {
+          // TODO(ahe): Work-around for http://dartbug.com/11205.
+          if (e.getLibrary().isPlatformLibrary) return;
+        }
+        world.addToWorkList(e);
+      });
       world.registerInstantiatedClass(element, globalDependencies);
     } else {
       world.addToWorkList(element);
@@ -1308,7 +1314,9 @@ class Tracer {
 
   const Tracer();
 
-  void traceCompilation(String methodName, ItemCompilationContext context) {
+  void traceCompilation(String methodName,
+                        ItemCompilationContext context,
+                        Compiler compiler) {
   }
 
   void traceGraph(String name, var graph) {

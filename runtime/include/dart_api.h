@@ -2274,6 +2274,22 @@ typedef Dart_NativeFunction (*Dart_NativeEntryResolver)(Dart_Handle name,
 /* TODO(turnidge): Consider renaming to NativeFunctionResolver or
  * NativeResolver. */
 
+
+/* --- Metadata support --- */
+
+/**
+ * Get metadata associated with an object.
+ *
+ * \param obj Object for which the metadata is retrieved.
+ *
+ * \return If no error occurs, returns an array of metadata values.
+ *   Returns an empty array if there is no metadata for the object.
+ *   Returns an error if the evaluation of the metadata expressions fails.
+ *
+ */
+DART_EXPORT Dart_Handle Dart_GetMetadata(Dart_Handle obj);
+
+
 /* --- Scripts and Libraries ---
  * TODO(turnidge): Finish documenting this section. */
 

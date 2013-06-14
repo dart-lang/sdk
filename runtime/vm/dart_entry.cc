@@ -240,7 +240,8 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
 
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
-  descriptor ^= descriptor.Canonicalize();
+  descriptor ^= descriptor.CheckAndCanonicalize(NULL);
+  ASSERT(!descriptor.IsNull());
   return descriptor.raw();
 }
 
@@ -275,8 +276,9 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t num_arguments,
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
   if (canonicalize) {
-    descriptor ^= descriptor.Canonicalize();
+    descriptor ^= descriptor.CheckAndCanonicalize(NULL);
   }
+  ASSERT(!descriptor.IsNull());
   return descriptor.raw();
 }
 

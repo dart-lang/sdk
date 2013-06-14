@@ -40,17 +40,17 @@ class DebugLogger {
   }
   static void info(String msg, [error]) {
     msg = _formatErrorMessage(msg, error);
-    _print("Info: $msg");
+    _print("$_datetime Info: $msg");
   }
 
   static void warning(String msg, [error]) {
     msg = _formatErrorMessage(msg, error);
-    _print("Warning: $msg");
+    _print("$_datetime Warning: $msg");
   }
 
   static void error(String msg, [error]) {
     msg = _formatErrorMessage(msg, error);
-    _print("Error: $msg");
+    _print("$_datetime Error: $msg");
   }
 
   static void _print(String msg) {
@@ -60,6 +60,8 @@ class DebugLogger {
       print(msg);
     }
   }
+
+  static String get _datetime => "${new DateTime.now()}";
 }
 
 List<int> encodeUtf8(String string) {

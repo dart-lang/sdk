@@ -285,18 +285,6 @@ class DeoptRetAddressInstr : public DeoptInstr {
         ic_data.set_deopt_reason(deopt_context->deopt_reason());
       }
     }
-
-    const Array& deopt_history = Array::Handle(function.deopt_history());
-    ASSERT(!deopt_history.IsNull());
-    intptr_t count = function.deoptimization_counter();
-    ASSERT(count > 0);
-    if (count <= deopt_history.Length()) {
-      deopt_history.SetAt(count - 1, Smi::Handle(Smi::New(deopt_id_)));
-      if (FLAG_trace_deoptimization_verbose) {
-        OS::Print("  adding id %"Pd" to history at %"Pd"\n",
-                  deopt_id_, count - 1);
-      }
-    }
   }
 
   intptr_t object_table_index() const { return object_table_index_; }

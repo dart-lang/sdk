@@ -46,6 +46,14 @@ testReadWrite(key, value, check,
     });
 }
 
+List<String> get nonNativeListData {
+  var list = new List<String>();
+  list.add("data");
+  list.add("clone");
+  list.add("error");
+  list.add("test");
+  return list;
+}
 
 main() {
   useHtmlConfiguration();
@@ -93,5 +101,6 @@ main() {
     go('array_deferred_copy', [1,2,3, obj3, obj3, 6]);
     go('array_deferred_copy_2', [1,2,3, [4, 5, obj3], [obj3, 6]]);
     go('cyclic_list', cyclic_list);
+    go('non-native lists', nonNativeListData);
   }
 }

@@ -443,6 +443,7 @@ class RawObject {
   friend class HeapProfilerRootVisitor;
   friend class MarkingVisitor;
   friend class Object;
+  friend class ObjectHistogram;
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
@@ -611,7 +612,6 @@ class RawFunction : public RawObject {
   RawArray* parameter_names_;
   RawCode* code_;  // Compiled code for the function.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
-  RawArray* deopt_history_;  // Deopt Ids of past deoptimizations.
   RawObject* data_;  // Additional data specific to the function kind.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
@@ -761,6 +761,7 @@ class RawLibrary : public RawObject {
   RawScript* script_;
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
+  RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.

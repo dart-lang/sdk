@@ -418,7 +418,9 @@ class DartBackend extends Backend {
           new EmptyStatement(new StringToken(SEMICOLON_INFO, ';', -1)),
           null, Modifiers.EMPTY, null, null);
 
-      classMembers[classElement].add(constructor);
+      if (!constructor.isSynthesized) {
+        classMembers[classElement].add(constructor);
+      }
       elementAsts[constructor] =
           new ElementAst(constructor.cachedNode, new TreeElementMapping(null));
     }

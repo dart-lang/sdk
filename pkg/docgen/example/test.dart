@@ -1,3 +1,7 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 /**
  * This library is used solely for testing during development and is not
  * intended to be run by the testing machines.
@@ -6,6 +10,7 @@
 library DummyLibrary;
 
 import 'dart:json';
+import 'dart:math';
 
 /// Doc comment for top-level variable.
 int _variable1 = 0;
@@ -24,6 +29,9 @@ abstract class B {
  */
 class A implements B {
 
+  /**
+   * Markdown _test_ for **class** [A] 
+   */
   int _someNumber;
 
   A() {

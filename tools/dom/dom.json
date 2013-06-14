@@ -3281,6 +3281,12 @@
       "HTMLCanvasElement": {},
       "getContext": {},
       "height": {},
+      "onwebglcontextlost": {
+        "comment": "http://www.khronos.org/registry/webgl/specs/latest/#5.15.2"
+      },
+      "onwebglcontextrestored": {
+        "comment": "http://www.khronos.org/registry/webgl/specs/latest/#5.15.3"
+      },
       "toDataURL": {},
       "width": {}
     },
@@ -4047,7 +4053,10 @@
       },
       "autoplay": {},
       "buffered": {},
-      "canPlayType": {},
+      "canPlayType": {
+        "comment": "https://dvcs.w3.org/hg/html-media/raw-file/tip/encrypted-media/encrypted-media.html#dom-htmlmediaelement",
+        "dart_action": "unstable"
+      },
       "controller": {},
       "controls": {},
       "currentSrc": {},
