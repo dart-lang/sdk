@@ -166,7 +166,7 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 coverage_test: Crash # Issue: 11207
 debugger/basic_debugger_test: Crash # Issue: 11207
 debugger/closure_debugger_test: Crash # Issue: 11207
-http_launch_test: Fail, Crash # Issue: 11207
+http_launch_test: Crash # Issue: 11207
 left_shift_bit_and_op_test: Fail # Issue: 11207
 package/package_isolate_test: Pass, Crash # Issue: 11207
 out_of_memory_test: Pass, Crash # Issue: 11207 (Pass on Mac)
