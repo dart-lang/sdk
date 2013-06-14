@@ -11,7 +11,10 @@ abstract class _Completer<T> implements Completer<T> {
   final Future<T> future;
   bool _isComplete = false;
 
-  _Completer() : future = new _FutureImpl<T>();
+  _Completer() : future = new _FutureImpl<T>() {
+    _FutureImpl futureImpl = future;
+    futureImpl._zone.expectCallback();
+  }
 
   void _setFutureValue(T value);
   void _setFutureError(error);
@@ -19,6 +22,8 @@ abstract class _Completer<T> implements Completer<T> {
   void complete([T value]) {
     if (_isComplete) throw new StateError("Future already completed");
     _isComplete = true;
+    _FutureImpl futureImpl = future;
+    futureImpl._zone.unexpectCallback();
     _setFutureValue(value);
   }
 
@@ -29,7 +34,13 @@ abstract class _Completer<T> implements Completer<T> {
       // Force the stack trace onto the error, even if it already had one.
       _attachStackTrace(error, stackTrace);
     }
-    _setFutureError(error);
+    _FutureImpl futureImpl = future;
+    if (futureImpl._inSameErrorZone(_Zone.current)) {
+      futureImpl._zone.unexpectCallback();
+      _setFutureError(error);
+    } else {
+      _Zone.current.handleUncaughtError(error);
+    }
   }
 
   bool get isCompleted => _isComplete;
@@ -74,6 +85,8 @@ abstract class _FutureListener<T> {
   }
   void _sendValue(T value);
   void _sendError(error);
+
+  bool _inSameErrorZone(_Zone otherZone);
 }
 
 /** Adapter for a [_FutureImpl] to be a future result listener. */
@@ -83,6 +96,62 @@ class _FutureListenerWrapper<T> implements _FutureListener<T> {
   _FutureListenerWrapper(this.future);
   _sendValue(T value) { future._setValue(value); }
   _sendError(error) { future._setError(error); }
+  bool _inSameErrorZone(_Zone otherZone) => future._inSameErrorZone(otherZone);
+}
+
+/**
+ * This listener is installed at error-zone boundaries. It signals an
+ * uncaught error in the zone of origin when an error is sent from one error
+ * zone to another.
+ *
+ * When a Future is listening to another Future and they have not been
+ * instantiated in the same error-zone then Futures put an instance of this
+ * class between them (see [_FutureImpl._addListener]).
+ *
+ * For example:
+ *
+ *     var completer = new Completer();
+ *     var future = completer.future.then((x) => x);
+ *     catchErrors(() {
+ *       var future2 = future.catchError(print);
+ *     });
+ *     completer.completeError(499);
+ *
+ * In this example `future` and `future2` are in different error-zones. The
+ * error (499) that originates outside `catchErrors` must not reach the
+ * `catchError` future (`future2`) inside `catchErrors`.
+ *
+ * When invoking `catchError` on `future` the Future installs an
+ * [_ErrorZoneBoundaryListener] between itself and the result, `future2`.
+ *
+ * Conceptually _ErrorZoneBoundaryListeners could be implemented as
+ * `catchError`s on the origin future as well.
+ */
+class _ErrorZoneBoundaryListener implements _FutureListener {
+  _FutureListener _nextListener;
+  final _FutureListener _listener;
+
+  _ErrorZoneBoundaryListener(this._listener);
+
+  bool _inSameErrorZone(_Zone otherZone) {
+    // Should never be called. We use [_inSameErrorZone] to know if we have
+    // to insert an instance of [_ErrorZoneBoundaryListener] (and in the
+    // controller). Once we have inserted one we should never need to use it
+    // anymore.
+    // It would be valid to `return true` instead.
+    throw new UnsupportedError(
+        "A Zone boundary doesn't support the inSameErrorZone test.");
+  }
+
+  void _sendValue(value) {
+    _listener._sendValue(value);
+  }
+
+  void _sendError(error) {
+    // We are not allowed to send an error from one error-zone to another.
+    // This is the whole purpose of this class.
+    _Zone.current.handleUncaughtError(error);
+  }
 }
 
 class _FutureImpl<T> implements Future<T> {
@@ -117,6 +186,8 @@ class _FutureImpl<T> implements Future<T> {
 
   /** Whether the future is complete, and as what. */
   int _state = _INCOMPLETE;
+
+  final _Zone _zone = _Zone.current.fork();
 
   bool get _isChained => (_state & _CHAINED) != 0;
   bool get _hasChainedListener => _state == _CHAINED;
@@ -215,6 +286,10 @@ class _FutureImpl<T> implements Future<T> {
 
   Stream<T> asStream() => new Stream.fromFuture(this);
 
+  bool _inSameErrorZone(_Zone otherZone) {
+    return _zone.inSameErrorZone(otherZone);
+  }
+
   void _setValue(T value) {
     if (_isComplete) throw new StateError("Future already completed");
     _FutureListener listeners = _isChained ? null : _removeListeners();
@@ -267,17 +342,16 @@ class _FutureImpl<T> implements Future<T> {
         _clearUnhandledError();
         // TODO(floitsch): Hook this into unhandled error handling.
         var error = _resultOrListeners;
-        print("Uncaught Error: ${error}");
-        var trace = getAttachedStackTrace(error);
-        if (trace != null) {
-          print("Stack Trace:\n$trace\n");
-        }
-        throw error;
+        _zone.handleUncaughtError(error);
       }
     });
   }
 
   void _addListener(_FutureListener listener) {
+    assert(listener._nextListener == null);
+    if (!listener._inSameErrorZone(_zone)) {
+      listener = new _ErrorZoneBoundaryListener(listener);
+    }
     if (_isChained) {
       _state = _CHAINED;  // In case it was _CHAINED_UNLISTENED.
       _FutureImpl resultSource = _chainSource;
@@ -298,7 +372,6 @@ class _FutureImpl<T> implements Future<T> {
       });
     } else {
       assert(!_isComplete);
-      assert(listener._nextListener == null);
       listener._nextListener = _resultOrListeners;
       _resultOrListeners = listener;
     }
@@ -434,13 +507,24 @@ abstract class _TransformFuture<S, T> extends _FutureImpl<T>
   // _FutureListener implementation.
   _FutureListener _nextListener;
 
-  void _sendValue(S value);
+  _TransformFuture() {
+    _zone.expectCallback();
+  }
 
-  void _sendError(error);
+  void _sendValue(S value) {
+    _zone.executeCallback(() => _zonedSendValue(value));
+  }
+
+  void _sendError(error) {
+    _zone.executeCallback(() => _zonedSendError(error));
+  }
 
   void _subscribeTo(_FutureImpl future) {
     future._addListener(this);
   }
+
+  void _zonedSendValue(S value);
+  void _zonedSendError(error);
 }
 
 /** The onValue and onError handlers return either a value or a future */
@@ -459,7 +543,7 @@ class _ThenFuture<S, T> extends _TransformFuture<S, T> {
 
   _ThenFuture(this._onValue);
 
-  _sendValue(S value) {
+  _zonedSendValue(S value) {
     assert(_onValue != null);
     var result;
     try {
@@ -471,7 +555,7 @@ class _ThenFuture<S, T> extends _TransformFuture<S, T> {
     _setOrChainValue(result);
   }
 
-  void _sendError(error) {
+  void _zonedSendError(error) {
     _setError(error);
   }
 }
@@ -483,11 +567,11 @@ class _CatchErrorFuture<T> extends _TransformFuture<T,T> {
 
   _CatchErrorFuture(this._onError, this._test);
 
-  _sendValue(T value) {
+  _zonedSendValue(T value) {
     _setValue(value);
   }
 
-  _sendError(error) {
+  _zonedSendError(error) {
     assert(_onError != null);
     // if _test is supplied, check if it returns true, otherwise just
     // forward the error unmodified.
@@ -524,7 +608,7 @@ class _SubscribeFuture<S, T> extends _ThenFuture<S, T> {
 
   // The _sendValue method is inherited from ThenFuture.
 
-  void _sendError(error) {
+  void _zonedSendError(error) {
     assert(_onError != null);
     var result;
     try {
@@ -543,7 +627,7 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
 
   _WhenFuture(this._action);
 
-  void _sendValue(T value) {
+  void _zonedSendValue(T value) {
     try {
       var result = _action();
       if (result is Future) {
@@ -560,7 +644,7 @@ class _WhenFuture<T> extends _TransformFuture<T, T> {
     _setValue(value);
   }
 
-  void _sendError(error) {
+  void _zonedSendError(error) {
     try {
       var result = _action();
       if (result is Future) {

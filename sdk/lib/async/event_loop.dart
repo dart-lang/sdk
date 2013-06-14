@@ -25,6 +25,16 @@ void _asyncRunCallback() {
   _callbacksAreEnqueued = false;
 }
 
+void _scheduleAsyncCallback(callback) {
+  // Optimizing a group of Timer.run callbacks to be executed in the
+  // same Timer callback.
+  _asyncCallbacks.add(callback);
+  if (!_callbacksAreEnqueued) {
+    _AsyncRun._enqueueImmediate(_asyncRunCallback);
+    _callbacksAreEnqueued = true;
+  }
+}
+
 /**
  * Runs the given [callback] asynchronously.
  *
@@ -45,13 +55,7 @@ void _asyncRunCallback() {
  *     }
  */
 void runAsync(void callback()) {
-  // Optimizing a group of Timer.run callbacks to be executed in the
-  // same Timer callback.
-  _asyncCallbacks.add(callback);
-  if (!_callbacksAreEnqueued) {
-    _AsyncRun._enqueueImmediate(_asyncRunCallback);
-    _callbacksAreEnqueued = true;
-  }
+  _Zone._current.runAsync(callback);
 }
 
 class _AsyncRun {
