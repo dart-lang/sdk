@@ -9,6 +9,8 @@ abstract class SsaTypePropagator extends HBaseVisitor
 
   final Map<int, HInstruction> workmap = new Map<int, HInstruction>();
   final List<int> worklist = new List<int>();
+  final Map<HInstruction, Function> pendingOptimizations =
+      new Map<HInstruction, Function>();  
 
   final Compiler compiler;
   String get name => 'type propagator';
@@ -88,16 +90,24 @@ abstract class SsaTypePropagator extends HBaseVisitor
   }
 
   void processWorklist() {
-    while (!worklist.isEmpty) {
-      int id = worklist.removeLast();
-      HInstruction instruction = workmap[id];
-      assert(instruction != null);
-      workmap.remove(id);
-      if (updateType(instruction)) {
-        addDependentInstructionsToWorkList(instruction);
+    do {
+      while (!worklist.isEmpty) {
+        int id = worklist.removeLast();
+        HInstruction instruction = workmap[id];
+        assert(instruction != null);
+        workmap.remove(id);
+        if (updateType(instruction)) {
+          addDependentInstructionsToWorkList(instruction);
+        }
       }
-    }
+      // While processing the optimizable arithmetic instructions, we
+      // may discover better type information for dominated users of
+      // replaced operands, so we may need to take another stab at
+      // emptying the worklist afterwards.
+      processPendingOptimizations();
+    } while (!worklist.isEmpty);
   }
+
 
   void addDependentInstructionsToWorkList(HInstruction instruction) {}
 
@@ -233,6 +243,11 @@ abstract class SsaTypePropagator extends HBaseVisitor
     }
     return false;
   }
+
+  void processPendingOptimizations() {
+    pendingOptimizations.forEach((instruction, action) => action());
+    pendingOptimizations.clear();
+  }
 }
 
 class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
@@ -256,16 +271,21 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
 
   HType visitInvokeDynamic(HInvokeDynamic instruction) {
     if (instruction.isInterceptedCall) {
-      Selector selector = instruction.selector;
-      if (selector.isOperator()
-          && selector.name != const SourceString('==')) {
-        if (checkReceiver(instruction)) {
-          addAllUsersBut(instruction, instruction.inputs[1]);
+      // We cannot do the following optimization now, because we have
+      // to wait for the type propagation to be stable. The receiver
+      // of [instruction] might move from number to dynamic.
+      pendingOptimizations.putIfAbsent(instruction, () => () {
+        Selector selector = instruction.selector;
+        if (selector.isOperator()
+            && selector.name != const SourceString('==')) {
+          if (checkReceiver(instruction)) {
+            addAllUsersBut(instruction, instruction.inputs[1]);
+          }
+          if (!selector.isUnaryOperator() && checkArgument(instruction)) {
+            addAllUsersBut(instruction, instruction.inputs[2]);
+          }
         }
-        if (!selector.isUnaryOperator() && checkArgument(instruction)) {
-          addAllUsersBut(instruction, instruction.inputs[2]);
-        }
-      }
+      });
     }
     return super.visitInvokeDynamic(instruction);
   }
