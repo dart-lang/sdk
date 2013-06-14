@@ -48,19 +48,14 @@ void testInvalidBind() {
       });
 
   // Bind to a port already in use.
-  // Either an error or a successful bind is allowed.
-  // Windows platforms allow multiple binding to the same socket, with
-  // unpredictable results.
   RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0)
       .then((s) {
           RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, s.port)
             .then((t) {
-              Expect.equals('windows', Platform.operatingSystem);
-              Expect.equals(s.port, t.port);
+              Expect.fail("Multiple listens on same port");
               port.toSendPort().send(1);
             })
             .catchError((error) {
-              Expect.notEquals('windows', Platform.operatingSystem);
               Expect.isTrue(error is SocketException);
               port.toSendPort().send(1);
             });

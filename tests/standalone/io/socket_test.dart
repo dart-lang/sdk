@@ -48,20 +48,16 @@ void testInvalidBind() {
       });
 
   // Bind to a port already in use.
-  // Either an error or a successful bind is allowed.
-  // Windows platforms allow multiple binding to the same socket, with
-  // unpredictable results.
   ServerSocket.bind("127.0.0.1", 0)
       .then((s) {
         ServerSocket.bind("127.0.0.1", s.port)
             .then((t) {
-              Expect.equals('windows', Platform.operatingSystem);
-              Expect.equals(s.port, t.port);
+              Expect.fail("Multiple listens on same port");
               port.toSendPort().send(1);
             })
             .catchError((error) {
-              Expect.notEquals('windows', Platform.operatingSystem);
               Expect.isTrue(error is SocketException);
+              s.close();
               port.toSendPort().send(1);
             });
       });
