@@ -101,25 +101,19 @@ void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new DescriptorList(64);
   exception_handlers_list_ = new ExceptionHandlerList();
   block_info_.Clear();
-  // Conservative detection of leaf routines used to remove the stack check
-  // on function entry.
-  bool is_leaf = !parsed_function().function().IsClosureFunction()
-      && is_optimizing()
-      && !flow_graph().IsCompiledForOsr();
-  // Initialize block info and search optimized (non-OSR) code for calls
-  // indicating a non-leaf routine and calls without IC data indicating
-  // possible reoptimization.
+  bool is_leaf = !parsed_function().function().IsClosureFunction() &&
+                 is_optimizing();
   for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new BlockInfo());
-    if (is_optimizing() && !flow_graph().IsCompiledForOsr()) {
+    if (is_optimizing()) {
       BlockEntryInstr* entry = block_order_[i];
       for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
         Instruction* current = it.Current();
+        const ICData* ic_data = NULL;
         if (current->IsBranch()) {
           current = current->AsBranch()->comparison();
         }
         // In optimized code, ICData is always set in the instructions.
-        const ICData* ic_data = NULL;
         if (current->IsInstanceCall()) {
           ic_data = current->AsInstanceCall()->ic_data();
           ASSERT(ic_data != NULL);
@@ -132,9 +126,10 @@ void FlowGraphCompiler::InitCompiler() {
         }
         if ((ic_data != NULL) && (ic_data->NumberOfChecks() == 0)) {
           may_reoptimize_ = true;
+          break;
         }
         if (is_leaf && !current->IsCheckStackOverflow()) {
-          // Note that we do not care if the code contains instructions that
+          // Note that we do no care if the code contains instructions that
           // can deoptimize.
           LocationSummary* locs = current->locs();
           if ((locs != NULL) && locs->can_call()) {
@@ -145,10 +140,11 @@ void FlowGraphCompiler::InitCompiler() {
     }
   }
   if (is_leaf) {
-    // Remove the stack overflow check at function entry.
-    Instruction* first = flow_graph_.graph_entry()->normal_entry()->next();
-    ASSERT(first->IsCheckStackOverflow());
-    if (first->IsCheckStackOverflow()) first->RemoveFromGraph();
+    // Remove check stack overflow at entry.
+    CheckStackOverflowInstr* check = flow_graph_.graph_entry()->normal_entry()
+        ->next()->AsCheckStackOverflow();
+    ASSERT(check != NULL);
+    check->RemoveFromGraph();
   }
 }
 
@@ -557,9 +553,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     }
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
-    ASSERT(!is_optimizing()
-           || may_reoptimize()
-           || flow_graph().IsCompiledForOsr());
+    ASSERT(!is_optimizing() || may_reoptimize());
     switch (ic_data.num_args_tested()) {
       case 1:
         label_address = StubCode::OneArgOptimizedCheckInlineCacheEntryPoint();

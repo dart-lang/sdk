@@ -860,11 +860,6 @@ void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
-void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (in_loop()) f->Print("loop");
-}
-
-
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("B%"Pd"[target]:%"Pd, block_id(), GetDeoptId());
   if (HasParallelMove()) {

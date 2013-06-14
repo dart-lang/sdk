@@ -23,7 +23,6 @@ class ControlInstruction;
 class Definition;
 class Environment;
 class FlowGraph;
-class FlowGraphBuilder;
 class FlowGraphCompiler;
 class FlowGraphVisitor;
 class Instruction;
@@ -869,7 +868,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
  private:
   friend class Definition;  // Needed for InsertBefore, InsertAfter.
 
-  // Classes that set or read deopt_id_.
+  // Classes that set deopt_id_.
   friend class UnboxIntegerInstr;
   friend class UnboxDoubleInstr;
   friend class UnboxFloat32x4Instr;
@@ -922,7 +921,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class SmiToDoubleInstr;
   friend class DoubleToIntegerInstr;
   friend class BranchSimplifier;
-  friend class BlockEntryInstr;
 
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
@@ -1145,13 +1143,6 @@ class BlockEntryInstr : public Instruction {
       intptr_t variable_count,
       intptr_t fixed_parameter_count);
 
-  // Perform a depth first search to prune code not reachable from an OSR
-  // entry point.
-  bool PruneUnreachable(FlowGraphBuilder* builder,
-                        GraphEntryInstr* graph_entry,
-                        intptr_t osr_id,
-                        BitVector* block_marks);
-
   virtual intptr_t InputCount() const { return 0; }
   virtual Value* InputAt(intptr_t i) const {
     UNREACHABLE();
@@ -1290,8 +1281,7 @@ class BackwardInstructionIterator : public ValueObject {
 class GraphEntryInstr : public BlockEntryInstr {
  public:
   GraphEntryInstr(const ParsedFunction& parsed_function,
-                  TargetEntryInstr* normal_entry,
-                  intptr_t osr_id);
+                  TargetEntryInstr* normal_entry);
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -1311,8 +1301,6 @@ class GraphEntryInstr : public BlockEntryInstr {
     return &initial_definitions_;
   }
   ConstantInstr* constant_null();
-
-  bool IsCompiledForOsr() const { return osr_id_ != Isolate::kNoDeoptId; }
 
   intptr_t spill_slot_count() const { return spill_slot_count_; }
   void set_spill_slot_count(intptr_t count) {
@@ -1348,7 +1336,6 @@ class GraphEntryInstr : public BlockEntryInstr {
   TargetEntryInstr* normal_entry_;
   GrowableArray<CatchBlockEntryInstr*> catch_entries_;
   GrowableArray<Definition*> initial_definitions_;
-  const intptr_t osr_id_;
   intptr_t spill_slot_count_;
   intptr_t fixed_slot_count_;  // For try-catch in optimized code.
 
@@ -5916,11 +5903,10 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 
 class CheckStackOverflowInstr : public TemplateInstruction<0> {
  public:
-  CheckStackOverflowInstr(intptr_t token_pos, bool in_loop)
-      : token_pos_(token_pos), in_loop_(in_loop) {}
+  explicit CheckStackOverflowInstr(intptr_t token_pos)
+      : token_pos_(token_pos) {}
 
   intptr_t token_pos() const { return token_pos_; }
-  bool in_loop() const { return in_loop_; }
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
@@ -5932,11 +5918,8 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 
   virtual bool MayThrow() const { return false; }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
  private:
   const intptr_t token_pos_;
-  const bool in_loop_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
 };

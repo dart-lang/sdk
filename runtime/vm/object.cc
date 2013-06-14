@@ -22,7 +22,6 @@
 #include "vm/datastream.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
-#include "vm/disassembler.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/flow_graph_builder.h"
@@ -7292,7 +7291,6 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
     case PcDescriptors::kClosureCall:   return "closure-call ";
     case PcDescriptors::kReturn:        return "return       ";
     case PcDescriptors::kRuntimeCall:   return "runtime-call ";
-    case PcDescriptors::kOsrEntry:      return "osr-entry    ";
     case PcDescriptors::kOther:         return "other        ";
   }
   UNREACHABLE();
@@ -8000,13 +7998,6 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
 }
 
 
-void Code::Disassemble() const {
-  const Instructions& instr = Instructions::Handle(instructions());
-  uword start = instr.EntryPoint();
-  Disassembler::Disassemble(start, start + instr.size(), comments());
-}
-
-
 const Code::Comments& Code::comments() const  {
   Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
   return *comments;
@@ -8156,18 +8147,6 @@ uword Code::GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const {
     }
   }
   return 0;
-}
-
-
-intptr_t Code::GetDeoptIdForOsr(uword pc) const {
-  const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); ++i) {
-    if ((descriptors.PC(i) == pc) &&
-        (descriptors.DescriptorKind(i) == PcDescriptors::kOsrEntry)) {
-      return descriptors.DeoptId(i);
-    }
-  }
-  return Isolate::kNoDeoptId;
 }
 
 

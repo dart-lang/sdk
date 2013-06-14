@@ -23,7 +23,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_ast);
 DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, enable_type_checks);
@@ -1072,43 +1071,34 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
-  if (CanOptimizeFunction() &&
-      function.is_optimizable() &&
-      (!is_optimizing() || may_reoptimize())) {
+  if (CanOptimizeFunction() && function.is_optimizable()) {
+    const bool can_optimize = !is_optimizing() || may_reoptimize();
     const Register function_reg = RDI;
-    __ LoadObject(function_reg, function);
+    if (can_optimize) {
+      __ LoadObject(function_reg, function);
+    }
     // Patch point is after the eventually inlined function object.
     AddCurrentDescriptor(PcDescriptors::kEntryPatch,
                          Isolate::kNoDeoptId,
                          0);  // No token position.
-    if (is_optimizing()) {
-      // Reoptimization of an optimized function is triggered by counting in
+    if (can_optimize) {
+      // Reoptimization of optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
+      if (!is_optimizing()) {
+        __ incq(FieldAddress(function_reg, Function::usage_counter_offset()));
+      }
       __ cmpq(FieldAddress(function_reg, Function::usage_counter_offset()),
-              Immediate(FLAG_reoptimization_counter_threshold));
-    } else {
-      __ incq(FieldAddress(function_reg, Function::usage_counter_offset()));
-      __ cmpq(FieldAddress(function_reg, Function::usage_counter_offset()),
-              Immediate(FLAG_optimization_counter_threshold));
+          Immediate(FLAG_optimization_counter_threshold));
+      ASSERT(function_reg == RDI);
+      __ j(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel());
     }
-    ASSERT(function_reg == RDI);
-    __ j(GREATER_EQUAL, &StubCode::OptimizeFunctionLabel());
-  } else if (!flow_graph().IsCompiledForOsr()) {
+  } else {
     AddCurrentDescriptor(PcDescriptors::kEntryPatch,
-                         Isolate::kNoDeoptId,
-                         0);  // No token position.
+                     Isolate::kNoDeoptId,
+                     0);  // No token position.
   }
   __ Comment("Enter frame");
-  if (flow_graph().IsCompiledForOsr()) {
-    intptr_t extra_slots = StackSize()
-        - flow_graph().num_stack_locals()
-        - flow_graph().num_copied_params();
-    ASSERT(extra_slots >= 0);
-    __ EnterOsrFrame(extra_slots * kWordSize);
-  } else {
-    ASSERT(StackSize() >= 0);
-    __ EnterDartFrame(StackSize() * kWordSize);
-  }
+  __ EnterDartFrame(StackSize() * kWordSize);
 }
 
 
@@ -1141,10 +1131,9 @@ void FlowGraphCompiler::CompileGraph() {
   if (num_copied_params == 0) {
 #ifdef DEBUG
     ASSERT(!parsed_function().function().HasOptionalParameters());
-    const bool check_arguments = !flow_graph().IsCompiledForOsr();
+    const bool check_arguments = true;
 #else
-    const bool check_arguments =
-        function.IsClosureFunction() && !flow_graph().IsCompiledForOsr();
+    const bool check_arguments = function.IsClosureFunction();
 #endif
     if (check_arguments) {
       __ Comment("Check argument count");
@@ -1202,7 +1191,7 @@ void FlowGraphCompiler::CompileGraph() {
     // The arguments descriptor is never saved in the absence of optional
     // parameters, since any argument definition test would always yield true.
     ASSERT(saved_args_desc_var == NULL);
-  } else if (!flow_graph().IsCompiledForOsr()) {
+  } else {
     if (saved_args_desc_var != NULL) {
       __ Comment("Save arguments descriptor");
       const Register kArgumentsDescriptorReg = R10;

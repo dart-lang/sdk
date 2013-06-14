@@ -691,14 +691,8 @@ CompileType ParameterInstr::ComputeType() const {
   // However there are parameters that are known to match their declared type:
   // for example receiver and construction phase.
   GraphEntryInstr* graph_entry = block_->AsGraphEntry();
-  // Parameters at catch blocks and OSR entries have type dynamic.
-  //
-  // TODO(kmillikin): Use the actual type of the parameter at OSR entry.
-  // The code below is not safe for OSR because it doesn't necessarily use
-  // the correct scope.
-  if ((graph_entry == NULL) || graph_entry->IsCompiledForOsr()) {
-    return CompileType::Dynamic();
-  }
+  // Parameters at catch-blocks have type dynamic.
+  if (graph_entry == NULL) return CompileType::Dynamic();
 
   const Function& function = graph_entry->parsed_function().function();
   LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();

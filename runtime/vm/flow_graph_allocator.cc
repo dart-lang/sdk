@@ -510,7 +510,16 @@ void FlowGraphAllocator::BuildLiveRanges() {
         Definition* defn = (*catch_entry->initial_definitions())[i];
         LiveRange* range = GetLiveRange(defn->ssa_temp_index());
         range->DefineAt(catch_entry->start_pos());  // Defined at block entry.
+
+        // Save range->End() because it may change in ProcessInitialDefinition.
+        intptr_t range_end = range->End();
         ProcessInitialDefinition(defn, range, catch_entry);
+        spill_slots_.Add(range_end);
+        quad_spill_slots_.Add(false);
+
+        if (defn->IsParameter() && range->spill_slot().stack_index() >= 0) {
+          MarkAsObjectAtSafepoints(range);
+        }
       }
     }
   }
@@ -523,7 +532,16 @@ void FlowGraphAllocator::BuildLiveRanges() {
     LiveRange* range = GetLiveRange(defn->ssa_temp_index());
     range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
     range->DefineAt(graph_entry->start_pos());
+
+    // Save range->End() because it may change in ProcessInitialDefinition.
+    intptr_t range_end = range->End();
     ProcessInitialDefinition(defn, range, graph_entry);
+    if (defn->IsParameter() && flow_graph_.num_copied_params() > 0) {
+      spill_slots_.Add(range_end);
+      quad_spill_slots_.Add(false);
+
+      MarkAsObjectAtSafepoints(range);
+    }
   }
 }
 
@@ -531,8 +549,6 @@ void FlowGraphAllocator::BuildLiveRanges() {
 void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
                                                   LiveRange* range,
                                                   BlockEntryInstr* block) {
-  // Save the range end because it may change below.
-  intptr_t range_end = range->End();
   if (defn->IsParameter()) {
     ParameterInstr* param = defn->AsParameter();
     // Assert that copied and non-copied parameters are mutually exclusive.
@@ -563,17 +579,6 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
     CompleteRange(tail, Location::kRegister);
   }
   ConvertAllUses(range);
-  if (defn->IsParameter() && (range->spill_slot().stack_index() >= 0)) {
-    // Parameters above the frame pointer consume spill slots and are marked
-    // in stack maps.
-    spill_slots_.Add(range_end);
-    quad_spill_slots_.Add(false);
-    MarkAsObjectAtSafepoints(range);
-  } else if (defn->IsConstant() && block->IsCatchBlockEntry()) {
-    // Constants at catch block entries consume spill slots.
-    spill_slots_.Add(range_end);
-    quad_spill_slots_.Add(false);
-  }
 }
 
 
@@ -1611,6 +1616,7 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
       quad_spill_slots_.Add(need_quad);
     }
   }
+
 
   // Set spill slot expiration boundary to the live range's end.
   spill_slots_[idx] = end;
