@@ -1218,6 +1218,59 @@ class FileTest {
     Expect.isFalse(file.existsSync());
   }
 
+  // Test that opens the same file for writing then for appending to test
+  // that the file is not truncated when opened for appending.
+  static void testRename() {
+    var file = new File('${tempDirectory.path}/rename_name');
+    file.create().then((file) {
+      file.rename("${tempDirectory.path}/rename_newname").then((newfile) {
+        file.exists().then((e) {
+          Expect.isFalse(e);
+          newfile.exists().then((e) {
+            Expect.isTrue(e);
+            newfile.delete().then((_) {
+              file.exists().then((e) {
+                Expect.isFalse(e);
+                if (Platform.operatingSystem != "windows") {
+                  var brokenLink =
+                      new Link('${tempDirectory.path}/rename_name');
+                  brokenLink.create(
+                      '${tempDirectory.path}/rename_newname').then((_) {
+                      file.rename("xxx").then((_) {
+                        throw "Rename of broken link succeeded";
+                      }).catchError((e) {
+                        Expect.isTrue(e is FileException);
+                        asyncTestDone("testRename");
+                      });
+                  });
+
+                } else {
+                  asyncTestDone("testRename");
+                }
+              });
+            });
+          });
+        });
+      });
+    });
+    asyncTestStarted();
+  }
+
+  static void testRenameSync() {
+    var file = new File('${tempDirectory.path}/rename_name_sync');
+    file.createSync();
+    var newfile = file.renameSync('${tempDirectory.path}/rename_newname_sync');
+    Expect.isFalse(file.existsSync());
+    Expect.isTrue(newfile.existsSync());
+    newfile.deleteSync();
+    Expect.isFalse(newfile.existsSync());
+    if (Platform.operatingSystem != "windows") {
+      var brokenLink = new Link('${tempDirectory.path}/rename_name_sync');
+      brokenLink.createSync('${tempDirectory.path}/rename_newname_sync');
+      Expect.throws(() => file.renameSync('xxx'));
+    }
+  }
+
   // Helper method to be able to run the test from the runtime
   // directory, or the top directory.
   static String getFilename(String path) =>
@@ -1276,6 +1329,8 @@ class FileTest {
       testDirectorySync();
       testWriteStringUtf8();
       testWriteStringUtf8Sync();
+      testRename();
+      testRenameSync();
     });
   }
 }

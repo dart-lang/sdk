@@ -90,6 +90,9 @@ patch class _File {
   patch static _deleteLink(String path) {
     throw new UnsupportedError("File._deleteLink");
   }
+  patch static _rename(String oldPath, String newPath) {
+    throw new UnsupportedError("File._delete");
+  }
   patch static _lengthFromPath(String path) {
     throw new UnsupportedError("File._lengthFromPath");
   }
