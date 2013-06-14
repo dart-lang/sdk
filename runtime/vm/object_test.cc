@@ -1670,6 +1670,10 @@ TEST_CASE(Array) {
   EXPECT(!array.Equals(other_array));
 
   EXPECT_EQ(0, Object::empty_array().Length());
+
+  array.MakeImmutable();
+  Object& obj = Object::Handle(array.raw());
+  ASSERT(obj.IsArray());
 }
 
 
