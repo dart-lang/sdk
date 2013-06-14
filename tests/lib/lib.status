@@ -128,6 +128,7 @@ async/slow_consumer_test: Pass, Crash # Issue: 11207
 async/stream_controller_async_test: Pass, Crash # Issue: 11207
 async/stream_controller_test: Timeout, Pass, Crash # Issue: 11207
 async/stream_from_iterable_test: Pass, Crash # Issue: 11207
+async/stream_periodic_test: Pass, Crash # Issue: 11207
 async/stream_periodic2_test: Pass, Crash # Issue: 11207
 async/stream_periodic3_test: Pass, Crash # Issue: 11207
 async/stream_periodic4_test: Pass, Crash # Issue: 11207

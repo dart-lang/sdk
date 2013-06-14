@@ -146,10 +146,10 @@ unresolved_ports_test: Pass, Crash # Issue: 11207
 count_test: Pass, Crash # Issue: 11207
 isolate_complex_messages_test: Pass, Crash # Issue: 11207
 mandel_isolate_test: Pass, Crash # Issue 11207
-cross_isolate_message_test: Pass, Crash # Issue: 11207
 nested_spawn_test: Pass, Crash # Issue: 11207
 
 [ $arch == arm || $arch == simarm ]
+cross_isolate_message_test: Pass, Crash # Issue: 11207
 request_reply_test: Pass, Crash # Issue: 11207
 nested_spawn_test: Pass, Crash # Issue: 11207
 nested_spawn2_test: Pass, Crash # Issue: 11207
