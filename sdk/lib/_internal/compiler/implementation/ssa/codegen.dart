@@ -2421,8 +2421,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression generateTest(HCheck node) {
     HInstruction input = node.checkedInput;
+    TypeMask receiver = input.instructionType.computeMask(compiler);
+    TypeMask mask = node.instructionType.computeMask(compiler);
+    bool turnIntoNullCheck = mask.nullable() == receiver;
     js.Expression test;
-    if (node.isInteger()) {
+    if (turnIntoNullCheck) {
+      use(input);
+      test = new js.Binary("==", pop(), new js.LiteralNull());
+    } else if (node.isInteger()) {
       // input is !int
       checkInt(input, '!==');
       test = pop();
@@ -2486,7 +2492,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           new js.Binary('||', objectTest, notIndexingTest);
       test = new js.Binary('&&', stringTest, notObjectOrIndexingTest);
     } else {
-      compiler.internalError('Unexpected type guard', instruction: input);
+      compiler.internalError('Unexpected check', instruction: input);
     }
     return test;
   }

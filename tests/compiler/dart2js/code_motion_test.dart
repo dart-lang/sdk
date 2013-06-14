@@ -7,14 +7,16 @@ import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
 foo(int a, int b, bool param2) {
+  // Make sure a and b become numbers.
+  var c = a - b;
   for (int i = 0; i < 1; i++) {
-    var x = a + 5;  // '+' is now GVNed.
     if (param2) {
       print(a + b);
     } else {
       print(a + b);
     }
   }
+  return c;
 }
 """;
 

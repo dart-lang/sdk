@@ -260,6 +260,10 @@ abstract class HType {
   }
 
   HType simplify(Compiler compiler) => this;
+
+  HType nonNullable(compiler) {
+    return new HType.fromMask(computeMask(compiler).nonNullable(), compiler);
+  }
 }
 
 /** Used to represent [HType.UNKNOWN] and [HType.CONFLICTING]. */

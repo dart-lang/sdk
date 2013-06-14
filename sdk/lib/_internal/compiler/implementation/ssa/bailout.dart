@@ -214,44 +214,6 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
     return calledInLoop;
   }
 
-  // Returns whether an invocation of [selector] on [receiver] will throw a
-  // [ArgumentError] if the argument is not of the right type.
-  bool willThrowArgumentError(Selector selector,
-                              HInstruction receiver,
-                              HType speculativeType) {
-    if (receiver != null
-        && (receiver.isInteger() || receiver.isString(compiler))) {
-      return selector.isOperator()
-          && selector.name != const SourceString('==')
-          && (speculativeType.isNumber() && !speculativeType.isInteger());
-    }
-    return false;
-  }
-
-  // Returns whether an invocation of [selector] will throw a
-  // [NoSuchMethodError] if the receiver is not of the type
-  // [speculativeType].
-  bool willThrowNoSuchMethodErrorIfNot(Selector selector,
-                                       HType speculativeType) {
-    return compiler.world.hasSingleMatch(selector)
-        // In some cases, we want the receiver to be an integer,
-        // but that does not mean we will get a NoSuchMethodError
-        // if it's not: the receiver could be a double.
-        && !speculativeType.isInteger()
-        // We speculate on the [operator==] instruction, but we know it
-        // will never throw a [NoSuchMethodError].
-        && selector.name != const SourceString('==');
-  }
-
-  bool shouldInsertTypeGuard(HInstruction instruction, HType speculativeType) {
-    if (!speculativeType.isUseful()) return false;
-    // If the types agree we don't need to check.
-    if (speculativeType == instruction.instructionType) return false;
-    // If a bailout check is more expensive than doing the actual operation
-    // don't do it either.
-    return typeGuardWouldBeValuable(instruction, speculativeType);
-  }
-
   HInstruction computeFirstDominatingUserWithSelector(
       HInstruction instruction) {
     // TODO(ngeoffray): We currently only look at the instruction's
@@ -283,49 +245,43 @@ class SsaTypeGuardInserter extends SsaNonSpeculativeTypePropagator
   bool tryTypeConversion(HInstruction instruction, HType speculativeType) {
     HInstruction firstUser =
         computeFirstDominatingUserWithSelector(instruction);
-    if (firstUser == null) return false;
+    if (firstUser is !HInvokeDynamic) return false;
 
     // If we have found a user with a selector, we find out if it
-    // will throw [NoSuchMethodError] or [ArgumentError].
+    // will throw [NoSuchMethodError] or [ArgumentError]. If it does,
+    // then we change just add a [HTypeConversion] instruction and
+    // avoid a bailout.
     Selector selector = firstUser.selector;
-    Selector receiverSelectorOnThrow = null;
+    if (!selector.isOperator()) return false;
     HInstruction receiver = firstUser.getDartReceiver(compiler);
-    bool willThrow = false;
-    if (receiver == instruction) {
-      if (willThrowNoSuchMethodErrorIfNot(selector, speculativeType)) {
-        receiverSelectorOnThrow = selector;
-        willThrow = true;
-      }
-    // We need to call the actual method in checked mode to get
-    // the right type error.
-    } else if (!compiler.enableTypeAssertions
-               && willThrowArgumentError(selector, receiver, speculativeType)) {
-      willThrow = true;
+
+    if (instruction == receiver) {
+      // If the instruction on which we're speculating the
+      // type is the receiver of the call, check if it will throw
+      // [NoSuchMethodError] if [instruction] is not of the speculated
+      // type.
+      return checkReceiver(firstUser);
+    } else if (!selector.isUnaryOperator()
+               && instruction == firstUser.inputs[2]) {
+      // If the instruction is a parameter of the call, we check if
+      // the method will throw an [ArgumentError] if [instruction] is
+      // not of the speculated type.
+      return checkArgument(firstUser);
     }
-
-    if (!willThrow) return false;
-
-    HTypeConversion check = new HTypeConversion(
-            null,
-            receiverSelectorOnThrow == null
-                ? HTypeConversion.ARGUMENT_TYPE_CHECK
-                : HTypeConversion.RECEIVER_TYPE_CHECK,
-            speculativeType,
-            instruction,
-            receiverSelectorOnThrow);
-    hasInsertedChecks = true;
-    firstUser.block.addBefore(firstUser, check);
-    instruction.replaceAllUsersDominatedBy(firstUser, check);
-    return true;
+    return false;
   }
 
   bool updateType(HInstruction instruction) {
     bool hasChanged = super.updateType(instruction);
     HType speculativeType = savedTypes[instruction];
-    if (speculativeType == null) return hasChanged;
+    if (speculativeType == null
+        || !speculativeType.isUseful()
+        || speculativeType == instruction.instructionType) {
+      return hasChanged;
+    }
 
-    if (shouldInsertTypeGuard(instruction, speculativeType)
-        && !tryTypeConversion(instruction, speculativeType)) {
+    if (!tryTypeConversion(instruction, speculativeType)
+        && typeGuardWouldBeValuable(instruction, speculativeType)) {
       HInstruction insertionPoint;
       if (instruction is HPhi) {
         insertionPoint = instruction.block.first;

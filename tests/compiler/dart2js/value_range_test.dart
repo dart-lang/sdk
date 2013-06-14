@@ -159,7 +159,7 @@ REMOVED,
 main(value) {
   // Force [value] to be an int by having the speculative optimizer
   // want an int.
-  int sum = 0;
+  int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
   var a = new List();
   if (value > a.length - 1) return;
@@ -173,7 +173,7 @@ REMOVED,
 main(value) {
   // Force [value] to be an int by having the speculative optimizer
   // want an int.
-  int sum = 0;
+  int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
   var a = new List();
   if (value <= a.length - 1) {
@@ -188,7 +188,7 @@ REMOVED,
 main(value) {
   // Force [value] to be an int by having the speculative optimizer
   // want an int.
-  int sum = 0;
+  int sum = ~value;
   for (int i = 0; i < 42; i++) sum += (value & 4);
   var a = new List();
   if (value >= a.length) return;
@@ -261,6 +261,7 @@ const String INTERCEPTORSLIB_WITH_MEMBERS = r'''
     operator ==(other) {}
   }
   class JSInt extends JSNumber {
+    operator~() => this;
   }
   class JSDouble extends JSNumber {
   }

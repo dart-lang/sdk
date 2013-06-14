@@ -7,17 +7,13 @@ part of ssa;
 abstract class SsaTypePropagator extends HBaseVisitor
     implements OptimizationPhase {
 
-  final Map<int, HInstruction> workmap;
-  final List<int> worklist;
-  final Map<HInstruction, Function> pendingOptimizations;
+  final Map<int, HInstruction> workmap = new Map<int, HInstruction>();
+  final List<int> worklist = new List<int>();
 
   final Compiler compiler;
   String get name => 'type propagator';
 
-  SsaTypePropagator(this.compiler)
-      : workmap = new Map<int, HInstruction>(),
-        worklist = new List<int>(),
-        pendingOptimizations = new Map<HInstruction, Function>();
+  SsaTypePropagator(this.compiler);
 
   // Compute the (shared) type of the inputs if any. If all inputs
   // have the same known type return it. If any two inputs have
@@ -92,22 +88,15 @@ abstract class SsaTypePropagator extends HBaseVisitor
   }
 
   void processWorklist() {
-    do {
-      while (!worklist.isEmpty) {
-        int id = worklist.removeLast();
-        HInstruction instruction = workmap[id];
-        assert(instruction != null);
-        workmap.remove(id);
-        if (updateType(instruction)) {
-          addDependentInstructionsToWorkList(instruction);
-        }
+    while (!worklist.isEmpty) {
+      int id = worklist.removeLast();
+      HInstruction instruction = workmap[id];
+      assert(instruction != null);
+      workmap.remove(id);
+      if (updateType(instruction)) {
+        addDependentInstructionsToWorkList(instruction);
       }
-      // While processing the optimizable arithmetic instructions, we
-      // may discover better type information for dominated users of
-      // replaced operands, so we may need to take another stab at
-      // emptying the worklist afterwards.
-      processPendingOptimizations();
-    } while (!worklist.isEmpty);
+    }
   }
 
   void addDependentInstructionsToWorkList(HInstruction instruction) {}
@@ -119,11 +108,6 @@ abstract class SsaTypePropagator extends HBaseVisitor
       worklist.add(id);
       workmap[id] = instruction;
     }
-  }
-
-  void processPendingOptimizations() {
-    pendingOptimizations.forEach((instruction, action) => action());
-    pendingOptimizations.clear();
   }
 
   HType visitInvokeDynamic(HInvokeDynamic instruction) {
@@ -153,6 +137,102 @@ abstract class SsaTypePropagator extends HBaseVisitor
     if (inputsType.isConflicting()) return HType.UNKNOWN;
     return inputsType;
   }
+
+  void convertInput(HInvokeDynamic instruction,
+                    HInstruction input,
+                    HType type,
+                    int kind) {
+    Selector selector = (kind == HTypeConversion.RECEIVER_TYPE_CHECK)
+        ? instruction.selector
+        : null;
+    HTypeConversion converted = new HTypeConversion(
+        null, kind, type, input, selector);
+    instruction.block.addBefore(instruction, converted);
+    input.replaceAllUsersDominatedBy(instruction, converted);    
+  }
+
+  bool isCheckEnoughForNsmOrAe(HInstruction instruction,
+                               HType type) {
+    // In some cases, we want the receiver to be an integer,
+    // but that does not mean we will get a NoSuchMethodError
+    // if it's not: the receiver could be a double.
+    if (type.isInteger()) {
+      // If the instruction's type is integer or null, the codegen
+      // will emit a null check, which is enough to know if it will
+      // hit a noSuchMethod.
+      return instruction.instructionType.isIntegerOrNull();
+    }
+    return true;
+  }
+
+  // Add a receiver type check when the call can only hit
+  // [noSuchMethod] if the receiver is not of a specific type.
+  // Return true if the receiver type check was added.
+  bool checkReceiver(HInvokeDynamic instruction) {
+    HInstruction receiver = instruction.inputs[1];
+    if (receiver.isNumber()) return false;
+    if (receiver.isNumberOrNull()) {
+      convertInput(instruction,
+                   receiver,
+                   receiver.instructionType.nonNullable(compiler),
+                   HTypeConversion.RECEIVER_TYPE_CHECK);
+      return true;
+    } else if (instruction.element == null) {
+      Iterable<Element> targets =
+          compiler.world.allFunctions.filter(instruction.selector);
+      if (targets.length == 1) {
+        Element target = targets.first;
+        ClassElement cls = target.getEnclosingClass();
+        HType type = new HType.nonNullSubclass(cls.rawType, compiler);
+        // TODO(ngeoffray): We currently only optimize on primitive
+        // types.
+        if (!type.isPrimitive(compiler)) return false;
+        if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
+        instruction.element = target;
+        convertInput(instruction,
+                     receiver,
+                     type,
+                     HTypeConversion.RECEIVER_TYPE_CHECK);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Add an argument type check if the argument is not of a type
+  // expected by the call.
+  // Return true if the argument type check was added.
+  bool checkArgument(HInvokeDynamic instruction) {
+    // We want the righ error in checked mode.
+    if (compiler.enableTypeAssertions) return false;
+    HInstruction left = instruction.inputs[1];
+    HType receiverType = left.instructionType;
+
+    // A [HTypeGuard] holds the speculated type when it is being
+    // inserted, so we go find the real receiver type.
+    if (left is HTypeGuard) {
+      var guard = left;
+      while (guard is HTypeGuard && !guard.isEnabled) {
+        guard = guard.checkedInput;
+      }
+      receiverType = guard.instructionType;
+    }
+    HInstruction right = instruction.inputs[2];
+    Selector selector = instruction.selector;
+    if (selector.isOperator() && receiverType.isNumber()) {
+      if (right.isNumber()) return false;
+      // TODO(ngeoffray): Some number operations don't have a builtin
+      // variant and will do the check in their method anyway. We
+      // still add a check because it allows to GVN these operations,
+      // but we should find a better way.
+      convertInput(instruction,
+                   right,
+                   HType.NUMBER,
+                   HTypeConversion.ARGUMENT_TYPE_CHECK);
+      return true;
+    }
+    return false;
+  }
 }
 
 class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
@@ -168,37 +248,23 @@ class SsaNonSpeculativeTypePropagator extends SsaTypePropagator {
     }
   }
 
-  void convertInput(HInstruction instruction, HInstruction input, HType type) {
-    HTypeConversion converted = new HTypeConversion(
-        null, HTypeConversion.ARGUMENT_TYPE_CHECK, type, input);
-    instruction.block.addBefore(instruction, converted);
-    Set<HInstruction> dominatedUsers = input.dominatedUsers(instruction);
-    for (HInstruction user in dominatedUsers) {
-      user.changeUse(input, converted);
-      addToWorkList(user);
-    }
+  void addAllUsersBut(HInvokeDynamic invoke, HInstruction instruction) {
+    instruction.usedBy.forEach((HInstruction user) {
+      if (user != invoke) addToWorkList(user);
+    });
   }
 
   HType visitInvokeDynamic(HInvokeDynamic instruction) {
-    // Update the pending optimizations map based on the potentially
-    // new types of the operands. If the operand types no longer allow
-    // us to optimize, we remove the pending optimization.
-    if (instruction.specializer is BinaryArithmeticSpecializer) {
-      HInstruction left = instruction.inputs[1];
-      HInstruction right = instruction.inputs[2];
-      if (left.isNumber()
-          && !right.isNumber()
-          // We need to call the actual method in checked mode to get
-          // the right type error.
-          && !compiler.enableTypeAssertions) {
-        pendingOptimizations[instruction] = () {
-          // This callback function is invoked after we're done
-          // propagating types. The types shouldn't have changed.
-          assert(left.isNumber() && !right.isNumber());
-          convertInput(instruction, right, HType.NUMBER);
-        };
-      } else {
-        pendingOptimizations.remove(instruction);
+    if (instruction.isInterceptedCall) {
+      Selector selector = instruction.selector;
+      if (selector.isOperator()
+          && selector.name != const SourceString('==')) {
+        if (checkReceiver(instruction)) {
+          addAllUsersBut(instruction, instruction.inputs[1]);
+        }
+        if (!selector.isUnaryOperator() && checkArgument(instruction)) {
+          addAllUsersBut(instruction, instruction.inputs[2]);
+        }
       }
     }
     return super.visitInvokeDynamic(instruction);
@@ -220,10 +286,23 @@ class DesiredTypeVisitor extends HBaseVisitor {
     return HType.UNKNOWN;
   }
 
-  HType visitBoundsCheck(HBoundsCheck boundsCheck) {
+  HType visitCheck(HCheck check) {
     // If the desired type of the input is already a number, we want
     // to specialize it to an integer.
-    if (input == boundsCheck.index && input.isNumber()) return HType.INTEGER;
+    if (input == check.checkedInput
+        && check.isInteger()
+        && check.checkedInput.isNumberOrNull()) {
+      return HType.INTEGER;
+    }
+    return HType.UNKNOWN;
+  }
+
+  HType visitTypeConversion(HTypeConversion check) {
+    // The following checks are inserted by our optimizers, so we
+    // want to optimize them even more.
+    if (check.isArgumentTypeCheck || check.isReceiverTypeCheck) {
+      return visitCheck(check);
+    }
     return HType.UNKNOWN;
   }
 
