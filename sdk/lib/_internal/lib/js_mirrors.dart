@@ -19,7 +19,18 @@ import 'dart:_js_helper' show
     createInvocationMirror;
 import 'dart:_interceptors' show Interceptor;
 
-String getName(Symbol symbol) => n(symbol);
+/// No-op method that is called to inform the compiler that
+/// tree-shaking needs to be disabled.
+disableTreeShaking() => preserveNames();
+
+/// No-op method that is called to inform the compiler that unmangled
+/// named must be preserved.
+preserveNames() {}
+
+String getName(Symbol symbol) {
+  preserveNames();
+  return n(symbol);
+}
 
 final Map<String, String> mangledNames = JsMirrorSystem.computeMangledNames();
 
@@ -42,6 +53,7 @@ class JsMirrorSystem implements MirrorSystem {
   }
 
   static Map<String, List<LibraryMirror>> computeLibrariesByName() {
+    disableTreeShaking();
     var result = new Map<String, List<LibraryMirror>>();
     var jsLibraries = JS('=List|Null', 'init.libraries');
     if (jsLibraries == null) return result;
@@ -61,6 +73,7 @@ class JsMirrorSystem implements MirrorSystem {
   }
 
   static Map<String, String> computeMangledNames() {
+    disableTreeShaking();
     var mangledNames = JS('', 'init.mangledNames');
     var keys = extractKeys(mangledNames);
     var result = <String, String>{};
@@ -71,6 +84,7 @@ class JsMirrorSystem implements MirrorSystem {
   }
 
   static Map<String, String> computeReflectiveNames() {
+    disableTreeShaking();
     var result = <String, String>{};
     mangledNames.forEach((String mangledName, String reflectiveName) {
       result[reflectiveName] = mangledName;
@@ -200,6 +214,7 @@ ClassMirror reflectType(Type key) {
 }
 
 ClassMirror reflectClassByName(Symbol symbol) {
+  disableTreeShaking();
   String className = n(symbol);
   var constructor = Primitives.getConstructor(className);
   if (constructor == null) {
@@ -573,6 +588,7 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
   JsClosureMirror(reflectee) : super(reflectee);
 
   MethodMirror get function {
+    disableTreeShaking();
     // TODO(ahe): What about optional parameters (named or not).
     var extractCallName = JS('', r'''
 function(reflectee) {

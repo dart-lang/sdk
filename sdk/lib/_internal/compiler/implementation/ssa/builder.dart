@@ -1215,6 +1215,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                        Selector selector,
                        List<HInstruction> providedArguments,
                        Node currentNode) {
+    backend.registerStaticUse(element, compiler.enqueuer.codegen);
     // We cannot inline a method from a deferred library into a method
     // which isn't deferred.
     // TODO(ahe): But we should still inline into the same

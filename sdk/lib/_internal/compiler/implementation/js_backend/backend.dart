@@ -75,7 +75,6 @@ class JavaScriptBackend extends Backend {
   HType mutableArrayType;
   HType fixedArrayType;
   HType extendableArrayType;
-  
 
   // TODO(9577): Make it so that these are not needed when there are no native
   // classes.
@@ -155,6 +154,14 @@ class JavaScriptBackend extends Backend {
   }
 
   final RuntimeTypes rti;
+
+  /// Holds the method "disableTreeShaking" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement disableTreeShakingMarker;
+
+  /// Holds the method "preserveNames" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement preserveNamesMarker;
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
@@ -1114,4 +1121,19 @@ class JavaScriptBackend extends Backend {
   ClassElement get typeImplementation => typeLiteralClass;
   ClassElement get boolImplementation => jsBoolClass;
   ClassElement get nullImplementation => jsNullClass;
+
+  void enableMirrors() {
+    LibraryElement library = compiler.libraries['dart:_js_mirrors'];
+    disableTreeShakingMarker =
+        library.find(const SourceString('disableTreeShaking'));
+    preserveNamesMarker =
+        library.find(const SourceString('preserveNames'));
+ }
+
+  void registerStaticUse(Element element, Enqueuer enqueuer) {
+    if (element == disableTreeShakingMarker) {
+      enqueuer.enqueueEverything();
+    } else if (element == preserveNamesMarker) {
+    }
+  }
 }
