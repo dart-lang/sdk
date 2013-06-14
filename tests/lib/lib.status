@@ -122,7 +122,7 @@ async/timer_test: Fail, Pass # See Issue 10982
 async/future_test: Pass, Crash # Issue: 11207
 async/run_async6_test: Pass, Fail # Issue: 11207
 async/run_async_test: Pass, Crash # Issue: 11207
-async/slow_consumer2_test: Pass, Crash # Issue: 11207
+async/slow_consumer2_test: Pass, Crash, Timeout, # Issue: 11207
 async/slow_consumer3_test: Pass, Crash # Issue: 11207
 async/slow_consumer_test: Pass, Crash # Issue: 11207
 async/stream_controller_async_test: Pass, Crash # Issue: 11207
@@ -146,6 +146,13 @@ typed_data/float32x4_list_test: Crash # Issue: 11207
 typed_data/float32x4_test: Crash # Issue: 11207
 typed_data/float32x4_unbox_phi_test: Crash # Issue: 11207
 typed_data/float32x4_unbox_regress_test: Crash # Issue: 11207
+
+async/stream_periodic_test: Crash # Issue: 11207
+async/catch_errors27_test: Crash # Issue: 11207
+async/multiple_timer_test: Crash # Issue: 11207
+async/timer_cancel_test: Crash # Issue: 11207
+async/runAsync3_test: Crash # Issue: 11207
+
 
 [ $arch == mips ]
 *: Skip
