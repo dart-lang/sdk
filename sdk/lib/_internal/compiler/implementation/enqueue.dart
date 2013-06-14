@@ -639,8 +639,8 @@ class ResolutionEnqueuer extends Enqueuer {
       if (uri == 'dart:isolate') {
         enableIsolateSupport(library);
       } else if (uri == 'dart:async') {
-        ClassElement cls = element.getEnclosingClass();
-        if (cls != null && cls.name == const SourceString('Timer')) {
+        if (element.name == const SourceString('_createTimer') ||
+            element.name == const SourceString('_createPeriodicTimer')) {
           // The [:Timer:] class uses the event queue of the isolate
           // library, so we make sure that event queue is generated.
           enableIsolateSupport(library);

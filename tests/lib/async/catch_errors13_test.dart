@@ -11,41 +11,44 @@ main() {
   // hang if the callbacks are not invoked and the test will time out.
   var port = new ReceivePort();
   var events = [];
-  // Test nested `catchErrors`.
-  // The nested `catchErrors` throws all kinds of different errors (synchronous
-  // and asynchronous). The body of the outer `catchErrors` furthermore has a
-  // synchronous `throw`.
+  // Work around bug that makes runAsync use Timers. By invoking `runAsync` here
+  // we make sure that asynchronous non-timer events are executed before any
+  // Timer events.
+  runAsync(() { });
+
+  // Test that errors are caught by nested `catchErrors`. Also uses `runAsync`
+  // in the body of a Timer.
   catchErrors(() {
     events.add("catch error entry");
     catchErrors(() {
       events.add("catch error entry2");
-      new Future.error("future error");
-      new Future.error("future error2");
-      new Future.value(499).then((x) => throw x);
-      new Future.delayed(const Duration(milliseconds: 50), () {
-        throw "delayed error";
-      });
-      throw "catch error";
+      Timer.run(() { throw "timer error"; });
+      new Timer(const Duration(milliseconds: 50),
+                () {
+                     runAsync(() { throw "runAsync"; });
+                     throw "delayed error";
+                   });
     }).listen((x) { events.add(x); })
       .asFuture()
       .then((_) => events.add("inner done"))
       .then((_) { throw "inner done throw"; });
     events.add("after inner");
+    Timer.run(() { throw "timer outer"; });
     throw "inner throw";
   }).listen((x) {
       events.add(x);
     },
     onDone: () {
-      Expect.listEquals(["catch error entry",
+      Expect.listEquals([
+                         "catch error entry",
                          "catch error entry2",
                          "after inner",
                          "main exit",
-                         "catch error",
                          "inner throw",
-                         "future error",
-                         "future error2",
-                         499,
+                         "timer error",
+                         "timer outer",
                          "delayed error",
+                         "runAsync",
                          "inner done",
                          "inner done throw"
                          ],

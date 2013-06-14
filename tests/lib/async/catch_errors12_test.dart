@@ -11,22 +11,29 @@ main() {
   // hang if the callbacks are not invoked and the test will time out.
   var port = new ReceivePort();
   var events = [];
-  // Test that synchronous *and* asynchronous errors are caught by
-  // `catchErrors`.
+  // Tests that errors that have been delayed by several milliseconds with
+  // Timers are still caught by `catchErrors`.
   catchErrors(() {
     events.add("catch error entry");
-    new Future.error("future error");
+    Timer.run(() { throw "timer error"; });
+    new Timer(const Duration(milliseconds: 100), () { throw "timer2 error"; });
+    new Future.value(499).then((x) {
+      new Timer(const Duration(milliseconds: 200), () { throw x; });
+    });
     throw "catch error";
   }).listen((x) {
       events.add(x);
     },
     onDone: () {
-      Expect.listEquals(["catch error entry",
-                         "main exit",
-                         "catch error",
-                         "future error",
-                         ],
-                         events);
+      Expect.listEquals([
+            "catch error entry",
+            "main exit",
+            "catch error",
+            "timer error",
+            "timer2 error",
+            499,
+          ],
+          events);
       port.close();
     });
   events.add("main exit");

@@ -8,7 +8,7 @@ import 'dart:isolate';
 
 main() {
   // We keep a ReceivePort open until all tests are done. This way the VM will
-  // time out if the callbacks are not invoked.
+  // hang if the callbacks are not invoked and the test will time out.
   var port = new ReceivePort();
   var events = [];
   // Test that synchronous errors inside a `catchErrors` are caught.
@@ -19,8 +19,7 @@ main() {
       events.add(x);
     },
     onDone: () {
-      Expect.listEquals([
-                         "catch error entry",
+      Expect.listEquals(["catch error entry",
                          "main exit",
                          "catch error",
                          ],

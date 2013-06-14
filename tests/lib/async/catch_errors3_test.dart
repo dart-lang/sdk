@@ -8,7 +8,7 @@ import 'dart:isolate';
 
 main() {
   // We keep a ReceivePort open until all tests are done. This way the VM will
-  // time out if the callbacks are not invoked.
+  // hang if the callbacks are not invoked and the test will time out.
   var port = new ReceivePort();
   bool futureWasExecuted = false;
   bool future2WasExecuted = false;
@@ -26,7 +26,7 @@ main() {
     });
     return 'allDone';
   }).listen((x) {
-      Expect.fail("Unexped callback");
+      Expect.fail("Unexpected callback");
     },
     onDone: () {
       Expect.isTrue(futureWasExecuted);

@@ -11,20 +11,25 @@ main() {
   // hang if the callbacks are not invoked and the test will time out.
   var port = new ReceivePort();
   var events = [];
-  // Test that synchronous *and* asynchronous errors are caught by
-  // `catchErrors`.
+  // Test that periodic Timers are handled correctly by `catchErrors`.
   catchErrors(() {
-    events.add("catch error entry");
-    new Future.error("future error");
-    throw "catch error";
+    int counter = 0;
+    new Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (counter++ == 5) timer.cancel();
+      throw "error $counter";
+    });
   }).listen((x) {
       events.add(x);
     },
     onDone: () {
-      Expect.listEquals(["catch error entry",
+      Expect.listEquals([
                          "main exit",
-                         "catch error",
-                         "future error",
+                         "error 1",
+                         "error 2",
+                         "error 3",
+                         "error 4",
+                         "error 5",
+                         "error 6",
                          ],
                          events);
       port.close();

@@ -138,7 +138,6 @@ class _ErrorZoneBoundaryListener implements _FutureListener {
     // to insert an instance of [_ErrorZoneBoundaryListener] (and in the
     // controller). Once we have inserted one we should never need to use it
     // anymore.
-    // It would be valid to `return true` instead.
     throw new UnsupportedError(
         "A Zone boundary doesn't support the inSameErrorZone test.");
   }

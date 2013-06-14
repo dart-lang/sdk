@@ -10,14 +10,19 @@ main() {
   // We keep a ReceivePort open until all tests are done. This way the VM will
   // hang if the callbacks are not invoked and the test will time out.
   var port = new ReceivePort();
-  // Make sure `catchErrors` shuts down the error stream when the synchronous
-  // operation is done and there isn't any asynchronous pending callback.
+  bool futureWasExecuted = false;
+  // Test that `catchErrors` waits for `Timer.run` before closing its error
+  // stream.
   catchErrors(() {
+    Timer.run(() {
+      futureWasExecuted = true;
+    });
     return 'allDone';
   }).listen((x) {
       Expect.fail("Unexpected callback");
     },
     onDone: () {
+      Expect.isTrue(futureWasExecuted);
       port.close();
     });
 }

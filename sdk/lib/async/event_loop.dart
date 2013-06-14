@@ -18,7 +18,7 @@ void _asyncRunCallback() {
       callback();
     } catch (e) {
       _AsyncRun._enqueueImmediate(_asyncRunCallback);
-      throw;
+      rethrow;
     }
   }
   // Any new callback must register a callback function now.
