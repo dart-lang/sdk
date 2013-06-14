@@ -120,7 +120,7 @@ async/timer_test: Fail, Pass # See Issue 10982
 
 
 [ $arch == arm || $arch == simarm ]
-Skip: *
+*: Skip
 
 [ $arch == mips ]
 *: Skip
