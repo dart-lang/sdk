@@ -95,6 +95,14 @@ abstract class MirrorSystem {
    */
   TypeMirror get voidType;
 
+  /**
+   * Returns the name of [symbol].
+   *
+   * The following text is non-normative:
+   *
+   * Using this method may result in larger output.  If possible, use
+   * [MirrorsUsed] to specify which symbols must be retained in clear text.
+   */
   external static String getName(Symbol symbol);
 }
 
@@ -1077,4 +1085,105 @@ class Comment {
   final bool isDocComment;
 
   const Comment(this.text, this.trimmedText, this.isDocComment);
+}
+
+/**
+ * EXPERIMENTAL API: Description of how "dart:mirrors" is used.
+ *
+ * When used as metadata on an import of "dart:mirrors" in library *L*, this
+ * class describes how "dart:mirrors" is used by library *L* unless overridden.
+ * See [override].
+ *
+ * The following text is non-normative:
+ *
+ * In some scenarios, for example, when minifying Dart code, or when generating
+ * JavaScript code from a Dart program, the size and performance of the output
+ * can suffer from use of reflection.  In those cases, telling the compiler
+ * what is used, can have a significant impact.
+ *
+ * Example usage:
+ *
+ * [:
+ * @MirrorsUsed(symbols: 'foo', override: '*')
+ * import 'dart:mirrors';
+ *
+ * class Foo {
+ *   noSuchMethod(Invocation invocation) {
+ *     print(Mirrors.getName(invocation.memberName));
+ *   }
+ * }
+ *
+ * main() {
+ *   new Foo().foo(); // Prints "foo".
+ *   new Foo().bar(); // Might print an arbitrary (mangled) name, "bar".
+ * }
+ * :]
+ */
+// TODO(ahe): Remove ", override: '*'" when it isn't necessary anymore.
+class MirrorsUsed {
+  // Note: the fields of this class are untyped.  This is because the most
+  // convenient way to specify to specify symbols today is using a single
+  // string. In some cases, a const list of classes might be convenient. Some
+  // might prefer to use a const list of symbols.
+
+  /**
+   * The list of strings passed to new [Symbol], and symbols that might be
+   * passed to [MirrorSystem.getName].
+   *
+   * Combined with the names of [reflectiveTarget], [metaTargets] and their
+   * members, this forms the complete list of strings passed to new [Symbol],
+   * and symbols that might be passed to [MirrorSystem.getName] by the library
+   * to which this metadata applies.
+   *
+   * The following text is non-normative:
+   *
+   * Specifying this option turns off the following warnings emitted by
+   * dart2js:
+   *
+   * * Using "MirrorSystem.getName" may result in larger output.
+   * * Using "new #{name}" may result in larger output.
+   *
+   * Use symbols = "*" to turn off the warnings mentioned above.
+   *
+   * For example, if using [noSuchMethod] to interact with a database, extract
+   * all the possible column names and include them in this list.  Similarly,
+   * if using [noSuchMethod] to interact with another language (JavaScript, for
+   * example) extract all the identifiers from API used and include them in
+   * this list.
+   */
+  final symbols;
+
+  /**
+   * A list of reflective targets.
+   *
+   * Combined with [metaTargets], this provides the complete list of reflective
+   * targets used by the library to which this metadata applies.
+   *
+   * The following text is non-normative:
+   *
+   * For now, there is no formal description of what a reflective target is.
+   * Informally, it is a list of things that are expected to have fully
+   * functional mirrors.
+   */
+  final targets;
+
+  /**
+   * A list of classes that when used as metadata indicates a reflective
+   * target.
+   *
+   * See [targets].
+   */
+  final metaTargets;
+
+  /**
+   * A list of library names or "*".
+   *
+   * When used as metadata on an import of "dart:mirrors", this metadata does
+   * not apply to the library in which the annotation is used, but instead
+   * applies to the other libraries (all libraries if "*" is used).
+   */
+  final override;
+
+  const MirrorsUsed(
+      {this.symbols, this.targets, this.metaTargets, this.override});
 }
