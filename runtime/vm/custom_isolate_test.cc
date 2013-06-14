@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "include/dart_api.h"
+#include "include/dart_native_api.h"
 
 #include "vm/unit_test.h"
 

@@ -5,6 +5,7 @@
 #ifndef VM_DART_API_MESSAGE_H_
 #define VM_DART_API_MESSAGE_H_
 
+#include "include/dart_native_api.h"
 #include "vm/dart_api_state.h"
 #include "vm/snapshot.h"
 

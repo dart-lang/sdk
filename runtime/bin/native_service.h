@@ -6,6 +6,7 @@
 #define BIN_NATIVE_SERVICE_H_
 
 #include "include/dart_api.h"
+#include "include/dart_native_api.h"
 #include "platform/globals.h"
 #include "platform/thread.h"
 

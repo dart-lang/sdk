@@ -6,6 +6,7 @@
 #define VM_NATIVE_MESSAGE_HANDLER_H_
 
 #include "include/dart_api.h"
+#include "include/dart_native_api.h"
 #include "vm/message_handler.h"
 
 namespace dart {

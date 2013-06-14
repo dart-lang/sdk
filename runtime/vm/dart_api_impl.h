@@ -58,6 +58,39 @@ const char* CanonicalFunction(const char* func);
   HANDLESCOPE(__temp_isolate__);
 
 
+#define RETURN_TYPE_ERROR(isolate, dart_handle, type)                          \
+  do {                                                                         \
+    const Object& tmp =                                                        \
+        Object::Handle(isolate, Api::UnwrapHandle((dart_handle)));             \
+    if (tmp.IsNull()) {                                                        \
+      return Api::NewError("%s expects argument '%s' to be non-null.",         \
+                           CURRENT_FUNC, #dart_handle);                        \
+    } else if (tmp.IsError()) {                                                \
+      return dart_handle;                                                      \
+    } else {                                                                   \
+      return Api::NewError("%s expects argument '%s' to be of type %s.",       \
+                           CURRENT_FUNC, #dart_handle, #type);                 \
+    }                                                                          \
+  } while (0)
+
+
+#define RETURN_NULL_ERROR(parameter)                                           \
+  return Api::NewError("%s expects argument '%s' to be non-null.",             \
+                       CURRENT_FUNC, #parameter);
+
+
+#define CHECK_LENGTH(length, max_elements)                                     \
+  do {                                                                         \
+    intptr_t len = (length);                                                   \
+    intptr_t max = (max_elements);                                             \
+    if (len < 0 || len > max) {                                                \
+      return Api::NewError(                                                    \
+          "%s expects argument '%s' to be in the range [0..%"Pd"].",           \
+          CURRENT_FUNC, #length, max);                                         \
+    }                                                                          \
+  } while (0)
+
+
 class Api : AllStatic {
  public:
   // Creates a new local handle.

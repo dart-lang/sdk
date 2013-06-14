@@ -90,7 +90,9 @@
       },
 
       'Dart_Release': {
-        'cflags': [ '-O3', ],
+        'cflags': [ '-O3',
+                    '-fno-omit-frame-pointer',
+        ],
       },
     },
   },
