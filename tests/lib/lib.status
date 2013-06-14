@@ -26,7 +26,7 @@ mirrors/disable_tree_shaking_test: Fail # Issue 6490
 mirrors/reflect_model_test: Fail # Issue 6490
 
 [ $csp ]
-mirrors/metadata_test: Fail # Issue 6490
+mirrors/library_metadata_test: Fail # Issue 10906
 mirrors/reflect_runtime_type_test: Fail # Issue 6490
 mirrors/reflect_uninstantiated_class_test: Fail # Issue 6490
 mirrors/superclass_test: Fail # Issue 6490
@@ -101,7 +101,7 @@ async/timer_isolate_test: Skip # See Issue 4997
 
 [ $runtime == vm || ($compiler == none && $runtime == drt) ]
 async/run_async3_test: Fail # _enqueueImmediate runs after Timer. http://dartbug.com/9001.
-mirrors/metadata_test: Fail # http://dartbug.com/10906
+mirrors/library_metadata_test: Fail # http://dartbug.com/10906
 mirrors/superclass_test: Fail # http://dartbug.com/11142
 mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # http://dartbug.com/11187
 mirrors/reflect_model_test: Fail # http://dartbug.com/11219

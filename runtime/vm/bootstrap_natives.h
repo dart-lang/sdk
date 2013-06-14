@@ -235,8 +235,9 @@ namespace dart {
   V(isolate_spawnUri, 1)                                                       \
   V(Mirrors_isLocalPort, 1)                                                    \
   V(Mirrors_makeLocalInstanceMirror, 1)                                        \
-  V(Mirrors_makeLocalClassMirror, 1)                                        \
+  V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalMirrorSystem, 0)                                          \
+  V(Mirrors_metadata, 1)                                                       \
   V(LocalObjectMirrorImpl_invoke, 4)                                           \
   V(LocalObjectMirrorImpl_getField, 2)                                         \
   V(LocalObjectMirrorImpl_setField, 4)                                         \

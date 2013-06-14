@@ -120,8 +120,7 @@ external Future<MirrorSystem> mirrorSystemOf(SendPort port);
 /**
  * Returns an [InstanceMirror] for some Dart language object.
  *
- * This only works if this mirror system is associated with the
- * current running isolate.
+ * This only works with objects local to the current isolate.
  */
 external InstanceMirror reflect(Object reflectee);
 
@@ -233,6 +232,15 @@ abstract class DeclarationMirror implements Mirror {
 
   /**
    * A list of the metadata associated with this declaration.
+   *
+   * Let *D* be the declaration this mirror reflects.
+   * If *D* is decorated with annotations *A1, ..., An*
+   * where *n > 0*, then for each annotation *Ai* associated 
+   * with *D, 1 <= i <= n*, let *ci* be the constant object 
+   * specified by *Ai*. Then this method returns a list whose 
+   * members are instance mirrors on *c1, ..., cn*.
+   * If no annotations are associated with *D*, then 
+   * an empty list is returned.
    */
   List<InstanceMirror> get metadata;
 }
@@ -317,7 +325,7 @@ abstract class ObjectMirror implements Mirror {
    * the the result is a [MirrorError] wrapping *e*.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
-  InstanceMirror setField(Symbol fieldName, Object arg);
+  InstanceMirror setField(Symbol fieldName, Object value);
 
   /**
    * Invokes the named function and returns a mirror on the result.
@@ -353,8 +361,8 @@ abstract class ObjectMirror implements Mirror {
    * TODO(turnidge): Handle optional & named arguments.
    */
   Future<InstanceMirror> invokeAsync(Symbol memberName,
-                                     List<Object> positionalArguments,
-                                     [Map<Symbol, Object> namedArguments]);
+                                     List positionalArguments,
+                                     [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Invokes a getter and returns a mirror on the result. The getter
@@ -381,7 +389,7 @@ abstract class ObjectMirror implements Mirror {
    * Invokes a setter and returns a mirror on the result. The setter
    * may be either the implicit setter for a non-final field or a
    * user-defined setter method.
-   * The argument must be an instance of [InstanceMirror], or of
+   * The second argument must be an instance of [InstanceMirror], or of
    * a type that is serializable across isolates (currently [num],
    * [String], or [bool]).
    *
@@ -489,8 +497,8 @@ abstract class ClosureMirror implements InstanceMirror {
    * If the invocation throws an exception *e* (that it does not catch)
    * the the result is a [MirrorError] wrapping *e*.
    */
-  InstanceMirror apply(List<Object> positionalArguments,
-                       [Map<Symbol,Object> namedArguments]);
+  InstanceMirror apply(List positionalArguments,
+                       [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Executes the closure and returns a mirror on the result.
@@ -519,8 +527,8 @@ abstract class ClosureMirror implements InstanceMirror {
    * a type that is serializable across isolates (currently [num],
    * [String], or [bool]).
    */
-  Future<InstanceMirror> applyAsync(List<Object> positionalArguments,
-                                    [Map<Symbol, Object> namedArguments]);
+  Future<InstanceMirror> applyAsync(List positionalArguments,
+                                    [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Looks up the value of a name in the scope of the closure. The
@@ -762,8 +770,8 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * then *k* is completed with a [MirrorError] wrapping *e*.
 */
   Future<InstanceMirror> newInstanceAsync(Symbol constructorName,
-                                          List<Object> positionalArguments,
-                                          [Map<Symbol, Object> namedArguments]);
+                                          List positionalArguments,
+                                          [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Does this mirror represent a class?
