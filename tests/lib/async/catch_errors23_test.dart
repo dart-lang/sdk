@@ -5,6 +5,7 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
+import 'catch_errors.dart';
 
 main() {
   // We keep a ReceivePort open until all tests are done. This way the VM will

@@ -5,23 +5,22 @@
 import "package:expect/expect.dart";
 import 'dart:async';
 import 'dart:isolate';
-import 'catch_errors.dart';
 
 main() {
   // We keep a ReceivePort open until all tests are done. This way the VM will
   // hang if the callbacks are not invoked and the test will time out.
   var port = new ReceivePort();
-  var events = [];
-  StreamController controller;
-  // Test multiple subscribers of an asBroadcastStream inside the same
-  // `catchErrors`.
-  catchErrors(() {
-    var stream = new Stream.fromIterable([1, 2]).asBroadcastStream();
-    stream.listen(events.add);
-    stream.listen(events.add);
-  }).listen((x) { events.add("outer: $x"); },
-            onDone: () {
-              Expect.listEquals([1, 1, 2, 2], events);
-              port.close();
-            });
+  // Ensure that `runZoned` is done when a synchronous call throws.
+  bool sawException = false;
+  try {
+    runZonedExperimental(() { throw 0; },
+                         onDone: () {
+                           // onDone is executed synchronously.
+                           Expect.isFalse(sawException);
+                           port.close();
+                         });
+  } catch (e) {
+    sawException = true;
+  }
+  Expect.isTrue(sawException);
 }

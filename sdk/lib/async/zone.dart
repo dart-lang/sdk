@@ -237,13 +237,16 @@ class _ZoneBase implements _Zone {
     // (probably) in the same zone and have an _openCallbacks > 0.
     bool oldIsExecuting = _isExecutingCallback;
     _isExecutingCallback = true;
+    // TODO(430): remove second try when VM bug is fixed.
     try {
-      return fun();
-    } catch(e, s) {
-      if (handleUncaught) {
-        handleUncaughtError(_asyncError(e, s));
-      } else {
-        rethrow;
+      try {
+        return fun();
+      } catch(e, s) {
+        if (handleUncaught) {
+          handleUncaughtError(_asyncError(e, s));
+        } else {
+          rethrow;
+        }
       }
     } finally {
       _isExecutingCallback = oldIsExecuting;
@@ -258,14 +261,14 @@ class _ZoneBase implements _Zone {
    * Uncaught errors are given to [handleUncaughtError].
    */
   _runGuarded(void fun()) {
-    _runInZone(fun, true);
+    return _runInZone(fun, true);
   }
 
   /**
    * Runs the function but doesn't catch uncaught errors.
    */
   _runUnguarded(void fun()) {
-    _runInZone(fun, false);
+    return _runInZone(fun, false);
   }
 
   runAsync(void fun()) {
@@ -345,8 +348,8 @@ class _WaitForCompletionZone extends _ZoneBase {
    * Runs the given function asynchronously. Executes the [_onDone] callback
    * when the zone is done.
    */
-  void runWaitForCompletion(void fun()) {
-    this._runGuarded(fun);
+  runWaitForCompletion(void fun()) {
+    return this._runUnguarded(fun);
   }
 
   _dispose() {
@@ -357,7 +360,7 @@ class _WaitForCompletionZone extends _ZoneBase {
   String toString() => "WaitForCompletion ${super.toString()}";
 }
 
-typedef bool _HandleErrorCallback(error);
+typedef void _HandleErrorCallback(error);
 
 /**
  * A zone that collects all uncaught errors and provides them in a stream.
@@ -372,7 +375,23 @@ class _CatchErrorsZone extends _WaitForCompletionZone {
   _Zone get _errorZone => this;
 
   handleUncaughtError(error) {
-    if (!_handleError(error)) _parentZone.handleUncaughtError(error);
+    try {
+      _handleError(error);
+    } catch(e, s) {
+      if (identical(e, s)) {
+        _parentZone.handleUncaughtError(error);
+      } else {
+        _parentZone.handleUncaughtError(_asyncError(e, s));
+      }
+    }
+  }
+
+  /**
+   * Runs the given function asynchronously. Executes the [_onDone] callback
+   * when the zone is done.
+   */
+  runWaitForCompletion(void fun()) {
+    return this._runGuarded(fun);
   }
 
   String toString() => "WithErrors ${super.toString()}";
@@ -434,32 +453,52 @@ class _PeriodicZoneTimer implements Timer {
   }
 }
 
-Stream catchErrors(void body()) {
-  _CatchErrorsZone catchErrorsZone;
-  StreamController controller;
-
-  void onListen() {
-    catchErrorsZone.runWaitForCompletion(body);
+/**
+ * Runs [body] in its own zone.
+ *
+ * If [onError] is non-null the zone is considered an error zone. All uncaught
+ * errors, synchronous or asynchronous, in the zone are caught and handled
+ * by the callback.
+ *
+ * [onDone] (if non-null) is invoked when the zone has no more outstanding
+ * callbacks.
+ *
+ * Examples:
+ *
+ *     runZonedExperimental(() {
+ *       new Future(() { throw "asynchronous error"; });
+ *     }, onError: print);  // Will print "asynchronous error".
+ *
+ * The following example prints "1", "2", "3", "4" in this order.
+ *
+ *     runZonedExperimental(() {
+ *       print(1);
+ *       new Future.value(3).then(print);
+ *     }, onDone: () { print(4); });
+ *     print(2);
+ *
+ * Errors may never cross error-zone boundaries. This is intuitive for leaving
+ * a zone, but it also applies for errors that would enter an error-zone.
+ * Errors that try to cross error-zone boundaries are considered uncaught.
+ *
+ *     var future = new Future.value(499);
+ *     runZonedExperimental(() {
+ *       future = future.then((_) { throw "error in first error-zone"; });
+ *       runZonedExperimental(() {
+ *         future = future.catchError((e) { print("Never reached!"); });
+ *       }, onError: (e) { print("unused error handler"); });
+ *     }, onError: (e) { print("catches error of first error-zone."); });
+ *
+ */
+runZonedExperimental(body(), { void onError(error), void onDone() }) {
+  // TODO(floitsch): we probably still want to install a new Zone.
+  if (onError == null && onDone == null) return body();
+  if (onError == null) {
+    _WaitForCompletionZone zone =
+        new _WaitForCompletionZone(_Zone._current, onDone);
+    return zone.runWaitForCompletion(body);
   }
-
-  bool handleError(e) {
-    controller.add(e);
-    return true;
-  }
-
-  void onDone() {
-    controller.close();
-  }
-
-  catchErrorsZone = new _CatchErrorsZone(_Zone._current, handleError, onDone);
-  controller = new StreamController(onListen: onListen);
-  return controller.stream;
-}
-
-Future waitForCompletion(void body()) {
-  Completer completer = new Completer.sync();
-  _WaitForCompletionZone zone =
-      new _WaitForCompletionZone(_Zone._current, completer.complete);
-  zone.runWaitForCompletion(body);
-  return completer.future;
+  if (onDone == null) onDone = _nullDoneHandler;
+  _CatchErrorsZone zone = new _CatchErrorsZone(_Zone._current, onError, onDone);
+  return zone.runWaitForCompletion(body);
 }

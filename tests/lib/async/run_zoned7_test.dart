@@ -12,18 +12,15 @@ main() {
   // hang if the callbacks are not invoked and the test will time out.
   var port = new ReceivePort();
   var events = [];
-  // Test that periodic Timers are handled correctly by `catchErrors`.
-  catchErrors(() {
+  // Test runZoned with periodic Timers.
+  runZonedExperimental(() {
     int counter = 0;
     new Timer.periodic(const Duration(milliseconds: 50), (timer) {
       if (counter == 5) timer.cancel();
       counter++;
       events.add(counter);
     });
-  }).listen((x) {
-      events.add(x);
-    },
-    onDone: () {
+  }, onDone: () {
       Expect.listEquals([
                          "main exit",
                          1, 2, 3, 4, 5, 6,
