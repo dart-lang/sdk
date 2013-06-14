@@ -888,7 +888,7 @@ CompileType* StoreInstanceFieldInstr::ComputeInitialType() const {
 CompileType LoadStaticFieldInstr::ComputeType() const {
   if (FLAG_enable_type_checks) {
     return CompileType::FromAbstractType(
-        AbstractType::ZoneHandle(field().type()));
+        AbstractType::ZoneHandle(StaticField().type()));
   }
   return CompileType::Dynamic();
 }

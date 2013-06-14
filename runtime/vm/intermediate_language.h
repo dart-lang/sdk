@@ -3380,28 +3380,32 @@ class GuardFieldInstr : public TemplateInstruction<1> {
 };
 
 
-class LoadStaticFieldInstr : public TemplateDefinition<0> {
+class LoadStaticFieldInstr : public TemplateDefinition<1> {
  public:
-  explicit LoadStaticFieldInstr(const Field& field) : field_(field) {}
+  explicit LoadStaticFieldInstr(Value* field_value) {
+    ASSERT(field_value->BindsToConstant());
+    SetInputAt(0, field_value);
+  }
 
   DECLARE_INSTRUCTION(LoadStaticField)
   virtual CompileType ComputeType() const;
 
-  const Field& field() const { return field_; }
+  const Field& StaticField() const;
+
+  Value* field_value() const { return inputs_[0]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
 
-  virtual bool AllowsCSE() const { return field_.is_final(); }
+  virtual bool AllowsCSE() const { return StaticField().is_final(); }
   virtual EffectSet Effects() const { return EffectSet::None(); }
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
   virtual bool MayThrow() const { return false; }
- private:
-  const Field& field_;
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
 

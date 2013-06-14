@@ -3670,7 +3670,8 @@ class AliasedSet : public ZoneAllocated {
 
     LoadStaticFieldInstr* load_static_field = defn->AsLoadStaticField();
     if (load_static_field != NULL) {
-      return Alias::Field(GetFieldId(kAnyInstance, load_static_field->field()));
+      return Alias::Field(GetFieldId(kAnyInstance,
+                                     load_static_field->StaticField()));
     }
 
     UNREACHABLE();
@@ -3846,7 +3847,7 @@ class AliasedSet : public ZoneAllocated {
 
     LoadStaticFieldInstr* load_static_field = defn->AsLoadStaticField();
     if (load_static_field != NULL) {
-      return load_static_field->field().is_final();
+      return load_static_field->StaticField().is_final();
     }
 
     return false;
@@ -3974,7 +3975,7 @@ class LoadKeyValueTrait {
       location = store_field->offset_in_bytes();
     } else if (key->IsLoadStaticField()) {
       LoadStaticFieldInstr* load_static_field = key->AsLoadStaticField();
-      object = String::Handle(load_static_field->field().name()).Hash();
+      object = String::Handle(load_static_field->StaticField().name()).Hash();
     } else if (key->IsStoreStaticField()) {
       StoreStaticFieldInstr* store_static_field = key->AsStoreStaticField();
       object = String::Handle(store_static_field->field().name()).Hash();
@@ -4004,7 +4005,7 @@ class LoadKeyValueTrait {
       if (key->IsStoreStaticField()) {
         LoadStaticFieldInstr* load_static_field = kv->AsLoadStaticField();
         StoreStaticFieldInstr* store_static_field = key->AsStoreStaticField();
-        return load_static_field->field().raw() ==
+        return load_static_field->StaticField().raw() ==
             store_static_field->field().raw();
       }
       return false;
@@ -5236,7 +5237,7 @@ void ConstantPropagator::VisitStoreInstanceField(
 
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
-  const Field& field = instr->field();
+  const Field& field = instr->StaticField();
   ASSERT(field.is_static());
   if (field.is_final()) {
     Instance& obj = Instance::Handle(field.value());

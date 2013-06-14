@@ -1759,16 +1759,22 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadStaticFieldInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  // By specifying same register as input, our simple register allocator can
+  // generate better code.
+  summary->set_out(Location::SameAsFirstInput());
+  return summary;
 }
 
 
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register field = locs()->in(0).reg();
   Register result = locs()->out().reg();
-  __ LoadObject(result, field());
-  __ movl(result, FieldAddress(result, Field::value_offset()));
+  __ movl(result, FieldAddress(field, Field::value_offset()));
 }
 
 
