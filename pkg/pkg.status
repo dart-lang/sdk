@@ -64,21 +64,6 @@ intl/test/message_extraction/message_extraction_test: Fail # Issue 9167
 analyzer_experimental/test/generated/ast_test: Fail, Slow # Issue 11230
 unittest/test/instance_test: Fail # http://dartbug.com/11191
 
-[ $compiler == dart2js && $runtime == d8 && $checked ]
-pathos/test/pathos_io_test: Fail # Issue 11258
-oauth2/*: Fail # Issue 11258
-oauth2/test/utils_test: Pass
-http/*: Fail # Issue 11258
-stack_trace/*: Fail # Issue 11258
-intl/test/date_time_format_file_odd_test: Fail # Issue 11258
-intl/test/date_time_format_file_even_test: Fail # Issue 11258
-intl/test/message_extraction/message_extraction_test: Fail # Issue 11258
-scheduled_test/*: Fail # Issue 11258
-scheduled_test/test/substitute_future_test: Pass
-scheduled_test/test/value_future_test: Pass
-analyzer_experimental/test/error_test: Fail # Issue 11258
-analyzer_experimental/test/services/formatter_test: Fail # Issue 11258
-
 [ $compiler == dartc ]
 unittest/test/mock_regexp_negative_test: Fail
 unittest/test/mock_stepwise_negative_test: Fail
@@ -116,9 +101,12 @@ unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART
 crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail?id=2692
 
 [ $compiler == dart2js && $browser ]
-pathos/test/pathos_dartium_test: Fail, OK # Issue 6490
+pathos/test/pathos_dartium_test: Fail # Issue 6490
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
+
+[ $compiler == dart2js && $checked ]
+pathos/test/pathos_dartium_test: Crash
 
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
