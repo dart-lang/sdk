@@ -173,7 +173,6 @@ syntax_test/30: fail
 syntax_test/31: fail
 syntax_test/32: fail
 syntax_test/33: fail
-ternary_test: fail
 throw7_negative_test: fail
 type_error_test: fail
 type_parameter_test/01: fail
@@ -196,8 +195,6 @@ type_variable_bounds_test/07: fail
 type_variable_bounds_test/09: fail
 type_variable_identifier_expression_negative_test: fail
 type_variable_static_context_negative_test: fail
-unary2_test: fail
-unary_test: fail
 unresolved_in_factory_negative_test: fail
 unresolved_top_level_method_negative_test: fail
 unresolved_top_level_var_negative_test: fail
