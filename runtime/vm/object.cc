@@ -9203,21 +9203,35 @@ bool Instance::Equals(const Instance& other) const {
 }
 
 
-RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
-  ASSERT(!IsNull());
-  if (this->IsCanonical()) {
-    return this->raw();
+#if defined(DEBUG)
+class CheckForPointers : public ObjectPointerVisitor {
+ public:
+  explicit CheckForPointers(Isolate* isolate)
+      : ObjectPointerVisitor(isolate), has_pointers_(false) {}
+
+  bool has_pointers() const { return has_pointers_; }
+
+  void VisitPointers(RawObject** first, RawObject** last) {
+    if (first != last) {
+      has_pointers_ = true;
+    }
   }
-  Instance& result = Instance::Handle();
+
+ private:
+  bool has_pointers_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckForPointers);
+};
+#endif  // DEBUG
+
+
+bool Instance::CheckAndCanonicalizeFields(const char** error_str) const {
   const Class& cls = Class::Handle(this->clazz());
-  // TODO(srdjan): Check that predefined classes do not have fields that need
-  // to be checked/canonicalized as well.
-  if ((cls.id() >= kNumPredefinedCids) || cls.IsArray()) {
+  if ((cls.id() >= kNumPredefinedCids)) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
-    // other instances to be canonical otherwise report error (return
-    // Instance::null()).
+    // other instances to be canonical otherwise report error (return false).
     Object& obj = Object::Handle();
-    const intptr_t end_field_offset = cls.instance_size() - kWordSize;
+    intptr_t end_field_offset = cls.instance_size() - kWordSize;
     for (intptr_t field_offset = 0;
          field_offset <= end_field_offset;
          field_offset += kWordSize) {
@@ -9235,11 +9249,32 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
           char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
           OS::SNPrint(chars, len, kFormat, obj.ToCString());
           *error_str = chars;
-          return Instance::null();
+          return false;
         }
       }
     }
+  } else {
+#if defined(DEBUG)
+    // Make sure that we are not missing any fields.
+    CheckForPointers has_pointers(Isolate::Current());
+    this->raw()->VisitPointers(&has_pointers);
+    ASSERT(!has_pointers.has_pointers());
+#endif  // DEBUG
   }
+  return true;
+}
+
+
+RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
+  ASSERT(!IsNull());
+  if (this->IsCanonical()) {
+    return this->raw();
+  }
+  if (!CheckAndCanonicalizeFields(error_str)) {
+    return Instance::null();
+  }
+  Instance& result = Instance::Handle();
+  const Class& cls = Class::Handle(this->clazz());
   Array& constants = Array::Handle(cls.constants());
   const intptr_t constants_len = constants.Length();
   // Linear search to see whether this value is already present in the
@@ -12756,6 +12791,33 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   Object::MakeUnusedSpaceTraversable(array, capacity_size, used_size);
 
   return array.raw();
+}
+
+
+bool Array::CheckAndCanonicalizeFields(const char** error_str) const {
+  Object& obj = Object::Handle();
+  // Iterate over all elements, canonicalize numbers and strings, expect all
+  // other instances to be canonical otherwise report error (return false).
+  for (intptr_t i = 0; i < Length(); i++) {
+    obj = At(i);
+    if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
+      if (obj.IsNumber() || obj.IsString()) {
+        obj = Instance::Cast(obj).CheckAndCanonicalize(NULL);
+        ASSERT(!obj.IsNull());
+        this->SetAt(i, obj);
+      } else {
+        ASSERT(error_str != NULL);
+        const char* kFormat = "element at index %"Pd": %s\n";
+        const intptr_t len =
+            OS::SNPrint(NULL, 0, kFormat, i, obj.ToCString()) + 1;
+        char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+        OS::SNPrint(chars, len, kFormat, i, obj.ToCString());
+        *error_str = chars;
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 

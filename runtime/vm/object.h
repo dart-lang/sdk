@@ -3531,6 +3531,9 @@ class Instance : public Object {
   // Returns error in error_str, pass NULL if an error cannot occur.
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
+  // Returns true if all fields are OK for canonicalization.
+  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
+
   RawObject* GetField(const Field& field) const {
     return *FieldAddr(field);
   }
@@ -4983,6 +4986,9 @@ class Array : public Instance {
     ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(sizeof(RawArray) + (len * kBytesPerElement));
   }
+
+  // Returns true if all elements are OK for canonicalization.
+  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
 
   // Make the array immutable to Dart code by switching the class pointer
   // to ImmutableArray.
