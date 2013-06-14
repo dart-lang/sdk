@@ -4,20 +4,6 @@
 
 part of dart.async;
 
-/** Throws the given error in the next cycle. */
-_throwDelayed(var error, [Object stackTrace]) {
-  // We are going to reach the top-level here, but there might be a global
-  // exception handler. This means that we shouldn't print the stack trace.
-  // TODO(floitsch): Find better solution that doesn't print the stack trace
-  // if there is a global exception handler.
-  runAsync(() {
-    if (stackTrace != null) print(stackTrace);
-    var trace = getAttachedStackTrace(error);
-    if (trace != null && trace != stackTrace) print(trace);
-    throw error;
-  });
-}
-
 /** Abstract and private interface for a place to put events. */
 abstract class _EventSink<T> {
   void _add(T data);
@@ -96,6 +82,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
   Function _onData;
   _ErrorHandler _onError;
   _DoneHandler _onDone;
+  final _Zone _zone = _Zone.current;
 
   /** Bit vector based on state-constants above. */
   int _state;
@@ -115,6 +102,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     assert(_onData != null);
     assert(_onError != null);
     assert(_onDone != null);
+    _zone.expectCallback();
   }
 
   /**
@@ -233,6 +221,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   void _cancel() {
     _state |= _STATE_CANCELED;
+    _zone.cancelCallbackExpectation();
     if (_hasPending) {
       _pending.cancelSchedule();
     }
@@ -293,7 +282,8 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   // Hooks called when the input is paused, unpaused or canceled.
   // These must not throw. If overwritten to call user code, include suitable
-  // try/catch wrapping and send any errors to [_throwDelayed].
+  // try/catch wrapping and send any errors to
+  // [_Zone.current.handleUncaughtError].
   void _onPause() {
     assert(_isInputPaused);
   }
@@ -334,11 +324,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     assert(!_inCallback);
     bool wasInputPaused = _isInputPaused;
     _state |= _STATE_IN_CALLBACK;
-    try {
-      _onData(data);
-    } catch (e, s) {
-      _throwDelayed(e, s);
-    }
+    _zone.executePeriodicCallbackGuarded(() => _onData(data));
     _state &= ~_STATE_IN_CALLBACK;
     _checkState(wasInputPaused);
   }
@@ -349,10 +335,11 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     assert(!_inCallback);
     bool wasInputPaused = _isInputPaused;
     _state |= _STATE_IN_CALLBACK;
-    try {
-      _onError(error);
-    } catch (e, s) {
-      _throwDelayed(e, s);
+    if (!_zone.inSameErrorZone(_Zone.current)) {
+      // Errors are not allowed to traverse zone boundaries.
+      _Zone.current.handleUncaughtError(error);
+    } else {
+      _zone.executePeriodicCallbackGuarded(() => _onError(error));
     }
     _state &= ~_STATE_IN_CALLBACK;
     if (_cancelOnError) {
@@ -366,11 +353,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
     assert(!_isPaused);
     assert(!_inCallback);
     _state |= (_STATE_CANCELED | _STATE_CLOSED | _STATE_IN_CALLBACK);
-    try {
-      _onDone();
-    } catch (e, s) {
-      _throwDelayed(e, s);
-    }
+    _zone.executeCallbackGuarded(_onDone);
     _onCancel();  // No checkState after cancel, it is always the last event.
     _state &= ~_STATE_IN_CALLBACK;
   }
@@ -551,7 +534,7 @@ void _nullDataHandler(var value) {}
 
 /** Default error handler, reports the error to the global handler. */
 void _nullErrorHandler(error) {
-  _throwDelayed(error);
+  _Zone.current.handleUncaughtError(error);
 }
 
 /** Default done handler, does nothing. */

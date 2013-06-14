@@ -23,7 +23,7 @@ abstract class _Completer<T> implements Completer<T> {
     if (_isComplete) throw new StateError("Future already completed");
     _isComplete = true;
     _FutureImpl futureImpl = future;
-    futureImpl._zone.unexpectCallback();
+    futureImpl._zone.cancelCallbackExpectation();
     _setFutureValue(value);
   }
 
@@ -36,7 +36,7 @@ abstract class _Completer<T> implements Completer<T> {
     }
     _FutureImpl futureImpl = future;
     if (futureImpl._inSameErrorZone(_Zone.current)) {
-      futureImpl._zone.unexpectCallback();
+      futureImpl._zone.cancelCallbackExpectation();
       _setFutureError(error);
     } else {
       _Zone.current.handleUncaughtError(error);

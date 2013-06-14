@@ -38,7 +38,7 @@ abstract class _Zone {
    * Tells the zone that it needs to wait for one more callback before it is
    * done.
    *
-   * Use [executeCallback] or [unexpectCallback] when the callback is executed
+   * Use [executeCallback] or [cancelCallbackExpectation] when the callback is executed
    * (or canceled).
    */
   void expectCallback();
@@ -49,9 +49,9 @@ abstract class _Zone {
    * Prefer calling [executeCallback], instead. This method is mostly useful
    * for repeated callbacks (for example with [Timer.periodic]). In this case
    * one should should call [expectCallback] when the repeated callback is
-   * initiated, and [unexpectCallback] when the [Timer] is canceled.
+   * initiated, and [cancelCallbackExpectation] when the [Timer] is canceled.
    */
-  void unexpectCallback();
+  void cancelCallbackExpectation();
 
   /**
    * Executes the given callback in this zone.
@@ -77,7 +77,7 @@ abstract class _Zone {
    * Same as [executePeriodicCallback] but catches uncaught errors and gives
    * them to [handleUncaughtError].
    */
-  void executeGuardedPeriodicCallback(void fun());
+  void executePeriodicCallbackGuarded(void fun());
 
   /**
    * Runs [fun] asynchronously in this zone.
@@ -131,6 +131,8 @@ class _ZoneBase implements _Zone {
   /// number is greater than 0 it means that the zone is not done yet.
   int _openCallbacks = 0;
 
+  bool _isExecutingCallback = false;
+
   _ZoneBase(this._parentZone) {
     _parentZone._addChild(this);
   }
@@ -151,7 +153,7 @@ class _ZoneBase implements _Zone {
 
   expectCallback() => _openCallbacks++;
 
-  unexpectCallback() {
+  cancelCallbackExpectation() {
     _openCallbacks--;
     _checkIfDone();
   }
@@ -178,7 +180,7 @@ class _ZoneBase implements _Zone {
    * outstanding-callback count, or when a child has been removed.
    */
   void _checkIfDone() {
-    if (_openCallbacks == 0 && _children.isEmpty) {
+    if (!_isExecutingCallback && _openCallbacks == 0 && _children.isEmpty) {
       _dispose();
     }
   }
@@ -191,7 +193,7 @@ class _ZoneBase implements _Zone {
    */
   void executeCallback(void fun()) {
     _openCallbacks--;
-    _runInZone(fun);
+    this._runUnguarded(fun);
   }
 
   /**
@@ -200,26 +202,31 @@ class _ZoneBase implements _Zone {
    */
   void executeCallbackGuarded(void fun()) {
     _openCallbacks--;
-    _runGuarded(fun);
+    this._runGuarded(fun);
   }
 
   /**
    * Same as [executeCallback] but doesn't decrement the open-callback counter.
    */
   void executePeriodicCallback(void fun()) {
-    _runInZone(fun);
+    this._runUnguarded(fun);
   }
 
   /**
    * Same as [executePeriodicCallback] but catches uncaught errors and gives
    * them to [handleUncaughtError].
    */
-  void executeGuardedPeriodicCallback(void fun()) {
-    _runGuarded(fun);
+  void executePeriodicCallbackGuarded(void fun()) {
+    this._runGuarded(fun);
   }
 
-  _runInZone(fun()) {
-    if (identical(_Zone._current, this) && _openCallbacks != 0) return fun();
+  _runInZone(fun(), bool handleUncaught) {
+    if (identical(_Zone._current, this)
+        && !handleUncaught
+        && _isExecutingCallback) {
+      // No need to go through a try/catch.
+      return fun();
+    }
 
     _Zone oldZone = _Zone._current;
     _Zone._current = this;
@@ -228,11 +235,18 @@ class _ZoneBase implements _Zone {
     // the _openCallbacks count we make sure that their test will fail.
     // As a side effect it will make nested calls faster since they are
     // (probably) in the same zone and have an _openCallbacks > 0.
-    _openCallbacks++;
+    bool oldIsExecuting = _isExecutingCallback;
+    _isExecutingCallback = true;
     try {
       return fun();
+    } catch(e, s) {
+      if (handleUncaught) {
+        handleUncaughtError(_asyncError(e, s));
+      } else {
+        rethrow;
+      }
     } finally {
-      _openCallbacks--;
+      _isExecutingCallback = oldIsExecuting;
       _Zone._current = oldZone;
       _checkIfDone();
     }
@@ -244,11 +258,14 @@ class _ZoneBase implements _Zone {
    * Uncaught errors are given to [handleUncaughtError].
    */
   _runGuarded(void fun()) {
-    try {
-      _runInZone(fun);
-    } catch(e, s) {
-      handleUncaughtError(_asyncError(e, s));
-    }
+    _runInZone(fun, true);
+  }
+
+  /**
+   * Runs the function but doesn't catch uncaught errors.
+   */
+  _runUnguarded(void fun()) {
+    _runInZone(fun, false);
   }
 
   runAsync(void fun()) {
@@ -314,58 +331,48 @@ class _DefaultZone extends _ZoneBase {
   }
 }
 
+typedef void _CompletionCallback();
+
 /**
- * A zone that can execute a callback (through a future) when the zone is dead.
+ * A zone that executes a callback when the zone is dead.
  */
 class _WaitForCompletionZone extends _ZoneBase {
-  final Completer _doneCompleter = new Completer();
+  final _CompletionCallback _onDone;
 
-  _WaitForCompletionZone(_Zone parentZone) : super(parentZone);
+  _WaitForCompletionZone(_Zone parentZone, this._onDone) : super(parentZone);
 
   /**
-   * Runs the given function asynchronously and returns a future that is
-   * completed with `null` once the zone is done.
+   * Runs the given function asynchronously. Executes the [_onDone] callback
+   * when the zone is done.
    */
-  Future runWaitForCompletion(void fun()) {
-    _runInZone(() {
-      try {
-        fun();
-      } catch (e, s) {
-        handleUncaughtError(_asyncError(e, s));
-      }
-    });
-    return _doneCompleter.future;
+  void runWaitForCompletion(void fun()) {
+    this._runGuarded(fun);
   }
 
   _dispose() {
     super._dispose();
-    _doneCompleter.complete();
+    _onDone();
   }
 
   String toString() => "WaitForCompletion ${super.toString()}";
 }
+
+typedef bool _HandleErrorCallback(error);
 
 /**
  * A zone that collects all uncaught errors and provides them in a stream.
  * The stream is closed when the zone is done.
  */
 class _CatchErrorsZone extends _WaitForCompletionZone {
-  final StreamController errorsController = new StreamController();
+  final _HandleErrorCallback _handleError;
 
-  Stream get errors => errorsController.stream;
-
-  _CatchErrorsZone(_Zone parentZone) : super(parentZone);
+  _CatchErrorsZone(_Zone parentZone, this._handleError, void onDone())
+    : super(parentZone, onDone);
 
   _Zone get _errorZone => this;
 
   handleUncaughtError(error) {
-    errorsController.add(error);
-  }
-
-  Future runWaitForCompletion(void fun()) {
-    super.runWaitForCompletion(fun).whenComplete(() {
-      errorsController.close();
-    });
+    if (!_handleError(error)) _parentZone.handleUncaughtError(error);
   }
 
   String toString() => "WithErrors ${super.toString()}";
@@ -393,7 +400,7 @@ class _ZoneTimer implements Timer {
   }
 
   void cancel() {
-    if (!_isDone) _zone.unexpectCallback();
+    if (!_isDone) _zone.cancelCallbackExpectation();
     _isDone = true;
     _timer.cancel();
   }
@@ -417,23 +424,42 @@ class _PeriodicZoneTimer implements Timer {
 
   void run(Timer timer) {
     assert(identical(_timer, timer));
-    _zone.executeGuardedPeriodicCallback(() { _callback(this); });
+    _zone.executePeriodicCallbackGuarded(() { _callback(this); });
   }
 
   void cancel() {
-    if (!_isDone) _zone.unexpectCallback();
+    if (!_isDone) _zone.cancelCallbackExpectation();
     _isDone = true;
     _timer.cancel();
   }
 }
 
 Stream catchErrors(void body()) {
-  _CatchErrorsZone catchErrorsZone = new _CatchErrorsZone(_Zone._current);
-  catchErrorsZone.runWaitForCompletion(body);
-  return catchErrorsZone.errors;
+  _CatchErrorsZone catchErrorsZone;
+  StreamController controller;
+
+  void onListen() {
+    catchErrorsZone.runWaitForCompletion(body);
+  }
+
+  bool handleError(e) {
+    controller.add(e);
+    return true;
+  }
+
+  void onDone() {
+    controller.close();
+  }
+
+  catchErrorsZone = new _CatchErrorsZone(_Zone._current, handleError, onDone);
+  controller = new StreamController(onListen: onListen);
+  return controller.stream;
 }
 
 Future waitForCompletion(void body()) {
-  _WaitForCompletionZone zone = new _WaitForCompletionZone(_Zone._current);
-  return zone.runWaitForCompletion(body);
+  Completer completer = new Completer.sync();
+  _WaitForCompletionZone zone =
+      new _WaitForCompletionZone(_Zone._current, completer.complete);
+  zone.runWaitForCompletion(body);
+  return completer.future;
 }
