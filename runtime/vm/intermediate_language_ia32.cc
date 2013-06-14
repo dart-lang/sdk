@@ -2535,7 +2535,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Range* right_range = this->right()->definition()->range();
       if ((right_range == NULL) ||
           !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
-       __ cmpl(right, Immediate(kCountLimit));
+        __ cmpl(right, Immediate(kCountLimit));
         Label count_ok;
         __ j(LESS, &count_ok, Assembler::kNearJump);
         __ movl(right, Immediate(kCountLimit));

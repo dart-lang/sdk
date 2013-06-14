@@ -162,28 +162,15 @@ io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == simarm ]
-io/file_system_links_test: Crash # Issue: 11207
-io/process_exit_negative_test: Timeout, Pass, Crash # Issue: 11207
-io/socket_many_connections_test: Pass, Crash # Issue: 11207
-out_of_memory_test: Pass, Crash # Issue: 11207 (Pass on Mac)
-
-[ $arch == arm ]
-io/process_shell_test: Crash # Issue: 11207
-io/raw_secure_server_socket_argument_test: Crash # Issue: 11207
-io/secure_socket_argument_test: Crash # Issue: 11207
-
 [ $arch == arm || $arch == simarm ]
-constant_left_shift_test: Fail # Issue: 11207
 coverage_test: Crash # Issue: 11207
 debugger/basic_debugger_test: Crash # Issue: 11207
 debugger/closure_debugger_test: Crash # Issue: 11207
-deoptimization_test: Crash # Issue: 11207
-float_array_test: Crash # Issue: 11207
 http_launch_test: Crash # Issue: 11207
 left_shift_bit_and_op_test: Fail # Issue: 11207
 package/package_isolate_test: Pass, Crash # Issue: 11207
-typed_data_test: Crash # Issue: 11207
+out_of_memory_test: Pass, Crash # Issue: 11207 (Pass on Mac)
+typed_data_test: Timeout, Crash # Issue: 11207
 io/*: Skip # Skip IO tests for now as they are still quite flaky.
 
 [ $arch == mips ]
