@@ -15,18 +15,14 @@ class _EveryElement extends _IterableMatcher {
 
   _EveryElement(Matcher this._matcher);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! Iterable) {
       return false;
     }
     var i = 0;
     for (var element in item) {
       if (!_matcher.matches(element, matchState)) {
-        matchState.state = {
-            'index': i,
-            'element': element,
-            'state': matchState.state
-        };
+        addStateInfo(matchState, {'index': i, 'element': element});
         return false;
       }
       ++i;
@@ -35,16 +31,26 @@ class _EveryElement extends _IterableMatcher {
   }
 
   Description describe(Description description) =>
-      description.add('every element ').addDescriptionOf(_matcher);
+      description.add('every element(').addDescriptionOf(_matcher).add(')');
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
-    if (matchState.state != null) {
-      var index = matchState.state['index'];
-      var element = matchState.state['element'];
-      mismatchDescription.add('position $index ');
-      return _matcher.describeMismatch(element, mismatchDescription,
-            matchState.state['state'], verbose);
+                               Map matchState, bool verbose) {
+    if (matchState['index'] != null) {
+      var index = matchState['index'];
+      var element = matchState['element'];
+      mismatchDescription.add('has value ').addDescriptionOf(element).
+          add(' which ');
+      var subDescription = new StringDescription();
+      _matcher.describeMismatch(element, subDescription,
+            matchState['state'], verbose);
+      if (subDescription.length > 0) {
+        mismatchDescription.add(subDescription);
+      } else {
+        mismatchDescription.add("doesn't match ");
+        _matcher.describe(mismatchDescription);
+      }
+      mismatchDescription.add(' at index $index');
+      return mismatchDescription;
     }
     return super.describeMismatch(item, mismatchDescription,
           matchState, verbose);
@@ -62,7 +68,7 @@ class _SomeElement extends _IterableMatcher {
 
   _SomeElement(this._matcher);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     return item.any((e) => _matcher.matches(e, matchState));
   }
 
@@ -86,16 +92,16 @@ class _OrderedEquals extends BaseMatcher {
     _matcher = equals(_expected, 1);
   }
 
-  bool matches(item, MatchState matchState) =>
+  bool matches(item, Map matchState) =>
       (item is Iterable) && _matcher.matches(item, matchState);
 
   Description describe(Description description) =>
       description.add('equals ').addDescriptionOf(_expected).add(' ordered');
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     if (item is !Iterable) {
-      return mismatchDescription.add('not an Iterable');
+      return mismatchDescription.add('is not an Iterable');
     } else {
       return _matcher.describeMismatch(item, mismatchDescription,
           matchState, verbose);
@@ -149,7 +155,7 @@ class _UnorderedEquals extends BaseMatcher {
         Description reason = new StringDescription();
         reason.add('has no match for element ').
             addDescriptionOf(expectedElement).
-            add(' at position ${expectedPosition}');
+            add(' at index ${expectedPosition}');
         return reason.toString();
       }
       ++expectedPosition;
@@ -157,13 +163,13 @@ class _UnorderedEquals extends BaseMatcher {
     return null;
   }
 
-  bool matches(item, MatchState mismatchState) => (_test(item) == null);
+  bool matches(item, Map mismatchState) => (_test(item) == null);
 
   Description describe(Description description) =>
       description.add('equals ').addDescriptionOf(_expected).add(' unordered');
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) =>
+                               Map matchState, bool verbose) =>
       mismatchDescription.add(_test(item));
 }
 
@@ -174,7 +180,7 @@ class _UnorderedEquals extends BaseMatcher {
 abstract class _IterableMatcher extends BaseMatcher {
   const _IterableMatcher();
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     if (item is! Iterable) {
       return mismatchDescription.
           addDescriptionOf(item).
@@ -203,7 +209,7 @@ class _PairwiseCompare extends _IterableMatcher {
 
   _PairwiseCompare(this._expected, this._comparator, this._description);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! Iterable) return false;
     if (item.length != _expected.length) return false;
     var iterator = item.iterator;
@@ -211,12 +217,8 @@ class _PairwiseCompare extends _IterableMatcher {
     for (var e in _expected) {
       iterator.moveNext();
       if (!_comparator(e, iterator.current)) {
-        matchState.state = {
-            'index': i,
-            'expected': e,
-            'actual' : iterator.current,
-            'state': matchState.state
-        };
+        addStateInfo(matchState, {'index': i, 'expected': e,
+            'actual': iterator.current});
         return false;
       }
       i++;
@@ -228,18 +230,19 @@ class _PairwiseCompare extends _IterableMatcher {
       description.add('pairwise $_description ').addDescriptionOf(_expected);
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     if (item is !Iterable) {
-      return mismatchDescription.add('not an Iterable');
+      return mismatchDescription.add('is not an Iterable');
     } else if (item.length != _expected.length) {
       return mismatchDescription.
-          add('length was ${item.length} instead of ${_expected.length}');
+          add('has length ${item.length} instead of ${_expected.length}');
     } else {
       return mismatchDescription.
-          addDescriptionOf(matchState.state["actual"]).
-          add(' not $_description ').
-          addDescriptionOf(matchState.state["expected"]).
-          add(' at position ${matchState.state["index"]}');
+          add('has ').
+          addDescriptionOf(matchState["actual"]).
+          add(' which is not $_description ').
+          addDescriptionOf(matchState["expected"]).
+          add(' at index ${matchState["index"]}');
     }
   }
 }

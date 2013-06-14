@@ -12,7 +12,7 @@ const Matcher isEmpty = const _Empty();
 
 class _Empty extends BaseMatcher {
   const _Empty();
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is Map || item is Iterable) {
       return item.isEmpty;
     } else if (item is String) {
@@ -33,14 +33,14 @@ const Matcher isNotNull = const _IsNotNull();
 
 class _IsNull extends BaseMatcher {
   const _IsNull();
-  bool matches(item, MatchState matchState) => item == null;
+  bool matches(item, Map matchState) => item == null;
   Description describe(Description description) =>
       description.add('null');
 }
 
 class _IsNotNull extends BaseMatcher {
   const _IsNotNull();
-  bool matches(item, MatchState matchState) => item != null;
+  bool matches(item, Map matchState) => item != null;
   Description describe(Description description) =>
       description.add('not null');
 }
@@ -53,14 +53,14 @@ const Matcher isFalse = const _IsFalse();
 
 class _IsTrue extends BaseMatcher {
   const _IsTrue();
-  bool matches(item, MatchState matchState) => item == true;
+  bool matches(item, Map matchState) => item == true;
   Description describe(Description description) =>
       description.add('true');
 }
 
 class _IsFalse extends BaseMatcher {
   const _IsFalse();
-  bool matches(item, MatchState matchState) => item == false;
+  bool matches(item, Map matchState) => item == false;
   Description describe(Description description) =>
       description.add('false');
 }
@@ -74,7 +74,7 @@ Matcher same(expected) => new _IsSameAs(expected);
 class _IsSameAs extends BaseMatcher {
   final _expected;
   const _IsSameAs(this._expected);
-  bool matches(item, MatchState matchState) => identical(item, _expected);
+  bool matches(item, Map matchState) => identical(item, _expected);
   // If all types were hashable we could show a hash here.
   Description describe(Description description) =>
       description.add('same instance as ').addDescriptionOf(_expected);
@@ -97,76 +97,77 @@ class _DeepMatcher extends BaseMatcher {
 
   _DeepMatcher(this._expected, [limit = 1000]) : this._limit = limit;
 
-  String _compareIterables(expected, actual, matcher, depth) {
+  // Returns a pair (reason, location)
+  List _compareIterables(expected, actual, matcher, depth, location) {
     if (actual is !Iterable) {
-      return 'is not Iterable';
+      return ['is not Iterable', location];
     }
     var expectedIterator = expected.iterator;
     var actualIterator = actual.iterator;
-    var position = 0;
-    String reason = null;
-    while (reason == null) {
+    var index = 0;
+    while (true) {
       if (expectedIterator.moveNext()) {
+        var newLocation = '${location}[${index}]';
         if (actualIterator.moveNext()) {
-          Description r = matcher(expectedIterator.current,
-                           actualIterator.current,
-                           'mismatch at position ${position}',
+          var rp = matcher(expectedIterator.current,
+                           actualIterator.current, newLocation,
                            depth);
-          if (r != null) reason = r.toString();
-          ++position;
+          if (rp != null) return rp;
+          ++index;
         } else {
-          reason = 'shorter than expected';
+          return ['shorter than expected', newLocation];
         }
       } else if (actualIterator.moveNext()) {
-        reason = 'longer than expected';
+        return ['longer than expected', newLocation];
       } else {
         return null;
       }
     }
-    return reason;
+    return null;
   }
 
-  Description _recursiveMatch(expected, actual, String location, int depth) {
-    Description reason = null;
+  List _recursiveMatch(expected, actual, String location, int depth) {
+    String reason = null;
     // If _limit is 1 we can only recurse one level into object.
     bool canRecurse = depth == 0 || _limit > 1;
     if (expected == actual) {
       // Do nothing.
     } else if (depth > _limit) {
-      reason = new StringDescription('recursion depth limit exceeded');
+      reason = 'recursion depth limit exceeded';
     } else {
       if (expected is Iterable && canRecurse) {
-        String r = _compareIterables(expected, actual,
-            _recursiveMatch, depth+1);
-        if (r != null) reason = new StringDescription(r);
+        List result = _compareIterables(expected, actual,
+            _recursiveMatch, depth + 1, location);
+        if (result != null) {
+          reason = result[0];
+          location = result[1];
+        }
       } else if (expected is Map && canRecurse) {
         if (actual is !Map) {
-          reason = new StringDescription('expected a map');
+          reason = 'expected a map';
         } else {
           var err = (expected.length == actual.length) ? '' :
-                    'different map lengths; ';
+                    'has different length and ';
           for (var key in expected.keys) {
             if (!actual.containsKey(key)) {
-              reason = new StringDescription(err);
-              reason.add('missing map key ');
-              reason.addDescriptionOf(key);
+              reason = '${err}is missing map key \'$key\'';
               break;
             }
           }
           if (reason == null) {
             for (var key in actual.keys) {
               if (!expected.containsKey(key)) {
-                reason = new StringDescription(err);
-                reason.add('extra map key ');
-                reason.addDescriptionOf(key);
+                reason = '${err}has extra map key \'$key\'';
                 break;
               }
             }
             if (reason == null) {
               for (var key in expected.keys) {
-                reason = _recursiveMatch(expected[key], actual[key],
-                    'with key <${key}> ${location}', depth+1);
-                if (reason != null) {
+                var rp = _recursiveMatch(expected[key], actual[key],
+                    "${location}['${key}']", depth+1);
+                if (rp != null) {
+                  reason = rp[0];
+                  location = rp[1];
                   break;
                 }
               }
@@ -174,38 +175,62 @@ class _DeepMatcher extends BaseMatcher {
           }
         }
       } else {
-        reason = new StringDescription();
+        var description = new StringDescription();
         // If we have recursed, show the expected value too; if not,
         // expect() will show it for us.
         if (depth > 0) {
-          reason.add('expected ');
-          reason.addDescriptionOf(expected).add(' but ');
+          description.add('was ').
+              addDescriptionOf(actual).
+              add(' instead of ').
+              addDescriptionOf(expected);
+          reason = description.toString();
+        } else {
+          reason = ''; // We're not adding any value to the actual value.
         }
-        reason.add('was ');
-        reason.addDescriptionOf(actual);
       }
     }
-    if (reason != null && location.length > 0) {
-      reason.add(' ').add(location);
+    if (reason == null) return null;
+    return [reason, location];
+  }
+
+  String _match(expected, actual, Map matchState) {
+    var rp  = _recursiveMatch(expected, actual, '', 0);
+    if (rp == null) return null;
+    var reason;
+    if (rp[0].length > 0) {
+      if (rp[1].length > 0) {
+        reason = "${rp[0]} at location ${rp[1]}";
+      } else {
+        reason = rp[0];
+      }
+    } else {
+      reason = '';
     }
+    // Cache the failure reason in the matchState.
+    addStateInfo(matchState, {'reason': reason});
     return reason;
   }
 
-  String _match(expected, actual) {
-    Description reason = _recursiveMatch(expected, actual, '', 0);
-    return reason == null ? null : reason.toString();
-  }
-
-  // TODO(gram) - see if we can make use of matchState here to avoid
-  // recursing again in describeMismatch.
-  bool matches(item, MatchState matchState) => _match(_expected, item) == null;
+  bool matches(item, Map matchState) =>
+      _match(_expected, item, matchState) == null;
 
   Description describe(Description description) =>
     description.addDescriptionOf(_expected);
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) =>
-    mismatchDescription.add(_match(_expected, item));
+                               Map matchState, bool verbose) {
+    var reason = matchState['reason'];
+    // If we didn't get a good reason, that would normally be a 
+    // simple 'is <value>' message. We only add that if the mismatch
+    // description is non empty (so we are supplementing the mismatch
+    // description).
+    if (reason.length == 0 && mismatchDescription.length > 0) {
+      mismatchDescription.add('is ').addDescriptionOf(item);
+    } else {
+      mismatchDescription.add(reason);
+    }
+    return mismatchDescription;
+  }
 }
 
 /** A special equality matcher for strings. */
@@ -216,18 +241,18 @@ class _StringEqualsMatcher extends BaseMatcher {
 
   bool get showActualValue => true;
 
-  bool matches(item, MatchState mismatchState) => _value == item;
+  bool matches(item, Map matchState) => _value == item;
 
   Description describe(Description description) =>
       description.addDescriptionOf(_value);
 
   Description describeMismatch(item, Description mismatchDescription,
-      MatchState matchState, bool verbose) {
+      Map matchState, bool verbose) {
     if (item is! String) {
-      return mismatchDescription.addDescriptionOf(item).add(' not a string');
+      return mismatchDescription.addDescriptionOf(item).add('is not a string');
     } else {
       var buff = new StringBuffer();
-      buff.write('Strings are not equal.');
+      buff.write('is different.');
       var escapedItem = _escape(item);
       var escapedValue = _escape(_value);
       int minLength = escapedItem.length < escapedValue.length ?
@@ -257,7 +282,7 @@ class _StringEqualsMatcher extends BaseMatcher {
         _writeTrailing(buff, escapedItem, start);
         buff.write('\n          ');
         for (int i = (start > 10 ? 14 : start); i > 0; i--) buff.write(' ');
-        buff.write('^\n Differ at position $start');
+        buff.write('^\n Differ at offset $start');
       }
 
       return mismatchDescription.replace(buff.toString());
@@ -291,7 +316,7 @@ const Matcher anything = const _IsAnything();
 
 class _IsAnything extends BaseMatcher {
   const _IsAnything();
-  bool matches(item, MatchState matchState) => true;
+  bool matches(item, Map matchState) => true;
   Description describe(Description description) =>
       description.add('anything');
 }
@@ -321,7 +346,7 @@ class _IsAnything extends BaseMatcher {
 class isInstanceOf<T> extends BaseMatcher {
   final String _name;
   const isInstanceOf([name = 'specified type']) : this._name = name;
-  bool matches(obj, MatchState matchState) => obj is T;
+  bool matches(obj, Map matchState) => obj is T;
   // The description here is lame :-(
   Description describe(Description description) =>
       description.add('an instance of ${_name}');
@@ -376,7 +401,7 @@ class Throws extends BaseMatcher {
   const Throws([Matcher matcher]) :
     this._matcher = matcher;
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! Function && item is! Future) return false;
     if (item is Future) {
       var done = wrapAsync((fn) => fn());
@@ -409,10 +434,7 @@ class Throws extends BaseMatcher {
       if (_matcher == null ||_matcher.matches(e, matchState)) {
         return true;
       } else {
-        matchState.state = {
-            'exception' :e,
-            'stack': s
-        };
+        addStateInfo(matchState, {'exception': e, 'stack': s});
         return false;
       }
     }
@@ -420,29 +442,26 @@ class Throws extends BaseMatcher {
 
   Description describe(Description description) {
     if (_matcher == null) {
-      return description.add("throws an exception");
+      return description.add("throws");
     } else {
-      return description.add('throws an exception which matches ').
-          addDescriptionOf(_matcher);
+      return description.add('throws ').addDescriptionOf(_matcher);
     }
   }
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState,
+                               Map matchState,
                                bool verbose) {
     if (item is! Function && item is! Future) {
-      return mismatchDescription.add(' not a Function or Future');
-    } else if (_matcher == null ||  matchState.state == null) {
-      return mismatchDescription.add(' no exception');
+      return mismatchDescription.add('is not a Function or Future');
+    } else if (_matcher == null || matchState['exception'] == null) {
+      return mismatchDescription.add('did not throw');
     } else {
-      mismatchDescription.
-          add(' exception ').addDescriptionOf(matchState.state['exception']);
+      mismatchDescription. add('threw ').
+          addDescriptionOf(matchState['exception']);
       if (verbose) {
-          mismatchDescription.add(' at ').
-          add(matchState.state['stack'].toString());
+        mismatchDescription.add(' at ').add(matchState['stack'].toString());
       }
-       mismatchDescription.add(' does not match ').addDescriptionOf(_matcher);
-       return mismatchDescription;
+      return mismatchDescription;
     }
   }
 }
@@ -450,15 +469,12 @@ class Throws extends BaseMatcher {
 class _ReturnsNormally extends BaseMatcher {
   const _ReturnsNormally();
 
-  bool matches(f, MatchState matchState) {
+  bool matches(f, Map matchState) {
     try {
       f();
       return true;
     } catch (e, s) {
-      matchState.state = {
-          'exception' : e,
-          'stack': s
-      };
+      addStateInfo(matchState, {'exception': e, 'stack': s});
       return false;
     }
   }
@@ -467,15 +483,13 @@ class _ReturnsNormally extends BaseMatcher {
       description.add("return normally");
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState,
+                               Map matchState,
                                bool verbose) {
-      mismatchDescription.add(' threw ').
-          addDescriptionOf(matchState.state['exception']);
-      if (verbose) {
-        mismatchDescription.add(' at ').
-        add(matchState.state['stack'].toString());
-      }
-      return mismatchDescription;
+    mismatchDescription.add('threw ').addDescriptionOf(matchState['exception']);
+    if (verbose) {
+      mismatchDescription.add(' at ').add(matchState['stack'].toString());
+    }
+    return mismatchDescription;
   }
 }
 
@@ -516,7 +530,7 @@ const Matcher throwsFormatException =
 
 class _FormatException extends TypeMatcher {
   const _FormatException() : super("FormatException");
-  bool matches(item, MatchState matchState) => item is FormatException;
+  bool matches(item, Map matchState) => item is FormatException;
 }
 
 /** A matcher for Exceptions. */
@@ -527,7 +541,7 @@ const Matcher throwsException = const Throws(isException);
 
 class _Exception extends TypeMatcher {
   const _Exception() : super("Exception");
-  bool matches(item, MatchState matchState) => item is Exception;
+  bool matches(item, Map matchState) => item is Exception;
 }
 
 /** A matcher for ArgumentErrors. */
@@ -539,7 +553,7 @@ const Matcher throwsArgumentError =
 
 class _ArgumentError extends TypeMatcher {
   const _ArgumentError() : super("ArgumentError");
-  bool matches(item, MatchState matchState) => item is ArgumentError;
+  bool matches(item, Map matchState) => item is ArgumentError;
 }
 
 /** A matcher for RangeErrors. */
@@ -551,7 +565,7 @@ const Matcher throwsRangeError =
 
 class _RangeError extends TypeMatcher {
   const _RangeError() : super("RangeError");
-  bool matches(item, MatchState matchState) => item is RangeError;
+  bool matches(item, Map matchState) => item is RangeError;
 }
 
 /** A matcher for NoSuchMethodErrors. */
@@ -563,7 +577,7 @@ const Matcher throwsNoSuchMethodError =
 
 class _NoSuchMethodError extends TypeMatcher {
   const _NoSuchMethodError() : super("NoSuchMethodError");
-  bool matches(item, MatchState matchState) => item is NoSuchMethodError;
+  bool matches(item, Map matchState) => item is NoSuchMethodError;
 }
 
 /** A matcher for UnimplementedErrors. */
@@ -575,7 +589,7 @@ const Matcher throwsUnimplementedError =
 
 class _UnimplementedError extends TypeMatcher {
   const _UnimplementedError() : super("UnimplementedError");
-  bool matches(item, MatchState matchState) => item is UnimplementedError;
+  bool matches(item, Map matchState) => item is UnimplementedError;
 }
 
 /** A matcher for UnsupportedError. */
@@ -587,7 +601,7 @@ const Matcher throwsUnsupportedError = const Throws(isUnsupportedError);
 class _UnsupportedError extends TypeMatcher {
   const _UnsupportedError() :
       super("UnsupportedError");
-  bool matches(item, MatchState matchState) => item is UnsupportedError;
+  bool matches(item, Map matchState) => item is UnsupportedError;
 }
 
 /** A matcher for StateErrors. */
@@ -599,7 +613,7 @@ const Matcher throwsStateError =
 
 class _StateError extends TypeMatcher {
   const _StateError() : super("StateError");
-  bool matches(item, MatchState matchState) => item is StateError;
+  bool matches(item, Map matchState) => item is StateError;
 }
 
 
@@ -608,7 +622,7 @@ const isMap = const _IsMap();
 
 class _IsMap extends TypeMatcher {
   const _IsMap() : super("Map");
-  bool matches(item, MatchState matchState) => item is Map;
+  bool matches(item, Map matchState) => item is Map;
 }
 
 /** A matcher for List types. */
@@ -616,7 +630,7 @@ const isList = const _IsList();
 
 class _IsList extends TypeMatcher {
   const _IsList() : super("List");
-  bool matches(item, MatchState matchState) => item is List;
+  bool matches(item, Map matchState) => item is List;
 }
 
 /**
@@ -630,8 +644,16 @@ class _HasLength extends BaseMatcher {
   final Matcher _matcher;
   const _HasLength([Matcher matcher = null]) : this._matcher = matcher;
 
-  bool matches(item, MatchState matchState) {
-    return _matcher.matches(item.length, matchState);
+  bool matches(item, Map matchState) {
+    try {
+      // This is harmless code that will throw if no length property
+      // but subtle enough that an optimizer shouldn't strip it out.
+      if (item.length * item.length >= 0) {
+        return _matcher.matches(item.length, matchState);
+      }
+    } catch (e) {
+      return false;
+    }
   }
 
   Description describe(Description description) =>
@@ -639,17 +661,16 @@ class _HasLength extends BaseMatcher {
         addDescriptionOf(_matcher);
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     try {
       // We want to generate a different description if there is no length
-      // property. This is harmless code that will throw if no length property
-      // but subtle enough that an optimizer shouldn't strip it out.
+      // property; we use the same trick as in matches().
       if (item.length * item.length >= 0) {
-        return mismatchDescription.add('had length of ').
+        return mismatchDescription.add('has length of ').
             addDescriptionOf(item.length);
       }
     } catch (e) {
-      return mismatchDescription.add('had no length property');
+      return mismatchDescription.add('has no length property');
     }
   }
 }
@@ -670,7 +691,7 @@ class _Contains extends BaseMatcher {
 
   const _Contains(this._expected);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is String) {
       return item.indexOf(_expected) >= 0;
     } else if (item is Iterable) {
@@ -687,6 +708,16 @@ class _Contains extends BaseMatcher {
 
   Description describe(Description description) =>
       description.add('contains ').addDescriptionOf(_expected);
+
+  Description describeMismatch(item, Description mismatchDescription,
+                               Map matchState, bool verbose) {
+    if (item is String || item is Iterable || item is Map) {
+      return super.describeMismatch(item, mismatchDescription, matchState,
+          verbose);
+    } else {
+      return mismatchDescription.add('is not a string, map or iterable');
+    }
+  }
 }
 
 /**
@@ -701,7 +732,7 @@ class _In extends BaseMatcher {
 
   const _In(this._expected);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (_expected is String) {
       return _expected.indexOf(item) >= 0;
     } else if (_expected is Iterable) {
@@ -732,7 +763,7 @@ class _Predicate extends BaseMatcher {
 
   const _Predicate(this._matcher, this._description);
 
-  bool matches(item, MatchState matchState) => _matcher(item);
+  bool matches(item, Map matchState) => _matcher(item);
 
   Description describe(Description description) =>
       description.add(_description);
@@ -770,10 +801,10 @@ class CustomMatcher extends BaseMatcher {
   /** Override this to extract the interesting feature.*/
   featureValueOf(actual) => actual;
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     var f = featureValueOf(item);
     if (_matcher.matches(f, matchState)) return true;
-    matchState.state = { 'innerState': matchState.state, 'feature': f };
+    addStateInfo(matchState, {'feature': f});
     return false;
   }
 
@@ -781,10 +812,16 @@ class CustomMatcher extends BaseMatcher {
       description.add(_featureDescription).add(' ').addDescriptionOf(_matcher);
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
-    mismatchDescription.add(_featureName).add(' ');
-    _matcher.describeMismatch(matchState.state['feature'], mismatchDescription,
-        matchState.state['innerState'], verbose);
+                               Map matchState, bool verbose) {
+    mismatchDescription.add('has ').add(_featureName).add(' with value ').
+        addDescriptionOf(matchState['feature']);
+    var innerDescription = new StringDescription();
+    _matcher.describeMismatch(matchState['feature'], innerDescription,
+        matchState['state'], verbose);
+    if (innerDescription.length > 0) {
+      mismatchDescription.add(' which ').add(innerDescription.toString());
+    }
     return mismatchDescription;
   }
 }
+

@@ -16,7 +16,7 @@ part of matcher;
  * error formatter with another.
  */
 typedef String ErrorFormatter(actual, Matcher matcher, String reason,
-    MatchState matchState, bool verbose);
+    Map matchState, bool verbose);
 
 /**
  * Matchers build up their error messages by appending to
@@ -58,7 +58,7 @@ abstract class Matcher {
    * and may be used to add details about the mismatch that are too
    * costly to determine in [describeMismatch].
    */
-  bool matches(item, MatchState matchState);
+  bool matches(item, Map matchState);
 
   /** This builds a textual description of the matcher. */
   Description describe(Description description);
@@ -66,7 +66,7 @@ abstract class Matcher {
   /**
    * This builds a textual description of a specific mismatch. [item]
    * is the value that was tested by [matches]; [matchState] is
-   * the [MatchState] that was passed to and supplemented by [matches]
+   * the [Map] that was passed to and supplemented by [matches]
    * with additional information about the mismact, and [mismatchDescription]
    * is the [Description] that is being built to decribe the mismatch.
    * A few matchers make use of the [verbose] flag to provide detailed
@@ -74,7 +74,7 @@ abstract class Matcher {
    * diagnosing failures, such as stack traces.
    */
   Description describeMismatch(item, Description mismatchDescription,
-      MatchState matchState, bool verbose);
+      Map matchState, bool verbose);
 }
 
 /**
@@ -96,6 +96,6 @@ abstract class FailureHandler {
    * an [ErrorFormatter]) and then call [fail] with this message.
    */
   void failMatch(actual, Matcher matcher, String reason,
-                 MatchState matchState, bool verbose);
+                 Map matchState, bool verbose);
 }
 

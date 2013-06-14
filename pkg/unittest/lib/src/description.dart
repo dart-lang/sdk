@@ -17,11 +17,13 @@ class StringDescription implements Description {
     _out = init;
   }
 
+  int get length => _out.length;
+
   /** Get the description as a string. */
   String toString() => _out;
 
-  /** Append some plain [text] to the description.  */
-  Description add(String text) {
+  /** Append [text] to the description.  */
+  Description add(text) {
     _out = '${_out}${text}';
     return this;
   }

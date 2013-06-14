@@ -69,7 +69,7 @@ doesThrow() { throw 'X'; }
 class PrefixMatcher extends BaseMatcher {
   final String _prefix;
   const PrefixMatcher(this._prefix);
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     return item is String &&
         (collapseWhitespace(item)).startsWith(collapseWhitespace(_prefix));
   }

@@ -36,7 +36,7 @@ class _Completes extends BaseMatcher {
 
   const _Completes(this._matcher, this._id);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! Future) return false;
     var done = wrapAsync((fn) => fn(), _id);
 

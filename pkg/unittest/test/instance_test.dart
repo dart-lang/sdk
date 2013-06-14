@@ -13,17 +13,17 @@ main() {
   group('Type Matchers', () {
     test('isInstanceOf', () {
       shouldFail(0, new isInstanceOf<String>('String'),
-          "Expected: an instance of String But: was <0>. Actual: <0>");
+          "Expected: an instance of String Actual: <0>");
       shouldPass('cow', new isInstanceOf<String>('String'));
     });
 
     test('throwsA', () {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
-          "Expected: throws an exception which matches 'Y' "
-          "But:  exception 'X' does not match 'Y'. "
+          "Expected: throws 'Y' "
           "Actual: <Closure: (dynamic) => dynamic "
-              "from Function 'doesThrow': static.>");
+              "from Function 'doesThrow': static.> "
+          "Which: threw 'X'");
     });
   });
 }

@@ -5,23 +5,6 @@
 part of matcher;
 
 /**
- * MatchState is a simple wrapper around an arbitrary object.
- * [Matcher] [matches] methods can use this to store useful
- * information upon match failures, and this information will
- * be passed to [describeMismatch]. Each [Matcher] is responsible
- * for its own use of this state, so the state created by [matches]
- * should be consistent with that expected by [describeMismatch] in
- * the same [Matcher] class, but can vary between classes. The inner
- * state, if set, will typically be a [Map] with a number of key-value
- * pairs containing relevant state information.
- */
-class MatchState {
-  var state = null;
-
-  MatchState([this.state]);
-}
-
-/**
  * BaseMatcher is the base class for all matchers. To implement a new
  * matcher, either add a class that implements Matcher or a class that
  * extends BaseMatcher. Extending BaseMatcher has the benefit that a
@@ -36,7 +19,7 @@ abstract class BaseMatcher implements Matcher {
    * [matchState] may be used to return additional info for
    * the use of [describeMismatch].
    */
-  bool matches(item, MatchState matchState);
+  bool matches(item, Map matchState);
 
   /**
    * Creates a textual description of a matcher,
@@ -50,8 +33,11 @@ abstract class BaseMatcher implements Matcher {
    * It does not check whether the [item] fails the match, as it is
    * only called after a failed match. There may be additional info
    * about the mismatch in [matchState].
+   * The base matcher does not add anything as the actual value is
+   * typically sufficient, but matchers that can add valuable info
+   * should override this.
    */
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) =>
-    mismatchDescription.add('was ').addDescriptionOf(item);
+                               Map matchState, bool verbose) =>
+    mismatchDescription;
 }
