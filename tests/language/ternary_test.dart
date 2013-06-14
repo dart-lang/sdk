@@ -9,11 +9,11 @@ class TernaryTest {
   static true_cond() { return true; }
   static false_cond() { return false; }
   static foo() { return -4; }
-  static moo() { return +5; }
+  static moo() { return 5; }
   static testMain() {
     Expect.equals(-4, (TernaryTest.true_cond() ? TernaryTest.foo()
                                                : TernaryTest.moo()));
-    Expect.equals(+5, (TernaryTest.false_cond() ? TernaryTest.foo()
+    Expect.equals(5, (TernaryTest.false_cond() ? TernaryTest.foo()
                                                 : TernaryTest.moo()));
   }
 }

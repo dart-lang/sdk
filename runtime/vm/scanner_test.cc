@@ -327,7 +327,7 @@ void NumberLiteral() {
   CheckKind(tokens, 3, Token::kDOUBLE);
   CheckKind(tokens, 4, Token::kDOUBLE);
   CheckKind(tokens, 5, Token::kDOUBLE);
-  CheckKind(tokens, 6, Token::kTIGHTADD);
+  CheckKind(tokens, 6, Token::kADD);
   CheckKind(tokens, 7, Token::kINTEGER);
   CheckKind(tokens, 8, Token::kEOS);
 }

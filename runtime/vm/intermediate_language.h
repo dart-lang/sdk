@@ -60,22 +60,22 @@ class Range;
   V(_GrowableObjectArray, get:length, GrowableArrayLength, 725548050)          \
   V(_GrowableObjectArray, get:_capacity, GrowableArrayCapacity, 725548050)     \
   V(_StringBase, get:length, StringBaseLength, 320803993)                      \
-  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 1026765313)                   \
+  V(_StringBase, get:isEmpty, StringBaseIsEmpty, 110631520)                    \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 984449525)                  \
   V(_StringBase, [], StringBaseCharAt, 1062366987)                             \
   V(_OneByteString, _setAt, OneByteStringSetAt, 342452817)                     \
-  V(_IntegerImplementation, toDouble, IntegerToDouble, 1267108971)             \
+  V(_IntegerImplementation, toDouble, IntegerToDouble, 1331752138)             \
   V(_Double, toInt, DoubleToInteger, 362666636)                                \
   V(_Double, truncateToDouble, DoubleTruncate, 620870996)                      \
   V(_Double, roundToDouble, DoubleRound, 620870996)                            \
   V(_Double, floorToDouble, DoubleFloor, 620870996)                            \
   V(_Double, ceilToDouble, DoubleCeil, 620870996)                              \
-  V(_Double, pow, DoublePow, 631903778)                                        \
+  V(_Double, pow, DoublePow, 102305574)                                        \
   V(_Double, _modulo, DoubleMod, 437099337)                                    \
   V(::, sqrt, MathSqrt, 1662640002)                                            \
-  V(Float32x4, Float32x4., Float32x4Constructor, 1327837070)                   \
-  V(Float32x4, Float32x4.zero, Float32x4Zero, 927169529)                       \
-  V(Float32x4, Float32x4.splat, Float32x4Splat, 1778587275)                    \
+  V(Float32x4, Float32x4., Float32x4Constructor, 1492157358)                   \
+  V(Float32x4, Float32x4.zero, Float32x4Zero, 444339161)                       \
+  V(Float32x4, Float32x4.splat, Float32x4Splat, 1843231403)                    \
   V(_Float32x4, get:xxxx, Float32x4ShuffleXXXX, 42621627)                      \
   V(_Float32x4, get:yyyy, Float32x4ShuffleYYYY, 42621627)                      \
   V(_Float32x4, get:zzzz, Float32x4ShuffleZZZZ, 42621627)                      \
@@ -104,12 +104,12 @@ class Range;
   V(_Float32x4, withZ, Float32x4WithZ, 219466242)                              \
   V(_Float32x4, withW, Float32x4WithW, 219466242)                              \
   V(_Float32x4, _toUint32x4, Float32x4ToUint32x4, 1044409108)                  \
-  V(Uint32x4, Uint32x4.bool, Uint32x4BoolConstructor, 1489869343)              \
+  V(Uint32x4, Uint32x4.bool, Uint32x4BoolConstructor, 487876159)               \
   V(_Uint32x4, get:flagX, Uint32x4GetFlagX, 782547529)                         \
   V(_Uint32x4, get:flagY, Uint32x4GetFlagY, 782547529)                         \
   V(_Uint32x4, get:flagZ, Uint32x4GetFlagZ, 782547529)                         \
   V(_Uint32x4, get:flagW, Uint32x4GetFlagW, 782547529)                         \
-  V(_Uint32x4, select, Uint32x4Select, 405662786)                              \
+  V(_Uint32x4, select, Uint32x4Select, 810336099)                              \
   V(_Uint32x4, withFlagX, Uint32x4WithFlagX, 980864994)                        \
   V(_Uint32x4, withFlagY, Uint32x4WithFlagY, 980864994)                        \
   V(_Uint32x4, withFlagZ, Uint32x4WithFlagZ, 980864994)                        \

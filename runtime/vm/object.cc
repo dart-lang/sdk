@@ -4654,6 +4654,8 @@ bool Function::CheckSourceFingerprint(int32_t fp) const {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/intrinsifier.h
+      // sed -i .bak -f /tmp/newkeys runtime/vm/intermediate_language.h
+      // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
       OS::Print("s/%d/%d/\n", fp, SourceFingerprint());
     } else {
       OS::Print("FP mismatch while recognizing method %s:"
@@ -5238,7 +5240,6 @@ RawString* TokenStream::GenerateSource() const {
       case Token::kPERIOD:
       case Token::kLPAREN:
       case Token::kLBRACK:
-      case Token::kTIGHTADD:
       case Token::kINTERPOL_VAR:
       case Token::kINTERPOL_START:
       case Token::kINTERPOL_END:

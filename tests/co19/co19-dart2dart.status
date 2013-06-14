@@ -3,6 +3,19 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2dart ]
+
+# The following tests fail because they contain number literals with a + prefix (co19 issue 428)
+LibTest/core/double/floor_A01_t05: Fail # issue 428
+LibTest/core/double/ceil_A01_t05: Fail # issue 428
+Language/12_Statements/02_Expression_Statements_A01_t06: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t10: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t08: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t04: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t03: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t02: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t01: Fail # co19 issue 428
+Language/11_Expressions/01_Constants_A01_t01: Fail # co19 issue 428
+
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A18_t06: Fail # TODO(dart2dart-team): Please triage this failure.

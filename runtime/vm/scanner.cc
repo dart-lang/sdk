@@ -189,7 +189,7 @@ bool Scanner::IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
     return true;
   }
   if ((tokens.length() == 3) &&
-      ((tokens[0].kind == Token::kTIGHTADD) ||
+      ((tokens[0].kind == Token::kADD) ||
        (tokens[0].kind == Token::kSUB)) &&
       (tokens[1].kind == literal_kind) &&
       (tokens[2].kind == Token::kEOS)) {
@@ -197,7 +197,7 @@ bool Scanner::IsValidLiteral(const Scanner::GrowableTokenStream& tokens,
     if ((tokens[0].offset + 1) != tokens[1].offset) {
       return false;
     }
-    *is_positive = tokens[0].kind == Token::kTIGHTADD;
+    *is_positive = tokens[0].kind == Token::kADD;
     *value = tokens[1].literal;
     return true;
   }
@@ -639,15 +639,8 @@ void Scanner::Scan() {
         break;
 
       case '+':  // +  ++  +=
-        ReadChar();
-        current_token_.kind =
-            IsNumberStart(c0_) ? Token::kTIGHTADD : Token::kADD;
-        // Unary + is not allowed for hexadecimal integers, so treat the
-        // + as a binary operator.
-        if ((c0_ == '0') &&
-            ((LookaheadChar(1) == 'x') || (LookaheadChar(1) == 'X'))) {
-          current_token_.kind = Token::kADD;
-        } else if (c0_ == '+') {
+        Recognize(Token::kADD);
+        if (c0_ == '+') {
           Recognize(Token::kINCR);
         } else if (c0_ == '=') {
           Recognize(Token::kASSIGN_ADD);
