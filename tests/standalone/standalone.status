@@ -290,7 +290,7 @@ io/socket_test: Crash # Issue: 11207
 io/socket_upgrade_to_secure_test: Crash # Issue: 11207
 io/status_file_parser_test: Crash # Issue: 11207
 io/stdout_stderr_test: Pass, Crash # Issue: 11207
-io/stream_pipe_test: Crash # Issue: 11207
+io/stream_pipe_test: Pass, Crash # Issue: 11207
 io/test_extension_fail_test: Crash # Issue: 11207
 io/test_extension_test: Crash # Issue: 11207
 io/web_socket_protocol_processor_test: Crash # Issue: 11207
