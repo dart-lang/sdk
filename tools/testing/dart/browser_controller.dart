@@ -759,6 +759,7 @@ class BrowserTestingServer {
     return HttpServer.bind(local_ip, 0).then((createdServer) {
       httpServer = createdServer;
       void handler(HttpRequest request) {
+        DebugLogger.info("Handling request to: ${request.uri.path}");
         if (request.uri.path.startsWith(reportPath)) {
           var browserId = request.uri.path.substring(reportPath.length + 1);
           var testId = int.parse(request.queryParameters["id"].split("=")[1]);
@@ -776,11 +777,14 @@ class BrowserTestingServer {
           var browserId = request.uri.path.substring(nextTestPath.length + 1);
           textResponse = getNextTest(browserId);
         } else {
-          // We silently ignore other requests.
+          DebugLogger.info("Handling non standard request to: "
+                           "${request.uri.path}");
         }
         request.response.write(textResponse);
         request.listen((_) {}, onDone: request.response.close);
-        request.response.done.catchError((error) {
+        request.response.done.then((_) {
+          DebugLogger.info("Done handling request to: ${request.uri.path}");
+        }).catchError((error) {
           if (!underTermination) {
             print("URI ${request.uri}");
             print("Textresponse $textResponse");
@@ -830,6 +834,7 @@ class BrowserTestingServer {
         String back = buffer.toString();
         request.response.close();
         testDoneCallBack(browserId, back, testId);
+        DebugLogger.info("Done handling request to: ${request.uri.path}");
       }, onError: (error) { print(error); });
   }
 
