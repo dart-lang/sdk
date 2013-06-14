@@ -954,7 +954,7 @@ class SolveSuccessMatcher implements Matcher {
 
   Description describeMismatch(SolveResult result,
                                Description description,
-                               MatchState state, bool verbose) {
+                               Map state, bool verbose) {
     if (!result.succeeded) {
       description.add('Solver failed with:\n${result.error}');
       return null;
@@ -965,7 +965,7 @@ class SolveSuccessMatcher implements Matcher {
     return description;
   }
 
-  bool matches(SolveResult result, MatchState state) {
+  bool matches(SolveResult result, Map state) {
     if (!result.succeeded) return false;
 
     var expected = new Map.from(_expected);
@@ -1030,12 +1030,12 @@ class SolveFailMatcher implements Matcher {
 
   Description describeMismatch(SolveResult result,
                                Description description,
-                               MatchState state, bool verbose) {
+                               Map state, bool verbose) {
     description.add(state.state);
     return description;
   }
 
-  bool matches(SolveResult result, MatchState state) {
+  bool matches(SolveResult result, Map state) {
     var failures = new StringBuffer();
 
     if (result.succeeded) {
