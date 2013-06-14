@@ -238,12 +238,14 @@ const Object& Value::BoundConstant() const {
 
 
 GraphEntryInstr::GraphEntryInstr(const ParsedFunction& parsed_function,
-                                 TargetEntryInstr* normal_entry)
+                                 TargetEntryInstr* normal_entry,
+                                 intptr_t osr_id)
     : BlockEntryInstr(0, CatchClauseNode::kInvalidTryIndex),
       parsed_function_(parsed_function),
       normal_entry_(normal_entry),
       catch_entries_(),
       initial_definitions_(),
+      osr_id_(osr_id),
       spill_slot_count_(0),
       fixed_slot_count_(0) {
 }
@@ -777,6 +779,53 @@ void BlockEntryInstr::DiscoverBlocks(
   // 6. Assign postorder number and add the block entry to the list.
   set_postorder_number(postorder->length());
   postorder->Add(this);
+}
+
+
+bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
+                                       GraphEntryInstr* graph_entry,
+                                       intptr_t osr_id,
+                                       BitVector* block_marks) {
+  // Search for the instruction with the OSR id.  Use a depth first search
+  // because basic blocks have not been discovered yet.  Prune unreachable
+  // blocks by replacing the normal entry with a jump to the block
+  // containing the OSR entry point.
+
+  // Do not visit blocks more than once.
+  if (block_marks->Contains(block_id())) return false;
+  block_marks->Add(block_id());
+
+  // Search this block for the OSR id.
+  Instruction* instr = this;
+  for (ForwardInstructionIterator it(this); !it.Done(); it.Advance()) {
+    instr = it.Current();
+    if (instr->GetDeoptId() == osr_id) {
+      // Sanity check that we found a stack check instruction.
+      ASSERT(instr->IsCheckStackOverflow());
+      // Loop stack check checks are always in join blocks so that they can
+      // be the target of a goto.
+      ASSERT(IsJoinEntry());
+      // The instruction should be the first instruction in the block so
+      // we can simply jump to the beginning of the block.
+      ASSERT(instr->previous() == this);
+
+      GotoInstr* goto_join = new GotoInstr(AsJoinEntry());
+      goto_join->deopt_id_ = deopt_id_;
+      graph_entry->normal_entry()->LinkTo(goto_join);
+      return true;
+    }
+  }
+
+  // Recursively search the successors.
+  for (intptr_t i = instr->SuccessorCount() - 1; i >= 0; --i) {
+    if (instr->SuccessorAt(i)->PruneUnreachable(builder,
+                                                graph_entry,
+                                                osr_id,
+                                                block_marks)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 

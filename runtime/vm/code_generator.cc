@@ -54,6 +54,13 @@ DEFINE_FLAG(int, reoptimization_counter_threshold, 2000,
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
 
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
+#else
+DEFINE_FLAG(bool, use_osr, false, "Use on-stack replacement.");
+#endif
+DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
+
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
   ASSERT(arguments.ArgCount() ==
@@ -1265,6 +1272,38 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       (*callback)();
     }
   }
+
+  if (FLAG_use_osr && (interrupt_bits == 0)) {
+    DartFrameIterator iterator;
+    StackFrame* frame = iterator.NextFrame();
+    const Function& function = Function::Handle(frame->LookupDartFunction());
+    ASSERT(!function.IsNull());
+    if (!function.is_optimizable()) return;
+    intptr_t osr_id =
+        Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
+    if (FLAG_trace_osr) {
+      OS::Print("Attempting OSR for %s at id=%"Pd"\n",
+                function.ToFullyQualifiedCString(),
+                osr_id);
+    }
+
+    const Error& error =
+        Error::Handle(Compiler::CompileOptimizedFunction(function, osr_id));
+    if (!error.IsNull()) Exceptions::PropagateError(error);
+
+    const Code& optimized_code = Code::Handle(function.CurrentCode());
+    // The current code will not be optimized in the case that the compiler
+    // bailed out (not an error) during OSR compilation.
+    if (optimized_code.is_optimized()) {
+      // The OSR code does not work for calling the function, so restore the
+      // unoptimized code.  Patch the stack frame to return into the OSR
+      // code.
+      intptr_t optimized_entry =
+          Instructions::Handle(optimized_code.instructions()).EntryPoint();
+      function.SetCode(Code::Handle(function.unoptimized_code()));
+      frame->set_pc(optimized_entry);
+    }
+  }
 }
 
 
@@ -1328,9 +1367,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     }
     const Code& optimized_code = Code::Handle(function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
-    // Set usage counter for reoptimization.
-    function.set_usage_counter(
-        function.usage_counter() - FLAG_reoptimization_counter_threshold);
+    // Reset usage counter for reoptimization.
+    function.set_usage_counter(0);
   } else {
     if (FLAG_trace_failed_optimization_attempts) {
       OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());

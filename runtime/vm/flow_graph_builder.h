@@ -100,10 +100,12 @@ class InlineExitCollector: public ZoneAllocated {
 // Build a flow graph from a parsed function's AST.
 class FlowGraphBuilder: public ValueObject {
  public:
-  // The inlining context is NULL if not inlining.
+  // The inlining context is NULL if not inlining.  The osr_id is the deopt
+  // id of the OSR entry or Isolate::kNoDeoptId if not compiling for OSR.
   FlowGraphBuilder(ParsedFunction* parsed_function,
                    const Array& ic_data_array,
-                   InlineExitCollector* exit_collector);
+                   InlineExitCollector* exit_collector,
+                   intptr_t osr_id);
 
   FlowGraph* BuildGraph();
 
@@ -143,6 +145,10 @@ class FlowGraphBuilder: public ValueObject {
   intptr_t args_pushed() const { return args_pushed_; }
   void add_args_pushed(intptr_t n) { args_pushed_ += n; }
 
+  // When compiling for OSR, remove blocks that are not reachable from the
+  // OSR entry point.
+  void PruneUnreachable();
+
  private:
   intptr_t parameter_count() const {
     return num_copied_params_ + num_non_copied_params_;
@@ -167,6 +173,10 @@ class FlowGraphBuilder: public ValueObject {
 
   // Outgoing argument stack height.
   intptr_t args_pushed_;
+
+  // The deopt id of the OSR entry or Isolate::kNoDeoptId if not compiling
+  // for OSR.
+  const intptr_t osr_id_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -229,7 +239,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Append a 'while loop' test and back edge to this graph, depending on
   // which parts are reachable.  Afterward, the graph exit is the false
   // successor of the loop condition.
-  void TieLoop(const TestGraphVisitor& test_fragment,
+  void TieLoop(intptr_t token_pos,
+               const TestGraphVisitor& test_fragment,
                const EffectGraphVisitor& body_fragment);
 
   // Wraps a value in a push-argument instruction and adds the result to the

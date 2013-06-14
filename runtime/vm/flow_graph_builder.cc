@@ -6,6 +6,7 @@
 
 #include "lib/invocation_mirror.h"
 #include "vm/ast_printer.h"
+#include "vm/bit_vector.h"
 #include "vm/code_descriptors.h"
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
@@ -43,7 +44,8 @@ static const String& PrivateCoreLibName(const String& str) {
 
 FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
                                    const Array& ic_data_array,
-                                   InlineExitCollector* exit_collector)
+                                   InlineExitCollector* exit_collector,
+                                   intptr_t osr_id)
   : parsed_function_(parsed_function),
     ic_data_array_(ic_data_array),
     num_copied_params_(parsed_function->num_copied_params()),
@@ -58,7 +60,8 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
     graph_entry_(NULL),
-    args_pushed_(0) { }
+    args_pushed_(0),
+    osr_id_(osr_id) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
@@ -474,7 +477,8 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
 }
 
 
-void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
+void EffectGraphVisitor::TieLoop(intptr_t token_pos,
+                                 const TestGraphVisitor& test_fragment,
                                  const EffectGraphVisitor& body_fragment) {
   // We have: a test graph fragment with zero, one, or two available exits;
   // and an effect graph fragment with zero or one available exits.  We want
@@ -494,14 +498,16 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
   } else {
     JoinEntryInstr* join =
         new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
-    join->LinkTo(test_fragment.entry());
+    CheckStackOverflowInstr* check =
+        new CheckStackOverflowInstr(token_pos, true);
+    join->LinkTo(check);
+    check->LinkTo(test_fragment.entry());
     Goto(join);
     body_exit->Goto(join);
   }
 
   // 3. Set the exit to the graph to be the false successor of the test, a
   // fresh target node
-
   exit_ = test_fragment.CreateFalseSuccessor();
 }
 
@@ -1602,8 +1608,6 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(!for_test.is_empty());  // Language spec.
 
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.AddInstruction(
-      new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
   // Labels are set after body traversal.
@@ -1614,7 +1618,7 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
     if (for_body.is_open()) for_body.Goto(join);
     for_body.exit_ = join;
   }
-  TieLoop(for_test, for_body);
+  TieLoop(node->token_pos(), for_test, for_body);
   join = lbl->join_for_break();
   if (join != NULL) {
     Goto(join);
@@ -1634,8 +1638,6 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.AddInstruction(
-      new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
   TestGraphVisitor for_test(owner(),
@@ -1657,7 +1659,10 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
       join = new JoinEntryInstr(owner()->AllocateBlockId(),
                                 owner()->try_index());
     }
-    join->LinkTo(for_test.entry());
+    CheckStackOverflowInstr* check =
+        new CheckStackOverflowInstr(node->token_pos(), true);
+    join->LinkTo(check);
+    check->LinkTo(for_test.entry());
     if (body_exit != NULL) {
       body_exit->Goto(join);
     }
@@ -1694,39 +1699,27 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner(), temp_index());
-  for_body.AddInstruction(
-      new CheckStackOverflowInstr(node->token_pos()));
   node->body()->Visit(&for_body);
 
-  // Join loop body, increment and compute their end instruction.
-  ASSERT(!for_body.is_empty());
-  Instruction* loop_increment_end = NULL;
   EffectGraphVisitor for_increment(owner(), temp_index());
   node->increment()->Visit(&for_increment);
-  JoinEntryInstr* join = node->label()->join_for_continue();
-  if (join != NULL) {
-    // Insert the join between the body and increment.
-    if (for_body.is_open()) for_body.Goto(join);
-    loop_increment_end = AppendFragment(join, for_increment);
-    ASSERT(loop_increment_end != NULL);
-  } else if (for_body.is_open()) {
-    // Do not insert an extra basic block.
-    for_body.Append(for_increment);
-    loop_increment_end = for_body.exit();
-    // 'for_body' contains at least the stack check.
-    ASSERT(loop_increment_end != NULL);
-  } else {
-    loop_increment_end = NULL;
-  }
 
-  // 'loop_increment_end' is NULL only if there is no join for continue and the
-  // body is not open, i.e., no backward branch exists.
-  if (loop_increment_end != NULL) {
+  // Join the loop body and increment and then tie the loop.
+  JoinEntryInstr* join = node->label()->join_for_continue();
+  if ((join != NULL) || for_body.is_open()) {
     JoinEntryInstr* loop_start =
         new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
+    if (join != NULL) {
+      if (for_body.is_open()) for_body.Goto(join);
+      AppendFragment(join, for_increment);
+      for_increment.Goto(loop_start);
+    } else {
+      for_body.Append(for_increment);
+      for_body.Goto(loop_start);
+    }
     Goto(loop_start);
-    loop_increment_end->Goto(loop_start);
     exit_ = loop_start;
+    AddInstruction(new CheckStackOverflowInstr(node->token_pos(), true));
   }
 
   if (node->condition() == NULL) {
@@ -3462,16 +3455,15 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(*parsed_function());
   }
-  // Compilation can be nested, preserve the computation-id.
   const Function& function = parsed_function()->function();
   TargetEntryInstr* normal_entry =
       new TargetEntryInstr(AllocateBlockId(),
                            CatchClauseNode::kInvalidTryIndex);
-  graph_entry_ = new GraphEntryInstr(*parsed_function(), normal_entry);
+  graph_entry_ = new GraphEntryInstr(*parsed_function(), normal_entry, osr_id_);
   EffectGraphVisitor for_effect(this, 0);
   // This check may be deleted if the generated code is leaf.
   CheckStackOverflowInstr* check =
-      new CheckStackOverflowInstr(function.token_pos());
+      new CheckStackOverflowInstr(function.token_pos(), false);
   // If we are inlining don't actually attach the stack check. We must still
   // create the stack check in order to allocate a deopt id.
   if (!IsInlining()) for_effect.AddInstruction(check);
@@ -3479,8 +3471,28 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
+
+  // When compiling for OSR, use a depth first search to prune instructions
+  // unreachable from the OSR entry.  Catch entries are not (yet) properly
+  // recognized as reachable.
+  if (osr_id_ != Isolate::kNoDeoptId) {
+    if (graph_entry_->SuccessorCount() > 1) {
+      Bailout("try/catch when compiling for OSR");
+    }
+    PruneUnreachable();
+  }
+
   FlowGraph* graph = new FlowGraph(*this, graph_entry_, last_used_block_id_);
   return graph;
+}
+
+
+void FlowGraphBuilder::PruneUnreachable() {
+  ASSERT(osr_id_ != Isolate::kNoDeoptId);
+  BitVector* block_marks = new BitVector(last_used_block_id_ + 1);
+  bool found = graph_entry_->PruneUnreachable(this, graph_entry_, osr_id_,
+                                              block_marks);
+  ASSERT(found);
 }
 
 
