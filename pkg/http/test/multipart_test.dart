@@ -26,7 +26,7 @@ class _BodyMatches extends BaseMatcher {
 
   _BodyMatches(this._pattern);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! http.MultipartRequest) return false;
 
     var future = item.finalize().toBytes().then((bodyBytes) {

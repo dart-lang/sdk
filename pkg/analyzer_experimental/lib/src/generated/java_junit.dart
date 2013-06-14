@@ -59,7 +59,7 @@ Matcher notSame(expected) => new _IsNotSameAs(expected);
 class _IsNotSameAs extends BaseMatcher {
   final _expected;
   const _IsNotSameAs(this._expected);
-  bool matches(item, MatchState matchState) => !identical(item, _expected);
+  bool matches(item, Map matchState) => !identical(item, _expected);
   Description describe(Description description) =>
       description.add('not same instance as ').addDescriptionOf(_expected);
 }
@@ -69,14 +69,14 @@ class _EqualsWithMessage extends BaseMatcher {
   final String msg;
   final expectedValue;
   const _EqualsWithMessage(this.msg, this.expectedValue);
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     return item == expectedValue;
   }
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
   }
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     return mismatchDescription.replace(msg).add(" $item != $expectedValue");
   }
 }
@@ -85,14 +85,14 @@ Matcher isTrueMsg(String msg) => new _IsTrueWithMessage(msg);
 class _IsTrueWithMessage extends BaseMatcher {
   final String msg;
   const _IsTrueWithMessage(this.msg);
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     return item == true;
   }
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
   }
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     return mismatchDescription.replace(msg).add(" $item is not true");
   }
 }
@@ -101,14 +101,14 @@ Matcher isFalseMsg(String msg) => new _IsFalseWithMessage(msg);
 class _IsFalseWithMessage extends BaseMatcher {
   final String msg;
   const _IsFalseWithMessage(this.msg);
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     return item == false;
   }
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
   }
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     return mismatchDescription.replace(msg).add(" $item is not false");
   }
 }
@@ -117,14 +117,14 @@ Matcher isNotNullMsg(String msg) => new _IsNotNullWithMessage(msg);
 class _IsNotNullWithMessage extends BaseMatcher {
   final String msg;
   const _IsNotNullWithMessage(this.msg);
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     return item != null;
   }
   Description describe(Description mismatchDescription) {
     return mismatchDescription.replace(msg);
   }
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     return mismatchDescription.replace(msg).add(" $item is null");
   }
 }

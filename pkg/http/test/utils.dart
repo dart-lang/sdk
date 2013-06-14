@@ -149,7 +149,7 @@ class _Parse extends BaseMatcher {
 
   _Parse(this._matcher);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! String) return false;
 
     var parsed;
@@ -177,7 +177,7 @@ const Matcher throwsHttpException =
 
 class _HttpException extends TypeMatcher {
   const _HttpException() : super("HttpException");
-  bool matches(item, MatchState matchState) => item is HttpException;
+  bool matches(item, Map matchState) => item is HttpException;
 }
 
 /// A matcher for RedirectLimitExceededExceptions.
@@ -192,7 +192,7 @@ class _RedirectLimitExceededException extends TypeMatcher {
   const _RedirectLimitExceededException() :
       super("RedirectLimitExceededException");
 
-  bool matches(item, MatchState matchState) =>
+  bool matches(item, Map matchState) =>
     item is RedirectException && item.message == "Redirect limit exceeded";
 }
 
@@ -205,5 +205,5 @@ const Matcher throwsSocketException =
 
 class _SocketException extends TypeMatcher {
   const _SocketException() : super("SocketException");
-  bool matches(item, MatchState matchState) => item is SocketException;
+  bool matches(item, Map matchState) => item is SocketException;
 }
