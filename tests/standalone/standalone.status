@@ -171,6 +171,7 @@ left_shift_bit_and_op_test: Fail # Issue: 11207
 package/package_isolate_test: Pass, Crash # Issue: 11207
 out_of_memory_test: Pass, Crash # Issue: 11207 (Pass on Mac)
 typed_data_test: Timeout, Crash # Issue: 11207
+typed_data_isolate_test: Crash # Issue: 11207
 io/*: Skip # Skip IO tests for now as they are still quite flaky.
 
 [ $arch == mips ]
