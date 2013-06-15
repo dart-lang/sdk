@@ -357,7 +357,7 @@ void _runGuarded(_NotificationHandler notificationHandler) {
   try {
     notificationHandler();
   } catch (e, s) {
-    _throwDelayed(e, s);
+    _Zone.current.handleUncaughtError(_asyncError(e, s));
   }
 }
 

@@ -7,24 +7,23 @@
 import 'dart:_isolate_helper' show IsolateNatives, TimerImpl;
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
 
-patch class Timer {
-  patch factory Timer(Duration duration, void callback()) {
-    int milliseconds = duration.inMilliseconds;
-    if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl(milliseconds, callback);
-  }
+patch Timer _createTimer(Duration duration, void callback()) {
+  int milliseconds = duration.inMilliseconds;
+  if (milliseconds < 0) milliseconds = 0;
+  return new TimerImpl(milliseconds, callback);
+}
 
-  patch factory Timer.periodic(Duration duration, void callback(Timer timer)) {
-    int milliseconds = duration.inMilliseconds;
-    if (milliseconds < 0) milliseconds = 0;
-    return new TimerImpl.periodic(milliseconds, callback);
-  }
+patch Timer _createPeriodicTimer(Duration duration,
+                                 void callback(Timer timer)) {
+  int milliseconds = duration.inMilliseconds;
+  if (milliseconds < 0) milliseconds = 0;
+  return new TimerImpl.periodic(milliseconds, callback);
 }
 
 patch class _AsyncRun {
   patch static void _enqueueImmediate(void callback()) {
     // TODO(9002): don't use the Timer to enqueue the immediate callback.
-    Timer.run(callback);
+    _createTimer(Duration.ZERO, callback);
   }
 }
 
