@@ -173,7 +173,7 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
 
 
 EffectSet LoadStaticFieldInstr::Dependencies() const {
-  return field().is_final() ? EffectSet::None() : EffectSet::All();
+  return StaticField().is_final() ? EffectSet::None() : EffectSet::All();
 }
 
 
@@ -181,9 +181,16 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
   ASSERT(other_load != NULL);
   // Assert that the field is initialized.
-  ASSERT(field().value() != Object::sentinel().raw());
-  ASSERT(field().value() != Object::transition_sentinel().raw());
-  return field().raw() == other_load->field().raw();
+  ASSERT(StaticField().value() != Object::sentinel().raw());
+  ASSERT(StaticField().value() != Object::transition_sentinel().raw());
+  return StaticField().raw() == other_load->StaticField().raw();
+}
+
+
+const Field& LoadStaticFieldInstr::StaticField() const {
+  Field& field = Field::Handle();
+  field ^= field_value()->BoundConstant().raw();
+  return field;
 }
 
 

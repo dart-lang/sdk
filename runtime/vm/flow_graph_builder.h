@@ -22,19 +22,19 @@ class ParsedFunction;
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
   V(ObjectArrayFactory, kArrayCid, 97987288)                                   \
   V(GrowableObjectArrayWithData, kGrowableObjectArrayCid, 816132033)           \
-  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 552407276)            \
-  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1168404493)                     \
-  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 2094565809)                   \
-  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1449285088)     \
-  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 1430476167)                   \
-  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 996241892)                  \
-  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 360797715)                    \
-  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 995053409)                  \
-  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 570248142)                    \
-  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1114332856)                 \
-  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 1896334311)               \
-  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 1719636031)               \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1768466392)           \
+  V(GrowableObjectArrayFactory, kGrowableObjectArrayCid, 1821003625)           \
+  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1139775342)                     \
+  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 2065936658)                   \
+  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1420655937)     \
+  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 1401847016)                   \
+  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 967612741)                  \
+  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 332168564)                    \
+  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 966424258)                  \
+  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 541618991)                    \
+  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1085703705)                 \
+  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 1867705160)               \
+  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 1691006880)               \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1739837241)           \
 
 
 // An class to collect the exits from an inlined function during graph

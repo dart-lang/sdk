@@ -70,6 +70,10 @@ Map<Uri, LibraryMirror> _createLibrariesMap(Map<String, LibraryMirror> map) {
     return result;
 }
 
+List<InstanceMirror> _metadata(mirror) 
+  native 'Mirrors_metadata';
+
+
 class _LocalMirrorSystemImpl extends MirrorSystem {
   // Change parameter back to "this.libraries" when native code is changed.
   _LocalMirrorSystemImpl(Map<String, LibraryMirror> libraries, this.isolate)
@@ -602,6 +606,10 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
     }
   }
 
+  // get the metadata objects, convert them into InstanceMirrors using
+  // reflect() and then make them into a Dart list
+  List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
+
   static _invokeConstructor(ref, constructorName, positionalArguments, async)
       native 'LocalClassMirrorImpl_invokeConstructor';
 }
@@ -703,6 +711,10 @@ class _LocalTypeVariableMirrorImpl extends _LocalMirrorImpl
     }
     return _upperBound;
   }
+
+  // get the metadata objects, convert them into InstanceMirrors using
+  // reflect() and then make them into a Dart list
+  List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
 
   String toString() => "TypeVariableMirror on '$simpleName'";
 }
@@ -843,6 +855,10 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
     return _variables;
   }
 
+  // get the metadata objects, convert them into InstanceMirrors using
+  // reflect() and then make them into a Dart list
+  List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
+
   String toString() => "LibraryMirror on '$simpleName'";
 }
 
@@ -943,6 +959,13 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
   final bool isRedirectingConstructor;
   final bool isFactoryConstructor;
 
+  List<InstanceMirror> get metadata {
+    owner; // ensure owner is computed
+    // get the metadata objects, convert them into InstanceMirrors using
+    // reflect() and then make them into a Dart list
+    return _metadata(this).map(reflect).toList();
+  }
+
   String toString() => "MethodMirror on '$simpleName'";
 }
 
@@ -996,6 +1019,13 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
 
   final bool isStatic;
   final bool isFinal;
+
+  List<InstanceMirror> get metadata {
+    owner; // ensure owner is computed
+    // get the metadata objects, convert them into InstanceMirrors using
+    // reflect() and then make them into a Dart list
+    return _metadata(this).map(reflect).toList();
+  }
 
   String toString() => "VariableMirror on '$simpleName'";
 }

@@ -136,7 +136,7 @@ import 'matcher.dart';
  * that was used to select the logs that were verified.
  */
 String _mockingErrorFormatter(actual, Matcher matcher, String signature,
-                              MatchState matchState, bool verbose) {
+                              Map matchState, bool verbose) {
   var description = new StringDescription();
   description.add('Expected ${signature} ').addDescriptionOf(matcher).
       add('\n     but: ');
@@ -157,7 +157,7 @@ class _MockFailureHandler implements FailureHandler {
     proxy.fail(reason);
   }
   void failMatch(actual, Matcher matcher, String reason,
-                 MatchState matchState, bool verbose) {
+                 Map matchState, bool verbose) {
     proxy.fail(_mockingErrorFormatter(actual, matcher, reason,
         matchState, verbose));
   }
@@ -288,7 +288,7 @@ class CallMatcher {
    * if it matches this [CallMatcher.
    */
   bool matches(String method, List arguments) {
-    var matchState = new MatchState();
+    var matchState = {};
     if (!nameFilter.matches(method, matchState)) {
       return false;
     }
@@ -541,7 +541,7 @@ class LogEntryList {
     Function entryFilter = _makePredicate(logFilter);
     String filterName = _qualifiedName(mockNameFilter, logFilter.toString());
     LogEntryList rtn = new LogEntryList(filterName);
-    MatchState matchState = new MatchState();
+    var matchState = {};
     for (var i = 0; i < logs.length; i++) {
       LogEntry entry = logs[i];
       if (mockNameFilter.matches(entry.mockName, matchState) &&
@@ -895,7 +895,7 @@ class LogEntryList {
     var keyIterator = keys.logs.iterator;
     keyIterator.moveNext();
     LogEntry keyEntry = keyIterator.current;
-    MatchState matchState = new MatchState();
+    Map matchState = {};
 
     for (LogEntry logEntry in logs) {
       // If we have a log entry match, copy the saved matches from the
@@ -1000,7 +1000,7 @@ class _TimesMatcher extends BaseMatcher {
 
   const _TimesMatcher(this.min, [this.max = -1]);
 
-  bool matches(logList, MatchState matchState) => logList.length >= min &&
+  bool matches(logList, Map matchState) => logList.length >= min &&
       (max < 0 || logList.length <= max);
 
   Description describe(Description description) {
@@ -1018,7 +1018,7 @@ class _TimesMatcher extends BaseMatcher {
   }
 
   Description describeMismatch(logList, Description mismatchDescription,
-                               MatchState matchState, bool verbose) =>
+                               Map matchState, bool verbose) =>
       mismatchDescription.add('was called ${logList.length} times');
 }
 
@@ -1059,7 +1059,7 @@ class _ResultMatcher extends BaseMatcher {
 
   const _ResultMatcher(this.action, this.value);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! LogEntry) {
      return false;
     }
@@ -1081,7 +1081,7 @@ class _ResultMatcher extends BaseMatcher {
   }
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     if (item.action == Action.RETURN || item.action == Action.PROXY) {
       mismatchDescription.add('returned ');
     } else {
@@ -1139,7 +1139,7 @@ class _ResultSetMatcher extends BaseMatcher {
 
   const _ResultSetMatcher(this.action, this.value, this.frequency);
 
-  bool matches(logList, MatchState matchState) {
+  bool matches(logList, Map matchState) {
     for (LogEntry entry in logList) {
       // normalize the action; PROXY is like RETURN.
       Action eaction = entry.action;
@@ -1148,10 +1148,7 @@ class _ResultSetMatcher extends BaseMatcher {
       }
       if (eaction == action && value.matches(entry.value, matchState)) {
         if (frequency == _Frequency.NONE) {
-          matchState.state = {
-              'state' : matchState.state,
-              'entry' : entry
-          };
+          addStateInfo(matchState, {'entry': entry});
           return false;
         } else if (frequency == _Frequency.SOME) {
           return true;
@@ -1159,10 +1156,7 @@ class _ResultSetMatcher extends BaseMatcher {
       } else {
         // Mismatch.
         if (frequency == _Frequency.ALL) { // We need just one mismatch to fail.
-          matchState.state = {
-              'state' : matchState.state,
-              'entry' : entry
-          };
+          addStateInfo(matchState, {'entry': entry});
           return false;
         }
       }
@@ -1185,9 +1179,9 @@ class _ResultSetMatcher extends BaseMatcher {
   }
 
   Description describeMismatch(logList, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     if (frequency != _Frequency.SOME) {
-      LogEntry entry = matchState.state['entry'];
+      LogEntry entry = matchState['entry'];
       if (entry.action == Action.RETURN || entry.action == Action.PROXY) {
         mismatchDescription.add('returned');
       } else {
@@ -1195,7 +1189,7 @@ class _ResultSetMatcher extends BaseMatcher {
       }
       mismatchDescription.add(' value that ');
       value.describeMismatch(entry.value, mismatchDescription,
-        matchState.state['state'], verbose);
+        matchState['state'], verbose);
       mismatchDescription.add(' at least once');
     } else {
       mismatchDescription.add('never did');
@@ -1369,7 +1363,7 @@ class Mock {
       }
     }
     bool matchedMethodName = false;
-    MatchState matchState = new MatchState();
+    Map matchState = {};
     for (String k in _behaviors.keys) {
       Behavior b = _behaviors[k];
       if (b.matcher.nameFilter.matches(method, matchState)) {

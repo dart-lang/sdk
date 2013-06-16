@@ -209,6 +209,11 @@ class MathLibraryTest {
     Expect.equals(9, int.parse("09"));
     Expect.equals(9, int.parse(" 09 "));
     Expect.equals(-9, int.parse("-09"));
+    Expect.equals(0x1234567890, int.parse("+0x1234567890"));
+    Expect.equals(0x1234567890, int.parse("   +0x1234567890   "));
+    Expect.equals(0x100, int.parse("+0x100"));
+    Expect.equals(0x100, int.parse("   +0x100   "));
+
     Expect.equals(true, parseIntThrowsFormatException("1b"));
     Expect.equals(true, parseIntThrowsFormatException(" 1b "));
     Expect.equals(true, parseIntThrowsFormatException(" 1 b "));
@@ -236,10 +241,6 @@ class MathLibraryTest {
     Expect.equals(true, parseIntThrowsFormatException("- 5"));
     Expect.equals(true, parseIntThrowsFormatException(""));
     Expect.equals(true, parseIntThrowsFormatException("  "));
-    Expect.equals(true, parseIntThrowsFormatException("+0x1234567890"));
-    Expect.equals(true, parseIntThrowsFormatException("   +0x1234567890   "));
-    Expect.equals(true, parseIntThrowsFormatException("+0x100"));
-    Expect.equals(true, parseIntThrowsFormatException("   +0x100   "));
   }
 
   static testMain() {

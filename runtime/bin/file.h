@@ -65,27 +65,28 @@ class File {
     kExistsRequest = 0,
     kCreateRequest = 1,
     kDeleteRequest = 2,
-    kOpenRequest = 3,
-    kFullPathRequest = 4,
-    kCloseRequest = 5,
-    kPositionRequest = 6,
-    kSetPositionRequest = 7,
-    kTruncateRequest = 8,
-    kLengthRequest = 9,
-    kLengthFromPathRequest = 10,
-    kLastModifiedRequest = 11,
-    kFlushRequest = 12,
-    kReadByteRequest = 13,
-    kWriteByteRequest = 14,
-    kReadRequest = 15,
-    kReadIntoRequest = 16,
-    kWriteFromRequest = 17,
-    kCreateLinkRequest = 18,
-    kDeleteLinkRequest = 19,
-    kLinkTargetRequest = 20,
-    kTypeRequest = 21,
-    kIdenticalRequest = 22,
-    kStatRequest = 23
+    kRenameRequest = 3,
+    kOpenRequest = 4,
+    kFullPathRequest = 5,
+    kCloseRequest = 6,
+    kPositionRequest = 7,
+    kSetPositionRequest = 8,
+    kTruncateRequest = 9,
+    kLengthRequest = 10,
+    kLengthFromPathRequest = 11,
+    kLastModifiedRequest = 12,
+    kFlushRequest = 13,
+    kReadByteRequest = 14,
+    kWriteByteRequest = 15,
+    kReadRequest = 16,
+    kReadIntoRequest = 17,
+    kWriteFromRequest = 18,
+    kCreateLinkRequest = 19,
+    kDeleteLinkRequest = 20,
+    kLinkTargetRequest = 21,
+    kTypeRequest = 22,
+    kIdenticalRequest = 23,
+    kStatRequest = 24
   };
 
   enum FileStat {
@@ -152,6 +153,7 @@ class File {
   static bool CreateLink(const char* path, const char* target);
   static bool Delete(const char* path);
   static bool DeleteLink(const char* path);
+  static bool Rename(const char* old_path, const char* new_path);
   static off_t LengthFromPath(const char* path);
   static void Stat(const char* path, int64_t* data);
   static time_t LastModified(const char* path);

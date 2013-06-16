@@ -193,6 +193,19 @@ bool File::DeleteLink(const char* name) {
 }
 
 
+bool File::Rename(const char* old_path, const char* new_path) {
+  File::Type type = File::GetType(old_path, true);
+  if (type == kIsFile) {
+    return TEMP_FAILURE_RETRY(rename(old_path, new_path)) == 0;
+  } else if (type == kIsDirectory) {
+    errno = EISDIR;
+  } else {
+    errno = ENOENT;
+  }
+  return false;
+}
+
+
 off_t File::LengthFromPath(const char* name) {
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {

@@ -24,10 +24,9 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsFormatException,
           matches(
-              r"Expected: throws an exception which matches FormatException +"
-              r"But:  exception " + _minifiedName + r":<Exception> "
-                  r"does not match FormatException\."
-              r"Actual: <Closure>"));
+              r"Expected: throws FormatException +"
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Which: threw " + _minifiedName + r":<Exception>"));
     });
 
     test('throwsArgumentError', () {
@@ -36,10 +35,9 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsArgumentError,
           matches(
-              r"Expected: throws an exception which matches ArgumentError +"
-              r"But:  exception " + _minifiedName + r":<Exception> "
-                  r"does not match ArgumentError\."
-              r"Actual: <Closure>"));
+              r"Expected: throws ArgumentError +"
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Which: threw " + _minifiedName + r":<Exception>"));
     });
 
     test('throwsRangeError', () {
@@ -48,10 +46,9 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsRangeError,
           matches(
-              r"Expected: throws an exception which matches RangeError +"
-              r"But:  exception " + _minifiedName + r":<Exception> "
-                  r"does not match RangeError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
+              r"Expected: throws RangeError +"
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Which: threw " + _minifiedName + r":<Exception>"));
     });
 
     test('throwsNoSuchMethodError', () {
@@ -60,10 +57,9 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsNoSuchMethodError,
           matches(
-              r"Expected: throws an exception which matches NoSuchMethodError +"
-              r"But:  exception " + _minifiedName + r":<Exception> "
-                  r"does not match NoSuchMethodError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
+              r"Expected: throws NoSuchMethodError +"
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Which: threw " + _minifiedName + r":<Exception>"));
     });
 
     test('throwsUnimplementedError', () {
@@ -72,11 +68,9 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsUnimplementedError,
           matches(
-              r"Expected: throws an exception which matches "
-                  r"UnimplementedError +"
-              r"But:  exception " + _minifiedName + r":<Exception> "
-                  r"does not match UnimplementedError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
+              r"Expected: throws UnimplementedError +"
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Which: threw " + _minifiedName + r":<Exception>"));
     });
 
     test('throwsUnsupportedError', () {
@@ -85,10 +79,9 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsUnsupportedError,
           matches(
-              r"Expected: throws an exception which matches UnsupportedError +"
-              r"But:  exception " + _minifiedName + r":<Exception> "
-                  r"does not match UnsupportedError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
+              r"Expected: throws UnsupportedError +"
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Which: threw " + _minifiedName + r":<Exception>"));
     });
 
     test('throwsStateError', () {
@@ -97,10 +90,9 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsStateError,
           matches(
-              r"Expected: throws an exception which matches StateError +"
-              r"But:  exception " + _minifiedName + r":<Exception> "
-                  r"does not match StateError\."
-              r"Actual: <Closure(: \(dynamic\) => dynamic)?>"));
+              r"Expected: throws StateError +"
+              r"Actual: <Closure(: \(dynamic\) => dynamic)?> +"
+              r"Which: threw " + _minifiedName + r":<Exception>"));
     });
   });
 
@@ -110,7 +102,7 @@ void main() {
       var e = new SimpleIterable(1);
       shouldPass(d, isEmpty);
       shouldFail(e, isEmpty,
-          matches(r"Expected: empty +But: was " + _minifiedName + r":\[1\]\."));
+          matches(r"Expected: empty +Actual: " + _minifiedName + r":\[1\]"));
     });
 
     test('contains', () {
@@ -119,7 +111,7 @@ void main() {
       shouldFail(d, contains(5),
           matches(
               r"Expected: contains <5> +"
-              r"But: was " + _minifiedName + r":\[3, 2, 1\]\."));
+              r"Actual: " + _minifiedName + r":\[3, 2, 1\]"));
     });
   });
 
@@ -133,8 +125,9 @@ void main() {
           matches(
               r"Expected: Widget with a price that is a value greater than "
                   r"<10> +"
-              r"But: price was <10>\."
-              r"Actual: <Instance of '" + _minifiedName + r"'>"));
+              r"Actual: <Instance of '" + _minifiedName + r"'> +"
+              r"Which: has price with value <10> which is not "
+              r"a value greater than <10>"));
     });
   });
 }

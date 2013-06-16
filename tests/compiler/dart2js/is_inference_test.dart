@@ -7,6 +7,7 @@ import 'compiler_helper.dart';
 
 const String TEST_IF = r"""
 test(param) {
+  print('Printing this ensures that String+ is in the system.');
   if (param is int) {
     param = param + 42;
   }
@@ -16,6 +17,7 @@ test(param) {
 
 const String TEST_IF_ELSE = r"""
 test(param) {
+  print('Printing this ensures that String+ is in the system.');
   if (param is int) {
     param = param + 42;
   } else {
@@ -27,6 +29,7 @@ test(param) {
 
 const String TEST_IF_RETURN = r"""
 test(param) {
+  print('Printing this ensures that String+ is in the system.');
   if (param is int) {
     return param + 42;
   }
@@ -36,6 +39,7 @@ test(param) {
 
 const String TEST_IF_NOT_ELSE = r"""
 test(param) {
+  print('Printing this ensures that String+ is in the system.');
   if (param is !int) {
     param = param + 53;
   } else {
@@ -47,6 +51,7 @@ test(param) {
 
 const String TEST_IF_NOT_RETURN = r"""
 test(param) {
+  print('Printing this ensures that String+ is in the system.');
   if (param is !int) return param + 53;
   return param + 42;
 }
@@ -54,6 +59,7 @@ test(param) {
 
 const String TEST_IF_NOT_ELSE_RETURN = r"""
 test(param) {
+  print('Printing this ensures that String+ is in the system.');
   if (param is !int) {
     return param + 53;
   } else {

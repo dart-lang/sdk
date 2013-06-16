@@ -17,7 +17,7 @@ const String TEST_ONE = r"""
 
 const String TEST_TWO = r"""
   foo(a) {
-    var myVariableName = a + 42;
+    var myVariableName = a.toString();
     print(myVariableName);
     print(myVariableName);
   }
@@ -42,7 +42,7 @@ main() {
   // Check that one-shot interceptors preserve variable names, see
   // https://code.google.com/p/dart/issues/detail?id=8106.
   generated = compile(TEST_TWO, entry: 'foo');
-  Expect.isTrue(generated.contains(new RegExp(r'[$a-z]+\.\$add\$n\(a, 42\)')));
+  Expect.isTrue(generated.contains(new RegExp(r'[$a-z]+\.toString\$0\(a\)')));
   Expect.isTrue(generated.contains('myVariableName'));
 
   // Check that an intercepted getter that does not need to be

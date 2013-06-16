@@ -46,7 +46,7 @@ class _ScheduledCompletes extends BaseMatcher {
 
   const _ScheduledCompletes(this._matcher, this._description);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! Future) return false;
 
     // TODO(nweiz): parse the stack, figure out on what line these were called,

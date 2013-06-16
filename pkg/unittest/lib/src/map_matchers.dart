@@ -14,7 +14,7 @@ class _ContainsValue extends BaseMatcher {
 
   const _ContainsValue(this._value);
 
-  bool matches(item, MatchState matchState) => item.containsValue(_value);
+  bool matches(item, Map matchState) => item.containsValue(_value);
   Description describe(Description description) =>
       description.add('contains value ').addDescriptionOf(_value);
 }
@@ -32,7 +32,7 @@ class _ContainsMapping extends BaseMatcher {
 
   const _ContainsMapping(this._key, Matcher this._valueMatcher);
 
-  bool matches(item, MatchState matchState) =>
+  bool matches(item, Map matchState) =>
       item.containsKey(_key) &&
       _valueMatcher.matches(item[_key], matchState);
 
@@ -42,7 +42,7 @@ class _ContainsMapping extends BaseMatcher {
   }
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
+                               Map matchState, bool verbose) {
     if (!item.containsKey(_key)) {
       return mismatchDescription.add(" doesn't contain key ")
           .addDescriptionOf(_key);

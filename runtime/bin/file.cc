@@ -506,6 +506,24 @@ void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
 }
 
 
+void FUNCTION_NAME(File_Rename)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  const char* old_path =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  const char* new_path =
+      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
+  bool result = File::Rename(old_path, new_path);
+  if (result) {
+    Dart_SetReturnValue(args, Dart_NewBoolean(result));
+  } else {
+    Dart_Handle err = DartUtils::NewDartOSError();
+    if (Dart_IsError(err)) Dart_PropagateError(err);
+    Dart_SetReturnValue(args, err);
+  }
+  Dart_ExitScope();
+}
+
+
 void FUNCTION_NAME(File_FullPath)(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* str =
@@ -704,6 +722,20 @@ static CObject* FileDeleteRequest(const CObjectArray& request) {
     }
   }
   return CObject::False();
+}
+
+
+static CObject* FileRenameRequest(const CObjectArray& request) {
+  if (request.Length() == 3 &&
+      request[1]->IsString() &&
+      request[2]->IsString()) {
+    CObjectString old_path(request[1]);
+    CObjectString new_path(request[2]);
+    bool completed = File::Rename(old_path.CString(), new_path.CString());
+    if (completed) return CObject::True();
+    return CObject::NewOSError();
+  }
+  return CObject::IllegalArgumentError();
 }
 
 
@@ -1167,6 +1199,9 @@ static void FileService(Dart_Port dest_port_id,
           break;
         case File::kDeleteRequest:
           response = FileDeleteRequest(request);
+          break;
+        case File::kRenameRequest:
+          response = FileRenameRequest(request);
           break;
         case File::kFullPathRequest:
           response = FileFullPathRequest(request);

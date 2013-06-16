@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.metadata_test;
+@string @symbol
+library test.library_metadata_test;
 
 import 'dart:mirrors';
 
@@ -11,16 +12,6 @@ const string = 'a metadata string';
 const symbol = const Symbol('symbol');
 
 const hest = 'hest';
-
-@symbol @string
-class MyClass {
-  @hest @hest @symbol
-  var x;
-  var y;
-
-  @string @symbol @string
-  myMethod() => 1;
-}
 
 checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
   List metadata = mirror.metadata.map((m) => m.reflectee).toList();
@@ -41,7 +32,6 @@ checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
   print(metadata);
 }
 
-@symbol @string @symbol
 main() {
   if (MirrorSystem.getName(symbol) != 'symbol') {
     // This happened in dart2js due to how early library metadata is
@@ -50,19 +40,6 @@ main() {
   }
 
   MirrorSystem mirrors = currentMirrorSystem();
-  ClassMirror myClassMirror = reflectClass(MyClass);
-  checkMetadata(myClassMirror, [symbol, string]);
-  LibraryMirror lib = mirrors.findLibrary(const Symbol('test.metadata_test')).first;
-  MethodMirror function = lib.functions[const Symbol('main')];
-  checkMetadata(function, [symbol, string, symbol]);
-  MethodMirror method = myClassMirror.methods[const Symbol('myMethod')];
-  checkMetadata(method, [string, symbol, string]);
-
-  VariableMirror xMirror = myClassMirror.variables[const Symbol('x')];
-  checkMetadata(xMirror, [hest, hest, symbol]);
-
-  VariableMirror yMirror = myClassMirror.variables[const Symbol('y')];
-  checkMetadata(yMirror, []);
-
-  // TODO(ahe): Test local functions.
+  checkMetadata(mirrors.findLibrary(const Symbol('test.library_metadata_test')).first,
+                [string, symbol]); 
 }

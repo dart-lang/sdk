@@ -468,6 +468,7 @@ abstract class _HttpOutboundMessage<T> implements IOSink {
     if (_headersWritten) return new Future.value();
     _headersWritten = true;
     headers._synchronize();  // Be sure the 'chunked' option is updated.
+    _dataSink.encoding = encoding;
     bool isServerSide = this is _HttpResponse;
     if (isServerSide) {
       var response = this;

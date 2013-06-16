@@ -54,7 +54,7 @@ const Matcher throwsAuthorizationException =
 
 class _AuthorizationException extends TypeMatcher {
   const _AuthorizationException() : super("AuthorizationException");
-  bool matches(item, MatchState matchState) =>
+  bool matches(item, Map matchState) =>
     item is oauth2.AuthorizationException;
 }
 
@@ -67,6 +67,6 @@ const Matcher throwsExpirationException =
 
 class _ExpirationException extends TypeMatcher {
   const _ExpirationException() : super("ExpirationException");
-  bool matches(item, MatchState matchState) =>
+  bool matches(item, Map matchState) =>
     item is oauth2.ExpirationException;
 }

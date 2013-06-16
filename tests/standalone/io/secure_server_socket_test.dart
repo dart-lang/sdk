@@ -46,20 +46,13 @@ void testInvalidBind() {
   });
 
   // Bind to a port already in use.
-  // Either an error or a successful bind is allowed.
-  // Windows platforms allow multiple binding to the same socket, with
-  // unpredictable results.
   SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE).then((s) {
     SecureServerSocket.bind(HOST_NAME,
                             s.port,
                             CERTIFICATE).then((t) {
-      Expect.equals('windows', Platform.operatingSystem);
-      Expect.equals(s.port, t.port);
-      s.close();
-      t.close();
+      Expect.fail("Multiple listens on same port");
       port.toSendPort().send(1);
     }).catchError((error) {
-      Expect.notEquals('windows', Platform.operatingSystem);
       Expect.isTrue(error is SocketException);
       s.close();
       port.toSendPort().send(1);

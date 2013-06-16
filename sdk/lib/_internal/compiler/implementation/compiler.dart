@@ -182,6 +182,10 @@ abstract class Backend {
     ClassElement classElement = element.getEnclosingClass();
     return classElement == compiler.objectClass;
   }
+
+  void enableMirrors() {}
+
+  void registerStaticUse(Element element, Enqueuer enqueuer) {}
 }
 
 /**
@@ -524,7 +528,7 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get analyzeAll => analyzeAllFlag || compileAll;
 
-  bool get compileAll => mirrorsEnabled;
+  bool get compileAll => false;
 
   bool get disableTypeInference => disableTypeInferenceFlag || mirrorsEnabled;
 
@@ -663,6 +667,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     if (uri == Uri.parse('dart:mirrors')) {
       mirrorSystemClass = library.find(const SourceString('MirrorSystem'));
+      backend.enableMirrors();
       metadataHandler = constantHandler;
     } else if (uri == Uri.parse('dart:_collection-dev')) {
       symbolImplementationClass = library.find(const SourceString('Symbol'));

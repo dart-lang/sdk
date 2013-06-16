@@ -7,6 +7,19 @@ Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # http:
 Language/07_Classes/6_Constructors_A02_t01: Skip # co19 issue 415.
 
 [ $compiler == none && $runtime == vm ]
+
+# The following tests fail because they contain number literals with a + prefix (co19 issue 428)
+LibTest/core/double/floor_A01_t05: Fail # issue 428
+LibTest/core/double/ceil_A01_t05: Fail # issue 428
+Language/12_Statements/02_Expression_Statements_A01_t06: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t10: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t08: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t04: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t03: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t02: Fail # co19 issue 428
+Language/11_Expressions/03_Numbers_A01_t01: Fail # co19 issue 428
+Language/11_Expressions/01_Constants_A01_t01: Fail # co19 issue 428
+
 Language/05_Variables/05_Variables_A07_t01: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t02: Fail # TODO(vm-team): Please triage this failure.
 Language/05_Variables/05_Variables_A07_t03: Fail # TODO(vm-team): Please triage this failure.

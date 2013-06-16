@@ -1743,16 +1743,20 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadStaticFieldInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
 }
 
 
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register field = locs()->in(0).reg();
   Register result = locs()->out().reg();
-  __ LoadObject(result, field());
-  __ movq(result, FieldAddress(result, Field::value_offset()));
+  __ movq(result, FieldAddress(field, Field::value_offset()));
 }
 
 

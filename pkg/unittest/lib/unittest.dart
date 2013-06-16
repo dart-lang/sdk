@@ -863,6 +863,12 @@ void disableTest(int testId) => _setTestEnabledState(testId, false);
 /** Signature for a test function. */
 typedef dynamic TestFunction();
 
+/**
+ * A flag that controls whether we hide unittest details in exception stacks.
+ * Useful to disable when debugging unittest or matcher customizations.
+ */
+bool formatStacks = true;
+
 // Stack formatting utility. Strips extraneous content from a stack trace.
 // Stack frame lines are parsed with a regexp, which has been tested
 // in Chrome, Firefox and the VM. If a line fails to be parsed it is
@@ -886,6 +892,7 @@ final _frameRegExp = new RegExp(
     r'):([:\d]+)[\)]?$'); // Get the line number and optional column number.
 
 String _formatStack(stack) {
+  if (!formatStacks) return "$stack";
   var lines;
   if (stack is StackTrace) {
     lines = stack.toString().split('\n');

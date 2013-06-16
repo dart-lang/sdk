@@ -405,7 +405,7 @@ main() {
   var tests = {
     'single correct test': buildStatusString(1, 0, 0, 'single correct test'),
     'single failing test': buildStatusString(0, 1, 0, 'single failing test',
-        message: 'Expected: <5> But: was <4>. Actual: <4>'),
+        message: 'Expected: <5> Actual: <4>'),
     'exception test': buildStatusString(0, 1, 0, 'exception test',
         message: 'Caught Exception: Fail.'),
     'group name test': buildStatusString(2, 0, 0, 'a a::a b b'),
@@ -427,7 +427,7 @@ main() {
         message: 'Callback called (2) after test case testOne has already '
                  'been marked as pass.:testTwo:'),
     'middle exception test': buildStatusString(2, 1, 0,
-        'testOne::testTwo:Expected: false But: was <true>. Actual: <true>:testThree'),
+        'testOne::testTwo:Expected: false Actual: <true>:testThree'),
     'async setup/teardown test': buildStatusString(2, 0, 3,
         'good setup/good teardown foo1::'
         'good setup/bad teardown foo2:good setup/bad teardown '
@@ -440,13 +440,13 @@ main() {
     'test returning future': buildStatusString(2, 4, 0,
         'successful::'
         'error1:Callback called more times than expected (1).:'
-        'fail1:Expected: <false> But: was <true>. Actual: <true>:'
+        'fail1:Expected: <false> Actual: <true>:'
         'error2:Callback called more times than expected (1).:'
         'fail2:failure:'
         'foo5'),
     'test returning future using runAsync': buildStatusString(2, 4, 0,
         'successful::'
-        'fail1:Expected: <false> But: was <true>. Actual: <true>:'
+        'fail1:Expected: <false> Actual: <true>:'
         'error1:Callback called more times than expected (1).:'
         'fail2:failure:'
         'error2:Callback called more times than expected (1).:'

@@ -202,27 +202,28 @@ class _FileStreamConsumer extends StreamConsumer<List<int>> {
 const int _EXISTS_REQUEST = 0;
 const int _CREATE_REQUEST = 1;
 const int _DELETE_REQUEST = 2;
-const int _OPEN_REQUEST = 3;
-const int _FULL_PATH_REQUEST = 4;
-const int _CLOSE_REQUEST = 5;
-const int _POSITION_REQUEST = 6;
-const int _SET_POSITION_REQUEST = 7;
-const int _TRUNCATE_REQUEST = 8;
-const int _LENGTH_REQUEST = 9;
-const int _LENGTH_FROM_PATH_REQUEST = 10;
-const int _LAST_MODIFIED_REQUEST = 11;
-const int _FLUSH_REQUEST = 12;
-const int _READ_BYTE_REQUEST = 13;
-const int _WRITE_BYTE_REQUEST = 14;
-const int _READ_REQUEST = 15;
-const int _READ_LIST_REQUEST = 16;
-const int _WRITE_LIST_REQUEST = 17;
-const int _CREATE_LINK_REQUEST = 18;
-const int _DELETE_LINK_REQUEST = 19;
-const int _LINK_TARGET_REQUEST = 20;
-const int _TYPE_REQUEST = 21;
-const int _IDENTICAL_REQUEST = 22;
-const int _STAT_REQUEST = 23;
+const int _RENAME_REQUEST = 3;
+const int _OPEN_REQUEST = 4;
+const int _FULL_PATH_REQUEST = 5;
+const int _CLOSE_REQUEST = 6;
+const int _POSITION_REQUEST = 7;
+const int _SET_POSITION_REQUEST = 8;
+const int _TRUNCATE_REQUEST = 9;
+const int _LENGTH_REQUEST = 10;
+const int _LENGTH_FROM_PATH_REQUEST = 11;
+const int _LAST_MODIFIED_REQUEST = 12;
+const int _FLUSH_REQUEST = 13;
+const int _READ_BYTE_REQUEST = 14;
+const int _WRITE_BYTE_REQUEST = 15;
+const int _READ_REQUEST = 16;
+const int _READ_LIST_REQUEST = 17;
+const int _WRITE_LIST_REQUEST = 18;
+const int _CREATE_LINK_REQUEST = 19;
+const int _DELETE_LINK_REQUEST = 20;
+const int _LINK_TARGET_REQUEST = 21;
+const int _TYPE_REQUEST = 22;
+const int _IDENTICAL_REQUEST = 23;
+const int _STAT_REQUEST = 24;
 
 // TODO(ager): The only reason for this class is that the patching
 // mechanism doesn't seem to like patching a private top level
@@ -314,6 +315,29 @@ class _File implements File {
   void deleteSync() {
     var result = _delete(_path);
     throwIfError(result, "Cannot delete file '$_path'");
+  }
+
+  Future<File> rename(String newPath) {
+    _ensureFileService();
+    List request = new List(3);
+    request[0] = _RENAME_REQUEST;
+    request[1] = _path;
+    request[2] = newPath;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(
+            response, "Cannot rename file '$_path' to '$newPath'");
+      }
+      return new File(newPath);
+    });
+  }
+
+  external static _rename(String oldPath, String newPath);
+
+  File renameSync(String newPath) {
+    var result = _rename(_path, newPath);
+    throwIfError(result, "Cannot rename file '$_path' to '$newPath'");
+    return new File(newPath);
   }
 
   Directory get directory {

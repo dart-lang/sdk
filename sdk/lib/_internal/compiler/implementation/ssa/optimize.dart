@@ -50,6 +50,9 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaDeadPhiEliminator(),
           new SsaConstantFolder(constantSystem, backend, work),
           new SsaNonSpeculativeTypePropagator(compiler),
+          // Run a dead code eliminator before LICM because dead
+          // interceptors are often in the way of LICM'able instructions.
+          new SsaDeadCodeEliminator(),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
           new SsaValueRangeAnalyzer(compiler, constantSystem, work),
@@ -1013,6 +1016,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
         // were visited before because we are iterating in post-order.
         // So instructions that are GVN'ed in an inner loop are in their
         // loop entry, and [info.blocks] contains this loop entry.
+        moveLoopInvariantCodeFromBlock(block, block, changesFlags);
         for (HBasicBlock other in info.blocks) {
           moveLoopInvariantCodeFromBlock(other, block, changesFlags);
         }
@@ -1023,14 +1027,15 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
   void moveLoopInvariantCodeFromBlock(HBasicBlock block,
                                       HBasicBlock loopHeader,
                                       int changesFlags) {
-    assert(block.parentLoopHeader == loopHeader);
+    assert(block.parentLoopHeader == loopHeader || block == loopHeader);
     HBasicBlock preheader = loopHeader.predecessors[0];
     int dependsFlags = SideEffects.computeDependsOnFlags(changesFlags);
     HInstruction instruction = block.first;
+    bool firstInstructionInLoop = block == loopHeader;
     while (instruction != null) {
       HInstruction next = instruction.next;
       if (instruction.useGvn()
-          && !instruction.canThrow()
+          && (!instruction.canThrow() || firstInstructionInLoop)
           && !instruction.sideEffects.dependsOn(dependsFlags)) {
         bool loopInvariantInputs = true;
         List<HInstruction> inputs = instruction.inputs;
@@ -1046,6 +1051,8 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
         if (loopInvariantInputs) {
           block.detach(instruction);
           preheader.moveAtExit(instruction);
+        } else {
+          firstInstructionInLoop = false;
         }
       }
       int oldChangesFlags = changesFlags;

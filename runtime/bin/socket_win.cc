@@ -266,7 +266,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
   BOOL optval = true;
   int status = setsockopt(s,
                           SOL_SOCKET,
-                          SO_REUSEADDR,
+                          SO_EXCLUSIVEADDRUSE,
                           reinterpret_cast<const char*>(&optval),
                           sizeof(optval));
   if (status == SOCKET_ERROR) {

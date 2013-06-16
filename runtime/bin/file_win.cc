@@ -286,6 +286,26 @@ bool File::DeleteLink(const char* name) {
 }
 
 
+bool File::Rename(const char* old_path, const char* new_path) {
+  File::Type type = GetType(old_path, false);
+  if (type == kIsFile) {
+    const wchar_t* system_old_path = StringUtils::Utf8ToWide(old_path);
+    const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
+    DWORD flags = MOVEFILE_WRITE_THROUGH;
+    int move_status =
+        MoveFileExW(system_old_path, system_new_path, flags);
+    free(const_cast<wchar_t*>(system_old_path));
+    free(const_cast<wchar_t*>(system_new_path));
+    return (move_status != 0);
+  } else if (type == kIsDirectory) {
+    SetLastError(ERROR_FILE_NOT_FOUND);
+  } else {
+    SetLastError(ERROR_FILE_NOT_FOUND);
+  }
+  return false;
+}
+
+
 off_t File::LengthFromPath(const char* name) {
   struct _stat st;
   const wchar_t* system_name = StringUtils::Utf8ToWide(name);

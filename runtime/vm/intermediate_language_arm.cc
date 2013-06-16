@@ -1054,13 +1054,17 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadUntaggedInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(kNumInputs,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
 void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Register object = locs()->in(0).reg();
+  Register result = locs()->out().reg();
+  __ LoadFromOffset(kLoadWord, result, object, offset() - kHeapObjectTag);
 }
 
 
@@ -1363,10 +1367,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
       locs->set_in(2, Location::WritableRegister());
       break;
     case kTypedDataFloat32ArrayCid:
-      // TODO(regis): Verify.
-      // Need temp register for float-to-double conversion.
-      locs->AddTemp(Location::RequiresFpuRegister());
-      // Fall through.
     case kTypedDataFloat64ArrayCid:  // TODO(srdjan): Support Float64 constants.
     case kTypedDataFloat32x4ArrayCid:
       locs->set_in(2, Location::RequiresFpuRegister());
@@ -1496,7 +1496,16 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kTypedDataFloat32ArrayCid:
+      // Convert to single precision.
+      __ vcvtsd(STMP, locs()->in(2).fpu_reg());
+      // Store.
+      __ add(index.reg(), index.reg(), ShifterOperand(array));
+      __ StoreSToOffset(STMP, index.reg(), 0);
+      break;
     case kTypedDataFloat64ArrayCid:
+      __ add(index.reg(), index.reg(), ShifterOperand(array));
+      __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(), 0);
+      break;
     case kTypedDataFloat32x4ArrayCid:
       UNIMPLEMENTED();
       break;
@@ -1695,17 +1704,21 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadStaticFieldInstr::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_out(Location::RequiresRegister());
+  return summary;
 }
 
 
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register field = locs()->in(0).reg();
   Register result = locs()->out().reg();
-  __ LoadObject(result, field());
   __ LoadFromOffset(kLoadWord, result,
-                    result, Field::value_offset() - kHeapObjectTag);
+                    field, Field::value_offset() - kHeapObjectTag);
 }
 
 
@@ -2126,6 +2139,7 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       if (left_int == 0) {
         __ cmp(right, ShifterOperand(0));
         __ b(deopt, MI);
+        __ mov(result, ShifterOperand(0));
         return;
       }
       const intptr_t max_right = kSmiBits - Utils::HighestBit(left_int);
@@ -2339,6 +2353,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
         if (value == 0) {
           // TODO(vegorov): should be handled outside.
+          __ MoveRegister(result, left);
           break;
         } else if (value < 0) {
           // TODO(vegorov): should be handled outside.
@@ -2426,7 +2441,22 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case Token::kSHR: {
-      UNIMPLEMENTED();
+      if (CanDeoptimize()) {
+        __ CompareImmediate(right, 0);
+        __ b(deopt, LT);
+      }
+      __ SmiUntag(right);
+      // sarl operation masks the count to 5 bits.
+      const intptr_t kCountLimit = 0x1F;
+      Range* right_range = this->right()->definition()->range();
+      if ((right_range == NULL) ||
+          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+        __ CompareImmediate(right, kCountLimit);
+        __ LoadImmediate(right, kCountLimit, GT);
+      }
+      __ SmiUntag(left);
+      __ Asr(result, left, right);
+      __ SmiTag(result);
       break;
     }
     case Token::kDIV: {

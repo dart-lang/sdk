@@ -62,7 +62,6 @@ class EnqueueTask extends CompilerTask {
     compiler.libraries.values.forEach(addMemberByName);
   }
 
-
   String get name => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
@@ -94,6 +93,8 @@ abstract class Enqueuer {
   bool queueIsClosed = false;
   EnqueueTask task;
   native.NativeEnqueuer nativeEnqueuer;  // Set by EnqueueTask
+
+  bool hasEnqueuedEverything = false;
 
   Enqueuer(this.name, this.compiler,
            ItemCompilationContext itemCompilationContextCreator())
@@ -342,46 +343,63 @@ abstract class Enqueuer {
     for (var link = task.allElementsByName[name];
          link != null && !link.isEmpty;
          link = link.tail) {
-      Element element = link.head;
-      if (Elements.isUnresolved(element)) {
-        // Ignore.
-      } else if (element.isConstructor()) {
-        ClassElement cls = element.declaration.getEnclosingClass();
-        registerInstantiatedType(cls.rawType, elements);
-        registerStaticUse(element.declaration);
-      } else if (element.impliesType()) {
-        // Don't enqueue classes, typedefs, and type variables.
-      } else if (Elements.isStaticOrTopLevel(element)) {
-        registerStaticUse(element.declaration);
-      } else if (element.isInstanceMember()) {
-        if (element.isFunction()) {
-          int arity =
-              element.asFunctionElement().requiredParameterCount(compiler);
-          Selector selector =
-              new Selector.call(element.name, element.getLibrary(), arity);
-          registerInvocation(element.name, selector);
-        } else if (element.isSetter()) {
-          Selector selector =
-              new Selector.setter(element.name, element.getLibrary());
-          registerInvokedSetter(element.name, selector);
-        } else if (element.isGetter()) {
-          Selector selector =
-              new Selector.getter(element.name, element.getLibrary());
-          registerInvokedGetter(element.name, selector);
-        } else if (element.isField()) {
-          Selector selector =
-              new Selector.setter(element.name, element.getLibrary());
-          registerInvokedSetter(element.name, selector);
-          selector =
-              new Selector.getter(element.name, element.getLibrary());
-          registerInvokedGetter(element.name, selector);
-        }
+      pretendElementWasUsed(link.head, elements);
+    }
+  }
+
+  void pretendElementWasUsed(Element element, TreeElements elements) {
+    if (Elements.isUnresolved(element)) {
+      // Ignore.
+    } else if (element.isSynthesized
+               && element.getLibrary().isPlatformLibrary) {
+      // TODO(ahe): Work-around for http://dartbug.com/11205.
+    } else if (element.isConstructor()) {
+      ClassElement cls = element.declaration.getEnclosingClass();
+      registerInstantiatedType(cls.rawType, elements);
+      registerStaticUse(element.declaration);
+    } else if (element.impliesType()) {
+      // Don't enqueue classes, typedefs, and type variables.
+    } else if (Elements.isStaticOrTopLevel(element)) {
+      registerStaticUse(element.declaration);
+    } else if (element.isInstanceMember()) {
+      if (element.isFunction()) {
+        int arity =
+            element.asFunctionElement().requiredParameterCount(compiler);
+        Selector selector =
+            new Selector.call(element.name, element.getLibrary(), arity);
+        registerInvocation(element.name, selector);
+      } else if (element.isSetter()) {
+        Selector selector =
+            new Selector.setter(element.name, element.getLibrary());
+        registerInvokedSetter(element.name, selector);
+      } else if (element.isGetter()) {
+        Selector selector =
+            new Selector.getter(element.name, element.getLibrary());
+        registerInvokedGetter(element.name, selector);
+      } else if (element.isField()) {
+        Selector selector =
+            new Selector.setter(element.name, element.getLibrary());
+        registerInvokedSetter(element.name, selector);
+        selector = new Selector.getter(element.name, element.getLibrary());
+        registerInvokedGetter(element.name, selector);
       }
     }
   }
 
   /// Called when [:new Symbol(...):] is seen.
   void registerNewSymbol(TreeElements elements) {
+  }
+
+  void enqueueEverything() {
+    if (hasEnqueuedEverything) return;
+    compiler.log('Enqueuing everything');
+    task.ensureAllElementsByName();
+    for (Link link in task.allElementsByName.values) {
+      for (Element element in link) {
+        pretendElementWasUsed(element, compiler.globalDependencies);
+      }
+    }
+    hasEnqueuedEverything = true;
   }
 
   processLink(Map<String, Link<Element>> map,
@@ -456,6 +474,7 @@ abstract class Enqueuer {
     if (element == null) return;
     assert(invariant(element, element.isDeclaration));
     addToWorkList(element);
+    compiler.backend.registerStaticUse(element, this);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {

@@ -104,13 +104,7 @@ def ProcessTools(mode, name, version):
   cmds = [sys.executable, toolsBuildScript,
           '--mode=' + mode, '--revision=' + version,
           '--name=' + name, '--out=' + outdir]
-  local_env = os.environ.copy()
-  # The buildbot sets AWS_CREDENTIAL_FILE/BOTO_CONFIG to the chromium specific
-  # file, we use the one in home.
-  if 'BOTO_CONFIG' in local_env:
-    del local_env['BOTO_CONFIG']
-  if 'AWS_CREDENTIAL_FILE' in local_env:
-    del local_env['AWS_CREDENTIAL_FILE']
+  local_env = EnvironmentWithoutBotoConfig()
   #if 'linux' in name:
   #  javahome = os.path.join(os.path.expanduser('~'), 'jdk1.6.0_25')
   #  local_env['JAVA_HOME'] = javahome
@@ -119,20 +113,31 @@ def ProcessTools(mode, name, version):
 
   return subprocess.call(cmds, env=local_env)
 
-def ProcessBot(name, target):
+def EnvironmentWithoutBotoConfig(environment=None):
+  # The buildbot sets AWS_CREDENTIAL_FILE/BOTO_CONFIG to the chromium specific
+  # file, we use the one in home.
+  custom_env = dict(environment or os.environ)
+  if 'BOTO_CONFIG' in custom_env:
+    del custom_env['BOTO_CONFIG']
+  if 'AWS_CREDENTIAL_FILE' in custom_env:
+    del custom_env['AWS_CREDENTIAL_FILE']
+  return custom_env
+
+def ProcessBot(name, target, custom_env=None):
   '''
   Build and test the named bot target (compiler, android, pub). We look for
   the supporting script in tools/bots/ to run the tests and build.
   '''
   print 'Process%s' % target.capitalize()
-  has_shell=False
+  has_shell = False
+  environment = custom_env or os.environ
   if '-win' in name:
     # In Windows we need to run in the shell, so that we have all the
     # environment variables available.
-    has_shell=True
+    has_shell = True
   return subprocess.call([sys.executable,
       os.path.join('tools', 'bots', target + '.py')],
-      env=os.environ, shell=has_shell)
+      env=environment, shell=has_shell)
 
 def FixJavaHome():
   buildbot_javahome = os.getenv('BUILDBOT_JAVA_HOME')
@@ -222,7 +227,8 @@ def main():
   elif name.startswith('vm-android'):
     status = ProcessBot(name, 'android')
   elif name.startswith('cross') or name.startswith('target'):
-    status = ProcessBot(name, 'cross-vm')
+    status = ProcessBot(name, 'cross-vm',
+                        custom_env=EnvironmentWithoutBotoConfig())
   else:
     status = ProcessBot(name, 'compiler')
 

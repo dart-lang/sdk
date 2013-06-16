@@ -2853,7 +2853,8 @@ void ValueGraphVisitor::VisitStoreInstanceFieldNode(
 
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
-  LoadStaticFieldInstr* load = new LoadStaticFieldInstr(node->field());
+  Value* field_value = Bind(new ConstantInstr(node->field()));
+  LoadStaticFieldInstr* load = new LoadStaticFieldInstr(field_value);
   ReturnDefinition(load);
 }
 

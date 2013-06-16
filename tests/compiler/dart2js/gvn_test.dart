@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "package:expect/expect.dart";
 import 'compiler_helper.dart';
 
 const String TEST_ONE = r"""
@@ -60,6 +61,49 @@ main() {
 }
 """;
 
+// Check that a gvn'able instruction in the loop header gets hoisted.
+const String TEST_SIX = r"""
+class A {
+  final field = 54;
+}
+
+main() {
+  var a = new A();
+  while (a.field == 54) { a.field = 42; }
+}
+""";
+
+// Check that a gvn'able instruction that may throw in the loop header
+// gets hoisted.
+const String TEST_SEVEN = r"""
+class A {
+  final field;
+  A() : field = null;
+  A.bar() : field = 42;
+}
+
+main() {
+  var a = new A();
+  var b = new A.bar();
+  while (a.field == 54) { a.field = 42; b.field = 42; }
+}
+""";
+
+// Check that a check in a loop header gets hoisted.
+const String TEST_EIGHT = r"""
+class A {
+  final field;
+  A() : field = null;
+  A.bar() : field = 42;
+}
+
+main() {
+  var a = new A();
+  var b = new A.bar();
+  for (int i = 0; i < a.field; i++) { a.field = 42; b.field = 42; }
+}
+""";
+
 main() {
   String generated = compile(TEST_ONE, entry: 'foo');
   RegExp regexp = new RegExp(r"1 \+ [a-z]+");
@@ -77,4 +121,13 @@ main() {
   generated = compileAll(TEST_FIVE);
   checkNumberOfMatches(
       new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
+
+  generated = compileAll(TEST_SIX);
+  Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
+
+  generated = compileAll(TEST_SEVEN);
+  Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
+
+  generated = compileAll(TEST_EIGHT);
+  Expect.isTrue(generated.contains('for (; i < t1; ++i)'));
 }

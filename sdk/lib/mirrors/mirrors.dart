@@ -95,6 +95,14 @@ abstract class MirrorSystem {
    */
   TypeMirror get voidType;
 
+  /**
+   * Returns the name of [symbol].
+   *
+   * The following text is non-normative:
+   *
+   * Using this method may result in larger output.  If possible, use
+   * [MirrorsUsed] to specify which symbols must be retained in clear text.
+   */
   external static String getName(Symbol symbol);
 }
 
@@ -112,8 +120,7 @@ external Future<MirrorSystem> mirrorSystemOf(SendPort port);
 /**
  * Returns an [InstanceMirror] for some Dart language object.
  *
- * This only works if this mirror system is associated with the
- * current running isolate.
+ * This only works with objects local to the current isolate.
  */
 external InstanceMirror reflect(Object reflectee);
 
@@ -225,6 +232,15 @@ abstract class DeclarationMirror implements Mirror {
 
   /**
    * A list of the metadata associated with this declaration.
+   *
+   * Let *D* be the declaration this mirror reflects.
+   * If *D* is decorated with annotations *A1, ..., An*
+   * where *n > 0*, then for each annotation *Ai* associated 
+   * with *D, 1 <= i <= n*, let *ci* be the constant object 
+   * specified by *Ai*. Then this method returns a list whose 
+   * members are instance mirrors on *c1, ..., cn*.
+   * If no annotations are associated with *D*, then 
+   * an empty list is returned.
    */
   List<InstanceMirror> get metadata;
 }
@@ -309,7 +325,7 @@ abstract class ObjectMirror implements Mirror {
    * the the result is a [MirrorError] wrapping *e*.
    */
   /* TODO(turnidge): Handle ambiguous names.*/
-  InstanceMirror setField(Symbol fieldName, Object arg);
+  InstanceMirror setField(Symbol fieldName, Object value);
 
   /**
    * Invokes the named function and returns a mirror on the result.
@@ -345,8 +361,8 @@ abstract class ObjectMirror implements Mirror {
    * TODO(turnidge): Handle optional & named arguments.
    */
   Future<InstanceMirror> invokeAsync(Symbol memberName,
-                                     List<Object> positionalArguments,
-                                     [Map<Symbol, Object> namedArguments]);
+                                     List positionalArguments,
+                                     [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Invokes a getter and returns a mirror on the result. The getter
@@ -373,7 +389,7 @@ abstract class ObjectMirror implements Mirror {
    * Invokes a setter and returns a mirror on the result. The setter
    * may be either the implicit setter for a non-final field or a
    * user-defined setter method.
-   * The argument must be an instance of [InstanceMirror], or of
+   * The second argument must be an instance of [InstanceMirror], or of
    * a type that is serializable across isolates (currently [num],
    * [String], or [bool]).
    *
@@ -481,8 +497,8 @@ abstract class ClosureMirror implements InstanceMirror {
    * If the invocation throws an exception *e* (that it does not catch)
    * the the result is a [MirrorError] wrapping *e*.
    */
-  InstanceMirror apply(List<Object> positionalArguments,
-                       [Map<Symbol,Object> namedArguments]);
+  InstanceMirror apply(List positionalArguments,
+                       [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Executes the closure and returns a mirror on the result.
@@ -511,8 +527,8 @@ abstract class ClosureMirror implements InstanceMirror {
    * a type that is serializable across isolates (currently [num],
    * [String], or [bool]).
    */
-  Future<InstanceMirror> applyAsync(List<Object> positionalArguments,
-                                    [Map<Symbol, Object> namedArguments]);
+  Future<InstanceMirror> applyAsync(List positionalArguments,
+                                    [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Looks up the value of a name in the scope of the closure. The
@@ -754,8 +770,8 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * then *k* is completed with a [MirrorError] wrapping *e*.
 */
   Future<InstanceMirror> newInstanceAsync(Symbol constructorName,
-                                          List<Object> positionalArguments,
-                                          [Map<Symbol, Object> namedArguments]);
+                                          List positionalArguments,
+                                          [Map<Symbol, dynamic> namedArguments]);
 
   /**
    * Does this mirror represent a class?
@@ -1077,4 +1093,105 @@ class Comment {
   final bool isDocComment;
 
   const Comment(this.text, this.trimmedText, this.isDocComment);
+}
+
+/**
+ * EXPERIMENTAL API: Description of how "dart:mirrors" is used.
+ *
+ * When used as metadata on an import of "dart:mirrors" in library *L*, this
+ * class describes how "dart:mirrors" is used by library *L* unless overridden.
+ * See [override].
+ *
+ * The following text is non-normative:
+ *
+ * In some scenarios, for example, when minifying Dart code, or when generating
+ * JavaScript code from a Dart program, the size and performance of the output
+ * can suffer from use of reflection.  In those cases, telling the compiler
+ * what is used, can have a significant impact.
+ *
+ * Example usage:
+ *
+ * [:
+ * @MirrorsUsed(symbols: 'foo', override: '*')
+ * import 'dart:mirrors';
+ *
+ * class Foo {
+ *   noSuchMethod(Invocation invocation) {
+ *     print(Mirrors.getName(invocation.memberName));
+ *   }
+ * }
+ *
+ * main() {
+ *   new Foo().foo(); // Prints "foo".
+ *   new Foo().bar(); // Might print an arbitrary (mangled) name, "bar".
+ * }
+ * :]
+ */
+// TODO(ahe): Remove ", override: '*'" when it isn't necessary anymore.
+class MirrorsUsed {
+  // Note: the fields of this class are untyped.  This is because the most
+  // convenient way to specify to specify symbols today is using a single
+  // string. In some cases, a const list of classes might be convenient. Some
+  // might prefer to use a const list of symbols.
+
+  /**
+   * The list of strings passed to new [Symbol], and symbols that might be
+   * passed to [MirrorSystem.getName].
+   *
+   * Combined with the names of [reflectiveTarget], [metaTargets] and their
+   * members, this forms the complete list of strings passed to new [Symbol],
+   * and symbols that might be passed to [MirrorSystem.getName] by the library
+   * to which this metadata applies.
+   *
+   * The following text is non-normative:
+   *
+   * Specifying this option turns off the following warnings emitted by
+   * dart2js:
+   *
+   * * Using "MirrorSystem.getName" may result in larger output.
+   * * Using "new #{name}" may result in larger output.
+   *
+   * Use symbols = "*" to turn off the warnings mentioned above.
+   *
+   * For example, if using [noSuchMethod] to interact with a database, extract
+   * all the possible column names and include them in this list.  Similarly,
+   * if using [noSuchMethod] to interact with another language (JavaScript, for
+   * example) extract all the identifiers from API used and include them in
+   * this list.
+   */
+  final symbols;
+
+  /**
+   * A list of reflective targets.
+   *
+   * Combined with [metaTargets], this provides the complete list of reflective
+   * targets used by the library to which this metadata applies.
+   *
+   * The following text is non-normative:
+   *
+   * For now, there is no formal description of what a reflective target is.
+   * Informally, it is a list of things that are expected to have fully
+   * functional mirrors.
+   */
+  final targets;
+
+  /**
+   * A list of classes that when used as metadata indicates a reflective
+   * target.
+   *
+   * See [targets].
+   */
+  final metaTargets;
+
+  /**
+   * A list of library names or "*".
+   *
+   * When used as metadata on an import of "dart:mirrors", this metadata does
+   * not apply to the library in which the annotation is used, but instead
+   * applies to the other libraries (all libraries if "*" is used).
+   */
+  final override;
+
+  const MirrorsUsed(
+      {this.symbols, this.targets, this.metaTargets, this.override});
 }

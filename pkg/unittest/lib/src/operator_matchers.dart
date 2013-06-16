@@ -14,7 +14,7 @@ class _IsNot extends BaseMatcher {
 
   const _IsNot(Matcher this._matcher);
 
-  bool matches(item, MatchState matchState) =>
+  bool matches(item, Map matchState) =>
       !_matcher.matches(item, matchState);
 
   Description describe(Description description) =>
@@ -78,13 +78,10 @@ class _AllOf extends BaseMatcher {
 
   const _AllOf(this._matchers);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
      for (var matcher in _matchers) {
        if (!matcher.matches(item, matchState)) {
-         matchState.state = {
-             'matcher': matcher,
-             'state': matchState.state
-         };
+        addStateInfo(matchState, {'matcher': matcher});
          return false;
        }
      }
@@ -92,11 +89,10 @@ class _AllOf extends BaseMatcher {
   }
 
   Description describeMismatch(item, Description mismatchDescription,
-                               MatchState matchState, bool verbose) {
-    var matcher = matchState.state['matcher'];
+                               Map matchState, bool verbose) {
+    var matcher = matchState['matcher'];
     matcher.describeMismatch(item, mismatchDescription,
-        matchState.state['state'], verbose);
-    mismatchDescription.add(" (wasn't ").addDescriptionOf(matcher).add(')');
+        matchState['state'], verbose);
     return mismatchDescription;
   }
 
@@ -166,7 +162,7 @@ class _AnyOf extends BaseMatcher {
 
   const _AnyOf(this._matchers);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
      for (var matcher in _matchers) {
        if (matcher.matches(item, matchState)) {
          return true;

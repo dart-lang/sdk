@@ -79,8 +79,6 @@ namespace dart {
   /* Additive operators. */                                                    \
   TOK(kADD, "+", 12, kNoAttribute)                                             \
   TOK(kSUB, "-", 12, kNoAttribute)                                             \
-  /* A 'plus' without a trailing whitespace (handle literals). */              \
-  TOK(kTIGHTADD, "+", 12, kNoAttribute)                                        \
                                                                                \
   /* Multiplicative operators */                                               \
   TOK(kMUL, "*", 13, kNoAttribute)                                             \

@@ -17,6 +17,17 @@ class TestFailure {
 }
 
 /**
+ * Useful utility for nesting match states.
+ */
+
+void addStateInfo(Map matchState, Map values) {
+  var innerState = new Map.from(matchState);
+  matchState.clear();
+  matchState['state'] = innerState;
+  matchState.addAll(values);
+}
+
+/**
  * Some matchers, like those for Futures and exception testing,
  * can fail in asynchronous sections, and throw exceptions.
  * A user of this library will typically want to catch and handle 
@@ -51,7 +62,7 @@ void expect(actual, matcher, {String reason, FailureHandler failureHandler,
             bool verbose : false}) {
   matcher = wrapMatcher(matcher);
   bool doesMatch;
-  var matchState = new MatchState();
+  var matchState = {};
   try {
     doesMatch = matcher.matches(actual, matchState);
   } catch (e, trace) {
@@ -105,7 +116,7 @@ class DefaultFailureHandler implements FailureHandler {
     throw new TestFailure(reason);
   }
   void failMatch(actual, Matcher matcher, String reason,
-      MatchState matchState, bool verbose) {
+      Map matchState, bool verbose) {
     fail(_assertErrorFormatter(actual, matcher, reason, matchState, verbose));
   }
 }
@@ -135,16 +146,17 @@ ErrorFormatter _assertErrorFormatter = null;
 
 // The default error formatter implementation.
 String _defaultErrorFormatter(actual, Matcher matcher, String reason,
-    MatchState matchState, bool verbose) {
+    Map matchState, bool verbose) {
   var description = new StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).add('\n');
+  description.add('  Actual: ').addDescriptionOf(actual);
 
   var mismatchDescription = new StringDescription();
   matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);
-  description.add('     But: ')
-      .add(mismatchDescription.toString()).add('.\n');
 
-  description.add('Actual: ').addDescriptionOf(actual);
+  if (mismatchDescription.length > 0) {
+    description.add('   Which: ${mismatchDescription}\n');
+  }
   if (reason != null) {
     description.add(reason).add('\n');
   }

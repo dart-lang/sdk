@@ -79,6 +79,32 @@ static Dart_Handle IsMirror(Dart_Handle object, bool* is_mirror) {
   return Dart_True();  // Indicates success.  Result is in is_mirror.
 }
 
+static Dart_Handle IsMethodMirror(Dart_Handle object, bool* is_mirror) {
+  Dart_Handle cls_name = NewString("MethodMirror");
+  Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
+  if (Dart_IsError(cls)) {
+    return cls;
+  }
+  Dart_Handle result = Dart_ObjectIsType(object, cls, is_mirror);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  return Dart_True();  // Indicates success.  Result is in is_mirror.
+}
+
+static Dart_Handle IsVariableMirror(Dart_Handle object, bool* is_mirror) {
+  Dart_Handle cls_name = NewString("VariableMirror");
+  Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
+  if (Dart_IsError(cls)) {
+    return cls;
+  }
+  Dart_Handle result = Dart_ObjectIsType(object, cls, is_mirror);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  return Dart_True();  // Indicates success.  Result is in is_mirror.
+}
+
 
 static bool IsSimpleValue(Dart_Handle object) {
   return (Dart_IsNull(object) ||
@@ -133,6 +159,11 @@ static Dart_Handle CreateVMReference(Dart_Handle handle) {
   return vm_ref;
 }
 
+static Dart_Handle StringFromSymbol(Dart_Handle symbol) {
+  Dart_Handle result = Dart_Invoke(MirrorLib(), NewString("_n"), 1, &symbol);
+  return result;
+}
+
 
 static Dart_Handle UnwrapVMReference(Dart_Handle vm_ref) {
   // Retrieve the persistent handle from the VMReference
@@ -151,8 +182,9 @@ static Dart_Handle UnwrapVMReference(Dart_Handle vm_ref) {
   return handle;
 }
 
+static Dart_Handle UnwrapMirror(Dart_Handle mirror);
 
-static Dart_Handle UnwrapMirror(Dart_Handle mirror) {
+static Dart_Handle UnwrapObjectMirror(Dart_Handle mirror) {
   Dart_Handle field_name = NewString("_reference");
   Dart_Handle vm_ref = Dart_GetField(mirror, field_name);
   if (Dart_IsError(vm_ref)) {
@@ -161,6 +193,78 @@ static Dart_Handle UnwrapMirror(Dart_Handle mirror) {
   return UnwrapVMReference(vm_ref);
 }
 
+
+static Dart_Handle UnwrapMethodMirror(Dart_Handle methodMirror) {
+  Dart_Handle namefield_name = NewString("simpleName");
+  Dart_Handle name_ref = Dart_GetField(methodMirror, namefield_name);
+  if (Dart_IsError(name_ref)) {
+    return name_ref;
+  }
+  Dart_Handle ownerfield_name = NewString("_owner");
+  Dart_Handle owner_mirror = Dart_GetField(methodMirror, ownerfield_name);
+  if (Dart_IsError(owner_mirror)) {
+    return owner_mirror;
+  }
+  Dart_Handle owner = UnwrapMirror(owner_mirror);
+  if (Dart_IsError(owner)) {
+    return owner;
+  }
+  Dart_Handle func = Dart_LookupFunction(owner, StringFromSymbol(name_ref));
+  if (Dart_IsError(func)) {
+    return func;
+  }
+  ASSERT(!Dart_IsNull(func));
+  return func;
+}
+
+static Dart_Handle UnwrapVariableMirror(Dart_Handle variableMirror) {
+  Dart_Handle namefield_name = NewString("simpleName");
+  Dart_Handle name_ref = Dart_GetField(variableMirror, namefield_name);
+  if (Dart_IsError(name_ref)) {
+    return name_ref;
+  }
+  Dart_Handle ownerfield_name = NewString("_owner");
+  Dart_Handle owner_mirror = Dart_GetField(variableMirror, ownerfield_name);
+  ASSERT(!Dart_IsNull(owner_mirror));
+  if (Dart_IsError(owner_mirror)) {
+    return owner_mirror;
+  }
+  Dart_Handle owner = UnwrapMirror(owner_mirror);
+  if (Dart_IsError(owner)) {
+    return owner;
+  }
+  Dart_Handle variable =
+  Dart_LookupVariable(owner, StringFromSymbol(name_ref));
+  if (Dart_IsError(variable)) {
+    return variable;
+  }
+  ASSERT(!Dart_IsNull(variable));
+  return variable;
+}
+
+static Dart_Handle UnwrapMirror(Dart_Handle mirror) {
+  // Caveat Emptor:
+  // only works for ObjectMirrors, VariableMirrors and MethodMirrors
+  // and their subtypes
+  bool is_method_mirror = false;
+  Dart_Handle result = IsMethodMirror(mirror, &is_method_mirror);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  if (is_method_mirror) {
+    return UnwrapMethodMirror(mirror);
+  }
+  bool is_variable_mirror = false;
+  result = IsVariableMirror(mirror, &is_variable_mirror);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+  if (is_variable_mirror) {
+    return UnwrapVariableMirror(mirror);
+  }
+  return UnwrapObjectMirror(mirror);
+  // will return nonsense if mirror is not an ObjectMirror
+}
 
 static Dart_Handle UnwrapArg(Dart_Handle arg) {
     if (Dart_IsError(arg)) {
@@ -466,6 +570,7 @@ static Dart_Handle CreateClassMirror(Dart_Handle intf,
   }
 
   // TODO(turnidge): Why am I getting Null when I expect Object?
+  // TODO(gbracha): this is probably the root of bug 7868
   Dart_Handle super_class = Dart_GetSuperclass(intf);
   if (Dart_IsNull(super_class)) {
     super_class = Dart_GetClass(CoreLib(), NewString("Object"));
@@ -1108,6 +1213,20 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalClassMirror)(
   Dart_ExitScope();
 }
 
+void NATIVE_ENTRY_FUNCTION(Mirrors_metadata)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
+
+  Dart_Handle reflectee = UnwrapMirror(mirror);
+  Dart_Handle result = Dart_GetMetadata(reflectee);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  ASSERT(Dart_IsList(result));
+  Dart_SetReturnValue(args, result);
+  Dart_ExitScope();
+}
+
 void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
     Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -1277,7 +1396,6 @@ void NATIVE_ENTRY_FUNCTION(LocalClassMirrorImpl_invokeConstructor)(
   Dart_SetReturnValue(args, wrapped_result);
   Dart_ExitScope();
 }
-
 
 void HandleMirrorsMessage(Isolate* isolate,
                           Dart_Port reply_port,

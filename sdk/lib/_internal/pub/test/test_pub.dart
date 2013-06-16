@@ -792,7 +792,7 @@ class _PairMatcher extends BaseMatcher {
 
   _PairMatcher(this._firstMatcher, this._lastMatcher);
 
-  bool matches(item, MatchState matchState) {
+  bool matches(item, Map matchState) {
     if (item is! Pair) return false;
     return _firstMatcher.matches(item.first, matchState) &&
         _lastMatcher.matches(item.last, matchState);
