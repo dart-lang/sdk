@@ -1648,7 +1648,7 @@ class ProcessQueue {
   Future<BrowserTestRunner> _getBrowserTestRunner(TestCase test) {
     var local_ip = test.configuration['local_ip'];
     var runtime = test.configuration['runtime'];
-    var num_browsers = test.configuration['tasks'];
+    var num_browsers = maxBrowserProcesses;
     if (_browserTestRunners[runtime] == null) {
       var testRunner =
         new BrowserTestRunner(local_ip, runtime, num_browsers);
