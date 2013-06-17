@@ -714,6 +714,11 @@ class Assembler : public ValueObject {
   //   .....
   void EnterDartFrame(intptr_t frame_size);
 
+  // Set up a Dart frame for a function compiled for on-stack replacement.
+  // The frame layout is a normal Dart frame, but the frame is partially set
+  // up on entry (it is the frame of the unoptimized code).
+  void EnterOsrFrame(intptr_t extra_size);
+
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
   // The stub frame layout is as follows:

@@ -10,6 +10,7 @@
 #include "vm/heap.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
+#include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 
 namespace dart {
@@ -2188,18 +2189,42 @@ void Assembler::TryAllocate(const Class& cls,
 
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
-  const intptr_t offset = CodeSize();
   EnterFrame(0);
   Label dart_entry;
   call(&dart_entry);
   Bind(&dart_entry);
-  // Adjust saved PC for any intrinsic code that could have been generated
-  // before a frame is created.
+  // The runtime system assumes that the code marker address is
+  // kEntryPointToPcMarkerOffset bytes from the entry.  If there is any code
+  // generated before entering the frame, the address needs to be adjusted.
+  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
   if (offset != 0) {
-    addl(Address(ESP, 0), Immediate(-offset));
+    addl(Address(ESP, 0), Immediate(offset));
   }
   if (frame_size != 0) {
     subl(ESP, Immediate(frame_size));
+  }
+}
+
+
+// On entry to a function compiled for OSR, the caller's frame pointer, the
+// stack locals, and any copied parameters are already in place.  The frame
+// pointer is already set up.  The PC marker is not correct for the
+// optimized function and there may be extra space for spill slots to
+// allocate.
+void Assembler::EnterOsrFrame(intptr_t extra_size) {
+  Label dart_entry;
+  call(&dart_entry);
+  Bind(&dart_entry);
+  // The runtime system assumes that the code marker address is
+  // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
+  // code to set up the frame pointer, the address needs to be adjusted.
+  const intptr_t offset = kEntryPointToPcMarkerOffset - CodeSize();
+  if (offset != 0) {
+    addl(Address(ESP, 0), Immediate(offset));
+  }
+  popl(Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+  if (extra_size != 0) {
+    subl(ESP, Immediate(extra_size));
   }
 }
 

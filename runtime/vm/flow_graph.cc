@@ -651,7 +651,8 @@ void FlowGraph::InsertPhis(
 void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
                        VariableLivenessAnalysis* variable_liveness,
                        ZoneGrowableArray<Definition*>* inlining_parameters) {
-  if (!FLAG_optimize_try_catch && (graph_entry_->SuccessorCount() > 1)) {
+  GraphEntryInstr* entry = graph_entry();
+  if (!FLAG_optimize_try_catch && (entry->SuccessorCount() > 1)) {
     Bailout("Catch-entry support in SSA.");
   }
 
@@ -672,28 +673,32 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis,
       env.Add(defn);
     }
   } else {
-    // Create new parameters.
-    for (intptr_t i = 0; i < parameter_count(); ++i) {
-      ParameterInstr* param = new ParameterInstr(i, graph_entry_);
+    // Create new parameters.  For functions compiled for OSR, the locals
+    // are unknown and so treated like parameters.
+    intptr_t count = IsCompiledForOsr() ? variable_count() : parameter_count();
+    for (intptr_t i = 0; i < count; ++i) {
+      ParameterInstr* param = new ParameterInstr(i, entry);
       param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
       AddToInitialDefinitions(param);
       env.Add(param);
     }
   }
 
-  // Initialize all locals with #null in the renaming environment.
-  for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
-    env.Add(constant_null());
+  // Initialize all locals with #null in the renaming environment.  For OSR,
+  // the locals have already been handled as parameters.
+  if (!IsCompiledForOsr()) {
+    for (intptr_t i = parameter_count(); i < variable_count(); ++i) {
+      env.Add(constant_null());
+    }
   }
 
-  if (graph_entry_->SuccessorCount() > 1) {
+  if (entry->SuccessorCount() > 1) {
     // Functions with try-catch have a fixed area of stack slots reserved
     // so that all local variables are stored at a known location when
     // on entry to the catch.
-    graph_entry_->set_fixed_slot_count(
-        num_stack_locals() + num_copied_params());
+    entry->set_fixed_slot_count(num_stack_locals() + num_copied_params());
   }
-  RenameRecursive(graph_entry_, &env, live_phis, variable_liveness);
+  RenameRecursive(entry, &env, live_phis, variable_liveness);
 }
 
 

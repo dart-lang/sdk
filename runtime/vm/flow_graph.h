@@ -181,6 +181,8 @@ class FlowGraph : public ZoneAllocated {
     loop_invariant_loads_ = loop_invariant_loads;
   }
 
+  bool IsCompiledForOsr() const { return graph_entry()->IsCompiledForOsr(); }
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
