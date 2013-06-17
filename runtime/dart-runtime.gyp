@@ -50,7 +50,7 @@
       'sources': [
         'include/dart_api.h',
         'include/dart_debugger_api.h',
-        'include/dart_mirror_api.h',
+        'include/dart_mirrors_api.h',
         'include/dart_native_api.h',
         'vm/dart_api_impl.cc',
         'vm/debugger_api_impl.cc',
