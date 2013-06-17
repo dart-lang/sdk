@@ -36,7 +36,7 @@ class ParameterKind implements Comparable<ParameterKind> {
    * Return `true` if this is an optional parameter.
    * @return `true` if this is an optional parameter
    */
-  bool isOptional() => _isOptional2;
+  bool get isOptional => _isOptional2;
   int compareTo(ParameterKind other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;

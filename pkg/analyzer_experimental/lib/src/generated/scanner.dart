@@ -311,7 +311,7 @@ class Keyword implements Comparable<Keyword> {
    * identifiers.
    * @return `true` if this keyword is a pseudo-keyword
    */
-  bool isPseudoKeyword() => _isPseudoKeyword2;
+  bool get isPseudoKeyword => _isPseudoKeyword2;
   int compareTo(Keyword other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;
@@ -764,7 +764,7 @@ abstract class AbstractScanner {
       return next;
     }
   }
-  int select4(int choice, TokenType yesType, TokenType noType, int offset) {
+  int select3(int choice, TokenType yesType, TokenType noType, int offset) {
     int next = advance();
     if (next == choice) {
       appendToken2(yesType, offset);
@@ -871,7 +871,7 @@ abstract class AbstractScanner {
     if (!hasDigit) {
       appendStringToken(TokenType.INT, getString(start, -2));
       if (0x2E == next) {
-        return select4(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
+        return select3(0x2E, TokenType.PERIOD_PERIOD_PERIOD, TokenType.PERIOD_PERIOD, offset - 1);
       }
       appendToken2(TokenType.PERIOD, offset - 1);
       return bigSwitch(next);
@@ -1460,7 +1460,7 @@ class Token {
    * Return `true` if this token represents an operator.
    * @return `true` if this token represents an operator
    */
-  bool isOperator() => _type.isOperator();
+  bool get isOperator => _type.isOperator;
 
   /**
    * Return `true` if this token is a synthetic token. A synthetic token is a token that was
@@ -1468,13 +1468,13 @@ class Token {
    * have a length of zero (`0`).
    * @return `true` if this token is a synthetic token
    */
-  bool isSynthetic() => length == 0;
+  bool get isSynthetic => length == 0;
 
   /**
    * Return `true` if this token represents an operator that can be defined by users.
    * @return `true` if this token represents an operator that can be defined by users
    */
-  bool isUserDefinableOperator() => _type.isUserDefinableOperator();
+  bool get isUserDefinableOperator => _type.isUserDefinableOperator;
 
   /**
    * Set the next token in the token stream to the given token. This has the side-effect of setting
@@ -1962,13 +1962,13 @@ class TokenType implements Comparable<TokenType> {
    * Return `true` if this type of token represents an additive operator.
    * @return `true` if this type of token represents an additive operator
    */
-  bool isAdditiveOperator() => identical(_tokenClass, TokenClass.ADDITIVE_OPERATOR);
+  bool get isAdditiveOperator => identical(_tokenClass, TokenClass.ADDITIVE_OPERATOR);
 
   /**
    * Return `true` if this type of token represents an assignment operator.
    * @return `true` if this type of token represents an assignment operator
    */
-  bool isAssignmentOperator() => identical(_tokenClass, TokenClass.ASSIGNMENT_OPERATOR);
+  bool get isAssignmentOperator => identical(_tokenClass, TokenClass.ASSIGNMENT_OPERATOR);
 
   /**
    * Return `true` if this type of token represents an associative operator. An associative
@@ -1980,61 +1980,61 @@ class TokenType implements Comparable<TokenType> {
    * evaluation of the right-hand operand is conditional.
    * @return `true` if this type of token represents an associative operator
    */
-  bool isAssociativeOperator() => identical(this, AMPERSAND) || identical(this, AMPERSAND_AMPERSAND) || identical(this, BAR) || identical(this, BAR_BAR) || identical(this, CARET) || identical(this, PLUS) || identical(this, STAR);
+  bool get isAssociativeOperator => identical(this, AMPERSAND) || identical(this, AMPERSAND_AMPERSAND) || identical(this, BAR) || identical(this, BAR_BAR) || identical(this, CARET) || identical(this, PLUS) || identical(this, STAR);
 
   /**
    * Return `true` if this type of token represents an equality operator.
    * @return `true` if this type of token represents an equality operator
    */
-  bool isEqualityOperator() => identical(_tokenClass, TokenClass.EQUALITY_OPERATOR);
+  bool get isEqualityOperator => identical(_tokenClass, TokenClass.EQUALITY_OPERATOR);
 
   /**
    * Return `true` if this type of token represents an increment operator.
    * @return `true` if this type of token represents an increment operator
    */
-  bool isIncrementOperator() => identical(_lexeme, "++") || identical(_lexeme, "--");
+  bool get isIncrementOperator => identical(_lexeme, "++") || identical(_lexeme, "--");
 
   /**
    * Return `true` if this type of token represents a multiplicative operator.
    * @return `true` if this type of token represents a multiplicative operator
    */
-  bool isMultiplicativeOperator() => identical(_tokenClass, TokenClass.MULTIPLICATIVE_OPERATOR);
+  bool get isMultiplicativeOperator => identical(_tokenClass, TokenClass.MULTIPLICATIVE_OPERATOR);
 
   /**
    * Return `true` if this token type represents an operator.
    * @return `true` if this token type represents an operator
    */
-  bool isOperator() => _tokenClass != TokenClass.NO_CLASS && this != OPEN_PAREN && this != OPEN_SQUARE_BRACKET && this != PERIOD;
+  bool get isOperator => _tokenClass != TokenClass.NO_CLASS && this != OPEN_PAREN && this != OPEN_SQUARE_BRACKET && this != PERIOD;
 
   /**
    * Return `true` if this type of token represents a relational operator.
    * @return `true` if this type of token represents a relational operator
    */
-  bool isRelationalOperator() => identical(_tokenClass, TokenClass.RELATIONAL_OPERATOR);
+  bool get isRelationalOperator => identical(_tokenClass, TokenClass.RELATIONAL_OPERATOR);
 
   /**
    * Return `true` if this type of token represents a shift operator.
    * @return `true` if this type of token represents a shift operator
    */
-  bool isShiftOperator() => identical(_tokenClass, TokenClass.SHIFT_OPERATOR);
+  bool get isShiftOperator => identical(_tokenClass, TokenClass.SHIFT_OPERATOR);
 
   /**
    * Return `true` if this type of token represents a unary postfix operator.
    * @return `true` if this type of token represents a unary postfix operator
    */
-  bool isUnaryPostfixOperator() => identical(_tokenClass, TokenClass.UNARY_POSTFIX_OPERATOR);
+  bool get isUnaryPostfixOperator => identical(_tokenClass, TokenClass.UNARY_POSTFIX_OPERATOR);
 
   /**
    * Return `true` if this type of token represents a unary prefix operator.
    * @return `true` if this type of token represents a unary prefix operator
    */
-  bool isUnaryPrefixOperator() => identical(_tokenClass, TokenClass.UNARY_PREFIX_OPERATOR);
+  bool get isUnaryPrefixOperator => identical(_tokenClass, TokenClass.UNARY_PREFIX_OPERATOR);
 
   /**
    * Return `true` if this token type represents an operator that can be defined by users.
    * @return `true` if this token type represents an operator that can be defined by users
    */
-  bool isUserDefinableOperator() => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
+  bool get isUserDefinableOperator => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
   int compareTo(TokenType other) => ordinal - other.ordinal;
   int get hashCode => ordinal;
   String toString() => name;

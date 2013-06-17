@@ -32,37 +32,37 @@ abstract class SdkLibrary {
    * Return `true` if this library can be compiled to JavaScript by dart2js.
    * @return `true` if this library can be compiled to JavaScript by dart2js
    */
-  bool isDart2JsLibrary();
+  bool get isDart2JsLibrary;
 
   /**
    * Return `true` if the library is documented.
    * @return `true` if the library is documented
    */
-  bool isDocumented();
+  bool get isDocumented;
 
   /**
    * Return `true` if the library is an implementation library.
    * @return `true` if the library is an implementation library
    */
-  bool isImplementation();
+  bool get isImplementation;
 
   /**
    * Return `true` if library is internal can be used only by other SDK libraries.
    * @return `true` if library is internal can be used only by other SDK libraries
    */
-  bool isInternal();
+  bool get isInternal;
 
   /**
    * Return `true` if library can be used for both client and server.
    * @return `true` if this library can be used for both client and server.
    */
-  bool isShared();
+  bool get isShared;
 
   /**
    * Return `true` if this library can be run on the VM.
    * @return `true` if this library can be run on the VM
    */
-  bool isVmLibrary();
+  bool get isVmLibrary;
 }
 /**
  * Instances of the class `SdkLibrary` represent the information known about a single library
@@ -125,21 +125,21 @@ class SdkLibraryImpl implements SdkLibrary {
   String get category => _category;
   String get path => _path;
   String get shortName => _shortName;
-  bool isDart2JsLibrary() => (_platforms & DART2JS_PLATFORM) != 0;
-  bool isDocumented() => _documented;
-  bool isImplementation() => _implementation;
-  bool isInternal() => "Internal" == _category;
+  bool get isDart2JsLibrary => (_platforms & DART2JS_PLATFORM) != 0;
+  bool get isDocumented => _documented;
+  bool get isImplementation => _implementation;
+  bool get isInternal => "Internal" == _category;
 
   /**
    * Return `true` if library can be used for both client and server
    */
-  bool isShared() => _category == "Shared";
+  bool get isShared => _category == "Shared";
 
   /**
    * Return `true` if this library can be run on the VM.
    * @return `true` if this library can be run on the VM
    */
-  bool isVmLibrary() => (_platforms & VM_PLATFORM) != 0;
+  bool get isVmLibrary => (_platforms & VM_PLATFORM) != 0;
 
   /**
    * Set the name of the category containing the library to the given name.

@@ -75,7 +75,7 @@ class Instrumentation {
    * it?
    * @return
    */
-  static bool isNullLogger() => identical(_CURRENT_LOGGER, _NULL_LOGGER);
+  static bool get isNullLogger => identical(_CURRENT_LOGGER, _NULL_LOGGER);
 
   /**
    * Set the logger that should receive instrumentation information to the given logger.

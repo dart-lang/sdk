@@ -118,7 +118,7 @@ class Token {
    * have a length of zero (`0`).
    * @return `true` if this token is a synthetic token
    */
-  bool isSynthetic() => length == 0;
+  bool get isSynthetic => length == 0;
 
   /**
    * Set the next token in the token stream to the given token. This has the side-effect of setting

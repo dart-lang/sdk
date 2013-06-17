@@ -517,7 +517,7 @@ class Parser {
    * @param expression the expression being checked
    */
   void ensureAssignable(Expression expression) {
-    if (expression != null && !expression.isAssignable()) {
+    if (expression != null && !expression.isAssignable) {
       reportError7(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, []);
     }
   }
@@ -657,7 +657,7 @@ class Parser {
    * Return `true` if the current token appears to be the beginning of a function declaration.
    * @return `true` if the current token appears to be the beginning of a function declaration
    */
-  bool isFunctionDeclaration() {
+  bool get isFunctionDeclaration {
     if (matches(Keyword.VOID)) {
       return true;
     }
@@ -717,7 +717,7 @@ class Parser {
    * @return `true` if the current token is the first token in an initialized variable
    * declaration
    */
-  bool isInitializedVariableDeclaration() {
+  bool get isInitializedVariableDeclaration {
     if (matches(Keyword.FINAL) || matches(Keyword.VAR)) {
       return true;
     }
@@ -773,9 +773,9 @@ class Parser {
    * @return `true` if the given token appears to be the beginning of an operator declaration
    */
   bool isOperator(Token startToken) {
-    if (startToken.isOperator()) {
+    if (startToken.isOperator) {
       Token token = startToken.next;
-      while (token.isOperator()) {
+      while (token.isOperator) {
         token = token.next;
       }
       return matches4(token, TokenType.OPEN_PAREN);
@@ -787,7 +787,7 @@ class Parser {
    * Return `true` if the current token appears to be the beginning of a switch member.
    * @return `true` if the current token appears to be the beginning of a switch member
    */
-  bool isSwitchMember() {
+  bool get isSwitchMember {
     Token token = _currentToken;
     while (matches4(token, TokenType.IDENTIFIER) && matches4(token.next, TokenType.COLON)) {
       token = token.next.next;
@@ -928,7 +928,7 @@ class Parser {
    * built-in identifiers (pseudo-keywords).
    * @return `true` if the given token is a valid identifier
    */
-  bool matchesIdentifier2(Token token) => matches4(token, TokenType.IDENTIFIER) || (matches4(token, TokenType.KEYWORD) && ((token as KeywordToken)).keyword.isPseudoKeyword());
+  bool matchesIdentifier2(Token token) => matches4(token, TokenType.IDENTIFIER) || (matches4(token, TokenType.KEYWORD) && ((token as KeywordToken)).keyword.isPseudoKeyword);
 
   /**
    * If the current token has the given type, then advance to the next token and return `true`. Otherwise, return `false` without advancing.
@@ -954,12 +954,12 @@ class Parser {
    */
   Expression parseAdditiveExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isAdditiveOperator()) {
+    if (matches(Keyword.SUPER) && _currentToken.next.type.isAdditiveOperator) {
       expression = new SuperExpression.full(andAdvance);
     } else {
       expression = parseMultiplicativeExpression();
     }
-    while (_currentToken.type.isAdditiveOperator()) {
+    while (_currentToken.type.isAdditiveOperator) {
       Token operator = andAdvance;
       expression = new BinaryExpression.full(expression, operator, parseMultiplicativeExpression());
     }
@@ -1330,7 +1330,7 @@ class Parser {
         }
       }
     }
-    if (_currentToken.type.isAssignmentOperator()) {
+    if (_currentToken.type.isAssignmentOperator) {
       Token operator = andAdvance;
       ensureAssignable(expression);
       expression = new AssignmentExpression.full(expression, operator, parseExpressionWithoutCascade());
@@ -2204,12 +2204,12 @@ class Parser {
    */
   Expression parseEqualityExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isEqualityOperator()) {
+    if (matches(Keyword.SUPER) && _currentToken.next.type.isEqualityOperator) {
       expression = new SuperExpression.full(andAdvance);
     } else {
       expression = parseRelationalExpression();
     }
-    while (_currentToken.type.isEqualityOperator()) {
+    while (_currentToken.type.isEqualityOperator) {
       Token operator = andAdvance;
       expression = new BinaryExpression.full(expression, operator, parseRelationalExpression());
     }
@@ -2261,7 +2261,7 @@ class Parser {
         tokenType = _currentToken.type;
       }
       return new CascadeExpression.full(expression, cascadeSections);
-    } else if (tokenType.isAssignmentOperator()) {
+    } else if (tokenType.isAssignmentOperator) {
       Token operator = andAdvance;
       ensureAssignable(expression);
       return new AssignmentExpression.full(expression, operator, parseExpression2());
@@ -2303,7 +2303,7 @@ class Parser {
       return parseRethrowExpression();
     }
     Expression expression = parseConditionalExpression();
-    if (_currentToken.type.isAssignmentOperator()) {
+    if (_currentToken.type.isAssignmentOperator) {
       Token operator = andAdvance;
       ensureAssignable(expression);
       expression = new AssignmentExpression.full(expression, operator, parseExpressionWithoutCascade());
@@ -2548,7 +2548,7 @@ class Parser {
           SimpleIdentifier variableName = parseSimpleIdentifier();
           variables.add(new VariableDeclaration.full(null, null, variableName, null, null));
           variableList = new VariableDeclarationList.full(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, variables);
-        } else if (isInitializedVariableDeclaration()) {
+        } else if (isInitializedVariableDeclaration) {
           variableList = parseVariableDeclarationList(commentAndMetadata);
         } else {
           initialization = parseExpression2();
@@ -3259,12 +3259,12 @@ class Parser {
    */
   Expression parseMultiplicativeExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isMultiplicativeOperator()) {
+    if (matches(Keyword.SUPER) && _currentToken.next.type.isMultiplicativeOperator) {
       expression = new SuperExpression.full(andAdvance);
     } else {
       expression = parseUnaryExpression();
     }
-    while (_currentToken.type.isMultiplicativeOperator()) {
+    while (_currentToken.type.isMultiplicativeOperator) {
       Token operator = andAdvance;
       expression = new BinaryExpression.full(expression, operator, parseUnaryExpression());
     }
@@ -3312,7 +3312,7 @@ class Parser {
         }
       }
       return parseBlock();
-    } else if (matches5(TokenType.KEYWORD) && !((_currentToken as KeywordToken)).keyword.isPseudoKeyword()) {
+    } else if (matches5(TokenType.KEYWORD) && !((_currentToken as KeywordToken)).keyword.isPseudoKeyword) {
       Keyword keyword = ((_currentToken as KeywordToken)).keyword;
       if (identical(keyword, Keyword.ASSERT)) {
         return parseAssertStatement();
@@ -3376,9 +3376,9 @@ class Parser {
       }
     } else if (matches5(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
-    } else if (isInitializedVariableDeclaration()) {
+    } else if (isInitializedVariableDeclaration) {
       return parseVariableDeclarationStatement(commentAndMetadata);
-    } else if (isFunctionDeclaration()) {
+    } else if (isFunctionDeclaration) {
       return parseFunctionDeclarationStatement();
     } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
       reportError7(ParserErrorCode.MISSING_STATEMENT, []);
@@ -3454,7 +3454,7 @@ class Parser {
       reportError8(ParserErrorCode.MISSING_KEYWORD_OPERATOR, _currentToken, []);
       operatorKeyword = createSyntheticToken(Keyword.OPERATOR);
     }
-    if (!_currentToken.isUserDefinableOperator()) {
+    if (!_currentToken.isUserDefinableOperator) {
       reportError7(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
     SimpleIdentifier name = new SimpleIdentifier.full(andAdvance);
@@ -3543,7 +3543,7 @@ class Parser {
       } while (matches5(TokenType.OPEN_SQUARE_BRACKET) || matches5(TokenType.PERIOD) || matches5(TokenType.OPEN_PAREN));
       return operand;
     }
-    if (!_currentToken.type.isIncrementOperator()) {
+    if (!_currentToken.type.isIncrementOperator) {
       return operand;
     }
     if (operand is FunctionExpressionInvocation) {
@@ -3693,7 +3693,7 @@ class Parser {
    * @return the relational expression that was parsed
    */
   Expression parseRelationalExpression() {
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isRelationalOperator()) {
+    if (matches(Keyword.SUPER) && _currentToken.next.type.isRelationalOperator) {
       Expression expression = new SuperExpression.full(andAdvance);
       Token operator = andAdvance;
       expression = new BinaryExpression.full(expression, operator, parseShiftExpression());
@@ -3710,7 +3710,7 @@ class Parser {
         notOperator = andAdvance;
       }
       expression = new IsExpression.full(expression, isOperator, notOperator, parseTypeName());
-    } else if (_currentToken.type.isRelationalOperator()) {
+    } else if (_currentToken.type.isRelationalOperator) {
       Token operator = andAdvance;
       expression = new BinaryExpression.full(expression, operator, parseShiftExpression());
     }
@@ -3801,12 +3801,12 @@ class Parser {
    */
   Expression parseShiftExpression() {
     Expression expression;
-    if (matches(Keyword.SUPER) && _currentToken.next.type.isShiftOperator()) {
+    if (matches(Keyword.SUPER) && _currentToken.next.type.isShiftOperator) {
       expression = new SuperExpression.full(andAdvance);
     } else {
       expression = parseAdditiveExpression();
     }
-    while (_currentToken.type.isShiftOperator()) {
+    while (_currentToken.type.isShiftOperator) {
       Token operator = andAdvance;
       expression = new BinaryExpression.full(expression, operator, parseAdditiveExpression());
     }
@@ -3862,7 +3862,7 @@ class Parser {
   List<Statement> parseStatements2() {
     List<Statement> statements = new List<Statement>();
     Token statementStart = _currentToken;
-    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember()) {
+    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember) {
       statements.add(parseStatement2());
       if (identical(_currentToken, statementStart)) {
         reportError8(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);
@@ -4256,7 +4256,7 @@ class Parser {
         return new PrefixExpression.full(operator, new SuperExpression.full(andAdvance));
       }
       return new PrefixExpression.full(operator, parseUnaryExpression());
-    } else if (_currentToken.type.isIncrementOperator()) {
+    } else if (_currentToken.type.isIncrementOperator) {
       Token operator = andAdvance;
       if (matches(Keyword.SUPER)) {
         if (matches4(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches4(peek(), TokenType.PERIOD)) {
@@ -4630,7 +4630,7 @@ class Parser {
    * @return the token following the simple identifier that was parsed
    */
   Token skipSimpleIdentifier(Token startToken) {
-    if (matches4(startToken, TokenType.IDENTIFIER) || (matches4(startToken, TokenType.KEYWORD) && ((startToken as KeywordToken)).keyword.isPseudoKeyword())) {
+    if (matches4(startToken, TokenType.IDENTIFIER) || (matches4(startToken, TokenType.KEYWORD) && ((startToken as KeywordToken)).keyword.isPseudoKeyword)) {
       return startToken.next;
     }
     return null;
@@ -5530,7 +5530,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
       for (String line in StringUtils.split(token.lexeme, "\n")) {
         if (firstLine) {
           firstLine = false;
-          if (node.isDocumentation()) {
+          if (node.isDocumentation) {
             nl2();
           }
         } else {
@@ -5790,7 +5790,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitIndexExpression(IndexExpression node) {
-    if (node.isCascaded()) {
+    if (node.isCascaded) {
       _writer.print("..");
     } else {
       visit(node.array);
@@ -5892,7 +5892,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     visit8(node.propertyKeyword, " ");
     visit8(node.operatorKeyword, " ");
     visit(node.name);
-    if (!node.isGetter()) {
+    if (!node.isGetter) {
       visit(node.parameters);
     }
     if (node.body is! EmptyFunctionBody) {
@@ -5902,7 +5902,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitMethodInvocation(MethodInvocation node) {
-    if (node.isCascaded()) {
+    if (node.isCascaded) {
       _writer.print("..");
     } else {
       visit6(node.target, ".");
@@ -5961,7 +5961,7 @@ class ToFormattedSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitPropertyAccess(PropertyAccess node) {
-    if (node.isCascaded()) {
+    if (node.isCascaded) {
       _writer.print("..");
     } else {
       visit6(node.target, ".");

@@ -2732,7 +2732,7 @@ class FunctionTypeImplTest extends EngineTestCase {
 }
 class InterfaceTypeImpl_18 extends InterfaceTypeImpl {
   InterfaceTypeImpl_18(ClassElement arg0) : super.con1(arg0);
-  bool isDartCoreFunction() => true;
+  bool get isDartCoreFunction => true;
 }
 main() {
   ElementKindTest.dartSuite();

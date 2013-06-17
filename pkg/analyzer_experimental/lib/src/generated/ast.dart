@@ -145,7 +145,7 @@ abstract class ASTNode {
    * have a length of zero (`0`).
    * @return `true` if this node is a synthetic node
    */
-  bool isSynthetic() => false;
+  bool get isSynthetic => false;
 
   /**
    * Set the value of the property with the given name to the given value. If the value is`null`, the property will effectively be removed.
@@ -1672,7 +1672,7 @@ class BooleanLiteral extends Literal {
    * @return the value of the literal
    */
   bool get value => _value;
-  bool isSynthetic() => _literal.isSynthetic();
+  bool get isSynthetic => _literal.isSynthetic;
 
   /**
    * Set the token representing the literal to the given token.
@@ -2728,19 +2728,19 @@ class Comment extends ASTNode {
    * Return `true` if this is a block comment.
    * @return `true` if this is a block comment
    */
-  bool isBlock() => identical(_type, CommentType.BLOCK);
+  bool get isBlock => identical(_type, CommentType.BLOCK);
 
   /**
    * Return `true` if this is a documentation comment.
    * @return `true` if this is a documentation comment
    */
-  bool isDocumentation() => identical(_type, CommentType.DOCUMENTATION);
+  bool get isDocumentation => identical(_type, CommentType.DOCUMENTATION);
 
   /**
    * Return `true` if this is an end-of-line comment.
    * @return `true` if this is an end-of-line comment
    */
-  bool isEndOfLine() => identical(_type, CommentType.END_OF_LINE);
+  bool get isEndOfLine => identical(_type, CommentType.END_OF_LINE);
   void visitChildren(ASTVisitor<Object> visitor) {
     _references.accept(visitor);
   }
@@ -4115,7 +4115,7 @@ class DeclaredIdentifier extends Declaration {
    * Return `true` if this variable was declared with the 'const' modifier.
    * @return `true` if this variable was declared with the 'const' modifier
    */
-  bool isConst() => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
 
   /**
    * Return `true` if this variable was declared with the 'final' modifier. Variables that are
@@ -4123,7 +4123,7 @@ class DeclaredIdentifier extends Declaration {
    * final.
    * @return `true` if this variable was declared with the 'final' modifier
    */
-  bool isFinal() => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
+  bool get isFinal => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
 
   /**
    * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
@@ -4245,7 +4245,7 @@ class DefaultFormalParameter extends FormalParameter {
    * Return `true` if this parameter was declared with the 'const' modifier.
    * @return `true` if this parameter was declared with the 'const' modifier
    */
-  bool isConst() => _parameter != null && _parameter.isConst();
+  bool get isConst => _parameter != null && _parameter.isConst;
 
   /**
    * Return `true` if this parameter was declared with the 'final' modifier. Parameters that
@@ -4253,7 +4253,7 @@ class DefaultFormalParameter extends FormalParameter {
    * implicitly final.
    * @return `true` if this parameter was declared with the 'final' modifier
    */
-  bool isFinal() => _parameter != null && _parameter.isFinal();
+  bool get isFinal => _parameter != null && _parameter.isFinal;
 
   /**
    * Set the expression computing the default value for the parameter to the given expression.
@@ -4852,7 +4852,7 @@ abstract class Expression extends ASTNode {
    * Return `true` if this expression is syntactically valid for the LHS of an[AssignmentExpression assignment expression].
    * @return `true` if this expression matches the `assignableExpression` production
    */
-  bool isAssignable() => false;
+  bool get isAssignable => false;
 
   /**
    * Set the propagated type of this expression to the given type.
@@ -5028,7 +5028,7 @@ class ExpressionStatement extends Statement {
    * @return the semicolon terminating the statement
    */
   Token get semicolon => _semicolon;
-  bool isSynthetic() => _expression.isSynthetic() && _semicolon.isSynthetic();
+  bool get isSynthetic => _expression.isSynthetic && _semicolon.isSynthetic;
 
   /**
    * Set the expression that comprises the statement to the given expression.
@@ -5196,7 +5196,7 @@ class FieldDeclaration extends ClassMember {
    * Return `true` if the fields are static.
    * @return `true` if the fields are declared to be static
    */
-  bool isStatic() => _keyword != null;
+  bool get isStatic => _keyword != null;
 
   /**
    * Set the fields being declared to the given list of variables.
@@ -5326,8 +5326,8 @@ class FieldFormalParameter extends NormalFormalParameter {
    * @return the name of the declared type of the parameter
    */
   TypeName get type => _type;
-  bool isConst() => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
-  bool isFinal() => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
+  bool get isConst => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isFinal => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
 
   /**
    * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
@@ -6112,13 +6112,13 @@ class FunctionDeclaration extends CompilationUnitMember {
    * Return `true` if this function declares a getter.
    * @return `true` if this function declares a getter
    */
-  bool isGetter() => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.GET);
+  bool get isGetter => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.GET);
 
   /**
    * Return `true` if this function declares a setter.
    * @return `true` if this function declares a setter
    */
-  bool isSetter() => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.SET);
+  bool get isSetter => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.SET);
 
   /**
    * Set the token representing the 'external' keyword to the given token.
@@ -6642,8 +6642,8 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * @return the return type of the function
    */
   TypeName get returnType => _returnType;
-  bool isConst() => false;
-  bool isFinal() => false;
+  bool get isConst => false;
+  bool get isFinal => false;
 
   /**
    * Set the parameters of the function-typed parameter to the given parameters.
@@ -6749,7 +6749,7 @@ abstract class Identifier extends Expression {
    * @return the element associated with the operator
    */
   Element get staticElement;
-  bool isAssignable() => true;
+  bool get isAssignable => true;
 }
 /**
  * Instances of the class `IfStatement` represent an if statement.
@@ -7252,7 +7252,7 @@ class IndexExpression extends Expression {
    * @see #getArray()
    */
   Expression get realTarget {
-    if (isCascaded()) {
+    if (isCascaded) {
       ASTNode ancestor = parent;
       while (ancestor is! CascadeExpression) {
         if (ancestor == null) {
@@ -7308,7 +7308,7 @@ class IndexExpression extends Expression {
   bool inSetterContext() {
     ASTNode parent = this.parent;
     if (parent is PrefixExpression) {
-      return ((parent as PrefixExpression)).operator.type.isIncrementOperator();
+      return ((parent as PrefixExpression)).operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
       return true;
     } else if (parent is AssignmentExpression) {
@@ -7316,14 +7316,14 @@ class IndexExpression extends Expression {
     }
     return false;
   }
-  bool isAssignable() => true;
+  bool get isAssignable => true;
 
   /**
    * Return `true` if this expression is cascaded. If it is, then the target of this
    * expression is not stored locally but is stored in the nearest ancestor that is a[CascadeExpression].
    * @return `true` if this expression is cascaded
    */
-  bool isCascaded() => _period != null;
+  bool get isCascaded => _period != null;
 
   /**
    * Set the expression used to compute the object being indexed to the given expression.
@@ -7522,7 +7522,7 @@ class InstanceCreationExpression extends Expression {
    * Return `true` if this creation expression is used to invoke a constant constructor.
    * @return `true` if this creation expression is used to invoke a constant constructor
    */
-  bool isConst() => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
 
   /**
    * Set the list of arguments to the constructor to the given list.
@@ -8706,31 +8706,31 @@ class MethodDeclaration extends ClassMember {
    * Return `true` if this method is declared to be an abstract method.
    * @return `true` if this method is declared to be an abstract method
    */
-  bool isAbstract() => _externalKeyword == null && (_body is EmptyFunctionBody);
+  bool get isAbstract => _externalKeyword == null && (_body is EmptyFunctionBody);
 
   /**
    * Return `true` if this method declares a getter.
    * @return `true` if this method declares a getter
    */
-  bool isGetter() => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.GET);
+  bool get isGetter => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.GET);
 
   /**
    * Return `true` if this method declares an operator.
    * @return `true` if this method declares an operator
    */
-  bool isOperator() => _operatorKeyword != null;
+  bool get isOperator => _operatorKeyword != null;
 
   /**
    * Return `true` if this method declares a setter.
    * @return `true` if this method declares a setter
    */
-  bool isSetter() => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.SET);
+  bool get isSetter => _propertyKeyword != null && identical(((_propertyKeyword as KeywordToken)).keyword, Keyword.SET);
 
   /**
    * Return `true` if this method is declared to be a static method.
    * @return `true` if this method is declared to be a static method
    */
-  bool isStatic() => _modifierKeyword != null && identical(((_modifierKeyword as KeywordToken)).keyword, Keyword.STATIC);
+  bool get isStatic => _modifierKeyword != null && identical(((_modifierKeyword as KeywordToken)).keyword, Keyword.STATIC);
 
   /**
    * Set the body of the method to the given function body.
@@ -8909,7 +8909,7 @@ class MethodInvocation extends Expression {
    * @see #getTarget()
    */
   Expression get realTarget {
-    if (isCascaded()) {
+    if (isCascaded) {
       ASTNode ancestor = parent;
       while (ancestor is! CascadeExpression) {
         if (ancestor == null) {
@@ -8936,7 +8936,7 @@ class MethodInvocation extends Expression {
    * expression is not stored locally but is stored in the nearest ancestor that is a[CascadeExpression].
    * @return `true` if this expression is cascaded
    */
-  bool isCascaded() => _period != null && identical(_period.type, TokenType.PERIOD_PERIOD);
+  bool get isCascaded => _period != null && identical(_period.type, TokenType.PERIOD_PERIOD);
 
   /**
    * Set the list of arguments to the method to the given list.
@@ -9285,7 +9285,7 @@ abstract class NormalFormalParameter extends FormalParameter {
    * Return `true` if this parameter was declared with the 'const' modifier.
    * @return `true` if this parameter was declared with the 'const' modifier
    */
-  bool isConst();
+  bool get isConst;
 
   /**
    * Return `true` if this parameter was declared with the 'final' modifier. Parameters that
@@ -9293,7 +9293,7 @@ abstract class NormalFormalParameter extends FormalParameter {
    * implicitly final.
    * @return `true` if this parameter was declared with the 'final' modifier
    */
-  bool isFinal();
+  bool get isFinal;
 
   /**
    * Set the documentation comment associated with this parameter to the given comment
@@ -10177,7 +10177,7 @@ class PropertyAccess extends Expression {
    * @see #getTarget()
    */
   Expression get realTarget {
-    if (isCascaded()) {
+    if (isCascaded) {
       ASTNode ancestor = parent;
       while (ancestor is! CascadeExpression) {
         if (ancestor == null) {
@@ -10196,14 +10196,14 @@ class PropertyAccess extends Expression {
    * @see #getRealTarget()
    */
   Expression get target => _target;
-  bool isAssignable() => true;
+  bool get isAssignable => true;
 
   /**
    * Return `true` if this expression is cascaded. If it is, then the target of this
    * expression is not stored locally but is stored in the nearest ancestor that is a[CascadeExpression].
    * @return `true` if this expression is cascaded
    */
-  bool isCascaded() => _operator != null && identical(_operator.type, TokenType.PERIOD_PERIOD);
+  bool get isCascaded => _operator != null && identical(_operator.type, TokenType.PERIOD_PERIOD);
 
   /**
    * Set the property access operator to the given token.
@@ -10701,8 +10701,8 @@ class SimpleFormalParameter extends NormalFormalParameter {
    * @return the name of the declared type of the parameter
    */
   TypeName get type => _type;
-  bool isConst() => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
-  bool isFinal() => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
+  bool get isConst => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isFinal => (_keyword is KeywordToken) && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
 
   /**
    * Set the token representing either the 'final', 'const' or 'var' keyword to the given token.
@@ -10875,7 +10875,7 @@ class SimpleIdentifier extends Identifier {
       target = access;
     }
     if (parent is PrefixExpression) {
-      return ((parent as PrefixExpression)).operator.type.isIncrementOperator();
+      return ((parent as PrefixExpression)).operator.type.isIncrementOperator;
     } else if (parent is PostfixExpression) {
       return true;
     } else if (parent is AssignmentExpression) {
@@ -10883,7 +10883,7 @@ class SimpleIdentifier extends Identifier {
     }
     return false;
   }
-  bool isSynthetic() => _token.isSynthetic();
+  bool get isSynthetic => _token.isSynthetic;
 
   /**
    * Set the element associated with this identifier based on propagated type information to the
@@ -10982,7 +10982,7 @@ class SimpleStringLiteral extends StringLiteral {
    * Return `true` if this string literal is a multi-line string.
    * @return `true` if this string literal is a multi-line string
    */
-  bool isMultiline() {
+  bool get isMultiline {
     if (_value.length < 6) {
       return false;
     }
@@ -10993,8 +10993,8 @@ class SimpleStringLiteral extends StringLiteral {
    * Return `true` if this string literal is a raw string.
    * @return `true` if this string literal is a raw string
    */
-  bool isRaw() => _value.codeUnitAt(0) == 0x40;
-  bool isSynthetic() => _literal.isSynthetic();
+  bool get isRaw => _value.codeUnitAt(0) == 0x40;
+  bool get isSynthetic => _literal.isSynthetic;
 
   /**
    * Set the token representing the literal to the given token.
@@ -12265,7 +12265,7 @@ class TypeName extends ASTNode {
    * @return the type arguments associated with the type
    */
   TypeArgumentList get typeArguments => _typeArguments;
-  bool isSynthetic() => _name.isSynthetic() && _typeArguments == null;
+  bool get isSynthetic => _name.isSynthetic && _typeArguments == null;
 
   /**
    * Set the name of the type to the given identifier.
@@ -12702,9 +12702,9 @@ class VariableDeclaration extends Declaration {
    * Return `true` if this variable was declared with the 'const' modifier.
    * @return `true` if this variable was declared with the 'const' modifier
    */
-  bool isConst() {
+  bool get isConst {
     ASTNode parent = this.parent;
-    return parent is VariableDeclarationList && ((parent as VariableDeclarationList)).isConst();
+    return parent is VariableDeclarationList && ((parent as VariableDeclarationList)).isConst;
   }
 
   /**
@@ -12713,9 +12713,9 @@ class VariableDeclaration extends Declaration {
    * final.
    * @return `true` if this variable was declared with the 'final' modifier
    */
-  bool isFinal() {
+  bool get isFinal {
     ASTNode parent = this.parent;
-    return parent is VariableDeclarationList && ((parent as VariableDeclarationList)).isFinal();
+    return parent is VariableDeclarationList && ((parent as VariableDeclarationList)).isFinal;
   }
 
   /**
@@ -12829,7 +12829,7 @@ class VariableDeclarationList extends AnnotatedNode {
    * Return `true` if the variables in this list were declared with the 'const' modifier.
    * @return `true` if the variables in this list were declared with the 'const' modifier
    */
-  bool isConst() => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
+  bool get isConst => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.CONST);
 
   /**
    * Return `true` if the variables in this list were declared with the 'final' modifier.
@@ -12837,7 +12837,7 @@ class VariableDeclarationList extends AnnotatedNode {
    * they are implicitly final.
    * @return `true` if the variables in this list were declared with the 'final' modifier
    */
-  bool isFinal() => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
+  bool get isFinal => _keyword is KeywordToken && identical(((_keyword as KeywordToken)).keyword, Keyword.FINAL);
 
   /**
    * Set the token representing the 'final', 'const' or 'var' keyword to the given token.
@@ -13449,7 +13449,7 @@ class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   Object getConstantValue(Element element) {
     if (element is FieldElement) {
       FieldElement field = element as FieldElement;
-      if (field.isStatic() && field.isConst()) {
+      if (field.isStatic && field.isConst) {
       }
     }
     return NOT_A_CONSTANT;
@@ -14680,7 +14680,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitIndexExpression(IndexExpression node) {
-    if (node.isCascaded()) {
+    if (node.isCascaded) {
       _writer.print("..");
     } else {
       visit(node.array);
@@ -14780,14 +14780,14 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     visit5(node.propertyKeyword, " ");
     visit5(node.operatorKeyword, " ");
     visit(node.name);
-    if (!node.isGetter()) {
+    if (!node.isGetter) {
       visit(node.parameters);
     }
     visit4(" ", node.body);
     return null;
   }
   Object visitMethodInvocation(MethodInvocation node) {
-    if (node.isCascaded()) {
+    if (node.isCascaded) {
       _writer.print("..");
     } else {
       visit2(node.target, ".");
@@ -14846,7 +14846,7 @@ class ToSourceVisitor implements ASTVisitor<Object> {
     return null;
   }
   Object visitPropertyAccess(PropertyAccess node) {
-    if (node.isCascaded()) {
+    if (node.isCascaded) {
       _writer.print("..");
     } else {
       visit(node.target);
@@ -15155,9 +15155,9 @@ class ASTCloner implements ASTVisitor<ASTNode> {
   ClassDeclaration visitClassDeclaration(ClassDeclaration node) => new ClassDeclaration.full(clone2(node.documentationComment), clone3(node.metadata), node.abstractKeyword, node.classKeyword, clone2(node.name), clone2(node.typeParameters), clone2(node.extendsClause), clone2(node.withClause), clone2(node.implementsClause), node.leftBracket, clone3(node.members), node.rightBracket);
   ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias.full(clone2(node.documentationComment), clone3(node.metadata), node.keyword, clone2(node.name), clone2(node.typeParameters), node.equals, node.abstractKeyword, clone2(node.superclass), clone2(node.withClause), clone2(node.implementsClause), node.semicolon);
   Comment visitComment(Comment node) {
-    if (node.isDocumentation()) {
+    if (node.isDocumentation) {
       return Comment.createDocumentationComment2(node.tokens, clone3(node.references));
-    } else if (node.isBlock()) {
+    } else if (node.isBlock) {
       return Comment.createBlockComment(node.tokens);
     }
     return Comment.createEndOfLineComment(node.tokens);

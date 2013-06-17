@@ -345,7 +345,7 @@ abstract class Source {
    * Return `true` if this source is in one of the system libraries.
    * @return `true` if this is in a system library
    */
-  bool isInSystemLibrary();
+  bool get isInSystemLibrary;
 
   /**
    * Resolve the relative URI against the URI associated with this source object. Return a[Source source] representing the URI to which it was resolved, or `null` if it

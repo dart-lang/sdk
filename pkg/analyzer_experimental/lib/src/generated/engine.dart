@@ -82,7 +82,7 @@ class AnalysisEngine {
    * @return the analysis context that was created
    */
   AnalysisContext createAnalysisContext() {
-    if (Instrumentation.isNullLogger()) {
+    if (Instrumentation.isNullLogger) {
       return new DelegatingAnalysisContextImpl();
     } else {
       return new InstrumentedAnalysisContextImpl.con1(new DelegatingAnalysisContextImpl());
@@ -678,7 +678,7 @@ class ChangeSet {
    * Return `true` if this change set does not contain any changes.
    * @return `true` if this change set does not contain any changes
    */
-  bool isEmpty() => _added2.isEmpty && _changed2.isEmpty && _removed2.isEmpty && _removedContainers.isEmpty;
+  bool get isEmpty => _added2.isEmpty && _changed2.isEmpty && _removed2.isEmpty && _removedContainers.isEmpty;
 
   /**
    * Record that the specified source has been removed.
@@ -1884,7 +1884,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _sourceMap[source] = info;
   }
   void applyChanges(ChangeSet changeSet) {
-    if (changeSet.isEmpty()) {
+    if (changeSet.isEmpty) {
       return;
     }
     {
@@ -1906,7 +1906,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       if (addedDartSource) {
         for (MapEntry<Source, SourceEntry> mapEntry in getMapEntrySet(_sourceMap)) {
-          if (!mapEntry.getKey().isInSystemLibrary() && mapEntry.getValue() is DartEntry) {
+          if (!mapEntry.getKey().isInSystemLibrary && mapEntry.getValue() is DartEntry) {
             DartEntryImpl dartCopy = ((mapEntry.getValue() as DartEntry)).writableCopy;
             dartCopy.invalidateAllResolutionInformation();
             mapEntry.setValue(dartCopy);
@@ -2172,7 +2172,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       for (MapEntry<Source, SourceEntry> entry in getMapEntrySet(_sourceMap)) {
         Source source = entry.getKey();
         SourceEntry sourceEntry = entry.getValue();
-        if (identical(sourceEntry.kind, SourceKind.LIBRARY) && !source.isInSystemLibrary()) {
+        if (identical(sourceEntry.kind, SourceKind.LIBRARY) && !source.isInSystemLibrary) {
           sources.add(source);
         }
       }
@@ -2185,7 +2185,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       for (MapEntry<Source, SourceEntry> entry in getMapEntrySet(_sourceMap)) {
         Source source = entry.getKey();
         SourceEntry sourceEntry = entry.getValue();
-        if (identical(sourceEntry.kind, SourceKind.LIBRARY) && !source.isInSystemLibrary()) {
+        if (identical(sourceEntry.kind, SourceKind.LIBRARY) && !source.isInSystemLibrary) {
           sources.add(source);
         }
       }
@@ -3500,98 +3500,98 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
    */
   InternalAnalysisContext _sdkAnalysisContext;
   void addSourceInfo(Source source, SourceEntry info) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       _sdkAnalysisContext.addSourceInfo(source, info);
     } else {
       super.addSourceInfo(source, info);
     }
   }
   List<AnalysisError> computeErrors(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.computeErrors(source);
     } else {
       return super.computeErrors(source);
     }
   }
   HtmlElement computeHtmlElement(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.computeHtmlElement(source);
     } else {
       return super.computeHtmlElement(source);
     }
   }
   SourceKind computeKindOf(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.computeKindOf(source);
     } else {
       return super.computeKindOf(source);
     }
   }
   LibraryElement computeLibraryElement(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.computeLibraryElement(source);
     } else {
       return super.computeLibraryElement(source);
     }
   }
   LineInfo computeLineInfo(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.computeLineInfo(source);
     } else {
       return super.computeLineInfo(source);
     }
   }
   CompilationUnit computeResolvableCompilationUnit(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.computeResolvableCompilationUnit(source);
     } else {
       return super.computeResolvableCompilationUnit(source);
     }
   }
   AnalysisErrorInfo getErrors(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getErrors(source);
     } else {
       return super.getErrors(source);
     }
   }
   HtmlElement getHtmlElement(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getHtmlElement(source);
     } else {
       return super.getHtmlElement(source);
     }
   }
   List<Source> getHtmlFilesReferencing(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getHtmlFilesReferencing(source);
     } else {
       return super.getHtmlFilesReferencing(source);
     }
   }
   SourceKind getKindOf(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getKindOf(source);
     } else {
       return super.getKindOf(source);
     }
   }
   List<Source> getLibrariesContaining(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getLibrariesContaining(source);
     } else {
       return super.getLibrariesContaining(source);
     }
   }
   List<Source> getLibrariesDependingOn(Source librarySource) {
-    if (librarySource.isInSystemLibrary()) {
+    if (librarySource.isInSystemLibrary) {
       return _sdkAnalysisContext.getLibrariesDependingOn(librarySource);
     } else {
       return super.getLibrariesDependingOn(librarySource);
     }
   }
   LibraryElement getLibraryElement(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getLibraryElement(source);
     } else {
       return super.getLibraryElement(source);
@@ -3599,7 +3599,7 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
   List<Source> get librarySources => ArrayUtils.addAll(super.librarySources, _sdkAnalysisContext.librarySources);
   LineInfo getLineInfo(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getLineInfo(source);
     } else {
       return super.getLineInfo(source);
@@ -3607,56 +3607,56 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
   Namespace getPublicNamespace(LibraryElement library) {
     Source source = library.source;
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getPublicNamespace(library);
     } else {
       return super.getPublicNamespace(library);
     }
   }
   Namespace getPublicNamespace2(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.getPublicNamespace2(source);
     } else {
       return super.getPublicNamespace2(source);
     }
   }
   CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
-    if (unitSource.isInSystemLibrary()) {
+    if (unitSource.isInSystemLibrary) {
       return _sdkAnalysisContext.getResolvedCompilationUnit(unitSource, library);
     } else {
       return super.getResolvedCompilationUnit(unitSource, library);
     }
   }
   CompilationUnit getResolvedCompilationUnit2(Source unitSource, Source librarySource) {
-    if (unitSource.isInSystemLibrary()) {
+    if (unitSource.isInSystemLibrary) {
       return _sdkAnalysisContext.getResolvedCompilationUnit2(unitSource, librarySource);
     } else {
       return super.getResolvedCompilationUnit2(unitSource, librarySource);
     }
   }
   bool isClientLibrary(Source librarySource) {
-    if (librarySource.isInSystemLibrary()) {
+    if (librarySource.isInSystemLibrary) {
       return _sdkAnalysisContext.isClientLibrary(librarySource);
     } else {
       return super.isClientLibrary(librarySource);
     }
   }
   bool isServerLibrary(Source librarySource) {
-    if (librarySource.isInSystemLibrary()) {
+    if (librarySource.isInSystemLibrary) {
       return _sdkAnalysisContext.isServerLibrary(librarySource);
     } else {
       return super.isServerLibrary(librarySource);
     }
   }
   CompilationUnit parseCompilationUnit(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.parseCompilationUnit(source);
     } else {
       return super.parseCompilationUnit(source);
     }
   }
   HtmlUnit parseHtmlUnit(Source source) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.parseHtmlUnit(source);
     } else {
       return super.parseHtmlUnit(source);
@@ -3667,35 +3667,35 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
       return;
     }
     Source source = new JavaIterator(elementMap.keys.toSet()).next();
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       _sdkAnalysisContext.recordLibraryElements(elementMap);
     } else {
       super.recordLibraryElements(elementMap);
     }
   }
   CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       return _sdkAnalysisContext.resolveCompilationUnit(source, library);
     } else {
       return super.resolveCompilationUnit(source, library);
     }
   }
   CompilationUnit resolveCompilationUnit2(Source unitSource, Source librarySource) {
-    if (unitSource.isInSystemLibrary()) {
+    if (unitSource.isInSystemLibrary) {
       return _sdkAnalysisContext.resolveCompilationUnit2(unitSource, librarySource);
     } else {
       return super.resolveCompilationUnit2(unitSource, librarySource);
     }
   }
   HtmlUnit resolveHtmlUnit(Source unitSource) {
-    if (unitSource.isInSystemLibrary()) {
+    if (unitSource.isInSystemLibrary) {
       return _sdkAnalysisContext.resolveHtmlUnit(unitSource);
     } else {
       return super.resolveHtmlUnit(unitSource);
     }
   }
   void setContents(Source source, String contents) {
-    if (source.isInSystemLibrary()) {
+    if (source.isInSystemLibrary) {
       _sdkAnalysisContext.setContents(source, contents);
     } else {
       super.setContents(source, contents);

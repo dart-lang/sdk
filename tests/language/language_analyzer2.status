@@ -135,7 +135,6 @@ override_field_test/01: fail
 override_field_test/02: fail
 override_field_test/03: fail
 override_method_with_field_test/01: fail
-override_method_with_field_test/02: fail
 prefix10_negative_test: fail
 prefix11_negative_test: fail
 prefix12_negative_test: fail

@@ -87,7 +87,7 @@ class FileBasedSource implements Source {
   String get shortName => _file.getName();
   UriKind get uriKind => _uriKind;
   int get hashCode => _file.hashCode;
-  bool isInSystemLibrary() => identical(_uriKind, UriKind.DART_URI);
+  bool get isInSystemLibrary => identical(_uriKind, UriKind.DART_URI);
   Source resolveRelative(Uri containedUri) {
     try {
       Uri resolvedUri = file.toURI().resolveUri(containedUri);

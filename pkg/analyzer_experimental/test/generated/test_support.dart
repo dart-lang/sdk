@@ -696,7 +696,7 @@ class EngineTestCase extends JUnitTestCase {
    */
   PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
     for (PropertyAccessorElement accessor in type.element.accessors) {
-      if (accessor.isGetter() && accessor.name == getterName) {
+      if (accessor.isGetter && accessor.name == getterName) {
         return accessor;
       }
     }
@@ -751,7 +751,7 @@ class TestSource implements Source {
     throw new UnsupportedOperationException();
   }
   bool exists() => true;
-  bool isInSystemLibrary() {
+  bool get isInSystemLibrary {
     throw new UnsupportedOperationException();
   }
   Source resolve(String uri) {

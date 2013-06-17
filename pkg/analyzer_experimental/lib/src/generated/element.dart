@@ -162,13 +162,13 @@ abstract class ClassElement implements Element {
    * <i>has unimplemented members</i>.
    * @return `true` if this class is abstract
    */
-  bool isAbstract();
+  bool get isAbstract;
 
   /**
    * Return `true` if this class is defined by a typedef construct.
    * @return `true` if this class is defined by a typedef construct
    */
-  bool isTypedef();
+  bool get isTypedef;
 
   /**
    * Return `true` if this class can validly be used as a mixin when defining another class.
@@ -179,7 +179,7 @@ abstract class ClassElement implements Element {
    * Object.</blockquote>
    * @return `true` if this class can validly be used as a mixin
    */
-  bool isValidMixin();
+  bool get isValidMixin;
 
   /**
    * Return the element representing the getter that results from looking up the given getter in
@@ -324,20 +324,20 @@ abstract class ConstructorElement implements ClassMemberElement, ExecutableEleme
    * Return `true` if this constructor is a const constructor.
    * @return `true` if this constructor is a const constructor
    */
-  bool isConst();
+  bool get isConst;
 
   /**
    * Return `true` if this constructor can be used as a default constructor - unnamed and has
    * no required parameters.
    * @return `true` if this constructor can be used as a default constructor.
    */
-  bool isDefaultConstructor();
+  bool get isDefaultConstructor;
 
   /**
    * Return `true` if this constructor represents a factory constructor.
    * @return `true` if this constructor represents a factory constructor
    */
-  bool isFactory();
+  bool get isFactory;
 }
 /**
  * The interface `Element` defines the behavior common to all of the elements in the element
@@ -479,7 +479,7 @@ abstract class Element {
    * default constructor for a class that does not explicitly define any constructors.
    * @return `true` if this element is synthetic
    */
-  bool isSynthetic();
+  bool get isSynthetic;
 
   /**
    * Use the given visitor to visit all of the children of this element. There is no guarantee of
@@ -680,14 +680,14 @@ abstract class ExecutableElement implements Element {
    * legal.
    * @return `true` if this executable element is an operator
    */
-  bool isOperator();
+  bool get isOperator;
 
   /**
    * Return `true` if this element is a static element. A static element is an element that is
    * not associated with a particular instance, but rather with an entire library or class.
    * @return `true` if this executable element is a static element
    */
-  bool isStatic();
+  bool get isStatic;
 }
 /**
  * The interface `ExportElement` defines the behavior of objects representing information
@@ -945,13 +945,13 @@ abstract class LibraryElement implements Element {
    * Answer `true` if this library is an application that can be run in the browser.
    * @return `true` if this library is an application that can be run in the browser
    */
-  bool isBrowserApplication();
+  bool get isBrowserApplication;
 
   /**
    * Return `true` if this library is the dart:core library.
    * @return `true` if this library is the dart:core library
    */
-  bool isDartCore();
+  bool get isDartCore;
 
   /**
    * Return `true` if this library is up to date with respect to the given time stamp. If any
@@ -1005,7 +1005,7 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
    * and have no body.
    * @return `true` if this method is abstract
    */
-  bool isAbstract();
+  bool get isAbstract;
 }
 /**
  * The interface `MultiplyDefinedElement` defines the behavior of pseudo-elements that
@@ -1067,7 +1067,7 @@ abstract class ParameterElement implements LocalElement, VariableElement {
    * Return `true` if this parameter is an initializing formal parameter.
    * @return `true` if this parameter is an initializing formal parameter
    */
-  bool isInitializingFormal();
+  bool get isInitializingFormal;
 }
 /**
  * The interface `PrefixElement` defines the behavior common to elements that represent a
@@ -1133,19 +1133,19 @@ abstract class PropertyAccessorElement implements ExecutableElement {
    * external and have no body.
    * @return `true` if this accessor is abstract
    */
-  bool isAbstract();
+  bool get isAbstract;
 
   /**
    * Return `true` if this accessor represents a getter.
    * @return `true` if this accessor represents a getter
    */
-  bool isGetter();
+  bool get isGetter;
 
   /**
    * Return `true` if this accessor represents a setter.
    * @return `true` if this accessor represents a setter
    */
-  bool isSetter();
+  bool get isSetter;
 }
 /**
  * The interface `PropertyInducingElement` defines the behavior of elements representing a
@@ -1186,7 +1186,7 @@ abstract class PropertyInducingElement implements VariableElement {
    * not associated with a particular instance, but rather with an entire library or class.
    * @return `true` if this executable element is a static element
    */
-  bool isStatic();
+  bool get isStatic;
 }
 /**
  * The interface `ShowElementCombinator` defines the behavior of combinators that cause some
@@ -1277,7 +1277,7 @@ abstract class VariableElement implements Element {
    * Return `true` if this variable was declared with the 'const' modifier.
    * @return `true` if this variable was declared with the 'const' modifier
    */
-  bool isConst();
+  bool get isConst;
 
   /**
    * Return `true` if this variable was declared with the 'final' modifier. Variables that are
@@ -1285,7 +1285,7 @@ abstract class VariableElement implements Element {
    * final.
    * @return `true` if this variable was declared with the 'final' modifier
    */
-  bool isFinal();
+  bool get isFinal;
 }
 /**
  * Instances of the class `GeneralizingElementVisitor` implement an element visitor that will
@@ -1629,7 +1629,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<FieldElement> get fields => _fields;
   PropertyAccessorElement getGetter(String getterName) {
     for (PropertyAccessorElement accessor in _accessors) {
-      if (accessor.isGetter() && accessor.name == getterName) {
+      if (accessor.isGetter && accessor.name == getterName) {
         return accessor;
       }
     }
@@ -1661,7 +1661,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       setterName += '=';
     }
     for (PropertyAccessorElement accessor in _accessors) {
-      if (accessor.isSetter() && accessor.name == setterName) {
+      if (accessor.isSetter && accessor.name == setterName) {
         return accessor;
       }
     }
@@ -1681,7 +1681,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
   bool hasDefaultConstructor() {
     for (ConstructorElement constructor in constructors) {
-      if (constructor.isDefaultConstructor()) {
+      if (constructor.isDefaultConstructor) {
         return true;
       }
     }
@@ -1695,7 +1695,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       ClassElement currentElement = classesToVisit.removeAt(0);
       if (javaSetAdd(visitedClasses, currentElement)) {
         for (FieldElement field in currentElement.fields) {
-          if (!field.isFinal() && !field.isConst() && !field.isStatic() && !field.isSynthetic()) {
+          if (!field.isFinal && !field.isConst && !field.isStatic && !field.isSynthetic) {
             return true;
           }
         }
@@ -1715,9 +1715,9 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return false;
   }
   bool hasReferenceToSuper() => hasModifier(Modifier.REFERENCES_SUPER);
-  bool isAbstract() => hasModifier(Modifier.ABSTRACT);
-  bool isTypedef() => hasModifier(Modifier.TYPEDEF);
-  bool isValidMixin() => hasModifier(Modifier.MIXIN);
+  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
+  bool get isTypedef => hasModifier(Modifier.TYPEDEF);
+  bool get isValidMixin => hasModifier(Modifier.MIXIN);
   PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     Set<ClassElement> visitedClasses = new Set<ClassElement>();
     ClassElement currentElement = this;
@@ -2254,8 +2254,8 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
   ElementKind get kind => ElementKind.CONSTRUCTOR;
   ConstructorElement get redirectedConstructor => _redirectedConstructor;
-  bool isConst() => hasModifier(Modifier.CONST);
-  bool isDefaultConstructor() {
+  bool get isConst => hasModifier(Modifier.CONST);
+  bool get isDefaultConstructor {
     String name = this.name;
     if (name != null && name.length != 0) {
       return false;
@@ -2267,8 +2267,8 @@ class ConstructorElementImpl extends ExecutableElementImpl implements Constructo
     }
     return true;
   }
-  bool isFactory() => hasModifier(Modifier.FACTORY);
-  bool isStatic() => false;
+  bool get isFactory => hasModifier(Modifier.FACTORY);
+  bool get isStatic => false;
 
   /**
    * Set whether this constructor represents a 'const' constructor to the given value.
@@ -2533,7 +2533,7 @@ abstract class ElementImpl implements Element {
     }
     return true;
   }
-  bool isSynthetic() => hasModifier(Modifier.SYNTHETIC);
+  bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
 
   /**
    * Set the metadata associate with this element to the given array of annotations.
@@ -2927,7 +2927,7 @@ abstract class ExecutableElementImpl extends ElementImpl implements ExecutableEl
   List<ParameterElement> get parameters => _parameters;
   Type2 get returnType => _returnType;
   FunctionType get type => _type;
-  bool isOperator() => false;
+  bool get isOperator => false;
 
   /**
    * Set the functions defined within this executable element to the given functions.
@@ -3137,7 +3137,7 @@ class FieldElementImpl extends PropertyInducingElementImpl implements FieldEleme
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
   ClassElement get enclosingElement => super.enclosingElement as ClassElement;
   ElementKind get kind => ElementKind.FIELD;
-  bool isStatic() => hasModifier(Modifier.STATIC);
+  bool get isStatic => hasModifier(Modifier.STATIC);
 
   /**
    * Set whether this field is static to correspond to the given value.
@@ -3166,7 +3166,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl implements Fi
   }
   accept(ElementVisitor visitor) => visitor.visitFieldFormalParameterElement(this);
   FieldElement get field => _field;
-  bool isInitializingFormal() => true;
+  bool get isInitializingFormal => true;
 
   /**
    * Set the field element associated with this field formal parameter to the given element.
@@ -3238,7 +3238,7 @@ class FunctionElementImpl extends ExecutableElementImpl implements FunctionEleme
     }
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
-  bool isStatic() => enclosingElement is CompilationUnitElement;
+  bool get isStatic => enclosingElement is CompilationUnitElement;
 
   /**
    * Set the visible range for this element to the range starting at the given offset with the given
@@ -3639,13 +3639,13 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    * Return `true` if this label is associated with a `switch` member (`case` or`default`).
    * @return `true` if this label is associated with a `switch` member
    */
-  bool isOnSwitchMember() => _onSwitchMember;
+  bool get isOnSwitchMember => _onSwitchMember;
 
   /**
    * Return `true` if this label is associated with a `switch` statement.
    * @return `true` if this label is associated with a `switch` statement
    */
-  bool isOnSwitchStatement() => _onSwitchStatement;
+  bool get isOnSwitchStatement => _onSwitchStatement;
 }
 /**
  * Instances of the class `LibraryElementImpl` implement a `LibraryElement`.
@@ -3809,8 +3809,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return null;
   }
   int get hashCode => _definingCompilationUnit.hashCode;
-  bool isBrowserApplication() => _entryPoint != null && isOrImportsBrowserLibrary();
-  bool isDartCore() => name == "dart.core";
+  bool get isBrowserApplication => _entryPoint != null && isOrImportsBrowserLibrary;
+  bool get isDartCore => name == "dart.core";
   bool isUpToDate2(int timeStamp) {
     Set<LibraryElement> visitedLibraries = new Set();
     return isUpToDate(this, timeStamp, visitedLibraries);
@@ -3881,7 +3881,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * Answer `true` if the receiver directly or indirectly imports the dart:html libraries.
    * @return `true` if the receiver directly or indirectly imports the dart:html libraries
    */
-  bool isOrImportsBrowserLibrary() {
+  bool get isOrImportsBrowserLibrary {
     List<LibraryElement> visited = new List<LibraryElement>();
     Source htmlLibSource = _context.sourceFactory.forUri(DartSdk.DART_HTML);
     visited.add(this);
@@ -3997,15 +3997,15 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   ElementKind get kind => ElementKind.METHOD;
   String get name {
     String name = super.name;
-    if (isOperator() && name == "-") {
+    if (isOperator && name == "-") {
       if (parameters.length == 0) {
         return "unary-";
       }
     }
     return super.name;
   }
-  bool isAbstract() => hasModifier(Modifier.ABSTRACT);
-  bool isOperator() {
+  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
+  bool get isOperator {
     String name = displayName;
     if (name.isEmpty) {
       return false;
@@ -4013,7 +4013,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     int first = name.codeUnitAt(0);
     return !((0x61 <= first && first <= 0x7A) || (0x41 <= first && first <= 0x5A) || first == 0x5F || first == 0x24);
   }
-  bool isStatic() => hasModifier(Modifier.STATIC);
+  bool get isStatic => hasModifier(Modifier.STATIC);
 
   /**
    * Set whether this method is abstract to correspond to the given value.
@@ -4121,7 +4121,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     }
     return false;
   }
-  bool isSynthetic() => true;
+  bool get isSynthetic => true;
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     builder.append("[");
@@ -4235,7 +4235,7 @@ class ParameterElementImpl extends VariableElementImpl implements ParameterEleme
     }
     return new SourceRange(_visibleRangeOffset, _visibleRangeLength);
   }
-  bool isInitializingFormal() => false;
+  bool get isInitializingFormal => false;
 
   /**
    * Set the range of the default value for this parameter to the range starting at the given offset
@@ -4384,36 +4384,36 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     synthetic = true;
   }
   accept(ElementVisitor visitor) => visitor.visitPropertyAccessorElement(this);
-  bool operator ==(Object object) => super == object && identical(isGetter(), ((object as PropertyAccessorElement)).isGetter());
+  bool operator ==(Object object) => super == object && identical(isGetter, ((object as PropertyAccessorElement)).isGetter);
   PropertyAccessorElement get correspondingGetter {
-    if (isGetter() || _variable == null) {
+    if (isGetter || _variable == null) {
       return null;
     }
     return _variable.getter;
   }
   PropertyAccessorElement get correspondingSetter {
-    if (isSetter() || _variable == null) {
+    if (isSetter || _variable == null) {
       return null;
     }
     return _variable.setter;
   }
   ElementKind get kind {
-    if (isGetter()) {
+    if (isGetter) {
       return ElementKind.GETTER;
     }
     return ElementKind.SETTER;
   }
   String get name {
-    if (isSetter()) {
+    if (isSetter) {
       return "${super.name}=";
     }
     return super.name;
   }
   PropertyInducingElement get variable => _variable;
-  bool isAbstract() => hasModifier(Modifier.ABSTRACT);
-  bool isGetter() => hasModifier(Modifier.GETTER);
-  bool isSetter() => hasModifier(Modifier.SETTER);
-  bool isStatic() => hasModifier(Modifier.STATIC);
+  bool get isAbstract => hasModifier(Modifier.ABSTRACT);
+  bool get isGetter => hasModifier(Modifier.GETTER);
+  bool get isSetter => hasModifier(Modifier.SETTER);
+  bool get isStatic => hasModifier(Modifier.STATIC);
 
   /**
    * Set whether this accessor is abstract to correspond to the given value.
@@ -4455,7 +4455,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl implements Prope
     this._variable = variable2;
   }
   void appendTo(JavaStringBuilder builder) {
-    builder.append(isGetter() ? "get " : "set ");
+    builder.append(isGetter ? "get " : "set ");
     builder.append(variable.displayName);
     super.appendTo(builder);
   }
@@ -4586,7 +4586,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
   }
   accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
-  bool isStatic() => true;
+  bool get isStatic => true;
 }
 /**
  * Instances of the class `TypeVariableElementImpl` implement a `TypeVariableElement`.
@@ -4697,8 +4697,8 @@ abstract class VariableElementImpl extends ElementImpl implements VariableElemen
   EvaluationResultImpl get evaluationResult => null;
   FunctionElement get initializer => _initializer;
   Type2 get type => _type;
-  bool isConst() => hasModifier(Modifier.CONST);
-  bool isFinal() => hasModifier(Modifier.FINAL);
+  bool get isConst => hasModifier(Modifier.CONST);
+  bool get isFinal => hasModifier(Modifier.FINAL);
 
   /**
    * Set whether this variable is const to correspond to the given value.
@@ -4794,9 +4794,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   ConstructorElement get baseElement => super.baseElement as ConstructorElement;
   ClassElement get enclosingElement => baseElement.enclosingElement;
   ConstructorElement get redirectedConstructor => from(baseElement.redirectedConstructor, definingType);
-  bool isConst() => baseElement.isConst();
-  bool isDefaultConstructor() => baseElement.isDefaultConstructor();
-  bool isFactory() => baseElement.isFactory();
+  bool get isConst => baseElement.isConst;
+  bool get isDefaultConstructor => baseElement.isDefaultConstructor;
+  bool get isFactory => baseElement.isFactory;
   String toString() {
     ConstructorElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
@@ -4862,8 +4862,8 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   }
   Type2 get returnType => substituteFor(baseElement.returnType);
   FunctionType get type => substituteFor(baseElement.type);
-  bool isOperator() => baseElement.isOperator();
-  bool isStatic() => baseElement.isStatic();
+  bool get isOperator => baseElement.isOperator;
+  bool get isStatic => baseElement.isStatic;
   void visitChildren(ElementVisitor<Object> visitor) {
     super.visitChildren(visitor);
     safelyVisitChildren(baseElement.functions, visitor);
@@ -4917,7 +4917,7 @@ class FieldMember extends VariableMember implements FieldElement {
   ClassElement get enclosingElement => baseElement.enclosingElement;
   PropertyAccessorElement get getter => PropertyAccessorMember.from(baseElement.getter, definingType);
   PropertyAccessorElement get setter => PropertyAccessorMember.from(baseElement.setter, definingType);
-  bool isStatic() => baseElement.isStatic();
+  bool get isStatic => baseElement.isStatic;
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
 /**
@@ -4963,7 +4963,7 @@ abstract class Member implements Element {
   int get nameOffset => _baseElement.nameOffset;
   Source get source => _baseElement.source;
   bool isAccessibleIn(LibraryElement library) => _baseElement.isAccessibleIn(library);
-  bool isSynthetic() => _baseElement.isSynthetic();
+  bool get isSynthetic => _baseElement.isSynthetic;
   void visitChildren(ElementVisitor<Object> visitor) {
   }
 
@@ -5064,7 +5064,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
   accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
   MethodElement get baseElement => super.baseElement as MethodElement;
   ClassElement get enclosingElement => baseElement.enclosingElement;
-  bool isAbstract() => baseElement.isAbstract();
+  bool get isAbstract => baseElement.isAbstract;
   String toString() {
     MethodElement baseElement = this.baseElement;
     List<ParameterElement> parameters = this.parameters;
@@ -5159,7 +5159,7 @@ class ParameterMember extends VariableMember implements ParameterElement {
     return parameterizedParameters;
   }
   SourceRange get visibleRange => baseElement.visibleRange;
-  bool isInitializingFormal() => baseElement.isInitializingFormal();
+  bool get isInitializingFormal => baseElement.isInitializingFormal;
   String toString() {
     ParameterElement baseElement = this.baseElement;
     String left = "";
@@ -5237,9 +5237,9 @@ class PropertyAccessorMember extends ExecutableMember implements PropertyAccesso
     }
     return variable;
   }
-  bool isAbstract() => baseElement.isAbstract();
-  bool isGetter() => baseElement.isGetter();
-  bool isSetter() => baseElement.isSetter();
+  bool get isAbstract => baseElement.isAbstract;
+  bool get isGetter => baseElement.isGetter;
+  bool get isSetter => baseElement.isSetter;
   InterfaceType get definingType => super.definingType as InterfaceType;
 }
 /**
@@ -5262,8 +5262,8 @@ abstract class VariableMember extends Member implements VariableElement {
     throw new UnsupportedOperationException();
   }
   Type2 get type => substituteFor(baseElement.type);
-  bool isConst() => baseElement.isConst();
-  bool isFinal() => baseElement.isFinal();
+  bool get isConst => baseElement.isConst;
+  bool get isFinal => baseElement.isFinal;
   void visitChildren(ElementVisitor<Object> visitor) {
     super.visitChildren(visitor);
     safelyVisitChild(baseElement.initializer, visitor);
@@ -5321,7 +5321,7 @@ class DynamicTypeImpl extends TypeImpl {
     ((element as DynamicElementImpl)).type = this;
   }
   bool operator ==(Object object) => object is DynamicTypeImpl;
-  bool isDynamic() => true;
+  bool get isDynamic => true;
   bool isMoreSpecificThan(Type2 type) => false;
   bool isSubtypeOf(Type2 type) => identical(this, type);
   bool isSupertypeOf(Type2 type) => true;
@@ -5535,7 +5535,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   bool isSubtypeOf(Type2 type) {
     if (type == null) {
       return false;
-    } else if (identical(this, type) || type.isDynamic() || type.isDartCoreFunction() || type.isObject()) {
+    } else if (identical(this, type) || type.isDynamic || type.isDartCoreFunction || type.isObject) {
       return true;
     } else if (type is! FunctionType) {
       return false;
@@ -6037,12 +6037,12 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return element.hashCode;
   }
-  bool isDartCoreFunction() {
+  bool get isDartCoreFunction {
     ClassElement element = this.element;
     if (element == null) {
       return false;
     }
-    return element.name == "Function" && element.library.isDartCore();
+    return element.name == "Function" && element.library.isDartCore;
   }
   bool isDirectSupertypeOf(InterfaceType type) {
     ClassElement i = element;
@@ -6075,7 +6075,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     return isMoreSpecificThan2((type as InterfaceType), new Set<ClassElement>());
   }
-  bool isObject() => element.supertype == null;
+  bool get isObject => element.supertype == null;
   bool isSubtypeOf(Type2 type2) {
     if (identical(type2, DynamicTypeImpl.instance)) {
       return true;
@@ -6309,7 +6309,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
       }
       return true;
-    } else if (typeS.isDartCoreFunction() && elementT.getMethod("call") != null) {
+    } else if (typeS.isDartCoreFunction && elementT.getMethod("call") != null) {
       return true;
     }
     InterfaceType supertype = elementT.supertype;
@@ -6388,12 +6388,12 @@ abstract class TypeImpl implements Type2 {
   Type2 getLeastUpperBound(Type2 type) => null;
   String get name => _name;
   bool isAssignableTo(Type2 type) => this.isSubtypeOf(type) || type.isSubtypeOf(this);
-  bool isDartCoreFunction() => false;
-  bool isDynamic() => false;
+  bool get isDartCoreFunction => false;
+  bool get isDynamic => false;
   bool isMoreSpecificThan(Type2 type) => false;
-  bool isObject() => false;
+  bool get isObject => false;
   bool isSupertypeOf(Type2 type) => type.isSubtypeOf(this);
-  bool isVoid() => false;
+  bool get isVoid => false;
   String toString() {
     JavaStringBuilder builder = new JavaStringBuilder();
     appendTo(builder);
@@ -6491,7 +6491,7 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   }
   bool operator ==(Object object) => identical(object, this);
   bool isSubtypeOf(Type2 type) => identical(type, this) || identical(type, DynamicTypeImpl.instance);
-  bool isVoid() => true;
+  bool get isVoid => true;
   VoidTypeImpl substitute2(List<Type2> argumentTypes, List<Type2> parameterTypes) => this;
 }
 /**
@@ -6978,13 +6978,13 @@ abstract class Type2 {
    * @return `true` if this type represents the type 'Function' defined in the dart:core
    * library
    */
-  bool isDartCoreFunction();
+  bool get isDartCoreFunction;
 
   /**
    * Return `true` if this type represents the type 'dynamic'.
    * @return `true` if this type represents the type 'dynamic'
    */
-  bool isDynamic();
+  bool get isDynamic;
 
   /**
    * Return `true` if this type is more specific than the given type.
@@ -6997,7 +6997,7 @@ abstract class Type2 {
    * Return `true` if this type represents the type 'Object'.
    * @return `true` if this type represents the type 'Object'
    */
-  bool isObject();
+  bool get isObject;
 
   /**
    * Return `true` if this type is a subtype of the given type.
@@ -7018,7 +7018,7 @@ abstract class Type2 {
    * Return `true` if this type represents the type 'void'.
    * @return `true` if this type represents the type 'void'
    */
-  bool isVoid();
+  bool get isVoid;
 
   /**
    * Return the type resulting from substituting the given arguments for the given parameters in

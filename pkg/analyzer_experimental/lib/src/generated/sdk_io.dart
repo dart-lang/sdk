@@ -300,7 +300,7 @@ class DirectoryBasedDartSdk implements DartSdk {
    * Return `true` if the Dartium binary is available.
    * @return `true` if the Dartium binary is available
    */
-  bool isDartiumInstalled() => dartiumExecutable != null;
+  bool get isDartiumInstalled => dartiumExecutable != null;
   Source mapDartUri(ContentCache contentCache, String dartUri) {
     SdkLibrary library = getSdkLibrary(dartUri);
     if (library == null) {

@@ -201,7 +201,7 @@ class TypePropagationTest extends ResolverTestCase {
   void test_is_subclass() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "class B extends A {", "  B m() => this;", "}", "A f(A p) {", "  if (p is B) {", "    return p.m();", "  }", "}"]));
     LibraryElement library = resolve(source);
-    assertNoErrors();
+    assertErrors([StaticTypeWarningCode.UNDEFINED_METHOD]);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     FunctionDeclaration function = unit.declarations[2] as FunctionDeclaration;
@@ -2750,6 +2750,11 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors([StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
+  void test_undefinedMethod_ignoreTypePropagation() {
+    Source source = addSource(EngineTestCase.createSource(["class A {}", "class B extends A {", "  m() {}", "}", "class C {", "f() {", "    A a = new B();", "    a.m();", "  }", "}"]));
+    resolve(source);
+    assertErrors([StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
   void test_undefinedOperator_indexBoth() {
     Source source = addSource(EngineTestCase.createSource(["class A {}", "f(A a) {", "  a[0]++;", "}"]));
     resolve(source);
@@ -2934,6 +2939,10 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
       _ut.test('test_undefinedMethod', () {
         final __test = new StaticTypeWarningCodeTest();
         runJUnitTest(__test, __test.test_undefinedMethod);
+      });
+      _ut.test('test_undefinedMethod_ignoreTypePropagation', () {
+        final __test = new StaticTypeWarningCodeTest();
+        runJUnitTest(__test, __test.test_undefinedMethod_ignoreTypePropagation);
       });
       _ut.test('test_undefinedOperator_indexBoth', () {
         final __test = new StaticTypeWarningCodeTest();
@@ -4096,24 +4105,6 @@ class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource(EngineTestCase.createSource([]));
     resolve(source);
     assertErrors([CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT]);
-    verify([source]);
-  }
-  void fail_typeArgumentsForNonGenericClass_creation_const() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "f(p) {", "  return const A<int>();", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS]);
-    verify([source]);
-  }
-  void fail_typeArgumentsForNonGenericClass_creation_new() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "f(p) {", "  return new A<int>();", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS]);
-    verify([source]);
-  }
-  void fail_typeArgumentsForNonGenericClass_typeCast() {
-    Source source = addSource(EngineTestCase.createSource(["class A {}", "f(p) {", "  return p as A<int>;", "}"]));
-    resolve(source);
-    assertErrors([CompileTimeErrorCode.TYPE_ARGUMENTS_FOR_NON_GENERIC_CLASS]);
     verify([source]);
   }
   void fail_uninitializedFinalField() {
@@ -7178,7 +7169,7 @@ class ElementResolverTest extends EngineTestCase {
     resolveInClass(node, classA);
     Element element = node.element;
     EngineTestCase.assertInstanceOf(PropertyAccessorElement, element);
-    JUnitTestCase.assertTrue(((element as PropertyAccessorElement)).isSetter());
+    JUnitTestCase.assertTrue(((element as PropertyAccessorElement)).isSetter);
     _listener.assertNoErrors();
   }
   void test_visitSuperConstructorInvocation() {
@@ -9577,7 +9568,7 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
   }
   Object visitBinaryExpression(BinaryExpression node) {
     node.visitChildren(this);
-    if (!node.operator.isUserDefinableOperator()) {
+    if (!node.operator.isUserDefinableOperator) {
       return null;
     }
     return checkResolved2(node, node.element, MethodElement);
@@ -9615,14 +9606,14 @@ class ResolutionVerifier extends RecursiveASTVisitor<Object> {
   Object visitPartOfDirective(PartOfDirective node) => checkResolved2(node, node.element, LibraryElement);
   Object visitPostfixExpression(PostfixExpression node) {
     node.visitChildren(this);
-    if (!node.operator.isUserDefinableOperator()) {
+    if (!node.operator.isUserDefinableOperator) {
       return null;
     }
     return checkResolved2(node, node.element, MethodElement);
   }
   Object visitPrefixExpression(PrefixExpression node) {
     node.visitChildren(this);
-    if (!node.operator.isUserDefinableOperator()) {
+    if (!node.operator.isUserDefinableOperator) {
       return null;
     }
     return checkResolved2(node, node.element, MethodElement);
@@ -11261,7 +11252,7 @@ class SimpleResolverTest extends ResolverTestCase {
     JUnitTestCase.assertNotNull(unit);
     List<ClassElement> classes = unit.types;
     EngineTestCase.assertLength(2, classes);
-    JUnitTestCase.assertFalse(classes[0].isValidMixin());
+    JUnitTestCase.assertFalse(classes[0].isValidMixin);
     assertNoErrors();
     verify([source]);
   }
@@ -11273,7 +11264,7 @@ class SimpleResolverTest extends ResolverTestCase {
     JUnitTestCase.assertNotNull(unit);
     List<ClassElement> classes = unit.types;
     EngineTestCase.assertLength(1, classes);
-    JUnitTestCase.assertFalse(classes[0].isValidMixin());
+    JUnitTestCase.assertFalse(classes[0].isValidMixin);
     assertNoErrors();
     verify([source]);
   }
@@ -11285,7 +11276,7 @@ class SimpleResolverTest extends ResolverTestCase {
     JUnitTestCase.assertNotNull(unit);
     List<ClassElement> classes = unit.types;
     EngineTestCase.assertLength(1, classes);
-    JUnitTestCase.assertFalse(classes[0].isValidMixin());
+    JUnitTestCase.assertFalse(classes[0].isValidMixin);
     assertNoErrors();
     verify([source]);
   }
@@ -11297,7 +11288,7 @@ class SimpleResolverTest extends ResolverTestCase {
     JUnitTestCase.assertNotNull(unit);
     List<ClassElement> classes = unit.types;
     EngineTestCase.assertLength(1, classes);
-    JUnitTestCase.assertTrue(classes[0].isValidMixin());
+    JUnitTestCase.assertTrue(classes[0].isValidMixin);
     assertNoErrors();
     verify([source]);
   }
