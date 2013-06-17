@@ -16,3 +16,4 @@ part 'stream_controller.dart';
 part 'stream_impl.dart';
 part 'stream_pipe.dart';
 part 'timer.dart';
+part 'zone.dart';

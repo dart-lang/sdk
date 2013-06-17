@@ -105,7 +105,7 @@ list_insert_test: fail
 list_removeat_test: fail
 
 [ $arch == simarm && $mode == debug ]
-collection_to_string_test: Crash # Issue: 11207
+collection_to_string_test: Pass, Crash # Issue: 11207
 
 [ $arch == mips ]
 *: Skip

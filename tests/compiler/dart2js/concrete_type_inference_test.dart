@@ -63,6 +63,7 @@ void testBasicTypes() {
   });
   checkPrintType('[]', (compiler, type) {
     var inferrer = compiler.typesTask.typesInferrer;
+    if (type.isContainer) type = type.asFlat;
     Expect.identical(inferrer.growableListType, type);
   });
   checkPrintType('null', (compiler, type) {

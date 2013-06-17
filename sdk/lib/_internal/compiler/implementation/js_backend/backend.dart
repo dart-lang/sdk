@@ -1133,6 +1133,7 @@ class JavaScriptBackend extends Backend {
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == disableTreeShakingMarker) {
       enqueuer.enqueueEverything();
+      compiler.disableTypeInferenceForMirrors = true;
     } else if (element == preserveNamesMarker) {
     }
   }

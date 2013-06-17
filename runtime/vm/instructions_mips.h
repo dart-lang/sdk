@@ -27,7 +27,9 @@ class CallPattern : public ValueObject {
 
   // This constant length is only valid for inserted call patterns used for
   // lazy deoptimization. Regular call pattern may vary in length.
-  static const int kFixedLengthInBytes = 3 * Instr::kInstrSize;
+  static const int kFixedLengthInBytes = 4 * Instr::kInstrSize;
+
+  static void InsertAt(uword pc, uword target_address);
 
  private:
   uword Back(int n) const;

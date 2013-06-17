@@ -18,11 +18,21 @@ void _asyncRunCallback() {
       callback();
     } catch (e) {
       _AsyncRun._enqueueImmediate(_asyncRunCallback);
-      throw;
+      rethrow;
     }
   }
   // Any new callback must register a callback function now.
   _callbacksAreEnqueued = false;
+}
+
+void _scheduleAsyncCallback(callback) {
+  // Optimizing a group of Timer.run callbacks to be executed in the
+  // same Timer callback.
+  _asyncCallbacks.add(callback);
+  if (!_callbacksAreEnqueued) {
+    _AsyncRun._enqueueImmediate(_asyncRunCallback);
+    _callbacksAreEnqueued = true;
+  }
 }
 
 /**
@@ -45,13 +55,7 @@ void _asyncRunCallback() {
  *     }
  */
 void runAsync(void callback()) {
-  // Optimizing a group of Timer.run callbacks to be executed in the
-  // same Timer callback.
-  _asyncCallbacks.add(callback);
-  if (!_callbacksAreEnqueued) {
-    _AsyncRun._enqueueImmediate(_asyncRunCallback);
-    _callbacksAreEnqueued = true;
-  }
+  _Zone._current.runAsync(callback);
 }
 
 class _AsyncRun {

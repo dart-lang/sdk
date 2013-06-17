@@ -17,5 +17,6 @@
     'stream_impl.dart',
     'stream_pipe.dart',
     'timer.dart',
+    'zone.dart',
   ],
 }

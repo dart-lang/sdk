@@ -5,6 +5,6 @@
 patch class _AsyncRun {
   /* patch */ static void _enqueueImmediate(void callback()) {
     // TODO(9001): don't use the Timer to enqueue the immediate callback.
-    Timer.run(callback);
+    _createTimer(Duration.ZERO, callback);
   }
 }

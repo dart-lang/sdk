@@ -553,4 +553,17 @@ char_escape_test: Pass, Crash
 *: Skip
 
 [ $arch == simmips ]
-*: Skip
+arithmetic_test: Fail, Crash
+bit_operations_test: Crash, Fail
+char_escape_test: Pass, Crash
+deopt_smi_op_test: Fail
+div_with_power_of_two_test: Fail
+gc_test: Crash
+invocation_mirror_test: Fail
+load_to_load_forwarding_vm_test: Fail
+named_parameters_with_conversions_test: Pass, Crash
+positive_bit_operations_test: Pass, Fail, Crash
+left_shift_test: Pass, Fail
+large_implicit_getter_test: Crash, Pass
+stack_overflow_test: Crash, Pass
+stack_overflow_stacktrace_test: Crash, Pass

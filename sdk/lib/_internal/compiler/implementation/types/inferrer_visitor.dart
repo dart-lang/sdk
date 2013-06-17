@@ -10,7 +10,7 @@ TypeMask narrowType(TypeMask type,
                     {bool isNullable: true}) {
   if (annotation.isDynamic) return type;
   if (annotation.isMalformed) return type;
-  if (annotation.isVoid) return compiler.typesTask.typesInferrer.nullType;
+  if (annotation.isVoid) return compiler.typesTask.nullType;
   if (annotation.element == compiler.objectClass) return type;
   TypeMask otherType;
   if (annotation.kind == TypeKind.TYPEDEF
@@ -34,8 +34,7 @@ TypeMask narrowType(TypeMask type,
  TypeMask computeLUB(TypeMask firstType,
                      TypeMask secondType,
                      Compiler compiler) {
-  TypesInferrer inferrer = compiler.typesTask.typesInferrer;
-  TypeMask dynamicType = inferrer.dynamicType;
+  TypeMask dynamicType = compiler.typesTask.dynamicType;
   if (firstType == null) {
     return secondType;
   } else if (secondType == dynamicType) {
@@ -54,7 +53,8 @@ TypeMask narrowType(TypeMask type,
  * Placeholder for inferred types of local variables.
  */
 class LocalsHandler {
-  final InternalSimpleTypesInferrer inferrer;
+  final Compiler compiler;
+  final TypesInferrer inferrer;
   final Map<Element, TypeMask> locals;
   final Map<Element, Element> capturedAndBoxed;
   final Map<Element, TypeMask> fieldsInitializedInConstructor;
@@ -67,7 +67,7 @@ class LocalsHandler {
     return seenReturn || seenBreakOrContinue;
   }
 
-  LocalsHandler(this.inferrer)
+  LocalsHandler(this.inferrer, this.compiler)
       : locals = new Map<Element, TypeMask>(),
         capturedAndBoxed = new Map<Element, Element>(),
         fieldsInitializedInConstructor = new Map<Element, TypeMask>(),
@@ -81,6 +81,7 @@ class LocalsHandler {
             other.fieldsInitializedInConstructor),
         inTryBlock = other.inTryBlock || inTryBlock,
         inferrer = other.inferrer,
+        compiler = other.compiler,
         isThisExposed = other.isThisExposed;
 
   TypeMask use(Element local) {
@@ -92,7 +93,6 @@ class LocalsHandler {
 
   void update(Element local, TypeMask type) {
     assert(type != null);
-    Compiler compiler = inferrer.compiler;
     if (compiler.trustTypeAnnotations || compiler.enableTypeAssertions) {
       type = narrowType(type, local.computeType(compiler), compiler);
     }
@@ -139,7 +139,7 @@ class LocalsHandler {
       } else if (!isCaptured && other.aborts && discardIfAborts) {
         // Don't do anything.
       } else {
-        TypeMask type = computeLUB(oldType, otherType, inferrer.compiler);
+        TypeMask type = computeLUB(oldType, otherType, compiler);
         if (type != oldType) changed = true;
         locals[local] = type;
       }
@@ -175,7 +175,7 @@ class LocalsHandler {
         toRemove.add(element);
       } else {
         fieldsInitializedInConstructor[element] =
-            computeLUB(type, otherType, inferrer.compiler);
+            computeLUB(type, otherType, compiler);
       }
     });
     // Remove fields that were not initialized in [other].
@@ -197,7 +197,9 @@ class LocalsHandler {
 
 abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
   final Element analyzedElement;
-  final InternalSimpleTypesInferrer inferrer;
+  // Subclasses know more about this field. Typing it dynamic to avoid
+  // warnings.
+  final /* TypesInferrer */ inferrer;
   final Compiler compiler;
   final Map<TargetElement, List<LocalsHandler>> breaksFor =
       new Map<TargetElement, List<LocalsHandler>>();
@@ -217,10 +219,14 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
   InferrerVisitor(Element analyzedElement,
                   this.inferrer,
                   Compiler compiler,
-                  this.locals)
+                  [LocalsHandler handler])
     : this.compiler = compiler,
       this.analyzedElement = analyzedElement,
-      super(compiler.enqueuer.resolution.getCachedElements(analyzedElement));
+      super(compiler.enqueuer.resolution.getCachedElements(analyzedElement)) {
+    locals = (handler == null)
+        ? new LocalsHandler(inferrer, compiler)
+        : handler;
+  }
 
   TypeMask visitSendSet(SendSet node);
 
@@ -252,6 +258,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
   }
 
   TypeMask visitFunctionExpression(FunctionExpression node) {
+    node.visitChildren(this);
     return inferrer.functionType;
   }
 
@@ -320,11 +327,11 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     if (_thisType != null) return _thisType;
     ClassElement cls = outermostElement.getEnclosingClass();
     if (compiler.world.isUsedAsMixin(cls)) {
-      return _thisType = new TypeMask.nonNullSubtype(inferrer.rawTypeOf(cls));
+      return _thisType = new TypeMask.nonNullSubtype(cls.rawType);
     } else if (compiler.world.hasAnySubclass(cls)) {
-      return _thisType = new TypeMask.nonNullSubclass(inferrer.rawTypeOf(cls));
+      return _thisType = new TypeMask.nonNullSubclass(cls.rawType);
     } else {
-      return _thisType = new TypeMask.nonNullExact(inferrer.rawTypeOf(cls));
+      return _thisType = new TypeMask.nonNullExact(cls.rawType);
     }
   }
 
@@ -332,7 +339,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
   TypeMask get superType {
     if (_superType != null) return _superType;
     return _superType = new TypeMask.nonNullExact(
-        inferrer.rawTypeOf(outermostElement.getEnclosingClass().superclass));
+        outermostElement.getEnclosingClass().superclass.rawType);
   }
 
   TypeMask visitIdentifier(Identifier node) {
@@ -362,7 +369,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       Element element = elements[node.receiver];
       TypeMask existing = locals.use(element);
       TypeMask newType = narrowType(
-          existing, type, inferrer.compiler, isNullable: false);
+          existing, type, compiler, isNullable: false);
       locals.update(element, newType);
     }
   }
@@ -408,7 +415,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
     } else if (const SourceString("as") == op.source) {
       TypeMask receiverType = visit(node.receiver);
       DartType type = elements.getType(node.arguments.head);
-      return narrowType(receiverType, type, inferrer.compiler);
+      return narrowType(receiverType, type, compiler);
     } else if (node.isParameterCheck) {
       node.visitChildren(this);
       return inferrer.boolType;

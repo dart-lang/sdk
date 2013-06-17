@@ -106,9 +106,12 @@ class Simulator {
   enum CallKind {
     kRuntimeCall,
     kLeafRuntimeCall,
+    kLeafFloatRuntimeCall,
     kNativeCall
   };
-  static uword RedirectExternalReference(uword function, CallKind call_kind);
+  static uword RedirectExternalReference(uword function,
+                                         CallKind call_kind,
+                                         int argument_count);
 
   void Longjmp(uword pc,
                uword sp,

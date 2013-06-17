@@ -7,37 +7,56 @@ part of _js_helper;
 // Helper method used by internal libraries.
 regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
 
-class JSSyntaxRegExp implements RegExp {
-  final String _pattern;
-  final bool _isMultiLine;
-  final bool _isCaseSensitive;
-  var _nativeRegExp;
+/**
+ * Returns a native version of the RegExp with the global flag set.
+ *
+ * The RegExp's `lastIndex` property is zero when it is returned.
+ *
+ * The returned regexp is shared, and its `lastIndex` property may be
+ * modified by other uses, so the returned regexp must be used immediately
+ * when it's returned, with no user-provided code run in between.
+ */
+regExpGetGlobalNative(JSSyntaxRegExp regexp) {
+  var regexp = regexp._nativeGlobalVersion;
+  JS("void", "#.lastIndex = 0", regexp);
+  return regexp;
+}
 
-  JSSyntaxRegExp._internal(String pattern,
-                           bool multiLine,
-                           bool caseSensitive,
-                           bool global)
-      : _nativeRegExp = makeNative(pattern, multiLine, caseSensitive, global),
-        this._pattern = pattern,
-        this._isMultiLine = multiLine,
-        this._isCaseSensitive = caseSensitive;
+class JSSyntaxRegExp implements RegExp {
+  final _nativeRegExp;
+  var _nativeGlobalRegExp;
+  var _nativeAnchoredRegExp;
 
   JSSyntaxRegExp(String pattern,
-                 {bool multiLine: false,
-                  bool caseSensitive: true})
-      : this._internal(pattern, multiLine, caseSensitive, false);
+                 { bool multiLine: false,
+                   bool caseSensitive: true })
+      : this._nativeRegExp =
+            makeNative(pattern, multiLine, caseSensitive, false);
 
-  JSSyntaxRegExp._globalVersionOf(JSSyntaxRegExp other)
-      : this._internal(other.pattern,
-                       other.isMultiLine,
-                       other.isCaseSensitive,
-                       true);
+  get _nativeGlobalVersion {
+    if (_nativeGlobalRegExp != null) return _nativeGlobalRegExp;
+    return _nativeGlobalRegExp = makeNative(_pattern,
+                                            _isMultiLine,
+                                            _isCaseSensitive,
+                                            true);
+  }
 
-  JSSyntaxRegExp._anchoredVersionOf(JSSyntaxRegExp other)
-      : this._internal(other.pattern + "|()",
-                       other.isMultiLine,
-                       other.isCaseSensitive,
-                       true);
+  get _nativeAnchoredVersion {
+    if (_nativeAnchoredRegExp != null) return _nativeAnchoredRegExp;
+    // An "anchored version" of a regexp is created by adding "|()" to the
+    // source. This means that the regexp always matches at the first position
+    // that it tries, and you can see if the original regexp matched, or it
+    // was the added zero-width match that matched, by looking at the last
+    // capture. If it is a String, the match participated, otherwise it didn't.
+    return _nativeAnchoredRegExp = makeNative("$_pattern|()",
+                                              _isMultiLine,
+                                              _isCaseSensitive,
+                                              true);
+  }
+
+  String get _pattern  => JS("String", "#.source", _nativeRegExp);
+  bool get _isMultiLine => JS("bool", "#.multiline", _nativeRegExp);
+  bool get _isCaseSensitive => JS("bool", "!#.ignoreCase", _nativeRegExp);
 
   static makeNative(
       String pattern, bool multiLine, bool caseSensitive, bool global) {
@@ -68,10 +87,7 @@ class JSSyntaxRegExp implements RegExp {
     List<String> m =
         JS('=List|Null', r'#.exec(#)', _nativeRegExp, checkString(str));
     if (m == null) return null;
-    var matchStart = JS('int', r'#.index', m);
-    // m.lastIndex only works with flag 'g'.
-    var matchEnd = matchStart + m[0].length;
-    return new _MatchImplementation(pattern, str, matchStart, matchEnd, m);
+    return new _MatchImplementation(this, m);
   }
 
   bool hasMatch(String str) {
@@ -80,7 +96,8 @@ class JSSyntaxRegExp implements RegExp {
 
   String stringMatch(String str) {
     var match = firstMatch(str);
-    return match == null ? null : match.group(0);
+    if (match != null) return match.group(0);
+    return null;
   }
 
   Iterable<Match> allMatches(String str) {
@@ -88,24 +105,31 @@ class JSSyntaxRegExp implements RegExp {
     return new _AllMatchesIterable(this, str);
   }
 
+  Match _execGlobal(String string, int start) {
+    Object regexp = _nativeGlobalVersion;
+    JS("void", "#.lastIndex = #", regexp, start);
+    List match = JS("=List|Null", "#.exec(#)", regexp, string);
+    if (match == null) return null;
+    return new _MatchImplementation(this, match);
+  }
+
+  Match _execAnchored(String string, int start) {
+    Object regexp = _nativeAnchoredVersion;
+    JS("void", "#.lastIndex = #", regexp, start);
+    List match = JS("=List|Null", "#.exec(#)", regexp, string);
+    if (match == null) return null;
+    // If the last capture group participated, the original regexp did not
+    // match at the start position.
+    if (match[match.length - 1] != null) return null;
+    match.length -= 1;
+    return new _MatchImplementation(this, match);
+  }
+
   Match matchAsPrefix(String string, [int start = 0]) {
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
-    // An "anchored version" of a regexp is created by adding "|()" to the
-    // source. This means that the regexp always matches at the first position
-    // that it tries, and you can see if the original regexp matched, or it
-    // was the added zero-width match that matched, by looking at the last
-    // capture. If it is a String, the match participated, otherwise it didn't.
-    JSSyntaxRegExp regexp = new JSSyntaxRegExp._anchoredVersionOf(this);
-    if (start > 0) {
-      JS("void", "#.lastIndex = #", regExpGetNative(regexp), start);
-    }
-    _MatchImplementation match = regexp.firstMatch(string);
-    if (match == null) return null;
-    if (match._groups[match._groups.length - 1] != null) return null;
-    match._groups.length -= 1;
-    return match;
+    return _execAnchored(string, start);
   }
 
   String get pattern => _pattern;
@@ -115,21 +139,22 @@ class JSSyntaxRegExp implements RegExp {
 
 class _MatchImplementation implements Match {
   final Pattern pattern;
-  final String str;
-  final int start;
-  final int end;
-  final List<String> _groups;
+  // Contains a JS RegExp match object.
+  // It is an Array of String values with extra "index" and "input" properties.
+  final List<String> _match;
 
-  const _MatchImplementation(
-      this.pattern,
-      this.str,
-      int this.start,
-      int this.end,
-      List<String> this._groups);
+  _MatchImplementation(this.pattern, this._match) {
+    assert(JS("var", "#.input", _match) is String);
+    assert(JS("var", "#.index", _match) is int);
+  }
 
-  String group(int index) => _groups[index];
+  String get str => JS("String", "#.input", _match);
+  int get start => JS("int", "#.index", _match);
+  int get end => start + _match[0].length;
+
+  String group(int index) => _match[index];
   String operator [](int index) => group(index);
-  int get groupCount => _groups.length - 1;
+  int get groupCount => _match.length - 1;
 
   List<String> groups(List<int> groups) {
     List<String> out = [];
@@ -142,54 +167,41 @@ class _MatchImplementation implements Match {
 
 class _AllMatchesIterable extends IterableBase<Match> {
   final JSSyntaxRegExp _re;
-  final String _str;
+  final String _string;
 
-  const _AllMatchesIterable(this._re, this._str);
+  const _AllMatchesIterable(this._re, this._string);
 
-  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _str);
+  Iterator<Match> get iterator => new _AllMatchesIterator(_re, _string);
 }
 
 class _AllMatchesIterator implements Iterator<Match> {
-  final RegExp _regExp;
-  final RegExp _globalRegExp;
-  String _str;
+  final JSSyntaxRegExp _regExp;
+  String _string;
   Match _current;
 
-  _AllMatchesIterator(JSSyntaxRegExp re, String this._str)
-    : _regExp = re,
-      _globalRegExp = new JSSyntaxRegExp._globalVersionOf(re);
+  _AllMatchesIterator(this._regExp, this._string);
 
   Match get current => _current;
 
   bool moveNext() {
-    if (_str == null) return false;
-    // firstMatch actually acts as nextMatch because of
-    // hidden global flag.
-    if (_current != null && _current.start == _current.end) {
-      // Advance implicit start-position if last match was empty.
-      JS("void", "#.lastIndex++", regExpGetNative(_globalRegExp));
+    if (_string == null) return false;
+    int index = 0;
+    if (_current != null) {
+      index = _current.end;
+      if (_current.start == index) {
+        index++;
+      }
     }
-    List<String> m =
-        JS('=List|Null', r'#.exec(#)', regExpGetNative(_globalRegExp), _str);
-    if (m == null) {
-      _current = null;
-      _str = null;  // Marks iteration as ended.
+    _current = _regExp._execGlobal(_string, index);
+    if (_current == null) {
+      _string = null;  // Marks iteration as ended.
       return false;
     }
-    var matchStart = JS('int', r'#.index', m);
-    var matchEnd = matchStart + m[0].length;
-    _current = new _MatchImplementation(_regExp, _str, matchStart, matchEnd, m);
     return true;
   }
 }
 
-Match firstMatchAfter(JSSyntaxRegExp re, String str, int start) {
-  JSSyntaxRegExp global = new JSSyntaxRegExp._globalVersionOf(re);
-  JS("void", "#.lastIndex = #", regExpGetNative(global), start);
-  List<String> m =
-      JS('=List|Null', r'#.exec(#)', regExpGetNative(global), checkString(str));
-  if (m == null) return null;
-  var matchStart = JS('int', r'#.index', m);
-  var matchEnd = matchStart + m[0].length;
-  return new _MatchImplementation(re, str, matchStart, matchEnd, m);
+/** Find the first match of [regExp] in [string] at or after [start]. */
+Match firstMatchAfter(JSSyntaxRegExp regExp, String string, int start) {
+  return regExp._execGlobal(string, start);
 }

@@ -92,6 +92,7 @@ class SimulatorDebugger {
 
   bool GetValue(char* desc, uint32_t* value);
   bool GetFValue(char* desc, double* value);
+  bool GetDValue(char* desc, double* value);
 
   // Set or delete a breakpoint. Returns true if successful.
   bool SetBreakpoint(Instr* breakpc);
@@ -226,6 +227,26 @@ bool SimulatorDebugger::GetFValue(char* desc, double* value) {
 }
 
 
+bool SimulatorDebugger::GetDValue(char* desc, double* value) {
+  FRegister freg = LookupFRegisterByName(desc);
+  if (freg != kNoFRegister) {
+    *value = sim_->get_fregister_double(freg);
+    return true;
+  }
+  if (desc[0] == '*') {
+    uint32_t addr;
+    if (GetValue(desc + 1, &addr)) {
+      if (Simulator::IsIllegalAddress(addr)) {
+        return false;
+      }
+      *value = *(reinterpret_cast<double*>(addr));
+      return true;
+    }
+  }
+  return false;
+}
+
+
 bool SimulatorDebugger::SetBreakpoint(Instr* breakpc) {
   // Check if a breakpoint can be set. If not return without any side-effects.
   if (sim_->break_pc_ != NULL) {
@@ -352,6 +373,20 @@ void SimulatorDebugger::Debug() {
         if (args == 2) {
           double dvalue;
           if (GetFValue(arg1, &dvalue)) {
+            uint64_t long_value = bit_cast<uint64_t, double>(dvalue);
+            OS::Print("%s: %llu 0x%llx %.8g\n",
+                arg1, long_value, long_value, dvalue);
+          } else {
+            OS::Print("%s unrecognized\n", arg1);
+          }
+        } else {
+          OS::Print("printfloat <dreg or *addr>\n");
+        }
+      } else if ((strcmp(cmd, "pd") == 0) ||
+                 (strcmp(cmd, "printdouble") == 0)) {
+        if (args == 2) {
+          double dvalue;
+          if (GetDValue(arg1, &dvalue)) {
             uint64_t long_value = bit_cast<uint64_t, double>(dvalue);
             OS::Print("%s: %llu 0x%llx %.8g\n",
                 arg1, long_value, long_value, dvalue);
@@ -589,13 +624,16 @@ class Redirection {
 
   Simulator::CallKind call_kind() const { return call_kind_; }
 
+  int argument_count() const { return argument_count_; }
+
   static Redirection* Get(uword external_function,
-                          Simulator::CallKind call_kind) {
+                          Simulator::CallKind call_kind,
+                          int argument_count) {
     Redirection* current;
     for (current = list_; current != NULL; current = current->next_) {
       if (current->external_function_ == external_function) return current;
     }
-    return new Redirection(external_function, call_kind);
+    return new Redirection(external_function, call_kind, argument_count);
   }
 
   static Redirection* FromBreakInstruction(Instr* break_instruction) {
@@ -609,9 +647,12 @@ class Redirection {
   static const int32_t kRedirectInstruction =
     Instr::kBreakPointInstruction | (Instr::kRedirectCode << kBreakCodeShift);
 
-  Redirection(uword external_function, Simulator::CallKind call_kind)
+  Redirection(uword external_function,
+              Simulator::CallKind call_kind,
+              int argument_count)
       : external_function_(external_function),
         call_kind_(call_kind),
+        argument_count_(argument_count),
         break_instruction_(kRedirectInstruction),
         next_(list_) {
     list_ = this;
@@ -619,6 +660,7 @@ class Redirection {
 
   uword external_function_;
   Simulator::CallKind call_kind_;
+  int argument_count_;
   uint32_t break_instruction_;
   Redirection* next_;
   static Redirection* list_;
@@ -628,8 +670,11 @@ class Redirection {
 Redirection* Redirection::list_ = NULL;
 
 
-uword Simulator::RedirectExternalReference(uword function, CallKind call_kind) {
-  Redirection* redirection = Redirection::Get(function, call_kind);
+uword Simulator::RedirectExternalReference(uword function,
+                                           CallKind call_kind,
+                                           int argument_count) {
+  Redirection* redirection =
+      Redirection::Get(function, call_kind, argument_count);
   return redirection->address_of_break_instruction();
 }
 
@@ -890,6 +935,9 @@ typedef void (*SimulatorRuntimeCall)(NativeArguments arguments);
 typedef int32_t (*SimulatorLeafRuntimeCall)(
     int32_t r0, int32_t r1, int32_t r2, int32_t r3);
 
+// Calls to leaf float Dart runtime functions are based on this interface.
+typedef double (*SimulatorLeafFloatRuntimeCall)(double d0, double d1);
+
 // Calls to native Dart functions are based on this interface.
 typedef void (*SimulatorNativeCall)(NativeArguments* arguments);
 
@@ -925,7 +973,8 @@ void Simulator::DoBreak(Instr *instr) {
         OS::Print("Call to host function at 0x%"Pd"\n", external);
       }
 
-      if (redirection->call_kind() != kLeafRuntimeCall) {
+        if ((redirection->call_kind() == kRuntimeCall) ||
+            (redirection->call_kind() == kNativeCall)) {
         // The top_exit_frame_info of the current isolate points to the top of
         // the simulator stack.
         ASSERT((StackTop() - Isolate::Current()->top_exit_frame_info()) <
@@ -953,6 +1002,17 @@ void Simulator::DoBreak(Instr *instr) {
             reinterpret_cast<SimulatorLeafRuntimeCall>(external);
         a0 = target(a0, a1, a2, a3);
         set_register(V0, a0);  // Set returned result from function.
+      } else if (redirection->call_kind() == kLeafFloatRuntimeCall) {
+        ASSERT((0 <= redirection->argument_count()) &&
+               (redirection->argument_count() <= 2));
+        // double values are passed and returned in floating point registers.
+        SimulatorLeafFloatRuntimeCall target =
+            reinterpret_cast<SimulatorLeafFloatRuntimeCall>(external);
+        double d0 = 0.0;
+        double d6 = get_fregister_double(F12);
+        double d7 = get_fregister_double(F14);
+        d0 = target(d6, d7);
+        set_fregister_double(F0, d0);
       } else {
         ASSERT(redirection->call_kind() == kNativeCall);
         NativeArguments* arguments;
@@ -986,7 +1046,7 @@ void Simulator::DoBreak(Instr *instr) {
 
       // Zap floating point registers.
       int32_t zap_dvalue = icount_;
-      for (int i = F0; i <= F31; i++) {
+      for (int i = F4; i <= F18; i++) {
         set_fregister(static_cast<FRegister>(i), zap_dvalue);
       }
 
@@ -1107,6 +1167,20 @@ void Simulator::DecodeSpecial(Instr* instr) {
       ASSERT(instr->SaField() == 0);
       // Format(instr, "mflo 'rd");
       set_register(instr->RdField(), get_lo_register());
+      break;
+    }
+    case MOVCI: {
+      ASSERT(instr->SaField() == 0);
+      ASSERT(instr->Bit(17) == 0);
+      int32_t rs_val = get_register(instr->RsField());
+      uint32_t cc, fcsr_cc, test, status;
+      cc = instr->Bits(18, 3);
+      fcsr_cc = get_fcsr_condition_bit(cc);
+      test = instr->Bit(16);
+      status = test_fcsr_bit(fcsr_cc);
+      if (test == status) {
+        set_register(instr->RdField(), rs_val);
+      }
       break;
     }
     case MOVN: {
@@ -1517,6 +1591,12 @@ void Simulator::DecodeCop1(Instr* instr) {
           case FMT_W: {
             int32_t fs_int = get_fregister(instr->FsField());
             double fs_dbl = static_cast<double>(fs_int);
+            set_fregister_double(instr->FdField(), fs_dbl);
+            break;
+          }
+          case FMT_S: {
+            float fs_flt = get_fregister_float(instr->FsField());
+            double fs_dbl = static_cast<double>(fs_flt);
             set_fregister_double(instr->FdField(), fs_dbl);
             break;
           }

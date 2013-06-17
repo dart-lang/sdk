@@ -44,6 +44,7 @@ main() {
   Expect.isFalse(compiler.compilationFailed);
   Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedEverything);
   Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedEverything);
+  Expect.isFalse(compiler.disableTypeInference);
 }
 
 const Map MEMORY_SOURCE_FILES = const {

@@ -12,7 +12,6 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
-#include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
@@ -241,7 +240,8 @@ static void InstallUnoptimizedCode(const Function& function) {
 
 // Return false if bailed out.
 static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
-                                        bool optimized) {
+                                        bool optimized,
+                                        intptr_t osr_id) {
   const Function& function = parsed_function->function();
   if (optimized && !function.is_optimizable()) {
     return false;
@@ -281,13 +281,18 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       // Build the flow graph.
       FlowGraphBuilder builder(parsed_function,
                                ic_data_array,
-                               NULL);  // NULL = not inlining.
+                               NULL,  // NULL = not inlining.
+                               osr_id);
       flow_graph = builder.BuildGraph();
     }
 
     if (FLAG_print_flow_graph ||
         (optimized && FLAG_print_flow_graph_optimized)) {
-      FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
+      if (osr_id == Isolate::kNoDeoptId) {
+        FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
+      } else {
+        FlowGraphPrinter::PrintGraph("For OSR", flow_graph);
+      }
     }
 
     if (optimized) {
@@ -508,12 +513,14 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
       graph_compiler.FinalizeStaticCallTargetsTable(code);
 
       if (optimized) {
-        CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
-        function.SetCode(code);
-        if (FLAG_trace_compiler) {
-          OS::Print("--> patching entry %#"Px"\n",
-                    Code::Handle(function.unoptimized_code()).EntryPoint());
+        if (osr_id == Isolate::kNoDeoptId) {
+          CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
+          if (FLAG_trace_compiler) {
+            OS::Print("--> patching entry %#"Px"\n",
+                      Code::Handle(function.unoptimized_code()).EntryPoint());
+          }
         }
+        function.SetCode(code);
 
         for (intptr_t i = 0; i < guarded_fields.length(); i++) {
           const Field& field = *guarded_fields[i];
@@ -551,12 +558,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
             optimized ? "optimized " : "",
             function_fullname);
   const Code& code = Code::Handle(function.CurrentCode());
-  const Instructions& instructions =
-      Instructions::Handle(code.instructions());
-  uword start = instructions.EntryPoint();
-  Disassembler::Disassemble(start,
-                            start + instructions.size(),
-                            code.comments());
+  code.Disassemble();
   OS::Print("}\n");
 
   OS::Print("Pointer offsets for function: {\n");
@@ -576,6 +578,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
       PcDescriptors::Handle(code.pc_descriptors());
   OS::Print("%s}\n", descriptors.ToCString());
 
+  uword start = Instructions::Handle(code.instructions()).EntryPoint();
   const Array& deopt_table = Array::Handle(code.deopt_info_array());
   intptr_t deopt_table_length = DeoptTable::GetLength(deopt_table);
   if (deopt_table_length > 0) {
@@ -675,7 +678,8 @@ static void DisassembleCode(const Function& function, bool optimized) {
 
 
 static RawError* CompileFunctionHelper(const Function& function,
-                                       bool optimized) {
+                                       bool optimized,
+                                       intptr_t osr_id) {
   Isolate* isolate = Isolate::Current();
   StackZone zone(isolate);
   LongJump* base = isolate->long_jump_base();
@@ -694,7 +698,8 @@ static RawError* CompileFunctionHelper(const Function& function,
     ParsedFunction* parsed_function = new ParsedFunction(
         Function::ZoneHandle(function.raw()));
     if (FLAG_trace_compiler) {
-      OS::Print("Compiling %sfunction: '%s' @ token %"Pd", size %"Pd"\n",
+      OS::Print("Compiling %s%sfunction: '%s' @ token %"Pd", size %"Pd"\n",
+                (osr_id == Isolate::kNoDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
                 function.token_pos(),
@@ -707,7 +712,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
 
     const bool success =
-        CompileParsedFunctionHelper(parsed_function, optimized);
+        CompileParsedFunctionHelper(parsed_function, optimized, osr_id);
     if (optimized && !success) {
       // Optimizer bailed out. Disable optimizations and to never try again.
       if (FLAG_trace_compiler) {
@@ -759,12 +764,13 @@ static RawError* CompileFunctionHelper(const Function& function,
 
 
 RawError* Compiler::CompileFunction(const Function& function) {
-  return CompileFunctionHelper(function, false);  // Non-optimized.
+  return CompileFunctionHelper(function, false, Isolate::kNoDeoptId);
 }
 
 
-RawError* Compiler::CompileOptimizedFunction(const Function& function) {
-  return CompileFunctionHelper(function, true);  // Optimized.
+RawError* Compiler::CompileOptimizedFunction(const Function& function,
+                                             intptr_t osr_id) {
+  return CompileFunctionHelper(function, true, osr_id);
 }
 
 
@@ -776,7 +782,7 @@ RawError* Compiler::CompileParsedFunction(
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
-    CompileParsedFunctionHelper(parsed_function, false);
+    CompileParsedFunctionHelper(parsed_function, false, Isolate::kNoDeoptId);
     if (FLAG_disassemble) {
       DisassembleCode(parsed_function->function(), false);
     }
@@ -863,7 +869,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    CompileParsedFunctionHelper(parsed_function, false);
+    CompileParsedFunctionHelper(parsed_function, false, Isolate::kNoDeoptId);
 
     const Object& result = Object::Handle(
         DartEntry::InvokeFunction(func, Object::empty_array()));

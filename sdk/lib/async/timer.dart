@@ -29,7 +29,9 @@ abstract class Timer {
    * Note: If Dart code using Timer is compiled to JavaScript, the finest
    * granularity available in the browser is 4 milliseconds.
    */
-  external factory Timer(Duration duration, void callback());
+  factory Timer(Duration duration, void callback()) {
+    return _Zone.current.createTimer(duration, callback);
+  }
 
   /**
    * Creates a new repeating timer.
@@ -37,8 +39,10 @@ abstract class Timer {
    * The [callback] is invoked repeatedly with [duration] intervals until
    * canceled. A negative duration is treated similar to a duration of 0.
    */
-  external factory Timer.periodic(Duration duration,
-                                  void callback(Timer timer));
+  factory Timer.periodic(Duration duration,
+                                  void callback(Timer timer)) {
+    return _Zone.current.createPeriodicTimer(duration, callback);
+  }
 
   /**
    * Runs the given [callback] asynchronously as soon as possible.
@@ -54,3 +58,7 @@ abstract class Timer {
    */
   void cancel();
 }
+
+external Timer _createTimer(Duration duration, void callback());
+external Timer _createPeriodicTimer(Duration duration,
+                                    void callback(Timer timer));

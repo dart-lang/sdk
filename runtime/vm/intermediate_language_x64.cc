@@ -24,6 +24,7 @@ namespace dart {
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register RAX.
@@ -2105,6 +2106,13 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
                                   instruction_->deopt_id(),
                                   kStackOverflowRuntimeEntry,
                                   instruction_->locs());
+
+    if (FLAG_use_osr && !compiler->is_optimizing() && instruction_->in_loop()) {
+      // In unoptimized code, record loop stack checks as possible OSR entries.
+      compiler->AddCurrentDescriptor(PcDescriptors::kOsrEntry,
+                                     instruction_->deopt_id(),
+                                     0);  // No token position.
+    }
     compiler->pending_deoptimization_env_ = NULL;
     compiler->RestoreLiveRegisters(instruction_->locs());
     __ jmp(exit_label());
@@ -2124,6 +2132,14 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movq(temp, Immediate(Isolate::Current()->stack_limit_address()));
   __ cmpq(RSP, Address(temp, 0));
   __ j(BELOW_EQUAL, slow_path->entry_label());
+  if (FLAG_use_osr && !compiler->is_optimizing() && in_loop()) {
+    // In unoptimized code check the usage counter to trigger OSR at loop
+    // stack checks.
+    __ LoadObject(temp, compiler->parsed_function().function());
+    __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
+            Immediate(2 * FLAG_optimization_counter_threshold));
+    __ j(GREATER_EQUAL, slow_path->entry_label());
+  }
   __ Bind(slow_path->exit_label());
 }
 

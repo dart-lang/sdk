@@ -47,7 +47,9 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
 
 
 void CodePatcher::InsertCallAt(uword start, uword target) {
-  UNIMPLEMENTED();
+  // The inserted call should not overlap the lazy deopt jump code.
+  ASSERT(start + CallPattern::kFixedLengthInBytes <= target);
+  CallPattern::InsertAt(start, target);
 }
 
 

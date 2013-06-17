@@ -44,7 +44,9 @@ class Compiler : public AllStatic {
   // Generates optimized code for function.
   //
   // Returns Error::null() if there is no compilation error.
-  static RawError* CompileOptimizedFunction(const Function& function);
+  static RawError* CompileOptimizedFunction(
+      const Function& function,
+      intptr_t osr_id = Isolate::kNoDeoptId);
 
   // Generates code for given parsed function (without parsing it again) and
   // sets its code field.

@@ -94,14 +94,14 @@ stringReplaceAllUnchecked(receiver, from, to) {
         return result.toString();
       }
     } else {
-      var quoter = JS('', "new RegExp(#, 'g')", r'[-[\]{}()*+?.,\\^$|#\s]');
+      var quoter = JS('', "new RegExp(#, 'g')", r'[[\]{}()*+?.\\^$|]');
       var quoted = JS('String', r'#.replace(#, "\\$&")', from, quoter);
       var replacer = JS('', "new RegExp(#, 'g')", quoted);
       return stringReplaceJS(receiver, replacer, to);
     }
   } else if (from is JSSyntaxRegExp) {
-    var re = new JSSyntaxRegExp._globalVersionOf(from);
-    return stringReplaceJS(receiver, re._nativeRegExp, to);
+    var re = regExpGetGlobalNative(from);
+    return stringReplaceJS(receiver, re, to);
   } else {
     checkNull(from);
     // TODO(floitsch): implement generic String.replace (with patterns).

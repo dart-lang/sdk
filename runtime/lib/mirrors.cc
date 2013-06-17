@@ -4,6 +4,7 @@
 
 #include "include/dart_api.h"
 #include "include/dart_debugger_api.h"
+#include "include/dart_mirrors_api.h"
 #include "vm/dart_api_impl.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_entry.h"

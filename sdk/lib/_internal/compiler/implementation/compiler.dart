@@ -409,6 +409,7 @@ abstract class Compiler implements DiagnosticListener {
   EnqueueTask enqueuer;
   CompilerTask fileReadingTask;
   DeferredLoadTask deferredLoadTask;
+  ContainerTracer containerTracer;
   String buildId;
 
   static const SourceString MAIN = const SourceString('main');
@@ -452,6 +453,9 @@ abstract class Compiler implements DiagnosticListener {
   bool compilationFailed = false;
 
   bool hasCrashed = false;
+
+  /// Set by the backend if real reflection is detected in use of dart:mirrors.
+  bool disableTypeInferenceForMirrors = false;
 
   Compiler({this.tracer: const Tracer(),
             this.enableTypeAssertions: false,
@@ -510,6 +514,7 @@ abstract class Compiler implements DiagnosticListener {
       closureToClassMapper = new closureMapping.ClosureTask(this, closureNamer),
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this),
+      containerTracer = new ContainerTracer(this),
       constantHandler = new ConstantHandler(this, backend.constantSystem),
       deferredLoadTask = new DeferredLoadTask(this),
       enqueuer = new EnqueueTask(this)];
@@ -530,7 +535,9 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get compileAll => false;
 
-  bool get disableTypeInference => disableTypeInferenceFlag || mirrorsEnabled;
+  bool get disableTypeInference {
+    return disableTypeInferenceFlag || disableTypeInferenceForMirrors;
+  }
 
   int getNextFreeClassId() => nextFreeClassId++;
 

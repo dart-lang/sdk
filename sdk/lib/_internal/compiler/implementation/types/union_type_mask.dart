@@ -30,7 +30,13 @@ class UnionTypeMask implements TypeMask {
       } else if (mask.isEmpty && !mask.isNullable) {
         continue;
       } else {
-        FlatTypeMask flatMask = mask;
+        FlatTypeMask flatMask;
+        if (mask.isContainer) {
+          ContainerTypeMask container = mask;
+          flatMask = container.asFlat;
+        } else {
+          flatMask = mask;
+        }
         assert(flatMask.base == null
                || flatMask.base.element != compiler.dynamicClass);
         int inListIndex = -1;
@@ -140,6 +146,7 @@ class UnionTypeMask implements TypeMask {
   }
 
   TypeMask union(var other, Compiler compiler) {
+    if (other.isContainer) other = other.asFlat;
     if (!other.isUnion && disjointMasks.contains(other)) return this;
 
     List<FlatTypeMask> newList =
@@ -154,6 +161,7 @@ class UnionTypeMask implements TypeMask {
   }
 
   TypeMask intersection(var other, Compiler compiler) {
+    if (other.isContainer) other = other.asFlat;
     if (!other.isUnion && disjointMasks.contains(other)) return other;
 
     List<TypeMask> intersections = <TypeMask>[];
@@ -189,6 +197,7 @@ class UnionTypeMask implements TypeMask {
   bool get isNullable => disjointMasks.any((e) => e.isNullable);
   bool get isExact => false;
   bool get isUnion => true;
+  bool get isContainer => false;
 
   bool containsOnlyInt(Compiler compiler) => false;
   bool containsOnlyDouble(Compiler compiler) => false;

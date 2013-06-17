@@ -75,7 +75,6 @@ class StackFrame : public ValueObject {
   // Returns token_pos of the pc(), or -1 if none exists.
   intptr_t GetTokenPos() const;
 
-
  protected:
   StackFrame() : fp_(0), sp_(0), pc_(0) { }
 
@@ -296,4 +295,3 @@ class InlinedFunctionsIterator : public ValueObject {
 }  // namespace dart
 
 #endif  // VM_STACK_FRAME_H_
-

@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/constants_mips.h"
+#include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 
@@ -155,6 +156,24 @@ void CallPattern::SetTargetAddress(uword target_address) const {
   const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target_address));
   object_pool_.SetAt(target_address_pool_index_, smi);
   // No need to flush the instruction cache, since the code is not modified.
+}
+
+
+void CallPattern::InsertAt(uword pc, uword target_address) {
+  Instr* lui = Instr::At(pc + (0 * Instr::kInstrSize));
+  Instr* ori = Instr::At(pc + (1 * Instr::kInstrSize));
+  Instr* jr = Instr::At(pc + (2 * Instr::kInstrSize));
+  Instr* nop = Instr::At(pc + (3 * Instr::kInstrSize));
+  uint16_t target_lo = target_address & 0xffff;
+  uint16_t target_hi = target_address >> 16;
+
+  lui->SetImmInstrBits(LUI, ZR, TMP1, target_hi);
+  ori->SetImmInstrBits(ORI, TMP1, TMP1, target_lo);
+  jr->SetSpecialInstrBits(JALR, TMP1, ZR, RA);
+  nop->SetInstructionBits(Instr::kNopInstruction);
+
+  ASSERT(kFixedLengthInBytes == 4 * Instr::kInstrSize);
+  CPU::FlushICache(pc, kFixedLengthInBytes);
 }
 
 

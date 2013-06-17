@@ -2542,6 +2542,7 @@ class PcDescriptors : public Object {
     kClosureCall,      // Closure call.
     kRuntimeCall,      // Runtime call.
     kReturn,           // Return from function.
+    kOsrEntry,         // OSR entry point in unoptimized code.
     kOther
   };
 
@@ -2877,6 +2878,8 @@ class Code : public Object {
   // Aborts if there is no static call at 'pc'.
   void SetStaticCallTargetCodeAt(uword pc, const Code& code) const;
 
+  void Disassemble() const;
+
   class Comments : public ZoneAllocated {
    public:
     static Comments& New(intptr_t count);
@@ -2964,6 +2967,7 @@ class Code : public Object {
   uword GetLazyDeoptPc() const;
 
   uword GetPcForDeoptId(intptr_t deopt_id, PcDescriptors::Kind kind) const;
+  intptr_t GetDeoptIdForOsr(uword pc) const;
 
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).

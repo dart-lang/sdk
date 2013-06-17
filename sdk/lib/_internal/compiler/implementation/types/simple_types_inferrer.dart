@@ -13,7 +13,8 @@ import '../elements/elements.dart';
 import '../native_handler.dart' as native;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
-import 'types.dart' show TypesInferrer, FlatTypeMask, TypeMask;
+import 'types.dart'
+    show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask;
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export
 // of Selector from dart2jslib.dart fail. For now, we work around that
@@ -111,21 +112,21 @@ class SimpleTypesInferrer extends TypesInferrer {
       compiler = compiler,
       internal = new InternalSimpleTypesInferrer(compiler, OPTIMISTIC);
 
-  TypeMask get dynamicType => internal.dynamicType;
-  TypeMask get nullType => internal.nullType;
-  TypeMask get intType => internal.intType;
-  TypeMask get doubleType => internal.doubleType;
-  TypeMask get numType => internal.numType;
-  TypeMask get boolType => internal.boolType;
-  TypeMask get functionType => internal.functionType;
-  TypeMask get listType => internal.listType;
-  TypeMask get constListType => internal.constListType;
-  TypeMask get fixedListType => internal.fixedListType;
-  TypeMask get growableListType => internal.growableListType;
-  TypeMask get mapType => internal.mapType;
-  TypeMask get constMapType => internal.constMapType;
-  TypeMask get stringType => internal.stringType;
-  TypeMask get typeType => internal.typeType;
+  TypeMask get dynamicType => compiler.typesTask.dynamicType;
+  TypeMask get nullType => compiler.typesTask.nullType;
+  TypeMask get intType => compiler.typesTask.intType;
+  TypeMask get doubleType => compiler.typesTask.doubleType;
+  TypeMask get numType => compiler.typesTask.numType;
+  TypeMask get boolType => compiler.typesTask.boolType;
+  TypeMask get functionType => compiler.typesTask.functionType;
+  TypeMask get listType => compiler.typesTask.listType;
+  TypeMask get constListType => compiler.typesTask.constListType;
+  TypeMask get fixedListType => compiler.typesTask.fixedListType;
+  TypeMask get growableListType => compiler.typesTask.growableListType;
+  TypeMask get mapType => compiler.typesTask.mapType;
+  TypeMask get constMapType => compiler.typesTask.constMapType;
+  TypeMask get stringType => compiler.typesTask.stringType;
+  TypeMask get typeType => compiler.typesTask.typeType;
 
   TypeMask getReturnTypeOfElement(Element element) {
     if (compiler.disableTypeInference) return dynamicType;
@@ -144,6 +145,14 @@ class SimpleTypesInferrer extends TypesInferrer {
     return internal.getTypeOfSelector(selector);
   }
 
+  Iterable<Element> getCallersOf(Element element) {
+    if (compiler.disableTypeInference) throw "Don't use me";
+    Iterable<Element> result = internal.callersOf[element];
+    return result == null
+        ? internal.callersOf[element] = const <Element>[]
+        : result;
+  }
+
   bool analyzeMain(Element element) {
     if (compiler.disableTypeInference) return true;
     bool result = internal.analyzeMain(element);
@@ -154,14 +163,24 @@ class SimpleTypesInferrer extends TypesInferrer {
     internal = new InternalSimpleTypesInferrer(compiler, PESSIMISTIC);
     return internal.analyzeMain(element);
   }
+
+  void clear() {
+    internal.clear();
+  }
 }
 
 class InternalSimpleTypesInferrer extends TypesInferrer {
   /**
+   * Maps a node to its type. Currently used for computing element
+   * types of lists.
+   */
+  final Map<Node, TypeMask> concreteTypes = new Map<Node, TypeMask>();
+
+  /**
    * Maps an element to its callers.
    */
-  final Map<Element, Set<Element>> callersOf =
-      new Map<Element, Set<Element>>();
+  final Map<Element, Iterable<Element>> callersOf =
+      new Map<Element, Iterable<Element>>();
 
   /**
    * Maps an element to its return type.
@@ -241,23 +260,22 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
 
   int optimismState;
 
-  TypeMask dynamicType;
   bool isDynamicType(TypeMask type) => identical(type, dynamicType);
-
-  TypeMask nullType;
-  TypeMask intType;
-  TypeMask doubleType;
-  TypeMask numType;
-  TypeMask boolType;
-  TypeMask functionType;
-  TypeMask listType;
-  TypeMask constListType;
-  TypeMask fixedListType;
-  TypeMask growableListType;
-  TypeMask mapType;
-  TypeMask constMapType;
-  TypeMask stringType;
-  TypeMask typeType;
+  TypeMask get dynamicType => compiler.typesTask.dynamicType;
+  TypeMask get nullType => compiler.typesTask.nullType;
+  TypeMask get intType => compiler.typesTask.intType;
+  TypeMask get doubleType => compiler.typesTask.doubleType;
+  TypeMask get numType => compiler.typesTask.numType;
+  TypeMask get boolType => compiler.typesTask.boolType;
+  TypeMask get functionType => compiler.typesTask.functionType;
+  TypeMask get listType => compiler.typesTask.listType;
+  TypeMask get constListType => compiler.typesTask.constListType;
+  TypeMask get fixedListType => compiler.typesTask.fixedListType;
+  TypeMask get growableListType => compiler.typesTask.growableListType;
+  TypeMask get mapType => compiler.typesTask.mapType;
+  TypeMask get constMapType => compiler.typesTask.constMapType;
+  TypeMask get stringType => compiler.typesTask.stringType;
+  TypeMask get typeType => compiler.typesTask.typeType;
 
   /**
    * These are methods that are expected to return only bool.  We optimistically
@@ -308,7 +326,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * found as reachable. Returns whether it succeeded.
    */
   bool analyzeMain(Element element) {
-    initializeTypes();
     buildWorkQueue();
     int analyzed = 0;
     compiler.progress.reset();
@@ -345,7 +362,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       }
     } while (!workSet.isEmpty);
     dump();
-    clear();
     return true;
   }
 
@@ -377,17 +393,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * defined in the context of [owner].
    */
   TypeMask getTypeOfNode(Element owner, Node node) {
-    var elements = compiler.enqueuer.resolution.resolvedElements[owner];
-    // TODO(ngeoffray): Not sure why the resolver would put a null
-    // mapping.
-    if (elements == null) return null;
-    Selector selector = elements.getSelector(node);
-    // TODO(ngeoffray): Should the builder call this method with a
-    // SendSet?
-    if (selector == null || selector.isSetter() || selector.isIndexSet()) {
-      return null;
-    }
-    return getNonNullType(typeOfSelector(selector));
+    return getNonNullType(concreteTypes[node]);
   }
 
   void checkAnalyzedAll() {
@@ -494,42 +500,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     cls.ensureResolved(compiler);
     assert(cls.rawType != null);
     return cls.rawType;
-  }
-
-  void initializeTypes() {
-    nullType = new TypeMask.empty();
-
-    Backend backend = compiler.backend;
-    intType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.intImplementation));
-    doubleType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.doubleImplementation));
-    numType = new TypeMask.nonNullSubclass(
-        rawTypeOf(backend.numImplementation));
-    stringType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.stringImplementation));
-    boolType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.boolImplementation));
-
-    listType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.listImplementation));
-    constListType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.constListImplementation));
-    fixedListType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.fixedListImplementation));
-    growableListType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.growableListImplementation));
-
-    mapType = new TypeMask.nonNullSubtype(
-        rawTypeOf(backend.mapImplementation));
-    constMapType = new TypeMask.nonNullSubtype(
-        rawTypeOf(backend.constMapImplementation));
-    functionType = new TypeMask.nonNullSubtype(
-        rawTypeOf(backend.functionImplementation));
-    typeType = new TypeMask.nonNullExact(
-        rawTypeOf(backend.typeImplementation));
-
-    dynamicType = new TypeMask.subclass(rawTypeOf(compiler.objectClass));
   }
 
   dump() {
@@ -815,6 +785,12 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         assert(element.isGetter());
         return returnTypeOfElement(element);
       }
+    } else if (selector.isIndex()
+               && selector.mask != null
+               && selector.mask.isContainer) {
+      ContainerTypeMask mask = selector.mask;
+      TypeMask elementType = mask.elementType;
+      return elementType == null ? dynamicType : elementType;
     } else {
       return returnTypeOfElement(element);
     }
@@ -1288,7 +1264,6 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
     Element outermostElement =
         element.getOutermostEnclosingMemberOrTopLevel().implementation;
     assert(outermostElement != null);
-    handler = handler != null ? handler : new LocalsHandler(inferrer);
     return new SimpleTypeInferrerVisitor.internal(
         element, outermostElement, inferrer, compiler, handler);
   }
@@ -1449,6 +1424,14 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
     });
 
     return inferrer.functionType;
+  }
+
+  TypeMask visitLiteralList(LiteralList node) {
+    node.visitChildren(this);
+    if (node.isConst()) return inferrer.constListType;
+    return inferrer.concreteTypes.putIfAbsent(
+      node, () => new ContainerTypeMask(
+          inferrer.growableListType, node, outermostElement));
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();
@@ -1707,9 +1690,13 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
 
     handleStaticSend(node, selector, element, arguments);
     if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
-      return inferrer.growableListType;
+      return inferrer.concreteTypes.putIfAbsent(
+          node, () => new ContainerTypeMask(
+              inferrer.growableListType, node, outermostElement));
     } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
-      return inferrer.fixedListType;
+      return inferrer.concreteTypes.putIfAbsent(
+          node, () => new ContainerTypeMask(
+              inferrer.fixedListType, node, outermostElement));
     } else if (element.isFunction() || element.isConstructor()) {
       return inferrer.returnTypeOfElement(element);
     } else {

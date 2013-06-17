@@ -67,6 +67,9 @@ class Address : public ValueObject {
     return Utils::IsInt(kImmBits, offset);
   }
 
+  Register base() const { return base_; }
+  int32_t offset() const { return offset_; }
+
  private:
   Register base_;
   int32_t offset_;
@@ -439,6 +442,12 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL2, rs, rd, rd, 0, CLZ);
   }
 
+  // Convert a 32-bit float in fs to a 64-bit double in dd.
+  void cvtds(DRegister dd, FRegister fs) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    EmitFpuRType(COP1, FMT_S, F0, fs, fd, COP1_CVT_D);
+  }
+
   // Converts a 32-bit signed int in fs to a double in fd.
   void cvtdw(DRegister dd, FRegister fs) {
     FRegister fd = static_cast<FRegister>(dd * 2);
@@ -553,8 +562,18 @@ class Assembler : public ValueObject {
     EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_MOV);
   }
 
+  // Move if floating point false.
+  void movf(Register rd, Register rs) {
+    EmitRType(SPECIAL, rs, R0, rd, 0, MOVCI);
+  }
+
   void movn(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, MOVN);
+  }
+
+  // Move if floating point true.
+  void movt(Register rd, Register rs) {
+    EmitRType(SPECIAL, rs, R1, rd, 0, MOVCI);
   }
 
   void movz(Register rd, Register rs, Register rt) {
@@ -970,6 +989,20 @@ class Assembler : public ValueObject {
 
   void SmiUntag(Register reg) {
     sra(reg, reg, kSmiTagSize);
+  }
+
+  void StoreDToOffset(DRegister reg, Register base, int32_t offset) {
+    FRegister lo = static_cast<FRegister>(reg * 2);
+    FRegister hi = static_cast<FRegister>(reg * 2 + 1);
+    swc1(lo, Address(base, offset));
+    swc1(hi, Address(base, offset + kWordSize));
+  }
+
+  void LoadDFromOffset(DRegister reg, Register base, int32_t offset) {
+    FRegister lo = static_cast<FRegister>(reg * 2);
+    FRegister hi = static_cast<FRegister>(reg * 2 + 1);
+    lwc1(lo, Address(base, offset));
+    lwc1(hi, Address(base, offset + kWordSize));
   }
 
   void ReserveAlignedFrameSpace(intptr_t frame_space);

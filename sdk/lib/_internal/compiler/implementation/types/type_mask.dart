@@ -48,6 +48,7 @@ abstract class TypeMask {
   bool get isNullable;
   bool get isExact;
   bool get isUnion;
+  bool get isContainer;
 
   bool containsOnlyInt(Compiler compiler);
   bool containsOnlyDouble(Compiler compiler);

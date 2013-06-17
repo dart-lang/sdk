@@ -240,7 +240,8 @@ def GetVersion():
 
 def GetSVNRevision():
   p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
-      stderr = subprocess.STDOUT, shell=IsWindows())
+                       stderr = subprocess.STDOUT, shell=IsWindows(),
+                       env = {'LC_MESSAGES' : 'en_GB'})
   output, not_used = p.communicate()
   revision = ParseSvnInfoOutput(output)
   if revision:
