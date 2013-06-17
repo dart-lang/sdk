@@ -73,6 +73,7 @@ mirrors/library_uri_package_test: Fail  # Issue 10957
 async/run_async6_test: Fail             # Issue 10957 - may be related to issue 10910
 mirrors/reflect_model_test: Fail # http://dartbug.com/11219
 mirrors/disable_tree_shaking_test: Fail
+mirrors/to_string_test: Fail
 
 [ $compiler == dart2dart && $minified ]
 json/json_test: Fail                           # Issue 10961
