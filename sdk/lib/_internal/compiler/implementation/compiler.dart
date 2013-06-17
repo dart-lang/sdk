@@ -453,6 +453,9 @@ abstract class Compiler implements DiagnosticListener {
 
   bool hasCrashed = false;
 
+  /// Set by the backend if real reflection is detected in use of dart:mirrors.
+  bool disableTypeInferenceForMirrors = false;
+
   Compiler({this.tracer: const Tracer(),
             this.enableTypeAssertions: false,
             this.enableUserAssertions: false,
@@ -530,7 +533,9 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get compileAll => false;
 
-  bool get disableTypeInference => disableTypeInferenceFlag || mirrorsEnabled;
+  bool get disableTypeInference {
+    return disableTypeInferenceFlag || disableTypeInferenceForMirrors;
+  }
 
   int getNextFreeClassId() => nextFreeClassId++;
 
