@@ -11,8 +11,8 @@ import "dart:isolate";
 void testPauseList() {
   var keepAlive = new ReceivePort();
   new Directory("").createTemp().then((d) {
-    // Linux reads 2K at a time.
-    int total = 2 * 1024 + 1;
+    // Linux reads 2K at a time, so be sure to be >>.
+    int total = 4 * 1024 + 1;
     for (int i = 0; i < total; i++) {
       new File("${d.path}/$i").createSync();
     }
@@ -32,7 +32,7 @@ void testPauseList() {
       }
       count++;
     }, onDone: () {
-      Expect.isTrue(count < total);
+      Expect.notEquals(total, count);
       keepAlive.close();
       d.delete().then((ignore) => keepAlive.close());
     });
