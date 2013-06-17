@@ -166,7 +166,7 @@ void testConfigurations(List<Map> configurations) {
                conf['use_browser_controller']) {
       // FIXME(kustermann/ricow): Remove this once the new browser_controller is
       // stable.
-      maxBrowserProcesses = math.max(maxProcesses - 2, 2);
+      maxBrowserProcesses = math.max(maxProcesses - 3, 1);
     }
 
     for (String key in selectors.keys) {
