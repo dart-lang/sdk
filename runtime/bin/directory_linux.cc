@@ -21,41 +21,47 @@
 namespace dart {
 namespace bin {
 
-class PathBuffer {
- public:
-  PathBuffer() : length(0) {
-    data = new char[PATH_MAX + 1];
-  }
 
-  ~PathBuffer() {
-    delete[] data;
-  }
+PathBuffer::PathBuffer() : length_(0) {
+  data_ = new char[PATH_MAX + 1];
+}
 
-  char* data;
-  int length;
+bool PathBuffer::AddW(const wchar_t* name) {
+  UNREACHABLE();
+  return false;
+}
 
-  bool Add(const char* name) {
-    int written = snprintf(data + length,
-                           PATH_MAX - length,
-                           "%s",
-                           name);
-    data[PATH_MAX] = '\0';
-    if (written <= PATH_MAX - length &&
-        written >= 0 &&
-        static_cast<size_t>(written) == strnlen(name, PATH_MAX + 1)) {
-      length += written;
-      return true;
-    } else {
-      errno = ENAMETOOLONG;
-      return false;
-    }
-  }
+char* PathBuffer::AsString() const {
+  return reinterpret_cast<char*>(data_);
+}
 
-  void Reset(int new_length) {
-    length = new_length;
-    data[length] = '\0';
+wchar_t* PathBuffer::AsStringW() const {
+  UNREACHABLE();
+  return NULL;
+}
+
+bool PathBuffer::Add(const char* name) {
+  char* data = AsString();
+  int written = snprintf(data + length_,
+                         PATH_MAX - length_,
+                         "%s",
+                         name);
+  data[PATH_MAX] = '\0';
+  if (written <= PATH_MAX - length_ &&
+      written >= 0 &&
+      static_cast<size_t>(written) == strnlen(name, PATH_MAX + 1)) {
+    length_ += written;
+    return true;
+  } else {
+    errno = ENAMETOOLONG;
+    return false;
   }
-};
+}
+
+void PathBuffer::Reset(int new_length) {
+  length_ = new_length;
+  AsString()[length_] = '\0';
+}
 
 
 // A linked list of symbolic links, with their unique file system identifiers.
@@ -67,110 +73,54 @@ struct LinkList {
 };
 
 
-// Forward declarations.
-static bool ListRecursively(PathBuffer* path,
-                            bool recursive,
-                            bool follow_links,
-                            LinkList* seen,
-                            DirectoryListing* listing);
-static bool DeleteRecursively(PathBuffer* path);
-
-
-static void PostError(DirectoryListing *listing,
-                      const char* dir_name) {
-  listing->HandleError(dir_name);
-}
-
-
-static bool HandleDir(char* dir_name,
-                      PathBuffer* path,
-                      bool recursive,
-                      bool follow_links,
-                      LinkList* seen,
-                      DirectoryListing *listing) {
-  if (strcmp(dir_name, ".") == 0) return true;
-  if (strcmp(dir_name, "..") == 0) return true;
-  if (!path->Add(dir_name)) {
-    PostError(listing, path->data);
-    return false;
+ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
+  if (done_) {
+    return kListDone;
   }
-  return listing->HandleDirectory(path->data) &&
-      (!recursive ||
-       ListRecursively(path, recursive, follow_links, seen, listing));
-}
 
+  if (lister_ == 0) {
+    if (!listing->path_buffer().Add(File::PathSeparator())) {
+      done_ = true;
+      return kListError;
+    }
+    path_length_ = listing->path_buffer().length();
+    do {
+      lister_ = reinterpret_cast<intptr_t>(
+          opendir(listing->path_buffer().AsString()));
+    } while (lister_ == 0 && errno == EINTR);
 
-static bool HandleFile(char* file_name,
-                       PathBuffer* path,
-                       DirectoryListing *listing) {
-  if (!path->Add(file_name)) {
-    PostError(listing, path->data);
-    return false;
+    if (lister_ == 0) {
+      done_ = true;
+      return kListError;
+    }
   }
-  return listing->HandleFile(path->data);
-}
-
-
-static bool HandleLink(char* link_name,
-                       PathBuffer* path,
-                       DirectoryListing *listing) {
-  if (!path->Add(link_name)) {
-    PostError(listing, path->data);
-    return false;
-  }
-  return listing->HandleLink(path->data);
-}
-
-
-static bool ListRecursively(PathBuffer* path,
-                            bool recursive,
-                            bool follow_links,
-                            LinkList* seen,
-                            DirectoryListing *listing) {
-  if (!path->Add(File::PathSeparator())) {
-    PostError(listing, path->data);
-    return false;
-  }
-  DIR* dir_pointer;
-  do {
-    dir_pointer = opendir(path->data);
-  } while (dir_pointer == NULL && errno == EINTR);
-  if (dir_pointer == NULL) {
-    PostError(listing, path->data);
-    return false;
-  }
+  // Reset.
+  listing->path_buffer().Reset(path_length_);
+  ResetLink();
 
   // Iterate the directory and post the directories and files to the
   // ports.
-  int path_length = path->length;
   int status = 0;
-  bool success = true;
   dirent entry;
   dirent* result;
-  while ((status = TEMP_FAILURE_RETRY(readdir_r(dir_pointer,
-                                                &entry,
-                                                &result))) == 0 &&
-         result != NULL) {
+  if ((status = TEMP_FAILURE_RETRY(readdir_r(reinterpret_cast<DIR*>(lister_),
+                                    &entry,
+                                    &result))) == 0 &&
+      result != NULL) {
+    if (!listing->path_buffer().Add(entry.d_name)) {
+      done_ = true;
+      return kListError;
+    }
     switch (entry.d_type) {
       case DT_DIR:
-        success = HandleDir(entry.d_name,
-                            path,
-                            recursive,
-                            follow_links,
-                            seen,
-                            listing) && success;
-        break;
+        if (strcmp(entry.d_name, ".") == 0) return Next(listing);
+        if (strcmp(entry.d_name, "..") == 0) return Next(listing);
+        return kListDirectory;
       case DT_REG:
-        success = HandleFile(entry.d_name,
-                             path,
-                             listing) && success;
-        break;
+        return kListFile;
       case DT_LNK:
-        if (!follow_links) {
-          success = HandleLink(entry.d_name,
-                               path,
-                               listing) && success;
-          break;
+        if (!listing->follow_links()) {
+          return kListLink;
         }
         // Else fall through to next case.
         // Fall through.
@@ -180,103 +130,77 @@ static bool ListRecursively(PathBuffer* path,
         // the actual entry type. Notice that stat returns the type of
         // the file pointed to.
         struct stat entry_info;
-        if (!path->Add(entry.d_name)) {
-          success = false;
-          break;
-        }
         int stat_success;
-        stat_success = TEMP_FAILURE_RETRY(lstat(path->data, &entry_info));
+        stat_success = TEMP_FAILURE_RETRY(
+            lstat(listing->path_buffer().AsString(), &entry_info));
         if (stat_success == -1) {
-          success = false;
-          PostError(listing, path->data);
-          break;
+          return kListError;
         }
-        if (follow_links && S_ISLNK(entry_info.st_mode)) {
+        if (listing->follow_links() && S_ISLNK(entry_info.st_mode)) {
           // Check to see if we are in a loop created by a symbolic link.
           LinkList current_link = { entry_info.st_dev,
                                     entry_info.st_ino,
-                                    seen };
-          LinkList* previous = seen;
-          bool looping_link = false;
+                                    link_ };
+          LinkList* previous = link_;
           while (previous != NULL) {
             if (previous->dev == current_link.dev &&
                 previous->ino == current_link.ino) {
               // Report the looping link as a link, rather than following it.
-              path->Reset(path_length);
-              success = HandleLink(entry.d_name,
-                                   path,
-                                   listing) && success;
-              looping_link = true;
-              break;
+              return kListLink;
             }
             previous = previous->next;
           }
-          if (looping_link) break;
-          stat_success = TEMP_FAILURE_RETRY(stat(path->data, &entry_info));
+          stat_success = TEMP_FAILURE_RETRY(
+              stat(listing->path_buffer().AsString(), &entry_info));
           if (stat_success == -1) {
             // Report a broken link as a link, even if follow_links is true.
-            path->Reset(path_length);
-            success = HandleLink(entry.d_name,
-                                 path,
-                                 listing) && success;
-            break;
+            return kListLink;
           }
           if (S_ISDIR(entry_info.st_mode)) {
             // Recurse into the subdirectory with current_link added to the
             // linked list of seen file system links.
-            path->Reset(path_length);
-            success = HandleDir(entry.d_name,
-                                path,
-                                recursive,
-                                follow_links,
-                                &current_link,
-                                listing) && success;
-            break;
+            link_ = new LinkList(current_link);
+            if (strcmp(entry.d_name, ".") == 0) return Next(listing);
+            if (strcmp(entry.d_name, "..") == 0) return Next(listing);
+            return kListDirectory;
           }
         }
-        path->Reset(path_length);
         if (S_ISDIR(entry_info.st_mode)) {
-          success = HandleDir(entry.d_name,
-                              path,
-                              recursive,
-                              follow_links,
-                              seen,
-                              listing) && success;
+          if (strcmp(entry.d_name, ".") == 0) return Next(listing);
+          if (strcmp(entry.d_name, "..") == 0) return Next(listing);
+          return kListDirectory;
         } else if (S_ISREG(entry_info.st_mode)) {
-          success = HandleFile(entry.d_name,
-                               path,
-                               listing) && success;
+          return kListFile;
         } else if (S_ISLNK(entry_info.st_mode)) {
-          success = HandleLink(entry.d_name,
-                               path,
-                               listing) && success;
+          return kListLink;
         }
-        break;
       }
+
       default:
         break;
     }
-    path->Reset(path_length);
   }
+  done_ = true;
 
   if (status != 0) {
     errno = status;
-    success = false;
-    PostError(listing, path->data);
+    return kListError;
   }
 
-  if (closedir(dir_pointer) == -1) {
-    success = false;
-    PostError(listing, path->data);
+  if (closedir(reinterpret_cast<DIR*>(lister_)) == -1) {
+    return kListError;
   }
 
-  return success;
+  return kListDone;
 }
+
+
+static bool DeleteRecursively(PathBuffer* path);
 
 
 static bool DeleteFile(char* file_name,
                        PathBuffer* path) {
-  return path->Add(file_name) && unlink(path->data) == 0;
+  return path->Add(file_name) && unlink(path->AsString()) == 0;
 }
 
 
@@ -292,10 +216,10 @@ static bool DeleteRecursively(PathBuffer* path) {
   // Do not recurse into links for deletion. Instead delete the link.
   // If it's a file, delete it.
   struct stat st;
-  if (TEMP_FAILURE_RETRY(lstat(path->data, &st)) == -1) {
+  if (TEMP_FAILURE_RETRY(lstat(path->AsString(), &st)) == -1) {
     return false;
   } else if (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode)) {
-    return (unlink(path->data) == 0);
+    return (unlink(path->AsString()) == 0);
   }
 
   if (!path->Add(File::PathSeparator())) return false;
@@ -304,7 +228,7 @@ static bool DeleteRecursively(PathBuffer* path) {
   // directory.
   DIR* dir_pointer;
   do {
-    dir_pointer = opendir(path->data);
+    dir_pointer = opendir(path->AsString());
   } while (dir_pointer == NULL && errno == EINTR);
 
   if (dir_pointer == NULL) {
@@ -312,7 +236,7 @@ static bool DeleteRecursively(PathBuffer* path) {
   }
 
   // Iterate the directory and delete all files and directories.
-  int path_length = path->length;
+  int path_length = path->length();
   int read = 0;
   bool success = true;
   dirent entry;
@@ -342,7 +266,8 @@ static bool DeleteRecursively(PathBuffer* path) {
           success = false;
           break;
         }
-        int lstat_success = TEMP_FAILURE_RETRY(lstat(path->data, &entry_info));
+        int lstat_success = TEMP_FAILURE_RETRY(
+            lstat(path->AsString(), &entry_info));
         if (lstat_success == -1) {
           success = false;
           break;
@@ -366,23 +291,10 @@ static bool DeleteRecursively(PathBuffer* path) {
 
   if ((read != 0) ||
       (closedir(dir_pointer) == -1) ||
-      (remove(path->data) == -1)) {
+      (remove(path->AsString()) == -1)) {
     return false;
   }
   return success;
-}
-
-
-bool Directory::List(const char* dir_name,
-                     bool recursive,
-                     bool follow_links,
-                     DirectoryListing *listing) {
-  PathBuffer path;
-  if (!path.Add(dir_name)) {
-    PostError(listing, dir_name);
-    return false;
-  }
-  return ListRecursively(&path, recursive, follow_links, NULL, listing);
 }
 
 
@@ -456,9 +368,9 @@ char* Directory::CreateTemp(const char* const_template) {
   // The return value must be freed by the caller.
   PathBuffer path;
   path.Add(const_template);
-  if (path.length == 0) {
+  if (path.length() == 0) {
     path.Add("/tmp/temp_dir1_");
-  } else if ((path.data)[path.length - 1] == '/') {
+  } else if ((path.AsString())[path.length() - 1] == '/') {
     path.Add("temp_dir_");
   }
   if (!path.Add("XXXXXX")) {
@@ -467,14 +379,14 @@ char* Directory::CreateTemp(const char* const_template) {
   }
   char* result;
   do {
-    result = mkdtemp(path.data);
+    result = mkdtemp(path.AsString());
   } while (result == NULL && errno == EINTR);
   if (result == NULL) {
     return NULL;
   }
-  int length = strnlen(path.data, PATH_MAX);
+  int length = strnlen(path.AsString(), PATH_MAX);
   result = static_cast<char*>(malloc(length + 1));
-  strncpy(result, path.data, length);
+  strncpy(result, path.AsString(), length);
   result[length] = '\0';
   return result;
 }

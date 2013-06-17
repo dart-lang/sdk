@@ -15,13 +15,165 @@
 namespace dart {
 namespace bin {
 
+enum ListType {
+  kListFile = 0,
+  kListDirectory = 1,
+  kListLink = 2,
+  kListError = 3,
+  kListDone = 4
+};
+
+class PathBuffer {
+ public:
+  PathBuffer();
+  ~PathBuffer() {
+    free(data_);
+  }
+
+  bool Add(const char* name);
+  bool AddW(const wchar_t* name);
+
+  char* AsString() const;
+  wchar_t* AsStringW() const;
+
+  void Reset(int new_length);
+
+  int length() const {
+    return length_;
+  }
+
+ private:
+  void* data_;
+  int length_;
+
+  DISALLOW_COPY_AND_ASSIGN(PathBuffer);
+};
+
+class DirectoryListing;
+
+class LinkList;
+
+// DirectoryListingEntry is used as a stack item, when performing recursive
+// directory listing. By using DirectoryListingEntry as stack elements, a
+// directory listing can be paused e.g. when a buffer is full, and resumed
+// later on.
+//
+// The stack is managed by the DirectoryListing's PathBuffer. Each
+// DirectoryListingEntry stored a entry-length, that it'll reset the PathBuffer
+// to on each call to Next.
+class DirectoryListingEntry {
+ public:
+  explicit DirectoryListingEntry(DirectoryListingEntry* parent)
+    : parent_(parent), lister_(0), done_(false), link_(NULL) {}
+
+  ~DirectoryListingEntry() {
+    ResetLink();
+  }
+
+  ListType Next(DirectoryListing* listing);
+
+  DirectoryListingEntry* parent() const {
+    return parent_;
+  }
+
+  LinkList* link() {
+    return link_;
+  }
+
+  void set_link(LinkList* link) {
+    link_ = link;
+  }
+
+  void ResetLink() {
+    if (link_ != NULL && (parent_ == NULL || parent_->link_ != link_)) {
+      free(link_);
+      link_ = NULL;
+    }
+    if (parent_ != NULL) {
+      link_ = parent_->link_;
+    }
+  }
+
+ private:
+  DirectoryListingEntry* parent_;
+  intptr_t lister_;
+  bool done_;
+  int path_length_;
+  LinkList* link_;
+
+  DISALLOW_COPY_AND_ASSIGN(DirectoryListingEntry);
+};
+
 class DirectoryListing {
  public:
-  virtual ~DirectoryListing() {}
+  DirectoryListing(const char* dir_name, bool recursive, bool follow_links)
+    : top_(NULL),
+      error_(false),
+      recursive_(recursive),
+      follow_links_(follow_links) {
+    if (!path_buffer_.Add(dir_name)) {
+      error_ = true;
+    }
+    Push(new DirectoryListingEntry(NULL));
+  }
+
+  virtual ~DirectoryListing() {
+    while (!IsEmpty()) {
+      Pop();
+    }
+  }
+
   virtual bool HandleDirectory(char* dir_name) = 0;
   virtual bool HandleFile(char* file_name) = 0;
-  virtual bool HandleLink(char* file_name) = 0;
+  virtual bool HandleLink(char* link_name) = 0;
   virtual bool HandleError(const char* dir_name) = 0;
+  virtual void HandleDone() {}
+
+  void Push(DirectoryListingEntry* directory) {
+    top_ = directory;
+  }
+
+  void Pop() {
+    ASSERT(!IsEmpty());
+    DirectoryListingEntry* current = top_;
+    top_ = top_->parent();
+    delete current;
+  }
+
+  bool IsEmpty() const {
+    return top_ == NULL;
+  }
+
+  DirectoryListingEntry* top() const {
+    return top_;
+  }
+
+  bool recursive() const {
+    return recursive_;
+  }
+
+  bool follow_links() const {
+    return follow_links_;
+  }
+
+  char* CurrentPath() {
+    return path_buffer_.AsString();
+  }
+
+  PathBuffer& path_buffer() {
+    return path_buffer_;
+  }
+
+  bool error() const {
+    return error_;
+  }
+
+ private:
+  PathBuffer path_buffer_;
+  DirectoryListingEntry* top_;
+  bool error_;
+  bool recursive_;
+  bool follow_links_;
 };
 
 
@@ -35,17 +187,34 @@ class AsyncDirectoryListing : public DirectoryListing {
     kListDone = 4
   };
 
-  explicit AsyncDirectoryListing(Dart_Port response_port)
-      : response_port_(response_port) {}
+  AsyncDirectoryListing(const char* dir_name,
+                        bool recursive,
+                        bool follow_links)
+      : DirectoryListing(dir_name, recursive, follow_links) {}
+
   virtual ~AsyncDirectoryListing() {}
   virtual bool HandleDirectory(char* dir_name);
   virtual bool HandleFile(char* file_name);
   virtual bool HandleLink(char* file_name);
   virtual bool HandleError(const char* dir_name);
+  virtual void HandleDone();
+
+  void SetArray(CObjectArray* array, intptr_t length) {
+    ASSERT(length % 2 == 0);
+    array_ = array;
+    index_ = 0;
+    length_ = length;
+  }
+
+  intptr_t index() const {
+    return index_;
+  }
 
  private:
-  CObjectArray* NewResponse(Response response, char* arg);
-  Dart_Port response_port_;
+  bool AddFileSystemEntityToResponse(Response response, char* arg);
+  CObjectArray* array_;
+  intptr_t index_;
+  intptr_t length_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(AsyncDirectoryListing);
 };
@@ -53,8 +222,12 @@ class AsyncDirectoryListing : public DirectoryListing {
 
 class SyncDirectoryListing: public DirectoryListing {
  public:
-  explicit SyncDirectoryListing(Dart_Handle results)
-      : results_(results) {
+  SyncDirectoryListing(Dart_Handle results,
+                       const char* dir_name,
+                       bool recursive,
+                       bool follow_links)
+      : DirectoryListing(dir_name, recursive, follow_links),
+        results_(results) {
     add_string_ = DartUtils::NewString("add");
     directory_class_ =
         DartUtils::GetDartClass(DartUtils::kIOLibURL, "Directory");
@@ -95,14 +268,13 @@ class Directory {
     kDeleteRequest = 1,
     kExistsRequest = 2,
     kCreateTempRequest = 3,
-    kListRequest = 4,
-    kRenameRequest = 5
+    kListStartRequest = 4,
+    kListNextRequest = 5,
+    kListStopRequest = 6,
+    kRenameRequest = 7
   };
 
-  static bool List(const char* path,
-                   bool recursive,
-                   bool follow_links,
-                   DirectoryListing* listing);
+  static void List(DirectoryListing* listing);
   static ExistsResult Exists(const char* path);
   static char* Current();
   static bool SetCurrent(const char* path);

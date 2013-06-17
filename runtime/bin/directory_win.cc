@@ -19,41 +19,47 @@
 namespace dart {
 namespace bin {
 
-class PathBuffer {
- public:
-  PathBuffer() : length(0) {
-    data = new wchar_t[MAX_PATH + 1];
-  }
+PathBuffer::PathBuffer() : length_(0) {
+  data_ = new wchar_t[MAX_PATH + 1];
+}
 
-  ~PathBuffer() {
-    delete[] data;
-  }
+char* PathBuffer::AsString() const {
+  return StringUtils::WideToUtf8(AsStringW());
+}
 
-  wchar_t* data;
-  int length;
+wchar_t* PathBuffer::AsStringW() const {
+  return reinterpret_cast<wchar_t*>(data_);
+}
 
-  bool Add(const wchar_t* name) {
-    int written = _snwprintf(data + length,
-                             MAX_PATH - length,
-                             L"%s",
-                             name);
-    data[MAX_PATH] = L'\0';
-    if (written <= MAX_PATH - length &&
-        written >= 0 &&
-        static_cast<size_t>(written) == wcsnlen(name, MAX_PATH + 1)) {
-      length += written;
-      return true;
-    } else {
-      SetLastError(ERROR_BUFFER_OVERFLOW);
-      return false;
-    }
-  }
+bool PathBuffer::Add(const char* name) {
+  const wchar_t* wide_name = StringUtils::Utf8ToWide(name);
+  bool success = AddW(wide_name);
+  free(const_cast<wchar_t*>(wide_name));
+  return success;
+}
 
-  void Reset(int new_length) {
-    length = new_length;
-    data[length] = L'\0';
+bool PathBuffer::AddW(const wchar_t* name) {
+  wchar_t* data = AsStringW();
+  int written = _snwprintf(data + length_,
+                           MAX_PATH - length_,
+                           L"%s",
+                           name);
+  data[MAX_PATH] = L'\0';
+  if (written <= MAX_PATH - length_ &&
+      written >= 0 &&
+      static_cast<size_t>(written) == wcsnlen(name, MAX_PATH + 1)) {
+    length_ += written;
+    return true;
+  } else {
+    SetLastError(ERROR_BUFFER_OVERFLOW);
+    return false;
   }
-};
+}
+
+void PathBuffer::Reset(int new_length) {
+  length_ = new_length;
+  AsStringW()[length_] = L'\0';
+}
 
 // If link_name points to a link, IsBrokenLink will return true if link_name
 // points to an invalid target.
@@ -84,96 +90,31 @@ struct LinkList {
 };
 
 // Forward declarations.
-static bool ListRecursively(PathBuffer* path,
-                            bool recursive,
-                            bool follow_links,
-                            LinkList* seen,
-                            DirectoryListing* listing);
 static bool DeleteRecursively(PathBuffer* path);
 
 
-static void PostError(DirectoryListing* listing,
-                      const wchar_t* dir_name) {
-  const char* utf8_path = StringUtils::WideToUtf8(dir_name);
-  listing->HandleError(utf8_path);
-  free(const_cast<char*>(utf8_path));
-}
-
-
-static bool HandleDir(wchar_t* dir_name,
-                      PathBuffer* path,
-                      bool recursive,
-                      bool follow_links,
-                      LinkList* seen,
-                      DirectoryListing* listing) {
-  if (wcscmp(dir_name, L".") == 0) return true;
-  if (wcscmp(dir_name, L"..") == 0) return true;
-  if (!path->Add(dir_name)) {
-    PostError(listing, path->data);
-    return false;
+static ListType HandleFindFile(DirectoryListing* listing,
+                               DirectoryListingEntry* entry,
+                               WIN32_FIND_DATAW& find_file_data) {
+  if (!listing->path_buffer().AddW(find_file_data.cFileName)) {
+    return kListError;
   }
-  char* utf8_path = StringUtils::WideToUtf8(path->data);
-  bool ok = listing->HandleDirectory(utf8_path);
-  free(utf8_path);
-  return ok &&
-      (!recursive ||
-       ListRecursively(path, recursive, follow_links, seen, listing));
-}
-
-
-static bool HandleFile(wchar_t* file_name,
-                       PathBuffer* path,
-                       DirectoryListing* listing) {
-  if (!path->Add(file_name)) {
-    PostError(listing, path->data);
-    return false;
-  }
-  char* utf8_path = StringUtils::WideToUtf8(path->data);
-  bool ok = listing->HandleFile(utf8_path);
-  free(utf8_path);
-  return ok;
-}
-
-
-static bool HandleLink(wchar_t* link_name,
-                       PathBuffer* path,
-                       DirectoryListing* listing) {
-  if (!path->Add(link_name)) {
-    PostError(listing, path->data);
-    return false;
-  }
-  char* utf8_path = StringUtils::WideToUtf8(path->data);
-  bool ok = listing->HandleLink(utf8_path);
-  free(utf8_path);
-  return ok;
-}
-
-
-static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
-                        PathBuffer* path,
-                        bool recursive,
-                        bool follow_links,
-                        LinkList* seen,
-                        DirectoryListing* listing) {
-  DWORD attributes = find_file_data->dwFileAttributes;
+  DWORD attributes = find_file_data.dwFileAttributes;
   if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
-    if (!follow_links) {
-      return HandleLink(find_file_data->cFileName, path, listing);
+    if (!listing->follow_links()) {
+      return kListLink;
     }
-    int path_length = path->length;
-    if (!path->Add(find_file_data->cFileName)) return false;
     HANDLE handle = CreateFileW(
-        path->data,
+        listing->path_buffer().AsStringW(),
         0,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
         NULL,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS,
         NULL);
-    path->Reset(path_length);
     if (handle == INVALID_HANDLE_VALUE) {
       // Report as (broken) link.
-      return HandleLink(find_file_data->cFileName, path, listing);
+      return kListLink;
     }
     if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
       // Check the seen link targets to see if we are in a file system loop.
@@ -184,103 +125,99 @@ static bool HandleEntry(LPWIN32_FIND_DATAW find_file_data,
         DWORD error = GetLastError();
         CloseHandle(handle);
         SetLastError(error);
-        PostError(listing, path->data);
-        return false;
+        return kListError;
       }
       CloseHandle(handle);
       current_link.volume = info.dwVolumeSerialNumber;
       current_link.id_low = info.nFileIndexLow;
       current_link.id_high = info.nFileIndexHigh;
-      current_link.next = seen;
-      LinkList* previous = seen;
+      current_link.next = entry->link();
+      LinkList* previous = entry->link();
       while (previous != NULL) {
         if (previous->volume == current_link.volume &&
             previous->id_low == current_link.id_low &&
             previous->id_high == current_link.id_high) {
           // Report the looping link as a link, rather than following it.
-          return HandleLink(find_file_data->cFileName, path, listing);
+          return kListLink;
         }
         previous = previous->next;
       }
       // Recurse into the directory, adding current link to the seen links list.
-      return HandleDir(find_file_data->cFileName,
-                       path,
-                       recursive,
-                       follow_links,
-                       &current_link,
-                       listing);
+      if (wcscmp(find_file_data.cFileName, L".") == 0 ||
+          wcscmp(find_file_data.cFileName, L"..") == 0) {
+        return entry->Next(listing);
+      }
+      entry->set_link(new LinkList(current_link));
+      return kListDirectory;
     }
   }
   if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
-    return HandleDir(find_file_data->cFileName,
-                     path,
-                     recursive,
-                     follow_links,
-                     seen,
-                     listing);
+    if (wcscmp(find_file_data.cFileName, L".") == 0 ||
+        wcscmp(find_file_data.cFileName, L"..") == 0) {
+      return entry->Next(listing);
+    }
+    return kListDirectory;
   } else {
-    return HandleFile(find_file_data->cFileName, path, listing);
+    return kListFile;
   }
 }
 
-
-static bool ListRecursively(PathBuffer* path,
-                            bool recursive,
-                            bool follow_links,
-                            LinkList* seen,
-                            DirectoryListing* listing) {
-  if (!path->Add(L"\\*")) {
-    PostError(listing, path->data);
-    return false;
+ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
+  if (done_) {
+    return kListDone;
   }
 
   WIN32_FIND_DATAW find_file_data;
-  HANDLE find_handle = FindFirstFileW(path->data, &find_file_data);
 
-  // Adjust the path by removing the '*' used for the search.
-  path->Reset(path->length - 1);
+  if (lister_ == 0) {
+    if (!listing->path_buffer().AddW(L"\\*")) {
+      done_ = true;
+      return kListError;
+    }
 
-  if (find_handle == INVALID_HANDLE_VALUE) {
-    PostError(listing, path->data);
-    return false;
+    path_length_ = listing->path_buffer().length() - 1;
+
+    HANDLE find_handle = FindFirstFileW(listing->path_buffer().AsStringW(),
+                                        &find_file_data);
+
+    if (find_handle == INVALID_HANDLE_VALUE) {
+      done_ = true;
+      return kListError;
+    }
+
+    lister_ = reinterpret_cast<intptr_t>(find_handle);
+
+    listing->path_buffer().Reset(path_length_);
+
+    return HandleFindFile(listing, this, find_file_data);
   }
 
-  int path_length = path->length;
-  bool success = HandleEntry(&find_file_data,
-                             path,
-                             recursive,
-                             follow_links,
-                             seen,
-                             listing);
+  // Reset.
+  listing->path_buffer().Reset(path_length_);
+  ResetLink();
 
-  while ((FindNextFileW(find_handle, &find_file_data) != 0)) {
-    path->Reset(path_length);  // HandleEntry adds the entry name to path.
-    success = HandleEntry(&find_file_data,
-                          path,
-                          recursive,
-                          follow_links,
-                          seen,
-                          listing) && success;
+  if (FindNextFileW(reinterpret_cast<HANDLE>(lister_), &find_file_data) != 0) {
+    return HandleFindFile(listing, this, find_file_data);
   }
+
+  done_ = true;
 
   if (GetLastError() != ERROR_NO_MORE_FILES) {
-    success = false;
-    PostError(listing, path->data);
+    return kListError;
   }
 
-  if (FindClose(find_handle) == 0) {
-    success = false;
-    PostError(listing, path->data);
+  if (FindClose(reinterpret_cast<HANDLE>(lister_)) == 0) {
+    return kListError;
   }
 
-  return success;
+  return kListDone;
 }
 
 
 static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
-  if (!path->Add(file_name)) return false;
+  if (!path->AddW(file_name)) return false;
 
-  if (DeleteFileW(path->data) != 0) {
+  if (DeleteFileW(path->AsStringW()) != 0) {
     return true;
   }
 
@@ -288,7 +225,7 @@ static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
   // again. This mirrors Linux/Mac where a directory containing read-only files
   // can still be recursively deleted.
   if (GetLastError() == ERROR_ACCESS_DENIED) {
-    DWORD attributes = GetFileAttributesW(path->data);
+    DWORD attributes = GetFileAttributesW(path->AsStringW());
     if (attributes == INVALID_FILE_ATTRIBUTES) {
       return false;
     }
@@ -296,11 +233,11 @@ static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
     if ((attributes & FILE_ATTRIBUTE_READONLY) == FILE_ATTRIBUTE_READONLY) {
       attributes &= ~FILE_ATTRIBUTE_READONLY;
 
-      if (SetFileAttributesW(path->data, attributes) == 0) {
+      if (SetFileAttributesW(path->AsStringW(), attributes) == 0) {
         return false;
       }
 
-      return DeleteFileW(path->data) != 0;
+      return DeleteFileW(path->AsStringW()) != 0;
     }
   }
 
@@ -311,7 +248,7 @@ static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
 static bool DeleteDir(wchar_t* dir_name, PathBuffer* path) {
   if (wcscmp(dir_name, L".") == 0) return true;
   if (wcscmp(dir_name, L"..") == 0) return true;
-  return path->Add(dir_name) && DeleteRecursively(path);
+  return path->AddW(dir_name) && DeleteRecursively(path);
 }
 
 
@@ -327,7 +264,7 @@ static bool DeleteEntry(LPWIN32_FIND_DATAW find_file_data, PathBuffer* path) {
 
 
 static bool DeleteRecursively(PathBuffer* path) {
-  DWORD attributes = GetFileAttributesW(path->data);
+  DWORD attributes = GetFileAttributesW(path->AsStringW());
   if ((attributes == INVALID_FILE_ATTRIBUTES)) {
     return false;
   }
@@ -335,20 +272,20 @@ static bool DeleteRecursively(PathBuffer* path) {
   // filesystem that we do not want to recurse into.
   if ((attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
     // Just delete the junction itself.
-    return RemoveDirectoryW(path->data) != 0;
+    return RemoveDirectoryW(path->AsStringW()) != 0;
   }
   // If it's a file, remove it directly.
   if ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0) {
     return DeleteFile(L"", path);
   }
 
-  if (!path->Add(L"\\*")) return false;
+  if (!path->AddW(L"\\*")) return false;
 
   WIN32_FIND_DATAW find_file_data;
-  HANDLE find_handle = FindFirstFileW(path->data, &find_file_data);
+  HANDLE find_handle = FindFirstFileW(path->AsStringW(), &find_file_data);
 
   // Adjust the path by removing the '*' used for the search.
-  int path_length = path->length - 1;
+  int path_length = path->length() - 1;
   path->Reset(path_length);
 
   if (find_handle == INVALID_HANDLE_VALUE) {
@@ -365,26 +302,11 @@ static bool DeleteRecursively(PathBuffer* path) {
   path->Reset(path_length - 1);  // Drop the "\" from the end of the path.
   if ((GetLastError() != ERROR_NO_MORE_FILES) ||
       (FindClose(find_handle) == 0) ||
-      (RemoveDirectoryW(path->data) == 0)) {
+      (RemoveDirectoryW(path->AsStringW()) == 0)) {
     return false;
   }
 
   return success;
-}
-
-
-bool Directory::List(const char* dir_name,
-                     bool recursive,
-                     bool follow_links,
-                     DirectoryListing* listing) {
-  const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
-  PathBuffer path;
-  if (!path.Add(system_name)) {
-    PostError(listing, system_name);
-    return false;
-  }
-  free(const_cast<wchar_t*>(system_name));
-  return ListRecursively(&path, recursive, follow_links, NULL, listing);
 }
 
 
@@ -456,22 +378,22 @@ char* Directory::CreateTemp(const char* const_template) {
   // The return value must be freed by the caller.
   PathBuffer path;
   if (0 == strncmp(const_template, "", 1)) {
-    path.length = GetTempPathW(MAX_PATH, path.data);
-    if (path.length == 0) {
+    path.Reset(GetTempPathW(MAX_PATH, path.AsStringW()));
+    if (path.length() == 0) {
       return NULL;
     }
   } else {
     const wchar_t* system_template = StringUtils::Utf8ToWide(const_template);
-    path.Add(system_template);
+    path.AddW(system_template);
     free(const_cast<wchar_t*>(system_template));
   }
   // Length of tempdir-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx is 44.
-  if (path.length > MAX_PATH - 44) {
+  if (path.length() > MAX_PATH - 44) {
     return NULL;
   }
-  if ((path.data)[path.length - 1] == L'\\') {
+  if ((path.AsStringW())[path.length() - 1] == L'\\') {
     // No base name for the directory - use "tempdir".
-    path.Add(L"tempdir");
+    path.AddW(L"tempdir");
   }
 
   UUID uuid;
@@ -485,14 +407,14 @@ char* Directory::CreateTemp(const char* const_template) {
     return NULL;
   }
 
-  path.Add(L"-");
+  path.AddW(L"-");
   // RPC_WSTR is an unsigned short*, so we cast to wchar_t*.
-  path.Add(reinterpret_cast<wchar_t*>(uuid_string));
+  path.AddW(reinterpret_cast<wchar_t*>(uuid_string));
   RpcStringFreeW(&uuid_string);
-  if (!CreateDirectoryW(path.data, NULL)) {
+  if (!CreateDirectoryW(path.AsStringW(), NULL)) {
     return NULL;
   }
-  char* result = StringUtils::WideToUtf8(path.data);
+  char* result = path.AsString();
   return result;
 }
 
@@ -508,7 +430,7 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
     }
   } else {
     PathBuffer path;
-    if (path.Add(system_dir_name)) {
+    if (path.AddW(system_dir_name)) {
       result = DeleteRecursively(&path);
     }
   }

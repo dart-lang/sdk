@@ -9,8 +9,10 @@ class _Directory implements Directory {
   static const DELETE_REQUEST = 1;
   static const EXISTS_REQUEST = 2;
   static const CREATE_TEMP_REQUEST = 3;
-  static const LIST_REQUEST = 4;
-  static const RENAME_REQUEST = 5;
+  static const LIST_START_REQUEST = 4;
+  static const LIST_NEXT_REQUEST = 5;
+  static const LIST_STOP_REQUEST = 6;
+  static const RENAME_REQUEST = 7;
 
   _Directory(String this._path);
   _Directory.fromPath(Path path) : this(path.toNativePath());
@@ -186,9 +188,6 @@ class _Directory implements Directory {
     return new Directory(result);
   }
 
-  Future<Directory> _deleteHelper(bool recursive, String errorMsg) {
-  }
-
   Future<Directory> delete({recursive: false}) {
     _ensureDirectoryService();
     List request = new List(3);
@@ -240,68 +239,7 @@ class _Directory implements Directory {
 
   Stream<FileSystemEntity> list({bool recursive: false,
                                  bool followLinks: true}) {
-    const int LIST_FILE = 0;
-    const int LIST_DIRECTORY = 1;
-    const int LIST_LINK = 2;
-    const int LIST_ERROR = 3;
-    const int LIST_DONE = 4;
-
-    const int RESPONSE_TYPE = 0;
-    const int RESPONSE_PATH = 1;
-    const int RESPONSE_COMPLETE = 1;
-    const int RESPONSE_ERROR = 2;
-
-    var controller = new StreamController<FileSystemEntity>(sync: true);
-
-    List request = [ _Directory.LIST_REQUEST, path, recursive, followLinks ];
-    ReceivePort responsePort = new ReceivePort();
-    // Use a separate directory service port for each listing as
-    // listing operations on the same directory can run in parallel.
-    _Directory._newServicePort().send(request, responsePort.toSendPort());
-    responsePort.receive((message, replyTo) {
-      if (message is !List || message[RESPONSE_TYPE] is !int) {
-        responsePort.close();
-        controller.addError(new DirectoryException("Internal error"));
-        return;
-      }
-      switch (message[RESPONSE_TYPE]) {
-        case LIST_FILE:
-          controller.add(new File(message[RESPONSE_PATH]));
-          break;
-        case LIST_DIRECTORY:
-          controller.add(new Directory(message[RESPONSE_PATH]));
-          break;
-        case LIST_LINK:
-          controller.add(new Link(message[RESPONSE_PATH]));
-          break;
-        case LIST_ERROR:
-          var errorType =
-              message[RESPONSE_ERROR][_ERROR_RESPONSE_ERROR_TYPE];
-          if (errorType == _ILLEGAL_ARGUMENT_RESPONSE) {
-            controller.addError(new ArgumentError());
-          } else if (errorType == _OSERROR_RESPONSE) {
-            var responseError = message[RESPONSE_ERROR];
-            var err = new OSError(
-                responseError[_OSERROR_RESPONSE_MESSAGE],
-                responseError[_OSERROR_RESPONSE_ERROR_CODE]);
-            var errorPath = message[RESPONSE_PATH];
-            if (errorPath == null) errorPath = path;
-            controller.addError(
-                new DirectoryException("Directory listing failed",
-                                         errorPath,
-                                         err));
-          } else {
-            controller.addError(new DirectoryException("Internal error"));
-          }
-          break;
-        case LIST_DONE:
-          responsePort.close();
-          controller.close();
-          break;
-      }
-    });
-
-    return controller.stream;
+    return new _AsyncDirectoryLister(path, recursive, followLinks).stream;
   }
 
   List listSync({bool recursive: false, bool followLinks: true}) {
@@ -341,4 +279,136 @@ class _Directory implements Directory {
 
   final String _path;
   SendPort _directoryService;
+}
+
+class _AsyncDirectoryLister {
+  const int LIST_FILE = 0;
+  const int LIST_DIRECTORY = 1;
+  const int LIST_LINK = 2;
+  const int LIST_ERROR = 3;
+  const int LIST_DONE = 4;
+
+  const int RESPONSE_TYPE = 0;
+  const int RESPONSE_PATH = 1;
+  const int RESPONSE_COMPLETE = 1;
+  const int RESPONSE_ERROR = 2;
+
+  final String path;
+  final bool recursive;
+  final bool followLinks;
+
+  StreamController controller;
+  int id;
+  bool canceled = false;
+  bool nextRunning = false;
+  bool closed = false;
+
+  _AsyncDirectoryLister(String this.path,
+                        bool this.recursive,
+                        bool this.followLinks) {
+    controller = new StreamController(onListen: onListen,
+                                      onResume: onResume,
+                                      onCancel: onCancel);
+  }
+
+  Stream get stream => controller.stream;
+
+  void onListen() {
+    var request = [_Directory.LIST_START_REQUEST, path, recursive, followLinks];
+    _Directory._newServicePort().call(request)
+        .then((response) {
+          if (response is int) {
+            id = response;
+            next();
+          } else {
+            error(response);
+            controller.close();
+          }
+        });
+  }
+
+  void onResume() {
+    if (!nextRunning) next();
+  }
+
+  void onCancel() {
+    canceled = true;
+    // If we are active, but not requesting, close.
+    if (!nextRunning) {
+      close();
+    }
+  }
+
+  void next() {
+    if (canceled) {
+      close();
+      return;
+    }
+    if (id == null) return;
+    if (controller.isPaused) return;
+    assert(!nextRunning);
+    nextRunning = true;
+    _Directory._newServicePort().call([_Directory.LIST_NEXT_REQUEST, id])
+        .then((result) {
+          if (result is List) {
+            assert(result.length % 2 == 0);
+            for (int i = 0; i < result.length; i++) {
+              assert(i % 2 == 0);
+              switch (result[i++]) {
+                case LIST_FILE:
+                  controller.add(new File(result[i]));
+                  break;
+                case LIST_DIRECTORY:
+                  controller.add(new Directory(result[i]));
+                  break;
+                case LIST_LINK:
+                  controller.add(new Link(result[i]));
+                  break;
+                case LIST_ERROR:
+                  error(result[i]);
+                  break;
+                case LIST_DONE:
+                  close();
+                  return;
+              }
+            }
+          } else {
+            controller.addError(new DirectoryException("Internal error"));
+          }
+          nextRunning = false;
+          next();
+        });
+  }
+
+  void close() {
+    if (closed) return;
+    if (id == null) return;
+    closed = true;
+    _Directory._newServicePort().call([_Directory.LIST_STOP_REQUEST, id])
+        .then((_) {
+          controller.close();
+        });
+  }
+
+  void error(message) {
+    var errorType =
+        message[RESPONSE_ERROR][_ERROR_RESPONSE_ERROR_TYPE];
+    if (errorType == _ILLEGAL_ARGUMENT_RESPONSE) {
+      controller.addError(new ArgumentError());
+    } else if (errorType == _OSERROR_RESPONSE) {
+      var responseError = message[RESPONSE_ERROR];
+      var err = new OSError(
+          responseError[_OSERROR_RESPONSE_MESSAGE],
+          responseError[_OSERROR_RESPONSE_ERROR_CODE]);
+      var errorPath = message[RESPONSE_PATH];
+      if (errorPath == null) errorPath = path;
+      controller.addError(
+          new DirectoryException("Directory listing failed",
+                                 errorPath,
+                                 err));
+    } else {
+      controller.addError(
+          new DirectoryException("Internal error"));
+    }
+  }
 }
