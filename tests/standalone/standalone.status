@@ -50,11 +50,6 @@ io/directory_non_ascii_sync_test: Pass, Fail
 io/directory_non_ascii_test: Pass, Fail
 io/process_non_ascii_test: Pass, Fail
 
-[ $runtime == vm && $mode == debug && $checked ]
-io/http_client_request_test: Pass, Crash  # Issue 11278
-io/http_server_response_test: Pass, Crash  # Issue 11278
-io/http_content_length_test: Pass, Crash  # Issue 11278
-
 [ $compiler == none && $runtime == drt ]
 typed_data_isolate_test: Skip # This test uses dart:io
 io/*: Skip # Don't run tests using dart:io in the browser
