@@ -38,7 +38,7 @@ DEFINE_FLAG(bool, trace_ic_miss_in_optimized, false,
     "Trace IC miss in optimized code");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
-DEFINE_FLAG(int, optimization_counter_threshold, 3000,
+DEFINE_FLAG(int, optimization_counter_threshold, 15000,
     "Function's usage-counter value before it is optimized, -1 means never");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
