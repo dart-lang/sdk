@@ -9,7 +9,7 @@ import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext, AnalysisEngine;
 export 'source.dart';
 /**
- * Instances of the class {@code FileBasedSource} implement a source that represents a file.
+ * Instances of the class `FileBasedSource` implement a source that represents a file.
  * @coverage dart.engine.source
  */
 class FileBasedSource implements Source {
@@ -52,7 +52,7 @@ class FileBasedSource implements Source {
    * Initialize a newly created source object.
    * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
-   * @param flags {@code true} if this source is in one of the system libraries
+   * @param flags `true` if this source is in one of the system libraries
    */
   FileBasedSource.con2(ContentCache contentCache2, JavaFile file2, UriKind uriKind2) {
     _jtd_constructor_339_impl(contentCache2, file2, uriKind2);
@@ -105,15 +105,15 @@ class FileBasedSource implements Source {
 
   /**
    * Return the file represented by this source. This is an internal method that is only intended to
-   * be used by {@link UriResolver}.
+   * be used by [UriResolver].
    * @return the file represented by this source
    */
   JavaFile get file => _file;
 }
 /**
- * Instances of the class {@code PackageUriResolver} resolve {@code package} URI's in the context of
+ * Instances of the class `PackageUriResolver` resolve `package` URI's in the context of
  * an application.
- * <p>
+ *
  * For the purposes of sharing analysis, the path to each package under the "packages" directory
  * should be canonicalized, but to preserve relative links within a package, the remainder of the
  * path from the package directory to the leaf should not.
@@ -122,12 +122,12 @@ class FileBasedSource implements Source {
 class PackageUriResolver extends UriResolver {
 
   /**
-   * The package directories that {@code package} URI's are assumed to be relative to.
+   * The package directories that `package` URI's are assumed to be relative to.
    */
   List<JavaFile> _packagesDirectories;
 
   /**
-   * The name of the {@code package} scheme.
+   * The name of the `package` scheme.
    */
   static String PACKAGE_SCHEME = "package";
 
@@ -137,16 +137,16 @@ class PackageUriResolver extends UriResolver {
   static bool _CanLogRequiredKeyIoException = true;
 
   /**
-   * Return {@code true} if the given URI is a {@code package} URI.
+   * Return `true` if the given URI is a `package` URI.
    * @param uri the URI being tested
-   * @return {@code true} if the given URI is a {@code package} URI
+   * @return `true` if the given URI is a `package` URI
    */
   static bool isPackageUri(Uri uri) => PACKAGE_SCHEME == uri.scheme;
 
   /**
-   * Initialize a newly created resolver to resolve {@code package} URI's relative to the given
+   * Initialize a newly created resolver to resolve `package` URI's relative to the given
    * package directories.
-   * @param packagesDirectories the package directories that {@code package} URI's are assumed to be
+   * @param packagesDirectories the package directories that `package` URI's are assumed to be
    * relative to
    */
   PackageUriResolver(List<JavaFile> packagesDirectories) {
@@ -216,11 +216,11 @@ class PackageUriResolver extends UriResolver {
 
   /**
    * Answer the canonical file for the specified package.
-   * @param packagesDirectory the "packages" directory (not {@code null})
-   * @param pkgName the package name (not {@code null}, not empty)
-   * @param relPath the path relative to the package directory (not {@code null}, no leading slash,
+   * @param packagesDirectory the "packages" directory (not `null`)
+   * @param pkgName the package name (not `null`, not empty)
+   * @param relPath the path relative to the package directory (not `null`, no leading slash,
    * but may be empty string)
-   * @return the file (not {@code null})
+   * @return the file (not `null`)
    */
   JavaFile getCanonicalFile(JavaFile packagesDirectory, String pkgName, String relPath) {
     JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
@@ -238,7 +238,7 @@ class PackageUriResolver extends UriResolver {
   }
 }
 /**
- * Instances of the class {@link DirectoryBasedSourceContainer} represent a source container that
+ * Instances of the class [DirectoryBasedSourceContainer] represent a source container that
  * contains all sources within a given directory.
  * @coverage dart.engine.source
  */
@@ -258,14 +258,14 @@ class DirectoryBasedSourceContainer implements SourceContainer {
   }
 
   /**
-   * The container's path (not {@code null}).
+   * The container's path (not `null`).
    */
   String _path;
 
   /**
-   * Construct a container representing the specified directory and containing any sources whose{@link Source#getFullName()} starts with the directory's path. This is a convenience method,
-   * fully equivalent to {@link DirectoryBasedSourceContainer#DirectoryBasedSourceContainer(String)}.
-   * @param directory the directory (not {@code null})
+   * Construct a container representing the specified directory and containing any sources whose[Source#getFullName] starts with the directory's path. This is a convenience method,
+   * fully equivalent to [DirectoryBasedSourceContainer#DirectoryBasedSourceContainer].
+   * @param directory the directory (not `null`)
    */
   DirectoryBasedSourceContainer.con1(JavaFile directory) {
     _jtd_constructor_336_impl(directory);
@@ -275,8 +275,8 @@ class DirectoryBasedSourceContainer implements SourceContainer {
   }
 
   /**
-   * Construct a container representing the specified path and containing any sources whose{@link Source#getFullName()} starts with the specified path.
-   * @param path the path (not {@code null} and not empty)
+   * Construct a container representing the specified path and containing any sources whose[Source#getFullName] starts with the specified path.
+   * @param path the path (not `null` and not empty)
    */
   DirectoryBasedSourceContainer.con2(String path2) {
     _jtd_constructor_337_impl(path2);
@@ -289,27 +289,27 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 
   /**
    * Answer the receiver's path, used to determine if a source is contained in the receiver.
-   * @return the path (not {@code null}, not empty)
+   * @return the path (not `null`, not empty)
    */
   String get path => _path;
   int get hashCode => _path.hashCode;
   String toString() => "SourceContainer[${_path}]";
 }
 /**
- * Instances of the class {@code FileUriResolver} resolve {@code file} URI's.
+ * Instances of the class `FileUriResolver` resolve `file` URI's.
  * @coverage dart.engine.source
  */
 class FileUriResolver extends UriResolver {
 
   /**
-   * The name of the {@code file} scheme.
+   * The name of the `file` scheme.
    */
   static String FILE_SCHEME = "file";
 
   /**
-   * Return {@code true} if the given URI is a {@code file} URI.
+   * Return `true` if the given URI is a `file` URI.
    * @param uri the URI being tested
-   * @return {@code true} if the given URI is a {@code file} URI
+   * @return `true` if the given URI is a `file` URI
    */
   static bool isFileUri(Uri uri) => uri.scheme == FILE_SCHEME;
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri) {

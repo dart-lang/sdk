@@ -2,7 +2,7 @@
 // significant change. Please see the README file for more information.
 library engine.utilities.dart;
 /**
- * The enumeration {@code ParameterKind} defines the different kinds of parameters. There are two
+ * The enumeration `ParameterKind` defines the different kinds of parameters. There are two
  * basic kinds of parameters: required and optional. Optional parameters are further divided into
  * two kinds: positional optional and named optional.
  * @coverage dart.engine.utilities
@@ -26,15 +26,15 @@ class ParameterKind implements Comparable<ParameterKind> {
 
   /**
    * Initialize a newly created kind with the given state.
-   * @param isOptional {@code true} if this is an optional parameter
+   * @param isOptional `true` if this is an optional parameter
    */
   ParameterKind(this.name, this.ordinal, bool isOptional) {
     this._isOptional2 = isOptional;
   }
 
   /**
-   * Return {@code true} if this is an optional parameter.
-   * @return {@code true} if this is an optional parameter
+   * Return `true` if this is an optional parameter.
+   * @return `true` if this is an optional parameter
    */
   bool isOptional() => _isOptional2;
   int compareTo(ParameterKind other) => ordinal - other.ordinal;

@@ -12,7 +12,7 @@ import 'package:analyzer_experimental/src/generated/element.dart' show Interface
 import 'package:analyzer_experimental/src/generated/engine.dart' show AnalysisContext, AnalysisContextImpl, RecordingErrorListener;
 import 'package:unittest/unittest.dart' as _ut;
 /**
- * Instances of the class {@code GatheringErrorListener} implement an error listener that collects
+ * Instances of the class `GatheringErrorListener` implement an error listener that collects
  * all of the errors passed to it for later examination.
  */
 class GatheringErrorListener implements AnalysisErrorListener {
@@ -227,7 +227,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   List<AnalysisError> get errors => _errors;
 
   /**
-   * Return the line information associated with the given source, or {@code null} if no line
+   * Return the line information associated with the given source, or `null` if no line
    * information has been associated with the source.
    * @param source the source with which the line information is associated
    * @return the line information associated with the source
@@ -235,9 +235,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
   LineInfo getLineInfo(Source source) => _lineInfoMap[source];
 
   /**
-   * Return {@code true} if an error with the given error code has been gathered.
+   * Return `true` if an error with the given error code has been gathered.
    * @param errorCode the error code being searched for
-   * @return {@code true} if an error with the given error code has been gathered
+   * @return `true` if an error with the given error code has been gathered
    */
   bool hasError(ErrorCode errorCode2) {
     for (AnalysisError error in _errors) {
@@ -249,8 +249,8 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   /**
-   * Return {@code true} if at least one error has been gathered.
-   * @return {@code true} if at least one error has been gathered
+   * Return `true` if at least one error has been gathered.
+   * @return `true` if at least one error has been gathered
    */
   bool hasErrors() => _errors.length > 0;
   void onError(AnalysisError error) {
@@ -281,18 +281,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   /**
-   * Return {@code true} if the two errors are equivalent.
+   * Return `true` if the two errors are equivalent.
    * @param firstError the first error being compared
    * @param secondError the second error being compared
-   * @return {@code true} if the two errors are equivalent
+   * @return `true` if the two errors are equivalent
    */
   bool equals3(AnalysisError firstError, AnalysisError secondError) => identical(firstError.errorCode, secondError.errorCode) && firstError.offset == secondError.offset && firstError.length == secondError.length && equals4(firstError.source, secondError.source);
 
   /**
-   * Return {@code true} if the two sources are equivalent.
+   * Return `true` if the two sources are equivalent.
    * @param firstSource the first source being compared
    * @param secondSource the second source being compared
-   * @return {@code true} if the two sources are equivalent
+   * @return `true` if the two sources are equivalent
    */
   bool equals4(Source firstSource, Source secondSource) {
     if (firstSource == null) {
@@ -348,10 +348,10 @@ class GatheringErrorListener implements AnalysisErrorListener {
 
   /**
    * Search through the given list of errors for an error that is equal to the target error. If one
-   * is found, remove it from the list and return {@code true}, otherwise return {@code false}without modifying the list.
+   * is found, remove it from the list and return `true`, otherwise return `false`without modifying the list.
    * @param errors the errors through which we are searching
    * @param targetError the error being searched for
-   * @return {@code true} if the error is found and removed from the list
+   * @return `true` if the error is found and removed from the list
    */
   bool foundAndRemoved(List<AnalysisError> errors, AnalysisError targetError) {
     for (AnalysisError error in errors) {
@@ -364,7 +364,7 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 }
 /**
- * The class {@code EngineTestCase} defines utility methods for making assertions.
+ * The class `EngineTestCase` defines utility methods for making assertions.
  */
 class EngineTestCase extends JUnitTestCase {
   static int _PRINT_RANGE = 6;
@@ -388,11 +388,11 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that the given array is non-{@code null} and contains the expected elements. The
+   * Assert that the given array is non-`null` and contains the expected elements. The
    * elements can appear in any order.
    * @param array the array being tested
    * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the array is {@code null} or does not contain the expected
+   * @throws AssertionFailedError if the array is `null` or does not contain the expected
    * elements
    */
   static void assertContains(List<Object> array, List<Object> expectedElements) {
@@ -466,10 +466,10 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that the given list is non-{@code null} and has exactly expected elements.
+   * Assert that the given list is non-`null` and has exactly expected elements.
    * @param list the list being tested
    * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the list is {@code null} or does not have the expected elements
+   * @throws AssertionFailedError if the list is `null` or does not have the expected elements
    */
   static void assertExactElements(List<Object> list, List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
@@ -489,10 +489,10 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that the given array is non-{@code null} and has exactly expected elements.
+   * Assert that the given array is non-`null` and has exactly expected elements.
    * @param array the array being tested
    * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the array is {@code null} or does not have the expected
+   * @throws AssertionFailedError if the array is `null` or does not have the expected
    * elements
    */
   static void assertExactElements2(List<Object> array, List<Object> expectedElements) {
@@ -513,10 +513,10 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that the given list is non-{@code null} and has exactly expected elements.
+   * Assert that the given list is non-`null` and has exactly expected elements.
    * @param set the list being tested
    * @param expectedElements the expected elements
-   * @throws AssertionFailedError if the list is {@code null} or does not have the expected elements
+   * @throws AssertionFailedError if the list is `null` or does not have the expected elements
    */
   static void assertExactElements3(Set<Object> set, List<Object> expectedElements) {
     int expectedSize = expectedElements.length;
@@ -549,10 +549,10 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that the given array is non-{@code null} and has the expected number of elements.
+   * Assert that the given array is non-`null` and has the expected number of elements.
    * @param expectedLength the expected number of elements
    * @param array the array being tested
-   * @throws AssertionFailedError if the array is {@code null} or does not have the expected number
+   * @throws AssertionFailedError if the array is `null` or does not have the expected number
    * of elements
    */
   static void assertLength(int expectedLength, List<Object> array) {
@@ -582,10 +582,10 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that the given list is non-{@code null} and has the expected number of elements.
+   * Assert that the given list is non-`null` and has the expected number of elements.
    * @param expectedSize the expected number of elements
    * @param list the list being tested
-   * @throws AssertionFailedError if the list is {@code null} or does not have the expected number
+   * @throws AssertionFailedError if the list is `null` or does not have the expected number
    * of elements
    */
   static void assertSize(int expectedSize, List<Object> list) {
@@ -597,10 +597,10 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that the given map is non-{@code null} and has the expected number of elements.
+   * Assert that the given map is non-`null` and has the expected number of elements.
    * @param expectedSize the expected number of elements
    * @param map the map being tested
-   * @throws AssertionFailedError if the map is {@code null} or does not have the expected number of
+   * @throws AssertionFailedError if the map is `null` or does not have the expected number of
    * elements
    */
   static void assertSize2(int expectedSize, Map<Object, Object> map) {
@@ -612,10 +612,10 @@ class EngineTestCase extends JUnitTestCase {
   }
 
   /**
-   * Assert that the given set is non-{@code null} and has the expected number of elements.
+   * Assert that the given set is non-`null` and has the expected number of elements.
    * @param expectedSize the expected number of elements
    * @param set the set being tested
-   * @throws AssertionFailedError if the set is {@code null} or does not have the expected number of
+   * @throws AssertionFailedError if the set is `null` or does not have the expected number of
    * elements
    */
   static void assertSize3(int expectedSize, Set<Object> set) {

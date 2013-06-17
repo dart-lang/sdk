@@ -129,7 +129,7 @@ class TokenTypeTest extends EngineTestCase {
   }
 }
 /**
- * The class {@code TokenFactory} defines utility methods that can be used to create tokens.
+ * The class `TokenFactory` defines utility methods that can be used to create tokens.
  */
 class TokenFactory {
   static Token token(Keyword keyword) => new KeywordToken(keyword, 0);
@@ -1474,7 +1474,7 @@ class StringScannerTest extends AbstractScannerTest {
   }
 }
 /**
- * Instances of the class {@code TokenStreamValidator} are used to validate the correct construction
+ * Instances of the class `TokenStreamValidator` are used to validate the correct construction
  * of a stream of tokens.
  */
 class TokenStreamValidator {
@@ -2156,7 +2156,7 @@ abstract class AbstractScannerTest extends JUnitTestCase {
   }
 }
 /**
- * Instances of the class {@code ExpectedLocation} encode information about the expected location
+ * Instances of the class `ExpectedLocation` encode information about the expected location
  * of a given offset in source code.
  */
 class AbstractScannerTest_ExpectedLocation {

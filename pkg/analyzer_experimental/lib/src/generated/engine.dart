@@ -15,7 +15,7 @@ import 'element.dart';
 import 'resolver.dart';
 import 'html.dart' show XmlTagNode, XmlAttributeNode, RecursiveXmlVisitor, HtmlScanner, HtmlScanResult, HtmlParser, HtmlParseResult, HtmlUnit;
 /**
- * The unique instance of the class {@code AnalysisEngine} serves as the entry point for the
+ * The unique instance of the class `AnalysisEngine` serves as the entry point for the
  * functionality provided by the analysis engine.
  * @coverage dart.engine
  */
@@ -48,9 +48,9 @@ class AnalysisEngine {
   static AnalysisEngine get instance => _UniqueInstance;
 
   /**
-   * Return {@code true} if the given file name is assumed to contain Dart source code.
+   * Return `true` if the given file name is assumed to contain Dart source code.
    * @param fileName the name of the file being tested
-   * @return {@code true} if the given file name is assumed to contain Dart source code
+   * @return `true` if the given file name is assumed to contain Dart source code
    */
   static bool isDartFileName(String fileName) {
     if (fileName == null) {
@@ -60,9 +60,9 @@ class AnalysisEngine {
   }
 
   /**
-   * Return {@code true} if the given file name is assumed to contain HTML.
+   * Return `true` if the given file name is assumed to contain HTML.
    * @param fileName the name of the file being tested
-   * @return {@code true} if the given file name is assumed to contain HTML
+   * @return `true` if the given file name is assumed to contain HTML
    */
   static bool isHtmlFileName(String fileName) {
     if (fileName == null) {
@@ -106,32 +106,32 @@ class AnalysisEngine {
   }
 }
 /**
- * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
+ * The interface `AnalysisContext` defines the behavior of objects that represent a context in
  * which a single analysis can be performed and incrementally maintained. The context includes such
  * information as the version of the SDK being analyzed against as well as the package-root used to
- * resolve 'package:' URI's. (Both of which are known indirectly through the {@link SourceFactorysource factory}.)
- * <p>
+ * resolve 'package:' URI's. (Both of which are known indirectly through the [SourceFactorysource factory].)
+ *
  * An analysis context also represents the state of the analysis, which includes knowing which
  * sources have been included in the analysis (either directly or indirectly) and the results of the
- * analysis. Sources must be added and removed from the context using the method{@link #applyChanges(ChangeSet)}, which is also used to notify the context when sources have been
+ * analysis. Sources must be added and removed from the context using the method[applyChanges], which is also used to notify the context when sources have been
  * modified and, consequently, previously known results might have been invalidated.
- * <p>
+ *
  * There are two ways to access the results of the analysis. The most common is to use one of the
  * 'get' methods to access the results. The 'get' methods have the advantage that they will always
  * return quickly, but have the disadvantage that if the results are not currently available they
  * will return either nothing or in some cases an incomplete result. The second way to access
  * results is by using one of the 'compute' methods. The 'compute' methods will always attempt to
  * compute the requested results but might block the caller for a significant period of time.
- * <p>
+ *
  * When results have been invalidated, have never been computed (as is the case for newly added
  * sources), or have been removed from the cache, they are <b>not</b> automatically recreated. They
  * will only be recreated if one of the 'compute' methods is invoked.
- * <p>
+ *
  * However, this is not always acceptable. Some clients need to keep the analysis results
  * up-to-date. For such clients there is a mechanism that allows them to incrementally perform
  * needed analysis and get notified of the consequent changes to the analysis results. This
- * mechanism is realized by the method {@link #performAnalysisTask()}.
- * <p>
+ * mechanism is realized by the method [performAnalysisTask].
+ *
  * Analysis engine allows for having more than one context. This can be used, for example, to
  * perform one analysis based on the state of files on disk and a separate analysis based on the
  * state of those files in open editors. It can also be used to perform an analysis based on a
@@ -148,7 +148,7 @@ abstract class AnalysisContext {
 
   /**
    * Return the documentation comment for the given element as it appears in the original source
-   * (complete with the beginning and ending delimiters), or {@code null} if the element does not
+   * (complete with the beginning and ending delimiters), or `null` if the element does not
    * have a documentation comment associated with it. This can be a long-running operation if the
    * information needed to access the comment is not cached.
    * @param element the element whose documentation comment is to be returned
@@ -185,7 +185,7 @@ abstract class AnalysisContext {
   HtmlElement computeHtmlElement(Source source);
 
   /**
-   * Return the kind of the given source, computing it's kind if it is not already known. Return{@link SourceKind#UNKNOWN} if the source is not contained in this context.
+   * Return the kind of the given source, computing it's kind if it is not already known. Return[SourceKind#UNKNOWN] if the source is not contained in this context.
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
    * @see #getKindOf(Source)
@@ -206,7 +206,7 @@ abstract class AnalysisContext {
   LibraryElement computeLibraryElement(Source source);
 
   /**
-   * Return the line information for the given source, or {@code null} if the source is not of a
+   * Return the line information for the given source, or `null` if the source is not of a
    * recognized kind (neither a Dart nor HTML file). If the line information was not previously
    * known it will be created. The line information is used to map offsets from the beginning of the
    * source to line and column pairs.
@@ -234,7 +234,7 @@ abstract class AnalysisContext {
   AnalysisOptions get analysisOptions;
 
   /**
-   * Return the element referenced by the given location, or {@code null} if the element is not
+   * Return the element referenced by the given location, or `null` if the element is not
    * immediately available or if there is no element with the given location. The latter condition
    * can occur, for example, if the location describes an element from a different context or if the
    * element has been removed from this context as a result of some change since it was originally
@@ -256,7 +256,7 @@ abstract class AnalysisContext {
   AnalysisErrorInfo getErrors(Source source);
 
   /**
-   * Return the element model corresponding to the HTML file defined by the given source, or{@code null} if the source does not represent an HTML file, the element representing the file
+   * Return the element model corresponding to the HTML file defined by the given source, or`null` if the source does not represent an HTML file, the element representing the file
    * has not yet been created, or the analysis of the HTML file failed for some reason.
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
@@ -281,7 +281,7 @@ abstract class AnalysisContext {
   List<Source> get htmlSources;
 
   /**
-   * Return the kind of the given source, or {@code null} if the kind is not known to this context.
+   * Return the kind of the given source, or `null` if the kind is not known to this context.
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
    * @see #computeKindOf(Source)
@@ -331,7 +331,7 @@ abstract class AnalysisContext {
   List<Source> getLibrariesDependingOn(Source librarySource);
 
   /**
-   * Return the element model corresponding to the library defined by the given source, or{@code null} if the element model does not currently exist or if the library cannot be analyzed
+   * Return the element model corresponding to the library defined by the given source, or`null` if the element model does not currently exist or if the library cannot be analyzed
    * for some reason.
    * @param source the source defining the library whose element model is to be returned
    * @return the element model corresponding to the library defined by the given source
@@ -347,7 +347,7 @@ abstract class AnalysisContext {
   List<Source> get librarySources;
 
   /**
-   * Return the line information for the given source, or {@code null} if the line information is
+   * Return the line information for the given source, or `null` if the line information is
    * not known. The line information is used to map offsets from the beginning of the source to line
    * and column pairs.
    * @param source the source whose line information is to be returned
@@ -357,7 +357,7 @@ abstract class AnalysisContext {
   LineInfo getLineInfo(Source source);
 
   /**
-   * Return a fully resolved AST for a single compilation unit within the given library, or{@code null} if the resolved AST is not already computed.
+   * Return a fully resolved AST for a single compilation unit within the given library, or`null` if the resolved AST is not already computed.
    * @param unitSource the source of the compilation unit
    * @param library the library containing the compilation unit
    * @return a fully resolved AST for the compilation unit
@@ -366,7 +366,7 @@ abstract class AnalysisContext {
   CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library);
 
   /**
-   * Return a fully resolved AST for a single compilation unit within the given library, or{@code null} if the resolved AST is not already computed.
+   * Return a fully resolved AST for a single compilation unit within the given library, or`null` if the resolved AST is not already computed.
    * @param unitSource the source of the compilation unit
    * @param librarySource the source of the defining compilation unit of the library containing the
    * compilation unit
@@ -382,28 +382,28 @@ abstract class AnalysisContext {
   SourceFactory get sourceFactory;
 
   /**
-   * Return {@code true} if the given source is known to be the defining compilation unit of a
+   * Return `true` if the given source is known to be the defining compilation unit of a
    * library that can be run on a client (references 'dart:html', either directly or indirectly).
-   * <p>
-   * <b>Note:</b> In addition to the expected case of returning {@code false} if the source is known
-   * to be a library that cannot be run on a client, this method will also return {@code false} if
+   *
+   * <b>Note:</b> In addition to the expected case of returning `false` if the source is known
+   * to be a library that cannot be run on a client, this method will also return `false` if
    * the source is not known to be a library or if we do not know whether it can be run on a client.
    * @param librarySource the source being tested
-   * @return {@code true} if the given source is known to be a library that can be run on a client
+   * @return `true` if the given source is known to be a library that can be run on a client
    */
   bool isClientLibrary(Source librarySource);
 
   /**
-   * Return {@code true} if the given source is known to be the defining compilation unit of a
+   * Return `true` if the given source is known to be the defining compilation unit of a
    * library that can be run on the server (does not reference 'dart:html', either directly or
    * indirectly).
-   * <p>
-   * <b>Note:</b> In addition to the expected case of returning {@code false} if the source is known
-   * to be a library that cannot be run on the server, this method will also return {@code false} if
+   *
+   * <b>Note:</b> In addition to the expected case of returning `false` if the source is known
+   * to be a library that cannot be run on the server, this method will also return `false` if
    * the source is not known to be a library or if we do not know whether it can be run on the
    * server.
    * @param librarySource the source being tested
-   * @return {@code true} if the given source is known to be a library that can be run on the server
+   * @return `true` if the given source is known to be a library that can be run on the server
    */
   bool isServerLibrary(Source librarySource);
 
@@ -429,7 +429,7 @@ abstract class AnalysisContext {
    * may not be resolved, and may have a slightly different structure depending upon whether it is
    * resolved.
    * @param source the HTML source to be parsed
-   * @return the parse result (not {@code null})
+   * @return the parse result (not `null`)
    * @throws AnalysisException if the analysis could not be performed
    */
   HtmlUnit parseHtmlUnit(Source source);
@@ -438,7 +438,7 @@ abstract class AnalysisContext {
    * Perform the next unit of work required to keep the analysis results up-to-date and return
    * information about the consequent changes to the analysis results. If there were no results the
    * returned array will be empty. If there are no more units of work required, then this method
-   * returns {@code null}. This method can be long running.
+   * returns `null`. This method can be long running.
    * @return an array containing notices of changes to the analysis results
    */
   List<ChangeNotice> performAnalysisTask();
@@ -484,7 +484,7 @@ abstract class AnalysisContext {
   /**
    * Set the contents of the given source to the given contents and mark the source as having
    * changed. This has the effect of overriding the default contents of the source. If the contents
-   * are {@code null} the override is removed so that the default contents will be returned.
+   * are `null` the override is removed so that the default contents will be returned.
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
    */
@@ -500,33 +500,33 @@ abstract class AnalysisContext {
   void set sourceFactory(SourceFactory factory);
 
   /**
-   * Given a collection of sources with content that has changed, return an {@link Iterable}identifying the sources that need to be resolved.
-   * @param changedSources an array of sources (not {@code null}, contains no {@code null}s)
+   * Given a collection of sources with content that has changed, return an [Iterable]identifying the sources that need to be resolved.
+   * @param changedSources an array of sources (not `null`, contains no `null`s)
    * @return An iterable returning the sources to be resolved
    */
   Iterable<Source> sourcesToResolve(List<Source> changedSources);
 }
 /**
- * The interface {@code AnalysisErrorInfo} contains the analysis errors and line information for the
+ * The interface `AnalysisErrorInfo` contains the analysis errors and line information for the
  * errors.
  */
 abstract class AnalysisErrorInfo {
 
   /**
-   * Return the errors that as a result of the analysis, or {@code null} if there were no errors.
+   * Return the errors that as a result of the analysis, or `null` if there were no errors.
    * @return the errors as a result of the analysis
    */
   List<AnalysisError> get errors;
 
   /**
-   * Return the line information associated with the errors, or {@code null} if there were no
+   * Return the line information associated with the errors, or `null` if there were no
    * errors.
    * @return the line information associated with the errors
    */
   LineInfo get lineInfo;
 }
 /**
- * Instances of the class {@code AnalysisException} represent an exception that occurred during the
+ * Instances of the class `AnalysisException` represent an exception that occurred during the
  * analysis of one or more sources.
  * @coverage dart.engine
  */
@@ -573,27 +573,27 @@ class AnalysisException extends JavaException {
   }
 }
 /**
- * The interface {@code AnalysisOptions} defines the behavior of objects that provide access to a
+ * The interface `AnalysisOptions` defines the behavior of objects that provide access to a
  * set of analysis options used to control the behavior of an analysis context.
  */
 abstract class AnalysisOptions {
 
   /**
-   * Return {@code true} if analysis is to use strict mode. In strict mode, error reporting is based
+   * Return `true` if analysis is to use strict mode. In strict mode, error reporting is based
    * exclusively on the static type information.
-   * @return {@code true} if analysis is to use strict mode
+   * @return `true` if analysis is to use strict mode
    */
   bool get strictMode;
 }
 /**
- * The interface {@code ChangeNotice} defines the behavior of objects that represent a change to the
+ * The interface `ChangeNotice` defines the behavior of objects that represent a change to the
  * analysis results associated with a given source.
  * @coverage dart.engine
  */
 abstract class ChangeNotice implements AnalysisErrorInfo {
 
   /**
-   * Return the fully resolved AST that changed as a result of the analysis, or {@code null} if the
+   * Return the fully resolved AST that changed as a result of the analysis, or `null` if the
    * AST was not changed.
    * @return the fully resolved AST that changed as a result of the analysis
    */
@@ -606,7 +606,7 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
   Source get source;
 }
 /**
- * Instances of the class {@code ChangeSet} indicate what sources have been added, changed, or
+ * Instances of the class `ChangeSet` indicate what sources have been added, changed, or
  * removed.
  * @coverage dart.engine
  */
@@ -675,8 +675,8 @@ class ChangeSet {
   List<SourceContainer> get removedContainers => _removedContainers;
 
   /**
-   * Return {@code true} if this change set does not contain any changes.
-   * @return {@code true} if this change set does not contain any changes
+   * Return `true` if this change set does not contain any changes.
+   * @return `true` if this change set does not contain any changes
    */
   bool isEmpty() => _added2.isEmpty && _changed2.isEmpty && _removed2.isEmpty && _removedContainers.isEmpty;
 
@@ -701,7 +701,7 @@ class ChangeSet {
   }
 }
 /**
- * The interface {@code DartEntry} defines the behavior of objects that maintain the information
+ * The interface `DartEntry` defines the behavior of objects that maintain the information
  * cached by an analysis context about an individual Dart file.
  * @coverage dart.engine
  */
@@ -776,14 +776,14 @@ abstract class DartEntry implements SourceEntry {
 
   /**
    * Return a valid parsed compilation unit, either an unresolved AST structure or the result of
-   * resolving the AST structure in the context of some library, or {@code null} if there is no
+   * resolving the AST structure in the context of some library, or `null` if there is no
    * parsed compilation unit available.
    * @return a valid parsed compilation unit
    */
   CompilationUnit get anyParsedCompilationUnit;
 
   /**
-   * Return the result of resolving the compilation unit as part of any library, or {@code null} if
+   * Return the result of resolving the compilation unit as part of any library, or `null` if
    * there is no cached resolved compilation unit.
    * @return any resolved compilation unit
    */
@@ -801,7 +801,7 @@ abstract class DartEntry implements SourceEntry {
 
   /**
    * Return the value of the data represented by the given descriptor in the context of the given
-   * library, or {@code null} if the data represented by the descriptor is not in the cache.
+   * library, or `null` if the data represented by the descriptor is not in the cache.
    * @param descriptor the descriptor representing which data is to be returned
    * @param librarySource the source of the defining compilation unit of the library that is the
    * context for the data
@@ -811,7 +811,7 @@ abstract class DartEntry implements SourceEntry {
   DartEntryImpl get writableCopy;
 }
 /**
- * Instances of the class {@code DartEntryImpl} implement a {@link DartEntry}.
+ * Instances of the class `DartEntryImpl` implement a [DartEntry].
  * @coverage dart.engine
  */
 class DartEntryImpl extends SourceEntryImpl implements DartEntry {
@@ -832,7 +832,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CacheState _parsedUnitState = CacheState.INVALID;
 
   /**
-   * The parsed compilation unit, or {@code null} if the parsed compilation unit is not currently
+   * The parsed compilation unit, or `null` if the parsed compilation unit is not currently
    * cached.
    */
   CompilationUnit _parsedUnit;
@@ -843,7 +843,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CacheState _parseErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while scanning and parsing the compilation unit, or {@code null} if the
+   * The errors produced while scanning and parsing the compilation unit, or `null` if the
    * errors are not currently cached.
    */
   List<AnalysisError> _parseErrors = AnalysisError.NO_ERRORS;
@@ -873,7 +873,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   /**
    * The information known as a result of resolving this compilation unit as part of the library
-   * that contains this unit. This field will never be {@code null}.
+   * that contains this unit. This field will never be `null`.
    */
   DartEntryImpl_ResolutionState _resolutionState = new DartEntryImpl_ResolutionState();
 
@@ -883,7 +883,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CacheState _elementState = CacheState.INVALID;
 
   /**
-   * The element representing the library, or {@code null} if the element is not currently cached.
+   * The element representing the library, or `null` if the element is not currently cached.
    */
   LibraryElement _element;
 
@@ -893,7 +893,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CacheState _publicNamespaceState = CacheState.INVALID;
 
   /**
-   * The public namespace of the library, or {@code null} if the namespace is not currently cached.
+   * The public namespace of the library, or `null` if the namespace is not currently cached.
    */
   Namespace _publicNamespace;
 
@@ -908,7 +908,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   CacheState _launchableState = CacheState.INVALID;
 
   /**
-   * An integer holding bit masks such as {@link #LAUNCHABLE} and {@link #CLIENT_CODE}.
+   * An integer holding bit masks such as [LAUNCHABLE] and [CLIENT_CODE].
    */
   int _bitmask = 0;
 
@@ -1280,7 +1280,7 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   /**
    * Set the value of the data represented by the given descriptor in the context of the given
-   * library to the given value, and set the state of that data to {@link CacheState#VALID}.
+   * library to the given value, and set the state of that data to [CacheState#VALID].
    * @param descriptor the descriptor representing which data is to have its value set
    * @param librarySource the source of the defining compilation unit of the library that is the
    * context for the data
@@ -1321,8 +1321,8 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
 
   /**
    * Return a resolution state for the specified library, creating one as necessary.
-   * @param librarySource the library source (not {@code null})
-   * @return the resolution state (not {@code null})
+   * @param librarySource the library source (not `null`)
+   * @return the resolution state (not `null`)
    */
   DartEntryImpl_ResolutionState getOrCreateResolutionState(Source librarySource2) {
     DartEntryImpl_ResolutionState state = _resolutionState;
@@ -1360,13 +1360,13 @@ class DartEntryImpl extends SourceEntryImpl implements DartEntry {
   }
 }
 /**
- * Instances of the class {@code ResolutionState} represent the information produced by resolving
+ * Instances of the class `ResolutionState` represent the information produced by resolving
  * a compilation unit as part of a specific library.
  */
 class DartEntryImpl_ResolutionState {
 
   /**
-   * The next resolution state or {@code null} if none.
+   * The next resolution state or `null` if none.
    */
   DartEntryImpl_ResolutionState _nextState;
 
@@ -1383,7 +1383,7 @@ class DartEntryImpl_ResolutionState {
   CacheState _resolvedUnitState = CacheState.INVALID;
 
   /**
-   * The resolved compilation unit, or {@code null} if the resolved compilation unit is not
+   * The resolved compilation unit, or `null` if the resolved compilation unit is not
    * currently cached.
    */
   CompilationUnit _resolvedUnit;
@@ -1394,7 +1394,7 @@ class DartEntryImpl_ResolutionState {
   CacheState _resolutionErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while resolving the compilation unit, or {@code null} if the errors are
+   * The errors produced while resolving the compilation unit, or `null` if the errors are
    * not currently cached.
    */
   List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
@@ -1443,7 +1443,7 @@ class DartEntryImpl_ResolutionState {
   }
 }
 /**
- * Instances of the class {@code DataDescriptor} are immutable constants representing data that can
+ * Instances of the class `DataDescriptor` are immutable constants representing data that can
  * be stored in the cache.
  */
 class DataDescriptor<E> {
@@ -1463,7 +1463,7 @@ class DataDescriptor<E> {
   String toString() => _name;
 }
 /**
- * The interface {@code HtmlEntry} defines the behavior of objects that maintain the information
+ * The interface `HtmlEntry` defines the behavior of objects that maintain the information
  * cached by an analysis context about an individual HTML file.
  * @coverage dart.engine
  */
@@ -1502,7 +1502,7 @@ abstract class HtmlEntry implements SourceEntry {
   HtmlEntryImpl get writableCopy;
 }
 /**
- * Instances of the class {@code HtmlEntryImpl} implement an {@link HtmlEntry}.
+ * Instances of the class `HtmlEntryImpl` implement an [HtmlEntry].
  * @coverage dart.engine
  */
 class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
@@ -1513,7 +1513,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   CacheState _parsedUnitState = CacheState.INVALID;
 
   /**
-   * The parsed HTML unit, or {@code null} if the parsed HTML unit is not currently cached.
+   * The parsed HTML unit, or `null` if the parsed HTML unit is not currently cached.
    */
   HtmlUnit _parsedUnit;
 
@@ -1523,7 +1523,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   CacheState _resolutionErrorsState = CacheState.INVALID;
 
   /**
-   * The errors produced while resolving the compilation unit, or {@code null} if the errors are not
+   * The errors produced while resolving the compilation unit, or `null` if the errors are not
    * currently cached.
    */
   List<AnalysisError> _resolutionErrors = AnalysisError.NO_ERRORS;
@@ -1534,7 +1534,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   CacheState _resolvedUnitState = CacheState.INVALID;
 
   /**
-   * The resolved HTML unit, or {@code null} if the resolved HTML unit is not currently cached.
+   * The resolved HTML unit, or `null` if the resolved HTML unit is not currently cached.
    */
   HtmlUnit _resolvedUnit;
 
@@ -1544,7 +1544,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   CacheState _referencedLibrariesState = CacheState.INVALID;
 
   /**
-   * The list of libraries referenced in the HTML, or {@code null} if the list is not currently
+   * The list of libraries referenced in the HTML, or `null` if the list is not currently
    * cached. Note that this list does not include libraries defined directly within the HTML file.
    */
   List<Source> _referencedLibraries = Source.EMPTY_ARRAY;
@@ -1555,7 +1555,7 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   CacheState _elementState = CacheState.INVALID;
 
   /**
-   * The element representing the HTML file, or {@code null} if the element is not currently cached.
+   * The element representing the HTML file, or `null` if the element is not currently cached.
    */
   HtmlElement _element;
   List<AnalysisError> get allErrors {
@@ -1658,9 +1658,9 @@ class HtmlEntryImpl extends SourceEntryImpl implements HtmlEntry {
   }
 }
 /**
- * The interface {@code SourceEntry} defines the behavior of objects that maintain the information
+ * The interface `SourceEntry` defines the behavior of objects that maintain the information
  * cached by an analysis context about an individual source, no matter what kind of source it is.
- * <p>
+ *
  * Source entries should be treated as if they were immutable unless a writable copy of the entry
  * has been obtained and has not yet been made visible to other threads.
  * @coverage dart.engine
@@ -1673,7 +1673,7 @@ abstract class SourceEntry {
   static final DataDescriptor<LineInfo> LINE_INFO = new DataDescriptor<LineInfo>("SourceEntry.LINE_INFO");
 
   /**
-   * Return the kind of the source, or {@code null} if the kind is not currently cached.
+   * Return the kind of the source, or `null` if the kind is not currently cached.
    * @return the kind of the source
    */
   SourceKind get kind;
@@ -1693,7 +1693,7 @@ abstract class SourceEntry {
   CacheState getState(DataDescriptor<Object> descriptor);
 
   /**
-   * Return the value of the data represented by the given descriptor, or {@code null} if the data
+   * Return the value of the data represented by the given descriptor, or `null` if the data
    * represented by the descriptor is not in the cache.
    * @param descriptor the descriptor representing which data is to be returned
    * @return the value of the data represented by the given descriptor
@@ -1708,7 +1708,7 @@ abstract class SourceEntry {
   SourceEntryImpl get writableCopy;
 }
 /**
- * Instances of the abstract class {@code SourceEntryImpl} implement the behavior common to all{@link SourceEntry source entries}.
+ * Instances of the abstract class `SourceEntryImpl` implement the behavior common to all[SourceEntry source entries].
  * @coverage dart.engine
  */
 abstract class SourceEntryImpl implements SourceEntry {
@@ -1725,7 +1725,7 @@ abstract class SourceEntryImpl implements SourceEntry {
   CacheState _lineInfoState = CacheState.INVALID;
 
   /**
-   * The line information computed for the source, or {@code null} if the line information is not
+   * The line information computed for the source, or `null` if the line information is not
    * currently cached.
    */
   LineInfo _lineInfo;
@@ -1810,8 +1810,8 @@ abstract class SourceEntryImpl implements SourceEntry {
   }
 }
 /**
- * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
- * context}.
+ * Instances of the class `AnalysisContextImpl` implement an [AnalysisContext analysis
+ * context].
  * @coverage dart.engine
  */
 class AnalysisContextImpl implements InternalAnalysisContext {
@@ -2496,9 +2496,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return a list of the sources that would be processed by {@link #performAnalysisTask()}. This
+   * Return a list of the sources that would be processed by [performAnalysisTask]. This
    * method is intended to be used for testing purposes only.
-   * @return a list of the sources that would be processed by {@link #performAnalysisTask()}
+   * @return a list of the sources that would be processed by [performAnalysisTask]
    */
   List<Source> get sourcesNeedingProcessing {
     List<Source> sources = new List<Source>();
@@ -2527,8 +2527,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Record that the given source was just accessed for some unspecified purpose.
-   * <p>
-   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   *
+   * Note: This method must only be invoked while we are synchronized on [cacheLock].
    * @param source the source that was accessed
    */
   void accessed(Source source) {
@@ -2559,8 +2559,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Add all of the sources contained in the given source container to the given list of sources.
-   * <p>
-   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   *
+   * Note: This method must only be invoked while we are synchronized on [cacheLock].
    * @param sources the list to which sources are to be added
    * @param container the source container containing the sources to be added to the list
    */
@@ -2573,10 +2573,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return {@code true} if the given array of sources contains the given source.
+   * Return `true` if the given array of sources contains the given source.
    * @param sources the sources being searched
    * @param targetSource the source being searched for
-   * @return {@code true} if the given source is in the array
+   * @return `true` if the given source is in the array
    */
   bool contains(List<Source> sources, Source targetSource) {
     for (Source source in sources) {
@@ -2588,10 +2588,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return {@code true} if the given array of sources contains any of the given target sources.
+   * Return `true` if the given array of sources contains any of the given target sources.
    * @param sources the sources being searched
    * @param targetSources the sources being searched for
-   * @return {@code true} if any of the given target sources are in the array
+   * @return `true` if any of the given target sources are in the array
    */
   bool containsAny(List<Source> sources, List<Source> targetSources) {
     for (Source targetSource in targetSources) {
@@ -2604,7 +2604,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Create a source information object suitable for the given source. Return the source information
-   * object that was created, or {@code null} if the source should not be tracked by this context.
+   * object that was created, or `null` if the source should not be tracked by this context.
    * @param source the source for which an information object is being created
    * @return the source information object that was created
    */
@@ -2622,7 +2622,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Disable flushing information from the cache until {@link #enableCacheRemoval()} has been
+   * Disable flushing information from the cache until [enableCacheRemoval] has been
    * called.
    */
   void disableCacheRemoval() {
@@ -2659,7 +2659,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Search the compilation units that are part of the given library and return the element
-   * representing the compilation unit with the given source. Return {@code null} if there is no
+   * representing the compilation unit with the given source. Return `null` if there is no
    * such compilation unit.
    * @param libraryElement the element representing the library being searched through
    * @param unitSource the source for the compilation unit whose element is to be returned
@@ -2679,13 +2679,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return the compilation unit information associated with the given source, or {@code null} if
+   * Return the compilation unit information associated with the given source, or `null` if
    * the source is not known to this context. This method should be used to access the compilation
    * unit information rather than accessing the compilation unit map directly because sources in the
    * SDK are implicitly part of every analysis context and are therefore only added to the map when
    * first accessed.
-   * <p>
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   *
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    * @param source the source for which information is being sought
    * @return the compilation unit information associated with the given source
    */
@@ -2702,13 +2702,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return the HTML unit information associated with the given source, or {@code null} if the
+   * Return the HTML unit information associated with the given source, or `null` if the
    * source is not known to this context. This method should be used to access the HTML unit
    * information rather than accessing the HTML unit map directly because sources in the SDK are
    * implicitly part of every analysis context and are therefore only added to the map when first
    * accessed.
-   * <p>
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   *
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    * @param source the source for which information is being sought
    * @return the HTML unit information associated with the given source
    */
@@ -2754,7 +2754,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return the cache entry associated with the given source, or {@code null} if there is no entry
+   * Return the cache entry associated with the given source, or `null` if there is no entry
    * associated with the source.
    * @param source the source for which a cache entry is being sought
    * @return the source cache entry associated with the given source
@@ -2766,12 +2766,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return the source information associated with the given source, or {@code null} if the source
+   * Return the source information associated with the given source, or `null` if the source
    * is not known to this context. This method should be used to access the source information
    * rather than accessing the source map directly because sources in the SDK are implicitly part of
    * every analysis context and are therefore only added to the map when first accessed.
-   * <p>
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   *
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    * @param source the source for which information is being sought
    * @return the source information associated with the given source
    */
@@ -2801,10 +2801,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return {@code true} if the given compilation unit has a part-of directive but no library
+   * Return `true` if the given compilation unit has a part-of directive but no library
    * directive.
    * @param unit the compilation unit being tested
-   * @return {@code true} if the compilation unit has a part-of directive
+   * @return `true` if the compilation unit has a part-of directive
    */
   bool hasPartOfDirective(CompilationUnit unit) {
     bool hasPartOf = false;
@@ -2898,8 +2898,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Invalidate all of the results computed by this context.
-   * <p>
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   *
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    */
   void invalidateAllResults() {
     for (MapEntry<Source, SourceEntry> mapEntry in getMapEntrySet(_sourceMap)) {
@@ -2941,11 +2941,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return {@code true} if this library is, or depends on, dart:html.
+   * Return `true` if this library is, or depends on, dart:html.
    * @param library the library being tested
    * @param visitedLibraries a collection of the libraries that have been visited, used to prevent
    * infinite recursion
-   * @return {@code true} if this library is, or depends on, dart:html
+   * @return `true` if this library is, or depends on, dart:html
    */
   bool isClient(LibraryElement library, Source htmlSource, Set<LibraryElement> visitedLibraries) {
     if (visitedLibraries.contains(library)) {
@@ -2970,9 +2970,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   /**
    * Perform a single analysis task.
-   * <p>
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
-   * @return {@code true} if work was done, implying that there might be more work to be done
+   *
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
+   * @return `true` if work was done, implying that there might be more work to be done
    */
   bool performSingleAnalysisTask() {
     for (MapEntry<Source, SourceEntry> entry in getMapEntrySet(_sourceMap)) {
@@ -3122,12 +3122,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create an entry for the newly added source. Return {@code true} if the new source is a Dart
+   * Create an entry for the newly added source. Return `true` if the new source is a Dart
    * file.
-   * <p>
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   *
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    * @param source the source that has been added
-   * @return {@code true} if the new source is a Dart file
+   * @return `true` if the new source is a Dart file
    */
   bool sourceAvailable(Source source) {
     SourceEntry sourceEntry = _sourceMap[source];
@@ -3138,7 +3138,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    * @param source the source that has been changed
    */
   void sourceChanged(Source source) {
@@ -3152,28 +3152,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlCopy.setState(HtmlEntry.RESOLVED_UNIT, CacheState.INVALID);
       _sourceMap[source] = htmlCopy;
     } else if (sourceEntry is DartEntry) {
-      Set<Source> librariesToInvalidate = new Set<Source>();
       List<Source> containingLibraries = getLibrariesContaining(source);
-      for (Source containingLibrary in containingLibraries) {
-        javaSetAdd(librariesToInvalidate, containingLibrary);
-        for (Source dependentLibrary in getLibrariesDependingOn(containingLibrary)) {
-          javaSetAdd(librariesToInvalidate, dependentLibrary);
-        }
-      }
       DartEntryImpl dartCopy = ((sourceEntry as DartEntry)).writableCopy;
       dartCopy.setState(SourceEntry.LINE_INFO, CacheState.INVALID);
       dartCopy.setState(DartEntry.PARSE_ERRORS, CacheState.INVALID);
       dartCopy.setState(DartEntry.PARSED_UNIT, CacheState.INVALID);
       dartCopy.setState(DartEntry.SOURCE_KIND, CacheState.INVALID);
       _sourceMap[source] = dartCopy;
-      for (Source library in librariesToInvalidate) {
+      for (Source library in containingLibraries) {
         invalidateLibraryResolution(library);
       }
     }
   }
 
   /**
-   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * <b>Note:</b> This method must only be invoked while we are synchronized on [cacheLock].
    * @param source the source that has been deleted
    */
   void sourceRemoved(Source source) {
@@ -3194,7 +3187,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 }
 /**
- * Instances of the class {@code ScanResult} represent the results of scanning a source.
+ * Instances of the class `ScanResult` represent the results of scanning a source.
  */
 class AnalysisContextImpl_ScanResult {
 
@@ -3266,18 +3259,18 @@ class Source_ContentReceiver_7 implements Source_ContentReceiver {
   }
 }
 /**
- * Instances of the class {@code AnalysisErrorInfoImpl} represent the analysis errors and line info
+ * Instances of the class `AnalysisErrorInfoImpl` represent the analysis errors and line info
  * associated with a source.
  */
 class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 
   /**
-   * The analysis errors associated with a source, or {@code null} if there are no errors.
+   * The analysis errors associated with a source, or `null` if there are no errors.
    */
   List<AnalysisError> _errors;
 
   /**
-   * The line information associated with the errors, or {@code null} if there are no errors.
+   * The line information associated with the errors, or `null` if there are no errors.
    */
   LineInfo _lineInfo;
 
@@ -3292,20 +3285,20 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
   }
 
   /**
-   * Return the errors of analysis, or {@code null} if there were no errors.
+   * Return the errors of analysis, or `null` if there were no errors.
    * @return the errors as a result of the analysis
    */
   List<AnalysisError> get errors => _errors;
 
   /**
-   * Return the line information associated with the errors, or {@code null} if there were no
+   * Return the line information associated with the errors, or `null` if there were no
    * errors.
    * @return the line information associated with the errors
    */
   LineInfo get lineInfo => _lineInfo;
 }
 /**
- * Instances of the class {@code AnalysisOptions} represent a set of analysis options used to
+ * Instances of the class `AnalysisOptions` represent a set of analysis options used to
  * control the behavior of an analysis context.
  */
 class AnalysisOptionsImpl implements AnalysisOptions {
@@ -3317,78 +3310,78 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool _strictMode = false;
 
   /**
-   * Return {@code true} if analysis is to use strict mode. In strict mode, error reporting is based
+   * Return `true` if analysis is to use strict mode. In strict mode, error reporting is based
    * exclusively on the static type information.
-   * @return {@code true} if analysis is to use strict mode
+   * @return `true` if analysis is to use strict mode
    */
   bool get strictMode => _strictMode;
 
   /**
    * Set whether analysis is to use strict mode to the given value. In strict mode, error reporting
    * is based exclusively on the static type information.
-   * @param isStrict {@code true} if analysis is to use strict mode
+   * @param isStrict `true` if analysis is to use strict mode
    */
   void set strictMode(bool isStrict) {
     _strictMode = isStrict;
   }
 }
 /**
- * The enumeration {@code CacheState} defines the possible states of cached data.
+ * The enumeration `CacheState` defines the possible states of cached data.
  */
 class CacheState implements Comparable<CacheState> {
 
   /**
    * The data is not in the cache and the last time an attempt was made to compute the data an
    * exception occurred, making it pointless to attempt.
-   * <p>
+   *
    * Valid Transitions:
-   * <ul>
-   * <li>{@link #INVALID} if a source was modified that might cause the data to be computable</li>
-   * </ul>
+   *
+   * * [INVALID] if a source was modified that might cause the data to be computable
+   *
    */
   static final CacheState ERROR = new CacheState('ERROR', 0);
 
   /**
    * The data is not in the cache because it was flushed from the cache in order to control memory
    * usage. If the data is recomputed, results do not need to be reported.
-   * <p>
+   *
    * Valid Transitions:
-   * <ul>
-   * <li>{@link #IN_PROCESS} if the data is being recomputed</li>
-   * <li>{@link #INVALID} if a source was modified that causes the data to need to be recomputed</li>
-   * </ul>
+   *
+   * * [IN_PROCESS] if the data is being recomputed
+   * * [INVALID] if a source was modified that causes the data to need to be recomputed
+   *
    */
   static final CacheState FLUSHED = new CacheState('FLUSHED', 1);
 
   /**
    * The data might or might not be in the cache but is in the process of being recomputed.
-   * <p>
+   *
    * Valid Transitions:
-   * <ul>
-   * <li>{@link #ERROR} if an exception occurred while trying to compute the data</li>
-   * <li>{@link #VALID} if the data was successfully computed and stored in the cache</li>
-   * </ul>
+   *
+   * * [ERROR] if an exception occurred while trying to compute the data
+   * * [VALID] if the data was successfully computed and stored in the cache
+   *
    */
   static final CacheState IN_PROCESS = new CacheState('IN_PROCESS', 2);
 
   /**
    * The data is not in the cache and needs to be recomputed so that results can be reported.
-   * <p>
+   *
    * Valid Transitions:
-   * <ul>
-   * <li>{@link #IN_PROCESS} if an attempt is being made to recompute the data</li>
-   * </ul>
+   *
+   * * [IN_PROCESS] if an attempt is being made to recompute the data
+   *
    */
   static final CacheState INVALID = new CacheState('INVALID', 3);
 
   /**
    * The data is in the cache and up-to-date.
-   * <p>
+   *
    * Valid Transitions:
-   * <ul>
-   * <li>{@link #FLUSHED} if the data is removed in order to manage memory usage</li>
-   * <li>{@link #INVALID} if a source was modified in such a way as to invalidate the previous data</li>
-   * </ul>
+   *
+   * * [FLUSHED] if the data is removed in order to manage memory usage
+   * * [INVALID] if a source was modified in such a way as to invalidate the previous data
+   *
    */
   static final CacheState VALID = new CacheState('VALID', 4);
   static final List<CacheState> values = [ERROR, FLUSHED, IN_PROCESS, INVALID, VALID];
@@ -3405,7 +3398,7 @@ class CacheState implements Comparable<CacheState> {
   String toString() => name;
 }
 /**
- * Instances of the class {@code ChangeNoticeImpl} represent a change to the analysis results
+ * Instances of the class `ChangeNoticeImpl` represent a change to the analysis results
  * associated with a given source.
  * @coverage dart.engine
  */
@@ -3417,19 +3410,19 @@ class ChangeNoticeImpl implements ChangeNotice {
   Source _source;
 
   /**
-   * The fully resolved AST that changed as a result of the analysis, or {@code null} if the AST was
+   * The fully resolved AST that changed as a result of the analysis, or `null` if the AST was
    * not changed.
    */
   CompilationUnit _compilationUnit;
 
   /**
-   * The errors that changed as a result of the analysis, or {@code null} if errors were not
+   * The errors that changed as a result of the analysis, or `null` if errors were not
    * changed.
    */
   List<AnalysisError> _errors;
 
   /**
-   * The line information associated with the source, or {@code null} if errors were not changed.
+   * The line information associated with the source, or `null` if errors were not changed.
    */
   LineInfo _lineInfo;
 
@@ -3447,21 +3440,21 @@ class ChangeNoticeImpl implements ChangeNotice {
   }
 
   /**
-   * Return the fully resolved AST that changed as a result of the analysis, or {@code null} if the
+   * Return the fully resolved AST that changed as a result of the analysis, or `null` if the
    * AST was not changed.
    * @return the fully resolved AST that changed as a result of the analysis
    */
   CompilationUnit get compilationUnit => _compilationUnit;
 
   /**
-   * Return the errors that changed as a result of the analysis, or {@code null} if errors were not
+   * Return the errors that changed as a result of the analysis, or `null` if errors were not
    * changed.
    * @return the errors that changed as a result of the analysis
    */
   List<AnalysisError> get errors => _errors;
 
   /**
-   * Return the line information associated with the source, or {@code null} if errors were not
+   * Return the line information associated with the source, or `null` if errors were not
    * changed.
    * @return the line information associated with the source
    */
@@ -3493,16 +3486,16 @@ class ChangeNoticeImpl implements ChangeNotice {
   }
 }
 /**
- * Instances of the class {@code DelegatingAnalysisContextImpl} extend {@link AnalysisContextImplanalysis context} to delegate sources to the appropriate analysis context. For instance, if the
- * source is in a system library then the analysis context from the {@link DartSdk} is used.
+ * Instances of the class `DelegatingAnalysisContextImpl` extend [AnalysisContextImplanalysis context] to delegate sources to the appropriate analysis context. For instance, if the
+ * source is in a system library then the analysis context from the [DartSdk] is used.
  * @coverage dart.engine
  */
 class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
 
   /**
-   * This references the {@link InternalAnalysisContext} held onto by the {@link DartSdk} which is
-   * used (instead of this {@link AnalysisContext}) for SDK sources. This field is set when
-   * #setSourceFactory(SourceFactory) is called, and references the analysis context in the{@link DartUriResolver} in the {@link SourceFactory}, this analysis context assumes that there
+   * This references the [InternalAnalysisContext] held onto by the [DartSdk] which is
+   * used (instead of this [AnalysisContext]) for SDK sources. This field is set when
+   * #setSourceFactory(SourceFactory) is called, and references the analysis context in the[DartUriResolver] in the [SourceFactory], this analysis context assumes that there
    * will be such a resolver.
    */
   InternalAnalysisContext _sdkAnalysisContext;
@@ -3723,7 +3716,7 @@ class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 }
 /**
- * Instances of the class {@code InstrumentedAnalysisContextImpl} implement an{@link AnalysisContext analysis context} by recording instrumentation data and delegating to
+ * Instances of the class `InstrumentedAnalysisContextImpl` implement an[AnalysisContext analysis context] by recording instrumentation data and delegating to
  * another analysis context to do the non-instrumentation work.
  * @coverage dart.engine
  */
@@ -3749,7 +3742,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   InternalAnalysisContext _basis;
 
   /**
-   * Create a new {@link InstrumentedAnalysisContextImpl} which wraps a new{@link AnalysisContextImpl} as the basis context.
+   * Create a new [InstrumentedAnalysisContextImpl] which wraps a new[AnalysisContextImpl] as the basis context.
    */
   InstrumentedAnalysisContextImpl() {
     _jtd_constructor_183_impl();
@@ -3759,9 +3752,9 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Create a new {@link InstrumentedAnalysisContextImpl} with a specified basis context, aka the
+   * Create a new [InstrumentedAnalysisContextImpl] with a specified basis context, aka the
    * context to wrap and instrument.
-   * @param context some {@link InstrumentedAnalysisContext} to wrap and instrument
+   * @param context some [InstrumentedAnalysisContext] to wrap and instrument
    */
   InstrumentedAnalysisContextImpl.con1(InternalAnalysisContext context) {
     _jtd_constructor_184_impl(context);
@@ -3870,7 +3863,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * @return the underlying {@link AnalysisContext}.
+   * @return the underlying [AnalysisContext].
    */
   AnalysisContext get basis => _basis;
   Element getElement(ElementLocation location) {
@@ -4195,7 +4188,7 @@ class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   }
 }
 /**
- * The interface {@code InternalAnalysisContext} defines additional behavior for an analysis context
+ * The interface `InternalAnalysisContext` defines additional behavior for an analysis context
  * that is required by internal users of the context.
  */
 abstract class InternalAnalysisContext implements AnalysisContext {
@@ -4253,7 +4246,7 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   void recordLibraryElements(Map<Source, LibraryElement> elementMap);
 }
 /**
- * Instances of the class {@code RecordingErrorListener} implement an error listener that will
+ * Instances of the class `RecordingErrorListener` implement an error listener that will
  * record the errors that are reported to it in a way that is appropriate for caching those errors
  * within an analysis context.
  * @coverage dart.engine
@@ -4261,7 +4254,7 @@ abstract class InternalAnalysisContext implements AnalysisContext {
 class RecordingErrorListener implements AnalysisErrorListener {
 
   /**
-   * A HashMap of lists containing the errors that were collected, keyed by each {@link Source}.
+   * A HashMap of lists containing the errors that were collected, keyed by each [Source].
    */
   Map<Source, List<AnalysisError>> _errors = new Map<Source, List<AnalysisError>>();
 
@@ -4277,7 +4270,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
 
   /**
    * Answer the errors collected by the listener.
-   * @return an array of errors (not {@code null}, contains no {@code null}s)
+   * @return an array of errors (not `null`, contains no `null`s)
    */
   List<AnalysisError> get errors {
     Iterable<MapEntry<Source, List<AnalysisError>>> entrySet = getMapEntrySet(_errors);
@@ -4293,10 +4286,10 @@ class RecordingErrorListener implements AnalysisErrorListener {
   }
 
   /**
-   * Answer the errors collected by the listener for some passed {@link Source}.
-   * @param source some {@link Source} for which the caller wants the set of {@link AnalysisError}s
+   * Answer the errors collected by the listener for some passed [Source].
+   * @param source some [Source] for which the caller wants the set of [AnalysisError]s
    * collected by this listener
-   * @return the errors collected by the listener for the passed {@link Source}
+   * @return the errors collected by the listener for the passed [Source]
    */
   List<AnalysisError> getErrors2(Source source) {
     List<AnalysisError> errorsForSource = _errors[source];
@@ -4317,7 +4310,7 @@ class RecordingErrorListener implements AnalysisErrorListener {
   }
 }
 /**
- * Instances of the class {@code ResolutionEraser} remove any resolution information from an AST
+ * Instances of the class `ResolutionEraser` remove any resolution information from an AST
  * structure when used to visit that structure.
  */
 class ResolutionEraser extends GeneralizingASTVisitor<Object> {
@@ -4388,7 +4381,7 @@ class ResolutionEraser extends GeneralizingASTVisitor<Object> {
   }
 }
 /**
- * The interface {@code Logger} defines the behavior of objects that can be used to receive
+ * The interface `Logger` defines the behavior of objects that can be used to receive
  * information about errors within the analysis engine. Implementations usually write this
  * information to a file, but can also record the information for later use (such as during testing)
  * or even ignore the information.
@@ -4431,7 +4424,7 @@ abstract class Logger {
   void logInformation2(String message, Exception exception);
 }
 /**
- * Implementation of {@link Logger} that does nothing.
+ * Implementation of [Logger] that does nothing.
  */
 class Logger_NullLogger implements Logger {
   void logError(String message) {

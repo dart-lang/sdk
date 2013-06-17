@@ -81,7 +81,6 @@ class AnalyzerImpl {
       } else {
         packageDirectory = getPackageDirectoryFor(sourceFile);
       }
-      print('packageDirectory: ${packageDirectory.getPath()}');
       if (packageDirectory != null) {
         resolvers.add(new PackageUriResolver([packageDirectory]));
       }

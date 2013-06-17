@@ -251,7 +251,6 @@ class _CommandLineParser {
       }
     }
 
-    print(filtered);
     return filtered;
   }
 

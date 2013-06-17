@@ -5,7 +5,7 @@ import 'java_core.dart';
 import 'sdk.dart' show DartSdk;
 import 'engine.dart' show AnalysisContext;
 /**
- * Instances of the class {@code SourceFactory} resolve possibly relative URI's against an existing{@link Source source}.
+ * Instances of the class `SourceFactory` resolve possibly relative URI's against an existing[Source source].
  * @coverage dart.engine.source
  */
 class SourceFactory {
@@ -50,7 +50,7 @@ class SourceFactory {
   }
 
   /**
-   * Return a source object representing the given absolute URI, or {@code null} if the URI is not a
+   * Return a source object representing the given absolute URI, or `null` if the URI is not a
    * valid URI or if it is not an absolute URI.
    * @param absoluteUri the absolute URI to be resolved
    * @return a source object representing the absolute URI
@@ -108,9 +108,9 @@ class SourceFactory {
   AnalysisContext get context => _context;
 
   /**
-   * Return the {@link DartSdk} associated with this {@link SourceFactory}, or {@code null} if there
+   * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
    * is no such SDK.
-   * @return the {@link DartSdk} associated with this {@link SourceFactory}, or {@code null} if
+   * @return the [DartSdk] associated with this [SourceFactory], or `null` if
    * there is no such SDK
    */
   DartSdk get dartSdk {
@@ -125,7 +125,7 @@ class SourceFactory {
 
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
-   * relative) contained URI against the URI associated with an existing source object, or{@code null} if either the contained URI is invalid or if it cannot be resolved against the
+   * relative) contained URI against the URI associated with an existing source object, or`null` if either the contained URI is invalid or if it cannot be resolved against the
    * source object's URI.
    * @param containingSource the source containing the given URI
    * @param containedUri the (possibly relative) URI to be resolved against the containing source
@@ -142,7 +142,7 @@ class SourceFactory {
   /**
    * Return an absolute URI that represents the given source.
    * @param source the source to get URI for
-   * @return the absolute URI representing the given source, may be {@code null}
+   * @return the absolute URI representing the given source, may be `null`
    */
   Uri restoreUri(Source source) {
     for (UriResolver resolver in _resolvers) {
@@ -156,7 +156,7 @@ class SourceFactory {
 
   /**
    * Set the contents of the given source to the given contents. This has the effect of overriding
-   * the default contents of the source. If the contents are {@code null} the override is removed so
+   * the default contents of the source. If the contents are `null` the override is removed so
    * that the default contents will be returned.
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source
@@ -167,8 +167,8 @@ class SourceFactory {
 
   /**
    * Set the analysis context that this source factory is associated with to the given context.
-   * <p>
-   * <b>Note:</b> This method should only be invoked by{@link AnalysisContextImpl#setSourceFactory(SourceFactory)} and is only public out of
+   *
+   * <b>Note:</b> This method should only be invoked by[AnalysisContextImpl#setSourceFactory] and is only public out of
    * necessity.
    * @param context the analysis context that this source factory is associated with
    */
@@ -177,20 +177,20 @@ class SourceFactory {
   }
 
   /**
-   * Return the contents of the given source, or {@code null} if this factory does not override the
+   * Return the contents of the given source, or `null` if this factory does not override the
    * contents of the source.
-   * <p>
-   * <b>Note:</b> This method is not intended to be used except by{@link FileBasedSource#getContents(com.google.dart.engine.source.Source.ContentReceiver)}.
+   *
+   * <b>Note:</b> This method is not intended to be used except by[FileBasedSource#getContents].
    * @param source the source whose content is to be returned
    * @return the contents of the given source
    */
   String getContents(Source source) => _contentCache.getContents(source);
 
   /**
-   * Return the modification stamp of the given source, or {@code null} if this factory does not
+   * Return the modification stamp of the given source, or `null` if this factory does not
    * override the contents of the source.
-   * <p>
-   * <b>Note:</b> This method is not intended to be used except by{@link FileBasedSource#getModificationStamp()}.
+   *
+   * <b>Note:</b> This method is not intended to be used except by[FileBasedSource#getModificationStamp].
    * @param source the source whose modification stamp is to be returned
    * @return the modification stamp of the given source
    */
@@ -198,7 +198,7 @@ class SourceFactory {
 
   /**
    * Return a source object representing the URI that results from resolving the given (possibly
-   * relative) contained URI against the URI associated with an existing source object, or{@code null} if either the contained URI is invalid or if it cannot be resolved against the
+   * relative) contained URI against the URI associated with an existing source object, or`null` if either the contained URI is invalid or if it cannot be resolved against the
    * source object's URI.
    * @param containingSource the source containing the given URI
    * @param containedUri the (possibly relative) URI to be resolved against the containing source
@@ -219,7 +219,7 @@ class SourceFactory {
   }
 }
 /**
- * The abstract class {@code UriResolver} defines the behavior of objects that are used to resolve
+ * The abstract class `UriResolver` defines the behavior of objects that are used to resolve
  * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
  * absolute URI.
  * @coverage dart.engine.source
@@ -228,34 +228,34 @@ abstract class UriResolver {
 
   /**
    * If this resolver should be used for URI's of the given kind, resolve the given absolute URI.
-   * The URI does not need to have the scheme handled by this resolver if the kind matches. Return a{@link Source source} representing the file to which it was resolved, or {@code null} if it
+   * The URI does not need to have the scheme handled by this resolver if the kind matches. Return a[Source source] representing the file to which it was resolved, or `null` if it
    * could not be resolved.
    * @param contentCache the content cache used to access the contents of the returned source
    * @param kind the kind of URI that was originally resolved in order to produce an encoding with
    * the given URI
    * @param uri the URI to be resolved
-   * @return a {@link Source source} representing the file to which given URI was resolved
+   * @return a [Source source] representing the file to which given URI was resolved
    */
   Source fromEncoding(ContentCache contentCache, UriKind kind, Uri uri);
 
   /**
-   * Resolve the given absolute URI. Return a {@link Source source} representing the file to which
-   * it was resolved, or {@code null} if it could not be resolved.
+   * Resolve the given absolute URI. Return a [Source source] representing the file to which
+   * it was resolved, or `null` if it could not be resolved.
    * @param contentCache the content cache used to access the contents of the returned source
    * @param uri the URI to be resolved
-   * @return a {@link Source source} representing the file to which given URI was resolved
+   * @return a [Source source] representing the file to which given URI was resolved
    */
   Source resolveAbsolute(ContentCache contentCache, Uri uri);
 
   /**
    * Return an absolute URI that represents the given source.
    * @param source the source to get URI for
-   * @return the absolute URI representing the given source, may be {@code null}
+   * @return the absolute URI representing the given source, may be `null`
    */
   Uri restoreAbsolute(Source source) => null;
 }
 /**
- * The interface {@code Source} defines the behavior of objects representing source code that can be
+ * The interface `Source` defines the behavior of objects representing source code that can be
  * compiled.
  * @coverage dart.engine.source
  */
@@ -267,18 +267,18 @@ abstract class Source {
   static final List<Source> EMPTY_ARRAY = new List<Source>(0);
 
   /**
-   * Return {@code true} if the given object is a source that represents the same source code as
+   * Return `true` if the given object is a source that represents the same source code as
    * this source.
    * @param object the object to be compared with this object
-   * @return {@code true} if the given object is a source that represents the same source code as
+   * @return `true` if the given object is a source that represents the same source code as
    * this source
    * @see Object#equals(Object)
    */
   bool operator ==(Object object);
 
   /**
-   * Return {@code true} if this source exists.
-   * @return {@code true} if this source exists
+   * Return `true` if this source exists.
+   * @return `true` if this source exists
    */
   bool exists();
 
@@ -342,27 +342,27 @@ abstract class Source {
   int get hashCode;
 
   /**
-   * Return {@code true} if this source is in one of the system libraries.
-   * @return {@code true} if this is in a system library
+   * Return `true` if this source is in one of the system libraries.
+   * @return `true` if this is in a system library
    */
   bool isInSystemLibrary();
 
   /**
-   * Resolve the relative URI against the URI associated with this source object. Return a{@link Source source} representing the URI to which it was resolved, or {@code null} if it
+   * Resolve the relative URI against the URI associated with this source object. Return a[Source source] representing the URI to which it was resolved, or `null` if it
    * could not be resolved.
-   * <p>
+   *
    * Note: This method is not intended for public use, it is only visible out of necessity. It is
-   * only intended to be invoked by a {@link SourceFactory source factory}. Source factories will
+   * only intended to be invoked by a [SourceFactory source factory]. Source factories will
    * only invoke this method if the URI is relative, so implementations of this method are not
    * required to, and generally do not, verify the argument. The result of invoking this method with
    * an absolute URI is intentionally left unspecified.
    * @param relativeUri the relative URI to be resolved against the containing source
-   * @return a {@link Source source} representing the URI to which given URI was resolved
+   * @return a [Source source] representing the URI to which given URI was resolved
    */
   Source resolveRelative(Uri relativeUri);
 }
 /**
- * The interface {@code ContentReceiver} defines the behavior of objects that can receive the
+ * The interface `ContentReceiver` defines the behavior of objects that can receive the
  * content of a source.
  */
 abstract class Source_ContentReceiver {
@@ -382,7 +382,7 @@ abstract class Source_ContentReceiver {
   void accept2(String contents, int modificationTime);
 }
 /**
- * The enumeration {@code SourceKind} defines the different kinds of sources that are known to the
+ * The enumeration `SourceKind` defines the different kinds of sources that are known to the
  * analysis engine.
  * @coverage dart.engine.source
  */
@@ -424,7 +424,7 @@ class SourceKind implements Comparable<SourceKind> {
   String toString() => name;
 }
 /**
- * The enumeration {@code UriKind} defines the different kinds of URI's that are known to the
+ * The enumeration `UriKind` defines the different kinds of URI's that are known to the
  * analysis engine. These are used to keep track of the kind of URI associated with a given source.
  * @coverage dart.engine.source
  */
@@ -466,7 +466,7 @@ class UriKind implements Comparable<UriKind> {
   }
 
   /**
-   * Return the URI kind represented by the given encoding, or {@code null} if there is no kind with
+   * Return the URI kind represented by the given encoding, or `null` if there is no kind with
    * the given encoding.
    * @param encoding the single character encoding used to identify the URI kind to be returned
    * @return the URI kind represented by the given encoding
@@ -495,7 +495,7 @@ class UriKind implements Comparable<UriKind> {
   String toString() => name;
 }
 /**
- * A source range defines an {@link Element}'s source coordinates relative to its {@link Source}.
+ * A source range defines an [Element]'s source coordinates relative to its [Source].
  * @coverage dart.engine.utilities
  */
 class SourceRange {
@@ -523,27 +523,27 @@ class SourceRange {
   }
 
   /**
-   * @return {@code true} if <code>x</code> is in \[offset, offset + length) interval.
+   * @return `true` if <code>x</code> is in \[offset, offset + length) interval.
    */
   bool contains(int x) => _offset <= x && x < _offset + _length;
 
   /**
-   * @return {@code true} if <code>x</code> is in (offset, offset + length) interval.
+   * @return `true` if <code>x</code> is in (offset, offset + length) interval.
    */
   bool containsExclusive(int x) => _offset < x && x < _offset + _length;
 
   /**
-   * @return {@code true} if <code>otherRange</code> covers this {@link SourceRange}.
+   * @return `true` if <code>otherRange</code> covers this [SourceRange].
    */
   bool coveredBy(SourceRange otherRange) => otherRange.covers(this);
 
   /**
-   * @return {@code true} if this {@link SourceRange} covers <code>otherRange</code>.
+   * @return `true` if this [SourceRange] covers <code>otherRange</code>.
    */
   bool covers(SourceRange otherRange) => offset <= otherRange.offset && otherRange.end <= end;
 
   /**
-   * @return {@code true} if this {@link SourceRange} ends in <code>otherRange</code>.
+   * @return `true` if this [SourceRange] ends in <code>otherRange</code>.
    */
   bool endsIn(SourceRange otherRange) {
     int thisEnd = end;
@@ -564,7 +564,7 @@ class SourceRange {
   int get end => _offset + _length;
 
   /**
-   * @return the expanded instance of {@link SourceRange}, which has the same center.
+   * @return the expanded instance of [SourceRange], which has the same center.
    */
   SourceRange getExpanded(int delta) => new SourceRange(_offset - delta, delta + _length + delta);
 
@@ -577,7 +577,7 @@ class SourceRange {
   int get length => _length;
 
   /**
-   * @return the instance of {@link SourceRange} with end moved on "delta".
+   * @return the instance of [SourceRange] with end moved on "delta".
    */
   SourceRange getMoveEnd(int delta) => new SourceRange(_offset, _length + delta);
 
@@ -590,13 +590,13 @@ class SourceRange {
   int get offset => _offset;
 
   /**
-   * @return the expanded translated of {@link SourceRange}, with moved start and the same length.
+   * @return the expanded translated of [SourceRange], with moved start and the same length.
    */
   SourceRange getTranslated(int delta) => new SourceRange(_offset + delta, _length);
   int get hashCode => 31 * _offset + _length;
 
   /**
-   * @return {@code true} if this {@link SourceRange} intersects with given.
+   * @return `true` if this [SourceRange] intersects with given.
    */
   bool intersects(SourceRange other) {
     if (other == null) {
@@ -612,7 +612,7 @@ class SourceRange {
   }
 
   /**
-   * @return {@code true} if this {@link SourceRange} starts in <code>otherRange</code>.
+   * @return `true` if this [SourceRange] starts in <code>otherRange</code>.
    */
   bool startsIn(SourceRange otherRange) => otherRange.contains(_offset);
   String toString() {
@@ -626,8 +626,8 @@ class SourceRange {
   }
 }
 /**
- * The interface {@code SourceContainer} is used by clients to define a collection of sources
- * <p>
+ * The interface `SourceContainer` is used by clients to define a collection of sources
+ *
  * Source containers are not used within analysis engine, but can be used by clients to group
  * sources for the purposes of accessing composite dependency information. For example, the Eclipse
  * client uses source containers to represent Eclipse projects, which allows it to easily compute
@@ -639,12 +639,12 @@ abstract class SourceContainer {
   /**
    * Determine if the specified source is part of the receiver's collection of sources.
    * @param source the source in question
-   * @return {@code true} if the receiver contains the source, else {@code false}
+   * @return `true` if the receiver contains the source, else `false`
    */
   bool contains(Source source);
 }
 /**
- * Instances of the class {@code DartUriResolver} resolve {@code dart} URI's.
+ * Instances of the class `DartUriResolver` resolve `dart` URI's.
  * @coverage dart.engine.source
  */
 class DartUriResolver extends UriResolver {
@@ -655,14 +655,14 @@ class DartUriResolver extends UriResolver {
   DartSdk _sdk;
 
   /**
-   * The name of the {@code dart} scheme.
+   * The name of the `dart` scheme.
    */
   static String _DART_SCHEME = "dart";
 
   /**
-   * Return {@code true} if the given URI is a {@code dart:} URI.
+   * Return `true` if the given URI is a `dart:` URI.
    * @param uri the URI being tested
-   * @return {@code true} if the given URI is a {@code dart:} URI
+   * @return `true` if the given URI is a `dart:` URI
    */
   static bool isDartUri(Uri uri) => _DART_SCHEME == uri.scheme;
 
@@ -682,8 +682,8 @@ class DartUriResolver extends UriResolver {
   }
 
   /**
-   * Return the {@link DartSdk} against which URIs are to be resolved.
-   * @return the {@link DartSdk} against which URIs are to be resolved.
+   * Return the [DartSdk] against which URIs are to be resolved.
+   * @return the [DartSdk] against which URIs are to be resolved.
    */
   DartSdk get dartSdk => _sdk;
   Source resolveAbsolute(ContentCache contentCache, Uri uri) {
@@ -694,7 +694,7 @@ class DartUriResolver extends UriResolver {
   }
 }
 /**
- * Instances of the class {@code LineInfo} encapsulate information about line and column information
+ * Instances of the class `LineInfo` encapsulate information about line and column information
  * within a source file.
  * @coverage dart.engine.utilities
  */
@@ -735,7 +735,7 @@ class LineInfo {
   }
 }
 /**
- * Instances of the class {@code Location} represent the location of a character as a line and
+ * Instances of the class `Location` represent the location of a character as a line and
  * column pair.
  */
 class LineInfo_Location {
@@ -774,7 +774,7 @@ class LineInfo_Location {
   int get lineNumber => _lineNumber;
 }
 /**
- * Instances of class {@code ContentCache} hold content used to override the default content of a{@link Source}.
+ * Instances of class `ContentCache` hold content used to override the default content of a[Source].
  * @coverage dart.engine.source
  */
 class ContentCache {
@@ -792,20 +792,20 @@ class ContentCache {
   Map<Source, int> _stampMap = new Map<Source, int>();
 
   /**
-   * Return the contents of the given source, or {@code null} if this cache does not override the
+   * Return the contents of the given source, or `null` if this cache does not override the
    * contents of the source.
-   * <p>
-   * <b>Note:</b> This method is not intended to be used except by{@link SourceFactory#getContents(com.google.dart.engine.source.Source.ContentReceiver)}.
+   *
+   * <b>Note:</b> This method is not intended to be used except by[SourceFactory#getContents].
    * @param source the source whose content is to be returned
    * @return the contents of the given source
    */
   String getContents(Source source) => _contentMap[source];
 
   /**
-   * Return the modification stamp of the given source, or {@code null} if this cache does not
+   * Return the modification stamp of the given source, or `null` if this cache does not
    * override the contents of the source.
-   * <p>
-   * <b>Note:</b> This method is not intended to be used except by{@link SourceFactory#getModificationStamp(com.google.dart.engine.source.Source)}.
+   *
+   * <b>Note:</b> This method is not intended to be used except by[SourceFactory#getModificationStamp].
    * @param source the source whose modification stamp is to be returned
    * @return the modification stamp of the given source
    */
@@ -813,7 +813,7 @@ class ContentCache {
 
   /**
    * Set the contents of the given source to the given contents. This has the effect of overriding
-   * the default contents of the source. If the contents are {@code null} the override is removed so
+   * the default contents of the source. If the contents are `null` the override is removed so
    * that the default contents will be returned.
    * @param source the source whose contents are being overridden
    * @param contents the new contents of the source

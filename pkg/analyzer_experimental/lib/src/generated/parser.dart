@@ -11,14 +11,14 @@ import 'scanner.dart';
 import 'ast.dart';
 import 'utilities_dart.dart';
 /**
- * Instances of the class {@code CommentAndMetadata} implement a simple data-holder for a method
+ * Instances of the class `CommentAndMetadata` implement a simple data-holder for a method
  * that needs to return multiple values.
  * @coverage dart.engine.parser
  */
 class CommentAndMetadata {
 
   /**
-   * The documentation comment that was parsed, or {@code null} if none was given.
+   * The documentation comment that was parsed, or `null` if none was given.
    */
   Comment _comment;
 
@@ -38,7 +38,7 @@ class CommentAndMetadata {
   }
 
   /**
-   * Return the documentation comment that was parsed, or {@code null} if none was given.
+   * Return the documentation comment that was parsed, or `null` if none was given.
    * @return the documentation comment that was parsed
    */
   Comment get comment => _comment;
@@ -50,19 +50,19 @@ class CommentAndMetadata {
   List<Annotation> get metadata => _metadata;
 }
 /**
- * Instances of the class {@code FinalConstVarOrType} implement a simple data-holder for a method
+ * Instances of the class `FinalConstVarOrType` implement a simple data-holder for a method
  * that needs to return multiple values.
  * @coverage dart.engine.parser
  */
 class FinalConstVarOrType {
 
   /**
-   * The 'final', 'const' or 'var' keyword, or {@code null} if none was given.
+   * The 'final', 'const' or 'var' keyword, or `null` if none was given.
    */
   Token _keyword;
 
   /**
-   * The type, of {@code null} if no type was specified.
+   * The type, of `null` if no type was specified.
    */
   TypeName _type;
 
@@ -77,103 +77,103 @@ class FinalConstVarOrType {
   }
 
   /**
-   * Return the 'final', 'const' or 'var' keyword, or {@code null} if none was given.
+   * Return the 'final', 'const' or 'var' keyword, or `null` if none was given.
    * @return the 'final', 'const' or 'var' keyword
    */
   Token get keyword => _keyword;
 
   /**
-   * Return the type, of {@code null} if no type was specified.
+   * Return the type, of `null` if no type was specified.
    * @return the type
    */
   TypeName get type => _type;
 }
 /**
- * Instances of the class {@code Modifiers} implement a simple data-holder for a method that needs
+ * Instances of the class `Modifiers` implement a simple data-holder for a method that needs
  * to return multiple values.
  * @coverage dart.engine.parser
  */
 class Modifiers {
 
   /**
-   * The token representing the keyword 'abstract', or {@code null} if the keyword was not found.
+   * The token representing the keyword 'abstract', or `null` if the keyword was not found.
    */
   Token _abstractKeyword;
 
   /**
-   * The token representing the keyword 'const', or {@code null} if the keyword was not found.
+   * The token representing the keyword 'const', or `null` if the keyword was not found.
    */
   Token _constKeyword;
 
   /**
-   * The token representing the keyword 'external', or {@code null} if the keyword was not found.
+   * The token representing the keyword 'external', or `null` if the keyword was not found.
    */
   Token _externalKeyword;
 
   /**
-   * The token representing the keyword 'factory', or {@code null} if the keyword was not found.
+   * The token representing the keyword 'factory', or `null` if the keyword was not found.
    */
   Token _factoryKeyword;
 
   /**
-   * The token representing the keyword 'final', or {@code null} if the keyword was not found.
+   * The token representing the keyword 'final', or `null` if the keyword was not found.
    */
   Token _finalKeyword;
 
   /**
-   * The token representing the keyword 'static', or {@code null} if the keyword was not found.
+   * The token representing the keyword 'static', or `null` if the keyword was not found.
    */
   Token _staticKeyword;
 
   /**
-   * The token representing the keyword 'var', or {@code null} if the keyword was not found.
+   * The token representing the keyword 'var', or `null` if the keyword was not found.
    */
   Token _varKeyword;
 
   /**
-   * Return the token representing the keyword 'abstract', or {@code null} if the keyword was not
+   * Return the token representing the keyword 'abstract', or `null` if the keyword was not
    * found.
    * @return the token representing the keyword 'abstract'
    */
   Token get abstractKeyword => _abstractKeyword;
 
   /**
-   * Return the token representing the keyword 'const', or {@code null} if the keyword was not
+   * Return the token representing the keyword 'const', or `null` if the keyword was not
    * found.
    * @return the token representing the keyword 'const'
    */
   Token get constKeyword => _constKeyword;
 
   /**
-   * Return the token representing the keyword 'external', or {@code null} if the keyword was not
+   * Return the token representing the keyword 'external', or `null` if the keyword was not
    * found.
    * @return the token representing the keyword 'external'
    */
   Token get externalKeyword => _externalKeyword;
 
   /**
-   * Return the token representing the keyword 'factory', or {@code null} if the keyword was not
+   * Return the token representing the keyword 'factory', or `null` if the keyword was not
    * found.
    * @return the token representing the keyword 'factory'
    */
   Token get factoryKeyword => _factoryKeyword;
 
   /**
-   * Return the token representing the keyword 'final', or {@code null} if the keyword was not
+   * Return the token representing the keyword 'final', or `null` if the keyword was not
    * found.
    * @return the token representing the keyword 'final'
    */
   Token get finalKeyword => _finalKeyword;
 
   /**
-   * Return the token representing the keyword 'static', or {@code null} if the keyword was not
+   * Return the token representing the keyword 'static', or `null` if the keyword was not
    * found.
    * @return the token representing the keyword 'static'
    */
   Token get staticKeyword => _staticKeyword;
 
   /**
-   * Return the token representing the keyword 'var', or {@code null} if the keyword was not found.
+   * Return the token representing the keyword 'var', or `null` if the keyword was not found.
    * @return the token representing the keyword 'var'
    */
   Token get varKeyword => _varKeyword;
@@ -246,12 +246,12 @@ class Modifiers {
   }
 
   /**
-   * If the given keyword is not {@code null}, append it to the given builder, prefixing it with a
+   * If the given keyword is not `null`, append it to the given builder, prefixing it with a
    * space if needed.
    * @param builder the builder to which the keyword will be appended
-   * @param needsSpace {@code true} if the keyword needs to be prefixed with a space
+   * @param needsSpace `true` if the keyword needs to be prefixed with a space
    * @param keyword the keyword to be appended
-   * @return {@code true} if subsequent keywords need to be prefixed with a space
+   * @return `true` if subsequent keywords need to be prefixed with a space
    */
   bool appendKeyword(JavaStringBuilder builder, bool needsSpace, Token keyword) {
     if (keyword != null) {
@@ -265,7 +265,7 @@ class Modifiers {
   }
 }
 /**
- * Instances of the class {@code Parser} are used to parse tokens into an AST structure.
+ * Instances of the class `Parser` are used to parse tokens into an AST structure.
  * @coverage dart.engine.parser
  */
 class Parser {
@@ -329,7 +329,7 @@ class Parser {
   /**
    * Parse an expression, starting with the given token.
    * @param token the first token of the expression
-   * @return the expression that was parsed, or {@code null} if the tokens do not represent a
+   * @return the expression that was parsed, or `null` if the tokens do not represent a
    * recognizable expression
    */
   Expression parseExpression(Token token) {
@@ -345,7 +345,7 @@ class Parser {
   /**
    * Parse a statement, starting with the given token.
    * @param token the first token of the statement
-   * @return the statement that was parsed, or {@code null} if the tokens do not represent a
+   * @return the statement that was parsed, or `null` if the tokens do not represent a
    * recognizable statement
    */
   Statement parseStatement(Token token) {
@@ -361,7 +361,7 @@ class Parser {
   /**
    * Parse a sequence of statements, starting with the given token.
    * @param token the first token of the sequence of statement
-   * @return the statements that were parsed, or {@code null} if the tokens do not represent a
+   * @return the statements that were parsed, or `null` if the tokens do not represent a
    * recognizable sequence of statements
    */
   List<Statement> parseStatements(Token token) {
@@ -450,10 +450,10 @@ class Parser {
   FunctionDeclaration convertToFunctionDeclaration(MethodDeclaration method) => new FunctionDeclaration.full(method.documentationComment, method.metadata, method.externalKeyword, method.returnType, method.propertyKeyword, method.name, new FunctionExpression.full(method.parameters, method.body));
 
   /**
-   * Return {@code true} if the current token could be the start of a compilation unit member. This
+   * Return `true` if the current token could be the start of a compilation unit member. This
    * method is used for recovery purposes to decide when to stop skipping tokens after finding an
    * error while parsing a compilation unit member.
-   * @return {@code true} if the current token could be the start of a compilation unit member
+   * @return `true` if the current token could be the start of a compilation unit member
    */
   bool couldBeStartOfCompilationUnitMember() {
     if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART)) && !matches4(peek(), TokenType.PERIOD) && !matches4(peek(), TokenType.LT)) {
@@ -556,7 +556,7 @@ class Parser {
 
   /**
    * Search the given list of ranges for a range that contains the given index. Return the range
-   * that was found, or {@code null} if none of the ranges contain the index.
+   * that was found, or `null` if none of the ranges contain the index.
    * @param ranges the ranges to be searched
    * @param index the index contained in the returned range
    * @return the range that was found
@@ -625,7 +625,7 @@ class Parser {
   }
 
   /**
-   * Return the end token associated with the given begin token, or {@code null} if either the given
+   * Return the end token associated with the given begin token, or `null` if either the given
    * token is not a begin token or it does not have an end token associated with it.
    * @param beginToken the token that is expected to have an end token associated with it
    * @return the end token associated with the begin token
@@ -638,11 +638,11 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the current token is the first token of a return type that is followed
+   * Return `true` if the current token is the first token of a return type that is followed
    * by an identifier, possibly followed by a list of type parameters, followed by a
    * left-parenthesis. This is used by parseTypeAlias to determine whether or not to parse a return
    * type.
-   * @return {@code true} if we can successfully parse the rest of a type alias if we first parse a
+   * @return `true` if we can successfully parse the rest of a type alias if we first parse a
    * return type.
    */
   bool hasReturnTypeInTypeAlias() {
@@ -654,8 +654,8 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the current token appears to be the beginning of a function declaration.
-   * @return {@code true} if the current token appears to be the beginning of a function declaration
+   * Return `true` if the current token appears to be the beginning of a function declaration.
+   * @return `true` if the current token appears to be the beginning of a function declaration
    */
   bool isFunctionDeclaration() {
     if (matches(Keyword.VOID)) {
@@ -676,9 +676,9 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the given token appears to be the beginning of a function expression.
+   * Return `true` if the given token appears to be the beginning of a function expression.
    * @param startToken the token that might be the start of a function expression
-   * @return {@code true} if the given token appears to be the beginning of a function expression
+   * @return `true` if the given token appears to be the beginning of a function expression
    */
   bool isFunctionExpression(Token startToken) {
     Token afterParameters = skipFormalParameterList(startToken);
@@ -689,14 +689,14 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the given character is a valid hexadecimal digit.
+   * Return `true` if the given character is a valid hexadecimal digit.
    * @param character the character being tested
-   * @return {@code true} if the character is a valid hexadecimal digit
+   * @return `true` if the character is a valid hexadecimal digit
    */
   bool isHexDigit(int character) => (0x30 <= character && character <= 0x39) || (0x41 <= character && character <= 0x46) || (0x61 <= character && character <= 0x66);
 
   /**
-   * Return {@code true} if the current token is the first token in an initialized variable
+   * Return `true` if the current token is the first token in an initialized variable
    * declaration rather than an expression. This method assumes that we have already skipped past
    * any metadata that might be associated with the declaration.
    * <pre>
@@ -714,7 +714,7 @@ class Parser {
    * initializedIdentifier ::=
    * identifier ('=' expression)?
    * </pre>
-   * @return {@code true} if the current token is the first token in an initialized variable
+   * @return `true` if the current token is the first token in an initialized variable
    * declaration
    */
   bool isInitializedVariableDeclaration() {
@@ -740,12 +740,12 @@ class Parser {
    * Given that we have just found bracketed text within a comment, look to see whether that text is
    * (a) followed by a parenthesized link address, (b) followed by a colon, or (c) followed by
    * optional whitespace and another square bracket.
-   * <p>
+   *
    * This method uses the syntax described by the <a
    * href="http://daringfireball.net/projects/markdown/syntax">markdown</a> project.
    * @param comment the comment text in which the bracketed text was found
    * @param rightIndex the index of the right bracket
-   * @return {@code true} if the bracketed text is followed by a link address
+   * @return `true` if the bracketed text is followed by a link address
    */
   bool isLinkText(String comment, int rightIndex) {
     int length = comment.length;
@@ -768,9 +768,9 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the given token appears to be the beginning of an operator declaration.
+   * Return `true` if the given token appears to be the beginning of an operator declaration.
    * @param startToken the token that might be the start of an operator declaration
-   * @return {@code true} if the given token appears to be the beginning of an operator declaration
+   * @return `true` if the given token appears to be the beginning of an operator declaration
    */
   bool isOperator(Token startToken) {
     if (startToken.isOperator()) {
@@ -784,8 +784,8 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the current token appears to be the beginning of a switch member.
-   * @return {@code true} if the current token appears to be the beginning of a switch member
+   * Return `true` if the current token appears to be the beginning of a switch member.
+   * @return `true` if the current token appears to be the beginning of a switch member
    */
   bool isSwitchMember() {
     Token token = _currentToken;
@@ -801,9 +801,9 @@ class Parser {
 
   /**
    * Compare the given tokens to find the token that appears first in the source being parsed. That
-   * is, return the left-most of all of the tokens. The arguments are allowed to be {@code null}.
-   * Return the token with the smallest offset, or {@code null} if there are no arguments or if all
-   * of the arguments are {@code null}.
+   * is, return the left-most of all of the tokens. The arguments are allowed to be `null`.
+   * Return the token with the smallest offset, or `null` if there are no arguments or if all
+   * of the arguments are `null`.
    * @param tokens the tokens being compared
    * @return the token with the smallest offset
    */
@@ -823,42 +823,42 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the current token matches the given keyword.
+   * Return `true` if the current token matches the given keyword.
    * @param keyword the keyword that can optionally appear in the current location
-   * @return {@code true} if the current token matches the given keyword
+   * @return `true` if the current token matches the given keyword
    */
   bool matches(Keyword keyword) => matches3(_currentToken, keyword);
 
   /**
-   * Return {@code true} if the current token matches the given identifier.
+   * Return `true` if the current token matches the given identifier.
    * @param identifier the identifier that can optionally appear in the current location
-   * @return {@code true} if the current token matches the given identifier
+   * @return `true` if the current token matches the given identifier
    */
   bool matches2(String identifier) => identical(_currentToken.type, TokenType.IDENTIFIER) && _currentToken.lexeme == identifier;
 
   /**
-   * Return {@code true} if the given token matches the given keyword.
+   * Return `true` if the given token matches the given keyword.
    * @param token the token being tested
    * @param keyword the keyword that is being tested for
-   * @return {@code true} if the given token matches the given keyword
+   * @return `true` if the given token matches the given keyword
    */
   bool matches3(Token token, Keyword keyword2) => identical(token.type, TokenType.KEYWORD) && identical(((token as KeywordToken)).keyword, keyword2);
 
   /**
-   * Return {@code true} if the given token has the given type.
+   * Return `true` if the given token has the given type.
    * @param token the token being tested
    * @param type the type of token that is being tested for
-   * @return {@code true} if the given token has the given type
+   * @return `true` if the given token has the given type
    */
   bool matches4(Token token, TokenType type2) => identical(token.type, type2);
 
   /**
-   * Return {@code true} if the current token has the given type. Note that this method, unlike
+   * Return `true` if the current token has the given type. Note that this method, unlike
    * other variants, will modify the token stream if possible to match a wider range of tokens. In
    * particular, if we are attempting to match a '>' and the next token is either a '>>' or '>>>',
-   * the token stream will be re-written and {@code true} will be returned.
+   * the token stream will be re-written and `true` will be returned.
    * @param type the type of token that can optionally appear in the current location
-   * @return {@code true} if the current token has the given type
+   * @return `true` if the current token has the given type
    */
   bool matches5(TokenType type2) {
     TokenType currentType = _currentToken.type;
@@ -901,10 +901,10 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the given token has any one of the given types.
+   * Return `true` if the given token has any one of the given types.
    * @param token the token being tested
    * @param types the types of token that are being tested for
-   * @return {@code true} if the given token has any of the given types
+   * @return `true` if the given token has any of the given types
    */
   bool matchesAny(Token token, List<TokenType> types) {
     TokenType actualType = token.type;
@@ -917,23 +917,23 @@ class Parser {
   }
 
   /**
-   * Return {@code true} if the current token is a valid identifier. Valid identifiers include
+   * Return `true` if the current token is a valid identifier. Valid identifiers include
    * built-in identifiers (pseudo-keywords).
-   * @return {@code true} if the current token is a valid identifier
+   * @return `true` if the current token is a valid identifier
    */
   bool matchesIdentifier() => matchesIdentifier2(_currentToken);
 
   /**
-   * Return {@code true} if the given token is a valid identifier. Valid identifiers include
+   * Return `true` if the given token is a valid identifier. Valid identifiers include
    * built-in identifiers (pseudo-keywords).
-   * @return {@code true} if the given token is a valid identifier
+   * @return `true` if the given token is a valid identifier
    */
   bool matchesIdentifier2(Token token) => matches4(token, TokenType.IDENTIFIER) || (matches4(token, TokenType.KEYWORD) && ((token as KeywordToken)).keyword.isPseudoKeyword());
 
   /**
-   * If the current token has the given type, then advance to the next token and return {@code true}. Otherwise, return {@code false} without advancing.
+   * If the current token has the given type, then advance to the next token and return `true`. Otherwise, return `false` without advancing.
    * @param type the type of token that can optionally appear in the current location
-   * @return {@code true} if the current token has the given type
+   * @return `true` if the current token has the given type
    */
   bool optional(TokenType type) {
     if (matches5(type)) {
@@ -1087,7 +1087,7 @@ class Parser {
    * | 'super' assignableSelector
    * | identifier
    * </pre>
-   * @param primaryAllowed {@code true} if the expression is allowed to be a primary without any
+   * @param primaryAllowed `true` if the expression is allowed to be a primary without any
    * assignable selector
    * @return the assignable expression that was parsed
    */
@@ -1136,7 +1136,7 @@ class Parser {
    * | '.' identifier
    * </pre>
    * @param prefix the expression preceding the selector
-   * @param optional {@code true} if the selector is optional
+   * @param optional `true` if the selector is optional
    * @return the assignable selector that was parsed
    */
   Expression parseAssignableSelector(Expression prefix, bool optional) {
@@ -1345,7 +1345,7 @@ class Parser {
    * metadata 'abstract'? 'class' name typeParameterList? (extendsClause withClause?)? implementsClause? '{' classMembers '}'
    * </pre>
    * @param commentAndMetadata the metadata to be associated with the member
-   * @param abstractKeyword the token for the keyword 'abstract', or {@code null} if the keyword was
+   * @param abstractKeyword the token for the keyword 'abstract', or `null` if the keyword was
    * not given
    * @return the class declaration that was parsed
    */
@@ -1425,7 +1425,7 @@ class Parser {
    * | methodSignature functionBody
    * </pre>
    * @param className the name of the class containing the member being parsed
-   * @return the class member that was parsed, or {@code null} if what was found was not a valid
+   * @return the class member that was parsed, or `null` if what was found was not a valid
    * class member
    */
   ClassMember parseClassMember(String className) {
@@ -1533,7 +1533,7 @@ class Parser {
    * (metadata memberDefinition)
    * </pre>
    * @param className the name of the class whose members are being parsed
-   * @param closingBracket the closing bracket for the class, or {@code null} if the closing bracket
+   * @param closingBracket the closing bracket for the class, or `null` if the closing bracket
    * is missing
    * @return the list of class members that were parsed
    */
@@ -1664,7 +1664,7 @@ class Parser {
    * @param referenceSource the source occurring between the square brackets within a documentation
    * comment
    * @param sourceOffset the offset of the first character of the reference source
-   * @return the comment reference that was parsed, or {@code null} if no reference could be found
+   * @return the comment reference that was parsed, or `null` if no reference could be found
    */
   CommentReference parseCommentReference(String referenceSource, int sourceOffset) {
     if (referenceSource.length == 0) {
@@ -1755,7 +1755,7 @@ class Parser {
 
   /**
    * Parse a compilation unit.
-   * <p>
+   *
    * Specified:
    * <pre>
    * compilationUnit ::=
@@ -1861,7 +1861,7 @@ class Parser {
    * | variableDeclaration ';'
    * </pre>
    * @param commentAndMetadata the metadata to be associated with the member
-   * @return the compilation unit member that was parsed, or {@code null} if what was parsed could
+   * @return the compilation unit member that was parsed, or `null` if what was parsed could
    * not be represented as a compilation unit member
    */
   CompilationUnitMember parseCompilationUnitMember(CommentAndMetadata commentAndMetadata) {
@@ -2129,7 +2129,7 @@ class Parser {
    * multiLineComment?
    * | singleLineComment
    * </pre>
-   * @return the documentation comment that was parsed, or {@code null} if there was no comment
+   * @return the documentation comment that was parsed, or `null` if there was no comment
    */
   Comment parseDocumentationComment() {
     List<Token> commentTokens = new List<Token>();
@@ -2334,7 +2334,7 @@ class Parser {
    * | 'var'
    * | type
    * </pre>
-   * @param optional {@code true} if the keyword and type are optional
+   * @param optional `true` if the keyword and type are optional
    * @return the 'final', 'const', 'var' or type that was parsed
    */
   FinalConstVarOrType parseFinalConstVarOrType(bool optional) {
@@ -2358,7 +2358,7 @@ class Parser {
   }
 
   /**
-   * Parse a formal parameter. At most one of {@code isOptional} and {@code isNamed} can be{@code true}.
+   * Parse a formal parameter. At most one of `isOptional` and `isNamed` can be`true`.
    * <pre>
    * defaultFormalParameter ::=
    * normalFormalParameter ('=' expression)?
@@ -2603,9 +2603,9 @@ class Parser {
    * '=>' expression
    * | block
    * </pre>
-   * @param mayBeEmpty {@code true} if the function body is allowed to be empty
+   * @param mayBeEmpty `true` if the function body is allowed to be empty
    * @param emptyErrorCode the error code to report if function body expecte, but not found
-   * @param inExpression {@code true} if the function body is being parsed as part of an expression
+   * @param inExpression `true` if the function body is being parsed as part of an expression
    * and therefore does not have a terminating semicolon
    * @return the function body that was parsed
    */
@@ -2656,9 +2656,9 @@ class Parser {
    * </pre>
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    * declaration
-   * @param externalKeyword the 'external' keyword, or {@code null} if the function is not external
-   * @param returnType the return type, or {@code null} if there is no return type
-   * @param isStatement {@code true} if the function declaration is being parsed as a statement
+   * @param externalKeyword the 'external' keyword, or `null` if the function is not external
+   * @param returnType the return type, or `null` if there is no return type
+   * @param isStatement `true` if the function declaration is being parsed as a statement
    * @return the function declaration that was parsed
    */
   FunctionDeclaration parseFunctionDeclaration(CommentAndMetadata commentAndMetadata, Token externalKeyword, TypeName returnType) {
@@ -2710,7 +2710,7 @@ class Parser {
    * </pre>
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    * declaration
-   * @param returnType the return type, or {@code null} if there is no return type
+   * @param returnType the return type, or `null` if there is no return type
    * @return the function declaration statement that was parsed
    */
   Statement parseFunctionDeclarationStatement2(CommentAndMetadata commentAndMetadata, TypeName returnType) => new FunctionDeclarationStatement.full(parseFunctionDeclaration(commentAndMetadata, null, returnType));
@@ -2778,8 +2778,8 @@ class Parser {
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    * declaration
    * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or {@code null} if the getter is not static
-   * @param the return type that has already been parsed, or {@code null} if there was no return
+   * @param staticKeyword the static keyword, or `null` if the getter is not static
+   * @param the return type that has already been parsed, or `null` if there was no return
    * type
    * @return the getter that was parsed
    */
@@ -2893,10 +2893,10 @@ class Parser {
    * </pre>
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    * declaration
-   * @param staticKeyword the static keyword, or {@code null} if the getter is not static
-   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
+   * @param staticKeyword the static keyword, or `null` if the getter is not static
+   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
    * there is no keyword
-   * @param type the type that has already been parsed, or {@code null} if 'var' was provided
+   * @param type the type that has already been parsed, or `null` if 'var' was provided
    * @return the getter that was parsed
    */
   FieldDeclaration parseInitializedIdentifierList(CommentAndMetadata commentAndMetadata, Token staticKeyword, Token keyword, TypeName type) {
@@ -2984,9 +2984,9 @@ class Parser {
    * listLiteral ::=
    * 'const'? typeArguments? '\[' (expressionList ','?)? '\]'
    * </pre>
-   * @param modifier the 'const' modifier appearing before the literal, or {@code null} if there is
+   * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
    * no modifier
-   * @param typeArguments the type arguments appearing before the literal, or {@code null} if there
+   * @param typeArguments the type arguments appearing before the literal, or `null` if there
    * are no type arguments
    * @return the list literal that was parsed
    */
@@ -3024,7 +3024,7 @@ class Parser {
    * listLiteral
    * | mapLiteral
    * </pre>
-   * @param modifier the 'const' modifier appearing before the literal, or {@code null} if there is
+   * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
    * no modifier
    * @return the list or map literal that was parsed
    */
@@ -3082,9 +3082,9 @@ class Parser {
    * mapLiteral ::=
    * 'const'? typeArguments? '{' (mapLiteralEntry (',' mapLiteralEntry)* ','?)? '}'
    * </pre>
-   * @param modifier the 'const' modifier appearing before the literal, or {@code null} if there is
+   * @param modifier the 'const' modifier appearing before the literal, or `null` if there is
    * no modifier
-   * @param typeArguments the type arguments that were declared, or {@code null} if there are no
+   * @param typeArguments the type arguments that were declared, or `null` if there are no
    * type arguments
    * @return the map literal that was parsed
    */
@@ -3136,7 +3136,7 @@ class Parser {
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    * declaration
    * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or {@code null} if the getter is not static
+   * @param staticKeyword the static keyword, or `null` if the getter is not static
    * @param returnType the return type of the method
    * @return the method declaration that was parsed
    */
@@ -3157,7 +3157,7 @@ class Parser {
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    * declaration
    * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or {@code null} if the getter is not static
+   * @param staticKeyword the static keyword, or `null` if the getter is not static
    * @param returnType the return type of the method
    * @param name the name of the method
    * @param parameters the parameters to the method
@@ -3181,7 +3181,7 @@ class Parser {
    * Parse the modifiers preceding a declaration. This method allows the modifiers to appear in any
    * order but does generate errors for duplicated modifiers. Checks for other problems, such as
    * having the modifiers appear in the wrong order or specifying both 'const' and 'final', are
-   * reported in one of the methods whose name is prefixed with {@code validateModifiersFor}.
+   * reported in one of the methods whose name is prefixed with `validateModifiersFor`.
    * <pre>
    * modifiers ::=
    * ('abstract' | 'const' | 'external' | 'factory' | 'final' | 'static' | 'var')
@@ -3442,7 +3442,7 @@ class Parser {
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    * declaration
    * @param externalKeyword the 'external' token
-   * @param the return type that has already been parsed, or {@code null} if there was no return
+   * @param the return type that has already been parsed, or `null` if there was no return
    * type
    * @return the operator declaration that was parsed
    */
@@ -3475,7 +3475,7 @@ class Parser {
   }
 
   /**
-   * Parse a return type if one is given, otherwise return {@code null} without advancing.
+   * Parse a return type if one is given, otherwise return `null` without advancing.
    * @return the return type that was parsed
    */
   TypeName parseOptionalReturnType() {
@@ -3773,8 +3773,8 @@ class Parser {
    * @param commentAndMetadata the documentation comment and metadata to be associated with the
    * declaration
    * @param externalKeyword the 'external' token
-   * @param staticKeyword the static keyword, or {@code null} if the setter is not static
-   * @param the return type that has already been parsed, or {@code null} if there was no return
+   * @param staticKeyword the static keyword, or `null` if the setter is not static
+   * @param the return type that has already been parsed, or `null` if there was no return
    * type
    * @return the setter that was parsed
    */
@@ -4323,8 +4323,8 @@ class Parser {
    * variableDeclarationList ::=
    * finalConstVarOrType variableDeclaration (',' variableDeclaration)
    * </pre>
-   * @param commentAndMetadata the metadata to be associated with the variable declaration list, or{@code null} if there is no attempt at parsing the comment and metadata
-   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
+   * @param commentAndMetadata the metadata to be associated with the variable declaration list, or`null` if there is no attempt at parsing the comment and metadata
+   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
    * there is no keyword
    * @param type the type of the variables in the list
    * @return the variable declaration list that was parsed
@@ -4346,7 +4346,7 @@ class Parser {
    * variableDeclarationList ';'
    * </pre>
    * @param commentAndMetadata the metadata to be associated with the variable declaration
-   * statement, or {@code null} if there is no attempt at parsing the comment and metadata
+   * statement, or `null` if there is no attempt at parsing the comment and metadata
    * @return the variable declaration statement that was parsed
    */
   VariableDeclarationStatement parseVariableDeclarationStatement(CommentAndMetadata commentAndMetadata) {
@@ -4362,8 +4362,8 @@ class Parser {
    * variableDeclarationList ';'
    * </pre>
    * @param commentAndMetadata the metadata to be associated with the variable declaration
-   * statement, or {@code null} if there is no attempt at parsing the comment and metadata
-   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
+   * statement, or `null` if there is no attempt at parsing the comment and metadata
+   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or `null` if
    * there is no keyword
    * @param type the type of the variables in the list
    * @return the variable declaration statement that was parsed
@@ -4416,14 +4416,14 @@ class Parser {
   }
 
   /**
-   * Return the token that is immediately after the current token. This is equivalent to{@link #peek(int) peek(1)}.
+   * Return the token that is immediately after the current token. This is equivalent to[peek].
    * @return the token that is immediately after the current token
    */
   Token peek() => _currentToken.next;
 
   /**
    * Return the token that is the given distance after the current token.
-   * @param distance the number of tokens to look ahead, where {@code 0} is the current token,{@code 1} is the next token, etc.
+   * @param distance the number of tokens to look ahead, where `0` is the current token,`1` is the next token, etc.
    * @return the token that is the given distance after the current token
    */
   Token peek2(int distance) {
@@ -4466,7 +4466,7 @@ class Parser {
   /**
    * Parse the 'final', 'const', 'var' or type preceding a variable declaration, starting at the
    * given token, without actually creating a type or changing the current token. Return the token
-   * following the type that was parsed, or {@code null} if the given token is not the first token
+   * following the type that was parsed, or `null` if the given token is not the first token
    * in a valid type.
    * <pre>
    * finalConstVarOrType ::=
@@ -4498,16 +4498,16 @@ class Parser {
   /**
    * Parse a list of formal parameters, starting at the given token, without actually creating a
    * formal parameter list or changing the current token. Return the token following the formal
-   * parameter list that was parsed, or {@code null} if the given token is not the first token in a
+   * parameter list that was parsed, or `null` if the given token is not the first token in a
    * valid list of formal parameter.
-   * <p>
+   *
    * Note that unlike other skip methods, this method uses a heuristic. In the worst case, the
    * parameters could be prefixed by metadata, which would require us to be able to skip arbitrary
    * expressions. Rather than duplicate the logic of most of the parse methods we simply look for
    * something that is likely to be a list of parameters and then skip to returning the token after
    * the closing parenthesis.
-   * <p>
-   * This method must be kept in sync with {@link #parseFormalParameterList()}.
+   *
+   * This method must be kept in sync with [parseFormalParameterList].
    * <pre>
    * formalParameterList ::=
    * '(' ')'
@@ -4555,7 +4555,7 @@ class Parser {
 
   /**
    * If the given token is a begin token with an associated end token, then return the token
-   * following the end token. Otherwise, return {@code null}.
+   * following the end token. Otherwise, return `null`.
    * @param startToken the token that is assumed to be a being token
    * @return the token following the matching end token
    */
@@ -4573,10 +4573,10 @@ class Parser {
   /**
    * Parse a prefixed identifier, starting at the given token, without actually creating a prefixed
    * identifier or changing the current token. Return the token following the prefixed identifier
-   * that was parsed, or {@code null} if the given token is not the first token in a valid prefixed
+   * that was parsed, or `null` if the given token is not the first token in a valid prefixed
    * identifier.
-   * <p>
-   * This method must be kept in sync with {@link #parsePrefixedIdentifier()}.
+   *
+   * This method must be kept in sync with [parsePrefixedIdentifier].
    * <pre>
    * prefixedIdentifier ::=
    * identifier ('.' identifier)?
@@ -4596,9 +4596,9 @@ class Parser {
 
   /**
    * Parse a return type, starting at the given token, without actually creating a return type or
-   * changing the current token. Return the token following the return type that was parsed, or{@code null} if the given token is not the first token in a valid return type.
-   * <p>
-   * This method must be kept in sync with {@link #parseReturnType()}.
+   * changing the current token. Return the token following the return type that was parsed, or`null` if the given token is not the first token in a valid return type.
+   *
+   * This method must be kept in sync with [parseReturnType].
    * <pre>
    * returnType ::=
    * 'void'
@@ -4618,10 +4618,10 @@ class Parser {
   /**
    * Parse a simple identifier, starting at the given token, without actually creating a simple
    * identifier or changing the current token. Return the token following the simple identifier that
-   * was parsed, or {@code null} if the given token is not the first token in a valid simple
+   * was parsed, or `null` if the given token is not the first token in a valid simple
    * identifier.
-   * <p>
-   * This method must be kept in sync with {@link #parseSimpleIdentifier()}.
+   *
+   * This method must be kept in sync with [parseSimpleIdentifier].
    * <pre>
    * identifier ::=
    * IDENTIFIER
@@ -4639,10 +4639,10 @@ class Parser {
   /**
    * Parse a string literal that contains interpolations, starting at the given token, without
    * actually creating a string literal or changing the current token. Return the token following
-   * the string literal that was parsed, or {@code null} if the given token is not the first token
+   * the string literal that was parsed, or `null` if the given token is not the first token
    * in a valid string literal.
-   * <p>
-   * This method must be kept in sync with {@link #parseStringInterpolation(Token)}.
+   *
+   * This method must be kept in sync with [parseStringInterpolation].
    * @param startToken the token at which parsing is to begin
    * @return the string literal that was parsed
    */
@@ -4692,9 +4692,9 @@ class Parser {
   /**
    * Parse a string literal, starting at the given token, without actually creating a string literal
    * or changing the current token. Return the token following the string literal that was parsed,
-   * or {@code null} if the given token is not the first token in a valid string literal.
-   * <p>
-   * This method must be kept in sync with {@link #parseStringLiteral()}.
+   * or `null` if the given token is not the first token in a valid string literal.
+   *
+   * This method must be kept in sync with [parseStringLiteral].
    * <pre>
    * stringLiteral ::=
    * MULTI_LINE_STRING+
@@ -4721,9 +4721,9 @@ class Parser {
   /**
    * Parse a list of type arguments, starting at the given token, without actually creating a type argument list
    * or changing the current token. Return the token following the type argument list that was parsed,
-   * or {@code null} if the given token is not the first token in a valid type argument list.
-   * <p>
-   * This method must be kept in sync with {@link #parseTypeArgumentList()}.
+   * or `null` if the given token is not the first token in a valid type argument list.
+   *
+   * This method must be kept in sync with [parseTypeArgumentList].
    * <pre>
    * typeArguments ::=
    * '<' typeList '>'
@@ -4760,9 +4760,9 @@ class Parser {
 
   /**
    * Parse a type name, starting at the given token, without actually creating a type name or
-   * changing the current token. Return the token following the type name that was parsed, or{@code null} if the given token is not the first token in a valid type name.
-   * <p>
-   * This method must be kept in sync with {@link #parseTypeName()}.
+   * changing the current token. Return the token following the type name that was parsed, or`null` if the given token is not the first token in a valid type name.
+   *
+   * This method must be kept in sync with [parseTypeName].
    * <pre>
    * type ::=
    * qualified typeArguments?
@@ -4784,10 +4784,10 @@ class Parser {
   /**
    * Parse a list of type parameters, starting at the given token, without actually creating a type
    * parameter list or changing the current token. Return the token following the type parameter
-   * list that was parsed, or {@code null} if the given token is not the first token in a valid type
+   * list that was parsed, or `null` if the given token is not the first token in a valid type
    * parameter list.
-   * <p>
-   * This method must be kept in sync with {@link #parseTypeParameterList()}.
+   *
+   * This method must be kept in sync with [parseTypeParameterList].
    * <pre>
    * typeParameterList ::=
    * '<' typeParameter (',' typeParameter)* '>'
@@ -5199,7 +5199,7 @@ class AnalysisErrorListener_11 implements AnalysisErrorListener {
   }
 }
 /**
- * The enumeration {@code ParserErrorCode} defines the error codes used for errors detected by the
+ * The enumeration `ParserErrorCode` defines the error codes used for errors detected by the
  * parser. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.

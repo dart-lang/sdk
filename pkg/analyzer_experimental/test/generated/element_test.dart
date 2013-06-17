@@ -347,6 +347,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     String getterName = "g";
     PropertyAccessorElement getterG = ElementFactory.getterElement(getterName, false, typeE);
     classA.accessors = <PropertyAccessorElement> [getterG];
+    ((getterG.type as FunctionTypeImpl)).typeArguments = classA.type.typeArguments;
     InterfaceType typeI = ElementFactory.classElement2("I", []).type;
     InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
     typeAI.typeArguments = <Type2> [typeI];
@@ -588,6 +589,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     String methodName = "m";
     MethodElementImpl methodM = ElementFactory.methodElement(methodName, typeE, [typeE]);
     classA.methods = <MethodElement> [methodM];
+    ((methodM.type as FunctionTypeImpl)).typeArguments = classA.type.typeArguments;
     InterfaceType typeI = ElementFactory.classElement2("I", []).type;
     InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
     typeAI.typeArguments = <Type2> [typeI];
@@ -650,6 +652,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     String setterName = "s";
     PropertyAccessorElement setterS = ElementFactory.setterElement(setterName, false, typeE);
     classA.accessors = <PropertyAccessorElement> [setterS];
+    ((setterS.type as FunctionTypeImpl)).typeArguments = classA.type.typeArguments;
     InterfaceType typeI = ElementFactory.classElement2("I", []).type;
     InterfaceTypeImpl typeAI = new InterfaceTypeImpl.con1(classA);
     typeAI.typeArguments = <Type2> [typeI];
@@ -1023,6 +1026,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     String methodName = "m";
     MethodElementImpl methodM = ElementFactory.methodElement(methodName, typeE, [typeE]);
     classA.methods = <MethodElement> [methodM];
+    ((methodM.type as FunctionTypeImpl)).typeArguments = classA.type.typeArguments;
     ClassElementImpl classB = ElementFactory.classElement2("B", ["F"]);
     InterfaceType typeB = classB.type;
     InterfaceTypeImpl typeAF = new InterfaceTypeImpl.con1(classA);
@@ -1555,7 +1559,7 @@ class TypeVariableTypeImplTest extends EngineTestCase {
   }
 }
 /**
- * The class {@code ElementFactory} defines utility methods used to create elements for testing
+ * The class `ElementFactory` defines utility methods used to create elements for testing
  * purposes. The elements that are created are complete in the sense that as much of the element
  * model as can be created, given the provided information, has been created.
  */
@@ -1586,12 +1590,11 @@ class ElementFactory {
     return element;
   }
   static ClassElementImpl classElement2(String typeName, List<String> parameterNames) => classElement(typeName, object.type, parameterNames);
-  static ConstructorElementImpl constructorElement(ClassElement clazz, String name) {
-    Type2 type = clazz.type;
+  static ConstructorElementImpl constructorElement(ClassElement definingClass, String name) {
+    Type2 type = definingClass.type;
     ConstructorElementImpl constructor = new ConstructorElementImpl(name == null ? null : ASTFactory.identifier3(name));
+    constructor.returnType = type;
     FunctionTypeImpl constructorType = new FunctionTypeImpl.con1(constructor);
-    constructorType.normalParameterTypes = <Type2> [type];
-    constructorType.returnType = type;
     constructor.type = constructorType;
     return constructor;
   }
@@ -1612,9 +1615,9 @@ class ElementFactory {
     getter.static = isStatic;
     getter.synthetic = true;
     getter.variable = field;
+    getter.returnType = type2;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type2;
     getter.type = getterType;
     if (!isConst && !isFinal) {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
@@ -1622,10 +1625,10 @@ class ElementFactory {
       setter.static = isStatic;
       setter.synthetic = true;
       setter.variable = field;
+      setter.returnType = VoidTypeImpl.instance;
       field.setter = setter;
       FunctionTypeImpl setterType = new FunctionTypeImpl.con1(getter);
       setterType.normalParameterTypes = <Type2> [type2];
-      setterType.returnType = VoidTypeImpl.instance;
       setter.type = setterType;
     }
     return field;
@@ -1637,8 +1640,10 @@ class ElementFactory {
     FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionElement.type = functionType;
-    if (returnElement != null) {
-      functionType.returnType = returnElement.type;
+    if (returnElement == null) {
+      functionElement.returnType = VoidTypeImpl.instance;
+    } else {
+      functionElement.returnType = returnElement.type;
     }
     int normalCount = normalParameters == null ? 0 : normalParameters.length;
     if (normalCount > 0) {
@@ -1676,8 +1681,10 @@ class ElementFactory {
     FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionElement.type = functionType;
-    if (returnElement != null) {
-      functionType.returnType = returnElement.type;
+    if (returnElement == null) {
+      functionElement.returnType = VoidTypeImpl.instance;
+    } else {
+      functionElement.returnType = returnElement.type;
     }
     int count = normalParameters == null ? 0 : normalParameters.length;
     if (count > 0) {
@@ -1716,9 +1723,9 @@ class ElementFactory {
     getter.getter = true;
     getter.static = isStatic;
     getter.variable = field;
+    getter.returnType = type2;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type2;
     getter.type = getterType;
     return getter;
   }
@@ -1751,9 +1758,9 @@ class ElementFactory {
       parameters[i] = parameter;
     }
     method.parameters = parameters;
+    method.returnType = returnType2;
     FunctionTypeImpl methodType = new FunctionTypeImpl.con1(method);
     methodType.normalParameterTypes = argumentTypes;
-    methodType.returnType = returnType2;
     method.type = methodType;
     return method;
   }
@@ -1782,19 +1789,19 @@ class ElementFactory {
     getter.getter = true;
     getter.static = isStatic;
     getter.variable = field;
+    getter.returnType = type2;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type2;
     getter.type = getterType;
     PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(field);
     setter.setter = true;
     setter.static = isStatic;
     setter.synthetic = true;
     setter.variable = field;
+    setter.returnType = VoidTypeImpl.instance;
     field.setter = setter;
-    FunctionTypeImpl setterType = new FunctionTypeImpl.con1(getter);
+    FunctionTypeImpl setterType = new FunctionTypeImpl.con1(setter);
     setterType.normalParameterTypes = <Type2> [type2];
-    setterType.returnType = VoidTypeImpl.instance;
     setter.type = setterType;
     return setter;
   }
@@ -1808,9 +1815,9 @@ class ElementFactory {
     getter.static = true;
     getter.synthetic = true;
     getter.variable = variable;
+    getter.returnType = type2;
     variable.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl.con1(getter);
-    getterType.returnType = type2;
     getter.type = getterType;
     if (!isFinal) {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl.con2(variable);
@@ -1818,10 +1825,10 @@ class ElementFactory {
       setter.static = true;
       setter.synthetic = true;
       setter.variable = variable;
+      setter.returnType = VoidTypeImpl.instance;
       variable.setter = setter;
       FunctionTypeImpl setterType = new FunctionTypeImpl.con1(getter);
       setterType.normalParameterTypes = <Type2> [type2];
-      setterType.returnType = VoidTypeImpl.instance;
       setter.type = setterType;
     }
     return variable;
@@ -2207,9 +2214,12 @@ class FunctionTypeImplTest extends EngineTestCase {
     EngineTestCase.assertLength(0, types);
   }
   void test_getReturnType() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
+    Type2 expectedReturnType = VoidTypeImpl.instance;
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    functionElement.returnType = expectedReturnType;
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(functionElement);
     Type2 returnType = type.returnType;
-    JUnitTestCase.assertEquals(VoidTypeImpl.instance, returnType);
+    JUnitTestCase.assertEquals(expectedReturnType, returnType);
   }
   void test_getTypeArguments() {
     FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
@@ -2420,15 +2430,15 @@ class FunctionTypeImplTest extends EngineTestCase {
     variableS.bound = stringType;
     TypeVariableTypeImpl typeS = new TypeVariableTypeImpl(variableS);
     FunctionElementImpl functionAliasElement = new FunctionElementImpl.con1(ASTFactory.identifier3("func"));
+    functionAliasElement.returnType = stringType;
     FunctionTypeImpl functionAliasType = new FunctionTypeImpl.con1(functionAliasElement);
     functionAliasElement.type = functionAliasType;
-    functionAliasType.returnType = stringType;
     functionAliasType.normalParameterTypes = <Type2> [typeB];
     functionAliasType.optionalParameterTypes = <Type2> [typeS];
     FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    functionElement.returnType = provider.dynamicType;
     FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionElement.type = functionType;
-    functionType.returnType = provider.dynamicType;
     functionType.normalParameterTypes = <Type2> [boolType];
     functionType.optionalParameterTypes = <Type2> [stringType];
     JUnitTestCase.assertTrue(functionType.isAssignableTo(functionAliasType));
@@ -2463,26 +2473,33 @@ class FunctionTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertEquals(expectedTypes, types);
   }
   void test_setReturnType() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
     Type2 expectedType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("C")));
-    type.returnType = expectedType;
-    Type2 returnType = type.returnType;
-    JUnitTestCase.assertEquals(expectedType, returnType);
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    functionElement.returnType = expectedType;
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(functionElement);
+    JUnitTestCase.assertEquals(expectedType, type.returnType);
   }
   void test_setTypeArguments() {
-    FunctionTypeImpl type = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
-    Type2 expectedType = new TypeVariableTypeImpl(new TypeVariableElementImpl(ASTFactory.identifier3("C")));
+    ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
+    MethodElementImpl methodElement = new MethodElementImpl.con1(ASTFactory.identifier3("m"));
+    enclosingClass.methods = <MethodElement> [methodElement];
+    FunctionTypeImpl type = new FunctionTypeImpl.con1(methodElement);
+    Type2 expectedType = enclosingClass.typeVariables[0].type;
     type.typeArguments = <Type2> [expectedType];
     List<Type2> arguments = type.typeArguments;
     EngineTestCase.assertLength(1, arguments);
     JUnitTestCase.assertEquals(expectedType, arguments[0]);
   }
   void test_substitute2_equal() {
-    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
-    TypeVariableTypeImpl parameterType = new TypeVariableTypeImpl(new TypeVariableElementImpl(ASTFactory.identifier3("E")));
-    functionType.returnType = parameterType;
+    ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
+    TypeVariableType parameterType = definingClass.typeVariables[0].type;
+    MethodElementImpl functionElement = new MethodElementImpl.con1(ASTFactory.identifier3("m"));
+    functionElement.returnType = parameterType;
+    definingClass.methods = <MethodElement> [functionElement];
+    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionType.normalParameterTypes = <Type2> [parameterType];
     functionType.optionalParameterTypes = <Type2> [parameterType];
+    functionType.typeArguments = <Type2> [parameterType];
     LinkedHashMap<String, Type2> namedParameterTypes = new LinkedHashMap<String, Type2>();
     String namedParameterName = "c";
     namedParameterTypes[namedParameterName] = parameterType;
@@ -2501,12 +2518,13 @@ class FunctionTypeImplTest extends EngineTestCase {
     JUnitTestCase.assertEquals(argumentType, namedParameters[namedParameterName]);
   }
   void test_substitute2_notEqual() {
-    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(new FunctionElementImpl.con1(ASTFactory.identifier3("f")));
     Type2 returnType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("R")));
     Type2 normalParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("A")));
     Type2 optionalParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("B")));
     Type2 namedParameterType = new InterfaceTypeImpl.con1(new ClassElementImpl(ASTFactory.identifier3("C")));
-    functionType.returnType = returnType;
+    FunctionElementImpl functionElement = new FunctionElementImpl.con1(ASTFactory.identifier3("f"));
+    functionElement.returnType = returnType;
+    FunctionTypeImpl functionType = new FunctionTypeImpl.con1(functionElement);
     functionType.normalParameterTypes = <Type2> [normalParameterType];
     functionType.optionalParameterTypes = <Type2> [optionalParameterType];
     LinkedHashMap<String, Type2> namedParameterTypes = new LinkedHashMap<String, Type2>();

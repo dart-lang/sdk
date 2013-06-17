@@ -6,7 +6,7 @@ import 'source.dart';
 import 'ast.dart' show ASTNode;
 import 'scanner.dart' show Token;
 /**
- * Instances of the enumeration {@code ErrorSeverity} represent the severity of an {@link ErrorCode}.
+ * Instances of the enumeration `ErrorSeverity` represent the severity of an [ErrorCode].
  * @coverage dart.engine.error
  */
 class ErrorSeverity implements Comparable<ErrorSeverity> {
@@ -24,7 +24,7 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
   static final ErrorSeverity SUGGESTION = new ErrorSeverity('SUGGESTION', 1, "S", "suggestion");
 
   /**
-   * The severity representing a warning. Warnings can become errors if the {@code -Werror} command
+   * The severity representing a warning. Warnings can become errors if the `-Werror` command
    * line flag is specified.
    */
   static final ErrorSeverity WARNING = new ErrorSeverity('WARNING', 2, "W", "warning");
@@ -84,7 +84,7 @@ class ErrorSeverity implements Comparable<ErrorSeverity> {
   String toString() => name;
 }
 /**
- * Instances of the class {@code AnalysisErrorWithProperties}
+ * Instances of the class `AnalysisErrorWithProperties`
  */
 class AnalysisErrorWithProperties extends AnalysisError {
 
@@ -122,7 +122,7 @@ class AnalysisErrorWithProperties extends AnalysisError {
   Object getProperty(ErrorProperty property) => _propertyMap[property];
 
   /**
-   * Set the value of the given property to the given value. Using a value of {@code null} will
+   * Set the value of the given property to the given value. Using a value of `null` will
    * effectively remove the property from this error.
    * @param property the property whose value is to be returned
    * @param value the new value of the given property
@@ -132,7 +132,7 @@ class AnalysisErrorWithProperties extends AnalysisError {
   }
 }
 /**
- * Instances of the class {@code ErrorReporter} wrap an error listener with utility methods used to
+ * Instances of the class `ErrorReporter` wrap an error listener with utility methods used to
  * create the errors being reported.
  * @coverage dart.engine.error
  */
@@ -217,7 +217,7 @@ class ErrorReporter {
   }
 
   /**
-   * Set the source to be used when reporting errors. Setting the source to {@code null} will cause
+   * Set the source to be used when reporting errors. Setting the source to `null` will cause
    * the default source to be used.
    * @param source the source to be used when reporting errors
    */
@@ -226,7 +226,7 @@ class ErrorReporter {
   }
 }
 /**
- * Instances of the class {@code AnalysisError} represent an error discovered during the analysis of
+ * Instances of the class `AnalysisError` represent an error discovered during the analysis of
  * some Dart code.
  * @see AnalysisErrorListener
  * @coverage dart.engine.error
@@ -239,13 +239,13 @@ class AnalysisError {
   static List<AnalysisError> NO_ERRORS = new List<AnalysisError>(0);
 
   /**
-   * A {@link Comparator} that sorts by the name of the file that the {@link AnalysisError} was
+   * A [Comparator] that sorts by the name of the file that the [AnalysisError] was
    * found.
    */
   static Comparator<AnalysisError> FILE_COMPARATOR = (AnalysisError o1, AnalysisError o2) => o1.source.shortName.compareTo(o2.source.shortName);
 
   /**
-   * A {@link Comparator} that sorts error codes first by their severity (errors first, warnings
+   * A [Comparator] that sorts error codes first by their severity (errors first, warnings
    * second), and then by the the error code type.
    */
   static Comparator<AnalysisError> ERROR_CODE_COMPARATOR = (AnalysisError o1, AnalysisError o2) {
@@ -273,7 +273,7 @@ class AnalysisError {
   String _message;
 
   /**
-   * The source in which the error occurred, or {@code null} if unknown.
+   * The source in which the error occurred, or `null` if unknown.
    */
   Source _source;
 
@@ -350,7 +350,7 @@ class AnalysisError {
   int get offset => _offset;
 
   /**
-   * Return the value of the given property, or {@code null} if the given property is not defined
+   * Return the value of the given property, or `null` if the given property is not defined
    * for this error.
    * @param property the property whose value is to be returned
    * @return the value of the given property
@@ -358,7 +358,7 @@ class AnalysisError {
   Object getProperty(ErrorProperty property) => null;
 
   /**
-   * Return the source in which the error occurred, or {@code null} if unknown.
+   * Return the source in which the error occurred, or `null` if unknown.
    * @return the source in which the error occurred
    */
   Source get source => _source;
@@ -389,12 +389,12 @@ class AnalysisError {
   }
 }
 /**
- * The enumeration {@code ErrorProperty} defines the properties that can be associated with an{@link AnalysisError}.
+ * The enumeration `ErrorProperty` defines the properties that can be associated with an[AnalysisError].
  */
 class ErrorProperty implements Comparable<ErrorProperty> {
 
   /**
-   * A property whose value is an array of {@link ExecutableElement executable elements} that should
+   * A property whose value is an array of [ExecutableElement executable elements] that should
    * be but are not implemented by a concrete class.
    */
   static final ErrorProperty UNIMPLEMENTED_METHODS = new ErrorProperty('UNIMPLEMENTED_METHODS', 0);
@@ -412,8 +412,8 @@ class ErrorProperty implements Comparable<ErrorProperty> {
   String toString() => name;
 }
 /**
- * The interface {@code ErrorCode} defines the behavior common to objects representing error codes
- * associated with {@link AnalysisError analysis errors}.
+ * The interface `ErrorCode` defines the behavior common to objects representing error codes
+ * associated with [AnalysisError analysis errors].
  * @coverage dart.engine.error
  */
 abstract class ErrorCode {
@@ -437,7 +437,7 @@ abstract class ErrorCode {
   ErrorType get type;
 }
 /**
- * Instances of the enumeration {@code ErrorType} represent the type of an {@link ErrorCode}.
+ * Instances of the enumeration `ErrorType` represent the type of an [ErrorCode].
  * @coverage dart.engine.error
  */
 class ErrorType implements Comparable<ErrorType> {
@@ -501,7 +501,7 @@ class ErrorType implements Comparable<ErrorType> {
   String toString() => name;
 }
 /**
- * The enumeration {@code CompileTimeErrorCode} defines the error codes used for compile time
+ * The enumeration `CompileTimeErrorCode` defines the error codes used for compile time
  * errors. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
@@ -523,10 +523,10 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
    * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and <i>N</i> is introduced
    * into the top level scope <i>L</i> by more than one import then:
    * <ol>
-   * <li>It is a static warning if <i>N</i> is used as a type annotation.
-   * <li>In checked mode, it is a dynamic error if <i>N</i> is used as a type annotation and
+   * * It is a static warning if <i>N</i> is used as a type annotation.
+   * * In checked mode, it is a dynamic error if <i>N</i> is used as a type annotation and
    * referenced during a subtype test.
-   * <li>Otherwise, it is a compile-time error.
+   * * Otherwise, it is a compile-time error.
    * </ol>
    * @param ambiguousElementName the name of the ambiguous element
    * @param firstLibraryName the name of the first library that the type is found
@@ -602,7 +602,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 7.6.3 Constant Constructors: It is a compile-time error if a constant constructor is declared
    * by a class that has a non-final instance variable.
-   * <p>
+   *
    * The above refers to both locally declared and inherited instance variables.
    */
   static final CompileTimeErrorCode CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD = new CompileTimeErrorCode('CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD', 12, "Cannot define the 'const' constructor for a class with non-final fields");
@@ -611,7 +611,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
    * 7.6.1 Generative Constructors: In checked mode, it is a dynamic type error if o is not
    * <b>null</b> and the interface of the class of <i>o</i> is not a subtype of the static type of
    * the field <i>v</i>.
-   * <p>
+   *
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    * @param initializerType the name of the type of the initializer expression
@@ -696,7 +696,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class accessible in the current
    * scope, optionally followed by type arguments.
-   * <p>
+   *
    * 12.11.2 Const: If <i>e</i> is of the form <i>const T.id(a<sub>1</sub>, &hellip;, a<sub>n</sub>,
    * x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a
    * compile-time error if <i>T</i> is not a class accessible in the current scope, optionally
@@ -791,16 +791,16 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
-   * <p>
+   *
    * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement int.
-   * <p>
+   *
    * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement double.
-   * <p>
+   *
    * 12.3 Numbers: It is a compile-time error for any type other than the types int and double to
    * attempt to extend or implement num.
-   * <p>
+   *
    * 12.4 Booleans: It is a compile-time error for a class to attempt to extend or implement bool.
-   * <p>
+   *
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
    * @param typeName the name of the type that cannot be extended
    * @see #IMPLEMENTS_DISALLOWED_CLASS
@@ -809,7 +809,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
-   * <p>
+   *
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    * @param requiredCount the maximum number of positional arguments
@@ -819,16 +819,16 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
-   * <p>
+   *
    * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement int.
-   * <p>
+   *
    * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement double.
-   * <p>
+   *
    * 12.3 Numbers: It is a compile-time error for any type other than the types int and double to
    * attempt to extend or implement num.
-   * <p>
+   *
    * 12.4 Booleans: It is a compile-time error for a class to attempt to extend or implement bool.
-   * <p>
+   *
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
    * @param typeName the name of the type that cannot be implemented
    * @see #EXTENDS_DISALLOWED_CLASS
@@ -886,7 +886,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
    * only action is to invoke another generative constructor.
-   * <p>
+   *
    * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by
    * a function other than a non-redirecting generative constructor.
    */
@@ -923,7 +923,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 7.6.1 Generative Constructors: Note that this is not in scope on the right hand side of an
    * initializer.
-   * <p>
+   *
    * 12.10 This: It is a compile-time error if this appears in a top-level function or variable
    * initializer, in a factory constructor, or in a static method or variable initializer, or in the
    * initializer of an instance variable.
@@ -1076,10 +1076,10 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
-   * <p>
+   *
    * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
-   * <p>
+   *
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
    * declaration.
    * @param uri the URI that is invalid
@@ -1090,7 +1090,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
    * the innermost function in which <i>s<sub>b</sub></i> occurs.
-   * <p>
+   *
    * 13.14 Continue: It is a compile-time error if no such statement or case clause
    * <i>s<sub>E</sub></i> exists within the innermost function in which <i>s<sub>c</sub></i> occurs.
    * @param labelName the name of the unresolvable label
@@ -1100,7 +1100,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
    * the innermost function in which <i>s<sub>b</sub></i> occurs.
-   * <p>
+   *
    * 13.14 Continue: It is a compile-time error if no such statement or case clause
    * <i>s<sub>E</sub></i> exists within the innermost function in which <i>s<sub>c</sub></i> occurs.
    * @param labelName the name of the unresolvable label
@@ -1231,7 +1231,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
-   * <p>
+   *
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    * @param requiredCount the expected number of required arguments
@@ -1285,10 +1285,10 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting, in which case its
    * only action is to invoke another generative constructor.
-   * <p>
+   *
    * TODO(scheglov) review this later, there are no explicit "it is a compile-time error" in
    * specification. But it was added to the co19 and there is same error for factories.
-   * <p>
+   *
    * https://code.google.com/p/dart/issues/detail?id=954
    */
   static final CompileTimeErrorCode RECURSIVE_CONSTRUCTOR_REDIRECT = new CompileTimeErrorCode('RECURSIVE_CONSTRUCTOR_REDIRECT', 103, "Cycle in redirecting generative constructors");
@@ -1308,9 +1308,9 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
    * superinterface of itself.
-   * <p>
+   *
    * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
-   * <p>
+   *
    * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a superclass of itself.
    * @param className the name of the class that implements itself recursively
    * @param strImplementsPath a string representation of the implements loop
@@ -1320,9 +1320,9 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
    * superinterface of itself.
-   * <p>
+   *
    * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
-   * <p>
+   *
    * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a superclass of itself.
    * @param className the name of the class that implements itself recursively
    */
@@ -1331,9 +1331,9 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
    * superinterface of itself.
-   * <p>
+   *
    * 8.1 Superinterfaces: It is a compile-time error if an interface is a superinterface of itself.
-   * <p>
+   *
    * 7.9 Superclasses: It is a compile-time error if a class <i>C</i> is a superclass of itself.
    * @param className the name of the class that implements itself recursively
    */
@@ -1406,7 +1406,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 12.11 Instance Creation: It is a compile-time error if a constructor of a non-generic type
    * invoked by a new expression or a constant object expression is passed any type arguments.
-   * <p>
+   *
    * 12.32 Type Cast: It is a compile-time error if <i>T</i> is a parameterized type of the form
    * <i>G&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i> and <i>G</i> is not a generic type with
    * <i>n</i> type parameters.
@@ -1441,8 +1441,8 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
    * <i>k</i>'s initializer list unless it has already been initialized by one of the following
    * means:
    * <ol>
-   * <li>Initialization at the declaration of <i>f</i>.
-   * <li>Initialization by means of an initializing formal of <i>k</i>.
+   * * Initialization at the declaration of <i>f</i>.
+   * * Initialization by means of an initializing formal of <i>k</i>.
    * </ol>
    * or a compile-time error occurs.
    */
@@ -1452,7 +1452,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
    * must have a corresponding named parameter in the set {<i>p<sub>n+1</sub></i> ...
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.
-   * <p>
+   *
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    * @param name the name of the requested named parameter
@@ -1462,10 +1462,10 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
-   * <p>
+   *
    * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
-   * <p>
+   *
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
    * declaration.
    * @param uri the URI pointing to a non-existent file
@@ -1476,10 +1476,10 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   /**
    * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time constant, or if
    * <i>x</i> involves string interpolation.
-   * <p>
+   *
    * 14.3 Parts: It is a compile-time error if <i>s</i> is not a compile-time constant, or if
    * <i>s</i> involves string interpolation.
-   * <p>
+   *
    * 14.5 URIs: It is a compile-time error if the string literal <i>x</i> that describes a URI is
    * not a compile-time constant, or if <i>x</i> involves string interpolation.
    */
@@ -1515,7 +1515,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
    * 12.11 Instance Creation: It is a compile-time error if a constructor of a generic type with
    * <i>n</i> type parameters invoked by a new expression or a constant object expression is passed
    * <i>m</i> type arguments where <i>m != n</i>.
-   * <p>
+   *
    * 12.31 Type Test: It is a compile-time error if <i>T</i> is a parameterized type of the form
    * <i>G&lt;T<sub>1</sub>, &hellip;, T<sub>n</sub>&gt;</i> and <i>G</i> is not a generic type with
    * <i>n</i> type parameters.
@@ -1549,7 +1549,7 @@ class CompileTimeErrorCode implements Comparable<CompileTimeErrorCode>, ErrorCod
   String toString() => name;
 }
 /**
- * The enumeration {@code PubSuggestionCode} defines the suggestions used for reporting deviations
+ * The enumeration `PubSuggestionCode` defines the suggestions used for reporting deviations
  * from pub best practices. The convention for this class is for the name of the bad practice to
  * indicate the problem that caused the suggestion to be generated and for the message to explain
  * what is wrong and, when appropriate, how the situation can be corrected.
@@ -1559,7 +1559,7 @@ class PubSuggestionCode implements Comparable<PubSuggestionCode>, ErrorCode {
   /**
    * It is a bad practice for a source file in a package "lib" directory hierarchy to traverse
    * outside that directory hierarchy. For example, a source file in the "lib" directory should not
-   * contain a directive such as {@code import '../web/some.dart'} which references a file outside
+   * contain a directive such as `import '../web/some.dart'` which references a file outside
    * the lib directory.
    */
   static final PubSuggestionCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE = new PubSuggestionCode('FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE', 0, "A file in the 'lib' directory hierarchy should not reference a file outside that hierarchy");
@@ -1567,7 +1567,7 @@ class PubSuggestionCode implements Comparable<PubSuggestionCode>, ErrorCode {
   /**
    * It is a bad practice for a source file ouside a package "lib" directory hierarchy to traverse
    * into that directory hierarchy. For example, a source file in the "web" directory should not
-   * contain a directive such as {@code import '../lib/some.dart'} which references a file inside
+   * contain a directive such as `import '../lib/some.dart'` which references a file inside
    * the lib directory.
    */
   static final PubSuggestionCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE = new PubSuggestionCode('FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE', 1, "A file outside the 'lib' directory hierarchy should not reference a file inside that hierarchy. Use a package: reference instead.");
@@ -1575,7 +1575,7 @@ class PubSuggestionCode implements Comparable<PubSuggestionCode>, ErrorCode {
   /**
    * It is a bad practice for a package import to reference anything outside the given package, or
    * more generally, it is bad practice for a package import to contain a "..". For example, a
-   * source file should not contain a directive such as {@code import 'package:foo/../some.dart'}.
+   * source file should not contain a directive such as `import 'package:foo/../some.dart'`.
    */
   static final PubSuggestionCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = new PubSuggestionCode('PACKAGE_IMPORT_CONTAINS_DOT_DOT', 2, "A package import should not contain '..'");
   static final List<PubSuggestionCode> values = [FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE, FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE, PACKAGE_IMPORT_CONTAINS_DOT_DOT];
@@ -1606,7 +1606,7 @@ class PubSuggestionCode implements Comparable<PubSuggestionCode>, ErrorCode {
   String toString() => name;
 }
 /**
- * The enumeration {@code StaticWarningCode} defines the error codes used for static warnings. The
+ * The enumeration `StaticWarningCode` defines the error codes used for static warnings. The
  * convention for this class is for the name of the error code to indicate the problem that caused
  * the error to be generated and for the error message to explain what is wrong and, when
  * appropriate, how the problem can be corrected.
@@ -1618,10 +1618,10 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * 14.1 Imports: If a name <i>N</i> is referenced by a library <i>L</i> and <i>N</i> is introduced
    * into the top level scope <i>L</i> by more than one import then:
    * <ol>
-   * <li>It is a static warning if <i>N</i> is used as a type annotation.
-   * <li>In checked mode, it is a dynamic error if <i>N</i> is used as a type annotation and
+   * * It is a static warning if <i>N</i> is used as a type annotation.
+   * * In checked mode, it is a dynamic error if <i>N</i> is used as a type annotation and
    * referenced during a subtype test.
-   * <li>Otherwise, it is a compile-time error.
+   * * Otherwise, it is a compile-time error.
    * </ol>
    * @param ambiguousTypeName the name of the ambiguous type
    * @param firstLibraryName the name of the first library that the type is found
@@ -1633,17 +1633,17 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * 12.11.1 New: It is a static warning if the static type of <i>a<sub>i</sub>, 1 &lt;= i &lt;= n+
    * k</i> may not be assigned to the type of the corresponding formal parameter of the constructor
    * <i>T.id</i> (respectively <i>T</i>).
-   * <p>
+   *
    * 12.11.2 Const: It is a static warning if the static type of <i>a<sub>i</sub>, 1 &lt;= i &lt;=
    * n+ k</i> may not be assigned to the type of the corresponding formal parameter of the
    * constructor <i>T.id</i> (respectively <i>T</i>).
-   * <p>
+   *
    * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
    * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
    * n+k</i> and let <i>S<sub>q</sub></i> be the type of the named parameter <i>q</i> of <i>f</i>.
    * It is a static warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>, 1 &lt;=
    * j &lt;= m</i>.
-   * <p>
+   *
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub>, 1 &lt;= i &lt;= l</i>,
    * must have a corresponding named parameter in the set <i>{p<sub>n+1</sub>, &hellip;
    * p<sub>n+k</sub>}</i> or a static warning occurs. It is a static warning if
@@ -1774,7 +1774,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * <i>e</i> proceeds as follows: First, the expression <i>e</i> is evaluated to an object
    * <i>o</i>. Then, the instance variable <i>v</i> of the object denoted by this is bound to
    * <i>o</i>.
-   * <p>
+   *
    * 12.14.2 Binding Actuals to Formals: Let <i>T<sub>i</sub></i> be the static type of
    * <i>a<sub>i</sub></i>, let <i>S<sub>i</sub></i> be the type of <i>p<sub>i</sub>, 1 &lt;= i &lt;=
    * n+k</i> and let <i>S<sub>q</sub></i> be the type of the named parameter <i>q</i> of <i>f</i>.
@@ -1813,7 +1813,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
    * identically named members existed in several superinterfaces) then at most one member is
    * inherited.
-   * <p>
+   *
    * If some but not all of the <i>m<sub>i</sub>, 1 &lt;= i &lt;= k</i>, are getters, or if some but
    * not all of the <i>m<sub>i</sub></i> are setters, none of the <i>m<sub>i</sub></i> are
    * inherited, and a static warning is issued.
@@ -1899,7 +1899,15 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
    */
-  static final StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES = new StaticWarningCode('INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES', 32, "");
+  static final StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED = new StaticWarningCode('INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED', 32, "Parameters cannot override default values, this method overrides '%s.%s' where '%s' has a different value");
+
+  /**
+   * 7.1 Instance Methods: It is a static warning if an instance method <i>m1</i> overrides an
+   * instance member <i>m2</i>, the signature of <i>m2</i> explicitly specifies a default value for
+   * a formal parameter <i>p</i> and the signature of <i>m1</i> specifies a different default value
+   * for <i>p</i>.
+   */
+  static final StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL = new StaticWarningCode('INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL', 33, "Parameters cannot override default values, this method overrides '%s.%s' where this positional parameter has a different value");
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a setter <i>m2</i> and the
@@ -1910,7 +1918,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param className the name of the class where the overridden setter is declared
    * @see #INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
    */
-  static final StaticWarningCode INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE = new StaticWarningCode('INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE', 33, "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'");
+  static final StaticWarningCode INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE = new StaticWarningCode('INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE', 34, "The parameter type '%s' is not assignable to '%s' as required by the setter it is overriding from '%s'");
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -1918,27 +1926,27 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. If <i>S.m</i> exists, it is a static warning if the type
    * <i>F</i> of <i>S.m</i> may not be assigned to a function type.
    */
-  static final StaticWarningCode INVOCATION_OF_NON_FUNCTION = new StaticWarningCode('INVOCATION_OF_NON_FUNCTION', 34, "");
+  static final StaticWarningCode INVOCATION_OF_NON_FUNCTION = new StaticWarningCode('INVOCATION_OF_NON_FUNCTION', 35, "");
 
   /**
    * 7.3 Setters: It is a static warning if a class has a setter named <i>v=</i> with argument type
    * <i>T</i> and a getter named <i>v</i> with return type <i>S</i>, and <i>T</i> may not be
    * assigned to <i>S</i>.
    */
-  static final StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES = new StaticWarningCode('MISMATCHED_GETTER_AND_SETTER_TYPES', 35, "The parameter type for setter '%s' is %s which is not assignable to its getter (of type %s)");
+  static final StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES = new StaticWarningCode('MISMATCHED_GETTER_AND_SETTER_TYPES', 36, "The parameter type for setter '%s' is %s which is not assignable to its getter (of type %s)");
 
   /**
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an abstract class and
    * <i>q</i> is not a factory constructor.
    */
-  static final StaticWarningCode NEW_WITH_ABSTRACT_CLASS = new StaticWarningCode('NEW_WITH_ABSTRACT_CLASS', 36, "Abstract classes cannot be created with a 'new' expression");
+  static final StaticWarningCode NEW_WITH_ABSTRACT_CLASS = new StaticWarningCode('NEW_WITH_ABSTRACT_CLASS', 37, "Abstract classes cannot be created with a 'new' expression");
 
   /**
    * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible in the current scope,
    * optionally followed by type arguments.
    * @param name the name of the non-type element
    */
-  static final StaticWarningCode NEW_WITH_NON_TYPE = new StaticWarningCode('NEW_WITH_NON_TYPE', 37, "The name '%s' is not a class");
+  static final StaticWarningCode NEW_WITH_NON_TYPE = new StaticWarningCode('NEW_WITH_NON_TYPE', 38, "The name '%s' is not a class");
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the current scope then:
@@ -1949,7 +1957,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
-  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR = new StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR', 38, "The class '%s' does not have a constructor '%s'");
+  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR = new StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR', 39, "The class '%s' does not have a constructor '%s'");
 
   /**
    * 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the current scope then:
@@ -1960,12 +1968,25 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+kM/sub>)</i> it is a static warning if the
    * type <i>T</i> does not declare a constructor with the same name as the declaration of <i>T</i>.
    */
-  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = new StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 39, "The class '%s' does not have a default constructor");
+  static final StaticWarningCode NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT = new StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT', 40, "The class '%s' does not have a default constructor");
+
+  /**
+   * 7.6.1 Generative Constructors: If no superinitializer is provided, an implicit superinitializer
+   * of the form <b>super</b>() is added at the end of <i>k</i>'s initializer list, unless the
+   * enclosing class is class <i>Object</i>.
+   */
+  static final StaticWarningCode NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT = new StaticWarningCode('NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT', 41, "The class '%s' does not have a default constructor");
+
+  /**
+   * 7.6 Constructors: Iff no constructor is specified for a class <i>C</i>, it implicitly has a
+   * default constructor C() : <b>super<b>() {}, unless <i>C</i> is class <i>Object</i>.
+   */
+  static final StaticWarningCode NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT = new StaticWarningCode('NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT', 42, "The class '%s' does not have a default constructor");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
-   * <p>
+   *
    * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
@@ -1987,12 +2008,12 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param name fourth member name
    * @param additionalCount the number of additional missing members that aren't listed
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS', 40, "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s', %s'%s.%s' and %d more");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS', 43, "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s', %s'%s.%s' and %d more");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
-   * <p>
+   *
    * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
@@ -2013,12 +2034,12 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param enclosingClass enclosing class of the fourth missing member
    * @param name fourth member name
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR', 41, "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s' and %s'%s.%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR', 44, "Missing inherited members: %s'%s.%s', %s'%s.%s', %s'%s.%s' and %s'%s.%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
-   * <p>
+   *
    * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
@@ -2026,12 +2047,12 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param enclosingClass enclosing class of the missing member
    * @param name member name
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE', 42, "Missing inherited member %s'%s.%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE', 45, "Missing inherited member %s'%s.%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
-   * <p>
+   *
    * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
@@ -2048,12 +2069,12 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param enclosingClass enclosing class of the third missing member
    * @param name third member name
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE', 43, "Missing inherited members: %s'%s.%s', %s'%s.%s' and %s'%s.%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE', 46, "Missing inherited members: %s'%s.%s', %s'%s.%s' and %s'%s.%s'");
 
   /**
    * 7.9.1 Inheritance and Overriding: It is a static warning if a non-abstract class inherits an
    * abstract method.
-   * <p>
+   *
    * 7.10 Superinterfaces: It is a static warning if the implicit interface of a non-abstract class
    * <i>C</i> includes an instance member <i>m</i> and <i>C</i> does not declare or inherit a
    * corresponding instance member <i>m</i>.
@@ -2066,7 +2087,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param enclosingClass enclosing class of the second missing member
    * @param name second member name
    */
-  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO', 44, "Missing inherited members: %s'%s.%s' and %s'%s.%s'");
+  static final StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = new StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO', 47, "Missing inherited members: %s'%s.%s' and %s'%s.%s'");
 
   /**
    * 13.11 Try: An on-catch clause of the form <i>on T catch (p<sub>1</sub>, p<sub>2</sub>) s</i> or
@@ -2075,38 +2096,38 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * catch clause.
    * @param name the name of the non-type element
    */
-  static final StaticWarningCode NON_TYPE_IN_CATCH_CLAUSE = new StaticWarningCode('NON_TYPE_IN_CATCH_CLAUSE', 45, "The name '%s' is not a type and cannot be used in an on-catch clause");
+  static final StaticWarningCode NON_TYPE_IN_CATCH_CLAUSE = new StaticWarningCode('NON_TYPE_IN_CATCH_CLAUSE', 48, "The name '%s' is not a type and cannot be used in an on-catch clause");
 
   /**
    * 7.1.1 Operators: It is a static warning if the return type of the user-declared operator \[\]= is
    * explicitly declared and not void.
    */
-  static final StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR = new StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR', 46, "The return type of the operator []= must be 'void'");
+  static final StaticWarningCode NON_VOID_RETURN_FOR_OPERATOR = new StaticWarningCode('NON_VOID_RETURN_FOR_OPERATOR', 49, "The return type of the operator []= must be 'void'");
 
   /**
    * 7.3 Setters: It is a static warning if a setter declares a return type other than void.
    */
-  static final StaticWarningCode NON_VOID_RETURN_FOR_SETTER = new StaticWarningCode('NON_VOID_RETURN_FOR_SETTER', 47, "The return type of the setter must be 'void'");
+  static final StaticWarningCode NON_VOID_RETURN_FOR_SETTER = new StaticWarningCode('NON_VOID_RETURN_FOR_SETTER', 50, "The return type of the setter must be 'void'");
 
   /**
-   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
+   * 15.1 Static Types: A type <i>T</i> is malformed iff: * <i>T</i> has the form <i>id</i> or the
    * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
-   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
-   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
+   * <i>prefix.id</i>) does not denote a type. * <i>T</i> denotes a type variable in the
+   * enclosing lexical scope, but occurs in the signature or body of a static member. *
    * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
-   * and <i>G</i> is malformed.</li></ul>
-   * <p>
+   * and <i>G</i> is malformed.
+   *
    * Any use of a malformed type gives rise to a static warning.
    * @param nonTypeName the name that is not a type
    */
-  static final StaticWarningCode NOT_A_TYPE = new StaticWarningCode('NOT_A_TYPE', 48, "%s is not a type");
+  static final StaticWarningCode NOT_A_TYPE = new StaticWarningCode('NOT_A_TYPE', 51, "%s is not a type");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m < h</i> or if <i>m > n</i>.
    * @param requiredCount the expected number of required arguments
    * @param argumentCount the actual number of positional arguments given
    */
-  static final StaticWarningCode NOT_ENOUGH_REQUIRED_ARGUMENTS = new StaticWarningCode('NOT_ENOUGH_REQUIRED_ARGUMENTS', 49, "%d required argument(s) expected, but %d found");
+  static final StaticWarningCode NOT_ENOUGH_REQUIRED_ARGUMENTS = new StaticWarningCode('NOT_ENOUGH_REQUIRED_ARGUMENTS', 52, "%d required argument(s) expected, but %d found");
 
   /**
    * 14.3 Parts: It is a static warning if the referenced part declaration <i>p</i> names a library
@@ -2114,7 +2135,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param expectedLibraryName the name of expected library name
    * @param actualLibraryName the non-matching actual library name from the "part of" declaration
    */
-  static final StaticWarningCode PART_OF_DIFFERENT_LIBRARY = new StaticWarningCode('PART_OF_DIFFERENT_LIBRARY', 50, "Expected this library to be part of '%s', not '%s'");
+  static final StaticWarningCode PART_OF_DIFFERENT_LIBRARY = new StaticWarningCode('PART_OF_DIFFERENT_LIBRARY', 53, "Expected this library to be part of '%s', not '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i> is not a subtype of
@@ -2122,7 +2143,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param redirectedName the name of the redirected constructor
    * @param redirectingName the name of the redirecting constructor
    */
-  static final StaticWarningCode REDIRECT_TO_INVALID_FUNCTION_TYPE = new StaticWarningCode('REDIRECT_TO_INVALID_FUNCTION_TYPE', 51, "The redirected constructor '%s' has incompatible parameters with '%s'");
+  static final StaticWarningCode REDIRECT_TO_INVALID_FUNCTION_TYPE = new StaticWarningCode('REDIRECT_TO_INVALID_FUNCTION_TYPE', 54, "The redirected constructor '%s' has incompatible parameters with '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if the function type of <i>k'</i> is not a subtype of
@@ -2130,62 +2151,62 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param redirectedName the name of the redirected constructor return type
    * @param redirectingName the name of the redirecting constructor return type
    */
-  static final StaticWarningCode REDIRECT_TO_INVALID_RETURN_TYPE = new StaticWarningCode('REDIRECT_TO_INVALID_RETURN_TYPE', 52, "The return type '%s' of the redirected constructor is not a subclass of '%s'");
+  static final StaticWarningCode REDIRECT_TO_INVALID_RETURN_TYPE = new StaticWarningCode('REDIRECT_TO_INVALID_RETURN_TYPE', 55, "The return type '%s' of the redirected constructor is not a subclass of '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if type does not denote a class accessible in the
    * current scope; if type does denote such a class <i>C</i> it is a static warning if the
    * referenced constructor (be it <i>type</i> or <i>type.id</i>) is not a constructor of <i>C</i>.
    */
-  static final StaticWarningCode REDIRECT_TO_MISSING_CONSTRUCTOR = new StaticWarningCode('REDIRECT_TO_MISSING_CONSTRUCTOR', 53, "The constructor '%s' could not be found in '%s'");
+  static final StaticWarningCode REDIRECT_TO_MISSING_CONSTRUCTOR = new StaticWarningCode('REDIRECT_TO_MISSING_CONSTRUCTOR', 56, "The constructor '%s' could not be found in '%s'");
 
   /**
    * 7.6.2 Factories: It is a static warning if type does not denote a class accessible in the
    * current scope; if type does denote such a class <i>C</i> it is a static warning if the
    * referenced constructor (be it <i>type</i> or <i>type.id</i>) is not a constructor of <i>C</i>.
    */
-  static final StaticWarningCode REDIRECT_TO_NON_CLASS = new StaticWarningCode('REDIRECT_TO_NON_CLASS', 54, "The name '%s' is not a type and cannot be used in a redirected constructor");
+  static final StaticWarningCode REDIRECT_TO_NON_CLASS = new StaticWarningCode('REDIRECT_TO_NON_CLASS', 57, "The name '%s' is not a type and cannot be used in a redirected constructor");
 
   /**
    * 13.11 Return: Let <i>f</i> be the function immediately enclosing a return statement of the form
    * <i>return;</i> It is a static warning if both of the following conditions hold:
    * <ol>
-   * <li><i>f</i> is not a generative constructor.
-   * <li>The return type of <i>f</i> may not be assigned to void.
+   * * <i>f</i> is not a generative constructor.
+   * * The return type of <i>f</i> may not be assigned to void.
    * </ol>
    */
-  static final StaticWarningCode RETURN_WITHOUT_VALUE = new StaticWarningCode('RETURN_WITHOUT_VALUE', 55, "Missing return value after 'return'");
+  static final StaticWarningCode RETURN_WITHOUT_VALUE = new StaticWarningCode('RETURN_WITHOUT_VALUE', 58, "Missing return value after 'return'");
 
   /**
    * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
    * or getter <i>m</i>.
    * @param memberName the name of the instance member
    */
-  static final StaticWarningCode STATIC_ACCESS_TO_INSTANCE_MEMBER = new StaticWarningCode('STATIC_ACCESS_TO_INSTANCE_MEMBER', 56, "Instance member '%s' cannot be accessed using static access");
+  static final StaticWarningCode STATIC_ACCESS_TO_INSTANCE_MEMBER = new StaticWarningCode('STATIC_ACCESS_TO_INSTANCE_MEMBER', 59, "Instance member '%s' cannot be accessed using static access");
 
   /**
    * 13.9 Switch: It is a static warning if the type of <i>e</i> may not be assigned to the type of
    * <i>e<sub>k</sub></i>.
    */
-  static final StaticWarningCode SWITCH_EXPRESSION_NOT_ASSIGNABLE = new StaticWarningCode('SWITCH_EXPRESSION_NOT_ASSIGNABLE', 57, "Type '%s' of the switch expression is not assignable to the type '%s' of case expressions");
+  static final StaticWarningCode SWITCH_EXPRESSION_NOT_ASSIGNABLE = new StaticWarningCode('SWITCH_EXPRESSION_NOT_ASSIGNABLE', 60, "Type '%s' of the switch expression is not assignable to the type '%s' of case expressions");
 
   /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type available in the
    * current lexical scope.
    */
-  static final StaticWarningCode TYPE_TEST_NON_TYPE = new StaticWarningCode('TYPE_TEST_NON_TYPE', 58, "The name '%s' is not a type and cannot be used in an 'is' expression");
+  static final StaticWarningCode TYPE_TEST_NON_TYPE = new StaticWarningCode('TYPE_TEST_NON_TYPE', 61, "The name '%s' is not a type and cannot be used in an 'is' expression");
 
   /**
-   * 15.1 Static Types: A type <i>T</i> is malformed iff: <li><i>T</i> has the form <i>id</i> or the
+   * 15.1 Static Types: A type <i>T</i> is malformed iff: * <i>T</i> has the form <i>id</i> or the
    * form <i>prefix.id</i>, and in the enclosing lexical scope, the name <i>id</i> (respectively
-   * <i>prefix.id</i>) does not denote a type.</li> <li><i>T</i> denotes a type variable in the
-   * enclosing lexical scope, but occurs in the signature or body of a static member.</li> <li>
+   * <i>prefix.id</i>) does not denote a type. * <i>T</i> denotes a type variable in the
+   * enclosing lexical scope, but occurs in the signature or body of a static member. *
    * <i>T</i> is a parameterized type of the form <i>G&lt;S<sub>1</sub>, .., S<sub>n</sub>&gt;</i>,
-   * and <i>G</i> is malformed.</li></ul>
-   * <p>
+   * and <i>G</i> is malformed.
+   *
    * Any use of a malformed type gives rise to a static warning.
    */
-  static final StaticWarningCode TYPE_VARIABLE_IN_STATIC_SCOPE = new StaticWarningCode('TYPE_VARIABLE_IN_STATIC_SCOPE', 59, "");
+  static final StaticWarningCode TYPE_VARIABLE_IN_STATIC_SCOPE = new StaticWarningCode('TYPE_VARIABLE_IN_STATIC_SCOPE', 62, "");
 
   /**
    * 12.15.3 Static Invocation: A static method invocation <i>i</i> has the form
@@ -2193,12 +2214,12 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a static warning if <i>C</i> does not denote a
    * class in the current scope.
    */
-  static final StaticWarningCode UNDEFINED_CLASS = new StaticWarningCode('UNDEFINED_CLASS', 60, "Undefined class '%s'");
+  static final StaticWarningCode UNDEFINED_CLASS = new StaticWarningCode('UNDEFINED_CLASS', 63, "Undefined class '%s'");
 
   /**
-   * Same as {@link #UNDEFINED_CLASS}, but to catch using "boolean" instead of "bool".
+   * Same as [UNDEFINED_CLASS], but to catch using "boolean" instead of "bool".
    */
-  static final StaticWarningCode UNDEFINED_CLASS_BOOLEAN = new StaticWarningCode('UNDEFINED_CLASS_BOOLEAN', 61, "Undefined class 'boolean'; did you mean 'bool'?");
+  static final StaticWarningCode UNDEFINED_CLASS_BOOLEAN = new StaticWarningCode('UNDEFINED_CLASS_BOOLEAN', 64, "Undefined class 'boolean'; did you mean 'bool'?");
 
   /**
    * 12.17 Getter Invocation: It is a static warning if there is no class <i>C</i> in the enclosing
@@ -2207,7 +2228,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param getterName the name of the getter
    * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
-  static final StaticWarningCode UNDEFINED_GETTER = new StaticWarningCode('UNDEFINED_GETTER', 62, "There is no such getter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_GETTER = new StaticWarningCode('UNDEFINED_GETTER', 65, "There is no such getter '%s' in '%s'");
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier expression of the form
@@ -2215,7 +2236,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
    */
-  static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode('UNDEFINED_IDENTIFIER', 63, "Undefined name '%s'");
+  static final StaticWarningCode UNDEFINED_IDENTIFIER = new StaticWarningCode('UNDEFINED_IDENTIFIER', 66, "Undefined name '%s'");
 
   /**
    * 12.14.2 Binding Actuals to Formals: Furthermore, each <i>q<sub>i</sub></i>, <i>1<=i<=l</i>,
@@ -2223,21 +2244,21 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * <i>p<sub>n+k</sub></i>} or a static warning occurs.
    * @param name the name of the requested named parameter
    */
-  static final StaticWarningCode UNDEFINED_NAMED_PARAMETER = new StaticWarningCode('UNDEFINED_NAMED_PARAMETER', 64, "The named parameter '%s' is not defined");
+  static final StaticWarningCode UNDEFINED_NAMED_PARAMETER = new StaticWarningCode('UNDEFINED_NAMED_PARAMETER', 67, "The named parameter '%s' is not defined");
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs
    * inside a top level or static function (be it function, method, getter, or setter) or variable
    * initializer and there is no declaration <i>d</i> with name <i>v=</i> in the lexical scope
    * enclosing the assignment.
-   * <p>
+   *
    * 12.18 Assignment: It is a static warning if there is no class <i>C</i> in the enclosing lexical
    * scope of the assignment, or if <i>C</i> does not declare, implicitly or explicitly, a setter
    * <i>v=</i>.
    * @param setterName the name of the getter
    * @param enclosingType the name of the enclosing type where the setter is being looked for
    */
-  static final StaticWarningCode UNDEFINED_SETTER = new StaticWarningCode('UNDEFINED_SETTER', 65, "There is no such setter '%s' in '%s'");
+  static final StaticWarningCode UNDEFINED_SETTER = new StaticWarningCode('UNDEFINED_SETTER', 68, "There is no such setter '%s' in '%s'");
 
   /**
    * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
@@ -2245,8 +2266,8 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
    * @param methodName the name of the method
    * @param enclosingType the name of the enclosing type where the method is being looked for
    */
-  static final StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER = new StaticWarningCode('UNDEFINED_STATIC_METHOD_OR_GETTER', 66, "There is no such static method '%s' in '%s'");
-  static final List<StaticWarningCode> values = [AMBIGUOUS_IMPORT, ARGUMENT_TYPE_NOT_ASSIGNABLE, ASSIGNMENT_TO_FINAL, CASE_BLOCK_NOT_TERMINATED, CAST_TO_NON_TYPE, COMMENT_REFERENCE_CONSTRUCTOR_NOT_VISIBLE, COMMENT_REFERENCE_IDENTIFIER_NOT_VISIBLE, COMMENT_REFERENCE_UNDECLARED_CONSTRUCTOR, COMMENT_REFERENCE_UNDECLARED_IDENTIFIER, COMMENT_REFERENCE_URI_NOT_LIBRARY, CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER, CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER, CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER, CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER, CONST_WITH_ABSTRACT_CLASS, EQUAL_KEYS_IN_MAP, EXPORT_DUPLICATED_LIBRARY_NAME, EXTRA_POSITIONAL_ARGUMENTS, FIELD_INITIALIZER_NOT_ASSIGNABLE, FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, FINAL_NOT_INITIALIZED, IMPORT_DUPLICATED_LIBRARY_NAME, INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD, INCORRECT_NUMBER_OF_ARGUMENTS, INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC, INVALID_FACTORY_NAME, INVALID_GETTER_OVERRIDE_RETURN_TYPE, INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE, INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE, INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE, INVALID_METHOD_OVERRIDE_RETURN_TYPE, INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES, INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE, INVOCATION_OF_NON_FUNCTION, MISMATCHED_GETTER_AND_SETTER_TYPES, NEW_WITH_ABSTRACT_CLASS, NEW_WITH_NON_TYPE, NEW_WITH_UNDEFINED_CONSTRUCTOR, NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO, NON_TYPE_IN_CATCH_CLAUSE, NON_VOID_RETURN_FOR_OPERATOR, NON_VOID_RETURN_FOR_SETTER, NOT_A_TYPE, NOT_ENOUGH_REQUIRED_ARGUMENTS, PART_OF_DIFFERENT_LIBRARY, REDIRECT_TO_INVALID_FUNCTION_TYPE, REDIRECT_TO_INVALID_RETURN_TYPE, REDIRECT_TO_MISSING_CONSTRUCTOR, REDIRECT_TO_NON_CLASS, RETURN_WITHOUT_VALUE, STATIC_ACCESS_TO_INSTANCE_MEMBER, SWITCH_EXPRESSION_NOT_ASSIGNABLE, TYPE_TEST_NON_TYPE, TYPE_VARIABLE_IN_STATIC_SCOPE, UNDEFINED_CLASS, UNDEFINED_CLASS_BOOLEAN, UNDEFINED_GETTER, UNDEFINED_IDENTIFIER, UNDEFINED_NAMED_PARAMETER, UNDEFINED_SETTER, UNDEFINED_STATIC_METHOD_OR_GETTER];
+  static final StaticWarningCode UNDEFINED_STATIC_METHOD_OR_GETTER = new StaticWarningCode('UNDEFINED_STATIC_METHOD_OR_GETTER', 69, "There is no such static method '%s' in '%s'");
+  static final List<StaticWarningCode> values = [AMBIGUOUS_IMPORT, ARGUMENT_TYPE_NOT_ASSIGNABLE, ASSIGNMENT_TO_FINAL, CASE_BLOCK_NOT_TERMINATED, CAST_TO_NON_TYPE, COMMENT_REFERENCE_CONSTRUCTOR_NOT_VISIBLE, COMMENT_REFERENCE_IDENTIFIER_NOT_VISIBLE, COMMENT_REFERENCE_UNDECLARED_CONSTRUCTOR, COMMENT_REFERENCE_UNDECLARED_IDENTIFIER, COMMENT_REFERENCE_URI_NOT_LIBRARY, CONCRETE_CLASS_WITH_ABSTRACT_MEMBER, CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER, CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER, CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER, CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER, CONST_WITH_ABSTRACT_CLASS, EQUAL_KEYS_IN_MAP, EXPORT_DUPLICATED_LIBRARY_NAME, EXTRA_POSITIONAL_ARGUMENTS, FIELD_INITIALIZER_NOT_ASSIGNABLE, FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE, FINAL_NOT_INITIALIZED, IMPORT_DUPLICATED_LIBRARY_NAME, INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD, INCORRECT_NUMBER_OF_ARGUMENTS, INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC, INVALID_FACTORY_NAME, INVALID_GETTER_OVERRIDE_RETURN_TYPE, INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE, INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE, INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE, INVALID_METHOD_OVERRIDE_RETURN_TYPE, INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED, INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL, INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE, INVOCATION_OF_NON_FUNCTION, MISMATCHED_GETTER_AND_SETTER_TYPES, NEW_WITH_ABSTRACT_CLASS, NEW_WITH_NON_TYPE, NEW_WITH_UNDEFINED_CONSTRUCTOR, NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT, NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT, NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE, NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO, NON_TYPE_IN_CATCH_CLAUSE, NON_VOID_RETURN_FOR_OPERATOR, NON_VOID_RETURN_FOR_SETTER, NOT_A_TYPE, NOT_ENOUGH_REQUIRED_ARGUMENTS, PART_OF_DIFFERENT_LIBRARY, REDIRECT_TO_INVALID_FUNCTION_TYPE, REDIRECT_TO_INVALID_RETURN_TYPE, REDIRECT_TO_MISSING_CONSTRUCTOR, REDIRECT_TO_NON_CLASS, RETURN_WITHOUT_VALUE, STATIC_ACCESS_TO_INSTANCE_MEMBER, SWITCH_EXPRESSION_NOT_ASSIGNABLE, TYPE_TEST_NON_TYPE, TYPE_VARIABLE_IN_STATIC_SCOPE, UNDEFINED_CLASS, UNDEFINED_CLASS_BOOLEAN, UNDEFINED_GETTER, UNDEFINED_IDENTIFIER, UNDEFINED_NAMED_PARAMETER, UNDEFINED_SETTER, UNDEFINED_STATIC_METHOD_OR_GETTER];
 
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -2274,7 +2295,7 @@ class StaticWarningCode implements Comparable<StaticWarningCode>, ErrorCode {
   String toString() => name;
 }
 /**
- * The interface {@code AnalysisErrorListener} defines the behavior of objects that listen for{@link AnalysisError analysis errors} being produced by the analysis engine.
+ * The interface `AnalysisErrorListener` defines the behavior of objects that listen for[AnalysisError analysis errors] being produced by the analysis engine.
  * @coverage dart.engine.error
  */
 abstract class AnalysisErrorListener {
@@ -2286,7 +2307,7 @@ abstract class AnalysisErrorListener {
 
   /**
    * This method is invoked when an error has been found by the analysis engine.
-   * @param error the error that was just found (not {@code null})
+   * @param error the error that was just found (not `null`)
    */
   void onError(AnalysisError error);
 }
@@ -2295,7 +2316,7 @@ class AnalysisErrorListener_5 implements AnalysisErrorListener {
   }
 }
 /**
- * The enumeration {@code HtmlWarningCode} defines the error codes used for warnings in HTML files.
+ * The enumeration `HtmlWarningCode` defines the error codes used for warnings in HTML files.
  * The convention for this class is for the name of the error code to indicate the problem that
  * caused the error to be generated and for the error message to explain what is wrong and, when
  * appropriate, how the problem can be corrected.
@@ -2344,7 +2365,7 @@ class HtmlWarningCode implements Comparable<HtmlWarningCode>, ErrorCode {
   String toString() => name;
 }
 /**
- * The enumeration {@code StaticTypeWarningCode} defines the error codes used for static type
+ * The enumeration `StaticTypeWarningCode` defines the error codes used for static type
  * warnings. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
@@ -2364,19 +2385,19 @@ class StaticTypeWarningCode implements Comparable<StaticTypeWarningCode>, ErrorC
    * &hellip; m<sub>k</sub></i> with the same name <i>n</i> that would be inherited (because
    * identically named members existed in several superinterfaces) then at most one member is
    * inherited.
-   * <p>
+   *
    * If the static types <i>T<sub>1</sub>, &hellip;, T<sub>k</sub></i> of the members
    * <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> are not identical, then there must be a member
    * <i>m<sub>x</sub></i> such that <i>T<sub>x</sub> &lt; T<sub>i</sub>, 1 &lt;= x &lt;= k</i> for
    * all <i>i, 1 &lt;= i &lt; k</i>, or a static type warning occurs. The member that is inherited
    * is <i>m<sub>x</sub></i>, if it exists; otherwise:
    * <ol>
-   * <li>If all of <i>m<sub>1</sub>, &hellip; m<sub>k</sub></i> have the same number <i>r</i> of
+   * * If all of <i>m<sub>1</sub>, &hellip; m<sub>k</sub></i> have the same number <i>r</i> of
    * required parameters and the same set of named parameters <i>s</i>, then let <i>h = max(
    * numberOfOptionalPositionals( m<sub>i</sub> ) ), 1 &lt;= i &lt;= k</i>. <i>I</i> has a method
    * named <i>n</i>, with <i>r</i> required parameters of type dynamic, <i>h</i> optional positional
    * parameters of type dynamic, named parameters <i>s</i> of type dynamic and return type dynamic.
-   * <li>Otherwise none of the members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> is inherited.
+   * * Otherwise none of the members <i>m<sub>1</sub>, &hellip;, m<sub>k</sub></i> is inherited.
    * </ol>
    */
   static final StaticTypeWarningCode INCONSISTENT_METHOD_INHERITANCE = new StaticTypeWarningCode('INCONSISTENT_METHOD_INHERITANCE', 1, "'%s' is inherited by at least two interfaces inconsistently");
@@ -2385,11 +2406,11 @@ class StaticTypeWarningCode implements Comparable<StaticTypeWarningCode>, ErrorC
    * 12.18 Assignment: It is a static type warning if the static type of <i>e</i> may not be
    * assigned to the static type of <i>v</i>. The static type of the expression <i>v = e</i> is the
    * static type of <i>e</i>.
-   * <p>
+   *
    * 12.18 Assignment: It is a static type warning if the static type of <i>e</i> may not be
    * assigned to the static type of <i>C.v</i>. The static type of the expression <i>C.v = e</i> is
    * the static type of <i>e</i>.
-   * <p>
+   *
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
    * warning if the static type of <i>e<sub>2</sub></i> may not be assigned to <i>T</i>.
    * @param rhsTypeName the name of the right hand side type
@@ -2401,19 +2422,19 @@ class StaticTypeWarningCode implements Comparable<StaticTypeWarningCode>, ErrorC
    * 12.14.4 Function Expression Invocation: A function expression invocation <i>i</i> has the form
    * <i>e<sub>f</sub>(a<sub>1</sub>, &hellip; a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>,
    * &hellip;, x<sub>n+k</sub>: a<sub>n+k</sub>)</i>, where <i>e<sub>f</sub></i> is an expression.
-   * <p>
+   *
    * It is a static type warning if the static type <i>F</i> of <i>e<sub>f</sub></i> may not be
    * assigned to a function type.
-   * <p>
+   *
    * 12.15.1 Ordinary Invocation: An ordinary method invocation <i>i</i> has the form
    * <i>o.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>.
-   * <p>
+   *
    * Let <i>T</i> be the static type of <i>o</i>. It is a static type warning if <i>T</i> does not
    * have an accessible instance member named <i>m</i>. If <i>T.m</i> exists, it is a static warning
    * if the type <i>F</i> of <i>T.m</i> may not be assigned to a function type. If <i>T.m</i> does
    * not exist, or if <i>F</i> is not a function type, the static type of <i>i</i> is dynamic.
-   * <p>
+   *
    * 12.15.3 Static Invocation: It is a static type warning if the type <i>F</i> of <i>C.m</i> may
    * not be assigned to a function type.
    * @param nonFunctionIdentifier the name of the identifier that is not a function type
@@ -2423,12 +2444,12 @@ class StaticTypeWarningCode implements Comparable<StaticTypeWarningCode>, ErrorC
   /**
    * 12.19 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be
    * assigned to bool.
-   * <p>
+   *
    * 13.5 If: It is a static type warning if the type of the expression <i>b</i> may not be assigned
    * to bool.
-   * <p>
+   *
    * 13.7 While: It is a static type warning if the type of <i>e</i> may not be assigned to bool.
-   * <p>
+   *
    * 13.8 Do: It is a static type warning if the type of <i>e</i> cannot be assigned to bool.
    */
   static final StaticTypeWarningCode NON_BOOL_CONDITION = new StaticTypeWarningCode('NON_BOOL_CONDITION', 4, "Conditions must have a static type of 'bool'");
@@ -2473,7 +2494,7 @@ class StaticTypeWarningCode implements Comparable<StaticTypeWarningCode>, ErrorC
 
   /**
    * 10 Generics: It is a static type warning if a type parameter is a supertype of its upper bound.
-   * <p>
+   *
    * 15.8 Parameterized Types: If <i>S</i> is the static type of a member <i>m</i> of <i>G</i>, then
    * the static type of the member <i>m</i> of <i>G&lt;A<sub>1</sub>, &hellip; A<sub>n</sub>&gt;</i>
    * is <i>\[A<sub>1</sub>, &hellip;, A<sub>n</sub>/T<sub>1</sub>, &hellip;, T<sub>n</sub>\]S</i>
@@ -2485,7 +2506,7 @@ class StaticTypeWarningCode implements Comparable<StaticTypeWarningCode>, ErrorC
   static final StaticTypeWarningCode TYPE_ARGUMENT_VIOLATES_BOUNDS = new StaticTypeWarningCode('TYPE_ARGUMENT_VIOLATES_BOUNDS', 10, "");
 
   /**
-   * Specification reference needed. This is equivalent to {@link #UNDEFINED_METHOD}, but for
+   * Specification reference needed. This is equivalent to [UNDEFINED_METHOD], but for
    * top-level functions.
    * @param methodName the name of the method that is undefined
    */
@@ -2512,11 +2533,11 @@ class StaticTypeWarningCode implements Comparable<StaticTypeWarningCode>, ErrorC
    * <i>e<sub>1</sub></i>\[<i>e<sub>2</sub></i>\] = <i>e<sub>3</sub></i> is equivalent to the
    * evaluation of the expression (a, i, e){a.\[\]=(i, e); return e;} (<i>e<sub>1</sub></i>,
    * <i>e<sub>2</sub></i>, <i>e<sub>2</sub></i>).
-   * <p>
+   *
    * 12.29 Assignable Expressions: An assignable expression of the form
    * <i>e<sub>1</sub></i>\[<i>e<sub>2</sub></i>\] is evaluated as a method invocation of the operator
    * method \[\] on <i>e<sub>1</sub></i> with argument <i>e<sub>2</sub></i>.
-   * <p>
+   *
    * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>. It is a static type
    * warning if <i>T</i> does not have an accessible instance member named <i>m</i>.
    * @param operator the name of the operator

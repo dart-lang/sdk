@@ -3,17 +3,17 @@
 library engine.instrumentation;
 import 'java_core.dart';
 /**
- * The class {@code Instrumentation} implements support for logging instrumentation information.
- * <p>
+ * The class `Instrumentation` implements support for logging instrumentation information.
+ *
  * Instrumentation information consists of information about specific operations. Those operations
  * can range from user-facing operations, such as saving the changes to a file, to internal
- * operations, such as tokenizing source code. The information to be logged is gathered by{@link InstrumentationBuilder instrumentation builder}, created by one of the static methods on
- * this class such as {@link #builder(Class)} or {@link #builder(String)}.
- * <p>
- * Note, however, that until an instrumentation logger is installed using the method{@link #setLogger(InstrumentationLogger)}, all instrumentation data will be lost.
- * <p>
+ * operations, such as tokenizing source code. The information to be logged is gathered by[InstrumentationBuilder instrumentation builder], created by one of the static methods on
+ * this class such as [builder] or [builder].
+ *
+ * Note, however, that until an instrumentation logger is installed using the method[setLogger], all instrumentation data will be lost.
+ *
  * <b>Example</b>
- * <p>
+ *
  * To collect metrics about how long it took to save a file, you would write something like the
  * following:
  * <pre>
@@ -21,9 +21,9 @@ import 'java_core.dart';
  * // save the file
  * instrumentation.metric("chars", fileLength).log();
  * </pre>
- * The {@code Instrumentation.builder} method creates a new {@link InstrumentationBuilderinstrumentation builder} and records the time at which it was created. The{@link InstrumentationBuilder#metric(String,long)} appends the information specified by the
+ * The `Instrumentation.builder` method creates a new [InstrumentationBuilderinstrumentation builder] and records the time at which it was created. The[InstrumentationBuilder#metric] appends the information specified by the
  * arguments and records the time at which the method is called so that the time to complete the
- * save operation can be calculated. The {@code log} method tells the builder that all of the data
+ * save operation can be calculated. The `log` method tells the builder that all of the data
  * has been collected and that the resulting information should be logged.
  * @coverage dart.engine.utilities
  */
@@ -47,15 +47,15 @@ class Instrumentation {
 
   /**
    * Create a builder that can collect the data associated with an operation.
-   * @param clazz the class performing the operation (not {@code null})
-   * @return the builder that was created (not {@code null})
+   * @param clazz the class performing the operation (not `null`)
+   * @return the builder that was created (not `null`)
    */
   static InstrumentationBuilder builder(Type clazz) => _CURRENT_LOGGER.createBuilder(clazz.toString());
 
   /**
    * Create a builder that can collect the data associated with an operation.
-   * @param name the name used to uniquely identify the operation (not {@code null})
-   * @return the builder that was created (not {@code null})
+   * @param name the name used to uniquely identify the operation (not `null`)
+   * @return the builder that was created (not `null`)
    */
   static InstrumentationBuilder builder2(String name) => _CURRENT_LOGGER.createBuilder(name);
 
@@ -66,7 +66,7 @@ class Instrumentation {
 
   /**
    * Return a builder that will silently ignore all data and logging requests.
-   * @return the builder (not {@code null})
+   * @return the builder (not `null`)
    */
   static InstrumentationBuilder get nullBuilder => _NULL_INSTRUMENTATION_BUILDER;
 
@@ -103,10 +103,10 @@ class InstrumentationLogger_13 implements InstrumentationLogger {
   InstrumentationBuilder createBuilder(String name) => Instrumentation._NULL_INSTRUMENTATION_BUILDER;
 }
 /**
- * The interface {@code InstrumentationBuilder} defines the behavior of objects used to collect data
+ * The interface `InstrumentationBuilder` defines the behavior of objects used to collect data
  * about an operation that has occurred and record that data through an instrumentation logger.
- * <p>
- * For an example of using objects that implement this interface, see {@link Instrumentation}.
+ *
+ * For an example of using objects that implement this interface, see [Instrumentation].
  * @coverage dart.engine.utilities
  */
 abstract class InstrumentationBuilder {
@@ -152,8 +152,8 @@ abstract class InstrumentationBuilder {
   InstrumentationBuilder data4(String name, List<String> value);
 
   /**
-   * Answer the {@link InstrumentationLevel} of this {@code InstrumentationBuilder}.
-   * @return one of {@link InstrumentationLevel#EVERYTHING}, {@link InstrumentationLevel#METRICS},{@link InstrumentationLevel#OFF}
+   * Answer the [InstrumentationLevel] of this `InstrumentationBuilder`.
+   * @return one of [InstrumentationLevel#EVERYTHING], [InstrumentationLevel#METRICS],[InstrumentationLevel#OFF]
    */
   InstrumentationLevel get instrumentationLevel;
 
@@ -206,17 +206,17 @@ abstract class InstrumentationBuilder {
 
   /**
    * Append the given exception to the information being collected by this builder. The exception's
-   * class name is captured using {@link #metric(String,String)}. Other aspects of the exception
+   * class name is captured using [metric]. Other aspects of the exception
    * may contain either user identifiable or contains user intellectual property (but is not
-   * guaranteed to contain either) and thus are captured using the various data methods such as{@link #data(String,String)}.
-   * @param exception the exception (may be {@code null})
+   * guaranteed to contain either) and thus are captured using the various data methods such as[data].
+   * @param exception the exception (may be `null`)
    */
   InstrumentationBuilder record(Exception exception);
 }
 /**
- * The instrumentation recording level representing (1) recording {@link #EVERYTHING} recording of
- * all instrumentation data, (2) recording only {@link #METRICS} information, or (3) recording
- * turned {@link #OFF} in which case nothing is recorded.
+ * The instrumentation recording level representing (1) recording [EVERYTHING] recording of
+ * all instrumentation data, (2) recording only [METRICS] information, or (3) recording
+ * turned [OFF] in which case nothing is recorded.
  * @coverage dart.engine.utilities
  */
 class InstrumentationLevel implements Comparable<InstrumentationLevel> {
@@ -261,10 +261,10 @@ class InstrumentationLevel implements Comparable<InstrumentationLevel> {
   String toString() => name;
 }
 /**
- * The interface {@code InstrumentationLogger} defines the behavior of objects that are used to log
+ * The interface `InstrumentationLogger` defines the behavior of objects that are used to log
  * instrumentation data.
- * <p>
- * For an example of using objects that implement this interface, see {@link Instrumentation}.
+ *
+ * For an example of using objects that implement this interface, see [Instrumentation].
  * @coverage dart.engine.utilities
  */
 abstract class InstrumentationLogger {

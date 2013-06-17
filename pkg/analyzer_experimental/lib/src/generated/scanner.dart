@@ -8,7 +8,7 @@ import 'source.dart';
 import 'error.dart';
 import 'instrumentation.dart';
 /**
- * Instances of the abstract class {@code KeywordState} represent a state in a state machine used to
+ * Instances of the abstract class `KeywordState` represent a state in a state machine used to
  * scan keywords.
  * @coverage dart.engine.parser
  */
@@ -87,12 +87,12 @@ class KeywordState {
 
   /**
    * A table mapping characters to the states to which those characters will transition. (The index
-   * into the array is the offset from the character {@code 'a'} to the transitioning character.)
+   * into the array is the offset from the character `'a'` to the transitioning character.)
    */
   List<KeywordState> _table;
 
   /**
-   * The keyword that is recognized by this state, or {@code null} if this state is not a terminal
+   * The keyword that is recognized by this state, or `null` if this state is not a terminal
    * state.
    */
   Keyword _keyword2;
@@ -109,21 +109,21 @@ class KeywordState {
   }
 
   /**
-   * Return the keyword that was recognized by this state, or {@code null} if this state does not
+   * Return the keyword that was recognized by this state, or `null` if this state does not
    * recognized a keyword.
    * @return the keyword that was matched by reaching this state
    */
   Keyword keyword() => _keyword2;
 
   /**
-   * Return the state that follows this state on a transition of the given character, or{@code null} if there is no valid state reachable from this state with such a transition.
+   * Return the state that follows this state on a transition of the given character, or`null` if there is no valid state reachable from this state with such a transition.
    * @param c the character used to transition from this state to another state
    * @return the state that follows this state on a transition of the given character
    */
   KeywordState next(int c) => _table[c - 0x61];
 }
 /**
- * The enumeration {@code ScannerErrorCode} defines the error codes used for errors detected by the
+ * The enumeration `ScannerErrorCode` defines the error codes used for errors detected by the
  * scanner.
  * @coverage dart.engine.parser
  */
@@ -162,7 +162,7 @@ class ScannerErrorCode implements Comparable<ScannerErrorCode>, ErrorCode {
   String toString() => name;
 }
 /**
- * Instances of the class {@code TokenWithComment} represent a string token that is preceded by
+ * Instances of the class `TokenWithComment` represent a string token that is preceded by
  * comments.
  * @coverage dart.engine.parser
  */
@@ -186,7 +186,7 @@ class StringTokenWithComment extends StringToken {
   Token get precedingComments => _precedingComment;
 }
 /**
- * The enumeration {@code Keyword} defines the keywords in the Dart programming language.
+ * The enumeration `Keyword` defines the keywords in the Dart programming language.
  * @coverage dart.engine.parser
  */
 class Keyword implements Comparable<Keyword> {
@@ -288,9 +288,9 @@ class Keyword implements Comparable<Keyword> {
 
   /**
    * Initialize a newly created keyword to have the given syntax. The keyword is a pseudo-keyword if
-   * the given flag is {@code true}.
+   * the given flag is `true`.
    * @param syntax the lexeme for the keyword
-   * @param isPseudoKeyword {@code true} if this keyword is a pseudo-keyword
+   * @param isPseudoKeyword `true` if this keyword is a pseudo-keyword
    */
   Keyword.con2(this.name, this.ordinal, String syntax2, bool isPseudoKeyword) {
     _jtd_constructor_319_impl(syntax2, isPseudoKeyword);
@@ -307,9 +307,9 @@ class Keyword implements Comparable<Keyword> {
   String get syntax => _syntax;
 
   /**
-   * Return {@code true} if this keyword is a pseudo-keyword. Pseudo keywords can be used as
+   * Return `true` if this keyword is a pseudo-keyword. Pseudo keywords can be used as
    * identifiers.
-   * @return {@code true} if this keyword is a pseudo-keyword
+   * @return `true` if this keyword is a pseudo-keyword
    */
   bool isPseudoKeyword() => _isPseudoKeyword2;
   int compareTo(Keyword other) => ordinal - other.ordinal;
@@ -317,9 +317,9 @@ class Keyword implements Comparable<Keyword> {
   String toString() => name;
 }
 /**
- * The abstract class {@code AbstractScanner} implements a scanner for Dart code. Subclasses are
+ * The abstract class `AbstractScanner` implements a scanner for Dart code. Subclasses are
  * required to implement the interface used to access the characters being scanned.
- * <p>
+ *
  * The lexical structure of Dart is ambiguous without knowledge of the context in which a token is
  * being scanned. For example, without context we cannot determine whether source of the form "<<"
  * should be scanned as a single left-shift operator or as two left angle brackets. This scanner
@@ -415,8 +415,8 @@ abstract class AbstractScanner {
   int get offset;
 
   /**
-   * Return {@code true} if any unmatched groups were found during the parse.
-   * @return {@code true} if any unmatched groups were found during the parse
+   * Return `true` if any unmatched groups were found during the parse.
+   * @return `true` if any unmatched groups were found during the parse
    */
   bool hasUnmatchedGroups() => _hasUnmatchedGroups2;
 
@@ -1272,7 +1272,7 @@ abstract class AbstractScanner {
   }
 }
 /**
- * Instances of the class {@code StringToken} represent a token whose value is independent of it's
+ * Instances of the class `StringToken` represent a token whose value is independent of it's
  * type.
  * @coverage dart.engine.parser
  */
@@ -1296,7 +1296,7 @@ class StringToken extends Token {
   String value() => _value2;
 }
 /**
- * Instances of the class {@code CharBufferScanner} implement a scanner that reads from a character
+ * Instances of the class `CharBufferScanner` implement a scanner that reads from a character
  * buffer. The scanning logic is in the superclass.
  * @coverage dart.engine.parser
  */
@@ -1344,7 +1344,7 @@ class CharBufferScanner extends AbstractScanner {
   }
 }
 /**
- * Instances of the class {@code TokenWithComment} represent a normal token that is preceded by
+ * Instances of the class `TokenWithComment` represent a normal token that is preceded by
  * comments.
  * @coverage dart.engine.parser
  */
@@ -1368,7 +1368,7 @@ class TokenWithComment extends Token {
   Token get precedingComments => _precedingComment;
 }
 /**
- * Instances of the class {@code Token} represent a token that was scanned from the input. Each
+ * Instances of the class `Token` represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
  * @coverage dart.engine.parser
  */
@@ -1437,9 +1437,9 @@ class Token {
   int get offset => _offset;
 
   /**
-   * Return the first comment in the list of comments that precede this token, or {@code null} if
+   * Return the first comment in the list of comments that precede this token, or `null` if
    * there are no comments preceding this token. Additional comments can be reached by following the
-   * token stream using {@link #getNext()} until {@code null} is returned.
+   * token stream using [getNext] until `null` is returned.
    * @return the first comment in the list of comments that precede this token
    */
   Token get precedingComments => null;
@@ -1457,22 +1457,22 @@ class Token {
   TokenType get type => _type;
 
   /**
-   * Return {@code true} if this token represents an operator.
-   * @return {@code true} if this token represents an operator
+   * Return `true` if this token represents an operator.
+   * @return `true` if this token represents an operator
    */
   bool isOperator() => _type.isOperator();
 
   /**
-   * Return {@code true} if this token is a synthetic token. A synthetic token is a token that was
+   * Return `true` if this token is a synthetic token. A synthetic token is a token that was
    * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
-   * have a length of zero ({@code 0}).
-   * @return {@code true} if this token is a synthetic token
+   * have a length of zero (`0`).
+   * @return `true` if this token is a synthetic token
    */
   bool isSynthetic() => length == 0;
 
   /**
-   * Return {@code true} if this token represents an operator that can be defined by users.
-   * @return {@code true} if this token represents an operator that can be defined by users
+   * Return `true` if this token represents an operator that can be defined by users.
+   * @return `true` if this token represents an operator that can be defined by users
    */
   bool isUserDefinableOperator() => _type.isUserDefinableOperator();
 
@@ -1525,7 +1525,7 @@ class Token {
   }
 }
 /**
- * Instances of the class {@code StringScanner} implement a scanner that reads from a string. The
+ * Instances of the class `StringScanner` implement a scanner that reads from a string. The
  * scanning logic is in the superclass.
  * @coverage dart.engine.parser
  */
@@ -1568,7 +1568,7 @@ class StringScanner extends AbstractScanner {
   /**
    * Record that the source begins on the given line and column at the given offset. The line starts
    * for lines before the given line will not be correct.
-   * <p>
+   *
    * This method must be invoked at most one time and must be invoked before scanning begins. The
    * values provided must be sensible. The results are undefined if these conditions are violated.
    * @param line the one-based index of the line containing the first character of the source
@@ -1604,7 +1604,7 @@ class StringScanner extends AbstractScanner {
   }
 }
 /**
- * Instances of the class {@code BeginTokenWithComment} represent a begin token that is preceded by
+ * Instances of the class `BeginTokenWithComment` represent a begin token that is preceded by
  * comments.
  * @coverage dart.engine.parser
  */
@@ -1628,7 +1628,7 @@ class BeginTokenWithComment extends BeginToken {
   Token get precedingComments => _precedingComment;
 }
 /**
- * Instances of the class {@code KeywordToken} represent a keyword in the language.
+ * Instances of the class `KeywordToken` represent a keyword in the language.
  * @coverage dart.engine.parser
  */
 class KeywordToken extends Token {
@@ -1656,7 +1656,7 @@ class KeywordToken extends Token {
   Keyword value() => _keyword;
 }
 /**
- * Instances of the class {@code BeginToken} represent the opening half of a grouping pair of
+ * Instances of the class `BeginToken` represent the opening half of a grouping pair of
  * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('\[').
  * @coverage dart.engine.parser
  */
@@ -1691,7 +1691,7 @@ class BeginToken extends Token {
   }
 }
 /**
- * The enumeration {@code TokenClass} represents classes (or groups) of tokens with a similar use.
+ * The enumeration `TokenClass` represents classes (or groups) of tokens with a similar use.
  * @coverage dart.engine.parser
  */
 class TokenClass implements Comparable<TokenClass> {
@@ -1784,7 +1784,7 @@ class TokenClass implements Comparable<TokenClass> {
   final int ordinal;
 
   /**
-   * The precedence of tokens of this class, or {@code 0} if the such tokens do not represent an
+   * The precedence of tokens of this class, or `0` if the such tokens do not represent an
    * operator.
    */
   int _precedence = 0;
@@ -1802,7 +1802,7 @@ class TokenClass implements Comparable<TokenClass> {
   }
 
   /**
-   * Return the precedence of tokens of this class, or {@code 0} if the such tokens do not represent
+   * Return the precedence of tokens of this class, or `0` if the such tokens do not represent
    * an operator.
    * @return the precedence of tokens of this class
    */
@@ -1812,7 +1812,7 @@ class TokenClass implements Comparable<TokenClass> {
   String toString() => name;
 }
 /**
- * Instances of the class {@code KeywordTokenWithComment} implement a keyword token that is preceded
+ * Instances of the class `KeywordTokenWithComment` implement a keyword token that is preceded
  * by comments.
  * @coverage dart.engine.parser
  */
@@ -1836,7 +1836,7 @@ class KeywordTokenWithComment extends KeywordToken {
   Token get precedingComments => _precedingComment;
 }
 /**
- * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
+ * The enumeration `TokenType` defines the types of tokens that can be returned by the
  * scanner.
  * @coverage dart.engine.parser
  */
@@ -1927,7 +1927,7 @@ class TokenType implements Comparable<TokenType> {
   TokenClass _tokenClass;
 
   /**
-   * The lexeme that defines this type of token, or {@code null} if there is more than one possible
+   * The lexeme that defines this type of token, or `null` if there is more than one possible
    * lexeme for this type of token.
    */
   String _lexeme;
@@ -1946,93 +1946,93 @@ class TokenType implements Comparable<TokenType> {
   }
 
   /**
-   * Return the lexeme that defines this type of token, or {@code null} if there is more than one
+   * Return the lexeme that defines this type of token, or `null` if there is more than one
    * possible lexeme for this type of token.
    * @return the lexeme that defines this type of token
    */
   String get lexeme => _lexeme;
 
   /**
-   * Return the precedence of the token, or {@code 0} if the token does not represent an operator.
+   * Return the precedence of the token, or `0` if the token does not represent an operator.
    * @return the precedence of the token
    */
   int get precedence => _tokenClass.precedence;
 
   /**
-   * Return {@code true} if this type of token represents an additive operator.
-   * @return {@code true} if this type of token represents an additive operator
+   * Return `true` if this type of token represents an additive operator.
+   * @return `true` if this type of token represents an additive operator
    */
   bool isAdditiveOperator() => identical(_tokenClass, TokenClass.ADDITIVE_OPERATOR);
 
   /**
-   * Return {@code true} if this type of token represents an assignment operator.
-   * @return {@code true} if this type of token represents an assignment operator
+   * Return `true` if this type of token represents an assignment operator.
+   * @return `true` if this type of token represents an assignment operator
    */
   bool isAssignmentOperator() => identical(_tokenClass, TokenClass.ASSIGNMENT_OPERATOR);
 
   /**
-   * Return {@code true} if this type of token represents an associative operator. An associative
-   * operator is an operator for which the following equality is true:{@code (a * b) * c == a * (b * c)}. In other words, if the result of applying the operator to
+   * Return `true` if this type of token represents an associative operator. An associative
+   * operator is an operator for which the following equality is true:`(a * b) * c == a * (b * c)`. In other words, if the result of applying the operator to
    * multiple operands does not depend on the order in which those applications occur.
-   * <p>
+   *
    * Note: This method considers the logical-and and logical-or operators to be associative, even
    * though the order in which the application of those operators can have an effect because
    * evaluation of the right-hand operand is conditional.
-   * @return {@code true} if this type of token represents an associative operator
+   * @return `true` if this type of token represents an associative operator
    */
   bool isAssociativeOperator() => identical(this, AMPERSAND) || identical(this, AMPERSAND_AMPERSAND) || identical(this, BAR) || identical(this, BAR_BAR) || identical(this, CARET) || identical(this, PLUS) || identical(this, STAR);
 
   /**
-   * Return {@code true} if this type of token represents an equality operator.
-   * @return {@code true} if this type of token represents an equality operator
+   * Return `true` if this type of token represents an equality operator.
+   * @return `true` if this type of token represents an equality operator
    */
   bool isEqualityOperator() => identical(_tokenClass, TokenClass.EQUALITY_OPERATOR);
 
   /**
-   * Return {@code true} if this type of token represents an increment operator.
-   * @return {@code true} if this type of token represents an increment operator
+   * Return `true` if this type of token represents an increment operator.
+   * @return `true` if this type of token represents an increment operator
    */
   bool isIncrementOperator() => identical(_lexeme, "++") || identical(_lexeme, "--");
 
   /**
-   * Return {@code true} if this type of token represents a multiplicative operator.
-   * @return {@code true} if this type of token represents a multiplicative operator
+   * Return `true` if this type of token represents a multiplicative operator.
+   * @return `true` if this type of token represents a multiplicative operator
    */
   bool isMultiplicativeOperator() => identical(_tokenClass, TokenClass.MULTIPLICATIVE_OPERATOR);
 
   /**
-   * Return {@code true} if this token type represents an operator.
-   * @return {@code true} if this token type represents an operator
+   * Return `true` if this token type represents an operator.
+   * @return `true` if this token type represents an operator
    */
   bool isOperator() => _tokenClass != TokenClass.NO_CLASS && this != OPEN_PAREN && this != OPEN_SQUARE_BRACKET && this != PERIOD;
 
   /**
-   * Return {@code true} if this type of token represents a relational operator.
-   * @return {@code true} if this type of token represents a relational operator
+   * Return `true` if this type of token represents a relational operator.
+   * @return `true` if this type of token represents a relational operator
    */
   bool isRelationalOperator() => identical(_tokenClass, TokenClass.RELATIONAL_OPERATOR);
 
   /**
-   * Return {@code true} if this type of token represents a shift operator.
-   * @return {@code true} if this type of token represents a shift operator
+   * Return `true` if this type of token represents a shift operator.
+   * @return `true` if this type of token represents a shift operator
    */
   bool isShiftOperator() => identical(_tokenClass, TokenClass.SHIFT_OPERATOR);
 
   /**
-   * Return {@code true} if this type of token represents a unary postfix operator.
-   * @return {@code true} if this type of token represents a unary postfix operator
+   * Return `true` if this type of token represents a unary postfix operator.
+   * @return `true` if this type of token represents a unary postfix operator
    */
   bool isUnaryPostfixOperator() => identical(_tokenClass, TokenClass.UNARY_POSTFIX_OPERATOR);
 
   /**
-   * Return {@code true} if this type of token represents a unary prefix operator.
-   * @return {@code true} if this type of token represents a unary prefix operator
+   * Return `true` if this type of token represents a unary prefix operator.
+   * @return `true` if this type of token represents a unary prefix operator
    */
   bool isUnaryPrefixOperator() => identical(_tokenClass, TokenClass.UNARY_PREFIX_OPERATOR);
 
   /**
-   * Return {@code true} if this token type represents an operator that can be defined by users.
-   * @return {@code true} if this token type represents an operator that can be defined by users
+   * Return `true` if this token type represents an operator that can be defined by users.
+   * @return `true` if this token type represents an operator that can be defined by users
    */
   bool isUserDefinableOperator() => identical(_lexeme, "==") || identical(_lexeme, "~") || identical(_lexeme, "[]") || identical(_lexeme, "[]=") || identical(_lexeme, "*") || identical(_lexeme, "/") || identical(_lexeme, "%") || identical(_lexeme, "~/") || identical(_lexeme, "+") || identical(_lexeme, "-") || identical(_lexeme, "<<") || identical(_lexeme, ">>") || identical(_lexeme, ">=") || identical(_lexeme, ">") || identical(_lexeme, "<=") || identical(_lexeme, "<") || identical(_lexeme, "&") || identical(_lexeme, "^") || identical(_lexeme, "|");
   int compareTo(TokenType other) => ordinal - other.ordinal;

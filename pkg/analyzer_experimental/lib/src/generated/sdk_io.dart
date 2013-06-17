@@ -14,14 +14,14 @@ import 'parser.dart';
 import 'sdk.dart';
 import 'engine.dart';
 /**
- * Instances of the class {@code DirectoryBasedDartSdk} represent a Dart SDK installed in a
+ * Instances of the class `DirectoryBasedDartSdk` represent a Dart SDK installed in a
  * specified directory.
  * @coverage dart.engine.sdk
  */
 class DirectoryBasedDartSdk implements DartSdk {
 
   /**
-   * The {@link AnalysisContext} which is used for all of the sources in this {@link DartSdk}.
+   * The [AnalysisContext] which is used for all of the sources in this [DartSdk].
    */
   InternalAnalysisContext _analysisContext;
 
@@ -31,7 +31,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   JavaFile _sdkDirectory;
 
   /**
-   * The revision number of this SDK, or {@code "0"} if the revision number cannot be discovered.
+   * The revision number of this SDK, or `"0"` if the revision number cannot be discovered.
    */
   String _sdkVersion;
 
@@ -81,7 +81,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   static String _DARTIUM_EXECUTABLE_NAME_WIN = "Chrome.exe";
 
   /**
-   * The name of the {@link System} property whose value is the path to the default Dart SDK
+   * The name of the [System] property whose value is the path to the default Dart SDK
    * directory.
    */
   static String _DEFAULT_DIRECTORY_PROPERTY_NAME = "com.google.dart.sdk";
@@ -129,7 +129,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   static String _VM_EXECUTABLE_NAME = "dart";
 
   /**
-   * Return the default Dart SDK, or {@code null} if the directory containing the default SDK cannot
+   * Return the default Dart SDK, or `null` if the directory containing the default SDK cannot
    * be determined (or does not exist).
    * @return the default Dart SDK
    */
@@ -142,10 +142,10 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
-   * Return the default directory for the Dart SDK, or {@code null} if the directory cannot be
-   * determined (or does not exist). The default directory is provided by a {@link System} property
-   * named {@code com.google.dart.sdk}, or, if the property is not defined, an environment variable
-   * named {@code DART_SDK}.
+   * Return the default directory for the Dart SDK, or `null` if the directory cannot be
+   * determined (or does not exist). The default directory is provided by a [System] property
+   * named `com.google.dart.sdk`, or, if the property is not defined, an environment variable
+   * named `DART_SDK`.
    * @return the default directory for the Dart SDK
    */
   static JavaFile get defaultSdkDirectory {
@@ -184,7 +184,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   AnalysisContext get context => _analysisContext;
 
   /**
-   * Return the file containing the Dartium executable, or {@code null} if it does not exist.
+   * Return the file containing the Dartium executable, or `null` if it does not exist.
    * @return the file containing the Dartium executable
    */
   JavaFile get dartiumExecutable {
@@ -219,7 +219,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   JavaFile get docDirectory => new JavaFile.relative(_sdkDirectory, _DOCS_DIRECTORY_NAME);
 
   /**
-   * Return the auxiliary documentation file for the given library, or {@code null} if no such file
+   * Return the auxiliary documentation file for the given library, or `null` if no such file
    * exists.
    * @param libraryName the name of the library associated with the documentation file to be
    * returned
@@ -247,7 +247,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   SdkLibrary getSdkLibrary(String dartUri) => _libraryMap.getLibrary(dartUri);
 
   /**
-   * Return the revision number of this SDK, or {@code "0"} if the revision number cannot be
+   * Return the revision number of this SDK, or `"0"` if the revision number cannot be
    * discovered.
    * @return the revision number of this SDK
    */
@@ -275,7 +275,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   List<String> get uris => _libraryMap.uris;
 
   /**
-   * Return the file containing the VM executable, or {@code null} if it does not exist.
+   * Return the file containing the VM executable, or `null` if it does not exist.
    * @return the file containing the VM executable
    */
   JavaFile get vmExecutable {
@@ -291,14 +291,14 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 
   /**
-   * Return {@code true} if this SDK includes documentation.
-   * @return {@code true} if this installation of the SDK has documentation
+   * Return `true` if this SDK includes documentation.
+   * @return `true` if this installation of the SDK has documentation
    */
   bool hasDocumentation() => docDirectory.exists();
 
   /**
-   * Return {@code true} if the Dartium binary is available.
-   * @return {@code true} if the Dartium binary is available
+   * Return `true` if the Dartium binary is available.
+   * @return `true` if the Dartium binary is available
    */
   bool isDartiumInstalled() => dartiumExecutable != null;
   Source mapDartUri(ContentCache contentCache, String dartUri) {
@@ -366,7 +366,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   }
 }
 /**
- * Instances of the class {@code SdkLibrariesReader} read and parse the libraries file
+ * Instances of the class `SdkLibrariesReader` read and parse the libraries file
  * (dart-sdk/lib/_internal/libraries.dart) for information about the libraries in an SDK. The
  * library information is represented as a Dart file containing a single top-level variable whose
  * value is a const map. The keys of the map are the names of libraries defined in the SDK and the
@@ -438,7 +438,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveASTVisitor<Object> {
   static String _PLATFORMS = "platforms";
 
   /**
-   * The value of the {@link #PLATFORMS platforms} parameter used to specify that the library can
+   * The value of the [PLATFORMS platforms] parameter used to specify that the library can
    * be used on the VM.
    */
   static String _VM_PLATFORM = "VM_PLATFORM";
