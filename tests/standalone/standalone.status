@@ -122,11 +122,13 @@ package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issu
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
-io/test_runner_test: Fail # Library dart:uri removed.
 io/skipping_dart2js_compilations_test: Skip # Library dart:uri removed.
 http_launch_test: Skip
 53bit_overflow_test: Skip
 53bit_overflow_literal_test: Skip
+
+[ $compiler == dart2js && $unchecked ]
+io/test_runner_test: Fail # Issue 11306.
 
 [ $compiler == dart2js && $jscl ]
 assert_test: Fail, OK # Assumes unspecified fields on the AssertionError.
