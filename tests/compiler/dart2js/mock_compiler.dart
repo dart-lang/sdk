@@ -65,6 +65,7 @@ const String DEFAULT_HELPERLIB = r'''
   class ConstantMap {}
   class TypeImpl {}
   S() {}
+  throwCyclicInit() {}
   throwExpression(e) {}
   unwrapException(e) {}
   assertHelper(a) {}
@@ -167,7 +168,7 @@ const String DEFAULT_CORELIB = r'''
   abstract class StackTrace {}
   class Type {}
   class Function {}
-  class List<E> {}
+  class List<E> { List([length]); }
   abstract class Map<K,V> {}
   class DateTime {
     DateTime(year);

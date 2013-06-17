@@ -35,6 +35,7 @@ import 'types/types.dart' as ti;
 import 'resolution/resolution.dart';
 import 'js/js.dart' as js;
 import 'deferred_load.dart' show DeferredLoadTask;
+import 'types/container_tracer.dart' show ContainerTracer;
 
 export 'resolution/resolution.dart' show TreeElements, TreeElementMapping;
 export 'scanner/scannerlib.dart' show SourceString,

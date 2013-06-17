@@ -154,18 +154,18 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
                                    Compiler compiler) {
-    if (instruction.inputs[1].isIndexable(compiler)) {
-      if (!instruction.inputs[2].isInteger() && compiler.enableTypeAssertions) {
-        // We want the right checked mode error.
-        return null;
-      }
-      HInstruction index = new HIndex(
-          instruction.inputs[1], instruction.inputs[2], instruction.selector);
-      index.instructionType =
-          new HType.inferredTypeForSelector(instruction.selector, compiler);
-      return index;
+    if (!instruction.inputs[1].isIndexable(compiler)) return null;
+    if (!instruction.inputs[2].isInteger() && compiler.enableTypeAssertions) {
+      // We want the right checked mode error.
+      return null;
     }
-    return null;
+    HInstruction index = new HIndex(
+        instruction.inputs[1], instruction.inputs[2], instruction.selector);
+    HType receiverType = instruction.getDartReceiver(compiler).instructionType;
+    Selector refined = receiverType.refine(instruction.selector, compiler);
+    HType type = new HType.inferredTypeForSelector(refined, compiler);
+    index.instructionType = type;
+    return index;
   }
 
   bool hasBuiltinVariant(HInvokeDynamic instruction, Compiler compiler) {

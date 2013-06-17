@@ -17,6 +17,7 @@ import 'simple_types_inferrer.dart' show SimpleTypesInferrer;
 import '../dart_types.dart';
 
 part 'concrete_types_inferrer.dart';
+part 'container_type_mask.dart';
 part 'flat_type_mask.dart';
 part 'type_mask.dart';
 part 'union_type_mask.dart';
@@ -30,22 +31,6 @@ abstract class TypesInferrer {
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeOfNode(Element owner, Node node);
   TypeMask getTypeOfSelector(Selector selector);
-
-  TypeMask get dynamicType;
-  TypeMask get nullType;
-  TypeMask get intType;
-  TypeMask get doubleType;
-  TypeMask get numType;
-  TypeMask get boolType;
-  TypeMask get functionType;
-  TypeMask get listType;
-  TypeMask get constListType;
-  TypeMask get fixedListType;
-  TypeMask get growableListType;
-  TypeMask get mapType;
-  TypeMask get constMapType;
-  TypeMask get stringType;
-  TypeMask get typeType;
 }
 
 /**
@@ -64,6 +49,22 @@ class TypesTask extends CompilerTask {
       concreteTypesInferrer = new ConcreteTypesInferrer(compiler);
     }
   }
+
+  TypeMask dynamicType;
+  TypeMask nullType;
+  TypeMask intType;
+  TypeMask doubleType;
+  TypeMask numType;
+  TypeMask boolType;
+  TypeMask functionType;
+  TypeMask listType;
+  TypeMask constListType;
+  TypeMask fixedListType;
+  TypeMask growableListType;
+  TypeMask mapType;
+  TypeMask constMapType;
+  TypeMask stringType;
+  TypeMask typeType;
 
   /// Replaces native types by their backend implementation.
   Element normalize(Element cls) {
@@ -130,8 +131,12 @@ class TypesTask extends CompilerTask {
   TypeMask _best(var type1, var type2) {
     if (type1 == null) return type2;
     if (type2 == null) return type1;
+    if (type1.isContainer) type1 = type1.asFlat;
+    if (type2.isContainer) type2 = type2.asFlat;
     if (type1.isExact) {
       if (type2.isExact) {
+        // TODO(polux): Update the code to not have this situation.
+        if (type1.base != type2.base) return type1;
         assert(same(type1.base, type2.base));
         return type1.isNullable ? type2 : type1;
       } else {
@@ -174,11 +179,56 @@ class TypesTask extends CompilerTask {
     }
   }
 
+  // TODO(ngeoffray): Get rid of this method. Unit tests don't always
+  // ensure these classes are resolved.
+  rawTypeOf(ClassElement cls) {
+    cls.ensureResolved(compiler);
+    assert(cls.rawType != null);
+    return cls.rawType;
+  }
+
+  void initializeTypes() {
+    nullType = new TypeMask.empty();
+
+    Backend backend = compiler.backend;
+    intType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.intImplementation));
+    doubleType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.doubleImplementation));
+    numType = new TypeMask.nonNullSubclass(
+        rawTypeOf(backend.numImplementation));
+    stringType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.stringImplementation));
+    boolType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.boolImplementation));
+
+    listType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.listImplementation));
+    constListType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.constListImplementation));
+    fixedListType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.fixedListImplementation));
+    growableListType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.growableListImplementation));
+
+    mapType = new TypeMask.nonNullSubtype(
+        rawTypeOf(backend.mapImplementation));
+    constMapType = new TypeMask.nonNullSubtype(
+        rawTypeOf(backend.constMapImplementation));
+    functionType = new TypeMask.nonNullSubtype(
+        rawTypeOf(backend.functionImplementation));
+    typeType = new TypeMask.nonNullExact(
+        rawTypeOf(backend.typeImplementation));
+
+    dynamicType = new TypeMask.subclass(rawTypeOf(compiler.objectClass));
+  }
+
   /**
    * Called when resolution is complete.
    */
   void onResolutionComplete(Element mainElement) {
     measure(() {
+      initializeTypes();
       typesInferrer.analyzeMain(mainElement);
       if (concreteTypesInferrer != null) {
         bool success = concreteTypesInferrer.analyzeMain(mainElement);
@@ -190,6 +240,8 @@ class TypesTask extends CompilerTask {
         }
       }
     });
+    compiler.containerTracer.analyze();
+    typesInferrer.clear();
   }
 
   /**

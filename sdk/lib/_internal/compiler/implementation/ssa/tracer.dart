@@ -179,12 +179,18 @@ class HInstructionStringifier implements HVisitor<String> {
   String temporaryId(HInstruction instruction) {
     String prefix;
     HType type = instruction.instructionType;
-    if (type.isMutableArray(compiler)) {
+    if (type.isExtendableArray(compiler)) {
+      prefix = 'e';
+    } else if (type.isFixedArray(compiler)) {
+      prefix = 'f';
+    } else if (type.isMutableArray(compiler)) {
       prefix = 'm';
     } else if (type.isReadableArray(compiler)) {
       prefix = 'a';
-    } else if (type.isExtendableArray(compiler)) {
-      prefix = 'e';
+    } else if (type.isString(compiler)) {
+      prefix = 's';
+    } else if (type.isIndexable(compiler)) {
+      prefix = 'r';
     } else if (type == HType.BOOLEAN) {
       prefix = 'b';
     } else if (type == HType.INTEGER) {
@@ -193,14 +199,10 @@ class HInstructionStringifier implements HVisitor<String> {
       prefix = 'd';
     } else if (type == HType.NUMBER) {
       prefix = 'n';
-    } else if (type.isString(compiler)) {
-      prefix = 's';
     } else if (type == HType.UNKNOWN) {
       prefix = 'v';
     } else if (type == HType.CONFLICTING) {
       prefix = 'c';
-    } else if (type.isIndexable(compiler)) {
-      prefix = 'r';
     } else if (type == HType.NULL) {
       prefix = 'u';
     } else {

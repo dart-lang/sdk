@@ -3341,11 +3341,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (Elements.isFixedListConstructorCall(
               originalElement, send, compiler)) {
         isListConstructor = true;
-        return backend.fixedArrayType;
+        HType inferred =
+            new HType.inferredForNode(currentElement, node, compiler);
+        return inferred.isUnknown() ? backend.fixedArrayType : inferred;
       } else if (Elements.isGrowableListConstructorCall(
                     originalElement, send, compiler)) {
         isListConstructor = true;
-        return backend.extendableArrayType;
+        HType inferred =
+            new HType.inferredForNode(currentElement, node, compiler);
+        return inferred.isUnknown() ? backend.extendableArrayType : inferred;
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
         return new HType.nonNullExact(cls.thisType, compiler);
@@ -4103,7 +4107,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(link.head);
       inputs.add(pop());
     }
-    push(buildLiteralList(inputs));
+    HInstruction instruction = buildLiteralList(inputs);
+    HType type = new HType.inferredForNode(currentElement, node, compiler);
+    if (!type.isUnknown()) instruction.instructionType = type;
+    push(instruction);
   }
 
   visitConditional(Conditional node) {

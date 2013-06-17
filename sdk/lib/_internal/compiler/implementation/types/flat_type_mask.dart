@@ -63,6 +63,7 @@ class FlatTypeMask implements TypeMask {
   bool get isExact => (flags >> 1) == EXACT;
   bool get isNullable => (flags & 1) != 0;
   bool get isUnion => false;
+  bool get isContainer => false;
 
   // TODO(kasperl): Get rid of these. They should not be a visible
   // part of the implementation because they make it hard to add
