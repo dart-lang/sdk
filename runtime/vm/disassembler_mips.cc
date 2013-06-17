@@ -329,6 +329,14 @@ void MIPSDecoder::DecodeSpecial(Instr* instr) {
       Format(instr, "mflo 'rd");
       break;
     }
+    case MOVCI: {
+      if (instr->Bit(16)) {
+        Format(instr, "movt 'rd, 'rs");
+      } else {
+        Format(instr, "movf 'rd, 'rs");
+      }
+      break;
+    }
     case MOVN: {
       Format(instr, "movn 'rd, 'rs, 'rt");
       break;
@@ -523,35 +531,35 @@ void MIPSDecoder::DecodeCop1(Instr* instr) {
         break;
       }
       case COP1_C_F: {
-        Format(instr, "c.f.'fmt 'fd, 'fs");
+        Format(instr, "c.f.'fmt 'fs, 'ft");
         break;
       }
       case COP1_C_UN: {
-        Format(instr, "c.un.'fmt 'fd, 'fs");
+        Format(instr, "c.un.'fmt 'fs, 'ft");
         break;
       }
       case COP1_C_EQ: {
-        Format(instr, "c.eq.'fmt 'fd, 'fs");
+        Format(instr, "c.eq.'fmt 'fs, 'ft");
         break;
       }
       case COP1_C_UEQ: {
-        Format(instr, "c.ueq.'fmt 'fd, 'fs");
+        Format(instr, "c.ueq.'fmt 'fs, 'ft");
         break;
       }
       case COP1_C_OLT: {
-        Format(instr, "c.olt.'fmt 'fd, 'fs");
+        Format(instr, "c.olt.'fmt 'fs, 'ft");
         break;
       }
       case COP1_C_ULT: {
-        Format(instr, "c.ult.'fmt 'fd, 'fs");
+        Format(instr, "c.ult.'fmt 'fs, 'ft");
         break;
       }
       case COP1_C_OLE: {
-        Format(instr, "c.ole.'fmt 'fd, 'fs");
+        Format(instr, "c.ole.'fmt 'fs, 'ft");
         break;
       }
       case COP1_C_ULE: {
-        Format(instr, "c.ule.'fmt 'fd, 'fs");
+        Format(instr, "c.ule.'fmt 'fs, 'ft");
         break;
       }
       case COP1_CVT_D: {

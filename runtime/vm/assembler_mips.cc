@@ -346,14 +346,14 @@ void Assembler::EnterStubFrame(bool uses_pp) {
     // Setup pool pointer for this stub.
     Label next;
     bal(&next);
-    delay_slot()->mov(T0, RA);
+    delay_slot()->mov(TMP1, RA);
 
     const intptr_t object_pool_pc_dist =
         Instructions::HeaderSize() - Instructions::object_pool_offset() +
         CodeSize();
 
     Bind(&next);
-    lw(PP, Address(T0, -object_pool_pc_dist));
+    lw(PP, Address(TMP1, -object_pool_pc_dist));
   } else {
     addiu(SP, SP, Immediate(-3 * kWordSize));
     sw(ZR, Address(SP, 2 * kWordSize));  // PC marker is 0 in stubs.

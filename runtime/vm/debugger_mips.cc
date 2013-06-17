@@ -48,7 +48,6 @@ void CodeBreakpoint::PatchFunctionReturn() {
   Instr* instr5 = Instr::At(pc_ - 1 * Instr::kInstrSize);
 
 #if defined(DEBUG)
-
   instr1->AssertIsImmInstr(LW, SP, RA, 2 * kWordSize);
   instr2->AssertIsImmInstr(LW, SP, FP, 1 * kWordSize);
   instr3->AssertIsImmInstr(LW, SP, PP, 0 * kWordSize);

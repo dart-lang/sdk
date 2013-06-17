@@ -109,19 +109,20 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
                               FieldAddress(T0, Array::length_offset()),
                               T2);
 
+  __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
   // Initialize all array elements to raw_null.
   // T0: new object start as a tagged pointer.
   // T1: new object end address.
   // T2: iterator which initially points to the start of the variable
   // data area to be initialized.
-  // NULLREG: null
+  // T7: null
   __ AddImmediate(T2, T0, sizeof(RawArray) - kHeapObjectTag);
 
   Label done;
   Label init_loop;
   __ Bind(&init_loop);
   __ BranchUnsignedGreaterEqual(T2, T1, &done);
-  __ sw(NULLREG, Address(T2, 0));
+  __ sw(T7, Address(T2, 0));
   __ b(&init_loop);
   __ delay_slot()->addiu(T2, T2, Immediate(kWordSize));
   __ Bind(&done);
@@ -201,13 +202,14 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     __ lw(T2, Address(SP, 0 * kWordSize));  // Value.
 
     // Null value is valid for any type.
-    __ beq(T2, NULLREG, &checked_ok);
+    __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+    __ beq(T2, T7, &checked_ok);
     __ delay_slot()->lw(T1, Address(SP, 2 * kWordSize));  // Array.
 
     __ lw(T1, FieldAddress(T1, type_args_field_offset));
 
     // T1: Type arguments of array.
-    __ beq(T1, NULLREG, &checked_ok);
+    __ beq(T1, T7, &checked_ok);
 
     // Check if it's dynamic.
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
@@ -462,8 +464,9 @@ bool Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ StoreIntoObject(T2,
                      FieldAddress(T1, Array::data_offset()),
                      T0);
+  __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
   __ Ret();
-  __ delay_slot()->mov(V0, NULLREG);
+  __ delay_slot()->mov(V0, T7);
   __ Bind(&fall_through);
   return false;
 }
@@ -836,7 +839,6 @@ bool Intrinsifier::Integer_bitOr(Assembler* assembler) {
 
 bool Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   Label fall_through;
-  __ Untested("Intrinsifier::Integer_bitXorFromInteger");
 
   TestBothArgumentsSmis(assembler, &fall_through);  // Checks two smis.
   __ Ret();
@@ -1138,24 +1140,15 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
 // returns false. Any non-double arg1 causes control flow to fall through to the
 // slow case (compiled method body).
 static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
-  Label is_smi, no_conversion, no_NaN, fall_through;
+  Label is_smi, double_op, no_NaN, fall_through;
+  __ Comment("CompareDoubles Intrinsic");
 
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in T0.
-  __ lwc1(F2, FieldAddress(T0, Double::value_offset()));
-  __ b(&no_conversion);
-  __ delay_slot()->lwc1(F3,
-      FieldAddress(T0, Double::value_offset() + kWordSize));
-
-  __ Bind(&is_smi);
-  __ SmiUntag(T0);
-  __ mtc1(T0, F4);
-  __ cvtdw(D1, F4);
-
-  __ Bind(&no_conversion);
+  __ LoadDFromOffset(D1, T0, Double::value_offset() - kHeapObjectTag);
+  __ Bind(&double_op);
   __ lw(T0, Address(SP, 1 * kWordSize));  // Left argument.
-  __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
-  __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
+  __ LoadDFromOffset(D0, T0, Double::value_offset() - kHeapObjectTag);
   // Now, left is in D0, right is in D1.
 
   __ cund(D0, D1);  // Check for NaN.
@@ -1165,11 +1158,11 @@ static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ Bind(&no_NaN);
 
   switch (true_condition) {
-    case EQ: __ ceqd(D1, D0); break;
-    case LT: __ coltd(D1, D0); break;
-    case LE: __ coled(D1, D0); break;
-    case GT: __ coltd(D0, D1); break;
-    case GE: __ coled(D0, D1); break;
+    case EQ: __ ceqd(D0, D1); break;
+    case LT: __ coltd(D0, D1); break;
+    case LE: __ coled(D0, D1); break;
+    case GT: __ coltd(D1, D0); break;
+    case GE: __ coled(D1, D0); break;
     default: {
       // Only passing the above conditions to this function.
       UNREACHABLE();
@@ -1184,6 +1177,14 @@ static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
   __ Bind(&is_true);
   __ LoadObject(V0, Bool::True());
   __ Ret();
+
+
+  __ Bind(&is_smi);
+  __ SmiUntag(T0);
+  __ mtc1(T0, STMP1);
+  __ cvtdw(D1, STMP1);
+  __ b(&double_op);
+
   __ Bind(&fall_through);
   return false;
 }
@@ -1268,7 +1269,6 @@ bool Intrinsifier::Double_div(Assembler* assembler) {
 // Left is double right is integer (Bigint, Mint or Smi)
 bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
-  __ Untested("Intrinsifier::Double_mulFromInteger");
   // Only Smi-s allowed.
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ andi(CMPRES, T0, Immediate(kSmiTagMask));
@@ -1320,7 +1320,7 @@ bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
 
 bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
   Label is_true;
-  __ Untested("Intrinsifier::Double_getIsNaN");
+
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
   __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
@@ -1337,7 +1337,6 @@ bool Intrinsifier::Double_getIsNaN(Assembler* assembler) {
 
 bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
-  __ Untested("Intrinsifier::Double_getIsNegative");
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
   __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
@@ -1390,11 +1389,9 @@ bool Intrinsifier::Double_toInt(Assembler* assembler) {
 
 bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
-  __ Untested("Intrinsifier::Math_sqrt");
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Argument is double and is in T0.
-  __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
-  __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
+  __ LoadDFromOffset(D1, T0, Double::value_offset() - kHeapObjectTag);
   __ Bind(&double_op);
   __ sqrtd(D0, D1);
   const Class& double_class = Class::Handle(
@@ -1446,8 +1443,6 @@ bool Intrinsifier::Random_nextState(Assembler* assembler) {
   // 'a_int_value' is a mask.
   ASSERT(Utils::IsUint(32, a_int_value));
   int32_t a_int32_value = static_cast<int32_t>(a_int_value);
-
-  __ Untested("Random_nextState");
 
   __ lw(T0, Address(SP, 0 * kWordSize));  // Receiver.
   __ lw(T1, FieldAddress(T0, state_field.Offset()));  // Field '_state'.

@@ -156,9 +156,13 @@ enum DRegister {
   kNoDRegister = -1,
 };
 
+const DRegister DTMP = D9;
+const FRegister STMP1 = F18;
+const FRegister STMP2 = F19;
+
 // Architecture independent aliases.
 typedef DRegister FpuRegister;
-const FpuRegister FpuTMP = D0;
+const FpuRegister FpuTMP = DTMP;
 const int kNumberOfFpuRegisters = kNumberOfDRegisters;
 const FpuRegister kNoFpuRegister = kNoDRegister;
 
@@ -171,13 +175,6 @@ const Register CTX = S6;  // Caches current context in generated code.
 const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
-
-// NULLREG holds reinterpret_cast<intptr_t>(Object::null()).
-// TODO(zra): Is it worthwhile to devote a register to this? Investigate
-// performance effects when we are running on real hardware. Same with
-// CMPRES. Try moving CTX and PP to T8 and T9 and shifting kLastCpuRegister
-// down to S7.
-const Register NULLREG = T8;
 
 // The code that generates a comparison can be far away from the code that
 // generates the branch that uses the result of that comparison. In this case,
