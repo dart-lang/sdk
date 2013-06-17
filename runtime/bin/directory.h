@@ -51,7 +51,7 @@ class PathBuffer {
 
 class DirectoryListing;
 
-class LinkList;
+struct LinkList;
 
 // DirectoryListingEntry is used as a stack item, when performing recursive
 // directory listing. By using DirectoryListingEntry as stack elements, a
