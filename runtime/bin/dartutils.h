@@ -122,7 +122,7 @@ class DartUtils {
                                        Dart_Handle url);
   static Dart_Handle LoadScript(const char* script_uri,
                                 Dart_Handle builtin_lib);
-  static Dart_Handle LoadScriptHttp(Dart_Handle uri,
+  static Dart_Handle LoadScriptHttp(Dart_Handle script_uri,
                                     Dart_Handle builtin_lib);
   static Dart_Handle LoadSource(CommandLineOptions* url_mapping,
                                 Dart_Handle library,
@@ -163,22 +163,11 @@ class DartUtils {
   static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
                                    const char* url_string);
 
-  static Dart_Handle SetWorkingDirectory(Dart_Handle builtin_lib);
-
   static Dart_Handle ResolveScriptUri(Dart_Handle script_uri,
                                       Dart_Handle builtin_lib);
 
   static Dart_Handle FilePathFromUri(Dart_Handle script_uri,
                                      Dart_Handle builtin_lib);
-
-  static Dart_Handle PathFromUri(Dart_Handle script_uri,
-                                 Dart_Handle builtin_lib);
-
-  static Dart_Handle HostFromUri(Dart_Handle script_uri,
-                                 Dart_Handle builtin_lib);
-
-  static Dart_Handle PortFromUri(Dart_Handle script_uri,
-                                 Dart_Handle builtin_lib);
 
   static Dart_Handle ResolveUri(Dart_Handle library_url,
                                 Dart_Handle url,

@@ -3,20 +3,61 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library builtin;
+import 'dart:io';
+
+int _httpRequestResponseCode = 0;
+String _httpRequestStatusString;
+var _httpRequestResponse;
+
+void _requestCompleted(HttpClientResponseBody body) {
+  _httpRequestResponseCode = body.statusCode;
+  _httpRequestStatusString = '${body.statusCode} ${body.reasonPhrase}';
+  _httpRequestResponse = null;
+  if (body.statusCode != 200 || body.type == "json") {
+    return;
+  }
+  _httpRequestResponse = body.body;
+}
+
+void _requestFailed(error) {
+  _httpRequestResponseCode = 0;
+  _httpRequestStatusString = error.toString();
+  _httpRequestResponse = null;
+}
+
+HttpClient _client = new HttpClient();
+void _makeHttpRequest(String uri) {
+  _httpRequestResponseCode = 0;
+  _httpRequestStatusString = null;
+  _httpRequestResponse = null;
+  Uri requestUri = Uri.parse(uri);
+  _client.getUrl(requestUri)
+      .then((HttpClientRequest request) => request.close())
+      .then(HttpBodyHandler.processResponse)
+      .then((HttpClientResponseBody body) {
+        _requestCompleted(body);
+      }).catchError((error) {
+        _requestFailed(error);
+      });
+}
 
 // Corelib 'print' implementation.
 void _print(arg) {
   _Logger._printString(arg.toString());
 }
 
-
 class _Logger {
   static void _printString(String s) native "Logger_PrintString";
 }
 
-
 _getPrintClosure() => _print;
 
+// The URI that the entrypoint script was loaded from. Remembered so that
+// package imports can be resolved relative to it.
+var _entrypoint;
+
+// The directory to look in to resolve "package:" scheme URIs.
+var _packageRoot;
 
 void _logResolution(String msg) {
   final enabled = false;
@@ -25,25 +66,22 @@ void _logResolution(String msg) {
   }
 }
 
-
-// Are we running on Windows?
-var _isWindows = false;
-// The current working directory
-var _workingDirectoryUri;
-// The URI that the entry point script was loaded from. Remembered so that
-// package imports can be resolved relative to it.
-var _entryPointScript;
-// The directory to look in to resolve "package:" scheme URIs.
-var _packageRoot;
-
-
-void _setWindows() {
-  _isWindows = true;
+_setPackageRoot(String packageRoot) {
+  // TODO(mattsh) - refactor windows drive and path handling code
+  // so it can be used here if needed.
+  _packageRoot = packageRoot;
 }
 
-
-void _setWorkingDirectory(cwd) {
-  if (_isWindows) {
+String _resolveScriptUri(String cwd, String scriptName, bool isWindows) {
+  var scriptUri = Uri.parse(scriptName);
+  if (scriptUri.scheme == 'http') {
+    _entrypoint = scriptUri;
+    _logResolution("# Resolved script to: $_entrypoint");
+    return _entrypoint.toString();
+  }
+  _logResolution("# Current working directory: $cwd");
+  _logResolution("# ScriptName: $scriptName");
+  if (isWindows) {
     // For Windows we need to massage the paths a bit according to
     // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
     //
@@ -52,49 +90,27 @@ void _setWorkingDirectory(cwd) {
     // to
     // /C:/one/two/three
     cwd = "/${cwd.replaceAll('\\', '/')}";
+    _logResolution("## cwd: $cwd");
+    if ((scriptName.length > 2) && (scriptName[1] == ":")) {
+      // This is an absolute path.
+      scriptName = "/${scriptName.replaceAll('\\', '/')}";
+    } else {
+      scriptName = scriptName.replaceAll('\\', '/');
+    }
+    _logResolution("## scriptName: $scriptName");
   }
+  var base =
+      new Uri(scheme: "file",
+              path: cwd.endsWith("/") ? cwd : "$cwd/");
+  _entrypoint = base.resolve(scriptName);
+  _logResolution("# Resolved script to: $_entrypoint");
 
-  // Ensure we have a trailing slash character.
-  if (cwd.endsWith('/')) {
-    cwd = cwd;
-  } else {
-    cwd = '$cwd/';
-  }
-  _workingDirectoryUri = new Uri(scheme: 'file', path: cwd);
-  _logResolution('# Working Directory: $cwd');
+  return _entrypoint.toString();
 }
-
-
-_setPackageRoot(String packageRoot) {
-  if (!packageRoot.endsWith('/')) {
-    // Ensure we have a trailing slash character.
-    packageRoot = '$packageRoot/';
-  }
-  _packageRoot = Uri.parse(packageRoot);
-}
-
-
-String _resolveScriptUri(String scriptName) {
-  if (_workingDirectoryUri == null) {
-    throw 'No current working directory set.';
-  }
-  var scriptUri = Uri.parse(scriptName);
-  if (scriptUri.scheme != '') {
-    // Script has a scheme, assume that it is fully formed.
-    _entryPointScript = scriptUri;
-  } else {
-    // Script does not have a scheme, assume that it is a path,
-    // resolve it against the working directory.
-    _entryPointScript = _workingDirectoryUri.resolve(scriptName);
-  }
-  _logResolution('# Resolved entry point to: $_entryPointScript');
-  return _entryPointScript.toString();
-}
-
 
 String _resolveUri(String base, String userString) {
   var baseUri = Uri.parse(base);
-  _logResolution('# Resolving: $userString from $base');
+  _logResolution("# Resolving: $userString from $base");
 
   var uri = Uri.parse(userString);
   var resolved;
@@ -109,18 +125,18 @@ String _resolveUri(String base, String userString) {
       // package URI path part.
       path = _filePathFromPackageUri(resolved);
     }
-    resolved = new Uri(scheme: 'dart-ext', path: path);
+    resolved = new Uri(scheme: "dart-ext", path: path);
   } else {
     resolved = baseUri.resolve(userString);
   }
-  _logResolution('# Resolved to: $resolved');
+  _logResolution("# Resolved to: $resolved");
   return resolved.toString();
 }
 
 
-String _filePathFromUri(String userUri) {
+String _filePathFromUri(String userUri, bool isWindows) {
   var uri = Uri.parse(userUri);
-  _logResolution('# Getting file path from: $uri');
+  _logResolution("# Getting file path from: $uri");
 
   var path;
   switch (uri.scheme) {
@@ -138,42 +154,39 @@ String _filePathFromUri(String userUri) {
       break;
     default:
       // Only handling file and package URIs in standalone binary.
-      _logResolution('# Unknown scheme (${uri.scheme}) in $uri.');
-      throw 'Not a known scheme: $uri';
+      _logResolution("# Unknown scheme (${uri.scheme}) in $uri.");
+      throw "Not a known scheme: $uri";
   }
 
-  if (_isWindows && path.startsWith('/')) {
+  if (isWindows && path.startsWith("/")) {
     // For Windows we need to massage the paths a bit according to
     // http://blogs.msdn.com/b/ie/archive/2006/12/06/file-uris-in-windows.aspx
     //
     // Drop the leading / before the drive letter.
     path = path.substring(1);
-    _logResolution('# Path: Removed leading / -> $path');
+    _logResolution("# path: $path");
   }
 
   return path;
 }
-
 
 String _filePathFromFileUri(Uri uri) {
   if (!uri.host.isEmpty) {
     throw "URIs using the 'file:' scheme may not contain a host.";
   }
 
-  _logResolution('# Path: $uri -> ${uri.path}');
+  _logResolution("# Path: ${uri.path}");
   return uri.path;
 }
-
 
 String _filePathFromOtherUri(Uri uri) {
   if (!uri.host.isEmpty) {
-    throw 'URIs whose paths are used as file paths may not contain a host.';
+    throw "URIs whose paths are used as file paths may not contain a host.";
   }
 
-  _logResolution('# Path: $uri -> ${uri.path}');
+  _logResolution("# Path: ${uri.path}");
   return uri.path;
 }
-
 
 String _filePathFromPackageUri(Uri uri) {
   if (!uri.host.isEmpty) {
@@ -185,45 +198,22 @@ String _filePathFromPackageUri(Uri uri) {
           "'$right', not '$wrong'.";
   }
 
-  var packageUri;
   var path;
   if (_packageRoot != null) {
-    // Resolve against package root.
-    packageUri = _packageRoot.resolve(uri.path);
+    path = "${_packageRoot}${uri.path}";
   } else {
-    // Resolve against working directory.
-    packageUri = _entryPointScript.resolve('packages/${uri.path}');
+    if (_entrypoint.scheme == 'http') {
+      path = _entrypoint.resolve('packages/${uri.path}').toString();
+    } else {
+      path = _entrypoint.resolve('packages/${uri.path}').path;
+    }
   }
 
-  if (packageUri.scheme == 'file') {
-    path = packageUri.path;
-  } else {
-    path = packageUri.toString();
-  }
-  _logResolution('# Package: $uri -> $path');
+  _logResolution("# Package: $path");
   return path;
 }
 
-
 String _filePathFromHttpUri(Uri uri) {
-  _logResolution('# Path: $uri -> $uri');
+  _logResolution('# Path: $uri');
   return uri.toString();
-}
-
-
-String _pathFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.path;
-}
-
-
-String _hostFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.host;
-}
-
-
-int _portFromHttpUri(String userUri) {
-  var uri = Uri.parse(userUri);
-  return uri.port == 0 ? 80 : uri.port;
 }

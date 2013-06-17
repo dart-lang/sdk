@@ -44,15 +44,6 @@ static bool IsWindowsHost() {
 }
 
 
-static Dart_Handle SingleArgDart_Invoke(Dart_Handle arg, Dart_Handle lib,
-                                        const char* method) {
-  const int kNumArgs = 1;
-  Dart_Handle dart_args[kNumArgs];
-  dart_args[0] = arg;
-  return Dart_Invoke(lib, DartUtils::NewString(method), kNumArgs, dart_args);
-}
-
-
 const char* DartUtils::MapLibraryUrl(CommandLineOptions* url_mapping,
                                      const char* url_string) {
   ASSERT(url_mapping != NULL);
@@ -252,74 +243,12 @@ void DartUtils::CloseFile(void* stream) {
 }
 
 
-// Writes string into socket.
-// Return < 0 indicates an error.
-// Return >= 0 number of bytes written.
-static intptr_t SocketWriteString(intptr_t socket, const char* str,
-                                  intptr_t len) {
-    int r;
-    intptr_t cursor = 0;
-    do {
-      r = Socket::Write(socket, &str[cursor], len);
-      if (r < 0) {
-        return r;
-      }
-      cursor += r;
-      len -= r;
-    } while (len > 0);
-    ASSERT(len == 0);
-    return cursor;
-}
-
-
-static uint8_t* SocketReadUntilEOF(intptr_t socket, intptr_t* response_len) {
-  const intptr_t kInitialBufferSize = 16 * KB;
-  intptr_t buffer_size = kInitialBufferSize;
-  uint8_t* buffer = reinterpret_cast<uint8_t*>(malloc(buffer_size));
-  ASSERT(buffer != NULL);
-  intptr_t buffer_cursor = 0;
-  do {
-    int bytes_read = Socket::Read(socket, &buffer[buffer_cursor],
-                                      buffer_size - buffer_cursor - 1);
-    if (bytes_read < 0) {
-      free(buffer);
-      return NULL;
-    }
-
-    buffer_cursor += bytes_read;
-
-    if (bytes_read == 0) {
-      *response_len = buffer_cursor;
-      buffer[buffer_cursor] = '\0';
-      break;
-    }
-
-    // There is still more data to be read, check that we have room in the
-    // buffer for more data.
-    if (buffer_cursor == buffer_size - 1) {
-      // Buffer is full. Increase buffer size.
-      buffer_size *= 2;
-      buffer = reinterpret_cast<uint8_t*>(realloc(buffer, buffer_size));
-      ASSERT(buffer != NULL);
-    }
-  } while (true);
-  return buffer;
-}
-
-
-static bool HttpGetRequestOkay(const char* response) {
-  static const char* kOkayReply = "HTTP/1.0 200 OK";
-  static const intptr_t kOkayReplyLen = strlen(kOkayReply);
-  return (strncmp(response, kOkayReply, kOkayReplyLen) == 0);
-}
-
-
-static const uint8_t* HttpRequestGetPayload(const char* response) {
-  const char* split = strstr(response, "\r\n\r\n");
-  if (split != NULL) {
-    return reinterpret_cast<const uint8_t*>(split+4);
-  }
-  return NULL;
+static Dart_Handle SingleArgDart_Invoke(Dart_Handle arg, Dart_Handle lib,
+                                        const char* method) {
+  const int kNumArgs = 1;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = arg;
+  return Dart_Invoke(lib, DartUtils::NewString(method), kNumArgs, dart_args);
 }
 
 
@@ -332,135 +261,93 @@ static const uint8_t* HttpRequestGetPayload(const char* response) {
   *error_msg = msg
 
 
-static const uint8_t* HttpGetRequest(const char* host, const char* path,
-                                     int port, intptr_t* response_len,
-                                     const char** error_msg) {
-  OSError* error = NULL;
-  SocketAddresses* addresses = Socket::LookupAddress(host, -1, &error);
-  if (addresses == NULL || addresses->count() == 0) {
-    SET_ERROR_MSG(error_msg, "Unable to resolve %s", host);
-    return NULL;
-  }
-
-  int preferred_address = 0;
-  for (int i = 0; i < addresses->count(); i++) {
-    SocketAddress* address = addresses->GetAt(i);
-    if (address->GetType() == SocketAddress::ADDRESS_LOOPBACK_IP_V4) {
-      // Prefer the IP_V4 loop back.
-      preferred_address = i;
-      break;
-    }
-  }
-
-  RawAddr addr = addresses->GetAt(preferred_address)->addr();
-  intptr_t tcp_client = Socket::Create(addr);
-  if (tcp_client < 0) {
-    SET_ERROR_MSG(error_msg, "Unable to create socket to %s:%d", host, port);
-    return NULL;
-  }
-  Socket::Connect(tcp_client, addr, port);
-  if (tcp_client < 0) {
-    SET_ERROR_MSG(error_msg, "Unable to connect to %s:%d", host, port);
-    return NULL;
-  }
-  // Send get request.
-  {
-    const char* format =
-        "GET %s HTTP/1.0\r\nUser-Agent: Dart VM\r\nHost: %s\r\n\r\n";
-    intptr_t len = snprintf(NULL, 0, format, path, host);
-    char* get_request = reinterpret_cast<char*>(malloc(len + 1));
-    snprintf(get_request, len + 1, format, path, host);
-    intptr_t r = SocketWriteString(tcp_client, get_request, len);
-    free(get_request);
-    if (r < len) {
-      SET_ERROR_MSG(error_msg, "Unable to write to %s:%d - %d", host, port,
-                    static_cast<int>(r));
-      Socket::Close(tcp_client);
-      return NULL;
-    }
-    ASSERT(r == len);
-  }
-  // Consume response.
-  uint8_t* response = SocketReadUntilEOF(tcp_client, response_len);
-  // Close socket.
-  Socket::Close(tcp_client);
-  if (response == NULL) {
-    SET_ERROR_MSG(error_msg, "Unable to read from %s:%d", host, port);
-    return NULL;
-  }
-  if (HttpGetRequestOkay(reinterpret_cast<const char*>(response)) == false) {
-    SET_ERROR_MSG(error_msg, "Invalid HTTP response from %s:%d", host, port);
-    free(response);
-    return NULL;
-  }
-  return response;
-}
-
-
-static Dart_Handle ParseHttpUri(Dart_Handle uri, const char** host_str,
-                                int64_t* port_int, const char** path_str) {
-  ASSERT(host_str != NULL);
-  ASSERT(port_int != NULL);
-  ASSERT(path_str != NULL);
-  Dart_Handle result;
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  Dart_Handle path = DartUtils::PathFromUri(uri, builtin_lib);
-  if (Dart_IsError(path)) {
-    return path;
-  }
-  Dart_Handle host = DartUtils::HostFromUri(uri, builtin_lib);
-  if (Dart_IsError(host)) {
-    return host;
-  }
-  Dart_Handle port = DartUtils::PortFromUri(uri, builtin_lib);
-  if (Dart_IsError(port)) {
-    return port;
-  }
-  result = Dart_StringToCString(path, path_str);
+Dart_Handle MakeHttpRequest(Dart_Handle uri, Dart_Handle builtin_lib,
+                            uint8_t** buffer, intptr_t* buffer_len) {
+  const intptr_t HttpResponseCodeOK = 200;
+  ASSERT(buffer != NULL);
+  ASSERT(buffer_len != NULL);
+  ASSERT(!Dart_HasLivePorts());
+  SingleArgDart_Invoke(uri, builtin_lib, "_makeHttpRequest");
+  // Run until all ports to isolate are closed.
+  Dart_Handle result = Dart_RunLoop();
   if (Dart_IsError(result)) {
     return result;
   }
-  result = Dart_StringToCString(host, host_str);
-  if (Dart_IsError(result)) {
-    return result;
+  intptr_t responseCode =
+    DartUtils::GetIntegerField(builtin_lib, "_httpRequestResponseCode");
+  if (responseCode != HttpResponseCodeOK) {
+    // Return error.
+    Dart_Handle responseStatus =
+        Dart_GetField(builtin_lib,
+                      DartUtils::NewString("_httpRequestStatusString"));
+    if (Dart_IsError(responseStatus)) {
+      return responseStatus;
+    }
+    if (Dart_IsNull(responseStatus)) {
+      return Dart_Error("HTTP error.");
+    }
+    return Dart_Error(DartUtils::GetStringValue(responseStatus));
   }
-  if (DartUtils::GetInt64Value(port, port_int) == false) {
-    return Dart_Error("Invalid port");
+  Dart_Handle response =
+    Dart_GetField(builtin_lib, DartUtils::NewString("_httpRequestResponse"));
+  if (Dart_IsError(response)) {
+    return response;
+  }
+  if (Dart_IsString(response)) {
+    // Received response as string.
+    uint8_t* responseString = NULL;
+    intptr_t responseStringLength;
+    Dart_Handle r = Dart_StringToUTF8(response, &responseString,
+                                      &responseStringLength);
+    if (Dart_IsError(r)) {
+      *buffer = NULL;
+      *buffer_len = 0;
+      return r;
+    }
+    // Get payload as bytes.
+    *buffer_len = responseStringLength;
+    *buffer = reinterpret_cast<uint8_t*>(malloc(responseStringLength));
+    memmove(*buffer, responseString, responseStringLength);
+  } else {
+    // Received response as list of bytes.
+    ASSERT(Dart_IsList(response));
+    // Query list length.
+    result = Dart_ListLength(response, buffer_len);
+    if (Dart_IsError(result)) {
+      *buffer_len = 0;
+      *buffer = NULL;
+      return result;
+    }
+    // Get payload as bytes.
+    *buffer = reinterpret_cast<uint8_t*>(malloc(*buffer_len));
+    result = Dart_ListGetAsBytes(response, 0, *buffer, *buffer_len);
+    if (Dart_IsError(result)) {
+      free(*buffer);
+      *buffer_len = 0;
+      *buffer = NULL;
+      return result;
+    }
   }
   return result;
 }
 
 
-Dart_Handle DartUtils::ReadStringFromHttp(const char* filename) {
-  Dart_Handle uri = NewString(filename);
+Dart_Handle DartUtils::ReadStringFromHttp(const char* script_uri) {
+  Dart_Handle uri = NewString(script_uri);
   if (Dart_IsError(uri)) {
     return uri;
   }
-  const char* host_str = NULL;
-  int64_t port_int = 0;
-  const char* path_str = NULL;
-  Dart_Handle result = ParseHttpUri(uri, &host_str, &port_int,
-                                    &path_str);
+  Dart_Handle builtin_lib =
+      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
+  uint8_t* buffer;
+  intptr_t bufferLen;
+  Dart_Handle result = MakeHttpRequest(uri, builtin_lib, &buffer, &bufferLen);
   if (Dart_IsError(result)) {
     return result;
   }
-  const char* error_msg = NULL;
-  intptr_t len;
-  const uint8_t* text_buffer = HttpGetRequest(host_str, path_str, port_int,
-                                              &len, &error_msg);
-  if (text_buffer == NULL) {
-    return Dart_Error(error_msg);
-  }
-  const uint8_t* payload = HttpRequestGetPayload(
-      reinterpret_cast<const char*>(text_buffer));
-  if (payload == NULL) {
-    return Dart_Error("Invalid HTTP response.");
-  }
-  // Subtract HTTP response from length.
-  len -= (payload-text_buffer);
-  ASSERT(len >= 0);
-  Dart_Handle str = Dart_NewStringFromUTF8(payload, len);
+  Dart_Handle str = Dart_NewStringFromUTF8(buffer,
+                                           bufferLen);
+  free(buffer);
   return str;
 }
 
@@ -497,39 +384,30 @@ Dart_Handle DartUtils::ReadStringFromFile(const char* filename) {
 }
 
 
-Dart_Handle DartUtils::SetWorkingDirectory(Dart_Handle builtin_lib) {
-  Dart_Handle directory = NewString(original_working_directory);
-  return SingleArgDart_Invoke(directory, builtin_lib, "_setWorkingDirectory");
-}
-
-
 Dart_Handle DartUtils::ResolveScriptUri(Dart_Handle script_uri,
                                         Dart_Handle builtin_lib) {
-  return SingleArgDart_Invoke(script_uri, builtin_lib, "_resolveScriptUri");
+  const int kNumArgs = 3;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = NewString(original_working_directory);
+  dart_args[1] = script_uri;
+  dart_args[2] = (IsWindowsHost() ? Dart_True() : Dart_False());
+  return Dart_Invoke(builtin_lib,
+                     NewString("_resolveScriptUri"),
+                     kNumArgs,
+                     dart_args);
 }
 
 
 Dart_Handle DartUtils::FilePathFromUri(Dart_Handle script_uri,
                                        Dart_Handle builtin_lib) {
-  return SingleArgDart_Invoke(script_uri, builtin_lib, "_filePathFromUri");
-}
-
-
-Dart_Handle DartUtils::PathFromUri(Dart_Handle script_uri,
-                                   Dart_Handle builtin_lib) {
-  return SingleArgDart_Invoke(script_uri, builtin_lib, "_pathFromHttpUri");
-}
-
-
-Dart_Handle DartUtils::HostFromUri(Dart_Handle script_uri,
-                                     Dart_Handle builtin_lib) {
-  return SingleArgDart_Invoke(script_uri, builtin_lib, "_hostFromHttpUri");
-}
-
-
-Dart_Handle DartUtils::PortFromUri(Dart_Handle script_uri,
-                                   Dart_Handle builtin_lib) {
-  return SingleArgDart_Invoke(script_uri, builtin_lib, "_portFromHttpUri");
+  const int kNumArgs = 2;
+  Dart_Handle dart_args[kNumArgs];
+  dart_args[0] = script_uri;
+  dart_args[1] = (IsWindowsHost() ? Dart_True() : Dart_False());
+  return Dart_Invoke(builtin_lib,
+                     NewString("_filePathFromUri"),
+                     kNumArgs,
+                     dart_args);
 }
 
 
@@ -662,38 +540,20 @@ void DartUtils::WriteMagicNumber(File* file) {
 
 Dart_Handle DartUtils::LoadScriptHttp(Dart_Handle uri,
                                       Dart_Handle builtin_lib) {
-  const char* host_str = NULL;
-  int64_t port_int = 0;
-  const char* path_str = NULL;
-  Dart_Handle result = ParseHttpUri(uri, &host_str, &port_int,
-                                    &path_str);
+  intptr_t len = 0;
+  uint8_t* buffer = NULL;
+  Dart_Handle result = MakeHttpRequest(uri, builtin_lib, &buffer, &len);
   if (Dart_IsError(result)) {
     return result;
   }
-  const char* error_msg = NULL;
-  intptr_t len;
-  const uint8_t* text_buffer;
-  text_buffer = HttpGetRequest(host_str, path_str, port_int, &len,
-                               &error_msg);
-  if (text_buffer == NULL) {
-    return Dart_Error(error_msg);
-  }
-  const uint8_t* payload = HttpRequestGetPayload(
-      reinterpret_cast<const char*>(text_buffer));
-  if (payload == NULL) {
-    return Dart_Error("Invalid HTTP response.");
-  }
-  // Subtract HTTP response from length.
-  len -= (payload-text_buffer);
-  ASSERT(len >= 0);
-  // At this point we have received a valid HTTP 200 reply and
-  // payload points at the beginning of the script or snapshot.
+  const uint8_t* payload = buffer;
   bool is_snapshot = false;
   payload = SniffForMagicNumber(payload, &len, &is_snapshot);
   if (is_snapshot) {
     return Dart_LoadScriptFromSnapshot(payload, len);
   } else {
     Dart_Handle source = Dart_NewStringFromUTF8(payload, len);
+    free(buffer);
     if (Dart_IsError(source)) {
       return source;
     }
@@ -704,6 +564,9 @@ Dart_Handle DartUtils::LoadScriptHttp(Dart_Handle uri,
 
 Dart_Handle DartUtils::LoadScript(const char* script_uri,
                                   Dart_Handle builtin_lib) {
+  // Always call ResolveScriptUri because as a side effect it sets
+  // the script entry path which is used when automatically resolving
+  // package root.
   Dart_Handle resolved_script_uri =
       ResolveScriptUri(NewString(script_uri), builtin_lib);
   if (Dart_IsError(resolved_script_uri)) {
@@ -802,23 +665,6 @@ Dart_Handle DartUtils::PrepareForScriptLoading(const char* package_root,
   args[0] = timer_closure;
   DART_CHECK_VALID(Dart_Invoke(
       async_lib, NewString("_setTimerFactoryClosure"), 1, args));
-
-
-  if (IsWindowsHost()) {
-    result = Dart_Invoke(builtin_lib, NewString("_setWindows"), 0, 0);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-  }
-
-  if (Dart_IsError(result)) {
-    return result;
-  }
-  // Set current working directory.
-  result = SetWorkingDirectory(builtin_lib);
-  if (Dart_IsError(result)) {
-    return result;
-  }
 
   // Set up package root if specified.
   if (package_root != NULL) {
