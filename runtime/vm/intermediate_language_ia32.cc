@@ -2147,7 +2147,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ cmpl(ESP,
           Address::Absolute(Isolate::Current()->stack_limit_address()));
   __ j(BELOW_EQUAL, slow_path->entry_label());
-  if (FLAG_use_osr && !compiler->is_optimizing() && in_loop()) {
+  if (compiler->CanOSRFunction() && in_loop()) {
     // In unoptimized code check the usage counter to trigger OSR at loop
     // stack checks.
     __ LoadObject(EDI, compiler->parsed_function().function());

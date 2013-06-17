@@ -30,6 +30,7 @@ DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_cha);
+DECLARE_FLAG(bool, use_osr);
 
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -161,6 +162,11 @@ bool FlowGraphCompiler::CanOptimize() {
 
 bool FlowGraphCompiler::CanOptimizeFunction() const {
   return CanOptimize() && !parsed_function().function().HasBreakpoint();
+}
+
+
+bool FlowGraphCompiler::CanOSRFunction() const {
+  return FLAG_use_osr & CanOptimizeFunction() && !is_optimizing();
 }
 
 

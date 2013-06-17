@@ -258,6 +258,7 @@ class FlowGraphCompiler : public ValueObject {
   }
   static bool CanOptimize();
   bool CanOptimizeFunction() const;
+  bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
 
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
