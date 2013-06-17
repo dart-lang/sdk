@@ -41,7 +41,7 @@ class TestCaseRecorder {
   var _cwd;
 
   TestCaseRecorder(this._outputPath) {
-    _cwd  = new Directory.current().path;
+    _cwd  = Directory.current.path;
   }
 
   void nextTestCase(TestCase testCase) {

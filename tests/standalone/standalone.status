@@ -10,13 +10,6 @@
 package/invalid_uri_test: Fail, OK # Fails intentionally
 
 [ $runtime == vm ]
-# Fails because checked-in dart executable is not up to date.
-io/test_runner_test: Fail
-# Fails because checked-in dart executable is not up to date.
-# Skip this because it is leaving temp directories behind when it fails.
-io/skipping_dart2js_compilations_test: Skip
-
-[ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
 # The test is flaky, and is timing out, causing buildbot cycle times to rise.
 io/raw_server_socket_cancel_test: Skip # Issue 8675
