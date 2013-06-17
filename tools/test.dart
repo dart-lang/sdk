@@ -26,6 +26,7 @@ library test;
 
 import "dart:async";
 import "dart:io";
+import "dart:math" as math;
 import "testing/dart/http_server.dart";
 import "testing/dart/record_and_replay.dart";
 import "testing/dart/test_options.dart";
@@ -161,6 +162,11 @@ void testConfigurations(List<Map> configurations) {
     // http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
     if (conf['runtime'].startsWith('ie')) {
       maxBrowserProcesses = 1;
+    } else if (conf['runtime'].startsWith('safari') &&
+               conf['use_browser_controller']) {
+      // FIXME(kustermann/ricow): Remove this once the new browser_controller is
+      // stable.
+      maxBrowserProcesses = math.max(maxProcesses - 2, 2);
     }
 
     for (String key in selectors.keys) {
