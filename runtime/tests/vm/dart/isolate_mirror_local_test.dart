@@ -351,7 +351,7 @@ void testIntegerInstanceMirror(InstanceMirror mirror) {
   Expect.equals(const Symbol('int'), mirror.type.simpleName);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals(1001, mirror.reflectee);
-  Expect.equals("InstanceMirror on <1001>", mirror.toString());
+  Expect.equals("InstanceMirror on 1001", mirror.toString());
 
   // Invoke (mirror + mirror).
   mirror.invokeAsync(const Symbol('+'), [ mirror ]).then(
@@ -367,7 +367,7 @@ void testStringInstanceMirror(InstanceMirror mirror) {
   Expect.equals(const Symbol('String'), mirror.type.simpleName);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals('This\nis\na\nString', mirror.reflectee);
-  Expect.equals("InstanceMirror on <'This\\nis\\na\\nString'>",
+  Expect.equals('InstanceMirror on "This\\nis\\na\\nString"',
                 mirror.toString());
 
   // Invoke mirror[0].
@@ -384,7 +384,7 @@ void testBoolInstanceMirror(InstanceMirror mirror) {
   Expect.equals(const Symbol('bool'), mirror.type.simpleName);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals(true, mirror.reflectee);
-  Expect.equals("InstanceMirror on <true>", mirror.toString());
+  Expect.equals("InstanceMirror on true", mirror.toString());
   testDone('testBoolInstanceMirror');
 }
 
@@ -393,7 +393,7 @@ void testNullInstanceMirror(InstanceMirror mirror) {
   Expect.equals(const Symbol('Object'), mirror.type.simpleName);
   Expect.isTrue(mirror.hasReflectee);
   Expect.equals(null, mirror.reflectee);
-  Expect.equals("InstanceMirror on <null>", mirror.toString());
+  Expect.equals("InstanceMirror on null", mirror.toString());
   testDone('testNullInstanceMirror');
 }
 
