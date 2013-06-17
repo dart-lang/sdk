@@ -1,0 +1,332 @@
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// A library for code coverage support for Dart.
+library runtime.coverage.impl;
+
+import 'dart:async';
+import 'dart:collection' show SplayTreeMap;
+import 'dart:io';
+import 'dart:json' as json;
+
+import 'package:pathos/path.dart' as pathos;
+
+import 'package:analyzer_experimental/src/generated/source.dart' show Source, SourceRange;
+import 'package:analyzer_experimental/src/generated/scanner.dart' show StringScanner;
+import 'package:analyzer_experimental/src/generated/parser.dart' show Parser;
+import 'package:analyzer_experimental/src/generated/ast.dart';
+import 'package:analyzer_experimental/src/generated/engine.dart' show RecordingErrorListener;
+
+import '../log.dart' as log;
+import 'models.dart';
+import 'utils.dart';
+
+/// Run the [targetPath] with code coverage rewriting.
+/// Redirects stdandard process streams.
+/// On process exit dumps coverage statistics into the [outPath].
+void runServerApplication(String targetPath, String outPath) {
+  var targetFolder = pathos.dirname(targetPath);
+  var targetName = pathos.basename(targetPath);
+  new CoverageServer(targetFolder, targetPath, outPath)
+      .start()
+      .then((port) {
+        var options = new Options();
+        var targetArgs = ['http://127.0.0.1:$port/$targetName'];
+        var dartExecutable = options.executable;
+        Process.start(dartExecutable, targetArgs).then((Process process) {
+          process.exitCode.then(exit);
+          // Redirect process streams.
+          stdin.pipe(process.stdin);
+          process.stdout.pipe(stdout);
+          process.stderr.pipe(stderr);
+        });
+      });
+}
+
+
+/// Abstract server to listen requests and serve files, may be rewriting them.
+abstract class RewriteServer {
+  final String basePath;
+  int port;
+
+  RewriteServer(this.basePath);
+
+  /// Runs the HTTP server on the ephemeral port and returns [Future] with it.
+  Future<int> start() {
+    return HttpServer.bind('127.0.0.1', 0).then((server) {
+      port = server.port;
+      log.info('RewriteServer is listening at: $port.');
+      server.listen((request) {
+        if (request.method == 'GET') {
+          handleGetRequest(request);
+        }
+        if (request.method == 'POST') {
+          handlePostRequest(request);
+        }
+      });
+      return port;
+    });
+  }
+
+  handlePostRequest(HttpRequest request);
+
+  handleGetRequest(HttpRequest request) {
+    var response = request.response;
+    // Prepare path.
+    var path = basePath + '/' + request.uri.path;
+    path = pathos.normalize(path);
+    log.info('[$path] Requested.');
+    // May be serve using just path.
+    {
+      var content = rewritePathContent(path);
+      if (content != null) {
+        log.info('[$path] Request served by path.');
+        response.write(content);
+        response.close();
+        return;
+      }
+    }
+    // Serve from file.
+    log.info('[$path] Serving file.');
+    var file = new File(path);
+    file.exists().then((found) {
+      if (found) {
+        // May be this files should be sent as is.
+        if (!shouldRewriteFile(path)) {
+          sendFile(request, file);
+          return;
+        }
+        // Rewrite content of the file.
+        file.readAsString().then((content) {
+          log.finest('[$path] Done reading ${content.length} characters.');
+          content = rewriteFileContent(path, content);
+          log.fine('[$path] Rewritten.');
+          response.write(content);
+          response.close();
+        });
+      } else {
+        log.severe('[$path] File not found.');
+        response.statusCode = HttpStatus.NOT_FOUND;
+        response.close();
+      }
+    });
+  }
+
+  void sendFile(HttpRequest request, File file) {
+    file.fullPath().then((fullPath) {
+      file.openRead()
+        .pipe(request.response)
+        .catchError((e) {});
+    });
+  }
+
+  bool shouldRewriteFile(String path);
+
+  /// Subclasses implement this method to rewrite the provided [code] of the
+  /// file with [path]. Returns some content or `null` if file content
+  /// should be requested.
+  String rewritePathContent(String path);
+
+  /// Subclasses implement this method to rewrite the provided [code] of the
+  /// file with [path].
+  String rewriteFileContent(String path, String code);
+}
+
+
+/// Server that rewrites Dart code so that it reports execution of statements
+/// and other nodes.
+class CoverageServer extends RewriteServer {
+  final appInfo = new AppInfo();
+  final String targetPath;
+  final String outPath;
+
+  CoverageServer(String basePath, this.targetPath, this.outPath)
+      : super(basePath);
+
+  void handlePostRequest(HttpRequest request) {
+    var id = 0;
+    var executedIds = new Set<int>();
+    request.listen((data) {
+      log.fine('Received statistics, ${data.length} bytes.');
+      while (true) {
+        var listIndex = id ~/ 8;
+        if (listIndex >= data.length) break;
+        var bitIndex = id % 8;
+        if ((data[listIndex] & (1 << bitIndex)) != 0) {
+          executedIds.add(id);
+        }
+        id++;
+      }
+    }).onDone(() {
+      log.fine('Received all statistics.');
+      var sb = new StringBuffer();
+      appInfo.write(sb, executedIds);
+      new File(outPath).writeAsString(sb.toString());
+      log.fine('Results are written to $outPath.');
+      request.response.close();
+    });
+  }
+
+  String rewritePathContent(String path) {
+    if (path.endsWith('__coverage_lib.dart')) {
+      String implPath = pathos.joinAll([
+          pathos.dirname(new Options().script),
+          '..', 'lib', 'src', 'services', 'runtime', 'coverage',
+          'coverage_lib.dart']);
+      var content = new File(implPath).readAsStringSync();
+      content = content.replaceAll('0; // replaced during rewrite', '$port;');
+      return content;
+    }
+    return null;
+  }
+
+  bool shouldRewriteFile(String path) {
+    if (pathos.extension(path).toLowerCase() != '.dart') return false;
+    // Rewrite target itself, only to send statistics.
+    if (path == targetPath) {
+      return true;
+    }
+    // TODO(scheglov) use configuration
+    if (path.contains('/packages/analyzer_experimental/')) {
+      return true;
+    }
+    return false;
+  }
+
+  String rewriteFileContent(String path, String code) {
+    var unit = _parseCode(code);
+    log.finest('[$path] Parsed.');
+    var injector = new CodeInjector(code);
+    // Inject imports.
+    var directives = unit.directives;
+    if (directives.isNotEmpty && directives[0] is LibraryDirective) {
+      injector.inject(directives[0].end,
+          'import "package:unittest/unittest.dart" as __cc_ut;'
+          'import "http://127.0.0.1:$port/__coverage_lib.dart" as __cc;');
+    }
+    // Inject statistics sender.
+    var isTargetScript = path == targetPath;
+    if (isTargetScript) {
+      for (var node in unit.declarations) {
+        if (node is FunctionDeclaration) {
+          var body = node.functionExpression.body;
+          if (node.name.name == 'main' && body is BlockFunctionBody) {
+            injector.inject(node.offset,
+                'class __CCC extends __cc_ut.Configuration {'
+                '  void onDone(bool success) {'
+                '    __cc.postStatistics();'
+                '    super.onDone(success);'
+                '  }'
+                '}');
+            injector.inject(
+                body.offset + 1,
+                '__cc_ut.unittestConfiguration = new __CCC();');
+          }
+        }
+      }
+    }
+    // Inject touch() invocations.
+    if (!isTargetScript) {
+      appInfo.enterUnit(path, code);
+      unit.accept(new InsertTouchInvocationsVisitor(appInfo, injector));
+    }
+    // Done.
+    return injector.getResult();
+  }
+
+  CompilationUnit _parseCode(String code) {
+    var source = null;
+    var errorListener = new RecordingErrorListener();
+    var parser = new Parser(source, errorListener);
+    var scanner = new StringScanner(source, code, errorListener);
+    var token = scanner.tokenize();
+    return parser.parseCompilationUnit(token);
+  }
+}
+
+
+/// The visitor that inserts `touch` method invocations.
+class InsertTouchInvocationsVisitor extends GeneralizingASTVisitor {
+  final AppInfo appInfo;
+  final CodeInjector injector;
+
+  InsertTouchInvocationsVisitor(this.appInfo, this.injector);
+
+  visitClassDeclaration(ClassDeclaration node) {
+    appInfo.enter('class', node.name.name);
+    super.visitClassDeclaration(node);
+    appInfo.leave();
+  }
+
+  visitConstructorDeclaration(ConstructorDeclaration node) {
+    var className = (node.parent as ClassDeclaration).name.name;
+    var constructorName;
+    if (node.name == null) {
+      constructorName = className;
+    } else {
+      constructorName = className + '.' + node.name.name;
+    }
+    appInfo.enter('constructor', constructorName);
+    super.visitConstructorDeclaration(node);
+    appInfo.leave();
+  }
+
+  visitMethodDeclaration(MethodDeclaration node) {
+    if (node.isAbstract) {
+      super.visitMethodDeclaration(node);
+    } else {
+      var kind;
+      if (node.isGetter) {
+        kind = 'getter';
+      } else if (node.isSetter) {
+        kind = 'setter';
+      } else {
+        kind = 'method';
+      }
+      appInfo.enter(kind, node.name.name);
+      super.visitMethodDeclaration(node);
+      appInfo.leave();
+    }
+  }
+
+  visitStatement(Statement node) {
+    insertTouch(node);
+    super.visitStatement(node);
+  }
+
+  void insertTouch(Statement node) {
+    if (node is Block) return;
+    if (node.parent is LabeledStatement) return;
+    if (node.parent is! Block) return;
+    // Inject 'touch' invocation.
+    var offset = node.offset;
+    var id = appInfo.addNode(node);
+    injector.inject(offset, '__cc.touch($id);');
+  }
+}
+
+
+/// Helper for injecting fragments into some existing code.
+class CodeInjector {
+  final String _code;
+  final offsetFragmentMap = new SplayTreeMap<int, String>();
+
+  CodeInjector(this._code);
+
+  void inject(int offset, String fragment) {
+    offsetFragmentMap[offset] = fragment;
+  }
+
+  String getResult() {
+    var sb = new StringBuffer();
+    var lastOffset = 0;
+    offsetFragmentMap.forEach((offset, fragment) {
+      sb.write(_code.substring(lastOffset, offset));
+      sb.write(fragment);
+      lastOffset = offset;
+    });
+    sb.write(_code.substring(lastOffset, _code.length));
+    return sb.toString();
+  }
+}
