@@ -253,55 +253,6 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
       native 'LocalObjectMirrorImpl_setField';
 }
 
-// Prints a string as it might appear in dart program text.
-// TODO(turnidge): Consider truncating.
-String _dartEscape(String str) {
-  bool isNice(int code) => (code >= 32 && code <= 126);
-
-  StringBuffer buf = new StringBuffer();
-  for (int i = 0; i < str.length; i++) {
-    var input = str[i];
-    String output;
-    switch (input) {
-      case '\\' :
-        output = r'\\';
-        break;
-      case "\'" :
-        output = r"\'";
-        break;
-      case '\n' :
-        output = r'\n';
-        break;
-      case '\r' :
-        output = r'\r';
-        break;
-      case '\f' :
-        output = r'\f';
-        break;
-      case '\b' :
-        output = r'\b';
-        break;
-      case '\t' :
-        output = r'\t';
-        break;
-      case '\v' :
-        output = r'\v';
-        break;
-      default:
-        // TODO(lrn): Someone decide if this should combine surrogate pairs.
-        int code = input.codeUnitAt(0);
-        if (isNice(code)) {
-          output = input;
-        } else {
-          output = '\\u{${code.toRadixString(16)}}';
-        }
-        break;
-    }
-    buf.write(output);
-  }
-  return buf.toString();
-}
-
 class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     implements InstanceMirror {
   // TODO(ahe): This is a hack, see delegate below.
@@ -340,17 +291,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     return _invokeOnClosure(reflectee, invocation);
   }
 
-  String toString() {
-    if (_isSimpleValue(_reflectee)) {
-      if (_reflectee is String) {
-        return "InstanceMirror on <'${_dartEscape(_reflectee)}'>";
-      } else {
-        return "InstanceMirror on <$_reflectee>";
-      }
-    } else {
-      return "InstanceMirror on instance of '${type.simpleName}'";
-    }
-  }
+  String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
 }
 
 class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
@@ -402,6 +343,8 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
 
   static _apply(ref, positionalArguments, async)
       native 'LocalClosureMirrorImpl_apply';
+
+  String toString() => "ClosureMirror on '${Error.safeToString(_reflectee)}'";
 }
 
 class _LazyTypeMirror {
@@ -568,7 +511,10 @@ class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
         'ClassMirror.originalDeclaration is not implemented');
   }
 
-  String toString() => "ClassMirror on '$simpleName'";
+  String toString() {
+    String prettyName = isClass ? 'ClassMirror' : 'TypeMirror';
+    return "$prettyName on '${_n(simpleName)}'";
+  }
 
   InstanceMirror newInstance(Symbol constructorName,
                              List positionalArguments,
@@ -653,7 +599,7 @@ class _LocalFunctionTypeMirrorImpl extends _LocalClassMirrorImpl
 
   final List<ParameterMirror> parameters;
 
-  String toString() => "FunctionTypeMirror on '$simpleName'";
+  String toString() => "FunctionTypeMirror on '${_n(simpleName)}'";
 }
 
 
@@ -716,7 +662,7 @@ class _LocalTypeVariableMirrorImpl extends _LocalMirrorImpl
   // reflect() and then make them into a Dart list
   List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
 
-  String toString() => "TypeVariableMirror on '$simpleName'";
+  String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 }
 
 
@@ -762,7 +708,7 @@ class _LocalTypedefMirrorImpl extends _LocalMirrorImpl
     return _referent;
   }
 
-  String toString() => "TypedefMirror on '$simpleName'";
+  String toString() => "TypedefMirror on '${_n(simpleName)}'";
 }
 
 
@@ -859,7 +805,7 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   // reflect() and then make them into a Dart list
   List<InstanceMirror> get metadata => _metadata(this).map(reflect).toList();
 
-  String toString() => "LibraryMirror on '$simpleName'";
+  String toString() => "LibraryMirror on '${_n(simpleName)}'";
 }
 
 class _LocalMethodMirrorImpl extends _LocalMirrorImpl
@@ -966,7 +912,7 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
     return _metadata(this).map(reflect).toList();
   }
 
-  String toString() => "MethodMirror on '$simpleName'";
+  String toString() => "MethodMirror on '${_n(simpleName)}'";
 }
 
 class _LocalVariableMirrorImpl extends _LocalMirrorImpl
@@ -1027,7 +973,7 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
     return _metadata(this).map(reflect).toList();
   }
 
-  String toString() => "VariableMirror on '$simpleName'";
+  String toString() => "VariableMirror on '${_n(simpleName)}'";
 }
 
 class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl

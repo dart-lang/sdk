@@ -93,23 +93,49 @@ class JsMirrorSystem implements MirrorSystem {
   }
 }
 
-class JsTypeMirror implements TypeMirror {
-  final Symbol simpleName;
-  JsTypeMirror(this.simpleName);
+abstract class JsMirror {
+  const JsMirror();
+
+  abstract String get _prettyName;
+
+  String toString() => _prettyName;
 }
 
-class JsLibraryMirror extends JsObjectMirror implements LibraryMirror {
+abstract class JsDeclarationMirror extends JsMirror
+    implements DeclarationMirror {
   final Symbol simpleName;
+
+  const JsDeclarationMirror(this.simpleName);
+
+  bool get isPrivate => n(simpleName).startsWith('_');
+
+  bool get isTopLevel => owner != null && owner is LibraryMirror;
+
+  String toString() => "$_prettyName on '${n(simpleName)}'";
+}
+
+class JsTypeMirror extends JsDeclarationMirror implements TypeMirror {
+  JsTypeMirror(Symbol simpleName)
+      : super(simpleName);
+
+  String get _prettyName => 'TypeMirror';
+}
+
+class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
+    implements LibraryMirror {
   final Uri uri;
   final List<String> _classes;
   final List<String> _functions;
   final List _metadata;
 
-  JsLibraryMirror(this.simpleName,
+  JsLibraryMirror(Symbol simpleName,
                  this.uri,
                  this._classes,
                  this._functions,
-                 this._metadata);
+                 this._metadata)
+      : super(simpleName);
+
+  String get _prettyName => 'LibraryMirror';
 
   Symbol get qualifiedName => simpleName;
 
@@ -321,11 +347,11 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     return JSInvocationMirror.invokeFromMirror(invocation, reflectee);
   }
 
-  String toString() => 'InstanceMirror($reflectee)';
+  String toString() => 'InstanceMirror on ${Error.safeToString(reflectee)}';
 }
 
-class JsClassMirror extends JsObjectMirror implements ClassMirror {
-  final Symbol simpleName;
+class JsClassMirror extends JsTypeMirror with JsObjectMirror
+    implements ClassMirror {
   final _jsConstructor;
   final String _fields;
   final List _fieldsMetadata;
@@ -336,10 +362,13 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
   // Set as side-effect of accessing JsLibraryMirror.classes.
   JsLibraryMirror _owner;
 
-  JsClassMirror(this.simpleName,
+  JsClassMirror(Symbol simpleName,
                 this._jsConstructor,
                 this._fields,
-                this._fieldsMetadata);
+                this._fieldsMetadata)
+      : super(simpleName);
+
+  String get _prettyName => 'ClassMirror';
 
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
 
@@ -516,13 +545,10 @@ class JsClassMirror extends JsObjectMirror implements ClassMirror {
     }
     return _superclass == this ? null : _superclass;
   }
-
-  String toString() => 'ClassMirror(${n(simpleName)})';
 }
 
-class JsVariableMirror implements VariableMirror {
+class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
   // TODO(ahe): The values in these fields are virtually untested.
-  final Symbol simpleName;
   final String _jsName;
   final bool isFinal;
   final bool isStatic;
@@ -530,11 +556,12 @@ class JsVariableMirror implements VariableMirror {
   DeclarationMirror _owner;
   List _metadata;
 
-  JsVariableMirror(this.simpleName,
+  JsVariableMirror(Symbol simpleName,
                    this._jsName,
                    this.isFinal,
                    this.isStatic,
-                   this._metadataFunction);
+                   this._metadataFunction)
+      : super(simpleName);
 
   factory JsVariableMirror.from(String descriptor, metadataFunction) {
     int length = descriptor.length;
@@ -556,6 +583,8 @@ class JsVariableMirror implements VariableMirror {
         s(accessorName), jsName, isFinal, false, metadataFunction);
   }
 
+  String get _prettyName => 'VariableMirror';
+
   TypeMirror get type => JsMirrorSystem._dynamicType;
 
   DeclarationMirror get owner => _owner;
@@ -570,12 +599,6 @@ class JsVariableMirror implements VariableMirror {
     return _metadata.map(reflect).toList();
   }
 
-  bool get isPrivate => n(simpleName).startsWith('_');
-
-  bool get isTopLevel => owner != null && owner is LibraryMirror;
-
-  String toString() => 'VariableMirror(${n(qualifiedName)})';
-
   static int fieldCode(int code) {
     if (code >= 60 && code <= 64) return code - 59;
     if (code >= 123 && code <= 126) return code - 117;
@@ -585,7 +608,8 @@ class JsVariableMirror implements VariableMirror {
 }
 
 class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
-  JsClosureMirror(reflectee) : super(reflectee);
+  JsClosureMirror(reflectee)
+      : super(reflectee);
 
   MethodMirror get function {
     disableTreeShaking();
@@ -628,10 +652,11 @@ function(reflectee) {
     return new Future<InstanceMirror>(
         () => apply(positionalArguments, namedArguments));
   }
+
+  String toString() => "ClosureMirror on '${Error.safeToString(reflectee)}'";
 }
 
-class JsMethodMirror implements MethodMirror {
-  final Symbol simpleName;
+class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   final _jsFunction;
   final int _parameterCount;
   final bool isGetter;
@@ -640,12 +665,13 @@ class JsMethodMirror implements MethodMirror {
   DeclarationMirror _owner;
   List _metadata;
 
-  JsMethodMirror(this.simpleName,
+  JsMethodMirror(Symbol simpleName,
                  this._jsFunction,
                  this._parameterCount,
                  this.isGetter,
                  this.isSetter,
-                 this.isStatic);
+                 this.isStatic)
+      : super(simpleName);
 
   factory JsMethodMirror.fromUnmangledName(String name, jsFunction) {
     List<String> info = name.split(':');
@@ -670,6 +696,8 @@ class JsMethodMirror implements MethodMirror {
         isGetter, isSetter, false);
   }
 
+  String get _prettyName => 'MethodMirror';
+
   List<ParameterMirror> get parameters {
     // TODO(ahe): Fill the list with parameter mirrors.
     return new List<ParameterMirror>(_parameterCount);
@@ -684,18 +712,6 @@ class JsMethodMirror implements MethodMirror {
       _metadata = extractMetadata(_jsFunction);
     }
     return _metadata.map(reflect).toList();
-  }
-
-  // TODO(ahe): Share with VariableMirror.
-  bool get isPrivate => n(simpleName).startsWith('_');
-
-  // TODO(ahe): Share with VariableMirror.
-  bool get isTopLevel => owner != null && owner is LibraryMirror;
-
-  String toString() {
-    return
-        'MethodMirror(${n(simpleName)}'
-        '${isSetter ? ", setter" : (isGetter ? ", getter" : "")})';
   }
 }
 

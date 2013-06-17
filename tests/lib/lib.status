@@ -20,18 +20,20 @@ typed_data/float32x4_unbox_regress_test: Fail, OK
 typed_data/byte_data_test: Fail, OK # d8/ie9 doesn't support DataView
 
 [ $compiler == dart2js && $minified ]
+mirrors/disable_tree_shaking_test: Fail # Issue 6490
 mirrors/metadata_test: Fail
 mirrors/mirrors_resolve_fields_test: Fail # Issue 6490
-mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # Issue 6490
-mirrors/disable_tree_shaking_test: Fail # Issue 6490
 mirrors/reflect_model_test: Fail # Issue 6490
+mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # Issue 6490
+mirrors/to_string_test: Fail # Issue 6490
 
 [ $csp ]
 mirrors/metadata_test: Fail # Issue 6490
+mirrors/reflect_model_test: Fail # Issue 6490
 mirrors/reflect_runtime_type_test: Fail # Issue 6490
 mirrors/reflect_uninstantiated_class_test: Fail # Issue 6490
 mirrors/superclass_test: Fail # Issue 6490
-mirrors/reflect_model_test: Fail # Issue 6490
+mirrors/to_string_test: Fail # Issue 6490
 
 [ $compiler == dart2js && $checked ]
 async/stream_event_transform_test: Fail # Issue 7733.
