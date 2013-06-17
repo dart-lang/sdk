@@ -871,12 +871,12 @@ DEFINE_RUNTIME_ENTRY(BreakpointDynamicHandler, 0) {
 static RawFunction* InlineCacheMissHandler(
     const GrowableArray<const Instance*>& args,
     const ICData& ic_data,
-    const Array& arg_descriptor_array) {
+    const Array& args_descriptor_array) {
   const Instance& receiver = *args[0];
   const Code& target_code =
       Code::Handle(ResolveCompileInstanceCallTarget(receiver,
                                                     ic_data,
-                                                    arg_descriptor_array));
+                                                    args_descriptor_array));
   if (target_code.IsNull()) {
     // Let the megamorphic stub handle special cases: NoSuchMethod,
     // closure calls.

@@ -58,11 +58,11 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& target_name = String::Handle(String::New("targetFunction"));
   const ICData& ic_data =
       ICData::ZoneHandle(ICData::New(function, target_name, 15, 1));
-  const Array& arg_descriptor =
+  const Array& args_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(1, Array::Handle()));
 
   __ LoadObject(ECX, ic_data);
-  __ LoadObject(EDX, arg_descriptor);
+  __ LoadObject(EDX, args_descriptor);
   ExternalLabel target_label(
       "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
   __ call(&target_label);

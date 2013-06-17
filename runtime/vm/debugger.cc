@@ -1568,9 +1568,9 @@ void Debugger::SignalBpReached() {
       const Code& code =
           Code::Handle(Function::Handle(bpt->function_).unoptimized_code());
       CodePatcher::GetInstanceCallAt(bpt->pc_, code, &ic_data, &descriptor);
-      ArgumentsDescriptor arg_descriptor(descriptor);
+      ArgumentsDescriptor args_descriptor(descriptor);
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
-      intptr_t num_args = arg_descriptor.Count();
+      intptr_t num_args = args_descriptor.Count();
       Instance& receiver =
           Instance::Handle(top_frame->GetInstanceCallReceiver(num_args));
       Code& target_code =

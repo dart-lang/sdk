@@ -8272,13 +8272,13 @@ RawObject* Parser::EvaluateConstConstructorCall(
     ASSERT(arg->IsLiteralNode());
     arg_values.SetAt((i + kNumExtraArgs), arg->AsLiteralNode()->literal());
   }
-  const Array& arg_descriptor =
+  const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(num_arguments,
                                              arguments->names()));
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(constructor,
                                                arg_values,
-                                               arg_descriptor));
+                                               args_descriptor));
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
