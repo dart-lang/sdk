@@ -7,6 +7,7 @@ library http_server;
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:uri';
 import 'test_suite.dart';  // For TestUtils.
 // TODO(efortuna): Rewrite to not use the args library and simply take an
 // expected number of arguments, so test.dart doesn't rely on the args library?
@@ -208,7 +209,7 @@ class TestingServers {
   void _handleWebSocketRequest(HttpRequest request) {
     WebSocketTransformer.upgrade(request).then((websocket) {
       websocket.listen((data) {
-        websocket.add(data);
+        websocket.send(data);
         websocket.close();
       }, onError: (e) {
         DebugLogger.warning('HttpServer: error while echoing to WebSocket', e);
@@ -313,10 +314,10 @@ class TestingServers {
       var headerOrigin = request.headers.value('Origin');
       var allowedOrigin;
       if (headerOrigin != null) {
-        var origin = Uri.parse(headerOrigin);
+        var origin = new Uri(headerOrigin);
         // Allow loading from http://*:$allowedPort in browsers.
         allowedOrigin =
-          '${origin.scheme}://${origin.host}:${allowedPort}';
+          '${origin.scheme}://${origin.domain}:${allowedPort}';
       } else {
         // IE10 appears to be bugged and is not sending the Origin header
         // when making CORS requests to the same domain but different port.

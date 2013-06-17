@@ -17,6 +17,7 @@ library test_suite;
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
+import "dart:uri";
 import "drt_updater.dart";
 import "multitest.dart";
 import "status_file_parser.dart";
@@ -48,7 +49,7 @@ typedef void VoidFunction();
  * completes immediately with `null`.
  */
 Future asynchronously(function()) {
-  if (function == null) return new Future.value(null);
+  if (function == null) return new Future.immediate(null);
 
   var completer = new Completer();
   Timer.run(() => completer.complete(function()));
@@ -489,7 +490,7 @@ class StandardTestSuite extends TestSuite {
     var snapshotPath = TestUtils.absolutePath(new Path(buildDir).join(
         new Path('dart-sdk/bin/snapshots/'
                  'utils_wrapper.dart.snapshot'))).toString();
-    return [new Uri(scheme: 'file', path: snapshotPath)];
+    return [new Uri.fromComponents(scheme: 'file', path: snapshotPath)];
   }
 
   /**
@@ -539,7 +540,7 @@ class StandardTestSuite extends TestSuite {
     var completer = new Completer();
     var updater = runtimeUpdater(configuration);
     if (updater == null || updater.updated) {
-      return new Future.value(null);
+      return new Future.immediate(null);
     }
 
     assert(updater.isActive);
@@ -589,7 +590,7 @@ class StandardTestSuite extends TestSuite {
     return dir.exists().then((exists) {
       if (!exists) {
         print('Directory containing tests missing: ${suiteDir.toNativePath()}');
-        return new Future.value(null);
+        return new Future.immediate(null);
       } else {
         var group = new FutureGroup();
         enqueueDirectory(dir, group);
@@ -882,7 +883,7 @@ class StandardTestSuite extends TestSuite {
 
   void _createWrapperFile(String dartWrapperFilename, dartLibraryFilename) {
     File file = new File(dartWrapperFilename);
-    RandomAccessFile dartWrapper = file.openSync(mode: FileMode.WRITE);
+    RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
 
     var usePackageImport = dartLibraryFilename.segments().contains("pkg");
     var libraryPathComponent = _createUrlPathFromFile(dartLibraryFilename);
@@ -945,8 +946,7 @@ class StandardTestSuite extends TestSuite {
       scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
       // Create the HTML file for the test.
-      RandomAccessFile htmlTest =
-          new File(htmlPath).openSync(mode: FileMode.WRITE);
+      RandomAccessFile htmlTest = new File(htmlPath).openSync(FileMode.WRITE);
       String content = null;
       Path dir = filePath.directoryPath;
       String nameNoExt = filePath.filenameWithoutExtension;
@@ -1729,7 +1729,7 @@ class TestUtils {
   static String testScriptPath = new Options().script;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static Path currentWorkingDirectory =
-      new Path(Directory.current.path);
+      new Path(new Directory.current().path);
   /**
    * Creates a directory using a [relativePath] to an existing
    * [base] directory if that [relativePath] does not already exist.
