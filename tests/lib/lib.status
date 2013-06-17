@@ -27,7 +27,6 @@ mirrors/disable_tree_shaking_test: Fail # Issue 6490
 mirrors/reflect_model_test: Fail # Issue 6490
 
 [ $csp ]
-mirrors/library_metadata_test: Fail # Issue 10906
 mirrors/metadata_test: Fail # Issue 10906
 mirrors/reflect_runtime_type_test: Fail # Issue 6490
 mirrors/reflect_uninstantiated_class_test: Fail # Issue 6490
