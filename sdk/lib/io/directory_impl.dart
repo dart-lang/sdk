@@ -282,16 +282,16 @@ class _Directory implements Directory {
 }
 
 class _AsyncDirectoryLister {
-  const int LIST_FILE = 0;
-  const int LIST_DIRECTORY = 1;
-  const int LIST_LINK = 2;
-  const int LIST_ERROR = 3;
-  const int LIST_DONE = 4;
+  static const int LIST_FILE = 0;
+  static const int LIST_DIRECTORY = 1;
+  static const int LIST_LINK = 2;
+  static const int LIST_ERROR = 3;
+  static const int LIST_DONE = 4;
 
-  const int RESPONSE_TYPE = 0;
-  const int RESPONSE_PATH = 1;
-  const int RESPONSE_COMPLETE = 1;
-  const int RESPONSE_ERROR = 2;
+  static const int RESPONSE_TYPE = 0;
+  static const int RESPONSE_PATH = 1;
+  static const int RESPONSE_COMPLETE = 1;
+  static const int RESPONSE_ERROR = 2;
 
   final String path;
   final bool recursive;

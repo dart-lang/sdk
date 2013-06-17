@@ -49,7 +49,7 @@ bool PathBuffer::Add(const char* name) {
   data[PATH_MAX] = '\0';
   if (written <= PATH_MAX - length_ &&
       written >= 0 &&
-      static_cast<size_t>(written) == strnlen(name, PATH_MAX + 1)) {
+      static_cast<size_t>(written) == strlen(name)) {
     length_ += written;
     return true;
   } else {

@@ -242,6 +242,17 @@ static CObject* DirectoryListStartRequest(const CObjectArray& request) {
         new AsyncDirectoryListing(path.CString(),
                                   recursive.Value(),
                                   follow_links.Value());
+    if (dir_listing->error()) {
+      // Report error now, so we capture the correct OSError.
+      CObject* err = CObject::NewOSError();
+      delete dir_listing;
+      CObjectArray* error = new CObjectArray(CObject::NewArray(3));
+      error->SetAt(0, new CObjectInt32(
+          CObject::NewInt32(AsyncDirectoryListing::kListError)));
+      error->SetAt(1, request[1]);
+      error->SetAt(2, err);
+      return error;
+    }
     // TODO(ajohnsen): Consider returning the first few results.
     return new CObjectIntptr(CObject::NewIntptr(
         reinterpret_cast<intptr_t>(dir_listing)));
@@ -389,8 +400,8 @@ void AsyncDirectoryListing::HandleDone() {
 
 
 bool AsyncDirectoryListing::HandleError(const char* dir_name) {
-  array_->SetAt(index_++, new CObjectInt32(CObject::NewInt32(kListError)));
   CObject* err = CObject::NewOSError();
+  array_->SetAt(index_++, new CObjectInt32(CObject::NewInt32(kListError)));
   CObjectArray* response = new CObjectArray(CObject::NewArray(3));
   response->SetAt(0, new CObjectInt32(CObject::NewInt32(kListError)));
   response->SetAt(1, new CObjectString(CObject::NewString(dir_name)));
