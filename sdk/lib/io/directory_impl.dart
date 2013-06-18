@@ -327,7 +327,8 @@ class _AsyncDirectoryLister {
                         bool this.followLinks) {
     controller = new StreamController(onListen: onListen,
                                       onResume: onResume,
-                                      onCancel: onCancel);
+                                      onCancel: onCancel,
+                                      sync: true);
   }
 
   Stream get stream => controller.stream;
