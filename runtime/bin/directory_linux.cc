@@ -23,7 +23,7 @@ namespace bin {
 
 
 PathBuffer::PathBuffer() : length_(0) {
-  data_ = new char[PATH_MAX + 1];
+  data_ = calloc(PATH_MAX + 1,  sizeof(char));  // NOLINT
 }
 
 bool PathBuffer::AddW(const wchar_t* name) {
@@ -192,6 +192,17 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   }
 
   return kListDone;
+}
+
+
+void DirectoryListingEntry::ResetLink() {
+  if (link_ != NULL && (parent_ == NULL || parent_->link_ != link_)) {
+    delete link_;
+    link_ = NULL;
+  }
+  if (parent_ != NULL) {
+    link_ = parent_->link_;
+  }
 }
 
 

@@ -84,15 +84,7 @@ class DirectoryListingEntry {
     link_ = link;
   }
 
-  void ResetLink() {
-    if (link_ != NULL && (parent_ == NULL || parent_->link_ != link_)) {
-      free(link_);
-      link_ = NULL;
-    }
-    if (parent_ != NULL) {
-      link_ = parent_->link_;
-    }
-  }
+  void ResetLink();
 
  private:
   DirectoryListingEntry* parent_;
