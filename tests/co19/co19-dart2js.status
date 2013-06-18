@@ -618,7 +618,13 @@ Language/11_Expressions/22_Equality_A05_t01: Fail # != cannot be called on super
 Language/11_Expressions/30_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
 Language/12_Statements/06_For_A01_t11: Fail # http://dartbug.com/9824
-Language/14_Types/6_Type_dynamic_A03_t01: Fail # Renamed Date to DateTime (issue 373, 374)
+
+
+# BUG(11331): Renamed Date to DateTime (issue 373, 374) but this only has an
+# impact on V8, because of the way method calls are evaluated. Needs more
+# investigation.
+[ $compiler == dart2js && $runtime == d8 ]
+Language/14_Types/6_Type_dynamic_A03_t01: Fail
 
 
 [ $compiler == dart2js && $jscl ]
