@@ -10,31 +10,35 @@ import "dart:isolate";
 
 void testPauseList() {
   var keepAlive = new ReceivePort();
+  // TOTAL should be bigger the our directory listing buffer.
+  const int TOTAL = 128;
   new Directory("").createTemp().then((d) {
-    // Linux reads 2K at a time, so be sure to be >>.
-    int total = 4 * 1024 + 1;
-    for (int i = 0; i < total; i++) {
-      new File("${d.path}/$i").createSync();
+    for (int i = 0; i < TOTAL; i++) {
+      new Directory("${d.path}/$i").createSync();
+      new File("${d.path}/$i/file").createSync();
     }
     bool first = true;
     var subscription;
     int count = 0;
-    subscription = d.list().listen((file) {
-      if (first) {
-        first = false;
-        subscription.pause();
-        Timer.run(() {
-          for (int i = 0; i < total; i++) {
-            new File("${d.path}/$i").deleteSync();
-          }
-          subscription.resume();
-        });
+    subscription = d.list(recursive: true).listen((file) {
+      if (file is File) {
+        if (first) {
+          first = false;
+          subscription.pause();
+          Timer.run(() {
+            for (int i = 0; i < TOTAL; i++) {
+              new File("${d.path}/$i/file").deleteSync();
+            }
+            subscription.resume();
+          });
+        }
+        count++;
       }
-      count++;
     }, onDone: () {
-      Expect.notEquals(total, count);
+      Expect.notEquals(TOTAL, count);
+      Expect.isTrue(count > 0);
       keepAlive.close();
-      d.delete().then((ignore) => keepAlive.close());
+      d.delete(recursive: true).then((ignore) => keepAlive.close());
     });
   });
 }
