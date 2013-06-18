@@ -1226,6 +1226,42 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
 }
 
 
+static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
+  const intptr_t kLowInvocationCount = -100000000;
+  if (isolate->debugger()->HasBreakpoint(function)) {
+    // We cannot set breakpoints in optimized code, so do not optimize
+    // the function.
+    function.set_usage_counter(0);
+    return false;
+  }
+  if (function.deoptimization_counter() >=
+      FLAG_deoptimization_counter_threshold) {
+    if (FLAG_trace_failed_optimization_attempts) {
+      OS::PrintErr("Too Many Deoptimizations: %s\n",
+          function.ToFullyQualifiedCString());
+    }
+    // TODO(srdjan): Investigate excessive deoptimization.
+    function.set_usage_counter(kLowInvocationCount);
+    return false;
+  }
+  if ((FLAG_optimization_filter != NULL) &&
+      (strstr(function.ToFullyQualifiedCString(),
+              FLAG_optimization_filter) == NULL)) {
+    function.set_usage_counter(kLowInvocationCount);
+    return false;
+  }
+  if (!function.is_optimizable()) {
+    if (FLAG_trace_failed_optimization_attempts) {
+      OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());
+    }
+    // TODO(5442338): Abort as this should not happen.
+    function.set_usage_counter(kLowInvocationCount);
+    return false;
+  }
+  return true;
+}
+
+
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   ASSERT(arguments.ArgCount() ==
          kStackOverflowRuntimeEntry.argument_count());
@@ -1278,7 +1314,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     StackFrame* frame = iterator.NextFrame();
     const Function& function = Function::Handle(frame->LookupDartFunction());
     ASSERT(!function.IsNull());
-    if (!function.is_optimizable()) return;
+    if (!CanOptimizeFunction(function, isolate)) return;
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
     if (FLAG_trace_osr) {
@@ -1332,35 +1368,10 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(arguments.ArgCount() ==
          kOptimizeInvokedFunctionRuntimeEntry.argument_count());
-  const intptr_t kLowInvocationCount = -100000000;
   const Function& function = Function::CheckedHandle(arguments.ArgAt(0));
   ASSERT(!function.IsNull());
-  if (isolate->debugger()->HasBreakpoint(function)) {
-    // We cannot set breakpoints in optimized code, so do not optimize
-    // the function.
-    function.set_usage_counter(0);
-    arguments.SetReturn(Code::Handle(function.CurrentCode()));
-    return;
-  }
-  if (function.deoptimization_counter() >=
-      FLAG_deoptimization_counter_threshold) {
-    if (FLAG_trace_failed_optimization_attempts) {
-      OS::PrintErr("Too Many Deoptimizations: %s\n",
-          function.ToFullyQualifiedCString());
-    }
-    // TODO(srdjan): Investigate excessive deoptimization.
-    function.set_usage_counter(kLowInvocationCount);
-    arguments.SetReturn(Code::Handle(function.CurrentCode()));
-    return;
-  }
-  if ((FLAG_optimization_filter != NULL) &&
-      (strstr(function.ToFullyQualifiedCString(),
-              FLAG_optimization_filter) == NULL)) {
-    function.set_usage_counter(kLowInvocationCount);
-    arguments.SetReturn(Code::Handle(function.CurrentCode()));
-    return;
-  }
-  if (function.is_optimizable()) {
+
+  if (CanOptimizeFunction(function, isolate)) {
     const Error& error =
         Error::Handle(Compiler::CompileOptimizedFunction(function));
     if (!error.IsNull()) {
@@ -1370,12 +1381,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     ASSERT(!optimized_code.IsNull());
     // Reset usage counter for reoptimization.
     function.set_usage_counter(0);
-  } else {
-    if (FLAG_trace_failed_optimization_attempts) {
-      OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());
-    }
-    // TODO(5442338): Abort as this should not happen.
-    function.set_usage_counter(kLowInvocationCount);
   }
   arguments.SetReturn(Code::Handle(function.CurrentCode()));
 }

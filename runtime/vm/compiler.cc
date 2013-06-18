@@ -268,14 +268,11 @@ static bool CompileParsedFunctionHelper(ParsedFunction* parsed_function,
         ASSERT(function.HasCode());
         // Extract type feedback before the graph is built, as the graph
         // builder uses it to attach it to nodes.
-        // Do not use type feedback to optimize a function that was
-        // deoptimized too often.
-        if (function.deoptimization_counter() <
-            FLAG_deoptimization_counter_threshold) {
-          const Code& unoptimized_code =
-              Code::Handle(function.unoptimized_code());
-          ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
-        }
+        ASSERT(function.deoptimization_counter() <
+               FLAG_deoptimization_counter_threshold);
+        const Code& unoptimized_code =
+            Code::Handle(function.unoptimized_code());
+        ic_data_array = unoptimized_code.ExtractTypeFeedbackArray();
       }
 
       // Build the flow graph.
