@@ -154,12 +154,21 @@
       Utils::High32Bits(long_arg0),                                            \
       Utils::Low32Bits(long_arg1),                                             \
       Utils::High32Bits(long_arg1)))
+#if defined(TARGET_ARCH_MIPS)
+#define EXECUTE_TEST_CODE_FLOAT(name, entry)                                   \
+  bit_cast<float, int32_t>(Simulator::Current()->Call(                         \
+      bit_cast<int32_t, uword>(entry), 0, 0, 0, 0, true))
+#define EXECUTE_TEST_CODE_DOUBLE(name, entry)                                  \
+  bit_cast<double, int64_t>(Simulator::Current()->Call(                        \
+      bit_cast<int32_t, uword>(entry), 0, 0, 0, 0, true))
+#else  // defined(TARGET_ARCH_MIPS)
 #define EXECUTE_TEST_CODE_FLOAT(name, entry)                                   \
   bit_cast<float, int32_t>(Simulator::Current()->Call(                         \
       bit_cast<int32_t, uword>(entry), 0, 0, 0, 0))
 #define EXECUTE_TEST_CODE_DOUBLE(name, entry)                                  \
   bit_cast<double, int64_t>(Simulator::Current()->Call(                        \
       bit_cast<int32_t, uword>(entry), 0, 0, 0, 0))
+#endif  // defined(TARGET_ARCH_MIPS)
 #define EXECUTE_TEST_CODE_INT32_F(name, entry, float_arg)                      \
   static_cast<int32_t>(Simulator::Current()->Call(                             \
       bit_cast<int32_t, uword>(entry),                                         \

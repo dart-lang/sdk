@@ -192,36 +192,6 @@ ASSEMBLER_TEST_RUN(Div, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(Divu_zero, assembler) {
-  __ addiu(R1, ZR, Immediate(27));
-  __ addiu(R2, ZR, Immediate(0));
-  __ divu(R1, R2);
-  __ mflo(V0);
-  __ jr(RA);
-}
-
-
-ASSEMBLER_TEST_RUN(Divu_zero, test) {
-  typedef int (*SimpleCode)();
-  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
-}
-
-
-ASSEMBLER_TEST_GENERATE(Div_zero, assembler) {
-  __ addiu(R1, ZR, Immediate(27));
-  __ addiu(R2, ZR, Immediate(0));
-  __ div(R1, R2);
-  __ mflo(V0);
-  __ jr(RA);
-}
-
-
-ASSEMBLER_TEST_RUN(Div_zero, test) {
-  typedef int (*SimpleCode)();
-  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
-}
-
-
 ASSEMBLER_TEST_GENERATE(Divu_corner, assembler) {
   __ LoadImmediate(R1, 0x80000000);
   __ LoadImmediate(R2, 0xffffffff);
@@ -1217,25 +1187,24 @@ ASSEMBLER_TEST_RUN(SubOverflow_detect, test) {
 
 ASSEMBLER_TEST_GENERATE(Mtc1Mfc1, assembler) {
   __ mtc1(ZR, F0);
+  __ mtc1(ZR, F1);
   __ mfc1(V0, F0);
+  __ mfc1(V1, F1);
   __ Ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Mtc1Mfc1, test) {
-  typedef double (*SimpleCode)();
+  typedef int (*SimpleCode)();
   EXPECT(test != NULL);
-  double res = EXECUTE_TEST_CODE_FLOAT(SimpleCode, test->entry());
-  EXPECT_FLOAT_EQ(0.0, res, 0.001);
+  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 
 ASSEMBLER_TEST_GENERATE(Addd, assembler) {
   __ LoadImmediate(D0, 1.0);
   __ LoadImmediate(D1, 2.0);
-  __ addd(D2, D0, D1);
-  __ mfc1(V0, F4);
-  __ mfc1(V1, F5);
+  __ addd(D0, D0, D1);
   __ Ret();
 }
 
@@ -1249,10 +1218,8 @@ ASSEMBLER_TEST_RUN(Addd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Movd, assembler) {
-  __ LoadImmediate(D0, 1.0);
-  __ movd(D1, D0);
-  __ mfc1(V0, F2);
-  __ mfc1(V1, F3);
+  __ LoadImmediate(D1, 1.0);
+  __ movd(D0, D1);
   __ Ret();
 }
 
@@ -1269,11 +1236,9 @@ ASSEMBLER_TEST_GENERATE(Sdc1Ldc1, assembler) {
   __ AddImmediate(SP, -8 * kWordSize);
   __ LoadImmediate(T1, ~(8 - 1));
   __ and_(T0, SP, T1);  // Need 8 byte alignment.
-  __ LoadImmediate(D0, 1.0);
-  __ sdc1(D0, Address(T0));
-  __ ldc1(D1, Address(T0));
-  __ mfc1(V0, F2);
-  __ mfc1(V1, F3);
+  __ LoadImmediate(D1, 1.0);
+  __ sdc1(D1, Address(T0));
+  __ ldc1(D0, Address(T0));
   __ Ret();
 }
 
@@ -1292,9 +1257,7 @@ ASSEMBLER_TEST_GENERATE(Addd_NaN, assembler) {
   __ LoadImmediate(T0, 0x7FF80000);
   __ mtc1(ZR, F2);  // Load upper bits of NaN.
   __ mtc1(T0, F3);  // Load lower bits of NaN.
-  __ addd(D2, D0, D1);
-  __ mfc1(V0, F4);
-  __ mfc1(V1, F5);
+  __ addd(D0, D0, D1);
   __ Ret();
 }
 
@@ -1312,9 +1275,7 @@ ASSEMBLER_TEST_GENERATE(Addd_Inf, assembler) {
   __ LoadImmediate(T0, 0x7FF00000);  // +inf
   __ mtc1(ZR, F2);
   __ mtc1(T0, F3);
-  __ addd(D2, D0, D1);
-  __ mfc1(V0, F4);
-  __ mfc1(V1, F5);
+  __ addd(D0, D0, D1);
   __ Ret();
 }
 
@@ -1330,9 +1291,7 @@ ASSEMBLER_TEST_RUN(Addd_Inf, test) {
 ASSEMBLER_TEST_GENERATE(Subd, assembler) {
   __ LoadImmediate(D0, 2.5);
   __ LoadImmediate(D1, 1.5);
-  __ subd(D2, D0, D1);
-  __ mfc1(V0, F4);
-  __ mfc1(V1, F5);
+  __ subd(D0, D0, D1);
   __ Ret();
 }
 
@@ -1348,9 +1307,7 @@ ASSEMBLER_TEST_RUN(Subd, test) {
 ASSEMBLER_TEST_GENERATE(Muld, assembler) {
   __ LoadImmediate(D0, 6.0);
   __ LoadImmediate(D1, 7.0);
-  __ muld(D2, D0, D1);
-  __ mfc1(V0, F4);
-  __ mfc1(V1, F5);
+  __ muld(D0, D0, D1);
   __ Ret();
 }
 
@@ -1366,9 +1323,7 @@ ASSEMBLER_TEST_RUN(Muld, test) {
 ASSEMBLER_TEST_GENERATE(Divd, assembler) {
   __ LoadImmediate(D0, 42.0);
   __ LoadImmediate(D1, 7.0);
-  __ divd(D2, D0, D1);
-  __ mfc1(V0, F4);
-  __ mfc1(V1, F5);
+  __ divd(D0, D0, D1);
   __ Ret();
 }
 
@@ -1382,10 +1337,8 @@ ASSEMBLER_TEST_RUN(Divd, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Sqrtd, assembler) {
-  __ LoadImmediate(D0, 36.0);
-  __ sqrtd(D2, D0);
-  __ mfc1(V0, F4);
-  __ mfc1(V1, F5);
+  __ LoadImmediate(D1, 36.0);
+  __ sqrtd(D0, D1);
   __ Ret();
 }
 
@@ -1602,10 +1555,8 @@ ASSEMBLER_TEST_RUN(Cop1COLE_not_taken, test) {
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtDW, assembler) {
   __ LoadImmediate(T0, 42);
-  __ mtc1(T0, F0);
-  __ cvtdw(D1, F0);
-  __ mfc1(V0, F2);
-  __ mfc1(V1, F3);
+  __ mtc1(T0, F2);
+  __ cvtdw(D0, F2);
   __ Ret();
 }
 
@@ -1620,10 +1571,8 @@ ASSEMBLER_TEST_RUN(Cop1CvtDW, test) {
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtDW_neg, assembler) {
   __ LoadImmediate(T0, -42);
-  __ mtc1(T0, F0);
-  __ cvtdw(D1, F0);
-  __ mfc1(V0, F2);
-  __ mfc1(V1, F3);
+  __ mtc1(T0, F2);
+  __ cvtdw(D0, F2);
   __ Ret();
 }
 
@@ -1638,11 +1587,9 @@ ASSEMBLER_TEST_RUN(Cop1CvtDW_neg, test) {
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtDL, assembler) {
   __ LoadImmediate(T0, 0x1);
-  __ mtc1(ZR, F0);
-  __ mtc1(T0, F1);  // D0 <- 0x100000000 = 4294967296
-  __ cvtdl(D1, D0);
-  __ mfc1(V0, F2);
-  __ mfc1(V1, F3);
+  __ mtc1(ZR, F2);
+  __ mtc1(T0, F3);  // D0 <- 0x100000000 = 4294967296
+  __ cvtdl(D0, D1);
   __ Ret();
 }
 
@@ -1657,11 +1604,9 @@ ASSEMBLER_TEST_RUN(Cop1CvtDL, test) {
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtDL_neg, assembler) {
   __ LoadImmediate(T0, 0xffffffff);
-  __ mtc1(T0, F0);
-  __ mtc1(T0, F1);  // D0 <- 0xffffffffffffffff = -1
-  __ cvtdl(D1, D0);
-  __ mfc1(V0, F2);
-  __ mfc1(V1, F3);
+  __ mtc1(T0, F2);
+  __ mtc1(T0, F3);  // D0 <- 0xffffffffffffffff = -1
+  __ cvtdl(D0, D1);;
   __ Ret();
 }
 
@@ -1675,30 +1620,30 @@ ASSEMBLER_TEST_RUN(Cop1CvtDL_neg, test) {
 
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtWD, assembler) {
-  __ LoadImmediate(D0, 42.0);
-  __ cvtwd(F2, D0);
-  __ mfc1(V0, F2);
+  __ LoadImmediate(D1, 42.0);
+  __ cvtwd(F0, D1);
+  __ mfc1(V0, F0);
   __ Ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtWD, test) {
-  typedef double (*SimpleCode)();
+  typedef int (*SimpleCode)();
   EXPECT(test != NULL);
   EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 
 ASSEMBLER_TEST_GENERATE(Cop1CvtWD_neg, assembler) {
-  __ LoadImmediate(D0, -42.0);
-  __ cvtwd(F2, D0);
-  __ mfc1(V0, F2);
+  __ LoadImmediate(D1, -42.0);
+  __ cvtwd(F0, D1);
+  __ mfc1(V0, F0);
   __ Ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Cop1CvtWD_neg, test) {
-  typedef double (*SimpleCode)();
+  typedef int (*SimpleCode)();
   EXPECT(test != NULL);
   EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }

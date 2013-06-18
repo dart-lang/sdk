@@ -50,6 +50,11 @@ class Simulator {
   double get_fregister_double(FRegister freg) const;
   int64_t get_fregister_long(FRegister freg) const;
 
+  void set_dregister_bits(DRegister freg, int64_t value);
+  void set_dregister(DRegister freg, double value);
+
+  int64_t get_dregister_bits(DRegister freg) const;
+  double get_dregister(DRegister freg) const;
 
   // Accessor for the pc.
   void set_pc(int32_t value) { pc_ = value; }
@@ -95,12 +100,14 @@ class Simulator {
 
   // Dart generally calls into generated code with 5 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the
-  // result on return.
+  // result on return. When fp_return is true the return value is the D0
+  // floating point register. Otherwise, the return value is V1:V0.
   int64_t Call(int32_t entry,
                int32_t parameter0,
                int32_t parameter1,
                int32_t parameter2,
-               int32_t parameter3);
+               int32_t parameter3,
+               bool fp_return = false);
 
   // Runtime and native call support.
   enum CallKind {

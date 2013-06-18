@@ -135,23 +135,22 @@ enum FRegister {
 // convert to the single precision registers when needed in the mips-specific
 // code.
 enum DRegister {
-  D0  =  0,
-  D1  =  1,
-  D2  =  2,
-  D3  =  3,
-  D4  =  4,
-  D5  =  5,
-  D6  =  6,
-  D7  =  7,
-  D8  =  8,
-  D9  =  9,
-  D10 = 10,
-  D11 = 11,
-  D12 = 12,
-  D13 = 13,
-  D14 = 14,
-  D15 = 15,
-  D16 = 16,
+  D0  =  0,  // Function return value 1.
+  D1  =  1,  // Function return value 2.
+  D2  =  2,  // Not preserved.
+  D3  =  3,  // Not preserved.
+  D4  =  4,  // Not preserved.
+  D5  =  5,  // Not preserved.
+  D6  =  6,  // Argument 1.
+  D7  =  7,  // Argument 2.
+  D8  =  8,  // Not preserved.
+  D9  =  9,  // Not preserved.
+  D10 = 10,  // Preserved.
+  D11 = 11,  // Preserved.
+  D12 = 12,  // Preserved.
+  D13 = 13,  // Preserved.
+  D14 = 14,  // Preserved.
+  D15 = 15,  // Preserved.
   kNumberOfDRegisters = 16,
   kNoDRegister = -1,
 };

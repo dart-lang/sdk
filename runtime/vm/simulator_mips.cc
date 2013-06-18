@@ -727,6 +727,23 @@ void Simulator::set_fregister_double(FRegister reg, double value) {
 }
 
 
+void Simulator::set_dregister_bits(DRegister reg, int64_t value) {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfDRegisters);
+  FRegister lo = static_cast<FRegister>(reg * 2);
+  FRegister hi = static_cast<FRegister>((reg * 2) + 1);
+  set_fregister(lo, Utils::Low32Bits(value));
+  set_fregister(hi, Utils::High32Bits(value));
+}
+
+
+void Simulator::set_dregister(DRegister reg, double value) {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfDRegisters);
+  set_dregister_bits(reg, bit_cast<int64_t, double>(value));
+}
+
+
 // Get the register from the architecture state.
 int32_t Simulator::get_register(Register reg) const {
   if (reg == R0) {
@@ -765,6 +782,23 @@ double Simulator::get_fregister_double(FRegister reg) const {
   ASSERT(reg < kNumberOfFRegisters);
   ASSERT((reg & 1) == 0);
   const int64_t value = get_fregister_long(reg);
+  return bit_cast<double, int64_t>(value);
+}
+
+
+int64_t Simulator::get_dregister_bits(DRegister reg) const {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfDRegisters);
+  FRegister lo = static_cast<FRegister>(reg * 2);
+  FRegister hi = static_cast<FRegister>((reg * 2) + 1);
+  return Utils::LowHighTo64Bits(get_fregister(lo), get_fregister(hi));
+}
+
+
+double Simulator::get_dregister(DRegister reg) const {
+  ASSERT(reg >= 0);
+  ASSERT(reg < kNumberOfDRegisters);
+  const int64_t value = get_dregister_bits(reg);
   return bit_cast<double, int64_t>(value);
 }
 
@@ -1097,10 +1131,9 @@ void Simulator::DecodeSpecial(Instr* instr) {
       int32_t rs_val = get_register(instr->RsField());
       int32_t rt_val = get_register(instr->RtField());
       if (rt_val == 0) {
-        // Results are unpredictable.
-        set_hi_register(0);
-        set_lo_register(0);
-        // TODO(zra): Drop into the debugger here.
+        // Results are unpredictable, but there is no arithmetic exception.
+        set_hi_register(icount_);
+        set_lo_register(icount_);
         break;
       }
 
@@ -1121,10 +1154,9 @@ void Simulator::DecodeSpecial(Instr* instr) {
       uint32_t rs_val = get_register(instr->RsField());
       uint32_t rt_val = get_register(instr->RtField());
       if (rt_val == 0) {
-        // Results are unpredictable.
-        set_hi_register(0);
-        set_lo_register(0);
-        // TODO(zra): Drop into the debugger here.
+        // Results are unpredictable, but there is no arithmetic exception.
+        set_hi_register(icount_);
+        set_lo_register(icount_);
         break;
       }
       set_lo_register(rs_val / rt_val);
@@ -2021,7 +2053,8 @@ int64_t Simulator::Call(int32_t entry,
                         int32_t parameter0,
                         int32_t parameter1,
                         int32_t parameter2,
-                        int32_t parameter3) {
+                        int32_t parameter3,
+                        bool fp_return) {
   // Save the SP register before the call so we can restore it.
   int32_t sp_before_call = get_register(SP);
 
@@ -2058,6 +2091,13 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r22_val = get_register(R22);
   int32_t r23_val = get_register(R23);
 
+  double d10_val = get_dregister(D10);
+  double d11_val = get_dregister(D11);
+  double d12_val = get_dregister(D12);
+  double d13_val = get_dregister(D13);
+  double d14_val = get_dregister(D14);
+  double d15_val = get_dregister(D15);
+
   // Setup the callee-saved registers with a known value. To be able to check
   // that they are preserved properly across dart execution.
   int32_t callee_saved_value = icount_;
@@ -2069,6 +2109,13 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R21, callee_saved_value);
   set_register(R22, callee_saved_value);
   set_register(R23, callee_saved_value);
+
+  set_dregister_bits(D10, callee_saved_value);
+  set_dregister_bits(D11, callee_saved_value);
+  set_dregister_bits(D12, callee_saved_value);
+  set_dregister_bits(D13, callee_saved_value);
+  set_dregister_bits(D14, callee_saved_value);
+  set_dregister_bits(D15, callee_saved_value);
 
   // Start the simulation
   Execute();
@@ -2083,6 +2130,13 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R22));
   ASSERT(callee_saved_value == get_register(R23));
 
+  ASSERT(callee_saved_value == get_dregister_bits(D10));
+  ASSERT(callee_saved_value == get_dregister_bits(D11));
+  ASSERT(callee_saved_value == get_dregister_bits(D12));
+  ASSERT(callee_saved_value == get_dregister_bits(D13));
+  ASSERT(callee_saved_value == get_dregister_bits(D14));
+  ASSERT(callee_saved_value == get_dregister_bits(D15));
+
   // Restore callee-saved registers with the original value.
   set_register(R16, r16_val);
   set_register(R17, r17_val);
@@ -2093,9 +2147,22 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R22, r22_val);
   set_register(R23, r23_val);
 
+  set_dregister(D10, d10_val);
+  set_dregister(D11, d11_val);
+  set_dregister(D12, d12_val);
+  set_dregister(D13, d13_val);
+  set_dregister(D14, d14_val);
+  set_dregister(D15, d15_val);
+
   // Restore the SP register and return V1:V0.
   set_register(SP, sp_before_call);
-  return Utils::LowHighTo64Bits(get_register(V0), get_register(V1));
+  int64_t return_value;
+  if (fp_return) {
+    return_value = Utils::LowHighTo64Bits(get_fregister(F0), get_fregister(F1));
+  } else {
+    return_value = Utils::LowHighTo64Bits(get_register(V0), get_register(V1));
+  }
+  return return_value;
 }
 
 
