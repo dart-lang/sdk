@@ -237,16 +237,35 @@ class _Directory implements Directory {
     return new Directory(newPath);
   }
 
+  static String _trimTrailingPathSeparators(String path) {
+    // Don't handle argument errors here.
+    if (path is! String) return path;
+    if (Platform.operatingSystem == 'windows') {
+      while (path.length > 1 &&
+             (path.endsWith(Platform.pathSeparator) ||
+              path.endsWith('/'))) {
+        path = path.substring(0, path.length - 1);
+      }
+    } else {
+      while (path.length > 1 && path.endsWith(Platform.pathSeparator)) {
+        path = path.substring(0, path.length - 1);
+      }
+    }
+    return path;
+  }
+
   Stream<FileSystemEntity> list({bool recursive: false,
                                  bool followLinks: true}) {
-    return new _AsyncDirectoryLister(path, recursive, followLinks).stream;
+    return new _AsyncDirectoryLister(_trimTrailingPathSeparators(path),
+                                     recursive,
+                                     followLinks).stream;
   }
 
   List listSync({bool recursive: false, bool followLinks: true}) {
-    if (_path is! String || recursive is! bool) {
+    if (_path is! String || recursive is! bool || followLinks is! bool) {
       throw new ArgumentError();
     }
-    return _list(_path, recursive, followLinks);
+    return _list(_trimTrailingPathSeparators(path), recursive, followLinks);
   }
 
   String get path => _path;

@@ -85,6 +85,24 @@ class DirectoryTest {
     Expect.isFalse(listedFile);
   }
 
+  static void testListingTailingPaths() {
+    Directory directory = new Directory("").createTempSync();
+    Directory subDirectory = new Directory("${directory.path}/subdir/");
+    subDirectory.createSync();
+    File f = new File('${subDirectory.path}/file.txt');
+    f.createSync();
+
+    void test(entry) {
+      Expect.isFalse(entry.path.contains(new RegExp('[\\/][\\/]')));
+    }
+
+    subDirectory.listSync().forEach(test);
+
+    subDirectory.list().listen(test, onDone: () {
+      directory.deleteSync(recursive: true);
+    });
+  }
+
   static void testListNonExistent() {
     setupListerHandlers(Stream<FileSystemEntity> stream) {
       stream.listen(
@@ -397,6 +415,7 @@ class DirectoryTest {
 
   static void testMain() {
     testListing();
+    testListingTailingPaths();
     testListNonExistent();
     testListTooLongName();
     testDeleteNonExistent();
