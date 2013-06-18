@@ -585,6 +585,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
 
   String get _prettyName => 'VariableMirror';
 
+  // TODO(ahe): Improve this information and test it.
   TypeMirror get type => JsMirrorSystem._dynamicType;
 
   DeclarationMirror get owner => _owner;
@@ -706,6 +707,9 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   DeclarationMirror get owner => _owner;
 
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
+
+  // TODO(ahe): Improve this information and test it.
+  TypeMirror get returnType => JsMirrorSystem._dynamicType;
 
   List<InstanceMirror> get metadata {
     if (_metadata == null) {
