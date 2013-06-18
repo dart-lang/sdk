@@ -2810,9 +2810,9 @@ TEST_CASE(TypeGetNonParamtericTypes) {
       "MyClass0 getMyClass0() { return new MyClass0(); }\n"
       "MyClass1 getMyClass1() { return new MyClass1(); }\n"
       "MyClass2 getMyClass2() { return new MyClass2(); }\n"
-      "MyClass0 getMyClass0Type() { return new MyClass0().runtimeType; }\n"
-      "MyClass1 getMyClass1Type() { return new MyClass1().runtimeType; }\n"
-      "MyClass2 getMyClass2Type() { return new MyClass2().runtimeType; }\n";
+      "Type getMyClass0Type() { return new MyClass0().runtimeType; }\n"
+      "Type getMyClass1Type() { return new MyClass1().runtimeType; }\n"
+      "Type getMyClass2Type() { return new MyClass2().runtimeType; }\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   bool instanceof = false;
 
@@ -2893,25 +2893,25 @@ TEST_CASE(TypeGetParamterizedTypes) {
       "MyClass0 getMyClass0() {\n"
       "  return new MyClass0<int, double>();\n"
       "}\n"
-      "MyClass0 getMyClass0Type() {\n"
+      "Type getMyClass0Type() {\n"
       "  return new MyClass0<int, double>().runtimeType;\n"
       "}\n"
       "MyClass1 getMyClass1() {\n"
       "  return new MyClass1<List<int>, List>();\n"
       "}\n"
-      "MyClass1 getMyClass1Type() {\n"
+      "Type getMyClass1Type() {\n"
       "  return new MyClass1<List<int>, List>().runtimeType;\n"
       "}\n"
       "MyClass0 getMyClass0_1() {\n"
       "  return new MyClass0<double, int>();\n"
       "}\n"
-      "MyClass0 getMyClass0_1Type() {\n"
+      "Type getMyClass0_1Type() {\n"
       "  return new MyClass0<double, int>().runtimeType;\n"
       "}\n"
       "MyClass1 getMyClass1_1() {\n"
       "  return new MyClass1<List<int>, List<double>>();\n"
       "}\n"
-      "MyClass1 getMyClass1_1Type() {\n"
+      "Type getMyClass1_1Type() {\n"
       "  return new MyClass1<List<int>, List<double>>().runtimeType;\n"
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
