@@ -20,7 +20,7 @@ namespace dart {
 namespace bin {
 
 PathBuffer::PathBuffer() : length_(0) {
-  data_ = calloc(PATH_MAX + 1,  sizeof(wchar_t));  // NOLINT
+  data_ = calloc(MAX_PATH + 1,  sizeof(wchar_t));  // NOLINT
 }
 
 char* PathBuffer::AsString() const {
