@@ -242,12 +242,16 @@ ClassMirror reflectType(Type key) {
 ClassMirror reflectClassByName(Symbol symbol) {
   disableTreeShaking();
   String className = n(symbol);
-  var constructor = Primitives.getConstructor(className);
-  if (constructor == null) {
+  var constructorOrInterceptor =
+      Primitives.getConstructorOrInterceptor(className);
+  if (constructorOrInterceptor == null) {
     // Probably an intercepted class.
     // TODO(ahe): How to handle intercepted classes?
     throw new UnsupportedError('Cannot find class for: $className');
   }
+  var constructor = (constructorOrInterceptor is Interceptor)
+      ? JS('', '#.constructor', constructorOrInterceptor)
+      : constructorOrInterceptor;
   var descriptor = JS('', '#["@"]', constructor);
   var fields;
   var fieldsMetadata;
@@ -266,10 +270,11 @@ ClassMirror reflectClassByName(Symbol symbol) {
       fields = '';
     }
   }
-  var mirror = classMirrors[constructor];
+  var mirror = classMirrors[constructorOrInterceptor];
   if (mirror == null) {
-    mirror = new JsClassMirror(symbol, constructor, fields, fieldsMetadata);
-    classMirrors[constructor] = mirror;
+    mirror = new JsClassMirror(
+        symbol, constructorOrInterceptor, fields, fieldsMetadata);
+    classMirrors[constructorOrInterceptor] = mirror;
   }
   return mirror;
 }
@@ -352,7 +357,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
 
 class JsClassMirror extends JsTypeMirror with JsObjectMirror
     implements ClassMirror {
-  final _jsConstructor;
+  final _jsConstructorOrInterceptor;
   final String _fields;
   final List _fieldsMetadata;
   List _metadata;
@@ -363,7 +368,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   JsLibraryMirror _owner;
 
   JsClassMirror(Symbol simpleName,
-                this._jsConstructor,
+                this._jsConstructorOrInterceptor,
                 this._fields,
                 this._fieldsMetadata)
       : super(simpleName);
@@ -371,6 +376,14 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   String get _prettyName => 'ClassMirror';
 
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
+
+  get _jsConstructor {
+    if (_jsConstructorOrInterceptor is Interceptor) {
+      return JS('', '#.constructor', _jsConstructorOrInterceptor);
+    } else {
+      return _jsConstructorOrInterceptor;
+    }
+  }
 
   List<JsMethodMirror> get _methods {
     if (_cachedMethods != null) return _cachedMethods;
@@ -510,7 +523,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
 
   DeclarationMirror get owner {
     if (_owner == null) {
-      if (_jsConstructor is Interceptor) {
+      if (_jsConstructorOrInterceptor is Interceptor) {
         _owner = reflectType(Object).owner;
       } else {
         for (var list in JsMirrorSystem.librariesByName.values) {

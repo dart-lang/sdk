@@ -28,6 +28,8 @@ mirrors/reflectively_instantiate_uninstantiated_class_test: Fail # Issue 6490
 mirrors/to_string_test: Fail # Issue 6490
 
 [ $csp ]
+mirrors/intercepted_class_test: Fail # Issue 6490
+mirrors/intercepted_object_test: Fail # Issue 6490
 mirrors/metadata_test: Fail # Issue 6490
 mirrors/reflect_model_test: Fail # Issue 6490
 mirrors/reflect_runtime_type_test: Fail # Issue 6490

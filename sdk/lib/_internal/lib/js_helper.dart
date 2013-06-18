@@ -566,7 +566,7 @@ class Primitives {
     return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
   }
 
-  static getConstructor(String className) {
+  static getConstructorOrInterceptor(String className) {
     // TODO(ahe): Generalize this and improve test coverage of
     // reflecting on intercepted classes.
     if (JS('bool', '# == "String"', className)) return const JSString();
