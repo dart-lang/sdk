@@ -6,7 +6,7 @@ library runtime.coverage;
 
 import 'dart:io';
 
-import 'package:args/args.dart' show ArgParser, ArgResults;
+import 'package:args/args.dart';
 
 import 'package:analyzer_experimental/src/services/runtime/log.dart' as log;
 import 'package:analyzer_experimental/src/services/runtime/coverage/coverage_impl.dart';
@@ -78,13 +78,10 @@ final ArgParser _argParser = new ArgParser()
 
 
 printUsage([var description = 'Code coverage tool for Dart.']) {
-  var buffer = new StringBuffer();
   var usage = _argParser.getUsage();
-  buffer.write(
-      '$description\n\n'
-      'Usage: coverage [options] <script>\n\n'
-      '$usage\n\n');
-  print(buffer.toString());
+  print('$description\n');
+  print('Usage: coverage [options] <script>\n');
+  print('$usage\n');
 }
 
 

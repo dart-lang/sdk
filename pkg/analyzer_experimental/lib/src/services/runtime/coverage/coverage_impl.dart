@@ -28,20 +28,20 @@ import 'utils.dart';
 void runServerApplication(String targetPath, String outPath) {
   var targetFolder = pathos.dirname(targetPath);
   var targetName = pathos.basename(targetPath);
-  new CoverageServer(targetFolder, targetPath, outPath)
-      .start()
-      .then((port) {
-        var options = new Options();
-        var targetArgs = ['http://127.0.0.1:$port/$targetName'];
-        var dartExecutable = options.executable;
-        Process.start(dartExecutable, targetArgs).then((Process process) {
-          process.exitCode.then(exit);
-          // Redirect process streams.
-          stdin.pipe(process.stdin);
-          process.stdout.pipe(stdout);
-          process.stderr.pipe(stderr);
-        });
-      });
+  var server = new CoverageServer(targetFolder, targetPath, outPath);
+  server.start().then((port) {
+    var options = new Options();
+    var targetArgs = ['http://127.0.0.1:$port/$targetName'];
+    var dartExecutable = options.executable;
+    return Process.start(dartExecutable, targetArgs);
+  }).then((process) {
+    stdin.pipe(process.stdin);
+    process.stdout.pipe(stdout);
+    process.stderr.pipe(stderr);
+    return process.exitCode;
+  }).then(exit).catchError((e) {
+    log.severe('Error starting $targetPath. $e');
+  });
 }
 
 
@@ -69,13 +69,12 @@ abstract class RewriteServer {
     });
   }
 
-  handlePostRequest(HttpRequest request);
+  void handlePostRequest(HttpRequest request);
 
-  handleGetRequest(HttpRequest request) {
+  void handleGetRequest(HttpRequest request) {
     var response = request.response;
     // Prepare path.
-    var path = basePath + '/' + request.uri.path;
-    path = pathos.normalize(path);
+    var path = getFilePath(request.uri);
     log.info('[$path] Requested.');
     // May be serve using just path.
     {
@@ -94,30 +93,38 @@ abstract class RewriteServer {
       if (found) {
         // May be this files should be sent as is.
         if (!shouldRewriteFile(path)) {
-          sendFile(request, file);
-          return;
+          return sendFile(request, file);
         }
         // Rewrite content of the file.
-        file.readAsString().then((content) {
+        return file.readAsString().then((content) {
           log.finest('[$path] Done reading ${content.length} characters.');
           content = rewriteFileContent(path, content);
           log.fine('[$path] Rewritten.');
           response.write(content);
-          response.close();
+          return response.close();
         });
       } else {
         log.severe('[$path] File not found.');
         response.statusCode = HttpStatus.NOT_FOUND;
-        response.close();
+        return response.close();
       }
+    }).catchError((e) {
+      log.severe('[$path] $e.');
+      response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+      return response.close();
     });
   }
 
-  void sendFile(HttpRequest request, File file) {
+  String getFilePath(Uri uri) {
+    var path = uri.path;
+    path = pathos.joinAll(uri.pathSegments);
+    path = pathos.join(basePath, path);
+    return pathos.normalize(path);
+  }
+
+  Future sendFile(HttpRequest request, File file) {
     file.fullPath().then((fullPath) {
-      file.openRead()
-        .pipe(request.response)
-        .catchError((e) {});
+      return file.openRead().pipe(request.response);
     });
   }
 
@@ -132,6 +139,18 @@ abstract class RewriteServer {
   /// file with [path].
   String rewriteFileContent(String path, String code);
 }
+
+
+/// Here `CCC` means 'code coverage configuration'.
+const TEST_UNIT_CCC = '''
+class __CCC extends __cc_ut.Configuration {
+  void onDone(bool success) {
+    __cc.postStatistics();
+    super.onDone(success);
+  }
+}''';
+
+const TEST_UNIT_CCC_SET = '__cc_ut.unittestConfiguration = new __CCC();';
 
 
 /// Server that rewrites Dart code so that it reports execution of statements
@@ -160,11 +179,14 @@ class CoverageServer extends RewriteServer {
       }
     }).onDone(() {
       log.fine('Received all statistics.');
-      var sb = new StringBuffer();
-      appInfo.write(sb, executedIds);
-      new File(outPath).writeAsString(sb.toString());
-      log.fine('Results are written to $outPath.');
-      request.response.close();
+      var buffer = new StringBuffer();
+      appInfo.write(buffer, executedIds);
+      new File(outPath).writeAsString(buffer.toString()).then((_) {
+        return request.response.close();
+      }).catchError((e) {
+        log.severe('Error in receiving statistics $e.');
+        return request.response.close();
+      });
     });
   }
 
@@ -175,8 +197,7 @@ class CoverageServer extends RewriteServer {
           '..', 'lib', 'src', 'services', 'runtime', 'coverage',
           'coverage_lib.dart']);
       var content = new File(implPath).readAsStringSync();
-      content = content.replaceAll('0; // replaced during rewrite', '$port;');
-      return content;
+      return content.replaceAll('0; // replaced during rewrite', '$port;');
     }
     return null;
   }
@@ -188,10 +209,7 @@ class CoverageServer extends RewriteServer {
       return true;
     }
     // TODO(scheglov) use configuration
-    if (path.contains('/packages/analyzer_experimental/')) {
-      return true;
-    }
-    return false;
+    return path.contains('/packages/analyzer_experimental/');
   }
 
   String rewriteFileContent(String path, String code) {
@@ -212,16 +230,8 @@ class CoverageServer extends RewriteServer {
         if (node is FunctionDeclaration) {
           var body = node.functionExpression.body;
           if (node.name.name == 'main' && body is BlockFunctionBody) {
-            injector.inject(node.offset,
-                'class __CCC extends __cc_ut.Configuration {'
-                '  void onDone(bool success) {'
-                '    __cc.postStatistics();'
-                '    super.onDone(success);'
-                '  }'
-                '}');
-            injector.inject(
-                body.offset + 1,
-                '__cc_ut.unittestConfiguration = new __CCC();');
+            injector.inject(node.offset, TEST_UNIT_CCC);
+            injector.inject(body.offset + 1, TEST_UNIT_CCC_SET);
           }
         }
       }
