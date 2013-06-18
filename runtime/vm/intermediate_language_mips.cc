@@ -2416,7 +2416,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(kSmiTagSize == 1);
         __ sra(TMP, left, 31);
         ASSERT(shift_count > 1);  // 1, -1 case handled above.
-        __ sll(TMP, TMP, 32 - shift_count);
+        __ srl(TMP, TMP, 32 - shift_count);
         __ addu(left, left, TMP);
         ASSERT(shift_count > 0);
         __ sra(result, left, shift_count);

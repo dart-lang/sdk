@@ -537,7 +537,6 @@ arithmetic_test: Pass, Crash, Fail # Fails on Mac
 left_shift_test: Pass, Fail # Fails on Mac
 positive_bit_operations_test: Pass, Fail, Crash # Fails and crashes on Mac
 
-
 # large_implicit_getter_test Passes on ReleaseARM, Crashes in SIMARM and
 # DebugARM. Should crash on ReleaseARM, but there is no exception on an
 # unaligned access. stack_overflow_test and  _stacktrace_test have the same
@@ -557,7 +556,6 @@ arithmetic_test: Fail, Crash
 bit_operations_test: Crash, Fail
 char_escape_test: Pass, Crash
 deopt_smi_op_test: Fail
-div_with_power_of_two_test: Fail
 gc_test: Crash
 invocation_mirror_test: Fail
 load_to_load_forwarding_vm_test: Fail

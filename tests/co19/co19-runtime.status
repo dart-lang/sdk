@@ -541,6 +541,23 @@ LibTest/core/double/truncate_A01_t01: Fail, Pass # Pass on Mac
 *: Skip
 
 
-[ $compiler == none && $runtime == vm && $arch == simmips ]
-*: Skip
+[ $compiler == none && $runtime == vm && $arch == simmips && $mode == release ]
+LibTest/math/tan_A01_t01: Fail
+LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
+LibTest/core/double/ceil_A01_t02: Fail
+LibTest/core/double/floor_A01_t02: Fail
+LibTest/core/double/truncate_A01_t01: Fail
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
+[ $compiler == none && $runtime == vm && $arch == simmips && $mode == debug ]
+LibTest/math/tan_A01_t01: Fail
+LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
+LibTest/core/Expect/throws_A01_t04: Crash
+LibTest/core/List/sort_A01_t04: Crash # Too far relative jump.
+LibTest/core/List/sort_A01_t05: Crash
+LibTest/core/List/sort_A01_t06: Crash
+LibTest/core/double/ceil_A01_t02: Fail
+LibTest/core/double/floor_A01_t02: Fail
+LibTest/core/double/truncate_A01_t01: Fail
+LibTest/math/Random/nextDouble_A01_t01: Crash
+LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
