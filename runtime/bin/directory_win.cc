@@ -20,7 +20,7 @@ namespace dart {
 namespace bin {
 
 PathBuffer::PathBuffer() : length_(0) {
-  data_ = new wchar_t[MAX_PATH + 1];
+  data_ = calloc(PATH_MAX + 1,  sizeof(wchar_t));  // NOLINT
 }
 
 char* PathBuffer::AsString() const {
@@ -211,6 +211,17 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   }
 
   return kListDone;
+}
+
+
+void DirectoryListingEntry::ResetLink() {
+  if (link_ != NULL && (parent_ == NULL || parent_->link_ != link_)) {
+    delete link_;
+    link_ = NULL;
+  }
+  if (parent_ != NULL) {
+    link_ = parent_->link_;
+  }
 }
 
 
