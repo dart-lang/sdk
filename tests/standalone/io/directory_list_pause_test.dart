@@ -11,7 +11,7 @@ import "dart:isolate";
 void testPauseList() {
   var keepAlive = new ReceivePort();
   // TOTAL should be bigger the our directory listing buffer.
-  const int TOTAL = 128;
+  const int TOTAL = 256;
   new Directory("").createTemp().then((d) {
     for (int i = 0; i < TOTAL; i++) {
       new Directory("${d.path}/$i").createSync();
@@ -37,7 +37,6 @@ void testPauseList() {
     }, onDone: () {
       Expect.notEquals(TOTAL, count);
       Expect.isTrue(count > 0);
-      keepAlive.close();
       d.delete(recursive: true).then((ignore) => keepAlive.close());
     });
   });
