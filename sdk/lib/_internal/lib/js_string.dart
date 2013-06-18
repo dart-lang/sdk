@@ -85,15 +85,19 @@ class JSString extends Interceptor implements String, JSIndexable {
     }
   }
 
-  bool startsWith(Pattern pattern) {
+  bool startsWith(Pattern pattern, [int index = 0]) {
+    if (index < 0 || index > this.length) {
+      throw new RangeError.range(index, 0, this.length);
+    }
     if (pattern is String) {
       String other = pattern;
       int otherLength = other.length;
-      if (otherLength > length) return false;
+      int endIndex = index + otherLength;
+      if (endIndex > length) return false;
       return JS('bool', r'# == #', other,
-                JS('String', r'#.substring(0, #)', this, otherLength));
+                JS('String', r'#.substring(#, #)', this, index, endIndex));
     }
-    return pattern.matchAsPrefix(this, 0) != null;
+    return pattern.matchAsPrefix(this, index) != null;
   }
 
   String substring(int startIndex, [int endIndex]) {

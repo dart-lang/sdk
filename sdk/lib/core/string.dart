@@ -106,8 +106,18 @@ abstract class String implements Comparable<String>, Pattern {
 
   /**
    * Returns whether this string starts with a match of [pattern].
+   *
+   * If [index] is provided, instead check if the substring starting
+   * at that index starts with a match of [pattern].
+   *
+   * It is an error if [index] is negative or greater than [length].
+   *
+   * A [RegExp] containing "^" will not match if the [index] is greater than
+   * zero. The pattern works on the string as a whole, and does not extract
+   * a substring starting at [index] first. That is.
+   *     "abc".startsWith(new RegExp("^.", 1)) == false
    */
-  bool startsWith(Pattern pattern);
+  bool startsWith(Pattern pattern, [int index = 0]);
 
   /**
    * Returns the first position of a match of [pattern] in this string,

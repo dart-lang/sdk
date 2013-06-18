@@ -129,11 +129,14 @@ class _StringBase {
     return _substringMatches(this.length - other.length, other);
   }
 
-  bool startsWith(Pattern pattern) {
-    if (pattern is String) {
-      return _substringMatches(0, pattern);
+  bool startsWith(Pattern pattern, [int index = 0]) {
+    if (index < 0 || index > this.length) {
+      throw new RangeError.range(index, 0, this.length);
     }
-    return pattern.matchAsPrefix(this, 0) != null;
+    if (pattern is String) {
+      return _substringMatches(index, pattern);
+    }
+    return pattern.matchAsPrefix(this, index) != null;
   }
 
   int indexOf(Pattern pattern, [int start = 0]) {
