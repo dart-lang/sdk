@@ -2791,6 +2791,208 @@ TEST_CASE(ClassGetInterfaces) {
 }
 
 
+TEST_CASE(TypeGetNonParamtericTypes) {
+  const char* kScriptChars =
+      "class MyClass0 {\n"
+      "}\n"
+      "\n"
+      "class MyClass1 implements MyInterface1 {\n"
+      "}\n"
+      "\n"
+      "class MyClass2 implements MyInterface0, MyInterface1 {\n"
+      "}\n"
+      "\n"
+      "abstract class MyInterface0 {\n"
+      "}\n"
+      "\n"
+      "abstract class MyInterface1 implements MyInterface0 {\n"
+      "}\n"
+      "MyClass0 getMyClass0() { return new MyClass0(); }\n"
+      "MyClass1 getMyClass1() { return new MyClass1(); }\n"
+      "MyClass2 getMyClass2() { return new MyClass2(); }\n"
+      "MyClass0 getMyClass0Type() { return new MyClass0().runtimeType; }\n"
+      "MyClass1 getMyClass1Type() { return new MyClass1().runtimeType; }\n"
+      "MyClass2 getMyClass2Type() { return new MyClass2().runtimeType; }\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  bool instanceof = false;
+
+  // First get the type objects of these non parameterized types.
+  Dart_Handle type0 = Dart_GetType(lib, NewString("MyClass0"), 0, NULL);
+  EXPECT_VALID(type0);
+  Dart_Handle type1 = Dart_GetType(lib, NewString("MyClass1"), 0, NULL);
+  EXPECT_VALID(type1);
+  Dart_Handle type2 = Dart_GetType(lib, NewString("MyClass2"), 0, NULL);
+  EXPECT_VALID(type2);
+  Dart_Handle type3 = Dart_GetType(lib, NewString("MyInterface0"), 0, NULL);
+  EXPECT_VALID(type3);
+  Dart_Handle type4 = Dart_GetType(lib, NewString("MyInterface1"), 0, NULL);
+  EXPECT_VALID(type4);
+
+  // Now create objects of these non parameterized types and check
+  // that the validity of the type of the created object.
+  // MyClass0 type.
+  Dart_Handle type0_obj = Dart_Invoke(lib, NewString("getMyClass0"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type0, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type1, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type2, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type3, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, type4, &instanceof));
+  EXPECT(!instanceof);
+  type0_obj = Dart_Invoke(lib, NewString("getMyClass0Type"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT(Dart_IdentityEquals(type0, type0_obj));
+
+  // MyClass1 type.
+  Dart_Handle type1_obj = Dart_Invoke(lib, NewString("getMyClass1"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type1, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type0, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type2, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type3, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, type4, &instanceof));
+  EXPECT(instanceof);
+  type1_obj = Dart_Invoke(lib, NewString("getMyClass1Type"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT(Dart_IdentityEquals(type1, type1_obj));
+
+  // MyClass2 type.
+  Dart_Handle type2_obj = Dart_Invoke(lib, NewString("getMyClass2"), 0, NULL);
+  EXPECT_VALID(type2_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type2, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type0, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type1, &instanceof));
+  EXPECT(!instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type3, &instanceof));
+  EXPECT(instanceof);
+  EXPECT_VALID(Dart_ObjectIsType(type2_obj, type4, &instanceof));
+  EXPECT(instanceof);
+  type2_obj = Dart_Invoke(lib, NewString("getMyClass2Type"), 0, NULL);
+  EXPECT_VALID(type2_obj);
+  EXPECT(Dart_IdentityEquals(type2, type2_obj));
+}
+
+
+TEST_CASE(TypeGetParamterizedTypes) {
+  const char* kScriptChars =
+      "class MyClass0<A, B> {\n"
+      "}\n"
+      "\n"
+      "class MyClass1<A, C> {\n"
+      "}\n"
+      "MyClass0 getMyClass0() {\n"
+      "  return new MyClass0<int, double>();\n"
+      "}\n"
+      "MyClass0 getMyClass0Type() {\n"
+      "  return new MyClass0<int, double>().runtimeType;\n"
+      "}\n"
+      "MyClass1 getMyClass1() {\n"
+      "  return new MyClass1<List<int>, List>();\n"
+      "}\n"
+      "MyClass1 getMyClass1Type() {\n"
+      "  return new MyClass1<List<int>, List>().runtimeType;\n"
+      "}\n"
+      "MyClass0 getMyClass0_1() {\n"
+      "  return new MyClass0<double, int>();\n"
+      "}\n"
+      "MyClass0 getMyClass0_1Type() {\n"
+      "  return new MyClass0<double, int>().runtimeType;\n"
+      "}\n"
+      "MyClass1 getMyClass1_1() {\n"
+      "  return new MyClass1<List<int>, List<double>>();\n"
+      "}\n"
+      "MyClass1 getMyClass1_1Type() {\n"
+      "  return new MyClass1<List<int>, List<double>>().runtimeType;\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  bool instanceof = false;
+
+  // First get type objects of some of the basic types used in the test.
+  Dart_Handle int_type = Dart_GetType(lib, NewString("int"), 0, NULL);
+  EXPECT_VALID(int_type);
+  Dart_Handle double_type = Dart_GetType(lib, NewString("double"), 0, NULL);
+  EXPECT_VALID(double_type);
+  Dart_Handle list_type = Dart_GetType(lib, NewString("List"), 0, NULL);
+  EXPECT_VALID(list_type);
+  Dart_Handle type_args = Dart_NewList(1);
+  EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
+  Dart_Handle list_int_type = Dart_GetType(lib,
+                                           NewString("List"),
+                                           1,
+                                           &type_args);
+  EXPECT_VALID(list_int_type);
+
+  // Now instantiate MyClass0 and MyClass1 types with the same type arguments
+  // used in the code above.
+  type_args = Dart_NewList(2);
+  EXPECT_VALID(Dart_ListSetAt(type_args, 0, int_type));
+  EXPECT_VALID(Dart_ListSetAt(type_args, 1, double_type));
+  Dart_Handle myclass0_type = Dart_GetType(lib,
+                                           NewString("MyClass0"),
+                                           2,
+                                           &type_args);
+  EXPECT_VALID(myclass0_type);
+
+  type_args = Dart_NewList(2);
+  EXPECT_VALID(Dart_ListSetAt(type_args, 0, list_int_type));
+  EXPECT_VALID(Dart_ListSetAt(type_args, 1, list_type));
+  Dart_Handle myclass1_type = Dart_GetType(lib,
+                                           NewString("MyClass1"),
+                                           2,
+                                           &type_args);
+  EXPECT_VALID(myclass1_type);
+
+  // Now create objects of the type and validate the object type matches
+  // the one returned above. Also get the runtime type of the object and
+  // verify that it matches the type returned above.
+  // MyClass0<int, double> type.
+  Dart_Handle type0_obj = Dart_Invoke(lib, NewString("getMyClass0"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, myclass0_type, &instanceof));
+  EXPECT(instanceof);
+  type0_obj = Dart_Invoke(lib, NewString("getMyClass0Type"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT(Dart_IdentityEquals(type0_obj, myclass0_type));
+
+  // MyClass1<List<int>, List> type.
+  Dart_Handle type1_obj = Dart_Invoke(lib, NewString("getMyClass1"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, myclass1_type, &instanceof));
+  EXPECT(instanceof);
+  type1_obj = Dart_Invoke(lib, NewString("getMyClass1Type"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT(Dart_IdentityEquals(type1_obj, myclass1_type));
+
+  // MyClass0<double, int> type.
+  type0_obj = Dart_Invoke(lib, NewString("getMyClass0_1"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type0_obj, myclass0_type, &instanceof));
+  EXPECT(!instanceof);
+  type0_obj = Dart_Invoke(lib, NewString("getMyClass0_1Type"), 0, NULL);
+  EXPECT_VALID(type0_obj);
+  EXPECT(!Dart_IdentityEquals(type0_obj, myclass0_type));
+
+  // MyClass1<List<int>, List<double>> type.
+  type1_obj = Dart_Invoke(lib, NewString("getMyClass1_1"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT_VALID(Dart_ObjectIsType(type1_obj, myclass1_type, &instanceof));
+  EXPECT(instanceof);
+  type1_obj = Dart_Invoke(lib, NewString("getMyClass1_1Type"), 0, NULL);
+  EXPECT_VALID(type1_obj);
+  EXPECT(!Dart_IdentityEquals(type1_obj, myclass1_type));
+}
+
+
 static void TestFieldOk(Dart_Handle container,
                         Dart_Handle name,
                         bool final,

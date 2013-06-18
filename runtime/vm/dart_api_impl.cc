@@ -1136,16 +1136,25 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1, Dart_Handle obj2,
 // Do we also need a real Dart_IsInstanceOf, which should take an instance
 // rather than an object and a type rather than a class?
 DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
-                                          Dart_Handle clazz,
+                                          Dart_Handle type,
                                           bool* value) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
 
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  Type& type_obj = Type::Handle();
+  Object& obj = Object::Handle(isolate, Api::UnwrapHandle(type));
+  if (obj.IsNull()) {
+    RETURN_NULL_ERROR(type);
   }
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (obj.IsType()) {
+    type_obj ^= obj.raw();
+  } else {
+    if (!obj.IsClass()) {
+      RETURN_TYPE_ERROR(isolate, type, Type);
+    }
+    type_obj ^= Type::NewNonParameterizedType(Class::Cast(obj));
+  }
+  obj = Api::UnwrapHandle(object);
   if (obj.IsError()) {
     return object;
   } else if (!obj.IsNull() && !obj.IsInstance()) {
@@ -1160,10 +1169,8 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
   }
   if (obj.IsInstance()) {
     CHECK_CALLBACK_STATE(isolate);
-    const Type& type = Type::Handle(isolate,
-                                    Type::NewNonParameterizedType(cls));
     Error& malformed_type_error = Error::Handle(isolate);
-    *value = Instance::Cast(obj).IsInstanceOf(type,
+    *value = Instance::Cast(obj).IsInstanceOf(type_obj,
                                               TypeArguments::Handle(isolate),
                                               &malformed_type_error);
     ASSERT(malformed_type_error.IsNull());  // Type was created from a class.
@@ -3616,6 +3623,79 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
                          cls_name.ToCString(), lib_name.ToCString());
   }
   return Api::NewHandle(isolate, cls.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
+                                     Dart_Handle class_name,
+                                     intptr_t number_of_type_arguments,
+                                     Dart_Handle* type_arguments) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+
+  // Validate the input arguments.
+  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, library, Library);
+  }
+  const String& name_str = Api::UnwrapStringHandle(isolate, class_name);
+  if (name_str.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, class_name, String);
+  }
+  const Class& cls =
+      Class::Handle(isolate, lib.LookupClassAllowPrivate(name_str));
+  if (cls.IsNull()) {
+    const String& lib_name = String::Handle(isolate, lib.name());
+    return Api::NewError("Type '%s' not found in library '%s'.",
+                         name_str.ToCString(), lib_name.ToCString());
+  }
+  intptr_t num_expected_type_arguments = cls.NumTypeParameters();
+  if (num_expected_type_arguments == 0) {
+    return Api::NewHandle(isolate, Type::NewNonParameterizedType(cls));
+  }
+  TypeArguments& type_args_obj = TypeArguments::Handle();
+  if (number_of_type_arguments > 0) {
+    if (type_arguments == NULL) {
+      RETURN_NULL_ERROR(type_arguments);
+    }
+    if (num_expected_type_arguments != number_of_type_arguments) {
+      return Api::NewError("Invalid number of type arguments specified, "
+                           "got %"Pd" expected %"Pd,
+                           number_of_type_arguments,
+                           num_expected_type_arguments);
+    }
+    const Array& array = Api::UnwrapArrayHandle(isolate, *type_arguments);
+    if (array.IsNull()) {
+      RETURN_TYPE_ERROR(isolate, *type_arguments, Array);
+    }
+    if (array.Length() != num_expected_type_arguments) {
+      return Api::NewError("Invalid type arguments specified, expected an "
+                           "array of len %"Pd" but got an array of len %"Pd,
+                           number_of_type_arguments,
+                           array.Length());
+    }
+    // Set up the type arguments array.
+    type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
+    AbstractType& type_arg = AbstractType::Handle();
+    for (intptr_t i = 0; i < number_of_type_arguments; i++) {
+      type_arg ^= array.At(i);
+      type_args_obj.SetTypeAt(i, type_arg);
+    }
+  }
+
+  // Ensure all classes are finalized.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
+
+  // Construct the type object, canonicalize it and return.
+  const Type& instantiated_type = Type::Handle(
+      Type::New(cls, type_args_obj, Scanner::kDummyTokenIndex));
+  ClassFinalizer::FinalizeType(cls,
+                               instantiated_type,
+                               ClassFinalizer::kCanonicalize);
+  return Api::NewHandle(isolate, instantiated_type.raw());
 }
 
 

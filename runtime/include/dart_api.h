@@ -2058,6 +2058,24 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
 DART_EXPORT Dart_Handle Dart_RootLibrary();
 
 /**
+ * Lookup or instantiate a type by name and type arguments from a Library.
+ *
+ * \param library The library containing the class or interface.
+ * \param class_name The class name for the type.
+ * \param number_of_type_arguments Number of type arguments.
+ *   For non parametric types the number of type arguments would be 0.
+ * \param type_arguments Pointer to an array of type arguments.
+ *   For non parameteric types a NULL would be passed in for this argument.
+ *
+ * \return If no error occurs, the type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
+                                     Dart_Handle class_name,
+                                     intptr_t number_of_type_arguments,
+                                     Dart_Handle* type_arguments);
+
+/**
  * Lookup a class or interface by name from a Library.
  *
  * \param library The library containing the class or interface.
