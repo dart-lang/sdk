@@ -566,29 +566,15 @@ class Primitives {
     return JS('var', '#.apply(#, #)', jsFunction, function, arguments);
   }
 
-  static jsConstructor(object) => JS('', '#.constructor', object);
-
   static getConstructor(String className) {
     // TODO(ahe): Generalize this and improve test coverage of
     // reflecting on intercepted classes.
-    if (JS('bool', '# == "String"', className)) {
-      return jsConstructor(const JSString());
-    }
-    if (JS('bool', '# == "int"', className)) {
-      return jsConstructor(const JSInt());
-    }
-    if (JS('bool', '# == "double"', className)) {
-      return jsConstructor(const JSDouble());
-    }
-    if (JS('bool', '# == "num"', className)) {
-      return jsConstructor(const JSNumber());
-    }
-    if (JS('bool', '# == "bool"', className)) {
-      return jsConstructor(const JSBool());
-    }
-    if (JS('bool', '# == "List"', className)) {
-      return jsConstructor(const JSArray());
-    }
+    if (JS('bool', '# == "String"', className)) return const JSString();
+    if (JS('bool', '# == "int"', className)) return const JSInt();
+    if (JS('bool', '# == "double"', className)) return const JSDouble();
+    if (JS('bool', '# == "num"', className)) return const JSNumber();
+    if (JS('bool', '# == "bool"', className)) return const JSBool();
+    if (JS('bool', '# == "List"', className)) return const JSArray();
     return JS('var', '#[#]', JS_CURRENT_ISOLATE(), className);
   }
 
