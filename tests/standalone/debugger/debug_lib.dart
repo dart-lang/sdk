@@ -231,6 +231,74 @@ MatchFrames(List<String> functionNames) {
 }
 
 
+class LocalsMatcher extends Command {
+  Map locals = {};
+  
+  LocalsMatcher(this.locals) {
+    template = {"id": 0, "command": "getStackTrace", "params": {"isolateId": 0}};
+  }
+
+  void matchResponse(Debugger debugger) {
+    super.matchResponse(debugger);
+    
+    List frames = getJsonValue(debugger.currentMessage, "result:callFrames");
+    assert(frames != null);
+    
+    String functionName = frames[0]['functionName'];
+    List localsList = frames[0]['locals'];
+    Map reportedLocals = {};
+    localsList.forEach((local) => reportedLocals[local['name']] = local['value']);    
+    for (String key in locals.keys) {
+      if (reportedLocals[key] == null) {
+        debugger.error("Error in $functionName(): no value reported for local "
+            "variable $key");
+        return;
+      }
+      String expected = locals[key];
+      String actual = reportedLocals[key]['text'];
+      if (expected != actual) {
+        debugger.error("Error in $functionName(): got '$actual' for local "
+            "variable $key, but expected '$expected'");
+        return;
+      }
+    }
+  }
+}
+
+
+MatchLocals(Map localValues) {
+  return new LocalsMatcher(localValues);
+}
+
+
+class EventMatcher {
+  String eventName;
+  Map params;
+  
+  EventMatcher(this.eventName, this.params);
+  
+  void matchEvent(Debugger debugger) {
+    for (Event event in debugger.events) {
+      if (event.name == eventName) {
+        if (params == null || matchMaps(params, event.params)) {
+          // Remove the matched event, so we don't match against it in the future.
+          debugger.events.remove(event);
+          return;
+        }
+      }
+    }
+    
+    String msg = params == null ? '' : params.toString();
+    debugger.error("Error: could not match event $eventName $msg");
+  }
+}
+
+
+ExpectEvent(String eventName, [Map params]) {
+  return new EventMatcher(eventName, params);
+}
+
+
 class RunCommand extends Command {
   RunCommand.resume() {
     template = {"id": 0, "command": "resume", "params": {"isolateId": 0}};
@@ -276,6 +344,16 @@ class SetBreakpointCommand extends Command {
 
 SetBreakpoint(int line) => new SetBreakpointCommand(line);
 
+class Event {
+  String name;
+  Map params;
+  
+  Event(Map json) {
+    name = json['event'];
+    params = json['params'];
+  }
+}
+
 
 // A debug script is a list of Command objects.
 class DebugScript {
@@ -285,6 +363,7 @@ class DebugScript {
     entries.add(MatchFrame(0, "main"));
   }
   bool get isEmpty => entries.isEmpty;
+  bool get isNextEventMatcher => !isEmpty && currentEntry is EventMatcher;
   get currentEntry => entries.last;
   advance() => entries.removeLast();
   add(entry) => entries.add(entry);
@@ -301,6 +380,7 @@ class Debugger {
   int seqNr = 0;  // Sequence number of next debugger command message.
   Command lastCommand = null;  // Most recent command sent to target.
   List<String> errors = new List();
+  List<Event> events = new List();
   bool cleanupDone = false;
 
   // Data collected from debug target.
@@ -334,6 +414,8 @@ class Debugger {
 
   // Handle debugger events, updating the debugger state.
   void handleEvent(Map<String,dynamic> msg) {
+    events.add(new Event(msg));
+    
     if (msg["event"] == "isolate") {
       if (msg["params"]["reason"] == "created") {
         isolateId = msg["params"]["id"];
@@ -388,6 +470,12 @@ class Debugger {
   // Send next debugger command in the script, if a response
   // form the last command has been received and processed.
   void sendNextCommand() {
+    while (script.isNextEventMatcher) {
+      EventMatcher matcher = script.currentEntry;
+      script.advance();      
+      matcher.matchEvent(this);
+    }
+    
     if (lastCommand == null) {
       if (script.currentEntry is Command) {
         script.currentEntry.send(this);

@@ -1178,6 +1178,7 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     MakeCodeBreakpointsAt(closure, breakpoint_pos, source_bpt);
   }
   source_bpt->Enable();
+  SignalBpResolved(source_bpt);
   return source_bpt;
 }
 
