@@ -241,7 +241,7 @@ testPauseServerSocket() {
     // sockets.
     subscription.pause();
     var connectCount = 0;
-    for (int i = 0; i <= socketCount / 2; i++) {
+    for (int i = 0; i < socketCount / 2; i++) {
       RawSocket.connect("127.0.0.1", server.port).then((_) {
         if (++connectCount == socketCount / 2) {
           subscription.resume();
