@@ -1378,8 +1378,11 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
       visit(node.body);
       if (returnType == null) {
         // No return in the body.
-        returnType = inferrer.nullType;
-      } else if (!locals.seenReturn && !inferrer.isDynamicType(returnType)) {
+        returnType = locals.seenReturnOrThrow
+            ? new TypeMask.nonNullEmpty()  // Body always throws.
+            : inferrer.nullType;
+      } else if (!locals.seenReturnOrThrow &&
+                 !inferrer.isDynamicType(returnType)) {
         // We haven't seen returns on all branches. So the method may
         // also return null.
         returnType = returnType.nullable();
@@ -1406,7 +1409,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
       });
       // TODO(ngeoffray): Re-analyze method if [changed]?
     }
-    compiler.world.registerSideEffects(analyzedElement, sideEffects);    
+    compiler.world.registerSideEffects(analyzedElement, sideEffects);
     assert(breaksFor.isEmpty);
     assert(continuesFor.isEmpty);
     return returnType;
@@ -1927,7 +1930,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
           ? inferrer.nullType
           : expression.accept(this));
     }
-    locals.seenReturn = true;
+    locals.seenReturnOrThrow = true;
     return inferrer.dynamicType;
   }
 

@@ -60,11 +60,11 @@ class LocalsHandler {
   final Map<Element, TypeMask> fieldsInitializedInConstructor;
   final bool inTryBlock;
   bool isThisExposed;
-  bool seenReturn = false;
+  bool seenReturnOrThrow = false;
   bool seenBreakOrContinue = false;
 
   bool get aborts {
-    return seenReturn || seenBreakOrContinue;
+    return seenReturnOrThrow || seenBreakOrContinue;
   }
 
   LocalsHandler(this.inferrer, this.compiler)
@@ -183,7 +183,7 @@ class LocalsHandler {
       fieldsInitializedInConstructor.remove(element);
     });
     isThisExposed = isThisExposed || other.isThisExposed;
-    seenReturn = seenReturn && other.seenReturn;
+    seenReturnOrThrow = seenReturnOrThrow && other.seenReturnOrThrow;
     seenBreakOrContinue = seenBreakOrContinue && other.seenBreakOrContinue;
 
     return changed;
@@ -591,7 +591,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
 
   TypeMask visitThrow(Throw node) {
     node.visitChildren(this);
-    locals.seenReturn = true;
+    locals.seenReturnOrThrow = true;
     return inferrer.dynamicType;
   }
 
