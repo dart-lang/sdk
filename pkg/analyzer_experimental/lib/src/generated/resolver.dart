@@ -13006,7 +13006,7 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
       int pathIndex = 0;
       int fullNameIndex = fullName.length;
       while (pathIndex < path.length && JavaString.startsWithBefore(path, "../", pathIndex)) {
-        fullNameIndex = fullName.lastIndexOf('/', fullNameIndex);
+        fullNameIndex = JavaString.lastIndexOf(fullName, '/', fullNameIndex);
         if (fullNameIndex < 4) {
           return false;
         }
@@ -13044,7 +13044,7 @@ class PubVerifier extends RecursiveASTVisitor<Object> {
       if (checkForFileImportOutsideLibReferencesFileInside2(uriLiteral, path, pathIndex + 1)) {
         return true;
       }
-      pathIndex = path.indexOf("/lib/", pathIndex + 4);
+      pathIndex = JavaString.indexOf(path, "/lib/", pathIndex + 4);
     }
     return false;
   }

@@ -611,7 +611,7 @@ class Parser {
           index = end;
         }
       } else if (JavaString.startsWithBefore(comment, "[:", index)) {
-        int end = comment.indexOf(":]", index + 2);
+        int end = JavaString.indexOf(comment, ":]", index + 2);
         if (end < 0) {
           end = length;
         }
@@ -1729,7 +1729,7 @@ class Parser {
       while (leftIndex >= 0 && leftIndex + 1 < length) {
         List<int> range = findRange(codeBlockRanges, leftIndex);
         if (range == null) {
-          int rightIndex = comment.indexOf(']', leftIndex);
+          int rightIndex = JavaString.indexOf(comment, ']', leftIndex);
           if (rightIndex >= 0) {
             int firstChar = comment.codeUnitAt(leftIndex + 1);
             if (firstChar != 0x27 && firstChar != 0x22) {
@@ -1744,9 +1744,9 @@ class Parser {
           } else {
             rightIndex = leftIndex + 1;
           }
-          leftIndex = comment.indexOf('[', rightIndex);
+          leftIndex = JavaString.indexOf(comment, '[', rightIndex);
         } else {
-          leftIndex = comment.indexOf('[', range[1] + 1);
+          leftIndex = JavaString.indexOf(comment, '[', range[1] + 1);
         }
       }
     }
