@@ -522,8 +522,8 @@ void test() {
                     'f3': (inferrer) => inferrer.intType.nullable(),
                     'f4': (inferrer) => inferrer.intType.nullable()});
 
-  runTest(TEST_24, {'f1': (inferrer) => inferrer.numType,
-                    'f2': (inferrer) => inferrer.numType,
+  runTest(TEST_24, {'f1': (inferrer) => inferrer.intType,
+                    'f2': (inferrer) => inferrer.intType,
                     'f3': (inferrer) => inferrer.intType,
                     'f4': (inferrer) => inferrer.intType,
                     'f5': (inferrer) => inferrer.numType.nullable(),

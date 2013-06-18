@@ -246,7 +246,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
    * returns that type.
    *
    */
-  final Map<Node, Selector> setterConstraints = new Map<Node, Selector>();
+  final Map<Node, CallSite> setterConstraints = new Map<Node, CallSite>();
 
   /**
    * The work list of the inferrer.
@@ -861,7 +861,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                              Element caller,
                              Element callee,
                              ArgumentsTypes arguments,
-                             Selector constraint,
+                             CallSite constraint,
                              SideEffects sideEffects,
                              bool inLoop) {
     updateSideEffects(sideEffects, selector, callee);
@@ -892,7 +892,10 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
 
     if (selector.isSetter() && callee.isField()) {
       recordNonFinalFieldElementType(
-          node, callee, arguments.positional[0], constraint);
+          node,
+          callee,
+          arguments.positional[0],
+          constraint);
       return;
     } else if (selector.isGetter()) {
       assert(arguments == null);
@@ -1027,7 +1030,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                                   TypeMask receiverType,
                                   Element caller,
                                   ArgumentsTypes arguments,
-                                  Selector constraint,
+                                  CallSite constraint,
                                   SideEffects sideEffects,
                                   bool inLoop) {
     TypeMask result;
@@ -1076,7 +1079,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   void recordNonFinalFieldElementType(Node node,
                                       Element element,
                                       TypeMask argumentType,
-                                      Selector constraint) {
+                                      CallSite constraint) {
     Map<Node, TypeMask> map =
         typeOfFields.putIfAbsent(element, () => new Map<Node, TypeMask>());
     map[node] = argumentType;
@@ -1093,10 +1096,10 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
   }
 
   TypeMask computeFieldTypeWithConstraints(Element element, Map types) {
-    Set<Selector> constraints = new Set<Selector>();
+    List<CallSite> constraints = <CallSite>[];
     TypeMask fieldType;
     types.forEach((Node node, TypeMask mask) {
-      Selector constraint = setterConstraints[node];
+      CallSite constraint = setterConstraints[node];
       if (constraint != null) {
         // If this update has a constraint, we collect it and don't
         // use its type.
@@ -1114,18 +1117,23 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       TypeMask existing = typeOf[element];
       typeOf[element] = fieldType;
 
-      for (Selector constraint in constraints) {
-        if (constraint.isOperator()) {
+      for (CallSite constraint in constraints) {
+        Selector selector = constraint.selector;
+        TypeMask type;
+        if (selector.isOperator()) {
           // If the constraint is on an operator, we type the receiver
           // to be the field.
           if (fieldType != null) {
-            constraint = new TypedSelector(fieldType, constraint);
+            selector = new TypedSelector(fieldType, selector);
           }
+          type = handleIntrisifiedSelector(selector, constraint.arguments);
+          if (type == null) type = typeOfSelector(selector);
         } else {
           // Otherwise the constraint is on the form [: field = other.field :].
-          assert(constraint.isGetter());
+          assert(selector.isGetter());
+          type = typeOfSelector(selector);
         }
-        fieldType = computeLUB(fieldType, typeOfSelector(constraint), compiler);
+        fieldType = computeLUB(fieldType, type, compiler);
       }
       if (existing == null) {
         typeOf.remove(element);
@@ -1167,7 +1175,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
                             Element constructor,
                             Element field,
                             TypeMask type,
-                            Selector constraint) {
+                            CallSite constraint) {
     if (constraint != null) {
       setterConstraints[node] = constraint;
     }
@@ -1208,6 +1216,14 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         enqueueCallersOf(field);
       }
     });
+  }
+}
+
+class CallSite {
+  final Selector selector;
+  final ArgumentsTypes arguments;
+  CallSite(this.selector, this.arguments) {
+    assert(selector != null);
   }
 }
 
@@ -1555,14 +1571,14 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
           node.arguments.head);
     } else {
       // [: foo++ :] or [: foo += 1 :].
-      Selector constraint;
+      ArgumentsTypes operatorArguments = new ArgumentsTypes([rhsType], null);
+      CallSite constraint;
       if (!Elements.isLocal(element)) {
         // Record a constraint of the form [: field++ :], or [: field += 42 :].
-        constraint = operatorSelector;
+        constraint = new CallSite(operatorSelector, operatorArguments);
       }
       TypeMask getterType;
       TypeMask newType;
-      ArgumentsTypes operatorArguments = new ArgumentsTypes([rhsType], null);
       if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
         getterType =
@@ -1609,7 +1625,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
                                  TypeMask receiverType,
                                  TypeMask rhsType,
                                  Node rhs) {
-    Selector constraint;
+    CallSite constraint;
     if (node.asSend() != null && !Elements.isLocal(element)) {
       // Recognize a constraint of the form [: field = other.field :].
       // Note that we check if the right hand side is a local to
@@ -1622,7 +1638,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
           && !Elements.isLocal(elements[rhs])
           && send.selector.asIdentifier().source
                == node.asSend().selector.asIdentifier().source) {
-        constraint = elements.getSelector(rhs);
+        constraint = new CallSite(elements.getSelector(rhs), null);
       }
     }
     ArgumentsTypes arguments = new ArgumentsTypes([rhsType], null);
@@ -1821,7 +1837,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
                              Selector selector,
                              TypeMask receiver,
                              ArgumentsTypes arguments,
-                             [Selector constraint]) {
+                             [CallSite constraint]) {
     if (selector.mask != receiver) {
       selector = inferrer.isDynamicType(receiver)
           ? selector.asUntyped
