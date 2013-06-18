@@ -1773,6 +1773,11 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary() const {
 }
 
 
+// When the parser is building an implicit static getter for optimization,
+// it can generate a function body where deoptimization ids do not line up
+// with the unoptimized code.
+//
+// This is safe only so long as LoadStaticFieldInstr cannot deoptimize.
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ TraceSimMsg("LoadStaticFieldInstr");
   Register field = locs()->in(0).reg();

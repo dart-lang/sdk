@@ -920,6 +920,21 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   const Field& field =
       Field::ZoneHandle(field_class.LookupStaticField(field_name));
 
+  if (!field.is_const() &&
+      (field.value() != Object::transition_sentinel().raw()) &&
+      (field.value() != Object::sentinel().raw())) {
+    // The field has already been initialized at compile time (this can
+    // happen, e.g., if we are recompiling for optimization).  There is no
+    // need to check for initialization and compile the potentially very
+    // large initialization code.  By skipping this code, the deoptimization
+    // ids will not line up with the original code, but this is safe because
+    // LoadStaticField does not deoptimize.
+    LoadStaticFieldNode* load_node = new LoadStaticFieldNode(ident_pos, field);
+    ReturnNode* return_node = new ReturnNode(ident_pos, load_node);
+    current_block_->statements->Add(return_node);
+    return CloseBlock();
+  }
+
   // Static const fields must have an initializer.
   ExpectToken(Token::kASSIGN);
 
