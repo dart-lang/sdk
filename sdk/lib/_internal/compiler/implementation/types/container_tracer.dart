@@ -95,6 +95,8 @@ class ContainerTracer extends CompilerTask {
       var internal = inferrer.internal;
       // Walk over all created [ContainerTypeMask].
       internal.concreteTypes.values.forEach((ContainerTypeMask mask) {
+        // The element type has already been set for const containers.
+        if (mask.elementType != null) return;
         mask.elementType = new TracerForConcreteContainer(
             mask, this, compiler, inferrer).run();
       });

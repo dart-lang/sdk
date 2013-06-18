@@ -351,6 +351,16 @@ testBreak2() {
   return b;
 }
 
+testReturnElementOfConstList1() {
+  return const [42][0];
+}
+
+testReturnElementOfConstList2() {
+  return topLevelConstList[0];
+}
+
+var topLevelConstList = const [42];
+
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
 returnTopLevelGetter() => topLevelGetter;
@@ -455,6 +465,8 @@ main() {
          ..returnInt7()
          ..returnInt8()
          ..returnInt9();
+  testReturnElementOfConstList1();
+  testReturnElementOfConstList2();
 }
 """;
 
@@ -527,6 +539,8 @@ void main() {
   checkReturn('testBreak1', interceptorType.nullable());
   checkReturn('testContinue2', interceptorType.nullable());
   checkReturn('testBreak2', typesInferrer.intType.nullable());
+  checkReturn('testReturnElementOfConstList1', typesInferrer.intType);
+  checkReturn('testReturnElementOfConstList2', typesInferrer.intType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);

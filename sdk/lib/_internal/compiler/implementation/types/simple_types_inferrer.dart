@@ -1443,11 +1443,25 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
   }
 
   TypeMask visitLiteralList(LiteralList node) {
-    node.visitChildren(this);
-    if (node.isConst()) return inferrer.constListType;
-    return inferrer.concreteTypes.putIfAbsent(
-      node, () => new ContainerTypeMask(
-          inferrer.growableListType, node, outermostElement));
+    if (node.isConst()) {
+      // We only set the type once. We don't need to re-visit the children
+      // when re-analyzing the node.
+      return inferrer.concreteTypes.putIfAbsent(node, () {
+        ContainerTypeMask container = new ContainerTypeMask(
+            inferrer.constListType, node, outermostElement);
+        TypeMask elementType = new TypeMask.nonNullEmpty();
+        for (Node element in node.elements.nodes) {
+          elementType = computeLUB(elementType, visit(element), compiler);
+        }
+        container.elementType = elementType;
+        return container;
+      });
+    } else {
+      node.visitChildren(this);
+      return inferrer.concreteTypes.putIfAbsent(
+        node, () => new ContainerTypeMask(
+            inferrer.growableListType, node, outermostElement));
+    }
   }
 
   bool isThisOrSuper(Node node) => node.isThis() || node.isSuper();

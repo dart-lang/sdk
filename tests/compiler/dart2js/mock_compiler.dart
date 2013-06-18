@@ -92,7 +92,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   abstract class JSMutableIndexable extends JSIndexable {}
   class JSArray extends Interceptor implements List, JSIndexable {
     var length;
-    operator[](index) {}
+    operator[](index) => this[index];
     operator[]=(index, value) {}
     var add;
   }
