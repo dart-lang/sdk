@@ -331,10 +331,6 @@ class DesiredTypeVisitor extends HBaseVisitor {
         instruction, input, compiler);
   }
 
-  HType visitNot(HNot instruction) {
-    return HType.BOOLEAN;
-  }
-
   HType visitPhi(HPhi phi) {
     // Best case scenario for a phi is, when all inputs have the same type. If
     // there is no desired outgoing type we therefore try to unify the input
@@ -455,6 +451,9 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     // TODO(ngeoffray): Allow speculative optimizations on
     // non-primitive types?
     if (!desiredType.isPrimitive(compiler)) return newType;
+    // It's not worth having a bailout method just because we want a
+    // boolean. Comparing to true is enough.
+    if (desiredType.isBooleanOrNull()) return newType;
     desiredType = newType.intersection(desiredType, compiler);
     if (desiredType != newType && !hasBeenSpeculativelyOptimized(instruction)) {
       savedTypes[instruction] = oldType;
