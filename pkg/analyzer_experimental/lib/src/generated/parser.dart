@@ -657,7 +657,7 @@ class Parser {
    * Return `true` if the current token appears to be the beginning of a function declaration.
    * @return `true` if the current token appears to be the beginning of a function declaration
    */
-  bool get isFunctionDeclaration {
+  bool isFunctionDeclaration() {
     if (matches(Keyword.VOID)) {
       return true;
     }
@@ -717,7 +717,7 @@ class Parser {
    * @return `true` if the current token is the first token in an initialized variable
    * declaration
    */
-  bool get isInitializedVariableDeclaration {
+  bool isInitializedVariableDeclaration() {
     if (matches(Keyword.FINAL) || matches(Keyword.VAR)) {
       return true;
     }
@@ -787,7 +787,7 @@ class Parser {
    * Return `true` if the current token appears to be the beginning of a switch member.
    * @return `true` if the current token appears to be the beginning of a switch member
    */
-  bool get isSwitchMember {
+  bool isSwitchMember() {
     Token token = _currentToken;
     while (matches4(token, TokenType.IDENTIFIER) && matches4(token.next, TokenType.COLON)) {
       token = token.next.next;
@@ -2548,7 +2548,7 @@ class Parser {
           SimpleIdentifier variableName = parseSimpleIdentifier();
           variables.add(new VariableDeclaration.full(null, null, variableName, null, null));
           variableList = new VariableDeclarationList.full(commentAndMetadata.comment, commentAndMetadata.metadata, null, null, variables);
-        } else if (isInitializedVariableDeclaration) {
+        } else if (isInitializedVariableDeclaration()) {
           variableList = parseVariableDeclarationList(commentAndMetadata);
         } else {
           initialization = parseExpression2();
@@ -3376,9 +3376,9 @@ class Parser {
       }
     } else if (matches5(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
-    } else if (isInitializedVariableDeclaration) {
+    } else if (isInitializedVariableDeclaration()) {
       return parseVariableDeclarationStatement(commentAndMetadata);
-    } else if (isFunctionDeclaration) {
+    } else if (isFunctionDeclaration()) {
       return parseFunctionDeclarationStatement();
     } else if (matches5(TokenType.CLOSE_CURLY_BRACKET)) {
       reportError7(ParserErrorCode.MISSING_STATEMENT, []);
@@ -3862,7 +3862,7 @@ class Parser {
   List<Statement> parseStatements2() {
     List<Statement> statements = new List<Statement>();
     Token statementStart = _currentToken;
-    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember) {
+    while (!matches5(TokenType.EOF) && !matches5(TokenType.CLOSE_CURLY_BRACKET) && !isSwitchMember()) {
       statements.add(parseStatement2());
       if (identical(_currentToken, statementStart)) {
         reportError8(ParserErrorCode.UNEXPECTED_TOKEN, _currentToken, [_currentToken.lexeme]);

@@ -2169,7 +2169,6 @@ class AbstractScannerTest_ExpectedLocation {
     this._columnNumber = columnNumber;
   }
 }
-
 main() {
   CharBufferScannerTest.dartSuite();
   KeywordStateTest.dartSuite();
