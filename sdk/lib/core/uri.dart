@@ -108,7 +108,7 @@ class Uri {
          fragment: _emptyIfNull(m[_COMPONENT_FRAGMENT]));
 
   /**
-   * Create a new URI from its components.
+   * Creates a new URI from its components.
    *
    * Each component is set through a named argument. Any number of
    * components can be provided. The default value for the components
@@ -175,6 +175,91 @@ class Uri {
     }
     // Fill the path.
     _path = _makePath(path, pathSegments);
+  }
+
+  /**
+   * Creates a new `http` URI from authority, path and query.
+   *
+   * Examples:
+   *
+   *     // Create the URI http://example.org/path?q=abc.
+   *     new Uri.http("google.com", "/search", { "q" : "dart" });http://example.org/path?q=abc.
+   *     new Uri.http("user:pass@localhost:8080, "");  // http://user:pass@localhost:8080/
+   *     new Uri.http("example.org, "a b");  // http://example.org/a%20b
+   *     new Uri.http("example.org, "/a%2F");  // http://example.org/a%25%2F
+   *
+   * The `scheme` is always set to `http`.
+   *
+   * The `userInfo`, `host` and `port` components are set from the
+   * [authority] argument.
+   *
+   * The `path` component is set from the [unencodedPath]
+   * argument. The path passed must not be encoded as this constructor
+   * encodes the path.
+   *
+   * The `query` component is set from the optional [queryParameters]
+   * argument.
+   */
+  factory Uri.http(String authority,
+                   String unencodedPath,
+                   [Map<String, String> queryParameters]) {
+    return _makeHttpUri("http", authority, unencodedPath, queryParameters);
+  }
+
+  /**
+   * Creates a new `https` URI from authority, path and query.
+   *
+   * This constructor is the same as [Uri.http] except for the scheme
+   * which is set to `https`.
+   */
+  factory Uri.https(String authority,
+                    String unencodedPath,
+                    [Map<String, String> queryParameters]) {
+    return _makeHttpUri("https", authority, unencodedPath, queryParameters);
+  }
+
+  static Uri _makeHttpUri(String scheme,
+                          String authority,
+                          String unencodedPath,
+                          Map<String, String> queryParameters) {
+    var userInfo = "";
+    var host = "";
+    var port = 0;
+
+    var hostStart = 0;
+    // Split off the user info.
+    bool hasUserInfo = false;
+    for (int i = 0; i < authority.length; i++) {
+      if (authority.codeUnitAt(i) == _AT_SIGN) {
+        hasUserInfo = true;
+        userInfo = authority.substring(0, i);
+        hostStart = i + 1;
+        break;
+      }
+    }
+    // Split host and port.
+    bool hasPort = false;
+    for (int i = hostStart; i < authority.length; i++) {
+      if (authority.codeUnitAt(i) == _COLON) {
+        hasPort = true;
+        host = authority.substring(hostStart, i);
+        if (!host.isEmpty) {
+          var portString = authority.substring(i + 1);
+          if (portString.isNotEmpty) port = int.parse(portString);
+        }
+        break;
+      }
+    }
+    if (!hasPort) {
+      host = hasUserInfo ? authority.substring(hostStart) : authority;
+    }
+
+    return new Uri(scheme: scheme,
+                   userInfo: userInfo,
+                   host: host,
+                   port: port,
+                   pathSegments: unencodedPath.split("/"),
+                   queryParameters: queryParameters);
   }
 
   /**
@@ -746,6 +831,7 @@ class Uri {
   static const int _ZERO = 0x30;
   static const int _NINE = 0x39;
   static const int _COLON = 0x3A;
+  static const int _AT_SIGN = 0x40;
   static const int _UPPER_CASE_A = 0x41;
   static const int _UPPER_CASE_F = 0x46;
   static const int _LOWER_CASE_A = 0x61;
