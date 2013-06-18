@@ -98,13 +98,6 @@ class JavaScriptBackend extends Backend {
   ClassElement jsIndexingBehaviorInterface;
 
   /**
-   * A collection of selectors of intercepted method calls. The
-   * emitter uses this set to generate the [:ObjectInterceptor:] class
-   * whose members just forward the call to the intercepted receiver.
-   */
-  final Set<Selector> usedInterceptors;
-
-  /**
    * A collection of selectors that must have a one shot interceptor
    * generated.
    */
@@ -165,7 +158,6 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
-        usedInterceptors = new Set<Selector>(),
         oneShotInterceptors = new Map<String, Selector>(),
         interceptedElements = new Map<SourceString, Set<Element>>(),
         rti = new RuntimeTypes(compiler),
@@ -191,10 +183,6 @@ class JavaScriptBackend extends Backend {
     if (interceptedClasses.contains(element)) return true;
     if (classesMixedIntoNativeClasses.contains(element)) return true;
     return false;
-  }
-
-  void addInterceptedSelector(Selector selector) {
-    usedInterceptors.add(selector);
   }
 
   String registerOneShotInterceptor(Selector selector) {

@@ -75,6 +75,7 @@ class CodeEmitterTask extends CompilerTask {
   final List<ClassElement> nativeClasses = <ClassElement>[];
   final List<Selector> trivialNsmHandlers = <Selector>[];
   final Map<String, String> mangledFieldNames = <String, String>{};
+  final Set<String> interceptorInvocationNames = new Set<String>();
 
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
@@ -958,6 +959,7 @@ class CodeEmitterTask extends CompilerTask {
       count++;
       parametersBuffer[0] = new jsAst.Parameter(receiverArgumentName);
       argumentsBuffer[0] = js(receiverArgumentName);
+      interceptorInvocationNames.add(invocationName);
     }
 
     int optionalParameterStart = positionalArgumentCount + extraArgumentCount;
@@ -1175,6 +1177,9 @@ class CodeEmitterTask extends CompilerTask {
       jsAst.Expression code = backend.generatedCode[member];
       if (code == null) return;
       String name = namer.getName(member);
+      if (backend.isInterceptedMethod(member)) {
+        interceptorInvocationNames.add(name);
+      }
       builder.addProperty(name, code);
       var metadata = buildMetadataFunction(member);
       if (metadata != null) {
@@ -2977,18 +2982,21 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
    * method with an extra parameter.
    */
   void emitInterceptedNames(CodeBuffer buffer) {
+    // TODO(ahe): We should not generate the list of intercepted names at
+    // compile time, it can be generated automatically at runtime given
+    // subclasses of Interceptor (which can easily be identified).
     if (!compiler.enabledInvokeOn) return;
     String name = backend.namer.getName(backend.interceptedNames);
 
     int index = 0;
-    List<jsAst.ArrayElement> elements = backend.usedInterceptors.map(
-      (Selector selector) {
-        jsAst.Literal str = js.string(namer.invocationName(selector));
+    var invocationNames = interceptorInvocationNames.toList()..sort();
+    List<jsAst.ArrayElement> elements = invocationNames.map(
+      (String invocationName) {
+        jsAst.Literal str = js.string(invocationName);
         return new jsAst.ArrayElement(index++, str);
       }).toList();
-    jsAst.ArrayInitializer array = new jsAst.ArrayInitializer(
-        backend.usedInterceptors.length,
-        elements);
+    jsAst.ArrayInitializer array =
+        new jsAst.ArrayInitializer(invocationNames.length, elements);
 
     jsAst.Expression assignment = js('$isolateProperties.$name = #', array);
 

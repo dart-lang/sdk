@@ -1550,12 +1550,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return receiverType.refine(selector, compiler);
   }
 
-  void registerInvoke(HInvokeDynamic node, Selector selector) {
-    if (node.isInterceptedCall) {
-      backend.addInterceptedSelector(selector);
-    }
-  }
-
   void registerMethodInvoke(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
 
@@ -1579,7 +1573,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       SourceString name = node.selector.name;
       world.registerDynamicInvocation(name, selector);
     }
-    registerInvoke(node, selector);
   }
 
   void registerSetter(HInvokeDynamic node) {
@@ -1588,7 +1581,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HType valueType = node.isInterceptedCall
         ? node.inputs[2].instructionType
         : node.inputs[1].instructionType;
-    registerInvoke(node, selector);
   }
 
   void registerGetter(HInvokeDynamic node) {
@@ -1596,7 +1588,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     world.registerDynamicGetter(selector.name, selector);
     world.registerInstantiatedClass(
         compiler.functionClass, work.resolutionTree);
-    registerInvoke(node, selector);
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
