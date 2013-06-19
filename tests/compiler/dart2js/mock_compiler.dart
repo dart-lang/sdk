@@ -168,7 +168,10 @@ const String DEFAULT_CORELIB = r'''
   abstract class StackTrace {}
   class Type {}
   class Function {}
-  class List<E> { List([length]); }
+  class List<E> {
+    List([length]);
+    List.filled(length, element);
+  }
   abstract class Map<K,V> {}
   class DateTime {
     DateTime(year);

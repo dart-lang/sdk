@@ -166,7 +166,6 @@ class TracerForConcreteContainer {
     // that adds elements to the list.
     if (potentialType == null) return new TypeMask.empty();
 
-    potentialType = potentialType.nullable();
     // Walk over the found constraints and update the type according
     // to the selectors of these constraints.
     for (Selector constraint in constraints) {
@@ -176,7 +175,7 @@ class TracerForConcreteContainer {
           inferrer.getTypeOfSelector(constraint), compiler);
     }
     if (_VERBOSE) {
-      print('$potentialType for $analyzedNode');
+      print('$potentialType for $analyzedNode $startElement');
     }
     return potentialType;
   }
@@ -520,6 +519,32 @@ class ContainerTracerVisitor extends InferrerVisitor {
 
   TypeMask visitStaticSend(Send node) {
     Element element = elements[node];
+
+    if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
+      visitArguments(node.arguments, element);
+      if (tracer.couldBeTheList(node)) {
+        escaping = true;
+      }
+      return inferrer.growableListType;
+    } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
+      tracer.unionPotentialTypeWith(inferrer.nullType);
+      visitArguments(node.arguments, element);
+      if (tracer.couldBeTheList(node)) {
+        escaping = true;
+      }
+      return inferrer.fixedListType;
+    } else if (Elements.isFilledListConstructorCall(element, node, compiler)) {
+      if (tracer.couldBeTheList(node)) {
+        escaping = true;
+        visit(node.arguments.head);
+        TypeMask fillWithType = visit(node.arguments.tail.head);
+        tracer.unionPotentialTypeWith(fillWithType);
+      } else {
+        visitArguments(node.arguments, element);
+      }
+      return inferrer.fixedListType;
+    }
+
     bool isEscaping = visitArguments(node.arguments, element);
 
     if (element.isForeign(compiler)) {
@@ -530,17 +555,7 @@ class ContainerTracerVisitor extends InferrerVisitor {
       escaping = true;
     }
 
-    if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
-      if (tracer.couldBeTheList(node)) {
-        escaping = true;
-      }
-      return inferrer.growableListType;
-    } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
-      if (tracer.couldBeTheList(node)) {
-        escaping = true;
-      }
-      return inferrer.fixedListType;
-    } else if (element.isFunction() || element.isConstructor()) {
+    if (element.isFunction() || element.isConstructor()) {
       return inferrer.getReturnTypeOfElement(element);
     } else {
       // Closure call or unresolved.

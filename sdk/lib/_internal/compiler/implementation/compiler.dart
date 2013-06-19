@@ -760,6 +760,15 @@ abstract class Compiler implements DiagnosticListener {
         listClass.lookupConstructor(callConstructor);
   }
 
+  Element _filledListConstructor;
+  Element get filledListConstructor {
+    if (_filledListConstructor != null) return _filledListConstructor;
+    Selector callConstructor = new Selector.callConstructor(
+        const SourceString("filled"), listClass.getLibrary());
+    return _filledListConstructor =
+        listClass.lookupConstructor(callConstructor);
+  }
+
   void scanBuiltinLibraries() {
     jsHelperLibrary = scanBuiltinLibrary('_js_helper');
     interceptorsLibrary = scanBuiltinLibrary('_interceptors');

@@ -1726,7 +1726,8 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
       return inferrer.concreteTypes.putIfAbsent(
           node, () => new ContainerTypeMask(
               inferrer.growableListType, node, outermostElement));
-    } else if (Elements.isFixedListConstructorCall(element, node, compiler)) {
+    } else if (Elements.isFixedListConstructorCall(element, node, compiler)
+        || Elements.isFilledListConstructorCall(element, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
           node, () => new ContainerTypeMask(
               inferrer.fixedListType, node, outermostElement));

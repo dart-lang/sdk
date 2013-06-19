@@ -526,6 +526,16 @@ class Elements {
         && node.arguments.isEmpty;
   }
 
+  static bool isFilledListConstructorCall(Element element,
+                                          Send node,
+                                          Compiler compiler) {
+    return element == compiler.filledListConstructor
+        && node.isCall
+        && !node.arguments.isEmpty
+        && !node.arguments.tail.isEmpty
+        && node.arguments.tail.tail.isEmpty;
+  }
+
   static bool switchStatementHasContinue(SwitchStatement node,
                                          TreeElements elements) {
     for (SwitchCase switchCase in node.cases) {

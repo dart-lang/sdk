@@ -85,6 +85,7 @@ var listEscapingTwiceInIndexSet = $listAllocation;
 var listPassedAsOptionalParameter = $listAllocation;
 var listPassedAsNamedParameter = $listAllocation;
 var listSetInNonFinalField = $listAllocation;
+var listWithChangedLength = $listAllocation;
 
 foo(list) {
   list[0] = aDouble;
@@ -170,17 +171,22 @@ main() {
 
   listSetInNonFinalField[0] = anInt;
   new B(listSetInNonFinalField);
+
+  listWithChangedLength[0] = anInt;
+  listWithChangedLength.length = 54;
 }
 """;
 }
 
 void main() {
-  doTest('[]'); // Test literal list.
-  doTest('new List()'); // Test growable list.
-  doTest('new List(1)'); // Test fixed list.
+  doTest('[]', nullify: false); // Test literal list.
+  doTest('new List()', nullify: false); // Test growable list.
+  doTest('new List(1)', nullify: true); // Test fixed list.
+  doTest('new List.filled(1, 0)', nullify: false); // Test List.filled.
+  doTest('new List.filled(1, null)', nullify: true); // Test List.filled.
 }
 
-void doTest(String allocation) {
+void doTest(String allocation, {bool nullify}) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri);
   compiler.runCompiler(uri);
@@ -189,25 +195,27 @@ void doTest(String allocation) {
   checkType(String name, type) {
     var element = findElement(compiler, name);
     ContainerTypeMask mask = typesInferrer.internal.typeOf[element];
+    if (nullify) type = type.nullable();
     Expect.equals(type, mask.elementType.simplify(compiler), name);
   }
 
-  checkType('listInField', typesInferrer.numType.nullable());
-  checkType('listPassedToMethod', typesInferrer.numType.nullable());
-  checkType('listReturnedFromMethod', typesInferrer.numType.nullable());
-  checkType('listUsedWithCascade', typesInferrer.numType.nullable());
-  checkType('listUsedInClosure', typesInferrer.numType.nullable());
-  checkType('listPassedToSelector', typesInferrer.numType.nullable());
-  checkType('listReturnedFromSelector', typesInferrer.numType.nullable());
-  checkType('listUsedWithAddAndInsert', typesInferrer.numType.nullable());
-  checkType('listUsedWithConstraint', typesInferrer.numType.nullable());
-  checkType('listEscapingFromSetter', typesInferrer.numType.nullable());
-  checkType('listUsedInLocal', typesInferrer.numType.nullable());
-  checkType('listEscapingInSetterValue', typesInferrer.numType.nullable());
-  checkType('listEscapingInIndex', typesInferrer.numType.nullable());
-  checkType('listEscapingInIndexSet', typesInferrer.intType.nullable());
-  checkType('listEscapingTwiceInIndexSet', typesInferrer.numType.nullable());
-  checkType('listSetInNonFinalField', typesInferrer.numType.nullable());
+  checkType('listInField', typesInferrer.numType);
+  checkType('listPassedToMethod', typesInferrer.numType);
+  checkType('listReturnedFromMethod', typesInferrer.numType);
+  checkType('listUsedWithCascade', typesInferrer.numType);
+  checkType('listUsedInClosure', typesInferrer.numType);
+  checkType('listPassedToSelector', typesInferrer.numType);
+  checkType('listReturnedFromSelector', typesInferrer.numType);
+  checkType('listUsedWithAddAndInsert', typesInferrer.numType);
+  checkType('listUsedWithConstraint', typesInferrer.numType);
+  checkType('listEscapingFromSetter', typesInferrer.numType);
+  checkType('listUsedInLocal', typesInferrer.numType);
+  checkType('listEscapingInSetterValue', typesInferrer.numType);
+  checkType('listEscapingInIndex', typesInferrer.numType);
+  checkType('listEscapingInIndexSet', typesInferrer.intType);
+  checkType('listEscapingTwiceInIndexSet', typesInferrer.numType);
+  checkType('listSetInNonFinalField', typesInferrer.numType);
+  checkType('listWithChangedLength', typesInferrer.intType.nullable());
 
   checkType('listPassedToClosure', typesInferrer.dynamicType);
   checkType('listReturnedFromClosure', typesInferrer.dynamicType);
@@ -215,6 +223,8 @@ void doTest(String allocation) {
   checkType('listPassedAsOptionalParameter', typesInferrer.dynamicType);
   checkType('listPassedAsNamedParameter', typesInferrer.dynamicType);
 
-  checkType('listUnset', new TypeMask.empty());
-  checkType('listOnlySetWithConstraint', new TypeMask.empty());
+  if (!allocation.contains('filled')) {
+    checkType('listUnset', new TypeMask.empty());
+    checkType('listOnlySetWithConstraint', new TypeMask.empty());
+  }
 }
