@@ -24,6 +24,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/net/nss_memio.h"
+#include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "platform/utils.h"
@@ -77,20 +78,34 @@ void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
 void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle host_name_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
-  Dart_Handle port_object = ThrowIfError(Dart_GetNativeArgument(args, 2));
-  bool is_server = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 3));
+  Dart_Handle host_sockaddr_storage_object =
+      ThrowIfError(Dart_GetNativeArgument(args, 2));
+  Dart_Handle port_object = ThrowIfError(Dart_GetNativeArgument(args, 3));
+  bool is_server = DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 4));
   Dart_Handle certificate_name_object =
-      ThrowIfError(Dart_GetNativeArgument(args, 4));
+      ThrowIfError(Dart_GetNativeArgument(args, 5));
   bool request_client_certificate =
-      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 5));
-  bool require_client_certificate =
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 6));
-  bool send_client_certificate =
+  bool require_client_certificate =
       DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 7));
+  bool send_client_certificate =
+      DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 8));
 
   const char* host_name = NULL;
   // TODO(whesse): Is truncating a Dart string containing \0 what we want?
   ThrowIfError(Dart_StringToCString(host_name_object, &host_name));
+
+  RawAddr raw_addr;
+  Dart_TypedData_Type type;
+  uint8_t* buffer = NULL;
+  intptr_t len;
+  ThrowIfError(Dart_TypedDataAcquireData(host_sockaddr_storage_object,
+                                         &type,
+                                         reinterpret_cast<void**>(&buffer),
+                                         &len));
+  ASSERT(static_cast<size_t>(len) <= sizeof(raw_addr));
+  memmove(&raw_addr, buffer, len);
+  Dart_TypedDataReleaseData(host_sockaddr_storage_object);
 
   int64_t port;
   if (!DartUtils::GetInt64Value(port_object, &port)) {
@@ -106,6 +121,7 @@ void FUNCTION_NAME(SecureSocket_Connect)(Dart_NativeArguments args) {
   ASSERT(!is_server || certificate_name != NULL);
 
   GetFilter(args)->Connect(host_name,
+                           &raw_addr,
                            static_cast<int>(port),
                            is_server,
                            certificate_name,
@@ -457,6 +473,7 @@ Dart_Handle SSLFilter::PeerCertificate() {
 
 
 void SSLFilter::Connect(const char* host_name,
+                        RawAddr* raw_addr,
                         int port,
                         bool is_server,
                         const char* certificate_name,
@@ -570,19 +587,24 @@ void SSLFilter::Connect(const char* host_name,
     ThrowPRException("Failed SSL_ResetHandshake call");
   }
 
-  // SetPeerAddress
-  PRNetAddr host_address;
-  PRAddrInfo* info = PR_GetAddrInfoByName(host_name,
-                                          PR_AF_UNSPEC,
-                                          PR_AI_ADDRCONFIG);
-  if (info == NULL) {
-    ThrowPRException("Failed PR_GetAddrInfoByName call");
-  }
+  // Set the peer address from the address passed. The DNS has already
+  // been done in Dart code, so just use that address. This relies on
+  // following about PRNetAddr: "The raw member of the union is
+  // equivalent to struct sockaddr", which is stated in the NSS
+  // documentation.
+  PRNetAddr peername;
+  memset(&peername, 0, sizeof(peername));
+  intptr_t len = SocketAddress::GetAddrLength(*raw_addr);
+  ASSERT(static_cast<size_t>(len) <= sizeof(peername));
+  memmove(&peername, &raw_addr->addr, len);
 
-  PR_EnumerateAddrInfo(0, info, port, &host_address);
+  // Adjust the address family field for BSD, whose sockaddr
+  // structure has a one-byte length and one-byte address family
+  // field at the beginning.  PRNetAddr has a two-byte address
+  // family field at the beginning.
+  peername.raw.family = raw_addr->addr.sa_family;
 
-  memio_SetPeerName(filter_, &host_address);
-  PR_FreeAddrInfo(info);
+  memio_SetPeerName(filter_, &peername);
 }
 
 

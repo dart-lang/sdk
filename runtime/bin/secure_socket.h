@@ -20,6 +20,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/socket.h"
 #include "bin/utils.h"
 
 namespace dart {
@@ -73,6 +74,7 @@ class SSLFilter {
 
   void Init(Dart_Handle dart_this);
   void Connect(const char* host,
+               RawAddr* raw_addr,
                int port,
                bool is_server,
                const char* certificate_name,

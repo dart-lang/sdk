@@ -88,6 +88,12 @@ class _InternetAddress implements InternetAddress {
     }
   }
 
+  // Create a clone of this _InternetAddress replacing the host.
+  _InternetAddress _cloneWithNewHost(String host) {
+    return new _InternetAddress(
+        type, address, host, new Uint8List.fromList(_sockaddr_storage));
+  }
+
   String toString() {
     return "InternetAddress('$address', ${type.name})";
   }

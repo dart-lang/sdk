@@ -57,6 +57,7 @@ class _SecureFilterImpl
   }
 
   void connect(String hostName,
+               Uint8List sockaddrStorage,
                int port,
                bool is_server,
                String certificateName,

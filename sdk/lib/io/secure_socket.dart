@@ -57,13 +57,19 @@ abstract class SecureSocket implements Socket {
    *
    * If the [socket] already has a subscription, this subscription
    * will no longer receive and events. In most cases calling
-   * [:pause:] on this subscription before starting TLS handshake is
+   * `pause` on this subscription before starting TLS handshake is
    * the right thing to do.
    *
    * If the [host] argument is passed it will be used as the host name
    * for the TLS handshake. If [host] is not passed the host name from
    * the [socket] will be used. The [host] can be either a [String] or
    * an [InternetAddress].
+   *
+   * Calling this function will _not_ cause a DNS host lookup. If the
+   * [host] passed is a [String] the [InternetAddress] for the
+   * resulting [SecureSocket] will have the passed in [host] as its
+   * host value and the internet address of the already connected
+   * socket as its address value.
    *
    * See [connect] for more information on the arguments.
    *
@@ -246,7 +252,19 @@ abstract class RawSecureSocket implements RawSocket {
    * If the [socket] already has a subscription, pass the existing
    * subscription in the [subscription] parameter. The secure socket
    * will take over the subscription and process any subsequent
-   * events.
+   * events. In most cases calling `pause` on this subscription before
+   * starting TLS handshake is the right thing to do.
+   *
+   * If the [host] argument is passed it will be used as the host name
+   * for the TLS handshake. If [host] is not passed the host name from
+   * the [socket] will be used. The [host] can be either a [String] or
+   * an [InternetAddress].
+   *
+   * Calling this function will _not_ cause a DNS host lookup. If the
+   * [host] passed is a [String] the [InternetAddress] for the
+   * resulting [SecureSocket] will have this passed in [host] as its
+   * host value and the internet address of the already connected
+   * socket as its address value.
    *
    * See [connect] for more information on the arguments.
    *
@@ -398,7 +416,12 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
        bool onBadCertificate(X509Certificate certificate)}) {
     var future;
     if (host is String) {
-      future = InternetAddress.lookup(host).then((addrs) => addrs.first);
+      if (socket != null) {
+        future = new Future.value(
+            (socket.address as dynamic)._cloneWithNewHost(host));
+      } else {
+        future = InternetAddress.lookup(host).then((addrs) => addrs.first);
+      }
     } else {
       future = new Future.value(host);
     }
@@ -470,6 +493,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
       _connectPending = true;
       _secureFilter.connect(address.host,
+                            (address as dynamic)._sockaddr_storage,
                             port,
                             is_server,
                             certificateName,
@@ -964,6 +988,7 @@ abstract class _SecureFilter {
   external factory _SecureFilter();
 
   void connect(String hostName,
+               Uint8List addr,
                int port,
                bool is_server,
                String certificateName,
