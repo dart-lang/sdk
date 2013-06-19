@@ -42,7 +42,7 @@ class Frame {
   /// Returns a human-friendly description of the library that this stack frame
   /// comes from.
   ///
-  /// This will usually be the string form of [uri], but a relative path will be
+  /// This will usually be the string form of [uri], but a relative URI will be
   /// used if possible.
   String get library {
     if (uri.scheme != 'file') return uri.toString();

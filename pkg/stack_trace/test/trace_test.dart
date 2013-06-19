@@ -90,15 +90,14 @@ void main() {
   });
 
   test('.toString() nicely formats the stack trace', () {
-    var uri = path.toUri(path.join('foo', 'bar.dart'));
     var trace = new Trace.parse('''
-#0      Foo._bar ($uri:42:21)
+#0      Foo._bar (foo/bar.dart:42:21)
 #1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)
 #2      zip.<anonymous closure>.zap (http://pub.dartlang.org/thing.dart:1:100)
 ''');
 
     expect(trace.toString(), equals('''
-${path.join('foo', 'bar.dart')} 42:21                        Foo._bar
+foo/bar.dart 42:21                        Foo._bar
 dart:async/future.dart 0:2                zip.<fn>.zap
 http://pub.dartlang.org/thing.dart 1:100  zip.<fn>.zap
 '''));

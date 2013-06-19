@@ -114,9 +114,8 @@ void main() {
     });
 
     test('returns the relative path for file URIs', () {
-      var uri = path.toUri(path.join('foo', 'bar.dart'));
-      expect(new Frame.parse('#0 Foo ($uri:0:0)').library,
-          equals(path.join('foo', 'bar.dart')));
+      expect(new Frame.parse('#0 Foo (foo/bar.dart:0:0)').library,
+          equals('foo/bar.dart'));
     });
   });
 
@@ -126,9 +125,8 @@ void main() {
       expect(new Frame.parse('#0 Foo '
               '(http://dartlang.org/thing.dart:5:10)').location,
           equals('http://dartlang.org/thing.dart 5:10'));
-      var uri = path.toUri(path.join('foo', 'bar.dart'));
-      expect(new Frame.parse('#0 Foo ($uri:1:2)').location,
-          equals('${path.join('foo', 'bar.dart')} 1:2'));
+      expect(new Frame.parse('#0 Foo (foo/bar.dart:1:2)').location,
+          equals('foo/bar.dart 1:2'));
     });
   });
 
