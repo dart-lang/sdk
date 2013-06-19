@@ -1241,22 +1241,16 @@ DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
 }
 
 
+DART_EXPORT bool Dart_IsType(Dart_Handle handle) {
+  return Api::ClassId(handle) == kTypeCid;
+}
+
+
 DART_EXPORT bool Dart_IsClass(Dart_Handle handle) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
   return obj.IsClass();
-}
-
-
-DART_EXPORT bool Dart_IsAbstractClass(Dart_Handle handle) {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(handle));
-  if (obj.IsClass()) {
-    return Class::Cast(obj).is_abstract();
-  }
-  return false;
 }
 
 
@@ -1287,7 +1281,21 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
 
 // --- Instances ----
 
-// TODO(turnidge): Technically, null has a class.  Should we allow it?
+DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(instance));
+  if (obj.IsNull()) {
+    return Api::NewHandle(isolate, isolate->object_store()->null_type());
+  }
+  if (!obj.IsInstance()) {
+    RETURN_TYPE_ERROR(isolate, instance, Instance);
+  }
+  const Type& type = Type::Handle(Instance::Cast(obj).GetType());
+  return Api::NewHandle(isolate, type.Canonicalize());
+}
+
+// TODO(asiva): Deprecate this method.
 DART_EXPORT Dart_Handle Dart_InstanceGetClass(Dart_Handle instance) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -2714,7 +2722,7 @@ static RawObject* ResolveConstructor(const char* current_func,
 }
 
 
-DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
+DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
                                  Dart_Handle constructor_name,
                                  int number_of_arguments,
                                  Dart_Handle* arguments) {
@@ -2730,10 +2738,20 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   }
 
   // Get the class to instantiate.
-  Class& cls =
-      Class::Handle(isolate, Api::UnwrapClassHandle(isolate, clazz).raw());
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  result = Api::UnwrapHandle(type);
+  if (result.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type, Type);
+  }
+  Class& cls = Class::Handle(isolate);
+  if (result.IsType()) {
+    cls = Type::Cast(result).type_class();
+  } else if (result.IsClass()) {
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_New is removed.
+    cls ^= result.raw();
+  } else {
+    RETURN_TYPE_ERROR(isolate, type, Type);
   }
 
   String& base_constructor_name = String::Handle();
@@ -2741,12 +2759,11 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
 
   // And get the name of the constructor to invoke.
   String& dot_name = String::Handle(isolate);
-  const Object& name_obj =
-      Object::Handle(isolate, Api::UnwrapHandle(constructor_name));
-  if (name_obj.IsNull()) {
+  result = Api::UnwrapHandle(constructor_name);
+  if (result.IsNull()) {
     dot_name = Symbols::Dot().raw();
-  } else if (name_obj.IsString()) {
-    dot_name = String::Concat(Symbols::Dot(), String::Cast(name_obj));
+  } else if (result.IsString()) {
+    dot_name = String::Concat(Symbols::Dot(), String::Cast(result));
   } else {
     RETURN_TYPE_ERROR(isolate, constructor_name, String);
   }
@@ -2875,7 +2892,8 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   }
 
   // Check for malformed arguments in the arguments list.
-  intptr_t num_receiver = (obj.IsNull() || obj.IsInstance()) ? 1 : 0;
+  intptr_t num_receiver =
+      (obj.IsNull() || (obj.IsInstance() && !obj.IsType())) ? 1 : 0;
   const Array& args =
       Array::Handle(isolate, Array::New(number_of_arguments + num_receiver));
   Object& arg = Object::Handle(isolate);
@@ -2893,7 +2911,39 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
     args.SetAt((i + num_receiver), arg);
   }
 
-  if (obj.IsNull() || obj.IsInstance()) {
+  if (obj.IsType() || obj.IsClass()) {
+    // Finalize all classes.
+    Dart_Handle state = Api::CheckIsolateState(isolate);
+    if (::Dart_IsError(state)) {
+      return state;
+    }
+
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_Invoke is removed.
+    Class& cls = Class::Handle();
+    if (obj.IsType()) {
+      cls = Type::Cast(obj).type_class();
+    } else {
+      cls = Class::Cast(obj).raw();
+    }
+    const Function& function = Function::Handle(
+        isolate,
+        Resolver::ResolveStatic(cls,
+                                function_name,
+                                number_of_arguments,
+                                Object::empty_array(),
+                                Resolver::kIsQualified));
+    if (function.IsNull()) {
+      const String& cls_name = String::Handle(isolate, cls.Name());
+      return Api::NewError("%s: did not find static method '%s.%s'.",
+                           CURRENT_FUNC,
+                           cls_name.ToCString(),
+                           function_name.ToCString());
+    }
+    return Api::NewHandle(isolate, DartEntry::InvokeFunction(function, args));
+
+  } else if (obj.IsNull() || obj.IsInstance()) {
     Instance& instance = Instance::Handle(isolate);
     instance ^= obj.raw();
     const Function& function = Function::Handle(
@@ -2911,30 +2961,6 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                                           function_name,
                                                           args,
                                                           args_descriptor));
-    }
-    return Api::NewHandle(isolate, DartEntry::InvokeFunction(function, args));
-
-  } else if (obj.IsClass()) {
-    // Finalize all classes.
-    Dart_Handle state = Api::CheckIsolateState(isolate);
-    if (::Dart_IsError(state)) {
-      return state;
-    }
-
-    const Class& cls = Class::Cast(obj);
-    const Function& function = Function::Handle(
-        isolate,
-        Resolver::ResolveStatic(cls,
-                                function_name,
-                                number_of_arguments,
-                                Object::empty_array(),
-                                Resolver::kIsQualified));
-    if (function.IsNull()) {
-      const String& cls_name = String::Handle(isolate, cls.Name());
-      return Api::NewError("%s: did not find static method '%s.%s'.",
-                           CURRENT_FUNC,
-                           cls_name.ToCString(),
-                           function_name.ToCString());
     }
     return Api::NewHandle(isolate, DartEntry::InvokeFunction(function, args));
 
@@ -2981,7 +3007,7 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
   } else {
     return Api::NewError(
-        "%s expects argument 'target' to be an object, class, or library.",
+        "%s expects argument 'target' to be an object, type, or library.",
         CURRENT_FUNC);
   }
 }
@@ -3054,6 +3080,36 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
   if (obj.IsNull()) {
     return Api::NewError("%s expects argument 'container' to be non-null.",
                          CURRENT_FUNC);
+  } else if (obj.IsType() || obj.IsClass()) {
+    // To access a static field we may need to use the Field or the
+    // getter Function.
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_GetField is removed.
+    Class& cls = Class::Handle();
+    if (obj.IsType()) {
+      cls = Type::Cast(obj).type_class();
+    } else {
+      cls = Class::Cast(obj).raw();
+    }
+    field = cls.LookupStaticField(field_name);
+    if (field.IsNull() || FieldIsUninitialized(isolate, field)) {
+      const String& getter_name =
+          String::Handle(isolate, Field::GetterName(field_name));
+      getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
+    }
+
+    if (!getter.IsNull()) {
+      // Invoke the getter and return the result.
+      return Api::NewHandle(
+          isolate, DartEntry::InvokeFunction(getter, Object::empty_array()));
+    } else if (!field.IsNull()) {
+      return Api::NewHandle(isolate, field.value());
+    } else {
+      return Api::NewError("%s: did not find static field '%s'.",
+                           CURRENT_FUNC, field_name.ToCString());
+    }
+
   } else if (obj.IsInstance()) {
     // Every instance field has a getter Function.  Try to find the
     // getter in any superclass and use that function to access the
@@ -3084,28 +3140,6 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
                                                           args_descriptor));
     }
     return Api::NewHandle(isolate, DartEntry::InvokeFunction(getter, args));
-
-  } else if (obj.IsClass()) {
-    // To access a static field we may need to use the Field or the
-    // getter Function.
-    const Class& cls = Class::Cast(obj);
-    field = cls.LookupStaticField(field_name);
-    if (field.IsNull() || FieldIsUninitialized(isolate, field)) {
-      const String& getter_name =
-          String::Handle(isolate, Field::GetterName(field_name));
-      getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
-    }
-
-    if (!getter.IsNull()) {
-      // Invoke the getter and return the result.
-      return Api::NewHandle(
-          isolate, DartEntry::InvokeFunction(getter, Object::empty_array()));
-    } else if (!field.IsNull()) {
-      return Api::NewHandle(isolate, field.value());
-    } else {
-      return Api::NewError("%s: did not find static field '%s'.",
-                           CURRENT_FUNC, field_name.ToCString());
-    }
 
   } else if (obj.IsLibrary()) {
     // To access a top-level we may need to use the Field or the
@@ -3141,7 +3175,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       return container;
   } else {
     return Api::NewError(
-        "%s expects argument 'container' to be an object, class, or library.",
+        "%s expects argument 'container' to be an object, type, or library.",
         CURRENT_FUNC);
   }
 }
@@ -3178,6 +3212,50 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
   if (obj.IsNull()) {
     return Api::NewError("%s expects argument 'container' to be non-null.",
                          CURRENT_FUNC);
+  } else if (obj.IsType() || obj.IsClass()) {
+    // To access a static field we may need to use the Field or the
+    // setter Function.
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_SetField is removed.
+    Class& cls = Class::Handle();
+    if (obj.IsType()) {
+      cls = Type::Cast(obj).type_class();
+    } else {
+      cls = Class::Cast(obj).raw();
+    }
+    field = cls.LookupStaticField(field_name);
+    if (field.IsNull()) {
+      String& setter_name =
+          String::Handle(isolate, Field::SetterName(field_name));
+      setter = cls.LookupStaticFunctionAllowPrivate(setter_name);
+    }
+
+    if (!setter.IsNull()) {
+      // Invoke the setter and return the result.
+      const int kNumArgs = 1;
+      const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
+      args.SetAt(0, value_instance);
+      const Object& result =
+          Object::Handle(isolate, DartEntry::InvokeFunction(setter, args));
+      if (result.IsError()) {
+        return Api::NewHandle(isolate, result.raw());
+      } else {
+        return Api::Success();
+      }
+    } else if (!field.IsNull()) {
+      if (field.is_final()) {
+        return Api::NewError("%s: cannot set final field '%s'.",
+                             CURRENT_FUNC, field_name.ToCString());
+      } else {
+        field.set_value(value_instance);
+        return Api::Success();
+      }
+    } else {
+      return Api::NewError("%s: did not find static field '%s'.",
+                           CURRENT_FUNC, field_name.ToCString());
+    }
+
   } else if (obj.IsInstance()) {
     // Every instance field has a setter Function.  Try to find the
     // setter in any superclass and use that function to access the
@@ -3214,42 +3292,6 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
                                                           args_descriptor));
     }
     return Api::NewHandle(isolate, DartEntry::InvokeFunction(setter, args));
-
-  } else if (obj.IsClass()) {
-    // To access a static field we may need to use the Field or the
-    // setter Function.
-    const Class& cls = Class::Cast(obj);
-    field = cls.LookupStaticField(field_name);
-    if (field.IsNull()) {
-      String& setter_name =
-          String::Handle(isolate, Field::SetterName(field_name));
-      setter = cls.LookupStaticFunctionAllowPrivate(setter_name);
-    }
-
-    if (!setter.IsNull()) {
-      // Invoke the setter and return the result.
-      const int kNumArgs = 1;
-      const Array& args = Array::Handle(isolate, Array::New(kNumArgs));
-      args.SetAt(0, value_instance);
-      const Object& result =
-          Object::Handle(isolate, DartEntry::InvokeFunction(setter, args));
-      if (result.IsError()) {
-        return Api::NewHandle(isolate, result.raw());
-      } else {
-        return Api::Success();
-      }
-    } else if (!field.IsNull()) {
-      if (field.is_final()) {
-        return Api::NewError("%s: cannot set final field '%s'.",
-                             CURRENT_FUNC, field_name.ToCString());
-      } else {
-        field.set_value(value_instance);
-        return Api::Success();
-      }
-    } else {
-      return Api::NewError("%s: did not find static field '%s'.",
-                           CURRENT_FUNC, field_name.ToCString());
-    }
 
   } else if (obj.IsLibrary()) {
     // To access a top-level we may need to use the Field or the
@@ -3292,7 +3334,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
       return container;
   } else {
     return Api::NewError(
-        "%s expects argument 'container' to be an object, class, or library.",
+        "%s expects argument 'container' to be an object, type, or library.",
         CURRENT_FUNC);
   }
 }

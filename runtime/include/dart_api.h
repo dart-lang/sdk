@@ -1142,8 +1142,8 @@ DART_EXPORT bool Dart_IsStringLatin1(Dart_Handle object);  /* (ISO-8859-1) */
 DART_EXPORT bool Dart_IsExternalString(Dart_Handle object);
 DART_EXPORT bool Dart_IsList(Dart_Handle object);
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object);
+DART_EXPORT bool Dart_IsType(Dart_Handle handle);
 DART_EXPORT bool Dart_IsClass(Dart_Handle handle);
-DART_EXPORT bool Dart_IsAbstractClass(Dart_Handle handle);
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle);
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle);
 DART_EXPORT bool Dart_IsTypeVariable(Dart_Handle handle);
@@ -1165,6 +1165,18 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
  * any functions that more properly belong here. */
 
 /**
+ * Gets the type of a Dart language object.
+ *
+ * \param instance Some Dart object.
+ *
+ * \return If no error occurs, the type is returned. Otherwise an
+ *   error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance);
+
+/**
+ * TODO(asiva): Deprecate this method once all use cases have switched
+ *              to using Dart_InstanceGetType
  * Gets the class for some Dart language object.
  *
  * \param instance Some Dart object.
@@ -1736,7 +1748,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object);
  * This function allows hidden constructors (constructors with leading
  * underscores) to be called.
  *
- * \param clazz A class or an interface.
+ * \param type Type of object to be constructed.
  * \param constructor_name The name of the constructor to invoke.  Use
  *   Dart_Null() to invoke the unnamed constructor.  This name should
  *   not include the name of the class.
@@ -1747,7 +1759,7 @@ DART_EXPORT Dart_Handle Dart_TypedDataReleaseData(Dart_Handle object);
  *   then the new object. If an error occurs during execution, then an
  *   error handle is returned.
  */
-DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
+DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
                                  Dart_Handle constructor_name,
                                  int number_of_arguments,
                                  Dart_Handle* arguments);
@@ -1765,17 +1777,18 @@ DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type);
 /**
  * Invokes a method or function.
  *
- * The 'target' parameter may be an object, class, or library.  If
+ * The 'target' parameter may be an object, type, or library.  If
  * 'target' is an object, then this function will invoke an instance
- * method.  If 'target' is a class, then this function will invoke a
+ * method.  If 'target' is a type, then this function will invoke a
  * static method.  If 'target' is a library, then this function will
  * invoke a top-level function from that library.
+ * NOTE: This API call cannot be used to invoke methods of a type object.
  *
  * This function ignores visibility (leading underscores in names).
  *
  * May generate an unhandled exception error.
  *
- * \param target An object, class, or library.
+ * \param target An object, type, or library.
  * \param name The name of the function or method to invoke.
  * \param number_of_arguments Size of the arguments array.
  * \param arguments An array of arguments to the function.
@@ -1806,17 +1819,18 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
 /**
  * Gets the value of a field.
  *
- * The 'container' parameter may be an object, class, or library.  If
+ * The 'container' parameter may be an object, type, or library.  If
  * 'container' is an object, then this function will access an
- * instance field.  If 'container' is a class, then this function will
+ * instance field.  If 'container' is a type, then this function will
  * access a static field.  If 'container' is a library, then this
  * function will access a top-level variable.
+ * NOTE: This API call cannot be used to access fields of a type object.
  *
  * This function ignores field visibility (leading underscores in names).
  *
  * May generate an unhandled exception error.
  *
- * \param container An object, class, or library.
+ * \param container An object, type, or library.
  * \param name A field name.
  *
  * \return If no error occurs, then the value of the field is
@@ -1828,17 +1842,18 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container,
 /**
  * Sets the value of a field.
  *
- * The 'container' parameter may actually be an object, class, or
+ * The 'container' parameter may actually be an object, type, or
  * library.  If 'container' is an object, then this function will
- * access an instance field.  If 'container' is a class, then this
+ * access an instance field.  If 'container' is a type, then this
  * function will access a static field.  If 'container' is a library,
  * then this function will access a top-level variable.
+ * NOTE: This API call cannot be used to access fields of a type object.
  *
  * This function ignores field visibility (leading underscores in names).
  *
  * May generate an unhandled exception error.
  *
- * \param container An object, class, or library.
+ * \param container An object, type, or library.
  * \param name A field name.
  * \param value The new field value.
  *
@@ -2096,8 +2111,8 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
  */
 DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
                                       Dart_Handle class_name);
-/* TODO(turnidge): Consider returning Dart_Null() when the class is
- * not found to distinguish that from a true error case. */
+/* TODO(asiva): The above method needs to be removed once all uses
+ * of it are removed from the embedder code. */
 
 /**
  * Returns the url from which a library was loaded.
