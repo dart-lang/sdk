@@ -1,9 +1,4 @@
 name: docgen
 description: A documentation generator for the Dart repository.
 dependencies:
-  args: any
-  compiler_unsupported: any
-  logging: any
   markdown: any
-  scheduled_test: any
-  unittest: any
