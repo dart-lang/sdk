@@ -861,7 +861,7 @@ void ParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void CheckStackOverflowInstr::PrintOperandsTo(BufferFormatter* f) const {
-  if (in_loop()) f->Print("loop");
+  if (in_loop()) f->Print("depth %"Pd, loop_depth());
 }
 
 

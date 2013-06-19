@@ -59,6 +59,7 @@ FlowGraphBuilder::FlowGraphBuilder(ParsedFunction* parsed_function,
     context_level_(0),
     last_used_try_index_(CatchClauseNode::kInvalidTryIndex),
     try_index_(CatchClauseNode::kInvalidTryIndex),
+    loop_depth_(0),
     graph_entry_(NULL),
     args_pushed_(0),
     osr_id_(osr_id) { }
@@ -499,7 +500,7 @@ void EffectGraphVisitor::TieLoop(intptr_t token_pos,
     JoinEntryInstr* join =
         new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
     CheckStackOverflowInstr* check =
-        new CheckStackOverflowInstr(token_pos, true);
+        new CheckStackOverflowInstr(token_pos, owner()->loop_depth());
     join->LinkTo(check);
     check->LinkTo(test_fragment.entry());
     Goto(join);
@@ -1601,6 +1602,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 // f) loop-exit-target
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
+  owner()->IncrementLoopDepth();
   TestGraphVisitor for_test(owner(),
                             temp_index(),
                             node->condition()->token_pos());
@@ -1624,6 +1626,7 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
     Goto(join);
     exit_ = join;
   }
+  owner()->DecrementLoopDepth();
 }
 
 
@@ -1636,6 +1639,7 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 // f) loop-exit-target
 // g) break-join
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
+  owner()->IncrementLoopDepth();
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
@@ -1660,7 +1664,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
                                 owner()->try_index());
     }
     CheckStackOverflowInstr* check =
-        new CheckStackOverflowInstr(node->token_pos(), true);
+        new CheckStackOverflowInstr(node->token_pos(), owner()->loop_depth());
     join->LinkTo(check);
     check->LinkTo(for_test.entry());
     if (body_exit != NULL) {
@@ -1676,6 +1680,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     for_test.IfFalseGoto(join);
     exit_ = join;
   }
+  owner()->DecrementLoopDepth();
 }
 
 
@@ -1697,6 +1702,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   Append(for_initializer);
   ASSERT(is_open());
 
+  owner()->IncrementLoopDepth();
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner(), temp_index());
   node->body()->Visit(&for_body);
@@ -1719,7 +1725,8 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     }
     Goto(loop_start);
     exit_ = loop_start;
-    AddInstruction(new CheckStackOverflowInstr(node->token_pos(), true));
+    AddInstruction(
+        new CheckStackOverflowInstr(node->token_pos(), owner()->loop_depth()));
   }
 
   if (node->condition() == NULL) {
@@ -1749,6 +1756,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
       exit_ = node->label()->join_for_break();
     }
   }
+  owner()->DecrementLoopDepth();
 }
 
 
@@ -3464,7 +3472,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   EffectGraphVisitor for_effect(this, 0);
   // This check may be deleted if the generated code is leaf.
   CheckStackOverflowInstr* check =
-      new CheckStackOverflowInstr(function.token_pos(), false);
+      new CheckStackOverflowInstr(function.token_pos(), 0);
   // If we are inlining don't actually attach the stack check. We must still
   // create the stack check in order to allocate a deopt id.
   if (!IsInlining()) for_effect.AddInstruction(check);

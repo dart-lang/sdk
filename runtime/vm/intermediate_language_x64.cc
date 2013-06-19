@@ -2139,10 +2139,13 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(BELOW_EQUAL, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     // In unoptimized code check the usage counter to trigger OSR at loop
-    // stack checks.
+    // stack checks.  Use progressively higher thresholds for more deeply
+    // nested loops to attempt to hit outer loops with OSR when possible.
     __ LoadObject(temp, compiler->parsed_function().function());
+    intptr_t threshold =
+        FLAG_optimization_counter_threshold * (loop_depth() + 1);
     __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
-            Immediate(2 * FLAG_optimization_counter_threshold));
+            Immediate(threshold));
     __ j(GREATER_EQUAL, slow_path->entry_label());
   }
   __ Bind(slow_path->exit_label());

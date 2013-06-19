@@ -5920,11 +5920,12 @@ class UnarySmiOpInstr : public TemplateDefinition<1> {
 
 class CheckStackOverflowInstr : public TemplateInstruction<0> {
  public:
-  CheckStackOverflowInstr(intptr_t token_pos, bool in_loop)
-      : token_pos_(token_pos), in_loop_(in_loop) {}
+  CheckStackOverflowInstr(intptr_t token_pos, intptr_t loop_depth)
+      : token_pos_(token_pos), loop_depth_(loop_depth) {}
 
   intptr_t token_pos() const { return token_pos_; }
-  bool in_loop() const { return in_loop_; }
+  bool in_loop() const { return loop_depth_ > 0; }
+  intptr_t loop_depth() const { return loop_depth_; }
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
@@ -5940,7 +5941,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0> {
 
  private:
   const intptr_t token_pos_;
-  const bool in_loop_;
+  const intptr_t loop_depth_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
 };

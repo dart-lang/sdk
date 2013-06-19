@@ -1318,9 +1318,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
     if (FLAG_trace_osr) {
-      OS::Print("Attempting OSR for %s at id=%"Pd"\n",
+      OS::Print("Attempting OSR for %s at id=%"Pd", count=%"Pd"\n",
                 function.ToFullyQualifiedCString(),
-                osr_id);
+                osr_id,
+                function.usage_counter());
     }
 
     const Code& original_code = Code::Handle(function.CurrentCode());
