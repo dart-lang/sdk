@@ -4,13 +4,7 @@
 
 {
   'variables': {
-    # We place most generated source files in LIB_DIR (rather than, say
-    # SHARED_INTERMEDIATE_DIR) because it is toolset specific. This avoids
-    # two problems. First, if a generated source file has architecture specific
-    # code, we'll get two different files in two different directories. Second,
-    # if a generated source file is needed to build a target with multiple
-    # toolsets, we avoid having duplicate Makefile targets.
-    'gen_source_dir': '<(LIB_DIR)',
+    'gen_source_dir': '<(SHARED_INTERMEDIATE_DIR)',
 
     'io_cc_file': '<(gen_source_dir)/io_gen.cc',
     'io_patch_cc_file': '<(gen_source_dir)/io_patch_gen.cc',
@@ -19,17 +13,13 @@
     'snapshot_in_cc_file': 'snapshot_in.cc',
     'snapshot_bin_file': '<(gen_source_dir)/snapshot_gen.bin',
     'resources_cc_file': '<(gen_source_dir)/resources_gen.cc',
-
-    # The program that creates snapshot_gen.cc is only built and run on the
-    # host, but it must be available when dart is built for the target. Thus,
-    # we keep it in a shared location.
-    'snapshot_cc_file': '<(SHARED_INTERMEDIATE_DIR)/snapshot_gen.cc',
+    'snapshot_cc_file': '<(gen_source_dir)/snapshot_gen.cc',
   },
   'targets': [
     {
       'target_name': 'generate_builtin_cc_file',
       'type': 'none',
-      'toolsets':['target','host'],
+      'toolsets':['host'],
       'includes': [
         'builtin_sources.gypi',
       ],
@@ -61,7 +51,7 @@
     {
       'target_name': 'generate_io_cc_file',
       'type': 'none',
-      'toolsets':['target','host'],
+      'toolsets':['host'],
       'sources': [
         '../../sdk/lib/io/io.dart',
       ],
@@ -96,7 +86,7 @@
     {
       'target_name': 'generate_io_patch_cc_file',
       'type': 'none',
-      'toolsets':['target','host'],
+      'toolsets':['host'],
       'includes': [
         'io_sources.gypi',
       ],
@@ -130,9 +120,9 @@
       'type': 'static_library',
       'toolsets':['target','host'],
       'dependencies': [
-        'generate_builtin_cc_file',
-        'generate_io_cc_file',
-        'generate_io_patch_cc_file',
+        'generate_builtin_cc_file#host',
+        'generate_io_cc_file#host',
+        'generate_io_patch_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -222,7 +212,7 @@
         'libdart_vm',
         'libjscre',
         'libdouble_conversion',
-        'generate_version_cc_file',
+        'generate_version_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -342,6 +332,7 @@
     {
       'target_name': 'generate_resources_cc_file',
       'type': 'none',
+      'toolsets':['host'],
       'includes': [
         'vmstats_sources.gypi',
       ],
@@ -375,7 +366,7 @@
         'libdart_builtin',
         'libdart_io',
         'generate_snapshot_file#host',
-        'generate_resources_cc_file',
+        'generate_resources_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -443,7 +434,7 @@
         'libdart_withcore',
         'libdart_builtin',
         'libdart_io',
-        'generate_resources_cc_file',
+        'generate_resources_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -524,7 +515,7 @@
         'libdart_builtin',
         'libdart_io',
         'generate_snapshot_file#host',
-        'generate_snapshot_test_dat_file',
+        'generate_snapshot_test_dat_file#host',
       ],
       'include_dirs': [
         '..',
@@ -595,7 +586,7 @@
         'libdart_builtin',
         'libdart_io',
         'generate_snapshot_file#host',
-        'generate_snapshot_test_dat_file',
+        'generate_snapshot_test_dat_file#host',
       ],
       'include_dirs': [
         '..',
