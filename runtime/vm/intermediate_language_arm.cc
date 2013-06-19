@@ -1358,8 +1358,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
-      locs->set_in(2, Location::RegisterOrSmiConstant(value()));
-      break;
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
     case kTypedDataInt32ArrayCid:
