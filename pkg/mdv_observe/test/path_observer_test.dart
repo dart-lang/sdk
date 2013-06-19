@@ -247,6 +247,3 @@ class TestModel extends ObservableBase {
 
   toString() => '#<$runtimeType $fieldName: $_value>';
 }
-
-_record(key, oldValue, newValue, [kind = ChangeRecord.FIELD]) =>
-    new ChangeRecord(key, oldValue, newValue, kind: kind);

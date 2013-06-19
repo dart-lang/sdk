@@ -366,9 +366,3 @@ js_interop_3_test: Skip            # Test cannot run under CSP restrictions (tim
 postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
 safe_dom_test: Skip                # Test cannot run under CSP restrictions (times out).
 shadow_dom_layout_test: Fail, OK   # Test cannot run under CSP restrictions.
-
-[ $compiler == dartanalyzer ]
-path_observer_test: Fail
-
-[ $compiler == dart2analyzer ]
-path_observer_test: Fail
