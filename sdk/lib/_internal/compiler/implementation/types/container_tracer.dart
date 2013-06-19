@@ -9,7 +9,8 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart' show Link;
-import 'simple_types_inferrer.dart' show SimpleTypesInferrer, InferrerVisitor;
+import 'simple_types_inferrer.dart'
+    show SimpleTypesInferrer, InferrerVisitor, LocalsHandler;
 import 'types.dart';
 
 /**
@@ -164,7 +165,7 @@ class TracerForConcreteContainer {
 
     // [potentialType] can be null if we did not find any instruction
     // that adds elements to the list.
-    if (potentialType == null) return new TypeMask.empty();
+    if (potentialType == null) return new TypeMask.nonNullEmpty();
 
     // Walk over the found constraints and update the type according
     // to the selectors of these constraints.
@@ -258,13 +259,15 @@ class TracerForConcreteContainer {
 class ContainerTracerVisitor extends InferrerVisitor {
   final Element analyzedElement;
   final TracerForConcreteContainer tracer;
-  ContainerTracerVisitor(element, tracer)
-      : super(element, tracer.inferrer, tracer.compiler),
+  final bool visitingClosure;
+
+  ContainerTracerVisitor(element, tracer, [LocalsHandler locals])
+      : super(element, tracer.inferrer, tracer.compiler, locals),
         this.analyzedElement = element,
-        this.tracer = tracer;
+        this.tracer = tracer,
+        visitingClosure = locals != null;
 
   bool escaping = false;
-  bool visitingClosure = false;
   bool visitingInitializers = false;
 
   void run() {
@@ -335,20 +338,22 @@ class ContainerTracerVisitor extends InferrerVisitor {
   }
 
   TypeMask visitFunctionExpression(FunctionExpression node) {
-    bool oldVisitingClosure = visitingClosure;
     FunctionElement function = elements[node];
-    FunctionSignature signature = function.computeSignature(compiler);
-    signature.forEachParameter((element) {
-      locals.update(element, inferrer.getTypeOfElement(element));
-    });
-    visitingClosure = function != analyzedElement;
-    bool oldVisitingInitializers = visitingInitializers;
-    visitingInitializers = true;
-    visit(node.initializers);
-    visitingInitializers = oldVisitingInitializers;
-    visit(node.body);
-    visitingClosure = oldVisitingClosure;
-
+    if (function != analyzedElement) {
+      // Visiting a closure.
+      LocalsHandler closureLocals = new LocalsHandler.from(locals);
+      new ContainerTracerVisitor(function, tracer, closureLocals).run();
+    } else {
+      // Visiting [analyzedElement].
+      FunctionSignature signature = function.computeSignature(compiler);
+      signature.forEachParameter((element) {
+        locals.update(element, inferrer.getTypeOfElement(element));
+      });
+      visitingInitializers = true;
+      visit(node.initializers);
+      visitingInitializers = false;
+      visit(node.body);
+    }
     return inferrer.functionType;
   }
 
