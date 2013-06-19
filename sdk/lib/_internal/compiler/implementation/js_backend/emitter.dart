@@ -1591,7 +1591,12 @@ class CodeEmitterTask extends CompilerTask {
             assert(setterCode != 0);
           }
           int code = getterCode + (setterCode << 2);
-          buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
+          if (code == 0) {
+            compiler.reportInternalError(
+                member, 'Internal error: code is 0 ($classElement/$member)');
+          } else {
+            buffer.write(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]);
+          }
         }
       }
     });
