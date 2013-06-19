@@ -1753,6 +1753,16 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
                                  Dart_Handle* arguments);
 
 /**
+ * Allocate a new object without invoking a constructor.
+ *
+ * \param type The type of an object to be allocated.
+ *
+ * \return The new object. If an error occurs during execution, then an
+ *   error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type);
+
+/**
  * Invokes a method or function.
  *
  * The 'target' parameter may be an object, class, or library.  If

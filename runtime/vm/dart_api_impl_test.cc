@@ -3919,6 +3919,15 @@ TEST_CASE(New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(7, int_value);
 
+  // Allocate without a constructor.
+  result = Dart_Allocate(cls);
+  EXPECT_VALID(result);
+  instanceof = false;
+  EXPECT_VALID(Dart_ObjectIsType(result, cls, &instanceof));
+  EXPECT(instanceof);
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT(Dart_IsNull(foo));
+
   // Invoke the unnamed constructor with an empty string.
   result = Dart_New(cls, NewString(""), 0, NULL);
   EXPECT_VALID(result);

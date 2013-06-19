@@ -2825,6 +2825,33 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
 }
 
 
+DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  CHECK_CALLBACK_STATE(isolate);
+  const Object& result = Object::Handle(isolate, Api::UnwrapHandle(type));
+
+  // Get the class to instantiate.
+  if (result.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, type, Type);
+  }
+  Class& cls = Class::Handle(isolate);
+  if (result.IsType()) {
+    cls = Type::Cast(result).type_class();
+  } else if (result.IsClass()) {
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_New is removed.
+    cls ^= result.raw();
+  } else {
+    RETURN_TYPE_ERROR(isolate, type, Type);
+  }
+
+  // Allocate an object for the given class.
+  return Api::NewHandle(isolate, Instance::New(cls));
+}
+
+
 DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
                                     Dart_Handle name,
                                     int number_of_arguments,
