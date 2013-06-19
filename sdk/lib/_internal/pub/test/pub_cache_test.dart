@@ -73,9 +73,9 @@ main() {
     ]).create();
 
     schedulePub(args: ['cache', 'list'], output:
-      new RegExp(r'\{"packages":\{"bar":\{"version":"2\.0\.0","location":'
-          r'"[^"]+bar-2\.0\.0"\},"foo":\{"version":"1\.2\.3","location":'
-          r'"[^"]+foo-1\.2\.3"\}\}\}$'));
+      new RegExp(r'\{"packages":\{"bar":\{"2\.0\.0":\{"location":'
+          r'"[^"]+bar-2\.0\.0"\}},"foo":\{"1\.2\.3":\{"location":'
+          r'"[^"]+foo-1\.2\.3"\}\}\}\}$'));
   });
 
   integration('includes packages containing deps with bad sources', () {
@@ -92,7 +92,7 @@ main() {
     ]).create();
 
     schedulePub(args: ['cache', 'list'], output:
-      new RegExp(r'\{"packages":\{"foo":\{"version":"1\.2\.3","location":'
-          r'"[^"]+foo-1\.2\.3"\}\}\}$'));
+      new RegExp(r'\{"packages":\{"foo":\{"1\.2\.3":\{"location":'
+          r'"[^"]+foo-1\.2\.3"\}\}\}\}$'));
   });
 }

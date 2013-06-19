@@ -33,11 +33,11 @@ class CacheCommand extends PubCommand {
 
     // TODO(keertip): Add flag to list packages from non default sources
     var packagesObj = <String, Map>{};
+
     for (var package in cache.sources.defaultSource.getCachedPackages()) {
-      packagesObj[package.name] = {
-        'version': package.version.toString(),
-        'location': package.dir
-      };
+
+      var packageInfo = packagesObj.putIfAbsent(package.name, () => {});
+      packageInfo[package.version.toString()] = {'location': package.dir};
     }
 
     // TODO(keertip): Add support for non-JSON format
