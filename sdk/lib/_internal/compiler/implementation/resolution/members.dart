@@ -2253,6 +2253,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // Set the type of the node to [Type] to mark this send as a
         // type variable expression.
         mapping.setType(node, compiler.typeClass.computeType(compiler));
+        world.registerInstantiatedClass(compiler.typeClass, mapping);
       } else if (target.impliesType() && !sendIsMemberAccess) {
         // Set the type of the node to [Type] to mark this send as a
         // type literal.
