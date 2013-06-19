@@ -82,7 +82,7 @@ typed_data/float32x4_unbox_phi_test: Fail      # Issue 10961
 typed_data/float32x4_unbox_regress_test: Fail  # Issue 10961
 mirrors/reflect_runtime_type_test: Fail
 mirrors/reflect_uninstantiated_class_test: Fail
-
+mirrors/get_symbol_name_no_such_method_test: Fail
 
 [ $runtime == ff ]
 # FF setTimeout can fire early: https://bugzilla.mozilla.org/show_bug.cgi?id=291386
