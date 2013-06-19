@@ -83,12 +83,6 @@ serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
 
 [ $compiler == dart2js && $minified ]
-# The unittest package relies on getting the original (non-minified) method
-# names in Invocation.  You can't get that when minifying.
-# TODO(ahe/erikcorry): But soon you can, now that we use Symbol.
-unittest/test/mock_test: Fail
-unittest/test/mock_regexp_negative_test: Fail
-
 serialization/test/serialization_test: Fail # Issue 6490
 serialization/test/no_library_test: Fail # Issue 6490
 
