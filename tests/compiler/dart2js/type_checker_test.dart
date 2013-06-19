@@ -46,7 +46,8 @@ main() {
                 testThis,
                 testSuper,
                 testOperatorsAssignability,
-                testFieldInitializers];
+                testFieldInitializers,
+                testTypeVariableExpressions];
   for (Function test in tests) {
     setup();
     test();
@@ -1025,6 +1026,25 @@ void testFieldInitializers() {
                      }""", MessageKind.NOT_ASSIGNABLE);
 }
 
+void testTypeVariableExpressions() {
+  String script = """class Foo<T> {
+                       void method() {}
+                     }""";
+  LibraryElement library = mockLibrary(compiler, script);
+  compiler.parseScript(script, library);
+  ClassElement foo = library.find(const SourceString("Foo"));
+  foo.ensureResolved(compiler);
+  Element method = foo.lookupLocalMember(const SourceString('method'));
+
+  analyzeIn(method, "{ Type type = T; }");
+  analyzeIn(method, "{ T type = T; }", MessageKind.NOT_ASSIGNABLE);
+  analyzeIn(method, "{ int type = T; }", MessageKind.NOT_ASSIGNABLE);
+
+  analyzeIn(method, "{ String typeName = T.toString(); }");
+  analyzeIn(method, "{ T.foo; }", MessageKind.PROPERTY_NOT_FOUND);
+  analyzeIn(method, "{ T.foo(); }", MessageKind.METHOD_NOT_FOUND);
+  analyzeIn(method, "{ T + 1; }", MessageKind.OPERATOR_NOT_FOUND);
+}
 
 const CLASS_WITH_METHODS = '''
 class ClassWithMethods {

@@ -26,6 +26,8 @@ class MessageKind {
       'additional argument');
   static const NAMED_ARGUMENT_NOT_FOUND = const MessageKind(
       "no named argument '#{argumentName}' found on method");
+  static const MEMBER_NOT_FOUND = const MessageKind(
+      'no member named #{memberName} in class #{className}');
   static const METHOD_NOT_FOUND = const MessageKind(
       'no method named #{memberName} in class #{className}');
   static const OPERATOR_NOT_FOUND = const MessageKind(

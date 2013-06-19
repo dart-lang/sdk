@@ -2104,7 +2104,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // [resolveSend] to select better warning messages for getters and
         // setters.
         MessageKind kind = (target == null)
-            ? MessageKind.METHOD_NOT_FOUND
+            ? MessageKind.MEMBER_NOT_FOUND
             : MessageKind.MEMBER_NOT_STATIC;
         return warnAndCreateErroneousElement(node, name, kind,
                                              {'className': receiverClass.name,
@@ -2250,6 +2250,9 @@ class ResolverVisitor extends MappingVisitor<Element> {
         assert(enclosingElement.getEnclosingClass() == cls);
         compiler.backend.registerClassUsingVariableExpression(cls);
         compiler.backend.registerTypeVariableExpression(mapping);
+        // Set the type of the node to [Type] to mark this send as a
+        // type variable expression.
+        mapping.setType(node, compiler.typeClass.computeType(compiler));
       } else if (target.impliesType() && !sendIsMemberAccess) {
         // Set the type of the node to [Type] to mark this send as a
         // type literal.

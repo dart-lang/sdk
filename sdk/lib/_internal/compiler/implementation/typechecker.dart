@@ -506,6 +506,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
    */
   ElementAccess computeAccess(Send node, SourceString name, Element element,
                               MemberKind memberKind) {
+    if (element != null && element.isErroneous()) {
+      // An error has already been reported for this node.
+      return const DynamicAccess();
+    }
     if (node.receiver != null) {
       Element receiverElement = elements[node.receiver];
       if (receiverElement != null) {
@@ -557,6 +561,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (element.isErroneous()) {
       // foo() where foo is erroneous.
       return const DynamicAccess();
+    } else if (element.impliesType()) {
+      // The literal `Foo` where Foo is a class, a typedef, or a type variable.
+      if (elements.getType(node) != null) {
+        assert(invariant(node, identical(compiler.typeClass,
+            elements.getType(node).element),
+            message: 'Expected type literal type: '
+              '${elements.getType(node)}'));
+        return new TypeLiteralAccess(element);
+      }
+      return createResolvedAccess(node, name, element);
     } else if (element.isMember()) {
       // foo() where foo is an instance member.
       return lookupMember(node, currentClass.computeType(compiler),
@@ -568,16 +582,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         element.isParameter() ||
         element.isField()) {
       // foo() where foo is a field in the same class.
-      return createResolvedAccess(node, name, element);
-    } else if (element.impliesType()) {
-      // The literal `Foo` where Foo is a class, a typedef, or a type variable.
-      if (elements.getType(node) != null) {
-        assert(invariant(node, identical(compiler.typeClass,
-            elements.getType(node).element),
-            message: 'Expected type literal type: '
-              '${elements.getType(node)}'));
-        return new TypeLiteralAccess(element);
-      }
       return createResolvedAccess(node, name, element);
     } else if (element.isGetter() || element.isSetter()) {
       return createResolvedAccess(node, name, element);
