@@ -17,7 +17,8 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_OPERATOR_IS_PREFIX,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
-import "dart:_collection-dev" as _symbol_dev;
+import 'dart:_collection-dev' as _symbol_dev;
+import 'dart:_js_names' show mangledNames;
 
 part 'constant_map.dart';
 part 'native_helper.dart';
@@ -56,8 +57,18 @@ String S(value) {
   return res;
 }
 
-createInvocationMirror(name, internalName, type, arguments, argumentNames) {
-  return new JSInvocationMirror(new _symbol_dev.Symbol.unvalidated(name),
+createInvocationMirror(String name, internalName, type, arguments,
+                       argumentNames) {
+  return new JSInvocationMirror(name,
+                                internalName,
+                                type,
+                                arguments,
+                                argumentNames);
+}
+
+createUnmangledInvocationMirror(Symbol symbol, internalName, type, arguments,
+                                argumentNames) {
+  return new JSInvocationMirror(symbol,
                                 internalName,
                                 type,
                                 arguments,
@@ -69,7 +80,9 @@ class JSInvocationMirror implements Invocation {
   static const GETTER = 1;
   static const SETTER = 2;
 
-  final Symbol memberName;
+  /// When [_memberName] is a String, it holds the mangled name of this
+  /// invocation.  When it is a Symbol, it holds the unmangled name.
+  var /* String or Symbol */ _memberName;
   final String _internalName;
   final int _kind;
   final List _arguments;
@@ -77,11 +90,22 @@ class JSInvocationMirror implements Invocation {
   /** Map from argument name to index in _arguments. */
   Map<String,dynamic> _namedIndices = null;
 
-  JSInvocationMirror(this.memberName,
+  JSInvocationMirror(this._memberName,
                      this._internalName,
                      this._kind,
                      this._arguments,
                      this._namedArgumentNames);
+
+  Symbol get memberName {
+    if (_memberName is Symbol) return _memberName;
+    String name = _memberName;
+    String unmangledName = mangledNames[name];
+    if (unmangledName != null) {
+      name = unmangledName.split(':')[0];
+    }
+    _memberName = new _symbol_dev.Symbol.unvalidated(name);
+    return _memberName;
+  }
 
   bool get isMethod => _kind == METHOD;
   bool get isGetter => _kind == GETTER;

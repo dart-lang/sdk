@@ -76,6 +76,7 @@ class CodeEmitterTask extends CompilerTask {
   final List<Selector> trivialNsmHandlers = <Selector>[];
   final Map<String, String> mangledFieldNames = <String, String>{};
   final Set<String> interceptorInvocationNames = new Set<String>();
+  final Set<String> recordedUnmangledNames = new Set<String>();
 
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
@@ -1017,6 +1018,11 @@ class CodeEmitterTask extends CompilerTask {
     jsAst.Fun function = js.fun(parametersBuffer, body);
 
     defineStub(invocationName, function);
+
+    String reflectionName = getReflectionName(selector);
+    if (reflectionName != null) {
+      defineStub('+$reflectionName', js('0'));
+    }
   }
 
   void addParameterStubs(FunctionElement member,
@@ -1205,18 +1211,38 @@ class CodeEmitterTask extends CompilerTask {
     emitExtraAccessors(member, builder);
   }
 
-  String getReflectionName(Element element) {
+  String getReflectionName(elementOrSelector) {
     if (!compiler.mirrorsEnabled) return null;
-    String name = element.name.slowToString();
-    if (element.isGetter()) return name;
-    if (element.isSetter()) return '$name=';
-    if (element.isFunction() || element.isConstructor()) {
-      FunctionElement function = element;
-      int requiredParameterCount = function.requiredParameterCount(compiler);
-      int optionalParameterCount = function.optionalParameterCount(compiler);
+    String result = getReflectionNameInternal(elementOrSelector);
+    if (recordedUnmangledNames.contains(result)) return null;
+    recordedUnmangledNames.add(result);
+    return result;
+  }
+
+  String getReflectionNameInternal(elementOrSelector) {
+    String name = elementOrSelector.name.slowToString();
+    if (elementOrSelector.isGetter()) return name;
+    if (elementOrSelector.isSetter()) return '$name=';
+    if (elementOrSelector is Selector
+        || elementOrSelector.isFunction()
+        || elementOrSelector.isConstructor()) {
+      int requiredParameterCount;
+      int optionalParameterCount;
+      bool isConstructor;
+      if (elementOrSelector is Selector) {
+        requiredParameterCount = elementOrSelector.argumentCount;
+        optionalParameterCount = 0;
+        isConstructor = false;
+      } else {
+        FunctionElement function = elementOrSelector;
+        requiredParameterCount = function.requiredParameterCount(compiler);
+        optionalParameterCount = function.optionalParameterCount(compiler);
+        isConstructor = function.isConstructor();
+      }
       String suffix = '$name:$requiredParameterCount:$optionalParameterCount';
-      return (function.isConstructor()) ? 'new $suffix' : suffix;
+      return (isConstructor) ? 'new $suffix' : suffix;
     }
+    Element element = elementOrSelector;
     if (element.isGenerativeConstructorBody()) {
       return null;
     }
@@ -2416,6 +2442,10 @@ class CodeEmitterTask extends CompilerTask {
         if (mask.willHit(selector, compiler)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         addedJsNames[jsName] = selector;
+        String reflectionName = getReflectionName(selector);
+        if (reflectionName != null) {
+          mangledFieldNames[jsName] = reflectionName;
+        }
       }
     }
 

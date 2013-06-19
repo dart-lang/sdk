@@ -16,32 +16,18 @@ import 'dart:_js_helper' show
     Null,
     Primitives,
     RuntimeError,
-    createInvocationMirror;
+    createUnmangledInvocationMirror;
 import 'dart:_interceptors' show Interceptor;
+import 'dart:_js_names';
 
 /// No-op method that is called to inform the compiler that
 /// tree-shaking needs to be disabled.
 disableTreeShaking() => preserveNames();
 
-/// No-op method that is called to inform the compiler that unmangled
-/// named must be preserved.
-preserveNames() {}
-
 String getName(Symbol symbol) {
   preserveNames();
   return n(symbol);
 }
-
-final Map<String, String> mangledNames = JsMirrorSystem.computeMangledNames();
-
-final Map<String, String> reflectiveNames =
-    JsMirrorSystem.computeReflectiveNames();
-
-final Map<String, String> mangledGlobalNames =
-    JsMirrorSystem.computeMangledGlobalNames();
-
-final Map<String, String> reflectiveGlobalNames =
-    JsMirrorSystem.computeReflectiveGlobalNames();
 
 class JsMirrorSystem implements MirrorSystem {
   TypeMirror get dynamicType => _dynamicType;
@@ -75,46 +61,6 @@ class JsMirrorSystem implements MirrorSystem {
       libraries.add(
           new JsLibraryMirror(s(name), uri, classes, functions, metadata));
     }
-    return result;
-  }
-
-  static Map<String, String> computeMangledNames() {
-    disableTreeShaking();
-    var mangledNames = JS('', 'init.mangledNames');
-    var keys = extractKeys(mangledNames);
-    var result = <String, String>{};
-    for (String key in keys) {
-      result[key] = JS('String', '#[#]', mangledNames, key);
-    }
-    return result;
-  }
-
-  static Map<String, String> computeReflectiveNames() {
-    disableTreeShaking();
-    var result = <String, String>{};
-    mangledNames.forEach((String mangledName, String reflectiveName) {
-      result[reflectiveName] = mangledName;
-    });
-    return result;
-  }
-
-  static Map<String, String> computeMangledGlobalNames() {
-    disableTreeShaking();
-    var mangledGlobalNames = JS('', 'init.mangledGlobalNames');
-    var keys = extractKeys(mangledGlobalNames);
-    var result = <String, String>{};
-    for (String key in keys) {
-      result[key] = JS('String', '#[#]', mangledGlobalNames, key);
-    }
-    return result;
-  }
-
-  static Map<String, String> computeReflectiveGlobalNames() {
-    disableTreeShaking();
-    var result = <String, String>{};
-    mangledGlobalNames.forEach((String mangledName, String reflectiveName) {
-      result[reflectiveName] = mangledName;
-    });
     return result;
   }
 }
@@ -353,10 +299,11 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
                          int type,
                          String mangledName,
                          List arguments) {
+    disableTreeShaking();
     // TODO(ahe): Get the argument names.
     List<String> argumentNames = [];
-    Invocation invocation = createInvocationMirror(
-        n(name), mangledName, type, arguments, argumentNames);
+    Invocation invocation = createUnmangledInvocationMirror(
+        name, mangledName, type, arguments, argumentNames);
 
     return reflect(delegate(invocation));
   }
@@ -774,15 +721,4 @@ List extractMetadata(victim) {
   var metadataFunction = JS('', '#["@"]', victim);
   return (metadataFunction == null)
       ? const [] : JS('', '#()', metadataFunction);
-}
-
-List extractKeys(victim) {
-  return JS('List', '''
-(function(victim, hasOwnProperty) {
-  var result = [];
-  for (var key in victim) {
-    if (hasOwnProperty.call(victim, key)) result.push(key);
-  }
-  return result;
-})(#, Object.prototype.hasOwnProperty)''', victim);
 }
