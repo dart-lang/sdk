@@ -99,9 +99,6 @@ pathos/test/pathos_dartium_test: Fail # Issue 6490
 crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
-[ $compiler == dart2js && $checked ]
-pathos/test/pathos_dartium_test: Crash
-
 [ $browser ]
 analyzer_experimental/test/error_test: Fail, OK # Uses dart:io.
 analyzer_experimental/test/generated/element_test: Fail, OK # Uses dart:io.
