@@ -163,6 +163,8 @@ class DartUtils {
   static const char* MapLibraryUrl(CommandLineOptions* url_mapping,
                                    const char* url_string);
 
+  static Dart_Handle SetWorkingDirectory(Dart_Handle builtin_lib);
+
   static Dart_Handle ResolveScriptUri(Dart_Handle script_uri,
                                       Dart_Handle builtin_lib);
 
