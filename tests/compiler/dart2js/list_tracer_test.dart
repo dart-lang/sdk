@@ -224,7 +224,7 @@ void doTest(String allocation, {bool nullify}) {
   checkType('listPassedAsNamedParameter', typesInferrer.dynamicType);
 
   if (!allocation.contains('filled')) {
-    checkType('listUnset', new TypeMask.empty());
-    checkType('listOnlySetWithConstraint', new TypeMask.empty());
+    checkType('listUnset', new TypeMask.nonNullEmpty());
+    checkType('listOnlySetWithConstraint', new TypeMask.nonNullEmpty());
   }
 }
