@@ -3533,7 +3533,7 @@ void LICM::Optimize() {
         Instruction* current = it.Current();
         if ((current->AllowsCSE() &&
              block_effects->CanBeMovedTo(current, pre_header)) ||
-             IsLoopInvariantLoad(loop_invariant_loads, i, current)) {
+            IsLoopInvariantLoad(loop_invariant_loads, i, current)) {
           bool inputs_loop_invariant = true;
           for (int i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
