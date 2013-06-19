@@ -42,7 +42,6 @@ part '$AUXILIARY_DIR/KeyboardEventStream.dart';
 part '$AUXILIARY_DIR/KeyCode.dart';
 part '$AUXILIARY_DIR/KeyLocation.dart';
 part '$AUXILIARY_DIR/KeyName.dart';
-part '$AUXILIARY_DIR/PathObserver.dart';
 part '$AUXILIARY_DIR/Point.dart';
 part '$AUXILIARY_DIR/ReadyState.dart';
 part '$AUXILIARY_DIR/Rectangle.dart';

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html;
+part of dart.mdv_observe_impl;
 
 // This code is inspired by ChangeSummary:
 // https://github.com/rafaelw/ChangeSummary/blob/master/change_summary.js
@@ -40,7 +40,6 @@ part of html;
  * This class is used to implement [Node.bind] and similar functionality.
  */
 // TODO(jmesserly): find a better home for this type.
-@Experimental
 class PathObserver {
   /** The object being observed. */
   final object;
