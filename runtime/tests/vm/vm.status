@@ -54,10 +54,6 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == simarm || $arch == arm ]
-# Bug in optimized code generation results in failure.
-dart/byte_array_test: Fail
-
 [ $arch == arm ]
 cc/DoubleToFloatConversion: Fail # Issue: 11207
 cc/DoubleToIntConversion: Fail # Issue: 11207
