@@ -3033,16 +3033,26 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun buildMetadataFunction(Element element) {
     if (!compiler.mirrorsEnabled) return null;
-    var metadata = [];
-    Link link = element.metadata;
-    // TODO(ahe): Why is metadata sometimes null?
-    if (link != null) {
-      for (; !link.isEmpty; link = link.tail) {
-        metadata.add(constantReference(link.head.value));
+    return compiler.withCurrentElement(element, () {
+      var metadata = [];
+      Link link = element.metadata;
+      // TODO(ahe): Why is metadata sometimes null?
+      if (link != null) {
+        for (; !link.isEmpty; link = link.tail) {
+          MetadataAnnotation annotation = link.head;
+          Constant value = annotation.value;
+          if (value == null) {
+            compiler.reportInternalError(
+                annotation, 'Internal error: value is null');
+          } else {
+            metadata.add(constantReference(value));
+          }
+        }
       }
-    }
-    if (metadata.isEmpty) return null;
-    return js.fun([], [js.return_(new jsAst.ArrayInitializer.from(metadata))]);
+      if (metadata.isEmpty) return null;
+      return js.fun(
+          [], [js.return_(new jsAst.ArrayInitializer.from(metadata))]);
+    });
   }
 
   String assembleProgram() {
