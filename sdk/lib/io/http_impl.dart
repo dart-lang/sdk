@@ -1008,22 +1008,30 @@ class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
   static List<int> _chunkHeader(int length) {
     const hexDigits = const [0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
                              0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46];
-    var header = [];
-    if (length == 0) {
-      header.add(hexDigits[length]);
-    } else {
-      while (length > 0) {
-        header.insert(0, hexDigits[length % 16]);
-        length = length >> 4;
-      }
+    if (length == 0) return _chunk0Length;
+    int size = 0;
+    int len = length;
+    // Compute a fast integer version of (log(length + 1) / log(16)).ceil().
+    while (len > 0) {
+      size++;
+      len >>= 4;
     }
-    header.add(_CharCode.CR);
-    header.add(_CharCode.LF);
+    var header = new Uint8List(size + 2);
+    int index = size;
+    while (index > 0) {
+      header[--index] = hexDigits[length & 15];
+      length = length >> 4;
+    }
+    header[size + 0] = _CharCode.CR;
+    header[size + 1] = _CharCode.LF;
     return header;
   }
 
   // Footer is just a CRLF.
-  static List<int> get _chunkFooter => const [_CharCode.CR, _CharCode.LF];
+  static List<int> get _chunkFooter => new Uint8List.fromList(
+      const[_CharCode.CR, _CharCode.LF]);
+  static List<int> get _chunk0Length => new Uint8List.fromList(
+      const[0x30, _CharCode.CR, _CharCode.LF]);
 }
 
 
