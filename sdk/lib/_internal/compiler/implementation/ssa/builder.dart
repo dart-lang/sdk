@@ -3351,13 +3351,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
               originalElement, send, compiler)) {
         isListConstructor = true;
         HType inferred =
-            new HType.inferredForNode(currentElement, node, compiler);
+            new HType.inferredForNode(currentElement, send, compiler);
         return inferred.isUnknown() ? backend.fixedArrayType : inferred;
       } else if (Elements.isGrowableListConstructorCall(
                     originalElement, send, compiler)) {
         isListConstructor = true;
         HType inferred =
-            new HType.inferredForNode(currentElement, node, compiler);
+            new HType.inferredForNode(currentElement, send, compiler);
         return inferred.isUnknown() ? backend.extendableArrayType : inferred;
       } else if (element.isGenerativeConstructor()) {
         ClassElement cls = element.getEnclosingClass();
