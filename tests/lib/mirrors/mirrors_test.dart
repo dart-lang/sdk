@@ -208,7 +208,6 @@ mainWithArgument({bool isDart2js: false, bool isMinified: false}) {
   if (!isMinified) // TODO(ahe): Remove this line.
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
-  if (!isMinified) // TODO(ahe): Remove this line.
   test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
   test("Test current library uri", () {
     testLibraryUri(new Class(),

@@ -37,6 +37,12 @@ final Map<String, String> mangledNames = JsMirrorSystem.computeMangledNames();
 final Map<String, String> reflectiveNames =
     JsMirrorSystem.computeReflectiveNames();
 
+final Map<String, String> mangledGlobalNames =
+    JsMirrorSystem.computeMangledGlobalNames();
+
+final Map<String, String> reflectiveGlobalNames =
+    JsMirrorSystem.computeReflectiveGlobalNames();
+
 class JsMirrorSystem implements MirrorSystem {
   TypeMirror get dynamicType => _dynamicType;
   TypeMirror get voidType => _voidType;
@@ -87,6 +93,26 @@ class JsMirrorSystem implements MirrorSystem {
     disableTreeShaking();
     var result = <String, String>{};
     mangledNames.forEach((String mangledName, String reflectiveName) {
+      result[reflectiveName] = mangledName;
+    });
+    return result;
+  }
+
+  static Map<String, String> computeMangledGlobalNames() {
+    disableTreeShaking();
+    var mangledGlobalNames = JS('', 'init.mangledGlobalNames');
+    var keys = extractKeys(mangledGlobalNames);
+    var result = <String, String>{};
+    for (String key in keys) {
+      result[key] = JS('String', '#[#]', mangledGlobalNames, key);
+    }
+    return result;
+  }
+
+  static Map<String, String> computeReflectiveGlobalNames() {
+    disableTreeShaking();
+    var result = <String, String>{};
+    mangledGlobalNames.forEach((String mangledName, String reflectiveName) {
       result[reflectiveName] = mangledName;
     });
     return result;
@@ -493,15 +519,20 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented');
     }
-    String mangledName = '${n(simpleName)}\$${n(constructorName)}';
+    String reflectiveName = 'new ${mangledGlobalNames[n(simpleName)]}';
+    String name = n(constructorName);
+    if (!name.isEmpty) {
+      reflectiveName = '$reflectiveName\$$name';
+    }
+    reflectiveName = '$reflectiveName:${positionalArguments.length}:0';
+    String mangledName = reflectiveGlobalNames[reflectiveName];
     var factory = JS('', '#[#]', JS_CURRENT_ISOLATE(), mangledName);
     if (factory == null) {
       // TODO(ahe): Pass namedArguments when NoSuchMethodError has
       // been fixed to use Symbol.
       // TODO(ahe): What receiver to use?
       throw new NoSuchMethodError(
-          this, "constructor ${n(constructorName)}", positionalArguments,
-          null);
+          this, reflectiveName, positionalArguments, null);
     }
     return reflect(JS('', r'#.apply(#, #)',
                       factory,

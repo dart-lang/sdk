@@ -1210,7 +1210,7 @@ class CodeEmitterTask extends CompilerTask {
     String name = element.name.slowToString();
     if (element.isGetter()) return name;
     if (element.isSetter()) return '$name=';
-    if (element.isFunction()) {
+    if (element.isFunction() || element.isConstructor()) {
       FunctionElement function = element;
       int requiredParameterCount = function.requiredParameterCount(compiler);
       int optionalParameterCount = function.optionalParameterCount(compiler);
@@ -1221,7 +1221,7 @@ class CodeEmitterTask extends CompilerTask {
       return null;
     }
     throw compiler.internalErrorOnElement(
-        element, 'Do not know how to reflect on this');
+        element, 'Do not know how to reflect on this $element');
   }
 
   /**
@@ -1654,6 +1654,9 @@ class CodeEmitterTask extends CompilerTask {
     }
     buffer.write('$className:$_');
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
+    if (compiler.mirrorsEnabled) {
+      buffer.write(',$n$n"+${classElement.name.slowToString()}": 0');
+    }
   }
 
   bool get getterAndSetterCanBeImplementedByFieldSpec => true;
@@ -1883,6 +1886,10 @@ class CodeEmitterTask extends CompilerTask {
       if (metadata != null) {
         buffer.write(',$n$n"@$name":$_');
         buffer.write(jsAst.prettyPrint(metadata, compiler));
+      }
+      String reflectionName = getReflectionName(element);
+      if (reflectionName != null) {
+        buffer.write(',$n$n"+$reflectionName":${_}0');
       }
       jsAst.Expression bailoutCode = backend.generatedBailoutCode[element];
       if (bailoutCode != null) {
@@ -3341,8 +3348,10 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
 (function (reflectionData) {
   if (!init.libraries) init.libraries = [];
   if (!init.mangledNames) init.mangledNames = {};
+  if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
+  var mangledGlobalNames = init.mangledGlobalNames;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var length = reflectionData.length;
   for (var i = 0; i < length; i++) {
@@ -3356,18 +3365,23 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     for (var property in descriptor) {
       if (!hasOwnProperty.call(descriptor, property)) continue;
       var element = descriptor[property];
-      if (property.substring(0, 1) == "@") {
+      var firstChar = property.substring(0, 1);
+      var previousProperty;
+      if (firstChar == "+") {
+        mangledGlobalNames[previousProperty] = property.substring(1);
+      } else if (firstChar == "@") {
         property = property.substring(1);
         ${namer.CURRENT_ISOLATE}[property]["${namer.metadataField}"] = element;
       } else if (typeof element === "function") {
-        ${namer.CURRENT_ISOLATE}[property] = element;
+        ${namer.CURRENT_ISOLATE}[previousProperty = property] = element;
         functions.push(property);
       } else {
+        previousProperty = property;
         var newDesc = {};
         var previousProp;
         for (var prop in element) {
           if (!hasOwnProperty.call(element, prop)) continue;
-          var firstChar = prop.substring(0, 1);
+          firstChar = prop.substring(0, 1);
           if (firstChar == "+") {
             mangledNames[previousProp] = prop.substring(1);
           } else if (firstChar == "@" && prop != "@") {
