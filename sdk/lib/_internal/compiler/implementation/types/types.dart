@@ -18,7 +18,9 @@ import '../dart_types.dart';
 
 part 'concrete_types_inferrer.dart';
 part 'container_type_mask.dart';
+part 'element_type_mask.dart';
 part 'flat_type_mask.dart';
+part 'forwarding_type_mask.dart';
 part 'type_mask.dart';
 part 'union_type_mask.dart';
 

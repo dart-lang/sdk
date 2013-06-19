@@ -15,11 +15,10 @@ class ElementTypeHolder {
 /// A [ContainerTypeMask] is a [TypeMask] for a specific allocation
 /// site of a container (currently only List) that will get specialized
 /// once the [ListTracer] phase finds an element type for it.
-class ContainerTypeMask implements TypeMask {
-
+class ContainerTypeMask extends ForwardingTypeMask {
   // The flat version of a [ContainerTypeMask] is the container type
   // (for example List).
-  final FlatTypeMask asFlat;
+  final FlatTypeMask forwardTo;
 
   // The [Node] where this type mask was created.
   final Node allocationNode;
@@ -36,7 +35,7 @@ class ContainerTypeMask implements TypeMask {
     holder.elementType = mask;
   }
 
-  ContainerTypeMask(this.asFlat,
+  ContainerTypeMask(this.forwardTo,
                     this.allocationNode,
                     this.allocationElement,
                     [holder])
@@ -45,7 +44,7 @@ class ContainerTypeMask implements TypeMask {
   TypeMask nullable() {
     return isNullable
         ? this
-        : new ContainerTypeMask(asFlat.nullable(),
+        : new ContainerTypeMask(forwardTo.nullable(),
                                 allocationNode,
                                 allocationElement,
                                 holder);
@@ -53,77 +52,27 @@ class ContainerTypeMask implements TypeMask {
 
   TypeMask nonNullable() {
     return isNullable
-        ? new ContainerTypeMask(asFlat.nonNullable(),
+        ? new ContainerTypeMask(forwardTo.nonNullable(),
                                 allocationNode,
                                 allocationElement,
                                 holder)
         : this;
   }
 
-  TypeMask simplify(Compiler compiler) => this;
-
-  bool get isEmpty => false;
-  bool get isNullable => asFlat.isNullable;
-  bool get isExact => true;
-  bool get isUnion => false;
   bool get isContainer => true;
+  bool get isExact => true;
 
-  bool containsOnlyInt(Compiler compiler) => false;
-  bool containsOnlyDouble(Compiler compiler) => false;
-  bool containsOnlyNum(Compiler compiler) => false;
-  bool containsOnlyNull(Compiler compiler) => false;
-  bool containsOnlyBool(Compiler compiler) => false;
-  bool containsOnlyString(Compiler compiler) => false;
-  bool containsOnly(ClassElement element) {
-    return asFlat.containsOnly(element);
-  }
-
-  bool satisfies(ClassElement cls, Compiler compiler) {
-    return asFlat.satisfies(cls, compiler);
-  }
-
-  bool contains(DartType type, Compiler compiler) {
-    return asFlat.contains(type, compiler);
-  }
-
-  bool containsAll(Compiler compiler) => false;
-
-  ClassElement singleClass(Compiler compiler) {
-    return asFlat.singleClass(compiler);
-  }
-
-  Iterable<ClassElement> containedClasses(Compiler compiler) {
-    return asFlat.containedClasses(compiler);
-  }
-
-  TypeMask union(other, Compiler compiler) {
-    if (other.isContainer
-        && other.allocationNode == this.allocationNode) {
-      return other.isNullable ? other : this;
-    } else if (other.isEmpty) {
-      return other.isNullable ? this.nullable() : this;
-    }
-    return asFlat.union(other, compiler);
+  bool equalsDisregardNull(other) {
+    if (other is! ContainerTypeMask) return false;
+    return allocationNode == other.allocationNode;
   }
 
   TypeMask intersection(TypeMask other, Compiler compiler) {
-    TypeMask flatIntersection = asFlat.intersection(other, compiler);
-    if (flatIntersection.isEmpty) return flatIntersection;
-    return flatIntersection.isNullable
+    TypeMask forwardIntersection = forwardTo.intersection(other, compiler);
+    if (forwardIntersection.isEmpty) return forwardIntersection;
+    return forwardIntersection.isNullable
         ? nullable()
         : nonNullable();
-  }
-
-  bool willHit(Selector selector, Compiler compiler) {
-    return asFlat.willHit(selector, compiler);
-  }
-
-  bool canHit(Element element, Selector selector, Compiler compiler) {
-    return asFlat.canHit(element, selector, compiler);
-  }
-
-  Element locateSingleElement(Selector selector, Compiler compiler) {
-    return asFlat.locateSingleElement(selector, compiler);
   }
 
   bool operator==(other) {

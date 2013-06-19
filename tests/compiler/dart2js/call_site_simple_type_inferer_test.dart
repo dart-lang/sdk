@@ -247,14 +247,12 @@ void test() {
   runTest(TEST_7a, (inferrer) => [subclassOfInterceptor(inferrer)]);
   runTest(TEST_7b, (inferrer) => [inferrer.dynamicType.nonNullable()]);
 
-  // In the following tests, we can't infer the right types because we
-  // have recursive calls with the same parameters. We should build a
-  // constraint system for those, to find the types.
-  runTest(TEST_8, (inferrer) => [inferrer.dynamicType,
+  runTest(TEST_8, (inferrer) => [inferrer.intType,
                                  subclassOfInterceptor(inferrer),
                                  inferrer.dynamicType.nonNullable()]);
-  runTest(TEST_9, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
-  runTest(TEST_10, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
+  runTest(TEST_9, (inferrer) => [inferrer.intType, inferrer.intType]);
+  runTest(TEST_10, (inferrer) => [subclassOfInterceptor(inferrer),
+                                  subclassOfInterceptor(inferrer)]);
   runTest(TEST_11, (inferrer) => [subclassOfInterceptor(inferrer),
                                   subclassOfInterceptor(inferrer)]);
 
@@ -274,7 +272,8 @@ void test() {
                                   inferrer.boolType,
                                   inferrer.doubleType]);
 
-  runTest(TEST_18, (inferrer) => [inferrer.dynamicType, inferrer.dynamicType]);
+  runTest(TEST_18, (inferrer) => [subclassOfInterceptor(inferrer),
+                                  subclassOfInterceptor(inferrer)]);
 }
 
 void main() {

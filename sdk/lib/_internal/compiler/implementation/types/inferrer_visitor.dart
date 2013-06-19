@@ -31,15 +31,17 @@ TypeMask narrowType(TypeMask type,
  * Returns the least upper bound between [firstType] and
  * [secondType].
  */
- TypeMask computeLUB(TypeMask firstType,
-                     TypeMask secondType,
-                     Compiler compiler) {
+TypeMask computeLUB(TypeMask firstType,
+                    TypeMask secondType,
+                    Compiler compiler) {
   TypeMask dynamicType = compiler.typesTask.dynamicType;
   if (firstType == null) {
     return secondType;
   } else if (secondType == dynamicType) {
     return secondType;
   } else if (firstType == dynamicType) {
+    return firstType;
+  } else if (firstType == secondType) {
     return firstType;
   } else {
     TypeMask union = firstType.union(secondType, compiler);

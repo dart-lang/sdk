@@ -14,7 +14,8 @@ import '../native_handler.dart' as native;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
 import 'types.dart'
-    show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask;
+    show TypesInferrer, FlatTypeMask, TypeMask, ContainerTypeMask,
+         ElementTypeMask;
 
 // BUG(8802): There's a bug in the analyzer that makes the re-export
 // of Selector from dart2jslib.dart fail. For now, we work around that
@@ -633,6 +634,18 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         && newType != nullType;
   }
 
+  TypeMask fetchReturnType(Element element) {
+    return returnTypeOf[element] is ElementTypeMask
+        ? dynamicType
+        : returnTypeOf[element];
+  }
+
+  TypeMask fetchType(Element element) {
+    return typeOf[element] is ElementTypeMask
+        ? dynamicType
+        : typeOf[element];
+  }
+
   /**
    * Returns the return type of [element]. Returns [:dynamic:] if
    * [element] has not been analyzed yet.
@@ -663,7 +676,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         FunctionType functionType = element.computeType(compiler);
         returnType = narrowType(dynamicType, functionType.returnType, compiler);
       } else {
-        returnType = dynamicType;
+        returnType = returnTypeOf[element] =
+            new ElementTypeMask(fetchReturnType, element);
       }
     }
     return returnType;
@@ -739,7 +753,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
               && (element.isField() || element.isVariable()))) {
         type = narrowType(dynamicType, element.computeType(compiler), compiler);
       } else {
-        type = dynamicType;
+        type = typeOf[element] = new ElementTypeMask(fetchType, element);
       }
     }
     return type;
@@ -941,6 +955,20 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
     }
   }
 
+  TypeMask computeLubFor(TypeMask firstType,
+                         TypeMask secondType,
+                         Element element) {
+    if (secondType.isElement) {
+      ElementTypeMask mask = secondType;
+      if (element == mask.element) {
+        // Simple constraint of the abstract form [: foo = foo :], for
+        // example a recursive function passing the same parameter.
+        return firstType;
+      }
+    }
+    return computeLUB(firstType, secondType, compiler);
+  }
+
   /**
    * Computes the parameter types of [element], based on all call sites we
    * have collected on that [element]. This method can only be called after
@@ -972,8 +1000,8 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       TypeMask type;
       typeOfArguments[element].forEach((_, ArgumentsTypes arguments) {
         if (!visitingOptionalParameter) {
-          type = computeLUB(
-              type, arguments.positional[parameterIndex], compiler);
+          type = computeLubFor(
+              type, arguments.positional[parameterIndex], parameter);
         } else {
           TypeMask argumentType = signature.optionalParametersAreNamed
               ? arguments.named[parameter.name]
@@ -984,9 +1012,10 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
             argumentType = defaultTypeOfParameter[parameter];
           }
           assert(argumentType != null);
-          type = computeLUB(type, argumentType, compiler);
+          type = computeLubFor(type, argumentType, parameter);
         }
       });
+      if (type == null) type = new TypeMask.nonNullEmpty();
       if (recordType(parameter, type)) {
         changed = true;
       }
@@ -1105,7 +1134,7 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         // use its type.
         constraints.add(constraint);
       } else {
-        fieldType = computeLUB(fieldType, mask, compiler);
+        fieldType = computeLubFor(fieldType, mask, element);
       }
     });
 
@@ -1140,6 +1169,9 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       } else {
         typeOf[element] = existing;
       }
+    }
+    if (fieldType == null) {
+      fieldType = new TypeMask.nonNullEmpty();
     }
     return fieldType;
   }
@@ -1892,7 +1924,7 @@ class SimpleTypeInferrerVisitor extends InferrerVisitor {
   }
 
   void recordReturnType(TypeMask type) {
-    returnType = computeLUB(returnType, type, compiler);
+    returnType = inferrer.computeLubFor(returnType, type, analyzedElement);
   }
 
   TypeMask visitReturn(Return node) {

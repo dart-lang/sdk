@@ -359,6 +359,11 @@ testReturnElementOfConstList2() {
   return topLevelConstList[0];
 }
 
+testReturnItselfOrInt(a) {
+  if (a) return 42;
+  return testReturnItselfOrInt(a);
+}
+
 var topLevelConstList = const [42];
 
 get topLevelGetter => 42;
@@ -467,6 +472,7 @@ main() {
          ..returnInt9();
   testReturnElementOfConstList1();
   testReturnElementOfConstList2();
+  testReturnItselfOrInt(topLevelGetter());
 }
 """;
 
@@ -541,6 +547,7 @@ void main() {
   checkReturn('testBreak2', typesInferrer.intType.nullable());
   checkReturn('testReturnElementOfConstList1', typesInferrer.intType);
   checkReturn('testReturnElementOfConstList2', typesInferrer.intType);
+  checkReturn('testReturnItselfOrInt', typesInferrer.intType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
