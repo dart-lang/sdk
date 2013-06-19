@@ -214,7 +214,7 @@ mainWithOptions(Options options) {
     var entrypointRoot;
     for (final entrypoint in option.rest) {
       var uri = Uri.parse(entrypoint);
-      if (uri.scheme == '') uri = pathToFileUri(entrypoint);
+      if (uri.scheme == '') uri = path.toUri(entrypoint);
       entrypoints.add(uri);
 
       if (uri.scheme != 'file') continue;
@@ -274,7 +274,7 @@ String _getPackageRoot(List<Uri> entrypoints) {
       orElse: () => null);
   if (fileEntrypoint == null) return;
 
-  var script = path.normalize(path.absolute(fileUriToPath(fileEntrypoint)));
+  var script = path.normalize(path.absolute(path.fromUri(fileEntrypoint)));
   var dir = path.join(path.dirname(script), 'packages/');
   if (new Directory(dir).existsSync()) return dir;
 

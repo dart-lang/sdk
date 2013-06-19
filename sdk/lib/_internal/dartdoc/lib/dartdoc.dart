@@ -434,7 +434,7 @@ class Dartdoc {
     _exports = new ExportMap.parse(libraryList, packageRoot);
     var librariesToAnalyze = _exports.allExportedFiles.toList();
     librariesToAnalyze.addAll(libraryList.map((uri) {
-      if (uri.scheme == 'file') return fileUriToPath(uri);
+      if (uri.scheme == 'file') return pathos.fromUri(uri);
       // dart2js takes "dart:*" URIs as Path objects for some reason.
       return uri.toString();
     }));
@@ -799,9 +799,8 @@ class Dartdoc {
         '''library client;
         import 'dart:html';
         import 'dart:json';
-        import r'${pathToFileUri(
-          pathos.join(clientDir, 'client-shared.dart'))}';
-        import r'${pathToFileUri(pathos.join(clientDir, 'dropdown.dart'))}';
+        import r'${pathos.toUri(pathos.join(clientDir, 'client-shared.dart'))}';
+        import r'${pathos.toUri(pathos.join(clientDir, 'dropdown.dart'))}';
 
         main() {
           setup();

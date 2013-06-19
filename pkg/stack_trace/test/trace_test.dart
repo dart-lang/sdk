@@ -7,7 +7,6 @@ library trace_test;
 import 'dart:io';
 
 import 'package:pathos/path.dart' as path;
-import 'package:stack_trace/src/utils.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:unittest/unittest.dart';
 
@@ -91,7 +90,7 @@ void main() {
   });
 
   test('.toString() nicely formats the stack trace', () {
-    var uri = pathToFileUri(path.join('foo', 'bar.dart'));
+    var uri = path.toUri(path.join('foo', 'bar.dart'));
     var trace = new Trace.parse('''
 #0      Foo._bar ($uri:42:21)
 #1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)

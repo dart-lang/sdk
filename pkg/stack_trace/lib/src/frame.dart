@@ -8,7 +8,6 @@ library frame;
 import 'package:pathos/path.dart' as path;
 
 import 'trace.dart';
-import 'utils.dart';
 
 final _nativeFrameRegExp = new RegExp(
     r'^#\d+\s+([^\s].*) \((.+):(\d+):(\d+)\)$');
@@ -46,9 +45,8 @@ class Frame {
   /// This will usually be the string form of [uri], but a relative path will be
   /// used if possible.
   String get library {
-    // TODO(nweiz): handle relative URIs here as well once pathos supports that.
     if (uri.scheme != 'file') return uri.toString();
-    return path.relative(fileUriToPath(uri));
+    return path.relative(path.fromUri(uri));
   }
 
   /// Returns the name of the package this stack frame comes from, or `null` if
