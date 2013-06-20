@@ -477,12 +477,12 @@ class ClosureTranslator extends Visitor {
         // capture them in the closure.
         type.forEachTypeVariable((variable) => useLocal(variable.element));
       }
-      // TODO(karlklose): try to get rid of the isField check; there is a bug
-      // with type variable use in field initializer (in both modes).
       if (member.isInstanceMember() && !member.isField()) {
         // In checked mode, using a type variable in a type annotation may lead
         // to a runtime type check that needs to access the type argument and
-        // therefore the closure needs a this-element.
+        // therefore the closure needs a this-element, if it is not in a field
+        // initializer; field initatializers are evaluated in a context where
+        // the type arguments are available in locals.
         registerNeedsThis();
       }
     }
@@ -509,6 +509,12 @@ class ClosureTranslator extends Visitor {
       registerNeedsThis();
     } else if (node.isSuperCall) {
       registerNeedsThis();
+    } else if (node.isIsCheck || node.isIsNotCheck || node.isTypeCast) {
+      TypeAnnotation annotation = node.typeAnnotationFromIsCheck;
+      DartType type = elements.getType(annotation);
+      if (type != null && type.containsTypeVariables) {
+        registerNeedsThis();
+      }
     } else if (node.isParameterCheck) {
       Element parameter = elements[node.receiver];
       FunctionElement enclosing = parameter.enclosingElement;
@@ -542,23 +548,14 @@ class ClosureTranslator extends Visitor {
   visitNewExpression(NewExpression node) {
     DartType type = elements.getType(node);
 
-    bool hasTypeVariable(DartType type) {
-      if (type is TypeVariableType) {
-        return true;
-      } else if (type is InterfaceType) {
-        InterfaceType ifcType = type;
-        for (DartType argument in ifcType.typeArguments) {
-          if (hasTypeVariable(argument)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
     void analyzeTypeVariables(DartType type) {
       if (type is TypeVariableType) {
         useLocal(type.element);
+        // Field initializers are inlined and access the type variable as
+        // normal parameters.
+        if (!outermostElement.isField()) {
+          registerNeedsThis();
+        }
       } else if (type is InterfaceType) {
         InterfaceType ifcType = type;
         for (DartType argument in ifcType.typeArguments) {
@@ -572,7 +569,7 @@ class ClosureTranslator extends Visitor {
       if (outermostElement.isConstructor() || outermostElement.isField()) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember()) {
-        if (hasTypeVariable(type)) {
+        if (type.containsTypeVariables) {
           registerNeedsThis();
         }
       }

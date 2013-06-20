@@ -3255,13 +3255,29 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       member = closureClass.methodElement;
       member = member.getOutermostEnclosingMemberOrTopLevel();
     }
-    if (isClosure && member.isFactoryConstructor()) {
-      // The type variable is used from a closure in a factory constructor.  The
-      // value of the type argument is stored as a local on the closure itself.
-      return localsHandler.readLocal(type.element);
-    } else if (member.isConstructor() ||
-               member.isGenerativeConstructorBody() ||
-               member.isField()) {
+    bool isInConstructorContext = member.isConstructor() ||
+        member.isGenerativeConstructorBody() ||
+        member.isField();
+    if (isClosure) {
+      if (member.isFactoryConstructor()) {
+        // The type variable is used from a closure in a factory constructor.
+        // The value of the type argument is stored as a local on the closure
+        // itself.
+        return localsHandler.readLocal(type.element);
+      } else if (member.isFunction() ||
+          member.isGetter() ||
+          member.isSetter() ||
+          member.isConstructor() ||
+          member.isGenerativeConstructorBody()) {
+        // The type variable is stored on the "enclosing object" and needs to be
+        // accessed using the this-reference in the closure.
+        return readTypeVariable(member.getEnclosingClass(), type.element);
+      } else {
+        assert(member.isField());
+        // The type variable is stored in a parameter of the method.
+        return localsHandler.readLocal(type.element);
+      }
+    } else if (isInConstructorContext) {
       // The type variable is stored in a parameter of the method.
       return localsHandler.readLocal(type.element);
     } else if (member.isInstanceMember()) {

@@ -369,6 +369,17 @@ class Send extends Expression {
   bool get isParameterCheck =>
       isOperator && identical(selector.asOperator().source.stringValue, '?');
 
+  bool get isTypeCast {
+    return isOperator
+        && identical(selector.asOperator().source.stringValue, 'as');
+  }
+
+  bool get isIsCheck {
+    return isOperator
+        && identical(selector.asOperator().source.stringValue, 'is')
+        && arguments.head.asSend() == null;
+  }
+
   bool get isIsNotCheck {
     return isOperator
         && identical(selector.asOperator().source.stringValue, 'is')
