@@ -148,6 +148,24 @@ abstract class SsaTypePropagator extends HBaseVisitor
     return inputsType;
   }
 
+  HType visitTypeConversion(HTypeConversion instruction) {
+    HType oldType = instruction.instructionType;
+    // Do not change a checked mode check.
+    if (instruction.isCheckedModeCheck) return oldType;
+    // We must make sure a type conversion for receiver or argument check
+    // does not try to do an int check, because an int check is not enough.
+    // We only do an int check if the input is integer or null.
+    HInstruction checked = instruction.checkedInput;
+    if (oldType.isNumber()
+        && !oldType.isDouble()
+        && checked.isIntegerOrNull()) {
+      return HType.INTEGER;
+    } else if (oldType.isInteger() && !checked.isIntegerOrNull()) {
+      return HType.NUMBER;
+    }
+    return oldType;
+  }
+
   void convertInput(HInvokeDynamic instruction,
                     HInstruction input,
                     HType type,
@@ -231,13 +249,14 @@ abstract class SsaTypePropagator extends HBaseVisitor
     Selector selector = instruction.selector;
     if (selector.isOperator() && receiverType.isNumber()) {
       if (right.isNumber()) return false;
+      HType type = right.isIntegerOrNull() ? HType.INTEGER : HType.NUMBER;
       // TODO(ngeoffray): Some number operations don't have a builtin
       // variant and will do the check in their method anyway. We
       // still add a check because it allows to GVN these operations,
       // but we should find a better way.
       convertInput(instruction,
                    right,
-                   HType.NUMBER,
+                   type,
                    HTypeConversion.ARGUMENT_TYPE_CHECK);
       return true;
     }

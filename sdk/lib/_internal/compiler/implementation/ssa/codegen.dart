@@ -2494,6 +2494,9 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       return;
     }
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
+      // An int check if the input is not int or null, is not
+      // sufficient for doing a argument or receiver check.
+      assert(!node.isInteger() || node.checkedInput.isIntegerOrNull());
       js.Expression test = generateTest(node);
       js.Block oldContainer = currentContainer;
       js.Statement body = new js.Block.empty();
