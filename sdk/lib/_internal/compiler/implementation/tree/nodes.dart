@@ -386,9 +386,10 @@ class Send extends Expression {
         && arguments.head.asSend() != null;
   }
 
-  TypeAnnotation get typeAnnotationFromIsCheck {
-    assert(isOperator
-        && identical(selector.asOperator().source.stringValue, 'is'));
+  TypeAnnotation get typeAnnotationFromIsCheckOrCast {
+    assert(isOperator);
+    assert(identical(selector.asOperator().source.stringValue, 'is') ||
+        identical(selector.asOperator().source.stringValue, 'as'));
     return isIsNotCheck
         ? arguments.head.asSend().receiver
         : arguments.head;

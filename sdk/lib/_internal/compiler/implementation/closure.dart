@@ -510,7 +510,7 @@ class ClosureTranslator extends Visitor {
     } else if (node.isSuperCall) {
       registerNeedsThis();
     } else if (node.isIsCheck || node.isIsNotCheck || node.isTypeCast) {
-      TypeAnnotation annotation = node.typeAnnotationFromIsCheck;
+      TypeAnnotation annotation = node.typeAnnotationFromIsCheckOrCast;
       DartType type = elements.getType(annotation);
       if (type != null && type.containsTypeVariables) {
         registerNeedsThis();

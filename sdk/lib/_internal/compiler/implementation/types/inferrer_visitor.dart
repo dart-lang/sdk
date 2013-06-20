@@ -367,7 +367,7 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       } else {
         if (!usePositive) continue;
       }
-      DartType type = elements.getType(node.typeAnnotationFromIsCheck);
+      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
       Element element = elements[node.receiver];
       TypeMask existing = locals.use(element);
       TypeMask newType = narrowType(

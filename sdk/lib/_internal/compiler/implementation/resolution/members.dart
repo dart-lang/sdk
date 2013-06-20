@@ -2266,7 +2266,8 @@ class ResolverVisitor extends MappingVisitor<Element> {
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source.stringValue;
       if (operatorString == 'is') {
-        DartType type = resolveTypeRequired(node.typeAnnotationFromIsCheck);
+        DartType type =
+            resolveTypeRequired(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
           compiler.enqueuer.resolution.registerIsCheck(type, mapping);
         }

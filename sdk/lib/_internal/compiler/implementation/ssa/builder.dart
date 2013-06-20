@@ -2767,7 +2767,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(node.receiver);
     HInstruction expression = pop();
     bool isNot = node.isIsNotCheck;
-    DartType type = elements.getType(node.typeAnnotationFromIsCheck);
+    DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
     if (type.isMalformed) {
       String reasons = Types.fetchReasonsFromMalformedType(type);
       if (compiler.enableTypeAssertions) {
