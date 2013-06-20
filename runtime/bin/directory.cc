@@ -146,7 +146,7 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
   // Create the list to hold the directory listing here, and pass it to the
   // SyncDirectoryListing object, which adds elements to it.
   Dart_Handle results =
-      Dart_New(DartUtils::GetDartClass(DartUtils::kCoreLibURL, "List"),
+      Dart_New(DartUtils::GetDartType(DartUtils::kCoreLibURL, "List"),
                Dart_Null(),
                0,
                NULL);
@@ -413,7 +413,7 @@ bool AsyncDirectoryListing::HandleError(const char* dir_name) {
 bool SyncDirectoryListing::HandleDirectory(char* dir_name) {
   Dart_Handle dir_name_dart = DartUtils::NewString(dir_name);
   Dart_Handle dir =
-      Dart_New(directory_class_, Dart_Null(), 1, &dir_name_dart);
+      Dart_New(directory_type_, Dart_Null(), 1, &dir_name_dart);
   Dart_Invoke(results_, add_string_, 1, &dir);
   return true;
 }
@@ -421,7 +421,7 @@ bool SyncDirectoryListing::HandleDirectory(char* dir_name) {
 bool SyncDirectoryListing::HandleLink(char* link_name) {
   Dart_Handle link_name_dart = DartUtils::NewString(link_name);
   Dart_Handle link =
-      Dart_New(link_class_, Dart_Null(), 1, &link_name_dart);
+      Dart_New(link_type_, Dart_Null(), 1, &link_name_dart);
   Dart_Invoke(results_, add_string_, 1, &link);
   return true;
 }
@@ -429,7 +429,7 @@ bool SyncDirectoryListing::HandleLink(char* link_name) {
 bool SyncDirectoryListing::HandleFile(char* file_name) {
   Dart_Handle file_name_dart = DartUtils::NewString(file_name);
   Dart_Handle file =
-      Dart_New(file_class_, Dart_Null(), 1, &file_name_dart);
+      Dart_New(file_type_, Dart_Null(), 1, &file_name_dart);
   Dart_Invoke(results_, add_string_, 1, &file);
   return true;
 }
@@ -441,7 +441,7 @@ bool SyncDirectoryListing::HandleError(const char* dir_name) {
   args[1] = DartUtils::NewString(dir_name);
   args[2] = dart_os_error;
   Dart_ThrowException(Dart_New(
-      DartUtils::GetDartClass(DartUtils::kIOLibURL, "DirectoryException"),
+      DartUtils::GetDartType(DartUtils::kIOLibURL, "DirectoryException"),
       Dart_Null(),
       3,
       args));

@@ -135,8 +135,8 @@ class DartUtils {
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);
 
-  static Dart_Handle GetDartClass(const char* library_url,
-                                  const char* class_name);
+  static Dart_Handle GetDartType(const char* library_url,
+                                 const char* class_name);
   // Create a new Dart OSError object with the current OS error.
   static Dart_Handle NewDartOSError();
   // Create a new Dart OSError object with the provided OS error.

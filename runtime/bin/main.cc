@@ -407,10 +407,10 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
   if (Dart_IsError(runtime_options_class_name)) {
     return runtime_options_class_name;
   }
-  Dart_Handle runtime_options_class = Dart_GetClass(
-      io_lib, runtime_options_class_name);
-  if (Dart_IsError(runtime_options_class)) {
-    return runtime_options_class;
+  Dart_Handle runtime_options_type = Dart_GetType(
+      io_lib, runtime_options_class_name, 0, NULL);
+  if (Dart_IsError(runtime_options_type)) {
+    return runtime_options_type;
   }
   Dart_Handle executable_name_name =
       DartUtils::NewString("_nativeExecutable");
@@ -418,7 +418,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return executable_name_name;
   }
   Dart_Handle set_executable_name =
-      Dart_SetField(runtime_options_class,
+      Dart_SetField(runtime_options_type,
                     executable_name_name,
                     dart_executable);
   if (Dart_IsError(set_executable_name)) {
@@ -429,7 +429,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return script_name_name;
   }
   Dart_Handle set_script_name =
-      Dart_SetField(runtime_options_class, script_name_name, dart_script);
+      Dart_SetField(runtime_options_type, script_name_name, dart_script);
   if (Dart_IsError(set_script_name)) {
     return set_script_name;
   }
@@ -438,7 +438,7 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return native_name;
   }
 
-  return Dart_SetField(runtime_options_class, native_name, dart_arguments);
+  return Dart_SetField(runtime_options_type, native_name, dart_arguments);
 }
 
 

@@ -761,10 +761,10 @@ bool DartUtils::PostInt32(Dart_Port port_id, int32_t value) {
 }
 
 
-Dart_Handle DartUtils::GetDartClass(const char* library_url,
-                                    const char* class_name) {
-  return Dart_GetClass(Dart_LookupLibrary(NewString(library_url)),
-                       NewString(class_name));
+Dart_Handle DartUtils::GetDartType(const char* library_url,
+                                   const char* class_name) {
+  return Dart_GetType(Dart_LookupLibrary(NewString(library_url)),
+                      NewString(class_name), 0, NULL);
 }
 
 
@@ -777,22 +777,22 @@ Dart_Handle DartUtils::NewDartOSError() {
 
 Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
   // Create a dart:io OSError object with the information retrieved from the OS.
-  Dart_Handle clazz = GetDartClass(kIOLibURL, "OSError");
+  Dart_Handle type = GetDartType(kIOLibURL, "OSError");
   Dart_Handle args[2];
   args[0] = NewString(os_error->message());
   args[1] = Dart_NewInteger(os_error->code());
-  return Dart_New(clazz, Dart_Null(), 2, args);
+  return Dart_New(type, Dart_Null(), 2, args);
 }
 
 
 Dart_Handle DartUtils::NewDartSocketException(const char* message,
                                               Dart_Handle os_error) {
   // Create a dart:io SocketException object.
-  Dart_Handle clazz = GetDartClass(kIOLibURL, "SocketException");
+  Dart_Handle type = GetDartType(kIOLibURL, "SocketException");
   Dart_Handle args[2];
   args[0] = NewString(message);
   args[1] = os_error;
-  return Dart_New(clazz, Dart_Null(), 2, args);
+  return Dart_New(type, Dart_Null(), 2, args);
 }
 
 
@@ -800,13 +800,13 @@ Dart_Handle DartUtils::NewDartExceptionWithMessage(const char* library_url,
                                                    const char* exception_name,
                                                    const char* message) {
   // Create a Dart Exception object with a message.
-  Dart_Handle clazz = GetDartClass(library_url, exception_name);
+  Dart_Handle type = GetDartType(library_url, exception_name);
   if (message != NULL) {
     Dart_Handle args[1];
     args[0] = NewString(message);
-    return Dart_New(clazz, Dart_Null(), 1, args);
+    return Dart_New(type, Dart_Null(), 1, args);
   } else {
-    return Dart_New(clazz, Dart_Null(), 0, NULL);
+    return Dart_New(type, Dart_Null(), 0, NULL);
   }
 }
 

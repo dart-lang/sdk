@@ -380,23 +380,23 @@ static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
   Dart_Handle start_epoch_ms_int = Dart_NewInteger(start_epoch_ms);
   Dart_Handle end_epoch_ms_int = Dart_NewInteger(end_epoch_ms);
 
-  Dart_Handle date_class =
-      DartUtils::GetDartClass(DartUtils::kCoreLibURL, "DateTime");
+  Dart_Handle date_type =
+      DartUtils::GetDartType(DartUtils::kCoreLibURL, "DateTime");
   Dart_Handle from_milliseconds =
       DartUtils::NewString("fromMillisecondsSinceEpoch");
 
   Dart_Handle start_validity_date =
-      Dart_New(date_class, from_milliseconds, 1, &start_epoch_ms_int);
+      Dart_New(date_type, from_milliseconds, 1, &start_epoch_ms_int);
   Dart_Handle end_validity_date =
-      Dart_New(date_class, from_milliseconds, 1, &end_epoch_ms_int);
+      Dart_New(date_type, from_milliseconds, 1, &end_epoch_ms_int);
 
-  Dart_Handle x509_class =
-      DartUtils::GetDartClass(DartUtils::kIOLibURL, "X509Certificate");
+  Dart_Handle x509_type =
+      DartUtils::GetDartType(DartUtils::kIOLibURL, "X509Certificate");
   Dart_Handle arguments[] = { subject_name_object,
                               issuer_name_object,
                               start_validity_date,
                               end_validity_date };
-  return Dart_New(x509_class, Dart_Null(), 4, arguments);
+  return Dart_New(x509_type, Dart_Null(), 4, arguments);
 }
 
 
@@ -423,13 +423,13 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   // Create SSLFilter buffers as ExternalUint8Array objects.
   Dart_Handle dart_buffers_object = ThrowIfError(
       Dart_GetField(dart_this, DartUtils::NewString("buffers")));
-  Dart_Handle secure_filter_impl_class =
-      Dart_InstanceGetClass(dart_this);
+  Dart_Handle secure_filter_impl_type =
+      Dart_InstanceGetType(dart_this);
   Dart_Handle dart_buffer_size = ThrowIfError(
-      Dart_GetField(secure_filter_impl_class, DartUtils::NewString("SIZE")));
+      Dart_GetField(secure_filter_impl_type, DartUtils::NewString("SIZE")));
   int64_t buffer_size = DartUtils::GetIntegerValue(dart_buffer_size);
   Dart_Handle dart_encrypted_buffer_size = ThrowIfError(
-      Dart_GetField(secure_filter_impl_class,
+      Dart_GetField(secure_filter_impl_type,
                     DartUtils::NewString("ENCRYPTED_SIZE")));
   int64_t encrypted_buffer_size =
       DartUtils::GetIntegerValue(dart_encrypted_buffer_size);
