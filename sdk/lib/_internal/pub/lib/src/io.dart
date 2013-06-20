@@ -772,7 +772,7 @@ ByteStream createTarGz(List contents, {baseDir}) {
     // Create the tar file.
     var tarFile = path.join(tempDir, "intermediate.tar");
     var args = ["a", "-w$baseDir", tarFile];
-    args.addAll(contents.map((entry) => '-i!"$entry"'));
+    args.addAll(contents.map((entry) => '-i!$entry'));
 
     // We're passing 'baseDir' both as '-w' and setting it as the working
     // directory explicitly here intentionally. The former ensures that the
