@@ -4,6 +4,7 @@
 
 [ $compiler == dart2js && $runtime == jsshell ]
 LibTest/isolate/isolate_api/spawnUri_A02_t01: Crash # TODO(ahe): Please triage this crash.
+LibTest/core/List/sort_A01_t04: Pass, Timeout # Must be a bug in jsshell, test sometimes times out.
 
 [ $compiler == dart2js && $checked && $runtime == ie9 ]
 LibTest/core/Map/Map_class_A01_t04: Slow, Pass
