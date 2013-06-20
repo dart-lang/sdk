@@ -3363,8 +3363,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool isListConstructor = false;
     computeType(element) {
       Element originalElement = elements[send];
-      if (Elements.isFixedListConstructorCall(
-              originalElement, send, compiler)) {
+      if (Elements.isFixedListConstructorCall(originalElement, send, compiler)
+          || Elements.isFilledListConstructorCall(
+                  originalElement, send, compiler)) {
         isListConstructor = true;
         HType inferred =
             new HType.inferredForNode(currentElement, send, compiler);
