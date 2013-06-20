@@ -462,7 +462,54 @@ Note: currently only implemented for dart2js.''',
 
     List<Map> expandedConfigs = _expandConfigurations(configuration);
     List<Map> result = expandedConfigs.where(_isValidConfig).toList();
+    for (var config in result) {
+     config['_reproducing_arguments_'] =
+         _constructReproducingCommandArguments(config);
+    }
     return result.isEmpty ? null : result;
+  }
+
+  // For printing out reproducing command lines, we don't want to add these
+  // options.
+  Set<String>  _blacklistedOptions = new Set<String>.from([
+    'progress', 'failure-summary', 'step_name', 'report', 'tasks', 'verbose',
+    'time', 'dart', 'drt', 'dartium', 'build_directory', 'append_logs',
+    'write_debug_log', 'local_ip', 'shard', 'shards',
+  ]);
+
+  List<String> _constructReproducingCommandArguments(Map config) {
+    var arguments = new List<String>();
+    for (var configKey in config.keys) {
+      if (!_blacklistedOptions.contains(configKey)) {
+        for (var option in _options) {
+          var configValue = config[configKey];
+          // We only include entries of [conf] if we find an option for it.
+          if (configKey == option.name && configValue != option.defaultValue) {
+            var isBooleanOption = option.type == 'bool';
+            // Sort by length, so we get the shortest variant.
+            var possibleOptions = new List.from(option.keys);
+            possibleOptions.sort((a, b) => (a.length < b.length ? -1 : 1));
+            var key = possibleOptions[0];
+            if (key.startsWith('--')) {
+              // long version
+              arguments.add(key);
+              if (!isBooleanOption) {
+                arguments.add("$configValue");
+              }
+            } else {
+              // short version
+              assert(key.startsWith('-'));
+              if (!isBooleanOption) {
+                arguments.add("$key$configValue");
+              } else {
+                arguments.add(key);
+              }
+            }
+          }
+        }
+      }
+    }
+    return arguments;
   }
 
   /**

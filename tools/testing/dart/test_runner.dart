@@ -116,8 +116,9 @@ class Command {
       executable = executable.replaceAll('/', '\\');
     }
     var quotedArguments = [];
-    arguments.forEach((argument) => quotedArguments.add('"$argument"'));
-    commandLine = "\"$executable\" ${quotedArguments.join(' ')}";
+    quotedArguments.add(escapeCommandLineArgument(executable));
+    quotedArguments.addAll(arguments.map(escapeCommandLineArgument));
+    commandLine = quotedArguments.join(' ');
   }
 
   String toString() => commandLine;

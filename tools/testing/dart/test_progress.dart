@@ -137,6 +137,15 @@ List<String> _buildFailureOutput(TestCase test,
       output.add('Did not run');
     }
   }
+
+  var arguments = ['python', 'tools/test.py'];
+  arguments.addAll(test.configuration['_reproducing_arguments_']);
+  arguments.add(test.displayName);
+  var testPyCommandline = arguments.map(escapeCommandLineArgument).join(' ');
+
+  output.add('');
+  output.add('Short reproduction command (experimental):');
+  output.add("    $testPyCommandline");
   return output;
 }
 

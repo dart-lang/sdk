@@ -75,3 +75,12 @@ String decodeUtf8(List<int> bytes) {
   return utf.decodeUtf8(bytes);
 }
 
+// This function is pretty stupid and only puts quotes around an argument if
+// it the argument contains a space.
+String escapeCommandLineArgument(String argument) {
+  if (argument.contains(' ')) {
+    return '"$argument"';
+  }
+  return argument;
+}
+
