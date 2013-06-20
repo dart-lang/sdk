@@ -805,6 +805,10 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       ContainerTypeMask mask = selector.mask;
       TypeMask elementType = mask.elementType;
       return elementType == null ? dynamicType : elementType;
+    } else if (element.isGetter()) {
+      // Closure call.
+      assert(selector.isCall());
+      return dynamicType;
     } else {
       return returnTypeOfElement(element);
     }

@@ -364,6 +364,8 @@ testReturnItselfOrInt(a) {
   return testReturnItselfOrInt(a);
 }
 
+testReturnInvokeDynamicGetter() => new A().myFactory();
+
 var topLevelConstList = const [42];
 
 get topLevelGetter => 42;
@@ -385,6 +387,8 @@ class A {
   operator[]= (index, value) {}
   returnInt5() => ++this[0];
   returnInt6() => this[0] += 1;
+
+  get myFactory => () => 42;
 }
 
 class B extends A {
@@ -473,6 +477,7 @@ main() {
   testReturnElementOfConstList1();
   testReturnElementOfConstList2();
   testReturnItselfOrInt(topLevelGetter());
+  testReturnInvokeDynamicGetter();
 }
 """;
 
@@ -548,6 +553,7 @@ void main() {
   checkReturn('testReturnElementOfConstList1', typesInferrer.intType);
   checkReturn('testReturnElementOfConstList2', typesInferrer.intType);
   checkReturn('testReturnItselfOrInt', typesInferrer.intType);
+  checkReturn('testReturnInvokeDynamicGetter', typesInferrer.dynamicType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
