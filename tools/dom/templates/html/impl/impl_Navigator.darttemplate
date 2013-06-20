@@ -4,7 +4,7 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
 $if DART2JS
   @DomName('Navigator.language')
@@ -28,18 +28,18 @@ $endif
    *       document.body.append(video);
    *     });
    *
-   * The user can also pass in Maps to the audio or video parameters to specify
-   * mandatory and optional constraints for the media stream. Not passing in a
-   * map, but passing in `true` will provide a MediaStream with audio or
+   * The user can also pass in Maps to the audio or video parameters to specify 
+   * mandatory and optional constraints for the media stream. Not passing in a 
+   * map, but passing in `true` will provide a MediaStream with audio or 
    * video capabilities, but without any additional constraints. The particular
-   * constraint names for audio and video are still in flux, but as of this
+   * constraint names for audio and video are still in flux, but as of this 
    * writing, here is an example providing more constraints.
    *
    *     window.navigator.getUserMedia(
-   *         audio: true,
-   *         video: {'mandatory':
+   *         audio: true, 
+   *         video: {'mandatory': 
    *                    { 'minAspectRatio': 1.333, 'maxAspectRatio': 1.334 },
-   *                 'optional':
+   *                 'optional': 
    *                    [{ 'minFrameRate': 60 },
    *                     { 'maxWidth': 640 }]
    *     });

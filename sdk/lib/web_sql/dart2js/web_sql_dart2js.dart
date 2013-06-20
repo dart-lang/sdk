@@ -82,8 +82,6 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental // deprecated
 class SqlDatabase native "Database" {
-  // To suppress missing implicit constructor warnings.
-  factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
@@ -126,8 +124,6 @@ class SqlDatabase native "Database" {
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental // deprecated
 class SqlError native "SQLError" {
-  // To suppress missing implicit constructor warnings.
-  factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable
@@ -179,8 +175,6 @@ class SqlError native "SQLError" {
 // http://www.w3.org/TR/webdatabase/#sqlexception
 @Experimental // deprecated
 class SqlException native "SQLException" {
-  // To suppress missing implicit constructor warnings.
-  factory SqlException._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLException.CONSTRAINT_ERR')
   @DocsEditable
@@ -232,8 +226,6 @@ class SqlException native "SQLException" {
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental // deprecated
 class SqlResultSet native "SQLResultSet" {
-  // To suppress missing implicit constructor warnings.
-  factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable
@@ -257,8 +249,6 @@ class SqlResultSet native "SQLResultSet" {
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental // deprecated
 class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> native "SQLResultSetRowList" {
-  // To suppress missing implicit constructor warnings.
-  factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable
@@ -333,8 +323,6 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
 class SqlTransaction native "SQLTransaction" {
-  // To suppress missing implicit constructor warnings.
-  factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable
@@ -353,6 +341,4 @@ class SqlTransaction native "SQLTransaction" {
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
 @Experimental // deprecated
 abstract class _SQLTransactionSync native "SQLTransactionSync" {
-  // To suppress missing implicit constructor warnings.
-  factory _SQLTransactionSync._() { throw new UnsupportedError("Not supported"); }
 }

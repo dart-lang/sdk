@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 part of $LIBRARYNAME;
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$ANNOTATIONS
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 $if DARTIUM
   List<int> __data;
 

@@ -4,13 +4,13 @@
 
 part of $LIBRARYNAME;
 
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
   factory $CLASSNAME(Map dictionary) {
     // TODO(efortuna): Remove this check if when you can actually construct with
     // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
     // but one can't be used as a constructor).
     var constructorName = JS('', 'window[#]',
-        Device.isFirefox ? '${Device.propertyPrefix}RTCIceCandidate' :
+        Device.isFirefox ? '${Device.propertyPrefix}RTCIceCandidate' : 
         'RTCIceCandidate');
     return JS('RtcIceCandidate', 'new #(#)', constructorName,
         convertDartToNative_SerializedScriptValue(dictionary));

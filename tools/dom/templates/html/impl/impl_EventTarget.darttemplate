@@ -58,7 +58,7 @@ class Events {
  * [$dom_addEventListener] and [$dom_removeEventListener]
  * for compile-time type checks and a more concise API.
  */
-$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   /**
    * This is an ease-of-use accessor for event streams which should only be

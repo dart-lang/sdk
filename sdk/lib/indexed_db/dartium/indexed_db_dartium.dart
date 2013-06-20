@@ -59,8 +59,7 @@ class Cursor extends NativeFieldWrapperClass1 {
     }
   }
 
-    // To suppress missing implicit constructor warnings.
-  factory Cursor._() { throw new UnsupportedError("Not supported"); }
+    Cursor.internal();
 
   @DomName('IDBCursor.direction')
   @DocsEditable
@@ -107,8 +106,7 @@ class Cursor extends NativeFieldWrapperClass1 {
 @DomName('IDBCursorWithValue')
 @Unstable
 class CursorWithValue extends Cursor {
-  // To suppress missing implicit constructor warnings.
-  factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
+  CursorWithValue.internal() : super.internal();
 
   @DomName('IDBCursorWithValue.value')
   @DocsEditable
@@ -144,8 +142,7 @@ class Database extends EventTarget {
   }
 
 
-  // To suppress missing implicit constructor warnings.
-  factory Database._() { throw new UnsupportedError("Not supported"); }
+  Database.internal() : super.internal();
 
   @DomName('IDBDatabase.abortEvent')
   @DocsEditable
@@ -315,8 +312,7 @@ class IdbFactory extends NativeFieldWrapperClass1 {
     return true;
   }
 
-  // To suppress missing implicit constructor warnings.
-  factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
+  IdbFactory.internal();
 
   @DomName('IDBFactory.cmp')
   @DocsEditable
@@ -462,8 +458,7 @@ class Index extends NativeFieldWrapperClass1 {
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
-    // To suppress missing implicit constructor warnings.
-  factory Index._() { throw new UnsupportedError("Not supported"); }
+    Index.internal();
 
   @DomName('IDBIndex.keyPath')
   @DocsEditable
@@ -582,8 +577,7 @@ class KeyRange extends NativeFieldWrapperClass1 {
       _KeyRangeFactoryProvider.createKeyRange_bound(
           lower, upper, lowerOpen, upperOpen);
 
-  // To suppress missing implicit constructor warnings.
-  factory KeyRange._() { throw new UnsupportedError("Not supported"); }
+  KeyRange.internal();
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable
@@ -762,8 +756,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
     return $dom_createIndex(name, keyPath, options);
   }
 
-  // To suppress missing implicit constructor warnings.
-  factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
+  ObjectStore.internal();
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable
@@ -916,8 +909,7 @@ class ObjectStore extends NativeFieldWrapperClass1 {
 @DomName('IDBOpenDBRequest')
 @Unstable
 class OpenDBRequest extends Request implements EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
+  OpenDBRequest.internal() : super.internal();
 
   @DomName('IDBOpenDBRequest.blockedEvent')
   @DocsEditable
@@ -947,8 +939,7 @@ class OpenDBRequest extends Request implements EventTarget {
 @DomName('IDBRequest')
 @Unstable
 class Request extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory Request._() { throw new UnsupportedError("Not supported"); }
+  Request.internal() : super.internal();
 
   @DomName('IDBRequest.errorEvent')
   @DocsEditable
@@ -1040,8 +1031,7 @@ class Transaction extends EventTarget {
     return completer.future;
   }
 
-  // To suppress missing implicit constructor warnings.
-  factory Transaction._() { throw new UnsupportedError("Not supported"); }
+  Transaction.internal() : super.internal();
 
   @DomName('IDBTransaction.abortEvent')
   @DocsEditable
@@ -1118,8 +1108,7 @@ class Transaction extends EventTarget {
 @DomName('IDBVersionChangeEvent')
 @Unstable
 class VersionChangeEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
+  VersionChangeEvent.internal() : super.internal();
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable
@@ -1141,7 +1130,6 @@ class VersionChangeEvent extends Event {
 @DomName('IDBAny')
 @deprecated // nonstandard
 abstract class _IDBAny extends NativeFieldWrapperClass1 {
-  // To suppress missing implicit constructor warnings.
-  factory _IDBAny._() { throw new UnsupportedError("Not supported"); }
+  _IDBAny.internal();
 
 }

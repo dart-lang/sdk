@@ -198,6 +198,21 @@ class DartiumBackend(HtmlDartGenerator):
         '}\n',
         INTERFACE_NAME=self._interface.id);
 
+  def EmitHelpers(self, base_class):
+    # Emit internal constructor which is necessary for Dartium bindings
+    # to construct wrappers from C++.  Eventually it should go away
+    # once it is possible to construct such an instance directly.
+    if not self._members_emitter:
+      return
+
+    super_constructor = ''
+    if base_class and base_class != 'NativeFieldWrapperClass1':
+      super_constructor = ' : super.internal()'
+    self._members_emitter.Emit(
+        '  $CLASSNAME.internal()$SUPERCONSTRUCTOR;\n',
+        CLASSNAME=self._interface_type_info.implementation_name(),
+        SUPERCONSTRUCTOR=super_constructor)
+
   def _EmitConstructorInfrastructure(self,
       constructor_info, constructor_callback_cpp_name, factory_method_name,
       argument_count=None):
