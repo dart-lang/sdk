@@ -183,6 +183,15 @@ class Safari extends Browser {
    */
   const String versionFile = "/Applications/Safari.app/Contents/version.plist";
 
+  /**
+   * Directories where safari stores state. We delete these if the deleteCache
+   * is set
+   */
+  static const List<String> CACHE_DIRECTORIES =
+      const ["Library/Caches/com.apple.Safari",
+             "Library/Safari"];
+
+
   Future<bool> allowPopUps() {
     var command = "defaults";
     var args = ["write", "com.apple.safari",
@@ -198,17 +207,32 @@ class Safari extends Browser {
     });
   }
 
+  Future<bool> deleteIfExists(Iterator<String> paths) {
+    if (!paths.moveNext()) return new Future.immediate(true);
+    Directory directory = new Directory(paths.current);
+    return directory.exists().then((exists) {
+      if (exists) {
+        _logEvent("Deleting ${paths.current}");
+        return directory.delete(recursive: true)
+	    .then((_) => deleteIfExists(paths))
+	    .catchError((error) {
+	      _logEvent("Failure trying to delete ${paths.current}: $error");
+	      return false;
+	    });
+      } else {
+        _logEvent("${paths.current} is not present");
+        return deleteIfExists(paths);
+      }
+    });
+  }
+
   // Clears the cache if the static deleteCache flag is set.
   // Returns false if the command to actually clear the cache did not complete.
   Future<bool> clearCache() {
     if (!deleteCache) return new Future.immediate(true);
     var home = Platform.environment['HOME'];
-    var cache = "$home/Library/Caches/com.apple.Safari";
-    _logEvent("Clearing safari cache: $cache}");
-    return new Directory(cache).delete(recursive: true)
-        .then((_) => true)
-	// This normally means that the directory was not there.
-	.catchError((error) => true);
+    Iterator iterator = CACHE_DIRECTORIES.map((s) => "$home/$s").iterator;
+    return deleteIfExists(iterator);
   }
 
   Future<String> getVersion() {
@@ -256,9 +280,13 @@ class Safari extends Browser {
     _logEvent("Starting Safari browser on: $url");
     return allowPopUps().then((success) {
       if (!success) {
-        return new Future.immediate(false);
+        return false;
       }
-      return clearCache().then((_) {
+      return clearCache().then((cleared) {
+        if (!cleared) {
+          _logEvent("Could not clear cache");
+          return false;
+        }
         // Get the version and log that.
         return getVersion().then((version) {
           _logEvent("Got version: $version");
