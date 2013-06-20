@@ -31,6 +31,20 @@ class Helper {
     }
     return i;
   }
+
+  static var status;
+  static void f5() {
+    status = 0;
+    for (var stop = false;;) {
+      if (stop) {
+        break;
+      } else {
+        stop = true;
+        continue;
+      }
+    }
+    status = 1;
+  }
 }
 
 class ForTest {
@@ -50,6 +64,9 @@ class ForTest {
     Expect.equals(1, Helper.f4(1));
     Expect.equals(6, Helper.f4(6));
     Expect.equals(6, Helper.f4(10));
+
+    Helper.f5();
+    Expect.equals(1, Helper.status);
   }
 }
 
