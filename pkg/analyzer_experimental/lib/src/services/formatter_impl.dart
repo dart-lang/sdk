@@ -83,22 +83,23 @@ abstract class CodeFormatter {
 class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
   final FormatterOptions options;
-  final List<AnalysisError> errors = <AnalysisError>[];
+  final EditRecorder recorder;
+  final errors = <AnalysisError>[];
 
-  CodeFormatterImpl(this.options);
+  CodeFormatterImpl(FormatterOptions options) : this.options = options,
+      recorder = new EditRecorder(options);
 
   String format(CodeKind kind, String source, {int offset, int end,
       int indentationLevel:0}) {
 
     var start = tokenize(source);
-    _checkForErrors();
+    checkForErrors();
 
     var node = parse(kind, start);
-    _checkForErrors();
+    checkForErrors();
 
-    // To be continued...
-
-    return source;
+    var formatter = new FormattingEngine(options);
+    return formatter.format(source, node, start, kind, recorder);
   }
 
   ASTNode parse(CodeKind kind, Token start) {
@@ -115,7 +116,7 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
     throw new FormatterException('Unsupported format kind: $kind');
   }
 
-  _checkForErrors() {
+  checkForErrors() {
     if (errors.length > 0) {
       throw new FormatterException.forError(errors);
     }
@@ -132,18 +133,13 @@ class CodeFormatterImpl implements CodeFormatter, AnalysisErrorListener {
 
 }
 
-/// Placeholder class to hold a reference to the Class object representing
-/// the Dart keyword void.
-class Void extends Object {
-
-}
-
 
 /// Records a sequence of edits to a source string that will cause the string
 /// to be formatted when applied.
 class EditRecorder {
 
   final FormatterOptions options;
+  final EditStore editStore;
 
   int column = 0;
 
@@ -152,12 +148,105 @@ class EditRecorder {
 
   Token currentToken;
 
-  int indentationLevel = 0;
   int numberOfIndentations = 0;
 
-  bool isIndentNeeded = false;
+  bool needsIndent = false;
 
-  EditRecorder(this.options);
+  EditRecorder(this.options): editStore = new EditStore();
+
+  /// Add an [Edit] that describes a textual [replacement] of a text
+  /// interval starting at the given [offset] spanning the given [length].
+  void addEdit(int offset, int length, String replacement) {
+    editStore.addEdit(offset, length, replacement);
+  }
+
+  /// Advance past the given expected [token] (or fail if not matched).
+  void advance(Token token) {
+    if (currentToken.lexeme == token.lexeme) {
+
+      // TODO(pquitslund) emit comments
+//      if (needsIndent) {
+//        advanceIndent();
+//        needsIndent = false;
+//      }
+      // Record writing a token at the current edit location
+      advanceChars(token.length);
+      currentToken = currentToken.next;
+    } else {
+      wrongToken(token.lexeme);
+    }
+  }
+
+  /// Move indices past indent, adding an edit if needed to adjust indentation
+  void advanceIndent() {
+//    var indentWidth = options.indentPerLevel * indentationLevel;
+//    var indentString = getIndentString(indentWidth);
+//    var sourceIndentWidth = 0;
+//    for (var i = 0; i < source.length; i++) {
+//      if (isIndentChar(source[sourceIndex + i])) {
+//        sourceIndentWidth += 1;
+//      } else {
+//        break;
+//      }
+//    }
+//    var hasSameIndent = sourceIndentWidth == indentWidth;
+//    if (hasSameIndent) {
+//      for (var i = 0; i < indentWidth; i++) {
+//        if (source[sourceIndex + i] != indentString[i]) {
+//          hasSameIndent = false;
+//          break;
+//        }
+//      }
+//      if (hasSameIndent) {
+//        advanceChars(indentWidth);
+//        return;
+//      }
+//    }
+//    addEdit(sourceIndex, sourceIndentWidth, indentString);
+//    column += indentWidth;
+//    sourceIndex += sourceIndentWidth;
+
+    var indent = options.indentPerLevel * numberOfIndentations;
+
+    spaces(indent);
+  }
+
+  String getIndentString(int indentWidth) {
+
+    // TODO(pquitslund) a temporary workaround
+    if (indentWidth < 0) {
+      return '';
+    }
+
+    // TODO(pquitslund) allow indent with tab chars
+
+    // Fetch a precomputed indent string
+    if (indentWidth < SPACES.length) {
+      return SPACES[indentWidth];
+    }
+
+    // Build un-precomputed strings dynamically
+    var sb = new StringBuffer();
+    for (var i = 0; i < indentWidth; ++i) {
+      sb.write(' ');
+    }
+    return sb.toString();
+  }
+
+  /// Advance past the given expected [token] (or fail if not matched).
+  void advanceToken(String token) {
+    if (currentToken.lexeme == token) {
+      advance(currentToken);
+    } else {
+      wrongToken(token);
+    }
+  }
+
+  /// Advance [column] and [sourceIndex] indices by [len] characters.
+  void advanceChars(int len) {
+    column += len;
+    sourceIndex += len;
+  }
 
   /// Count the number of whitespace chars beginning at the current
   /// [sourceIndex].
@@ -173,9 +262,8 @@ class EditRecorder {
     return count;
   }
 
-  /// Indent.
+  /// Update indent indices.
   void indent() {
-    indentationLevel += options.indentPerLevel;
     numberOfIndentations++;
   }
 
@@ -192,15 +280,97 @@ class EditRecorder {
     return true;
   }
 
+  /// Newline.
+  void newline() {
+    // TODO(pquitslund) emit comments
+    needsIndent = true;
+    // If there is a newline before the edit location, do nothing.
+    if (isNewlineAt(sourceIndex - NEW_LINE.length)) {
+      return;
+    }
+    // If there is a newline after the edit location, advance over it.
+    if (isNewlineAt(sourceIndex)) {
+      advanceChars(NEW_LINE.length);
+      return;
+    }
+    // Otherwise, replace whitespace with a newline.
+    var charsToReplace = countWhitespace();
+    if (isNewlineAt(sourceIndex + charsToReplace)) {
+      charsToReplace += NEW_LINE.length;
+    }
+    addEdit(sourceIndex, charsToReplace, NEW_LINE);
+    advanceChars(charsToReplace);
+  }
+
+
+  /// Un-indent.
+  void unindent() {
+    numberOfIndentations--;
+  }
+
+  /// Space.
+  void space() {
+    // TODO(pquitslund) emit comments
+//    // If there is a space before the edit location, do nothing.
+//    if (isSpaceAt(sourceIndex - 1)) {
+//      return;
+//    }
+//    // If there is a space after the edit location, advance over it.
+//    if (isSpaceAt(sourceIndex)) {
+//      advance(1);
+//      return;
+//    }
+    // Otherwise, replace spaces with a single space.
+    spaces(1);
+  }
+
+  /// Spaces.
+  void spaces(int num) {
+    var charsToReplace = countWhitespace();
+    addEdit(sourceIndex, charsToReplace, SPACES[num]);
+    advanceChars(charsToReplace);
+  }
+
+  wrongToken(String token) {
+    throw new FormatterException('expected token: "${token}", '
+                                 'actual: "${currentToken}"');
+  }
+
+  String toString() =>
+      new EditOperation().apply(editStore.edits,
+                                source.substring(0, sourceIndex));
+
 }
 
 const SPACE = ' ';
+final SPACES = [
+          '',
+          ' ',
+          '  ',
+          '   ',
+          '    ',
+          '     ',
+          '      ',
+          '       ',
+          '        ',
+          '         ',
+          '          ',
+          '           ',
+          '            ',
+          '             ',
+          '              ',
+          '               ',
+          '                ',
+];
+
 
 bool isIndentChar(String ch) => ch == SPACE; // TODO(pquitslund) also check tab
 
 
 /// Manages stored [Edit]s.
 class EditStore {
+
+  const EditStore();
 
   /// The underlying sequence of [Edit]s.
   final edits = <Edit>[];
@@ -239,7 +409,6 @@ class EditStore {
 }
 
 
-
 /// Describes a text edit.
 class Edit {
 
@@ -264,11 +433,155 @@ class Edit {
 
 }
 
+/// Applies a sequence of [edits] to a [document].
+class EditOperation {
+
+  String apply(List<Edit> edits, String document) {
+
+    var edit;
+    for (var i = edits.length - 1; i >= 0; --i) {
+      edit = edits[i];
+      document = replace(document, edit.offset,
+                         edit.offset + edit.length, edit.replacement);
+    }
+
+    return document;
+  }
+
+}
+
+
+String replace(String str, int start, int end, String replacement) =>
+    str.substring(0, start) + replacement + str.substring(end);
+
+
 /// An AST visitor that drives formatting heuristics.
-class FormattingEngine extends RecursiveASTVisitor<Void> {
+class FormattingEngine extends RecursiveASTVisitor {
 
   final FormatterOptions options;
 
+  CodeKind kind;
+  EditRecorder recorder;
+
   FormattingEngine(this.options);
+
+  String format(String source, ASTNode node, Token start, CodeKind kind,
+      EditRecorder recorder) {
+
+    this.kind = kind;
+    this.recorder = recorder;
+
+    recorder..source = source
+            ..currentToken = start;
+
+    node.accept(this);
+
+    var editor = new EditOperation();
+    return editor.apply(recorder.editStore.edits, source);
+  }
+
+
+  visitClassDeclaration(ClassDeclaration node) {
+
+    recorder.advanceIndent();
+
+    if (node.documentationComment != null) {
+      node.documentationComment.accept(this);
+    }
+
+    recorder..advance(node.classKeyword)..space();
+
+    node.name.accept(this);
+
+    if (node.typeParameters != null) {
+      node.typeParameters.accept(this);
+    }
+    recorder.space();
+
+    if (node.extendsClause != null) {
+      node.extendsClause.accept(this);
+      recorder.space();
+    }
+
+    if (node.implementsClause != null) {
+      node.implementsClause.accept(this);
+      recorder.space();
+    }
+
+    recorder..advance(node.leftBracket)
+            ..indent();
+
+    for (var member in node.members) {
+      recorder..newline()
+              ..advanceIndent();
+      member.accept(this);
+    }
+
+    recorder..unindent()
+            ..newline()
+            ..advanceIndent()
+            ..advance(node.rightBracket);
+  }
+
+
+  visitBlockFunctionBody(BlockFunctionBody node) {
+    node.block.accept(this);
+  }
+
+
+  visitBlock(Block block) {
+    recorder..advance(block.leftBracket)
+            ..indent()
+            ..newline();
+    // ...
+    recorder..unindent()
+            ..advanceIndent()
+            ..advance(block.rightBracket);
+  }
+
+
+  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    recorder..advance(node.functionDefinition)
+            ..indent()
+            ..newline();
+    node.expression.accept(this);
+    recorder..unindent()
+            ..advanceIndent()
+            ..advance(node.semicolon);
+  }
+
+
+  visitMethodDeclaration(MethodDeclaration node) {
+
+    if (node.modifierKeyword != null) {
+      recorder.advance(node.modifierKeyword);
+      recorder.space();
+    }
+
+    if (node.returnType != null) {
+      node.returnType.accept(this);
+      recorder.space();
+    }
+
+    recorder.advance(node.name.beginToken);
+
+    node.parameters.accept(this);
+
+    recorder.space();
+
+    node.body.accept(this);
+  }
+
+
+  visitFormalParameterList(FormalParameterList node) {
+    recorder.advance(node.beginToken);
+    //...
+    recorder.advance(node.endToken);
+  }
+
+
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    recorder.advance(node.token);
+  }
 
 }
