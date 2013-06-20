@@ -386,7 +386,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    token_pos);
   }
   const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Array::Handle();
+  const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
   Label check_identity;
@@ -550,7 +550,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       }
     } else {
       const int kNumberOfArguments = 2;
-      const Array& kNoArgumentNames = Array::Handle();
+      const Array& kNoArgumentNames = Object::null_array();
       compiler->GenerateStaticCall(deopt_id,
                                    token_pos,
                                    target,
@@ -931,7 +931,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->EmitTestAndCall(ICData::Handle(ic_data()->AsUnaryClassChecks()),
                               R2,  // Class id register.
                               kNumArguments,
-                              Array::Handle(),  // No named arguments.
+                              Object::null_array(),  // No named arguments.
                               deopt,  // Deoptimize target.
                               deopt_id(),
                               token_pos(),
@@ -3029,7 +3029,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                instance_call()->token_pos(),
                                target,
                                kNumberOfArguments,
-                               Array::Handle(),  // No argument names.,
+                               Object::null_array(),  // No argument names.,
                                locs());
   __ Bind(&done);
 }

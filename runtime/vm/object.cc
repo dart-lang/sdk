@@ -5363,8 +5363,7 @@ class CompressedTokenStreamData : public ValueObject {
       token_obj_(Object::Handle()),
       literal_token_(LiteralToken::Handle()),
       literal_str_(String::Handle()) {
-    const String& empty_literal = String::Handle();
-    token_objects_.Add(empty_literal);
+    token_objects_.Add(Object::null_string());
   }
   ~CompressedTokenStreamData() {
   }

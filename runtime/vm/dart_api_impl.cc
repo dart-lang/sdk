@@ -3871,7 +3871,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
   const String& prefix_symbol =
       String::Handle(isolate, Symbols::New(prefix_vm));
   const Namespace& import_ns = Namespace::Handle(
-      Namespace::New(import_vm, Array::Handle(), Array::Handle()));
+      Namespace::New(import_vm, Object::null_array(), Object::null_array()));
   if (prefix_vm.Length() == 0) {
     library_vm.AddImport(import_ns);
   } else {

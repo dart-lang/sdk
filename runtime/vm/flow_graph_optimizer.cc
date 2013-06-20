@@ -2111,7 +2111,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
     case kTypedDataUint16ArrayCid: {
       // Check that value is always smi.
       value_check = ICData::New(Function::Handle(),
-                                String::Handle(),
+                                Object::null_string(),
                                 Object::null_array(),
                                 Isolate::kNoDeoptId,
                                 1);
@@ -2125,7 +2125,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
       // before storing to handle the mint case, too.
       if (call->ic_data()->deopt_reason() == kDeoptUnknown) {
         value_check = ICData::New(Function::Handle(),
-                                  String::Handle(),
+                                  Object::null_string(),
                                   Object::null_array(),  // Dummy args. descr.
                                   Isolate::kNoDeoptId,
                                   1);
@@ -2136,7 +2136,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
     case kTypedDataFloat64ArrayCid: {
       // Check that value is always double.
       value_check = ICData::New(Function::Handle(),
-                                String::Handle(),
+                                Object::null_string(),
                                 Object::null_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);
@@ -2146,7 +2146,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
     case kTypedDataFloat32x4ArrayCid: {
       // Check that value is always Float32x4.
       value_check = ICData::New(Function::Handle(),
-                                String::Handle(),
+                                Object::null_string(),
                                 Object::null_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);

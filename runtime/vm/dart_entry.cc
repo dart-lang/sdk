@@ -236,7 +236,7 @@ RawArray* ArgumentsDescriptor::New(intptr_t num_arguments,
     descriptor.SetAt(insert_index + kPositionOffset, pos);
   }
   // Set terminating null.
-  descriptor.SetAt(descriptor_len - 1, Object::Handle());
+  descriptor.SetAt(descriptor_len - 1, Object::null_object());
 
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();
@@ -271,7 +271,7 @@ RawArray* ArgumentsDescriptor::NewNonCached(intptr_t num_arguments,
   descriptor.SetAt(kPositionalCountIndex, arg_count);
 
   // Set terminating null.
-  descriptor.SetAt((descriptor_len - 1), Object::Handle());
+  descriptor.SetAt((descriptor_len - 1), Object::null_object());
 
   // Share the immutable descriptor when possible by canonicalizing it.
   descriptor.MakeImmutable();

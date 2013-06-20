@@ -467,7 +467,7 @@ void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
 void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
   if (stackmap_table_builder_ == NULL) {
     // The unoptimizing compiler has no stack maps.
-    code.set_stackmaps(Array::Handle());
+    code.set_stackmaps(Object::null_array());
   } else {
     // Finalize the stack map array and add it to the code object.
     ASSERT(is_optimizing());
