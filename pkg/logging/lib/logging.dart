@@ -153,10 +153,9 @@ class Logger {
    * [Level.INFO], [Level.WARNING], etc) you can use their specialized methods
    * instead (e.g. [info], [warning], etc).
    */
-  // TODO(sigmund): add support for logging exceptions.
-  void log(Level logLevel, String message) {
+  void log(Level logLevel, String message, [exception]) {
     if (isLoggable(logLevel)) {
-      var record = new LogRecord(logLevel, message, fullName);
+      var record = new LogRecord(logLevel, message, fullName, exception);
       if (hierarchicalLoggingEnabled) {
         var target = this;
         while (target != null) {
@@ -170,28 +169,36 @@ class Logger {
   }
 
   /** Log message at level [Level.FINEST]. */
-  void finest(String message) => log(Level.FINEST, message);
+  void finest(String message, [exception]) =>
+      log(Level.FINEST, message, exception);
 
   /** Log message at level [Level.FINER]. */
-  void finer(String message) => log(Level.FINER, message);
+  void finer(String message, [exception]) =>
+      log(Level.FINER, message, exception);
 
   /** Log message at level [Level.FINE]. */
-  void fine(String message) => log(Level.FINE, message);
+  void fine(String message, [exception]) =>
+      log(Level.FINE, message, exception);
 
   /** Log message at level [Level.CONFIG]. */
-  void config(String message) => log(Level.CONFIG, message);
+  void config(String message, [exception]) =>
+      log(Level.CONFIG, message, exception);
 
   /** Log message at level [Level.INFO]. */
-  void info(String message) => log(Level.INFO, message);
+  void info(String message, [exception]) =>
+      log(Level.INFO, message, exception);
 
   /** Log message at level [Level.WARNING]. */
-  void warning(String message) => log(Level.WARNING, message);
+  void warning(String message, [exception]) =>
+      log(Level.WARNING, message, exception);
 
   /** Log message at level [Level.SEVERE]. */
-  void severe(String message) => log(Level.SEVERE, message);
+  void severe(String message, [exception]) =>
+      log(Level.SEVERE, message, exception);
 
   /** Log message at level [Level.SHOUT]. */
-  void shout(String message) => log(Level.SHOUT, message);
+  void shout(String message, [exception]) =>
+      log(Level.SHOUT, message, exception);
 
   Stream<LogRecord> _getStream() {
     if (hierarchicalLoggingEnabled || parent == null) {
@@ -308,14 +315,9 @@ class LogRecord {
   static int _nextNumber = 0;
 
   /** Associated exception (if any) when recording errors messages. */
-  Exception exception;
+  var exception;
 
-  /** Associated exception message (if any) when recording errors messages. */
-  String exceptionText;
-
-  LogRecord(
-      this.level, this.message, this.loggerName,
-      [time, this.exception, this.exceptionText]) :
-    this.time = (time == null) ? new DateTime.now() : time,
-    this.sequenceNumber = LogRecord._nextNumber++;
+  LogRecord(this.level, this.message, this.loggerName, [this.exception])
+      : time = new DateTime.now(),
+        sequenceNumber = LogRecord._nextNumber++;
 }
