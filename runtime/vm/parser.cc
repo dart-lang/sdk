@@ -4378,9 +4378,13 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
     }
     ErrorMsg(token_pos, "no library handler registered");
   }
+  // Block class finalization attempts when calling into the library
+  // tag handler.
+  isolate()->BlockClassFinalization();
   Dart_Handle result = handler(tag,
                                Api::NewHandle(isolate(), library_.raw()),
                                Api::NewHandle(isolate(), url.raw()));
+  isolate()->UnblockClassFinalization();
   if (Dart_IsError(result)) {
     // In case of an error we append an explanatory error message to the
     // error obtained from the library tag handler.

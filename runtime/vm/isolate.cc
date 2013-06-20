@@ -399,6 +399,7 @@ Isolate::Isolate()
       running_state_(kIsolateWaiting),
       gc_prologue_callbacks_(),
       gc_epilogue_callbacks_(),
+      defer_finalization_count_(0),
       deopt_cpu_registers_copy_(NULL),
       deopt_fpu_registers_copy_(NULL),
       deopt_frame_copy_(NULL),

@@ -583,6 +583,21 @@ class Isolate : public BaseIsolate {
 
   static char* GetStatus(const char* request);
 
+  intptr_t BlockClassFinalization() {
+    ASSERT(defer_finalization_count_ >= 0);
+    return defer_finalization_count_++;
+  }
+
+  intptr_t UnblockClassFinalization() {
+    ASSERT(defer_finalization_count_ > 0);
+    return defer_finalization_count_--;
+  }
+
+  bool AllowClassFinalization() {
+    ASSERT(defer_finalization_count_ >= 0);
+    return defer_finalization_count_ == 0;
+  }
+
  private:
   Isolate();
 
@@ -626,6 +641,7 @@ class Isolate : public BaseIsolate {
   IsolateRunState running_state_;
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;
+  intptr_t defer_finalization_count_;
 
   // Deoptimization support.
   intptr_t* deopt_cpu_registers_copy_;

@@ -133,6 +133,10 @@ FinalizablePersistentHandle* Api::UnwrapAsPrologueWeakPersistentHandle(
 
 
 Dart_Handle Api::CheckIsolateState(Isolate* isolate) {
+  if (!isolate->AllowClassFinalization()) {
+    // Class finalization is blocked for the isolate. Do nothing.
+    return Api::Success();
+  }
   if (ClassFinalizer::FinalizePendingClasses() &&
       isolate->object_store()->PreallocateObjects()) {
     return Api::Success();
@@ -2966,23 +2970,12 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
   } else if (obj.IsLibrary()) {
     // Check whether class finalization is needed.
-    bool finalize_classes = true;
     const Library& lib = Library::Cast(obj);
 
-    // When calling functions in the dart:builtin library do not finalize as it
-    // should have been prefinalized.
-    Library& builtin =
-        Library::Handle(isolate, isolate->object_store()->builtin_library());
-    if (builtin.raw() == lib.raw()) {
-      finalize_classes = false;
-    }
-
     // Finalize all classes if needed.
-    if (finalize_classes) {
-      Dart_Handle state = Api::CheckIsolateState(isolate);
-      if (::Dart_IsError(state)) {
-        return state;
-      }
+    Dart_Handle state = Api::CheckIsolateState(isolate);
+    if (::Dart_IsError(state)) {
+      return state;
     }
 
     Function& function = Function::Handle(isolate);
@@ -3074,6 +3067,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
   if (::Dart_IsError(state)) {
     return state;
   }
+
   Field& field = Field::Handle(isolate);
   Function& getter = Function::Handle(isolate);
   const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(container));
