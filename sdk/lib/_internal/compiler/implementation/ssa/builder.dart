@@ -3411,18 +3411,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     bool isRedirected = functionElement.isRedirectingFactory;
     DartType expectedType = type;
     if (isRedirected) {
-      FunctionExpression functionNode = functionElement.parseNode(compiler);
-      if (functionNode.isRedirectingFactory) {
-        // Lookup the type used in the redirection.
-        Return redirectionNode = functionNode.body;
-        TreeElements treeElements =
-            compiler.enqueuer.resolution.getCachedElements(
-                functionElement.declaration);
-        ClassElement targetClass = functionElement.getEnclosingClass();
-        type = treeElements.getType(redirectionNode.expression)
-            .subst(type.typeArguments, targetClass.typeVariables);
-      }
-      functionElement = functionElement.redirectionTarget;
+      type = functionElement.computeTargetType(compiler, type);
     }
 
     var inputs = <HInstruction>[];
@@ -3677,7 +3666,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         generateRuntimeError(node.send, message.toString());
       }
     } else if (node.isConst()) {
-      // TODO(karlklose): add type representation
       ConstantHandler handler = compiler.constantHandler;
       Constant constant = handler.compileNodeWithDefinitions(node, elements);
       stack.add(graph.addConstant(constant, compiler));

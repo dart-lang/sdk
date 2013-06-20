@@ -2620,6 +2620,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     world.registerStaticUse(constructor.declaration);
     ClassElement cls = constructor.getEnclosingClass();
     InterfaceType type = mapping.getType(node);
+    if (node.isConst() && type.containsTypeVariables) {
+      compiler.reportErrorCode(node.send.selector,
+                               MessageKind.TYPE_VARIABLE_IN_CONSTANT);
+    }
     world.registerInstantiatedType(type, mapping);
     if (constructor.isFactoryConstructor() && !type.typeArguments.isEmpty) {
       world.registerFactoryWithTypeArguments(mapping);
@@ -2728,6 +2732,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     }
     DartType listType;
     if (typeArgument != null) {
+      if (node.isConst() && typeArgument.containsTypeVariables) {
+        compiler.reportErrorCode(arguments.nodes.head,
+            MessageKind.TYPE_VARIABLE_IN_CONSTANT);
+      }
       listType = new InterfaceType(compiler.listClass,
                                    new Link<DartType>.fromList([typeArgument]));
     } else {
@@ -2942,6 +2950,10 @@ class ResolverVisitor extends MappingVisitor<Element> {
     } else {
       compiler.mapClass.computeType(compiler);
       mapType = compiler.mapClass.rawType;
+    }
+    if (node.isConst() && mapType.containsTypeVariables) {
+      compiler.reportErrorCode(arguments,
+          MessageKind.TYPE_VARIABLE_IN_CONSTANT);
     }
     mapping.setType(node, mapType);
     world.registerInstantiatedClass(compiler.mapClass, mapping);

@@ -165,6 +165,8 @@ class MessageKind {
   static const TYPE_VARIABLE_WITHIN_STATIC_MEMBER = const MessageKind(
       'cannot refer to type variable #{typeVariableName} '
       'within a static member');
+  static const TYPE_VARIABLE_IN_CONSTANT = const MessageKind(
+      'Error: cannot refer to type variable in constant');
 
   static const INVALID_USE_OF_SUPER = const MessageKind(
       'super not allowed here');

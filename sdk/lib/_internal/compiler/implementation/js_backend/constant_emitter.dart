@@ -209,11 +209,12 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitList(ListConstant constant) {
-    return new jsAst.Call(
+    jsAst.Expression value = new jsAst.Call(
         new jsAst.PropertyAccess.field(
             new jsAst.VariableUse(namer.isolateName),
             'makeConstantList'),
         [new jsAst.ArrayInitializer.from(_array(constant.entries))]);
+    return maybeAddTypeArguments(constant.type, value);
   }
 
   String getJsConstructor(ClassElement element) {
@@ -276,23 +277,27 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
       badFieldCountError();
     }
 
-    return new jsAst.New(
+    jsAst.Expression value = new jsAst.New(
         new jsAst.VariableUse(getJsConstructor(classElement)),
         arguments);
+    return maybeAddTypeArguments(constant.type, value);
+  }
+
+  JavaScriptBackend get backend => compiler.backend;
+
+  jsAst.PropertyAccess getHelperProperty(Element helper) {
+    String helperName = backend.namer.getName(helper);
+    return new jsAst.PropertyAccess.field(
+        new jsAst.VariableUse(namer.CURRENT_ISOLATE),
+        helperName);
   }
 
   jsAst.Expression visitType(TypeConstant constant) {
-    JavaScriptBackend backend = compiler.backend;
-    Element helper = backend.getCreateRuntimeType();
-    String helperName = backend.namer.getName(helper);
     DartType type = constant.representedType;
     String name = namer.getRuntimeTypeName(type.element);
     jsAst.Expression typeName = new jsAst.LiteralString("'$name'");
-    return new jsAst.Call(
-        new jsAst.PropertyAccess.field(
-            new jsAst.VariableUse(namer.CURRENT_ISOLATE),
-            helperName),
-        [typeName]);
+    return new jsAst.Call(getHelperProperty(backend.getCreateRuntimeType()),
+                          [typeName]);
   }
 
   jsAst.Expression visitInterceptor(InterceptorConstant constant) {
@@ -303,9 +308,10 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
   }
 
   jsAst.Expression visitConstructed(ConstructedConstant constant) {
-    return new jsAst.New(
+    jsAst.New instantiation = new jsAst.New(
         new jsAst.VariableUse(getJsConstructor(constant.type.element)),
         _array(constant.fields));
+    return maybeAddTypeArguments(constant.type, instantiation);
   }
 
   List<jsAst.Expression> _array(List<Constant> values) {
@@ -314,5 +320,23 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
       valueList.add(_reference(values[i]));
     }
     return valueList;
+  }
+
+  jsAst.Expression maybeAddTypeArguments(InterfaceType type,
+                                         jsAst.Expression value) {
+    if (type is InterfaceType &&
+        !type.isRaw &&
+        backend.needsRti(type.element)) {
+      InterfaceType interface = type;
+      RuntimeTypes rti = backend.rti;
+      Iterable<String> arguments = interface.typeArguments
+          .toList(growable: false)
+          .map((DartType type) => rti.getTypeRepresentation(type, (_){}));
+      jsAst.Expression argumentList =
+          new jsAst.LiteralString('[${arguments.join(', ')}]');
+      return new jsAst.Call(getHelperProperty(backend.getSetRuntimeTypeInfo()),
+                            [value, argumentList]);
+    }
+    return value;
   }
 }

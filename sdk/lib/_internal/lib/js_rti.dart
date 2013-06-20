@@ -64,10 +64,11 @@ class TypeImpl implements Type {
  * representation of type 4 or 5, that is, either a JavaScript array or
  * [:null:].
  */
-void setRuntimeTypeInfo(Object target, var typeInfo) {
+Object setRuntimeTypeInfo(Object target, var typeInfo) {
   assert(isNull(typeInfo) || isJsArray(typeInfo));
   // We have to check for null because factories may return null.
   if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, typeInfo);
+  return target;
 }
 
 /**

@@ -346,14 +346,17 @@ class ListConstant extends ObjectConstant {
 
   ListConstant(DartType type, List<Constant> entries)
       : this.entries = entries,
-        hashCode = _computeHash(entries),
+        hashCode = _computeHash(type, entries),
         super(type);
   bool isList() => true;
 
-  static int _computeHash(List<Constant> entries) {
+  static int _computeHash(DartType type, List<Constant> entries) {
     // TODO(floitsch): create a better hash.
-    int hash = 0;
-    for (Constant input in entries) hash ^= input.hashCode;
+    int hash = 7;
+    for (Constant input in entries) {
+      hash ^= input.hashCode;
+    }
+    hash ^= type.hashCode;
     return hash;
   }
 
@@ -361,7 +364,7 @@ class ListConstant extends ObjectConstant {
     if (other is !ListConstant) return false;
     ListConstant otherList = other;
     if (hashCode != otherList.hashCode) return false;
-    // TODO(floitsch): verify that the generic types are the same.
+    if (type != otherList.type) return false;
     if (entries.length != otherList.entries.length) return false;
     for (int i = 0; i < entries.length; i++) {
       if (entries[i] != otherList.entries[i]) return false;
@@ -400,14 +403,17 @@ class MapConstant extends ObjectConstant {
 
   MapConstant(DartType type, this.keys, List<Constant> values, this.protoValue)
       : this.values = values,
-        this.hashCode = computeHash(values),
+        this.hashCode = computeHash(type, values),
         super(type);
   bool isMap() => true;
 
-  static int computeHash(List<Constant> values) {
+  static int computeHash(DartType type, List<Constant> values) {
     // TODO(floitsch): create a better hash.
     int hash = 0;
-    for (Constant value in values) hash ^= value.hashCode;
+    for (Constant value in values) {
+      hash ^= value.hashCode;
+    }
+    hash ^= type.hashCode;
     return hash;
   }
 
@@ -415,7 +421,7 @@ class MapConstant extends ObjectConstant {
     if (other is !MapConstant) return false;
     MapConstant otherMap = other;
     if (hashCode != otherMap.hashCode) return false;
-    // TODO(floitsch): verify that the generic types are the same.
+    if (type != other.type) return false;
     if (keys != otherMap.keys) return false;
     for (int i = 0; i < values.length; i++) {
       if (values[i] != otherMap.values[i]) return false;
@@ -475,7 +481,7 @@ class ConstructedConstant extends ObjectConstant {
     for (Constant field in fields) {
       hash ^= field.hashCode;
     }
-    hash ^= type.element.hashCode;
+    hash ^= type.hashCode;
     return hash;
   }
 
@@ -483,8 +489,7 @@ class ConstructedConstant extends ObjectConstant {
     if (otherVar is !ConstructedConstant) return false;
     ConstructedConstant other = otherVar;
     if (hashCode != other.hashCode) return false;
-    // TODO(floitsch): verify that the (generic) types are the same.
-    if (type.element != other.type.element) return false;
+    if (type != other.type) return false;
     if (fields.length != other.fields.length) return false;
     for (int i = 0; i < fields.length; i++) {
       if (fields[i] != other.fields[i]) return false;

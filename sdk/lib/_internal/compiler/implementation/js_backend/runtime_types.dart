@@ -392,7 +392,7 @@ class RuntimeTypes {
     return '[$code]';
   }
 
-  String getTypeRepresentation(DartType type, void onVariable(variable)) {
+  String getTypeRepresentation(DartType type, VariableSubstitution onVariable) {
     // Create a type representation.  For type variables call the original
     // callback for side effects and return a template placeholder.
     return _getTypeRepresentation(type, (variable) {

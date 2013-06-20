@@ -3234,13 +3234,16 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
       emitStaticFunctionGetters(mainBuffer);
 
       emitRuntimeTypeSupport(mainBuffer);
+      emitGetInterceptorMethods(mainBuffer);
+      // Constants in checked mode call into RTI code to set type information
+      // which may need getInterceptor methods, so we have to make sure that
+      // [emitGetInterceptorMethods] has been called.
       emitCompileTimeConstants(mainBuffer);
       // Static field initializations require the classes and compile-time
       // constants to be set up.
       emitStaticNonFinalFieldInitializations(mainBuffer);
       emitOneShotInterceptors(mainBuffer);
       emitInterceptedNames(mainBuffer);
-      emitGetInterceptorMethods(mainBuffer);
       emitLazilyInitializedStaticFields(mainBuffer);
 
       mainBuffer.add(nativeBuffer);

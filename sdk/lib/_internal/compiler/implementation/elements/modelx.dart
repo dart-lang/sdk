@@ -1253,6 +1253,19 @@ class FunctionElementX extends ElementX implements FunctionElement {
     return target;
   }
 
+  InterfaceType computeTargetType(Compiler compiler,
+                                  InterfaceType newType) {
+    if (!isRedirectingFactory) return newType;
+    ClassElement targetClass = getEnclosingClass();
+    TreeElements treeElements =
+        compiler.enqueuer.resolution.getCachedElements(
+            declaration);
+    FunctionExpression functionNode = parseNode(compiler);
+    Return redirectionNode = functionNode.body;
+    return treeElements.getType(redirectionNode.expression)
+        .subst(newType.typeArguments, targetClass.typeVariables);
+  }
+
   /**
    * Applies a patch function to this function. The patch function's body
    * is used as replacement when parsing this function's body.
