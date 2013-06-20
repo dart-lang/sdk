@@ -5,6 +5,7 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)class Console {
+  Console();
 
   static Console _safeConsole = new Console();
 

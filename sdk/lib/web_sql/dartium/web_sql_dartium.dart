@@ -82,7 +82,8 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental // deprecated
 class SqlDatabase extends NativeFieldWrapperClass1 {
-  SqlDatabase.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -128,7 +129,8 @@ class SqlDatabase extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental // deprecated
 class SqlError extends NativeFieldWrapperClass1 {
-  SqlError.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable
@@ -183,7 +185,8 @@ class SqlError extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqlexception
 @Experimental // deprecated
 class SqlException extends NativeFieldWrapperClass1 {
-  SqlException.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SqlException._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLException.CONSTRAINT_ERR')
   @DocsEditable
@@ -238,7 +241,8 @@ class SqlException extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental // deprecated
 class SqlResultSet extends NativeFieldWrapperClass1 {
-  SqlResultSet.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable
@@ -265,7 +269,8 @@ class SqlResultSet extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental // deprecated
 class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
-  SqlResultSetRowList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable
@@ -336,7 +341,8 @@ class SqlResultSetRowList extends NativeFieldWrapperClass1 with ListMixin<Map>, 
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
 class SqlTransaction extends NativeFieldWrapperClass1 {
-  SqlTransaction.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable
@@ -358,6 +364,7 @@ class SqlTransaction extends NativeFieldWrapperClass1 {
 // http://www.w3.org/TR/webdatabase/#sqltransactionsync
 @Experimental // deprecated
 abstract class _SQLTransactionSync extends NativeFieldWrapperClass1 {
-  _SQLTransactionSync.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SQLTransactionSync._() { throw new UnsupportedError("Not supported"); }
 
 }

@@ -5,7 +5,7 @@
 part of $LIBRARYNAME;
 
 @DocsEditable
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS implements Rect$IMPLEMENTS$NATIVESPEC {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements Rect$IMPLEMENTS$NATIVESPEC {
 
   // NOTE! All code below should be common with Rect.
   // TODO(blois): implement with mixins when available.

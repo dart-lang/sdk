@@ -64,7 +64,8 @@ class _SvgSvgElementFactoryProvider {
 @DomName('SVGAElement')
 @Unstable
 class AElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
-  AElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAElement.SVGAElement')
   @DocsEditable
@@ -157,7 +158,8 @@ class AElement extends StyledElement implements UriReference, Tests, Transformab
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class AltGlyphElement extends TextPositioningElement implements UriReference {
-  AltGlyphElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AltGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAltGlyphElement.SVGAltGlyphElement')
   @DocsEditable
@@ -198,7 +200,8 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 @DomName('SVGAngle')
 @Unstable
 class Angle extends NativeFieldWrapperClass1 {
-  Angle.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Angle._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAngle.SVG_ANGLETYPE_DEG')
   @DocsEditable
@@ -271,7 +274,8 @@ class Angle extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class AnimateElement extends AnimationElement {
-  AnimateElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimateElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateElement.SVGAnimateElement')
   @DocsEditable
@@ -295,7 +299,8 @@ class AnimateElement extends AnimationElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class AnimateMotionElement extends AnimationElement {
-  AnimateMotionElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimateMotionElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateMotionElement.SVGAnimateMotionElement')
   @DocsEditable
@@ -319,7 +324,8 @@ class AnimateMotionElement extends AnimationElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class AnimateTransformElement extends AnimationElement {
-  AnimateTransformElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimateTransformElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimateTransformElement.SVGAnimateTransformElement')
   @DocsEditable
@@ -340,7 +346,8 @@ class AnimateTransformElement extends AnimationElement {
 @DomName('SVGAnimatedAngle')
 @Unstable
 class AnimatedAngle extends NativeFieldWrapperClass1 {
-  AnimatedAngle.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedAngle._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedAngle.animVal')
   @DocsEditable
@@ -362,7 +369,8 @@ class AnimatedAngle extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedBoolean')
 @Unstable
 class AnimatedBoolean extends NativeFieldWrapperClass1 {
-  AnimatedBoolean.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedBoolean._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedBoolean.animVal')
   @DocsEditable
@@ -388,7 +396,8 @@ class AnimatedBoolean extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedEnumeration')
 @Unstable
 class AnimatedEnumeration extends NativeFieldWrapperClass1 {
-  AnimatedEnumeration.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedEnumeration._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedEnumeration.animVal')
   @DocsEditable
@@ -414,7 +423,8 @@ class AnimatedEnumeration extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedInteger')
 @Unstable
 class AnimatedInteger extends NativeFieldWrapperClass1 {
-  AnimatedInteger.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedInteger._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedInteger.animVal')
   @DocsEditable
@@ -440,7 +450,8 @@ class AnimatedInteger extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedLength')
 @Unstable
 class AnimatedLength extends NativeFieldWrapperClass1 {
-  AnimatedLength.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedLength._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedLength.animVal')
   @DocsEditable
@@ -462,7 +473,8 @@ class AnimatedLength extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedLengthList')
 @Unstable
 class AnimatedLengthList extends NativeFieldWrapperClass1 {
-  AnimatedLengthList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedLengthList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedLengthList.animVal')
   @DocsEditable
@@ -484,7 +496,8 @@ class AnimatedLengthList extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedNumber')
 @Unstable
 class AnimatedNumber extends NativeFieldWrapperClass1 {
-  AnimatedNumber.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedNumber._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable
@@ -510,7 +523,8 @@ class AnimatedNumber extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedNumberList')
 @Unstable
 class AnimatedNumberList extends NativeFieldWrapperClass1 {
-  AnimatedNumberList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedNumberList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedNumberList.animVal')
   @DocsEditable
@@ -532,7 +546,8 @@ class AnimatedNumberList extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedPreserveAspectRatio')
 @Unstable
 class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
-  AnimatedPreserveAspectRatio.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedPreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedPreserveAspectRatio.animVal')
   @DocsEditable
@@ -554,7 +569,8 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedRect')
 @Unstable
 class AnimatedRect extends NativeFieldWrapperClass1 {
-  AnimatedRect.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedRect._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedRect.animVal')
   @DocsEditable
@@ -576,7 +592,8 @@ class AnimatedRect extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedString')
 @Unstable
 class AnimatedString extends NativeFieldWrapperClass1 {
-  AnimatedString.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedString._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedString.animVal')
   @DocsEditable
@@ -602,7 +619,8 @@ class AnimatedString extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimatedTransformList')
 @Unstable
 class AnimatedTransformList extends NativeFieldWrapperClass1 {
-  AnimatedTransformList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimatedTransformList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimatedTransformList.animVal')
   @DocsEditable
@@ -624,7 +642,8 @@ class AnimatedTransformList extends NativeFieldWrapperClass1 {
 @DomName('SVGAnimationElement')
 @Unstable
 class AnimationElement extends SvgElement implements Tests, ElementTimeControl, ExternalResourcesRequired {
-  AnimationElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory AnimationElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGAnimationElement.SVGAnimationElement')
   @DocsEditable
@@ -694,7 +713,8 @@ class AnimationElement extends SvgElement implements Tests, ElementTimeControl, 
 @DomName('SVGCircleElement')
 @Unstable
 class CircleElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  CircleElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory CircleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGCircleElement.SVGCircleElement')
   @DocsEditable
@@ -788,7 +808,8 @@ class CircleElement extends StyledElement implements Transformable, Tests, Exter
 @DomName('SVGClipPathElement')
 @Unstable
 class ClipPathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  ClipPathElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ClipPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGClipPathElement.SVGClipPathElement')
   @DocsEditable
@@ -874,7 +895,8 @@ class ClipPathElement extends StyledElement implements Transformable, Tests, Ext
 @DomName('SVGDefsElement')
 @Unstable
 class DefsElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  DefsElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory DefsElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDefsElement.SVGDefsElement')
   @DocsEditable
@@ -956,7 +978,8 @@ class DefsElement extends StyledElement implements Transformable, Tests, Externa
 @DomName('SVGDescElement')
 @Unstable
 class DescElement extends StyledElement implements LangSpace {
-  DescElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory DescElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDescElement.SVGDescElement')
   @DocsEditable
@@ -990,7 +1013,8 @@ class DescElement extends StyledElement implements LangSpace {
 @DomName('SVGElementInstance')
 @Unstable
 class ElementInstance extends EventTarget {
-  ElementInstance.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ElementInstance._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGElementInstance.abortEvent')
   @DocsEditable
@@ -1360,7 +1384,8 @@ class ElementInstance extends EventTarget {
 @DomName('SVGEllipseElement')
 @Unstable
 class EllipseElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  EllipseElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory EllipseElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGEllipseElement.SVGEllipseElement')
   @DocsEditable
@@ -1458,7 +1483,8 @@ class EllipseElement extends StyledElement implements Transformable, Tests, Exte
 @DomName('SVGExternalResourcesRequired')
 @Unstable
 class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
-  ExternalResourcesRequired.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ExternalResourcesRequired._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool supported(SvgElement element) => true;
@@ -1483,7 +1509,8 @@ class ExternalResourcesRequired extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEBlendElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEBlendElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEBlendElement.SVGFEBlendElement')
   @DocsEditable
@@ -1564,7 +1591,8 @@ class FEBlendElement extends StyledElement implements FilterPrimitiveStandardAtt
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEColorMatrixElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEColorMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEColorMatrixElement.SVGFEColorMatrixElement')
   @DocsEditable
@@ -1641,7 +1669,8 @@ class FEColorMatrixElement extends StyledElement implements FilterPrimitiveStand
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEComponentTransferElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEComponentTransferElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEComponentTransferElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEComponentTransferElement.SVGFEComponentTransferElement')
   @DocsEditable
@@ -1686,7 +1715,8 @@ class FEComponentTransferElement extends StyledElement implements FilterPrimitiv
 @DomName('SVGFECompositeElement')
 @Unstable
 class FECompositeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FECompositeElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FECompositeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFECompositeElement.SVG_FECOMPOSITE_OPERATOR_ARITHMETIC')
   @DocsEditable
@@ -1780,7 +1810,8 @@ class FECompositeElement extends StyledElement implements FilterPrimitiveStandar
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEConvolveMatrixElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEConvolveMatrixElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEConvolveMatrixElement.SVGFEConvolveMatrixElement')
   @DocsEditable
@@ -1889,7 +1920,8 @@ class FEConvolveMatrixElement extends StyledElement implements FilterPrimitiveSt
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEDiffuseLightingElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEDiffuseLightingElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDiffuseLightingElement.SVGFEDiffuseLightingElement')
   @DocsEditable
@@ -1954,7 +1986,8 @@ class FEDiffuseLightingElement extends StyledElement implements FilterPrimitiveS
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEDisplacementMapElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEDisplacementMapElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDisplacementMapElement.SVGFEDisplacementMapElement')
   @DocsEditable
@@ -2039,7 +2072,8 @@ class FEDisplacementMapElement extends StyledElement implements FilterPrimitiveS
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEDistantLightElement extends SvgElement {
-  FEDistantLightElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEDistantLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEDistantLightElement.SVGFEDistantLightElement')
   @DocsEditable
@@ -2072,7 +2106,8 @@ class FEDistantLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEFloodElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEFloodElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFloodElement.SVGFEFloodElement')
   @DocsEditable
@@ -2117,7 +2152,8 @@ class FEFloodElement extends StyledElement implements FilterPrimitiveStandardAtt
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEFuncAElement extends _SVGComponentTransferFunctionElement {
-  FEFuncAElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEFuncAElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncAElement.SVGFEFuncAElement')
   @DocsEditable
@@ -2142,7 +2178,8 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEFuncBElement extends _SVGComponentTransferFunctionElement {
-  FEFuncBElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEFuncBElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncBElement.SVGFEFuncBElement')
   @DocsEditable
@@ -2167,7 +2204,8 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEFuncGElement extends _SVGComponentTransferFunctionElement {
-  FEFuncGElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEFuncGElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncGElement.SVGFEFuncGElement')
   @DocsEditable
@@ -2192,7 +2230,8 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEFuncRElement extends _SVGComponentTransferFunctionElement {
-  FEFuncRElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEFuncRElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEFuncRElement.SVGFEFuncRElement')
   @DocsEditable
@@ -2217,7 +2256,8 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEGaussianBlurElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEGaussianBlurElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEGaussianBlurElement.SVGFEGaussianBlurElement')
   @DocsEditable
@@ -2278,7 +2318,8 @@ class FEGaussianBlurElement extends StyledElement implements FilterPrimitiveStan
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEImageElement extends StyledElement implements FilterPrimitiveStandardAttributes, UriReference, ExternalResourcesRequired, LangSpace {
-  FEImageElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEImageElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEImageElement.SVGFEImageElement')
   @DocsEditable
@@ -2351,7 +2392,8 @@ class FEImageElement extends StyledElement implements FilterPrimitiveStandardAtt
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEMergeElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEMergeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMergeElement.SVGFEMergeElement')
   @DocsEditable
@@ -2396,7 +2438,8 @@ class FEMergeElement extends StyledElement implements FilterPrimitiveStandardAtt
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEMergeNodeElement extends SvgElement {
-  FEMergeNodeElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEMergeNodeElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMergeNodeElement.SVGFEMergeNodeElement')
   @DocsEditable
@@ -2425,7 +2468,8 @@ class FEMergeNodeElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEMorphologyElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEMorphologyElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEMorphologyElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEMorphologyElement.SVG_MORPHOLOGY_OPERATOR_DILATE')
   @DocsEditable
@@ -2495,7 +2539,8 @@ class FEMorphologyElement extends StyledElement implements FilterPrimitiveStanda
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FEOffsetElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEOffsetElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEOffsetElement.SVGFEOffsetElement')
   @DocsEditable
@@ -2552,7 +2597,8 @@ class FEOffsetElement extends StyledElement implements FilterPrimitiveStandardAt
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FEPointLightElement extends SvgElement {
-  FEPointLightElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FEPointLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFEPointLightElement.SVGFEPointLightElement')
   @DocsEditable
@@ -2589,7 +2635,8 @@ class FEPointLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FESpecularLightingElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FESpecularLightingElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FESpecularLightingElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFESpecularLightingElement.SVGFESpecularLightingElement')
   @DocsEditable
@@ -2650,7 +2697,8 @@ class FESpecularLightingElement extends StyledElement implements FilterPrimitive
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FESpotLightElement extends SvgElement {
-  FESpotLightElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FESpotLightElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFESpotLightElement.SVGFESpotLightElement')
   @DocsEditable
@@ -2707,7 +2755,8 @@ class FESpotLightElement extends SvgElement {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FETileElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FETileElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FETileElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFETileElement.SVGFETileElement')
   @DocsEditable
@@ -2756,7 +2805,8 @@ class FETileElement extends StyledElement implements FilterPrimitiveStandardAttr
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FETurbulenceElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  FETurbulenceElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FETurbulenceElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFETurbulenceElement.SVGFETurbulenceElement')
   @DocsEditable
@@ -2849,7 +2899,8 @@ class FETurbulenceElement extends StyledElement implements FilterPrimitiveStanda
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class FilterElement extends StyledElement implements UriReference, ExternalResourcesRequired, LangSpace {
-  FilterElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FilterElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFilterElement.SVGFilterElement')
   @DocsEditable
@@ -2930,7 +2981,8 @@ class FilterElement extends StyledElement implements UriReference, ExternalResou
 @DomName('SVGFilterPrimitiveStandardAttributes')
 @Unstable
 class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 {
-  FilterPrimitiveStandardAttributes.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FilterPrimitiveStandardAttributes._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFilterPrimitiveStandardAttributes.height')
   @DocsEditable
@@ -2964,7 +3016,8 @@ class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass1 {
 @DomName('SVGFitToViewBox')
 @Unstable
 class FitToViewBox extends NativeFieldWrapperClass1 {
-  FitToViewBox.internal();
+  // To suppress missing implicit constructor warnings.
+  factory FitToViewBox._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGFitToViewBox.preserveAspectRatio')
   @DocsEditable
@@ -2989,7 +3042,8 @@ class FitToViewBox extends NativeFieldWrapperClass1 {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class ForeignObjectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  ForeignObjectElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ForeignObjectElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGForeignObjectElement.SVGForeignObjectElement')
   @DocsEditable
@@ -3090,7 +3144,8 @@ class ForeignObjectElement extends StyledElement implements Transformable, Tests
 @DomName('SVGGElement')
 @Unstable
 class GElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  GElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory GElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGElement.SVGGElement')
   @DocsEditable
@@ -3172,7 +3227,8 @@ class GElement extends StyledElement implements Transformable, Tests, ExternalRe
 @DomName('SVGImageElement')
 @Unstable
 class ImageElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
-  ImageElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ImageElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGImageElement.SVGImageElement')
   @DocsEditable
@@ -3278,7 +3334,8 @@ class ImageElement extends StyledElement implements UriReference, Tests, Transfo
 @DomName('SVGLangSpace')
 @Unstable
 class LangSpace extends NativeFieldWrapperClass1 {
-  LangSpace.internal();
+  // To suppress missing implicit constructor warnings.
+  factory LangSpace._() { throw new UnsupportedError("Not supported"); }
 
   /// Checks if this type is supported on the current platform.
   static bool supported(SvgElement element) => true;
@@ -3311,7 +3368,8 @@ class LangSpace extends NativeFieldWrapperClass1 {
 @DomName('SVGLength')
 @Unstable
 class Length extends NativeFieldWrapperClass1 {
-  Length.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Length._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLength.SVG_LENGTHTYPE_CM')
   @DocsEditable
@@ -3405,7 +3463,8 @@ class Length extends NativeFieldWrapperClass1 {
 @DomName('SVGLengthList')
 @Unstable
 class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
-  LengthList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory LengthList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLengthList.numberOfItems')
   @DocsEditable
@@ -3498,7 +3557,8 @@ class LengthList extends NativeFieldWrapperClass1 with ListMixin<Length>, Immuta
 @DomName('SVGLineElement')
 @Unstable
 class LineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  LineElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory LineElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLineElement.SVGLineElement')
   @DocsEditable
@@ -3596,7 +3656,8 @@ class LineElement extends StyledElement implements Transformable, Tests, Externa
 @DomName('SVGLinearGradientElement')
 @Unstable
 class LinearGradientElement extends _GradientElement {
-  LinearGradientElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory LinearGradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLinearGradientElement.SVGLinearGradientElement')
   @DocsEditable
@@ -3630,7 +3691,8 @@ class LinearGradientElement extends _GradientElement {
 @DomName('SVGLocatable')
 @Unstable
 class Locatable extends NativeFieldWrapperClass1 {
-  Locatable.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Locatable._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGLocatable.farthestViewportElement')
   @DocsEditable
@@ -3668,7 +3730,8 @@ class Locatable extends NativeFieldWrapperClass1 {
 @DomName('SVGMarkerElement')
 @Unstable
 class MarkerElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
-  MarkerElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory MarkerElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMarkerElement.SVGMarkerElement')
   @DocsEditable
@@ -3774,7 +3837,8 @@ class MarkerElement extends StyledElement implements FitToViewBox, ExternalResou
 @DomName('SVGMaskElement')
 @Unstable
 class MaskElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
-  MaskElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory MaskElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMaskElement.SVGMaskElement')
   @DocsEditable
@@ -3852,7 +3916,8 @@ class MaskElement extends StyledElement implements Tests, ExternalResourcesRequi
 @DomName('SVGMatrix')
 @Unstable
 class Matrix extends NativeFieldWrapperClass1 {
-  Matrix.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Matrix._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMatrix.a')
   @DocsEditable
@@ -3958,7 +4023,8 @@ class Matrix extends NativeFieldWrapperClass1 {
 @DomName('SVGMetadataElement')
 @Unstable
 class MetadataElement extends SvgElement {
-  MetadataElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory MetadataElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3972,7 +4038,8 @@ class MetadataElement extends SvgElement {
 @DomName('SVGNumber')
 @Unstable
 class Number extends NativeFieldWrapperClass1 {
-  Number.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Number._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGNumber.value')
   @DocsEditable
@@ -3994,7 +4061,8 @@ class Number extends NativeFieldWrapperClass1 {
 @DomName('SVGNumberList')
 @Unstable
 class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
-  NumberList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory NumberList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGNumberList.numberOfItems')
   @DocsEditable
@@ -4087,7 +4155,8 @@ class NumberList extends NativeFieldWrapperClass1 with ListMixin<Number>, Immuta
 @DomName('SVGPathElement')
 @Unstable
 class PathElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  PathElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathElement.SVGPathElement')
   @DocsEditable
@@ -4277,7 +4346,8 @@ class PathElement extends StyledElement implements Transformable, Tests, Externa
 @DomName('SVGPathSeg')
 @Unstable
 class PathSeg extends NativeFieldWrapperClass1 {
-  PathSeg.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSeg._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSeg.PATHSEG_ARC_ABS')
   @DocsEditable
@@ -4379,7 +4449,8 @@ class PathSeg extends NativeFieldWrapperClass1 {
 @DomName('SVGPathSegArcAbs')
 @Unstable
 class PathSegArcAbs extends PathSeg {
-  PathSegArcAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegArcAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegArcAbs.angle')
   @DocsEditable
@@ -4449,7 +4520,8 @@ class PathSegArcAbs extends PathSeg {
 @DomName('SVGPathSegArcRel')
 @Unstable
 class PathSegArcRel extends PathSeg {
-  PathSegArcRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegArcRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegArcRel.angle')
   @DocsEditable
@@ -4519,7 +4591,8 @@ class PathSegArcRel extends PathSeg {
 @DomName('SVGPathSegClosePath')
 @Unstable
 class PathSegClosePath extends PathSeg {
-  PathSegClosePath.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegClosePath._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4533,7 +4606,8 @@ class PathSegClosePath extends PathSeg {
 @DomName('SVGPathSegCurvetoCubicAbs')
 @Unstable
 class PathSegCurvetoCubicAbs extends PathSeg {
-  PathSegCurvetoCubicAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegCurvetoCubicAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicAbs.x')
   @DocsEditable
@@ -4595,7 +4669,8 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 @DomName('SVGPathSegCurvetoCubicRel')
 @Unstable
 class PathSegCurvetoCubicRel extends PathSeg {
-  PathSegCurvetoCubicRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegCurvetoCubicRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicRel.x')
   @DocsEditable
@@ -4657,7 +4732,8 @@ class PathSegCurvetoCubicRel extends PathSeg {
 @DomName('SVGPathSegCurvetoCubicSmoothAbs')
 @Unstable
 class PathSegCurvetoCubicSmoothAbs extends PathSeg {
-  PathSegCurvetoCubicSmoothAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegCurvetoCubicSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   @DocsEditable
@@ -4703,7 +4779,8 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 @DomName('SVGPathSegCurvetoCubicSmoothRel')
 @Unstable
 class PathSegCurvetoCubicSmoothRel extends PathSeg {
-  PathSegCurvetoCubicSmoothRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegCurvetoCubicSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   @DocsEditable
@@ -4749,7 +4826,8 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 @DomName('SVGPathSegCurvetoQuadraticAbs')
 @Unstable
 class PathSegCurvetoQuadraticAbs extends PathSeg {
-  PathSegCurvetoQuadraticAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegCurvetoQuadraticAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   @DocsEditable
@@ -4795,7 +4873,8 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 @DomName('SVGPathSegCurvetoQuadraticRel')
 @Unstable
 class PathSegCurvetoQuadraticRel extends PathSeg {
-  PathSegCurvetoQuadraticRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegCurvetoQuadraticRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
   @DocsEditable
@@ -4841,7 +4920,8 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 @DomName('SVGPathSegCurvetoQuadraticSmoothAbs')
 @Unstable
 class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
-  PathSegCurvetoQuadraticSmoothAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegCurvetoQuadraticSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   @DocsEditable
@@ -4871,7 +4951,8 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 @DomName('SVGPathSegCurvetoQuadraticSmoothRel')
 @Unstable
 class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
-  PathSegCurvetoQuadraticSmoothRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegCurvetoQuadraticSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   @DocsEditable
@@ -4901,7 +4982,8 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 @DomName('SVGPathSegLinetoAbs')
 @Unstable
 class PathSegLinetoAbs extends PathSeg {
-  PathSegLinetoAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegLinetoAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoAbs.x')
   @DocsEditable
@@ -4931,7 +5013,8 @@ class PathSegLinetoAbs extends PathSeg {
 @DomName('SVGPathSegLinetoHorizontalAbs')
 @Unstable
 class PathSegLinetoHorizontalAbs extends PathSeg {
-  PathSegLinetoHorizontalAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegLinetoHorizontalAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
   @DocsEditable
@@ -4953,7 +5036,8 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 @DomName('SVGPathSegLinetoHorizontalRel')
 @Unstable
 class PathSegLinetoHorizontalRel extends PathSeg {
-  PathSegLinetoHorizontalRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegLinetoHorizontalRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoHorizontalRel.x')
   @DocsEditable
@@ -4975,7 +5059,8 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 @DomName('SVGPathSegLinetoRel')
 @Unstable
 class PathSegLinetoRel extends PathSeg {
-  PathSegLinetoRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegLinetoRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoRel.x')
   @DocsEditable
@@ -5005,7 +5090,8 @@ class PathSegLinetoRel extends PathSeg {
 @DomName('SVGPathSegLinetoVerticalAbs')
 @Unstable
 class PathSegLinetoVerticalAbs extends PathSeg {
-  PathSegLinetoVerticalAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegLinetoVerticalAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoVerticalAbs.y')
   @DocsEditable
@@ -5027,7 +5113,8 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 @DomName('SVGPathSegLinetoVerticalRel')
 @Unstable
 class PathSegLinetoVerticalRel extends PathSeg {
-  PathSegLinetoVerticalRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegLinetoVerticalRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegLinetoVerticalRel.y')
   @DocsEditable
@@ -5049,7 +5136,8 @@ class PathSegLinetoVerticalRel extends PathSeg {
 @DomName('SVGPathSegList')
 @Unstable
 class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
-  PathSegList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegList.numberOfItems')
   @DocsEditable
@@ -5142,7 +5230,8 @@ class PathSegList extends NativeFieldWrapperClass1 with ListMixin<PathSeg>, Immu
 @DomName('SVGPathSegMovetoAbs')
 @Unstable
 class PathSegMovetoAbs extends PathSeg {
-  PathSegMovetoAbs.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegMovetoAbs._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegMovetoAbs.x')
   @DocsEditable
@@ -5172,7 +5261,8 @@ class PathSegMovetoAbs extends PathSeg {
 @DomName('SVGPathSegMovetoRel')
 @Unstable
 class PathSegMovetoRel extends PathSeg {
-  PathSegMovetoRel.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PathSegMovetoRel._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPathSegMovetoRel.x')
   @DocsEditable
@@ -5202,7 +5292,8 @@ class PathSegMovetoRel extends PathSeg {
 @DomName('SVGPatternElement')
 @Unstable
 class PatternElement extends StyledElement implements FitToViewBox, UriReference, Tests, ExternalResourcesRequired, LangSpace {
-  PatternElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PatternElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPatternElement.SVGPatternElement')
   @DocsEditable
@@ -5296,7 +5387,8 @@ class PatternElement extends StyledElement implements FitToViewBox, UriReference
 @DomName('SVGPoint')
 @Unstable
 class Point extends NativeFieldWrapperClass1 {
-  Point.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Point._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPoint.x')
   @DocsEditable
@@ -5330,7 +5422,8 @@ class Point extends NativeFieldWrapperClass1 {
 @DomName('SVGPointList')
 @Unstable
 class PointList extends NativeFieldWrapperClass1 {
-  PointList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PointList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPointList.numberOfItems')
   @DocsEditable
@@ -5376,7 +5469,8 @@ class PointList extends NativeFieldWrapperClass1 {
 @DomName('SVGPolygonElement')
 @Unstable
 class PolygonElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  PolygonElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PolygonElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPolygonElement.SVGPolygonElement')
   @DocsEditable
@@ -5466,7 +5560,8 @@ class PolygonElement extends StyledElement implements Transformable, Tests, Exte
 @DomName('SVGPolylineElement')
 @Unstable
 class PolylineElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  PolylineElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PolylineElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPolylineElement.SVGPolylineElement')
   @DocsEditable
@@ -5556,7 +5651,8 @@ class PolylineElement extends StyledElement implements Transformable, Tests, Ext
 @DomName('SVGPreserveAspectRatio')
 @Unstable
 class PreserveAspectRatio extends NativeFieldWrapperClass1 {
-  PreserveAspectRatio.internal();
+  // To suppress missing implicit constructor warnings.
+  factory PreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_MEET')
   @DocsEditable
@@ -5642,7 +5738,8 @@ class PreserveAspectRatio extends NativeFieldWrapperClass1 {
 @DomName('SVGRadialGradientElement')
 @Unstable
 class RadialGradientElement extends _GradientElement {
-  RadialGradientElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory RadialGradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGRadialGradientElement.SVGRadialGradientElement')
   @DocsEditable
@@ -5684,7 +5781,8 @@ class RadialGradientElement extends _GradientElement {
 @DomName('SVGRect')
 @Unstable
 class Rect extends NativeFieldWrapperClass1 {
-  Rect.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Rect._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGRect.height')
   @DocsEditable
@@ -5730,7 +5828,8 @@ class Rect extends NativeFieldWrapperClass1 {
 @DomName('SVGRectElement')
 @Unstable
 class RectElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  RectElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory RectElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGRectElement.SVGRectElement')
   @DocsEditable
@@ -5836,7 +5935,8 @@ class RectElement extends StyledElement implements Transformable, Tests, Externa
 @DomName('SVGRenderingIntent')
 @Unstable
 class RenderingIntent extends NativeFieldWrapperClass1 {
-  RenderingIntent.internal();
+  // To suppress missing implicit constructor warnings.
+  factory RenderingIntent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_ABSOLUTE_COLORIMETRIC')
   @DocsEditable
@@ -5874,7 +5974,8 @@ class RenderingIntent extends NativeFieldWrapperClass1 {
 @DomName('SVGScriptElement')
 @Unstable
 class ScriptElement extends SvgElement implements UriReference, ExternalResourcesRequired {
-  ScriptElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ScriptElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGScriptElement.SVGScriptElement')
   @DocsEditable
@@ -5911,7 +6012,8 @@ class ScriptElement extends SvgElement implements UriReference, ExternalResource
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable
 class SetElement extends AnimationElement {
-  SetElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SetElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSetElement.SVGSetElement')
   @DocsEditable
@@ -5932,7 +6034,8 @@ class SetElement extends AnimationElement {
 @DomName('SVGStopElement')
 @Unstable
 class StopElement extends StyledElement {
-  StopElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory StopElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStopElement.SVGStopElement')
   @DocsEditable
@@ -5954,7 +6057,8 @@ class StopElement extends StyledElement {
 @DomName('SVGStringList')
 @Unstable
 class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
-  StringList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory StringList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStringList.numberOfItems')
   @DocsEditable
@@ -6048,7 +6152,8 @@ class StringList extends NativeFieldWrapperClass1 with ListMixin<String>, Immuta
 // http://www.w3.org/TR/SVG/types.html#InterfaceSVGStylable
 @Experimental // nonstandard
 class StyleElement extends SvgElement implements LangSpace {
-  StyleElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory StyleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStyleElement.SVGStyleElement')
   @DocsEditable
@@ -6114,7 +6219,8 @@ class StyleElement extends SvgElement implements LangSpace {
 @DomName('SVGStyledElement')
 @Unstable
 class StyledElement extends SvgElement {
-  StyledElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory StyledElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGStyledElement.className')
   @DocsEditable
@@ -6136,7 +6242,8 @@ class StyledElement extends SvgElement {
 @DomName('SVGDocument')
 @Unstable
 class SvgDocument extends Document {
-  SvgDocument.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SvgDocument._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGDocument.rootElement')
   @DocsEditable
@@ -6259,7 +6366,8 @@ class SvgElement extends Element {
     var e = new SvgElement.tag(tag);
     return e is SvgElement && !(e is UnknownElement);
   }
-  SvgElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGElement.id')
   @DocsEditable
@@ -6297,7 +6405,8 @@ class SvgElement extends Element {
 @DomName('SVGException')
 @Unstable
 class SvgException extends NativeFieldWrapperClass1 {
-  SvgException.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SvgException._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGException.SVG_INVALID_VALUE_ERR')
   @DocsEditable
@@ -6340,7 +6449,8 @@ class SvgException extends NativeFieldWrapperClass1 {
 class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable, Tests, ExternalResourcesRequired, ZoomAndPan, LangSpace {
   factory SvgSvgElement() => _SvgSvgElementFactoryProvider.createSvgSvgElement();
 
-  SvgSvgElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SvgSvgElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSVGElement.contentScriptType')
   @DocsEditable
@@ -6598,7 +6708,8 @@ class SvgSvgElement extends StyledElement implements FitToViewBox, Transformable
 @DomName('SVGSwitchElement')
 @Unstable
 class SwitchElement extends StyledElement implements Transformable, Tests, ExternalResourcesRequired, LangSpace {
-  SwitchElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SwitchElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSwitchElement.SVGSwitchElement')
   @DocsEditable
@@ -6680,7 +6791,8 @@ class SwitchElement extends StyledElement implements Transformable, Tests, Exter
 @DomName('SVGSymbolElement')
 @Unstable
 class SymbolElement extends StyledElement implements FitToViewBox, ExternalResourcesRequired, LangSpace {
-  SymbolElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory SymbolElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGSymbolElement.SVGSymbolElement')
   @DocsEditable
@@ -6726,7 +6838,8 @@ class SymbolElement extends StyledElement implements FitToViewBox, ExternalResou
 @DomName('SVGTSpanElement')
 @Unstable
 class TSpanElement extends TextPositioningElement {
-  TSpanElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory TSpanElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTSpanElement.SVGTSpanElement')
   @DocsEditable
@@ -6744,7 +6857,8 @@ class TSpanElement extends TextPositioningElement {
 @DomName('SVGTests')
 @Unstable
 class Tests extends NativeFieldWrapperClass1 {
-  Tests.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Tests._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTests.requiredExtensions')
   @DocsEditable
@@ -6774,7 +6888,8 @@ class Tests extends NativeFieldWrapperClass1 {
 @DomName('SVGTextContentElement')
 @Unstable
 class TextContentElement extends StyledElement implements Tests, ExternalResourcesRequired, LangSpace {
-  TextContentElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory TextContentElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextContentElement.LENGTHADJUST_SPACING')
   @DocsEditable
@@ -6880,7 +6995,8 @@ class TextContentElement extends StyledElement implements Tests, ExternalResourc
 @DomName('SVGTextElement')
 @Unstable
 class TextElement extends TextPositioningElement implements Transformable {
-  TextElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory TextElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextElement.SVGTextElement')
   @DocsEditable
@@ -6926,7 +7042,8 @@ class TextElement extends TextPositioningElement implements Transformable {
 @DomName('SVGTextPathElement')
 @Unstable
 class TextPathElement extends TextContentElement implements UriReference {
-  TextPathElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory TextPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextPathElement.TEXTPATH_METHODTYPE_ALIGN')
   @DocsEditable
@@ -6980,7 +7097,8 @@ class TextPathElement extends TextContentElement implements UriReference {
 @DomName('SVGTextPositioningElement')
 @Unstable
 class TextPositioningElement extends TextContentElement {
-  TextPositioningElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory TextPositioningElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTextPositioningElement.dx')
   @DocsEditable
@@ -7014,7 +7132,8 @@ class TextPositioningElement extends TextContentElement {
 @DomName('SVGTitleElement')
 @Unstable
 class TitleElement extends StyledElement implements LangSpace {
-  TitleElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory TitleElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTitleElement.SVGTitleElement')
   @DocsEditable
@@ -7048,7 +7167,8 @@ class TitleElement extends StyledElement implements LangSpace {
 @DomName('SVGTransform')
 @Unstable
 class Transform extends NativeFieldWrapperClass1 {
-  Transform.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Transform._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTransform.SVG_TRANSFORM_MATRIX')
   @DocsEditable
@@ -7126,7 +7246,8 @@ class Transform extends NativeFieldWrapperClass1 {
 @DomName('SVGTransformList')
 @Unstable
 class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
-  TransformList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory TransformList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTransformList.numberOfItems')
   @DocsEditable
@@ -7227,7 +7348,8 @@ class TransformList extends NativeFieldWrapperClass1 with ListMixin<Transform>, 
 @DomName('SVGTransformable')
 @Unstable
 class Transformable extends NativeFieldWrapperClass1 implements Locatable {
-  Transformable.internal();
+  // To suppress missing implicit constructor warnings.
+  factory Transformable._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTransformable.transform')
   @DocsEditable
@@ -7269,7 +7391,8 @@ class Transformable extends NativeFieldWrapperClass1 implements Locatable {
 @DomName('SVGUnitTypes')
 @Unstable
 class UnitTypes extends NativeFieldWrapperClass1 {
-  UnitTypes.internal();
+  // To suppress missing implicit constructor warnings.
+  factory UnitTypes._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_OBJECTBOUNDINGBOX')
   @DocsEditable
@@ -7295,7 +7418,8 @@ class UnitTypes extends NativeFieldWrapperClass1 {
 @DomName('SVGURIReference')
 @Unstable
 class UriReference extends NativeFieldWrapperClass1 {
-  UriReference.internal();
+  // To suppress missing implicit constructor warnings.
+  factory UriReference._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGURIReference.href')
   @DocsEditable
@@ -7313,7 +7437,8 @@ class UriReference extends NativeFieldWrapperClass1 {
 @DomName('SVGUseElement')
 @Unstable
 class UseElement extends StyledElement implements UriReference, Tests, Transformable, ExternalResourcesRequired, LangSpace {
-  UseElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory UseElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGUseElement.SVGUseElement')
   @DocsEditable
@@ -7423,7 +7548,8 @@ class UseElement extends StyledElement implements UriReference, Tests, Transform
 @DomName('SVGViewElement')
 @Unstable
 class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesRequired, ZoomAndPan {
-  ViewElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ViewElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGViewElement.SVGViewElement')
   @DocsEditable
@@ -7465,7 +7591,8 @@ class ViewElement extends SvgElement implements FitToViewBox, ExternalResourcesR
 @DomName('SVGViewSpec')
 @Unstable
 class ViewSpec extends NativeFieldWrapperClass1 {
-  ViewSpec.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ViewSpec._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGViewSpec.preserveAspectRatio')
   @DocsEditable
@@ -7523,7 +7650,8 @@ class ViewSpec extends NativeFieldWrapperClass1 {
 @DomName('SVGZoomAndPan')
 @Unstable
 class ZoomAndPan extends NativeFieldWrapperClass1 {
-  ZoomAndPan.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ZoomAndPan._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_DISABLE')
   @DocsEditable
@@ -7557,7 +7685,8 @@ class ZoomAndPan extends NativeFieldWrapperClass1 {
 @DomName('SVGZoomEvent')
 @Unstable
 class ZoomEvent extends UIEvent {
-  ZoomEvent.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory ZoomEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGZoomEvent.newScale')
   @DocsEditable
@@ -7591,7 +7720,8 @@ class ZoomEvent extends UIEvent {
 @DomName('SVGElementInstanceList')
 @Unstable
 class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<ElementInstance>, ImmutableListMixin<ElementInstance> implements List<ElementInstance> {
-  _ElementInstanceList.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _ElementInstanceList._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGElementInstanceList.length')
   @DocsEditable
@@ -7658,7 +7788,8 @@ class _ElementInstanceList extends NativeFieldWrapperClass1 with ListMixin<Eleme
 @DomName('SVGGradientElement')
 @Unstable
 class _GradientElement extends StyledElement implements UriReference, ExternalResourcesRequired {
-  _GradientElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _GradientElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGradientElement.SVG_SPREADMETHOD_PAD')
   @DocsEditable
@@ -7708,7 +7839,8 @@ class _GradientElement extends StyledElement implements UriReference, ExternalRe
 @DomName('SVGAltGlyphDefElement')
 @Unstable
 abstract class _SVGAltGlyphDefElement extends SvgElement {
-  _SVGAltGlyphDefElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGAltGlyphDefElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7722,7 +7854,8 @@ abstract class _SVGAltGlyphDefElement extends SvgElement {
 @DomName('SVGAltGlyphItemElement')
 @Unstable
 abstract class _SVGAltGlyphItemElement extends SvgElement {
-  _SVGAltGlyphItemElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGAltGlyphItemElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7736,7 +7869,8 @@ abstract class _SVGAltGlyphItemElement extends SvgElement {
 @DomName('SVGAnimateColorElement')
 @Unstable
 abstract class _SVGAnimateColorElement extends AnimationElement {
-  _SVGAnimateColorElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGAnimateColorElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -7749,7 +7883,7 @@ abstract class _SVGAnimateColorElement extends AnimationElement {
 @DocsEditable
 @DomName('SVGColor')
 @Unstable
-class _SVGColor {
+abstract class _SVGColor {
   _SVGColor.internal();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7763,7 +7897,8 @@ class _SVGColor {
 @DomName('SVGComponentTransferFunctionElement')
 @Unstable
 abstract class _SVGComponentTransferFunctionElement extends SvgElement {
-  _SVGComponentTransferFunctionElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGComponentTransferFunctionElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7777,7 +7912,8 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
 @DomName('SVGCursorElement')
 @Unstable
 abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests, ExternalResourcesRequired {
-  _SVGCursorElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGCursorElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGCursorElement.SVGCursorElement')
   @DocsEditable
@@ -7798,7 +7934,8 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
 @DomName('SVGFEDropShadowElement')
 @Experimental // nonstandard
 abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPrimitiveStandardAttributes {
-  _SVGFEDropShadowElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGFEDropShadowElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7812,7 +7949,8 @@ abstract class _SVGFEDropShadowElement extends StyledElement implements FilterPr
 @DomName('SVGFontElement')
 @Unstable
 abstract class _SVGFontElement extends SvgElement {
-  _SVGFontElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGFontElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7826,7 +7964,8 @@ abstract class _SVGFontElement extends SvgElement {
 @DomName('SVGFontFaceElement')
 @Unstable
 abstract class _SVGFontFaceElement extends SvgElement {
-  _SVGFontFaceElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGFontFaceElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7840,7 +7979,8 @@ abstract class _SVGFontFaceElement extends SvgElement {
 @DomName('SVGFontFaceFormatElement')
 @Unstable
 abstract class _SVGFontFaceFormatElement extends SvgElement {
-  _SVGFontFaceFormatElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGFontFaceFormatElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7854,7 +7994,8 @@ abstract class _SVGFontFaceFormatElement extends SvgElement {
 @DomName('SVGFontFaceNameElement')
 @Unstable
 abstract class _SVGFontFaceNameElement extends SvgElement {
-  _SVGFontFaceNameElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGFontFaceNameElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7868,7 +8009,8 @@ abstract class _SVGFontFaceNameElement extends SvgElement {
 @DomName('SVGFontFaceSrcElement')
 @Unstable
 abstract class _SVGFontFaceSrcElement extends SvgElement {
-  _SVGFontFaceSrcElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGFontFaceSrcElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7882,7 +8024,8 @@ abstract class _SVGFontFaceSrcElement extends SvgElement {
 @DomName('SVGFontFaceUriElement')
 @Unstable
 abstract class _SVGFontFaceUriElement extends SvgElement {
-  _SVGFontFaceUriElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGFontFaceUriElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7896,7 +8039,8 @@ abstract class _SVGFontFaceUriElement extends SvgElement {
 @DomName('SVGGlyphElement')
 @Unstable
 abstract class _SVGGlyphElement extends SvgElement {
-  _SVGGlyphElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGGlyphElement.SVGGlyphElement')
   @DocsEditable
@@ -7914,7 +8058,8 @@ abstract class _SVGGlyphElement extends SvgElement {
 @DomName('SVGGlyphRefElement')
 @Unstable
 abstract class _SVGGlyphRefElement extends StyledElement implements UriReference {
-  _SVGGlyphRefElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7928,7 +8073,8 @@ abstract class _SVGGlyphRefElement extends StyledElement implements UriReference
 @DomName('SVGHKernElement')
 @Unstable
 abstract class _SVGHKernElement extends SvgElement {
-  _SVGHKernElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGHKernElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGHKernElement.SVGHKernElement')
   @DocsEditable
@@ -7945,7 +8091,8 @@ abstract class _SVGHKernElement extends SvgElement {
 @DocsEditable
 @DomName('SVGMPathElement')
 abstract class _SVGMPathElement extends SvgElement implements UriReference, ExternalResourcesRequired {
-  _SVGMPathElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGMPathElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGMPathElement.SVGMPathElement')
   @DocsEditable
@@ -7963,7 +8110,8 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference, Exte
 @DomName('SVGMissingGlyphElement')
 @Unstable
 abstract class _SVGMissingGlyphElement extends StyledElement {
-  _SVGMissingGlyphElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7977,7 +8125,8 @@ abstract class _SVGMissingGlyphElement extends StyledElement {
 @DomName('SVGPaint')
 @Unstable
 abstract class _SVGPaint extends _SVGColor {
-  _SVGPaint.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGPaint._() { throw new UnsupportedError("Not supported"); }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7991,7 +8140,8 @@ abstract class _SVGPaint extends _SVGColor {
 @DomName('SVGTRefElement')
 @Unstable
 abstract class _SVGTRefElement extends TextPositioningElement implements UriReference {
-  _SVGTRefElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGTRefElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGTRefElement.SVGTRefElement')
   @DocsEditable
@@ -8009,7 +8159,8 @@ abstract class _SVGTRefElement extends TextPositioningElement implements UriRefe
 @DomName('SVGVKernElement')
 @Unstable
 abstract class _SVGVKernElement extends SvgElement {
-  _SVGVKernElement.internal() : super.internal();
+  // To suppress missing implicit constructor warnings.
+  factory _SVGVKernElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('SVGVKernElement.SVGVKernElement')
   @DocsEditable

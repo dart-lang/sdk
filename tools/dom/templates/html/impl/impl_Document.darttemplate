@@ -13,7 +13,7 @@ part of $LIBRARYNAME;
  * If you aren't comfortable with DOM concepts, see the Dart tutorial
  * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
  */
-$(ANNOTATIONS)class $CLASSNAME extends Node $NATIVESPEC
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME extends Node $NATIVESPEC
 {
 
 $!MEMBERS

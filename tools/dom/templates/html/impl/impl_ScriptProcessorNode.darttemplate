@@ -4,7 +4,7 @@
 
 part of $LIBRARY;
 
-$(ANNOTATIONS)class $CLASSNAME$EXTENDS$NATIVESPEC {
+$(ANNOTATIONS)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$NATIVESPEC {
   Stream<AudioProcessingEvent> _eventStream;
 
   /**

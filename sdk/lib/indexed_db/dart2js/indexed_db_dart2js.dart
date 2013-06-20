@@ -158,7 +158,9 @@ class Cursor native "IDBCursor" {
     }
   }
 
-  
+    // To suppress missing implicit constructor warnings.
+  factory Cursor._() { throw new UnsupportedError("Not supported"); }
+
   @DomName('IDBCursor.direction')
   @DocsEditable
   final String direction;
@@ -216,6 +218,8 @@ class Cursor native "IDBCursor" {
 @DomName('IDBCursorWithValue')
 @Unstable
 class CursorWithValue extends Cursor native "IDBCursorWithValue" {
+  // To suppress missing implicit constructor warnings.
+  factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
 
   dynamic get value => _convertNativeToDart_IDBAny(this._get_value);
   @JSName('value')
@@ -270,6 +274,8 @@ class Database extends EventTarget native "IDBDatabase" {
   @JSName('transaction')
   Transaction _transaction(stores, mode) native;
 
+  // To suppress missing implicit constructor warnings.
+  factory Database._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBDatabase.abortEvent')
   @DocsEditable
@@ -444,6 +450,8 @@ class IdbFactory native "IDBFactory" {
         '!!(#.getDatabaseNames || #.webkitGetDatabaseNames)', this, this);
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBFactory.cmp')
   @DocsEditable
@@ -591,7 +599,9 @@ class Index native "IDBIndex" {
     return ObjectStore._cursorStreamFromResult(request, autoAdvance);
   }
 
-  
+    // To suppress missing implicit constructor warnings.
+  factory Index._() { throw new UnsupportedError("Not supported"); }
+
   @DomName('IDBIndex.keyPath')
   @DocsEditable
   @annotation_Creates_SerializedScriptValue
@@ -678,6 +688,8 @@ class KeyRange native "IDBKeyRange" {
       _KeyRangeFactoryProvider.createKeyRange_bound(
           lower, upper, lowerOpen, upperOpen);
 
+  // To suppress missing implicit constructor warnings.
+  factory KeyRange._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable
@@ -858,6 +870,8 @@ class ObjectStore native "IDBObjectStore" {
     return $dom_createIndex(name, keyPath, options);
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable
@@ -1056,6 +1070,8 @@ class ObjectStore native "IDBObjectStore" {
 @DomName('IDBOpenDBRequest')
 @Unstable
 class OpenDBRequest extends Request implements EventTarget native "IDBOpenDBRequest" {
+  // To suppress missing implicit constructor warnings.
+  factory OpenDBRequest._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBOpenDBRequest.blockedEvent')
   @DocsEditable
@@ -1082,6 +1098,8 @@ class OpenDBRequest extends Request implements EventTarget native "IDBOpenDBRequ
 @DomName('IDBRequest')
 @Unstable
 class Request extends EventTarget native "IDBRequest" {
+  // To suppress missing implicit constructor warnings.
+  factory Request._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBRequest.errorEvent')
   @DocsEditable
@@ -1179,6 +1197,8 @@ class Transaction extends EventTarget native "IDBTransaction" {
     return completer.future;
   }
 
+  // To suppress missing implicit constructor warnings.
+  factory Transaction._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBTransaction.abortEvent')
   @DocsEditable
@@ -1256,6 +1276,8 @@ class Transaction extends EventTarget native "IDBTransaction" {
 @DomName('IDBVersionChangeEvent')
 @Unstable
 class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
+  // To suppress missing implicit constructor warnings.
+  factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('IDBVersionChangeEvent.newVersion')
   @DocsEditable
@@ -1278,4 +1300,6 @@ class VersionChangeEvent extends Event native "IDBVersionChangeEvent" {
 @DomName('IDBAny')
 @deprecated // nonstandard
 abstract class _IDBAny native "IDBAny" {
+  // To suppress missing implicit constructor warnings.
+  factory _IDBAny._() { throw new UnsupportedError("Not supported"); }
 }

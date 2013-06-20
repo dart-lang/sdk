@@ -5,4 +5,9 @@
 library nativewrappers;
 
 class NativeFieldWrapperClass1 {
+  // To suppress implicit generative constructor.
+  factory NativeFieldWrapperClass1._() {
+    throw new UnsupportedError(
+        'Constructors not supported on native types.');
+  }
 }
