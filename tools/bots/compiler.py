@@ -164,6 +164,8 @@ def TestStep(name, mode, system, compiler, runtime, targets, flags):
 
     if UseBrowserController(runtime, system):
       cmd.append('--use_browser_controller')
+    if runtime == 'safari':
+      cmd.append('--clear_safari_cache')
 
     global IsFirstTestStepCall
     if IsFirstTestStepCall:
