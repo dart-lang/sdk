@@ -149,6 +149,9 @@ abstract class double extends num {
    * used instead. If no handleError is provided, a [FormatException]
    * is thrown.
    *
+   * The [onError] function is only invoked if [source] is a [String]. It is
+   * not invoked if the [source] is, for example, `null`.
+   *
    * Examples of accepted strings:
    *
    *     "3.14"
