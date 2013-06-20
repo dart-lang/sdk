@@ -410,10 +410,10 @@ class _ZoneTimer implements Timer {
 
   _ZoneTimer(this._zone, Duration duration, this._callback) {
     _zone.expectCallback();
-    _timer = _createTimer(duration, this.run);
+    _timer = _createTimer(duration, this._run);
   }
 
-  void run() {
+  void _run() {
     _isDone = true;
     _zone.executeCallbackGuarded(_callback);
   }
@@ -438,10 +438,10 @@ class _PeriodicZoneTimer implements Timer {
 
   _PeriodicZoneTimer(this._zone, Duration duration, this._callback) {
     _zone.expectCallback();
-    _timer = _createPeriodicTimer(duration, this.run);
+    _timer = _createPeriodicTimer(duration, this._run);
   }
 
-  void run(Timer timer) {
+  void _run(Timer timer) {
     assert(identical(_timer, timer));
     _zone.executePeriodicCallbackGuarded(() { _callback(this); });
   }
