@@ -1399,14 +1399,14 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
+// Cannot use function object from ICData as it may be the inlined
+// function and not the top-scope function.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
-  Register argdesc_reg = R10;
   Register ic_reg = RBX;
   Register func_reg = RDI;
   if (FLAG_trace_optimized_ic_calls) {
     __ EnterStubFrame();
     __ pushq(func_reg);     // Preserve
-    __ pushq(argdesc_reg);  // Preserve.
     __ pushq(ic_reg);       // Preserve.
     __ pushq(ic_reg);       // Argument.
     __ pushq(func_reg);     // Argument.
@@ -1414,7 +1414,6 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ popq(RAX);          // Discard argument;
     __ popq(RAX);          // Discard argument;
     __ popq(ic_reg);       // Restore.
-    __ popq(argdesc_reg);  // Restore.
     __ popq(func_reg);     // Restore.
     __ LeaveFrame();
   }
@@ -1435,7 +1434,6 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 
 // Generate inline cache check for 'num_args'.
 //  RBX: Inline cache data object.
-//  R10: Arguments descriptor array.
 //  TOS(0): return address
 // Control flow:
 // - If receiver is null -> jump to IC miss.
@@ -1459,6 +1457,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 #endif  // DEBUG
 
+  // Load arguments descriptor into R10.
+  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
   Label loop, update, test, found, get_class_id_as_smi;
   // RBX: IC data object (preserved).
@@ -1591,7 +1591,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  RBX: Inline cache data object.
-//  R10: Arguments descriptor array.
 //  TOS(0): Return address.
 // Inline cache data object structure:
 // 0: function-name
@@ -1620,7 +1619,6 @@ void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  RDI: function which counter needs to be incremented.
 //  RBX: Inline cache data object.
-//  R10: Arguments descriptor array.
 //  TOS(0): Return address.
 // Inline cache data object structure:
 // 0: function-name
@@ -1683,7 +1681,6 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
-//  R10: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   const Immediate& raw_null =
@@ -1719,14 +1716,11 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 
 
 //  RBX: Inline cache data array.
-//  R10: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(RBX);
-  __ pushq(R10);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
-  __ popq(R10);
   __ popq(RBX);
   __ LeaveFrame();
 

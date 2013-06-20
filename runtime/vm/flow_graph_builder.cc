@@ -979,7 +979,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
                                                   name,
                                                   node->kind(),
                                                   arguments,
-                                                  Array::ZoneHandle(),
+                                                  Object::null_array(),
                                                   2,
                                                   owner()->ic_data_array());
   ReturnDefinition(call);
@@ -1223,7 +1223,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       PrivateCoreLibName(Symbols::_instanceOf()),
       node->kind(),
       arguments,
-      Array::ZoneHandle(),  // No argument names.
+      Object::null_array(),  // No argument names.
       kNumArgsChecked,
       owner()->ic_data_array());
   ReturnDefinition(call);
@@ -1293,7 +1293,7 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
         PrivateCoreLibName(Symbols::_as()),
         node->kind(),
         arguments,
-        Array::ZoneHandle(),  // No argument names.
+        Object::null_array(),  // No argument names.
         kNumArgsChecked,
         owner()->ic_data_array());
     ReturnDefinition(call);
@@ -1407,7 +1407,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
                                 Symbols::New(Token::Str(node->kind()))),
                             node->kind(),
                             arguments,
-                            Array::ZoneHandle(),
+                            Object::null_array(),
                             1,
                             owner()->ic_data_array());
   ReturnDefinition(call);
@@ -2520,7 +2520,7 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
       node->token_pos(),
       name,
       Token::kGET,
-      arguments, Array::ZoneHandle(),
+      arguments, Object::null_array(),
       1,
       owner()->ic_data_array());
   ReturnDefinition(call);
@@ -2560,7 +2560,7 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                                                   name,
                                                   Token::kSET,
                                                   arguments,
-                                                  Array::ZoneHandle(),
+                                                  Object::null_array(),
                                                   2,  // Checked arg count.
                                                   owner()->ic_data_array());
   ReturnDefinition(call);
@@ -2577,7 +2577,7 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
                            name,
                            Token::kSET,
                            arguments,
-                           Array::ZoneHandle(),
+                           Object::null_array(),
                            2,  // Checked argument count.
                            owner()->ic_data_array()));
   ReturnDefinition(BuildLoadExprTemp());
@@ -2646,7 +2646,7 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   ASSERT(!getter_function.IsNull());
   StaticCallInstr* call = new StaticCallInstr(node->token_pos(),
                                               getter_function,
-                                              Array::ZoneHandle(),  // No names.
+                                              Object::null_array(),  // No names
                                               arguments);
   ReturnDefinition(call);
 }
@@ -2713,7 +2713,7 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
 
     call = new StaticCallInstr(node->token_pos(),
                                setter_function,
-                               Array::ZoneHandle(),  // No names.
+                               Object::null_array(),  // No names.
                                arguments);
   }
   if (result_is_needed) {
@@ -2934,7 +2934,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     // Generate static call to super operator.
     StaticCallInstr* load = new StaticCallInstr(node->token_pos(),
                                                 *super_function,
-                                                Array::ZoneHandle(),
+                                                Object::null_array(),
                                                 arguments);
     ReturnDefinition(load);
   } else {
@@ -2944,7 +2944,7 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
                                                     Symbols::IndexToken(),
                                                     Token::kINDEX,
                                                     arguments,
-                                                    Array::ZoneHandle(),
+                                                    Object::null_array(),
                                                     checked_argument_count,
                                                     owner()->ic_data_array());
     ReturnDefinition(load);
@@ -3013,7 +3013,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     StaticCallInstr* store =
         new StaticCallInstr(node->token_pos(),
                             *super_function,
-                            Array::ZoneHandle(),
+                            Object::null_array(),
                             arguments);
     if (result_is_needed) {
       Do(store);
@@ -3031,7 +3031,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
                               name,
                               Token::kASSIGN_INDEX,
                               arguments,
-                              Array::ZoneHandle(),
+                              Object::null_array(),
                               checked_argument_count,
                               owner()->ic_data_array());
     if (result_is_needed) {
@@ -3325,7 +3325,7 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   BuildPushArguments(*args, push_arguments);
   return new StaticCallInstr(args_pos,
                              no_such_method_func,
-                             Array::ZoneHandle(),
+                             Object::null_array(),
                              push_arguments);
 }
 StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
@@ -3376,12 +3376,12 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
       Resolver::ResolveStatic(cls,
                               PrivateCoreLibName(Symbols::ThrowNew()),
                               arguments->length(),
-                              Array::ZoneHandle(),
+                              Object::null_array(),
                               Resolver::kIsQualified));
   ASSERT(!func.IsNull());
   return new StaticCallInstr(token_pos,
                              func,
-                             Array::ZoneHandle(),  // No names.
+                             Object::null_array(),  // No names.
                              arguments);
 }
 

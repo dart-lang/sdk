@@ -153,6 +153,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
+  ASSERT(temp_reg == S4);
   __ LoadObject(temp_reg, arguments_descriptor);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
@@ -383,7 +384,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    token_pos);
   }
   const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Array::Handle();
+  const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
   __ TraceSimMsg("EmitEqualityAsInstanceCall");
@@ -406,8 +407,12 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
       equality_ic_data = original_ic_data.AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumberOfArguments,
+                                               kNoArgumentNames));
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
                                    Symbols::EqualOperator(),
+                                   arguments_descriptor,
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
@@ -575,7 +580,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       }
     } else {
       const int kNumberOfArguments = 2;
-      const Array& kNoArgumentNames = Array::Handle();
+      const Array& kNoArgumentNames = Object::null_array();
       compiler->GenerateStaticCall(deopt_id,
                                    token_pos,
                                    target,
@@ -985,7 +990,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->EmitTestAndCall(ICData::Handle(ic_data()->AsUnaryClassChecks()),
                               A2,  // Class id register.
                               kNumArguments,
-                              Array::Handle(),  // No named arguments.
+                              Object::null_array(),  // No named arguments.
                               deopt,  // Deoptimize target.
                               deopt_id(),
                               token_pos(),
@@ -1012,15 +1017,19 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       relational_ic_data = ic_data()->AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments,
+                                               Object::null_array()));
     relational_ic_data = ICData::New(compiler->parsed_function().function(),
                                      function_name,
+                                     arguments_descriptor,
                                      deopt_id(),
                                      kNumArgsChecked);
   }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
+                                 Object::null_array(),  // No optional args.
                                  locs(),
                                  relational_ic_data);
 }

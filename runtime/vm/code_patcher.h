@@ -53,8 +53,7 @@ class CodePatcher : public AllStatic {
   // non-NULL.
   static uword GetInstanceCallAt(uword return_address,
                                  const Code& code,
-                                 ICData* ic_data,
-                                 Array* arguments_descriptor);
+                                 ICData* ic_data);
 
   // Return the arguments descriptor array of the closure call
   // before the given return address.

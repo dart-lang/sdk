@@ -546,9 +546,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
     const ICData& ic_data) {
   ASSERT(!ic_data.IsNull());
   ASSERT(FLAG_propagate_ic_data || (ic_data.NumberOfChecks() == 0));
-  const Array& arguments_descriptor =
-      Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
-                                                 argument_names));
   uword label_address = 0;
   if (is_optimizing() && (ic_data.NumberOfChecks() == 0)) {
     if (ic_data.is_closure_call()) {
@@ -557,8 +554,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
       ExternalLabel target_label("InlineCache", label_address);
       EmitInstanceCall(&target_label,
                        ICData::ZoneHandle(ic_data.AsUnaryClassChecks()),
-                       arguments_descriptor, argument_count,
-                       deopt_id, token_pos, locs);
+                       argument_count, deopt_id, token_pos, locs);
       return;
     }
     // Emit IC call that will count and thus may need reoptimization at
@@ -581,13 +577,13 @@ void FlowGraphCompiler::GenerateInstanceCall(
         UNIMPLEMENTED();
     }
     ExternalLabel target_label("InlineCache", label_address);
-    EmitOptimizedInstanceCall(&target_label, ic_data, arguments_descriptor,
+    EmitOptimizedInstanceCall(&target_label, ic_data,
                               argument_count, deopt_id, token_pos, locs);
     return;
   }
 
   if (is_optimizing()) {
-    EmitMegamorphicInstanceCall(ic_data, arguments_descriptor, argument_count,
+    EmitMegamorphicInstanceCall(ic_data, argument_count,
                                 deopt_id, token_pos, locs);
     return;
   }
@@ -606,7 +602,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
       UNIMPLEMENTED();
   }
   ExternalLabel target_label("InlineCache", label_address);
-  EmitInstanceCall(&target_label, ic_data, arguments_descriptor, argument_count,
+  EmitInstanceCall(&target_label, ic_data, argument_count,
                    deopt_id, token_pos, locs);
 }
 

@@ -15,72 +15,47 @@
 
 namespace dart {
 
-// The pattern of a Dart instance call is:
-//  00: 48 bb imm64  mov RBX, immediate 1
-//  10: 49 ba imm64  mov R10, immediate 2
-//  20: 49 bb imm64  mov R11, target_address
-//  30: 41 ff d3     call R11
-//  33: <- return_address
-class DartCallPattern : public ValueObject {
+// A Dart instance call passes the ic-data in RBX.
+// The expected pattern of a dart instance call:
+//  00: 48 bb imm64  mov RBX, ic-data
+//  10: 49 bb imm64  mov R11, target_address
+//  20: 41 ff d3   call R11
+//  23 <- return address
+class InstanceCall : public ValueObject {
  public:
-  explicit DartCallPattern(uword return_address)
+  explicit InstanceCall(uword return_address)
       : start_(return_address - kCallPatternSize) {
     ASSERT(IsValid(return_address));
-    ASSERT((kCallPatternSize - 20) == Assembler::kCallExternalLabelSize);
+    ASSERT((kCallPatternSize - 10) == Assembler::kCallExternalLabelSize);
   }
 
-  static const int kCallPatternSize = 33;
+  static const int kCallPatternSize = 23;
 
   static bool IsValid(uword return_address) {
     uint8_t* code_bytes =
         reinterpret_cast<uint8_t*>(return_address - kCallPatternSize);
     return (code_bytes[00] == 0x48) && (code_bytes[01] == 0xBB) &&
-           (code_bytes[10] == 0x49) && (code_bytes[11] == 0xBA) &&
-           (code_bytes[20] == 0x49) && (code_bytes[21] == 0xBB) &&
-           (code_bytes[30] == 0x41) && (code_bytes[31] == 0xFF) &&
-           (code_bytes[32] == 0xD3);
+           (code_bytes[10] == 0x49) && (code_bytes[11] == 0xBB) &&
+           (code_bytes[20] == 0x41) && (code_bytes[21] == 0xFF) &&
+           (code_bytes[22] == 0xD3);
   }
 
-  uword target() const {
-    return *reinterpret_cast<uword*>(start_ + 20 + 2);
-  }
-
-  void set_target(uword target) const {
-    uword* target_addr = reinterpret_cast<uword*>(start_ + 20 + 2);
-    *target_addr = target;
-    CPU::FlushICache(start_ + 20, 2 + 8);
-  }
-
-  RawObject* immediate_one() const {
+  RawObject* ic_data() const {
     return *reinterpret_cast<RawObject**>(start_ + 0 + 2);
   }
 
-  RawObject* immediate_two() const {
-    return *reinterpret_cast<RawObject**>(start_ + 10 + 2);
+  uword target() const {
+    return *reinterpret_cast<uword*>(start_ + 10 + 2);
+  }
+
+  void set_target(uword target) const {
+    uword* target_addr = reinterpret_cast<uword*>(start_ + 10 + 2);
+    *target_addr = target;
+    CPU::FlushICache(start_ + 10, 2 + 8);
   }
 
  private:
   uword start_;
-  DISALLOW_IMPLICIT_CONSTRUCTORS(DartCallPattern);
-};
-
-
-// A Dart instance call passes the ic-data in RBX.
-// The expected pattern of a dart instance call:
-//  mov RBX, ic-data
-//  mov R10, arguments_descriptor_array
-//  mov R11, target_address
-//  call R11
-//  <- return address
-class InstanceCall : public DartCallPattern {
- public:
-  explicit InstanceCall(uword return_address)
-      : DartCallPattern(return_address) {}
-
-  RawObject* ic_data() const { return immediate_one(); }
-  RawObject* arguments_descriptor() const { return immediate_two(); }
-
- private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
 };
 
@@ -193,22 +168,18 @@ void CodePatcher::PatchInstanceCallAt(uword return_address,
 
 uword CodePatcher::GetInstanceCallAt(uword return_address,
                                      const Code& code,
-                                     ICData* ic_data,
-                                     Array* arguments_descriptor) {
+                                     ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address);
   if (ic_data != NULL) {
     *ic_data ^= call.ic_data();
-  }
-  if (arguments_descriptor != NULL) {
-    *arguments_descriptor ^= call.arguments_descriptor();
   }
   return call.target();
 }
 
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  return DartCallPattern::kCallPatternSize;
+  return InstanceCall::kCallPatternSize;
 }
 
 

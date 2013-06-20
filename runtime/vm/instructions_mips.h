@@ -20,7 +20,7 @@ class CallPattern : public ValueObject {
   CallPattern(uword pc, const Code& code);
 
   RawICData* IcData();
-  RawArray* ArgumentsDescriptor();
+  RawArray* ClosureArgumentsDescriptor();
 
   uword TargetAddress() const;
   void SetTargetAddress(uword target_address) const;

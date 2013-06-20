@@ -8221,8 +8221,7 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
         max_id = deopt_id;
       }
       node_ids->Add(deopt_id);
-      CodePatcher::GetInstanceCallAt(descriptors.PC(i), *this,
-                                     &ic_data_obj, NULL);
+      CodePatcher::GetInstanceCallAt(descriptors.PC(i), *this, &ic_data_obj);
       ic_data_objs.Add(ic_data_obj);
     }
   }
@@ -8455,6 +8454,10 @@ void ICData::set_target_name(const String& value) const {
   StorePointer(&raw_ptr()->target_name_, value.raw());
 }
 
+
+void ICData::set_arguments_descriptor(const Array& value) const {
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
 
 void ICData::set_deopt_id(intptr_t value) const {
   raw_ptr()->deopt_id_ = value;
@@ -8697,6 +8700,7 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   ICData& result = ICData::Handle(ICData::New(
       Function::Handle(function()),
       String::Handle(target_name()),
+      Array::Handle(arguments_descriptor()),
       deopt_id(),
       kNumArgsTested));
   const intptr_t len = NumberOfChecks();
@@ -8792,6 +8796,7 @@ bool ICData::HasOneTarget() const {
 
 RawICData* ICData::New(const Function& function,
                        const String& target_name,
+                       const Array& arguments_descriptor,
                        intptr_t deopt_id,
                        intptr_t num_args_tested) {
   ASSERT(Object::icdata_class() != Class::null());
@@ -8807,6 +8812,7 @@ RawICData* ICData::New(const Function& function,
   }
   result.set_function(function);
   result.set_target_name(target_name);
+  result.set_arguments_descriptor(arguments_descriptor);
   result.set_deopt_id(deopt_id);
   result.set_num_args_tested(num_args_tested);
   result.set_deopt_reason(kDeoptUnknown);

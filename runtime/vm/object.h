@@ -3183,6 +3183,10 @@ class ICData : public Object {
     return raw_ptr()->target_name_;
   }
 
+  RawArray* arguments_descriptor() const {
+    return raw_ptr()->args_descriptor_;
+  }
+
   intptr_t num_args_tested() const {
     return raw_ptr()->num_args_tested_;
   }
@@ -3215,6 +3219,10 @@ class ICData : public Object {
 
   static intptr_t num_args_tested_offset() {
     return OFFSET_OF(RawICData, num_args_tested_);
+  }
+
+  static intptr_t arguments_descriptor_offset() {
+    return OFFSET_OF(RawICData, args_descriptor_);
   }
 
   static intptr_t ic_data_offset() {
@@ -3274,6 +3282,7 @@ class ICData : public Object {
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,
+                        const Array& arguments_descriptor,
                         intptr_t deopt_id,
                         intptr_t num_args_tested);
 
@@ -3294,6 +3303,7 @@ class ICData : public Object {
 
   void set_function(const Function& value) const;
   void set_target_name(const String& value) const;
+  void set_arguments_descriptor(const Array& value) const;
   void set_deopt_id(intptr_t value) const;
   void set_num_args_tested(intptr_t value) const;
   void set_ic_data(const Array& value) const;

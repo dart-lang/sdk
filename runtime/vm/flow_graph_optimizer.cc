@@ -120,6 +120,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     ICData& ic_data = ICData::ZoneHandle(ICData::New(
         flow_graph_->parsed_function().function(),
         call->function_name(),
+        Object::null_array(),  // Dummy argument descriptor.
         call->deopt_id(),
         class_ids.length()));
     ic_data.AddReceiverCheck(class_ids[0], function);
@@ -141,6 +142,7 @@ static const ICData& SpecializeICData(const ICData& ic_data, intptr_t cid) {
   const ICData& new_ic_data = ICData::ZoneHandle(ICData::New(
       Function::Handle(ic_data.function()),
       String::Handle(ic_data.target_name()),
+      Object::null_array(),  // Dummy argument descriptor.
       ic_data.deopt_id(),
       ic_data.num_args_tested()));
 
@@ -2110,6 +2112,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
       // Check that value is always smi.
       value_check = ICData::New(Function::Handle(),
                                 String::Handle(),
+                                Object::null_array(),
                                 Isolate::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kSmiCid, Function::Handle());
@@ -2123,6 +2126,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
       if (call->ic_data()->deopt_reason() == kDeoptUnknown) {
         value_check = ICData::New(Function::Handle(),
                                   String::Handle(),
+                                  Object::null_array(),  // Dummy args. descr.
                                   Isolate::kNoDeoptId,
                                   1);
         value_check.AddReceiverCheck(kSmiCid, Function::Handle());
@@ -2133,6 +2137,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
       // Check that value is always double.
       value_check = ICData::New(Function::Handle(),
                                 String::Handle(),
+                                Object::null_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kDoubleCid, Function::Handle());
@@ -2142,6 +2147,7 @@ bool FlowGraphOptimizer::BuildByteArrayViewStore(
       // Check that value is always Float32x4.
       value_check = ICData::New(Function::Handle(),
                                 String::Handle(),
+                                Object::null_array(),  // Dummy args. descr.
                                 Isolate::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kFloat32x4Cid, Function::Handle());
@@ -6059,7 +6065,7 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
                                  comparison->kind(),
                                  left,
                                  right,
-                                 Array::Handle());
+                                 Object::null_array());
     new_equality_compare->set_ic_data(equality_compare->ic_data());
     new_comparison = new_equality_compare;
   } else {
@@ -6070,7 +6076,7 @@ BranchInstr* BranchSimplifier::CloneBranch(BranchInstr* branch,
                               comparison->kind(),
                               left,
                               right,
-                              Array::Handle());
+                              Object::null_array());
     new_relational_op->set_ic_data(relational_op->ic_data());
     new_comparison = new_relational_op;
   }

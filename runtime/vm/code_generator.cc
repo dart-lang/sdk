@@ -768,11 +768,10 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
 // Resolves and compiles the target function of an instance call, updates
 // function cache of the receiver's class and returns the compiled code or null.
 // Only the number of named arguments is checked, but not the actual names.
-RawCode* ResolveCompileInstanceCallTarget(
-    const Instance& receiver,
-    const ICData& ic_data,
-    const Array& arguments_descriptor_array) {
-  ArgumentsDescriptor arguments_descriptor(arguments_descriptor_array);
+RawCode* ResolveCompileInstanceCallTarget(const Instance& receiver,
+                                          const ICData& ic_data) {
+  ArgumentsDescriptor
+      arguments_descriptor(Array::Handle(ic_data.arguments_descriptor()));
   intptr_t num_arguments = arguments_descriptor.Count();
   int num_named_arguments = arguments_descriptor.NamedCount();
   String& function_name = String::Handle(ic_data.target_name());
@@ -874,9 +873,7 @@ static RawFunction* InlineCacheMissHandler(
     const Array& args_descriptor_array) {
   const Instance& receiver = *args[0];
   const Code& target_code =
-      Code::Handle(ResolveCompileInstanceCallTarget(receiver,
-                                                    ic_data,
-                                                    args_descriptor_array));
+      Code::Handle(ResolveCompileInstanceCallTarget(receiver, ic_data));
   if (target_code.IsNull()) {
     // Let the megamorphic stub handle special cases: NoSuchMethod,
     // closure calls.

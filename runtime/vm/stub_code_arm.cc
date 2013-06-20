@@ -1314,18 +1314,19 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 
 //  R6: function object.
 //  R5: inline cache data object.
-//  R4: arguments descriptor array.
+// Cannot use function object from ICData as it may be the inlined
+// function and not the top-scope function.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
   Register ic_reg = R5;
   Register func_reg = R6;
   if (FLAG_trace_optimized_ic_calls) {
     __ EnterStubFrame();
-    __ PushList((1 << R4) | (1 << R5) | (1 << R6));  // Preserve.
+    __ PushList((1 << R5) | (1 << R6));  // Preserve.
     __ Push(ic_reg);  // Argument.
     __ Push(func_reg);  // Argument.
     __ CallRuntime(kTraceICCallRuntimeEntry);
     __ Drop(2);  // Discard argument;
-    __ PushList((1 << R4) | (1 << R5) | (1 << R6));  // Restore.
+    __ PopList((1 << R5) | (1 << R6));  // Restore.
     __ LeaveStubFrame();
   }
   __ ldr(R7, FieldAddress(func_reg, Function::usage_counter_offset()));
@@ -1372,7 +1373,6 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 // Generate inline cache check for 'num_args'.
 //  LR: return address.
 //  R5: inline cache data object.
-//  R4: arguments descriptor array.
 // Control flow:
 // - If receiver is null -> jump to IC miss.
 // - If receiver is Smi -> load Smi class.
@@ -1395,6 +1395,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 #endif  // DEBUG
 
+  // Load arguments descriptor into R4.
+  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   // Preserve return address, since LR is needed for subroutine call.
   __ mov(R8, ShifterOperand(LR));
   // Loop that checks if there is an IC data match.
@@ -1536,7 +1538,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  LR: return address.
 //  R5: inline cache data object.
-//  R4: arguments descriptor array.
 // Inline cache data object structure:
 // 0: function-name
 // 1: N, number of arguments checked.
@@ -1638,14 +1639,13 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 
 //  LR: return address (Dart code).
 //  R5: inline cache data array.
-//  R4: arguments descriptor array.
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ PushList((1 << R4) | (1 << R5));
+  __ Push(R5);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
-  __ PopList((1 << R4) | (1 << R5));
+  __ Pop(R5);
   __ LeaveStubFrame();
 
   // Find out which dispatch stub to call.

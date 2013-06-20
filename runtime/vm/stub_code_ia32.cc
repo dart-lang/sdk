@@ -1416,14 +1416,14 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 }
 
 
+// Cannot use function object from ICData as it may be the inlined
+// function and not the top-scope function.
 void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
-  Register argdesc_reg = EDX;
   Register ic_reg = ECX;
   Register func_reg = EDI;
   if (FLAG_trace_optimized_ic_calls) {
     __ EnterStubFrame();
     __ pushl(func_reg);     // Preserve
-    __ pushl(argdesc_reg);  // Preserve.
     __ pushl(ic_reg);       // Preserve.
     __ pushl(ic_reg);       // Argument.
     __ pushl(func_reg);     // Argument.
@@ -1431,7 +1431,6 @@ void StubCode::GenerateOptimizedUsageCounterIncrement(Assembler* assembler) {
     __ popl(EAX);          // Discard argument;
     __ popl(EAX);          // Discard argument;
     __ popl(ic_reg);       // Restore.
-    __ popl(argdesc_reg);  // Restore.
     __ popl(func_reg);     // Restore.
     __ LeaveFrame();
   }
@@ -1452,7 +1451,6 @@ void StubCode::GenerateUsageCounterIncrement(Assembler* assembler,
 
 // Generate inline cache check for 'num_args'.
 //  ECX: Inline cache data object.
-//  EDX: Arguments descriptor array.
 //  TOS(0): return address
 // Control flow:
 // - If receiver is null -> jump to IC miss.
@@ -1476,6 +1474,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   }
 #endif  // DEBUG
 
+  // Load arguments descriptor into EDX.
+  __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
   // Loop that checks if there is an IC data match.
   Label loop, update, test, found, get_class_id_as_smi;
   // ECX: IC data object (preserved).
@@ -1611,7 +1611,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 // Use inline cache data array to invoke the target or continue in inline
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  ECX: Inline cache data object.
-//  EDX: Arguments descriptor array.
 //  TOS(0): Return address.
 // Inline cache data object structure:
 // 0: function-name
@@ -1641,7 +1640,6 @@ void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
 // cache miss handler. Stub for 1-argument check (receiver class).
 //  EDI: function which counter needs to be incremented.
 //  ECX: Inline cache data object.
-//  EDX: Arguments descriptor array.
 //  TOS(0): Return address.
 // Inline cache data object structure:
 // 0: function-name
@@ -1749,16 +1747,13 @@ void StubCode::GenerateBreakpointReturnStub(Assembler* assembler) {
 
 
 //  ECX: Inline cache data array.
-//  EDX: Arguments descriptor array.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointDynamicStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(ECX);
-  __ pushl(EDX);
   __ CallRuntime(kBreakpointDynamicHandlerRuntimeEntry);
-  __ popl(EDX);
   __ popl(ECX);
   __ LeaveFrame();
 

@@ -1683,8 +1683,12 @@ LocationSummary* InstanceCallInstr::MakeLocationSummary() const {
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ICData& call_ic_data = ICData::ZoneHandle(ic_data()->raw());
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
+                                               argument_names()));
     call_ic_data = ICData::New(compiler->parsed_function().function(),
                                function_name(),
+                               arguments_descriptor,
                                deopt_id(),
                                checked_argument_count());
   }

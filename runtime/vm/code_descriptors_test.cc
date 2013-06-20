@@ -44,7 +44,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   test->node_sequence()->Add(new ReturnNode(kPos, l));
   parsed_function->SetNodeSequence(test->node_sequence());
   parsed_function->set_instantiator(NULL);
-  parsed_function->set_default_parameter_values(Array::ZoneHandle());
+  parsed_function->set_default_parameter_values(Object::null_array());
   parsed_function->AllocateVariables();
   bool retval;
   Isolate* isolate = Isolate::Current();

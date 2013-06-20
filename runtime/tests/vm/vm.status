@@ -73,6 +73,7 @@ dart/isolate_mirror_local_test: Skip
 cc/ParsePatchLibrary: Skip
 cc/CorelibCompileAll: Skip
 cc/Dart2JSCompileAll: Skip
+cc/FindCodeObject: Skip #  Relative offsets are too far
 
 # TODO(ajohnsen): Fix this as part of library changes.
 [ $compiler == none ]

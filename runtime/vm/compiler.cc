@@ -860,7 +860,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // here.
     ParsedFunction* parsed_function = new ParsedFunction(func);
     parsed_function->SetNodeSequence(fragment);
-    parsed_function->set_default_parameter_values(Array::ZoneHandle());
+    parsed_function->set_default_parameter_values(Object::null_array());
     parsed_function->EnsureExpressionTemp();
     fragment->scope()->AddVariable(parsed_function->expression_temp_var());
     parsed_function->AllocateVariables();

@@ -274,17 +274,6 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 0;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* result =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  result->set_out(Location::RegisterLocation(RAX));
-  result->set_temp(0, Location::RegisterLocation(R10));  // Arg. descriptor.
-  return result;
-}
-
-
 LocationSummary* LoadLocalInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 0;
   return LocationSummary::Make(kNumInputs,
@@ -502,7 +491,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                    token_pos);
   }
   const int kNumberOfArguments = 2;
-  const Array& kNoArgumentNames = Array::Handle();
+  const Array& kNoArgumentNames = Object::null_array();
   const int kNumArgumentsChecked = 2;
 
   const Immediate& raw_null =
@@ -524,8 +513,12 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
       equality_ic_data = original_ic_data.AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumberOfArguments,
+                                               kNoArgumentNames));
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
                                    Symbols::EqualOperator(),
+                                   arguments_descriptor,
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
@@ -653,7 +646,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       }
     } else {
       const int kNumberOfArguments = 2;
-      const Array& kNoArgumentNames = Array::Handle();
+      const Array& kNoArgumentNames = Object::null_array();
       compiler->GenerateStaticCall(deopt_id,
                                    token_pos,
                                    target,
@@ -1013,7 +1006,7 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->EmitTestAndCall(ICData::Handle(ic_data()->AsUnaryClassChecks()),
                               RDI,  // Class id register.
                               kNumArguments,
-                              Array::Handle(),  // No named arguments.
+                              Object::null_array(),  // No named arguments.
                               deopt,  // Deoptimize target.
                               deopt_id(),
                               token_pos(),
@@ -1040,15 +1033,19 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       relational_ic_data = ic_data()->AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments,
+                                               Object::null_array()));
     relational_ic_data = ICData::New(compiler->parsed_function().function(),
                                      function_name,
+                                     arguments_descriptor,
                                      deopt_id(),
                                      kNumArgsChecked);
   }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
+                                 Object::null_array(),  // No optional args.
                                  locs(),
                                  relational_ic_data);
 }
@@ -3794,7 +3791,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                instance_call()->token_pos(),
                                target,
                                kNumberOfArguments,
-                               Array::Handle(),  // No argument names.
+                               Object::null_array(),  // No argument names.
                                locs());
   __ Bind(&done);
 }
@@ -4321,6 +4318,17 @@ void StrictCompareInstr::EmitBranchCode(FlowGraphCompiler* compiler,
 }
 
 
+LocationSummary* ClosureCallInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* result =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  result->set_out(Location::RegisterLocation(RAX));
+  result->set_temp(0, Location::RegisterLocation(R10));  // Arg. descriptor.
+  return result;
+}
+
+
 void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The arguments to the stub include the closure, as does the arguments
   // descriptor.
@@ -4330,6 +4338,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(temp_reg, arguments_descriptor);
+  ASSERT(temp_reg == R10);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
                              &StubCode::CallClosureFunctionLabel(),

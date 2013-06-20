@@ -658,7 +658,7 @@ void CodeBreakpoint::PatchCode() {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       saved_bytes_.target_address_ =
-          CodePatcher::GetInstanceCallAt(pc_, code, NULL, NULL);
+          CodePatcher::GetInstanceCallAt(pc_, code, NULL);
       CodePatcher::PatchInstanceCallAt(pc_, code,
                                        StubCode::BreakpointDynamicEntryPoint());
       break;
@@ -1565,19 +1565,17 @@ void Debugger::SignalBpReached() {
     if (bpt->breakpoint_kind_ == PcDescriptors::kIcCall) {
       func_to_instrument = bpt->function();
       ICData& ic_data = ICData::Handle();
-      Array& descriptor = Array::Handle();
       const Code& code =
           Code::Handle(Function::Handle(bpt->function_).unoptimized_code());
-      CodePatcher::GetInstanceCallAt(bpt->pc_, code, &ic_data, &descriptor);
-      ArgumentsDescriptor args_descriptor(descriptor);
+      CodePatcher::GetInstanceCallAt(bpt->pc_, code, &ic_data);
+      ArgumentsDescriptor
+          args_descriptor(Array::Handle(ic_data.arguments_descriptor()));
       ActivationFrame* top_frame = stack_trace->ActivationFrameAt(0);
       intptr_t num_args = args_descriptor.Count();
       Instance& receiver =
           Instance::Handle(top_frame->GetInstanceCallReceiver(num_args));
       Code& target_code =
-          Code::Handle(ResolveCompileInstanceCallTarget(receiver,
-                                                        ic_data,
-                                                        descriptor));
+          Code::Handle(ResolveCompileInstanceCallTarget(receiver, ic_data));
       if (!target_code.IsNull()) {
         Function& callee = Function::Handle(target_code.function());
         if (IsDebuggable(callee)) {

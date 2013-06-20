@@ -1099,6 +1099,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
         const ICData& new_checks = ICData::ZoneHandle(
             ICData::New(Function::Handle(old_checks.function()),
                         String::Handle(old_checks.target_name()),
+                        Array::Handle(old_checks.arguments_descriptor()),
                         old_checks.deopt_id(),
                         1));  // Number of args tested.
         new_checks.AddReceiverCheck(inlined_variants_[i].cid,
@@ -1223,6 +1224,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     const ICData& new_checks = ICData::ZoneHandle(
         ICData::New(Function::Handle(old_checks.function()),
                     String::Handle(old_checks.target_name()),
+                    Array::Handle(old_checks.arguments_descriptor()),
                     old_checks.deopt_id(),
                     1));  // Number of args tested.
     for (intptr_t i = 0; i < non_inlined_variants_.length(); ++i) {

@@ -2620,7 +2620,7 @@ class InstanceCallInstr : public TemplateDefinition<0> {
         checked_argument_count_(checked_argument_count) {
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
-    ASSERT(argument_names.IsZoneHandle());
+    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMHeap());
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsPrefixOperator(token_kind) ||
            Token::IsIndexOperator(token_kind) ||
@@ -3077,7 +3077,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false) {
     ASSERT(function.IsZoneHandle());
-    ASSERT(argument_names.IsZoneHandle());
+    ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
 
   DECLARE_INSTRUCTION(StaticCall)

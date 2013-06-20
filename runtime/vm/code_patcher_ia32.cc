@@ -15,14 +15,13 @@
 
 namespace dart {
 
-// The pattern of a Dart instance call is:
-//  1: mov ECX, immediate 1
-//  2: mov EDX, immediate 2
-//  3: call target_address
-//  <- return_address
-class DartCallPattern : public ValueObject {
+// The expected pattern of a dart instance call:
+//  mov ECX, ic-data
+//  call target_address
+//  <- return address
+class InstanceCall : public ValueObject {
  public:
-  explicit DartCallPattern(uword return_address)
+  explicit InstanceCall(uword return_address)
       : start_(return_address - (kNumInstructions * kInstructionSize)) {
     ASSERT(IsValid(return_address));
     ASSERT(kInstructionSize == Assembler::kCallExternalLabelSize);
@@ -33,8 +32,7 @@ class DartCallPattern : public ValueObject {
         reinterpret_cast<uint8_t*>(
             return_address - (kNumInstructions * kInstructionSize));
     return (code_bytes[0] == 0xB9) &&
-           (code_bytes[kInstructionSize] == 0xBA) &&
-           (code_bytes[2 * kInstructionSize] == 0xE8);
+           (code_bytes[1 * kInstructionSize] == 0xE8);
   }
 
   uword target() const {
@@ -49,15 +47,11 @@ class DartCallPattern : public ValueObject {
     CPU::FlushICache(call_address(), kInstructionSize);
   }
 
-  RawObject* immediate_one() const {
+  RawObject* ic_data() const {
     return *reinterpret_cast<RawObject**>(start_ + 1);
   }
 
-  RawObject* immediate_two() const {
-    return *reinterpret_cast<RawObject**>(start_ + kInstructionSize + 1);
-  }
-
-  static const int kNumInstructions = 3;
+  static const int kNumInstructions = 2;
   static const int kInstructionSize = 5;  // All instructions have same length.
 
  private:
@@ -66,28 +60,10 @@ class DartCallPattern : public ValueObject {
   }
 
   uword call_address() const {
-    return start_ + 2 * kInstructionSize;
+    return start_ + 1 * kInstructionSize;
   }
 
   uword start_;
-  DISALLOW_IMPLICIT_CONSTRUCTORS(DartCallPattern);
-};
-
-
-// The expected pattern of a dart instance call:
-//  mov ECX, ic-data
-//  mov EDX, arguments_descriptor_array
-//  call target_address
-//  <- return address
-class InstanceCall : public DartCallPattern {
- public:
-  explicit InstanceCall(uword return_address)
-      : DartCallPattern(return_address) {}
-
-  RawObject* ic_data() const { return immediate_one(); }
-  RawObject* arguments_descriptor() const { return immediate_two(); }
-
- private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
 };
 
@@ -225,22 +201,18 @@ void CodePatcher::InsertCallAt(uword start, uword target) {
 
 uword CodePatcher::GetInstanceCallAt(uword return_address,
                                      const Code& code,
-                                     ICData* ic_data,
-                                     Array* arguments_descriptor) {
+                                     ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address);
   if (ic_data != NULL) {
     *ic_data ^= call.ic_data();
-  }
-  if (arguments_descriptor != NULL) {
-    *arguments_descriptor ^= call.arguments_descriptor();
   }
   return call.target();
 }
 
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  return DartCallPattern::kNumInstructions * DartCallPattern::kInstructionSize;
+  return InstanceCall::kNumInstructions * InstanceCall::kInstructionSize;
 }
 
 }  // namespace dart

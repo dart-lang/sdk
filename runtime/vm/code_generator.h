@@ -90,10 +90,8 @@ DEOPT_REASONS(DEFINE_ENUM_LIST)
 const char* DeoptReasonToText(intptr_t deopt_id);
 
 
-RawCode* ResolveCompileInstanceCallTarget(
-    const Instance& receiver,
-    const ICData& ic_data,
-    const Array& arguments_descriptor);
+RawCode* ResolveCompileInstanceCallTarget(const Instance& receiver,
+                                          const ICData& ic_data);
 
 void DeoptimizeAt(const Code& optimized_code, uword pc);
 void DeoptimizeAll();

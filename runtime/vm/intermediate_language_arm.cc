@@ -152,6 +152,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names()));
   __ LoadObject(temp_reg, arguments_descriptor);
+  ASSERT(temp_reg == R4);
   compiler->GenerateDartCall(deopt_id(),
                              token_pos(),
                              &StubCode::CallClosureFunctionLabel(),
@@ -407,8 +408,12 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
       equality_ic_data = original_ic_data.AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumberOfArguments,
+                                               kNoArgumentNames));
     equality_ic_data = ICData::New(compiler->parsed_function().function(),
                                    Symbols::EqualOperator(),
+                                   arguments_descriptor,
                                    deopt_id,
                                    kNumArgumentsChecked);
   }
@@ -953,15 +958,19 @@ void RelationalOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       relational_ic_data = ic_data()->AsUnaryClassChecks();
     }
   } else {
+    const Array& arguments_descriptor =
+        Array::Handle(ArgumentsDescriptor::New(kNumArguments,
+                                               Object::null_array()));
     relational_ic_data = ICData::New(compiler->parsed_function().function(),
                                      function_name,
+                                     arguments_descriptor,
                                      deopt_id(),
                                      kNumArgsChecked);
   }
   compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
+                                 Object::null_array(),  // No optional args.
                                  locs(),
                                  relational_ic_data);
 }

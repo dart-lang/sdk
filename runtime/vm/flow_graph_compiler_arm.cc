@@ -910,7 +910,8 @@ void FlowGraphCompiler::CopyParameters() {
       function.IsClosureFunction() ? Symbols::Call().raw() : function.name());
   const int kNumArgsChecked = 1;
   const ICData& ic_data = ICData::ZoneHandle(
-      ICData::New(function, name, Isolate::kNoDeoptId, kNumArgsChecked));
+      ICData::New(function, name, Object::null_array(),
+                  Isolate::kNoDeoptId, kNumArgsChecked));
   __ LoadObject(R5, ic_data);
   // FP - 4 : saved PP, object pool pointer of caller.
   // FP + 0 : previous frame pointer.
@@ -1095,7 +1096,7 @@ void FlowGraphCompiler::CompileGraph() {
         // Invoke noSuchMethod function passing "call" as the function name.
         const int kNumArgsChecked = 1;
         const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, Symbols::Call(),
+            ICData::New(function, Symbols::Call(), Object::null_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(R5, ic_data);
         // FP - 4 : saved PP, object pool pointer of caller.
@@ -1238,7 +1239,6 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t token_pos,
 void FlowGraphCompiler::EmitOptimizedInstanceCall(
     ExternalLabel* target_label,
     const ICData& ic_data,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
@@ -1249,8 +1249,8 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // top-level function (parsed_function().function()) which could be
   // reoptimized and which counter needs to be incremented.
   // Pass the function explicitly, it is used in IC stub.
+
   __ LoadObject(R6, parsed_function().function());
-  __ LoadObject(R4, arguments_descriptor);
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1263,12 +1263,10 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
 
 void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          const ICData& ic_data,
-                                         const Array& arguments_descriptor,
                                          intptr_t argument_count,
                                          intptr_t deopt_id,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
-  __ LoadObject(R4, arguments_descriptor);
   __ LoadObject(R5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
@@ -1281,13 +1279,15 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
 
 void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     const ICData& ic_data,
-    const Array& arguments_descriptor,
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
   MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
   const String& name = String::Handle(ic_data.target_name());
+  const Array& arguments_descriptor =
+      Array::ZoneHandle(ic_data.arguments_descriptor());
+  ASSERT(!arguments_descriptor.IsNull());
   const MegamorphicCache& cache =
       MegamorphicCache::ZoneHandle(table->Lookup(name, arguments_descriptor));
   Label not_smi, load_cache;
