@@ -131,11 +131,11 @@ class SimpleTypesInferrer extends TypesInferrer {
 
   TypeMask getReturnTypeOfElement(Element element) {
     if (compiler.disableTypeInference) return dynamicType;
-    return internal.getReturnTypeOfElement(element);
+    return internal.getReturnTypeOfElement(element.implementation);
   }
   TypeMask getTypeOfElement(Element element) {
     if (compiler.disableTypeInference) return dynamicType;
-    return internal.getTypeOfElement(element);
+    return internal.getTypeOfElement(element.implementation);
   }
   TypeMask getTypeOfNode(Element owner, Node node) {
     if (compiler.disableTypeInference) return dynamicType;
@@ -148,7 +148,7 @@ class SimpleTypesInferrer extends TypesInferrer {
 
   Iterable<Element> getCallersOf(Element element) {
     if (compiler.disableTypeInference) throw "Don't use me";
-    Iterable<Element> result = internal.callersOf[element];
+    Iterable<Element> result = internal.callersOf[element.implementation];
     return result == null
         ? internal.callersOf[element] = const <Element>[]
         : result;

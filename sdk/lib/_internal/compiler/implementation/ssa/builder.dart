@@ -3380,7 +3380,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         ClassElement cls = element.getEnclosingClass();
         return new HType.nonNullExact(cls.thisType, compiler);
       } else {
-        return new HType.inferredTypeForElement(originalElement, compiler);
+        return new HType.inferredReturnTypeForElement(
+            originalElement, compiler);
       }
     }
 
