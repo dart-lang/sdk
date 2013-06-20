@@ -2557,7 +2557,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   String getTargetName(ErroneousElement error, [String prefix]) {
     String result = error.name.slowToString();
-    if (?prefix) {
+    if (prefix != null) {
       result = '$prefix $result';
     }
     return result;
