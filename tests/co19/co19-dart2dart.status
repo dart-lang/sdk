@@ -19,7 +19,6 @@ Language/11_Expressions/01_Constants_A01_t01: Fail # co19 issue 428
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t03: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/01_Constants_A18_t06: Fail # TODO(dart2dart-team): Please triage this failure.
-Language/11_Expressions/11_Instance_Creation/2_Const_A03_t01: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/11_Instance_Creation_A05_t02: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t10: Fail # TODO(dart2dart-team): Please triage this failure.
 Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Fail # TODO(dart2dart-team): Please triage this failure.
@@ -253,7 +252,6 @@ Language/11_Expressions/05_Strings_A02_t48: Fail # inherited from VM
 Language/11_Expressions/05_Strings_A20_t01: Fail # inherited from VM
 Language/11_Expressions/06_Lists_A03_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/06_Lists_A03_t02: Fail # http://dartbug.com/5519
-Language/11_Expressions/06_Lists_A04_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 Language/11_Expressions/07_Maps_A02_t01: Fail # http://dartbug.com/5519
 Language/11_Expressions/07_Maps_A02_t02: Fail # http://dartbug.com/5519
