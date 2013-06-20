@@ -10,6 +10,10 @@ main() {
   var os = Platform.operatingSystem;
   Expect.isTrue(os == "android" || os == "linux" || os == "macos" ||
       os == "windows");
+  Expect.equals(Platform.isLinux, Platform.operatingSystem == "linux");
+  Expect.equals(Platform.isMacOS, Platform.operatingSystem == "macos");
+  Expect.equals(Platform.isWindows, Platform.operatingSystem == "windows");
+  Expect.equals(Platform.isAndroid, Platform.operatingSystem == "android");
   var sep = Platform.pathSeparator;
   Expect.isTrue(sep == '/' || (os == 'windows' && sep == '\\'));
   var hostname = Platform.localHostname;
