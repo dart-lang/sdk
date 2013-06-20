@@ -994,10 +994,12 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
 // Transformer that transforms data to HTTP Chunked Encoding.
 class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
+  int _pendingFooter = 0;
+
   void handleData(List<int> data, EventSink<List<int>> sink) {
     sink.add(_chunkHeader(data.length));
     if (data.length > 0) sink.add(data);
-    sink.add(_chunkFooter);
+    _pendingFooter = 2;
   }
 
   void handleDone(EventSink<List<int>> sink) {
@@ -1005,33 +1007,41 @@ class _ChunkedTransformer extends StreamEventTransformer<List<int>, List<int>> {
     sink.close();
   }
 
-  static List<int> _chunkHeader(int length) {
+  List<int> _chunkHeader(int length) {
     const hexDigits = const [0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
                              0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46];
-    if (length == 0) return _chunk0Length;
-    int size = 0;
+    if (length == 0) {
+      if (_pendingFooter == 2) return _footerAndChunk0Length;
+      return _chunk0Length;
+    }
+    int size = _pendingFooter;
     int len = length;
     // Compute a fast integer version of (log(length + 1) / log(16)).ceil().
     while (len > 0) {
       size++;
       len >>= 4;
     }
-    var header = new Uint8List(size + 2);
+    var footerAndHeader = new Uint8List(size + 2);
+    if (_pendingFooter == 2) {
+      footerAndHeader[0] = _CharCode.CR;
+      footerAndHeader[1] = _CharCode.LF;
+    }
     int index = size;
-    while (index > 0) {
-      header[--index] = hexDigits[length & 15];
+    while (index > _pendingFooter) {
+      footerAndHeader[--index] = hexDigits[length & 15];
       length = length >> 4;
     }
-    header[size + 0] = _CharCode.CR;
-    header[size + 1] = _CharCode.LF;
-    return header;
+    footerAndHeader[size + 0] = _CharCode.CR;
+    footerAndHeader[size + 1] = _CharCode.LF;
+    return footerAndHeader;
   }
 
-  // Footer is just a CRLF.
-  static List<int> get _chunkFooter => new Uint8List.fromList(
-      const[_CharCode.CR, _CharCode.LF]);
+  static List<int> get _footerAndChunk0Length => new Uint8List.fromList(
+      const [_CharCode.CR, _CharCode.LF, 0x30, _CharCode.CR, _CharCode.LF,
+             _CharCode.CR, _CharCode.LF]);
+
   static List<int> get _chunk0Length => new Uint8List.fromList(
-      const[0x30, _CharCode.CR, _CharCode.LF]);
+      const [0x30, _CharCode.CR, _CharCode.LF, _CharCode.CR, _CharCode.LF]);
 }
 
 
