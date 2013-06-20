@@ -1711,34 +1711,28 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   node->increment()->Visit(&for_increment);
 
   // Join the loop body and increment and then tie the loop.
-  JoinEntryInstr* join = node->label()->join_for_continue();
-  if ((join != NULL) || for_body.is_open()) {
-    JoinEntryInstr* loop_start =
+  JoinEntryInstr* continue_join = node->label()->join_for_continue();
+  if ((continue_join != NULL) || for_body.is_open()) {
+    JoinEntryInstr* loop_entry =
         new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
-    if (join != NULL) {
-      if (for_body.is_open()) for_body.Goto(join);
-      AppendFragment(join, for_increment);
-      for_increment.Goto(loop_start);
+    if (continue_join != NULL) {
+      if (for_body.is_open()) for_body.Goto(continue_join);
+      Instruction* current = AppendFragment(continue_join, for_increment);
+      current->Goto(loop_entry);
     } else {
       for_body.Append(for_increment);
-      for_body.Goto(loop_start);
+      for_body.Goto(loop_entry);
     }
-    Goto(loop_start);
-    exit_ = loop_start;
+    Goto(loop_entry);
+    exit_ = loop_entry;
     AddInstruction(
         new CheckStackOverflowInstr(node->token_pos(), owner()->loop_depth()));
   }
 
   if (node->condition() == NULL) {
     // Endless loop, no test.
-    JoinEntryInstr* body_entry =
-        new JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
-    AppendFragment(body_entry, for_body);
-    Goto(body_entry);
-    if (node->label()->join_for_break() != NULL) {
-      // Control flow of ForLoop continues into join_for_break.
-      exit_ = node->label()->join_for_break();
-    }
+    Append(for_body);
+    exit_ = node->label()->join_for_break();  // May be NULL.
   } else {
     TestGraphVisitor for_test(owner(),
                               temp_index(),
