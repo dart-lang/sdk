@@ -183,7 +183,6 @@ class Safari extends Browser {
    */
   const String versionFile = "/Applications/Safari.app/Contents/version.plist";
 
-
   Future<bool> allowPopUps() {
     var command = "defaults";
     var args = ["write", "com.apple.safari",
@@ -191,12 +190,25 @@ class Safari extends Browser {
                 "WebKit2JavaScriptCanOpenWindowsAutomatically",
                 "1"];
     return Process.run(command, args).then((result) {
-        if (result.exitCode != 0) {
-          _logEvent("Could not disable pop-up blocking for safari");
-          return false;
-        }
-        return true;
+      if (result.exitCode != 0) {
+        _logEvent("Could not disable pop-up blocking for safari");
+        return false;
+      }
+      return true;
     });
+  }
+
+  // Clears the cache if the static deleteCache flag is set.
+  // Returns false if the command to actually clear the cache did not complete.
+  Future<bool> clearCache() {
+    if (!deleteCache) return new Future.immediate(true);
+    var home = Platform.environment['HOME'];
+    var cache = "$home/Library/Caches/com.apple.Safari";
+    _logEvent("Clearing safari cache: $cache}");
+    return new Directory(cache).delete(recursive: true)
+        .then((_) => true)
+	// This normally means that the directory was not there.
+	.catchError((error) => true);
   }
 
   Future<String> getVersion() {
@@ -242,28 +254,34 @@ class Safari extends Browser {
 
   Future<bool> start(String url) {
     _logEvent("Starting Safari browser on: $url");
-    // Get the version and log that.
     return allowPopUps().then((success) {
       if (!success) {
         return new Future.immediate(false);
       }
-      return getVersion().then((version) {
-        _logEvent("Got version: $version");
-        var args = ["'$url'"];
-        return new Directory('').createTemp().then((userDir) {
-          _cleanup = () { userDir.deleteSync(recursive: true); };
-          _createLaunchHTML(userDir.path, url);
-          var args = ["${userDir.path}/launch.html"];
-          return startBrowser(binary, args);
+      return clearCache().then((_) {
+        // Get the version and log that.
+        return getVersion().then((version) {
+          _logEvent("Got version: $version");
+          return new Directory('').createTemp().then((userDir) {
+            _cleanup = () { userDir.deleteSync(recursive: true); };
+            _createLaunchHTML(userDir.path, url);
+            var args = ["${userDir.path}/launch.html"];
+            return startBrowser(binary, args);
+          });
+        }).catchError((error) {
+          _logEvent("Running $binary --version failed with $error");
+          return false;
         });
-      }).catchError((e) {
-        _logEvent("Running $binary --version failed with $e");
-        return false;
       });
     });
   }
 
   String toString() => "Safari";
+
+  // Delete the user specific browser cache and profile data.
+  // Safari only have one per user, and you can't specify one by command line.
+  static bool deleteCache = false;
+
 }
 
 

@@ -27,6 +27,7 @@ library test;
 import "dart:async";
 import "dart:io";
 import "dart:math" as math;
+import "testing/dart/browser_controller.dart";
 import "testing/dart/http_server.dart";
 import "testing/dart/record_and_replay.dart";
 import "testing/dart/test_options.dart";
@@ -91,6 +92,10 @@ void testConfigurations(List<Map> configurations) {
 
   var recordingPath = firstConf['record_to_file'];
   var recordingOutputPath = firstConf['replay_from_file'];
+
+  // We set a special flag in the safari browser if we need to clear out
+  // the cache before running.
+  Safari.deleteCache = firstConf['clear_safari_cache'];
 
   if (recordingPath != null && recordingOutputPath != null) {
     print("Fatal: Can't have the '--record_to_file' and '--replay_from_file'"
@@ -164,9 +169,9 @@ void testConfigurations(List<Map> configurations) {
       maxBrowserProcesses = 1;
     } else if (conf['runtime'].startsWith('safari') &&
                conf['use_browser_controller']) {
-      // FIXME(kustermann/ricow): Remove this once the new browser_controller is
-      // stable.
-      maxBrowserProcesses = math.max(maxProcesses - 3, 1);
+      // Safari does not allow us to run from a fresh profile, so we can only
+      // use one browser.
+      maxBrowserProcesses = 1;
     }
 
     for (String key in selectors.keys) {
@@ -243,7 +248,6 @@ void testConfigurations(List<Map> configurations) {
     eventListener.add(new LeftOverTempDirPrinter());
   }
   eventListener.add(new ExitCodeSetter());
-
 
   void startProcessQueue() {
     // Start process queue.

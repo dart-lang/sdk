@@ -315,6 +315,14 @@ Note: currently only implemented for dart2js.''',
               'bool'
               ),
           new _TestOptionSpecification(
+              'clear_safari_cache',
+              'Clear the safari cache (i.e., delete it).',
+              ['--clear_safari_cache'],
+              [],
+              false,
+              'bool'
+              ),
+          new _TestOptionSpecification(
               'local_ip',
               'IP address the http servers should listen on.'
               'This address is also used for browsers to connect.',
