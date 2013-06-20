@@ -254,5 +254,6 @@ main() {
     testSkipTake(collection, 15, 5);
     testSkipTake(collection, 20, 0);
     testSkipTake(collection, 20, 5);
+    Expect.throws(() => longList.skip(-1), (e) => e is RangeError);
   }
 }

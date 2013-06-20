@@ -171,6 +171,8 @@ abstract class Iterable<E> {
    *
    * The returned [Iterable] may contain fewer than [n] elements, if `this`
    * contains fewer than [n] elements.
+   *
+   * It is an error if [n] is negative.
    */
   Iterable<E> take(int n);
 
@@ -191,6 +193,8 @@ abstract class Iterable<E> {
    *
    * If `this` has fewer than [n] elements, then the resulting [Iterable] will
    * be empty.
+   *
+   * It is an error if [n] is negative.
    */
   Iterable<E> skip(int n);
 

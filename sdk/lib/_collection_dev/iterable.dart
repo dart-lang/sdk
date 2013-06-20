@@ -216,7 +216,19 @@ class SubListIterable<E> extends ListIterable<E> {
   /** If null, represents the length of the iterable. */
   final int _endOrLength;
 
-  SubListIterable(this._iterable, this._start, this._endOrLength);
+  SubListIterable(this._iterable, this._start, this._endOrLength) {
+    if (_start < 0) {
+      throw new RangeError.value(_start);
+    }
+    if (_endOrLength != null) {
+      if (_endOrLength < 0) {
+        throw new RangeError.value(_endOrLength);
+      }
+      if (_start > _endOrLength) {
+        throw new RangeError.range(_start, 0, _endOrLength);
+      }
+    }
+  }
 
   int get _endIndex {
     int length = _iterable.length;
@@ -248,12 +260,12 @@ class SubListIterable<E> extends ListIterable<E> {
   }
 
   Iterable<E> skip(int count) {
-    if (count < 0) throw new ArgumentError(count);
+    if (count < 0) throw new RangeError.value(count);
     return new SubListIterable(_iterable, _start + count, _endOrLength);
   }
 
   Iterable<E> take(int count) {
-    if (count < 0) throw new ArgumentError(count);
+    if (count < 0) throw new RangeError.value(count);
     if (_endOrLength == null) {
       return new SubListIterable(_iterable, _start, _start + count);
     } else {
@@ -518,13 +530,13 @@ class SkipIterable<E> extends IterableBase<E> {
 
   SkipIterable(this._iterable, this._skipCount) {
     if (_skipCount is! int || _skipCount < 0) {
-      throw new ArgumentError(_skipCount);
+      throw new RangeError(_skipCount);
     }
   }
 
   Iterable<E> skip(int n) {
     if (n is! int || n < 0) {
-      throw new ArgumentError(n);
+      throw new RangeError.value(n);
     }
     return new SkipIterable<E>(_iterable, _skipCount + n);
   }
@@ -643,11 +655,17 @@ class EmptyIterable<E> extends IterableBase<E> {
     return initialValue;
   }
 
-  Iterable<E> skip(int count) => this;
+  Iterable<E> skip(int count) {
+    if (count < 0) throw new RangeError.value(count);
+    return this;
+  }
 
   Iterable<E> skipWhile(bool test(E element)) => this;
 
-  Iterable<E> take(int count) => this;
+  Iterable<E> take(int count) {
+    if (count < 0) throw new RangeError.value(count);
+    this;
+  }
 
   Iterable<E> takeWhile(bool test(E element)) => this;
 

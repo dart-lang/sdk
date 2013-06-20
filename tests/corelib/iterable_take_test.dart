@@ -215,4 +215,15 @@ main() {
   Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
   Expect.isNull(it.current);
+
+  Expect.throws(() => list1.skip(-1), (e) => e is RangeError);
+  Expect.throws(() => list2.skip(-1), (e) => e is RangeError);
+  Expect.throws(() => list3.skip(-1), (e) => e is RangeError);
+  Expect.throws(() => set1.skip(-1), (e) => e is RangeError);
+  Expect.throws(() => set2.skip(-1), (e) => e is RangeError);
+  Expect.throws(() => list1.map((x) => x).skip(-1), (e) => e is RangeError);
+  Expect.throws(() => list2.map((x) => x).skip(-1), (e) => e is RangeError);
+  Expect.throws(() => list3.map((x) => x).skip(-1), (e) => e is RangeError);
+  Expect.throws(() => set1.map((x) => x).skip(-1), (e) => e is RangeError);
+  Expect.throws(() => set2.map((x) => x).skip(-1), (e) => e is RangeError);
 }
