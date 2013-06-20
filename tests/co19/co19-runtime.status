@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime = vm && $system == windows ]
+[ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
 
 [ $runtime == vm ]
