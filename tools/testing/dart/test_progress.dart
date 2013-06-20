@@ -128,8 +128,14 @@ List<String> _buildFailureOutput(TestCase test,
   }
   for (var i = 0; i < test.commands.length; i++) {
     var command = test.commands[i];
+    var commandOutput = test.commandOutputs[command];
     output.add('');
     output.add('Command[$i]: $command');
+    if (commandOutput != null) {
+      output.add('Took ${commandOutput.time}');
+    } else {
+      output.add('Did not run');
+    }
   }
   return output;
 }
