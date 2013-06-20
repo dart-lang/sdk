@@ -43,8 +43,8 @@ main() {
   parser.parse(args);
   if (args.length == 0) {
     print('Usage: generate_from_json [--output-dir=<dir>]'
-        ' [generated-file-prefix=<prefix>] file1.dart file2.dart ...'
-        ' outputFile.json');
+        ' [--generated-file-prefix=<prefix>] file1.dart file2.dart ...'
+        ' translation1.json translation2.json ...');
     exit(0);
   }
 

@@ -201,9 +201,9 @@ class MessageFindingVisitor extends GeneralizingASTVisitor {
 
   void reportErrorLocation(ASTNode node) {
     if (origin != null) print("    from $origin");
-    LineInfo info = root.lineInfo;
+    var info = root.lineInfo;
     if (info != null) {
-      LineInfo_Location line = info.getLocation(node.offset);
+      var line = info.getLocation(node.offset);
       print("    line: ${line.lineNumber}, column: ${line.columnNumber}");
     }
   }
