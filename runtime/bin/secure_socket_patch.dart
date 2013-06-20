@@ -15,6 +15,9 @@ patch class SecureSocket {
 
 patch class _SecureFilter {
   /* patch */ factory _SecureFilter() => new _SecureFilterImpl();
+
+  /* patch */ static SendPort _newServicePort()
+      native "SecureSocket_NewServicePort";
 }
 
 
@@ -49,10 +52,17 @@ class _SecureSocket extends _Socket implements SecureSocket {
 class _SecureFilterImpl
     extends NativeFieldWrapperClass1
     implements _SecureFilter {
+  // Performance is improved if a full buffer of plaintext fits
+  // in the encrypted buffer, when encrypted.
+  static final int SIZE = 8 * 1024;
+  static final int ENCRYPTED_SIZE = 10 * 1024;
+
   _SecureFilterImpl() {
     buffers = new List<_ExternalBuffer>(_RawSecureSocket.NUM_BUFFERS);
     for (int i = 0; i < _RawSecureSocket.NUM_BUFFERS; ++i) {
-      buffers[i] = new _ExternalBuffer();
+      buffers[i] = new _ExternalBuffer(_RawSecureSocket._isBufferEncrypted(i) ?
+                                       ENCRYPTED_SIZE :
+                                       SIZE);
     }
   }
 
@@ -78,13 +88,14 @@ class _SecureFilterImpl
 
   X509Certificate get peerCertificate native "SecureSocket_PeerCertificate";
 
-  int processBuffer(int bufferIndex) native "SecureSocket_ProcessBuffer";
-
   void registerBadCertificateCallback(Function callback)
       native "SecureSocket_RegisterBadCertificateCallback";
 
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler)
       native "SecureSocket_RegisterHandshakeCompleteCallback";
+
+  // This is a security issue, as it exposes a raw pointer to Dart code.
+  int _pointer() native "SecureSocket_FilterPointer";
 
   List<_ExternalBuffer> buffers;
 }

@@ -61,10 +61,11 @@ namespace bin {
   V(SecureSocket_Handshake, 1)                                                 \
   V(SecureSocket_Init, 1)                                                      \
   V(SecureSocket_PeerCertificate, 1)                                           \
-  V(SecureSocket_ProcessBuffer, 2)                                             \
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_InitializeLibrary, 3)                                         \
+  V(SecureSocket_NewServicePort, 0)                                            \
+  V(SecureSocket_FilterPointer, 1)                                             \
   V(StringToSystemEncoding, 1)                                                 \
   V(SystemEncodingToString, 1)
 

@@ -22,6 +22,7 @@
 #include "bin/dartutils.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
+#include "bin/native_service.h"
 
 namespace dart {
 namespace bin {
@@ -88,18 +89,27 @@ class SSLFilter {
   Dart_Handle bad_certificate_callback() {
     return Dart_HandleFromPersistent(bad_certificate_callback_);
   }
+  intptr_t ProcessReadPlaintextBuffer(int start, int end);
+  intptr_t ProcessWritePlaintextBuffer(int start1, int end1,
+                                       int start2, int end2);
+  intptr_t ProcessReadEncryptedBuffer(int start, int end);
+  intptr_t ProcessWriteEncryptedBuffer(int start, int end);
+  void ProcessAllBuffers(int starts[kNumBuffers],
+                         int ends[kNumBuffers],
+                         bool in_handshake);
+  Dart_Handle PeerCertificate();
   static void InitializeLibrary(const char* certificate_database,
                                 const char* password,
                                 bool use_builtin_root_certificates,
                                 bool report_duplicate_initialization = true);
-  intptr_t ProcessBuffer(int bufferIndex);
-  Dart_Handle PeerCertificate();
+  static Dart_Port GetServicePort();
 
  private:
   static const int kMemioBufferSize = 20 * KB;
   static bool library_initialized_;
   static const char* password_;
   static dart::Mutex mutex_;  // To protect library initialization.
+  static NativeService filter_service_;
 
   uint8_t* buffers_[kNumBuffers];
   int buffer_size_;
@@ -114,7 +124,7 @@ class SSLFilter {
   char* client_certificate_name_;
   PRFileDesc* filter_;
 
-  static bool isEncrypted(int i) {
+  static bool isBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;
   }
   void InitializeBuffers(Dart_Handle dart_this);

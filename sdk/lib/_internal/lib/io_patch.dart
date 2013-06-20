@@ -272,6 +272,9 @@ patch class _SecureFilter {
   patch factory _SecureFilter() {
     throw new UnsupportedError("_SecureFilter._SecureFilter");
   }
+  patch static SendPort _newServicePort() {
+    throw new UnsupportedError("_SecureFilter._newServicePort");
+  }
 }
 
 patch class _StdIOUtils {

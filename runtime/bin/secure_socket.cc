@@ -41,6 +41,13 @@ dart::Mutex SSLFilter::mutex_;  // To protect library initialization.
 // be null if only secure client sockets are used.
 const char* SSLFilter::password_ = NULL;
 
+// Forward declaration.
+static void ProcessFilter(Dart_Port dest_port_id,
+                          Dart_Port reply_port_id,
+                          Dart_CObject* message);
+
+NativeService SSLFilter::filter_service_("FilterService", ProcessFilter, 16);
+
 static const int kSSLFilterNativeFieldIndex = 0;
 
 static SSLFilter* GetFilter(Dart_NativeArguments args) {
@@ -177,22 +184,6 @@ void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
 }
 
 
-void FUNCTION_NAME(SecureSocket_ProcessBuffer)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  Dart_Handle buffer_id_object = ThrowIfError(Dart_GetNativeArgument(args, 1));
-  int64_t buffer_id = DartUtils::GetIntegerValue(buffer_id_object);
-  if (buffer_id < 0 || buffer_id >= SSLFilter::kNumBuffers) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Illegal argument to ProcessBuffer"));
-  }
-
-  intptr_t bytes_read =
-      GetFilter(args)->ProcessBuffer(static_cast<int>(buffer_id));
-  Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
-  Dart_ExitScope();
-}
-
-
 void FUNCTION_NAME(SecureSocket_InitializeLibrary)
     (Dart_NativeArguments args) {
   Dart_EnterScope();
@@ -244,6 +235,131 @@ void FUNCTION_NAME(SecureSocket_PeerCertificate)
   Dart_EnterScope();
   Dart_SetReturnValue(args, GetFilter(args)->PeerCertificate());
   Dart_ExitScope();
+}
+
+
+void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  intptr_t filter_pointer = reinterpret_cast<intptr_t>(GetFilter(args));
+  Dart_SetReturnValue(args, Dart_NewInteger(filter_pointer));
+  Dart_ExitScope();
+}
+
+
+/**
+ * Pushes data through the SSL filter, reading and writing from circular
+ * buffers shared with Dart.
+ *
+ * The Dart _SecureFilterImpl class contains 4 ExternalByteArrays used to
+ * pass encrypted and plaintext data to and from the C++ SSLFilter object.
+ *
+ * ProcessFilter is called with a CObject array containing the pointer to
+ * the SSLFilter, encoded as an int, and the start and end positions of the
+ * valid data in the four circular buffers.  The function only reads from
+ * the valid data area of the input buffers, and only writes to the free
+ * area of the output buffers.  The function returns the new start and end
+ * positions in the buffers, but it only updates start for input buffers, and
+ * end for output buffers.  Therefore, the Dart thread can simultaneously
+ * write to the free space and end pointer of input buffers, and read from
+ * the data space of output buffers, and modify the start pointer.
+ *
+ * When ProcessFilter returns, the Dart thread is responsible for combining
+ * the updated pointers from Dart and C++, to make the new valid state of
+ * the circular buffer.
+ */
+static void ProcessFilter(Dart_Port dest_port_id,
+                          Dart_Port reply_port_id,
+                          Dart_CObject* message) {
+  CObjectArray args(message);
+  CObjectIntptr filter_object(args[0]);
+  SSLFilter* filter = reinterpret_cast<SSLFilter*>(filter_object.Value());
+  bool in_handshake = CObjectBool(args[1]).Value();
+  int starts[SSLFilter::kNumBuffers];
+  int ends[SSLFilter::kNumBuffers];
+  for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
+    starts[i] = CObjectInt32(args[2 * i + 2]).Value();
+    ends[i] = CObjectInt32(args[2 * i + 3]).Value();
+  }
+
+  filter->ProcessAllBuffers(starts, ends, in_handshake);
+
+  for (int i = 0; i < SSLFilter::kNumBuffers; ++i) {
+    args[2 * i + 2]->AsApiCObject()->value.as_int32 = starts[i];
+    args[2 * i + 3]->AsApiCObject()->value.as_int32 = ends[i];
+  }
+  Dart_PostCObject(reply_port_id, args.AsApiCObject());
+}
+
+
+void SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
+                                  int ends[kNumBuffers],
+                                  bool in_handshake) {
+  for (int i = 0; i < kNumBuffers; ++i) {
+    if (in_handshake && (i == kReadPlaintext || i == kWritePlaintext)) continue;
+    int start = starts[i];
+    int end = ends[i];
+    int size = isBufferEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
+    switch (i) {
+      case kReadPlaintext:
+      case kWriteEncrypted:
+        // Write data to the circular buffer's free space.  If the buffer
+        // is full, neither if statement is executed and nothing happens.
+        if (start <= end) {
+          // If the free space may be split into two segments,
+          // then the first is [end, size), unless start == 0.
+          // Then, since the last free byte is at position start - 2,
+          // the interval is [end, size - 1).
+          int buffer_end = (start == 0) ? size - 1 : size;
+          int bytes = (i == kReadPlaintext) ?
+              ProcessReadPlaintextBuffer(end, buffer_end) :
+              ProcessWriteEncryptedBuffer(end, buffer_end);
+          end += bytes;
+          ASSERT(end <= size);
+          if (end == size) end = 0;
+        }
+        if (start > end + 1) {
+          int bytes =  (i == kReadPlaintext) ?
+              ProcessReadPlaintextBuffer(end, start - 1) :
+              ProcessWriteEncryptedBuffer(end, start - 1);
+          end += bytes;
+          ASSERT(end < start);
+        }
+        ends[i] = end;
+        break;
+      case kReadEncrypted:
+        // Read data from circular buffer.
+        if (end < start) {
+          // Data may be split into two segments.  In this case,
+          // the first is [start, size).
+          int bytes = ProcessReadEncryptedBuffer(start, size);
+          start += bytes;
+          ASSERT(start <= size);
+          if (start == size) start = 0;
+        }
+        if (start < end) {
+          int bytes = ProcessReadEncryptedBuffer(start, end);
+          start += bytes;
+          ASSERT(start <= end);
+        }
+        starts[i] = start;
+        break;
+      case kWritePlaintext:
+        if (end < start) {
+          // Data is split into two segments, [start, size) and [0, end).
+          int bytes = ProcessWritePlaintextBuffer(start, size, 0, end);
+          start += bytes;
+          if (start >= size) start -= size;
+        } else {
+          int bytes = ProcessWritePlaintextBuffer(start, end, 0, 0);
+          start += bytes;
+          ASSERT(start <= end);
+        }
+        starts[i] = start;
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
 }
 
 
@@ -307,15 +423,13 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
   // Create SSLFilter buffers as ExternalUint8Array objects.
   Dart_Handle dart_buffers_object = ThrowIfError(
       Dart_GetField(dart_this, DartUtils::NewString("buffers")));
-  Dart_Handle dart_buffer_object =
-      Dart_ListGetAt(dart_buffers_object, kReadPlaintext);
-  Dart_Handle external_buffer_class =
-      Dart_InstanceGetClass(dart_buffer_object);
+  Dart_Handle secure_filter_impl_class =
+      Dart_InstanceGetClass(dart_this);
   Dart_Handle dart_buffer_size = ThrowIfError(
-      Dart_GetField(external_buffer_class, DartUtils::NewString("SIZE")));
+      Dart_GetField(secure_filter_impl_class, DartUtils::NewString("SIZE")));
   int64_t buffer_size = DartUtils::GetIntegerValue(dart_buffer_size);
   Dart_Handle dart_encrypted_buffer_size = ThrowIfError(
-      Dart_GetField(external_buffer_class,
+      Dart_GetField(secure_filter_impl_class,
                     DartUtils::NewString("ENCRYPTED_SIZE")));
   int64_t encrypted_buffer_size =
       DartUtils::GetIntegerValue(dart_encrypted_buffer_size);
@@ -333,7 +447,7 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
 
   Dart_Handle data_identifier = DartUtils::NewString("data");
   for (int i = 0; i < kNumBuffers; ++i) {
-    int size = isEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
+    int size = isBufferEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
     dart_buffer_objects_[i] =
         Dart_NewPersistentHandle(Dart_ListGetAt(dart_buffers_object, i));
     ASSERT(dart_buffer_objects_[i] != NULL);
@@ -494,6 +608,11 @@ void SSLFilter::Connect(const char* host_name,
     ThrowPRException("Failed SSL_ImportFD call");
   }
 
+  SSLVersionRange vrange;
+  vrange.min = SSL_LIBRARY_VERSION_3_0;
+  vrange.max = SSL_LIBRARY_VERSION_TLS_1_1;
+  SSL_VersionRangeSet(filter_, &vrange);
+
   SECStatus status;
   if (is_server) {
     PK11_SetPasswordFunc(PasswordCallback);
@@ -648,106 +767,112 @@ void SSLFilter::Destroy() {
 }
 
 
-intptr_t SSLFilter::ProcessBuffer(int buffer_index) {
-  int size = isEncrypted(buffer_index) ? encrypted_buffer_size_ : buffer_size_;
-  Dart_Handle buffer_object =
-      Dart_HandleFromPersistent(dart_buffer_objects_[buffer_index]);
-  Dart_Handle start_object = ThrowIfError(
-      Dart_GetField(buffer_object, Dart_HandleFromPersistent(string_start_)));
-  Dart_Handle length_object = ThrowIfError(
-      Dart_GetField(buffer_object, Dart_HandleFromPersistent(string_length_)));
-  int64_t unsafe_start = DartUtils::GetIntegerValue(start_object);
-  int64_t unsafe_length = DartUtils::GetIntegerValue(length_object);
-  ASSERT(unsafe_start >= 0);
-  ASSERT(unsafe_start < size);
-  ASSERT(unsafe_length >= 0);
-  ASSERT(unsafe_length <= size);
-  int start = static_cast<int>(unsafe_start);
-  int length = static_cast<int>(unsafe_length);
-  uint8_t* buffer = buffers_[buffer_index];
-
+intptr_t SSLFilter::ProcessReadPlaintextBuffer(int start, int end) {
+  int length = end - start;
   int bytes_processed = 0;
-  switch (buffer_index) {
-    case kReadPlaintext: {
-      int bytes_free = size - start - length;
-      bytes_processed = PR_Read(filter_,
-                                buffer + start + length,
-                                bytes_free);
-      if (bytes_processed < 0) {
-        ASSERT(bytes_processed == -1);
-        // TODO(whesse): Handle unexpected errors here.
-        PRErrorCode pr_error = PR_GetError();
-        if (PR_WOULD_BLOCK_ERROR != pr_error) {
-          ThrowPRException("Error reading plaintext from SSLFilter");
-        }
-        bytes_processed = 0;
+  if (length > 0) {
+    bytes_processed = PR_Read(filter_,
+                              buffers_[kReadPlaintext] + start,
+                              length);
+    if (bytes_processed < 0) {
+      ASSERT(bytes_processed == -1);
+      PRErrorCode pr_error = PR_GetError();
+      if (PR_WOULD_BLOCK_ERROR != pr_error) {
+        // TODO(11383): Handle unexpected errors here.
+        FATAL("Error reading plaintext from SSLFilter");
       }
-      break;
-    }
-
-    case kWriteEncrypted: {
-      const uint8_t* buf1;
-      const uint8_t* buf2;
-      unsigned int len1;
-      unsigned int len2;
-      int bytes_free = size - start - length;
-      memio_Private* secret = memio_GetSecret(filter_);
-      memio_GetWriteParams(secret, &buf1, &len1, &buf2, &len2);
-      int bytes_to_send =
-          dart::Utils::Minimum(len1, static_cast<unsigned>(bytes_free));
-      if (bytes_to_send > 0) {
-        memmove(buffer + start + length, buf1, bytes_to_send);
-        bytes_processed = bytes_to_send;
-      }
-      bytes_to_send = dart::Utils::Minimum(len2,
-          static_cast<unsigned>(bytes_free - bytes_processed));
-      if (bytes_to_send > 0) {
-        memmove(buffer + start + length + bytes_processed, buf2,
-                bytes_to_send);
-        bytes_processed += bytes_to_send;
-      }
-      if (bytes_processed > 0) {
-        memio_PutWriteResult(secret, bytes_processed);
-      }
-      break;
-    }
-
-    case kReadEncrypted: {
-      if (length > 0) {
-        bytes_processed = length;
-        memio_Private* secret = memio_GetSecret(filter_);
-        uint8_t* filter_buf;
-        int free_bytes = memio_GetReadParams(secret, &filter_buf);
-        if (free_bytes < bytes_processed) bytes_processed = free_bytes;
-        memmove(filter_buf,
-                buffer + start,
-                bytes_processed);
-        memio_PutReadResult(secret, bytes_processed);
-      }
-      break;
-    }
-
-    case kWritePlaintext: {
-      if (length > 0) {
-        bytes_processed = PR_Write(filter_,
-                                   buffer + start,
-                                   length);
-      }
-
-      if (bytes_processed < 0) {
-        ASSERT(bytes_processed == -1);
-        // TODO(whesse): Handle unexpected errors here.
-        PRErrorCode pr_error = PR_GetError();
-        if (PR_WOULD_BLOCK_ERROR != pr_error) {
-          ThrowPRException("Error reading plaintext from SSLFilter");
-        }
-        bytes_processed = 0;
-      }
-      break;
+      bytes_processed = 0;
     }
   }
   return bytes_processed;
 }
+
+
+intptr_t SSLFilter::ProcessWritePlaintextBuffer(int start1, int end1,
+                                                int start2, int end2) {
+  PRIOVec ranges[2];
+  uint8_t* buffer = buffers_[kWritePlaintext];
+  ranges[0].iov_base = reinterpret_cast<char*>(buffer + start1);
+  ranges[0].iov_len = end1 - start1;
+  ranges[1].iov_base = reinterpret_cast<char*>(buffer + start2);
+  ranges[1].iov_len = end2 - start2;
+  int bytes_processed = PR_Writev(filter_, ranges, 2, PR_INTERVAL_NO_TIMEOUT);
+  if (bytes_processed < 0) {
+    ASSERT(bytes_processed == -1);
+    PRErrorCode pr_error = PR_GetError();
+    if (PR_WOULD_BLOCK_ERROR != pr_error) {
+      // TODO(11383): Handle unexpected errors here.
+      FATAL("Error reading plaintext from SSLFilter");
+    }
+    bytes_processed = 0;
+  }
+  return bytes_processed;
+}
+
+
+intptr_t SSLFilter::ProcessReadEncryptedBuffer(int start, int end) {
+  int length = end - start;
+  int bytes_processed = 0;
+  if (length > 0) {
+    memio_Private* secret = memio_GetSecret(filter_);
+    uint8_t* filter_buf;
+    int free_bytes = memio_GetReadParams(secret, &filter_buf);
+    bytes_processed = dart::Utils::Minimum(length, free_bytes);
+    memmove(filter_buf, buffers_[kReadEncrypted] + start, bytes_processed);
+    memio_PutReadResult(secret, bytes_processed);
+  }
+  return bytes_processed;
+}
+
+
+intptr_t SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
+  int length = end - start;
+  int bytes_processed = 0;
+  if (length > 0) {
+    uint8_t* buffer = buffers_[kWriteEncrypted];
+    const uint8_t* buf1;
+    const uint8_t* buf2;
+    unsigned int len1;
+    unsigned int len2;
+    memio_Private* secret = memio_GetSecret(filter_);
+    memio_GetWriteParams(secret, &buf1, &len1, &buf2, &len2);
+    int bytes_to_send =
+        dart::Utils::Minimum(len1, static_cast<unsigned>(length));
+    if (bytes_to_send > 0) {
+      memmove(buffer + start, buf1, bytes_to_send);
+      bytes_processed = bytes_to_send;
+    }
+    bytes_to_send = dart::Utils::Minimum(len2,
+        static_cast<unsigned>(length - bytes_processed));
+    if (bytes_to_send > 0) {
+      memmove(buffer + start + bytes_processed, buf2, bytes_to_send);
+      bytes_processed += bytes_to_send;
+    }
+    if (bytes_processed > 0) {
+      memio_PutWriteResult(secret, bytes_processed);
+    }
+  }
+  return bytes_processed;
+}
+
+
+Dart_Port SSLFilter::GetServicePort() {
+  return filter_service_.GetServicePort();
+}
+
+
+void FUNCTION_NAME(SecureSocket_NewServicePort)(Dart_NativeArguments args) {
+  Dart_EnterScope();
+  Dart_SetReturnValue(args, Dart_Null());
+  Dart_Port service_port = SSLFilter::GetServicePort();
+  if (service_port != ILLEGAL_PORT) {
+    // Return a send port for the service port.
+    Dart_Handle send_port = Dart_NewSendPort(service_port);
+    Dart_SetReturnValue(args, send_port);
+  }
+  Dart_ExitScope();
+}
+
 
 }  // namespace bin
 }  // namespace dart
