@@ -13,7 +13,7 @@ import 'dart:isolate';
 
 part 'test_models.dart';
 
-main() {
+void main() {
   var p1 = new Person();
   var a1 = new Address();
   a1.street = 'N 34th';
@@ -554,14 +554,14 @@ main() {
       var s = nodeSerializerReflective(n1);
       var output = s.write(n2);
       var port = spawnFunction(echo);
-      port.call(output).then(expectAsync1((input) => verify(input)));
+      return port.call(output).then(verify);
   });
 }
 
 /**
  * Verify serialized output that we have passed to an isolate and back.
  */
-verify(input) {
+void verify(input) {
   var s2 = nodeSerializerReflective(new Node("a"));
   var reader = new Reader(s2);
   var m2 = reader.read(input);
@@ -718,7 +718,7 @@ Serialization nodeSerializerNonReflective(Node n) {
  * Run a round-trip test on a simple tree of nodes, using a serialization
  * that's returned by the [serializerSetUp] function.
  */
-runRoundTripTest(Function serializerSetUp) {
+void runRoundTripTest(Function serializerSetUp) {
   Node n1 = new Node("1"), n2 = new Node("2"), n3 = new Node("3");
   n1.children = [n2, n3];
   n2.parent = n1;
@@ -744,7 +744,7 @@ runRoundTripTest(Function serializerSetUp) {
  * Run a round-trip test on a simple of nodes, but using the flat format
  * rather than the maps.
  */
-runRoundTripTestFlat(serializerSetUp) {
+void runRoundTripTestFlat(serializerSetUp) {
   Node n1 = new Node("1"), n2 = new Node("2"), n3 = new Node("3");
   n1.children = [n2, n3];
   n2.parent = n1;
@@ -768,7 +768,7 @@ runRoundTripTestFlat(serializerSetUp) {
 }
 
 /** Extract the state from [object] using the rules in [s] and return it. */
-states(object, Serialization s) {
+List states(object, Serialization s) {
   var rules = s.rulesFor(object, null);
   return rules.map((x) => x.extractState(object, doNothing, null)).toList();
 }
@@ -816,7 +816,7 @@ class PersonRuleReturningMapWithNonStringKey extends CustomRule {
  * Function used in an isolate to make sure that the output passes through
  * isolate serialization properly.
  */
-echo() {
+void echo() {
   port.receive((msg, reply) {
     reply.send(msg);
   });

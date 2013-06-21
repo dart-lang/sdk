@@ -205,7 +205,7 @@ class IdentityMap<K, V> implements Map<K, V> {
     }
   }
 
-  putIfAbsent(K key, Function ifAbsent) {
+  V putIfAbsent(K key, Function ifAbsent) {
     var index = _indexOf(key);
     if (index == -1) {
       keys.add(key);
@@ -216,7 +216,7 @@ class IdentityMap<K, V> implements Map<K, V> {
     }
   }
 
-  _indexOf(K key) {
+  int _indexOf(K key) {
     // Go backwards on the guess that we are most likely to access the most
     // recently added.
     // Make strings and primitives unique
@@ -252,4 +252,10 @@ class IdentityMap<K, V> implements Map<K, V> {
 
   // Note that this is doing an equality comparison.
   bool containsValue(x) => values.contains(x);
+
+  void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
+  }
 }

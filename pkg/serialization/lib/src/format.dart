@@ -67,7 +67,7 @@ class InternalMapFormat extends Format {
    * the data also includes rule definitions, then these will replace the rules
    * in the [Serialization] for [reader].
    */
-  Map<String, dynamic> read(topLevel, Reader reader) {
+  Map<String, dynamic> read(Map<String, dynamic> topLevel, Reader reader) {
     var ruleString = topLevel["rules"];
     reader.readRules(ruleString);
     reader._data = topLevel["data"];
@@ -150,7 +150,7 @@ class SimpleMapFormat extends InternalMapFormat {
    * the data also includes rule definitions, then these will replace the rules
    * in the [Serialization] for [reader].
    */
-  Map<String, dynamic> read(topLevel, Reader reader) {
+  Map<String, dynamic> read(Map<String, dynamic> topLevel, Reader reader) {
     super.read(topLevel, reader);
     forAllStates(reader,
         (ref) => ref is Map && ref["__Ref"] != null,
