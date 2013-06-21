@@ -87,7 +87,7 @@ class _VirtualDirectory implements VirtualDirectory {
 
   Future<FileSystemEntity> _locateResource(Path path,
                                            Iterable<String> segments) {
-    return FileSystemEntity.type(path.toString(), followLinks: false)
+    return FileSystemEntity.type(path.toNativePath(), followLinks: false)
         .then((type) {
           switch (type) {
             case FileSystemEntityType.FILE:
@@ -108,7 +108,6 @@ class _VirtualDirectory implements VirtualDirectory {
                 // TODO
               }
               break;
-
           }
           // Return `null` on fall-through, to indicate NOT_FOUND.
           return null;
