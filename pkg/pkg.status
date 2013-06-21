@@ -48,6 +48,8 @@ intl/test/date_time_format_http_request_test: Fail # Issue 8983
 
 [ $runtime == safari ]
 fixnum/test/int_64_test: Pass, Fail # Bug in JSC.
+crypto/test/hmac_sha1_test: Fail # Issue 11407.
+crypto/test/sha1_test: Fail # Issue 11407.
 
 # Skip browser-specific tests on VM
 [ $runtime == vm ]
@@ -91,7 +93,7 @@ serialization/test/no_library_test: Fail # Issue 6490
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
-[ $compiler == dart2js && $unchecked && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
+[ $compiler == dart2js && $unchecked && ($runtime == d8 || $runtime == chrome || $runtime == drt || $runtime == safari) ]
 crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail?id=2692
 
 [ $compiler == dart2js && $browser ]
