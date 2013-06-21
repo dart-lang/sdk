@@ -351,6 +351,8 @@ testBreak2() {
   return b;
 }
 
+testReturnInvokeDynamicGetter() => new A().myFactory();
+
 get topLevelGetter => 42;
 returnDynamic() => topLevelGetter(42);
 returnTopLevelGetter() => topLevelGetter;
@@ -370,6 +372,8 @@ class A {
   operator[]= (index, value) {}
   returnInt5() => ++this[0];
   returnInt6() => this[0] += 1;
+
+  get myFactory => () => 42;
 }
 
 class B extends A {
@@ -455,6 +459,7 @@ main() {
          ..returnInt7()
          ..returnInt8()
          ..returnInt9();
+  testReturnInvokeDynamicGetter();
 }
 """;
 
@@ -527,6 +532,7 @@ void main() {
   checkReturn('testBreak1', interceptorType.nullable());
   checkReturn('testContinue2', interceptorType.nullable());
   checkReturn('testBreak2', typesInferrer.intType.nullable());
+  checkReturn('testReturnInvokeDynamicGetter', typesInferrer.dynamicType);
 
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
