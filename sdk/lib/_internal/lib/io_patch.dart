@@ -191,6 +191,7 @@ patch class Process {
       List<String> arguments,
       {String workingDirectory,
        Map<String, String> environment,
+       bool includeParentEnvironment: true,
        bool runInShell: false}) {
     throw new UnsupportedError("Process.start");
   }
@@ -200,6 +201,7 @@ patch class Process {
       List<String> arguments,
       {String workingDirectory,
        Map<String, String> environment,
+       bool includeParentEnvironment: true,
        bool runInShell: false,
        Encoding stdoutEncoding: Encoding.SYSTEM,
        Encoding stderrEncoding: Encoding.SYSTEM}) {
