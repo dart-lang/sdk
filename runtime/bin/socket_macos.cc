@@ -12,6 +12,7 @@
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #include <netinet/tcp.h>  // NOLINT
+#include <ifaddrs.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
