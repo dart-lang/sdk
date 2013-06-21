@@ -591,19 +591,12 @@ Future _doProcess(Function fn, String executable, List<String> args,
     executable = "cmd";
   }
 
-  var env = null;
-  if (environment != null) {
-    env = new Map.from(Platform.environment);
-    environment.forEach((key, value) => env[key] = value);
-  }
-
-
   log.process(executable, args);
 
   return fn(executable,
             args,
             workingDirectory: workingDir,
-            environment: env);
+            environment: environment);
 }
 
 /// Wraps [input] to provide a timeout. If [input] completes before

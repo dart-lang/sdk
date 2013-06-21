@@ -453,8 +453,7 @@ ScheduledProcess startPub({List args, Future<Uri> tokenEndpoint}) {
 
   if (tokenEndpoint == null) tokenEndpoint = new Future.value();
   var environmentFuture = tokenEndpoint.then((tokenEndpoint) {
-    // TODO(nweiz): remove this when issue 9294 is fixed.
-    var environment = new Map.from(Platform.environment);
+    var environment = {};
     environment['_PUB_TESTING'] = 'true';
     environment['PUB_CACHE'] = pathInSandbox(cachePath);
     environment['DART_SDK'] = pathInSandbox(sdkPath);

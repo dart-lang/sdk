@@ -7,7 +7,7 @@ import "dart:io";
 import "dart:isolate";
 import "process_test_util.dart";
 
-runEnvironmentProcess(Map environment, name, callback) {
+runEnvironmentProcess(Map environment, name, includeParent, callback) {
   var dartExecutable = new Options().executable;
   var printEnv = 'tests/standalone/io/print_env.dart';
   if (!new File(printEnv).existsSync()) {
@@ -15,7 +15,8 @@ runEnvironmentProcess(Map environment, name, callback) {
   }
   Process.run(dartExecutable,
               [printEnv, name],
-              environment: environment)
+              environment: environment,
+              includeParentEnvironment: includeParent)
       .then((result) {
         Expect.equals(0, result.exitCode);
         callback(result.stdout);
@@ -29,7 +30,7 @@ testEnvironment() {
   // Check that some value in the environment stays the same when passed
   // to another process.
   for (var k in env.keys) {
-    runEnvironmentProcess(env, k, (output) {
+    runEnvironmentProcess({}, k, true, (output) {
       // Only check startsWith. The print statements will add
       // newlines at the end.
       Expect.isTrue(output.startsWith(env[k]));
@@ -39,7 +40,7 @@ testEnvironment() {
       var name = 'MYENVVAR';
       while (env.containsKey(name)) name = '${name}_';
       copy[name] = 'value';
-      runEnvironmentProcess(copy, name, (output) {
+      runEnvironmentProcess(copy, name, true, (output) {
         Expect.isTrue(output.startsWith('value'));
         donePort.close();
       });
@@ -50,6 +51,15 @@ testEnvironment() {
   }
 }
 
+testNoIncludeEnvironment() {
+  var donePort = new ReceivePort();
+  runEnvironmentProcess({}, "PATH", false, (output) {
+    donePort.close();
+    Expect.isTrue(output.startsWith("null"));
+  });
+}
+
 main() {
   testEnvironment();
+  testNoIncludeEnvironment();
 }
