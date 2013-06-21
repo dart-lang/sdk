@@ -235,13 +235,6 @@ class StackOverflowError implements Error {
   String toString() => "Stack Overflow";
 }
 
-class FiftyThreeBitOverflowError implements Error {
-  final Object value;
-
-  const FiftyThreeBitOverflowError(this.value);
-  String toString() => "53-bit Overflow: $value";
-}
-
 /**
  * Error thrown when a lazily initialized variable cannot be initialized.
  *
