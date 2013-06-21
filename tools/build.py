@@ -344,111 +344,112 @@ def Main():
   # Determine which targets to build. By default we build the "all" target.
   if len(args) == 0:
     if HOST_OS == 'macos':
-      target = 'All'
+      targets = ['All']
     else:
-      target = 'all'
+      targets = ['all']
   else:
-    target = args[0]
+    targets = args
 
   filter_xcodebuild_output = False
   # Remember path
   old_path = os.environ['PATH']
-  # Build the targets for each requested configuration.
-  for target_os in options.os:
-    for mode in options.mode:
-      for arch in options.arch:
-        os.environ['DART_BUILD_MODE'] = mode
-        build_config = utils.GetBuildConf(mode, arch)
-        if HOST_OS == 'macos':
-          filter_xcodebuild_output = True
-          project_file = 'dart.xcodeproj'
-          if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
-            project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
-          args = ['xcodebuild',
-                  '-project',
-                  project_file,
-                  '-target',
-                  target,
-                  '-configuration',
-                  build_config,
-                  'SYMROOT=%s' % os.path.abspath('xcodebuild')
-                  ]
-        elif HOST_OS == 'win32':
-          project_file = 'dart.sln'
-          if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
-            project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
-          if target == 'all':
-            args = [options.devenv + os.sep + options.executable,
-                    '/build',
-                    build_config,
-                    project_file
-                   ]
-          else:
-            args = [options.devenv + os.sep + options.executable,
-                    '/build',
-                    build_config,
-                    '/project',
+  # Build all targets for each requested configuration.
+  for target in targets:
+    for target_os in options.os:
+      for mode in options.mode:
+        for arch in options.arch:
+          os.environ['DART_BUILD_MODE'] = mode
+          build_config = utils.GetBuildConf(mode, arch)
+          if HOST_OS == 'macos':
+            filter_xcodebuild_output = True
+            project_file = 'dart.xcodeproj'
+            if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
+              project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
+            args = ['xcodebuild',
+                    '-project',
+                    project_file,
+                    '-target',
                     target,
-                    project_file
-                   ]
-        else:
-          make = 'make'
-          if HOST_OS == 'freebsd':
-            make = 'gmake'
-            # work around lack of flock
-            os.environ['LINK'] = '$(CXX)'
-          args = [make,
-                  '-j',
-                  options.j,
-                  'BUILDTYPE=' + build_config,
-                  ]
-          if target_os != HOST_OS:
-            args += ['builddir_name=' + utils.GetBuildDir(HOST_OS, target_os)]
-          if options.verbose:
-            args += ['V=1']
-
-          args += [target]
-
-        if target_os != HOST_OS:
-          SetCrossCompilationEnvironment(
-              HOST_OS, target_os, arch, old_path)
-
-        RunhooksIfNeeded(HOST_OS, mode, arch, target_os)
-
-        toolchainprefix = None
-        if target_os == 'android':
-          toolchainprefix = ('%s/i686-linux-android'
-                              % os.environ['ANDROID_TOOLCHAIN'])
-        toolsOverride = SetTools(arch, toolchainprefix)
-        if toolsOverride:
-          printToolOverrides = target_os != 'android'
-          for k, v in toolsOverride.iteritems():
-            args.append(  k + "=" + v)
-            if printToolOverrides:
-              print k + " = " + v
-          if not os.path.isfile(toolsOverride['CC.target']):
-            if arch == 'arm':
-              print arm_cc_error
+                    '-configuration',
+                    build_config,
+                    'SYMROOT=%s' % os.path.abspath('xcodebuild')
+                    ]
+          elif HOST_OS == 'win32':
+            project_file = 'dart.sln'
+            if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
+              project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
+            if target == 'all':
+              args = [options.devenv + os.sep + options.executable,
+                      '/build',
+                      build_config,
+                      project_file
+                     ]
             else:
-              print "Couldn't find compiler: %s" % toolsOverride['CC.target']
+              args = [options.devenv + os.sep + options.executable,
+                      '/build',
+                      build_config,
+                      '/project',
+                      target,
+                      project_file
+                     ]
+          else:
+            make = 'make'
+            if HOST_OS == 'freebsd':
+              make = 'gmake'
+              # work around lack of flock
+              os.environ['LINK'] = '$(CXX)'
+            args = [make,
+                    '-j',
+                    options.j,
+                    'BUILDTYPE=' + build_config,
+                    ]
+            if target_os != HOST_OS:
+              args += ['builddir_name=' + utils.GetBuildDir(HOST_OS, target_os)]
+            if options.verbose:
+              args += ['V=1']
+
+            args += [target]
+
+          if target_os != HOST_OS:
+            SetCrossCompilationEnvironment(
+                HOST_OS, target_os, arch, old_path)
+
+          RunhooksIfNeeded(HOST_OS, mode, arch, target_os)
+
+          toolchainprefix = None
+          if target_os == 'android':
+            toolchainprefix = ('%s/i686-linux-android'
+                                % os.environ['ANDROID_TOOLCHAIN'])
+          toolsOverride = SetTools(arch, toolchainprefix)
+          if toolsOverride:
+            printToolOverrides = target_os != 'android'
+            for k, v in toolsOverride.iteritems():
+              args.append(  k + "=" + v)
+              if printToolOverrides:
+                print k + " = " + v
+            if not os.path.isfile(toolsOverride['CC.target']):
+              if arch == 'arm':
+                print arm_cc_error
+              else:
+                print "Couldn't find compiler: %s" % toolsOverride['CC.target']
+              return 1
+
+
+          print ' '.join(args)
+          process = None
+          if filter_xcodebuild_output:
+            process = subprocess.Popen(args,
+                                       stdin=None,
+                                       bufsize=1, # Line buffered.
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT)
+            FilterEmptyXcodebuildSections(process)
+          else:
+            process = subprocess.Popen(args, stdin=None)
+          process.wait()
+          if process.returncode != 0:
+            print "BUILD FAILED"
             return 1
-
-
-        print ' '.join(args)
-        process = None
-        if filter_xcodebuild_output:
-          process = subprocess.Popen(args,
-                                     stdin=None,
-                                     bufsize=1, # Line buffered.
-                                     stdout=subprocess.PIPE,
-                                     stderr=subprocess.STDOUT)
-          FilterEmptyXcodebuildSections(process)
-        else:
-          process = subprocess.Popen(args, stdin=None)
-        process.wait()
-        if process.returncode != 0:
-          print "BUILD FAILED"
-          return 1
 
   return 0
 
