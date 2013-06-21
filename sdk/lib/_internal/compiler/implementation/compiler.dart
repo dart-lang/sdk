@@ -126,8 +126,7 @@ abstract class Backend {
     return new ItemCompilationContext();
   }
 
-  bool classNeedsRti(ClassElement cls);
-  bool methodNeedsRti(FunctionElement function);
+  bool needsRti(ClassElement cls);
 
   // The following methods are hooks for the backend to register its
   // helper methods.
@@ -153,24 +152,7 @@ abstract class Backend {
   void registerFallThroughError(TreeElements elements) {}
   void registerSuperNoSuchMethod(TreeElements elements) {}
   void registerConstantMap(TreeElements elements) {}
-  /**
-   * Call this to register that an instantiated generic class has a call
-   * method.
-   */
-  void registerGenericCallMethod(Element callMethod,
-                                 Enqueuer enqueuer,
-                                 TreeElements elements) {}
-  /**
-   * Call this to register that a getter exists for a function on an
-   * instantiated generic class.
-   */
-  void registerGenericClosure(Element closure,
-                              Enqueuer enqueuer,
-                              TreeElements elements) {}
-  /**
-   * Call this to register that the [:runtimeType:] property has been accessed.
-   */
-  void registerRuntimeType(Enqueuer enqueuer, TreeElements elements) {}
+  void registerRuntimeType(TreeElements elements) {}
 
   void registerRequiredType(DartType type, Element enclosingElement) {}
   void registerClassUsingVariableExpression(ClassElement cls) {}

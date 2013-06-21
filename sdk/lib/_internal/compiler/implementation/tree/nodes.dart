@@ -374,11 +374,6 @@ class Send extends Expression {
         && identical(selector.asOperator().source.stringValue, 'as');
   }
 
-  bool get isTypeTest {
-    return isOperator
-        && identical(selector.asOperator().source.stringValue, 'is');
-  }
-
   bool get isIsCheck {
     return isOperator
         && identical(selector.asOperator().source.stringValue, 'is')

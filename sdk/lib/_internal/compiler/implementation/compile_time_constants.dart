@@ -63,7 +63,7 @@ class ConstantHandler extends CompilerTask {
     compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
     if (type is InterfaceType &&
         !type.isRaw &&
-        compiler.backend.classNeedsRti(type.element)) {
+        compiler.backend.needsRti(type.element)) {
       registerSetRuntimeTypeInfoFunction();
     }
   }

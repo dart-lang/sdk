@@ -529,12 +529,6 @@ class ClosureTranslator extends Visitor {
         useLocal(newElement);
         cached.parametersWithSentinel[parameter] = newElement;
       }
-    } else if (node.isTypeTest) {
-      DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
-      analyzeType(type);
-    } else if (node.isTypeCast) {
-      DartType type = elements.getType(node.arguments.head);
-      analyzeType(type);
     }
     node.visitChildren(this);
   }
@@ -553,28 +547,26 @@ class ClosureTranslator extends Visitor {
 
   visitNewExpression(NewExpression node) {
     DartType type = elements.getType(node);
-    analyzeType(type);
-    node.visitChildren(this);
-  }
 
-  void analyzeTypeVariables(DartType type) {
-    type.forEachTypeVariable((TypeVariableType typeVariable) {
-      useLocal(typeVariable.element);
-      // Field initializers are inlined and access the type variable as
-      // normal parameters.
-      if (!outermostElement.isField()) {
-        registerNeedsThis();
+    void analyzeTypeVariables(DartType type) {
+      if (type is TypeVariableType) {
+        useLocal(type.element);
+        // Field initializers are inlined and access the type variable as
+        // normal parameters.
+        if (!outermostElement.isField()) {
+          registerNeedsThis();
+        }
+      } else if (type is InterfaceType) {
+        InterfaceType ifcType = type;
+        for (DartType argument in ifcType.typeArguments) {
+          analyzeTypeVariables(argument);
+        }
       }
-    });
-  }
+    }
 
-  void analyzeType(DartType type) {
-    // TODO(johnniwinther): Find out why this can be null.
-    if (type == null) return;
     if (outermostElement.isMember() &&
-        compiler.backend.classNeedsRti(outermostElement.getEnclosingClass())) {
-      if (outermostElement.isConstructor() ||
-          outermostElement.isField()) {
+        compiler.backend.needsRti(outermostElement.getEnclosingClass())) {
+      if (outermostElement.isConstructor() || outermostElement.isField()) {
         analyzeTypeVariables(type);
       } else if (outermostElement.isInstanceMember()) {
         if (type.containsTypeVariables) {
@@ -582,6 +574,8 @@ class ClosureTranslator extends Visitor {
         }
       }
     }
+
+    node.visitChildren(this);
   }
 
   // If variables that are declared in the [node] scope are captured and need
@@ -740,7 +734,7 @@ class ClosureTranslator extends Visitor {
       }
 
       if (currentElement.isFactoryConstructor() &&
-          compiler.backend.classNeedsRti(currentElement.enclosingElement)) {
+          compiler.backend.needsRti(currentElement.enclosingElement)) {
         // Declare the type parameters in the scope. Generative
         // constructors just use 'this'.
         ClassElement cls = currentElement.enclosingElement;
@@ -749,18 +743,9 @@ class ClosureTranslator extends Visitor {
         });
       }
 
-      DartType type = element.computeType(compiler);
       // Compute the function type and check for type variables in return or
       // parameter types.
-      if (type.containsTypeVariables) {
-        registerNeedsThis();
-      }
-      // Ensure that closure that need runtime type information has access to
-      // this of the enclosing class.
-      if (element is FunctionElement &&
-          closureData.thisElement != null &&
-          type.containsTypeVariables &&
-          compiler.backend.methodNeedsRti(element)) {
+      if (element.computeType(compiler).containsTypeVariables) {
         registerNeedsThis();
       }
 

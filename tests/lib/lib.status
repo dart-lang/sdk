@@ -34,6 +34,9 @@ mirrors/reflect_uninstantiated_class_test: Fail # Issue 6490
 mirrors/superclass_test: Fail # Issue 6490
 mirrors/to_string_test: Fail # Issue 6490
 
+[ $compiler == dart2js && $checked ]
+async/stream_event_transform_test: Fail # Issue 7733.
+
 [ $compiler == dart2js && $jscl ]
 async/future_test: Fail # Timer interface not supported; dartbug.com/7728.
 async/slow_consumer2_test: Fail # Timer interface not supported; dartbug.com/7728.

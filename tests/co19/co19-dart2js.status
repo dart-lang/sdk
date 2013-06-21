@@ -266,6 +266,8 @@ LibTest/core/TypeError/url_A01_t01: Fail # TODO(ahe): Please triage this failure
 
 Language/11_Expressions/11_Instance_Creation/1_New_A12_t02: Fail # http://dartbug.com/3970
 
+Language/14_Types/3_Type_Declarations/1_Typedef_A01_t01: Fail # http://dartbug.com/5022
+
 
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02: Fail, OK # co19 issue 405
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK # co19 issue 405
@@ -712,6 +714,7 @@ Language/07_Classes/3_Setters_A04_t05: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t06: Fail # http://dartbug.com/5023
 Language/07_Classes/3_Setters_A04_t07: Fail # http://dartbug.com/5023
 
+
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t01: Fail # http://dartbug.com/5683
 Language/13_Libraries_and_Scripts/4_Scripts_A03_t03: Fail # http://dartbug.com/5683
 
@@ -722,9 +725,6 @@ Language/07_Classes/07_Classes_A03_t10: Fail # http://dartbug.com/6687
 # Unexpected runtime errors.
 #
 [ $compiler == dart2js ]
-#Language/11_Expressions/32_Type_Cast_A01_t01: Fail # http://dartbug.com/9074
-
-#Language/14_Types/4_Interface_Types_A08_t06: Fail # class Queue cannot be resolved.
 
 Language/14_Types/4_Interface_Types_A11_t04: Fail # http://dartbug.com/5020
 Language/14_Types/4_Interface_Types_A12_t10: Fail # http://dartbug.com/5020

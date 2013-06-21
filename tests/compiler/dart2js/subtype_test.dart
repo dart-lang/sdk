@@ -264,7 +264,6 @@ void testCallableSubtype() {
 
 testFunctionSubtyping() {
   var env = new TypeEnvironment(r"""
-      _() => null;
       void void_() {}
       void void_2() {}
       int int_() => 0;
@@ -286,7 +285,6 @@ testFunctionSubtyping() {
 
 testTypedefSubtyping() {
   var env = new TypeEnvironment(r"""
-      typedef _();
       typedef void void_();
       typedef void void_2();
       typedef int int_();
@@ -318,13 +316,6 @@ functionSubtypingHelper(TypeEnvironment env) {
   expect(true, 'int_', 'Function');
   // Function <: () -> int
   expect(false, 'Function', 'int_');
-
-  // () -> dynamic <: () -> dynamic
-  expect(true, '_', '_');
-  // () -> dynamic <: () -> void
-  expect(true, '_', 'void_');
-  // () -> void <: () -> dynamic
-  expect(true, 'void_', '_');
 
   // () -> int <: () -> void
   expect(true, 'int_', 'void_');

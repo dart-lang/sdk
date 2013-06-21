@@ -48,13 +48,6 @@ class ClassBuilder {
   }
 }
 
-// Function signatures used in the generation of runtime type information.
-typedef void FunctionTypeSignatureEmitter(Element method,
-                                          FunctionType methodType);
-// TODO(johnniwinther): Clean up terminology for rti in the emitter.
-typedef void FunctionTypeTestEmitter(FunctionType functionType);
-typedef void SubstitutionEmitter(Element element, {bool emitNull});
-
 /**
  * Generates the code for all used classes in the program. Static fields (even
  * in classes) are ignored, since they can be treated as non-class elements.
@@ -119,26 +112,11 @@ class CodeEmitterTask extends CompilerTask {
   Set<ClassElement> checkedClasses;
 
   /**
-   * The set of function types that checked, both explicity through tests of
-   * typedefs and implicitly through type annotations in checked mode.
+   * Raw Typedef symbols occuring in is-checks and type assertions.  If the
+   * program contains `x is F<int>` and `x is F<bool>` then the TypedefElement
+   * `F` will occur once in [checkedTypedefs].
    */
-  Set<FunctionType> checkedFunctionTypes;
-
-  Map<ClassElement, Set<FunctionType>> checkedGenericFunctionTypes =
-      new Map<ClassElement, Set<FunctionType>>();
-
-  Set<FunctionType> checkedNonGenericFunctionTypes =
-      new Set<FunctionType>();
-
-  void registerDynamicFunctionTypeCheck(FunctionType functionType) {
-    ClassElement classElement = Types.getClassContext(functionType);
-    if (classElement != null) {
-      checkedGenericFunctionTypes.putIfAbsent(classElement,
-          () => new Set<FunctionType>()).add(functionType);
-    } else {
-      checkedNonGenericFunctionTypes.add(functionType);
-    }
-  }
+  Set<TypedefElement> checkedTypedefs;
 
   final bool generateSourceMap;
 
@@ -169,20 +147,18 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   void computeRequiredTypeChecks() {
-    assert(checkedClasses == null && checkedFunctionTypes == null);
+    assert(checkedClasses == null && checkedTypedefs == null);
 
     backend.rti.addImplicitChecks(compiler.codegenWorld,
                                   classesUsingTypeVariableTests);
 
     checkedClasses = new Set<ClassElement>();
-    checkedFunctionTypes = new Set<FunctionType>();
+    checkedTypedefs = new Set<TypedefElement>();
     compiler.codegenWorld.isChecks.forEach((DartType t) {
-      if (!t.isMalformed) {
-        if (t is InterfaceType) {
-          checkedClasses.add(t.element);
-        } else if (t is FunctionType) {
-          checkedFunctionTypes.add(t);
-        }
+      if (t is InterfaceType) {
+        checkedClasses.add(t.element);
+      } else if (t is TypedefType) {
+        checkedTypedefs.add(t.element);
       }
     });
   }
@@ -1343,34 +1319,9 @@ class CodeEmitterTask extends CompilerTask {
       builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
-    void generateIsFunctionTypeTest(FunctionType type) {
-      String operator = namer.operatorIsType(type);
-      builder.addProperty(operator, new jsAst.LiteralBool(true));
-    }
-
-    void generateFunctionTypeSignature(Element method, FunctionType type) {
-      assert(method.isImplementation);
-      String thisAccess = 'this';
-      Node node = method.parseNode(compiler);
-      ClosureClassMap closureData =
-          compiler.closureToClassMapper.closureMappingCache[node];
-      if (closureData != null) {
-        Element thisElement =
-            closureData.freeVariableMapping[closureData.thisElement];
-        if (thisElement != null) {
-          String thisName = backend.namer.getName(thisElement);
-          thisAccess = 'this.$thisName';
-        }
-      }
-      RuntimeTypes rti = backend.rti;
-      String encoding = rti.getSignatureEncoding(type, () => '$thisAccess');
-      String operatorSignature = namer.operatorSignature();
-      builder.addProperty(operatorSignature,
-          new jsAst.LiteralExpression(encoding));
-    }
-
     void generateSubstitution(Element other, {bool emitNull: false}) {
       RuntimeTypes rti = backend.rti;
+      // TODO(karlklose): support typedefs with variables.
       jsAst.Expression expression;
       bool needsNativeCheck = nativeEmitter.requiresNativeIsCheck(other);
       if (other.kind == ElementKind.CLASS) {
@@ -1387,9 +1338,7 @@ class CodeEmitterTask extends CompilerTask {
       }
     }
 
-    generateIsTestsOn(classElement, generateIsTest,
-        generateIsFunctionTypeTest, generateFunctionTypeSignature,
-        generateSubstitution);
+    generateIsTestsOn(classElement, generateIsTest, generateSubstitution);
   }
 
   void emitRuntimeTypeSupport(CodeBuffer buffer) {
@@ -1409,17 +1358,6 @@ class CodeEmitterTask extends CompilerTask {
         }
       };
     }
-
-    void addSignature(FunctionType type) {
-      String encoding = rti.getTypeEncoding(type);
-      buffer.add('${namer.signatureName(type)}$_=${_}$encoding$N');
-    }
-
-    checkedNonGenericFunctionTypes.forEach(addSignature);
-
-    checkedGenericFunctionTypes.forEach((_, Set<FunctionType> functionTypes) {
-      functionTypes.forEach(addSignature);
-    });
   }
 
   /**
@@ -1551,14 +1489,12 @@ class CodeEmitterTask extends CompilerTask {
     DartType type = member.computeType(compiler);
     // TODO(ahe): Generate a dynamic type error here.
     if (type.element.isErroneous()) return;
-    type = type.unalias(compiler);
-    CheckedModeHelper helper =
-        backend.getCheckedModeHelper(type, typeCast: false);
-    FunctionElement helperElement = helper.getElement(compiler);
+    FunctionElement helperElement
+        = backend.getCheckedModeHelper(type, typeCast: false);
     String helperName = namer.isolateAccess(helperElement);
     List<jsAst.Expression> arguments = <jsAst.Expression>[js('v')];
     if (helperElement.computeSignature(compiler).parameterCount != 1) {
-      arguments.add(js.string(namer.operatorIsType(type)));
+      arguments.add(js.string(namer.operatorIs(type.element)));
     }
 
     String setterName = namer.setterNameFromAccessorName(accessorName);
@@ -1799,27 +1735,14 @@ class CodeEmitterTask extends CompilerTask {
     return _selectorRank(selector1) - _selectorRank(selector2);
   }
 
-  /**
-   * Returns a mapping containing all checked function types for which [type]
-   * can be a subtype. A function type is mapped to [:true:] if [type] is
-   * statically known to be a subtype of it and to [:false:] if [type] might
-   * be a subtype, provided with the right type arguments.
-   */
-  // TODO(johnniwinther): Change to return a mapping from function types to
-  // a set of variable points and use this to detect statically/dynamically
-  // known subtype relations.
-  Map<FunctionType, bool> getFunctionTypeChecksOn(DartType type) {
-    Map<FunctionType, bool> functionTypeMap =
-        new LinkedHashMap<FunctionType, bool>();
-    for (FunctionType functionType in checkedFunctionTypes) {
-      if (compiler.types.isSubtype(type, functionType)) {
-        functionTypeMap[functionType] = true;
-      } else if (compiler.types.isPotentialSubtype(type, functionType)) {
-        functionTypeMap[functionType] = false;
-      }
+  Iterable<Element> getTypedefChecksOn(DartType type) {
+    bool isSubtype(TypedefElement typedef) {
+      FunctionType typedefType =
+          typedef.computeType(compiler).unalias(compiler);
+      return compiler.types.isSubtype(type, typedefType);
     }
-    // TODO(johnniwinther): Ensure stable ordering of the keys.
-    return functionTypeMap;
+    return checkedTypedefs.where(isSubtype).toList()
+        ..sort(Elements.compareByPosition);
   }
 
   /**
@@ -1831,9 +1754,7 @@ class CodeEmitterTask extends CompilerTask {
    */
   void generateIsTestsOn(ClassElement cls,
                          void emitIsTest(Element element),
-                         FunctionTypeTestEmitter emitIsFunctionTypeTest,
-                         FunctionTypeSignatureEmitter emitFunctionTypeSignature,
-                         SubstitutionEmitter emitSubstitution) {
+                         void emitSubstitution(Element element, {emitNull})) {
     if (checkedClasses.contains(cls)) {
       emitIsTest(cls);
       emitSubstitution(cls);
@@ -1856,7 +1777,7 @@ class CodeEmitterTask extends CompilerTask {
       Set<ClassElement> emitted = new Set<ClassElement>();
       // TODO(karlklose): move the computation of these checks to
       // RuntimeTypeInformation.
-      if (backend.classNeedsRti(cls)) {
+      if (backend.needsRti(cls)) {
         emitSubstitution(superclass, emitNull: true);
         emitted.add(superclass);
       }
@@ -1884,7 +1805,7 @@ class CodeEmitterTask extends CompilerTask {
     // A class that defines a [:call:] method implicitly implements
     // [Function] and needs checks for all typedefs that are used in is-checks.
     if (checkedClasses.contains(compiler.functionClass) ||
-        !checkedFunctionTypes.isEmpty) {
+        !checkedTypedefs.isEmpty) {
       Element call = cls.lookupLocalMember(Compiler.CALL_OPERATOR_NAME);
       if (call == null) {
         // If [cls] is a closure, it has a synthetic call operator method.
@@ -1895,12 +1816,8 @@ class CodeEmitterTask extends CompilerTask {
                                   emitIsTest,
                                   emitSubstitution,
                                   generated);
-        FunctionType callType = call.computeType(compiler);
-        Map<FunctionType, bool> functionTypeChecks =
-            getFunctionTypeChecksOn(callType);
-        generateFunctionTypeTests(call, callType, functionTypeChecks,
-            emitFunctionTypeSignature, emitIsFunctionTypeTest);
-     }
+        getTypedefChecksOn(call.computeType(compiler)).forEach(emitIsTest);
+      }
     }
 
     for (DartType interfaceType in cls.interfaces) {
@@ -1914,7 +1831,7 @@ class CodeEmitterTask extends CompilerTask {
    */
   void generateInterfacesIsTests(ClassElement cls,
                                  void emitIsTest(ClassElement element),
-                                 SubstitutionEmitter emitSubstitution,
+                                 void emitSubstitution(ClassElement element),
                                  Set<Element> alreadyGenerated) {
     void tryEmitTest(ClassElement check) {
       if (!alreadyGenerated.contains(check) && checkedClasses.contains(check)) {
@@ -1940,45 +1857,6 @@ class CodeEmitterTask extends CompilerTask {
       generateInterfacesIsTests(superclass, emitIsTest, emitSubstitution,
                                 alreadyGenerated);
     }
-  }
-
-  const int MAX_FUNCTION_TYPE_PREDICATES = 10;
-
-  /**
-   * Generates function type checks on [method] with type [methodType] against
-   * the function type checks in [functionTypeChecks].
-   */
-  void generateFunctionTypeTests(
-      Element method,
-      FunctionType methodType,
-      Map<FunctionType, bool> functionTypeChecks,
-      FunctionTypeSignatureEmitter emitFunctionTypeSignature,
-      FunctionTypeTestEmitter emitIsFunctionTypeTest) {
-    bool hasDynamicFunctionTypeCheck = false;
-    int neededPredicates = 0;
-    functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
-      if (!knownSubtype) {
-        registerDynamicFunctionTypeCheck(functionType);
-        hasDynamicFunctionTypeCheck = true;
-      } else {
-        neededPredicates++;
-      }
-    });
-    bool alwaysUseSignature = false;
-    if (hasDynamicFunctionTypeCheck ||
-        neededPredicates > MAX_FUNCTION_TYPE_PREDICATES) {
-      emitFunctionTypeSignature(method, methodType);
-      alwaysUseSignature = true;
-    }
-    functionTypeChecks.forEach((FunctionType functionType, bool knownSubtype) {
-      if (knownSubtype) {
-        if (alwaysUseSignature) {
-          registerDynamicFunctionTypeCheck(functionType);
-        } else {
-          emitIsFunctionTypeTest(functionType);
-        }
-      }
-    });
   }
 
   /**
@@ -2143,6 +2021,12 @@ class CodeEmitterTask extends CompilerTask {
 
       addParameterStubs(callElement, closureBuilder.addProperty);
 
+      DartType type = element.computeType(compiler);
+      getTypedefChecksOn(type).forEach((Element typedef) {
+        String operator = namer.operatorIs(typedef);
+        closureBuilder.addProperty(operator, js('true'));
+      });
+
       // TODO(ngeoffray): Cache common base classes for closures, bound
       // closures, and static closures that have common type checks.
       boundClosures.add(
@@ -2150,28 +2034,6 @@ class CodeEmitterTask extends CompilerTask {
               closureBuilder.toObjectInitializer()));
 
       staticGetters[element] = closureClassElement;
-
-      void emitFunctionTypeSignature(Element method, FunctionType methodType) {
-        RuntimeTypes rti = backend.rti;
-        // [:() => null:] is dummy encoding of [this] which is never needed for
-        // the encoding of the type of the static [method].
-        String encoding = rti.getSignatureEncoding(methodType, () => 'null');
-        String operatorSignature = namer.operatorSignature();
-        // TODO(johnniwinther): Make MiniJsParser support function expressions.
-        closureBuilder.addProperty(operatorSignature,
-            new jsAst.LiteralExpression(encoding));
-      }
-
-      void emitIsFunctionTypeTest(FunctionType functionType) {
-        String operator = namer.operatorIsType(functionType);
-        closureBuilder.addProperty(operator, js('true'));
-      }
-
-      FunctionType methodType = element.computeType(compiler);
-      Map<FunctionType, bool> functionTypeChecks =
-          getFunctionTypeChecksOn(methodType);
-      generateFunctionTypeTests(element, methodType, functionTypeChecks,
-          emitFunctionTypeSignature, emitIsFunctionTypeTest);
     }
   }
 
@@ -2229,14 +2091,12 @@ class CodeEmitterTask extends CompilerTask {
       fieldNames.add(namer.getName(field));
     });
 
-    DartType memberType = member.computeType(compiler);
-    Map<FunctionType, bool> functionTypeChecks =
-        getFunctionTypeChecksOn(memberType);
-    bool hasFunctionTypeChecks = !functionTypeChecks.isEmpty;
+    Iterable<Element> typedefChecks =
+        getTypedefChecksOn(member.computeType(compiler));
+    bool hasTypedefChecks = !typedefChecks.isEmpty;
 
-    bool canBeShared = !hasOptionalParameters && !hasFunctionTypeChecks;
+    bool canBeShared = !hasOptionalParameters && !hasTypedefChecks;
 
-    ClassElement classElement = member.getEnclosingClass();
     String closureClass = canBeShared ? cache[parameterCount] : null;
     if (closureClass == null) {
       // Either the class was not cached yet, or there are optional parameters.
@@ -2292,23 +2152,10 @@ class CodeEmitterTask extends CompilerTask {
       boundClosureBuilder.addProperty(invocationName, fun);
 
       addParameterStubs(callElement, boundClosureBuilder.addProperty);
-
-      void emitFunctionTypeSignature(Element method, FunctionType methodType) {
-        String encoding = backend.rti.getSignatureEncoding(
-            methodType, () => 'this.${fieldNames[0]}');
-        String operatorSignature = namer.operatorSignature();
-        boundClosureBuilder.addProperty(operatorSignature,
-            new jsAst.LiteralExpression(encoding));
-      }
-
-      void emitIsFunctionTypeTest(FunctionType functionType) {
-        String operator = namer.operatorIsType(functionType);
-        boundClosureBuilder.addProperty(operator,
-            new jsAst.LiteralBool(true));
-      }
-
-      generateFunctionTypeTests(member, memberType, functionTypeChecks,
-          emitFunctionTypeSignature, emitIsFunctionTypeTest);
+      typedefChecks.forEach((Element typedef) {
+        String operator = namer.operatorIs(typedef);
+        boundClosureBuilder.addProperty(operator, js('true'));
+      });
 
       boundClosures.add(
           js('$classesCollector.$mangledName = #',
@@ -2340,7 +2187,8 @@ class CodeEmitterTask extends CompilerTask {
     }
 
     jsAst.Expression getterFunction = js.fun(
-        parameters, js.return_(js(closureClass).newWith(arguments)));
+        parameters,
+        js.return_(js(closureClass).newWith(arguments)));
 
     defineStub(getterName, getterFunction);
   }
@@ -2380,6 +2228,7 @@ class CodeEmitterTask extends CompilerTask {
     // identical stubs for each we track untyped selectors which already have
     // stubs.
     Set<Selector> generatedSelectors = new Set<Selector>();
+
     for (Selector selector in selectors) {
       if (selector.applies(member, compiler)) {
         selector = selector.asUntyped;
@@ -2983,15 +2832,6 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
     Set<ClassElement> classesUsedInSubstitutions =
         rti.getClassesUsedInSubstitutions(backend, requiredChecks);
     addClassesWithSuperclasses(classesUsedInSubstitutions);
-
-    // 3c. Add classes that contain checked generic function types. These are
-    //     needed to store the signature encoding.
-    for (FunctionType type in checkedFunctionTypes) {
-      ClassElement contextClass = Types.getClassContext(type);
-      if (contextClass != null) {
-        neededClasses.add(contextClass);
-      }
-    }
 
     // 4. Finally, sort the classes.
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);

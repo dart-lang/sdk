@@ -11,20 +11,10 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_CURRENT_ISOLATE,
                                    JS_CURRENT_ISOLATE_CONTEXT,
                                    JS_DART_OBJECT_CONSTRUCTOR,
-                                   JS_FUNCTION_CLASS_NAME,
                                    JS_IS_INDEXABLE_FIELD_NAME,
                                    JS_OBJECT_CLASS_NAME,
                                    JS_OPERATOR_AS_PREFIX,
                                    JS_OPERATOR_IS_PREFIX,
-                                   JS_GLOBAL_OBJECT,
-                                   JS_SIGNATURE_NAME,
-                                   JS_HAS_EQUALS,
-                                   JS_FUNCTION_TYPE_TAG,
-                                   JS_FUNCTION_TYPE_VOID_RETURN_TAG,
-                                   JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
-                                   JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
-                                   JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
-                                   JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
                                    RAW_DART_FUNCTION_REF;
 import 'dart:_interceptors';
 import 'dart:_collection-dev' as _symbol_dev;
@@ -220,7 +210,7 @@ class Primitives {
     JS('void', 'throw "Unable to print message: " + String(#)', string);
   }
 
-  static _throwFormatException(String string) {
+  static void _throwFormatException(String string) {
     throw new FormatException(string);
   }
 

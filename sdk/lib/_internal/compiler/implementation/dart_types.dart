@@ -908,8 +908,6 @@ class Member {
 }
 
 abstract class DartTypeVisitor<R, A> {
-  const DartTypeVisitor();
-
   R visitType(DartType type, A argument);
 
   R visitVoidType(VoidType type, A argument) =>
@@ -940,9 +938,6 @@ abstract class DartTypeVisitor<R, A> {
       visitInterfaceType(type, argument);
 }
 
-/**
- * Type visitor that determines the subtype relation two types.
- */
 class SubtypeVisitor extends DartTypeVisitor<bool, DartType> {
   final Compiler compiler;
   final DynamicType dynamicType;
@@ -1145,7 +1140,6 @@ class Types {
   final VoidType voidType;
   final DynamicType dynamicType;
   final SubtypeVisitor subtypeVisitor;
-  final PotentialSubtypeVisitor potentialSubtypeVisitor;
 
   factory Types(Compiler compiler, BaseClassElementX dynamicElement) {
     LibraryElement library = new LibraryElementX(new Script(null, null));
@@ -1154,15 +1148,11 @@ class Types {
     dynamicElement.rawTypeCache = dynamicElement.thisType = dynamicType;
     SubtypeVisitor subtypeVisitor =
         new SubtypeVisitor(compiler, dynamicType, voidType);
-    PotentialSubtypeVisitor potentialSubtypeVisitor =
-        new PotentialSubtypeVisitor(compiler, dynamicType, voidType);
-
-    return new Types.internal(compiler, voidType, dynamicType,
-        subtypeVisitor, potentialSubtypeVisitor);
+    return new Types.internal(compiler, voidType, dynamicType, subtypeVisitor);
   }
 
   Types.internal(this.compiler, this.voidType, this.dynamicType,
-                 this.subtypeVisitor, this.potentialSubtypeVisitor);
+                 this.subtypeVisitor);
 
   /** Returns true if t is a subtype of s */
   bool isSubtype(DartType t, DartType s) {
@@ -1173,11 +1163,6 @@ class Types {
     return subtypeVisitor.isAssignable(r, s);
   }
 
-  bool isPotentialSubtype(DartType t, DartType s) {
-    // TODO(johnniwinther): Return a set of variable points in the positive
-    // cases.
-    return potentialSubtypeVisitor.isSubtype(t, s);
-  }
 
   /**
    * Helper method for performing substitution of a linked list of types.
@@ -1230,25 +1215,5 @@ class Types {
     TypeVariableType typeVariable = type.typeVariableOccurrence;
     if (typeVariable == null) return null;
     return typeVariable.element.enclosingElement;
-  }
-}
-
-/**
- * Type visitor that determines one type could a subtype of another given the
- * right type variable substitution. The computation is approximate and returns
- * [:false:] only if we are sure no such substitution exists.
- */
-class PotentialSubtypeVisitor extends SubtypeVisitor {
-  PotentialSubtypeVisitor(Compiler compiler,
-                          DynamicType dynamicType,
-                          VoidType voidType)
-      : super(compiler, dynamicType, voidType);
-
-
-  bool isSubtype(DartType t, DartType s) {
-    if (t is TypeVariableType || s is TypeVariableType) {
-      return true;
-    }
-    return super.isSubtype(t, s);
   }
 }

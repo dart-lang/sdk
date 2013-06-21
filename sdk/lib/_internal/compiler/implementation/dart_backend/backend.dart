@@ -221,8 +221,7 @@ class DartBackend extends Backend {
         stripAsserts = strips.indexOf('asserts') != -1,
         super(compiler);
 
-  bool classNeedsRti(ClassElement cls) => false;
-  bool methodNeedsRti(FunctionElement function) => false;
+  bool needsRti(ClassElement cls) => false;
 
   void enqueueHelpers(ResolutionEnqueuer world, TreeElements elements) {
     // Right now resolver doesn't always resolve interfaces needed

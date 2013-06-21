@@ -11,119 +11,6 @@ class JavaScriptItemCompilationContext extends ItemCompilationContext {
       : boundsChecked = new Set<HInstruction>();
 }
 
-
-class CheckedModeHelper {
-  final SourceString name;
-
-  const CheckedModeHelper(SourceString this.name);
-
-  Element getElement(Compiler compiler) => compiler.findHelper(name);
-
-  jsAst.Expression generateCall(SsaCodeGenerator codegen,
-                                HTypeConversion node) {
-    Element helperElement = getElement(codegen.compiler);
-    codegen.world.registerStaticUse(helperElement);
-    List<jsAst.Expression> arguments = <jsAst.Expression>[];
-    codegen.use(node.checkedInput);
-    arguments.add(codegen.pop());
-    generateAdditionalArguments(codegen, node, arguments);
-    String helperName = codegen.backend.namer.isolateAccess(helperElement);
-    return new jsAst.Call(new jsAst.VariableUse(helperName), arguments);
-  }
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    assert(!node.typeExpression.isMalformed);
-    // No additional arguments needed.
-  }
-}
-
-class PropertyCheckedModeHelper extends CheckedModeHelper {
-  const PropertyCheckedModeHelper(SourceString name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    assert(!type.isMalformed);
-    String additionalArgument = codegen.backend.namer.operatorIsType(type);
-    arguments.add(js.string(additionalArgument));
-  }
-}
-
-class TypeVariableCheckedModeHelper extends CheckedModeHelper {
-  const TypeVariableCheckedModeHelper(SourceString name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.kind == TypeKind.TYPE_VARIABLE);
-    codegen.use(node.typeRepresentation);
-    arguments.add(codegen.pop());
-  }
-}
-
-class SubtypeCheckedModeHelper extends CheckedModeHelper {
-  const SubtypeCheckedModeHelper(SourceString name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    Element element = type.element;
-    String isField = codegen.backend.namer.operatorIs(element);
-    arguments.add(js.string(isField));
-    codegen.use(node.typeRepresentation);
-    arguments.add(codegen.pop());
-    String asField = codegen.backend.namer.substitutionName(element);
-    arguments.add(js.string(asField));
-  }
-}
-
-class FunctionTypeCheckedModeHelper extends CheckedModeHelper {
-  const FunctionTypeCheckedModeHelper(SourceString name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    String signatureName = codegen.backend.namer.getFunctionTypeName(type);
-    arguments.add(js.string(signatureName));
-
-    if (type.containsTypeVariables) {
-      ClassElement contextClass = Types.getClassContext(type);
-      String contextName = codegen.backend.namer.getName(contextClass);
-      arguments.add(js.string(contextName));
-
-      if (node.contextIsTypeArguments) {
-        arguments.add(new jsAst.LiteralNull());
-        codegen.use(node.context);
-        arguments.add(codegen.pop());
-      } else {
-        codegen.use(node.context);
-        arguments.add(codegen.pop());
-      }
-    }
-  }
-}
-
-class MalformedCheckedModeHelper extends CheckedModeHelper {
-  const MalformedCheckedModeHelper(SourceString name) : super(name);
-
-  void generateAdditionalArguments(SsaCodeGenerator codegen,
-                                   HTypeConversion node,
-                                   List<jsAst.Expression> arguments) {
-    DartType type = node.typeExpression;
-    assert(type.isMalformed);
-    String reasons = Types.fetchReasonsFromMalformedType(type);
-    arguments.add(js.string('$type'));
-    // TODO(johnniwinther): Handle escaping correctly.
-    arguments.add(js.string(reasons));
-  }
-}
-
-
 class JavaScriptBackend extends Backend {
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
@@ -726,72 +613,25 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getGetRuntimeTypeArgument(), elements);
   }
 
-  void registerGenericCallMethod(Element callMethod,
-                                 Enqueuer enqueuer, TreeElements elements) {
-    if (enqueuer.isResolutionQueue || methodNeedsRti(callMethod)) {
-      registerComputeSignature(enqueuer, elements);
-    }
-  }
-
-  void registerGenericClosure(Element closure,
-                              Enqueuer enqueuer, TreeElements elements) {
-    if (enqueuer.isResolutionQueue || methodNeedsRti(closure)) {
-      registerComputeSignature(enqueuer, elements);
-    }
-  }
-
-  void registerComputeSignature(Enqueuer enqueuer, TreeElements elements) {
-    // Calls to [:computeSignature:] are generated by the emitter and we
-    // therefore need to enqueue the used elements in the codegen enqueuer as
-    // well as in the resolution enqueuer.
-    enqueue(enqueuer, getSetRuntimeTypeInfo(), elements);
-    enqueue(enqueuer, getGetRuntimeTypeInfo(), elements);
-    enqueue(enqueuer, getComputeSignature(), elements);
-    enqueue(enqueuer, getGetRuntimeTypeArguments(), elements);
-    enqueuer.registerInstantiatedClass(compiler.listClass, elements);
-  }
-
-  void registerRuntimeType(Enqueuer enqueuer, TreeElements elements) {
-    registerComputeSignature(enqueuer, elements);
+  void registerRuntimeType(TreeElements elements) {
     enqueueInResolution(getSetRuntimeTypeInfo(), elements);
     enqueueInResolution(getGetRuntimeTypeInfo(), elements);
-    registerGetRuntimeTypeArgument(elements);
+    enqueueInResolution(getGetRuntimeTypeArgument(), elements);
     compiler.enqueuer.resolution.registerInstantiatedClass(
         compiler.listClass, elements);
   }
 
   void registerTypeVariableExpression(TreeElements elements) {
-    enqueueInResolution(getSetRuntimeTypeInfo(), elements);
-    enqueueInResolution(getGetRuntimeTypeInfo(), elements);
-    registerGetRuntimeTypeArgument(elements);
-    compiler.enqueuer.resolution.registerInstantiatedClass(
-        compiler.listClass, elements);
+    registerRuntimeType(elements);
     enqueueInResolution(getRuntimeTypeToString(), elements);
     enqueueInResolution(getCreateRuntimeType(), elements);
   }
 
   void registerIsCheck(DartType type, Enqueuer world, TreeElements elements) {
-    type = type.unalias(compiler);
     world.registerInstantiatedClass(compiler.boolClass, elements);
-    bool inCheckedMode = compiler.enableTypeAssertions;
-    // [registerIsCheck] is also called for checked mode checks, so we
-    // need to register checked mode helpers.
-    if (inCheckedMode) {
-      CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: false);
-      if (helper != null) world.addToWorkList(helper.getElement(compiler));
-      // We also need the native variant of the check (for DOM types).
-      helper = getNativeCheckedModeHelper(type, typeCast: false);
-      if (helper != null) world.addToWorkList(helper.getElement(compiler));
-      if (type.isMalformed) {
-        enqueueInResolution(getThrowMalformedSubtypeError(), elements);
-        return;
-      }
-    } else if (type.isMalformed) {
-      registerThrowRuntimeError(elements);
-      return;
-    }
     bool isTypeVariable = type.kind == TypeKind.TYPE_VARIABLE;
-    if (!type.isRaw || type.containsTypeVariables) {
+    bool inCheckedMode = compiler.enableTypeAssertions;
+    if (!type.isRaw || isTypeVariable) {
       enqueueInResolution(getSetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeInfo(), elements);
       enqueueInResolution(getGetRuntimeTypeArgument(), elements);
@@ -807,8 +647,14 @@ class JavaScriptBackend extends Backend {
       }
       world.registerInstantiatedClass(compiler.listClass, elements);
     }
-    if (type is FunctionType) {
-      enqueueInResolution(getCheckFunctionSubtype(), elements);
+    // [registerIsCheck] is also called for checked mode checks, so we
+    // need to register checked mode helpers.
+    if (inCheckedMode) {
+      Element e = getCheckedModeHelper(type, typeCast: false);
+      if (e != null) world.addToWorkList(e);
+      // We also need the native variant of the check (for DOM types).
+      e = getNativeCheckedModeHelper(type, typeCast: false);
+      if (e != null) world.addToWorkList(e);
     }
     if (type.element.isNative()) {
       // We will neeed to add the "$is" and "$as" properties on the
@@ -817,17 +663,14 @@ class JavaScriptBackend extends Backend {
       world.addToWorkList(
           compiler.findHelper(const SourceString('defineProperty')));
     }
-   }
+  }
 
   void registerAsCheck(DartType type, TreeElements elements) {
-    type = type.unalias(compiler);
-    CheckedModeHelper helper = getCheckedModeHelper(type, typeCast: true);
-    enqueueInResolution(helper.getElement(compiler), elements);
+    Element e = getCheckedModeHelper(type, typeCast: true);
+    enqueueInResolution(e, elements);
     // We also need the native variant of the check (for DOM types).
-    helper = getNativeCheckedModeHelper(type, typeCast: true);
-    if (helper != null) {
-      enqueueInResolution(helper.getElement(compiler), elements);
-    }
+    e = getNativeCheckedModeHelper(type, typeCast: true);
+    enqueueInResolution(e, elements);
   }
 
   void registerThrowNoSuchMethod(TreeElements elements) {
@@ -891,7 +734,7 @@ class JavaScriptBackend extends Backend {
     rti.classesUsingTypeVariableExpression.add(cls);
   }
 
-  bool classNeedsRti(ClassElement cls) {
+  bool needsRti(ClassElement cls) {
     return rti.classesNeedingRti.contains(cls.declaration) ||
         compiler.enabledRuntimeType;
   }
@@ -911,20 +754,11 @@ class JavaScriptBackend extends Backend {
         || classElement == jsNullClass;
   }
 
-  bool methodNeedsRti(FunctionElement function) {
-    return rti.methodsNeedingRti.contains(function) ||
-           compiler.enabledRuntimeType;
-  }
-
-  void enqueue(Enqueuer enqueuer, Element e, TreeElements elements) {
-    enqueuer.addToWorkList(e);
-    elements.registerDependency(e);
-  }
-
   void enqueueInResolution(Element e, TreeElements elements) {
     if (e == null) return;
     ResolutionEnqueuer enqueuer = compiler.enqueuer.resolution;
-    enqueue(enqueuer, e, elements);
+    enqueuer.addToWorkList(e);
+    elements.registerDependency(e);
   }
 
   void registerConstantMap(TreeElements elements) {
@@ -1023,9 +857,10 @@ class JavaScriptBackend extends Backend {
    * the resolver with interface types (int, String, ...), and by the SSA
    * backend with implementation types (JSInt, JSString, ...).
    */
-  CheckedModeHelper getCheckedModeHelper(DartType type, {bool typeCast}) {
-    return getCheckedModeHelperInternal(
+  Element getCheckedModeHelper(DartType type, {bool typeCast}) {
+    SourceString name = getCheckedModeHelperName(
         type, typeCast: typeCast, nativeCheckOnly: false);
+    return compiler.findHelper(name);
   }
 
   /**
@@ -1033,19 +868,20 @@ class JavaScriptBackend extends Backend {
    * check/type cast on [type] at runtime. If no native helper exists for
    * [type], [:null:] is returned.
    */
-  CheckedModeHelper getNativeCheckedModeHelper(DartType type, {bool typeCast}) {
-    return getCheckedModeHelperInternal(
+  Element getNativeCheckedModeHelper(DartType type, {bool typeCast}) {
+    SourceString sourceName = getCheckedModeHelperName(
         type, typeCast: typeCast, nativeCheckOnly: true);
+    if (sourceName == null) return null;
+    return compiler.findHelper(sourceName);
   }
 
   /**
-   * Returns the checked mode helper for the type check/type cast for [type]. If
+   * Returns the name of the type check/type cast helper method for [type]. If
    * [nativeCheckOnly] is [:true:], only names for native helpers are returned.
    */
-  CheckedModeHelper getCheckedModeHelperInternal(DartType type,
-                                                 {bool typeCast,
-                                                  bool nativeCheckOnly}) {
-    assert(type.kind != TypeKind.TYPEDEF);
+  SourceString getCheckedModeHelperName(DartType type,
+                                        {bool typeCast,
+                                         bool nativeCheckOnly}) {
     Element element = type.element;
     bool nativeCheck = nativeCheckOnly ||
         emitter.nativeEmitter.requiresNativeIsCheck(element);
@@ -1054,122 +890,94 @@ class JavaScriptBackend extends Backend {
       // with a malformed argument type.
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const MalformedCheckedModeHelper(
-              const SourceString('malformedTypeCast'))
-          : const MalformedCheckedModeHelper(
-              const SourceString('malformedTypeCheck'));
+          ? const SourceString('malformedTypeCast')
+          : const SourceString('malformedTypeCheck');
     } else if (type == compiler.types.voidType) {
       assert(!typeCast); // Cannot cast to void.
       if (nativeCheckOnly) return null;
-      return const CheckedModeHelper(const SourceString('voidTypeCheck'));
+      return const SourceString('voidTypeCheck');
     } else if (element == jsStringClass || element == compiler.stringClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("stringTypeCast"))
-          : const CheckedModeHelper(const SourceString('stringTypeCheck'));
+          ? const SourceString("stringTypeCast")
+          : const SourceString('stringTypeCheck');
     } else if (element == jsDoubleClass || element == compiler.doubleClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("doubleTypeCast"))
-          : const CheckedModeHelper(const SourceString('doubleTypeCheck'));
+          ? const SourceString("doubleTypeCast")
+          : const SourceString('doubleTypeCheck');
     } else if (element == jsNumberClass || element == compiler.numClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("numTypeCast"))
-          : const CheckedModeHelper(const SourceString('numTypeCheck'));
+          ? const SourceString("numTypeCast")
+          : const SourceString('numTypeCheck');
     } else if (element == jsBoolClass || element == compiler.boolClass) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("boolTypeCast"))
-          : const CheckedModeHelper(const SourceString('boolTypeCheck'));
+          ? const SourceString("boolTypeCast")
+          : const SourceString('boolTypeCheck');
     } else if (element == jsIntClass || element == compiler.intClass) {
       if (nativeCheckOnly) return null;
-      return typeCast
-          ? const CheckedModeHelper(const SourceString("intTypeCast"))
-          : const CheckedModeHelper(const SourceString('intTypeCheck'));
+      return typeCast ?
+          const SourceString("intTypeCast") :
+          const SourceString('intTypeCheck');
     } else if (Elements.isNumberOrStringSupertype(element, compiler)) {
       if (nativeCheck) {
         return typeCast
-            ? const PropertyCheckedModeHelper(
-                const SourceString("numberOrStringSuperNativeTypeCast"))
-            : const PropertyCheckedModeHelper(
-                const SourceString('numberOrStringSuperNativeTypeCheck'));
+            ? const SourceString("numberOrStringSuperNativeTypeCast")
+            : const SourceString('numberOrStringSuperNativeTypeCheck');
       } else {
         return typeCast
-          ? const PropertyCheckedModeHelper(
-              const SourceString("numberOrStringSuperTypeCast"))
-          : const PropertyCheckedModeHelper(
-              const SourceString('numberOrStringSuperTypeCheck'));
+          ? const SourceString("numberOrStringSuperTypeCast")
+          : const SourceString('numberOrStringSuperTypeCheck');
       }
     } else if (Elements.isStringOnlySupertype(element, compiler)) {
       if (nativeCheck) {
         return typeCast
-            ? const PropertyCheckedModeHelper(
-                const SourceString("stringSuperNativeTypeCast"))
-            : const PropertyCheckedModeHelper(
-                const SourceString('stringSuperNativeTypeCheck'));
+            ? const SourceString("stringSuperNativeTypeCast")
+            : const SourceString('stringSuperNativeTypeCheck');
       } else {
         return typeCast
-            ? const PropertyCheckedModeHelper(
-                const SourceString("stringSuperTypeCast"))
-            : const PropertyCheckedModeHelper(
-                const SourceString('stringSuperTypeCheck'));
+            ? const SourceString("stringSuperTypeCast")
+            : const SourceString('stringSuperTypeCheck');
       }
     } else if ((element == compiler.listClass || element == jsArrayClass) &&
                type.isRaw) {
       if (nativeCheckOnly) return null;
       return typeCast
-          ? const CheckedModeHelper(const SourceString("listTypeCast"))
-          : const CheckedModeHelper(const SourceString('listTypeCheck'));
+          ? const SourceString("listTypeCast")
+          : const SourceString('listTypeCheck');
     } else {
       if (Elements.isListSupertype(element, compiler)) {
         if (nativeCheck) {
           return typeCast
-              ? const PropertyCheckedModeHelper(
-                  const SourceString("listSuperNativeTypeCast"))
-              : const PropertyCheckedModeHelper(
-                  const SourceString('listSuperNativeTypeCheck'));
+              ? const SourceString("listSuperNativeTypeCast")
+              : const SourceString('listSuperNativeTypeCheck');
         } else {
           return typeCast
-              ? const PropertyCheckedModeHelper(
-                  const SourceString("listSuperTypeCast"))
-              : const PropertyCheckedModeHelper(
-                  const SourceString('listSuperTypeCheck'));
+              ? const SourceString("listSuperTypeCast")
+              : const SourceString('listSuperTypeCheck');
         }
       } else {
         if (nativeCheck) {
           // TODO(karlklose): can we get rid of this branch when we use
           // interceptors?
           return typeCast
-              ? const PropertyCheckedModeHelper(
-                  const SourceString("interceptedTypeCast"))
-              : const PropertyCheckedModeHelper(
-                  const SourceString('interceptedTypeCheck'));
+              ? const SourceString("interceptedTypeCast")
+              : const SourceString('interceptedTypeCheck');
         } else {
           if (type.kind == TypeKind.INTERFACE && !type.isRaw) {
             return typeCast
-                ? const SubtypeCheckedModeHelper(
-                    const SourceString('subtypeCast'))
-                : const SubtypeCheckedModeHelper(
-                    const SourceString('assertSubtype'));
+                ? const SourceString('subtypeCast')
+                : const SourceString('assertSubtype');
           } else if (type.kind == TypeKind.TYPE_VARIABLE) {
             return typeCast
-                ? const TypeVariableCheckedModeHelper(
-                    const SourceString('subtypeOfRuntimeTypeCast'))
-                : const TypeVariableCheckedModeHelper(
-                    const SourceString('assertSubtypeOfRuntimeType'));
-          } else if (type.kind == TypeKind.FUNCTION) {
-            return typeCast
-                ? const FunctionTypeCheckedModeHelper(
-                    const SourceString('functionSubtypeCast'))
-                : const FunctionTypeCheckedModeHelper(
-                    const SourceString('assertFunctionSubtype'));
+                ? const SourceString('subtypeOfRuntimeTypeCast')
+                : const SourceString('assertSubtypeOfRuntimeType');
           } else {
             return typeCast
-                ? const PropertyCheckedModeHelper(
-                    const SourceString('propertyTypeCast'))
-                : const PropertyCheckedModeHelper(
-                    const SourceString('propertyTypeCheck'));
+                ? const SourceString('propertyTypeCast')
+                : const SourceString('propertyTypeCheck');
           }
         }
       }
@@ -1182,10 +990,6 @@ class JavaScriptBackend extends Backend {
 
   Element getThrowRuntimeError() {
     return compiler.findHelper(const SourceString('throwRuntimeError'));
-  }
-
-  Element getMalformedTypeCheck() {
-    return compiler.findHelper(const SourceString('malformedTypeCheck'));
   }
 
   Element getThrowMalformedSubtypeError() {
@@ -1230,14 +1034,6 @@ class JavaScriptBackend extends Backend {
     return compiler.findHelper(const SourceString('getRuntimeTypeInfo'));
   }
 
-  Element getComputeSignature() {
-    return compiler.findHelper(const SourceString('computeSignature'));
-  }
-
-  Element getGetRuntimeTypeArguments() {
-    return compiler.findHelper(const SourceString('getRuntimeTypeArguments'));
-  }
-
   Element getGetRuntimeTypeArgument() {
     return compiler.findHelper(const SourceString('getRuntimeTypeArgument'));
   }
@@ -1261,10 +1057,6 @@ class JavaScriptBackend extends Backend {
   Element getAssertSubtypeOfRuntimeType() {
     return compiler.findHelper(
         const SourceString('assertSubtypeOfRuntimeType'));
-  }
-
-  Element getCheckFunctionSubtype() {
-    return compiler.findHelper(const SourceString('checkFunctionSubtype'));
   }
 
   Element getThrowNoSuchMethod() {

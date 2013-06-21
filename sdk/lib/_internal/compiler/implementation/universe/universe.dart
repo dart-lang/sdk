@@ -50,20 +50,6 @@ class Universe {
   final Set<Element> fieldSetters;
   final Set<DartType> isChecks;
 
-  /**
-   * Set of [:call:] methods in instantiated classes that use type variables
-   * in their signature.
-   */
-  final Set<Element> genericCallMethods;
-
-  /**
-   * Set of methods in instantiated classes that use type variables in their
-   * signature and have potentially been closurized.
-   */
-  final Set<Element> closurizedGenericMembers;
-
-  final Set<Element> closurizedMembers;
-
   bool usingFactoryWithTypeArguments = false;
 
   Universe() : instantiatedClasses = new Set<ClassElement>(),
@@ -74,10 +60,7 @@ class Universe {
                invokedSetters = new Map<SourceString, Set<Selector>>(),
                fieldGetters = new Set<Element>(),
                fieldSetters = new Set<Element>(),
-               isChecks = new Set<DartType>(),
-               genericCallMethods = new Set<Element>(),
-               closurizedGenericMembers = new Set<Element>(),
-               closurizedMembers = new Set<Element>();
+               isChecks = new Set<DartType>();
 
   bool hasMatchingSelector(Set<Selector> selectors,
                            Element member,
@@ -107,15 +90,6 @@ class Universe {
 
   bool hasFieldSetter(Element member, Compiler compiler) {
     return fieldSetters.contains(member);
-  }
-
-  DartType registerIsCheck(DartType type, Compiler compiler) {
-    type = type.unalias(compiler);
-    // Even in checked mode, type annotations for return type and argument
-    // types do not imply type checks, so there should never be a check
-    // against the type variable of a typedef.
-    isChecks.add(type);
-    return type;
   }
 }
 

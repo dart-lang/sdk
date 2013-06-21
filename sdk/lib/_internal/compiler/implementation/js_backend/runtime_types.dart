@@ -20,7 +20,6 @@ class RuntimeTypes {
 
   final Map<ClassElement, Set<ClassElement>> rtiDependencies;
   final Set<ClassElement> classesNeedingRti;
-  final Set<Element> methodsNeedingRti;
   // The set of classes that use one of their type variables as expressions
   // to get the runtime type.
   final Set<ClassElement> classesUsingTypeVariableExpression;
@@ -31,7 +30,6 @@ class RuntimeTypes {
       : this.compiler = compiler,
         representationGenerator = new TypeRepresentationGenerator(compiler),
         classesNeedingRti = new Set<ClassElement>(),
-        methodsNeedingRti = new Set<Element>(),
         rtiDependencies = new Map<ClassElement, Set<ClassElement>>(),
         classesUsingTypeVariableExpression = new Set<ClassElement>();
 
@@ -79,7 +77,7 @@ class RuntimeTypes {
         InterfaceType interface = type;
         do {
           for (DartType argument in interface.typeArguments) {
-            universe.registerIsCheck(argument, compiler);
+            universe.isChecks.add(argument);
           }
           interface = interface.element.supertype;
         } while (interface != null && !instantiatedTypes.contains(interface));
@@ -102,7 +100,7 @@ class RuntimeTypes {
             InterfaceType instance = current.asInstanceOf(cls);
             if (instance == null) break;
             for (DartType argument in instance.typeArguments) {
-              universe.registerIsCheck(argument, compiler);
+              universe.isChecks.add(argument);
             }
             current = current.element.supertype;
           } while (current != null && !instantiatedTypes.contains(current));
@@ -157,50 +155,18 @@ class RuntimeTypes {
     if (backend.jsArrayClass != null) {
       registerRtiDependency(backend.jsArrayClass, compiler.listClass);
     }
-    // Compute the set of all classes and methods that need runtime type
-    // information.
+    // Compute the set of all classes that need runtime type information.
     compiler.resolverWorld.isChecks.forEach((DartType type) {
       if (type.kind == TypeKind.INTERFACE) {
         InterfaceType itf = type;
         if (!itf.isRaw) {
           potentiallyAddForRti(itf.element);
         }
-      } else {
-        ClassElement contextClass = Types.getClassContext(type);
-        if (contextClass != null) {
-          // [type] contains type variables (declared in [contextClass]) if
-          // [contextClass] is non-null. This handles checks against type
-          // variables and function types containing type variables.
-          potentiallyAddForRti(contextClass);
-        }
-        if (type.kind == TypeKind.FUNCTION) {
-          void analyzeMethod(Element method) {
-            DartType memberType = method.computeType(compiler);
-            ClassElement contextClass = Types.getClassContext(memberType);
-            if (contextClass != null &&
-                compiler.types.isPotentialSubtype(memberType, type)) {
-              potentiallyAddForRti(contextClass);
-              methodsNeedingRti.add(method);
-            }
-          }
-          compiler.resolverWorld.closurizedGenericMembers.forEach(
-              analyzeMethod);
-          compiler.resolverWorld.genericCallMethods.forEach(analyzeMethod);
-        }
+      } else if (type.kind == TypeKind.TYPE_VARIABLE) {
+        TypeVariableElement variable = type.element;
+        potentiallyAddForRti(variable.enclosingElement);
       }
     });
-    if (compiler.enableTypeAssertions) {
-      void analyzeMethod(Element method) {
-        DartType memberType = method.computeType(compiler);
-        ClassElement contextClass = Types.getClassContext(memberType);
-        if (contextClass != null) {
-          potentiallyAddForRti(contextClass);
-          methodsNeedingRti.add(method);
-        }
-      }
-      compiler.resolverWorld.closurizedGenericMembers.forEach(analyzeMethod);
-      compiler.resolverWorld.genericCallMethods.forEach(analyzeMethod);
-    }
     // Add the classes that need RTI because they use a type variable as
     // expression.
     classesUsingTypeVariableExpression.forEach(potentiallyAddForRti);
@@ -244,41 +210,10 @@ class RuntimeTypes {
   }
 
   void computeRequiredChecks() {
-    Set<DartType> isChecks = compiler.codegenWorld.isChecks;
-    bool hasFunctionTypeCheck =
-        isChecks.any((type) => identical(type.kind, TypeKind.FUNCTION));
-    Set<DartType> instantiatedTypesAndClosures = hasFunctionTypeCheck
-        ? computeInstantiatedTypesAndClosures(compiler.codegenWorld)
-        : compiler.codegenWorld.instantiatedTypes;
-    computeInstantiatedArguments(instantiatedTypesAndClosures, isChecks);
-    computeCheckedArguments(instantiatedTypesAndClosures, isChecks);
+    computeInstantiatedArguments(compiler.codegenWorld);
+    computeCheckedArguments(compiler.codegenWorld);
     cachedRequiredChecks =
         computeChecks(allInstantiatedArguments, checkedArguments);
-  }
-
-  Set<DartType> computeInstantiatedTypesAndClosures(Universe universe) {
-    Set<DartType> instantiatedTypes =
-        new Set<DartType>.from(universe.instantiatedTypes);
-    for (DartType instantiatedType in universe.instantiatedTypes) {
-      if (instantiatedType.kind == TypeKind.INTERFACE) {
-        Member member =
-            instantiatedType.lookupMember(Compiler.CALL_OPERATOR_NAME);
-        if (member != null) {
-          instantiatedTypes.add(member.computeType(compiler));
-        }
-      }
-    }
-    for (FunctionElement element in universe.staticFunctionsNeedingGetter) {
-      instantiatedTypes.add(element.computeType(compiler));
-    }
-    // TODO(johnniwinther): We should get this information through the
-    // [neededClasses] computed in the emitter instead of storing it and pulling
-    // it from resolution, but currently it would introduce a cyclic dependency
-    // between [computeRequiredChecks] and [computeNeededClasses].
-    for (Element element in compiler.resolverWorld.closurizedMembers) {
-      instantiatedTypes.add(element.computeType(compiler));
-    }
-    return instantiatedTypes;
   }
 
   /**
@@ -288,26 +223,14 @@ class RuntimeTypes {
    * have a type check against this supertype that includes a check against
    * the type arguments.
    */
-  void computeInstantiatedArguments(Set<DartType> instantiatedTypes,
-                                    Set<DartType> isChecks) {
+  void computeInstantiatedArguments(Universe universe) {
     ArgumentCollector superCollector = new ArgumentCollector(backend);
     ArgumentCollector directCollector = new ArgumentCollector(backend);
-    FunctionArgumentCollector functionArgumentCollector =
-        new FunctionArgumentCollector(backend);
-
-    // We need to add classes occuring in function type arguments, like for
-    // instance 'I' for [: o is C<f> :] where f is [: typedef I f(); :].
-    for (DartType type in isChecks) {
-      functionArgumentCollector.collect(type);
-    }
-
-    for (DartType type in instantiatedTypes) {
+    for (DartType type in universe.instantiatedTypes) {
       directCollector.collect(type);
-      if (type.kind == TypeKind.INTERFACE) {
-        ClassElement cls = type.element;
-        for (DartType supertype in cls.allSupertypes) {
-          superCollector.collect(supertype);
-        }
+      ClassElement cls = type.element;
+      for (DartType supertype in cls.allSupertypes) {
+        superCollector.collect(supertype);
       }
     }
     for (ClassElement cls in superCollector.classes.toList()) {
@@ -315,33 +238,18 @@ class RuntimeTypes {
         superCollector.collect(supertype);
       }
     }
-
-    directlyInstantiatedArguments =
-        directCollector.classes..addAll(functionArgumentCollector.classes);
+    directlyInstantiatedArguments = directCollector.classes;
     allInstantiatedArguments =
         superCollector.classes..addAll(directlyInstantiatedArguments);
   }
 
   /// Collects all type arguments used in is-checks.
-  void computeCheckedArguments(Set<DartType> instantiatedTypes,
-                               Set<DartType> isChecks) {
+  void computeCheckedArguments(Universe universe) {
     ArgumentCollector collector = new ArgumentCollector(backend);
-    FunctionArgumentCollector functionArgumentCollector =
-        new FunctionArgumentCollector(backend);
-
-    // We need to add types occuring in function type arguments, like for
-    // instance 'J' for [: (J j) {} is f :] where f is
-    // [: typedef void f(I i); :] and 'J' is a subtype of 'I'.
-    for (DartType type in instantiatedTypes) {
-      functionArgumentCollector.collect(type);
-    }
-
-    for (DartType type in isChecks) {
+    for (DartType type in universe.isChecks) {
       collector.collect(type);
     }
-
-    checkedArguments =
-        collector.classes..addAll(functionArgumentCollector.classes);
+    checkedArguments = collector.classes;
   }
 
   Set<ClassElement> getClassesUsedInSubstitutions(JavaScriptBackend backend,
@@ -484,41 +392,6 @@ class RuntimeTypes {
     return '[$code]';
   }
 
-  String getTypeEncoding(DartType type,
-                         {bool alwaysGenerateFunction: false}) {
-    ClassElement contextClass = Types.getClassContext(type);
-    String onVariable(TypeVariableType v) {
-      return v.toString();
-    };
-    String encoding = _getTypeRepresentation(type, onVariable);
-    if (contextClass == null && !alwaysGenerateFunction) {
-      return encoding;
-    } else {
-      String parameters = contextClass != null
-          ? contextClass.typeVariables.toList().join(', ')
-          : '';
-      return 'function ($parameters) { return $encoding; }';
-    }
-  }
-
-  String getSignatureEncoding(DartType type, String generateThis()) {
-    ClassElement contextClass = Types.getClassContext(type);
-    String encoding = getTypeEncoding(type, alwaysGenerateFunction: true);
-    if (contextClass != null) {
-      String this_ = generateThis();
-      JavaScriptBackend backend = compiler.backend;
-      String computeSignature =
-          backend.namer.getName(backend.getComputeSignature());
-      String contextName = backend.namer.getName(contextClass);
-      return 'function () {'
-             ' return ${backend.namer.GLOBAL_OBJECT}.'
-                  '$computeSignature($encoding, $this_, "$contextName"); '
-             '}';
-    } else {
-      return encoding;
-    }
-  }
-
   String getTypeRepresentation(DartType type, VariableSubstitution onVariable) {
     // Create a type representation.  For type variables call the original
     // callback for side effects and return a template placeholder.
@@ -559,9 +432,6 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   OnVariableCallback onVariable;
   StringBuffer builder;
 
-  JavaScriptBackend get backend => compiler.backend;
-  Namer get namer => backend.namer;
-
   TypeRepresentationGenerator(Compiler this.compiler);
 
   /**
@@ -579,6 +449,8 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   String getJsName(Element element) {
+    JavaScriptBackend backend = compiler.backend;
+    Namer namer = backend.namer;
     return namer.isolateAccess(backend.getImplementationClass(element));
   }
 
@@ -619,26 +491,25 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
   }
 
   visitFunctionType(FunctionType type, _) {
-    builder.write('{${namer.functionTypeTag()}:'
-                  ' "${namer.getFunctionTypeName(type)}"');
+    builder.write('{func: true');
     if (type.returnType.isVoid) {
-      builder.write(', ${namer.functionTypeVoidReturnTag()}: true');
+      builder.write(', retvoid: true');
     } else if (!type.returnType.isDynamic) {
-      builder.write(', ${namer.functionTypeReturnTypeTag()}: ');
+      builder.write(', ret: ');
       visit(type.returnType);
     }
     if (!type.parameterTypes.isEmpty) {
-      builder.write(', ${namer.functionTypeRequiredParametersTag()}: [');
+      builder.write(', args: [');
       visitList(type.parameterTypes);
       builder.write(']');
     }
     if (!type.optionalParameterTypes.isEmpty) {
-      builder.write(', ${namer.functionTypeOptionalParametersTag()}: [');
+      builder.write(', opt: [');
       visitList(type.optionalParameterTypes);
       builder.write(']');
     }
     if (!type.namedParameterTypes.isEmpty) {
-      builder.write(', ${namer.functionTypeNamedParametersTag()}: {');
+      builder.write(', named: {');
       bool first = true;
       Link<SourceString> names = type.namedParameters;
       Link<DartType> types = type.namedParameterTypes;
@@ -658,13 +529,8 @@ class TypeRepresentationGenerator extends DartTypeVisitor {
     builder.write('}');
   }
 
-  visitMalformedType(MalformedType type, _) {
-    // Treat malformed types as dynamic at runtime.
-    builder.write('null');
-  }
-
   visitType(DartType type, _) {
-    compiler.internalError('Unexpected type: $type (${type.kind})');
+    compiler.internalError('Unexpected type: $type');
   }
 }
 
@@ -723,57 +589,11 @@ class ArgumentCollector extends DartTypeVisitor {
     // Do not collect [:dynamic:].
   }
 
-  visitTypedefType(TypedefType type, bool isTypeArgument) {
-    type.unalias(backend.compiler).accept(this, isTypeArgument);
-  }
-
   visitInterfaceType(InterfaceType type, bool isTypeArgument) {
     if (isTypeArgument) {
       classes.add(backend.getImplementationClass(type.element));
     }
     type.visitChildren(this, true);
-  }
-
-  visitFunctionType(FunctionType type, _) {
-    type.visitChildren(this, true);
-  }
-}
-
-class FunctionArgumentCollector extends DartTypeVisitor {
-  final JavaScriptBackend backend;
-  final Set<ClassElement> classes = new Set<ClassElement>();
-
-  FunctionArgumentCollector(this.backend);
-
-  collect(DartType type) {
-    type.accept(this, false);
-  }
-
-  /// Collect all types in the list as if they were arguments of an
-  /// InterfaceType.
-  collectAll(Link<DartType> types) {
-    for (Link<DartType> link = types; !link.isEmpty; link = link.tail) {
-      link.head.accept(this, true);
-    }
-  }
-
-  visitType(DartType type, _) {
-    // Do nothing.
-  }
-
-  visitDynamicType(DynamicType type, _) {
-    // Do not collect [:dynamic:].
-  }
-
-  visitTypedefType(TypedefType type, bool inFunctionType) {
-    type.unalias(backend.compiler).accept(this, inFunctionType);
-  }
-
-  visitInterfaceType(InterfaceType type, bool inFunctionType) {
-    if (inFunctionType) {
-      classes.add(backend.getImplementationClass(type.element));
-    }
-    type.visitChildren(this, inFunctionType);
   }
 
   visitFunctionType(FunctionType type, _) {
@@ -812,7 +632,7 @@ class Substitution {
       String formals = parameters.toList().map(variableName).join(', ');
       return 'function ($formals) { return $code; }';
     } else if (ensureIsFunction) {
-      return 'function () { return $code; }';
+      return 'function() { return $code; }';
     } else {
       return code;
     }

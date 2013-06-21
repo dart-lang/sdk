@@ -1110,13 +1110,14 @@ abstract class HInstruction implements Spannable {
 
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
     if (type == null) return this;
-    type = type.unalias(compiler);
     // Only the builder knows how to create [HTypeConversion]
     // instructions with generics. It has the generic type context
     // available.
     assert(type.kind != TypeKind.TYPE_VARIABLE);
+    // TODO(5022): Generic typedefs should not be handled here.
     assert(type.isRaw
            || type.isMalformed
+           || type.kind == TypeKind.TYPEDEF
            || type.kind == TypeKind.FUNCTION);
     if (identical(type.element, compiler.dynamicClass)) return this;
     if (identical(type.element, compiler.objectClass)) return this;
@@ -2250,7 +2251,6 @@ class HTypeConversion extends HCheck {
   final DartType typeExpression;
   final int kind;
   final Selector receiverTypeCheckSelector;
-  final bool contextIsTypeArguments;
 
   static const int NO_CHECK = 0;
   static const int CHECKED_MODE_CHECK = 1;
@@ -2262,11 +2262,8 @@ class HTypeConversion extends HCheck {
   HTypeConversion(this.typeExpression, this.kind,
                   HType type, HInstruction input,
                   [this.receiverTypeCheckSelector])
-      : contextIsTypeArguments = false,
-        super(<HInstruction>[input]) {
+      : super(<HInstruction>[input]) {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
-    assert(typeExpression == null ||
-           typeExpression.kind != TypeKind.TYPEDEF);
     sourceElement = input.sourceElement;
     instructionType = type;
   }
@@ -2274,34 +2271,14 @@ class HTypeConversion extends HCheck {
   HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
                                          HType type, HInstruction input,
                                          HInstruction typeRepresentation)
-      : contextIsTypeArguments = false,
-        super(<HInstruction>[input, typeRepresentation]),
+      : super(<HInstruction>[input, typeRepresentation]),
         receiverTypeCheckSelector = null {
-    assert(typeExpression.kind != TypeKind.TYPEDEF);
     sourceElement = input.sourceElement;
     instructionType = type;
   }
 
-  HTypeConversion.withContext(this.typeExpression, this.kind,
-                              HType type, HInstruction input,
-                              HInstruction context,
-                              {bool this.contextIsTypeArguments})
-      : super(<HInstruction>[input, context]),
-        receiverTypeCheckSelector = null {
-    assert(typeExpression.kind != TypeKind.TYPEDEF);
-    sourceElement = input.sourceElement;
-    instructionType = type;
-  }
-
-  bool get hasTypeRepresentation {
-    return typeExpression.kind == TypeKind.INTERFACE && inputs.length > 1;
-  }
+  bool get hasTypeRepresentation => inputs.length > 1;
   HInstruction get typeRepresentation => inputs[1];
-
-  bool get hasContext {
-    return typeExpression.kind == TypeKind.FUNCTION && inputs.length > 1;
-  }
-  HInstruction get context => inputs[1];
 
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
     if (typeExpression == type) return this;

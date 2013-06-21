@@ -2214,6 +2214,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(invariant(input, !type.isMalformed,
                      message: 'Attempt to check malformed type $type'));
     Element element = type.element;
+
     if (element == backend.jsArrayClass) {
       checkArray(input, negative ? '!==': '===');
       return;
@@ -2517,7 +2518,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     assert(node.isCheckedModeCheck || node.isCastTypeCheck);
     DartType type = node.typeExpression;
-    assert(type.kind != TypeKind.TYPEDEF);
     if (type.kind == TypeKind.FUNCTION) {
       // TODO(5022): We currently generate $isFunction checks for
       // function types.
@@ -2526,17 +2526,53 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     world.registerIsCheck(type, work.resolutionTree);
 
-    CheckedModeHelper helper;
     FunctionElement helperElement;
     if (node.isBooleanConversionCheck) {
-      helper =
-          const CheckedModeHelper(const SourceString('boolConversionCheck'));
+      helperElement =
+          compiler.findHelper(const SourceString('boolConversionCheck'));
     } else {
-      helper =
-          backend.getCheckedModeHelper(type, typeCast: node.isCastTypeCheck);
+      helperElement = backend.getCheckedModeHelper(type,
+          typeCast: node.isCastTypeCheck);
     }
-
-    push(helper.generateCall(this, node));
+    world.registerStaticUse(helperElement);
+    List<js.Expression> arguments = <js.Expression>[];
+    use(node.checkedInput);
+    arguments.add(pop());
+    int parameterCount =
+        helperElement.computeSignature(compiler).parameterCount;
+    // TODO(johnniwinther): Refactor this to avoid using the parameter count
+    // to determine how the helper should be called.
+    if (node.typeExpression.kind == TypeKind.TYPE_VARIABLE) {
+      assert(parameterCount == 2);
+      use(node.typeRepresentation);
+      arguments.add(pop());
+    } else if (parameterCount == 2) {
+      // 2 arguments implies that the method is either [propertyTypeCheck],
+      // [propertyTypeCast] or [assertObjectIsSubtype].
+      assert(!type.isMalformed);
+      String additionalArgument = backend.namer.operatorIs(type.element);
+      arguments.add(js.string(additionalArgument));
+    } else if (parameterCount == 3) {
+      // 3 arguments implies that the method is [malformedTypeCheck].
+      assert(type.isMalformed);
+      String reasons = Types.fetchReasonsFromMalformedType(type);
+      arguments.add(js.string('$type'));
+      // TODO(johnniwinther): Handle escaping correctly.
+      arguments.add(js.string(reasons));
+    } else if (parameterCount == 4) {
+      Element element = type.element;
+      String isField = backend.namer.operatorIs(element);
+      arguments.add(js.string(isField));
+      use(node.typeRepresentation);
+      arguments.add(pop());
+      String asField = backend.namer.substitutionName(element);
+      arguments.add(js.string(asField));
+    } else {
+      assert(!type.isMalformed);
+      // No additional arguments needed.
+    }
+    String helperName = backend.namer.isolateAccess(helperElement);
+    push(new js.Call(new js.VariableUse(helperName), arguments));
   }
 }
 
