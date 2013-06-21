@@ -208,7 +208,7 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
     if (c->ai_family == AF_INET || c->ai_family == AF_INET6) count++;
   }
-  int i = 0;
+  intptr_t i = 0;
   AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
     if (c->ai_family == AF_INET || c->ai_family == AF_INET6) {

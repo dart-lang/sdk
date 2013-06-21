@@ -184,9 +184,9 @@ intptr_t Socket::GetStdioHandle(int num) {
 }
 
 
-SocketAddresses* Socket::LookupAddress(const char* host,
-                                       int type,
-                                       OSError** os_error) {
+AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
+                                                  int type,
+                                                  OSError** os_error) {
   // Perform a name lookup for a host name.
   struct addrinfo hints;
   memset(&hints, 0, sizeof(hints));
@@ -207,11 +207,11 @@ SocketAddresses* Socket::LookupAddress(const char* host,
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
     if (c->ai_family == AF_INET || c->ai_family == AF_INET6) count++;
   }
-  SocketAddresses* addresses = new SocketAddresses(count);
   intptr_t i = 0;
+  AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
     if (c->ai_family == AF_INET || c->ai_family == AF_INET6) {
-      addresses->SetAt(i, new SocketAddress(c));
+      addresses->SetAt(i, new SocketAddress(c->ai_addr));
       i++;
     }
   }
