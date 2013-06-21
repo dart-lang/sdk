@@ -4,9 +4,6 @@
 
 library barback;
 
-import 'dart:async';
-import 'dart:io';
-
 export 'src/asset.dart';
 export 'src/asset_id.dart';
 export 'src/asset_provider.dart';
