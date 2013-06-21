@@ -1495,7 +1495,8 @@ bool Debugger::IsDebuggable(const Function& func) {
   if ((fkind == RawFunction::kImplicitGetter) ||
       (fkind == RawFunction::kImplicitSetter) ||
       (fkind == RawFunction::kConstImplicitGetter) ||
-      (fkind == RawFunction::kMethodExtractor)) {
+      (fkind == RawFunction::kMethodExtractor) ||
+      (fkind == RawFunction::kNoSuchMethodDispatcher)) {
     return false;
   }
   const Class& cls = Class::Handle(func.Owner());
