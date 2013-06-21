@@ -4701,9 +4701,6 @@ const char* Function::ToCString() const {
     case RawFunction::kMethodExtractor:
       kind_str = " method-extractor";
       break;
-    case RawFunction::kNoSuchMethodDispatcher:
-      kind_str = " no-such-method-dispatcher";
-      break;
     default:
       UNREACHABLE();
   }

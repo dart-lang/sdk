@@ -1395,10 +1395,6 @@ class Function : public Object {
     return kind() == RawFunction::kMethodExtractor;
   }
 
-  bool IsNoSuchMethodDispatcher() const {
-    return kind() == RawFunction::kNoSuchMethodDispatcher;
-  }
-
   // Returns true iff an implicit closure function has been created
   // for this function.
   bool HasImplicitClosureFunction() const {
@@ -1443,7 +1439,6 @@ class Function : public Object {
       case RawFunction::kImplicitGetter:
       case RawFunction::kImplicitSetter:
       case RawFunction::kMethodExtractor:
-      case RawFunction::kNoSuchMethodDispatcher:
         return true;
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:

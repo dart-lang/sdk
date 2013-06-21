@@ -878,9 +878,8 @@ static RawFunction* InlineCacheMissHandler(
     // Let the megamorphic stub handle special cases: NoSuchMethod,
     // closure calls.
     if (FLAG_trace_ic) {
-      OS::PrintErr("InlineCacheMissHandler NULL code for %s receiver: %s\n",
-                   String::Handle(ic_data.target_name()).ToCString(),
-                   receiver.ToCString());
+      OS::PrintErr("InlineCacheMissHandler NULL code for receiver: %s\n",
+          receiver.ToCString());
     }
     return Function::null();
   }
@@ -1155,9 +1154,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                                getter_name,
                                                kNumArguments,
                                                kNumNamedArguments));
-  if (getter.IsNull() ||
-      getter.IsMethodExtractor() ||
-      getter.IsNoSuchMethodDispatcher()) {
+  if (getter.IsNull() || getter.IsMethodExtractor()) {
     return false;
   }
 
@@ -1179,41 +1176,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   *result = DartEntry::InvokeClosure(arguments, arguments_descriptor);
   CheckResultError(*result);
   return true;
-}
-
-
-// Create a method for noSuchMethod invocation and attach it to the receiver
-// class.
-static RawFunction* CreateNoSuchMethodDispatcher(
-    const String& target_name,
-    const Class& receiver_class,
-    const Array& arguments_descriptor) {
-  Function& invocation = Function::Handle(
-      Function::New(String::Handle(Symbols::New(target_name)),
-                    RawFunction::kNoSuchMethodDispatcher,
-                    false,  // Not static.
-                    false,  // Not const.
-                    false,  // Not abstract.
-                    false,  // Not external.
-                    receiver_class,
-                    0));  // No token position.
-
-  // Initialize signature: receiver is a single fixed parameter.
-  const intptr_t kNumParameters = 1;
-  invocation.set_num_fixed_parameters(kNumParameters);
-  invocation.SetNumOptionalParameters(0, 0);
-  invocation.set_parameter_types(Array::Handle(Array::New(kNumParameters,
-                                                         Heap::kOld)));
-  invocation.set_parameter_names(Array::Handle(Array::New(kNumParameters,
-                                                         Heap::kOld)));
-  invocation.SetParameterTypeAt(0, Type::Handle(Type::DynamicType()));
-  invocation.SetParameterNameAt(0, Symbols::This());
-  invocation.set_result_type(Type::Handle(Type::DynamicType()));
-  invocation.set_is_visible(false);  // Not visible in stack trace.
-
-  receiver_class.AddFunction(invocation);
-
-  return invocation.raw();
 }
 
 
@@ -1251,32 +1213,10 @@ DEFINE_RUNTIME_ENTRY(InstanceFunctionLookup, 4) {
                                 args_descriptor,
                                 args,
                                 &result)) {
-    ArgumentsDescriptor desc(args_descriptor);
-    // TODO(fschneider): Handle multiple arguments.
-    if ((desc.Count() == 1) && (desc.PositionalCount() == 1)) {
-      // Create Function for noSuchMethodInvocation and add it to the class.
-      Function& target_function = Function::Handle();
-      target_function ^= CreateNoSuchMethodDispatcher(target_name,
-                                                      receiver_class,
-                                                      args_descriptor);
-
-      // Update IC data.
-      ASSERT(!target_function.IsNull());
-      ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
-      if (FLAG_trace_ic) {
-        OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%"Pd" -> <%s>\n",
-            Class::Handle(receiver.clazz()).ToCString(),
-            receiver.GetClassId(),
-            target_function.ToCString());
-      }
-      result =
-          DartEntry::InvokeFunction(target_function, args, args_descriptor);
-    } else {
-      result = DartEntry::InvokeNoSuchMethod(receiver,
-                                             target_name,
-                                             args,
-                                             args_descriptor);
-    }
+    result = DartEntry::InvokeNoSuchMethod(receiver,
+                                           target_name,
+                                           args,
+                                           args_descriptor);
   }
   CheckResultError(result);
   arguments.SetReturn(result);

@@ -238,8 +238,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
         if (func.kind() == RawFunction::kImplicitGetter ||
             func.kind() == RawFunction::kImplicitSetter ||
             func.kind() == RawFunction::kConstImplicitGetter ||
-            func.kind() == RawFunction::kMethodExtractor ||
-            func.kind() == RawFunction::kNoSuchMethodDispatcher) {
+            func.kind() == RawFunction::kMethodExtractor) {
           continue;
         }
 

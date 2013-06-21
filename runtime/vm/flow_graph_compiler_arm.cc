@@ -1068,8 +1068,7 @@ void FlowGraphCompiler::CompileGraph() {
     ASSERT(!parsed_function().function().HasOptionalParameters());
     const bool check_arguments = true;
 #else
-    const bool check_arguments =
-        function.IsClosureFunction() || function.IsNoSuchMethodDispatcher();
+    const bool check_arguments = function.IsClosureFunction();
 #endif
     if (check_arguments) {
       __ Comment("Check argument count");
@@ -1083,7 +1082,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ cmp(R0, ShifterOperand(R1));
       __ b(&correct_num_arguments, EQ);
       __ Bind(&wrong_num_arguments);
-      if (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) {
+      if (function.IsClosureFunction()) {
         if (StackSize() != 0) {
           // We need to unwind the space we reserved for locals and copied
           // parameters. The NoSuchMethodFunction stub does not expect to see
@@ -1094,15 +1093,10 @@ void FlowGraphCompiler::CompileGraph() {
         // dropped the spill slots.
         BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
 
-        // Invoke noSuchMethod function passing the original function name.
-        // For closure functions, use "call" as the original name.
-        const String& name =
-            String::Handle(function.IsClosureFunction()
-                             ? Symbols::Call().raw()
-                             : function.name());
+        // Invoke noSuchMethod function passing "call" as the function name.
         const int kNumArgsChecked = 1;
         const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, name, Object::null_array(),
+            ICData::New(function, Symbols::Call(), Object::null_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(R5, ic_data);
         // FP - 4 : saved PP, object pool pointer of caller.
