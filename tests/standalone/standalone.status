@@ -58,9 +58,6 @@ debugger/*: Skip # Do not run standalone debugger tests in browser.
 coverage_test: Skip
 http_launch_test: Skip
 
-[ ($runtime == vm || $runtime == drt) && $arch == x64 ]
-53bit_overflow_test: Fail # Issue 11411
-
 [ $compiler == dartc ]
 
 # package test issue 7392

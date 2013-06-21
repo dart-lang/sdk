@@ -10635,7 +10635,8 @@ const char* Integer::ToCString() const {
 // Throw FiftyThreeBitOverflow exception.
 static void ThrowFiftyThreeBitOverflow(const Integer& i) {
   const Array& exc_args = Array::Handle(Array::New(1));
-  exc_args.SetAt(0, i);
+  const String& i_str = String::Handle(String::New(i.ToCString()));
+  exc_args.SetAt(0, i_str);
   Exceptions::ThrowByType(Exceptions::kFiftyThreeBitOverflowError, exc_args);
 }
 
