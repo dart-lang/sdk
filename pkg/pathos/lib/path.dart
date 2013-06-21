@@ -475,7 +475,7 @@ class Builder {
   /// On POSIX systems, absolute paths start with a `/` (forward slash). On
   /// Windows, an absolute path starts with `\\`, or a drive letter followed by
   /// `:/` or `:\`.
-  bool isRelative(String path) => !isAbsolute(path);
+  bool isRelative(String path) => !this.isAbsolute(path);
 
   /// Returns `true` if [path] is a root-relative path and `false` if it's not.
   ///
