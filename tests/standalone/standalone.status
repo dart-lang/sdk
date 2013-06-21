@@ -61,11 +61,6 @@ http_launch_test: Skip
 [ ($runtime == vm || $runtime == drt) && $arch == x64 ]
 53bit_overflow_test: Fail # Issue 11411
 
-[ $runtime == drt && $system == linux ]
-# This should be redundant, but on linux, drt runs x64 code event when asking
-# for ia32.
-53bit_overflow_test: Fail # Issue 11411
-
 [ $compiler == dartc ]
 
 # package test issue 7392
