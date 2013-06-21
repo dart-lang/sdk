@@ -16,6 +16,9 @@ postmessage_structured_test/typed_arrays: Fail
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
+[ $compiler == dart2js && $checked ]
+html/documentfragment_test: Crash # Issue 11275
+
 [ $compiler == dart2js && ($runtime == ie9 || $runtime == ie10 || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == opera || $runtime == drt || $runtime == dartium)]
 dom_isolates_test: Skip # Need to migrate to new spawnDomFunction.
 

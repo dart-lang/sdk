@@ -1171,7 +1171,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     ClassElement enclosing = function.getEnclosingClass();
     if ((function.isConstructor() || function.isGenerativeConstructorBody())
-        && backend.needsRti(enclosing)) {
+        && backend.classNeedsRti(enclosing)) {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HInstruction argument = compiledArguments[argumentIndex++];
         newLocalsHandler.updateLocal(typeVariable.element, argument);
@@ -1336,7 +1336,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
 
       ClassElement superclass = constructor.getEnclosingClass();
-      if (backend.needsRti(superclass)) {
+      if (backend.classNeedsRti(superclass)) {
         // If [superclass] needs RTI, we have to give a value to its
         // type parameters. Those values are in the [supertype]
         // declaration of [subclass].
@@ -1583,7 +1583,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(newObject);
 
     // Create the runtime type information, if needed.
-    if (backend.needsRti(classElement)) {
+    if (backend.classNeedsRti(classElement)) {
       List<HInstruction> rtiInputs = <HInstruction>[];
       classElement.typeVariables.forEach((TypeVariableType typeVariable) {
         rtiInputs.add(localsHandler.readLocal(typeVariable.element));
@@ -1629,7 +1629,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       });
 
       ClassElement currentClass = constructor.getEnclosingClass();
-      if (backend.needsRti(currentClass)) {
+      if (backend.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
         // parameters of the generative constructor body.
         currentClass.typeVariables.forEach((DartType argument) {
@@ -1733,7 +1733,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // may contain references to type variables.
     var enclosing = element.enclosingElement;
     if ((element.isConstructor() || element.isGenerativeConstructorBody())
-        && backend.needsRti(enclosing)) {
+        && backend.classNeedsRti(enclosing)) {
       enclosing.typeVariables.forEach((TypeVariableType typeVariable) {
         HParameterValue param = addParameter(typeVariable.element);
         localsHandler.directLocals[typeVariable.element] = param;
@@ -1782,6 +1782,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                    DartType type,
                                    int kind) {
     if (type == null) return original;
+    type = type.unalias(compiler);
     if (type.kind == TypeKind.INTERFACE && !type.isMalformed && !type.isRaw) {
      HType subtype = new HType.subtype(type, compiler);
      HInstruction representations = buildTypeArgumentRepresentations(type);
@@ -1793,6 +1794,24 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       HInstruction typeVariable = addTypeVariableReference(type);
       return new HTypeConversion.withTypeRepresentation(type, kind, subtype,
           original, typeVariable);
+    } else if (type.kind == TypeKind.FUNCTION) {
+      HType subtype = original.instructionType;
+      if (type.containsTypeVariables) {
+        bool contextIsTypeArguments = false;
+        HInstruction context;
+        if (currentElement.isInstanceMember()) {
+          context = localsHandler.readThis();
+        } else {
+          ClassElement contextClass = Types.getClassContext(type);
+          context = buildTypeVariableList(contextClass);
+          add(context);
+          contextIsTypeArguments = true;
+        }
+        return new HTypeConversion.withContext(type, kind, subtype,
+            original, context, contextIsTypeArguments: contextIsTypeArguments);
+      } else {
+        return new HTypeConversion(type, kind, subtype, original);
+      }
     } else {
       return original.convertType(compiler, type, kind);
     }
@@ -1803,6 +1822,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (!compiler.enableTypeAssertions) return original;
     HInstruction other = buildTypeConversion(original, type, kind);
     if (other != original) add(other);
+    compiler.enqueuer.codegen.registerIsCheck(type, work.resolutionTree);
     return other;
   }
 
@@ -2448,6 +2468,12 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.functionClass.computeType(compiler),
         compiler);
     push(new HForeignNew(closureClassElement, type, capturedVariables));
+
+    Element methodElement = nestedClosureData.closureElement;
+    if (compiler.backend.methodNeedsRti(methodElement)) {
+      compiler.backend.registerGenericClosure(
+          methodElement, compiler.enqueuer.codegen, work.resolutionTree);
+    }
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
@@ -2731,7 +2757,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  visitOperatorSend(node) {
+  visitOperatorSend(Send node) {
     Operator op = node.selector;
     if (const SourceString("[]") == op.source) {
       visitDynamicSend(node);
@@ -2768,6 +2794,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HInstruction expression = pop();
     bool isNot = node.isIsNotCheck;
     DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
+    type = type.unalias(compiler);
     if (type.isMalformed) {
       String reasons = Types.fetchReasonsFromMalformedType(type);
       if (compiler.enableTypeAssertions) {
@@ -2785,8 +2812,57 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  HLiteralList buildTypeVariableList(ClassElement contextClass) {
+    List<HInstruction> inputs = <HInstruction>[];
+    for (Link<DartType> link = contextClass.typeVariables;
+        !link.isEmpty;
+        link = link.tail) {
+      inputs.add(addTypeVariableReference(link.head));
+    }
+    return buildLiteralList(inputs);
+  }
+
   HInstruction buildIsNode(Node node, DartType type, HInstruction expression) {
-    if (type.kind == TypeKind.TYPE_VARIABLE) {
+    type = type.unalias(compiler);
+    if (type.kind == TypeKind.FUNCTION) {
+      Element checkFunctionSubtype = backend.getCheckFunctionSubtype();
+
+      HInstruction signatureName = graph.addConstantString(
+          new DartString.literal(backend.namer.getFunctionTypeName(type)),
+          node, compiler);
+
+      HInstruction contextName;
+      HInstruction context;
+      HInstruction typeArguments;
+      if (type.containsTypeVariables) {
+        ClassElement contextClass = Types.getClassContext(type);
+        contextName = graph.addConstantString(
+            new DartString.literal(backend.namer.getName(contextClass)),
+            node, compiler);
+        if (currentElement.isInstanceMember()) {
+          context = localsHandler.readThis();
+          typeArguments = graph.addConstantNull(compiler);
+        } else {
+          context = graph.addConstantNull(compiler);
+          typeArguments = buildTypeVariableList(contextClass);
+          add(typeArguments);
+        }
+      } else {
+        contextName = graph.addConstantNull(compiler);
+        context = graph.addConstantNull(compiler);
+        typeArguments = graph.addConstantNull(compiler);
+      }
+
+      List<HInstruction> inputs = <HInstruction>[expression,
+                                                 signatureName,
+                                                 contextName,
+                                                 context,
+                                                 typeArguments];
+      pushInvokeStatic(node, checkFunctionSubtype, inputs, HType.BOOLEAN);
+      HInstruction call = pop();
+      return new HIs(type, <HInstruction>[expression, call],
+          HIs.COMPOUND_CHECK);
+    } else if (type.kind == TypeKind.TYPE_VARIABLE) {
       HInstruction runtimeType = addTypeVariableReference(type);
       Element helper = backend.getCheckSubtypeOfRuntimeType();
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
@@ -2984,6 +3060,18 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
+  void handleForeignJsSetupObject(Send node) {
+    if (!node.arguments.isEmpty) {
+      compiler.cancel(
+          'Too many arguments to JS_GLOBAL_OBJECT', node: node);
+    }
+
+    String name = backend.namer.GLOBAL_OBJECT;
+    push(new HForeign(new js.LiteralString(name),
+                      HType.UNKNOWN,
+                      <HInstruction>[]));
+  }
+
   void handleForeignJsCallInIsolate(Send node) {
     Link<Node> link = node.arguments;
     if (!compiler.hasIsolateSupport()) {
@@ -3095,6 +3183,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       handleForeignJs(node);
     } else if (name == const SourceString('JS_CURRENT_ISOLATE_CONTEXT')) {
       handleForeignJsCurrentIsolateContext(node);
+    } else if (name == const SourceString('JS_GLOBAL_OBJECT')) {
+      handleForeignJsSetupObject(node);
     } else if (name == const SourceString('JS_CALL_IN_ISOLATE')) {
       handleForeignJsCallInIsolate(node);
     } else if (name == const SourceString('DART_CLOSURE_TO_JS')) {
@@ -3110,8 +3200,33 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     } else if (name == const SourceString('JS_OBJECT_CLASS_NAME')) {
       String name = backend.namer.getRuntimeTypeName(compiler.objectClass);
       stack.add(addConstantString(node, name));
+    } else if (name == const SourceString('JS_FUNCTION_CLASS_NAME')) {
+      String name = backend.namer.getRuntimeTypeName(compiler.functionClass);
+      stack.add(addConstantString(node, name));
     } else if (name == const SourceString('JS_OPERATOR_AS_PREFIX')) {
       stack.add(addConstantString(node, backend.namer.operatorAsPrefix()));
+    } else if (name == const SourceString('JS_SIGNATURE_NAME')) {
+      stack.add(addConstantString(node, backend.namer.operatorSignature()));
+    } else if (name == const SourceString('JS_FUNCTION_TYPE_TAG')) {
+      stack.add(addConstantString(node, backend.namer.functionTypeTag()));
+    } else if (name == const SourceString('JS_FUNCTION_TYPE_VOID_RETURN_TAG')) {
+      stack.add(addConstantString(node,
+                                  backend.namer.functionTypeVoidReturnTag()));
+    } else if (name == const SourceString('JS_FUNCTION_TYPE_RETURN_TYPE_TAG')) {
+      stack.add(addConstantString(node,
+                                  backend.namer.functionTypeReturnTypeTag()));
+    } else if (name ==
+               const SourceString('JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG')) {
+      stack.add(addConstantString(node,
+          backend.namer.functionTypeRequiredParametersTag()));
+    } else if (name ==
+               const SourceString('JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG')) {
+      stack.add(addConstantString(node,
+          backend.namer.functionTypeOptionalParametersTag()));
+    } else if (name ==
+               const SourceString('JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG')) {
+      stack.add(addConstantString(node,
+          backend.namer.functionTypeNamedParametersTag()));
     } else if (name == const SourceString('JS_DART_OBJECT_CONSTRUCTOR')) {
       handleForeignDartObjectJsConstructorFunction(node);
     } else if (name == const SourceString('JS_IS_INDEXABLE_FIELD_NAME')) {
@@ -3228,17 +3343,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                 TypeVariableElement variable) {
     assert(currentElement.isInstanceMember());
     int index = RuntimeTypes.getTypeVariableIndex(variable);
-    String substitutionNameString = backend.namer.substitutionName(cls);
+    String substitutionNameString = backend.namer.getName(cls);
     HInstruction substitutionName = graph.addConstantString(
         new LiteralDartString(substitutionNameString), null, compiler);
     HInstruction target = localsHandler.readThis();
-    HInstruction substitution = createForeign('#[#]', HType.UNKNOWN,
-        <HInstruction>[target, substitutionName]);
-    add(substitution);
     pushInvokeStatic(null,
                      backend.getGetRuntimeTypeArgument(),
                      [target,
-                      substitution,
+                      substitutionName,
                       graph.addConstantInt(index, compiler)],
                       HType.UNKNOWN);
     return pop();
@@ -3320,7 +3432,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void handleListConstructor(InterfaceType type,
                              Node currentNode,
                              HInstruction newObject) {
-    if (!backend.needsRti(type.element)) return;
+    if (!backend.classNeedsRti(type.element)) return;
     if (!type.isRaw) {
       List<HInstruction> inputs = <HInstruction>[];
       type.typeArguments.forEach((DartType argument) {
@@ -3333,7 +3445,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   void callSetRuntimeTypeInfo(ClassElement element,
                               List<HInstruction> rtiInputs,
                               HInstruction newObject) {
-    if (!backend.needsRti(element) || element.typeVariables.isEmpty) {
+    if (!backend.classNeedsRti(element) || element.typeVariables.isEmpty) {
       return;
     }
 
@@ -3431,7 +3543,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       generateAbstractClassInstantiationError(send, cls.name.slowToString());
       return;
     }
-    if (backend.needsRti(cls)) {
+    if (backend.classNeedsRti(cls)) {
       Link<DartType> typeVariable = cls.typeVariables;
       type.typeArguments.forEach((DartType argument) {
         inputs.add(analyzeTypeArgument(argument, send));
@@ -3456,7 +3568,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // not know about the type argument. Therefore we special case
     // this constructor to have the setRuntimeTypeInfo called where
     // the 'new' is done.
-    if (isListConstructor && backend.needsRti(compiler.listClass)) {
+    if (isListConstructor && backend.classNeedsRti(compiler.listClass)) {
       handleListConstructor(type, send, newInstance);
     }
 
