@@ -228,6 +228,15 @@ patch class InternetAddress {
   }
 }
 
+patch class NetworkInterface {
+  patch static Future<List<NetworkInterface>> list({
+      bool includeLoopback: false,
+      bool includeLinkLocal: false,
+      InternetAddressType type: InternetAddressType.ANY}) {
+    throw new UnsupportedError("NetworkInterface.list");
+  }
+}
+
 patch class RawServerSocket {
   patch static Future<RawServerSocket> bind(address,
                                             int port,
