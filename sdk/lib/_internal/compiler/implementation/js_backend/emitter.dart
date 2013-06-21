@@ -1243,11 +1243,15 @@ class CodeEmitterTask extends CompilerTask {
         isConstructor = function.isConstructor();
         FunctionSignature signature = function.computeSignature(compiler);
         if (signature.optionalParametersAreNamed) {
+          var names = [];
+          for (Element e in signature.optionalParameters) {
+            names.add(e.name);
+          }
           Selector selector = new Selector.call(
               function.name,
               function.getLibrary(),
               requiredParameterCount,
-              optionalParameters.map((e) => e.name).toList());
+              names);
           namedArguments = namedParametersAsReflectionNames(selector);
         }
       }
