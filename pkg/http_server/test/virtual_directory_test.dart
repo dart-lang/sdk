@@ -19,7 +19,8 @@ void main() {
 
         return new HttpClient().get('localhost', server.port, '/')
             .then((request) => request.close())
-            .then((response) => response.statusCode)
+            .then((response) => response.drain().then(
+                (_) => response.statusCode))
             .whenComplete(() {
               server.close();
               dir.deleteSync();
@@ -37,7 +38,8 @@ void main() {
 
         return new HttpClient().get('localhost', server.port, '/')
             .then((request) => request.close())
-            .then((response) => response.statusCode)
+            .then((response) => response.drain().then(
+                (_) => response.statusCode))
             .whenComplete(() {
               server.close();
             });
@@ -57,7 +59,8 @@ void main() {
 
           return new HttpClient().get('localhost', server.port, '/file')
               .then((request) => request.close())
-              .then((response) => response.statusCode)
+              .then((response) => response.drain().then(
+                  (_) => response.statusCode))
               .whenComplete(() {
                 server.close();
                 file.deleteSync();
@@ -75,7 +78,8 @@ void main() {
 
           return new HttpClient().get('localhost', server.port, '/file')
               .then((request) => request.close())
-              .then((response) => response.statusCode)
+              .then((response) => response.drain().then(
+                  (_) => response.statusCode))
               .whenComplete(() {
                 server.close();
                 dir.deleteSync();
@@ -96,7 +100,8 @@ void main() {
 
           return new HttpClient().get('localhost', server.port, '/dir/file')
               .then((request) => request.close())
-              .then((response) => response.statusCode)
+              .then((response) => response.drain().then(
+                  (_) => response.statusCode))
               .whenComplete(() {
                 server.close();
                 file.deleteSync();
@@ -117,7 +122,8 @@ void main() {
 
           return new HttpClient().get('localhost', server.port, '/dir/file')
               .then((request) => request.close())
-              .then((response) => response.statusCode)
+              .then((response) => response.drain().then(
+                  (_) => response.statusCode))
               .whenComplete(() {
                 server.close();
                 file.deleteSync();

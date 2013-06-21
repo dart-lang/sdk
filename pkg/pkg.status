@@ -115,6 +115,7 @@ http/test/multipart_test: Fail, OK # Uses dart:io.
 http/test/request_test: Fail, OK # Uses dart:io.
 http/test/response_test: Fail, OK # Uses dart:io.
 http/test/streamed_request_test: Fail, OK # Uses dart:io.
+http_server/test/*: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_even_test: Fail, OK # Uses dart:io.
 intl/test/date_time_format_file_odd_test: Fail, OK # Uses dart:io.
 intl/test/find_default_locale_standalone_test: Fail, OK # Uses dart:io.
