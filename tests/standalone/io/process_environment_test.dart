@@ -53,7 +53,10 @@ testEnvironment() {
 
 testNoIncludeEnvironment() {
   var donePort = new ReceivePort();
-  runEnvironmentProcess({}, "PATH", false, (output) {
+  var env = Platform.environment;
+  Expect.isTrue(env.containsKey('PATH'));
+  env.remove('PATH');
+  runEnvironmentProcess(env, "PATH", false, (output) {
     donePort.close();
     Expect.isTrue(output.startsWith("null"));
   });
