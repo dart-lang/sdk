@@ -171,8 +171,8 @@ patch class NoSuchMethodError {
 }
 
 class _FiftyThreeBitOverflowError implements Error {
-  final Object value;
+  final Object _value;
 
-  const _FiftyThreeBitOverflowError(this.value);
-  String toString() => "53-bit Overflow: $value";
+  const _FiftyThreeBitOverflowError(this._value);
+  String toString() => "53-bit Overflow: $_value";
 }
