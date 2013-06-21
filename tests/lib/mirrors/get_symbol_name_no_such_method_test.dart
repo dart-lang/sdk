@@ -24,14 +24,12 @@ main() {
   expect('foo', foo.foo);
   expect('foo', foo.foo());
   expect('foo', foo.foo(null));
-  // TODO(ahe): Why does the following not work in dart2js/minified.
-  // expect('foo', foo.foo(null, null));
+  expect('foo', foo.foo(null, null));
   expect('foo', foo.foo(a: null, b: null));
 
   expect('baz', foo.baz);
   expect('baz', foo.baz());
   expect('baz', foo.baz(null));
-  // TODO(ahe): Why does the following not work in dart2js/minified.
-  // expect('baz', foo.baz(null, null));
+  expect('baz', foo.baz(null, null));
   expect('baz', foo.baz(a: null, b: null));
 }

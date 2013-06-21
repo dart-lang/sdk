@@ -1228,18 +1228,32 @@ class CodeEmitterTask extends CompilerTask {
         || elementOrSelector.isConstructor()) {
       int requiredParameterCount;
       int optionalParameterCount;
+      String namedArguments = '';
       bool isConstructor;
       if (elementOrSelector is Selector) {
-        requiredParameterCount = elementOrSelector.argumentCount;
+        Selector selector = elementOrSelector;
+        requiredParameterCount = selector.argumentCount;
         optionalParameterCount = 0;
         isConstructor = false;
+        namedArguments = namedParametersAsReflectionNames(selector);
       } else {
         FunctionElement function = elementOrSelector;
         requiredParameterCount = function.requiredParameterCount(compiler);
         optionalParameterCount = function.optionalParameterCount(compiler);
         isConstructor = function.isConstructor();
+        FunctionSignature signature = function.computeSignature(compiler);
+        if (signature.optionalParametersAreNamed) {
+          Selector selector = new Selector.call(
+              function.name,
+              function.getLibrary(),
+              requiredParameterCount,
+              optionalParameters.map((e) => e.name).toList());
+          namedArguments = namedParametersAsReflectionNames(selector);
+        }
       }
-      String suffix = '$name:$requiredParameterCount:$optionalParameterCount';
+      String suffix =
+          '$name:$requiredParameterCount:$optionalParameterCount'
+          '$namedArguments';
       return (isConstructor) ? 'new $suffix' : suffix;
     }
     Element element = elementOrSelector;
@@ -1248,6 +1262,13 @@ class CodeEmitterTask extends CompilerTask {
     }
     throw compiler.internalErrorOnElement(
         element, 'Do not know how to reflect on this $element');
+  }
+
+  String namedParametersAsReflectionNames(Selector selector) {
+    if (selector.orderedNamedArguments.isEmpty) return '';
+    String names =
+        selector.orderedNamedArguments.map((x) => x.slowToString()).join(':');
+    return ':$names';
   }
 
   /**
