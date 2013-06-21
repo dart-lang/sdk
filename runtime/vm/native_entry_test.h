@@ -12,7 +12,6 @@ namespace dart {
 void TestSmiSub(Dart_NativeArguments args);
 void TestSmiSum(Dart_NativeArguments args);
 void TestNonNullSmiSum(Dart_NativeArguments args);
-void TestStaticCallPatching(Dart_NativeArguments args);
 
 }  // namespace dart
 

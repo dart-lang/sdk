@@ -15,13 +15,13 @@
 
 namespace dart {
 
-// The expected pattern of a dart instance call:
+// The expected pattern of a Dart unoptimized call (static and instance):
 //  mov ECX, ic-data
-//  call target_address
+//  call target_address (stub)
 //  <- return address
-class InstanceCall : public ValueObject {
+class UnoptimizedCall : public ValueObject {
  public:
-  explicit InstanceCall(uword return_address)
+  explicit UnoptimizedCall(uword return_address)
       : start_(return_address - (kNumInstructions * kInstructionSize)) {
     ASSERT(IsValid(return_address));
     ASSERT(kInstructionSize == Assembler::kCallExternalLabelSize);
@@ -64,7 +64,39 @@ class InstanceCall : public ValueObject {
   }
 
   uword start_;
+  DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
+};
+
+
+class InstanceCall : public UnoptimizedCall {
+ public:
+  explicit InstanceCall(uword return_address)
+      : UnoptimizedCall(return_address) {
+#if defined(DEBUG)
+    ICData& test_ic_data = ICData::Handle();
+    test_ic_data ^= ic_data();
+    ASSERT(test_ic_data.num_args_tested() > 0);
+#endif  // DEBUG
+  }
+
+ private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
+};
+
+
+class UnoptimizedStaticCall : public UnoptimizedCall {
+ public:
+  explicit UnoptimizedStaticCall(uword return_address)
+      : UnoptimizedCall(return_address) {
+#if defined(DEBUG)
+    ICData& test_ic_data = ICData::Handle();
+    test_ic_data ^= ic_data();
+    ASSERT(test_ic_data.num_args_tested() == 0);
+#endif  // DEBUG
+  }
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedStaticCall);
 };
 
 
@@ -208,6 +240,16 @@ uword CodePatcher::GetInstanceCallAt(uword return_address,
     *ic_data ^= call.ic_data();
   }
   return call.target();
+}
+
+
+RawFunction* CodePatcher::GetUnoptimizedStaticCallTargetAt(
+    uword return_address, const Code& code) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  UnoptimizedStaticCall static_call(return_address);
+  ICData& ic_data = ICData::Handle();
+  ic_data ^= static_call.ic_data();
+  return ic_data.GetTargetAt(0);
 }
 
 

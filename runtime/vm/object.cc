@@ -8529,6 +8529,25 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
 #endif  // DEBUG
 
 
+// Used for unoptimized static calls when no class-ids are checked.
+void ICData::AddTarget(const Function& target) const {
+  ASSERT(num_args_tested() == 0);
+  // Can add only once.
+  const intptr_t old_num = NumberOfChecks();
+  ASSERT(old_num == 0);
+  Array& data = Array::Handle(ic_data());
+  const intptr_t new_len = data.Length() + TestEntryLength();
+  data = Array::Grow(data, new_len, Heap::kOld);
+  set_ic_data(data);
+  WriteSentinel(data);
+  intptr_t data_pos = old_num * TestEntryLength();
+  ASSERT(!target.IsNull());
+  data.SetAt(data_pos++, target);
+  const Smi& value = Smi::Handle(Smi::New(0));
+  data.SetAt(data_pos, value);
+}
+
+
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
   DEBUG_ASSERT(!HasCheck(class_ids));
@@ -8799,7 +8818,7 @@ RawICData* ICData::New(const Function& function,
                        intptr_t deopt_id,
                        intptr_t num_args_tested) {
   ASSERT(Object::icdata_class() != Class::null());
-  ASSERT(num_args_tested > 0);
+  ASSERT(num_args_tested >= 0);
   ICData& result = ICData::Handle();
   {
     // IC data objects are long living objects, allocate them in old generation.

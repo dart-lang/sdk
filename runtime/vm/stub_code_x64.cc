@@ -1562,7 +1562,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ movq(RAX, Address(R12, target_offset));
   __ addq(Address(R12, count_offset), Immediate(Smi::RawValue(1)));
-  __ j(NO_OVERFLOW, &call_target_function);
+  __ j(NO_OVERFLOW, &call_target_function, Assembler::kNearJump);
   __ movq(Address(R12, count_offset),
           Immediate(Smi::RawValue(Smi::kMaxValue)));
 
@@ -1660,6 +1660,69 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 }
 
 
+// Intermediary stub between a static call and its target. ICData contains
+// the target function and the call count.
+// RBX: ICData
+void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, RCX);
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
+    // 'num_args_tested' is stored as an untagged int.
+    __ movq(RCX, FieldAddress(RBX, ICData::num_args_tested_offset()));
+    __ cmpq(RCX, Immediate(0));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect IC data for unoptimized static call");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+
+  // RBX: IC data object (preserved).
+  __ movq(R12, FieldAddress(RBX, ICData::ic_data_offset()));
+  // R12: ic_data_array with entries: target functions and count.
+  __ leaq(R12, FieldAddress(R12, Array::data_offset()));
+  // R12: points directly to the first ic data array element.
+  const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
+
+  // Increment count for this call.
+  Label increment_done;
+  __ addq(Address(R12, count_offset), Immediate(Smi::RawValue(1)));
+  __ j(NO_OVERFLOW, &increment_done, Assembler::kNearJump);
+  __ movq(Address(R12, count_offset),
+          Immediate(Smi::RawValue(Smi::kMaxValue)));
+  __ Bind(&increment_done);
+
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label target_is_compiled;
+  // Get function and call it, if possible.
+  __ movq(R13, Address(R12, target_offset));
+  __ movq(RAX, FieldAddress(R13, Function::code_offset()));
+  __ cmpq(RAX, raw_null);
+  __ j(NOT_EQUAL, &target_is_compiled, Assembler::kNearJump);
+
+  __ EnterStubFrame();
+  __ pushq(R13);  // Preserve target function.
+  __ pushq(RBX);  // Preserve IC data object.
+  __ pushq(R13);  // Pass function.
+  __ CallRuntime(kCompileFunctionRuntimeEntry);
+  __ popq(RAX);  // Discard argument.
+  __ popq(RBX);  // Restore IC data object.
+  __ popq(R13);  // Restore target function.
+  __ LeaveFrame();
+  __ movq(RAX, FieldAddress(R13, Function::code_offset()));
+
+  __ Bind(&target_is_compiled);
+  // RAX: Target code.
+  __ movq(RAX, FieldAddress(RAX, Code::instructions_offset()));
+  __ addq(RAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  // Load arguments descriptor into R10.
+  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
+  __ jmp(RAX);
+}
+
+
 //  RBX, R10: May contain arguments to runtime stub.
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
@@ -1681,18 +1744,21 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
+//  RBX: ICData (unoptimized static call)
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ EnterStubFrame();
-  __ pushq(R10);  // Preserve arguments descriptor.
+  __ pushq(RBX);  // Preserve IC data for unoptimized call.
   __ pushq(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
   __ popq(RAX);  // Code object.
-  __ popq(R10);  // Restore arguments descriptor.
+  __ popq(RBX);  // Restore IC data.
   __ LeaveFrame();
 
+  // Load arguments descriptor into R10.
+  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
   // Now call the static function. The breakpoint handler function
   // ensures that the call target is compiled.
   __ movq(RBX, FieldAddress(RAX, Code::instructions_offset()));

@@ -729,8 +729,8 @@ DEFINE_RUNTIME_ENTRY(ReThrow, 2) {
 }
 
 
-// Patches static call with the target's entry point. Compiles target if
-// necessary.
+// Patches static call in optimized code with the target's entry point.
+// Compiles target if necessary.
 DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   ASSERT(arguments.ArgCount() == kPatchStaticCallRuntimeEntry.argument_count());
   DartFrameIterator iterator;
@@ -738,6 +738,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   ASSERT(caller_frame != NULL);
   const Code& caller_code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
+  ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       caller_code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
   if (!target_function.HasCode()) {
@@ -835,8 +836,10 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& code = Code::Handle(caller_frame->LookupDartCode());
+  ASSERT(!code.is_optimized());
   const Function& function =
-      Function::Handle(code.GetStaticCallTargetFunctionAt(caller_frame->pc()));
+      Function::Handle(CodePatcher::GetUnoptimizedStaticCallTargetAt(
+          caller_frame->pc(), code));
 
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));
@@ -1403,6 +1406,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   }
   ASSERT(frame->IsDartFrame());
   const Code& caller_code = Code::Handle(frame->LookupDartCode());
+  ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
   const Code& target_code = Code::Handle(target_function.CurrentCode());

@@ -15,15 +15,14 @@
 
 namespace dart {
 
-// A Dart instance call passes the ic-data in RBX.
-// The expected pattern of a dart instance call:
+// The expected pattern of a Dart unoptimized call (static and instance):
 //  00: 48 bb imm64  mov RBX, ic-data
 //  10: 49 bb imm64  mov R11, target_address
 //  20: 41 ff d3   call R11
 //  23 <- return address
-class InstanceCall : public ValueObject {
+class UnoptimizedCall : public ValueObject {
  public:
-  explicit InstanceCall(uword return_address)
+  explicit UnoptimizedCall(uword return_address)
       : start_(return_address - kCallPatternSize) {
     ASSERT(IsValid(return_address));
     ASSERT((kCallPatternSize - 10) == Assembler::kCallExternalLabelSize);
@@ -56,7 +55,39 @@ class InstanceCall : public ValueObject {
 
  private:
   uword start_;
+  DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
+};
+
+
+class InstanceCall : public UnoptimizedCall {
+ public:
+  explicit InstanceCall(uword return_address)
+      : UnoptimizedCall(return_address) {
+#if defined(DEBUG)
+    ICData& test_ic_data = ICData::Handle();
+    test_ic_data ^= ic_data();
+    ASSERT(test_ic_data.num_args_tested() > 0);
+#endif  // DEBUG
+  }
+
+ private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(InstanceCall);
+};
+
+
+class UnoptimizedStaticCall : public UnoptimizedCall {
+ public:
+  explicit UnoptimizedStaticCall(uword return_address)
+      : UnoptimizedCall(return_address) {
+#if defined(DEBUG)
+    ICData& test_ic_data = ICData::Handle();
+    test_ic_data ^= ic_data();
+    ASSERT(test_ic_data.num_args_tested() == 0);
+#endif  // DEBUG
+  }
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedStaticCall);
 };
 
 
@@ -180,6 +211,16 @@ uword CodePatcher::GetInstanceCallAt(uword return_address,
 
 intptr_t CodePatcher::InstanceCallSizeInBytes() {
   return InstanceCall::kCallPatternSize;
+}
+
+
+RawFunction* CodePatcher::GetUnoptimizedStaticCallTargetAt(
+    uword return_address, const Code& code) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  UnoptimizedStaticCall static_call(return_address);
+  ICData& ic_data = ICData::Handle();
+  ic_data ^= static_call.ic_data();
+  return ic_data.GetTargetAt(0);
 }
 
 

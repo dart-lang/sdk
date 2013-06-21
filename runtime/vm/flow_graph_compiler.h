@@ -486,6 +486,13 @@ class FlowGraphCompiler : public ValueObject {
                       intptr_t token_pos,
                       LocationSummary* locs);
 
+  void EmitUnoptimizedStaticCall(const Function& function,
+                                 const Array& arguments_descriptor,
+                                 intptr_t argument_count,
+                                 intptr_t deopt_id,
+                                 intptr_t token_pos,
+                                 LocationSummary* locs);
+
   // Type checking helper methods.
   void CheckClassIds(Register class_id_reg,
                      const GrowableArray<intptr_t>& class_ids,

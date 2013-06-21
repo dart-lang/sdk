@@ -1423,6 +1423,30 @@ void FlowGraphCompiler::EmitStaticCall(const Function& function,
 }
 
 
+void FlowGraphCompiler::EmitUnoptimizedStaticCall(
+    const Function& target_function,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  const ICData& ic_data = ICData::ZoneHandle(
+      ICData::New(parsed_function().function(),  // Caller function.
+                  String::Handle(target_function.name()),
+                  arguments_descriptor,
+                  deopt_id,
+                  0));  // No arguments checked.
+  ic_data.AddTarget(target_function);
+  __ LoadObject(S5, ic_data);
+  GenerateDartCall(deopt_id,
+                   token_pos,
+                   &StubCode::UnoptimizedStaticCallLabel(),
+                   PcDescriptors::kFuncCall,
+                   locs);
+  __ Drop(argument_count);
+}
+
+
 void FlowGraphCompiler::EmitEqualityRegConstCompare(Register reg,
                                                     const Object& obj,
                                                     bool needs_number_check,

@@ -18,30 +18,6 @@
 
 namespace dart {
 
-CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
-  SequenceNode* node_seq = test->node_sequence();
-  const String& native_name =
-      String::ZoneHandle(Symbols::New("TestStaticCallPatching"));
-  NativeFunction native_function =
-      reinterpret_cast<NativeFunction>(TestStaticCallPatching);
-  test->function().set_is_native(true);
-  node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
-                               new NativeBodyNode(Scanner::kDummyTokenIndex,
-                                                  test->function(),
-                                                  native_name,
-                                                  native_function)));
-}
-
-CODEGEN_TEST2_GENERATE(PatchStaticCall, function, test) {
-  SequenceNode* node_seq = test->node_sequence();
-  ArgumentListNode* arguments = new ArgumentListNode(Scanner::kDummyTokenIndex);
-  node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
-                               new StaticCallNode(Scanner::kDummyTokenIndex,
-                                                  function, arguments)));
-}
-
-CODEGEN_TEST2_RUN(PatchStaticCall, NativePatchStaticCall, Instance::null());
-
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {

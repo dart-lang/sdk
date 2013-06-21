@@ -1585,8 +1585,9 @@ void Debugger::SignalBpReached() {
     } else if (bpt->breakpoint_kind_ == PcDescriptors::kFuncCall) {
       func_to_instrument = bpt->function();
       const Code& code = Code::Handle(func_to_instrument.CurrentCode());
-      const Function& callee =
-          Function::Handle(code.GetStaticCallTargetFunctionAt(bpt->pc_));
+      ASSERT(!code.is_optimized());
+      const Function& callee = Function::Handle(
+          CodePatcher::GetUnoptimizedStaticCallTargetAt(bpt->pc_, code));
       ASSERT(!callee.IsNull());
       if (IsDebuggable(callee)) {
         func_to_instrument = callee.raw();

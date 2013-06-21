@@ -3237,6 +3237,9 @@ class ICData : public Object {
     return OFFSET_OF(RawICData, is_closure_call_);
   }
 
+  // Used for unoptimized static calls when no class-ids are checked.
+  void AddTarget(const Function& target) const;
+
   // Adding checks.
 
   // Adds one more class test to ICData. Length of 'classes' must be equal to

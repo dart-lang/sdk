@@ -71,6 +71,16 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
   return 0;
 }
 
+
+RawFunction* CodePatcher::GetUnoptimizedStaticCallTargetAt(
+    uword return_address, const Code& code) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  CallPattern static_call(return_address, code);
+  ICData& ic_data = ICData::Handle();
+  ic_data ^= static_call.IcData();
+  return ic_data.GetTargetAt(0);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

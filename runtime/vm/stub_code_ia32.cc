@@ -1581,7 +1581,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   const intptr_t count_offset = ICData::CountIndexFor(num_args) * kWordSize;
   __ movl(EAX, Address(EBX, target_offset));
   __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
-  __ j(NO_OVERFLOW, &call_target_function);
+  __ j(NO_OVERFLOW, &call_target_function, Assembler::kNearJump);
   __ movl(Address(EBX, count_offset),
           Immediate(Smi::RawValue(Smi::kMaxValue)));
 
@@ -1680,6 +1680,66 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   GenerateNArgsCheckInlineCacheStub(assembler, 1);
 }
 
+// Intermediary stub between a static call and its target. ICData contains
+// the target function and the call count.
+// ECX: ICData
+void StubCode::GenerateUnoptimizedStaticCallStub(Assembler* assembler) {
+  GenerateUsageCounterIncrement(assembler, EBX);
+#if defined(DEBUG)
+  { Label ok;
+    // Check that the IC data array has NumberOfArgumentsChecked() == 0.
+    // 'num_args_tested' is stored as an untagged int.
+    __ movl(EBX, FieldAddress(ECX, ICData::num_args_tested_offset()));
+    __ cmpl(EBX, Immediate(0));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect IC data for unoptimized static call");
+    __ Bind(&ok);
+  }
+#endif  // DEBUG
+
+  // ECX: IC data object (preserved).
+  __ movl(EBX, FieldAddress(ECX, ICData::ic_data_offset()));
+  // EBX: ic_data_array with entries: target functions and count.
+  __ leal(EBX, FieldAddress(EBX, Array::data_offset()));
+  // EBX: points directly to the first ic data array element.
+  const intptr_t target_offset = ICData::TargetIndexFor(0) * kWordSize;
+  const intptr_t count_offset = ICData::CountIndexFor(0) * kWordSize;
+
+  // Increment count for this call.
+  Label increment_done;
+  __ addl(Address(EBX, count_offset), Immediate(Smi::RawValue(1)));
+  __ j(NO_OVERFLOW, &increment_done, Assembler::kNearJump);
+  __ movl(Address(EBX, count_offset), Immediate(Smi::RawValue(Smi::kMaxValue)));
+  __ Bind(&increment_done);
+
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label target_is_compiled;
+  // Get function and call it, if possible.
+  __ movl(EDI, Address(EBX, target_offset));
+  __ movl(EAX, FieldAddress(EDI, Function::code_offset()));
+  __ cmpl(EAX, raw_null);
+  __ j(NOT_EQUAL, &target_is_compiled, Assembler::kNearJump);
+  __ EnterStubFrame();
+  __ pushl(EDI);  // Preserve target function.
+  __ pushl(ECX);  // Preserve IC data object.
+  __ pushl(EDI);  // Pass function.
+  __ CallRuntime(kCompileFunctionRuntimeEntry);
+  __ popl(EAX);  // Discard argument.
+  __ popl(ECX);  // Restore IC data object.
+  __ popl(EDI);  // Restore target function.
+  __ LeaveFrame();
+  __ movl(EAX, FieldAddress(EDI, Function::code_offset()));
+
+  __ Bind(&target_is_compiled);
+  // EAX: Target code.
+  __ movl(EAX, FieldAddress(EAX, Code::instructions_offset()));
+  __ addl(EAX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  // Load arguments descriptor into EDX.
+  __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
+  __ jmp(EAX);
+}
+
 
 // EDX, EXC: May contain arguments to runtime stub.
 void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
@@ -1701,21 +1761,23 @@ void StubCode::GenerateBreakpointRuntimeStub(Assembler* assembler) {
 }
 
 
-// EDX: Arguments descriptor array.
+// ECX: ICData (unoptimized static call).
 // TOS(0): return address (Dart code).
 void StubCode::GenerateBreakpointStaticStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ pushl(EDX);  // Preserve arguments descriptor.
+  __ pushl(ECX);  // Preserve ICData for unoptimized call.
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ pushl(raw_null);  // Room for result.
   __ CallRuntime(kBreakpointStaticHandlerRuntimeEntry);
   __ popl(EAX);  // Code object.
-  __ popl(EDX);  // Restore arguments descriptor.
+  __ popl(ECX);  // Restore ICData.
   __ LeaveFrame();
 
+  // Load arguments descriptor into EDX.
+  __ movl(EDX, FieldAddress(ECX, ICData::arguments_descriptor_offset()));
   // Now call the static function. The breakpoint handler function
   // ensures that the call target is compiled.
   // Note that we can't just jump to the CallStatic function stub

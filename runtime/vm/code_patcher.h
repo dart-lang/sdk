@@ -17,6 +17,7 @@ class ExternalLabel;
 class Function;
 class ICData;
 class RawArray;
+class RawFunction;
 class RawICData;
 class String;
 
@@ -54,6 +55,10 @@ class CodePatcher : public AllStatic {
   static uword GetInstanceCallAt(uword return_address,
                                  const Code& code,
                                  ICData* ic_data);
+
+  // Return target of an unoptimized static call (calls target via a stub).
+  static RawFunction* GetUnoptimizedStaticCallTargetAt(uword return_address,
+                                                       const Code& code);
 
   // Return the arguments descriptor array of the closure call
   // before the given return address.

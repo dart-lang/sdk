@@ -2544,6 +2544,13 @@ TEST_CASE(ICData) {
   EXPECT_EQ(kSmiCid, test_class_ids[0]);
   EXPECT_EQ(kSmiCid, test_class_ids[1]);
   EXPECT_EQ(target1.raw(), test_target.raw());
+
+  // Check ICData for unoptimized static calls.
+  const intptr_t kNumArgsChecked = 0;
+  const ICData& scall_icdata = ICData::Handle(
+      ICData::New(function, target_name, args_descriptor, 57, kNumArgsChecked));
+  scall_icdata.AddTarget(target1);
+  EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }
 
 
