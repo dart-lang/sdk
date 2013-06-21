@@ -85,10 +85,7 @@ class DartGenerator(object):
           if (type_name is not None and
               self._IsCompoundType(database, type_name)):
             continue
-          # Ignore constructor warnings.
-          if not (interface.id in ['DOMWindow', 'WorkerContext'] and
-              type_name.endswith('Constructor')):
-            _logger.warn('removing %s in %s which has unidentified type %s' %
+          _logger.warn('removing %s in %s which has unidentified type %s' %
                        (node_name, interface.id, type_name))
           return False
         return True

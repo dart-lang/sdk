@@ -1028,8 +1028,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'Future': TypeData(clazz='Interface', dart_type='Future'),
     'GamepadList': TypeData(clazz='Interface', item_type='Gamepad',
         suppress_interface=True),
-    'GLenum': TypeData(clazz='Primitive', dart_type='int',
-        native_type='unsigned long'),
     'HTMLAllCollection': TypeData(clazz='Interface', item_type='Node'),
     'HTMLCollection': TypeData(clazz='Interface', item_type='Node'),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),

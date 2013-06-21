@@ -669,12 +669,6 @@ class ExtDrawBuffers native "EXTDrawBuffers" {
   @DomName('EXTDrawBuffers.MAX_DRAW_BUFFERS_EXT')
   @DocsEditable
   static const int MAX_DRAW_BUFFERS_EXT = 0x8824;
-
-  @JSName('drawBuffersEXT')
-  @DomName('EXTDrawBuffers.drawBuffersEXT')
-  @DocsEditable
-  @Experimental // untriaged
-  void drawBuffersExt(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
