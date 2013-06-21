@@ -713,7 +713,7 @@ void SSLFilter::Connect(const char* host_name,
   // documentation.
   PRNetAddr peername;
   memset(&peername, 0, sizeof(peername));
-  intptr_t len = SocketAddress::GetAddrLength(*raw_addr);
+  intptr_t len = SocketAddress::GetAddrLength(raw_addr);
   ASSERT(static_cast<size_t>(len) <= sizeof(peername));
   memmove(&peername, &raw_addr->addr, len);
 

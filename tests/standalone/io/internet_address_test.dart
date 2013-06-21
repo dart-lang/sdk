@@ -6,7 +6,7 @@ import 'dart:io';
 
 import "package:expect/expect.dart";
 
-void test() {
+void testDefaultAddresses() {
   var loopback4 = InternetAddress.LOOPBACK_IP_V4;
   Expect.isNotNull(loopback4);
   Expect.equals(InternetAddressType.IP_V4, loopback4.type);
@@ -33,5 +33,5 @@ void test() {
 }
 
 void main() {
-  test();
+  testDefaultAddresses();
 }

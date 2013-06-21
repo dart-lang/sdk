@@ -42,11 +42,25 @@ patch class InternetAddress {
   }
 }
 
+patch class NetworkInterface {
+  /* patch */ static Future<List<NetworkInterface>> list({
+      bool includeLoopback: false,
+      bool includeLinkLocal: false,
+      InternetAddressType type: InternetAddressType.ANY}) {
+    return _NativeSocket.listInterfaces(includeLoopback: includeLoopback,
+                                        includeLinkLocal: includeLinkLocal,
+                                        type: type);
+  }
+}
+
 class _InternetAddress implements InternetAddress {
   static const int _ADDRESS_LOOPBACK_IP_V4 = 0;
   static const int _ADDRESS_LOOPBACK_IP_V6 = 1;
   static const int _ADDRESS_ANY_IP_V4 = 2;
   static const int _ADDRESS_ANY_IP_V6 = 3;
+  static const int _IPV4_ADDR_OFFSET = 4;
+  static const int _IPV6_ADDR_OFFSET = 8;
+  static const int _IPV6_ADDR_LENGTH = 16;
 
   static _InternetAddress LOOPBACK_IP_V4 =
       new _InternetAddress.fixed(_ADDRESS_LOOPBACK_IP_V4);
@@ -61,6 +75,34 @@ class _InternetAddress implements InternetAddress {
   final String address;
   final String host;
   final Uint8List _sockaddr_storage;
+
+  bool get isLoopback {
+    switch (type) {
+      case InternetAddressType.IP_V4:
+        return _sockaddr_storage[_IPV4_ADDR_OFFSET] == 127;
+
+      case InternetAddressType.IP_V6:
+        for (int i = 0; i < _IPV6_ADDR_LENGTH - 1; i++) {
+          if (_sockaddr_storage[_IPV6_ADDR_OFFSET + i] != 0) return false;
+        }
+        int lastByteIndex = _IPV6_ADDR_OFFSET + _IPV6_ADDR_LENGTH - 1;
+        return _sockaddr_storage[lastByteIndex] == 1;
+    }
+  }
+
+  bool get isLinkLocal {
+    switch (type) {
+      case InternetAddressType.IP_V4:
+        // Checking for 169.254.0.0/16.
+        return _sockaddr_storage[_IPV4_ADDR_OFFSET] == 169 &&
+            _sockaddr_storage[_IPV4_ADDR_OFFSET + 1] == 254;
+
+      case InternetAddressType.IP_V6:
+        // Checking for fe80::/10.
+        return _sockaddr_storage[_IPV6_ADDR_OFFSET] == 0xFE &&
+            (_sockaddr_storage[_IPV6_ADDR_OFFSET + 1] & 0xB0) == 0x80;
+    }
+  }
 
   _InternetAddress(InternetAddressType this.type,
                    String this.address,
@@ -101,6 +143,17 @@ class _InternetAddress implements InternetAddress {
   static Uint8List _fixed(int id) native "InternetAddress_Fixed";
 }
 
+class _NetworkInterface implements NetworkInterface{
+  final String name;
+  final List<InternetAddress> addresses;
+
+  _NetworkInterface(String this.name, List<InternetAddress> this.addresses);
+
+  String toString() {
+    return "NetworkInterface('$name', $addresses)";
+  }
+}
+
 
 // The _NativeSocket class encapsulates an OS socket.
 class _NativeSocket extends NativeFieldWrapperClass1 {
@@ -137,6 +190,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
 
   // Native port messages.
   static const HOST_NAME_LOOKUP = 0;
+  static const LIST_INTERFACES = 1;
 
   // Socket close state
   bool isClosed = false;
@@ -176,6 +230,37 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
               var type = new InternetAddressType._from(result[0]);
               return new _InternetAddress(type, result[1], host, result[2]);
             }).toList();
+          }
+        });
+  }
+
+  static Future<List<NetworkInterface>> listInterfaces({
+      bool includeLoopback: false,
+      bool includeLinkLocal: false,
+      InternetAddressType type: InternetAddressType.ANY}) {
+    ensureSocketService();
+    return socketService.call([LIST_INTERFACES, type._value])
+        .then((response) {
+          if (isErrorResponse(response)) {
+            throw createError(response, "Failed listing interfaces");
+          } else {
+            var list = new List<NetworkInterface>();
+            var map = response.skip(1)
+                .fold(new Map<String, List<InternetAddress>>(), (map, result) {
+                  var type = new InternetAddressType._from(result[0]);
+                  var name = result[3];
+                  var address = new _InternetAddress(
+                      type, result[1], "", result[2]);
+                  if (!includeLinkLocal && address.isLinkLocal) return map;
+                  if (!includeLoopback && address.isLoopback) return map;
+                  map.putIfAbsent(name, () => new List<InternetAddress>());
+                  map[name].add(address);
+                  return map;
+                })
+                .forEach((name, addresses) {
+                  list.add(new _NetworkInterface(name, addresses));
+                });
+            return list;
           }
         });
   }

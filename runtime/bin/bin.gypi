@@ -188,6 +188,9 @@
           ],
         }],
         ['OS=="win"', {
+          'link_settings': {
+            'libraries': [ '-liphlpapi.lib' ],
+          },
           # TODO(antonm): fix the implementation.
           # Current implementation accepts char* strings
           # and therefore fails to compile once _UNICODE is

@@ -16,9 +16,9 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct addrinfo* addrinfo) {
+SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  RawAddr* raw = reinterpret_cast<RawAddr*>(addrinfo->ai_addr);
+  RawAddr* raw = reinterpret_cast<RawAddr*>(sockaddr);
 
   // Clear the port before calling WSAAddressToString as WSAAddressToString
   // includes the port in the formatted string.
@@ -33,8 +33,8 @@ SocketAddress::SocketAddress(struct addrinfo* addrinfo) {
     as_string_[0] = 0;
   }
   memmove(reinterpret_cast<void *>(&addr_),
-          addrinfo->ai_addr,
-          addrinfo->ai_addrlen);
+          sockaddr,
+          SocketAddress::GetAddrLength(raw));
 }
 
 bool Socket::Initialize() {
@@ -142,7 +142,7 @@ intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   SOCKET s = handle->socket();
   SocketAddress::SetAddrPort(&addr, port);
-  int status = connect(s, &addr.addr, SocketAddress::GetAddrLength(addr));
+  int status = connect(s, &addr.addr, SocketAddress::GetAddrLength(&addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     ClientSocket* client_socket = reinterpret_cast<ClientSocket*>(fd);
@@ -216,9 +216,9 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
 }
 
 
-SocketAddresses* Socket::LookupAddress(const char* host,
-                                       int type,
-                                       OSError** os_error) {
+AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
+                                                  int type,
+                                                  OSError** os_error) {
   Initialize();
 
   // Perform a name lookup for a host name.
@@ -241,15 +241,71 @@ SocketAddresses* Socket::LookupAddress(const char* host,
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
     if (c->ai_family == AF_INET || c->ai_family == AF_INET6) count++;
   }
-  SocketAddresses* addresses = new SocketAddresses(count);
+  AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   intptr_t i = 0;
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
     if (c->ai_family == AF_INET || c->ai_family == AF_INET6) {
-      addresses->SetAt(i, new SocketAddress(c));
+      addresses->SetAt(i, new SocketAddress(c->ai_addr));
       i++;
     }
   }
   freeaddrinfo(info);
+  return addresses;
+}
+
+
+AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
+    int type,
+    OSError** os_error) {
+  Initialize();
+
+  ULONG size = 0;
+  DWORD flags = GAA_FLAG_SKIP_ANYCAST |
+                GAA_FLAG_SKIP_MULTICAST |
+                GAA_FLAG_SKIP_DNS_SERVER;
+  // Query the size needed.
+  int status = GetAdaptersAddresses(SocketAddress::FromType(type),
+                                    flags,
+                                    NULL,
+                                    NULL,
+                                    &size);
+  IP_ADAPTER_ADDRESSES* addrs = NULL;
+  if (status == ERROR_BUFFER_OVERFLOW) {
+    addrs = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(malloc(size));
+    // Get the addresses now we have the right buffer.
+    status = GetAdaptersAddresses(SocketAddress::FromType(type),
+                                  flags,
+                                  NULL,
+                                  addrs,
+                                  &size);
+  }
+  if (status != NO_ERROR) {
+    ASSERT(*os_error == NULL);
+    DWORD error_code = WSAGetLastError();
+    SetLastError(error_code);
+    *os_error = new OSError();
+    return NULL;
+  }
+  intptr_t count = 0;
+  for (IP_ADAPTER_ADDRESSES* a = addrs; a != NULL; a = a->Next) {
+    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress;
+         u != NULL; u = u->Next) {
+      count++;
+    }
+  }
+  AddressList<InterfaceSocketAddress>* addresses =
+      new AddressList<InterfaceSocketAddress>(count);
+  intptr_t i = 0;
+  for (IP_ADAPTER_ADDRESSES* a = addrs; a != NULL; a = a->Next) {
+    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress;
+         u != NULL; u = u->Next) {
+      addresses->SetAt(i, new InterfaceSocketAddress(
+          u->Address.lpSockaddr,
+          StringUtils::WideToUtf8(a->FriendlyName)));
+      i++;
+    }
+  }
+  free(addrs);
   return addresses;
 }
 
@@ -288,7 +344,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
   SocketAddress::SetAddrPort(&addr, port);
   status = bind(s,
                 &addr.addr,
-                SocketAddress::GetAddrLength(addr));
+                SocketAddress::GetAddrLength(&addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);

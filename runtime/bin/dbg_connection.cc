@@ -300,9 +300,11 @@ int DebuggerConnectionHandler::StartHandler(const char* address,
   // debugger commands received on these connections.
   ASSERT(listener_fd_ == -1);
   OSError *os_error;
-  SocketAddresses* addresses = Socket::LookupAddress(address, -1, &os_error);
+  AddressList<SocketAddress>* addresses =
+      Socket::LookupAddress(address, -1, &os_error);
   listener_fd_ = ServerSocket::CreateBindListen(
       addresses->GetAt(0)->addr(), port_number, 1);
+  delete addresses;
   port_number = Socket::GetPort(listener_fd_);
   DebuggerConnectionImpl::StartHandler(port_number);
   return port_number;

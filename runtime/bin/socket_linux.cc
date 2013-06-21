@@ -12,6 +12,7 @@
 #include <sys/stat.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #include <netinet/tcp.h>  // NOLINT
+#include <ifaddrs.h>  // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -22,17 +23,17 @@
 namespace dart {
 namespace bin {
 
-SocketAddress::SocketAddress(struct addrinfo* addrinfo) {
+SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
-  RawAddr* raw = reinterpret_cast<RawAddr*>(addrinfo->ai_addr);
-  const char* result = inet_ntop(addrinfo->ai_family,
+  RawAddr* raw = reinterpret_cast<RawAddr*>(sockaddr);
+  const char* result = inet_ntop(sockaddr->sa_family,
                                  &raw->in.sin_addr,
                                  as_string_,
                                  INET6_ADDRSTRLEN);
   if (result == NULL) as_string_[0] = 0;
   memmove(reinterpret_cast<void *>(&addr_),
-          addrinfo->ai_addr,
-          addrinfo->ai_addrlen);
+          sockaddr,
+          GetAddrLength(raw));
 }
 
 
@@ -61,7 +62,7 @@ intptr_t Socket::Connect(intptr_t fd, RawAddr addr, const intptr_t port) {
   intptr_t result = TEMP_FAILURE_RETRY(
       connect(fd,
               &addr.addr,
-              SocketAddress::GetAddrLength(addr)));
+              SocketAddress::GetAddrLength(&addr)));
   if (result == 0 || errno == EINPROGRESS) {
     return fd;
   }
@@ -184,9 +185,9 @@ intptr_t Socket::GetStdioHandle(int num) {
 }
 
 
-SocketAddresses* Socket::LookupAddress(const char* host,
-                                       int type,
-                                       OSError** os_error) {
+AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
+                                                  int type,
+                                                  OSError** os_error) {
   // Perform a name lookup for a host name.
   struct addrinfo hints;
   memset(&hints, 0, sizeof(hints));
@@ -207,15 +208,62 @@ SocketAddresses* Socket::LookupAddress(const char* host,
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
     if (c->ai_family == AF_INET || c->ai_family == AF_INET6) count++;
   }
-  SocketAddresses* addresses = new SocketAddresses(count);
-  intptr_t i = 0;
+  int i = 0;
+  AddressList<SocketAddress>* addresses = new AddressList<SocketAddress>(count);
   for (struct addrinfo* c = info; c != NULL; c = c->ai_next) {
     if (c->ai_family == AF_INET || c->ai_family == AF_INET6) {
-      addresses->SetAt(i, new SocketAddress(c));
+      addresses->SetAt(i, new SocketAddress(c->ai_addr));
       i++;
     }
   }
   freeaddrinfo(info);
+  return addresses;
+}
+
+
+static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
+  int family = ifa->ifa_addr->sa_family;
+  if (lookup_family == family) return true;
+  if (lookup_family == AF_UNSPEC &&
+      (family == AF_INET || family == AF_INET6)) {
+    return true;
+  }
+  return false;
+}
+
+
+AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
+    int type,
+    OSError** os_error) {
+  struct ifaddrs* ifaddr;
+
+  int status = getifaddrs(&ifaddr);
+  if (status != 0) {
+    ASSERT(*os_error == NULL);
+    *os_error = new OSError(status,
+                            gai_strerror(status),
+                            OSError::kGetAddressInfo);
+    return NULL;
+  }
+
+  int lookup_family = SocketAddress::FromType(type);
+
+  intptr_t count = 0;
+  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) count++;
+  }
+
+  AddressList<InterfaceSocketAddress>* addresses =
+      new AddressList<InterfaceSocketAddress>(count);
+  int i = 0;
+  for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
+      addresses->SetAt(i, new InterfaceSocketAddress(
+          ifa->ifa_addr, strdup(ifa->ifa_name)));
+      i++;
+    }
+  }
+  freeifaddrs(ifaddr);
   return addresses;
 }
 
@@ -245,7 +293,7 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
   if (TEMP_FAILURE_RETRY(
           bind(fd,
                &addr.addr,
-               SocketAddress::GetAddrLength(addr))) < 0) {
+               SocketAddress::GetAddrLength(&addr))) < 0) {
     TEMP_FAILURE_RETRY(close(fd));
     return -1;
   }

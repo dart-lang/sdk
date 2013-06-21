@@ -74,7 +74,7 @@ void FUNCTION_NAME(InternetAddress_Fixed)(Dart_NativeArguments args) {
       if (Dart_IsError(error)) Dart_PropagateError(error);
       Dart_ThrowException(error);
   }
-  int len = SocketAddress::GetAddrLength(raw);
+  int len = SocketAddress::GetAddrLength(&raw);
   Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
   if (Dart_IsError(result)) Dart_PropagateError(result);
   Dart_ListSetAsBytes(result, 0, reinterpret_cast<uint8_t *>(&raw), len);
@@ -446,7 +446,7 @@ static CObject* LookupRequest(const CObjectArray& request) {
     CObjectInt32 type(request[2]);
     CObject* result = NULL;
     OSError* os_error = NULL;
-    SocketAddresses* addresses =
+    AddressList<SocketAddress>* addresses =
         Socket::LookupAddress(host.CString(), type.Value(), &os_error);
     if (addresses != NULL) {
       CObjectArray* array = new CObjectArray(
@@ -466,12 +466,63 @@ static CObject* LookupRequest(const CObjectArray& request) {
 
         RawAddr raw = addr->addr();
         CObjectUint8Array* data = new CObjectUint8Array(CObject::NewUint8Array(
-            SocketAddress::GetAddrLength(raw)));
+            SocketAddress::GetAddrLength(&raw)));
         memmove(data->Buffer(),
                 reinterpret_cast<void *>(&raw),
-                SocketAddress::GetAddrLength(raw));
+                SocketAddress::GetAddrLength(&raw));
 
         entry->SetAt(2, data);
+        array->SetAt(i + 1, entry);
+      }
+      result = array;
+      delete addresses;
+    } else {
+      result = CObject::NewOSError(os_error);
+      delete os_error;
+    }
+    return result;
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+static CObject* ListInterfacesRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[1]->IsInt32()) {
+    CObjectInt32 type(request[1]);
+    CObject* result = NULL;
+    OSError* os_error = NULL;
+    AddressList<InterfaceSocketAddress>* addresses = Socket::ListInterfaces(
+        type.Value(), &os_error);
+    if (addresses != NULL) {
+      CObjectArray* array = new CObjectArray(
+          CObject::NewArray(addresses->count() + 1));
+      array->SetAt(0, new CObjectInt32(CObject::NewInt32(0)));
+      for (intptr_t i = 0; i < addresses->count(); i++) {
+        InterfaceSocketAddress* interface = addresses->GetAt(i);
+        SocketAddress* addr = interface->socket_address();
+        CObjectArray* entry = new CObjectArray(CObject::NewArray(4));
+
+        CObjectInt32* type = new CObjectInt32(
+            CObject::NewInt32(addr->GetType()));
+        entry->SetAt(0, type);
+
+        CObjectString* as_string = new CObjectString(CObject::NewString(
+            addr->as_string()));
+        entry->SetAt(1, as_string);
+
+        RawAddr raw = addr->addr();
+        CObjectUint8Array* data = new CObjectUint8Array(CObject::NewUint8Array(
+            SocketAddress::GetAddrLength(&raw)));
+        memmove(data->Buffer(),
+                reinterpret_cast<void *>(&raw),
+                SocketAddress::GetAddrLength(&raw));
+        entry->SetAt(2, data);
+
+        CObjectString* interface_name = new CObjectString(CObject::NewString(
+            interface->interface_name()));
+        entry->SetAt(3, interface_name);
+
         array->SetAt(i + 1, entry);
       }
       result = array;
@@ -497,6 +548,9 @@ void SocketService(Dart_Port dest_port_id,
       switch (request_type.Value()) {
         case Socket::kLookupRequest:
           response = LookupRequest(request);
+          break;
+        case Socket::kListInterfacesRequest:
+          response = ListInterfacesRequest(request);
           break;
         default:
           UNREACHABLE();

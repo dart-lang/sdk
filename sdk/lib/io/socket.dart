@@ -87,6 +87,16 @@ abstract class InternetAddress {
   String get host;
 
   /**
+   * Returns true if the [InternetAddress] is a loopback address.
+   */
+  bool get isLoopback;
+
+  /**
+   * Returns true if the [InternetAddress]s scope is a link-local.
+   */
+  bool get isLinkLocal;
+
+  /**
    * Lookup a host, returning a Future of a list of
    * [InternetAddress]s. If [type] is [InternetAddressType.ANY], it
    * will lookup both IP version 4 (IPv4) and IP version 6 (IPv6)
@@ -98,6 +108,44 @@ abstract class InternetAddress {
   external static Future<List<InternetAddress>> lookup(
       String host, {InternetAddressType type: InternetAddressType.ANY});
 }
+
+
+/**
+ * A [NetworkInterface] represent an active network interface on the current
+ * system. It contains a list of [InternetAddress]s, that's bound to the
+ * interface.
+ */
+class NetworkInterface {
+  /**
+   * Get the name of the [NetworkInterface].
+   */
+  String get name;
+
+  /**
+   * Get a list of [InternetAddress]s currently bound to this
+   * [NetworkInterface].
+   */
+  List<InternetAddress> get addresses;
+
+  /**
+   * Query the system for [NetworkInterface]s.
+   *
+   * If [includeLoopback] is `true`, the returned list will include the
+   * loopback device. Default is `false`.
+   *
+   * If [includeLinkLocal] is `true`, the list of addresses of the returned
+   * [NetworkInterface]s, may include link local addresses. Default is `false`.
+   *
+   * If [type] is either [InternetAddressType.IP_V4] or
+   * [InternetAddressType.IP_V6] it will only lookup addresses of the
+   * specified type. Default is [InternetAddressType.ANY].
+   */
+  external static Future<List<NetworkInterface>> list({
+      bool includeLoopback: false,
+      bool includeLinkLocal: false,
+      InternetAddressType type: InternetAddressType.ANY});
+}
+
 
 /**
  * A [RawServerSocket] represents a listening socket, and provides a

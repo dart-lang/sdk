@@ -51,7 +51,9 @@ class SocketAddress {
     ADDRESS_LAST = ADDRESS_ANY_IP_V6,
   };
 
-  explicit SocketAddress(struct addrinfo* addrinfo);
+  explicit SocketAddress(struct sockaddr* sockaddr);
+
+  ~SocketAddress() {}
 
   int GetType() {
     if (addr_.ss.ss_family == AF_INET6) return TYPE_IPV6;
@@ -61,8 +63,8 @@ class SocketAddress {
   const char* as_string() const { return as_string_; }
   const RawAddr& addr() const { return addr_; }
 
-  static intptr_t GetAddrLength(const RawAddr& addr) {
-    return addr.ss.ss_family == AF_INET6 ?
+  static intptr_t GetAddrLength(const RawAddr* addr) {
+    return addr->ss.ss_family == AF_INET6 ?
         sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
   }
 
@@ -96,13 +98,36 @@ class SocketAddress {
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
 };
 
-class SocketAddresses {
+class InterfaceSocketAddress {
  public:
-  explicit SocketAddresses(intptr_t count)
-      : count_(count),
-        addresses_(new SocketAddress*[count_]) {}
+  explicit InterfaceSocketAddress(struct sockaddr* sockaddr,
+                                  const char* interface_name)
+      : socket_address_(new SocketAddress(sockaddr)),
+        interface_name_(interface_name) {}
 
-  ~SocketAddresses() {
+  ~InterfaceSocketAddress() {
+    delete socket_address_;
+    free(const_cast<char*>(interface_name_));
+  }
+
+  SocketAddress* socket_address() const { return socket_address_; }
+  const char* interface_name() const { return interface_name_; }
+
+ private:
+  SocketAddress* socket_address_;
+  const char* interface_name_;
+
+  DISALLOW_COPY_AND_ASSIGN(InterfaceSocketAddress);
+};
+
+template<typename T>
+class AddressList {
+ public:
+  explicit AddressList(intptr_t count)
+      : count_(count),
+        addresses_(new T*[count_]) {}
+
+  ~AddressList() {
     for (intptr_t i = 0; i < count_; i++) {
       delete addresses_[i];
     }
@@ -110,20 +135,21 @@ class SocketAddresses {
   }
 
   intptr_t count() const { return count_; }
-  SocketAddress* GetAt(intptr_t i) const { return addresses_[i]; }
-  void SetAt(intptr_t i, SocketAddress* addr) { addresses_[i] = addr; }
+  T* GetAt(intptr_t i) const { return addresses_[i]; }
+  void SetAt(intptr_t i, T* addr) { addresses_[i] = addr; }
 
  private:
   const intptr_t count_;
-  SocketAddress** addresses_;
+  T** addresses_;
 
-  DISALLOW_COPY_AND_ASSIGN(SocketAddresses);
+  DISALLOW_COPY_AND_ASSIGN(AddressList);
 };
 
 class Socket {
  public:
   enum SocketRequest {
     kLookupRequest = 0,
+    kListInterfacesRequest = 1,
   };
 
   static bool Initialize();
@@ -144,10 +170,15 @@ class Socket {
   static bool SetBlocking(intptr_t fd);
   static bool SetNoDelay(intptr_t fd, bool enabled);
 
-  // Perform a hostname lookup. Returns the SocketAddresses.
-  static SocketAddresses* LookupAddress(const char* host,
-                                        int type,
-                                        OSError** os_error);
+  // Perform a hostname lookup. Returns a AddressList of SocketAddress's.
+  static AddressList<SocketAddress>* LookupAddress(const char* host,
+                                                   int type,
+                                                   OSError** os_error);
+
+  // List interfaces. Returns a AddressList of InterfaceSocketAddress's.
+  static AddressList<InterfaceSocketAddress>* ListInterfaces(
+      int type,
+      OSError** os_error);
 
   static Dart_Port GetServicePort();
 
@@ -181,6 +212,7 @@ class ServerSocket {
                                    intptr_t backlog,
                                    bool v6_only = false);
 
+ private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);
 };
