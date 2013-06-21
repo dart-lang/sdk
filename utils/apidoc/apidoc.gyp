@@ -89,6 +89,7 @@
             '--exclude-lib=dartdoc',
             '--exclude-lib=expect',
             '--exclude-lib=http',
+            '--exclude-lib=http_server',
             '--exclude-lib=oauth2',
             '--exclude-lib=pathos',
             '--exclude-lib=scheduled_test',
