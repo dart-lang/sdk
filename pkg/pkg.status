@@ -93,7 +93,7 @@ serialization/test/no_library_test: Fail # Issue 6490
 # minified.
 unittest/test/*_unminified_test: Skip # DO NOT COPY THIS UNLESS YOU WORK ON DART2JS
 
-[ $compiler == dart2js && $unchecked && ($runtime == d8 || $runtime == chrome || $runtime == drt || $runtime == safari) ]
+[ $compiler == dart2js && $unchecked && ($runtime == d8 || $runtime == chrome || $runtime == drt) ]
 crypto/test/sha1_test: Fail # V8 bug: https://code.google.com/p/v8/issues/detail?id=2692
 
 [ $compiler == dart2js && $browser ]
