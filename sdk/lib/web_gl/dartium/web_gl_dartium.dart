@@ -735,6 +735,11 @@ class ExtDrawBuffers extends NativeFieldWrapperClass1 {
   @DocsEditable
   static const int MAX_DRAW_BUFFERS_EXT = 0x8824;
 
+  @DomName('EXTDrawBuffers.drawBuffersEXT')
+  @DocsEditable
+  @Experimental // untriaged
+  void drawBuffersExt(List<int> buffers) native "EXTDrawBuffers_drawBuffersEXT_Callback";
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
