@@ -10,7 +10,6 @@ bad_named_parameters2_test: fail
 bad_named_parameters_test: fail
 bad_override_test/01: fail
 bad_override_test/02: fail
-bad_override_test/03: fail
 bad_override_test/04: fail
 bad_override_test/05: fail
 black_listed_test/11: fail
@@ -63,8 +62,6 @@ factory2_test: fail
 factory5_test/00: fail
 factory_implementation_test/none: fail
 factory_redirection2_test/01: fail
-fauxverride_test/03: fail
-fauxverride_test/05: fail
 field_method4_negative_test: fail
 field_override_test/01: fail
 final_for_in_variable_test/01: fail
@@ -127,7 +124,6 @@ override_field_method1_negative_test: fail
 override_field_method2_negative_test: fail
 override_field_method4_negative_test: fail
 override_field_method5_negative_test: fail
-override_field_test/01: fail
 override_field_test/02: fail
 override_field_test/03: fail
 override_method_with_field_test/01: fail

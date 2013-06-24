@@ -9,10 +9,6 @@ Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: fail
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: fail
 Language/06_Functions/2_Formal_Parameters_A02_t02: fail
 Language/07_Classes/07_Classes_A01_t20: fail
-Language/07_Classes/07_Classes_A09_t01: fail
-Language/07_Classes/07_Classes_A09_t02: fail
-Language/07_Classes/07_Classes_A09_t03: fail
-Language/07_Classes/07_Classes_A09_t04: fail
 Language/07_Classes/2_Getters_A04_t03: fail
 Language/07_Classes/2_Getters_A04_t04: fail
 Language/07_Classes/2_Getters_A04_t05: fail
