@@ -71,6 +71,24 @@ testPhiConvertions(f, arr) {
   return arr[0];
 }
 
+class M {
+  var x;
+  M(this.x);
+}
+
+fakeAliasing(arr) {
+  var a = new M(10);
+  var b = new M(10);
+  var c = arr.length;
+
+  if (c * c != c * c) {
+    arr[0] = a;  // Escape.
+    arr[0] = b;
+  }
+
+  return c * c;  // Deopt point.
+}
+
 main() {
   final fixed = new List(10);
   final growable = [];
@@ -99,9 +117,14 @@ main() {
   u32List[0] = 0;
   u32List[1] = 0x3FFFFFFF;
   u32List[2] = 0x7FFFFFFF;
-  
+
   for (var i = 0; i < 4000; i++) {
     testPhiConvertions(true, u32List);
     testPhiConvertions(false, u32List);
+  }
+
+  final escape = new List(1);
+  for (var i = 0; i < 10000; i++) {
+    fakeAliasing(escape);
   }
 }

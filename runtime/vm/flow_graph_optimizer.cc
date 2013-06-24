@@ -6428,6 +6428,13 @@ void AllocationSinking::Optimize() {
           OS::Print("discovered allocation sinking candidate: v%"Pd"\n",
                     alloc->ssa_temp_index());
         }
+
+        if (alloc->identity() == AllocateObjectInstr::kAliased) {
+          // Allocation might have been classified as aliased earlier due to
+          // some operations that are now eliminated.
+          alloc->set_identity(AllocateObjectInstr::kNotAliased);
+        }
+
         candidates.Add(alloc);
       }
     }
