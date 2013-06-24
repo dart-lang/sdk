@@ -391,19 +391,6 @@ void Scanner::ScanNumber(bool dec_point_seen) {
 }
 
 
-RawString* Scanner::ConsumeIdentChars(bool allow_dollar) {
-  ASSERT(IsIdentStartChar(c0_));
-  ASSERT(allow_dollar || (c0_ != '$'));
-  int ident_length = 0;
-  int32_t ident_pos = lookahead_pos_;
-  while (IsIdentChar(c0_) && (allow_dollar || (c0_ != '$'))) {
-    ReadChar();
-    ident_length++;
-  }
-  return Symbols::New(source_, ident_pos, ident_length);
-}
-
-
 void Scanner::SkipLine() {
   while (c0_ != '\n' && c0_ != '\0') {
     ReadChar();
