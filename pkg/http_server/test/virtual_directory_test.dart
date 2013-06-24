@@ -230,7 +230,7 @@ void main() {
     }
   });
 
-  group('last-mofidied', () {
+  group('last-modified', () {
     group('file', () {
       test('file-exists', () {
         expect(HttpServer.bind('localhost', 0).then((server) {
@@ -283,6 +283,46 @@ void main() {
                 dir.deleteSync(recursive: true);
               });
         }), completion(equals(HttpStatus.OK)));
+      });
+    });
+  });
+
+  group('content-type', () {
+    group('mime-type', () {
+      test('from-path', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var file = new File('${dir.path}/file.jpg')..createSync();
+          var virDir = new VirtualDirectory(dir.path);
+
+          virDir.serve(server);
+
+          return getHeaders(server.port, '/file.jpg')
+              .then((headers) => headers.contentType.toString())
+              .whenComplete(() {
+                server.close();
+                dir.deleteSync(recursive: true);
+              });
+        }), completion(equals('image/jpeg')));
+      });
+
+      test('from-magic-number', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var file = new File('${dir.path}/file.jpg')..createSync();
+          file.writeAsBytesSync(
+              [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+          var virDir = new VirtualDirectory(dir.path);
+
+          virDir.serve(server);
+
+          return getHeaders(server.port, '/file.jpg')
+              .then((headers) => headers.contentType.toString())
+              .whenComplete(() {
+                server.close();
+                dir.deleteSync(recursive: true);
+              });
+        }), completion(equals('image/png')));
       });
     });
   });

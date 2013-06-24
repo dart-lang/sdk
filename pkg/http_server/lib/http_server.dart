@@ -7,6 +7,8 @@ library http_server;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:mime/mime.dart';
+
 part 'src/virtual_directory.dart';
 part 'src/virtual_host.dart';
 

@@ -175,12 +175,16 @@ class _VirtualDirectory implements VirtualDirectory {
                                  "bytes $start-${end - 1}/$length");
 
             // Pipe the 'range' of the file.
-            file.openRead(start, end).pipe(response).catchError((_) {});
+            file.openRead(start, end)
+                .pipe(new _VirtualDirectoryFileStream(response, file.path))
+                .catchError((_) {});
             return;
           }
         }
 
-        file.openRead().pipe(response).catchError((_) {});
+        file.openRead()
+            .pipe(new _VirtualDirectoryFileStream(response, file.path))
+            .catchError((_) {});
       });
     }).catchError((_) {
       response.close();
@@ -190,5 +194,61 @@ class _VirtualDirectory implements VirtualDirectory {
   void _serveErrorPage(int error, HttpRequest request) {
     request.response.statusCode = error;
     request.response.close();
+  }
+}
+
+class _VirtualDirectoryFileStream extends StreamConsumer<List<int>> {
+  final HttpResponse response;
+  final String path;
+  var buffer = [];
+
+  _VirtualDirectoryFileStream(HttpResponse this.response, String this.path);
+
+  Future addStream(Stream<List<int>> stream) {
+    stream.listen(
+        (data) {
+          if (buffer == null) {
+            response.add(data);
+            return;
+          }
+          if (buffer.length == 0) {
+            if (data.length >= defaultMagicNumbersMaxLength) {
+              setMimeType(data);
+              response.add(data);
+              buffer = null;
+            } else {
+              buffer.addAll(data);
+            }
+          } else {
+            buffer.addAll(data);
+            if (buffer.length >= defaultMagicNumbersMaxLength) {
+              setMimeType(buffer);
+              response.add(buffer);
+              buffer = null;
+            }
+          }
+        },
+        onDone: () {
+          if (buffer != null) {
+            if (buffer.length == 0) {
+              setMimeType(null);
+            } else {
+              setMimeType(buffer);
+              response.add(buffer);
+            }
+          }
+          response.close();
+        },
+        onError: response.addError);
+    return response.done;
+  }
+
+  Future close() => new Future.value();
+
+  void setMimeType(var bytes) {
+    var mimeType = lookupMimeType(path, headerBytes: bytes);
+    if (mimeType != null) {
+      response.headers.contentType = ContentType.parse(mimeType);
+    }
   }
 }
