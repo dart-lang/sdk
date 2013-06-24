@@ -1062,8 +1062,8 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Spilled: T1, T2, T3.
   // T0: Address being stored.
   __ lw(T2, FieldAddress(T0, Object::tags_offset()));
-  __ andi(T1, T2, Immediate(1 << RawObject::kRememberedBit));
-  __ beq(T1, ZR, &add_to_buffer);
+  __ andi(CMPRES, T2, Immediate(1 << RawObject::kRememberedBit));
+  __ beq(CMPRES, ZR, &add_to_buffer);
   __ lw(T1, Address(SP, 0 * kWordSize));
   __ lw(T2, Address(SP, 1 * kWordSize));
   __ lw(T3, Address(SP, 2 * kWordSize));
@@ -1092,7 +1092,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // T2: top_
   // T1: StoreBufferBlock
   Label L;
-  __ AddImmediate(T2, 1);
+  __ addiu(T2, T2, Immediate(1));
   __ sw(T2, Address(T1, StoreBufferBlock::top_offset()));
   __ addiu(CMPRES, T2, Immediate(-StoreBufferBlock::kSize));
   // Restore values.
@@ -1107,7 +1107,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
 
-  __ EnterCallRuntimeFrame(0 * kWordSize);
+  __ EnterCallRuntimeFrame(1 * kWordSize);
   __ lw(A0, FieldAddress(CTX, Context::isolate_offset()));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
   __ TraceSimMsg("UpdateStoreBufferStub return");

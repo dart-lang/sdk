@@ -593,7 +593,6 @@ stack_overflow_stacktrace_test: Crash, Pass
 [ $arch == simmips ]
 arithmetic_test: Fail, Crash
 bit_operations_test: Crash, Fail
-char_escape_test: Pass, Crash
 deopt_smi_op_test: Fail
 gc_test: Crash
 invocation_mirror_test: Fail

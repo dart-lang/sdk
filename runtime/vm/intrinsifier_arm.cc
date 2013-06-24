@@ -243,7 +243,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   __ StoreIntoObject(R0,
                      FieldAddress(R1, Array::data_offset()),
                      R2);
-  // Caller is responsible of preserving the value if necessary.
+  // Caller is responsible for preserving the value if necessary.
   __ Ret();
   __ Bind(&fall_through);
   return false;

@@ -65,12 +65,17 @@ class Simulator {
 
   // Dart generally calls into generated code with 5 parameters. This is a
   // convenience function, which sets up the simulator state and grabs the
-  // result on return.
+  // result on return. When fp_return is true the return value is the D0
+  // floating point register. Otherwise, the return value is R1:R0.
+  // If fp_args is true, the parameters0-3 are placed in S0-3. Otherwise, they
+  // are placed in R0-3.
   int64_t Call(int32_t entry,
                int32_t parameter0,
                int32_t parameter1,
                int32_t parameter2,
-               int32_t parameter3);
+               int32_t parameter3,
+               bool fp_return = false,
+               bool fp_args = false);
 
   // Implementation of atomic compare and exchange in the same synchronization
   // domain as other synchronization primitive instructions (e.g. ldrex, strex).

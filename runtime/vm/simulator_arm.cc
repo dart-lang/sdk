@@ -2968,15 +2968,24 @@ int64_t Simulator::Call(int32_t entry,
                         int32_t parameter0,
                         int32_t parameter1,
                         int32_t parameter2,
-                        int32_t parameter3) {
+                        int32_t parameter3,
+                        bool fp_return,
+                        bool fp_args) {
   // Save the SP register before the call so we can restore it.
   int32_t sp_before_call = get_register(SP);
 
   // Setup parameters.
-  set_register(R0, parameter0);
-  set_register(R1, parameter1);
-  set_register(R2, parameter2);
-  set_register(R3, parameter3);
+  if (fp_args) {
+    set_sregister(S0, bit_cast<float, int32_t>(parameter0));
+    set_sregister(S1, bit_cast<float, int32_t>(parameter1));
+    set_sregister(S2, bit_cast<float, int32_t>(parameter2));
+    set_sregister(S3, bit_cast<float, int32_t>(parameter3));
+  } else {
+    set_register(R0, parameter0);
+    set_register(R1, parameter1);
+    set_register(R2, parameter2);
+    set_register(R3, parameter3);
+  }
 
   // Make sure the activation frames are properly aligned.
   int32_t stack_pointer = sp_before_call;
@@ -3042,7 +3051,13 @@ int64_t Simulator::Call(int32_t entry,
 
   // Restore the SP register and return R1:R0.
   set_register(SP, sp_before_call);
-  return Utils::LowHighTo64Bits(get_register(R0), get_register(R1));
+  int64_t return_value;
+  if (fp_return) {
+    return_value = bit_cast<int64_t, double>(get_dregister(D0));
+  } else {
+    return_value = Utils::LowHighTo64Bits(get_register(R0), get_register(R1));
+  }
+  return return_value;
 }
 
 

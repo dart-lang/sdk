@@ -1425,8 +1425,6 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary() const {
     case kTypedDataUint8ArrayCid:
     case kTypedDataUint8ClampedArrayCid:
     case kOneByteStringCid:
-      locs->set_in(2, Location::RegisterOrSmiConstant(value()));
-      break;
     case kTypedDataInt16ArrayCid:
     case kTypedDataUint16ArrayCid:
     case kTypedDataInt32ArrayCid:
@@ -1568,7 +1566,15 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     }
     case kTypedDataFloat32ArrayCid:
+      // Convert to single precision.
+      __ cvtsd(STMP1, locs()->in(2).fpu_reg());
+      // Store.
+      __ swc1(STMP1, element_address);
+      break;
     case kTypedDataFloat64ArrayCid:
+      __ StoreDToOffset(locs()->in(2).fpu_reg(), index.reg(),
+          FlowGraphCompiler::DataOffsetFor(class_id()) - kHeapObjectTag);
+      break;
     case kTypedDataFloat32x4ArrayCid:
       UNIMPLEMENTED();
       break;
@@ -2257,8 +2263,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
         __ BranchUnsignedGreaterEqual(
             right, reinterpret_cast<int32_t>(Smi::New(max_right)), deopt);
       }
-      __ SmiUntag(right);
-      __ sllv(result, left, right);
+      __ sra(TMP, right, kSmiTagMask);  // SmiUntag right into TMP.
+      __ sllv(result, left, TMP);
     }
     return;
   }
@@ -2285,8 +2291,8 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       // result = right < kBits ? left << right : result.
       __ movn(result, TMP1, CMPRES);
     } else {
-      __ SmiUntag(right);
-      __ sllv(result, left, right);
+      __ sra(TMP, right, kSmiTagSize);
+      __ sllv(result, left, TMP);
     }
   } else {
     if (right_needs_check) {
@@ -2296,13 +2302,14 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     }
     // Left is not a constant.
     // Check if count too large for handling it inlined.
-    __ SmiUntag(right);
-    // Overflow test (preserve left and right);
-    __ sllv(TMP1, left, right);
-    __ srav(TMP1, TMP1, right);
-    __ bne(TMP1, left, deopt);  // Overflow.
+    __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+    // Overflow test (preserve left, right, and TMP);
+    Register temp = locs.temp(0).reg();
+    __ sllv(temp, left, TMP);
+    __ srav(temp, temp, TMP);
+    __ bne(temp, left, deopt);  // Overflow.
     // Shift for result now we know there is no overflow.
-    __ sllv(result, left, right);
+    __ sll(result, left, TMP);
   }
 }
 
@@ -2313,22 +2320,23 @@ LocationSummary* BinarySmiOpInstr::MakeLocationSummary() const {
   LocationSummary* summary =
       new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   if (op_kind() == Token::kTRUNCDIV) {
+    summary->set_in(0, Location::RequiresRegister());
     if (RightIsPowerOfTwoConstant()) {
-      summary->set_in(0, Location::RequiresRegister());
       ConstantInstr* right_constant = right()->definition()->AsConstant();
       summary->set_in(1, Location::Constant(right_constant->value()));
-      summary->set_out(Location::RequiresRegister());
     } else {
-      // Both inputs must be writable because they will be untagged.
-      summary->set_in(0, Location::WritableRegister());
-      summary->set_in(1, Location::WritableRegister());
-      summary->set_out(Location::RequiresRegister());
+      summary->set_in(1, Location::RequiresRegister());
     }
+    summary->AddTemp(Location::RequiresRegister());
+    summary->set_out(Location::RequiresRegister());
     return summary;
   }
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RegisterOrSmiConstant(right()));
-  if (op_kind() == Token::kADD) {
+  if (((op_kind() == Token::kSHL) && !is_truncating()) ||
+      (op_kind() == Token::kSHR)) {
+    summary->AddTemp(Location::RequiresRegister());
+  } else if (op_kind() == Token::kADD) {
     // Need an extra temp for the overflow detection code.
     summary->set_temp(0, Location::RequiresRegister());
   }
@@ -2351,7 +2359,7 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   Label* deopt = NULL;
   if (CanDeoptimize()) {
-    deopt  = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
+    deopt = compiler->AddDeoptStub(deopt_id(), kDeoptBinarySmiOp);
   }
 
   if (locs()->in(1).IsConstant()) {
@@ -2425,10 +2433,11 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         ASSERT(kSmiTagSize == 1);
         __ sra(TMP, left, 31);
         ASSERT(shift_count > 1);  // 1, -1 case handled above.
+        Register temp = locs()->temp(0).reg();
         __ srl(TMP, TMP, 32 - shift_count);
-        __ addu(left, left, TMP);
+        __ addu(temp, left, TMP);
         ASSERT(shift_count > 0);
-        __ sra(result, left, shift_count);
+        __ sra(result, temp, shift_count);
         if (value < 0) {
           __ subu(result, ZR, result);
         }
@@ -2523,8 +2532,8 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case Token::kMUL: {
       __ TraceSimMsg("kMUL");
-      __ SmiUntag(left);
-      __ mult(left, right);
+      __ sra(TMP, left, kSmiTagSize);
+      __ mult(TMP, right);
       __ mflo(result);
       if (deopt != NULL) {
         __ mfhi(TMP1);
@@ -2551,18 +2560,36 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kTRUNCDIV: {
       // Handle divide by zero in runtime.
       __ beq(right, ZR, deopt);
-      __ SmiUntag(left);
-      __ SmiUntag(right);
-      __ div(left, right);
+      Register temp = locs()->temp(0).reg();
+      __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+      __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      __ div(temp, TMP);
       __ mflo(result);
       // Check the corner case of dividing the 'MIN_SMI' with -1, in which
       // case we cannot tag the result.
-      __ BranchEqual(V0, 0x40000000, deopt);
+      __ BranchEqual(result, 0x40000000, deopt);
       __ SmiTag(result);
       break;
     }
     case Token::kSHR: {
-      UNIMPLEMENTED();
+      if (CanDeoptimize()) {
+        __ bltz(right, deopt);
+      }
+      __ sra(TMP, right, kSmiTagSize);  // SmiUntag right into TMP.
+      // sra operation masks the count to 5 bits.
+      const intptr_t kCountLimit = 0x1F;
+      Range* right_range = this->right()->definition()->range();
+      if ((right_range == NULL) ||
+          !right_range->IsWithin(RangeBoundary::kMinusInfinity, kCountLimit)) {
+        Label ok;
+        __ BranchSignedLessEqual(TMP, kCountLimit, &ok);
+        __ LoadImmediate(TMP, kCountLimit);
+        __ Bind(&ok);
+      }
+      Register temp = locs()->temp(0).reg();
+      __ sra(temp, left, kSmiTagSize);  // SmiUntag left into temp.
+      __ srav(result, temp, TMP);
+      __ SmiTag(result);
       break;
     }
     case Token::kDIV: {

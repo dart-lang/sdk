@@ -189,7 +189,6 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
   __ vsubs(S0, S0, S1);  // 49.98f
   __ vdivs(S0, S0, S1);  // 14.7f
   __ vsqrts(S0, S0);  // 3.8340579f
-  __ vmovrs(R0, S0);
   __ bx(LR);
 }
 
@@ -212,7 +211,6 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
   __ vsubd(D0, D0, D1);  // 49.98
   __ vdivd(D0, D0, D1);  // 14.7
   __ vsqrtd(D0, D0);  // 3.8340579
-  __ vmovrrd(R0, R1, D0);
   __ bx(LR);
 }
 
@@ -247,8 +245,7 @@ ASSEMBLER_TEST_RUN(DoubleSqrtNeg, test) {
 ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
   __ mov(R3, ShifterOperand(6));
   __ vmovsr(S3, R3);
-  __ vcvtdi(D1, S3);
-  __ vmovrrd(R0, R1, D1);
+  __ vcvtdi(D0, S3);
   __ bx(LR);
 }
 
@@ -272,7 +269,6 @@ ASSEMBLER_TEST_GENERATE(LongToDoubleConversion, assembler) {
   __ vcvtdi(D1, S2);
   __ LoadDImmediate(D2, 1.0 * (1LL << 32), R0);
   __ vmlad(D0, D1, D2);
-  __ vmovrrd(R0, R1, D0);
   __ bx(LR);
 }
 
@@ -289,8 +285,7 @@ ASSEMBLER_TEST_RUN(LongToDoubleConversion, test) {
 ASSEMBLER_TEST_GENERATE(IntToFloatConversion, assembler) {
   __ mov(R3, ShifterOperand(6));
   __ vmovsr(S3, R3);
-  __ vcvtsi(S1, S3);
-  __ vmovrs(R0, S1);
+  __ vcvtsi(S0, S3);
   __ bx(LR);
 }
 
@@ -304,9 +299,8 @@ ASSEMBLER_TEST_RUN(IntToFloatConversion, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FloatToIntConversion, assembler) {
-  __ vmovsr(S1, R0);
-  __ vcvtis(S0, S1);
-  __ vmovrs(R0, S0);
+  __ vcvtis(S1, S0);
+  __ vmovrs(R0, S1);
   __ bx(LR);
 }
 
@@ -327,8 +321,7 @@ ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
 
 
 ASSEMBLER_TEST_GENERATE(DoubleToIntConversion, assembler) {
-  __ vmovdrr(D1, R0, R1);
-  __ vcvtid(S0, D1);
+  __ vcvtid(S0, D0);
   __ vmovrs(R0, S0);
   __ bx(LR);
 }
@@ -350,9 +343,8 @@ ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
 
 
 ASSEMBLER_TEST_GENERATE(FloatToDoubleConversion, assembler) {
-  __ LoadSImmediate(S1, 12.8f);
-  __ vcvtds(D2, S1);
-  __ vmovrrd(R0, R1, D2);
+  __ LoadSImmediate(S2, 12.8f);
+  __ vcvtds(D0, S2);
   __ bx(LR);
 }
 
@@ -368,8 +360,7 @@ ASSEMBLER_TEST_RUN(FloatToDoubleConversion, test) {
 
 ASSEMBLER_TEST_GENERATE(DoubleToFloatConversion, assembler) {
   __ LoadDImmediate(D1, 12.8, R0);
-  __ vcvtsd(S3, D1);
-  __ vmovrs(R0, S3);
+  __ vcvtsd(S0, D1);
   __ bx(LR);
 }
 

@@ -1649,6 +1649,22 @@ ASSEMBLER_TEST_RUN(Cop1CvtWD_neg, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Cop1CvtSD, assembler) {
+  __ LoadImmediate(D2, -42.42);
+  __ cvtsd(F2, D2);
+  __ cvtds(D0, F2);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1CvtSD, test) {
+  typedef double (*SimpleCode)();
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(-42.42, res, 0.001);
+}
+
+
 // Called from assembler_test.cc.
 // RA: return address.
 // A0: context.

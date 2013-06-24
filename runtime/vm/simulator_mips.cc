@@ -1408,8 +1408,8 @@ void Simulator::DecodeSpecial2(Instr* instr) {
       uint32_t lo = get_lo_register();
       uint32_t hi = get_hi_register();
       uint64_t accum = Utils::LowHighTo64Bits(lo, hi);
-      uint64_t rs = static_cast<int64_t>(get_register(instr->RsField()));
-      uint64_t rt = static_cast<int64_t>(get_register(instr->RtField()));
+      uint64_t rs = static_cast<uint64_t>(get_register(instr->RsField()));
+      uint64_t rt = static_cast<uint64_t>(get_register(instr->RtField()));
       uint64_t res = accum + rs * rt;
       set_hi_register(Utils::High32Bits(res));
       set_lo_register(Utils::Low32Bits(res));
@@ -1652,6 +1652,22 @@ void Simulator::DecodeCop1(Instr* instr) {
             double fs_dbl = get_fregister_double(instr->FsField());
             int32_t fs_int = static_cast<int32_t>(fs_dbl);
             set_fregister(instr->FdField(), fs_int);
+            break;
+          }
+          default: {
+            OS::PrintErr("DecodeCop1: 0x%x\n", instr->InstructionBits());
+            UnimplementedInstruction(instr);
+            break;
+          }
+        }
+        break;
+      }
+      case COP1_CVT_S: {
+        switch (instr->FormatField()) {
+          case FMT_D: {
+            double fs_dbl = get_fregister_double(instr->FsField());
+            float fs_flt = static_cast<float>(fs_dbl);
+            set_fregister_float(instr->FdField(), fs_flt);
             break;
           }
           default: {
@@ -2054,15 +2070,23 @@ int64_t Simulator::Call(int32_t entry,
                         int32_t parameter1,
                         int32_t parameter2,
                         int32_t parameter3,
-                        bool fp_return) {
+                        bool fp_return,
+                        bool fp_args) {
   // Save the SP register before the call so we can restore it.
   int32_t sp_before_call = get_register(SP);
 
   // Setup parameters.
-  set_register(A0, parameter0);
-  set_register(A1, parameter1);
-  set_register(A2, parameter2);
-  set_register(A3, parameter3);
+  if (fp_args) {
+    set_fregister(F0, parameter0);
+    set_fregister(F1, parameter1);
+    set_fregister(F2, parameter2);
+    set_fregister(F3, parameter3);
+  } else {
+    set_register(A0, parameter0);
+    set_register(A1, parameter1);
+    set_register(A2, parameter2);
+    set_register(A3, parameter3);
+  }
 
   // Make sure the activation frames are properly aligned.
   int32_t stack_pointer = sp_before_call;

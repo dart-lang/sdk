@@ -408,6 +408,7 @@ enum Cop1Function {
   COP1_DIV = 0x03,
   COP1_SQRT = 0x04,
   COP1_MOV = 0x06,
+  COP1_CVT_S = 0x20,
   COP1_CVT_D = 0x21,
   COP1_CVT_W = 0x24,
   COP1_C_F = 0x30,

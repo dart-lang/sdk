@@ -54,14 +54,6 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 # Skip until we stabilize language tests.
 *: Skip
 
-[ $arch == arm ]
-cc/DoubleToFloatConversion: Fail # Issue: 11207
-cc/DoubleToIntConversion: Fail # Issue: 11207
-cc/FloatToDoubleConversion: Fail # Issue: 11207
-cc/FloatToIntConversion: Fail # Issue: 11207
-cc/IntToDoubleConversion: Fail # Issue: 11207
-cc/IntToFloatConversion: Fail # Issue: 11207
-
 [ $arch == mips ]
 *: Skip
 
@@ -69,13 +61,7 @@ cc/IntToFloatConversion: Fail # Issue: 11207
 dart/isolate_mirror_local_test: Skip
 
 [ $arch == simmips ]
-# Tests missing code generation support.
-dart/byte_array_test: Skip
-dart/byte_array_optimized_test: Skip
-dart/isolate_mirror_local_test: Skip
-cc/ParsePatchLibrary: Skip
-cc/CorelibCompileAll: Skip
-cc/Dart2JSCompileAll: Skip
+dart/isolate_mirror_local_test: Pass, Crash
 cc/FindCodeObject: Skip #  Relative offsets are too far
 
 # TODO(ajohnsen): Fix this as part of library changes.
@@ -91,4 +77,3 @@ dart/isolate_mirror_local_test: fail
 [ $compiler == dart2analyzer ]
 # has compilation error, as designed
 dart/isolate_mirror_local_test: fail
-

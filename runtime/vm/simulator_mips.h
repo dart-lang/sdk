@@ -107,7 +107,8 @@ class Simulator {
                int32_t parameter1,
                int32_t parameter2,
                int32_t parameter3,
-               bool fp_return = false);
+               bool fp_return = false,
+               bool fp_args = false);
 
   // Runtime and native call support.
   enum CallKind {
