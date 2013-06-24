@@ -24,52 +24,6 @@ mixin_super_constructor_positionals_test: Fail
 mixin_super_constructor_multiple_test: Fail
 closure_type_variable_test: Fail # Type variable used as expression (dartbug.com/6282)
 
-# Issue 11468
-dynamic_test: Fail
-function_subtype_bound_closure0_test: Fail
-function_subtype_bound_closure1_test: Fail
-function_subtype_bound_closure2_test: Fail
-function_subtype_bound_closure5_test: Fail
-function_subtype_bound_closure6_test: Fail
-function_subtype_bound_closure7_test: Fail
-function_subtype_cast0_test: Fail
-function_subtype_cast1_test: Fail
-function_subtype_cast2_test: Fail
-function_subtype_cast3_test: Fail
-function_subtype_factory0_test: Fail
-function_subtype_local1_test: Fail
-function_subtype_local5_test: Fail
-function_subtype_not0_test: Fail
-function_subtype_not1_test: Fail
-function_subtype_not2_test: Fail
-function_subtype_not3_test: Fail
-function_subtype_top_level1_test: Fail
-function_type_alias2_test: Fail
-function_type_alias3_test: Fail
-function_type_alias4_test: Fail
-function_type_alias6_test: Fail
-function_type_alias_test: Fail
-method_override_test: Fail
-
-# Issue 11467
-function_subtype0_test: Fail
-function_subtype1_test: Fail
-function_subtype_bound_closure3_test: Fail
-function_subtype_bound_closure4_test: Fail
-function_subtype_call0_test: Fail
-function_subtype_call1_test: Fail
-function_subtype_call2_test: Fail
-function_subtype_inline0_test: Fail
-function_subtype_local0_test: Fail
-function_subtype_local2_test: Fail
-function_subtype_local3_test: Fail
-function_subtype_local4_test: Fail
-function_subtype_named1_test: Fail
-function_subtype_named2_test: Fail
-function_subtype_optional1_test: Fail
-function_subtype_optional2_test: Fail
-function_subtype_top_level0_test: Fail
-
 [ $compiler == none ]
 extends_test: Fail # issue 11023
 mixin_super_constructor_test: Fail
