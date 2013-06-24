@@ -76,6 +76,11 @@ abstract class Stream<T> {
 
   /**
    * Creates a single-subscription stream that gets its data from [data].
+   *
+   * If iterating [data] throws an error, the stream ends immediately with
+   * that error. No done event will be sent (iteration is not complete), but no
+   * further data events will be generated either, since iteration cannot
+   * continue.
    */
   factory Stream.fromIterable(Iterable<T> data) {
     return new _GeneratedStreamImpl<T>(
