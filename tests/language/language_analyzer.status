@@ -10,8 +10,6 @@ bad_named_parameters2_test: fail
 bad_named_parameters_test: fail
 bad_override_test/01: fail
 bad_override_test/02: fail
-bad_override_test/04: fail
-bad_override_test/05: fail
 black_listed_test/11: fail
 body_less_constructor_wrong_arg_negative_test: fail
 built_in_identifier_prefix_test: fail
@@ -120,13 +118,9 @@ new_expression_type_args_test/02: fail
 no_such_method_negative_test: fail
 non_const_super_negative_test: fail
 number_identifier_negative_test: fail
-override_field_method1_negative_test: fail
-override_field_method2_negative_test: fail
-override_field_method4_negative_test: fail
-override_field_method5_negative_test: fail
+override_field_test/01: fail
 override_field_test/02: fail
 override_field_test/03: fail
-override_method_with_field_test/01: fail
 prefix10_negative_test: fail
 prefix11_negative_test: fail
 prefix12_negative_test: fail
