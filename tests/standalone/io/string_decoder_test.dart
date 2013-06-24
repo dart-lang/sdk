@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 
-void test() {
+void testTransform() {
   // Code point U+10FFFF is the largest code point supported by Dart.
   var controller = new StreamController(sync: true);
   controller.add([0xf0, 0x90, 0x80, 0x80]);  // U+10000
@@ -40,6 +40,33 @@ void test() {
       });
 }
 
+void testDecode() {
+  // Code point U+10FFFF is the largest code point supported by Dart.
+  var controller = new StreamController(sync: true);
+  controller.add([0xf0, 0x90, 0x80, 0x80]);  // U+10000
+  controller.add([0xf4, 0x8f, 0xbf, 0xbf]);  // U+10FFFF
+  controller.add([0xf4, 0x90, 0x80, 0x80]);  // U+110000
+  controller.add([0xfa, 0x80, 0x80, 0x80, 0x80]);  //  U+2000000
+  controller.add([0xfd, 0x80, 0x80, 0x80, 0x80, 0x80]);  // U+40000000
+  controller.close();
+
+  StringDecoder.decode(controller.stream,
+                       Encoding.UTF_8,
+                       '?'.codeUnitAt(0)).then((decoded) {
+    Expect.equals(8, decoded.length);
+
+    var replacementChar = '?'.codeUnitAt(0);
+    Expect.equals(0xd800, decoded.codeUnitAt(0));
+    Expect.equals(0xdc00, decoded.codeUnitAt(1));
+    Expect.equals(0xdbff, decoded.codeUnitAt(2));
+    Expect.equals(0xdfff, decoded.codeUnitAt(3));
+    Expect.equals(replacementChar, decoded.codeUnitAt(4));
+    Expect.equals(replacementChar, decoded.codeUnitAt(5));
+    Expect.equals(replacementChar, decoded.codeUnitAt(6));
+    Expect.equals(replacementChar, decoded.codeUnitAt(7));
+  });
+}
+
 void testInvalid() {
   void invalid(var bytes, var outputLength) {
     var controller = new StreamController(sync: true);
@@ -61,6 +88,7 @@ void testInvalid() {
 }
 
 void main() {
-  test();
+  testTransform();
+  testDecode();
   testInvalid();
 }

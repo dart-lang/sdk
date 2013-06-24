@@ -91,8 +91,34 @@ class StringDecoder implements StreamTransformer<List<int>, String> {
   var _decoder;
 
   /**
+   * Decodes a stream of bytes into a `String` with an optional
+   * [encoding] and [replacementChar].
+   *
+   * The default value for [encoding] is [Encoding.UTF_8].
+   *
+   * The default value for [replacementChar] is code point U+FFFD.
+   *
+   * Completes with the decoded `String` when the stream is done.
+   */
+  static Future<String> decode(
+      Stream<List<int>> stream,
+      [Encoding encoding = Encoding.UTF_8,
+       int replacementChar = UNICODE_REPLACEMENT_CHARACTER_CODEPOINT]) {
+    return stream
+        .transform(new StringDecoder(encoding, replacementChar))
+        .fold(
+            new StringBuffer(),
+            (prev, data) => prev..write(data))
+        .then((sb) => sb.toString());
+  }
+
+  /**
    * Create a new [StringDecoder] with an optional [encoding] and
    * [replacementChar].
+   *
+   * The default value for [encoding] is [Encoding.UTF_8].
+   *
+   * The default value for [replacementChar] is code point U+FFFD.
    */
   StringDecoder([Encoding encoding = Encoding.UTF_8, int replacementChar]) {
     switch (encoding) {
