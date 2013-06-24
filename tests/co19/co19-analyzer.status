@@ -8,49 +8,30 @@ Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t06: fail
 Language/06_Functions/2_Formal_Parameters/1_Required_Formals_A02_t07: fail
 Language/06_Functions/2_Formal_Parameters/2_Optional_Formals_A03_t03: fail
 Language/06_Functions/2_Formal_Parameters_A02_t02: fail
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 Language/07_Classes/07_Classes_A01_t20: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: fail
-Language/07_Classes/6_Constructors/2_Factories_A06_t01: fail
-Language/07_Classes/6_Constructors/2_Factories_A06_t02: fail
-Language/07_Classes/6_Constructors/2_Factories_A06_t04: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
-Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: fail
 Language/09_Generics/09_Generics_A04_t07: fail
-Language/11_Expressions/01_Constants_A01_t01: fail
 Language/11_Expressions/01_Constants_A15_t08: fail
 Language/11_Expressions/01_Constants_A16_t01: fail
 Language/11_Expressions/01_Constants_A16_t02: fail
 Language/11_Expressions/01_Constants_A16_t03: fail
 Language/11_Expressions/01_Constants_A17_t03: fail
 Language/11_Expressions/01_Constants_A19_t04: fail
-Language/11_Expressions/03_Numbers_A01_t01: fail
-Language/11_Expressions/03_Numbers_A01_t02: fail
-Language/11_Expressions/03_Numbers_A01_t03: fail
-Language/11_Expressions/03_Numbers_A01_t04: fail
-Language/11_Expressions/03_Numbers_A01_t08: fail
-Language/11_Expressions/03_Numbers_A01_t10: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: fail
-Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: fail
 Language/11_Expressions/05_Strings_A02_t46: fail
 Language/11_Expressions/05_Strings_A02_t48: fail
 Language/11_Expressions/06_Lists_A06_t01: fail
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
 Language/11_Expressions/11_Instance_Creation/2_Const_A10_t01: fail
 Language/11_Expressions/11_Instance_Creation_A05_t02: fail
-Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: fail
 Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: fail
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: fail
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A05_t01: fail
-Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: fail
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A08_t01: fail
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A06_t02: fail
-Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t01: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t02: fail
 Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t03: fail
@@ -63,7 +44,6 @@ Language/11_Expressions/30_Identifier_Reference_A01_t07: fail
 Language/11_Expressions/30_Identifier_Reference_A01_t08: fail
 Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail
 Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail
-Language/12_Statements/02_Expression_Statements_A01_t06: fail
 Language/12_Statements/09_Switch_A04_t01: fail
 Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t17: fail
 Language/13_Libraries_and_Scripts/1_Imports_A01_t46: fail
@@ -86,8 +66,6 @@ LibTest/core/AssertionError/column_A01_t02: fail
 LibTest/core/AssertionError/failedAssertion_A01_t01: fail
 LibTest/core/AssertionError/line_A01_t02: fail
 LibTest/core/AssertionError/url_A01_t01: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: fail
-LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: fail
@@ -106,15 +84,8 @@ LibTest/core/String/concat_A01_t01: fail
 LibTest/core/String/concat_A02_t01: fail
 LibTest/core/String/hashCode_A01_t01: fail
 LibTest/core/String/splitChars_A01_t01: fail
-LibTest/core/StringBuffer/addAll_A01_t01: fail
-LibTest/core/StringBuffer/addAll_A01_t02: fail
 LibTest/core/StringBuffer/addAll_A03_t01: fail
-LibTest/core/StringBuffer/add_A01_t01: fail
-LibTest/core/StringBuffer/add_A01_t02: fail
 LibTest/core/StringBuffer/isEmpty_A01_t01: fail
-LibTest/core/StringBuffer/toString_A01_t01: fail
-LibTest/core/double/ceil_A01_t05: fail
-LibTest/core/double/floor_A01_t05: fail
 LibTest/core/int/operator_division_A01_t01: fail
 
 # fails locally, passes on bot
@@ -187,3 +158,42 @@ Language/05_Variables/05_Variables_A12_t01: fail, OK
 Language/05_Variables/05_Variables_A12_t06: fail, OK
 Language/05_Variables/05_Variables_A13_t01: fail, OK
 Language/07_Classes/07_Classes_A02_t11: fail, OK
+
+# co19 issue #429, It is a compile-time error if a formal parameter is declared as a constant variable
+Language/07_Classes/6_Constructors/1_Generative_Constructors_A15_t07: fail, OK
+
+# co19 issue #430, return not subtype from factory
+Language/07_Classes/6_Constructors/2_Factories_A06_t01: fail, OK
+Language/07_Classes/6_Constructors/2_Factories_A06_t02: fail, OK
+Language/07_Classes/6_Constructors/2_Factories_A06_t04: fail, OK
+
+# co19 issue #431, it is OK to use 'double' argument for const constructor
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t01: fail, OK
+Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t03: fail, OK
+
+# co19 issue #428, number literals with a + prefix
+Language/11_Expressions/01_Constants_A01_t01: fail, OK
+Language/11_Expressions/03_Numbers_A01_t01: fail, OK
+Language/11_Expressions/03_Numbers_A01_t02: fail, OK
+Language/11_Expressions/03_Numbers_A01_t03: fail, OK
+Language/11_Expressions/03_Numbers_A01_t04: fail, OK
+Language/11_Expressions/03_Numbers_A01_t08: fail, OK
+Language/11_Expressions/03_Numbers_A01_t10: fail, OK
+Language/12_Statements/02_Expression_Statements_A01_t06: fail, OK
+LibTest/core/double/ceil_A01_t05: fail, OK
+LibTest/core/double/floor_A01_t05: fail, OK
+
+# co19 issue #388, StringBuffer renamed add to write
+Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: fail, OK
+Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: fail, OK
+Language/11_Expressions/14_Function_Invocation/1_Actual_Argument_List_Evaluation_A02_t01: fail, OK
+Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A04_t01: fail, OK
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: fail, OK
+Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t02: fail, OK
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A04_t01: fail, OK
+LibTest/core/StringBuffer/add_A01_t01: fail, OK
+LibTest/core/StringBuffer/add_A01_t02: fail, OK
+LibTest/core/StringBuffer/addAll_A01_t01: fail, OK
+LibTest/core/StringBuffer/addAll_A01_t02: fail, OK
+LibTest/core/StringBuffer/toString_A01_t01: fail, OK
