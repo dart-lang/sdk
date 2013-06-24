@@ -2193,11 +2193,10 @@ void Simulator::Longjmp(uword pc,
   set_pc(static_cast<int32_t>(pc));
   set_register(SP, static_cast<int32_t>(sp));
   set_register(FP, static_cast<int32_t>(fp));
-  ASSERT(raw_exception != NULL);
+
+  ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));
-  if (raw_stacktrace != NULL) {
-    set_register(kStackTraceObjectReg, bit_cast<int32_t>(raw_stacktrace));
-  }
+  set_register(kStackTraceObjectReg, bit_cast<int32_t>(raw_stacktrace));
   buf->Longjmp();
 }
 

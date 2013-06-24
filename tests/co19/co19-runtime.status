@@ -532,7 +532,6 @@ LibTest/math/Random/nextDouble_A01_t01: Pass, Crash
 
 
 [ $compiler == none && $runtime == vm && $arch == simarm && $mode == debug ]
-LibTest/core/Expect/throws_A01_t04: Crash
 LibTest/core/List/sort_A01_t05: Crash
 LibTest/core/List/sort_A01_t06: Crash
 LibTest/core/double/ceil_A01_t02: Fail, Pass # Pass on Mac
@@ -555,7 +554,6 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 [ $compiler == none && $runtime == vm && $arch == simmips && $mode == debug ]
 LibTest/math/tan_A01_t01: Fail
 LibTest/math/cos_A01_t01: Pass, Fail # Fail on Mac
-LibTest/core/Expect/throws_A01_t04: Crash
 LibTest/core/List/sort_A01_t04: Crash # Too far relative jump.
 LibTest/core/List/sort_A01_t05: Crash
 LibTest/core/List/sort_A01_t06: Crash
