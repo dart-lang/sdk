@@ -55,8 +55,8 @@ abstract class VirtualDirectory {
 class _VirtualDirectory implements VirtualDirectory {
   final String root;
 
-  bool _allowDirectoryListing = false;
-  bool _followLinks = true;
+  bool allowDirectoryListing = false;
+  bool followLinks = true;
 
   _VirtualDirectory(this.root);
 
@@ -71,7 +71,7 @@ class _VirtualDirectory implements VirtualDirectory {
       return _serveErrorPage(HttpStatus.NOT_FOUND, request);
     }
 
-    _locateResource(new Path(root), path.segments())
+    _locateResource(new Path('.'), path.segments())
         .then((entity) {
           if (entity == null) {
             _serveErrorPage(HttpStatus.NOT_FOUND, request);
@@ -87,16 +87,19 @@ class _VirtualDirectory implements VirtualDirectory {
 
   Future<FileSystemEntity> _locateResource(Path path,
                                            Iterable<String> segments) {
-    return FileSystemEntity.type(path.toNativePath(), followLinks: false)
+    Path fullPath() => new Path(root).join(path);
+    return FileSystemEntity.type(fullPath().toNativePath(), followLinks: false)
         .then((type) {
           switch (type) {
             case FileSystemEntityType.FILE:
-              if (segments.isEmpty) return new File.fromPath(path);
+              if (segments.isEmpty) return new File.fromPath(fullPath());
               break;
 
             case FileSystemEntityType.DIRECTORY:
               if (segments.isEmpty) {
-                if (_allowDirectoryListing) return new Directory.fromPath(path);
+                if (allowDirectoryListing) {
+                  return new Directory.fromPath(fullPath());
+                }
               } else {
                 return _locateResource(path.append(segments.first),
                                        segments.skip(1));
@@ -105,7 +108,17 @@ class _VirtualDirectory implements VirtualDirectory {
 
             case FileSystemEntityType.LINK:
               if (followLinks) {
-                // TODO
+                return new Link.fromPath(fullPath()).target()
+                    .then((target) {
+                      var targetPath = new Path(target).canonicalize();
+                      if (targetPath.isAbsolute) return null;
+                      targetPath = path.directoryPath.join(targetPath)
+                          .canonicalize();
+                      if (targetPath.segments().isEmpty ||
+                          targetPath.segments().first == '..') return null;
+                      return _locateResource(targetPath.append(segments.first),
+                                             segments.skip(1));
+                    });
               }
               break;
           }
