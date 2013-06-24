@@ -250,7 +250,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return IterableMixinWorkaround.lastIndexOfList(this, element, start);
   }
 
-  bool contains(E other) {
+  bool contains(Object other) {
     for (int i = 0; i < length; i++) {
       if (other == this[i]) return true;
     }
