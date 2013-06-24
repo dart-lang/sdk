@@ -1505,6 +1505,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     return true;
   } else if (target.kind() == RawFunction::kMethodExtractor) {
     return false;
+  } else if (target.kind() == RawFunction::kNoSuchMethodDispatcher) {
+    return false;
   }
 
   // Not an implicit getter.

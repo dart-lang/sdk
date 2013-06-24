@@ -1145,7 +1145,8 @@ void FlowGraphCompiler::CompileGraph() {
     const bool check_arguments = !flow_graph().IsCompiledForOsr();
 #else
     const bool check_arguments =
-        function.IsClosureFunction() && !flow_graph().IsCompiledForOsr();
+        (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) &&
+        !flow_graph().IsCompiledForOsr();
 #endif
     if (check_arguments) {
       __ Comment("Check argument count");
@@ -1160,7 +1161,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ j(EQUAL, &correct_num_arguments, Assembler::kNearJump);
 
       __ Bind(&wrong_num_arguments);
-      if (function.IsClosureFunction()) {
+      if (function.IsClosureFunction() || function.IsNoSuchMethodDispatcher()) {
         if (StackSize() != 0) {
           // We need to unwind the space we reserved for locals and copied
           // parameters. The NoSuchMethodFunction stub does not expect to see
@@ -1171,10 +1172,15 @@ void FlowGraphCompiler::CompileGraph() {
         // dropped the spill slots.
         BitmapBuilder* empty_stack_bitmap = new BitmapBuilder();
 
-        // Invoke noSuchMethod function passing "call" as the function name.
+        // Invoke noSuchMethod function passing the original function name.
+        // For closure functions, use "call" as the original name.
+        const String& name =
+            String::Handle(function.IsClosureFunction()
+                             ? Symbols::Call().raw()
+                             : function.name());
         const int kNumArgsChecked = 1;
         const ICData& ic_data = ICData::ZoneHandle(
-            ICData::New(function, Symbols::Call(), Object::null_array(),
+            ICData::New(function, name, Object::null_array(),
                         Isolate::kNoDeoptId, kNumArgsChecked));
         __ LoadObject(RBX, ic_data);
         // RBP - 8 : PC marker, for easy identification of RawInstruction obj.

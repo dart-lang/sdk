@@ -802,6 +802,9 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     case RawFunction::kMethodExtractor:
       node_sequence = parser.ParseMethodExtractor(func);
       break;
+    case RawFunction::kNoSuchMethodDispatcher:
+      node_sequence = parser.ParseNoSuchMethodDispatcher(func);
+      break;
     default:
       UNREACHABLE();
   }
@@ -1129,6 +1132,46 @@ SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
       NULL);
 
   ReturnNode* return_node = new ReturnNode(ident_pos, closure);
+  current_block_->statements->Add(return_node);
+  return CloseBlock();
+}
+
+
+SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func) {
+  TRACE_PARSER("ParseNoSuchMethodDispatcher");
+  ParamList params;
+
+  ASSERT(func.IsNoSuchMethodDispatcher());
+  intptr_t token_pos = func.token_pos();
+  ASSERT(func.token_pos() == 0);
+  ASSERT(current_class().raw() == func.Owner());
+  params.AddReceiver(ReceiverType(token_pos));
+  ASSERT(func.num_fixed_parameters() == 1);  // Receiver.
+  ASSERT(!func.HasOptionalParameters());
+
+  // Build local scope for function and populate with the formal parameters.
+  OpenFunctionBlock(func);
+  LocalScope* scope = current_block_->scope;
+  AddFormalParamsToScope(&params, scope);
+
+  // Receiver is local 0.
+  LocalVariable* receiver = scope->VariableAt(0);
+  LoadLocalNode* load_receiver = new LoadLocalNode(token_pos, receiver);
+
+  ArgumentListNode* func_args = new ArgumentListNode(token_pos);
+  func_args->Add(load_receiver);
+  const String& func_name = String::ZoneHandle(func.name());
+  ArgumentListNode* arguments = BuildNoSuchMethodArguments(token_pos,
+                                                           func_name,
+                                                           *func_args);
+  const Function& no_such_method = Function::ZoneHandle(
+        Resolver::ResolveDynamicAnyArgs(Class::Handle(func.Owner()),
+                                        Symbols::NoSuchMethod()));
+  StaticCallNode* call =
+      new StaticCallNode(token_pos, no_such_method, arguments);
+
+
+  ReturnNode* return_node = new ReturnNode(token_pos, call);
   current_block_->statements->Add(return_node);
   return CloseBlock();
 }
