@@ -7,6 +7,7 @@ library test;
 import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:isolate';
+import '../async_helper.dart';
 
 runTest() {
   IsolateSink mainIsolate;
@@ -37,10 +38,16 @@ main() {
   // the handling of the previous event. We therefore delay the closing.
   // Note: if the done is sent too early it won't lead to failing tests, but
   // just won't make sure that the globalErrorHandler works.
-  new Timer(const Duration(milliseconds: 10), otherIsolate.close);
+  asyncStart();
+  new Timer(const Duration(milliseconds: 10), () {
+    otherIsolate.close();
+    asyncEnd();
+  });
+  asyncStart();
   box.stream.single.then((msg) {
     Expect.equals("received done", msg);
     timer.cancel();
     keepRunningBox.stream.close();
+    asyncEnd();
   });
 }

@@ -6,6 +6,7 @@ library test;
 
 import 'package:expect/expect.dart';
 import 'dart:isolate';
+import '../async_helper.dart';
 
 funcFoo(x) => x + 2;
 
@@ -29,7 +30,9 @@ main() {
   snd.add(box.sink);
   snd.close();
 
+  asyncStart();
   box.stream.single.then((msg) {
     Expect.equals(499, msg);
+    asyncEnd();
   });
 }

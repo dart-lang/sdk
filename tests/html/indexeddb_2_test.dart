@@ -23,22 +23,22 @@ testReadWrite(key, value, check,
 
   var db;
   // Delete any existing DBs.
-  return html.window.indexedDB.deleteDatabase(dbName).then((_) {
+  return html.window.indexedDB.deleteDatabase(dbName).then(expectAsync1((_) {
       return html.window.indexedDB.open(dbName, version: version,
         onUpgradeNeeded: createObjectStore);
-    }).then((result) {
+    })).then(expectAsync1((result) {
       db = result;
       var transaction = db.transaction([storeName], 'readwrite');
       transaction.objectStore(storeName).put(value, key);
 
       return transaction.completed;
-    }).then((db) {
+    })).then(expectAsync1((db) {
       var transaction = db.transaction(storeName, 'readonly');
       return transaction.objectStore(storeName).getObject(key);
-    }).then((object) {
+    })).then(expectAsync1((object) {
       db.close();
       check(value, object);
-    }).catchError((e) {
+    })).catchError((e) {
       if (db != null) {
         db.close();
       }

@@ -5,6 +5,7 @@
 library illegal_msg_tests;
 import "package:expect/expect.dart";
 import 'dart:isolate';
+import '../async_helper.dart';
 
 funcFoo(x) => x + 2;
 
@@ -26,8 +27,10 @@ main() {
   if (caught_exception) {
     port.close();
   } else {
+    asyncStart();
     port.receive((msg, reply) {
       print("from worker ${msg}");
+      asyncEnd();
     });
   }
   Expect.isTrue(caught_exception);
