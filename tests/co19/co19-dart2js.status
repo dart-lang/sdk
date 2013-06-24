@@ -77,7 +77,6 @@ Language/12_Statements/04_Local_Function_Declaration_A01_t01: Fail # TODO(ahe): 
 Language/12_Statements/04_Local_Function_Declaration_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A02_t02: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/09_Switch_A06_t02: Fail # co19 issue 413
-Language/12_Statements/10_Try_A06_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/10_Try_A07_t03: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t01: Fail # TODO(ahe): Please triage this failure.
 Language/12_Statements/11_Return_A05_t02: Fail # TODO(ahe): Please triage this failure.

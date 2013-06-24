@@ -1580,8 +1580,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerGetter(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
     world.registerDynamicGetter(selector.name, selector);
-    world.registerInstantiatedClass(
-        compiler.functionClass, work.resolutionTree);
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1983,8 +1981,6 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitStatic(HStatic node) {
     Element element = node.element;
     if (element.isFunction()) {
-      world.registerInstantiatedClass(
-          compiler.functionClass, work.resolutionTree);
       push(new js.VariableUse(
           backend.namer.isolateStaticClosureAccess(node.element)));
     } else {

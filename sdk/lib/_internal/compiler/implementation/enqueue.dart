@@ -237,11 +237,6 @@ abstract class Enqueuer {
       // need to emit the method.
       if (universe.hasInvokedGetter(member, compiler)) {
         registerClosurizedMember(member, compiler.globalDependencies);
-        // We will emit a closure, so make sure the closure class is
-        // generated.
-        registerInstantiatedClass(compiler.boundClosureClass,
-                                  // Precise dependency is not important here.
-                                  compiler.globalDependencies);
         return addToWorkList(member);
       }
       // Store the member in [instanceFunctionsByName] to catch
@@ -462,11 +457,7 @@ abstract class Enqueuer {
     if (selector.isGetter()) {
       processInstanceFunctions(methodName, (Element member) {
         if (selector.appliesUnnamed(member, compiler)) {
-          // We will emit a closure, so make sure the bound closure class is
-          // generated.
-          registerInstantiatedClass(compiler.boundClosureClass,
-                                    // Precise dependency is not important here.
-                                    compiler.globalDependencies);
+          registerBoundClosure();
           return true;
         }
         return false;
@@ -553,14 +544,23 @@ abstract class Enqueuer {
     universe.genericCallMethods.add(element);
   }
 
+  void registerBoundClosure() {
+    registerInstantiatedClass(compiler.boundClosureClass,
+                              // Precise dependency is not important here.
+                              compiler.globalDependencies);
+  }
+
   void registerClosurizedMember(Element element, TreeElements elements) {
     if (element.computeType(compiler).containsTypeVariables) {
       registerClosurizedGenericMember(element, elements);
+    } else {
+      registerBoundClosure();
     }
     universe.closurizedMembers.add(element);
   }
 
   void registerClosurizedGenericMember(Element element, TreeElements elements) {
+    registerBoundClosure();
     compiler.backend.registerGenericClosure(element, this, elements);
     universe.closurizedGenericMembers.add(element);
   }

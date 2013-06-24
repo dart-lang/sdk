@@ -53,7 +53,6 @@ class SsaBuilderTask extends CompilerTask {
       assert(graph.isValid());
       if (!identical(kind, ElementKind.FIELD)) {
         FunctionElement function = element;
-        graph.calledInLoop = compiler.world.isCalledInLoop(function);
         FunctionSignature signature = function.computeSignature(compiler);
         signature.forEachOptionalParameter((Element parameter) {
           // This ensures the default value will be computed.
@@ -932,10 +931,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   static const MAX_INLINING_DEPTH = 3;
   static const MAX_INLINING_NODES = 46;
+
   List<InliningState> inliningStack;
+
   Element returnElement;
   DartType returnType;
+
   bool inTryStatement = false;
+  int loopNesting = 0;
 
   HBasicBlock get current => _current;
   void set current(c) {
@@ -1002,6 +1005,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
    */
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
+    graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
     FunctionExpression function = functionElement.parseNode(compiler);
     assert(function != null);
     assert(!function.modifiers.isExternal());
@@ -1222,7 +1226,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     // connected-component of the deferred library.
     if (compiler.deferredLoadTask.isDeferred(element)) return false;
     if (compiler.disableInlining) return false;
-    if (inliningStack.length > MAX_INLINING_DEPTH) return false;
+
+    if (loopNesting == 0 && !graph.calledInLoop) return false;
+    int maxDepth = (loopNesting > 0) ? MAX_INLINING_DEPTH : 1;
+    if (inliningStack.length >= maxDepth) return false;
 
     // Ensure that [element] is an implementation element.
     element = element.implementation;
@@ -2099,6 +2106,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           new SubExpression(initializerBlock, current);
     }
 
+    loopNesting++;
     JumpHandler jumpHandler = beginLoopHeader(loop);
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock conditionBlock = current;
@@ -2258,6 +2266,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
     jumpHandler.close();
+    loopNesting--;
   }
 
   visitFor(For node) {
@@ -2312,6 +2321,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(isReachable);
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
     localsHandler.startLoop(node);
+    loopNesting++;
     JumpHandler jumpHandler = beginLoopHeader(node);
     HLoopInformation loopInfo = current.loopInformation;
     HBasicBlock loopEntryBlock = current;
@@ -2437,6 +2447,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     }
     jumpHandler.close();
+    loopNesting--;
   }
 
   visitFunctionExpression(FunctionExpression node) {
