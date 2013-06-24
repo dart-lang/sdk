@@ -153,7 +153,6 @@ private_member3_negative_test: fail
 pseudo_kw_illegal_test/14: fail
 pseudo_kw_test: fail
 redirecting_factory_infinite_steps_test/01: fail
-redirecting_factory_infinite_steps_test/02: fail
 scope_negative_test: fail
 setter3_test/01: fail
 setter3_test/02: fail
