@@ -8,27 +8,7 @@ import 'dart:io';
 import "package:unittest/unittest.dart";
 import "package:http_server/http_server.dart";
 
-
-Future<int> getStatusCode(int port,
-                          String path,
-                          {DateTime ifModifiedSince}) {
-  return new HttpClient().get('localhost', port, path)
-      .then((request) {
-        if (ifModifiedSince != null) {
-          request.headers.ifModifiedSince = ifModifiedSince;
-        }
-        return request.close();
-      })
-      .then((response) => response.drain().then(
-          (_) => response.statusCode));
-}
-
-Future<HttpHeaders> getHeaders(int port, String path) {
-  return new HttpClient().get('localhost', port, path)
-      .then((request) => request.close())
-      .then((response) => response.drain().then(
-          (_) => response.headers));
-}
+import 'utils.dart';
 
 
 void main() {

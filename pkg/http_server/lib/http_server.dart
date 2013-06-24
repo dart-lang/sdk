@@ -8,4 +8,5 @@ import 'dart:async';
 import 'dart:io';
 
 part 'src/virtual_directory.dart';
+part 'src/virtual_host.dart';
 
