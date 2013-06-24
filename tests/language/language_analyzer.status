@@ -42,7 +42,6 @@ compile_time_constant_checked3_test/03: fail
 compile_time_constant_checked3_test/04: fail
 compile_time_constant_checked3_test/06: fail
 compile_time_constant_e_test: fail
-const_syntax_test/06: fail
 constructor2_negative_test: fail
 constructor3_negative_test: fail
 constructor_call_wrong_argument_count_negative_test: fail
