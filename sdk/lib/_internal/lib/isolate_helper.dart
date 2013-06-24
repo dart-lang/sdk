@@ -16,6 +16,7 @@ import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS_CURRENT_ISOLATE,
                                    JS_SET_CURRENT_ISOLATE,
                                    IsolateContext;
+import 'dart:_interceptors' show JSExtendableArray;
 
 ReceivePort lazyPort;
 
@@ -455,14 +456,14 @@ class IsolateNatives {
                  r'new RegExp("^ *at [^(]*\\((.*):[0-9]*:[0-9]*\\)$", "m")');
 
 
-    matches = JS('=List|Null', '#.match(#)', stack, pattern);
+    matches = JS('JSExtendableArray|Null', '#.match(#)', stack, pattern);
     if (matches != null) return JS('String', '#[1]', matches);
 
     // This pattern matches Firefox stack traces that look like this:
     // methodName@URI:LINE
     pattern = JS('', r'new RegExp("^[^@]*@(.*):[0-9]*$", "m")');
 
-    matches = JS('=List|Null', '#.match(#)', stack, pattern);
+    matches = JS('JSExtendableArray|Null', '#.match(#)', stack, pattern);
     if (matches != null) return JS('String', '#[1]', matches);
 
     throw new UnsupportedError('Cannot extract URI from "$stack"');

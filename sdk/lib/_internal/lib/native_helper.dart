@@ -255,7 +255,7 @@ void defineNativeMethodsCommon(String tags, var interceptorClass, bool isLeaf) {
   if (interceptorsByTag == null) interceptorsByTag = JS('=Object', '{}');
   if (leafTags == null) leafTags = JS('=Object', '{}');
 
-  var tagsList = JS('=List', '#.split("|")', tags);
+  var tagsList = JS('JSExtendableArray', '#.split("|")', tags);
   for (int i = 0; i < tagsList.length; i++) {
     var tag = tagsList[i];
     JS('void', '#[#] = #', interceptorsByTag, tag, methods);

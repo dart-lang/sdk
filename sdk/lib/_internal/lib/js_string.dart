@@ -76,10 +76,10 @@ class JSString extends Interceptor implements String, JSIndexable {
   List<String> split(Pattern pattern) {
     checkNull(pattern);
     if (pattern is String) {
-      return JS('=List', r'#.split(#)', this, pattern);
+      return JS('JSExtendableArray', r'#.split(#)', this, pattern);
     } else if (pattern is JSSyntaxRegExp) {
       var re = regExpGetNative(pattern);
-      return JS('=List', r'#.split(#)', this, re);
+      return JS('JSExtendableArray', r'#.split(#)', this, re);
     } else {
       throw "String.split(Pattern) UNIMPLEMENTED";
     }

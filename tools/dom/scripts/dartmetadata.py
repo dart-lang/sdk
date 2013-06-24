@@ -198,7 +198,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('int|String|Null')",
     ],
 
-    'MessageEvent.ports': ["@Creates('=List')"],
+    'MessageEvent.ports': ["@Creates('JSExtendableArray')"],
 
     'MessageEvent.data': [
       "@annotation_Creates_SerializedScriptValue",
@@ -271,8 +271,10 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'WebGLRenderingContext.getUniform': [
-      "@Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List')",
-      "@Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List')",
+      "@Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
+                "|Uint32List')",
+      "@Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
+                "|Uint32List')",
     ],
 
     'WebGLRenderingContext.getVertexAttrib': [
@@ -283,14 +285,15 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     'WebGLRenderingContext.getParameter': [
       # Taken from http://www.khronos.org/registry/webgl/specs/latest/
       # Section 5.14.3 Setting and getting state
-      "@Creates('Null|num|String|bool|=List|Float32List|Int32List|Uint32List"
-                "|Framebuffer|Renderbuffer|Texture')",
-      "@Returns('Null|num|String|bool|=List|Float32List|Int32List|Uint32List"
-                "|Framebuffer|Renderbuffer|Texture')",
+      "@Creates('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
+                "|Uint32List|Framebuffer|Renderbuffer|Texture')",
+      "@Returns('Null|num|String|bool|JSExtendableArray|Float32List|Int32List"
+                "|Uint32List|Framebuffer|Renderbuffer|Texture')",
     ],
 
     'XMLHttpRequest.response': [
-      "@Creates('ByteBuffer|Blob|Document|=Object|=List|String|num')",
+      "@Creates('ByteBuffer|Blob|Document|=Object|JSExtendableArray|String"
+                "|num')",
     ],
 }, dart2jsOnly=True)
 

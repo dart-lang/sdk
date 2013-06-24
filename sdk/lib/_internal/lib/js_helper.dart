@@ -36,10 +36,6 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
 
-bool isJsArray(var value) {
-  return value != null && JS('bool', r'(#.constructor === Array)', value);
-}
-
 bool isJsIndexable(var object, var record) {
   if (record != null) {
     var result = dispatchRecordIndexability(record);
@@ -155,7 +151,7 @@ class JSInvocationMirror implements Invocation {
     // to be a JavaScript object with intercepted names as property
     // instead of a JavaScript array.
     if (JS('int', '#.indexOf(#)', interceptedNames, name) == -1) {
-      if (!isJsArray(arguments)) arguments = new List.from(arguments);
+      if (arguments is! JSArray) arguments = new List.from(arguments);
     } else {
       arguments = [object]..addAll(arguments);
       receiver = interceptor;
@@ -230,7 +226,7 @@ class Primitives {
     if (handleError == null) handleError = _throwFormatException;
 
     checkString(source);
-    var match = JS('=List|Null',
+    var match = JS('JSExtendableArray|Null',
         r'/^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(#)',
         source);
     int digitsIndex = 1;
@@ -353,11 +349,11 @@ class Primitives {
   }
 
   static List newGrowableList(length) {
-    return JS('=List', r'new Array(#)', length);
+    return JS('JSExtendableArray', r'new Array(#)', length);
   }
 
   static List newFixedList(length) {
-    var result = JS('=List', r'new Array(#)', length);
+    var result = JS('JSFixedArray', r'new Array(#)', length);
     JS('void', r'#.fixed$length = #', result, true);
     return result;
   }
@@ -386,7 +382,7 @@ class Primitives {
       if (end <= kMaxApply) {
         subarray = array;
       } else {
-        subarray = JS('=List', r'#.slice(#, #)', array,
+        subarray = JS('JSExtendableArray', r'#.slice(#, #)', array,
                       i, i + kMaxApply < end ? i + kMaxApply : end);
       }
       result = JS('String', '# + String.fromCharCode.apply(#, #)',
@@ -1056,9 +1052,6 @@ abstract class Dynamic_ {
  * one or more types, separated by vertical bars `|`.  There are some special
  * names:
  *
- * * `=List`. This means 'exactly List', which is the JavaScript Array
- *   implementation of [List] and no other implementation.
- *
  * * `=Object`. This means 'exactly Object', which is a plain JavaScript object
  *   with properties and none of the subtypes of Object.
  *
@@ -1093,11 +1086,11 @@ class Creates {
  *
  * Example: IndexedDB keys are numbers, strings and JavaScript Arrays of keys.
  *
- *     @Returns('String|num|=List')
+ *     @Returns('String|num|JSExtendableArray')
  *     dynamic key;
  *
  *     // Equivalent:
- *     @Returns('String') @Returns('num') @Returns('=List')
+ *     @Returns('String') @Returns('num') @Returns('JSExtendableArray')
  *     dynamic key;
  */
 class Returns {

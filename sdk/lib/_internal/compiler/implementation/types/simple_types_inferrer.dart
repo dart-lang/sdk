@@ -692,8 +692,6 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
       TypeMask mappedType;
       if (type == native.SpecialType.JsObject) {
         mappedType = new TypeMask.nonNullExact(rawTypeOf(compiler.objectClass));
-      } else if (type == native.SpecialType.JsArray) {
-        mappedType = listType;
       } else if (type.element == compiler.stringClass) {
         mappedType = stringType;
       } else if (type.element == compiler.intClass) {
@@ -710,12 +708,17 @@ class InternalSimpleTypesInferrer extends TypesInferrer {
         mappedType = nullType;
       } else if (type.isDynamic) {
         return dynamicType;
-      } else if (compiler.world.hasAnySubclass(type.element)) {
-        mappedType = new TypeMask.nonNullSubclass(rawTypeOf(type.element));
-      } else if (compiler.world.hasAnySubtype(type.element)) {
-        mappedType = new TypeMask.nonNullSubtype(rawTypeOf(type.element));
-      } else {
+      } else if (!compiler.world.hasAnySubtype(type.element)) {
         mappedType = new TypeMask.nonNullExact(rawTypeOf(type.element));
+      } else {
+        Element element = type.element;
+        Set<ClassElement> subtypes = compiler.world.subtypesOf(element);
+        Set<ClassElement> subclasses = compiler.world.subclassesOf(element);
+        if (subclasses != null && subtypes.length == subclasses.length) {
+          mappedType = new TypeMask.nonNullSubclass(rawTypeOf(element));
+        } else {
+          mappedType = new TypeMask.nonNullSubtype(rawTypeOf(element));
+        }
       }
       returnType = computeLUB(returnType, mappedType, compiler);
       if (!isTypeValuable(returnType)) {

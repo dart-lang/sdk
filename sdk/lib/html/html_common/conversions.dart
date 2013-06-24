@@ -34,7 +34,8 @@ part of html_common;
 Map convertNativeToDart_Dictionary(object) {
   if (object == null) return null;
   var dict = {};
-  for (final key in JS('=List', 'Object.getOwnPropertyNames(#)', object)) {
+  var keys = JS('JSExtendableArray', 'Object.getOwnPropertyNames(#)', object);
+  for (final key in keys) {
     dict[key] = JS('var', '#[#]', object, key);
   }
   return dict;
@@ -165,7 +166,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
       var copy = readSlot(slot);
       if (copy != null) {
         if (true == copy) {  // Cycle, so commit to making a copy.
-          copy = JS('=List', 'new Array(#)', length);
+          copy = JS('JSExtendableArray', 'new Array(#)', length);
           writeSlot(slot, copy);
         }
         return copy;
@@ -175,7 +176,7 @@ _convertDartToNative_PrepareForStructuredClone(value) {
 
       // Always clone the list, as it may have non-native properties or methods
       // from interceptors and such.
-      copy = JS('=List', 'new Array(#)', length);
+      copy = JS('JSExtendableArray', 'new Array(#)', length);
       writeSlot(slot, copy);
 
       for ( ; i < length; i++) {
@@ -254,7 +255,7 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
       copy = {};
 
       writeSlot(slot, copy);
-      for (final key in JS('=List', 'Object.keys(#)', e)) {
+      for (final key in JS('JSExtendableArray', 'Object.keys(#)', e)) {
         copy[key] = walk(JS('var', '#[#]', e, key));
       }
       return copy;
@@ -268,7 +269,7 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) {
       int length = e.length;
       // Since a JavaScript Array is an instance of Dart List, we can modify it
       // in-place unless we must copy.
-      copy = mustCopy ? JS('=List', 'new Array(#)', length) : e;
+      copy = mustCopy ? JS('JSExtendableArray', 'new Array(#)', length) : e;
       writeSlot(slot, copy);
 
       for (int i = 0; i < length; i++) {
@@ -342,7 +343,7 @@ bool isImmutableJavaScriptArray(value) =>
 
 const String _serializedScriptValue =
     'num|String|bool|'
-    '=List|=Object|'
+    'JSExtendableArray|=Object|'
     'Blob|File|ByteBuffer|TypedData'
     // TODO(sra): Add Date, RegExp.
     ;

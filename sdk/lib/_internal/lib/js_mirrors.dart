@@ -17,7 +17,7 @@ import 'dart:_js_helper' show
     Primitives,
     RuntimeError,
     createUnmangledInvocationMirror;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 import 'dart:_js_names';
 
 /// No-op method that is called to inform the compiler that
@@ -47,7 +47,7 @@ class JsMirrorSystem implements MirrorSystem {
   static Map<String, List<LibraryMirror>> computeLibrariesByName() {
     disableTreeShaking();
     var result = new Map<String, List<LibraryMirror>>();
-    var jsLibraries = JS('=List|Null', 'init.libraries');
+    var jsLibraries = JS('JSExtendableArray|Null', 'init.libraries');
     if (jsLibraries == null) return result;
     for (List data in jsLibraries) {
       String name = data[0];

@@ -175,7 +175,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
     // TODO(ngeoffray): Parameterize the return value.
     if (start == end) return [];
-    return JS('=List', r'#.slice(#, #)', this, start, end);
+    return JS('JSExtendableArray', r'#.slice(#, #)', this, start, end);
   }
 
 

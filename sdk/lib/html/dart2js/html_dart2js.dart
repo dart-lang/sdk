@@ -16,7 +16,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11990,7 +11990,7 @@ class HttpRequest extends EventTarget native "XMLHttpRequest" {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Creates('ByteBuffer|Blob|Document|=Object|=List|String|num')
+  @Creates('ByteBuffer|Blob|Document|=Object|JSExtendableArray|String|num')
   final Object response;
 
   /**
@@ -15129,7 +15129,7 @@ class MessageEvent extends Event native "MessageEvent" {
   @DomName('MessageEvent.ports')
   @DocsEditable
   @Unstable
-  @Creates('=List')
+  @Creates('JSExtendableArray')
   final List<MessagePort> ports;
 
   WindowBase get source => _convertNativeToDart_Window(this._get_source);

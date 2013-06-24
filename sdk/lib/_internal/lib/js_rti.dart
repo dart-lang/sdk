@@ -670,6 +670,11 @@ int getLength(var array) {
   return JS('int', r'#.length', array);
 }
 
+/// Returns whether [value] is a JavaScript array.
+bool isJsArray(var value) {
+  return value is JSArray;
+}
+
 hasField(var object, var name) => JS('bool', r'#[#] != null', object, name);
 
 hasNoField(var object, var name) => JS('bool', r'#[#] == null', object, name);

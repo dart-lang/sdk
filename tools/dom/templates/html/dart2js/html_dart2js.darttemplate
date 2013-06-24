@@ -25,7 +25,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JavaScriptIndexingBehavior, JSName, Null, Returns;
-import 'dart:_interceptors' show Interceptor;
+import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 import 'dart:_isolate_helper' show IsolateNatives;
 import 'dart:_foreign_helper' show JS;
 

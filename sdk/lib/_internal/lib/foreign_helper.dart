@@ -34,10 +34,6 @@ library _foreign_helper;
  * [typeDescription] has several extensions to help describe the behavior more
  * accurately.  In addition to the union type already described:
  *
- *  + `=List` is the JavaScript array type.  This is more precise than `List`,
- *     which includes about fifty DOM types that also implement the List
- *     interface.
- *
  *  + `=Object` is a plain JavaScript object.  Some DOM methods return instances
  *     that have no corresponing Dart type (e.g. cross-frame documents),
  *     `=Object` can be used to describe these untyped' values.
@@ -46,9 +42,6 @@ library _foreign_helper;
  *    `dynamic` but the code is known to not create any instances.
  *
  * Examples:
- *
- *     // Create a JavaScript Array.
- *     List a = JS('=List', 'new Array(#)', length);
  *
  *     // Parent window might be an opaque cross-frame window.
  *     var thing = JS('=Object|Window', '#.parent', myWindow);

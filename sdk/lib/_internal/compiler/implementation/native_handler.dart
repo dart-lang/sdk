@@ -25,9 +25,6 @@ class SpecialType {
 
   /// The type Object, but no subtypes:
   static const JsObject = const SpecialType._('=Object');
-
-  /// The specific implementation of List that is JavaScript Array:
-  static const JsArray = const SpecialType._('=List');
 }
 
 
@@ -331,9 +328,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       if (matchedTypeConstraints.contains(type)) continue;
       matchedTypeConstraints.add(type);
       if (type is SpecialType) {
-        if (type == SpecialType.JsArray) {
-          world.registerInstantiatedClass(compiler.listClass, elements);
-        } else if (type == SpecialType.JsObject) {
+        if (type == SpecialType.JsObject) {
           world.registerInstantiatedClass(compiler.objectClass, elements);
         }
         continue;
@@ -352,6 +347,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
           world.registerInstantiatedClass(compiler.nullClass, elements);
         } else if (type.element == compiler.boolClass) {
           world.registerInstantiatedClass(compiler.boolClass, elements);
+        } else if (compiler.types.isSubtype(
+                      type, compiler.backend.listImplementation.rawType)) {
+          world.registerInstantiatedClass(type.element, elements);
         }
       }
       assert(type is DartType);
@@ -634,7 +632,6 @@ class NativeBehavior {
     //
     //  'Type1|Type2'.  A union type.
     //  '=Object'.      A JavaScript Object, no subtype.
-    //  '=List'.        A JavaScript Array, no subtype.
 
     var argNodes = jsCall.arguments;
     if (argNodes.isEmpty) {
@@ -816,7 +813,6 @@ class NativeBehavior {
   static _parseType(String typeString, Compiler compiler,
       lookup(name), locationNodeOrElement) {
     if (typeString == '=Object') return SpecialType.JsObject;
-    if (typeString == '=List') return SpecialType.JsArray;
     if (typeString == 'dynamic') {
       return  compiler.dynamicClass.computeType(compiler);
     }

@@ -1154,9 +1154,6 @@ class ConcreteTypesInferrer extends TypesInferrer {
       // TODO(polux): track native types
       if (type == native.SpecialType.JsObject) {
         return unknownConcreteType;
-      } else if (type == native.SpecialType.JsArray) {
-        concreteType = singletonConcreteType(baseTypes.listBaseType);
-
       // at this point, we know that type is not a SpecialType and thus has to
       // be a DartType
       } else if (type.element == compiler.objectClass) {
