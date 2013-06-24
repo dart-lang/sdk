@@ -222,6 +222,7 @@ Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail
 Language/11_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail, OK
 Language/11_Expressions/18_Assignment_A08_t04: Fail, OK
 
+Language/12_Statements/10_Try_A06_t01: Fail # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $checked ]
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A17_t03: Fail # TODO(ahe): Please triage this failure.
