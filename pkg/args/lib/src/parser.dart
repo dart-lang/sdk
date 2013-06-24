@@ -28,16 +28,26 @@ class Parser {
    */
   final Parser parent;
 
+  /** If `true`, parsing will continue after a non-option argument. */
+  final bool allowTrailingOptions;
+
   /** The grammar being parsed. */
   final ArgParser grammar;
 
   /** The arguments being parsed. */
   final List<String> args;
 
+  /** The remaining non-option, non-command arguments. */
+  final rest = <String>[];
+
   /** The accumulated parsed options. */
   final Map results = {};
 
-  Parser(this.commandName, this.grammar, this.args, [this.parent]);
+  Parser(this.commandName, this.grammar, this.args, this.parent, rest,
+      {this.allowTrailingOptions: false}) {
+    if (rest != null) this.rest.addAll(rest);
+  }
+
 
   /** The current argument being parsed. */
   String get current => args[0];
@@ -67,10 +77,15 @@ class Parser {
       // options so that commands can have option-like names.
       var command = grammar.commands[current];
       if (command != null) {
+        validate(rest.isEmpty, 'Cannot specify arguments before a command.');
         var commandName = args.removeAt(0);
-        var commandParser = new Parser(commandName, command, args, this);
+        var commandParser = new Parser(commandName, command, args, this, rest,
+            allowTrailingOptions: allowTrailingOptions);
         commandResults = commandParser.parse();
-        continue;
+
+        // All remaining arguments were passed to command so clear them here.
+        rest.clear();
+        break;
       }
 
       // Try to parse the current argument as an option. Note that the order
@@ -79,8 +94,10 @@ class Parser {
       if (parseAbbreviation(this)) continue;
       if (parseLongOption()) continue;
 
-      // If we got here, the argument doesn't look like an option, so stop.
-      break;
+      // This argument is neither option nor command, so stop parsing unless
+      // the [allowTrailingOptions] option is set.
+      if (!allowTrailingOptions) break;
+      rest.add(args.removeAt(0));
     }
 
     // Set unspecified multivalued arguments to their default value,
@@ -95,7 +112,7 @@ class Parser {
     });
 
     // Add in the leftover arguments we didn't parse to the innermost command.
-    var rest = args.toList();
+    rest.addAll(args);
     args.clear();
     return new ArgResults(results, commandName, commandResults, rest);
   }

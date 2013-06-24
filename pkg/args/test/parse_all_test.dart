@@ -8,55 +8,56 @@ import 'package:unittest/unittest.dart';
 import 'package:args/args.dart';
 
 main() {
-  group('ArgParser.parse() starting with a non-option', () {
+  group('ArgParser.parse(allowTrailingOptions: true) '
+        'starting with a non-option', () {
     test('followed by flag', () {
       var parser = new ArgParser()..addFlag('flag');
       var args = ['A', '--flag'];
 
-      var results = parser.parse(args);
-      expect(results['flag'], isFalse);
-      expect(results.rest, orderedEquals(args));
+      var resultsAll = parser.parse(args, allowTrailingOptions: true);
+      expect(resultsAll['flag'], isTrue);
+      expect(resultsAll.rest, equals(['A']));
     });
 
     test('followed by option', () {
       var parser = new ArgParser()..addOption('opt');
       var args = ['A', '--opt'];
 
-      var results = parser.parse(args);
-      expect(results['opt'], isNull);
-      expect(results.rest, orderedEquals(args));
+      expectThrows(parser, args);
     });
 
     test('followed by option and value', () {
       var parser = new ArgParser()..addOption('opt');
       var args = ['A', '--opt', 'V'];
 
-      var results = parser.parse(args);
-      expect(results['opt'], isNull);
-      expect(results.rest, orderedEquals(args));
+      var resultsAll = parser.parse(args, allowTrailingOptions: true);
+      expect(resultsAll['opt'], equals('V'));
+      expect(resultsAll.rest, equals(['A']));
     });
 
     test('followed by unknown flag', () {
       var parser = new ArgParser();
       var args = ['A', '--xflag'];
-      var results = parser.parse(args);
-      expect(results.rest, orderedEquals(args));
+
+      expectThrows(parser, args);
     });
 
     test('followed by unknown option and value', () {
       var parser = new ArgParser();
       var args = ['A', '--xopt', 'V'];
-      var results = parser.parse(args);
-      expect(results.rest, orderedEquals(args));
+
+      expectThrows(parser, args);
     });
 
     test('followed by command', () {
       var parser = new ArgParser()..addCommand('com');
       var args = ['A', 'com'];
 
-      var results = parser.parse(args);
-      expect(results.command, isNull);
-      expect(results.rest, orderedEquals(args));
+      expectThrows(parser, args);
     });
   });
 }
+expectThrows(ArgParser parser, List<String> args) =>
+  expect(() => parser.parse(args, allowTrailingOptions: true),
+      throwsFormatException,
+      reason: "with allowTrailingOptions: true");

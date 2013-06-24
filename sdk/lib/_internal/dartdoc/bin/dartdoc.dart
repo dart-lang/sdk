@@ -207,7 +207,7 @@ mainWithOptions(Options options) {
 
   final entrypoints = <Uri>[];
   try {
-    final option = argParser.parse(args);
+    final option = argParser.parse(args, allowTrailingOptions: true);
 
     // This checks to see if the root of all entrypoints is the same.
     // If it is not, then we display a warning, as package imports might fail.
