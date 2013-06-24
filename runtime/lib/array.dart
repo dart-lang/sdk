@@ -118,7 +118,7 @@ class _ObjectArray<E> implements List<E> {
 
   // Iterable interface.
 
-  bool contains(E element) {
+  bool contains(Object element) {
     return IterableMixinWorkaround.contains(this, element);
   }
 
@@ -202,11 +202,11 @@ class _ObjectArray<E> implements List<E> {
     IterableMixinWorkaround.sortList(this, compare);
   }
 
-  int indexOf(E element, [int start = 0]) {
+  int indexOf(Object element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(E element, [int start = null]) {
+  int lastIndexOf(Object element, [int start = null]) {
     if (start == null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }
@@ -371,7 +371,7 @@ class _ImmutableArray<E> implements List<E> {
 
   // Collection interface.
 
-  bool contains(E element) {
+  bool contains(Object element) {
     return IterableMixinWorkaround.contains(this, element);
   }
 
@@ -460,11 +460,11 @@ class _ImmutableArray<E> implements List<E> {
     return ToString.iterableToString(this);
   }
 
-  int indexOf(E element, [int start = 0]) {
+  int indexOf(Object element, [int start = 0]) {
     return Arrays.indexOf(this, element, start, this.length);
   }
 
-  int lastIndexOf(E element, [int start = null]) {
+  int lastIndexOf(Object element, [int start = null]) {
     if (start == null) start = length - 1;
     return Arrays.lastIndexOf(this, element, start);
   }

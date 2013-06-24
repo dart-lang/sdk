@@ -4,38 +4,32 @@
 
 import "package:expect/expect.dart";
 
-class ListIndexOfTest {
-  static testMain() {
-    test(new List<int>(5));
-    var l = new List<int>();
-    l.length = 5;
-    test(l);
-  }
-
-  static void test(List<int> list) {
-    list[0] = 1;
-    list[1] = 2;
-    list[2] = 3;
-    list[3] = 4;
-    list[4] = 1;
-
-    Expect.equals(3, list.indexOf(4, 0));
-    Expect.equals(0, list.indexOf(1, 0));
-    Expect.equals(4, list.lastIndexOf(1, list.length - 1));
-
-    Expect.equals(4, list.indexOf(1, 1));
-    Expect.equals(-1, list.lastIndexOf(4, 2));
-
-    Expect.equals(3, list.indexOf(4, 2));
-    Expect.equals(3, list.indexOf(4, -5));
-    Expect.equals(-1, list.indexOf(4, 50));
-
-    Expect.equals(-1, list.lastIndexOf(4, 2));
-    Expect.equals(-1, list.lastIndexOf(4, -5));
-    Expect.equals(3, list.lastIndexOf(4, 50));
-  }
+main() {
+  test(new List<int>(5));
+  var l = new List<int>();
+  l.length = 5;
+  test(l);
 }
 
-main() {
-  ListIndexOfTest.testMain();
+void test(List<int> list) {
+  list[0] = 1;
+  list[1] = 2;
+  list[2] = 3;
+  list[3] = 4;
+  list[4] = 1;
+
+  Expect.equals(3, list.indexOf(4, 0));
+  Expect.equals(0, list.indexOf(1, 0));
+  Expect.equals(4, list.lastIndexOf(1, list.length - 1));
+
+  Expect.equals(4, list.indexOf(1, 1));
+  Expect.equals(-1, list.lastIndexOf(4, 2));
+
+  Expect.equals(3, list.indexOf(4, 2));
+  Expect.equals(3, list.indexOf(4, -5));
+  Expect.equals(-1, list.indexOf(4, 50));
+
+  Expect.equals(-1, list.lastIndexOf(4, 2));
+  Expect.equals(-1, list.lastIndexOf(4, -5));
+  Expect.equals(3, list.lastIndexOf(4, 50));
 }

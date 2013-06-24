@@ -9,11 +9,11 @@ patch class HashMap<K, V> {
     _hashTable._container = this;
   }
 
-  /* patch */ bool containsKey(K key) {
+  /* patch */ bool containsKey(Object key) {
     return _hashTable._get(key) >= 0;
   }
 
-  /* patch */ bool containsValue(V value) {
+  /* patch */ bool containsValue(Object value) {
     List table = _hashTable._table;
     int entrySize = _hashTable._entrySize;
     for (int offset = 0; offset < table.length; offset += entrySize) {
@@ -33,7 +33,7 @@ patch class HashMap<K, V> {
     });
   }
 
-  /* patch */ V operator [](K key) {
+  /* patch */ V operator [](Object key) {
     int offset = _hashTable._get(key);
     if (offset >= 0) return _hashTable._value(offset);
     return null;
@@ -74,7 +74,7 @@ patch class HashMap<K, V> {
     return value;
   }
 
-  /* patch */ V remove(K key) {
+  /* patch */ V remove(Object key) {
     int offset = _hashTable._remove(key);
     if (offset < 0) return null;
     V oldValue = _hashTable._value(offset);
@@ -203,11 +203,11 @@ patch class LinkedHashMap<K, V> {
     _hashTable._container = this;
   }
 
-  /* patch */ bool containsKey(K key) {
+  /* patch */ bool containsKey(Object key) {
     return _hashTable._get(key) >= 0;
   }
 
-  /* patch */ bool containsValue(V value) {
+  /* patch */ bool containsValue(Object value) {
     int modificationCount = _hashTable._modificationCount;
     for (int offset = _hashTable._next(_LinkedHashTable._HEAD_OFFSET);
          offset != _LinkedHashTable._HEAD_OFFSET;
@@ -229,7 +229,7 @@ patch class LinkedHashMap<K, V> {
     });
   }
 
-  /* patch */ V operator [](K key) {
+  /* patch */ V operator [](Object key) {
     int offset = _hashTable._get(key);
     if (offset >= 0) return _hashTable._value(offset);
     return null;
@@ -271,7 +271,7 @@ patch class LinkedHashMap<K, V> {
     return value;
   }
 
-  /* patch */ V remove(K key) {
+  /* patch */ V remove(Object key) {
     int offset = _hashTable._remove(key);
     if (offset < 0) return null;
     Object oldValue = _hashTable._value(offset);
@@ -644,7 +644,7 @@ class _HashTable<K> {
   /**
    * Returns the offset of a key in [_table], or negative if it's not there.
    */
-  int _get(K key) {
+  int _get(Object key) {
     return _probeForLookup(_hashCodeOf(key), key);
   }
 
@@ -678,7 +678,7 @@ class _HashTable<K> {
    * If [_entrySize] is greater than 1, the caller should clean up the
    * remaining fields.
    */
-  int _remove(K key) {
+  int _remove(Object key) {
     int offset = _probeForLookup(_hashCodeOf(key), key);
     if (offset >= 0) {
       _deleteEntry(offset);

@@ -72,7 +72,7 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   }
 
   bool containsKey(String key) => _map.containsKey(key.toUpperCase());
-  bool containsValue(V value) => _map.containsValue(value);
+  bool containsValue(Object value) => _map.containsValue(value);
   V operator [](String key) => _map[key.toUpperCase()];
   void operator []=(String key, V value) {
     _map[key.toUpperCase()] = value;

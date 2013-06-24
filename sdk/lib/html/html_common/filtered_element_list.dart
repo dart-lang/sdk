@@ -59,8 +59,10 @@ class FilteredElementList<T extends Element> extends ListBase<T> {
     }
   }
 
-  bool contains(Element element) {
-    return (element != null) && (element.parentNode == _node);
+  bool contains(Object needle) {
+    if (needle is! Element) return false;
+    Element element = needle;
+    return element.parentNode == _node;
   }
 
   Iterable<Element> get reversed => _filtered.reversed;

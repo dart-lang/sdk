@@ -29,17 +29,17 @@ class HashMap<K, V> implements Map<K, V> {
   external Iterable<K> get keys;
   external Iterable<V> get values;
 
-  external bool containsKey(K key);
-  external bool containsValue(V value);
+  external bool containsKey(Object key);
+  external bool containsValue(Object value);
 
   external void addAll(Map<K, V> other);
 
-  external V operator [](K key);
+  external V operator [](Object key);
   external void operator []=(K key, V value);
 
   external V putIfAbsent(K key, V ifAbsent());
 
-  external V remove(K key);
+  external V remove(Object key);
   external void clear();
 
   external void forEach(void action(K key, V value));

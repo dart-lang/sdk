@@ -312,12 +312,12 @@ abstract class Stream<T> {
   }
 
   /**
-   * Checks whether [match] occurs in the elements provided by this stream.
+   * Checks whether [needle] occurs in the elements provided by this stream.
    *
    * Completes the [Future] when the answer is known.
    * If this stream reports an error, the [Future] will report that error.
    */
-  Future<bool> contains(T match) {
+  Future<bool> contains(Object needle) {
     _FutureImpl<bool> future = new _FutureImpl<bool>();
     StreamSubscription subscription;
     subscription = this.listen(
@@ -325,7 +325,7 @@ abstract class Stream<T> {
         // checked mode. http://dartbug.com/7733
         (/*T*/ element) {
           _runUserCode(
-            () => (element == match),
+            () => (element == needle),
             (bool isMatch) {
               if (isMatch) {
                 subscription.cancel();
@@ -678,8 +678,8 @@ abstract class Stream<T> {
    * with no [defaultValue] function provided, the future will receive an
    * error.
    */
-  Future<T> firstWhere(bool test(T element), {T defaultValue()}) {
-    _FutureImpl<T> future = new _FutureImpl<T>();
+  Future<dynamic> firstWhere(bool test(T element), {Object defaultValue()}) {
+    _FutureImpl<dynamic> future = new _FutureImpl();
     StreamSubscription subscription;
     subscription = this.listen(
       // TODO(ahe): Restore type when feature is implemented in dart2js
@@ -715,8 +715,8 @@ abstract class Stream<T> {
    * That means that the result cannot be provided before this stream
    * is done.
    */
-  Future<T> lastWhere(bool test(T element), {T defaultValue()}) {
-    _FutureImpl<T> future = new _FutureImpl<T>();
+  Future<dynamic> lastWhere(bool test(T element), {Object defaultValue()}) {
+    _FutureImpl<dynamic> future = new _FutureImpl();
     T result = null;
     bool foundResult = false;
     StreamSubscription subscription;

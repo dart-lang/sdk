@@ -76,7 +76,7 @@ abstract class Iterable<E> {
   /**
    * Check whether the collection contains an element equal to [element].
    */
-  bool contains(E element);
+  bool contains(Object element);
 
   /**
    * Applies the function [f] to each element of this collection.

@@ -46,7 +46,7 @@ abstract class ListIterable<E> extends IterableBase<E> {
     return elementAt(0);
   }
 
-  bool contains(E element) {
+  bool contains(Object element) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       if (elementAt(i) == element) return true;
@@ -79,7 +79,7 @@ abstract class ListIterable<E> extends IterableBase<E> {
     return false;
   }
 
-  E firstWhere(bool test(E element), { E orElse() }) {
+  dynamic firstWhere(bool test(E element), { Object orElse() }) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = elementAt(i);
@@ -92,7 +92,7 @@ abstract class ListIterable<E> extends IterableBase<E> {
     throw new StateError("No matching element");
   }
 
-  E lastWhere(bool test(E element), { E orElse() }) {
+  dynamic lastWhere(bool test(E element), { Object orElse() }) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = elementAt(i);
@@ -620,7 +620,7 @@ class EmptyIterable<E> extends IterableBase<E> {
 
   E elementAt(int index) { throw new RangeError.value(index); }
 
-  bool contains(E element) => false;
+  bool contains(Object element) => false;
 
   bool every(bool test(E element)) => true;
 
@@ -798,8 +798,8 @@ class IterableMixinWorkaround {
   }
 
   static dynamic firstWhere(Iterable iterable,
-                               bool test(dynamic value),
-                               dynamic orElse()) {
+                            bool test(dynamic value),
+                            dynamic orElse()) {
     for (dynamic element in iterable) {
       if (test(element)) return element;
     }

@@ -190,7 +190,7 @@ class IdentityMap<K, V> implements Map<K, V> {
   final List<K> keys = <K>[];
   final List<V> values = <V>[];
 
-  V operator [](K key) {
+  V operator [](Object key) {
     var index =  _indexOf(key);
     return (index == -1) ? null : values[index];
   }
@@ -216,7 +216,7 @@ class IdentityMap<K, V> implements Map<K, V> {
     }
   }
 
-  int _indexOf(K key) {
+  int _indexOf(Object key) {
     // Go backwards on the guess that we are most likely to access the most
     // recently added.
     // Make strings and primitives unique
@@ -228,14 +228,14 @@ class IdentityMap<K, V> implements Map<K, V> {
     return -1;
   }
 
-  bool containsKey(K key) => _indexOf(key) != -1;
+  bool containsKey(Object key) => _indexOf(key) != -1;
   void forEach(f(K key, V value)) {
     for (var i = 0; i < keys.length; i++) {
       f(keys[i], values[i]);
     }
   }
 
-  V remove(K key) {
+  V remove(Object key) {
     var index = _indexOf(key);
     if (index == -1) return null;
     keys.removeAt(index);
@@ -251,7 +251,7 @@ class IdentityMap<K, V> implements Map<K, V> {
   bool get isNotEmpty => !isEmpty;
 
   // Note that this is doing an equality comparison.
-  bool containsValue(x) => values.contains(x);
+  bool containsValue(Object x) => values.contains(x);
 
   void addAll(Map<K, V> other) {
     other.forEach((K key, V value) {

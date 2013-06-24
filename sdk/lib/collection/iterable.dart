@@ -17,7 +17,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   Iterable expand(Iterable f(E element)) =>
       new ExpandIterable<E, dynamic>(this, f);
 
-  bool contains(E element) {
+  bool contains(Object element) {
     for (E e in this) {
       if (e == element) return true;
     }
@@ -141,8 +141,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     return result;
   }
 
-  E firstWhere(bool test(E value), { E orElse() }) {
-    // TODO(floitsch): check that arguments are of correct type?
+  dynamic firstWhere(bool test(E value), { Object orElse() }) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -150,8 +149,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
     throw new StateError("No matching element");
   }
 
-  E lastWhere(bool test(E value), {E orElse()}) {
-    // TODO(floitsch): check that arguments are of correct type?
+  dynamic lastWhere(bool test(E value), { Object orElse() }) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -166,7 +164,6 @@ abstract class IterableMixin<E> implements Iterable<E> {
   }
 
   E singleWhere(bool test(E value)) {
-    // TODO(floitsch): check that argument is of correct type?
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -211,7 +208,7 @@ abstract class IterableBase<E> implements Iterable<E> {
   Iterable expand(Iterable f(E element)) =>
       new ExpandIterable<E, dynamic>(this, f);
 
-  bool contains(E element) {
+  bool contains(Object element) {
     for (E e in this) {
       if (e == element) return true;
     }
@@ -335,8 +332,7 @@ abstract class IterableBase<E> implements Iterable<E> {
     return result;
   }
 
-  E firstWhere(bool test(E value), { E orElse() }) {
-    // TODO(floitsch): check that arguments are of correct type?
+  dynamic firstWhere(bool test(E value), { Object orElse() }) {
     for (E element in this) {
       if (test(element)) return element;
     }
@@ -344,8 +340,7 @@ abstract class IterableBase<E> implements Iterable<E> {
     throw new StateError("No matching element");
   }
 
-  E lastWhere(bool test(E value), {E orElse()}) {
-    // TODO(floitsch): check that arguments are of correct type?
+  dynamic lastWhere(bool test(E value), { Object orElse() }) {
     E result = null;
     bool foundMatching = false;
     for (E element in this) {
@@ -360,7 +355,6 @@ abstract class IterableBase<E> implements Iterable<E> {
   }
 
   E singleWhere(bool test(E value)) {
-    // TODO(floitsch): check that argument is of correct type?
     E result = null;
     bool foundMatching = false;
     for (E element in this) {

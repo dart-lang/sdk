@@ -1102,9 +1102,9 @@ class _UnmodifiableMap<K, V> implements Map<K, V> {
   final Map _map;
   const _UnmodifiableMap(this._map);
 
-  bool containsValue(V value) => _map.containsValue(value);
-  bool containsKey(K key) => _map.containsKey(key);
-  V operator [](K key) => _map[key];
+  bool containsValue(Object value) => _map.containsValue(value);
+  bool containsKey(Object key) => _map.containsKey(key);
+  V operator [](Object key) => _map[key];
   void operator []=(K key, V value) {
     throw new UnsupportedError("Cannot modify an unmodifiable map");
   }
@@ -1114,7 +1114,7 @@ class _UnmodifiableMap<K, V> implements Map<K, V> {
   addAll(Map other) {
     throw new UnsupportedError("Cannot modify an unmodifiable map");
   }
-  V remove(K key) {
+  V remove(Object key) {
     throw new UnsupportedError("Cannot modify an unmodifiable map");
   }
   void clear() {

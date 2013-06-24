@@ -212,11 +212,11 @@ class _GrowableObjectArray<T> implements List<T> {
     throw new StateError("More than one element");
   }
 
-  int indexOf(T element, [int start = 0]) {
+  int indexOf(Object element, [int start = 0]) {
     return IterableMixinWorkaround.indexOfList(this, element, start);
   }
 
-  int lastIndexOf(T element, [int start = null]) {
+  int lastIndexOf(Object element, [int start = null]) {
     return IterableMixinWorkaround.lastIndexOfList(this, element, start);
   }
 
@@ -230,7 +230,7 @@ class _GrowableObjectArray<T> implements List<T> {
 
   // Collection interface.
 
-  bool contains(T element) {
+  bool contains(Object element) {
     return IterableMixinWorkaround.contains(this, element);
   }
 

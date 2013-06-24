@@ -7624,7 +7624,7 @@ class _ChildrenElementList extends ListBase<Element> {
     : _childElements = element.$dom_children,
       _element = element;
 
-  bool contains(Element element) => _childElements.contains(element);
+  bool contains(Object element) => _childElements.contains(element);
 
 
   bool get isEmpty {

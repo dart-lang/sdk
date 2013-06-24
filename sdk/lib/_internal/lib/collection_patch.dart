@@ -40,7 +40,7 @@ patch class HashMap<K, V> {
     return keys.map((each) => this[each]);
   }
 
-  patch bool containsKey(K key) {
+  patch bool containsKey(Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       return (strings == null) ? false : _hasTableEntry(strings, key);
@@ -55,7 +55,7 @@ patch class HashMap<K, V> {
     }
   }
 
-  patch bool containsValue(V value) {
+  patch bool containsValue(Object value) {
     return _computeKeys().any((each) => this[each] == value);
   }
 
@@ -65,7 +65,7 @@ patch class HashMap<K, V> {
     });
   }
 
-  patch V operator[](K key) {
+  patch V operator[](Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       return (strings == null) ? null : _getTableEntry(strings, key);
@@ -119,7 +119,7 @@ patch class HashMap<K, V> {
     return value;
   }
 
-  patch V remove(K key) {
+  patch V remove(Object key) {
     if (_isStringKey(key)) {
       return _removeHashTableEntry(_strings, key);
     } else if (_isNumericKey(key)) {
@@ -319,7 +319,7 @@ class HashMapKeyIterable<E> extends IterableBase<E> {
     return new HashMapKeyIterator<E>(_map, _map._computeKeys());
   }
 
-  bool contains(E element) {
+  bool contains(Object element) {
     return _map.containsKey(element);
   }
 
@@ -403,7 +403,7 @@ patch class LinkedHashMap<K, V> {
     return keys.map((each) => this[each]);
   }
 
-  patch bool containsKey(K key) {
+  patch bool containsKey(Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) return false;
@@ -422,7 +422,7 @@ patch class LinkedHashMap<K, V> {
     }
   }
 
-  patch bool containsValue(V value) {
+  patch bool containsValue(Object value) {
     return keys.any((each) => this[each] == value);
   }
 
@@ -432,7 +432,7 @@ patch class LinkedHashMap<K, V> {
     });
   }
 
-  patch V operator[](K key) {
+  patch V operator[](Object key) {
     if (_isStringKey(key)) {
       var strings = _strings;
       if (strings == null) return null;
@@ -491,7 +491,7 @@ patch class LinkedHashMap<K, V> {
     return value;
   }
 
-  patch V remove(K key) {
+  patch V remove(Object key) {
     if (_isStringKey(key)) {
       return _removeHashTableEntry(_strings, key);
     } else if (_isNumericKey(key)) {
@@ -673,7 +673,7 @@ class LinkedHashMapKeyIterable<E> extends IterableBase<E> {
     return new LinkedHashMapKeyIterator<E>(_map, _map._modifications);
   }
 
-  bool contains(E element) {
+  bool contains(Object element) {
     return _map.containsKey(element);
   }
 
@@ -819,7 +819,7 @@ patch class HashSet<E> {
     }
   }
 
-  patch void removeAll(Iterable objectsToRemove) {
+  patch void removeAll(Iterable<Object> objectsToRemove) {
     for (var each in objectsToRemove) {
       remove(each);
     }

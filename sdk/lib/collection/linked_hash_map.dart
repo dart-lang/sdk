@@ -25,19 +25,19 @@ class LinkedHashMap<K, V> implements Map<K, V> {
     return new LinkedHashMap<K, V>()..addAll(other);
   }
 
-  external bool containsKey(K key);
+  external bool containsKey(Object key);
 
-  external bool containsValue(V value);
+  external bool containsValue(Object value);
 
   external void addAll(Map<K, V> other);
 
-  external V operator [](K key);
+  external V operator [](Object key);
 
   external void operator []=(K key, V value);
 
   external V putIfAbsent(K key, V ifAbsent());
 
-  external V remove(K key);
+  external V remove(Object key);
 
   external void clear();
 
