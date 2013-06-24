@@ -78,7 +78,7 @@ class _VirtualDirectory implements VirtualDirectory {
             return;
           }
           if (entity is File) {
-            entity.openRead().pipe(request.response).catchError((_) {});
+            _serveFile(entity, request);
           } else {
             _serveErrorPage(HttpStatus.NOT_FOUND, request);
           }
@@ -125,6 +125,66 @@ class _VirtualDirectory implements VirtualDirectory {
           // Return `null` on fall-through, to indicate NOT_FOUND.
           return null;
         });
+  }
+
+  void _serveFile(File file, HttpRequest request) {
+    var response = request.response;
+    // TODO(ajohnsen): Set up Zone support for these errors.
+    file.lastModified().then((lastModified) {
+      if (request.headers.ifModifiedSince != null &&
+          !lastModified.isAfter(request.headers.ifModifiedSince)) {
+        response.statusCode = HttpStatus.NOT_MODIFIED;
+        response.close();
+        return;
+      }
+
+      response.headers.set(HttpHeaders.LAST_MODIFIED, lastModified);
+      response.headers.set(HttpHeaders.ACCEPT_RANGES, "bytes");
+
+      if (request.method == 'HEAD') {
+        response.close();
+        return;
+      }
+
+      return file.length().then((length) {
+        String range = request.headers.value("range");
+        if (range != null) {
+          // We only support one range, where the standard support several.
+          Match matches = new RegExp(r"^bytes=(\d*)\-(\d*)$").firstMatch(range);
+          // If the range header have the right format, handle it.
+          if (matches != null) {
+            // Serve sub-range.
+            int start;
+            int end;
+            if (matches[1].isEmpty) {
+              start = matches[2].isEmpty ?
+                  length :
+                  length - int.parse(matches[2]);
+              end = length;
+            } else {
+              start = int.parse(matches[1]);
+              end = matches[2].isEmpty ? length : int.parse(matches[2]) + 1;
+            }
+
+            // Override Content-Length with the actual bytes sent.
+            response.headers.set(HttpHeaders.CONTENT_LENGTH, end - start);
+
+            // Set 'Partial Content' status code.
+            response.statusCode = HttpStatus.PARTIAL_CONTENT;
+            response.headers.set(HttpHeaders.CONTENT_RANGE,
+                                 "bytes $start-${end - 1}/$length");
+
+            // Pipe the 'range' of the file.
+            file.openRead(start, end).pipe(response).catchError((_) {});
+            return;
+          }
+        }
+
+        file.openRead().pipe(response).catchError((_) {});
+      });
+    }).catchError((_) {
+      response.close();
+    });
   }
 
   void _serveErrorPage(int error, HttpRequest request) {

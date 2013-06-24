@@ -2,10 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import "package:unittest/unittest.dart";
 import "package:http_server/http_server.dart";
+
+
+Future<int> getStatusCode(int port,
+                          String path,
+                          {DateTime ifModifiedSince}) {
+  return new HttpClient().get('localhost', port, path)
+      .then((request) {
+        if (ifModifiedSince != null) {
+          request.headers.ifModifiedSince = ifModifiedSince;
+        }
+        return request.close();
+      })
+      .then((response) => response.drain().then(
+          (_) => response.statusCode));
+}
+
+Future<HttpHeaders> getHeaders(int port, String path) {
+  return new HttpClient().get('localhost', port, path)
+      .then((request) => request.close())
+      .then((response) => response.drain().then(
+          (_) => response.headers));
+}
 
 
 void main() {
@@ -17,10 +40,7 @@ void main() {
 
         virDir.serve(server);
 
-        return new HttpClient().get('localhost', server.port, '/')
-            .then((request) => request.close())
-            .then((response) => response.drain().then(
-                (_) => response.statusCode))
+        return getStatusCode(server.port, '/')
             .whenComplete(() {
               server.close();
               dir.deleteSync();
@@ -36,10 +56,7 @@ void main() {
 
         virDir.serve(server);
 
-        return new HttpClient().get('localhost', server.port, '/')
-            .then((request) => request.close())
-            .then((response) => response.drain().then(
-                (_) => response.statusCode))
+        return getStatusCode(server.port, '/')
             .whenComplete(() {
               server.close();
             });
@@ -57,14 +74,10 @@ void main() {
 
           virDir.serve(server);
 
-          return new HttpClient().get('localhost', server.port, '/file')
-              .then((request) => request.close())
-              .then((response) => response.drain().then(
-                  (_) => response.statusCode))
+          return getStatusCode(server.port, '/file')
               .whenComplete(() {
                 server.close();
-                file.deleteSync();
-                dir.deleteSync();
+                dir.deleteSync(recursive: true);
               });
         }), completion(equals(HttpStatus.OK)));
       });
@@ -76,10 +89,7 @@ void main() {
 
           virDir.serve(server);
 
-          return new HttpClient().get('localhost', server.port, '/file')
-              .then((request) => request.close())
-              .then((response) => response.drain().then(
-                  (_) => response.statusCode))
+          return getStatusCode(server.port, '/file')
               .whenComplete(() {
                 server.close();
                 dir.deleteSync();
@@ -98,15 +108,10 @@ void main() {
 
           virDir.serve(server);
 
-          return new HttpClient().get('localhost', server.port, '/dir/file')
-              .then((request) => request.close())
-              .then((response) => response.drain().then(
-                  (_) => response.statusCode))
+          return getStatusCode(server.port, '/dir/file')
               .whenComplete(() {
                 server.close();
-                file.deleteSync();
-                dir2.deleteSync();
-                dir.deleteSync();
+                dir.deleteSync(recursive: true);
               });
         }), completion(equals(HttpStatus.OK)));
       });
@@ -120,15 +125,10 @@ void main() {
 
           virDir.serve(server);
 
-          return new HttpClient().get('localhost', server.port, '/dir/file')
-              .then((request) => request.close())
-              .then((response) => response.drain().then(
-                  (_) => response.statusCode))
+          return getStatusCode(server.port, '/dir/file')
               .whenComplete(() {
                 server.close();
-                file.deleteSync();
-                dir2.deleteSync();
-                dir.deleteSync();
+                dir.deleteSync(recursive: true);
               });
         }), completion(equals(HttpStatus.NOT_FOUND)));
       });
@@ -149,10 +149,7 @@ void main() {
 
             virDir.serve(server);
 
-            return new HttpClient().get('localhost', server.port, '/dir3/file')
-                .then((request) => request.close())
-                .then((response) => response.drain().then(
-                    (_) => response.statusCode))
+            return getStatusCode(server.port, '/dir3/file')
                 .whenComplete(() {
                   server.close();
                   dir.deleteSync(recursive: true);
@@ -170,10 +167,7 @@ void main() {
 
             virDir.serve(server);
 
-            return new HttpClient().get('localhost', server.port, '/dir3/file')
-                .then((request) => request.close())
-                .then((response) => response.drain().then(
-                    (_) => response.statusCode))
+            return getStatusCode(server.port, '/dir3/file')
                 .whenComplete(() {
                   server.close();
                   dir.deleteSync(recursive: true);
@@ -245,10 +239,7 @@ void main() {
 
             virDir.serve(server);
 
-            return new HttpClient().get('localhost', server.port, '/dir3/file')
-                .then((request) => request.close())
-                .then((response) => response.drain().then(
-                    (_) => response.statusCode))
+            return getStatusCode(server.port, '/dir3/file')
                 .whenComplete(() {
                   server.close();
                   dir.deleteSync(recursive: true);
@@ -257,6 +248,63 @@ void main() {
         });
       });
     }
+  });
+
+  group('last-mofidied', () {
+    group('file', () {
+      test('file-exists', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var file = new File('${dir.path}/file')..createSync();
+          var virDir = new VirtualDirectory(dir.path);
+
+          virDir.serve(server);
+
+          return getHeaders(server.port, '/file')
+              .then((headers) {
+                expect(headers.value(HttpHeaders.LAST_MODIFIED), isNotNull);
+                return HttpDate.parse(
+                    headers.value(HttpHeaders.LAST_MODIFIED));
+              })
+              .then((lastModified) {
+                return getStatusCode(
+                    server.port, '/file', ifModifiedSince: lastModified);
+              })
+              .whenComplete(() {
+                server.close();
+                dir.deleteSync(recursive: true);
+              });
+        }), completion(equals(HttpStatus.NOT_MODIFIED)));
+      });
+
+      test('file-changes', () {
+        expect(HttpServer.bind('localhost', 0).then((server) {
+          var dir = new Directory('').createTempSync();
+          var file = new File('${dir.path}/file')..createSync();
+          var virDir = new VirtualDirectory(dir.path);
+
+          virDir.serve(server);
+
+          return getHeaders(server.port, '/file')
+              .then((headers) {
+                expect(headers.value(HttpHeaders.LAST_MODIFIED), isNotNull);
+                return HttpDate.parse(
+                    headers.value(HttpHeaders.LAST_MODIFIED));
+              })
+              .then((lastModified) {
+                // Fake file changed by moving date back in time.
+                lastModified = lastModified.subtract(
+                  const Duration(seconds: 10));
+                return getStatusCode(
+                    server.port, '/file', ifModifiedSince: lastModified);
+              })
+              .whenComplete(() {
+                server.close();
+                dir.deleteSync(recursive: true);
+              });
+        }), completion(equals(HttpStatus.OK)));
+      });
+    });
   });
 }
 
