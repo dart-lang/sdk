@@ -459,7 +459,6 @@ constructor6_test: Fail
 closure_in_initializer_test: Fail
 super_first_constructor_test: Fail
 # VM specific tests.
-disable_privacy_test: Pass, Fail, Ok
 # This test hard codes name of file being run and precise position.
 generic_test: Fail, Ok
 # Minified mode failures.
