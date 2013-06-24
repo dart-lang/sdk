@@ -5,9 +5,7 @@
 part of dart.core;
 
 class Error {
-  final StackTrace stackTrace;
-
-  Error() : stackTrace = ((){ try { throw 0; } catch (e, s) { return s; } })();
+  const Error();
 
   /**
    * Safely convert a value to a [String] description.
@@ -40,24 +38,18 @@ class Error {
  * Error thrown by the runtime system when an assert statement fails.
  */
 class AssertionError implements Error {
-  /** Assertion errors don't capture stack traces. */
-  StackTrace get stackTrace => null;
 }
 
 /**
  * Error thrown by the runtime system when a type assertion fails.
  */
 class TypeError implements AssertionError {
-  /** Type errors don't capture stack traces. */
-  StackTrace get stackTrace => null;
 }
 
 /**
  * Error thrown by the runtime system when a cast operation fails.
  */
 class CastError implements Error {
-  /** Cast errors don't capture stack traces. */
-  StackTrace get stackTrace => null;
 }
 
 /**
@@ -65,15 +57,13 @@ class CastError implements Error {
  */
 class NullThrownError implements Error {
   const NullThrownError();
-  /** NullThrown errors don't capture stack traces. */
-  StackTrace get stackTrace => null;
   String toString() => "Throw of null.";
 }
 
 /**
  * Error thrown when a function is passed an unacceptable argument.
  */
-class ArgumentError extends Error {
+class ArgumentError implements Error {
   final message;
 
   /** The [message] describes the erroneous argument. */
@@ -122,18 +112,14 @@ class RangeError extends ArgumentError {
  */
 class FallThroughError implements Error {
   const FallThroughError();
-  StackTrace get stackTrace => null;
 }
 
-// TODO(lrn): Class description. Ensure that this is the class thrown by
-// both implementations, or move it to the one that uses it.
+
 class AbstractClassInstantiationError implements Error {
   final String _className;
   const AbstractClassInstantiationError(String this._className);
-  StackTrace get stackTrace => null;
   String toString() => "Cannot instantiate abstract class: '$_className'";
 }
-
 
 /**
  * Error thrown by the default implementation of [:noSuchMethod:] on [Object].
@@ -159,14 +145,12 @@ class NoSuchMethodError implements Error {
    * method with the same name on the receiver, if available. This is
    * the method that would have been called if the parameters had matched.
    */
-  NoSuchMethodError(Object this._receiver,
+  const NoSuchMethodError(Object this._receiver,
                           String this._memberName,
                           List this._arguments,
                           Map<String,dynamic> this._namedArguments,
                           [List existingArgumentNames = null])
       : this._existingArgumentNames = existingArgumentNames;
-
-  StackTrace get stackTrace => null;
 
   external String toString();
 }
@@ -178,7 +162,7 @@ class NoSuchMethodError implements Error {
  * This [Error] is thrown when an instance cannot implement one of the methods
  * in its signature.
  */
-class UnsupportedError extends Error {
+class UnsupportedError implements Error {
   final String message;
   UnsupportedError(this.message);
   String toString() => "Unsupported operation: $message";
@@ -195,8 +179,9 @@ class UnsupportedError extends Error {
  * an [UnsupportedError] instead. This error is only intended for
  * use during development.
  */
-class UnimplementedError extends UnsupportedError {
-  UnimplementedError([String message]) : super(message);
+class UnimplementedError implements UnsupportedError {
+  final String message;
+  UnimplementedError([String this.message]);
   String toString() => (this.message != null
                         ? "UnimplementedError: $message"
                         : "UnimplementedError");
@@ -209,7 +194,7 @@ class UnimplementedError extends UnsupportedError {
  * This is a generic error used for a variety of different erroneous
  * actions. The message should be descriptive.
  */
-class StateError extends Error {
+class StateError implements Error {
   final String message;
   StateError(this.message);
   String toString() => "Bad state: $message";
@@ -223,11 +208,11 @@ class StateError extends Error {
  * ([Iterable] or similar collection of values) should declare which operations
  * are allowed during an iteration.
  */
-class ConcurrentModificationError extends Error {
+class ConcurrentModificationError implements Error {
   /** The object that was modified in an incompatible way. */
   final Object modifiedObject;
 
-  ConcurrentModificationError([this.modifiedObject]);
+  const ConcurrentModificationError([this.modifiedObject]);
 
   String toString() {
     if (modifiedObject == null) {
@@ -241,14 +226,12 @@ class ConcurrentModificationError extends Error {
 
 class OutOfMemoryError implements Error {
   const OutOfMemoryError();
-  StackTrace get stackTrace => null;
   String toString() => "Out of Memory";
 }
 
 
 class StackOverflowError implements Error {
   const StackOverflowError();
-  StackTrace get stackTrace => null;
   String toString() => "Stack Overflow";
 }
 
@@ -262,7 +245,6 @@ class StackOverflowError implements Error {
 class CyclicInitializationError implements Error {
   final String variableName;
   const CyclicInitializationError([this.variableName]);
-  StackTrace get stackTrace => null;
   String toString() => variableName == null
       ? "Reading static variable during its initialization"
       : "Reading static variable '$variableName' during its initialization";

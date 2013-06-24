@@ -538,7 +538,6 @@ LibTest/core/List/sort_A01_t06: Crash
 LibTest/core/double/ceil_A01_t02: Fail, Pass # Pass on Mac
 LibTest/core/double/floor_A01_t02: Fail, Pass # Pass on Mac
 LibTest/core/double/truncate_A01_t01: Fail, Pass # Pass on Mac
-Language/11_Expressions/29_Assignable_Expressions_A01_t01: Pass, Crash  # Issue 11472
 
 
 [ $compiler == none && $runtime == vm && $arch == mips ]
