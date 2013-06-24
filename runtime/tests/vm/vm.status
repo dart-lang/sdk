@@ -65,6 +65,9 @@ cc/IntToFloatConversion: Fail # Issue: 11207
 [ $arch == mips ]
 *: Skip
 
+[ $arch == simarm ]
+dart/isolate_mirror_local_test: Skip
+
 [ $arch == simmips ]
 # Tests missing code generation support.
 dart/byte_array_test: Skip
