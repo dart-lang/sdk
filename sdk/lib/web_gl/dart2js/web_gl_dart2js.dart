@@ -673,7 +673,6 @@ class ExtDrawBuffers native "EXTDrawBuffers" {
   @JSName('drawBuffersEXT')
   @DomName('EXTDrawBuffers.drawBuffersEXT')
   @DocsEditable
-  @Experimental // untriaged
   void drawBuffersExt(List<int> buffers) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

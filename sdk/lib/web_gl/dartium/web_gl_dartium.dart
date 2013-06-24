@@ -737,7 +737,6 @@ class ExtDrawBuffers extends NativeFieldWrapperClass1 {
 
   @DomName('EXTDrawBuffers.drawBuffersEXT')
   @DocsEditable
-  @Experimental // untriaged
   void drawBuffersExt(List<int> buffers) native "EXTDrawBuffers_drawBuffersEXT_Callback";
 
 }

@@ -29146,9 +29146,9 @@ class _WrappedList<E> extends ListBase<E> {
 
   void sort([int compare(E a, E b)]) { _list.sort(compare); }
 
-  int indexOf(E element, [int start = 0]) => _list.indexOf(element, start);
+  int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
 
-  int lastIndexOf(E element, [int start]) => _list.lastIndexOf(element, start);
+  int lastIndexOf(Object element, [int start]) => _list.lastIndexOf(element, start);
 
   void insert(int index, E element) => _list.insert(index, element);
 
