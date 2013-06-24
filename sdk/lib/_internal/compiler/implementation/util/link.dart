@@ -107,7 +107,12 @@ class Link<T> {
 abstract class LinkBuilder<T> {
   factory LinkBuilder() = LinkBuilderImplementation;
 
-  Link<T> toLink();
+  /**
+   * Prepends all elements added to the builder to [tail]. The resulting list is
+   * returned and the builder is cleared.
+   */
+  Link<T> toLink([Link<T> tail = const Link()]);
+
   void addLast(T t);
 
   final int length;

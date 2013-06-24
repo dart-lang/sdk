@@ -73,7 +73,19 @@ const String DEFAULT_HELPERLIB = r'''
   createRuntimeType(a) {}
   createInvocationMirror(a0, a1, a2, a3, a4, a5) {}
   throwNoSuchMethod(obj, name, arguments, expectedArgumentNames) {}
-  throwAbstractClassInstantiationError(className) {}''';
+  throwAbstractClassInstantiationError(className) {}
+  boolTypeCheck(value) {}
+  propertyTypeCheck(value, property) {}
+  interceptedTypeCheck(value, property) {}
+  functionSubtypeCast(Object object, String signatureName,
+                      String contextName, var context) {}
+  checkFunctionSubtype(var target, String signatureName,
+                       String contextName, var context,
+                       var typeArguments) {}
+  computeSignature(var signature, var context, var contextName) {}
+  defineNativeMethodsFinish() {}
+  getRuntimeTypeArguments(target, substitutionName) {}
+  voidTypeCheck(value) {}''';
 
 const String FOREIGN_LIBRARY = r'''
   dynamic JS(String typeDescription, String codeTemplate,

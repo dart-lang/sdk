@@ -177,9 +177,6 @@ abstract class Enqueuer {
     cls.implementation.forEachMember(processInstantiatedClassMember);
   }
 
-  /**
-   * Documentation wanted -- johnniwinther
-   */
   void processInstantiatedClassMember(ClassElement cls, Element member) {
     assert(invariant(member, member.isDeclaration));
     if (isProcessed(member)) return;
@@ -232,10 +229,15 @@ abstract class Enqueuer {
       if (member.name == Compiler.NO_SUCH_METHOD) {
         enableNoSuchMethod(member);
       }
+      if (member.name == Compiler.CALL_OPERATOR_NAME &&
+          !cls.typeVariables.isEmpty) {
+        registerGenericCallMethod(member, compiler.globalDependencies);
+      }
       // If there is a property access with the same name as a method we
       // need to emit the method.
       if (universe.hasInvokedGetter(member, compiler)) {
-        // We will emit a closure, so make sure the bound closure class is
+        registerClosurizedMember(member, compiler.globalDependencies);
+        // We will emit a closure, so make sure the closure class is
         // generated.
         registerInstantiatedClass(compiler.boundClosureClass,
                                   // Precise dependency is not important here.
@@ -408,11 +410,15 @@ abstract class Enqueuer {
     String memberName = n.slowToString();
     Link<Element> members = map[memberName];
     if (members != null) {
+      // [f] might add elements to [: map[memberName] :] during the loop below
+      // so we create a new list for [: map[memberName] :] and prepend the
+      // [remaining] members after the loop.
+      map[memberName] = const Link<Element>();
       LinkBuilder<Element> remaining = new LinkBuilder<Element>();
       for (; !members.isEmpty; members = members.tail) {
         if (!f(members.head)) remaining.addLast(members.head);
       }
-      map[memberName] = remaining.toLink();
+      map[memberName] = remaining.toLink(map[memberName]);
     }
   }
 
@@ -427,6 +433,9 @@ abstract class Enqueuer {
   void handleUnseenSelector(SourceString methodName, Selector selector) {
     processInstanceMembers(methodName, (Element member) {
       if (selector.appliesUnnamed(member, compiler)) {
+        if (member.isFunction() && selector.isGetter()) {
+          registerClosurizedMember(member, compiler.globalDependencies);
+        }
         if (member.isField() && member.getEnclosingClass().isNative()) {
           if (selector.isGetter() || selector.isCall()) {
             nativeEnqueuer.registerFieldLoad(member);
@@ -538,12 +547,12 @@ abstract class Enqueuer {
   }
 
   void registerIsCheck(DartType type, TreeElements elements) {
+    type = universe.registerIsCheck(type, compiler);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
     assert(type.kind != TypeKind.TYPE_VARIABLE ||
            !type.element.enclosingElement.isTypedef());
-    universe.isChecks.add(type);
     compiler.backend.registerIsCheck(type, this, elements);
   }
 
@@ -559,6 +568,23 @@ abstract class Enqueuer {
   void registerAsCheck(DartType type, TreeElements elements) {
     registerIsCheck(type, elements);
     compiler.backend.registerAsCheck(type, elements);
+  }
+
+  void registerGenericCallMethod(Element element, TreeElements elements) {
+    compiler.backend.registerGenericCallMethod(element, this, elements);
+    universe.genericCallMethods.add(element);
+  }
+
+  void registerClosurizedMember(Element element, TreeElements elements) {
+    if (element.computeType(compiler).containsTypeVariables) {
+      registerClosurizedGenericMember(element, elements);
+    }
+    universe.closurizedMembers.add(element);
+  }
+
+  void registerClosurizedGenericMember(Element element, TreeElements elements) {
+    compiler.backend.registerGenericClosure(element, this, elements);
+    universe.closurizedGenericMembers.add(element);
   }
 
   void forEach(f(WorkItem work));
@@ -655,7 +681,7 @@ class ResolutionEnqueuer extends Enqueuer {
       // runtime type.
       compiler.enabledRuntimeType = true;
       // TODO(ahe): Record precise dependency here.
-      compiler.backend.registerRuntimeType(compiler.globalDependencies);
+      compiler.backend.registerRuntimeType(this, compiler.globalDependencies);
     } else if (element == compiler.functionApplyMethod) {
       compiler.enabledFunctionApply = true;
     } else if (element == compiler.invokeOnMethod) {

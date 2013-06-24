@@ -153,6 +153,7 @@ medium_integer_test: Pass # The test only fails at runtime, not at compilation.
 [ $compiler == dart2js && $checked ]
 io/http_read_test: Skip # Timeout TODO(ngeoffray): investigate
 io/list_input_stream_test: Skip # Timeout TODO(ngeoffray): investigate
+io/http_parser_test: Fail # dartbug.com/11273
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.

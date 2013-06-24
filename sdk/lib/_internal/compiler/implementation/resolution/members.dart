@@ -1901,6 +1901,12 @@ class ResolverVisitor extends MappingVisitor<Element> {
       }
       parameterNodes = parameterNodes.tail;
     });
+    if (inCheckContext) {
+      functionParameters.forEachParameter((Element element) {
+        compiler.enqueuer.resolution.registerIsCheck(
+            element.computeType(compiler), mapping);
+      });
+    }
   }
 
   visitCascade(Cascade node) {
@@ -1998,6 +2004,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     scope = oldScope;
     enclosingElement = previousEnclosingElement;
 
+    world.registerClosurizedMember(function, mapping);
     world.registerInstantiatedClass(compiler.functionClass, mapping);
   }
 

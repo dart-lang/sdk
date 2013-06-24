@@ -81,17 +81,20 @@ getRuntimeTypeInfo(Object target) {
 }
 
 /**
- * Returns the [index]th type argument of [target] converted using
- * [substitution].
- *
- * See the comment in the beginning of this file for a description of the
- * possible values for [substitution].
+ * Returns the type arguments of [target] as an instance of [substitutionName].
  */
-getRuntimeTypeArgument(Object target, var substitution, int index) {
-  assert(isNull(substitution) ||
-         isJsArray(substitution) ||
-         isJsFunction(substitution));
-  var arguments = substitute(substitution, getRuntimeTypeInfo(target));
+getRuntimeTypeArguments(target, substitutionName) {
+  var substitution =
+      getField(target, '${JS_OPERATOR_AS_PREFIX()}$substitutionName');
+  return substitute(substitution, getRuntimeTypeInfo(target));
+}
+
+/**
+ * Returns the [index]th type argument of [target] as an instance of
+ * [substitutionName].
+ */
+getRuntimeTypeArgument(Object target, String substitutionName, int index) {
+  var arguments = getRuntimeTypeArguments(target, substitutionName);
   return isNull(arguments) ? null : getIndex(arguments, index);
 }
 
@@ -189,7 +192,13 @@ substitute(var substitution, var arguments) {
   if (isJsArray(substitution)) {
     arguments = substitution;
   } else if (isJsFunction(substitution)) {
-    arguments = invoke(substitution, arguments);
+    substitution = invoke(substitution, arguments);
+    if (isJsArray(substitution)) {
+      arguments = substitution;
+    } else if (isJsFunction(substitution)) {
+      // TODO(johnniwinther): Check if this is still needed.
+      arguments = invoke(substitution, arguments);
+    }
   }
   return arguments;
 }
@@ -234,7 +243,9 @@ Object subtypeCast(Object object, String isField, List checks, String asField) {
   if (object != null && !checkSubtype(object, isField, checks, asField)) {
     String actualType = Primitives.objectTypeName(object);
     String typeName = computeTypeName(isField, checks);
-    throw new CastErrorImplementation(object, typeName);
+    // TODO(johnniwinther): Move type lookup to [CastErrorImplementation] to
+    // align with [TypeErrorImplementation].
+    throw new CastErrorImplementation(actualType, typeName);
   }
   return object;
 }
@@ -286,6 +297,82 @@ bool areSubtypes(var s, var t) {
     }
   }
   return true;
+}
+
+Object functionSubtypeCast(Object object, String signatureName,
+                           String contextName, var context,
+                           var typeArguments) {
+  if (!checkFunctionSubtype(object, signatureName,
+                            contextName, context, typeArguments)) {
+    String actualType = Primitives.objectTypeName(object);
+    // TODO(johnniwinther): Provide better function type naming.
+    String typeName = signatureName;
+    throw new CastErrorImplementation(actualType, typeName);
+  }
+  return object;
+}
+
+Object assertFunctionSubtype(Object object, String signatureName,
+                             String contextName, var context,
+                             var typeArguments) {
+  if (!checkFunctionSubtype(object, signatureName,
+      contextName, context, typeArguments)) {
+    // TODO(johnniwinther): Provide better function type naming.
+    String typeName = signatureName;
+    throw new TypeErrorImplementation(object, typeName);
+  }
+  return object;
+}
+
+/**
+ * Checks that the type of [target] is a subtype of the function type denoted by
+ * [signatureName]. If the type contains type variables, [contextName] holds the
+ * name of the class where these were declared and either [context] holds the
+ * object in which the runtime values of these can be found or [typeArguments]
+ * contains these values as a list of runtime type information.
+ */
+bool checkFunctionSubtype(var target, String signatureName,
+                          String contextName, var context,
+                          var typeArguments) {
+  if (isNull(target)) return true;
+  var interceptor = getInterceptor(target);
+  if (hasField(interceptor, '${JS_OPERATOR_IS_PREFIX()}_$signatureName')) {
+    return true;
+  }
+  var signatureLocation = JS_GLOBAL_OBJECT();
+  if (isNotNull(contextName)) {
+    signatureLocation = getField(signatureLocation, contextName);
+  }
+  var typeSignature =
+      getField(signatureLocation, '${JS_SIGNATURE_NAME()}_$signatureName');
+  if (isNull(typeSignature)) {
+    // All checks can be determined statically so the type signature has not
+    // been computed.
+    return false;
+  }
+  var targetSignatureFunction = getField(interceptor, '${JS_SIGNATURE_NAME()}');
+  if (isNull(targetSignatureFunction)) return false;
+  var targetSignature = invokeOn(targetSignatureFunction, interceptor, null);
+  if (isJsFunction(typeSignature)) {
+    if (isNotNull(typeArguments)) {
+      typeSignature = invoke(typeSignature, typeArguments);
+    } else if (isNotNull(context)) {
+      typeSignature =
+          invoke(typeSignature, getRuntimeTypeArguments(context, contextName));
+    } else {
+      typeSignature = invoke(typeSignature, null);
+    }
+  }
+  return isFunctionSubtype(targetSignature, typeSignature);
+}
+
+/**
+ * Computes the signature by applying the type arguments of [context] as an
+ * instance of [contextName] to the signature function [signature].
+ */
+computeSignature(var signature, var context, var contextName) {
+  var typeArguments = getRuntimeTypeArguments(context, contextName);
+  return invokeOn(signature, context, typeArguments);
 }
 
 /**
@@ -359,21 +446,34 @@ getArguments(var type) {
  * representations.
  */
 bool isSubtype(var s, var t) {
-  // If either type is dynamic, [s] is a subtype of [t].
-  if (isNull(s) || isNull(t)) return true;
   // Subtyping is reflexive.
   if (isIdentical(s, t)) return true;
+  // If either type is dynamic, [s] is a subtype of [t].
+  if (isNull(s) || isNull(t)) return true;
+  if (hasField(t, '${JS_FUNCTION_TYPE_TAG()}')) {
+    if (hasNoField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
+      var signatureName =
+          '${JS_OPERATOR_IS_PREFIX()}_${getField(t, JS_FUNCTION_TYPE_TAG())}';
+      if (hasField(s, signatureName)) return true;
+      var targetSignatureFunction = getField(s, '${JS_SIGNATURE_NAME()}');
+      if (isNull(targetSignatureFunction)) return false;
+      s = invokeOn(targetSignatureFunction, s, null);
+    }
+    return isFunctionSubtype(s, t);
+  }
+  // Check function types against the Function class.
+  if (getConstructorName(t) == JS_FUNCTION_CLASS_NAME() &&
+      hasField(s, '${JS_FUNCTION_TYPE_TAG()}')) {
+    return true;
+  }
   // Get the object describing the class and check for the subtyping flag
   // constructed from the type of [t].
   var typeOfS = isJsArray(s) ? getIndex(s, 0) : s;
   var typeOfT = isJsArray(t) ? getIndex(t, 0) : t;
-  // TODO(johnniwinther): replace this with the real function subtype test.
-  if (JS('bool', '#.func', s) == true || JS('bool', '#.func', t) == true ) {
-    return true;
-  }
   // Check for a subtyping flag.
-  var test = '${JS_OPERATOR_IS_PREFIX()}${runtimeTypeToString(typeOfT)}';
-  if (isNull(getField(typeOfS, test))) return false;
+  var name = runtimeTypeToString(typeOfT);
+  var test = '${JS_OPERATOR_IS_PREFIX()}${name}';
+  if (hasNoField(typeOfS, test)) return false;
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
@@ -391,14 +491,165 @@ bool isSubtype(var s, var t) {
   return checkArguments(substitution, getArguments(s), getArguments(t));
 }
 
+bool isAssignable(var s, var t) {
+  return isSubtype(s, t) || isSubtype(t, s);
+}
+
+/**
+ * If [allowShorter] is [:true:], [t] is allowed to be shorter than [s].
+ */
+bool areAssignable(List s, List t, bool allowShorter) {
+  // Both lists are empty and thus equal.
+  if (isNull(t) && isNull(s)) return true;
+  // [t] is empty (and [s] is not) => only OK if [allowShorter].
+  if (isNull(t)) return allowShorter;
+  // [s] is empty (and [t] is not) => [s] is not longer or equal to [t].
+  if (isNull(s)) return false;
+
+  assert(isJsArray(s));
+  assert(isJsArray(t));
+
+  int sLength = getLength(s);
+  int tLength = getLength(t);
+  if (allowShorter) {
+    if (sLength < tLength) return false;
+  } else {
+    if (sLength != tLength) return false;
+  }
+
+  for (int i = 0; i < tLength; i++) {
+    if (!isAssignable(getIndex(s, i), getIndex(t, i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool areAssignableMaps(var s, var t) {
+  if (isNull(t)) return true;
+  if (isNull(s)) return false;
+
+  assert(isJsObject(s));
+  assert(isJsObject(t));
+
+  return JS('bool', r'''
+     function (t, s, isAssignable) {
+       for (var $name in t) {
+         if (!s.hasOwnProperty($name)) {
+           return false;
+         }
+         var tType = t[$name];
+         var sType = s[$name];
+         if (!isAssignable.call$2(sType, tType)) {
+          return false;
+         }
+       }
+       return true;
+     }(#, #, #)
+  ''', t, s, RAW_DART_FUNCTION_REF(isAssignable));
+}
+
+bool isFunctionSubtype(var s, var t) {
+  assert(hasField(t, '${JS_FUNCTION_TYPE_TAG()}'));
+  if (hasNoField(s, '${JS_FUNCTION_TYPE_TAG()}')) return false;
+  if (hasField(s, '${JS_FUNCTION_TYPE_VOID_RETURN_TAG()}')) {
+    if (hasNoField(t, '${JS_FUNCTION_TYPE_VOID_RETURN_TAG()}') &&
+        hasField(t, '${JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}')) {
+      return false;
+    }
+  } else if (hasNoField(t, '${JS_FUNCTION_TYPE_VOID_RETURN_TAG()}')) {
+    var sReturnType = getField(s, '${JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}');
+    var tReturnType = getField(t, '${JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}');
+    if (!isAssignable(sReturnType, tReturnType)) return false;
+  }
+  var sParameterTypes =
+      getField(s, '${JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()}');
+  var tParameterTypes =
+      getField(t, '${JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()}');
+
+  var sOptionalParameterTypes =
+      getField(s, '${JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()}');
+  var tOptionalParameterTypes =
+      getField(t, '${JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()}');
+
+  int sParametersLen =
+      isNotNull(sParameterTypes) ? getLength(sParameterTypes) : 0;
+  int tParametersLen =
+      isNotNull(tParameterTypes) ? getLength(tParameterTypes) : 0;
+
+  int sOptionalParametersLen = isNotNull(sOptionalParameterTypes)
+      ? getLength(sOptionalParameterTypes) : 0;
+  int tOptionalParametersLen = isNotNull(tOptionalParameterTypes)
+      ? getLength(tOptionalParameterTypes) : 0;
+
+  if (sParametersLen > tParametersLen) {
+    // Too many required parameters in [s].
+    return false;
+  }
+  if (sParametersLen + sOptionalParametersLen <
+      tParametersLen + tOptionalParametersLen) {
+    // Too few required and optional parameters in [s].
+    return false;
+  }
+  if (sParametersLen == tParametersLen) {
+    // Simple case: Same number of required parameters.
+    if (!areAssignable(sParameterTypes, tParameterTypes, false)) return false;
+    if (!areAssignable(sOptionalParameterTypes,
+                       tOptionalParameterTypes, true)) {
+      return false;
+    }
+  } else {
+    // Complex case: Optional parameters of [s] for required parameters of [t].
+    int pos = 0;
+    // Check all required parameters of [s].
+    for (; pos < sParametersLen; pos++) {
+      if (!isAssignable(getIndex(sParameterTypes, pos),
+                        getIndex(tParameterTypes, pos))) {
+        return false;
+      }
+    }
+    int sPos = 0;
+    int tPos = pos;
+    // Check the remaining parameters of [t] with the first optional parameters
+    // of [s].
+    for (; tPos < tParametersLen ; sPos++, tPos++) {
+      if (!isAssignable(getIndex(sOptionalParameterTypes, sPos),
+                        getIndex(tParameterTypes, tPos))) {
+        return false;
+      }
+    }
+    sPos = 0;
+    // Check the optional parameters of [t] with the remaing optional parameters
+    // of [s]:
+    for (; tPos < tOptionalParametersLen ; sPos++, tPos++) {
+      if (!isAssignable(getIndex(tOptionalParameterTypes, sPos),
+                        getIndex(tOptionalParameterTypes, tPos))) {
+        return false;
+      }
+    }
+  }
+
+  var sNamedParameters =
+      getField(s, '${JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG()}');
+  var tNamedParameters =
+      getField(t, '${JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG()}');
+  return areAssignableMaps(sNamedParameters, tNamedParameters);
+}
+
 /**
  * Calls the JavaScript [function] with the [arguments] with the global scope
  * as the [:this:] context.
  */
-invoke(var function, var arguments) {
+invoke(var function, var arguments) => invokeOn(function, null, arguments);
+
+/**
+ * Calls the JavaScript [function] with the [arguments] with [receiver] as the
+ * [:this:] context.
+ */
+Object invokeOn(function, receiver, arguments) {
   assert(isJsFunction(function));
   assert(isNull(arguments) || isJsArray(arguments));
-  return JS('var', r'#.apply(null, #)', function, arguments);
+  return JS('var', r'#.apply(#, #)', function, receiver, arguments);
 }
 
 /// Calls the property [name] on the JavaScript [object].
@@ -419,8 +670,15 @@ int getLength(var array) {
   return JS('int', r'#.length', array);
 }
 
+hasField(var object, var name) => JS('bool', r'#[#] != null', object, name);
+
+hasNoField(var object, var name) => JS('bool', r'#[#] == null', object, name);
+
 /// Returns [:true:] if [o] is a JavaScript function.
 bool isJsFunction(var o) => JS('bool', r'typeof # == "function"', o);
+
+/// Returns [:true:] if [o] is a JavaScript object.
+bool isJsObject(var o) => JS('bool', r"typeof # == 'object'", o);
 
 /**
  * Returns [:true:] if [o] is equal to [:null:], that is either [:null:] or
