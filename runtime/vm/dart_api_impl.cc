@@ -137,8 +137,7 @@ Dart_Handle Api::CheckIsolateState(Isolate* isolate) {
     // Class finalization is blocked for the isolate. Do nothing.
     return Api::Success();
   }
-  if (ClassFinalizer::FinalizePendingClasses() &&
-      isolate->object_store()->PreallocateObjects()) {
+  if (ClassFinalizer::FinalizePendingClasses()) {
     return Api::Success();
   }
   ASSERT(isolate->object_store()->sticky_error() != Object::null());
