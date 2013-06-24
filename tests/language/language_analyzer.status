@@ -89,7 +89,6 @@ getters_setters_type_test/01: fail
 implicit_this_test/01: fail
 implicit_this_test/04: fail
 import_combinators_negative_test: fail
-inst_field_initializer1_negative_test: fail
 instance_call_wrong_argument_count_negative_test: fail
 instantiate_type_variable_negative_test: fail
 interface_static_non_final_fields_negative_test: fail
