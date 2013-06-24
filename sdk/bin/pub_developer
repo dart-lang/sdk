@@ -17,7 +17,7 @@ SNAPSHOT="$BIN_DIR/snapshots/pub.dart.snapshot"
 if test -f "$SNAPSHOT"; then
   # We are running the snapshot in the built SDK.
   DART="$BIN_DIR/dart"
-  exec "$DART" "$SNAPSHOT" "$@"
+  exec "$DART" --checked "$SNAPSHOT" "$@"
 else
   # We are running pub from source in the development repo.
   if [ -z "$DART_CONFIGURATION" ];
@@ -39,5 +39,5 @@ else
 
   PUB="$SDK_DIR/lib/_internal/pub/bin/pub.dart"
 
-  exec "$DART" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
+  exec "$DART" "--checked" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
 fi

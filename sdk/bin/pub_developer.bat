@@ -25,9 +25,9 @@ set DART_IN_BUILT_SDK=%BUILD_DIR%\dart-sdk\bin\dart
 set SNAPSHOT=%BIN_DIR%\snapshots\pub.dart.snapshot
 
 if exist "%SNAPSHOT%" (
-  "%DART%" "%SNAPSHOT%" %*
+  "%DART%" --checked "%SNAPSHOT%" %*
 ) else (
-  "%DART_IN_BUILT_SDK%" --package-root=%PACKAGES_DIR% "%PUB%" %*
+  "%DART_IN_BUILT_SDK%" --checked --package-root=%PACKAGES_DIR% "%PUB%" %*
 )
 
 endlocal
