@@ -11,6 +11,7 @@
 #include "vm/base_isolate.h"
 #include "vm/class_table.h"
 #include "vm/gc_callbacks.h"
+#include "vm/handles.h"
 #include "vm/megamorphic_cache_table.h"
 #include "vm/store_buffer.h"
 #include "vm/timer.h"
@@ -18,9 +19,13 @@
 namespace dart {
 
 // Forward declarations.
+class AbstractType;
 class ApiState;
+class Array;
+class Class;
 class CodeIndexTable;
 class Debugger;
+class Field;
 class Function;
 class HandleScope;
 class HandleVisitor;
@@ -30,6 +35,7 @@ class Instance;
 class LongJump;
 class MessageHandler;
 class Mutex;
+class Object;
 class ObjectPointerVisitor;
 class ObjectStore;
 class RawInstance;
@@ -40,12 +46,14 @@ class RawMint;
 class RawObject;
 class RawInteger;
 class RawError;
+class RawFloat32x4;
+class RawUint32x4;
 class Simulator;
 class StackResource;
 class StackZone;
 class StubCode;
-class RawFloat32x4;
-class RawUint32x4;
+class TypeArguments;
+class TypeParameter;
 class ObjectHistogram;
 
 
@@ -217,6 +225,17 @@ class DeferredObject {
   DISALLOW_COPY_AND_ASSIGN(DeferredObject);
 };
 
+#define REUSABLE_HANDLE_LIST(V)                                                \
+  V(Object)                                                                    \
+  V(Array)                                                                     \
+  V(String)                                                                    \
+  V(Instance)                                                                  \
+  V(Function)                                                                  \
+  V(Field)                                                                     \
+  V(Class)                                                                     \
+  V(AbstractType)                                                              \
+  V(TypeParameter)                                                             \
+  V(TypeArguments)                                                             \
 
 class Isolate : public BaseIsolate {
  public:
@@ -610,6 +629,7 @@ class Isolate : public BaseIsolate {
   char* GetStatusStacktrace();
   char* GetStatusStackFrame(intptr_t index);
   char* DoStacktraceInterrupt(Dart_IsolateInterruptCallback cb);
+  template<class T> T* AllocateReusableHandle();
 
   static ThreadLocalKey isolate_key;
   StoreBuffer store_buffer_;
@@ -659,6 +679,14 @@ class Isolate : public BaseIsolate {
   intptr_t stack_frame_index_;
   ObjectHistogram* object_histogram_;
 
+  // Reusable handles support.
+#define REUSABLE_HANDLE_FIELDS(object)                                         \
+  object* object##_handle_;                                                    \
+
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
+#undef REUSABLE_HANDLE_FIELDS
+  VMHandles reusable_handles_;
+
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;
   static Dart_IsolateUnhandledExceptionCallback unhandled_exception_callback_;
@@ -669,8 +697,84 @@ class Isolate : public BaseIsolate {
   static Dart_FileCloseCallback file_close_callback_;
   static Dart_IsolateInterruptCallback vmstats_callback_;
 
+  friend class ReusableHandleScope;
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
+
+// The class ReusableHandleScope is used in regions of the
+// virtual machine where isolate specific reusable handles are used.
+// This class asserts that we do not add code that will result in recursive
+// uses of reusable handles.
+// It is used as follows:
+// {
+//   ReusableHandleScope reused_handles(isolate);
+//   ....
+//   .....
+//   code that uses isolate specific reusable handles.
+//   Array& funcs = reused_handles.ArrayHandle();
+//   ....
+// }
+#if defined(DEBUG)
+class ReusableHandleScope : public StackResource {
+ public:
+  explicit ReusableHandleScope(Isolate* isolate)
+      : StackResource(isolate), isolate_(isolate) {
+    ASSERT(!isolate->reusable_handle_scope_active());
+    isolate->set_reusable_handle_scope_active(true);
+  }
+  ReusableHandleScope()
+      : StackResource(Isolate::Current()), isolate_(Isolate::Current()) {
+    ASSERT(!isolate()->reusable_handle_scope_active());
+    isolate()->set_reusable_handle_scope_active(true);
+  }
+  ~ReusableHandleScope() {
+    ASSERT(isolate()->reusable_handle_scope_active());
+    isolate()->set_reusable_handle_scope_active(false);
+    ResetHandles();
+  }
+
+#define REUSABLE_HANDLE_ACCESSORS(object)                                      \
+  object& object##Handle() {                                                   \
+    ASSERT(isolate_->object##_handle_ != NULL);                                \
+    return *isolate_->object##_handle_;                                        \
+  }                                                                            \
+
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ACCESSORS)
+#undef REUSABLE_HANDLE_ACCESSORS
+
+ private:
+  void ResetHandles();
+  Isolate* isolate_;
+  DISALLOW_COPY_AND_ASSIGN(ReusableHandleScope);
+};
+#else
+class ReusableHandleScope : public ValueObject {
+ public:
+  explicit ReusableHandleScope(Isolate* isolate) : isolate_(isolate) {
+  }
+  ReusableHandleScope() : isolate_(Isolate::Current()) {
+  }
+  ~ReusableHandleScope() {
+    ResetHandles();
+  }
+
+#define REUSABLE_HANDLE_ACCESSORS(object)                                      \
+  object& object##Handle() {                                                   \
+    ASSERT(isolate_->object##_handle_ != NULL);                                \
+    return *isolate_->object##_handle_;                                        \
+  }                                                                            \
+
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ACCESSORS)
+#undef REUSABLE_HANDLE_ACCESSORS
+
+ private:
+  void ResetHandles();
+  Isolate* isolate_;
+  DISALLOW_COPY_AND_ASSIGN(ReusableHandleScope);
+};
+#endif  // defined(DEBUG)
+
+
 
 // When we need to execute code in an isolate, we use the
 // StartIsolateScope.

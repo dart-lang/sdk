@@ -32,6 +32,7 @@ class Code;
 class DeoptInstr;
 class FinalizablePersistentHandle;
 class LocalScope;
+class ReusableHandleScope;
 class Symbols;
 
 #if defined(DEBUG)
@@ -169,6 +170,7 @@ class Symbols;
     return raw()->ptr();                                                       \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
+  friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
 
 // This macro is used to denote types that do not have a sub-type.
@@ -190,6 +192,7 @@ class Symbols;
     return raw()->ptr();                                                       \
   }                                                                            \
   SNAPSHOT_READER_SUPPORT(object)                                              \
+  friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
 
 class Object {
@@ -591,6 +594,8 @@ class Object {
   friend class TwoByteString;
   friend class ExternalOneByteString;
   friend class ExternalTwoByteString;
+  friend class Isolate;
+  friend class ReusableHandleScope;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Object);
@@ -2359,7 +2364,6 @@ class Library : public Object {
   friend class Class;
   friend class Debugger;
   friend class DictionaryIterator;
-  friend class Isolate;
   friend class Namespace;
   friend class Object;
 };
@@ -2395,7 +2399,6 @@ class LibraryPrefix : public Object {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LibraryPrefix, Object);
   friend class Class;
-  friend class Isolate;
 };
 
 
@@ -5830,18 +5833,18 @@ RawClass* Object::clazz() const {
 }
 
 
-void Object::SetRaw(RawObject* value) {
+DART_FORCE_INLINE void Object::SetRaw(RawObject* value) {
   // NOTE: The assignment "raw_ = value" should be the first statement in
   // this function. Also do not use 'value' in this function after the
   // assignment (use 'raw_' instead).
   raw_ = value;
-  if ((reinterpret_cast<uword>(raw_) & kSmiTagMask) == kSmiTag) {
+  if ((reinterpret_cast<uword>(value) & kSmiTagMask) == kSmiTag) {
     set_vtable(Smi::handle_vtable_);
     return;
   }
-  intptr_t cid = raw_->GetClassId();
+  intptr_t cid = value->GetClassId();
   if (cid >= kNumPredefinedCids) {
-      cid = kInstanceCid;
+    cid = kInstanceCid;
   }
   set_vtable(builtin_vtables_[cid]);
 #if defined(DEBUG)

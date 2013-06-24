@@ -95,6 +95,16 @@ class BaseIsolate {
   }
 
 #if defined(DEBUG)
+  void set_reusable_handle_scope_active(bool value) {
+    reusable_handle_scope_active_ = value;
+  }
+
+  bool reusable_handle_scope_active() {
+    return reusable_handle_scope_active_;
+  }
+#endif
+
+#if defined(DEBUG)
   static void AssertCurrent(BaseIsolate* isolate);
 #endif
 
@@ -106,6 +116,7 @@ class BaseIsolate {
         top_handle_scope_(NULL),
         no_handle_scope_depth_(0),
         no_gc_scope_depth_(0),
+        reusable_handle_scope_active_(false),
 #endif
         no_callback_scope_depth_(0)
   {}
@@ -120,9 +131,11 @@ class BaseIsolate {
   HandleScope* top_handle_scope_;
   int32_t no_handle_scope_depth_;
   int32_t no_gc_scope_depth_;
+  bool reusable_handle_scope_active_;
 #endif
   int32_t no_callback_scope_depth_;
 
+ private:
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);
 };
 

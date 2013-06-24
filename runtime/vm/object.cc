@@ -1614,25 +1614,34 @@ intptr_t Class::NumTypeArguments() const {
   // To work properly, this call requires the super class of this class to be
   // resolved, which is checked by the SuperClass() call.
   Isolate* isolate = Isolate::Current();
-  Class& cls = Class::Handle(isolate, raw());
+  ReusableHandleScope reused_handles(isolate);
+  Class& cls = reused_handles.ClassHandle();
+  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
+  AbstractType& sup_type = reused_handles.AbstractTypeHandle();
+  cls ^= raw();
   intptr_t num_type_args = 0;
 
   do {
     if (cls.IsSignatureClass()) {
-      const Function& signature_fun =
-          Function::Handle(isolate, cls.signature_function());
+      Function& signature_fun = reused_handles.FunctionHandle();
+      signature_fun ^= cls.signature_function();
       if (!signature_fun.is_static() &&
           !signature_fun.HasInstantiatedSignature()) {
         cls = signature_fun.Owner();
       }
     }
-    num_type_args += cls.NumTypeParameters();
+    if (cls.type_parameters() != TypeArguments::null()) {
+      type_params ^= cls.type_parameters();
+      num_type_args += type_params.Length();
+    }
+
     // Super type of Object class is null.
     if (cls.super_type() == AbstractType::null() ||
         cls.super_type() == isolate->object_store()->object_type()) {
       break;
     }
-    cls = cls.SuperClass();
+    sup_type ^= cls.super_type();
+    cls = sup_type.type_class();
   } while (true);
   return num_type_args;
 }
@@ -1653,7 +1662,10 @@ RawClass* Class::SuperClass() const {
   if (super_type() == AbstractType::null()) {
     return Class::null();
   }
-  const AbstractType& sup_type = AbstractType::Handle(super_type());
+  Isolate* isolate = Isolate::Current();
+  ReusableHandleScope reused_handles(isolate);
+  AbstractType& sup_type = reused_handles.AbstractTypeHandle();
+  sup_type ^= super_type();
   return sup_type.type_class();
 }
 
@@ -1672,11 +1684,14 @@ void Class::set_super_type(const AbstractType& value) const {
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
                                              intptr_t token_pos) const {
   ASSERT(!type_name.IsNull());
-  const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
+  Isolate* isolate = Isolate::Current();
+  ReusableHandleScope reused_handles(isolate);
+  TypeArguments& type_params = reused_handles.TypeArgumentsHandle();
+  type_params ^= type_parameters();
+  TypeParameter& type_param = reused_handles.TypeParameterHandle();
+  String& type_param_name = reused_handles.StringHandle();
   if (!type_params.IsNull()) {
     intptr_t num_type_params = type_params.Length();
-    TypeParameter& type_param = TypeParameter::Handle();
-    String& type_param_name = String::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       type_param_name = type_param.name();
@@ -2449,12 +2464,14 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  Array& funcs = Array::Handle(isolate, functions());
+  ReusableHandleScope reused_handles(isolate);
+  Array& funcs = reused_handles.ArrayHandle();
+  funcs ^= functions();
   if (funcs.IsNull()) {
     // This can occur, e.g., for Null classes.
     return Function::null();
   }
-  Function& function = Function::Handle(isolate);
+  Function& function = reused_handles.FunctionHandle();
   const intptr_t len = funcs.Length();
   if (name.IsSymbol()) {
     // Quick Symbol compare.
@@ -2466,7 +2483,7 @@ RawFunction* Class::LookupFunction(const String& name, intptr_t type) const {
       }
     }
   } else {
-    String& function_name = String::Handle(isolate);
+    String& function_name = reused_handles.StringHandle();
     for (intptr_t i = 0; i < len; i++) {
       function ^= funcs.At(i);
       function_name ^= function.name();
@@ -2486,13 +2503,15 @@ RawFunction* Class::LookupFunctionAllowPrivate(const String& name,
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  Array& funcs = Array::Handle(isolate, functions());
+  ReusableHandleScope reused_handles(isolate);
+  Array& funcs = reused_handles.ArrayHandle();
+  funcs ^= functions();
   if (funcs.IsNull()) {
     // This can occur, e.g., for Null classes.
     return Function::null();
   }
-  Function& function = Function::Handle(isolate);
-  String& function_name = String::Handle(isolate);
+  Function& function = reused_handles.FunctionHandle();
+  String& function_name = reused_handles.StringHandle();
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -2523,9 +2542,11 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Function::null();
   }
-  Array& funcs = Array::Handle(isolate, functions());
-  Function& function = Function::Handle(isolate, Function::null());
-  String& function_name = String::Handle(isolate, String::null());
+  ReusableHandleScope reused_handles(isolate);
+  Array& funcs = reused_handles.ArrayHandle();
+  funcs ^= functions();
+  Function& function = reused_handles.FunctionHandle();
+  String& function_name = reused_handles.StringHandle();
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
@@ -2586,9 +2607,11 @@ RawField* Class::LookupField(const String& name, intptr_t type) const {
   if (EnsureIsFinalized(isolate) != Error::null()) {
     return Field::null();
   }
-  const Array& flds = Array::Handle(isolate, fields());
-  Field& field = Field::Handle(isolate, Field::null());
-  String& field_name = String::Handle(isolate, String::null());
+  ReusableHandleScope reused_handles(isolate);
+  Array& flds = reused_handles.ArrayHandle();
+  flds ^= fields();
+  Field& field = reused_handles.FieldHandle();
+  String& field_name = reused_handles.StringHandle();
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
@@ -6197,12 +6220,14 @@ RawObject* Library::LookupExport(const String& name) const {
 
 RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   Isolate* isolate = Isolate::Current();
-  const Array& dict = Array::Handle(isolate, dictionary());
+  ReusableHandleScope reused_handles(isolate);
+  Array& dict = reused_handles.ArrayHandle();
+  dict ^= dictionary();
   intptr_t dict_size = dict.Length() - 1;
   *index = name.Hash() % dict_size;
 
-  Object& entry = Object::Handle(isolate);
-  String& entry_name = String::Handle(isolate);
+  Object& entry = reused_handles.ObjectHandle();
+  String& entry_name = reused_handles.StringHandle();
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {

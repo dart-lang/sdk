@@ -371,6 +371,9 @@ void DeferredObject::Materialize() {
 }
 
 
+#define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
+  object##_handle_(NULL),
+
 Isolate::Isolate()
     : store_buffer_(),
       message_notify_callback_(NULL),
@@ -410,11 +413,14 @@ Isolate::Isolate()
       deferred_objects_(NULL),
       stacktrace_(NULL),
       stack_frame_index_(-1),
-      object_histogram_(NULL) {
+      object_histogram_(NULL),
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
+      reusable_handles_() {
   if (FLAG_print_object_histogram && (Dart::vm_isolate() != NULL)) {
     object_histogram_ = new ObjectHistogram(this);
   }
 }
+#undef REUSABLE_HANDLE_INITIALIZERS
 
 
 Isolate::~Isolate() {
@@ -461,6 +467,13 @@ Isolate* Isolate::Init(const char* name_prefix) {
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
   SetCurrent(result);
+
+  // Setup the isolate specific resuable handles.
+#define REUSABLE_HANDLE_ALLOCATION(object)                                     \
+  result->object##_handle_ = result->AllocateReusableHandle<object>();         \
+
+  REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
+#undef REUSABLE_HANDLE_ALLOCATION
 
   // Setup the isolate message handler.
   MessageHandler* handler = new IsolateMessageHandler(result);
@@ -826,6 +839,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in zones.
   current_zone()->VisitObjectPointers(visitor);
 
+  // Visit objects in isolate specific handles area.
+  reusable_handles_.VisitObjectPointers(visitor);
+
   // Iterate over all the stack frames and visit objects on the stack.
   StackFrameIterator frames_iterator(validate_frames);
   StackFrame* frame = frames_iterator.NextFrame();
@@ -1051,6 +1067,14 @@ char* Isolate::GetStatus(const char* request) {
 }
 
 
+template<class T>
+T* Isolate::AllocateReusableHandle() {
+  T* handle = reinterpret_cast<T*>(reusable_handles_.AllocateScopedHandle());
+  T::initializeHandle(handle, T::null());
+  return handle;
+}
+
+
 static void FillDeferredSlots(DeferredSlot** slot_list) {
   DeferredSlot* slot = *slot_list;
   *slot_list = NULL;
@@ -1073,6 +1097,16 @@ void Isolate::MaterializeDeferredBoxes() {
 
 void Isolate::MaterializeDeferredObjects() {
   FillDeferredSlots(&deferred_object_refs_);
+}
+
+
+void ReusableHandleScope::ResetHandles() {
+#define CLEAR_REUSABLE_HANDLE(object)                                          \
+  if (!object##Handle().IsNull()) {                                            \
+    object##Handle().raw_ = Object::null();                                    \
+  }
+
+  REUSABLE_HANDLE_LIST(CLEAR_REUSABLE_HANDLE);
 }
 
 
