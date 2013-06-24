@@ -189,7 +189,9 @@ class Safari extends Browser {
    */
   static const List<String> CACHE_DIRECTORIES =
       const ["Library/Caches/com.apple.Safari",
-             "Library/Safari"];
+             "Library/Safari",
+             "Library/Saved Application State/com.apple.Safari.savedState",
+             "Library/Caches/Metadata/Safari"];
 
 
   Future<bool> allowPopUps() {
