@@ -14,6 +14,11 @@
  * output (+deps file), dart application)
  */
 
+// TODO(kustermann): We need to change this test to include the shadow file
+// changes to CompilationCommand.
+// We can't do that right now, because we import testing scripts, which still
+// use the old binary.
+
 import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:io';
