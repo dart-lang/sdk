@@ -11,7 +11,6 @@ Language/06_Functions/2_Formal_Parameters_A02_t02: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
-Language/09_Generics/09_Generics_A04_t07: fail
 Language/11_Expressions/01_Constants_A16_t01: fail
 Language/11_Expressions/01_Constants_A16_t02: fail
 Language/11_Expressions/01_Constants_A16_t03: fail
@@ -29,9 +28,6 @@ Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: fail
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t02: fail
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t03: fail
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t04: fail
-Language/14_Types/4_Interface_Types_A10_t03: fail
-Language/14_Types/4_Interface_Types_A10_t04: fail
-Language/14_Types/4_Interface_Types_A10_t09: fail
 Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail
 Language/15_Reference/1_Lexical_Rules_A01_t10: fail
 Language/15_Reference/1_Lexical_Rules_A02_t06: fail
