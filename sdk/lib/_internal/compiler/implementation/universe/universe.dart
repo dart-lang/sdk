@@ -14,7 +14,6 @@ import '../util/util.dart';
 import '../js/js.dart' as js;
 
 part 'function_set.dart';
-part 'selector_map.dart';
 part 'side_effects.dart';
 
 class Universe {

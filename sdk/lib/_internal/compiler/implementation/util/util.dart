@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library org_dartlang_compiler_util;
+library dart2js.util;
 
 import "dart:collection";
 import 'util_implementation.dart';
 import 'characters.dart';
 
 part 'link.dart';
+part 'expensive_map.dart';
+part 'expensive_set.dart';
 
 /**
  * Tagging interface for classes from which source spans can be generated.
