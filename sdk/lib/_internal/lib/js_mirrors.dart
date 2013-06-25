@@ -109,6 +109,7 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   final List<String> _classes;
   final List<String> _functions;
   final List _metadata;
+  List<JsMethodMirror> _cachedFunctionMirrors;
 
   JsLibraryMirror(Symbol simpleName,
                  this.uri,
@@ -142,24 +143,41 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     return reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), n(fieldName)));
   }
 
-  Map<Symbol, MethodMirror> get functions {
-    var result = new Map<Symbol, MethodMirror>();
+  List<JsMethodMirror> get _functionMirrors {
+    if (_cachedFunctionMirrors != null) return _cachedFunctionMirrors;
+    var result = new List<JsMethodMirror>(_functions.length);
     for (int i = 0; i < _functions.length; i++) {
       String name = _functions[i];
-      Symbol symbol = s(name);
+      String unmangledName = mangledGlobalNames[name];
+      if (unmangledName == null) unmangledName = name;
       int parameterCount = null; // TODO(ahe): Compute this.
-      bool isStatic = true; // Top-level functions are static.
       bool isSetter = false; // TODO(ahe): Compute this.
       bool isGetter = false; // TODO(ahe): Compute this.
+      bool isConstructor = unmangledName.startsWith('new ');
+      bool isStatic = true && !isConstructor; // Top-level functions are
+                                              // static, but constructors are
+                                              // not.
+      if (isConstructor) {
+        unmangledName = unmangledName.substring(4).replaceAll(r'$', '.');
+      }
+      unmangledName = unmangledName.split(':')[0];
+      Symbol symbol = s(unmangledName);
       JsMethodMirror mirror =
           // TODO(ahe): Create accessor for accessing $.  It is also
           // used in js_helper.
           new JsMethodMirror(
               symbol, JS('', '#[#]', JS_CURRENT_ISOLATE(), name),
-              parameterCount, isGetter, isSetter, isStatic);
-      // TODO(ahe): Cache mirrors.
-      result[symbol] = mirror;
+              parameterCount, isGetter, isSetter, isStatic, isConstructor);
+      result[i] = mirror;
       mirror._owner = this;
+    }
+    return _cachedFunctionMirrors = result;
+  }
+
+  Map<Symbol, MethodMirror> get functions {
+    var result = new Map<Symbol, MethodMirror>();
+    for (JsMethodMirror mirror in _functionMirrors) {
+      if (!mirror.isConstructor) result[mirror.simpleName] = mirror;
     }
     return result;
   }
@@ -370,6 +388,22 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     } else {
       return _jsConstructorOrInterceptor;
     }
+  }
+
+  Map<Symbol, MethodMirror> get constructors {
+    Map<Symbol, MethodMirror> result = new Map<Symbol, MethodMirror>();
+    JsLibraryMirror library = owner;
+    String unmangledName = mangledGlobalNames[n(simpleName)];
+    if (unmangledName == null) unmangledName = n(simpleName);
+    for (JsMethodMirror mirror in library._functionMirrors) {
+      Symbol name = mirror.simpleName;
+      if (mirror.isConstructor
+          && (name == simpleName || n(name).startsWith('$unmangledName.'))) {
+        result[name] = mirror;
+        mirror._owner = this;
+      }
+    }
+    return result;
   }
 
   List<JsMethodMirror> get _methods {
@@ -639,11 +673,12 @@ function(reflectee) {
       var self = BoundClosure.selfOf(reflectee);
       return new JsMethodMirror(
           s(target), JS('', '#[#]', self, target), parameterCount,
-          false, false, isStatic);
+          false, false, isStatic, false);
     } else {
       var jsFunction = JS('', '#[#]', reflectee, callName);
       return new JsMethodMirror(
-          s(callName), jsFunction, parameterCount, false, false, isStatic);
+          s(callName), jsFunction, parameterCount,
+          false, false, isStatic, false);
     }
   }
 
@@ -668,6 +703,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
   final bool isGetter;
   final bool isSetter;
   final bool isStatic;
+  final bool isConstructor;
   DeclarationMirror _owner;
   List _metadata;
 
@@ -676,7 +712,8 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
                  this._parameterCount,
                  this.isGetter,
                  this.isSetter,
-                 this.isStatic)
+                 this.isStatic,
+                 this.isConstructor)
       : super(simpleName);
 
   factory JsMethodMirror.fromUnmangledName(String name, jsFunction) {
@@ -699,7 +736,7 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
     }
     return new JsMethodMirror(
         s(name), jsFunction, requiredParameterCount + optionalParameterCount,
-        isGetter, isSetter, false);
+        isGetter, isSetter, false, false);
   }
 
   String get _prettyName => 'MethodMirror';

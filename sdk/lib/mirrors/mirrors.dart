@@ -665,7 +665,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * An immutable map from names to mirrors for all constructor
    * declarations for this type.
    */
-   Map<Symbol, MethodMirror> get constructors;
+  Map<Symbol, MethodMirror> get constructors;
 
   /**
    * An immutable map from names to mirrors for all type variables for
@@ -673,7 +673,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    *
    * This map preserves the order of declaration of the type variables.
    */
-   Map<Symbol, TypeVariableMirror> get typeVariables;
+  Map<Symbol, TypeVariableMirror> get typeVariables;
 
   /**
    * An immutable map from names to mirrors for all type arguments for
