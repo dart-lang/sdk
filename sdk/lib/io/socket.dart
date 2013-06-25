@@ -115,7 +115,7 @@ abstract class InternetAddress {
  * system. It contains a list of [InternetAddress]s, that's bound to the
  * interface.
  */
-class NetworkInterface {
+abstract class NetworkInterface {
   /**
    * Get the name of the [NetworkInterface].
    */
