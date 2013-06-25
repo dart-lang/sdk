@@ -37,12 +37,8 @@ Language/11_Expressions/15_Method_Invocation/4_Super_Invocation_A08_t02: fail
 Language/11_Expressions/22_Equality_A01_t15: fail
 Language/11_Expressions/22_Equality_A01_t16: fail
 Language/11_Expressions/28_Postfix_Expressions_A01_t06: fail
-Language/11_Expressions/30_Identifier_Reference_A01_t07: fail
-Language/11_Expressions/30_Identifier_Reference_A01_t08: fail
 Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail
 Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail
-Language/13_Libraries_and_Scripts/13_Libraries_and_Scripts_A03_t17: fail
-Language/13_Libraries_and_Scripts/1_Imports_A01_t46: fail
 Language/13_Libraries_and_Scripts/1_Imports_A04_t03: fail
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail
 Language/13_Libraries_and_Scripts/2_Exports_A05_t01: fail
