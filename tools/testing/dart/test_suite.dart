@@ -750,10 +750,10 @@ class StandardTestSuite extends TestSuite {
   List<Command> makeCommands(TestInformation info, var vmOptions, var args) {
     switch (configuration['compiler']) {
     case 'dart2js':
-      var compiledFile = '$tempDir/out-${runtime}.js';
-      var compiledShadowFile = '$tempDir/out_shadow.js';
       args = new List.from(args);
       String tempDir = createOutputDirectory(info.filePath, '');
+      var compiledFile = '$tempDir/out-${configuration['runtime']}.js';
+      var compiledShadowFile = '$tempDir/out_shadow.js';
       args.add('--out=$compiledFile');
 
        List<Command> commands =
@@ -767,18 +767,18 @@ class StandardTestSuite extends TestSuite {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
       } else if (configuration['runtime'] == 'd8') {
-        commands.add(new Command(d8FileName, ['$tempDir/out.js']));
+        commands.add(new Command(d8FileName, [compiledFile]));
       } else if (configuration['runtime'] == 'jsshell') {
-        commands.add(new Command(jsShellFileName, ['$tempDir/out.js']));
+        commands.add(new Command(jsShellFileName, [compiledFile]));
       }
       return commands;
 
     case 'dart2dart':
-      var compiledFile = '$tempDir/out-${runtime}.dart';
-      var compiledShadowFile = '$tempDir/out_shadow.dart';
       args = new List.from(args);
       args.add('--output-type=dart');
       String tempDir = createOutputDirectory(info.filePath, '');
+      var compiledFile = '$tempDir/out-${configuration['runtime']}.dart';
+      var compiledShadowFile = '$tempDir/out_shadow.dart';
       args.add('--out=$tempDir/out.dart');
 
       List<Command> commands =
