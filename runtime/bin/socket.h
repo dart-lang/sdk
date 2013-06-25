@@ -150,6 +150,7 @@ class Socket {
   enum SocketRequest {
     kLookupRequest = 0,
     kListInterfacesRequest = 1,
+    kReverseLookupRequest = 2,
   };
 
   static bool Initialize();
@@ -174,6 +175,10 @@ class Socket {
   static AddressList<SocketAddress>* LookupAddress(const char* host,
                                                    int type,
                                                    OSError** os_error);
+  static bool ReverseLookup(RawAddr addr,
+                            char* host,
+                            intptr_t host_len,
+                            OSError** os_error);
 
   // List interfaces. Returns a AddressList of InterfaceSocketAddress's.
   static AddressList<InterfaceSocketAddress>* ListInterfaces(

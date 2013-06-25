@@ -97,6 +97,12 @@ abstract class InternetAddress {
   bool get isLinkLocal;
 
   /**
+   * Perform a reverse dns lookup on the [address], creating a new
+   * [InternetAddress] where the host field set to the result.
+   */
+  Future<InternetAddress> reverse();
+
+  /**
    * Lookup a host, returning a Future of a list of
    * [InternetAddress]s. If [type] is [InternetAddressType.ANY], it
    * will lookup both IP version 4 (IPv4) and IP version 6 (IPv6)

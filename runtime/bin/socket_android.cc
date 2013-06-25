@@ -222,6 +222,30 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
 }
 
 
+bool Socket::ReverseLookup(RawAddr addr,
+                           char* host,
+                           intptr_t host_len,
+                           OSError** os_error) {
+  ASSERT(host_len >= NI_MAXHOST);
+  int status = TEMP_FAILURE_RETRY(getnameinfo(
+      &addr.addr,
+      SocketAddress::GetAddrLength(&addr),
+      host,
+      host_len,
+      NULL,
+      0,
+      NI_NAMEREQD));
+  if (status != 0) {
+    ASSERT(*os_error == NULL);
+    *os_error = new OSError(status,
+                            gai_strerror(status),
+                            OSError::kGetAddressInfo);
+    return false;
+  }
+  return true;
+}
+
+
 static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
   int family = ifa->ifa_addr->sa_family;
   if (lookup_family == family) return true;

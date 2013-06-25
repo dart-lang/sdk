@@ -254,6 +254,30 @@ AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
 }
 
 
+bool Socket::ReverseLookup(RawAddr addr,
+                           char* host,
+                           intptr_t host_len,
+                           OSError** os_error) {
+  ASSERT(host_len >= NI_MAXHOST);
+  int status = TEMP_FAILURE_RETRY(getnameinfo(
+      &addr.addr,
+      SocketAddress::GetAddrLength(&addr),
+      host,
+      host_len,
+      NULL,
+      0,
+      NI_NAMEREQD));
+  if (status != 0) {
+    ASSERT(*os_error == NULL);
+    DWORD error_code = WSAGetLastError();
+    SetLastError(error_code);
+    *os_error = new OSError();
+    return false;
+  }
+  return true;
+}
+
+
 AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
     int type,
     OSError** os_error) {

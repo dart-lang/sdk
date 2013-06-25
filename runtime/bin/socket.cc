@@ -486,6 +486,30 @@ static CObject* LookupRequest(const CObjectArray& request) {
 }
 
 
+static CObject* ReverseLookupRequest(const CObjectArray& request) {
+  if (request.Length() == 2 &&
+      request[1]->IsTypedData()) {
+    CObjectUint8Array addr_object(request[1]);
+    RawAddr addr;
+    memmove(reinterpret_cast<void *>(&addr),
+            addr_object.Buffer(),
+            addr_object.Length());
+    OSError* os_error = NULL;
+    const intptr_t kMaxHostLength = 1025;
+    char host[kMaxHostLength];
+    if (Socket::ReverseLookup(addr, host, kMaxHostLength, &os_error)) {
+      return new CObjectString(CObject::NewString(host));
+    } else {
+      CObject* result = CObject::NewOSError(os_error);
+      delete os_error;
+      return result;
+    }
+  }
+  return CObject::IllegalArgumentError();
+}
+
+
+
 static CObject* ListInterfacesRequest(const CObjectArray& request) {
   if (request.Length() == 2 &&
       request[1]->IsInt32()) {
@@ -551,6 +575,9 @@ void SocketService(Dart_Port dest_port_id,
           break;
         case Socket::kListInterfacesRequest:
           response = ListInterfacesRequest(request);
+          break;
+        case Socket::kReverseLookupRequest:
+          response = ReverseLookupRequest(request);
           break;
         default:
           UNREACHABLE();

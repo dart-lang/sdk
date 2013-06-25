@@ -104,6 +104,8 @@ class _InternetAddress implements InternetAddress {
     }
   }
 
+  Future<InternetAddress> reverse() => _NativeSocket.reverseLookup(this);
+
   _InternetAddress(InternetAddressType this.type,
                    String this.address,
                    String this.host,
@@ -191,6 +193,7 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
   // Native port messages.
   static const HOST_NAME_LOOKUP = 0;
   static const LIST_INTERFACES = 1;
+  static const REVERSE_LOOKUP = 2;
 
   // Socket close state
   bool isClosed = false;
@@ -230,6 +233,18 @@ class _NativeSocket extends NativeFieldWrapperClass1 {
               var type = new InternetAddressType._from(result[0]);
               return new _InternetAddress(type, result[1], host, result[2]);
             }).toList();
+          }
+        });
+  }
+
+  static Future<InternetAddress> reverseLookup(InternetAddress addr) {
+    ensureSocketService();
+    return socketService.call([REVERSE_LOOKUP, addr._sockaddr_storage])
+        .then((response) {
+          if (isErrorResponse(response)) {
+            throw createError(response, "Failed host name lookup");
+          } else {
+            return addr._cloneWithNewHost(response);
           }
         });
   }
