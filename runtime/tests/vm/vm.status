@@ -54,6 +54,10 @@ dart/inline_stack_frame_test: Fail # Issue: 7414
 # Skip until we stabilize language tests.
 *: Skip
 
+[ $arch == arm && $mode == release ]
+dart/byte_array_optimized_test: Crash
+dart/byte_array_test: Crash
+
 [ $arch == mips ]
 *: Skip
 

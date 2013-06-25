@@ -511,7 +511,6 @@ LibTest/math/tan_A01_t01: Pass, Fail
 LibTest/math/sin_A01_t01: Pass, Fail
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 LibTest/core/int/operator_unary_minus_A01_t01: Pass, Fail
-LibTest/math/Random/nextDouble_A01_t01: Pass, Fail
 
 
 [ $compiler == none && $runtime == vm && $arch == arm && $mode == debug ]
