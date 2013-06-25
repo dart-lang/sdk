@@ -252,17 +252,15 @@ class CallSites : public FlowGraphVisitor {
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
 
-
+    // max_count can be 0 if none of the calls was executed.
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      ASSERT(max_count > 0);
-      const double ratio =
-          static_cast<double>(instance_call_counts[i]) / max_count;
+      const double ratio = (max_count == 0) ?
+          0.0 : static_cast<double>(instance_call_counts[i]) / max_count;
       instance_calls_[i + instance_call_start_ix].ratio = ratio;
     }
     for (intptr_t i = 0; i < num_static_calls; ++i) {
-      ASSERT(max_count > 0);
-      const double ratio =
-          static_cast<double>(static_call_counts[i]) / max_count;
+      const double ratio = (max_count == 0) ?
+          0.0 : static_cast<double>(static_call_counts[i]) / max_count;
       static_calls_[i + static_call_start_ix].ratio = ratio;
     }
   }
