@@ -33,6 +33,8 @@ DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
 DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DEFINE_FLAG(bool, trace_load_optimization, false,
+    "Print live sets for load optimization pass.");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_check_elimination);
@@ -414,6 +416,7 @@ void FlowGraphOptimizer::ConvertUse(Value* use, Representation from_rep) {
 
   InsertConversion(from_rep, to_rep, use, insert_before, deopt_target);
 }
+
 
 void FlowGraphOptimizer::InsertConversionsFor(Definition* def) {
   const Representation from_rep = def->representation();
@@ -3522,9 +3525,9 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
                                 intptr_t loop_header_index,
                                 Instruction* instr) {
   return (sets != NULL) &&
-      instr->HasExprId() &&
+      instr->HasPlaceId() &&
       ((*sets)[loop_header_index] != NULL) &&
-      (*sets)[loop_header_index]->Contains(instr->expr_id());
+      (*sets)[loop_header_index]->Contains(instr->place_id());
 }
 
 
@@ -3654,44 +3657,308 @@ class Alias : public ValueObject {
 };
 
 
-// Set mapping alias to a list of loads sharing this alias. Additionally
-// carries a set of loads that can be aliased by side-effects, essentially
+// Place describes an abstract location (e.g. field) that IR can load
+// from or store to.
+class Place : public ValueObject {
+ public:
+  enum Kind {
+    kNone,
+
+    // Field location. For instance fields is represented as a pair of a Field
+    // object and an instance (SSA definition) that is being accessed.
+    // For static fields instance is NULL.
+    kField,
+
+    // VMField location. Represented as a pair of an instance (SSA definition)
+    // being accessed and offset to the field.
+    kVMField,
+
+    // Indexed location.
+    kIndexed,
+
+    // Current context.
+    kContext
+  };
+
+  Place(const Place& other)
+      : ValueObject(),
+        kind_(other.kind_),
+        instance_(other.instance_),
+        raw_selector_(other.raw_selector_),
+        id_(other.id_) {
+  }
+
+  // Construct a place from instruction if instruction accesses any place.
+  // Otherwise constructs kNone place.
+  Place(Instruction* instr, bool* is_load)
+      : kind_(kNone), instance_(NULL), raw_selector_(0), id_(0) {
+    switch (instr->tag()) {
+      case Instruction::kLoadField: {
+        LoadFieldInstr* load_field = instr->AsLoadField();
+        instance_ = load_field->instance()->definition();
+        if (load_field->field() != NULL) {
+          kind_ = kField;
+          field_ = load_field->field();
+        } else {
+          kind_ = kVMField;
+          offset_in_bytes_ = load_field->offset_in_bytes();
+        }
+        *is_load = true;
+        break;
+      }
+
+      case Instruction::kStoreInstanceField: {
+        StoreInstanceFieldInstr* store_instance_field =
+            instr->AsStoreInstanceField();
+        kind_ = kField;
+        instance_ = store_instance_field->instance()->definition();
+        field_ = &store_instance_field->field();
+        break;
+      }
+
+      case Instruction::kStoreVMField: {
+        StoreVMFieldInstr* store_vm_field = instr->AsStoreVMField();
+        kind_ = kVMField;
+        instance_ = store_vm_field->dest()->definition();
+        offset_in_bytes_ = store_vm_field->offset_in_bytes();
+        break;
+      }
+
+      case Instruction::kLoadStaticField:
+        kind_ = kField;
+        field_ = &instr->AsLoadStaticField()->StaticField();
+        *is_load = true;
+        break;
+
+      case Instruction::kStoreStaticField:
+        kind_ = kField;
+        field_ = &instr->AsStoreStaticField()->field();
+        break;
+
+      case Instruction::kLoadIndexed: {
+        LoadIndexedInstr* load_indexed = instr->AsLoadIndexed();
+        kind_ = kIndexed;
+        instance_ = load_indexed->array()->definition();
+        index_ = load_indexed->index()->definition();
+        *is_load = true;
+        break;
+      }
+
+      case Instruction::kStoreIndexed: {
+        StoreIndexedInstr* store_indexed = instr->AsStoreIndexed();
+        kind_ = kIndexed;
+        instance_ = store_indexed->array()->definition();
+        index_ = store_indexed->index()->definition();
+        break;
+      }
+
+      case Instruction::kCurrentContext:
+        kind_ = kContext;
+        *is_load = true;
+        break;
+
+      case Instruction::kChainContext:
+      case Instruction::kStoreContext:
+        kind_ = kContext;
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  intptr_t id() const { return id_; }
+  void set_id(intptr_t id) { id_ = id; }
+
+  Kind kind() const { return kind_; }
+
+  Definition* instance() const {
+    ASSERT((kind_ == kField) || (kind_ == kVMField) || (kind_ == kIndexed));
+    return instance_;
+  }
+
+  void set_instance(Definition* def) {
+    ASSERT((kind_ == kField) || (kind_ == kVMField) || (kind_ == kIndexed));
+    instance_ = def;
+  }
+
+  const Field& field() const {
+    ASSERT(kind_ == kField);
+    return *field_;
+  }
+
+  intptr_t offset_in_bytes() const {
+    ASSERT(kind_ == kVMField);
+    return offset_in_bytes_;
+  }
+
+  Definition* index() const {
+    ASSERT(kind_ == kIndexed);
+    return index_;
+  }
+
+  const char* ToCString() const {
+    switch (kind_) {
+      case kNone:
+        return "<none>";
+
+      case kField: {
+        const char* field_name = String::Handle(field().name()).ToCString();
+        if (instance() == NULL) {
+          return field_name;
+        }
+        return Isolate::Current()->current_zone()->PrintToString(
+            "<v%"Pd".%s>", instance()->ssa_temp_index(), field_name);
+      }
+
+      case kVMField: {
+        return Isolate::Current()->current_zone()->PrintToString(
+            "<v%"Pd"@%"Pd">", instance()->ssa_temp_index(), offset_in_bytes());
+      }
+
+      case kIndexed: {
+        return Isolate::Current()->current_zone()->PrintToString(
+            "<v%"Pd"[v%"Pd"]>",
+            instance()->ssa_temp_index(),
+            index()->ssa_temp_index());
+      }
+
+      case kContext:
+        return "<context>";
+    }
+    UNREACHABLE();
+    return "<?>";
+  }
+
+  bool IsFinalField() const {
+    return (kind() == kField) && field().is_final();
+  }
+
+  intptr_t Hashcode() const {
+    return (kind_ * 63 + reinterpret_cast<intptr_t>(instance_)) * 31 +
+        FieldHashcode();
+  }
+
+  bool Equals(Place* other) const {
+    return (kind_ == other->kind_) &&
+        (instance_ == other->instance_) &&
+        SameField(other);
+  }
+
+  // Create a zone allocated copy of this place.
+  static Place* Wrap(const Place& place);
+
+ private:
+  bool SameField(Place* other) const {
+    return (kind_ == kField) ? (field().raw() == other->field().raw())
+                             : (offset_in_bytes_ == other->offset_in_bytes_);
+  }
+
+  intptr_t FieldHashcode() const {
+    return (kind_ == kField) ? reinterpret_cast<intptr_t>(field().raw())
+                             : offset_in_bytes_;
+  }
+
+  Kind kind_;
+  Definition* instance_;
+  union {
+    intptr_t raw_selector_;
+    const Field* field_;
+    intptr_t offset_in_bytes_;
+    Definition* index_;
+  };
+
+  intptr_t id_;
+};
+
+
+class ZonePlace : public ZoneAllocated {
+ public:
+  explicit ZonePlace(const Place& place) : place_(place) { }
+
+  Place* place() { return &place_; }
+
+ private:
+  Place place_;
+};
+
+
+Place* Place::Wrap(const Place& place) {
+  return (new ZonePlace(place))->place();
+}
+
+
+// Correspondence between places connected through outgoing phi moves on the
+// edge that targets join.
+class PhiPlaceMoves : public ZoneAllocated {
+ public:
+  // Record a move from the place with id |from| to the place with id |to| at
+  // the given block.
+  void CreateOutgoingMove(BlockEntryInstr* block, intptr_t from, intptr_t to) {
+    const intptr_t block_num = block->preorder_number();
+    while (moves_.length() <= block_num) {
+      moves_.Add(NULL);
+    }
+
+    if (moves_[block_num] == NULL) {
+      moves_[block_num] = new ZoneGrowableArray<Move>(5);
+    }
+
+    moves_[block_num]->Add(Move(from, to));
+  }
+
+  class Move {
+   public:
+    Move(intptr_t from, intptr_t to) : from_(from), to_(to) { }
+
+    intptr_t from() const { return from_; }
+    intptr_t to() const { return to_; }
+
+   private:
+    intptr_t from_;
+    intptr_t to_;
+  };
+
+  typedef const ZoneGrowableArray<Move>* MovesList;
+
+  MovesList GetOutgoingMoves(BlockEntryInstr* block) const {
+    const intptr_t block_num = block->preorder_number();
+    return (block_num < moves_.length()) ?
+        moves_[block_num] : NULL;
+  }
+
+ private:
+  GrowableArray<ZoneGrowableArray<Move>* > moves_;
+};
+
+
+// A map from aliases to a set of places sharing the alias. Additionally
+// carries a set of places that can be aliased by side-effects, essentially
 // those that are affected by calls.
 class AliasedSet : public ZoneAllocated {
  public:
-  explicit AliasedSet(intptr_t max_expr_id)
-      : max_expr_id_(max_expr_id),
+  explicit AliasedSet(ZoneGrowableArray<Place*>* places,
+                      PhiPlaceMoves* phi_moves)
+      : places_(*places),
+        phi_moves_(phi_moves),
         sets_(),
-        // BitVector constructor throws if requested length is 0.
-        aliased_by_effects_(max_expr_id > 0 ? new BitVector(max_expr_id)
-                                            : NULL),
+        aliased_by_effects_(new BitVector(places->length())),
         max_field_id_(0),
         field_ids_() { }
 
-  Alias ComputeAliasForLoad(Definition* defn) {
-    if (defn->IsLoadIndexed()) {
-      // We are assuming that LoadField is never used to load the first word.
-      return Alias::Indexes();
-    }
-
-    LoadFieldInstr* load_field = defn->AsLoadField();
-    if (load_field != NULL) {
-      if (load_field->field() != NULL) {
-        Definition* instance = load_field->instance()->definition();
-        return Alias::Field(GetInstanceFieldId(instance, *load_field->field()));
-      } else {
-        return Alias::VMField(load_field->offset_in_bytes());
-      }
-    }
-
-    if (defn->IsCurrentContext()) {
-      return Alias::CurrentContext();
-    }
-
-    LoadStaticFieldInstr* load_static_field = defn->AsLoadStaticField();
-    if (load_static_field != NULL) {
-      return Alias::Field(GetFieldId(kAnyInstance,
-                                     load_static_field->StaticField()));
+  Alias ComputeAlias(Place* place) {
+    switch (place->kind()) {
+      case Place::kIndexed:
+        return Alias::Indexes();
+      case Place::kField:
+        return Alias::Field(
+            GetInstanceFieldId(place->instance(), place->field()));
+      case Place::kVMField:
+        return Alias::VMField(place->offset_in_bytes());
+      case Place::kContext:
+        return Alias::CurrentContext();
+      case Place::kNone:
+        UNREACHABLE();
     }
 
     UNREACHABLE();
@@ -3728,24 +3995,21 @@ class AliasedSet : public ZoneAllocated {
     return Alias::None();
   }
 
-  bool Contains(const Alias alias) {
-    const intptr_t idx = alias.ToIndex();
-    return (idx < sets_.length()) && (sets_[idx] != NULL);
-  }
-
   BitVector* Get(const Alias alias) {
-    ASSERT(Contains(alias));
-    return sets_[alias.ToIndex()];
+    const intptr_t idx = alias.ToIndex();
+    return (idx < sets_.length()) ? sets_[idx] : NULL;
   }
 
-  void AddRepresentative(Definition* defn) {
-    AddIdForAlias(ComputeAliasForLoad(defn), defn->expr_id());
-    if (!IsIndependentFromEffects(defn)) {
-      aliased_by_effects_->Add(defn->expr_id());
+  void AddRepresentative(Place* place) {
+    if (!place->IsFinalField()) {
+      AddIdForAlias(ComputeAlias(place), place->id());
+      if (!IsIndependentFromEffects(place)) {
+        aliased_by_effects_->Add(place->id());
+      }
     }
   }
 
-  void AddIdForAlias(const Alias alias, intptr_t expr_id) {
+  void AddIdForAlias(const Alias alias, intptr_t place_id) {
     const intptr_t idx = alias.ToIndex();
 
     while (sets_.length() <= idx) {
@@ -3753,16 +4017,35 @@ class AliasedSet : public ZoneAllocated {
     }
 
     if (sets_[idx] == NULL) {
-      sets_[idx] = new BitVector(max_expr_id_);
+      sets_[idx] = new BitVector(max_place_id());
     }
 
-    sets_[idx]->Add(expr_id);
+    sets_[idx]->Add(place_id);
   }
 
-  intptr_t max_expr_id() const { return max_expr_id_; }
-  bool IsEmpty() const { return max_expr_id_ == 0; }
+  intptr_t max_place_id() const { return places().length(); }
+  bool IsEmpty() const { return max_place_id() == 0; }
 
   BitVector* aliased_by_effects() const { return aliased_by_effects_; }
+
+  const ZoneGrowableArray<Place*>& places() const {
+    return places_;
+  }
+
+  void PrintSet(BitVector* set) {
+    bool comma = false;
+    for (BitVector::Iterator it(set);
+         !it.Done();
+         it.Advance()) {
+      if (comma) {
+        OS::Print(", ");
+      }
+      OS::Print("%s", places_[it.Current()]->ToCString());
+      comma = true;
+    }
+  }
+
+  const PhiPlaceMoves* phi_moves() const { return phi_moves_; }
 
  private:
   // Get id assigned to the given field. Assign a new id if the field is seen
@@ -3790,14 +4073,16 @@ class AliasedSet : public ZoneAllocated {
   // If multiple SSA names can point to the same object then we use
   // kAnyInstance instead of a concrete SSA name.
   intptr_t GetInstanceFieldId(Definition* defn, const Field& field) {
-    ASSERT(!field.is_static());
+    ASSERT(field.is_static() == (defn == NULL));
 
     intptr_t instance_id = kAnyInstance;
 
-    AllocateObjectInstr* alloc = defn->AsAllocateObject();
-    if ((alloc != NULL) && !CanBeAliased(alloc)) {
-      instance_id = alloc->ssa_temp_index();
-      ASSERT(instance_id != kAnyInstance);
+    if (defn != NULL) {
+      AllocateObjectInstr* alloc = defn->AsAllocateObject();
+      if ((alloc != NULL) && !CanBeAliased(alloc)) {
+        instance_id = alloc->ssa_temp_index();
+        ASSERT(instance_id != kAnyInstance);
+      }
     }
 
     return GetFieldId(instance_id, field);
@@ -3840,9 +4125,8 @@ class AliasedSet : public ZoneAllocated {
   // Returns true if the given load is unaffected by external side-effects.
   // This essentially means that no stores to the same location can
   // occur in other functions.
-  bool IsIndependentFromEffects(Definition* defn) {
-    LoadFieldInstr* load_field = defn->AsLoadField();
-    if (load_field != NULL) {
+  bool IsIndependentFromEffects(Place* place) {
+    if (place->IsFinalField()) {
       // Note that we can't use LoadField's is_immutable attribute here because
       // some VM-fields (those that have no corresponding Field object and
       // accessed through offset alone) can share offset but have different
@@ -3855,19 +4139,14 @@ class AliasedSet : public ZoneAllocated {
       // conservative assumption for the VM-properties.
       // TODO(vegorov): disambiguate immutable and non-immutable VM-fields with
       // the same offset e.g. through recognized kind.
-      if ((load_field->field() != NULL) &&
-          (load_field->field()->is_final())) {
-        return true;
-      }
-
-      AllocateObjectInstr* alloc =
-          load_field->instance()->definition()->AsAllocateObject();
-      return (alloc != NULL) && !CanBeAliased(alloc);
+      return true;
     }
 
-    LoadStaticFieldInstr* load_static_field = defn->AsLoadStaticField();
-    if (load_static_field != NULL) {
-      return load_static_field->StaticField().is_final();
+    if (((place->kind() == Place::kField) ||
+         (place->kind() == Place::kVMField)) &&
+        (place->instance() != NULL)) {
+      AllocateObjectInstr* alloc = place->instance()->AsAllocateObject();
+      return (alloc != NULL) && !CanBeAliased(alloc);
     }
 
     return false;
@@ -3910,7 +4189,9 @@ class AliasedSet : public ZoneAllocated {
     Value value_;
   };
 
-  const intptr_t max_expr_id_;
+  const ZoneGrowableArray<Place*>& places_;
+
+  const PhiPlaceMoves* phi_moves_;
 
   // Maps alias index to a set of ssa indexes corresponding to loads with the
   // given alias.
@@ -3953,114 +4234,69 @@ static Definition* GetStoredValue(Instruction* instr) {
 }
 
 
-// KeyValueTrait used for numbering of loads. Allows to lookup loads
-// corresponding to stores.
-class LoadKeyValueTrait {
- public:
-  typedef Definition* Value;
-  typedef Instruction* Key;
-  typedef Definition* Pair;
+static bool IsPhiDependentPlace(Place* place) {
+  return ((place->kind() == Place::kField) ||
+          (place->kind() == Place::kVMField)) &&
+        (place->instance() != NULL) &&
+        place->instance()->IsPhi();
+}
 
-  static Key KeyOf(Pair kv) {
-    return kv;
-  }
 
-  static Value ValueOf(Pair kv) {
-    return kv;
-  }
+// For each place that depends on a phi ensure that equivalent places
+// corresponding to phi input are numbered and record outgoing phi moves
+// for each block which establish correspondence between phi dependent place
+// and phi input's place that is flowing in.
+static PhiPlaceMoves* ComputePhiMoves(
+    DirectChainedHashMap<PointerKeyValueTrait<Place> >* map,
+    ZoneGrowableArray<Place*>* places) {
+  PhiPlaceMoves* phi_moves = new PhiPlaceMoves();
 
-  static inline intptr_t Hashcode(Key key) {
-    intptr_t object = 0;
-    intptr_t location = 0;
+  for (intptr_t i = 0; i < places->length(); i++) {
+    Place* place = (*places)[i];
 
-    if (key->IsLoadIndexed()) {
-      LoadIndexedInstr* load_indexed = key->AsLoadIndexed();
-      object = load_indexed->array()->definition()->ssa_temp_index();
-      location = load_indexed->index()->definition()->ssa_temp_index();
-    } else if (key->IsStoreIndexed()) {
-      StoreIndexedInstr* store_indexed = key->AsStoreIndexed();
-      object = store_indexed->array()->definition()->ssa_temp_index();
-      location = store_indexed->index()->definition()->ssa_temp_index();
-    } else if (key->IsLoadField()) {
-      LoadFieldInstr* load_field = key->AsLoadField();
-      object = load_field->instance()->definition()->ssa_temp_index();
-      location = load_field->offset_in_bytes();
-    } else if (key->IsStoreInstanceField()) {
-      StoreInstanceFieldInstr* store_field = key->AsStoreInstanceField();
-      object = store_field->instance()->definition()->ssa_temp_index();
-      location = store_field->field().Offset();
-    } else if (key->IsStoreVMField()) {
-      StoreVMFieldInstr* store_field = key->AsStoreVMField();
-      object = store_field->dest()->definition()->ssa_temp_index();
-      location = store_field->offset_in_bytes();
-    } else if (key->IsLoadStaticField()) {
-      LoadStaticFieldInstr* load_static_field = key->AsLoadStaticField();
-      object = String::Handle(load_static_field->StaticField().name()).Hash();
-    } else if (key->IsStoreStaticField()) {
-      StoreStaticFieldInstr* store_static_field = key->AsStoreStaticField();
-      object = String::Handle(store_static_field->field().name()).Hash();
-    } else {
-      ASSERT(key->IsStoreContext() ||
-             key->IsCurrentContext() ||
-             key->IsChainContext());
-    }
+    if (IsPhiDependentPlace(place)) {
+      PhiInstr* phi = place->instance()->AsPhi();
+      BlockEntryInstr* block = phi->GetBlock();
 
-    return object * 31 + location;
-  }
-
-  static inline bool IsKeyEqual(Pair kv, Key key) {
-    if (kv->Equals(key)) return true;
-
-    if (kv->IsLoadIndexed()) {
-      if (key->IsStoreIndexed()) {
-        LoadIndexedInstr* load_indexed = kv->AsLoadIndexed();
-        StoreIndexedInstr* store_indexed = key->AsStoreIndexed();
-        return load_indexed->array()->Equals(store_indexed->array()) &&
-               load_indexed->index()->Equals(store_indexed->index());
+      if (FLAG_trace_optimization) {
+        OS::Print("phi dependent place %s\n", place->ToCString());
       }
-      return false;
-    }
 
-    if (kv->IsLoadStaticField()) {
-      if (key->IsStoreStaticField()) {
-        LoadStaticFieldInstr* load_static_field = kv->AsLoadStaticField();
-        StoreStaticFieldInstr* store_static_field = key->AsStoreStaticField();
-        return load_static_field->StaticField().raw() ==
-            store_static_field->field().raw();
+      Place input_place(*place);
+      for (intptr_t j = 0; j < phi->InputCount(); j++) {
+        input_place.set_instance(phi->InputAt(j)->definition());
+
+        Place* result = map->Lookup(&input_place);
+        if (result == NULL) {
+          input_place.set_id(places->length());
+          result = Place::Wrap(input_place);
+          map->Insert(result);
+          places->Add(result);
+          if (FLAG_trace_optimization) {
+            OS::Print("  adding place %s as %"Pd"\n",
+                      result->ToCString(),
+                      result->id());
+          }
+        }
+
+        phi_moves->CreateOutgoingMove(block->PredecessorAt(j),
+                                      result->id(),
+                                      place->id());
       }
-      return false;
     }
-
-    if (kv->IsCurrentContext()) {
-      return key->IsStoreContext() || key->IsChainContext();
-    }
-
-    ASSERT(kv->IsLoadField());
-    LoadFieldInstr* load_field = kv->AsLoadField();
-    if (key->IsStoreVMField()) {
-      StoreVMFieldInstr* store_field = key->AsStoreVMField();
-      return load_field->instance()->Equals(store_field->dest()) &&
-             (load_field->offset_in_bytes() == store_field->offset_in_bytes());
-    } else if (key->IsStoreInstanceField()) {
-      StoreInstanceFieldInstr* store_field = key->AsStoreInstanceField();
-      return load_field->instance()->Equals(store_field->instance()) &&
-             (load_field->offset_in_bytes() == store_field->field().Offset());
-    }
-
-    return false;
   }
-};
 
+  return phi_moves;
+}
 
-static AliasedSet* NumberLoadExpressions(
+static AliasedSet* NumberPlaces(
     FlowGraph* graph,
-    DirectChainedHashMap<LoadKeyValueTrait>* map) {
-  intptr_t expr_id = 0;
-
+    DirectChainedHashMap<PointerKeyValueTrait<Place> >* map) {
   // Loads representing different expression ids will be collected and
   // used to build per offset kill sets.
-  GrowableArray<Definition*> loads(10);
+  ZoneGrowableArray<Place*>* places = new ZoneGrowableArray<Place*>(10);
 
+  bool has_loads = false;
   for (BlockIterator it = graph->reverse_postorder_iterator();
        !it.Done();
        it.Advance()) {
@@ -4068,33 +4304,44 @@ static AliasedSet* NumberLoadExpressions(
     for (ForwardInstructionIterator instr_it(block);
          !instr_it.Done();
          instr_it.Advance()) {
-      Definition* defn = instr_it.Current()->AsDefinition();
-      if ((defn == NULL) || !IsLoadEliminationCandidate(defn)) {
+      Instruction* instr = instr_it.Current();
+
+      Place place(instr, &has_loads);
+      if (place.kind() == Place::kNone) {
         continue;
       }
-      Definition* result = map->Lookup(defn);
+
+      Place* result = map->Lookup(&place);
       if (result == NULL) {
-        map->Insert(defn);
-        defn->set_expr_id(expr_id++);
-        loads.Add(defn);
-      } else {
-        defn->set_expr_id(result->expr_id());
+        place.set_id(places->length());
+        result = Place::Wrap(place);
+        map->Insert(result);
+        places->Add(result);
+
+        if (FLAG_trace_optimization) {
+          OS::Print("numbering %s as %"Pd"\n",
+                    result->ToCString(),
+                    result->id());
+        }
       }
 
-      if (FLAG_trace_optimization) {
-        OS::Print("load v%"Pd" is numbered as %"Pd"\n",
-                  defn->ssa_temp_index(),
-                  defn->expr_id());
-      }
+      instr->set_place_id(result->id());
     }
   }
 
-  // Build aliasing sets mapping aliases to loads.
-  AliasedSet* aliased_set = new AliasedSet(expr_id);
-  for (intptr_t i = 0; i < loads.length(); i++) {
-    Definition* defn = loads[i];
-    aliased_set->AddRepresentative(defn);
+  if (!has_loads) {
+    return NULL;
   }
+
+  PhiPlaceMoves* phi_moves = ComputePhiMoves(map, places);
+
+  // Build aliasing sets mapping aliases to loads.
+  AliasedSet* aliased_set = new AliasedSet(places, phi_moves);
+  for (intptr_t i = 0; i < places->length(); i++) {
+    Place* place = (*places)[i];
+    aliased_set->AddRepresentative(place);
+  }
+
   return aliased_set;
 }
 
@@ -4103,7 +4350,7 @@ class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph,
                 AliasedSet* aliased_set,
-                DirectChainedHashMap<LoadKeyValueTrait>* map)
+                DirectChainedHashMap<PointerKeyValueTrait<Place> >* map)
       : graph_(graph),
         map_(map),
         aliased_set_(aliased_set),
@@ -4119,10 +4366,10 @@ class LoadOptimizer : public ValueObject {
         forwarded_(false) {
     const intptr_t num_blocks = graph_->preorder().length();
     for (intptr_t i = 0; i < num_blocks; i++) {
-      out_.Add(new BitVector(aliased_set_->max_expr_id()));
-      gen_.Add(new BitVector(aliased_set_->max_expr_id()));
-      kill_.Add(new BitVector(aliased_set_->max_expr_id()));
-      in_.Add(new BitVector(aliased_set_->max_expr_id()));
+      out_.Add(NULL);
+      gen_.Add(new BitVector(aliased_set_->max_place_id()));
+      kill_.Add(new BitVector(aliased_set_->max_place_id()));
+      in_.Add(new BitVector(aliased_set_->max_place_id()));
 
       exposed_values_.Add(NULL);
       out_values_.Add(NULL);
@@ -4131,10 +4378,13 @@ class LoadOptimizer : public ValueObject {
 
   static bool OptimizeGraph(FlowGraph* graph) {
     ASSERT(FLAG_load_cse);
+    if (FLAG_trace_load_optimization) {
+      FlowGraphPrinter::PrintGraph("Before LoadOptimizer", graph);
+    }
 
-    DirectChainedHashMap<LoadKeyValueTrait> map;
-    AliasedSet* aliased_set = NumberLoadExpressions(graph, &map);
-    if (!aliased_set->IsEmpty()) {
+    DirectChainedHashMap<PointerKeyValueTrait<Place> > map;
+    AliasedSet* aliased_set = NumberPlaces(graph, &map);
+    if ((aliased_set != NULL) && !aliased_set->IsEmpty()) {
       // If any loads were forwarded return true from Optimize to run load
       // forwarding again. This will allow to forward chains of loads.
       // This is especially important for context variables as they are built
@@ -4150,12 +4400,18 @@ class LoadOptimizer : public ValueObject {
  private:
   bool Optimize() {
     ComputeInitialSets();
+    ComputeOutSets();
     ComputeOutValues();
     if (graph_->is_licm_allowed()) {
       MarkLoopInvariantLoads();
     }
     ForwardLoads();
     EmitPhis();
+
+    if (FLAG_trace_load_optimization) {
+      FlowGraphPrinter::PrintGraph("After LoadOptimizer", graph_);
+    }
+
     return forwarded_;
   }
 
@@ -4166,6 +4422,8 @@ class LoadOptimizer : public ValueObject {
   // Loads that are locally redundant will be replaced as we go through
   // instructions.
   void ComputeInitialSets() {
+    BitVector* forwarded_loads = new BitVector(aliased_set_->max_place_id());
+
     for (BlockIterator block_it = graph_->reverse_postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
@@ -4186,31 +4444,36 @@ class LoadOptimizer : public ValueObject {
         const Alias alias = aliased_set_->ComputeAliasForStore(instr);
         if (!alias.IsNone()) {
           // Interfering stores kill only loads from the same offset.
-          if (aliased_set_->Contains(alias)) {
-            BitVector* killed = aliased_set_->Get(alias);
+          BitVector* killed = aliased_set_->Get(alias);
+
+          if (killed != NULL) {
             kill->AddAll(killed);
             // There is no need to clear out_values when clearing GEN set
             // because only those values that are in the GEN set
             // will ever be used.
             gen->RemoveAll(killed);
+          }
 
-            // Only forward stores to normal arrays and float64 arrays
-            // to loads because other array stores (intXX/uintXX/float32)
-            // may implicitly convert the value stored.
-            StoreIndexedInstr* array_store = instr->AsStoreIndexed();
-            if (array_store == NULL ||
-                array_store->class_id() == kArrayCid ||
-                array_store->class_id() == kTypedDataFloat64ArrayCid) {
-              Definition* load = map_->Lookup(instr);
-              if (load != NULL) {
-                // Store has a corresponding numbered load. Try forwarding
-                // stored value to it.
-                gen->Add(load->expr_id());
-                if (out_values == NULL) out_values = CreateBlockOutValues();
-                (*out_values)[load->expr_id()] = GetStoredValue(instr);
-              }
+          // Only forward stores to normal arrays and float64 arrays
+          // to loads because other array stores (intXX/uintXX/float32)
+          // may implicitly convert the value stored.
+          StoreIndexedInstr* array_store = instr->AsStoreIndexed();
+          if (array_store == NULL ||
+              array_store->class_id() == kArrayCid ||
+              array_store->class_id() == kTypedDataFloat64ArrayCid) {
+            bool is_load = false;
+            Place store_place(instr, &is_load);
+            ASSERT(!is_load);
+            Place* place = map_->Lookup(&store_place);
+            if (place != NULL) {
+              // Store has a corresponding numbered place that might have a
+              // load. Try forwarding stored value to it.
+              gen->Add(place->id());
+              if (out_values == NULL) out_values = CreateBlockOutValues();
+              (*out_values)[place->id()] = GetStoredValue(instr);
             }
           }
+
           ASSERT(!instr->IsDefinition() ||
                  !IsLoadEliminationCandidate(instr->AsDefinition()));
           continue;
@@ -4260,9 +4523,9 @@ class LoadOptimizer : public ValueObject {
             LoadFieldInstr* load = use->instruction()->AsLoadField();
             if (load != NULL) {
               // Found a load. Initialize current value of the field to null.
-              gen->Add(load->expr_id());
+              gen->Add(load->place_id());
               if (out_values == NULL) out_values = CreateBlockOutValues();
-              (*out_values)[load->expr_id()] = graph_->constant_null();
+              (*out_values)[load->place_id()] = graph_->constant_null();
             }
           }
           continue;
@@ -4272,12 +4535,12 @@ class LoadOptimizer : public ValueObject {
           continue;
         }
 
-        const intptr_t expr_id = defn->expr_id();
-        if (gen->Contains(expr_id)) {
+        const intptr_t place_id = defn->place_id();
+        if (gen->Contains(place_id)) {
           // This is a locally redundant load.
-          ASSERT((out_values != NULL) && ((*out_values)[expr_id] != NULL));
+          ASSERT((out_values != NULL) && ((*out_values)[place_id] != NULL));
 
-          Definition* replacement = (*out_values)[expr_id];
+          Definition* replacement = (*out_values)[place_id];
           EnsureSSATempIndex(graph_, defn, replacement);
           if (FLAG_trace_optimization) {
             OS::Print("Replacing load v%"Pd" with v%"Pd"\n",
@@ -4289,7 +4552,7 @@ class LoadOptimizer : public ValueObject {
           instr_it.RemoveCurrentFromGraph();
           forwarded_ = true;
           continue;
-        } else if (!kill->Contains(expr_id)) {
+        } else if (!kill->Contains(place_id)) {
           // This is an exposed load: it is the first representative of a
           // given expression id and it is not killed on the path from
           // the block entry.
@@ -4297,33 +4560,60 @@ class LoadOptimizer : public ValueObject {
             static const intptr_t kMaxExposedValuesInitialSize = 5;
             exposed_values = new ZoneGrowableArray<Definition*>(
                 Utils::Minimum(kMaxExposedValuesInitialSize,
-                               aliased_set_->max_expr_id()));
+                               aliased_set_->max_place_id()));
           }
 
           exposed_values->Add(defn);
         }
 
-        gen->Add(expr_id);
+        gen->Add(place_id);
 
         if (out_values == NULL) out_values = CreateBlockOutValues();
-        (*out_values)[expr_id] = defn;
+        (*out_values)[place_id] = defn;
       }
 
-      out_[preorder_number]->CopyFrom(gen);
+      PhiPlaceMoves::MovesList phi_moves =
+          aliased_set_->phi_moves()->GetOutgoingMoves(block);
+      if (phi_moves != NULL) {
+        PerformPhiMoves(phi_moves, gen, forwarded_loads);
+      }
+
       exposed_values_[preorder_number] = exposed_values;
       out_values_[preorder_number] = out_values;
     }
   }
 
-  // Compute OUT sets and corresponding out_values mappings by propagating them
-  // iteratively until fix point is reached.
-  // No replacement is done at this point and thus any out_value[expr_id] is
-  // changed at most once: from NULL to an actual value.
-  // When merging incoming loads we might need to create a phi.
-  // These phis are not inserted at the graph immediately because some of them
-  // might become redundant after load forwarding is done.
-  void ComputeOutValues() {
-    BitVector* temp = new BitVector(aliased_set_->max_expr_id());
+  static void PerformPhiMoves(PhiPlaceMoves::MovesList phi_moves,
+                              BitVector* out,
+                              BitVector* forwarded_loads) {
+    forwarded_loads->Clear();
+
+    for (intptr_t i = 0; i < phi_moves->length(); i++) {
+      const intptr_t from = (*phi_moves)[i].from();
+      const intptr_t to = (*phi_moves)[i].to();
+      if (from == to) continue;
+
+      if (out->Contains(from)) {
+        forwarded_loads->Add(to);
+      }
+    }
+
+    for (intptr_t i = 0; i < phi_moves->length(); i++) {
+      const intptr_t from = (*phi_moves)[i].from();
+      const intptr_t to = (*phi_moves)[i].to();
+      if (from == to) continue;
+
+      out->Remove(to);
+    }
+
+    out->AddAll(forwarded_loads);
+  }
+
+  // Compute OUT sets by propagating them iteratively until fix point
+  // is reached.
+  void ComputeOutSets() {
+    BitVector* temp = new BitVector(aliased_set_->max_place_id());
+    BitVector* forwarded_loads = new BitVector(aliased_set_->max_place_id());
 
     bool changed = true;
     while (changed) {
@@ -4341,72 +4631,158 @@ class LoadOptimizer : public ValueObject {
         BitVector* block_kill = kill_[preorder_number];
         BitVector* block_gen = gen_[preorder_number];
 
-        if (FLAG_trace_optimization) {
-          OS::Print("B%"Pd"", block->block_id());
-          block_in->Print();
-          block_out->Print();
-          block_kill->Print();
-          block_gen->Print();
-          OS::Print("\n");
-        }
-
-        ZoneGrowableArray<Definition*>* block_out_values =
-            out_values_[preorder_number];
-
         // Compute block_in as the intersection of all out(p) where p
         // is a predecessor of the current block.
         if (block->IsGraphEntry()) {
           temp->Clear();
         } else {
-          // TODO(vegorov): this can be optimized for the case of a single
-          // predecessor.
-          // TODO(vegorov): this can be reordered to reduce amount of operations
-          // temp->CopyFrom(first_predecessor)
           temp->SetAll();
           ASSERT(block->PredecessorCount() > 0);
           for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
             BlockEntryInstr* pred = block->PredecessorAt(i);
             BitVector* pred_out = out_[pred->preorder_number()];
-            temp->Intersect(pred_out);
+            if (pred_out != NULL) {
+              temp->Intersect(pred_out);
+            }
           }
         }
 
-        if (!temp->Equals(*block_in)) {
+        if (!temp->Equals(*block_in) || (block_out == NULL)) {
           // If IN set has changed propagate the change to OUT set.
           block_in->CopyFrom(temp);
-          if (block_out->KillAndAdd(block_kill, block_in)) {
-            // If OUT set has changed then we have new values available out of
-            // the block. Compute these values creating phi where necessary.
-            for (BitVector::Iterator it(block_out);
-                 !it.Done();
-                 it.Advance()) {
-              const intptr_t expr_id = it.Current();
 
-              if (block_out_values == NULL) {
-                out_values_[preorder_number] = block_out_values =
-                    CreateBlockOutValues();
-              }
+          temp->RemoveAll(block_kill);
+          temp->AddAll(block_gen);
 
-              if ((*block_out_values)[expr_id] == NULL) {
-                ASSERT(block->PredecessorCount() > 0);
-                (*block_out_values)[expr_id] =
-                    MergeIncomingValues(block, expr_id);
-              }
+          PhiPlaceMoves::MovesList phi_moves =
+              aliased_set_->phi_moves()->GetOutgoingMoves(block);
+          if (phi_moves != NULL) {
+            PerformPhiMoves(phi_moves, temp, forwarded_loads);
+          }
+
+          if ((block_out == NULL) || !block_out->Equals(*temp)) {
+            if (block_out == NULL) {
+              block_out = out_[preorder_number] =
+                  new BitVector(aliased_set_->max_place_id());
             }
+            block_out->CopyFrom(temp);
             changed = true;
           }
         }
-
-        if (FLAG_trace_optimization) {
-          OS::Print("after B%"Pd"", block->block_id());
-          block_in->Print();
-          block_out->Print();
-          block_kill->Print();
-          block_gen->Print();
-          OS::Print("\n");
-        }
       }
     }
+  }
+
+  // Compute out_values mappings by propagating them in reverse postorder once
+  // through the graph. Generate phis on back edges where eager merge is
+  // impossible.
+  // No replacement is done at this point and thus any out_value[place_id] is
+  // changed at most once: from NULL to an actual value.
+  // When merging incoming loads we might need to create a phi.
+  // These phis are not inserted at the graph immediately because some of them
+  // might become redundant after load forwarding is done.
+  void ComputeOutValues() {
+    GrowableArray<PhiInstr*> pending_phis(5);
+    ZoneGrowableArray<Definition*>* temp_forwarded_values = NULL;
+
+    for (BlockIterator block_it = graph_->reverse_postorder_iterator();
+         !block_it.Done();
+         block_it.Advance()) {
+      BlockEntryInstr* block = block_it.Current();
+
+      const bool can_merge_eagerly = CanMergeEagerly(block);
+
+      const intptr_t preorder_number = block->preorder_number();
+
+      ZoneGrowableArray<Definition*>* block_out_values =
+          out_values_[preorder_number];
+
+
+      // If OUT set has changed then we have new values available out of
+      // the block. Compute these values creating phi where necessary.
+      for (BitVector::Iterator it(out_[preorder_number]);
+           !it.Done();
+           it.Advance()) {
+        const intptr_t place_id = it.Current();
+
+        if (block_out_values == NULL) {
+          out_values_[preorder_number] = block_out_values =
+              CreateBlockOutValues();
+        }
+
+        if ((*block_out_values)[place_id] == NULL) {
+          ASSERT(block->PredecessorCount() > 0);
+          Definition* in_value = can_merge_eagerly ?
+              MergeIncomingValues(block, place_id) : NULL;
+          if ((in_value == NULL) &&
+              (in_[preorder_number]->Contains(place_id))) {
+            PhiInstr* phi = new PhiInstr(block->AsJoinEntry(),
+                                         block->PredecessorCount());
+            phi->set_place_id(place_id);
+            pending_phis.Add(phi);
+            in_value = phi;
+          }
+          (*block_out_values)[place_id] = in_value;
+        }
+      }
+
+      // If the block has outgoing phi moves perform them. Use temporary list
+      // of values to ensure that cyclic moves are performed correctly.
+      PhiPlaceMoves::MovesList phi_moves =
+          aliased_set_->phi_moves()->GetOutgoingMoves(block);
+      if ((phi_moves != NULL) && (block_out_values != NULL)) {
+        if (temp_forwarded_values == NULL) {
+          temp_forwarded_values = CreateBlockOutValues();
+        }
+
+        for (intptr_t i = 0; i < phi_moves->length(); i++) {
+          const intptr_t from = (*phi_moves)[i].from();
+          const intptr_t to = (*phi_moves)[i].to();
+          if (from == to) continue;
+
+          (*temp_forwarded_values)[to] = (*block_out_values)[from];
+        }
+
+        for (intptr_t i = 0; i < phi_moves->length(); i++) {
+          const intptr_t from = (*phi_moves)[i].from();
+          const intptr_t to = (*phi_moves)[i].to();
+          if (from == to) continue;
+
+          (*block_out_values)[to] = (*temp_forwarded_values)[to];
+        }
+      }
+
+      if (FLAG_trace_load_optimization) {
+        OS::Print("B%"Pd"\n", block->block_id());
+        OS::Print("  IN: ");
+        aliased_set_->PrintSet(in_[preorder_number]);
+        OS::Print("\n");
+
+        OS::Print("  KILL: ");
+        aliased_set_->PrintSet(kill_[preorder_number]);
+        OS::Print("\n");
+
+        OS::Print("  OUT: ");
+        aliased_set_->PrintSet(out_[preorder_number]);
+        OS::Print("\n");
+      }
+    }
+
+    // All blocks were visited. Fill pending phis with inputs
+    // that flow on back edges.
+    for (intptr_t i = 0; i < pending_phis.length(); i++) {
+      FillPhiInputs(pending_phis[i]);
+    }
+  }
+
+  bool CanMergeEagerly(BlockEntryInstr* block) {
+    for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
+      BlockEntryInstr* pred = block->PredecessorAt(i);
+      if (pred->postorder_number() < block->postorder_number()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   void MarkLoopInvariantLoads() {
@@ -4424,7 +4800,7 @@ class LoadOptimizer : public ValueObject {
         continue;
       }
 
-      BitVector* loop_gen = new BitVector(aliased_set_->max_expr_id());
+      BitVector* loop_gen = new BitVector(aliased_set_->max_place_id());
       for (BitVector::Iterator loop_it(header->loop_info());
            !loop_it.Done();
            loop_it.Advance()) {
@@ -4441,8 +4817,8 @@ class LoadOptimizer : public ValueObject {
 
       if (FLAG_trace_optimization) {
         for (BitVector::Iterator it(loop_gen); !it.Done(); it.Advance()) {
-          OS::Print("load %"Pd" is loop invariant for B%"Pd"\n",
-                    it.Current(),
+          OS::Print("place %s is loop invariant for B%"Pd"\n",
+                    aliased_set_->places()[it.Current()]->ToCString(),
                     header->block_id());
         }
       }
@@ -4456,41 +4832,53 @@ class LoadOptimizer : public ValueObject {
   // Compute incoming value for the given expression id.
   // Will create a phi if different values are incoming from multiple
   // predecessors.
-  Definition* MergeIncomingValues(BlockEntryInstr* block, intptr_t expr_id) {
+  Definition* MergeIncomingValues(BlockEntryInstr* block, intptr_t place_id) {
     // First check if the same value is coming in from all predecessors.
+    static Definition* const kDifferentValuesMarker =
+        reinterpret_cast<Definition*>(-1);
     Definition* incoming = NULL;
     for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       ZoneGrowableArray<Definition*>* pred_out_values =
           out_values_[pred->preorder_number()];
-      if (incoming == NULL) {
-        incoming = (*pred_out_values)[expr_id];
-      } else if (incoming != (*pred_out_values)[expr_id]) {
-        incoming = NULL;
-        break;
+      if ((pred_out_values == NULL) || ((*pred_out_values)[place_id] == NULL)) {
+        return NULL;
+      } else if (incoming == NULL) {
+        incoming = (*pred_out_values)[place_id];
+      } else if (incoming != (*pred_out_values)[place_id]) {
+        incoming = kDifferentValuesMarker;
       }
     }
 
-    if (incoming != NULL) {
+    if (incoming != kDifferentValuesMarker) {
+      ASSERT(incoming != NULL);
       return incoming;
     }
 
     // Incoming values are different. Phi is required to merge.
     PhiInstr* phi = new PhiInstr(
         block->AsJoinEntry(), block->PredecessorCount());
+    phi->set_place_id(place_id);
+    FillPhiInputs(phi);
+    return phi;
+  }
+
+  void FillPhiInputs(PhiInstr* phi) {
+    BlockEntryInstr* block = phi->GetBlock();
+    const intptr_t place_id = phi->place_id();
 
     for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
       BlockEntryInstr* pred = block->PredecessorAt(i);
       ZoneGrowableArray<Definition*>* pred_out_values =
           out_values_[pred->preorder_number()];
-      ASSERT((*pred_out_values)[expr_id] != NULL);
+      ASSERT((*pred_out_values)[place_id] != NULL);
 
       // Sets of outgoing values are not linked into use lists so
       // they might contain values that were replaced and removed
       // from the graph by this iteration.
       // To prevent using them we additionally mark definitions themselves
       // as replaced and store a pointer to the replacement.
-      Definition* replacement = (*pred_out_values)[expr_id]->Replacement();
+      Definition* replacement = (*pred_out_values)[place_id]->Replacement();
       Value* input = new Value(replacement);
       phi->SetInputAt(i, input);
       replacement->AddInputUse(input);
@@ -4499,7 +4887,12 @@ class LoadOptimizer : public ValueObject {
     phi->set_ssa_temp_index(graph_->alloc_ssa_temp_index());
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
-    return phi;
+    if (FLAG_trace_load_optimization) {
+      OS::Print("created pending phi %s for %s at B%"Pd"\n",
+                phi->ToCString(),
+                aliased_set_->places()[place_id]->ToCString(),
+                block->block_id());
+    }
   }
 
   // Iterate over basic blocks and replace exposed loads with incoming
@@ -4518,9 +4911,10 @@ class LoadOptimizer : public ValueObject {
 
       for (intptr_t i = 0; i < loads->length(); i++) {
         Definition* load = (*loads)[i];
-        if (!in->Contains(load->expr_id())) continue;  // No incoming value.
+        if (!in->Contains(load->place_id())) continue;  // No incoming value.
 
-        Definition* replacement = MergeIncomingValues(block, load->expr_id());
+        Definition* replacement = MergeIncomingValues(block, load->place_id());
+        ASSERT(replacement != NULL);
 
         // Sets of outgoing values are not linked into use lists so
         // they might contain values that were replace and removed
@@ -4600,16 +4994,117 @@ class LoadOptimizer : public ValueObject {
     return true;
   }
 
+  bool AddPhiPairToWorklist(PhiInstr* a, PhiInstr* b) {
+    // Can't compare two phis from different blocks.
+    if (a->block() != b->block()) {
+      return false;
+    }
+
+    // If a is already in the worklist check if it is being compared to b.
+    // Give up if it is not.
+    if (in_worklist_->Contains(a->ssa_temp_index())) {
+      for (intptr_t i = 0; i < worklist_.length(); i += 2) {
+        if (a == worklist_[i]) {
+          return (b == worklist_[i + 1]);
+        }
+      }
+      UNREACHABLE();
+    }
+
+    worklist_.Add(a);
+    worklist_.Add(b);
+    in_worklist_->Add(a->ssa_temp_index());
+    return true;
+  }
+
+  // Replace the given phi with another if they are equal.
+  // Returns true if succeeds.
+  bool ReplacePhiWith(PhiInstr* phi, PhiInstr* replacement) {
+    ASSERT(phi->InputCount() == replacement->InputCount());
+    ASSERT(phi->block() == replacement->block());
+
+    worklist_.Clear();
+    if (in_worklist_ == NULL) {
+      in_worklist_ = new BitVector(graph_->current_ssa_temp_index());
+    } else {
+      in_worklist_->Clear();
+    }
+
+    // During the comparison worklist contains pairs of phis to be compared.
+    AddPhiPairToWorklist(phi, replacement);
+
+    // Process the worklist. It might grow during each comparison step.
+    for (intptr_t i = 0; i < worklist_.length(); i += 2) {
+      PhiInstr* a = worklist_[i];
+      PhiInstr* b = worklist_[i + 1];
+
+      // Compare phi inputs.
+      for (intptr_t j = 0; j < a->InputCount(); j++) {
+        Definition* inputA = a->InputAt(j)->definition();
+        Definition* inputB = b->InputAt(j)->definition();
+
+        if (inputA != inputB) {
+          // If inputs are unequal by they are phis then add them to
+          // the worklist for recursive comparison.
+          if (inputA->IsPhi() && inputB->IsPhi() &&
+              AddPhiPairToWorklist(inputA->AsPhi(), inputB->AsPhi())) {
+            continue;
+          }
+          return false;  // Not equal.
+        }
+      }
+    }
+
+    // At this point worklist contains pairs of equal phis. Replace the first
+    // phi in the pair with the second.
+    for (intptr_t i = 0; i < worklist_.length(); i += 2) {
+      PhiInstr* a = worklist_[i];
+      PhiInstr* b = worklist_[i + 1];
+      a->ReplaceUsesWith(b);
+      if (a->is_alive()) {
+        a->mark_dead();
+        a->block()->RemovePhi(a);
+      }
+    }
+
+    return true;
+  }
+
+  // Insert the given phi into the graph. Attempt to find an equal one in the
+  // target block first.
+  // Returns true if the phi was inserted and false if it was replaced.
+  bool EmitPhi(PhiInstr* phi) {
+    for (PhiIterator it(phi->block()); !it.Done(); it.Advance()) {
+      if (ReplacePhiWith(phi, it.Current())) {
+        return false;
+      }
+    }
+
+    phi->mark_alive();
+    phi->block()->InsertPhi(phi);
+    return true;
+  }
+
   // Phis have not yet been inserted into the graph but they have uses of
   // their inputs.  Insert the non-redundant ones and clear the input uses
   // of the redundant ones.
   void EmitPhis() {
+    // First eliminate all redundant phis.
     for (intptr_t i = 0; i < phis_.length(); i++) {
       PhiInstr* phi = phis_[i];
-      if (phi->HasUses() && !EliminateRedundantPhi(phi)) {
-        phi->mark_alive();
-        phi->block()->InsertPhi(phi);
-      } else {
+      if (!phi->HasUses() || EliminateRedundantPhi(phi)) {
+        for (intptr_t j = phi->InputCount() - 1; j >= 0; --j) {
+          phi->InputAt(j)->RemoveFromUseList();
+        }
+        phis_[i] = NULL;
+      }
+    }
+
+    // Now emit phis or replace them with equal phis already present in the
+    // graph.
+    for (intptr_t i = 0; i < phis_.length(); i++) {
+      PhiInstr* phi = phis_[i];
+      if ((phi != NULL) && (!phi->HasUses() || !EmitPhi(phi))) {
         for (intptr_t j = phi->InputCount() - 1; j >= 0; --j) {
           phi->InputAt(j)->RemoveFromUseList();
         }
@@ -4619,15 +5114,15 @@ class LoadOptimizer : public ValueObject {
 
   ZoneGrowableArray<Definition*>* CreateBlockOutValues() {
     ZoneGrowableArray<Definition*>* out =
-        new ZoneGrowableArray<Definition*>(aliased_set_->max_expr_id());
-    for (intptr_t i = 0; i < aliased_set_->max_expr_id(); i++) {
+        new ZoneGrowableArray<Definition*>(aliased_set_->max_place_id());
+    for (intptr_t i = 0; i < aliased_set_->max_place_id(); i++) {
       out->Add(NULL);
     }
     return out;
   }
 
   FlowGraph* graph_;
-  DirectChainedHashMap<LoadKeyValueTrait>* map_;
+  DirectChainedHashMap<PointerKeyValueTrait<Place> >* map_;
 
   // Mapping between field offsets in words and expression ids of loads from
   // that offset.

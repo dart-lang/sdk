@@ -937,6 +937,16 @@ void JoinEntryInstr::InsertPhi(PhiInstr* phi) {
   phis_->Add(phi);
 }
 
+void JoinEntryInstr::RemovePhi(PhiInstr* phi) {
+  ASSERT(phis_ != NULL);
+  for (intptr_t index = 0; index < phis_->length(); ++index) {
+    if (phi == (*phis_)[index]) {
+      (*phis_)[index] = phis_->Last();
+      phis_->RemoveLast();
+      return;
+    }
+  }
+}
 
 void JoinEntryInstr::RemoveDeadPhis(Definition* replacement) {
   if (phis_ == NULL) return;

@@ -37,6 +37,7 @@ void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
   FlowGraphPrinter printer(*flow_graph);
   printer.PrintBlocks();
   OS::Print("*** END CFG\n");
+  fflush(stdout);
 }
 
 
@@ -131,8 +132,6 @@ const char* CompileType::ToCString() const {
 }
 
 
-
-
 static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
   f->Print(" IC[%"Pd": ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
@@ -168,6 +167,14 @@ static void PrintUse(BufferFormatter* f, const Definition& definition) {
       f->Print("t%"Pd, definition.temp_index());
     }
   }
+}
+
+
+const char* Instruction::ToCString() const {
+  char buffer[1024];
+  BufferFormatter f(buffer, sizeof(buffer));
+  PrintTo(&f);
+  return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
 }
 
 
