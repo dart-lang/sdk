@@ -7326,6 +7326,10 @@ class Document extends Node
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/PageVisibility/Overview.html#dom-document-visibilitystate
   String get $dom_webkitVisibilityState native "Document_webkitVisibilityState_Getter";
 
+  @DomName('Document.adoptNode')
+  @DocsEditable
+  Node adoptNode(Node source) native "Document_adoptNode_Callback";
+
   /// Use the [Range] constructor instead.
   @DomName('Document.caretRangeFromPoint')
   @DocsEditable
@@ -7435,6 +7439,17 @@ class Document extends Node
   @DomName('Document.getElementsByTagName')
   @DocsEditable
   List<Node> getElementsByTagName(String tagname) native "Document_getElementsByTagName_Callback";
+
+  Node importNode(Node importedNode, [bool deep]) {
+    if (deep != null) {
+      return _importNode_1(importedNode, deep);
+    }
+    return _importNode_2(importedNode);
+  }
+
+  Node _importNode_1(importedNode, deep) native "Document__importNode_1_Callback";
+
+  Node _importNode_2(importedNode) native "Document__importNode_2_Callback";
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable
