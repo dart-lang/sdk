@@ -130,6 +130,7 @@ void FUNCTION_NAME(Socket_Available)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
   Dart_EnterScope();
+  static bool short_socket_reads = Dart_IsVMFlagSet("short_socket_read");
   Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
   intptr_t socket = 0;
   Dart_Handle err = Socket::GetSocketIdNativeField(socket_obj, &socket);
@@ -141,6 +142,9 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
     if (DartUtils::GetInt64Value(length_obj, &length)) {
       if (length == -1 || available < length) {
         length = available;
+      }
+      if (short_socket_reads) {
+        length = (length + 1) / 2;
       }
       uint8_t* buffer = NULL;
       Dart_Handle result = IOBuffer::Allocate(length, &buffer);
@@ -169,57 +173,6 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, Dart_Null());
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-  }
-
-  Dart_ExitScope();
-}
-
-
-void FUNCTION_NAME(Socket_ReadList)(Dart_NativeArguments args) {
-  Dart_EnterScope();
-  static bool short_socket_reads = Dart_IsVMFlagSet("short_socket_read");
-  Dart_Handle socket_obj = Dart_GetNativeArgument(args, 0);
-  intptr_t socket = 0;
-  Dart_Handle err = Socket::GetSocketIdNativeField(socket_obj, &socket);
-  if (Dart_IsError(err)) Dart_PropagateError(err);
-  Dart_Handle buffer_obj = Dart_GetNativeArgument(args, 1);
-  int64_t offset = 0;
-  int64_t length = 0;
-  Dart_Handle offset_obj = Dart_GetNativeArgument(args, 2);
-  Dart_Handle length_obj = Dart_GetNativeArgument(args, 3);
-  if (Dart_IsList(buffer_obj) &&
-      DartUtils::GetInt64Value(offset_obj, &offset) &&
-      DartUtils::GetInt64Value(length_obj, &length)) {
-    intptr_t buffer_len = 0;
-    Dart_Handle result = Dart_ListLength(buffer_obj, &buffer_len);
-    if (Dart_IsError(result)) {
-      Dart_PropagateError(result);
-    }
-    ASSERT((offset + length) <= buffer_len);
-    if (short_socket_reads) {
-      length = (length + 1) / 2;
-    }
-    uint8_t* buffer = new uint8_t[length];
-    intptr_t bytes_read = Socket::Read(socket, buffer, length);
-    if (bytes_read > 0) {
-      Dart_Handle result =
-          Dart_ListSetAsBytes(buffer_obj, offset, buffer, bytes_read);
-      if (Dart_IsError(result)) {
-        delete[] buffer;
-        Dart_PropagateError(result);
-      }
-    }
-    delete[] buffer;
-    if (bytes_read >= 0) {
-      Dart_SetReturnValue(args, Dart_NewInteger(bytes_read));
-    } else {
-      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-    }
-  } else {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_Handle err = DartUtils::NewDartOSError(&os_error);
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
   }
 
   Dart_ExitScope();
