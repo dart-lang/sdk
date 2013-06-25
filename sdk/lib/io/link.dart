@@ -155,12 +155,16 @@ class _Link extends FileSystemEntity implements Link {
       return target;
     }
     if (!(target.length > 3 && target[1] == ':' && target[2] == '\\')) {
-      target = new File(target).fullPathSync();
+      try {
+        target = new File(target).fullPathSync();
+      } catch (e) {
+        throw new LinkException('Could not locate target', target, e.osError);
+      }
     }
     if (target.length > 3 && target[1] == ':' && target[2] == '\\') {
       target = '\\??\\$target';
     } else {
-      throw new ArgumentError(
+      throw new LinkException(
           'Target $target of Link.create on Windows cannot be converted' +
           ' to start with a drive letter.  Unexpected error.');
     }
