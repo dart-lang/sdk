@@ -141,12 +141,17 @@ class DartUtils {
   static Dart_Handle NewDartOSError();
   // Create a new Dart OSError object with the provided OS error.
   static Dart_Handle NewDartOSError(OSError* os_error);
-  static Dart_Handle NewDartSocketException(const char* message,
-                                            Dart_Handle os_error);
+  static Dart_Handle NewDartExceptionWithOSError(const char* library_url,
+                                                 const char* exception_name,
+                                                 const char* message,
+                                                 Dart_Handle os_error);
   static Dart_Handle NewDartExceptionWithMessage(const char* library_url,
                                                  const char* exception_name,
                                                  const char* message);
   static Dart_Handle NewDartArgumentError(const char* message);
+  static Dart_Handle NewDartIOException(const char* exception_name,
+                                        const char* message,
+                                        Dart_Handle os_error);
 
   // Create a new Dart String object from a C String.
   static Dart_Handle NewString(const char* str) {

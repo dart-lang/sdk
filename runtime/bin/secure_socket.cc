@@ -50,6 +50,38 @@ NativeService SSLFilter::filter_service_("FilterService", ProcessFilter, 16);
 
 static const int kSSLFilterNativeFieldIndex = 0;
 
+
+/* Handle an error reported from the NSS library. */
+static void ThrowPRException(const char* exception_type,
+                             const char* message,
+                             bool free_message = false) {
+  PRErrorCode error_code = PR_GetError();
+  const char* error_message = PR_ErrorToString(error_code, PR_LANGUAGE_EN);
+  OSError os_error_struct(error_code, error_message, OSError::kNSS);
+  Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
+  Dart_Handle exception =
+      DartUtils::NewDartIOException(exception_type, message, os_error);
+  if (free_message) {
+    free(const_cast<char*>(message));
+  }
+  Dart_ThrowException(exception);
+}
+
+
+static void ThrowCertificateException(const char* format,
+                                      const char* certificate_name) {
+  int length = strlen(certificate_name);
+  length += strlen(format);
+  char* message = reinterpret_cast<char*>(malloc(length + 1));
+  if (message == NULL) {
+    FATAL("Out of memory formatting CertificateException for throwing");
+  }
+  snprintf(message, length + 1, format, certificate_name);
+  message[length] = '\0';
+  ThrowPRException("CertificateException", message, true);
+}
+
+
 static SSLFilter* GetFilter(Dart_NativeArguments args) {
   SSLFilter* filter;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
@@ -299,6 +331,9 @@ void SSLFilter::ProcessAllBuffers(int starts[kNumBuffers],
     int start = starts[i];
     int end = ends[i];
     int size = isBufferEncrypted(i) ? encrypted_buffer_size_ : buffer_size_;
+    if (start < 0 || end < 0 || start >= size || end >= size) {
+      FATAL("Out-of-bounds internal buffer access in dart:io SecureSocket");
+    }
     switch (i) {
       case kReadPlaintext:
       case kWriteEncrypted:
@@ -369,7 +404,8 @@ static Dart_Handle X509FromCertificate(CERTCertificate* certificate) {
   SECStatus status =
       CERT_GetCertTimes(certificate, &start_validity, &end_validity);
   if (status != SECSuccess) {
-    ThrowPRException("Cannot get validity times from certificate");
+    ThrowPRException("CertificateException",
+                     "Cannot get validity times from certificate");
   }
   int64_t start_epoch_ms = start_validity / PR_USEC_PER_MSEC;
   int64_t end_epoch_ms = end_validity / PR_USEC_PER_MSEC;
@@ -433,13 +469,11 @@ void SSLFilter::InitializeBuffers(Dart_Handle dart_this) {
                     DartUtils::NewString("ENCRYPTED_SIZE")));
   int64_t encrypted_buffer_size =
       DartUtils::GetIntegerValue(dart_encrypted_buffer_size);
-  if (buffer_size <= 0 || buffer_size > 1024 * 1024) {
-    Dart_ThrowException(
-        DartUtils::NewString("Invalid buffer size in _ExternalBuffer"));
+  if (buffer_size <= 0 || buffer_size > 1 * MB) {
+    FATAL("Invalid buffer size in _ExternalBuffer");
   }
-  if (encrypted_buffer_size <= 0 || encrypted_buffer_size > 1024 * 1024) {
-    Dart_ThrowException(DartUtils::NewString(
-        "Invalid encrypted buffer size in _ExternalBuffer"));
+  if (encrypted_buffer_size <= 0 || encrypted_buffer_size > 1 * MB) {
+    FATAL("Invalid encrypted buffer size in _ExternalBuffer");
   }
   buffer_size_ = static_cast<int>(buffer_size);
   encrypted_buffer_size_ = static_cast<int>(encrypted_buffer_size);
@@ -503,14 +537,16 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
       status = NSS_NoDB_Init(NULL);
       if (status != SECSuccess) {
         mutex_.Unlock();  // MutexLocker destructor not called when throwing.
-        ThrowPRException("Failed NSS_NoDB_Init call.");
+        ThrowPRException("TlsException",
+                         "Failed NSS_NoDB_Init call.");
       }
       if (use_builtin_root_certificates) {
         SECMODModule* module = SECMOD_LoadUserModule(
             const_cast<char*>(builtin_roots_module), NULL, PR_FALSE);
         if (!module) {
           mutex_.Unlock();  // MutexLocker destructor not called when throwing.
-          ThrowPRException("Failed to load builtin root certificates.");
+          ThrowPRException("TlsException",
+                           "Failed to load builtin root certificates.");
         }
       }
     } else {
@@ -525,7 +561,8 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
                               init_flags);
       if (status != SECSuccess) {
         mutex_.Unlock();  // MutexLocker destructor not called when throwing.
-        ThrowPRException("Failed NSS_Init call.");
+        ThrowPRException("TlsException",
+                         "Failed NSS_Init call.");
       }
     }
     library_initialized_ = true;
@@ -533,23 +570,29 @@ void SSLFilter::InitializeLibrary(const char* certificate_database,
     status = NSS_SetDomesticPolicy();
     if (status != SECSuccess) {
       mutex_.Unlock();  // MutexLocker destructor not called when throwing.
-      ThrowPRException("Failed NSS_SetDomesticPolicy call.");
+      ThrowPRException("TlsException",
+                       "Failed NSS_SetDomesticPolicy call.");
     }
     // Enable TLS, as well as SSL3 and SSL2.
     status = SSL_OptionSetDefault(SSL_ENABLE_TLS, PR_TRUE);
     if (status != SECSuccess) {
       mutex_.Unlock();  // MutexLocker destructor not called when throwing.
-      ThrowPRException("Failed SSL_OptionSetDefault enable TLS call.");
+      ThrowPRException("TlsException",
+                       "Failed SSL_OptionSetDefault enable TLS call.");
     }
     status = SSL_ConfigServerSessionIDCache(0, 0, 0, NULL);
     if (status != SECSuccess) {
       mutex_.Unlock();  // MutexLocker destructor not called when throwing.
-      ThrowPRException("Failed SSL_ConfigServerSessionIDCache call.");
+      ThrowPRException("TlsException",
+                       "Failed SSL_ConfigServerSessionIDCache call.");
     }
 
   } else if (report_duplicate_initialization) {
     mutex_.Unlock();  // MutexLocker destructor not called when throwing.
-    ThrowException("Called SSLFilter::InitializeLibrary more than once");
+    // Like ThrowPRException, without adding an OSError.
+    Dart_ThrowException(DartUtils::NewDartIOException("TlsException",
+        "Called SecureSocket.initialize more than once",
+        Dart_Null()));
   }
 }
 
@@ -596,7 +639,7 @@ void SSLFilter::Connect(const char* host_name,
                         bool send_client_certificate) {
   is_server_ = is_server;
   if (in_handshake_) {
-    ThrowException("Connect called while already in handshake state.");
+    FATAL("Connect called twice on the same _SecureFilter.");
   }
 
   if (!is_server && certificate_name != NULL) {
@@ -605,7 +648,7 @@ void SSLFilter::Connect(const char* host_name,
 
   filter_ = SSL_ImportFD(NULL, filter_);
   if (filter_ == NULL) {
-    ThrowPRException("Failed SSL_ImportFD call");
+    ThrowPRException("TlsException", "Failed SSL_ImportFD call");
   }
 
   SSLVersionRange vrange;
@@ -622,13 +665,15 @@ void SSLFilter::Connect(const char* host_name,
       // Look up certificate using the distinguished name (DN) certificate_name.
       CERTCertDBHandle* certificate_database = CERT_GetDefaultCertDB();
       if (certificate_database == NULL) {
-        ThrowPRException("Certificate database cannot be loaded");
+        ThrowPRException("CertificateException",
+                         "Certificate database cannot be loaded");
       }
       certificate = CERT_FindCertByNameString(certificate_database,
           const_cast<char*>(certificate_name));
       if (certificate == NULL) {
-        ThrowPRException(
-            "Cannot find server certificate by distinguished name");
+        ThrowCertificateException(
+            "Cannot find server certificate by distinguished name: %s",
+            certificate_name);
       }
     } else {
       // Look up certificate using the nickname certificate_name.
@@ -636,7 +681,9 @@ void SSLFilter::Connect(const char* host_name,
           const_cast<char*>(certificate_name),
           static_cast<void*>(const_cast<char*>(password_)));
       if (certificate == NULL) {
-        ThrowPRException("Cannot find server certificate by nickname");
+        ThrowCertificateException(
+            "Cannot find server certificate by nickname: %s",
+            certificate_name);
       }
     }
     SECKEYPrivateKey* key = PK11_FindKeyByAnyCert(
@@ -645,10 +692,12 @@ void SSLFilter::Connect(const char* host_name,
     if (key == NULL) {
       CERT_DestroyCertificate(certificate);
       if (PR_GetError() == -8177) {
-        ThrowPRException("Certificate database password incorrect");
+        ThrowPRException("CertificateException",
+                         "Certificate database password incorrect");
       } else {
-        ThrowPRException("Failed PK11_FindKeyByAnyCert call."
-                         " Cannot find private key for certificate");
+        ThrowCertificateException(
+            "Cannot find private key for certificate %s",
+            certificate_name);
       }
     }
     // kt_rsa (key type RSA) is an enum constant from the NSS libraries.
@@ -657,23 +706,28 @@ void SSLFilter::Connect(const char* host_name,
     CERT_DestroyCertificate(certificate);
     SECKEY_DestroyPrivateKey(key);
     if (status != SECSuccess) {
-      ThrowPRException("Failed SSL_ConfigSecureServer call");
+      ThrowCertificateException(
+          "Failed SSL_ConfigSecureServer call with certificate %s",
+          certificate_name);
     }
 
     if (request_client_certificate) {
       status = SSL_OptionSet(filter_, SSL_REQUEST_CERTIFICATE, PR_TRUE);
       if (status != SECSuccess) {
-        ThrowPRException("Failed SSL_OptionSet(REQUEST_CERTIFICATE) call");
+        ThrowPRException("TlsException",
+                         "Failed SSL_OptionSet(REQUEST_CERTIFICATE) call");
       }
       PRBool require_cert = require_client_certificate ? PR_TRUE : PR_FALSE;
       status = SSL_OptionSet(filter_, SSL_REQUIRE_CERTIFICATE, require_cert);
       if (status != SECSuccess) {
-        ThrowPRException("Failed SSL_OptionSet(REQUIRE_CERTIFICATE) call");
+        ThrowPRException("TlsException",
+                         "Failed SSL_OptionSet(REQUIRE_CERTIFICATE) call");
       }
     }
   } else {  // Client.
     if (SSL_SetURL(filter_, host_name) == -1) {
-      ThrowPRException("Failed SetURL call");
+      ThrowPRException("TlsException",
+                       "Failed SetURL call");
     }
 
     // This disables the SSL session cache for client connections.
@@ -681,7 +735,8 @@ void SSLFilter::Connect(const char* host_name,
     // TODO(7230): Reenable session cache, without breaking client connections.
     status = SSL_OptionSet(filter_, SSL_NO_CACHE, PR_TRUE);
     if (status != SECSuccess) {
-      ThrowPRException("Failed SSL_OptionSet(NO_CACHE) call");
+      ThrowPRException("TlsException",
+                       "Failed SSL_OptionSet(NO_CACHE) call");
     }
 
     if (send_client_certificate) {
@@ -690,7 +745,8 @@ void SSLFilter::Connect(const char* host_name,
           NSS_GetClientAuthData,
           static_cast<void*>(client_certificate_name_));
       if (status != SECSuccess) {
-        ThrowPRException("Failed SSL_GetClientAuthDataHook call");
+        ThrowPRException("TlsException",
+                         "Failed SSL_GetClientAuthDataHook call");
       }
     }
   }
@@ -703,7 +759,8 @@ void SSLFilter::Connect(const char* host_name,
   PRBool as_server = is_server ? PR_TRUE : PR_FALSE;
   status = SSL_ResetHandshake(filter_, as_server);
   if (status != SECSuccess) {
-    ThrowPRException("Failed SSL_ResetHandshake call");
+    ThrowPRException("TlsException",
+                     "Failed SSL_ResetHandshake call");
   }
 
   // Set the peer address from the address passed. The DNS has already
@@ -743,9 +800,11 @@ void SSLFilter::Handshake() {
       }
     } else {
       if (is_server_) {
-        ThrowPRException("Unexpected handshake error in server");
+        ThrowPRException("HandshakeException",
+                         "Handshake error in server");
       } else {
-        ThrowPRException("Unexpected handshake error in client");
+        ThrowPRException("HandshakeException",
+                         "Handshake error in client");
       }
     }
   }

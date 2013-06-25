@@ -31,12 +31,9 @@ void main() {
 }
 
 Future testCertificateCallback({String host, bool acceptCertificate}) {
-  try {
-    var x = 7;
-    SecureSocket.connect(host, 443, onBadCertificate: x)
-        .catchError((e) {}, test: (e) => e is ArgumentError);
-  } on TypeError catch (e) {
-  }
+  var x = 7;
+  Expect.throws(() => SecureSocket.connect(host, 443, onBadCertificate: x),
+                (e) => e is ArgumentError || e is TypeError);
 
   bool badCertificateCallback(X509Certificate certificate) {
     Expect.isTrue(certificate.subject.contains("O=Google Inc"));

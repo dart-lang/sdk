@@ -253,10 +253,10 @@ static Dart_Handle SingleArgDart_Invoke(Dart_Handle lib, const char* method,
 
 
 // TODO(iposva): Allocate from the zone instead of leaking error string
-// here. On the other hand the binary is about the exit anyway.
+// here. On the other hand the binary is about to exit anyway.
 #define SET_ERROR_MSG(error_msg, format, ...)                                  \
   intptr_t len = snprintf(NULL, 0, format, __VA_ARGS__);                       \
-  char *msg = reinterpret_cast<char*>(malloc(len + 1));                        \
+  char* msg = reinterpret_cast<char*>(malloc(len + 1));                        \
   snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
   *error_msg = msg
 
@@ -785,10 +785,12 @@ Dart_Handle DartUtils::NewDartOSError(OSError* os_error) {
 }
 
 
-Dart_Handle DartUtils::NewDartSocketException(const char* message,
-                                              Dart_Handle os_error) {
-  // Create a dart:io SocketException object.
-  Dart_Handle type = GetDartType(kIOLibURL, "SocketException");
+Dart_Handle DartUtils::NewDartExceptionWithOSError(const char* library_url,
+                                                   const char* exception_name,
+                                                   const char* message,
+                                                   Dart_Handle os_error) {
+  // Create a Dart Exception object with a message and an OSError.
+  Dart_Handle type = GetDartType(library_url, exception_name);
   Dart_Handle args[2];
   args[0] = NewString(message);
   args[1] = os_error;
@@ -815,6 +817,17 @@ Dart_Handle DartUtils::NewDartArgumentError(const char* message) {
   return NewDartExceptionWithMessage(kCoreLibURL,
                                      "ArgumentError",
                                      message);
+}
+
+
+Dart_Handle DartUtils::NewDartIOException(const char* exception_name,
+                                          const char* message,
+                                          Dart_Handle os_error) {
+  // Create a dart:io exception object of the given type.
+  return NewDartExceptionWithOSError(kIOLibURL,
+                                     exception_name,
+                                     message,
+                                     os_error);
 }
 
 

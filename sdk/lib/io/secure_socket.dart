@@ -150,16 +150,18 @@ abstract class SecureSocket implements Socket {
   X509Certificate get peerCertificate;
 
   /**
-   * Initializes the NSS library.  If [initialize] is not called, the library
+   * Initializes the NSS library. If [initialize] is not called, the library
    * is automatically initialized as if [initialize] were called with no
-   * arguments.
+   * arguments. If [initialize] is called more than once, or called after
+   * automatic initialization has happened (when a secure connection is made),
+   * then a TlsException is thrown.
    *
    * The optional argument [database] is the path to a certificate database
    * directory containing root certificates for verifying certificate paths on
    * client connections, and server certificates to provide on server
-   * connections.  The argument [password] should be used when creating
+   * connections. The argument [password] should be used when creating
    * secure server sockets, to allow the private key of the server
-   * certificate to be fetched.  If [useBuiltinRoots] is true (the default),
+   * certificate to be fetched. If [useBuiltinRoots] is true (the default),
    * then a built-in set of root certificates for trusted certificate
    * authorities is merged with the certificates in the database.
    * The list of built-in root certificates, and documentation about this
@@ -167,7 +169,7 @@ abstract class SecureSocket implements Socket {
    * http://www.mozilla.org/projects/security/certs/included/ .
    *
    * If the [database] argument is omitted, then only the
-   * builtin root certificates are used.  If [useBuiltinRoots] is also false,
+   * builtin root certificates are used. If [useBuiltinRoots] is also false,
    * then no certificates are available.
    *
    * Examples:
@@ -437,6 +439,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
        bool sendClientCertificate: false,
        bool onBadCertificate(X509Certificate certificate)}) {
     var future;
+    _verifyFields(host, requestedPort, certificateName, is_server,
+                 requestClientCertificate, requireClientCertificate,
+                 sendClientCertificate, onBadCertificate);
     if (host is String) {
       if (socket != null) {
         future = new Future.value(
@@ -484,7 +489,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     _stream = _controller.stream;
     // Throw an ArgumentError if any field is invalid.  After this, all
     // errors will be reported through the future or the stream.
-    _verifyFields();
     _secureFilter.init();
     _filterPointer = _secureFilter._pointer();
     _secureFilter.registerHandshakeCompleteCallback(
@@ -499,6 +503,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       futureSocket = new Future.value(socket);
     }
     futureSocket.then((rawSocket) {
+      _connectPending = true;
       _socket = rawSocket;
       _socket.readEventsEnabled = true;
       _socket.writeEventsEnabled = false;
@@ -506,14 +511,13 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
         // If a current subscription is provided use this otherwise
         // create a new one.
         _socketSubscription = _socket.listen(_eventDispatcher,
-                                             onError: _errorHandler,
+                                             onError: _reportError,
                                              onDone: _doneHandler);
       } else {
         _socketSubscription.onData(_eventDispatcher);
-        _socketSubscription.onError(_errorHandler);
+        _socketSubscription.onError(_reportError);
         _socketSubscription.onDone(_doneHandler);
       }
-      _connectPending = true;
       _secureFilter.connect(address.host,
                             (address as dynamic)._sockaddr_storage,
                             port,
@@ -525,10 +529,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                             sendClientCertificate);
       _secureHandshake();
     })
-    .catchError((error) {
-      _handshakeComplete.completeError(error);
-      _close();
-    });
+    .catchError(_reportError);
   }
 
   StreamSubscription listen(void onData(RawSocketEvent data),
@@ -542,12 +543,22 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                           cancelOnError: cancelOnError);
   }
 
-  void _verifyFields() {
-    assert(is_server is bool);
-    assert(_socket == null || _socket is RawSocket);
-    if (address is! InternetAddress) {
-      throw new ArgumentError(
-          "RawSecureSocket constructor: host is not an InternetAddress");
+  static void _verifyFields(host,
+                            int requestedPort,
+                            String certificateName,
+                            bool is_server,
+                            bool requestClientCertificate,
+                            bool requireClientCertificate,
+                            bool sendClientCertificate,
+                            Function onBadCertificate) {
+    if (host is! String && host is! InternetAddress) {
+      throw new ArgumentError("host is not a String or an InternetAddress");
+    }
+    if (requestedPort is! int) {
+      throw new ArgumentError("requestedPort is not an int");
+    }
+    if (requestedPort < 0 || requestedPort > 65535) {
+      throw new ArgumentError("requestedPort is not in the range 0..65535");
     }
     if (certificateName != null && certificateName is! String) {
       throw new ArgumentError("certificateName is not null or a String");
@@ -693,12 +704,16 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   void _eventDispatcher(RawSocketEvent event) {
-    if (event == RawSocketEvent.READ) {
-      _readHandler();
-    } else if (event == RawSocketEvent.WRITE) {
-      _writeHandler();
-    } else if (event == RawSocketEvent.READ_CLOSED) {
-      _closeHandler();
+    try {
+      if (event == RawSocketEvent.READ) {
+        _readHandler();
+      } else if (event == RawSocketEvent.WRITE) {
+        _writeHandler();
+      } else if (event == RawSocketEvent.READ_CLOSED) {
+        _closeHandler();
+      }
+    } catch (e) {
+      _reportError(e);
     }
   }
 
@@ -718,20 +733,13 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     }
   }
 
-  void _errorHandler(e) {
-    _reportError(e, 'Error on underlying RawSocket');
-  }
-
-  void _reportError(e, String message) {
-    // TODO(whesse): Call _reportError from all internal functions that throw.
-    if (e is SocketException) {
-      e = new SocketException('$message (${e.message})', e.osError);
-    } else if (e is OSError) {
-      e = new SocketException(message, e);
-    } else {
-      e = new SocketException('$message (${e.toString()})', null);
-    }
+  void _reportError(e) {
     if (_connectPending) {
+      // _connectPending is true after the underlying connection has been
+      // made, but before the handshake has completed.
+      if (e is! TlsException) {
+        e = new HandshakeException("$e", null);
+      }
       _handshakeComplete.completeError(e);
     } else {
       _controller.addError(e);
@@ -756,8 +764,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _socketClosedRead = true;
       if (_filterStatus.readEmpty) {
       _reportError(
-          new SocketException('Connection terminated during handshake'),
-          'RawSecureSocket error');
+          new HandshakeException('Connection terminated during handshake'));
       } else {
         _secureHandshake();
       }
@@ -772,7 +779,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _writeSocket();
       _scheduleFilter();
     } catch (e) {
-      _reportError(e, "RawSecureSocket error");
+      _reportError(e);
     }
   }
 
@@ -838,9 +845,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           if (_status == HANDSHAKE) {
             _secureFilter.handshake();
             if (_status == HANDSHAKE) {
-              _reportError(
-                  new SocketException('Connection terminated during handshake'),
-                  'RawSecureSocket error');
+              throw new HandshakeException(
+                  'Connection terminated during handshake');
             }
           }
           _closeHandler();
@@ -855,7 +861,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           if (_status == HANDSHAKE) _secureHandshake();
         }
         _tryFilter();
-      });
+      }).catchError(_reportError);
     }
   }
 
@@ -872,12 +878,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       }
       return result;
     } else if (!_socketClosedRead) {
-      try {
-        return _socket.read(bytes);
-      } catch (e) {
-        _reportError(e, "RawSecureSocket error reading encrypted socket");
-        return null;
-      }
+      return _socket.read(bytes);
     } else {
       return null;
     }
@@ -1160,4 +1161,58 @@ abstract class _SecureFilter {
   int _pointer();
 
   List<_ExternalBuffer> get buffers;
+}
+
+/** A secure networking exception caused by a failure in the
+ *  TLS/SSL protocol.
+ */
+class TlsException implements IOException {
+  final String type;
+  final String message;
+  final OSError osError;
+
+  const TlsException([String message = "",
+                      OSError osError = null])
+     : this._("TlsException", message, osError);
+
+  const TlsException._(String this.type,
+                       String this.message,
+                       OSError this.osError);
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.write(type);
+    if (!message.isEmpty) {
+      sb.write(": $message");
+      if (osError != null) {
+        sb.write(" ($osError)");
+      }
+    } else if (osError != null) {
+      sb.write(": $osError");
+    }
+    return sb.toString();
+  }
+}
+
+
+/**
+ * An exception that happens in the handshake phase of establishing
+ * a secure network connection.
+ */
+class HandshakeException extends TlsException {
+  const HandshakeException([String message = "",
+                            OSError osError = null])
+     : super._("HandshakeException", message, osError);
+}
+
+
+/**
+ * An exception that happens in the handshake phase of establishing
+ * a secure network connection, when looking up or verifying a
+ * certificate.
+ */
+class CertificateException extends TlsException {
+  const CertificateException([String message = "",
+                            OSError osError = null])
+     : super._("CertificateException", message, osError);
 }

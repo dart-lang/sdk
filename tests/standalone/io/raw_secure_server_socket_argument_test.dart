@@ -17,12 +17,39 @@ const CERTIFICATE = "localhost_cert";
 
 
 void testArguments() {
+  bool isArgOrTypeError(e) => e is ArgumentError || e is TypeError;
   Expect.throws(() =>
-      RawSecureServerSocket.bind(SERVER_ADDRESS, 65536, 5, CERTIFICATE));
+                RawSecureServerSocket.bind(SERVER_ADDRESS, 65536, CERTIFICATE),
+                isArgOrTypeError);
   Expect.throws(() =>
-      RawSecureServerSocket.bind(SERVER_ADDRESS, -1, CERTIFICATE));
-  Expect.throws(() =>
-      RawSecureServerSocket.bind(SERVER_ADDRESS, 0, -1, CERTIFICATE));
+                RawSecureServerSocket.bind(SERVER_ADDRESS, -1, CERTIFICATE),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureServerSocket.bind(SERVER_ADDRESS, 0,
+                                                 CERTIFICATE, backlog: -1),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 3456,
+                                              sendClientCertificate: true,
+                                              certificateName: 12.3),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, null),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, -1),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 345656),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 'hest'),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(null, 0),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 0,
+                                              certificateName: 77),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 0,
+                                              sendClientCertificate: 'fisk'),
+                isArgOrTypeError);
+  Expect.throws(() => RawSecureSocket.connect(SERVER_ADDRESS, 0,
+                                              onBadCertificate: 'hund'),
+                isArgOrTypeError);
 }
 
 

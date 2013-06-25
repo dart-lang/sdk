@@ -27,24 +27,6 @@
 namespace dart {
 namespace bin {
 
-static void ThrowException(const char* message) {
-  Dart_Handle socket_exception =
-      DartUtils::NewDartSocketException(message, Dart_Null());
-  Dart_ThrowException(socket_exception);
-}
-
-
-/* Handle an error reported from the NSS library. */
-static void ThrowPRException(const char* message) {
-  PRErrorCode error_code = PR_GetError();
-  const char* error_message = PR_ErrorToString(error_code, PR_LANGUAGE_EN);
-  OSError os_error_struct(error_code, error_message, OSError::kNSS);
-  Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
-  Dart_Handle socket_exception =
-      DartUtils::NewDartSocketException(message, os_error);
-  Dart_ThrowException(socket_exception);
-}
-
 /*
  * SSLFilter encapsulates the NSS SSL(TLS) code in a filter, that communicates
  * with the containing _SecureFilterImpl Dart object through four shared
