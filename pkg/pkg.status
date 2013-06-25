@@ -27,6 +27,8 @@ scheduled_test/test/scheduled_process_test: Pass, Slow # Issue 9231
 # testing.
 webdriver/test/webdriver_test: Skip
 
+[ $compiler == dart2js && $runtime == ff ]
+unittest/test/unittest_test: Pass, Fail # http://dartbug.com/11473
 
 [ $runtime == d8 || $runtime == jsshell ]
 unittest/test/unittest_test: Pass, Fail # http://dartbug.com/10109
