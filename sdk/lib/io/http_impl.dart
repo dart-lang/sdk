@@ -2382,7 +2382,7 @@ class _RedirectInfo implements RedirectInfo {
 }
 
 String _getHttpVersion() {
-  var version = new Options().version;
+  var version = Platform.version;
   // Only include major and minor version numbers.
   int index = version.indexOf('.', version.indexOf('.') + 1);
   version = version.substring(0, index);

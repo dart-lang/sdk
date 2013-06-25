@@ -609,11 +609,11 @@ bool RunScript(List script) {
 
   // Port number 0 means debug target picks a free port dynamically.
   var targetOpts = [ "--debug:0" ];
-  targetOpts.add(options.script);
+  targetOpts.add(Platform.script);
   targetOpts.add("--debuggee");
   print('args: ${targetOpts.join(" ")}');
 
-  Process.start(options.executable, targetOpts).then((Process process) {
+  Process.start(Platform.executable, targetOpts).then((Process process) {
     print("Debug target process started, pid ${process.pid}.");
     process.stdin.close();
     var debugger = new Debugger(process, new DebugScript(script));

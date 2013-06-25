@@ -12,7 +12,7 @@ import "process_test_util.dart";
 
 main() {
   // Running dart without arguments makes it close right away.
-  var future = Process.start(new Options().executable, []);
+  var future = Process.start(Platform.executable, []);
   future.then((process) {
     process.stdin.done.catchError((e) {
       // Accept errors on stdin.

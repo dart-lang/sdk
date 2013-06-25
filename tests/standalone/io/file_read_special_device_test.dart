@@ -6,10 +6,9 @@ import 'package:expect/expect.dart';
 import 'dart:io';
 
 void openAndWriteScript(String script) {
-  var options = new Options();
-  var dir = new Path(options.script).directoryPath;
+  var dir = new Path(Platform.script).directoryPath;
   script = "$dir/$script";
-  var executable = options.executable;
+  var executable = Platform.executable;
   var file = script;  // Use script as file.
   Process.start("bash", ["-c", "$executable $script < $file"]).then((process) {
     process.exitCode

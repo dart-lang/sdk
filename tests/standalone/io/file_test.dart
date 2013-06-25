@@ -1106,7 +1106,7 @@ class FileTest {
 
   static void testLastModified() {
     var port = new ReceivePort();
-    new File(new Options().executable).lastModified().then((modified) {
+    new File(Platform.executable).lastModified().then((modified) {
       Expect.isTrue(modified is DateTime);
       Expect.isTrue(modified.isBefore(new DateTime.now()));
       port.close();
@@ -1114,7 +1114,7 @@ class FileTest {
   }
 
   static void testLastModifiedSync() {
-    var modified = new File(new Options().executable).lastModifiedSync();
+    var modified = new File(Platform.executable).lastModifiedSync();
     Expect.isTrue(modified is DateTime);
     Expect.isTrue(modified.isBefore(new DateTime.now()));
   }

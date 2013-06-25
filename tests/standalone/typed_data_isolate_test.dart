@@ -22,7 +22,7 @@ second() {
 }
 
 main() {
- new File(new Options().script).readAsBytes().then((List<int> data) {
+ new File(Platform.script).readAsBytes().then((List<int> data) {
    spawnFunction(second).call(data).then((reply) {
      print('got reply');
      port.close();

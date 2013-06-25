@@ -10,18 +10,11 @@ class _Platform {
   external static String _operatingSystem();
   external static _localHostname();
   external static _environment();
+  external static String _version();
 
-  static int get numberOfProcessors {
-    return _numberOfProcessors();
-  }
-
-  static String get pathSeparator {
-    return _pathSeparator();
-  }
-
-  static String get operatingSystem {
-    return _operatingSystem();
-  }
+  static int get numberOfProcessors => _numberOfProcessors();
+  static String get pathSeparator => _pathSeparator();
+  static String get operatingSystem => _operatingSystem();
 
   static String get localHostname {
     var result = _localHostname();
@@ -57,6 +50,8 @@ class _Platform {
       return result;
     }
   }
+
+  static String get version => _version();
 }
 
 // Environment variables are case-insensitive on Windows. In order

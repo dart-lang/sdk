@@ -11,8 +11,7 @@ main() {
   // Start sub-process when receiving data.
   var subscription;
   subscription = stdin.listen((data) {
-    var options = new Options();
-    Process.start(options.executable, [options.script]).then((p) {
+    Process.start(Platform.executable, [Platform.script]).then((p) {
       p.stdout.listen((_) { });
       p.stderr.listen((_) { });
       // When receiving data again, kill sub-process and exit.

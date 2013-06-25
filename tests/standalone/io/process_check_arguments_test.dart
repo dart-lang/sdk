@@ -7,7 +7,7 @@ import "dart:io";
 import "process_test_util.dart";
 
 test(args) {
-  var future = Process.start(new Options().executable, args);
+  var future = Process.start(Platform.executable, args);
   future.then((process) {
     process.exitCode.then((exitCode) {
       Expect.equals(0, exitCode);

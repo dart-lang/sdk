@@ -10,4 +10,5 @@ patch class _Platform {
       native "Platform_OperatingSystem";
   /* patch */ static _localHostname() native "Platform_LocalHostname";
   /* patch */ static _environment() native "Platform_Environment";
+  /* patch */ static String _version() native "Platform_GetVersion";
 }

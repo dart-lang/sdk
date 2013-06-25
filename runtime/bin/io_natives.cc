@@ -21,7 +21,6 @@ namespace bin {
 // builtin_natives.cc instead.
 #define IO_NATIVE_LIST(V)                                                      \
   V(Common_IsBuiltinList, 1)                                                   \
-  V(Common_GetVersion, 1)                                                      \
   V(Crypto_GetRandomBytes, 1)                                                  \
   V(EventHandler_Start, 1)                                                     \
   V(EventHandler_SendData, 4)                                                  \
@@ -36,6 +35,7 @@ namespace bin {
   V(Platform_PathSeparator, 0)                                                 \
   V(Platform_LocalHostname, 0)                                                 \
   V(Platform_Environment, 0)                                                   \
+  V(Platform_GetVersion, 0)                                                    \
   V(Process_Start, 10)                                                         \
   V(Process_Kill, 3)                                                           \
   V(Process_SetExitCode, 1)                                                    \

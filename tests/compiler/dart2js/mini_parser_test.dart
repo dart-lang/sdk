@@ -10,7 +10,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/tools/mini_parser.dar
 
 void main() {
   // Parse this script itself.
-  tool.toolMain(<String>[ new Options().script ]);
+  tool.toolMain(<String>[ Platform.script ]);
 }
 
 /** This class is unused but used to test mini_parser.dart. */

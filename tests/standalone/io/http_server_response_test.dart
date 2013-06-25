@@ -80,10 +80,10 @@ void testResponseDone() {
 
 
 void testResponseAddStream() {
-  int bytes = new File(new Options().script).lengthSync();
+  int bytes = new File(Platform.script).lengthSync();
 
   testServerRequest((server, request) {
-    request.response.addStream(new File(new Options().script).openRead())
+    request.response.addStream(new File(Platform.script).openRead())
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
@@ -91,9 +91,9 @@ void testResponseAddStream() {
   }, bytes: bytes);
 
   testServerRequest((server, request) {
-    request.response.addStream(new File(new Options().script).openRead())
+    request.response.addStream(new File(Platform.script).openRead())
         .then((response) {
-          request.response.addStream(new File(new Options().script).openRead())
+          request.response.addStream(new File(Platform.script).openRead())
               .then((response) {
                 response.close();
                 response.done.then((_) => server.close());
@@ -129,7 +129,7 @@ void testResponseAddStream() {
 
 void testResponseAddStreamClosed() {
   testServerRequest((server, request) {
-    request.response.addStream(new File(new Options().script).openRead())
+    request.response.addStream(new File(Platform.script).openRead())
         .then((response) {
           response.close();
           response.done.then((_) => server.close());
@@ -139,7 +139,7 @@ void testResponseAddStreamClosed() {
   testServerRequest((server, request) {
     int count = 0;
     write() {
-      request.response.addStream(new File(new Options().script).openRead())
+      request.response.addStream(new File(Platform.script).openRead())
           .then((response) {
             request.response.write("sync data");
             count++;
@@ -158,14 +158,14 @@ void testResponseAddStreamClosed() {
 
 void testResponseAddClosed() {
   testServerRequest((server, request) {
-    request.response.add(new File(new Options().script).readAsBytesSync());
+    request.response.add(new File(Platform.script).readAsBytesSync());
     request.response.close();
     request.response.done.then((_) => server.close());
   }, closeClient: true);
 
   testServerRequest((server, request) {
     for (int i = 0; i < 1000; i++) {
-      request.response.add(new File(new Options().script).readAsBytesSync());
+      request.response.add(new File(Platform.script).readAsBytesSync());
     }
     request.response.close();
     request.response.done.then((_) => server.close());
@@ -174,7 +174,7 @@ void testResponseAddClosed() {
   testServerRequest((server, request) {
     int count = 0;
     write() {
-      request.response.add(new File(new Options().script).readAsBytesSync());
+      request.response.add(new File(Platform.script).readAsBytesSync());
       Timer.run(() {
         count++;
         if (count < 1000) {

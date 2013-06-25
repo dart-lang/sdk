@@ -39,7 +39,7 @@ void test(String shellScript, String dartScript, String type, bool devNull) {
   String pipeOutFile = "${dir.path}/pipe";
   if (devNull) pipeOutFile = "/dev/null";
   String redirectOutFile = "${dir.path}/redirect";
-  String executable = new Options().executable;
+  String executable = Platform.executable;
   List args =
       [executable,
        dartScript,

@@ -402,23 +402,21 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
   if (Dart_IsError(io_lib)) {
     return io_lib;
   }
-  Dart_Handle runtime_options_class_name =
-      DartUtils::NewString("_OptionsImpl");
-  if (Dart_IsError(runtime_options_class_name)) {
-    return runtime_options_class_name;
+  Dart_Handle platform_class_name = DartUtils::NewString("Platform");
+  if (Dart_IsError(platform_class_name)) {
+    return platform_class_name;
   }
-  Dart_Handle runtime_options_type = Dart_GetType(
-      io_lib, runtime_options_class_name, 0, NULL);
-  if (Dart_IsError(runtime_options_type)) {
-    return runtime_options_type;
+  Dart_Handle platform_type =
+      Dart_GetType(io_lib, platform_class_name, 0, NULL);
+  if (Dart_IsError(platform_type)) {
+    return platform_type;
   }
-  Dart_Handle executable_name_name =
-      DartUtils::NewString("_nativeExecutable");
+  Dart_Handle executable_name_name = DartUtils::NewString("_nativeExecutable");
   if (Dart_IsError(executable_name_name)) {
     return executable_name_name;
   }
   Dart_Handle set_executable_name =
-      Dart_SetField(runtime_options_type,
+      Dart_SetField(platform_type,
                     executable_name_name,
                     dart_executable);
   if (Dart_IsError(set_executable_name)) {
@@ -429,9 +427,18 @@ static Dart_Handle SetupRuntimeOptions(CommandLineOptions* options,
     return script_name_name;
   }
   Dart_Handle set_script_name =
-      Dart_SetField(runtime_options_type, script_name_name, dart_script);
+      Dart_SetField(platform_type, script_name_name, dart_script);
   if (Dart_IsError(set_script_name)) {
     return set_script_name;
+  }
+  Dart_Handle runtime_options_class_name = DartUtils::NewString("_OptionsImpl");
+  if (Dart_IsError(runtime_options_class_name)) {
+    return runtime_options_class_name;
+  }
+  Dart_Handle runtime_options_type = Dart_GetType(
+      io_lib, runtime_options_class_name, 0, NULL);
+  if (Dart_IsError(runtime_options_type)) {
+    return runtime_options_type;
   }
   Dart_Handle native_name = DartUtils::NewString("_nativeArguments");
   if (Dart_IsError(native_name)) {

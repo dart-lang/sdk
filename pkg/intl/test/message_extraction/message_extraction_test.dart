@@ -10,7 +10,7 @@ import 'dart:async';
 import 'package:pathos/path.dart' as path;
 import '../data_directory.dart';
 
-final dart = new Options().executable;
+final dart = Platform.executable;
 
 // TODO(alanknight): We have no way of knowing what the package-root is,
 // so when we're running under the test framework, which sets the

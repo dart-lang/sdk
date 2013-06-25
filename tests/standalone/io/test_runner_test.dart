@@ -71,8 +71,8 @@ class CustomTestSuite extends TestSuite {
   }
 
   TestCase _makeNormalTestCase(name, expectations) {
-    var command = new Command(new Options().executable,
-                              [new Options().script, name]);
+    var command = new Command(Platform.executable,
+                              [Platform.script, name]);
     return _makeTestCase(name, DEFAULT_TIMEOUT, command, expectations);
   }
 
@@ -109,7 +109,7 @@ void main() {
   // Run the test_runner_test if there are no command-line options.
   // Otherwise, run one of the component tests that always pass,
   // fail, or timeout.
-  var arguments = new Options().arguments;
+  var arguments = Platform.arguments;
   if (arguments.isEmpty) {
     testProcessQueue();
   } else {

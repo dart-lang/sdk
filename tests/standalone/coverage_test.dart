@@ -47,11 +47,9 @@ void checkSuccess() {
 }
 
 void main() {
-  var options = new Options();
-
   // Compute paths for coverage tool and coverage target relative
   // the the path of this script.
-  var scriptPath = new Path(options.script).directoryPath;
+  var scriptPath = new Path(Platform.script).directoryPath;
   var toolPath = scriptPath.join(new Path(coverageToolScript)).canonicalize();
   targPath = scriptPath.join(new Path(coverageTargetScript)).canonicalize();
 
@@ -62,7 +60,7 @@ void main() {
                       toolPath.toNativePath(),
                       targPath.toNativePath() ];
 
-  Process.start(options.executable, processOpts).then((Process process) {
+  Process.start(Platform.executable, processOpts).then((Process process) {
     coverageToolProcess = process;
     coverageToolProcess.stdin.close();
     var stdoutStringStream = coverageToolProcess.stdout

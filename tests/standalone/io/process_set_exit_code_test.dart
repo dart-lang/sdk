@@ -10,9 +10,8 @@ import "package:expect/expect.dart";
 import "dart:io";
 
 main() {
-  var options = new Options();
-  var executable = options.executable;
-  var script = options.script;
+  var executable = Platform.executable;
+  var script = Platform.script;
   var scriptDirectory = new Path(script).directoryPath;
   var exitCodeScript =
       scriptDirectory.append('process_set_exit_code_script.dart');

@@ -146,10 +146,10 @@ class TestCompletedHandler {
 
 runner.TestCase makeTestCase(String testName, FileUtils fileUtils) {
   var config = new options.TestOptionsParser().parse(['--timeout', '2'])[0];
-  var scriptDirPath = new Path(new Options().script).directoryPath;
+  var scriptDirPath = new Path(Platform.script).directoryPath;
   var createFileScript = scriptDirPath.
       append('skipping_dart2js_compilations_helper.dart').toNativePath();
-  var executable = new Options().executable;
+  var executable = Platform.executable;
   var arguments = [createFileScript, fileUtils.scriptOutputPath.toNativePath()];
   var bootstrapDeps = [
       Uri.parse("file://${fileUtils.testSnapshotFilePath}")];

@@ -18,8 +18,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:expect/expect.dart';
 
-String pathToExecutable = new Options().executable;
-String pathOfData = new File(new Options().script).directory.path +
+String pathToExecutable = Platform.executable;
+String pathOfData = new File(Platform.script).directory.path +
                     '/http_launch_data';
 int port;
 

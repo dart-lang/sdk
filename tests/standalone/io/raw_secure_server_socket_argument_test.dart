@@ -27,7 +27,7 @@ void testArguments() {
 
 
 main() {
-  Path scriptDir = new Path(new Options().script).directoryPath;
+  Path scriptDir = new Path(Platform.script).directoryPath;
   Path certificateDatabase = scriptDir.append('pkcert');
   SecureSocket.initialize(database: certificateDatabase.toNativePath(),
                           password: 'dartdart',

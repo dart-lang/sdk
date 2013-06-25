@@ -20,4 +20,7 @@ main() {
   Expect.isTrue(hostname is String && hostname != "");
   var environment = Platform.environment;
   Expect.isTrue(environment is Map<String, String>);
+  Expect.isTrue(Platform.executable.contains('dart'));
+  Expect.isTrue(Platform.script.replaceAll('\\', '/').
+                endsWith('tests/standalone/io/platform_test.dart'));
 }

@@ -35,7 +35,7 @@ test(scriptFile, encoding, stream) {
   }
 
   if (stream == 'stdout') {
-    Process.run(new Options().executable,
+    Process.run(Platform.executable,
                 [scriptFile, encoding, stream],
                 stdoutEncoding: enc). then((result) {
       Expect.equals(result.exitCode, 0);
@@ -43,7 +43,7 @@ test(scriptFile, encoding, stream) {
       checkOutput(encoding, result.stdout);
     });
   } else {
-    Process.run(new Options().executable,
+    Process.run(Platform.executable,
                 [scriptFile, encoding, stream],
                 stderrEncoding: enc).then((result) {
       Expect.equals(result.exitCode, 0);

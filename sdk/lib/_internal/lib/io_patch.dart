@@ -168,6 +168,9 @@ patch class _Platform {
   patch static _environment() {
     throw new UnsupportedError("Platform._environment");
   }
+  patch static String _version() {
+    throw new UnsupportedError("Platform._version");
+  }
 }
 
 patch class _ProcessUtils {
@@ -318,11 +321,5 @@ patch class _Filter {
   }
   patch static _Filter newZLibInflateFilter() {
     throw new UnsupportedError("newZLibInflateFilter");
-  }
-}
-
-patch class _OptionsImpl {
-  patch String get version {
-    throw new UnsupportedError("_OptionsImpl.version");
   }
 }

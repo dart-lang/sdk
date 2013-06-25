@@ -42,7 +42,7 @@ DeclarationMirror findMirror(Iterable<DeclarationMirror> list, String name) {
 
 main() {
   Uri scriptUri =
-      currentDirectory.resolve(nativeToUriPath(new Options().script));
+      currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libUri = scriptUri.resolve('../../../sdk/');
   Uri inputUri = scriptUri.resolve('mirrors_helper.dart');
   var provider = new SourceFileProvider();

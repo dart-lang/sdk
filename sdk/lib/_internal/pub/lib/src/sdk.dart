@@ -29,7 +29,7 @@ String get rootDirectory {
   }
 
   // Assume the Dart executable is always coming from the SDK.
-  return path.dirname(path.dirname(new Options().executable));
+  return path.dirname(path.dirname(Platform.executable));
 }
 
 /// Gets the SDK's revision number formatted to be a semantic version.

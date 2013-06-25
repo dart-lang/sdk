@@ -11,7 +11,7 @@ import '../../../sdk/lib/_internal/compiler/compiler.dart'
 import 'dart:json';
 
 main() {
-  Uri script = currentDirectory.resolve(nativeToUriPath(new Options().script));
+  Uri script = currentDirectory.resolve(nativeToUriPath(Platform.script));
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 

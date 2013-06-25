@@ -6,7 +6,7 @@ library dart2js.test.memory_source_file_helper;
 
 import 'dart:async' show Future;
 import 'dart:io';
-export 'dart:io' show Options;
+export 'dart:io' show Platform;
 
 export '../../../sdk/lib/_internal/compiler/implementation/apiimpl.dart'
        show Compiler;
