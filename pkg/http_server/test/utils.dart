@@ -37,6 +37,13 @@ Future<HttpHeaders> getHeaders(int port, String path) {
 }
 
 
+Future<String> getAsString(int port, String path) {
+  return new HttpClient().get('localhost', port, path)
+      .then((request) => request.close())
+      .then((response) => StringDecoder.decode(response));
+}
+
+
 const CERTIFICATE = "localhost_cert";
 
 

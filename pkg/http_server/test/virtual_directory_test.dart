@@ -326,5 +326,42 @@ void main() {
       });
     });
   });
+
+  group('error-page', () {
+    test('default', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+        var virDir = new VirtualDirectory(dir.path);
+        dir.deleteSync();
+
+        virDir.serve(server);
+
+        return getAsString(server.port, '/')
+            .whenComplete(() {
+              server.close();
+            });
+      }), completion(matches(new RegExp('404.*Not Found'))));
+    });
+
+    test('custom', () {
+      expect(HttpServer.bind('localhost', 0).then((server) {
+        var dir = new Directory('').createTempSync();
+        var virDir = new VirtualDirectory(dir.path);
+        dir.deleteSync();
+
+        virDir.setErrorPageHandler((request) {
+          request.response.write('my-page ');
+          request.response.write(request.response.statusCode);
+          request.response.close();
+        });
+        virDir.serve(server);
+
+        return getAsString(server.port, '/')
+            .whenComplete(() {
+              server.close();
+            });
+      }), completion(equals('my-page 404')));
+    });
+  });
 }
 

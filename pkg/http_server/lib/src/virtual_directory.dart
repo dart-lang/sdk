@@ -49,7 +49,7 @@ abstract class VirtualDirectory {
    * Set the [callback] to override the error page handler. When [callback] is
    * invoked, the `statusCode` property of the response is set.
    */
-  void setErrorPageHandler(void callback(HttpResponse response));
+  void setErrorPageHandler(void callback(HttpRequest request));
 }
 
 class _VirtualDirectory implements VirtualDirectory {
@@ -57,6 +57,8 @@ class _VirtualDirectory implements VirtualDirectory {
 
   bool allowDirectoryListing = false;
   bool followLinks = true;
+
+  Function _errorCallback;
 
   _VirtualDirectory(this.root);
 
@@ -83,6 +85,10 @@ class _VirtualDirectory implements VirtualDirectory {
             _serveErrorPage(HttpStatus.NOT_FOUND, request);
           }
         });
+  }
+
+  void setErrorPageHandler(void callback(HttpRequest request)) {
+    _errorCallback = callback;
   }
 
   Future<FileSystemEntity> _locateResource(Path path,
@@ -192,8 +198,32 @@ class _VirtualDirectory implements VirtualDirectory {
   }
 
   void _serveErrorPage(int error, HttpRequest request) {
-    request.response.statusCode = error;
-    request.response.close();
+    var response = request.response;
+    response.statusCode = error;
+    if (_errorCallback != null) {
+      _errorCallback(request);
+      return;
+    }
+    // Default error page.
+    var path = request.uri.path;
+    var reason = response.reasonPhrase;
+    response.write(
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n');
+    response.writeln(
+        '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">');
+    response.writeln('<html xmlns="http://www.w3.org/1999/xhtml">');
+    response.writeln('<head>');
+    response.writeln('<title>$reason: $path</title>');
+    response.writeln('</head>');
+    response.writeln('<body>');
+    response.writeln('<h1>Error $error at \'$path\': $reason</h1>');
+    var server = response.headers.value(HttpHeaders.SERVER);
+    if (server != null) {
+      response.writeln(server);
+    }
+    response.writeln('</body>');
+    response.writeln('</html>');
+    response.close();
   }
 }
 
