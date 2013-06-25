@@ -5,6 +5,11 @@
 reg_exp_unicode_2_test: Fail # Bug 6592
 
 [ $compiler == none ]
+# Known bad tests depending on removed language features.
+apply_test: Fail, OK
+iterable_join_test: Fail, OK
+list_fill_range_test: Fail, OK
+
 unicode_test: Fail        # Bug 6706
 *dartc_test: Skip
 compare_to2_test: Fail    # Bug 4018
