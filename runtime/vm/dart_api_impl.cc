@@ -3704,6 +3704,11 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   if (name_str.IsNull()) {
     RETURN_TYPE_ERROR(isolate, class_name, String);
   }
+  // Ensure all classes are finalized.
+  Dart_Handle state = Api::CheckIsolateState(isolate);
+  if (::Dart_IsError(state)) {
+    return state;
+  }
   const Class& cls =
       Class::Handle(isolate, lib.LookupClassAllowPrivate(name_str));
   if (cls.IsNull()) {
@@ -3711,10 +3716,14 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
     return Api::NewError("Type '%s' not found in library '%s'.",
                          name_str.ToCString(), lib_name.ToCString());
   }
-  intptr_t num_expected_type_arguments = cls.NumTypeParameters();
-  if (num_expected_type_arguments == 0) {
+  if (cls.NumTypeArguments() == 0) {
+    if (number_of_type_arguments != 0) {
+      return Api::NewError("Invalid number of type arguments specified, "
+                           "got %"Pd" expected 0", number_of_type_arguments);
+    }
     return Api::NewHandle(isolate, Type::NewNonParameterizedType(cls));
   }
+  intptr_t num_expected_type_arguments = cls.NumTypeParameters();
   TypeArguments& type_args_obj = TypeArguments::Handle();
   if (number_of_type_arguments > 0) {
     if (type_arguments == NULL) {
@@ -3743,12 +3752,6 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
       type_arg ^= array.At(i);
       type_args_obj.SetTypeAt(i, type_arg);
     }
-  }
-
-  // Ensure all classes are finalized.
-  Dart_Handle state = Api::CheckIsolateState(isolate);
-  if (::Dart_IsError(state)) {
-    return state;
   }
 
   // Construct the type object, canonicalize it and return.
