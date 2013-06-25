@@ -2083,7 +2083,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // We still need to register the invocation, because we might
         // call [:super.noSuchMethod:] which calls
         // [JSInvocationMirror._invokeOn].
-        world.registerDynamicInvocation(selector.name, selector);
+        world.registerDynamicInvocation(selector);
         compiler.backend.registerSuperNoSuchMethod(mapping);
       }
     } else if (Elements.isUnresolved(resolvedReceiver)) {
@@ -2314,7 +2314,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
         // we need to register that fact that we may be calling a closure
         // with the same arguments.
         Selector call = new Selector.callClosureFrom(selector);
-        world.registerDynamicInvocation(call.name, call);
+        world.registerDynamicInvocation(call);
       } else if (target.impliesType()) {
         // We call 'call()' on a Type instance returned from the reference to a
         // class or typedef literal. We do not need to register this call as a
@@ -2424,7 +2424,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
       // the ++ and -- ones.  Also, if op= form is used, include op itself.
       void registerBinaryOperator(SourceString name) {
         Selector binop = new Selector.binaryOperator(name);
-        world.registerDynamicInvocation(binop.name, binop);
+        world.registerDynamicInvocation(binop);
         mapping.setOperatorSelectorInComplexSendSet(node, binop);
       }
       if (identical(source, '++')) {
@@ -2443,11 +2443,11 @@ class ResolverVisitor extends MappingVisitor<Element> {
   void registerSend(Selector selector, Element target) {
     if (target == null || target.isInstanceMember()) {
       if (selector.isGetter()) {
-        world.registerDynamicGetter(selector.name, selector);
+        world.registerDynamicGetter(selector);
       } else if (selector.isSetter()) {
-        world.registerDynamicSetter(selector.name, selector);
+        world.registerDynamicSetter(selector);
       } else {
-        world.registerDynamicInvocation(selector.name, selector);
+        world.registerDynamicInvocation(selector);
       }
     } else if (Elements.isStaticOrTopLevel(target)) {
       // TODO(kasperl): It seems like we're not supposed to register
@@ -2830,20 +2830,17 @@ class ResolverVisitor extends MappingVisitor<Element> {
 
   registerImplicitInvocation(SourceString name, int arity) {
     Selector selector = new Selector.call(name, null, arity);
-    world.registerDynamicInvocation(name, selector);
+    world.registerDynamicInvocation(selector);
   }
 
   visitForIn(ForIn node) {
     LibraryElement library = enclosingElement.getLibrary();
     mapping.setIteratorSelector(node, compiler.iteratorSelector);
-    world.registerDynamicGetter(compiler.iteratorSelector.name,
-                                compiler.iteratorSelector);
+    world.registerDynamicGetter(compiler.iteratorSelector);
     mapping.setCurrentSelector(node, compiler.currentSelector);
-    world.registerDynamicGetter(compiler.currentSelector.name,
-                                compiler.currentSelector);
+    world.registerDynamicGetter(compiler.currentSelector);
     mapping.setMoveNextSelector(node, compiler.moveNextSelector);
-    world.registerDynamicInvocation(compiler.moveNextSelector.name,
-                                    compiler.moveNextSelector);
+    world.registerDynamicInvocation(compiler.moveNextSelector);
 
     visit(node.expression);
     Scope blockScope = new BlockScope(scope);

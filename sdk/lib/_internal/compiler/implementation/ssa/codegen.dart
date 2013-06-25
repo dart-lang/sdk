@@ -1562,16 +1562,14 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // may know something about the types of closures that need
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
-      world.registerDynamicInvocation(call.name, call);
+      world.registerDynamicInvocation(call);
     }
-
-    SourceString name = node.selector.name;
-    world.registerDynamicInvocation(name, selector);
+    world.registerDynamicInvocation(selector);
   }
 
   void registerSetter(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
-    world.registerDynamicSetter(selector.name, selector);
+    world.registerDynamicSetter(selector);
     HType valueType = node.isInterceptedCall
         ? node.inputs[2].instructionType
         : node.inputs[1].instructionType;
@@ -1579,7 +1577,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void registerGetter(HInvokeDynamic node) {
     Selector selector = getOptimizedSelectorFor(node, node.selector);
-    world.registerDynamicGetter(selector.name, selector);
+    world.registerDynamicGetter(selector);
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1603,7 +1601,7 @@ abstract class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         backend.namer.invocationName(call),
                         visitArguments(node.inputs)),
          node);
-    world.registerDynamicInvocation(call.name, call);
+    world.registerDynamicInvocation(call);
   }
 
   visitInvokeStatic(HInvokeStatic node) {

@@ -295,13 +295,9 @@ abstract class Enqueuer {
     });
   }
 
-  void registerNewSelector(SourceString name,
-                           Selector selector,
+  void registerNewSelector(Selector selector,
                            Map<SourceString, Set<Selector>> selectorsMap) {
-    if (name != selector.name) {
-      String message = "$name != ${selector.name} (${selector.kind})";
-      compiler.internalError("Wrong selector name: $message.");
-    }
+    SourceString name = selector.name;
     Set<Selector> selectors =
         selectorsMap.putIfAbsent(name, () => new Set<Selector>());
     if (!selectors.contains(selector)) {
@@ -310,21 +306,21 @@ abstract class Enqueuer {
     }
   }
 
-  void registerInvocation(SourceString methodName, Selector selector) {
+  void registerInvocation(Selector selector) {
     task.measure(() {
-      registerNewSelector(methodName, selector, universe.invokedNames);
+      registerNewSelector(selector, universe.invokedNames);
     });
   }
 
-  void registerInvokedGetter(SourceString getterName, Selector selector) {
+  void registerInvokedGetter(Selector selector) {
     task.measure(() {
-      registerNewSelector(getterName, selector, universe.invokedGetters);
+      registerNewSelector(selector, universe.invokedGetters);
     });
   }
 
-  void registerInvokedSetter(SourceString setterName, Selector selector) {
+  void registerInvokedSetter(Selector selector) {
     task.measure(() {
-      registerNewSelector(setterName, selector, universe.invokedSetters);
+      registerNewSelector(selector, universe.invokedSetters);
     });
   }
 
@@ -364,21 +360,21 @@ abstract class Enqueuer {
             element.asFunctionElement().requiredParameterCount(compiler);
         Selector selector =
             new Selector.call(element.name, element.getLibrary(), arity);
-        registerInvocation(element.name, selector);
+        registerInvocation(selector);
       } else if (element.isSetter()) {
         Selector selector =
             new Selector.setter(element.name, element.getLibrary());
-        registerInvokedSetter(element.name, selector);
+        registerInvokedSetter(selector);
       } else if (element.isGetter()) {
         Selector selector =
             new Selector.getter(element.name, element.getLibrary());
-        registerInvokedGetter(element.name, selector);
+        registerInvokedGetter(selector);
       } else if (element.isField()) {
         Selector selector =
             new Selector.setter(element.name, element.getLibrary());
-        registerInvokedSetter(element.name, selector);
+        registerInvokedSetter(selector);
         selector = new Selector.getter(element.name, element.getLibrary());
-        registerInvokedGetter(element.name, selector);
+        registerInvokedGetter(selector);
       }
     }
   }
@@ -484,27 +480,27 @@ abstract class Enqueuer {
     universe.staticFunctionsNeedingGetter.add(element);
   }
 
-  void registerDynamicInvocation(SourceString methodName, Selector selector) {
+  void registerDynamicInvocation(Selector selector) {
     assert(selector != null);
-    registerInvocation(methodName, selector);
+    registerInvocation(selector);
   }
 
   void registerSelectorUse(Selector selector) {
     if (selector.isGetter()) {
-      registerInvokedGetter(selector.name, selector);
+      registerInvokedGetter(selector);
     } else if (selector.isSetter()) {
-      registerInvokedSetter(selector.name, selector);
+      registerInvokedSetter(selector);
     } else {
-      registerInvocation(selector.name, selector);
+      registerInvocation(selector);
     }
   }
 
-  void registerDynamicGetter(SourceString methodName, Selector selector) {
-    registerInvokedGetter(methodName, selector);
+  void registerDynamicGetter(Selector selector) {
+    registerInvokedGetter(selector);
   }
 
-  void registerDynamicSetter(SourceString methodName, Selector selector) {
-    registerInvokedSetter(methodName, selector);
+  void registerDynamicSetter(Selector selector) {
+    registerInvokedSetter(selector);
   }
 
   void registerFieldGetter(Element element) {
@@ -687,7 +683,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
     Selector selector = compiler.noSuchMethodSelector;
     compiler.enabledNoSuchMethod = true;
-    registerInvocation(Compiler.NO_SUCH_METHOD, selector);
+    registerInvocation(selector);
 
     compiler.createInvocationMirrorElement =
         compiler.findHelper(Compiler.CREATE_INVOCATION_MIRROR);
