@@ -22,15 +22,9 @@ Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
 Language/11_Expressions/11_Instance_Creation_A05_t02: fail
 Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: fail
 Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: fail
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail
-Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail
 Language/11_Expressions/22_Equality_A01_t15: fail
 Language/11_Expressions/22_Equality_A01_t16: fail
-Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail
-Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail
-Language/13_Libraries_and_Scripts/1_Imports_A04_t03: fail
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail
-Language/13_Libraries_and_Scripts/2_Exports_A05_t01: fail
 Language/13_Libraries_and_Scripts/5_URIs_A01_t24: fail
 Language/13_Libraries_and_Scripts/5_URIs_A01_t25: fail
 Language/14_Types/3_Type_Declarations/1_Typedef_A07_t01: fail
@@ -165,6 +159,10 @@ Language/12_Statements/02_Expression_Statements_A01_t06: fail, OK
 LibTest/core/double/ceil_A01_t05: fail, OK
 LibTest/core/double/floor_A01_t05: fail, OK
 
+# co19 issue #385, library name is not required
+Language/13_Libraries_and_Scripts/1_Imports_A04_t03: fail, OK
+Language/13_Libraries_and_Scripts/2_Exports_A05_t01: fail, OK
+
 # co19 issue #388, StringBuffer renamed add to write
 Language/11_Expressions/05_Strings/1_String_Interpolation_A03_t01: fail, OK
 Language/11_Expressions/05_Strings/1_String_Interpolation_A04_t01: fail, OK
@@ -179,3 +177,11 @@ LibTest/core/StringBuffer/add_A01_t02: fail, OK
 LibTest/core/StringBuffer/addAll_A01_t01: fail, OK
 LibTest/core/StringBuffer/addAll_A01_t02: fail, OK
 LibTest/core/StringBuffer/toString_A01_t01: fail, OK
+
+# co19 issue #433, missing @static-warning annotation
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
+Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
+
+# co19 issue #434, argument definition was dropped
+Language/11_Expressions/33_Argument_Definition_Test_A01_t14: fail, OK
+Language/11_Expressions/33_Argument_Definition_Test_A01_t18: fail, OK
