@@ -252,7 +252,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   bool contains(Object other) {
     for (int i = 0; i < length; i++) {
-      if (other == this[i]) return true;
+      if (this[i] == other) return true;
     }
     return false;
   }
