@@ -36,6 +36,7 @@ class Range;
 // (class-name, function-name, recognized enum, fingerprint).
 // See intrinsifier for fingerprint computation.
 #define RECOGNIZED_LIST(V)                                                     \
+  V(Object, Object., ObjectConstructor, 464682336)                             \
   V(Object, get:_cid, ObjectCid, 732498573)                                    \
   V(_ObjectArray, get:length, ObjectArrayLength, 405297088)                    \
   V(_ImmutableArray, get:length, ImmutableArrayLength, 433698233)              \

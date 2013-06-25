@@ -2474,6 +2474,18 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
         new Value(call->ArgumentAt(4)),
         call->deopt_id());
     ReplaceCall(call, con);
+  } else if (recognized_kind == MethodRecognizer::kObjectConstructor) {
+    // Remove the original push arguments.
+    for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
+      PushArgumentInstr* push = call->PushArgumentAt(i);
+      push->ReplaceUsesWith(push->value()->definition());
+      push->RemoveFromGraph();
+    }
+    // Manually replace call with global null constant. ReplaceCall can't
+    // be used for definitions that are already in the graph.
+    call->ReplaceUsesWith(flow_graph_->constant_null());
+    ASSERT(current_iterator()->Current() == call);
+    current_iterator()->RemoveCurrentFromGraph();;
   }
 }
 
