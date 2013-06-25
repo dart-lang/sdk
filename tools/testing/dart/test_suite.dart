@@ -779,7 +779,7 @@ class StandardTestSuite extends TestSuite {
       String tempDir = createOutputDirectory(info.filePath, '');
       var compiledFile = '$tempDir/out-${configuration['runtime']}.dart';
       var compiledShadowFile = '$tempDir/out_shadow.dart';
-      args.add('--out=$tempDir/out.dart');
+      args.add('--out=$compiledFile');
 
       List<Command> commands =
           <Command>[new CompilationCommand(compiledFile,
@@ -795,7 +795,7 @@ class StandardTestSuite extends TestSuite {
         // TODO(antonm): support checked.
         var vmArguments = new List.from(vmOptions);
         vmArguments.addAll([
-            '--ignore-unrecognized-flags', '$tempDir/out.dart']);
+            '--ignore-unrecognized-flags', compiledFile]);
         commands.add(new Command(vmFileName, vmArguments));
       } else {
         throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';

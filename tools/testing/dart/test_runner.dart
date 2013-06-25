@@ -198,11 +198,13 @@ class CompilationCommand extends Command {
     for (var ending in ['', '.deps', '.map']) {
       var fromFile = new io.File("${from}${ending}");
       var toFile = new io.File("${to}${ending}");
-      // We copy the dart2js results synchronously to make it atomic.
-      // This ensures that the shadow files are always in a consistent state (no
-      // other code in the testing scripts will see a half-written shadow
-      // file).
-      toFile.writeAsBytesSync(fromFile.readAsBytesSync());
+      if (fromFile.existsSync()) {
+        // We copy the dart2js results synchronously to make it atomic.
+        // This ensures that the shadow files are always in a consistent state
+        // (no other code in the testing scripts will see a half-written shadow
+        // file).
+        toFile.writeAsBytesSync(fromFile.readAsBytesSync());
+      }
     }
   }
 }
