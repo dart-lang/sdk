@@ -617,8 +617,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names));
   if (is_optimizing()) {
-    EmitStaticCall(function, arguments_descriptor, argument_count,
-                   deopt_id, token_pos, locs);
+    EmitOptimizedStaticCall(function, arguments_descriptor, argument_count,
+                            deopt_id, token_pos, locs);
   } else {
     EmitUnoptimizedStaticCall(function, arguments_descriptor, argument_count,
                               deopt_id, token_pos, locs);

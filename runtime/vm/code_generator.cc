@@ -838,8 +838,8 @@ DEFINE_RUNTIME_ENTRY(BreakpointStaticHandler, 0) {
   const Code& code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(!code.is_optimized());
   const Function& function =
-      Function::Handle(CodePatcher::GetUnoptimizedStaticCallTargetAt(
-          caller_frame->pc(), code));
+      Function::Handle(CodePatcher::GetUnoptimizedStaticCallAt(
+          caller_frame->pc(), code, NULL));
 
   if (!function.HasCode()) {
     const Error& error = Error::Handle(Compiler::CompileFunction(function));

@@ -585,7 +585,8 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 
 static bool IsSafePoint(PcDescriptors::Kind kind) {
   return ((kind == PcDescriptors::kIcCall) ||
-          (kind == PcDescriptors::kFuncCall) ||
+          (kind == PcDescriptors::kOptStaticCall) ||
+          (kind == PcDescriptors::kUnoptStaticCall) ||
           (kind == PcDescriptors::kClosureCall) ||
           (kind == PcDescriptors::kReturn) ||
           (kind == PcDescriptors::kRuntimeCall));
@@ -663,7 +664,7 @@ void CodeBreakpoint::PatchCode() {
                                        StubCode::BreakpointDynamicEntryPoint());
       break;
     }
-    case PcDescriptors::kFuncCall: {
+    case PcDescriptors::kUnoptStaticCall: {
       const Code& code =
           Code::Handle(Function::Handle(function_).unoptimized_code());
       saved_bytes_.target_address_ =
@@ -702,7 +703,7 @@ void CodeBreakpoint::RestoreCode() {
                                        saved_bytes_.target_address_);
       break;
     }
-    case PcDescriptors::kFuncCall:
+    case PcDescriptors::kUnoptStaticCall:
     case PcDescriptors::kClosureCall:
     case PcDescriptors::kRuntimeCall: {
       const Code& code =
@@ -1583,12 +1584,12 @@ void Debugger::SignalBpReached() {
           func_to_instrument = callee.raw();
         }
       }
-    } else if (bpt->breakpoint_kind_ == PcDescriptors::kFuncCall) {
+    } else if (bpt->breakpoint_kind_ == PcDescriptors::kUnoptStaticCall) {
       func_to_instrument = bpt->function();
       const Code& code = Code::Handle(func_to_instrument.CurrentCode());
       ASSERT(!code.is_optimized());
       const Function& callee = Function::Handle(
-          CodePatcher::GetUnoptimizedStaticCallTargetAt(bpt->pc_, code));
+          CodePatcher::GetUnoptimizedStaticCallAt(bpt->pc_, code, NULL));
       ASSERT(!callee.IsNull());
       if (IsDebuggable(callee)) {
         func_to_instrument = callee.raw();

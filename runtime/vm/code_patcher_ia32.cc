@@ -231,9 +231,8 @@ void CodePatcher::InsertCallAt(uword start, uword target) {
 }
 
 
-uword CodePatcher::GetInstanceCallAt(uword return_address,
-                                     const Code& code,
-                                     ICData* ic_data) {
+uword CodePatcher::GetInstanceCallAt(
+    uword return_address, const Code& code, ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address);
   if (ic_data != NULL) {
@@ -243,12 +242,15 @@ uword CodePatcher::GetInstanceCallAt(uword return_address,
 }
 
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallTargetAt(
-    uword return_address, const Code& code) {
+RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
+    uword return_address, const Code& code, ICData* ic_data_result) {
   ASSERT(code.ContainsInstructionAt(return_address));
   UnoptimizedStaticCall static_call(return_address);
   ICData& ic_data = ICData::Handle();
   ic_data ^= static_call.ic_data();
+  if (ic_data_result != NULL) {
+    *ic_data_result = ic_data.raw();
+  }
   return ic_data.GetTargetAt(0);
 }
 

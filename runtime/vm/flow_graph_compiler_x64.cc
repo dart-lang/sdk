@@ -1428,19 +1428,20 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 }
 
 
-void FlowGraphCompiler::EmitStaticCall(const Function& function,
-                                       const Array& arguments_descriptor,
-                                       intptr_t argument_count,
-                                       intptr_t deopt_id,
-                                       intptr_t token_pos,
-                                       LocationSummary* locs) {
+void FlowGraphCompiler::EmitOptimizedStaticCall(
+    const Function& function,
+    const Array& arguments_descriptor,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
   __ LoadObject(R10, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
   GenerateDartCall(deopt_id,
                    token_pos,
                    &StubCode::CallStaticFunctionLabel(),
-                   PcDescriptors::kFuncCall,
+                   PcDescriptors::kOptStaticCall,
                    locs);
   AddStaticCallTarget(function);
   __ Drop(argument_count);
@@ -1465,7 +1466,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
   GenerateDartCall(deopt_id,
                    token_pos,
                    &StubCode::UnoptimizedStaticCallLabel(),
-                   PcDescriptors::kFuncCall,
+                   PcDescriptors::kUnoptStaticCall,
                    locs);
   __ Drop(argument_count);
 }
@@ -1616,6 +1617,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
+  ASSERT(is_optimizing());
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Label match_found;
   const intptr_t len = ic_data.NumberOfChecks();
@@ -1641,7 +1643,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     GenerateDartCall(deopt_id,
                      token_index,
                      &StubCode::CallStaticFunctionLabel(),
-                     PcDescriptors::kFuncCall,
+                     PcDescriptors::kOptStaticCall,
                      locs);
     const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);

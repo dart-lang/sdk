@@ -214,16 +214,6 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallTargetAt(
-    uword return_address, const Code& code) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  UnoptimizedStaticCall static_call(return_address);
-  ICData& ic_data = ICData::Handle();
-  ic_data ^= static_call.ic_data();
-  return ic_data.GetTargetAt(0);
-}
-
-
 void CodePatcher::InsertCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
   ASSERT(start + ShortCallPattern::InstructionLength() <= target);
@@ -233,6 +223,18 @@ void CodePatcher::InsertCallAt(uword start, uword target) {
   CPU::FlushICache(start, ShortCallPattern::InstructionLength());
 }
 
+
+RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
+    uword return_address, const Code& code, ICData* ic_data_result) {
+  ASSERT(code.ContainsInstructionAt(return_address));
+  UnoptimizedStaticCall static_call(return_address);
+  ICData& ic_data = ICData::Handle();
+  ic_data ^= static_call.ic_data();
+  if (ic_data_result != NULL) {
+    *ic_data_result = ic_data.raw();
+  }
+  return ic_data.GetTargetAt(0);
+}
 
 }  // namespace dart
 

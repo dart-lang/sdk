@@ -2546,7 +2546,8 @@ class PcDescriptors : public Object {
     kPatchCode,        // Buffer for patching code entry.
     kLazyDeoptJump,    // Lazy deoptimization trampoline.
     kIcCall,           // IC call.
-    kFuncCall,         // Call to known target, e.g. static call.
+    kOptStaticCall,    // Call directly to known target, e.g. static call.
+    kUnoptStaticCall,  // Call to a known target via a stub.
     kClosureCall,      // Closure call.
     kRuntimeCall,      // Runtime call.
     kReturn,           // Return from function.
@@ -2989,11 +2990,6 @@ class Code : public Object {
 
   // Returns an array indexed by deopt id, containing the extracted ICData.
   RawArray* ExtractTypeFeedbackArray() const;
-
-  // Returns deopt-ids of all static calls that were never resolved, i.e.,
-  // never executed.
-  void ExtractUncalledStaticCallDeoptIds(
-      GrowableArray<intptr_t>* deopt_ids) const;
 
  private:
   // An object finder visitor interface.

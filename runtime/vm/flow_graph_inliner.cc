@@ -186,8 +186,7 @@ class CallSites : public FlowGraphVisitor {
       : FlowGraphVisitor(flow_graph->postorder()),  // We don't use this order.
         static_calls_(),
         closure_calls_(),
-        instance_calls_(),
-        skip_static_call_deopt_ids_() { }
+        instance_calls_() { }
 
   const GrowableArray<StaticCallInstr*>& static_calls() const {
     return static_calls_;
@@ -218,17 +217,10 @@ class CallSites : public FlowGraphVisitor {
     static_calls_.Clear();
     closure_calls_.Clear();
     instance_calls_.Clear();
-    skip_static_call_deopt_ids_.Clear();
   }
 
   void FindCallSites(FlowGraph* graph) {
     ASSERT(graph != NULL);
-    const Function& function = graph->parsed_function().function();
-    ASSERT(function.HasCode());
-    const Code& code = Code::Handle(function.unoptimized_code());
-
-    skip_static_call_deopt_ids_.Clear();
-    code.ExtractUncalledStaticCallDeoptIds(&skip_static_call_deopt_ids_);
 
     const intptr_t instance_call_start_ix = instance_calls_.length();
     for (BlockIterator block_it = graph->postorder_iterator();
@@ -253,7 +245,6 @@ class CallSites : public FlowGraphVisitor {
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
 
-
     for (intptr_t i = 0; i < num_instance_calls; ++i) {
       const double ratio = static_cast<double>(call_counts[i]) / max_count;
       instance_calls_[i + instance_call_start_ix].ratio = ratio;
@@ -270,13 +261,6 @@ class CallSites : public FlowGraphVisitor {
 
   void VisitStaticCall(StaticCallInstr* call) {
     if (!call->function().IsInlineable()) return;
-    const intptr_t call_deopt_id = call->deopt_id();
-    for (intptr_t i = 0; i < skip_static_call_deopt_ids_.length(); i++) {
-      if (call_deopt_id == skip_static_call_deopt_ids_[i]) {
-        // Do not inline this call.
-        return;
-      }
-    }
     static_calls_.Add(call);
   }
 
@@ -284,7 +268,6 @@ class CallSites : public FlowGraphVisitor {
   GrowableArray<StaticCallInstr*> static_calls_;
   GrowableArray<ClosureCallInstr*> closure_calls_;
   GrowableArray<InstanceCallInfo> instance_calls_;
-  GrowableArray<intptr_t> skip_static_call_deopt_ids_;
 
   DISALLOW_COPY_AND_ASSIGN(CallSites);
 };

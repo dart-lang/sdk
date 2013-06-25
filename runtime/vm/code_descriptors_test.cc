@@ -259,7 +259,7 @@ TEST_CASE(StackmapGC) {
       PcDescriptors::Handle(code.pc_descriptors());
   int call_count = 0;
   for (int i = 0; i < descriptors.Length(); ++i) {
-    if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
+    if (descriptors.DescriptorKind(i) == PcDescriptors::kUnoptStaticCall) {
       stackmap_table_builder->AddEntry(descriptors.PC(i) - code.EntryPoint(),
                                        stack_bitmap,
                                        0);

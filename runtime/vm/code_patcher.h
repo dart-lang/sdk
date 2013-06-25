@@ -56,9 +56,11 @@ class CodePatcher : public AllStatic {
                                  const Code& code,
                                  ICData* ic_data);
 
-  // Return target of an unoptimized static call (calls target via a stub).
-  static RawFunction* GetUnoptimizedStaticCallTargetAt(uword return_address,
-                                                       const Code& code);
+  // Return target of an unoptimized static call and its ICData object
+  // (calls target via a stub).
+  static RawFunction* GetUnoptimizedStaticCallAt(uword return_address,
+                                                 const Code& code,
+                                                 ICData* ic_data);
 
   // Return the arguments descriptor array of the closure call
   // before the given return address.

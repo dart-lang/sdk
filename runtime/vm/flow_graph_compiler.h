@@ -479,12 +479,12 @@ class FlowGraphCompiler : public ValueObject {
   // Emit code to load a Value into register 'dst'.
   void LoadValue(Register dst, Value* value);
 
-  void EmitStaticCall(const Function& function,
-                      const Array& arguments_descriptor,
-                      intptr_t argument_count,
-                      intptr_t deopt_id,
-                      intptr_t token_pos,
-                      LocationSummary* locs);
+  void EmitOptimizedStaticCall(const Function& function,
+                               const Array& arguments_descriptor,
+                               intptr_t argument_count,
+                               intptr_t deopt_id,
+                               intptr_t token_pos,
+                               LocationSummary* locs);
 
   void EmitUnoptimizedStaticCall(const Function& function,
                                  const Array& arguments_descriptor,

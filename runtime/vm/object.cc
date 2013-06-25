@@ -7311,17 +7311,18 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeopt:         return "deopt        ";
-    case PcDescriptors::kEntryPatch:    return "entry-patch  ";
-    case PcDescriptors::kPatchCode:     return "patch        ";
-    case PcDescriptors::kLazyDeoptJump: return "lazy-deopt   ";
-    case PcDescriptors::kIcCall:        return "ic-call      ";
-    case PcDescriptors::kFuncCall:      return "fn-call      ";
-    case PcDescriptors::kClosureCall:   return "closure-call ";
-    case PcDescriptors::kReturn:        return "return       ";
-    case PcDescriptors::kRuntimeCall:   return "runtime-call ";
-    case PcDescriptors::kOsrEntry:      return "osr-entry    ";
-    case PcDescriptors::kOther:         return "other        ";
+    case PcDescriptors::kDeopt:           return "deopt        ";
+    case PcDescriptors::kEntryPatch:      return "entry-patch  ";
+    case PcDescriptors::kPatchCode:       return "patch        ";
+    case PcDescriptors::kLazyDeoptJump:   return "lazy-deopt   ";
+    case PcDescriptors::kIcCall:          return "ic-call      ";
+    case PcDescriptors::kOptStaticCall:   return "opt-call     ";
+    case PcDescriptors::kUnoptStaticCall: return "unopt-call   ";
+    case PcDescriptors::kClosureCall:     return "closure-call ";
+    case PcDescriptors::kReturn:          return "return       ";
+    case PcDescriptors::kRuntimeCall:     return "runtime-call ";
+    case PcDescriptors::kOsrEntry:        return "osr-entry    ";
+    case PcDescriptors::kOther:           return "other        ";
   }
   UNREACHABLE();
   return "";
@@ -8242,13 +8243,20 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
   ICData& ic_data_obj = ICData::Handle();
   intptr_t max_id = -1;
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
+    PcDescriptors::Kind kind = descriptors.DescriptorKind(i);
+    if ((kind == PcDescriptors::kIcCall) ||
+        (kind == PcDescriptors::kUnoptStaticCall)) {
       intptr_t deopt_id = descriptors.DeoptId(i);
       if (deopt_id > max_id) {
         max_id = deopt_id;
       }
       node_ids->Add(deopt_id);
-      CodePatcher::GetInstanceCallAt(descriptors.PC(i), *this, &ic_data_obj);
+      uword ret_addr = descriptors.PC(i);
+      if (kind == PcDescriptors::kIcCall) {
+        CodePatcher::GetInstanceCallAt(ret_addr, *this, &ic_data_obj);
+      } else {
+        CodePatcher::GetUnoptimizedStaticCallAt(ret_addr, *this, &ic_data_obj);
+      }
       ic_data_objs.Add(ic_data_obj);
     }
   }
@@ -8270,26 +8278,6 @@ RawArray* Code::ExtractTypeFeedbackArray() const {
     result.SetAt(result_index, Object::Handle(ic_data_objs.At(i)));
   }
   return result.raw();
-}
-
-
-void Code::ExtractUncalledStaticCallDeoptIds(
-    GrowableArray<intptr_t>* deopt_ids) const {
-  ASSERT(!IsNull() && !is_optimized());
-  ASSERT(deopt_ids != NULL);
-  deopt_ids->Clear();
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(this->pc_descriptors());
-  for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
-      // Static call.
-      const uword target_addr =
-          CodePatcher::GetStaticCallTargetAt(descriptors.PC(i), *this);
-      if (target_addr == StubCode::CallStaticFunctionEntryPoint()) {
-        deopt_ids->Add(descriptors.DeoptId(i));
-      }
-    }
-  }
 }
 
 
