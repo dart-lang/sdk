@@ -259,14 +259,13 @@ bool Socket::ReverseLookup(RawAddr addr,
                            intptr_t host_len,
                            OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
-  int status = TEMP_FAILURE_RETRY(getnameinfo(
-      &addr.addr,
-      SocketAddress::GetAddrLength(&addr),
-      host,
-      host_len,
-      NULL,
-      0,
-      NI_NAMEREQD));
+  int status = getnameinfo(&addr.addr,
+                           SocketAddress::GetAddrLength(&addr),
+                           host,
+                           host_len,
+                           NULL,
+                           0,
+                           NI_NAMEREQD);
   if (status != 0) {
     ASSERT(*os_error == NULL);
     DWORD error_code = WSAGetLastError();

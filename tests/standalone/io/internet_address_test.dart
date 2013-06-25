@@ -35,13 +35,15 @@ void testDefaultAddresses() {
 void testReverseLookup() {
   InternetAddress.lookup('localhost').then((addrs) {
     addrs.first.reverse().then((addr) {
-      Expect.equals('localhost', addr.host);
+      Expect.isNotNull(addr.host);
     });
   });
 
   InternetAddress.lookup('127.0.0.1').then((addrs) {
+    Expect.equals('127.0.0.1', addrs.first.host);
     addrs.first.reverse().then((addr) {
-      Expect.equals('localhost', addr.host);
+      Expect.isNotNull(addr.host);
+      Expect.notEquals('127.0.0.1', addr.host);
     });
   });
 }
