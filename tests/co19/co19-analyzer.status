@@ -12,12 +12,10 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15: fail
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A09_t01: fail
 Language/07_Classes/6_Constructors/3_Constant_Constructors_A05_t02: fail
 Language/09_Generics/09_Generics_A04_t07: fail
-Language/11_Expressions/01_Constants_A15_t08: fail
 Language/11_Expressions/01_Constants_A16_t01: fail
 Language/11_Expressions/01_Constants_A16_t02: fail
 Language/11_Expressions/01_Constants_A16_t03: fail
 Language/11_Expressions/01_Constants_A17_t03: fail
-Language/11_Expressions/01_Constants_A19_t04: fail
 Language/11_Expressions/05_Strings_A02_t46: fail
 Language/11_Expressions/05_Strings_A02_t48: fail
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
