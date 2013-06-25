@@ -752,13 +752,10 @@ class StandardTestSuite extends TestSuite {
     case 'dart2js':
       args = new List.from(args);
       String tempDir = createOutputDirectory(info.filePath, '');
-      var compiledFile = '$tempDir/out-${configuration['runtime']}.js';
-      var compiledShadowFile = '$tempDir/out_shadow.js';
-      args.add('--out=$compiledFile');
+      args.add('--out=$tempDir/out.js');
 
        List<Command> commands =
-           <Command>[new CompilationCommand(compiledFile,
-                                            compiledShadowFile,
+           <Command>[new CompilationCommand("$tempDir/out.js",
                                             !useSdk,
                                             dart2JsBootstrapDependencies,
                                             compilerPath,
@@ -767,9 +764,9 @@ class StandardTestSuite extends TestSuite {
         // Do not attempt to run the compiled result. A compilation
         // error should be reported by the compilation command.
       } else if (configuration['runtime'] == 'd8') {
-        commands.add(new Command(d8FileName, [compiledFile]));
+        commands.add(new Command(d8FileName, ['$tempDir/out.js']));
       } else if (configuration['runtime'] == 'jsshell') {
-        commands.add(new Command(jsShellFileName, [compiledFile]));
+        commands.add(new Command(jsShellFileName, ['$tempDir/out.js']));
       }
       return commands;
 
@@ -777,13 +774,10 @@ class StandardTestSuite extends TestSuite {
       args = new List.from(args);
       args.add('--output-type=dart');
       String tempDir = createOutputDirectory(info.filePath, '');
-      var compiledFile = '$tempDir/out-${configuration['runtime']}.dart';
-      var compiledShadowFile = '$tempDir/out_shadow.dart';
-      args.add('--out=$compiledFile');
+      args.add('--out=$tempDir/out.dart');
 
       List<Command> commands =
-          <Command>[new CompilationCommand(compiledFile,
-                                           compiledShadowFile,
+          <Command>[new CompilationCommand("$tempDir/out.dart",
                                            !useSdk,
                                            dart2JsBootstrapDependencies,
                                            compilerPath,
@@ -795,7 +789,7 @@ class StandardTestSuite extends TestSuite {
         // TODO(antonm): support checked.
         var vmArguments = new List.from(vmOptions);
         vmArguments.addAll([
-            '--ignore-unrecognized-flags', compiledFile]);
+            '--ignore-unrecognized-flags', '$tempDir/out.dart']);
         commands.add(new Command(vmFileName, vmArguments));
       } else {
         throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';
@@ -937,11 +931,10 @@ class StandardTestSuite extends TestSuite {
       }
       final String tempDir = createOutputDirectory(info.filePath, optionsName);
 
-      String dartWrapperFilename = '$tempDir/test-${runtime}.dart';
-      String compiledDartWrapperFile = '$tempDir/test-${runtime}.js';
-      String compiledDartWrapperShadowFile = '$tempDir/test_shadow.js';
+      String dartWrapperFilename = '$tempDir/test.dart';
+      String compiledDartWrapperFilename = '$tempDir/test.js';
 
-      String htmlPath = '$tempDir/test-${runtime}.html';
+      String htmlPath = '$tempDir/test.html';
       if (isWrappingRequired && !isWebTest) {
         // test.dart will import the dart test.
         _createWrapperFile(dartWrapperFilename, filePath);
@@ -949,7 +942,7 @@ class StandardTestSuite extends TestSuite {
         dartWrapperFilename = filename;
       }
       String scriptPath = (compiler == 'none') ?
-          dartWrapperFilename : compiledDartWrapperFile;
+          dartWrapperFilename : compiledDartWrapperFilename;
       scriptPath = _createUrlPathFromFile(new Path(scriptPath));
 
       // Create the HTML file for the test.
@@ -978,9 +971,8 @@ class StandardTestSuite extends TestSuite {
       List<Command> commands = [];
       if (compiler != 'none') {
         commands.add(_compileCommand(
-            dartWrapperFilename, compiledDartWrapperFile,
-            compiledDartWrapperShadowFile, compiler, tempDir, vmOptions,
-            optionsFromFile));
+            dartWrapperFilename, compiledDartWrapperFilename,
+            compiler, tempDir, vmOptions, optionsFromFile));
       }
 
       // some tests require compiling multiple input scripts.
@@ -991,13 +983,8 @@ class StandardTestSuite extends TestSuite {
         Path fromPath = filePath.directoryPath.join(namePath);
         if (compiler != 'none') {
           assert(namePath.extension == 'dart');
-          // NOTE: There is a tiny chance that this file will be accessed
-          // by two concurrent dart2js compile commands.
-          var compiledFile = '$tempDir/$baseName.js';
-          var compiledShadowFile = '$tempDir/${baseName}_shadow.js';
-
           commands.add(_compileCommand(
-              fromPath.toNativePath(), compiledFile, compiledShadowFile,
+              fromPath.toNativePath(), '$tempDir/$baseName.js',
               compiler, tempDir, vmOptions, optionsFromFile));
         }
         if (compiler == 'none') {
@@ -1117,8 +1104,7 @@ class StandardTestSuite extends TestSuite {
 
   /** Helper to create a compilation command for a single input file. */
   Command _compileCommand(String inputFile, String outputFile,
-      String shadowFile, String compiler, String dir, vmOptions,
-      optionsFromFile) {
+      String compiler, String dir, vmOptions, optionsFromFile) {
     String executable = compilerPath;
     List<String> args = TestUtils.standardOptions(configuration);
     switch (compiler) {
@@ -1143,7 +1129,6 @@ class StandardTestSuite extends TestSuite {
     }
     if (['dart2js', 'dart2dart'].contains(configuration['compiler'])) {
       return new CompilationCommand(outputFile,
-                                   shadowFile,
                                    !useSdk,
                                    dart2JsBootstrapDependencies,
                                    compilerPath,
@@ -1180,7 +1165,8 @@ class StandardTestSuite extends TestSuite {
     var checked = configuration['checked'] ? '-checked' : '';
     var minified = configuration['minified'] ? '-minified' : '';
     var csp = configuration['csp'] ? '-csp' : '';
-    var dirName = "${configuration['compiler']}$checked$minified$csp";
+    var dirName = "${configuration['compiler']}-${configuration['runtime']}"
+                  "$checked$minified$csp";
     Path generatedTestPath = new Path(buildDir)
         .append('generated_tests')
         .append(dirName)

@@ -123,8 +123,6 @@ class Command {
 
   String toString() => commandLine;
 
-  Future postProcessCommand() => new Future.immediate(null);
-
   Future<bool> get outputIsUpToDate => new Future.immediate(false);
   io.Path get expectedOutputFile => null;
   bool get isPixelTest => false;
@@ -132,12 +130,10 @@ class Command {
 
 class CompilationCommand extends Command {
   String _outputFile;
-  String _shadowFile;
   bool _neverSkipCompilation;
   List<Uri> _bootstrapDependencies;
 
   CompilationCommand(this._outputFile,
-                     this._shadowFile,
                      this._neverSkipCompilation,
                      this._bootstrapDependencies,
                      String executable,
@@ -164,11 +160,11 @@ class CompilationCommand extends Command {
       });
     }
 
-    return readDepsFile("${_shadowFile}.deps").then((dependencies) {
+    return readDepsFile("$_outputFile.deps").then((dependencies) {
       if (dependencies != null) {
         dependencies.addAll(_bootstrapDependencies);
         var jsOutputLastModified = TestUtils.lastModifiedCache.getLastModified(
-            new Uri.fromComponents(scheme: 'file', path: _shadowFile));
+            new Uri.fromComponents(scheme: 'file', path: _outputFile));
         if (jsOutputLastModified != null) {
           for (var dependency in dependencies) {
             var dependencyLastModified =
@@ -178,34 +174,11 @@ class CompilationCommand extends Command {
               return false;
             }
           }
-          // Shadow files are up to date, so copy them.
-          _copyFilesSync(_shadowFile, _outputFile);
           return true;
         }
       }
       return false;
     });
-  }
-
-  Future postProcessCommand() {
-    // After the actual compile, we synchronously copy the compiled output files
-    // to shadow files.
-    _copyFilesSync(_outputFile, _shadowFile);
-    return new Future.immediate(null);
-  }
-
-  _copyFilesSync(String from, String to) {
-    for (var ending in ['', '.deps', '.map']) {
-      var fromFile = new io.File("${from}${ending}");
-      var toFile = new io.File("${to}${ending}");
-      if (fromFile.existsSync()) {
-        // We copy the dart2js results synchronously to make it atomic.
-        // This ensures that the shadow files are always in a consistent state
-        // (no other code in the testing scripts will see a half-written shadow
-        // file).
-        toFile.writeAsBytesSync(fromFile.readAsBytesSync());
-      }
-    }
   }
 }
 
@@ -1071,15 +1044,7 @@ class RunningProcess {
               process.kill();
             }
           }
-          process.exitCode.then((exitCode) {
-            if (exitCode == 0) {
-              command.postProcessCommand().then((_) {
-                _commandComplete(exitCode);
-              });
-            } else {
-              _commandComplete(exitCode);
-            }
-          });
+          process.exitCode.then(_commandComplete);
           _drainStream(process.stdout, stdout);
           _drainStream(process.stderr, stderr);
           timeoutTimer = new Timer(new Duration(seconds: testCase.timeout),
