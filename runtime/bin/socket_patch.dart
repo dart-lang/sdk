@@ -775,7 +775,7 @@ class _RawSocket extends Stream<RawSocketEvent>
     var result = new _RawSocket(native);
     result._isMacOSTerminalInput =
         Platform.isMacOS &&
-        _StdIOUtils._socketType(result) == _STDIO_HANDLE_TYPE_TERMINAL;
+        _StdIOUtils._socketType(result._socket) == _STDIO_HANDLE_TYPE_TERMINAL;
     return result;
   }
 
