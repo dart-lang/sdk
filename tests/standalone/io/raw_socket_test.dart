@@ -123,7 +123,7 @@ void testServerListenAfterConnect() {
   });
 }
 
-void testSimpleReadWrite() {
+void testSimpleReadWrite({bool dropReads}) {
   // This test creates a server and a client connects. The client then
   // writes and the server echos. When the server has finished its
   // echo it half-closes. When the client gets the close event is
@@ -131,6 +131,8 @@ void testSimpleReadWrite() {
   ReceivePort port = new ReceivePort();
 
   const messageSize = 1000;
+  int serverReadCount = 0;
+  int clientReadCount = 0;
 
   List<int> createTestData() {
     return new List<int>.generate(messageSize, (index) => index & 0xff);
@@ -154,9 +156,17 @@ void testSimpleReadWrite() {
       client.listen((event) {
         switch (event) {
           case RawSocketEvent.READ:
+            if (dropReads) {
+              if (serverReadCount != 10) {
+                serverReadCount++;
+                break;
+              } else {
+                serverReadCount = 0;
+              }
+            }
             Expect.isTrue(bytesWritten == 0);
             Expect.isTrue(client.available() > 0);
-            var buffer = client.read();
+            var buffer = client.read(200);
             data.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
             if (bytesRead == data.length) {
@@ -192,6 +202,14 @@ void testSimpleReadWrite() {
         switch (event) {
           case RawSocketEvent.READ:
             Expect.isTrue(socket.available() > 0);
+            if (dropReads) {
+              if (clientReadCount != 10) {
+                clientReadCount++;
+                break;
+              } else {
+                clientReadCount = 0;
+              }
+            }
             var buffer = socket.read();
             data.setRange(bytesRead, bytesRead + buffer.length, buffer);
             bytesRead += buffer.length;
@@ -343,7 +361,8 @@ main() {
   testInvalidBind();
   testSimpleConnect();
   testServerListenAfterConnect();
-  testSimpleReadWrite();
+  testSimpleReadWrite(dropReads: false);
+  testSimpleReadWrite(dropReads: true);
   testPauseServerSocket();
   testPauseSocket();
 }

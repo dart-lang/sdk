@@ -150,10 +150,13 @@ void testServerListenAfterConnect() {
 // server will not happen until the first TLS handshake data has been
 // received from the client. This argument only takes effect when
 // handshakeBeforeSecure is true.
-void testSimpleReadWrite(bool listenSecure,
-                         bool connectSecure,
-                         bool handshakeBeforeSecure,
-                         [bool postponeSecure = false]) {
+void testSimpleReadWrite({bool listenSecure,
+                          bool connectSecure,
+                          bool handshakeBeforeSecure,
+                          bool postponeSecure,
+                          bool dropReads}) {
+  int clientReads = 0;
+  int serverReads = 0;
   if (handshakeBeforeSecure == true &&
       (listenSecure == true || connectSecure == true)) {
     Expect.fail("Invalid arguments to testSimpleReadWrite");
@@ -206,6 +209,14 @@ void testSimpleReadWrite(bool listenSecure,
     subscription = client.listen((event) {
       switch (event) {
         case RawSocketEvent.READ:
+          if (dropReads) {
+            if (serverReads != 10) {
+              ++serverReads;
+              break;
+            } else {
+              serverReads = 0;
+            }
+          }
           Expect.isTrue(bytesWritten == 0);
           Expect.isTrue(client.available() > 0);
           var buffer = client.read();
@@ -257,6 +268,14 @@ void testSimpleReadWrite(bool listenSecure,
       switch (event) {
         case RawSocketEvent.READ:
           Expect.isTrue(socket.available() > 0);
+          if (dropReads) {
+            if (clientReads != 10) {
+              ++clientReads;
+              break;
+            } else {
+              clientReads = 0;
+            }
+          }
           var buffer = socket.read();
           if (buffer != null) {
             dataReceived.setRange(bytesRead, bytesRead + buffer.length, buffer);
@@ -296,6 +315,14 @@ void testSimpleReadWrite(bool listenSecure,
             Expect.isTrue(bytesWritten == 0);
           }
           Expect.isTrue(client.available() > 0);
+          if (dropReads) {
+            if (serverReads != 10) {
+              ++serverReads;
+              break;
+            } else {
+              serverReads = 0;
+            }
+          }
           var buffer = client.read();
           if (buffer != null) {
             if (bytesRead == data.length) {
@@ -354,6 +381,14 @@ void testSimpleReadWrite(bool listenSecure,
     subscription = socket.listen((event) {
       switch (event) {
         case RawSocketEvent.READ:
+          if (dropReads) {
+            if (clientReads != 10) {
+              ++clientReads;
+              break;
+            } else {
+              clientReads = 0;
+            }
+          }
           Expect.isTrue(socket.available() > 0);
           var buffer = socket.read();
           if (buffer != null) {
@@ -449,10 +484,44 @@ main() {
   testSimpleConnectFail("not_a_nickname", true);
   testSimpleConnectFail("CN=notARealDistinguishedName", true);
   testServerListenAfterConnect();
-  testSimpleReadWrite(true, true, false);
-  testSimpleReadWrite(true, false, false);
-  testSimpleReadWrite(false, true, false);
-  testSimpleReadWrite(false, false, false);
-  testSimpleReadWrite(false, false, true, true);
-  testSimpleReadWrite(false, false, true, false);
+  testSimpleReadWrite(listenSecure: true,
+                      connectSecure: true,
+                      handshakeBeforeSecure: false,
+                      postponeSecure: false,
+                      dropReads: false);
+  testSimpleReadWrite(listenSecure: true,
+                      connectSecure: false,
+                      handshakeBeforeSecure: false,
+                      postponeSecure: false,
+                      dropReads: false);
+  testSimpleReadWrite(listenSecure: false,
+                      connectSecure: true,
+                      handshakeBeforeSecure: false,
+                      postponeSecure: false,
+                      dropReads: false);
+  testSimpleReadWrite(listenSecure: false,
+                      connectSecure: false,
+                      handshakeBeforeSecure: false,
+                      postponeSecure: false,
+                      dropReads: false);
+  testSimpleReadWrite(listenSecure: false,
+                      connectSecure: false,
+                      handshakeBeforeSecure: true,
+                      postponeSecure: true,
+                      dropReads: false);
+  testSimpleReadWrite(listenSecure: false,
+                      connectSecure: false,
+                      handshakeBeforeSecure: true,
+                      postponeSecure: false,
+                      dropReads: false);
+  testSimpleReadWrite(listenSecure: true,
+                      connectSecure: true,
+                      handshakeBeforeSecure: false,
+                      postponeSecure: false,
+                      dropReads: true);
+  testSimpleReadWrite(listenSecure: false,
+                      connectSecure: false,
+                      handshakeBeforeSecure: true,
+                      postponeSecure: true,
+                      dropReads: true);
 }
