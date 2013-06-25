@@ -20,8 +20,6 @@ Language/11_Expressions/05_Strings_A02_t46: fail
 Language/11_Expressions/05_Strings_A02_t48: fail
 Language/11_Expressions/11_Instance_Creation/1_New_A13_t02: fail
 Language/11_Expressions/11_Instance_Creation_A05_t02: fail
-Language/11_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: fail
-Language/11_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A02_t01: fail
 Language/11_Expressions/22_Equality_A01_t15: fail
 Language/11_Expressions/22_Equality_A01_t16: fail
 Language/13_Libraries_and_Scripts/1_Imports_A05_t01: fail
