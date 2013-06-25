@@ -40,6 +40,16 @@ class JsMirrorSystem implements MirrorSystem {
   static final Map<String, List<LibraryMirror>> librariesByName =
       computeLibrariesByName();
 
+  Map<Uri, LibraryMirror> get libraries {
+    Map<Uri, LibraryMirror> result = new Map<Uri, LibraryMirror>();
+    for (List<LibraryMirror> list in librariesByName.values) {
+      for (LibraryMirror library in list) {
+        result[library.uri] = library;
+      }
+    }
+    return result;
+  }
+
   Iterable<LibraryMirror> findLibrary(Symbol libraryName) {
     return new List<LibraryMirror>.from(librariesByName[n(libraryName)]);
   }
@@ -114,9 +124,8 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
   Map<Symbol, ClassMirror> get classes {
     var result = new Map<Symbol, ClassMirror>();
     for (String className in _classes) {
-      Symbol symbol = s(className);
-      JsClassMirror cls = reflectClassByName(symbol);
-      result[symbol] = cls;
+      JsClassMirror cls = reflectClassByMangledName(className);
+      result[cls.simpleName] = cls;
       cls._owner = this;
     }
     return result;
@@ -208,18 +217,23 @@ InstanceMirror reflect(Object reflectee) {
 final Expando<ClassMirror> classMirrors = new Expando<ClassMirror>();
 
 ClassMirror reflectType(Type key) {
-  return reflectClassByName(s('$key'.split('<')[0]));
+  return reflectClassByMangledName('$key'.split('<')[0]);
 }
 
-ClassMirror reflectClassByName(Symbol symbol) {
+ClassMirror reflectClassByMangledName(String mangledName) {
+  String unmangledName = mangledGlobalNames[mangledName];
+  if (unmangledName == null) unmangledName = mangledName;
+  return reflectClassByName(s(unmangledName), mangledName);
+}
+
+ClassMirror reflectClassByName(Symbol symbol, String mangledName) {
   disableTreeShaking();
-  String className = n(symbol);
   var constructorOrInterceptor =
-      Primitives.getConstructorOrInterceptor(className);
+      Primitives.getConstructorOrInterceptor(mangledName);
   if (constructorOrInterceptor == null) {
     // Probably an intercepted class.
     // TODO(ahe): How to handle intercepted classes?
-    throw new UnsupportedError('Cannot find class for: $className');
+    throw new UnsupportedError('Cannot find class for: ${n(symbol)}');
   }
   var constructor = (constructorOrInterceptor is Interceptor)
       ? JS('', '#.constructor', constructorOrInterceptor)
@@ -466,7 +480,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     if (namedArguments != null && !namedArguments.isEmpty) {
       throw new UnsupportedError('Named arguments are not implemented');
     }
-    String reflectiveName = 'new ${mangledGlobalNames[n(simpleName)]}';
+    String reflectiveName = 'new ${n(simpleName)}';
     String name = n(constructorName);
     if (!name.isEmpty) {
       reflectiveName = '$reflectiveName\$$name';
@@ -531,8 +545,8 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     if (_superclass == null) {
       var superclassName = _fields.split(';')[0];
       // Use _superclass == this to represent class with no superclass (Object).
-      _superclass =
-          (superclassName == '') ? this : reflectClassByName(s(superclassName));
+      _superclass = (superclassName == '')
+          ? this : reflectClassByMangledName(superclassName);
     }
     return _superclass == this ? null : _superclass;
   }
