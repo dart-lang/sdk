@@ -3072,8 +3072,10 @@ class StaticCallInstr : public TemplateDefinition<0> {
   StaticCallInstr(intptr_t token_pos,
                   const Function& function,
                   const Array& argument_names,
-                  ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : token_pos_(token_pos),
+                  ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                  const Array& ic_data_array)
+      : ic_data_(GetICData(ic_data_array)),
+        token_pos_(token_pos),
         function_(function),
         argument_names_(argument_names),
         arguments_(arguments),
@@ -3081,6 +3083,12 @@ class StaticCallInstr : public TemplateDefinition<0> {
         is_known_list_constructor_(false) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
+  }
+
+  // ICData for static calls carries call count.
+  const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
   }
 
   DECLARE_INSTRUCTION(StaticCall)
@@ -3112,6 +3120,7 @@ class StaticCallInstr : public TemplateDefinition<0> {
   virtual bool MayThrow() const { return true; }
 
  private:
+  const ICData* ic_data_;
   const intptr_t token_pos_;
   const Function& function_;
   const Array& argument_names_;

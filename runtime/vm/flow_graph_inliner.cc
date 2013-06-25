@@ -188,10 +188,6 @@ class CallSites : public FlowGraphVisitor {
         closure_calls_(),
         instance_calls_() { }
 
-  const GrowableArray<StaticCallInstr*>& static_calls() const {
-    return static_calls_;
-  }
-
   const GrowableArray<ClosureCallInstr*>& closure_calls() const {
     return closure_calls_;
   }
@@ -203,8 +199,19 @@ class CallSites : public FlowGraphVisitor {
         : call(call_arg), ratio(0.0) {}
   };
 
+  struct StaticCallInfo {
+    StaticCallInstr* call;
+    double ratio;
+    explicit StaticCallInfo(StaticCallInstr* value)
+        : call(value), ratio(0.0) {}
+  };
+
   const GrowableArray<InstanceCallInfo>& instance_calls() const {
     return instance_calls_;
+  }
+
+  const GrowableArray<StaticCallInfo>& static_calls() const {
+    return static_calls_;
   }
 
   bool HasCalls() const {
@@ -219,10 +226,52 @@ class CallSites : public FlowGraphVisitor {
     instance_calls_.Clear();
   }
 
+  void ComputeCallSiteRatio(intptr_t static_call_start_ix,
+                            intptr_t instance_call_start_ix) {
+    const intptr_t num_static_calls =
+        static_calls_.length() - static_call_start_ix;
+    const intptr_t num_instance_calls =
+        instance_calls_.length() - instance_call_start_ix;
+
+    intptr_t max_count = 0;
+    GrowableArray<intptr_t> instance_call_counts(num_instance_calls);
+    for (intptr_t i = 0; i < num_instance_calls; ++i) {
+      const intptr_t aggregate_count =
+          instance_calls_[i + instance_call_start_ix].
+              call->ic_data().AggregateCount();
+      instance_call_counts.Add(aggregate_count);
+      if (aggregate_count > max_count) max_count = aggregate_count;
+    }
+
+    GrowableArray<intptr_t> static_call_counts(num_static_calls);
+    for (intptr_t i = 0; i < num_static_calls; ++i) {
+      const intptr_t aggregate_count =
+          static_calls_[i + static_call_start_ix].
+              call->ic_data()->AggregateCount();
+      static_call_counts.Add(aggregate_count);
+      if (aggregate_count > max_count) max_count = aggregate_count;
+    }
+
+
+    for (intptr_t i = 0; i < num_instance_calls; ++i) {
+      ASSERT(max_count > 0);
+      const double ratio =
+          static_cast<double>(instance_call_counts[i]) / max_count;
+      instance_calls_[i + instance_call_start_ix].ratio = ratio;
+    }
+    for (intptr_t i = 0; i < num_static_calls; ++i) {
+      ASSERT(max_count > 0);
+      const double ratio =
+          static_cast<double>(static_call_counts[i]) / max_count;
+      static_calls_[i + static_call_start_ix].ratio = ratio;
+    }
+  }
+
   void FindCallSites(FlowGraph* graph) {
     ASSERT(graph != NULL);
 
     const intptr_t instance_call_start_ix = instance_calls_.length();
+    const intptr_t static_call_start_ix = static_calls_.length();
     for (BlockIterator block_it = graph->postorder_iterator();
          !block_it.Done();
          block_it.Advance()) {
@@ -232,23 +281,7 @@ class CallSites : public FlowGraphVisitor {
         it.Current()->Accept(this);
       }
     }
-    // Compute instance call site ratio.
-    const intptr_t num_instance_calls =
-        instance_calls_.length() - instance_call_start_ix;
-    intptr_t max_count = 0;
-    GrowableArray<intptr_t> call_counts(num_instance_calls);
-    for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const intptr_t aggregate_count =
-          instance_calls_[i + instance_call_start_ix].
-              call->ic_data().AggregateCount();
-      call_counts.Add(aggregate_count);
-      if (aggregate_count > max_count) max_count = aggregate_count;
-    }
-
-    for (intptr_t i = 0; i < num_instance_calls; ++i) {
-      const double ratio = static_cast<double>(call_counts[i]) / max_count;
-      instance_calls_[i + instance_call_start_ix].ratio = ratio;
-    }
+    ComputeCallSiteRatio(static_call_start_ix, instance_call_start_ix);
   }
 
   void VisitClosureCall(ClosureCallInstr* call) {
@@ -261,11 +294,11 @@ class CallSites : public FlowGraphVisitor {
 
   void VisitStaticCall(StaticCallInstr* call) {
     if (!call->function().IsInlineable()) return;
-    static_calls_.Add(call);
+    static_calls_.Add(StaticCallInfo(call));
   }
 
  private:
-  GrowableArray<StaticCallInstr*> static_calls_;
+  GrowableArray<StaticCallInfo> static_calls_;
   GrowableArray<ClosureCallInstr*> closure_calls_;
   GrowableArray<InstanceCallInfo> instance_calls_;
 
@@ -696,11 +729,11 @@ class CallSiteInliner : public ValueObject {
   // if the incoming argument is a non-constant value.
   // TODO(srdjan): Fix inlining of List. factory.
   void InlineStaticCalls() {
-    const GrowableArray<StaticCallInstr*>& calls =
+    const GrowableArray<CallSites::StaticCallInfo>& call_info =
         inlining_call_sites_->static_calls();
-    TRACE_INLINING(OS::Print("  Static Calls (%d)\n", calls.length()));
-    for (intptr_t i = 0; i < calls.length(); ++i) {
-      StaticCallInstr* call = calls[i];
+    TRACE_INLINING(OS::Print("  Static Calls (%d)\n", call_info.length()));
+    for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
+      StaticCallInstr* call = call_info[call_idx].call;
       if (call->function().name() == Symbols::ListFactory().raw()) {
         // Inline only if no arguments or a constant was passed.
         ASSERT(call->function().NumImplicitParameters() == 1);
@@ -712,6 +745,15 @@ class CallSiteInliner : public ValueObject {
           // Do not inline since a non-constant argument was passed.
           continue;
         }
+      }
+      if ((call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
+        const Function& target = call->function();
+        TRACE_INLINING(OS::Print(
+            "  => %s (deopt count %d)\n     Bailout: cold %f\n",
+            target.ToCString(),
+            target.deoptimization_counter(),
+            call_info[call_idx].ratio));
+        continue;
       }
       GrowableArray<Value*> arguments(call->ArgumentCount());
       for (int i = 0; i < call->ArgumentCount(); ++i) {

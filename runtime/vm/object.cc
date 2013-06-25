@@ -8703,6 +8703,7 @@ intptr_t ICData::GetCountAt(intptr_t index) const {
 
 
 intptr_t ICData::AggregateCount() const {
+  if (IsNull()) return 0;
   const intptr_t len = NumberOfChecks();
   intptr_t count = 0;
   for (intptr_t i = 0; i < len; i++) {

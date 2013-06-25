@@ -2114,7 +2114,8 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
       new StaticCallInstr(node->token_pos(),
                           node->function(),
                           node->arguments()->names(),
-                          arguments);
+                          arguments,
+                          owner()->ic_data_array());
   if (node->function().is_native()) {
     const intptr_t result_cid = GetResultCidOfNative(node->function());
     call->set_result_cid(result_cid);
@@ -2224,7 +2225,8 @@ void EffectGraphVisitor::BuildConstructorCall(
   Do(new StaticCallInstr(node->token_pos(),
                          node->constructor(),
                          node->arguments()->names(),
-                         arguments));
+                         arguments,
+                         owner()->ic_data_array()));
 }
 
 
@@ -2292,7 +2294,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
         new StaticCallInstr(node->token_pos(),
                             node->constructor(),
                             node->arguments()->names(),
-                            arguments);
+                            arguments,
+                            owner()->ic_data_array());
     const intptr_t result_cid = GetResultCidOfListFactory(node);
     if (result_cid != kDynamicCid) {
       call->set_result_cid(result_cid);
@@ -2647,7 +2650,8 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   StaticCallInstr* call = new StaticCallInstr(node->token_pos(),
                                               getter_function,
                                               Object::null_array(),  // No names
-                                              arguments);
+                                              arguments,
+                                              owner()->ic_data_array());
   ReturnDefinition(call);
 }
 
@@ -2714,7 +2718,8 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
     call = new StaticCallInstr(node->token_pos(),
                                setter_function,
                                Object::null_array(),  // No names.
-                               arguments);
+                               arguments,
+                               owner()->ic_data_array());
   }
   if (result_is_needed) {
     Do(call);
@@ -2935,7 +2940,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
     StaticCallInstr* load = new StaticCallInstr(node->token_pos(),
                                                 *super_function,
                                                 Object::null_array(),
-                                                arguments);
+                                                arguments,
+                                                owner()->ic_data_array());
     ReturnDefinition(load);
   } else {
     // Generate dynamic call to index operator.
@@ -3014,7 +3020,8 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
         new StaticCallInstr(node->token_pos(),
                             *super_function,
                             Object::null_array(),
-                            arguments);
+                            arguments,
+                            owner()->ic_data_array());
     if (result_is_needed) {
       Do(store);
       return BuildLoadExprTemp();
@@ -3326,7 +3333,8 @@ StaticCallInstr* EffectGraphVisitor::BuildStaticNoSuchMethodCall(
   return new StaticCallInstr(args_pos,
                              no_such_method_func,
                              Object::null_array(),
-                             push_arguments);
+                             push_arguments,
+                             owner()->ic_data_array());
 }
 StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
     intptr_t token_pos,
@@ -3382,7 +3390,8 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   return new StaticCallInstr(token_pos,
                              func,
                              Object::null_array(),  // No names.
-                             arguments);
+                             arguments,
+                             owner()->ic_data_array());
 }
 
 
