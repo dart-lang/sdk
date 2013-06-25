@@ -2,9 +2,6 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Testing for arguments definition.
-type_equals_test: Fail
-
 identity_test: Fail # Issue 6638
 constant_folding_string_test: Fail
 boolified_operator_test: Fail # Issue 8001

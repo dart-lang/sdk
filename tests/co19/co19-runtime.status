@@ -2,21 +2,15 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == none ]
-# Known bad tests depending on removed language features.
-Language/11_Expressions/33_Argument_Definition_Test_A01_t02: Fail, OK
-Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Fail, OK
-Language/11_Expressions/33_Argument_Definition_Test_A02_t01: Fail, OK
-Language/11_Expressions/33_Argument_Definition_Test_A03_t01: Fail, OK
-Language/11_Expressions/33_Argument_Definition_Test_A03_t02: Fail, OK
-
 [ $runtime == vm && $system == windows ]
 LibTest/core/Stopwatch/elapsed_A01_t01: Pass, Fail # Issue 11382.
 
 [ $runtime == vm ]
+Language/11_Expressions/33_Argument_Definition_Test_A02_t02: Crash, Pass # http://dartbug.com/9597
 Language/07_Classes/6_Constructors_A02_t01: Skip # co19 issue 415.
 
 [ $compiler == none && $runtime == vm ]
+
 # The following tests fail because they contain number literals with a + prefix (co19 issue 428)
 LibTest/core/double/floor_A01_t05: Fail # issue 428
 LibTest/core/double/ceil_A01_t05: Fail # issue 428

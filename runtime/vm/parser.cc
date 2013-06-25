@@ -9830,6 +9830,8 @@ AstNode* Parser::ParsePrimary() {
     } else {
       primary = new PrimaryNode(TokenPos(), Symbols::Super());
     }
+  } else if (CurrentToken() == Token::kCONDITIONAL) {
+    primary = ParseArgumentDefinitionTest();
   } else {
     UnexpectedToken();
   }
@@ -10028,6 +10030,12 @@ void Parser::SkipPrimary() {
     case Token::kLBRACK:
     case Token::kINDEX:
       SkipCompoundLiteral();
+      break;
+    case Token::kCONDITIONAL:
+      ConsumeToken();
+      if (IsIdentifier()) {
+        ConsumeToken();
+      }
       break;
     default:
       if (IsIdentifier()) {
