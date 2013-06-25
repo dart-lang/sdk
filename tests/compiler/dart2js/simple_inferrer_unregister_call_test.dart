@@ -38,7 +38,7 @@ void main() {
   checkReturnInClass(String className, String methodName, type) {
     var cls = findElement(compiler, className);
     var element = cls.lookupLocalMember(buildSourceString(methodName));
-    Expect.equals(type, typesInferrer.internal.returnTypeOf[element]);
+    Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
   }
 
   checkReturnInClass('A', '+', typesInferrer.intType);

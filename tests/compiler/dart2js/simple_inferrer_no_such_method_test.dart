@@ -103,7 +103,7 @@ main() {
     var element = findElement(compiler, name);
     Expect.equals(
         type,
-        typesInferrer.internal.returnTypeOf[element].simplify(compiler),
+        typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
         name);
   }
 

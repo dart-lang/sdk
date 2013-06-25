@@ -491,7 +491,7 @@ void main() {
     var element = findElement(compiler, name);
     Expect.equals(
         type,
-        typesInferrer.internal.returnTypeOf[element].simplify(compiler),
+        typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
         name);
   }
   var interceptorType =
@@ -559,7 +559,7 @@ void main() {
     var cls = findElement(compiler, className);
     var element = cls.lookupLocalMember(buildSourceString(methodName));
     Expect.equals(type,
-        typesInferrer.internal.returnTypeOf[element].simplify(compiler));
+        typesInferrer.getReturnTypeOfElement(element).simplify(compiler));
   }
 
   checkReturnInClass('A', 'returnInt1', typesInferrer.intType);
@@ -584,7 +584,7 @@ void main() {
     var cls = findElement(compiler, className);
     var element = cls.localLookup(buildSourceString(className));
     Expect.equals(new TypeMask.nonNullExact(cls.rawType),
-                  typesInferrer.internal.returnTypeOf[element]);
+                  typesInferrer.getReturnTypeOfElement(element));
   }
   checkFactoryConstructor('A');
 }

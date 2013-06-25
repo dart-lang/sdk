@@ -222,7 +222,7 @@ void doTest(String test, bool enableInlining, Function f) {
       int index = 0;
       signature.forEachParameter((Element element) {
         Expect.equals(expectedTypes[index++],
-            inferrer.internal.typeOf[element].simplify(inferrer.compiler));
+            inferrer.getTypeOfElement(element).simplify(inferrer.compiler));
       });
       Expect.equals(index, expectedTypes.length);
   });
