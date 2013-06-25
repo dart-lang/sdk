@@ -730,6 +730,9 @@ class _RawSocket extends Stream<RawSocketEvent>
   bool _readEventsEnabled = true;
   bool _writeEventsEnabled = true;
 
+  // Flag to handle Ctrl-D closing of stdio on Mac OS.
+  bool _isMacOSTerminalInput = false;
+
   static Future<RawSocket> connect(host, int port) {
     return _NativeSocket.connect(host, port)
         .then((socket) => new _RawSocket(socket));
@@ -769,7 +772,11 @@ class _RawSocket extends Stream<RawSocketEvent>
     var native = new _NativeSocket.pipe();
     native.isClosedWrite = true;
     if (fd != null) _getStdioHandle(native, fd);
-    return new _RawSocket(native);
+    var result = new _RawSocket(native);
+    result._isMacOSTerminalInput =
+        Platform.isMacOS &&
+        _StdIOUtils._socketType(result) == _STDIO_HANDLE_TYPE_TERMINAL;
+    return result;
   }
 
   StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event),
@@ -785,7 +792,21 @@ class _RawSocket extends Stream<RawSocketEvent>
 
   int available() => _socket.available();
 
-  List<int> read([int len]) => _socket.read(len);
+  List<int> read([int len]) {
+    if (_isMacOSTerminalInput) {
+      var available = available();
+      if (available == 0) return null;
+      var data = _socket.read(len);
+      if (data == null || data.length < available) {
+        // Reading less than available from a Mac OS terminal indicate Ctrl-D.
+        // This is interpreted as read closed.
+        runAsync(() => _controller.add(RawSocketEvent.READ_CLOSED));
+      }
+      return data;
+    } else {
+      return _socket.read(len);
+    }
+  }
 
   int write(List<int> buffer, [int offset, int count]) =>
       _socket.write(buffer, offset, count);
