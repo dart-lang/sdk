@@ -87,7 +87,7 @@ class _IsSameAs extends BaseMatcher {
  */
 Matcher equals(expected, [limit=100]) =>
     expected is String
-        ? new _StringEqualsMatcher(expected) 
+        ? new _StringEqualsMatcher(expected)
         : new _DeepMatcher(expected, limit);
 
 class _DeepMatcher extends BaseMatcher {
@@ -106,8 +106,8 @@ class _DeepMatcher extends BaseMatcher {
     var actualIterator = actual.iterator;
     var index = 0;
     while (true) {
+      var newLocation = '${location}[${index}]';
       if (expectedIterator.moveNext()) {
-        var newLocation = '${location}[${index}]';
         if (actualIterator.moveNext()) {
           var rp = matcher(expectedIterator.current,
                            actualIterator.current, newLocation,
@@ -220,7 +220,7 @@ class _DeepMatcher extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                Map matchState, bool verbose) {
     var reason = matchState['reason'];
-    // If we didn't get a good reason, that would normally be a 
+    // If we didn't get a good reason, that would normally be a
     // simple 'is <value>' message. We only add that if the mismatch
     // description is non empty (so we are supplementing the mismatch
     // description).

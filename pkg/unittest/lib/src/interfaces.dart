@@ -26,6 +26,8 @@ typedef String ErrorFormatter(actual, Matcher matcher, String reason,
  * some cases - e.g. language conversion.
  */
 abstract class Description {
+  int get length;
+
   /** Change the value of the description. */
   Description replace(String text);
 
