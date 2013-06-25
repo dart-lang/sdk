@@ -170,11 +170,8 @@ type_variable_bounds2_test/03: fail
 type_variable_bounds2_test/04: fail
 type_variable_bounds2_test/06: fail
 type_variable_bounds_test/00: fail
-type_variable_bounds_test/01: fail
-type_variable_bounds_test/02: fail
 type_variable_bounds_test/03: fail
 type_variable_bounds_test/04: fail
-type_variable_bounds_test/06: fail
 type_variable_identifier_expression_negative_test: fail
 type_variable_static_context_negative_test: fail
 unresolved_in_factory_negative_test: fail

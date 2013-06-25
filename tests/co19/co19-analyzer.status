@@ -172,6 +172,10 @@ LibTest/core/StringBuffer/addAll_A01_t01: fail, OK
 LibTest/core/StringBuffer/addAll_A01_t02: fail, OK
 LibTest/core/StringBuffer/toString_A01_t01: fail, OK
 
+#co19 issue #432, missing @static-warning annotation
+Language/14_Types/8_Parameterized_Types_A03_t03: fail,OK
+Language/14_Types/8_Parameterized_Types_A03_t05: fail,OK
+
 # co19 issue #433, missing @static-warning annotation
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t01: fail, OK
 Language/11_Expressions/15_Method_Invocation/3_Static_Invocation_A03_t07: fail, OK
