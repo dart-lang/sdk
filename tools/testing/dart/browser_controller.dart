@@ -15,12 +15,11 @@ abstract class Browser {
   StringBuffer _stdout = new StringBuffer();
   StringBuffer _stderr = new StringBuffer();
   StringBuffer _usageLog = new StringBuffer();
-  // This function is called when the process is closed.
-  Completer _processClosedCompleter = new Completer();
-  // This is called after the process is closed, after _processClosedCompleter
-  // has been called, but before onExit. Subclasses can use this to cleanup
-  // any browser specific resources (temp directories, profiles, etc)
-  // The function is expected to do it's work synchronously.
+  // This is called after the process is closed, before the done future
+  // is completed.
+  // Subclasses can use this to cleanup any browser specific resources
+  // (temp directories, profiles, etc). The function is expected to do
+  // it's work synchronously.
   Function _cleanup;
 
   /** The version of the browser - normally set when starting a browser */
@@ -42,9 +41,9 @@ abstract class Browser {
   /** Print everything (stdout, stderr, usageLog) whenever we add to it */
   bool debugPrint = false;
 
-  // This future will be lazily set when calling close() and will complete once
-  // the process did exit.
-  Future browserTerminationFuture;
+  // This future returns when the process exits. It is also the return value
+  // of close()
+  Future done;
 
   Browser();
 
@@ -90,30 +89,17 @@ abstract class Browser {
 
   Future close() {
     _logEvent("Close called on browser");
-    if (browserTerminationFuture == null) {
-      var completer = new Completer();
-      browserTerminationFuture = completer.future;
-
-      if (process != null) {
-        _processClosedCompleter.future.then((_) {
-          process = null;
-          completer.complete(true);
-          if (_cleanup != null) {
-            _cleanup();
-          }
-        });
-
-        if (process.kill(ProcessSignal.SIGKILL)) {
-          _logEvent("Successfully sent kill signal to process.");
-        } else {
-          _logEvent("Sending kill signal failed.");
-        }
+    if (process != null) {
+      if (process.kill(ProcessSignal.SIGKILL)) {
+        _logEvent("Successfully sent kill signal to process.");
       } else {
-        _logEvent("The process is already dead.");
-        completer.complete(true);
+        _logEvent("Sending kill signal failed.");
       }
+      return done;
+    } else {
+      _logEvent("The process is already dead.");
+      return new Future.immediate(true);
     }
-    return browserTerminationFuture;
   }
 
   /**
@@ -123,6 +109,11 @@ abstract class Browser {
   Future<bool> startBrowser(String command, List<String> arguments) {
     return Process.start(command, arguments).then((startedProcess) {
       process = startedProcess;
+      // Used to notify when exiting, and as a return value on calls to
+      // close().
+      var doneCompleter = new Completer();
+      done = doneCompleter.future;
+
       Completer stdoutDone = new Completer();
       Completer stderrDone = new Completer();
 
@@ -149,7 +140,11 @@ abstract class Browser {
       process.exitCode.then((exitCode) {
         _logEvent("Browser closed with exitcode $exitCode");
         Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
-          _processClosedCompleter.complete(exitCode);
+          process = null;
+          if (_cleanup != null) {
+            _cleanup();
+          }
+          doneCompleter.complete(exitCode);
         });
       });
       return true;
@@ -657,12 +652,7 @@ class BrowserTestRunner {
     status.timeout = true;
     timedOut.add(status.currentTest.url);
     var id = status.browser.id;
-    status.browser.close().then((closed) {
-      if (!closed) {
-        // Very bad, we could not kill the browser.
-        print("could not kill browser $id");
-        return;
-      }
+    status.browser.close().then((_) {
       // We don't want to start a new browser if we are terminating.
       if (underTermination) return;
       var browser;
