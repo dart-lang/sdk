@@ -87,6 +87,7 @@
             '--exclude-lib=analyzer_experimental',
             '--exclude-lib=browser',
             '--exclude-lib=dartdoc',
+            '--exclude-lib=docgen',
             '--exclude-lib=expect',
             '--exclude-lib=http',
             '--exclude-lib=http_server',
