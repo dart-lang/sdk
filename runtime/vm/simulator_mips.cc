@@ -1650,7 +1650,13 @@ void Simulator::DecodeCop1(Instr* instr) {
         switch (instr->FormatField()) {
           case FMT_D: {
             double fs_dbl = get_fregister_double(instr->FsField());
-            int32_t fs_int = static_cast<int32_t>(fs_dbl);
+            int32_t fs_int;
+            if (isnan(fs_dbl) || isinf(fs_dbl) || (fs_dbl > INT_MAX) ||
+                (fs_dbl < INT_MIN)) {
+              fs_int = INT_MIN;
+            } else {
+              fs_int = static_cast<int32_t>(fs_dbl);
+            }
             set_fregister(instr->FdField(), fs_int);
             break;
           }

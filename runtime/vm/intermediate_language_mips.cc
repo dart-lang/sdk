@@ -3037,13 +3037,18 @@ void BinaryUint32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* MathSqrtInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(Location::RequiresFpuRegister());
+  return summary;
 }
 
 
 void MathSqrtInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  __ sqrtd(locs()->out().fpu_reg(), locs()->in(0).fpu_reg());
 }
 
 
@@ -3113,13 +3118,28 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* DoubleToSmiInstr::MakeLocationSummary() const {
-  UNIMPLEMENTED();
-  return NULL;
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* result = new LocationSummary(
+      kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  result->set_in(0, Location::RequiresFpuRegister());
+  result->set_out(Location::RequiresRegister());
+  return result;
 }
 
 
 void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(), kDeoptDoubleToSmi);
+  Register result = locs()->out().reg();
+  DRegister value = locs()->in(0).fpu_reg();
+  __ cvtwd(STMP1, value);
+  __ mfc1(result, STMP1);
+
+  // Check for overflow and that it fits into Smi.
+  __ LoadImmediate(TMP, 0xC0000000);
+  __ subu(CMPRES, result, TMP);
+  __ bltz(CMPRES, deopt);
+  __ SmiTag(result);
 }
 
 

@@ -138,7 +138,6 @@ class CPUFeatures : public AllStatic {
  public:
   static void InitOnce() { }
   static bool double_truncate_round_supported() {
-    UNIMPLEMENTED();
     return false;
   }
 };

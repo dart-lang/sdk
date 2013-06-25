@@ -869,23 +869,23 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
   __ bx(LR, EQ);
 
   // Arguments are Smi but the shift produced an overflow to Mint.
-  __ CompareImmediate(R6, 0);
+  __ CompareImmediate(R1, 0);
   __ b(&fall_through, LT);
-  __ SmiUntag(R6);
+  __ SmiUntag(R1);
 
-  // Pull off high bits that will be shifted off of R6 by making a mask
-  // ((1 << R0) - 1), shifting it to the left, masking R6, then shifting back.
-  // high bits = (((1 << R0) - 1) << (32 - R0)) & R6) >> (32 - R0)
-  // lo bits = R6 << R0
+  // Pull off high bits that will be shifted off of R1 by making a mask
+  // ((1 << R0) - 1), shifting it to the left, masking R1, then shifting back.
+  // high bits = (((1 << R0) - 1) << (32 - R0)) & R1) >> (32 - R0)
+  // lo bits = R1 << R0
   __ LoadImmediate(R7, 1);
   __ mov(R7, ShifterOperand(R7, LSL, R0));  // R7 <- 1 << R0
   __ sub(R7, R7, ShifterOperand(1));  // R7 <- R7 - 1
   __ rsb(R8, R0, ShifterOperand(32));  // R8 <- 32 - R0
   __ mov(R7, ShifterOperand(R7, LSL, R8));  // R7 <- R7 << R8
-  __ and_(R7, R6, ShifterOperand(R7));  // R7 <- R7 & R6
+  __ and_(R7, R1, ShifterOperand(R7));  // R7 <- R7 & R1
   __ mov(R7, ShifterOperand(R7, LSR, R8));  // R7 <- R7 >> R8
-  // Now R7 has the bits that fall off of R6 on a left shift.
-  __ mov(R1, ShifterOperand(R6, LSL, R0));  // R1 gets the low bits.
+  // Now R7 has the bits that fall off of R1 on a left shift.
+  __ mov(R1, ShifterOperand(R1, LSL, R0));  // R1 gets the low bits.
 
   const Class& mint_class = Class::Handle(
       Isolate::Current()->object_store()->mint_class());

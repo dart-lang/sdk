@@ -864,10 +864,9 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
 
   // Check for overflow by shifting left and shifting back arithmetically.
   // If the result is different from the original, there was overflow.
-  __ mov(T2, T1);
-  __ sllv(T1, T1, T0);
-  __ srlv(T1, T1, T0);
-  __ bne(T1, T2, &overflow);
+  __ sllv(TMP, T1, T0);
+  __ srav(TMP, TMP, T0);
+  __ bne(TMP, T1, &overflow);
 
   // No overflow, result in V0.
   __ Ret();
@@ -875,23 +874,23 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
 
   __ Bind(&overflow);
   // Arguments are Smi but the shift produced an overflow to Mint.
-  __ bltz(T2, &fall_through);
-  __ SmiUntag(T2);
+  __ bltz(T1, &fall_through);
+  __ SmiUntag(T1);
 
-  // Pull off high bits that will be shifted off of T2 by making a mask
-  // ((1 << T0) - 1), shifting it to the right, masking T2, then shifting back.
-  // high bits = (((1 << T0) - 1) << (32 - T0)) & T2) >> (32 - T0)
-  // lo bits = T2 << T0
+  // Pull off high bits that will be shifted off of T1 by making a mask
+  // ((1 << T0) - 1), shifting it to the right, masking T1, then shifting back.
+  // high bits = (((1 << T0) - 1) << (32 - T0)) & T1) >> (32 - T0)
+  // lo bits = T1 << T0
   __ LoadImmediate(T3, 1);
   __ sllv(T3, T3, T0);  // T3 <- T3 << T0
   __ addiu(T3, T3, Immediate(-1));  // T3 <- T3 - 1
-  __ addu(T4, ZR, T0);  // T4 <- -T0
+  __ subu(T4, ZR, T0);  // T4 <- -T0
   __ addiu(T4, T4, Immediate(32));  // T4 <- 32 - T0
   __ sllv(T3, T3, T4);  // T3 <- T3 << T4
-  __ and_(T3, T3, T2);  // T3 <- T3 & T2
+  __ and_(T3, T3, T1);  // T3 <- T3 & T1
   __ srlv(T3, T3, T4);  // T3 <- T3 >> T4
-  // Now T3 has the bits that fall off of T2 on a left shift.
-  __ sllv(T0, T2, T0);  // T0 gets low bits.
+  // Now T3 has the bits that fall off of T1 on a left shift.
+  __ sllv(T0, T1, T0);  // T0 gets low bits.
 
   const Class& mint_class = Class::Handle(
       Isolate::Current()->object_store()->mint_class());
@@ -1371,14 +1370,17 @@ bool Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 
 bool Intrinsifier::Double_toInt(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
-  __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
+  __ LoadDFromOffset(D0, T0, Double::value_offset() - kHeapObjectTag);
+
   __ cvtwd(F2, D0);
   __ mfc1(V0, F2);
+
   // Overflow is signaled with minint.
   Label fall_through;
   // Check for overflow and that it fits into Smi.
-  __ BranchSignedLess(V0, 0xC0000000, &fall_through);
+  __ LoadImmediate(TMP, 0xC0000000);
+  __ subu(CMPRES, V0, TMP);
+  __ bltz(CMPRES, &fall_through);
   __ Ret();
   __ delay_slot()->SmiTag(V0);
   __ Bind(&fall_through);
