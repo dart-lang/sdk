@@ -22,8 +22,10 @@ import 'dart:async';
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
+import 'package:pathos/path.dart' as path;
 
 import 'dart2yaml.dart';
+import 'src/io.dart';
 import '../../../sdk/lib/_internal/compiler/compiler.dart' as api;
 import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirror.dart'
@@ -32,48 +34,9 @@ import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart'
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 
-var logger = new Logger("Docgen");
+var logger = new Logger('Docgen');
 
-/// Counter used to provide unique IDs for each distinct item.  
-int _nextID = 0;
-
-int get nextID => _nextID++;
-
-const String usage = "Usage: dart docgen.dart [OPTIONS] [fooDir/barFile]";
-
-List<Path> listLibraries(List<String> args) {
-  if (args.length != 1) {
-    throw new UnsupportedError(usage);
-  }
-  var libraries = new List<Path>();
-  var type = FileSystemEntity.typeSync(args[0]);
-  
-  if (type == FileSystemEntityType.NOT_FOUND) { 
-    throw new UnsupportedError("File does not exist. $usage");
-  } else if (type == FileSystemEntityType.LINK) {
-    libraries.addAll(listLibrariesFromDir(new Link(args[0]).targetSync()));
-  } else if (type == FileSystemEntityType.FILE) {
-    libraries.add(new Path(args[0]));
-    logger.info("Added to libraries: ${libraries.last.toString()}");
-  } else if (type == FileSystemEntityType.DIRECTORY) {
-    libraries.addAll(listLibrariesFromDir(args[0]));
-  }
-  return libraries;
-}
-
-List<Path> listLibrariesFromDir(String path) {
-  var libraries = new List<Path>();
-  new Directory(path).listSync(recursive: true, 
-      followLinks: true).forEach((file) {
-        if (new Path(file.path).extension == "dart") {
-          if (!file.path.contains("/packages/")) {
-            libraries.add(new Path(file.path));
-            logger.info("Added to libraries: ${libraries.last.toString()}");
-          }
-        }
-      });
-  return libraries;
-}
+const String usage = 'Usage: dart docgen.dart [OPTIONS] [fooDir/barFile]';
 
 /**
  * This class documents a list of libraries.
@@ -82,7 +45,7 @@ class Docgen {
 
   /// Libraries to be documented.
   List<LibraryMirror> _libraries;
-  
+
   /// Current library being documented to be used for comment links.
   LibraryMirror _currentLibrary;
   
@@ -92,8 +55,11 @@ class Docgen {
   /// Current member being documented to be used for comment links.
   MemberMirror _currentMember;
   
-  /// Resolves reference links
+  /// Resolves reference links in doc comments. 
   markdown.Resolver linkResolver;
+  
+  /// Package directory of directory being analyzed. 
+  String packageDir;
   
   bool outputToYaml;
   bool outputToJson;
@@ -106,51 +72,79 @@ class Docgen {
    * Also initializes the command line arguments. 
    */
   Docgen(ArgResults argResults) {  
-    if (argResults["output-format"] == null) {
+    if (argResults['output-format'] == null) {
       outputToYaml = 
-          (argResults["yaml"] == false && argResults["json"] == false) ?
-              true : argResults["yaml"];
+          (argResults['yaml'] == false && argResults['json'] == false) ?
+              true : argResults['yaml'];
     } else {
-      if ((argResults["output-format"] == "yaml" && 
-          argResults["json"] == true) || 
-          (argResults["output-format"] == "json" && 
-          argResults["yaml"] == true)) {
-        throw new UnsupportedError("Cannot have contradictory output flags.");
+      if ((argResults['output-format'] == 'yaml' && 
+          argResults['json'] == true) || 
+          (argResults['output-format'] == 'json' && 
+          argResults['yaml'] == true)) {
+        throw new UnsupportedError('Cannot have contradictory output flags.');
       }
-      outputToYaml = argResults["output-format"] == "yaml" ? true : false;
+      outputToYaml = argResults['output-format'] == 'yaml' ? true : false;
     }
     outputToJson = !outputToYaml;
-    includePrivate = argResults["include-private"];
-    includeSdk = argResults["include-sdk"];
+    includePrivate = argResults['include-private'];
+    includeSdk = argResults['include-sdk'];
     
     this.linkResolver = (name) => 
         fixReference(name, _currentLibrary, _currentClass, _currentMember);
+    
+    analyze(argResults.rest);
   }
   
+  List<String> listLibraries(List<String> args) {
+    // TODO(janicejl): At the moment, only have support to have either one file,
+    // or one directory. This is because there can only be one package directory
+    // since only one docgen is created per run. 
+    if (args.length != 1) throw new UnsupportedError(usage);
+    var libraries = new List<String>();
+    var type = FileSystemEntity.typeSync(args[0]);
+    
+    if (type == FileSystemEntityType.FILE) {
+      libraries.add(path.absolute(args[0]));
+      logger.info('Added to libraries: ${libraries.last}');
+    } else {
+      libraries.addAll(listDartFromDir(args[0]));
+    } 
+    logger.info('Package Directory: $packageDir');
+    return libraries;
+  }
+
+  List<String> listDartFromDir(String args) {
+    var files = listDir(args, recursive: true);
+    packageDir = files.firstWhere((f) => 
+        f.endsWith('/pubspec.yaml'), orElse: () => '');
+    if (packageDir != '') packageDir = path.dirname(packageDir) + '/packages';
+    return files.where((f) => 
+        f.endsWith('.dart') && !f.contains('/packages')).toList()
+        ..forEach((lib) => logger.info('Added to libraries: $lib'));
+  }
+
   /**
    * Analyzes set of libraries by getting a mirror system and triggers the 
    * documentation of the libraries. 
    */
-  void analyze(List<Path> libraries) {
+  void analyze(List<String> args) {
+    var libraries = listLibraries(args);
+    if (libraries.isEmpty) throw new StateError('No Libraries.');
     // DART_SDK should be set to the root of the SDK library. 
-    var sdkRoot = Platform.environment["DART_SDK"];
+    var sdkRoot = Platform.environment['DART_SDK'];
     if (sdkRoot != null) {
-      logger.info("Using DART_SDK to find SDK at $sdkRoot");
-      sdkRoot = new Path(sdkRoot);
+      logger.info('Using DART_SDK to find SDK at $sdkRoot');
     } else {
       // If DART_SDK is not defined in the environment, 
       // assuming the dart executable is from the Dart SDK folder inside bin. 
-      sdkRoot = new Path(new Options().executable).directoryPath
-          .directoryPath;
-      logger.info("SDK Root: ${sdkRoot.toString()}");
+      sdkRoot = path.dirname(path.dirname(new Options().executable));
+      logger.info('SDK Root: ${sdkRoot}');
     }
     
-    Path packageDir = libraries.last.directoryPath.append("packages");
-    logger.info("Package Root: ${packageDir.toString()}");
-    getMirrorSystem(libraries, sdkRoot, 
-        packageRoot: packageDir).then((MirrorSystem mirrorSystem) {
+    getMirrorSystem(libraries, sdkRoot, packageRoot: packageDir)
+        .then((MirrorSystem mirrorSystem) {
           if (mirrorSystem.libraries.values.isEmpty) {
-            throw new UnsupportedError("No Library Mirrors.");
+            throw new UnsupportedError('No Library Mirrors.');
           } 
           this.libraries = mirrorSystem.libraries.values;
           documentLibraries();
@@ -161,8 +155,8 @@ class Docgen {
    * Analyzes set of libraries and provides a mirror system which can be used 
    * for static inspection of the source code.
    */
-  Future<MirrorSystem> getMirrorSystem(List<Path> libraries,
-        Path libraryRoot, {Path packageRoot}) {
+  Future<MirrorSystem> getMirrorSystem(List<String> libraries,
+        String libraryRoot, {String packageRoot}) {
     SourceFileProvider provider = new SourceFileProvider();
     api.DiagnosticHandler diagnosticHandler =
           new FormattingDiagnosticHandler(provider).diagnosticHandler;
@@ -173,7 +167,7 @@ class Docgen {
     }
     List<Uri> librariesUri = <Uri>[];
     libraries.forEach((library) {
-      librariesUri.add(currentDirectory.resolve(library.toString()));
+      librariesUri.add(currentDirectory.resolve(library));
     });
     return dart2js.analyze(librariesUri, libraryUri, packageUri,
         provider.readStringFromUri, diagnosticHandler,
@@ -185,27 +179,27 @@ class Docgen {
    */
   void documentLibraries() {
     _libraries.forEach((library) {
-      // Files belonging to the SDK have a uri that begins with "dart:".
-      if (includeSdk || !library.uri.toString().startsWith("dart:")) {
+      // Files belonging to the SDK have a uri that begins with 'dart:'.
+      if (includeSdk || !library.uri.toString().startsWith('dart:')) {
         _currentLibrary = library;
         var result = new Library(library.qualifiedName, _getComment(library),
             _getVariables(library.variables), _getMethods(library.functions),
-            _getClasses(library.classes), nextID);
+            _getClasses(library.classes));
         if (outputToJson) {
-          _writeToFile(stringify(result.toMap()), "${result.name}.json");
+          _writeToFile(stringify(result.toMap()), '${result.name}.json');
         } 
         if (outputToYaml) {
-          _writeToFile(getYamlString(result.toMap()), "${result.name}.yaml");
+          _writeToFile(getYamlString(result.toMap()), '${result.name}.yaml');
         }
      }
     });
    }
-  
+
   /// Saves list of libraries for Docgen object.
   void set libraries(value){
     _libraries = value;
   }
-   
+  
   /**
    * Returns any documentation comments associated with a mirror with
    * simple markdown converted to html.
@@ -219,14 +213,14 @@ class Docgen {
           if (commentText == null) {
             commentText = comment.trimmedText;
           } else {
-            commentText = "$commentText ${comment.trimmedText}";
+            commentText = '$commentText ${comment.trimmedText}';
           }
         } 
       }
     });
-    commentText = commentText == null ? "" : 
+    commentText = commentText == null ? '' : 
         markdown.markdownToHtml(commentText.trim(), linkResolver: linkResolver)
-        .replaceAll("\n", "");
+        .replaceAll('\n', '');
     return commentText;
   }
 
@@ -248,9 +242,9 @@ class Docgen {
     mirrorMap.forEach((String mirrorName, VariableMirror mirror) {
       if (includePrivate || !mirror.isPrivate) {
         _currentMember = mirror;
-        data[mirrorName] = new Variable(mirrorName, mirror.isFinal,
-            mirror.isStatic, mirror.type.toString(), _getComment(mirror), 
-            nextID);
+        data[mirrorName] = new Variable(mirrorName, mirror.qualifiedName, 
+            mirror.isFinal, mirror.isStatic, mirror.type.qualifiedName, 
+            _getComment(mirror));
       }
     });
     return data;
@@ -264,10 +258,10 @@ class Docgen {
     mirrorMap.forEach((String mirrorName, MethodMirror mirror) {
       if (includePrivate || !mirror.isPrivate) {
         _currentMember = mirror;
-        data[mirrorName] = new Method(mirrorName, mirror.isSetter,
-            mirror.isGetter, mirror.isConstructor, mirror.isOperator, 
-            mirror.isStatic, mirror.returnType.toString(), _getComment(mirror),
-            _getParameters(mirror.parameters), nextID);
+        data[mirrorName] = new Method(mirrorName, mirror.qualifiedName, 
+            mirror.isSetter, mirror.isGetter, mirror.isConstructor, 
+            mirror.isOperator, mirror.isStatic, mirror.returnType.qualifiedName, 
+            _getComment(mirror), _getParameters(mirror.parameters));
       }
     });
     return data;
@@ -282,13 +276,13 @@ class Docgen {
       if (includePrivate || !mirror.isPrivate) {
         _currentClass = mirror;
         var superclass = (mirror.superclass != null) ? 
-            mirror.superclass.qualifiedName : "";
+            mirror.superclass.qualifiedName : '';
         var interfaces = 
             mirror.superinterfaces.map((interface) => interface.qualifiedName);
-        data[mirrorName] = new Class(mirrorName, superclass, mirror.isAbstract,
-            mirror.isTypedef, _getComment(mirror), interfaces.toList(),
-            _getVariables(mirror.variables), _getMethods(mirror.methods), 
-            nextID);
+        data[mirrorName] = new Class(mirrorName, mirror.qualifiedName, 
+            superclass, mirror.isAbstract, mirror.isTypedef, 
+            _getComment(mirror), interfaces.toList(),
+            _getVariables(mirror.variables), _getMethods(mirror.methods));
       }
     });
     return data;
@@ -302,8 +296,9 @@ class Docgen {
     mirrorList.forEach((ParameterMirror mirror) {
       _currentMember = mirror;
       data[mirror.simpleName] = new Parameter(mirror.simpleName, 
-          mirror.isOptional, mirror.isNamed, mirror.hasDefaultValue, 
-          mirror.type.toString(), mirror.defaultValue, nextID);
+          mirror.qualifiedName, mirror.isOptional, mirror.isNamed, 
+          mirror.hasDefaultValue, mirror.type.qualifiedName, 
+          mirror.defaultValue);
     });
     return data;
   }
@@ -325,9 +320,6 @@ Map recurseMap(Map inputMap) {
  */
 class Library {
   
-  /// Unique ID number for resolving links. 
-  int id;
-  
   /// Documentation comment with converted markdown.
   String comment;
   
@@ -343,17 +335,16 @@ class Library {
   String name;
   
   Library(this.name, this.comment, this.variables, 
-      this.functions, this.classes, this.id);
+      this.functions, this.classes);
   
   /// Generates a map describing the [Library] object.
   Map toMap() {
     var libraryMap = {};
-    libraryMap["id"] = id;
-    libraryMap["name"] = name;
-    libraryMap["comment"] = comment;
-    libraryMap["variables"] = recurseMap(variables);
-    libraryMap["functions"] = recurseMap(functions);
-    libraryMap["classes"] = recurseMap(classes);
+    libraryMap['name'] = name;
+    libraryMap['comment'] = comment;
+    libraryMap['variables'] = recurseMap(variables);
+    libraryMap['functions'] = recurseMap(functions);
+    libraryMap['classes'] = recurseMap(classes);
     return libraryMap;
   }
 }
@@ -363,9 +354,6 @@ class Library {
  */
 // TODO(tmandel): Figure out how to do typedefs (what is needed)
 class Class {
-  
-  /// Unique ID number for resolving links. 
-  int id;
   
   /// Documentation comment with converted markdown.
   String comment;
@@ -380,25 +368,26 @@ class Class {
   Map<String, Method> methods;
   
   String name;
+  String qualifiedName;
   String superclass;
   bool isAbstract;
   bool isTypedef;
  
-  Class(this.name, this.superclass, this.isAbstract, this.isTypedef,
-      this.comment, this.interfaces, this.variables, this.methods, this.id);
+  Class(this.name, this.qualifiedName, this.superclass, this.isAbstract, this.isTypedef,
+      this.comment, this.interfaces, this.variables, this.methods);
   
   /// Generates a map describing the [Class] object.
   Map toMap() {
     var classMap = {};
-    classMap["id"] = id;
-    classMap["name"] = name;
-    classMap["comment"] = comment;
-    classMap["superclass"] = superclass;
-    classMap["abstract"] = isAbstract.toString();
-    classMap["typedef"] = isTypedef.toString();
-    classMap["implements"] = new List.from(interfaces);
-    classMap["variables"] = recurseMap(variables);
-    classMap["methods"] = recurseMap(methods);
+    classMap['name'] = name;
+    classMap['qualifiedname'] = qualifiedName;
+    classMap['comment'] = comment;
+    classMap['superclass'] = superclass;
+    classMap['abstract'] = isAbstract.toString();
+    classMap['typedef'] = isTypedef.toString();
+    classMap['implements'] = new List.from(interfaces);
+    classMap['variables'] = recurseMap(variables);
+    classMap['methods'] = recurseMap(methods);
     return classMap;
   }
 }
@@ -408,29 +397,27 @@ class Class {
  */
 class Variable {
   
-  /// Unique ID number for resolving links. 
-  int id;
-  
   /// Documentation comment with converted markdown.
   String comment;
   
   String name;
+  String qualifiedName;
   bool isFinal;
   bool isStatic;
   String type;
   
-  Variable(this.name, this.isFinal, this.isStatic, this.type, 
-      this.comment, this.id);
+  Variable(this.name, this.qualifiedName, this.isFinal, this.isStatic, 
+      this.type, this.comment);
   
   /// Generates a map describing the [Variable] object.
   Map toMap() {
     var variableMap = {};
-    variableMap["id"] = id;
-    variableMap["name"] = name;
-    variableMap["comment"] = comment;
-    variableMap["final"] = isFinal.toString();
-    variableMap["static"] = isStatic.toString();
-    variableMap["type"] = type;
+    variableMap['name'] = name;
+    variableMap['qualifiedname'] = qualifiedName;
+    variableMap['comment'] = comment;
+    variableMap['final'] = isFinal.toString();
+    variableMap['static'] = isStatic.toString();
+    variableMap['type'] = type;
     return variableMap;
   }
 }
@@ -440,9 +427,6 @@ class Variable {
  */
 class Method {
   
-  /// Unique ID number for resolving links. 
-  int id;
-  
   /// Documentation comment with converted markdown.
   String comment;
   
@@ -450,6 +434,7 @@ class Method {
   Map<String, Parameter> parameters;
   
   String name;
+  String qualifiedName;
   bool isSetter;
   bool isGetter;
   bool isConstructor;
@@ -457,21 +442,21 @@ class Method {
   bool isStatic;
   String returnType;
   
-  Method(this.name, this.isSetter, this.isGetter, this.isConstructor,
-      this.isOperator, this.isStatic, this.returnType, this.comment,
-      this.parameters, this.id);
+  Method(this.name, this.qualifiedName, this.isSetter, this.isGetter, 
+      this.isConstructor, this.isOperator, this.isStatic, this.returnType, 
+      this.comment, this.parameters);
   
   /// Generates a map describing the [Method] object.
   Map toMap() {
     var methodMap = {};
-    methodMap["id"] = id;
-    methodMap["name"] = name;
-    methodMap["comment"] = comment;
-    methodMap["type"] = isSetter ? "setter" : isGetter ? "getter" :
-      isOperator ? "operator" : isConstructor ? "constructor" : "method";
-    methodMap["static"] = isStatic.toString();
-    methodMap["return"] = returnType;
-    methodMap["parameters"] = recurseMap(parameters);
+    methodMap['name'] = name;
+    methodMap['qualifiedname'] = qualifiedName;
+    methodMap['comment'] = comment;
+    methodMap['type'] = isSetter ? 'setter' : isGetter ? 'getter' :
+      isOperator ? 'operator' : isConstructor ? 'constructor' : 'method';
+    methodMap['static'] = isStatic.toString();
+    methodMap['return'] = returnType;
+    methodMap['parameters'] = recurseMap(parameters);
     return methodMap;
   }  
 }
@@ -481,29 +466,27 @@ class Method {
  */
 class Parameter {
   
-  /// Unique ID number for resolving links. 
-  int id;
-  
   String name;
+  String qualifiedName;
   bool isOptional;
   bool isNamed;
   bool hasDefaultValue;
   String type;
   String defaultValue;
   
-  Parameter(this.name, this.isOptional, this.isNamed, this.hasDefaultValue,
-      this.type, this.defaultValue, this.id);
+  Parameter(this.name, this.qualifiedName, this.isOptional, this.isNamed, this.hasDefaultValue,
+      this.type, this.defaultValue);
   
   /// Generates a map describing the [Parameter] object.
   Map toMap() {
     var parameterMap = {};
-    parameterMap["id"] = id;
-    parameterMap["name"] = name;
-    parameterMap["optional"] = isOptional.toString();
-    parameterMap["named"] = isNamed.toString();
-    parameterMap["default"] = hasDefaultValue.toString();
-    parameterMap["type"] = type;
-    parameterMap["value"] = defaultValue;
+    parameterMap['name'] = name;
+    parameterMap['qualifiedname'] = qualifiedName;
+    parameterMap['optional'] = isOptional.toString();
+    parameterMap['named'] = isNamed.toString();
+    parameterMap['default'] = hasDefaultValue.toString();
+    parameterMap['type'] = type;
+    parameterMap['value'] = defaultValue;
     return parameterMap;
   } 
 }
