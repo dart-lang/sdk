@@ -15,6 +15,7 @@ io/test_runner_test: Fail
 # Fails because checked-in dart executable is not up to date.
 # Skip this because it is leaving temp directories behind when it fails.
 io/skipping_dart2js_compilations_test: Skip
+io/web_socket_test: Pass, Crash # Issue 11502
 
 [ $runtime == vm ]
 package/package_isolate_test: Fail # http://dartbug.com/7520.
