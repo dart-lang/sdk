@@ -355,18 +355,18 @@ void EventHandlerImplementation::HandleEvents(struct epoll_event* events,
 }
 
 
-intptr_t EventHandlerImplementation::GetTimeout() {
+int64_t EventHandlerImplementation::GetTimeout() {
   if (timeout_ == kInfinityTimeout) {
     return kInfinityTimeout;
   }
-  intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
+  int64_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 
 
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_ != kInfinityTimeout) {
-    intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
+    int64_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_port_);
       timeout_ = kInfinityTimeout;
@@ -383,7 +383,9 @@ void EventHandlerImplementation::Poll(uword args) {
   EventHandlerImplementation* handler_impl = &handler->delegate_;
   ASSERT(handler_impl != NULL);
   while (!handler_impl->shutdown_) {
-    intptr_t millis = handler_impl->GetTimeout();
+    int64_t millis = handler_impl->GetTimeout();
+    ASSERT(millis == kInfinityTimeout || millis >= 0);
+    if (millis > kMaxInt32) millis = kMaxInt32;
     intptr_t result = TEMP_FAILURE_RETRY(epoll_wait(handler_impl->epoll_fd_,
                                                     events,
                                                     kMaxEvents,

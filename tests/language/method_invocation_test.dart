@@ -14,6 +14,10 @@ class A {
   }
 }
 
+class B {
+  get f { throw 123; }
+}
+
 class MethodInvocationTest {
   static void testNullReceiver() {
     A a = new A();
@@ -28,8 +32,18 @@ class MethodInvocationTest {
     Expect.equals(true, exceptionCaught);
   }
 
+  static testGetterMethodInvocation() {
+    var b = new B();
+    try {
+      b.f();
+    } catch (e) {
+      Expect.equals(123, e);
+    }
+  }
+
   static void testMain() {
     testNullReceiver();
+    testGetterMethodInvocation();
   }
 }
 

@@ -10,10 +10,10 @@ library util;
  * [:operator []:], [:forEach:] and [:length:] methods to provide a fully
  * implemented immutable map.
  */
-abstract class AbstractMap<K,V> implements Map<K,V> {
+abstract class AbstractMap<K, V> implements Map<K, V> {
   AbstractMap();
 
-  AbstractMap.from(Map<K,V> other) {
+  AbstractMap.from(Map<K, V> other) {
     other.forEach((k,v) => this[k] = v);
   }
 
@@ -23,6 +23,10 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
 
   void clear() {
     throw new UnsupportedError('clear() is not supported');
+  }
+  
+  void addAll(Map<K, V> other) {
+    throw new UnsupportedError('addAll() is not supported');
   }
 
   bool containsKey(K key) {
@@ -77,8 +81,8 @@ abstract class AbstractMap<K,V> implements Map<K,V> {
  * [ImmutableMapWrapper] wraps a (mutable) map as an immutable map where all
  * mutating operations throw [UnsupportedError] upon invocation.
  */
-class ImmutableMapWrapper<K,V> extends AbstractMap<K,V> {
-  final Map<K,V> _map;
+class ImmutableMapWrapper<K, V> extends AbstractMap<K, V> {
+  final Map<K, V> _map;
 
   ImmutableMapWrapper(this._map);
 
@@ -104,10 +108,10 @@ typedef bool Filter<V>(V value);
 /**
  * An immutable map wrapper capable of filtering the input map.
  */
-class FilteredImmutableMap<K,V> extends ImmutableMapWrapper<K,V> {
+class FilteredImmutableMap<K, V> extends ImmutableMapWrapper<K, V> {
   final Filter<V> _filter;
 
-  FilteredImmutableMap(Map<K,V> map, this._filter) : super(map);
+  FilteredImmutableMap(Map<K, V> map, this._filter) : super(map);
 
   int get length {
     var count = 0;

@@ -10,6 +10,8 @@ part of types;
 class ElementTypeHolder {
   // This field will be set after global analysis.
   TypeMask elementType;
+
+  int get hashCode => elementType.hashCode;
 }
 
 /// A [ContainerTypeMask] is a [TypeMask] for a specific allocation
@@ -80,6 +82,8 @@ class ContainerTypeMask extends ForwardingTypeMask {
     return allocationNode == other.allocationNode
         && isNullable == other.isNullable;
   }
+
+  int get hashCode => computeHashCode(allocationNode, isNullable);
 
   String toString() {
     return 'Container mask: $elementType';

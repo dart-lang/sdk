@@ -87,6 +87,22 @@ class PointP<T> {
 
 foo2() => new PointP<int>(1, 3) * new PointP<num>(5, 6);
 
+class A<T> {
+  var x, y;
+}
+
+foo3(x) {
+  // Test materialization of type arguments.
+  var a = new A<int>();
+  a.x = x;
+  a.y = x;
+  if (x is int) return a.x + a.y;
+  Expect.isFalse(a is A<double>);
+  Expect.isTrue(a is A<int>);
+  Expect.isTrue(a is A);
+  return a.x - a.y;
+}
+
 main() {
   var c = new C(new Point(0.1, 0.2));
 
@@ -101,7 +117,9 @@ main() {
     testForwardingThroughEffects(c, i.toDouble(), i.toDouble());
     testIdentity(c.p);
     foo2();
+    Expect.equals(10, foo3(5));
   }
+  Expect.equals(0.0, foo3(0.5));
 
   // Test returned value after optimization.
   final x1 = test1(c, 11.11, 22.22);

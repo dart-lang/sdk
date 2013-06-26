@@ -25,8 +25,9 @@ class SpecialType {
 
   /// The type Object, but no subtypes:
   static const JsObject = const SpecialType._('=Object');
-}
 
+  int get hashCode => name.hashCode;
+}
 
 /**
  * This could be an abstract class but we use it as a stub for the dart_backend.

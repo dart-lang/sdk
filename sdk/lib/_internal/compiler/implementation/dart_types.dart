@@ -94,6 +94,8 @@ abstract class DartType {
    */
   bool forEachMalformedType(bool f(MalformedType type)) => true;
 
+  // TODO(ahe): This is implicitly inherited from Object.  What is the purpose
+  // of duplicating it here?
   bool operator ==(other);
 
   /**
@@ -319,6 +321,9 @@ class MalformedType extends DartType {
    */
   final Link<DartType> typeArguments;
 
+  final int hashCode = (nextHash++) & 0x3fffffff;
+  static int nextHash = 43765;
+
   MalformedType(this.element, this.userProvidedBadType,
                 [this.typeArguments = null]);
 
@@ -341,6 +346,8 @@ class MalformedType extends DartType {
     return visitor.visitMalformedType(this, argument);
   }
 
+  // TODO(ahe): This is the default implementation that would be inherited if
+  // DartType didn't declare an abstract method.  What is the purpose?
   bool operator ==(other) => identical(this, other);
 
   String toString() {
@@ -547,9 +554,17 @@ class InterfaceType extends GenericType {
   }
 
   bool operator ==(other) {
+    // TODO(johnniwinther,karlklose): This is a bad implementation of
+    // operator==.  This implementation is not compatible with the
+    // implementation in the superclass: another subclass of GenericType might
+    // compare equal to an instance of this class if the other subclass forgets
+    // to implement operator==.  This is brittle and easy to avoid, ask ahe@
+    // for concrete suggestions.
     if (other is !InterfaceType) return false;
     return super == other;
   }
+
+  int get hashCode => super.hashCode;
 
   InterfaceType asRaw() => super.asRaw();
 
@@ -812,9 +827,12 @@ class TypedefType extends GenericType {
   }
 
   bool operator ==(other) {
+    // TODO(johnniwinther,karlklose): See InterfaceType.operator==.
     if (other is !TypedefType) return false;
     return super == other;
   }
+
+  int get hashCode => super.hashCode;
 
   TypedefType asRaw() => super.asRaw();
 

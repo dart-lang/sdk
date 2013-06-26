@@ -14,19 +14,20 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
 
 /**
- * Map of white-listed warnings and errors.
+ * Map of whitelisted warnings and errors.
  *
- * Only add a white-listing together with a bug report to dartbug.com and add
- * the bug issue number as a comment on the white-listing.
+ * Only add a whitelisting together with a bug report to dartbug.com and add
+ * the bug issue number as a comment on the whitelisting.
  *
  * Use an identifiable suffix of the file uri as key. Use a fixed substring of
- * the error/warning message in the list of white-listings for each file.
+ * the error/warning message in the list of whitelistings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 
 class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool hasWarnings = false;
+  bool hasHint = false;
   bool hasErrors = false;
 
   Map<String, Map<String, int>> whiteListMap
@@ -46,6 +47,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
 
   void checkResults() {
     Expect.isFalse(hasWarnings);
+    Expect.isFalse(hasHint);
     Expect.isFalse(hasErrors);
     Expect.isTrue(checkWhiteListUse());
     reportWhiteListUse();
@@ -56,8 +58,8 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
     for (String file in whiteListMap.keys) {
       for (String messagePart in whiteListMap[file].keys) {
         if (whiteListMap[file][messagePart] == 0) {
-          print("White-listing '$messagePart' is unused in '$file'. "
-                "Remove the white-listing from the white list map.");
+          print("Whitelisting '$messagePart' is unused in '$file'. "
+                "Remove the whitelisting from the whitelist map.");
           allUsed = false;
         }
       }
@@ -69,7 +71,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
     for (String file in whiteListMap.keys) {
       for (String messagePart in whiteListMap[file].keys) {
         int useCount = whiteListMap[file][messagePart];
-        print("White-listed message '$messagePart' suppressed $useCount "
+        print("Whitelisted message '$messagePart' suppressed $useCount "
               "time(s) in '$file'.");
       }
     }
@@ -97,14 +99,21 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
                          api.Diagnostic kind) {
     if (kind == api.Diagnostic.WARNING) {
       if (checkWhiteList(uri, message)) {
-        // Suppress white listed warnings.
+        // Suppress whitelisted warnings.
         return;
       }
       hasWarnings = true;
     }
+    if (kind == api.Diagnostic.HINT) {
+      if (checkWhiteList(uri, message)) {
+        // Suppress whitelisted hints.
+        return;
+      }
+      hasHint = true;
+    }
     if (kind == api.Diagnostic.ERROR) {
       if (checkWhiteList(uri, message)) {
-        // Suppress white listed warnings.
+        // Suppress whitelisted errors.
         return;
       }
       hasErrors = true;

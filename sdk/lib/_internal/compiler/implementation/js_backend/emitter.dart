@@ -1009,9 +1009,6 @@ class CodeEmitterTask extends CompilerTask {
           argumentsBuffer[count] = js(jsName);
           parametersBuffer[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
-        // Note that [elements] may be null for a synthesized [member].
-        } else if (elements != null && elements.isParameterChecked(element)) {
-          argumentsBuffer[count] = constantReference(SentinelConstant.SENTINEL);
         } else {
           Constant value = handler.initialVariableValues[element];
           if (value == null) {

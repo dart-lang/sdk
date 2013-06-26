@@ -1583,7 +1583,6 @@ class CatchClauseNode : public AstNode {
                   const LocalVariable* exception_var,
                   const LocalVariable* stacktrace_var)
       : AstNode(token_pos),
-        try_index_(kInvalidTryIndex),
         catch_block_(catch_block),
         handler_types_(handler_types),
         context_var_(*context_var),
@@ -1595,12 +1594,6 @@ class CatchClauseNode : public AstNode {
     ASSERT(exception_var != NULL);
     ASSERT(stacktrace_var != NULL);
   }
-
-  int try_index() const {
-    ASSERT(try_index_ >= 0);
-    return try_index_;
-  }
-  void set_try_index(int value) { try_index_ = value; }
 
   const Array& handler_types() const { return handler_types_; }
   const LocalVariable& context_var() const { return context_var_; }
@@ -1614,7 +1607,6 @@ class CatchClauseNode : public AstNode {
   DECLARE_COMMON_NODE_FUNCTIONS(CatchClauseNode);
 
  private:
-  int try_index_;  // Running index of the try blocks seen in a function.
   SequenceNode* catch_block_;
   const Array& handler_types_;
   const LocalVariable& context_var_;

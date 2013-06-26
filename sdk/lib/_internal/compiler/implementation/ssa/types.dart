@@ -533,11 +533,13 @@ class HBoundedType extends HType {
     return isIndexablePrimitive(compiler);
   }
 
-  bool operator ==(HType other) {
+  bool operator ==(other) {
     if (other is !HBoundedType) return false;
     HBoundedType bounded = other;
     return mask == bounded.mask;
   }
+
+  int get hashCode => mask.hashCode;
 
   String toString() {
     return 'BoundedType(mask=$mask)';

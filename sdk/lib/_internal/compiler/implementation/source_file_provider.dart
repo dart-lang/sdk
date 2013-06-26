@@ -53,10 +53,12 @@ class SourceFileProvider {
 class FormattingDiagnosticHandler {
   final SourceFileProvider provider;
   bool showWarnings = true;
+  bool showHints = true;
   bool verbose = false;
   bool isAborting = false;
   bool enableColors = false;
   bool throwOnError = false;
+  api.Diagnostic lastKind = null;
 
   final int FATAL = api.Diagnostic.CRASH.ordinal | api.Diagnostic.ERROR.ordinal;
   final int INFO =
@@ -67,7 +69,7 @@ class FormattingDiagnosticHandler {
           (provider == null) ? new SourceFileProvider() : provider;
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
-    if (!verbose && identical(kind, api.Diagnostic.VERBOSE_INFO)) return;
+    if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;
     if (enableColors) {
       print('${colors.green("info:")} $message');
     } else {
@@ -81,33 +83,45 @@ class FormattingDiagnosticHandler {
     if (identical(kind.name, 'source map')) return;
 
     if (isAborting) return;
-    isAborting = identical(kind, api.Diagnostic.CRASH);
+    isAborting = (kind == api.Diagnostic.CRASH);
     bool fatal = (kind.ordinal & FATAL) != 0;
     bool isInfo = (kind.ordinal & INFO) != 0;
-    if (isInfo && uri == null && !identical(kind, api.Diagnostic.INFO)) {
+    if (isInfo && uri == null && kind != api.Diagnostic.INFO) {
       info(message, kind);
       return;
     }
+    // [previousKind]/[lastKind] records the previous non-INFO kind we saw.
+    // This is used to suppress info about a warning when warnings are
+    // suppressed, and similar for hints.
+    var previousKind = lastKind;
+    if (previousKind != api.Diagnostic.INFO) {
+      lastKind = kind;
+    }
     var color;
-    if (!enableColors) {
-      color = (x) => x;
-    } else if (identical(kind, api.Diagnostic.ERROR)) {
+    if (kind == api.Diagnostic.ERROR) {
       color = colors.red;
-    } else if (identical(kind, api.Diagnostic.WARNING)) {
+    } else if (kind == api.Diagnostic.WARNING) {
+      if (!showWarnings) return;
       color = colors.magenta;
-    } else if (identical(kind, api.Diagnostic.LINT)) {
-      color = colors.magenta;
-    } else if (identical(kind, api.Diagnostic.CRASH)) {
+    } else if (kind == api.Diagnostic.HINT) {
+      if (!showHints) return;
+      color = colors.cyan;
+    } else if (kind == api.Diagnostic.CRASH) {
       color = colors.red;
-    } else if (identical(kind, api.Diagnostic.INFO)) {
+    } else if (kind == api.Diagnostic.INFO) {
+      if (lastKind == api.Diagnostic.WARNING && !showWarnings) return;
+      if (lastKind == api.Diagnostic.HINT && !showHints) return;
       color = colors.green;
     } else {
       throw 'Unknown kind: $kind (${kind.ordinal})';
     }
+    if (!enableColors) {
+      color = (x) => x;
+    }
     if (uri == null) {
       assert(fatal);
       print(color(message));
-    } else if (fatal || showWarnings) {
+    } else {
       SourceFile file = provider.sourceFiles[uri.toString()];
       if (file == null) {
         throw '$uri: file is null';

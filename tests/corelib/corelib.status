@@ -53,6 +53,10 @@ string_base_vm_test: Fail, OK # VM specific test.
 
 string_replace_func_test: Skip # Bug 6554 - doesn't terminate.
 
+[ $compiler == dart2js || $compiler == dart2dart ]
+apply_test: Fail, OK # Depends on ?parameter check.
+iterable_join_test: Fail, OK # Depends on ?parameter check.
+list_fill_range_test: Fail, OK # Depends on ?parameter check.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

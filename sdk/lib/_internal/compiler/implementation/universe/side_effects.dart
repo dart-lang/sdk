@@ -32,6 +32,8 @@ class SideEffects {
 
   bool operator==(other) => flags == other.flags;
 
+  int get hashCode => throw new UnsupportedError('SideEffects.hashCode');
+
   bool getFlag(int position) => (flags & (1 << position)) != 0;
   void setFlag(int position) { flags |= (1 << position); }
   void clearFlag(int position) { flags &= ~(1 << position); }

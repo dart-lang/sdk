@@ -1401,12 +1401,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           compiler.closureToClassMapper.computeClosureToClassMapping(
               constructor, node, elements);
       localsHandler.closureData = newClosureData;
-
-      params.orderedForEachParameter((Element parameterElement) {
-        if (elements.isParameterChecked(parameterElement)) {
-          addParameterCheckInstruction(parameterElement);
-        }
-      });
       localsHandler.enterScope(node, constructor);
       buildInitializers(constructor, constructors, fieldValues);
       localsHandler.closureData = oldClosureData;
@@ -1623,18 +1617,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
       });
 
-      // Provide the parameter checks to the generative constructor
-      // body.
-      functionSignature.orderedForEachParameter((parameter) {
-        // If [parameter] is checked, we pass the already computed
-        // boolean to the constructor body.
-        if (elements.isParameterChecked(parameter)) {
-          Element fieldCheck =
-              parameterClosureData.parametersWithSentinel[parameter];
-          bodyCallInputs.add(localsHandler.readLocal(fieldCheck));
-        }
-      });
-
       ClassElement currentClass = constructor.getEnclosingClass();
       if (backend.classNeedsRti(currentClass)) {
         // If [currentClass] needs RTI, we add the type variables as
@@ -1670,56 +1652,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
   }
 
-  void addParameterCheckInstruction(Element element) {
-    HInstruction check;
-    Element checkResultElement =
-        localsHandler.closureData.parametersWithSentinel[element];
-    if (currentElement.isGenerativeConstructorBody()) {
-      // A generative constructor body receives extra parameters that
-      // indicate if a parameter was passed to the factory.
-      check = addParameter(checkResultElement);
-    } else {
-      // This is the code we emit for a parameter that is being checked
-      // on whether it was given at value at the call site:
-      //
-      // foo([a = 42]) {
-      //   if (?a) print('parameter passed $a');
-      // }
-      //
-      // foo([a = 42]) {
-      //   var t1 = identical(a, sentinel);
-      //   if (t1) a = 42;
-      //   if (!t1) print('parameter passed ' + a);
-      // }
-
-      // Fetch the original default value of [element];
-      Constant constant = compileVariable(element);
-      HConstant defaultValue = constant == null
-          ? graph.addConstantNull(compiler)
-          : graph.addConstant(constant, compiler);
-
-      // Emit the equality check with the sentinel.
-      HConstant sentinel =
-          graph.addConstant(SentinelConstant.SENTINEL, compiler);
-      HInstruction operand = parameters[element];
-      check = new HIdentity(sentinel, operand);
-      add(check);
-
-      // If the check succeeds, we must update the parameter with the
-      // default value.
-      handleIf(element.parseNode(compiler),
-               () => stack.add(check),
-               () => localsHandler.updateLocal(element, defaultValue),
-               null);
-
-      // Create the instruction that parameter checks will use.
-      check = new HNot(check);
-      add(check);
-    }
-
-    localsHandler.updateLocal(checkResultElement, check);
-  }
-
   /**
    * Documentation wanted -- johnniwinther
    *
@@ -1750,11 +1682,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
       FunctionSignature signature = functionElement.computeSignature(compiler);
-      signature.orderedForEachParameter((Element parameterElement) {
-        if (elements.isParameterChecked(parameterElement)) {
-          addParameterCheckInstruction(parameterElement);
-        }
-      });
 
       // Put the type checks in the first successor of the entry,
       // because that is where the type guards will also be inserted.
@@ -2532,16 +2459,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitUnary(Send node, Operator op) {
-    if (node.isParameterCheck) {
-      Element element = elements[node.receiver];
-      Node function = element.enclosingElement.parseNode(compiler);
-      ClosureClassMap parameterClosureData =
-          compiler.closureToClassMapper.getMappingForNestedFunction(function);
-      Element fieldCheck =
-          parameterClosureData.parametersWithSentinel[element];
-      stack.add(localsHandler.readLocal(fieldCheck));
-      return;
-    }
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
     assert(!identical(op.token.kind, PLUS_TOKEN));
@@ -2942,15 +2859,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
-    Constant constant;
-    Element element = parameter.enclosingElement;
-    TreeElements calleeElements =
-        compiler.enqueuer.resolution.getCachedElements(element);
-    if (calleeElements.isParameterChecked(parameter)) {
-      constant = SentinelConstant.SENTINEL;
-    } else {
-      constant = compileConstant(parameter);
-    }
+    Constant constant = compileConstant(parameter);
     return graph.addConstant(constant, compiler);
   }
 
@@ -5231,10 +5140,6 @@ class InlineWeeder extends Visitor {
 
   void visitSend(Send node) {
     if (!registerNode()) return;
-    if (node.isParameterCheck) {
-      tooDifficult = true;
-      return;
-    }
     node.visitChildren(this);
   }
 

@@ -12,4 +12,3 @@ field_type_inferer_test: Slow, Pass # Issue 6658.
 
 [ $jscl || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari || $runtime == ie9 || $runtime == opera ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
-

@@ -366,8 +366,6 @@ class Send extends Expression {
       isOperator && identical(selector.asOperator().source.stringValue, '&&');
   bool get isLogicalOr =>
       isOperator && identical(selector.asOperator().source.stringValue, '||');
-  bool get isParameterCheck =>
-      isOperator && identical(selector.asOperator().source.stringValue, '?');
 
   bool get isTypeCast {
     return isOperator

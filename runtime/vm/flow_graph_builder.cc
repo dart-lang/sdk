@@ -3273,10 +3273,6 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
 
   CatchClauseNode* catch_block = node->catch_block();
   if (catch_block != NULL) {
-    // Set the corresponding try index for this catch block so
-    // that we can set the appropriate handler pc when we generate
-    // code for this catch block.
-    catch_block->set_try_index(try_index);
     EffectGraphVisitor for_catch_block(owner(), temp_index());
     catch_block->Visit(&for_catch_block);
     CatchBlockEntryInstr* catch_entry =

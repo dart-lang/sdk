@@ -173,6 +173,28 @@ testCreateLoopingLink() {
     new Directory.fromPath(base).delete(recursive: true));
 }
 
+testRenameSync() {
+  testRename(Path base, String target) {
+    Link link1 = new Link.fromPath(base.append('c'))..createSync(target);
+    Expect.isTrue(link1.existsSync());
+    Link link2 = link1.renameSync(base.append('d').toNativePath());
+    Expect.isFalse(link1.existsSync());
+    Expect.isTrue(link2.existsSync());
+    link2.deleteSync();
+    Expect.isFalse(link2.existsSync());
+  }
+
+  Directory baseDir = new Directory('').createTempSync();
+  Path base = new Path(baseDir.path);
+  Directory dir = new Directory.fromPath(base.append('a'))..createSync();
+  File file = new File.fromPath(base.append('b'))..createSync();
+
+  testRename(base, file.path);
+  testRename(base, dir.path);
+
+  baseDir.deleteSync(recursive: true);
+}
+
 void testLinkErrorSync() {
   Expect.throws(() =>
       new Link('some-dir-that-doent exist/some link file/bla/fisk').createSync(
@@ -183,5 +205,6 @@ void testLinkErrorSync() {
 main() {
   testCreateSync();
   testCreateLoopingLink();
+  testRenameSync();
   testLinkErrorSync();
 }

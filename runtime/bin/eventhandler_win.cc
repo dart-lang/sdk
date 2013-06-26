@@ -906,11 +906,11 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 }
 
 
-DWORD EventHandlerImplementation::GetTimeout() {
+int64_t EventHandlerImplementation::GetTimeout() {
   if (timeout_ == kInfinityTimeout) {
     return kInfinityTimeout;
   }
-  intptr_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
+  int64_t millis = timeout_ - TimerUtils::GetCurrentTimeMilliseconds();
   return (millis < 0) ? 0 : millis;
 }
 
@@ -938,12 +938,15 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     DWORD bytes;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
-    intptr_t millis = handler_impl->GetTimeout();
+    int64_t millis = handler_impl->GetTimeout();
+    ASSERT(millis == kInfinityTimeout || millis >= 0);
+    if (millis > kMaxInt32) millis = kMaxInt32;
+    ASSERT(sizeof(int32_t) == sizeof(DWORD));
     BOOL ok = GetQueuedCompletionStatus(handler_impl->completion_port(),
                                         &bytes,
                                         &key,
                                         &overlapped,
-                                        millis);
+                                        static_cast<DWORD>(millis));
     if (!ok && overlapped == NULL) {
       if (GetLastError() == ERROR_ABANDONED_WAIT_0) {
         // The completion port should never be closed.

@@ -38,8 +38,8 @@ abstract class _Zone {
    * Tells the zone that it needs to wait for one more callback before it is
    * done.
    *
-   * Use [executeCallback] or [cancelCallbackExpectation] when the callback is executed
-   * (or canceled).
+   * Use [executeCallback] or [cancelCallbackExpectation] when the callback is
+   * executed (or canceled).
    */
   void expectCallback();
 
@@ -54,35 +54,51 @@ abstract class _Zone {
   void cancelCallbackExpectation();
 
   /**
-   * Executes the given callback in this zone.
+   * Executes the given callback [f] in this zone.
    *
    * Decrements the number of callbacks this zone is waiting for (see
    * [expectCallback]).
    */
-  void executeCallback(void fun());
+  void executeCallback(void f());
 
   /**
    * Same as [executeCallback] but catches uncaught errors and gives them to
    * [handleUncaughtError].
    */
-  void executeCallbackGuarded(void fun());
+  void executeCallbackGuarded(void f());
 
   /**
    * Same as [executeCallback] but does not decrement the number of
    * callbacks this zone is waiting for (see [expectCallback]).
    */
-  void executePeriodicCallback(void fun());
+  void executePeriodicCallback(void f());
 
   /**
    * Same as [executePeriodicCallback] but catches uncaught errors and gives
    * them to [handleUncaughtError].
    */
-  void executePeriodicCallbackGuarded(void fun());
+  void executePeriodicCallbackGuarded(void f());
 
   /**
-   * Runs [fun] asynchronously in this zone.
+   * Executes [f] in `this` zone.
+   *
+   * The behavior of this method should be the same as
+   * [executePeriodicCallback] except that it can have a return value.
+   *
+   * Returns the result of the invocation.
    */
-  void runAsync(void fun());
+  runFromChildZone(f());
+
+  /**
+   * Same as [runFromChildZone] but catches uncaught errors and gives them to
+   * [handleUncaughtError].
+   */
+  runFromChildZoneGuarded(f());
+
+  /**
+   * Runs [f] asynchronously in [zone].
+   */
+  void runAsync(void f(), _Zone zone);
 
   /**
    * Creates a Timer where the callback is executed in this zone.
@@ -185,47 +201,33 @@ class _ZoneBase implements _Zone {
     }
   }
 
-  /**
-   * Executes the given callback in this zone.
-   *
-   * Decrements the open-callback counter and checks (after the call) if the
-   * zone is done.
-   */
-  void executeCallback(void fun()) {
+  void executeCallback(void f()) {
     _openCallbacks--;
-    this._runUnguarded(fun);
+    this._runUnguarded(f);
   }
 
-  /**
-   * Same as [executeCallback] but catches uncaught errors and gives them to
-   * [handleUncaughtError].
-   */
-  void executeCallbackGuarded(void fun()) {
+  void executeCallbackGuarded(void f()) {
     _openCallbacks--;
-    this._runGuarded(fun);
+    this._runGuarded(f);
   }
 
-  /**
-   * Same as [executeCallback] but doesn't decrement the open-callback counter.
-   */
-  void executePeriodicCallback(void fun()) {
-    this._runUnguarded(fun);
+  void executePeriodicCallback(void f()) {
+    this._runUnguarded(f);
   }
 
-  /**
-   * Same as [executePeriodicCallback] but catches uncaught errors and gives
-   * them to [handleUncaughtError].
-   */
-  void executePeriodicCallbackGuarded(void fun()) {
-    this._runGuarded(fun);
+  void executePeriodicCallbackGuarded(void f()) {
+    this._runGuarded(f);
   }
 
-  _runInZone(fun(), bool handleUncaught) {
+  runFromChildZone(f()) => this._runUnguarded(f);
+  runFromChildZoneGuarded(f()) => this._runGuarded(f);
+
+  _runInZone(f(), bool handleUncaught) {
     if (identical(_Zone._current, this)
         && !handleUncaught
         && _isExecutingCallback) {
       // No need to go through a try/catch.
-      return fun();
+      return f();
     }
 
     _Zone oldZone = _Zone._current;
@@ -240,7 +242,7 @@ class _ZoneBase implements _Zone {
     // TODO(430): remove second try when VM bug is fixed.
     try {
       try {
-        return fun();
+        return f();
       } catch(e, s) {
         if (handleUncaught) {
           handleUncaughtError(_asyncError(e, s));
@@ -260,34 +262,34 @@ class _ZoneBase implements _Zone {
    *
    * Uncaught errors are given to [handleUncaughtError].
    */
-  _runGuarded(void fun()) {
-    return _runInZone(fun, true);
+  _runGuarded(void f()) {
+    return _runInZone(f, true);
   }
 
   /**
    * Runs the function but doesn't catch uncaught errors.
    */
-  _runUnguarded(void fun()) {
-    return _runInZone(fun, false);
+  _runUnguarded(void f()) {
+    return _runInZone(f, false);
   }
 
-  runAsync(void fun()) {
-    _openCallbacks++;
-    _scheduleAsyncCallback(() {
-      _openCallbacks--;
-      _runGuarded(fun);
-    });
-  }
+  runAsync(void f(), _Zone zone) => _parentZone.runAsync(f, zone);
 
+  // TODO(floitsch): the zone should just forward to the parent zone. The
+  // default zone should then create the _ZoneTimer.
   Timer createTimer(Duration duration, void callback()) {
     return new _ZoneTimer(this, duration, callback);
   }
 
+  // TODO(floitsch): the zone should just forward to the parent zone. The
+  // default zone should then create the _ZoneTimer.
   Timer createPeriodicTimer(Duration duration, void callback(Timer timer)) {
     return new _PeriodicZoneTimer(this, duration, callback);
   }
 
   void _addChild(_Zone child) {
+    // TODO(floitsch): the zone should just increment a counter, but not keep
+    // a reference to the child.
     _children.add(child);
   }
 
@@ -332,6 +334,18 @@ class _DefaultZone extends _ZoneBase {
       throw error;
     });
   }
+
+  void runAsync(void f(), _Zone zone) {
+    if (identical(this, zone)) {
+      // No need to go through the zone when it's the default zone anyways.
+      _scheduleAsyncCallback(f);
+      return;
+    }
+    zone.expectCallback();
+    _scheduleAsyncCallback(() {
+      zone.executeCallbackGuarded(f);
+    });
+  }
 }
 
 typedef void _CompletionCallback();
@@ -348,8 +362,8 @@ class _WaitForCompletionZone extends _ZoneBase {
    * Runs the given function asynchronously. Executes the [_onDone] callback
    * when the zone is done.
    */
-  runWaitForCompletion(void fun()) {
-    return this._runUnguarded(fun);
+  runWaitForCompletion(void f()) {
+    return this._runUnguarded(f);
   }
 
   _dispose() {
@@ -370,7 +384,7 @@ class _CatchErrorsZone extends _WaitForCompletionZone {
   final _HandleErrorCallback _handleError;
 
   _CatchErrorsZone(_Zone parentZone, this._handleError, void onDone())
-    : super(parentZone, onDone);
+      : super(parentZone, onDone);
 
   _Zone get _errorZone => this;
 
@@ -390,11 +404,27 @@ class _CatchErrorsZone extends _WaitForCompletionZone {
    * Runs the given function asynchronously. Executes the [_onDone] callback
    * when the zone is done.
    */
-  runWaitForCompletion(void fun()) {
-    return this._runGuarded(fun);
+  runWaitForCompletion(void f()) {
+    return this._runGuarded(f);
   }
 
-  String toString() => "WithErrors ${super.toString()}";
+  String toString() => "CatchErrors ${super.toString()}";
+}
+
+typedef void _RunAsyncInterceptor(void callback());
+
+class _RunAsyncZone extends _ZoneBase {
+  final _RunAsyncInterceptor _runAsyncInterceptor;
+
+  _RunAsyncZone(_Zone parentZone, this._runAsyncInterceptor)
+      : super(parentZone);
+
+  void runAsync(void callback(), _Zone zone) {
+    zone.expectCallback();
+    _parentZone.runFromChildZone(() {
+      _runAsyncInterceptor(() => zone.executeCallbackGuarded(callback));
+    });
+  }
 }
 
 typedef void _TimerCallback();
@@ -460,8 +490,14 @@ class _PeriodicZoneTimer implements Timer {
  * errors, synchronous or asynchronous, in the zone are caught and handled
  * by the callback.
  *
- * [onDone] (if non-null) is invoked when the zone has no more outstanding
- * callbacks.
+ * The [onDone] handler (if non-null) is invoked when the zone has no more
+ * outstanding callbacks.
+ *
+ * The [onRunAsync] handler (if non-null) is invoked when the [body] executes
+ * [runAsync].  The handler is invoked in the outer zone and can therefore
+ * execute [runAsync] without recursing. The given callback must be
+ * executed eventually. Otherwise the nested zone will not complete. It must be
+ * executed only once.
  *
  * Examples:
  *
@@ -489,8 +525,27 @@ class _PeriodicZoneTimer implements Timer {
  *       }, onError: (e) { print("unused error handler"); });
  *     }, onError: (e) { print("catches error of first error-zone."); });
  *
+ * The following example prints the stack trace whenever a callback is
+ * registered using [runAsync] (which is also used by [Completer]s and
+ * [StreamController]s.
+ *
+ *     printStackTrace() { try { throw 0; } catch(e, s) { print(s); } }
+ *     runZonedExperimental(body, onRunAsync: (callback) {
+ *       printStackTrace();
+ *       runAsync(callback);
+ *     });
  */
-runZonedExperimental(body(), { void onError(error), void onDone() }) {
+runZonedExperimental(body(),
+                     { void onRunAsync(void callback()),
+                       void onError(error),
+                       void onDone() }) {
+  if (onRunAsync != null) {
+    _RunAsyncZone zone = new _RunAsyncZone(_Zone._current, onRunAsync);
+    return zone._runUnguarded(() {
+      return runZonedExperimental(body, onError: onError, onDone: onDone);
+    });
+  }
+
   // TODO(floitsch): we probably still want to install a new Zone.
   if (onError == null && onDone == null) return body();
   if (onError == null) {

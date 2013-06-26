@@ -61,10 +61,6 @@ class ConstantReferenceEmitter implements ConstantVisitor<jsAst.Expression> {
     return constant.accept(this);
   }
 
-  jsAst.Expression visitSentinel(SentinelConstant constant) {
-    return new jsAst.VariableUse(namer.CURRENT_ISOLATE);
-  }
-
   jsAst.Expression visitFunction(FunctionConstant constant) {
     return new jsAst.VariableUse(
         namer.isolateStaticClosureAccess(constant.element));
@@ -171,11 +167,6 @@ class ConstantInitializerEmitter implements ConstantVisitor<jsAst.Expression> {
 
   jsAst.Expression _reference(Constant constant) {
     return referenceEmitter.generateInInitializationContext(constant);
-  }
-
-  jsAst.Expression visitSentinel(SentinelConstant constant) {
-    compiler.internalError(
-        "The parameter sentinel constant does not need specific JS code");
   }
 
   jsAst.Expression visitFunction(FunctionConstant constant) {

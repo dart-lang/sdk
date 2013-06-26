@@ -375,15 +375,30 @@ intptr_t ServerSocket::CreateBindListen(RawAddr addr,
     return -1;
   }
 
+  ListenSocket* listen_socket = new ListenSocket(s);
+
+  // Test for invalid socket port 65535 (some browsers disallow it).
+  if (port == 0 &&
+      Socket::GetPort(reinterpret_cast<intptr_t>(listen_socket)) == 65535) {
+    // Don't close fd until we have created new. By doing that we ensure another
+    // port.
+    intptr_t new_s = CreateBindListen(addr, 0, backlog, v6_only);
+    DWORD rc = WSAGetLastError();
+    closesocket(s);
+    delete listen_socket;
+    SetLastError(rc);
+    return new_s;
+  }
+
   status = listen(s, backlog > 0 ? backlog : SOMAXCONN);
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
+    delete listen_socket;
     SetLastError(rc);
     return -1;
   }
 
-  ListenSocket* listen_socket = new ListenSocket(s);
   return reinterpret_cast<intptr_t>(listen_socket);
 }
 

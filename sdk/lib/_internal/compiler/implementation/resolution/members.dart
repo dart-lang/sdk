@@ -16,7 +16,6 @@ abstract class TreeElements {
   Selector getGetterSelectorInComplexSendSet(SendSet node);
   Selector getOperatorSelectorInComplexSendSet(SendSet node);
   DartType getType(Node node);
-  bool isParameterChecked(Element element);
   void setSelector(Node node, Selector selector);
   void setGetterSelectorInComplexSendSet(SendSet node, Selector selector);
   void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector);
@@ -37,7 +36,6 @@ class TreeElementMapping implements TreeElements {
   final Map<Spannable, Selector> selectors =
       new LinkedHashMap<Spannable, Selector>();
   final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
-  final Set<Element> checkedParameters = new LinkedHashSet<Element>();
   final Set<Node> superUses = new LinkedHashSet<Node>();
   final Set<Element> otherDependencies = new LinkedHashSet<Element>();
   final int hashCode = ++hashCodeCounter;
@@ -132,10 +130,6 @@ class TreeElementMapping implements TreeElements {
 
   Selector getCurrentSelector(ForIn node) {
     return selectors[node.inToken];
-  }
-
-  bool isParameterChecked(Element element) {
-    return checkedParameters.contains(element);
   }
 
   void registerDependency(Element element) {
@@ -778,6 +772,7 @@ class ResolverTask extends CompilerTask {
     } else if (isBinaryOperator(value)) {
       messageKind = MessageKind.BINARY_OPERATOR_BAD_ARITY;
       requiredParameterCount = 1;
+      if (identical(value, '==')) checkOverrideHashCode(member);
     } else if (isTernaryOperator(value)) {
       messageKind = MessageKind.TERNARY_OPERATOR_BAD_ARITY;
       requiredParameterCount = 2;
@@ -786,6 +781,17 @@ class ResolverTask extends CompilerTask {
           'Unexpected user defined operator $value');
     }
     checkArity(function, requiredParameterCount, messageKind, isMinus);
+  }
+
+  void checkOverrideHashCode(FunctionElement operatorEquals) {
+    if (operatorEquals.isAbstract(compiler)) return;
+    ClassElement cls = operatorEquals.getEnclosingClass();
+    Element hashCodeImplementation =
+        cls.lookupLocalMember(const SourceString('hashCode'));
+    if (hashCodeImplementation != null) return;
+    compiler.reportHint(
+        operatorEquals, MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
+        {'class': cls.name.slowToString()});
   }
 
   void checkArity(FunctionElement function,
@@ -2236,7 +2242,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     sendIsMemberAccess = oldSendIsMemberAccess;
 
     if (target != null && target == compiler.mirrorSystemGetNameFunction) {
-      compiler.reportWarningCode(
+      compiler.reportHint(
           node.selector, MessageKind.STATIC_FUNCTION_BLOAT,
           {'class': compiler.mirrorSystemClass.name,
            'name': compiler.mirrorSystemGetNameFunction.name});
@@ -2285,14 +2291,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
           compiler.enqueuer.resolution.registerAsCheck(type, mapping);
         }
         resolvedArguments = true;
-      } else if (identical(operatorString, '?')) {
-        Element parameter = mapping[node.receiver];
-        if (parameter == null
-            || !identical(parameter.kind, ElementKind.PARAMETER)) {
-          error(node.receiver, MessageKind.PARAMETER_NAME_EXPECTED);
-        } else {
-          mapping.checkedParameters.add(parameter);
-        }
       }
     }
 
@@ -2656,7 +2654,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           }
         }
       } else {
-        compiler.reportWarningCode(
+        compiler.reportHint(
             node.newToken, MessageKind.NON_CONST_BLOAT,
             {'name': compiler.symbolClass.name});
         world.registerNewSymbol(mapping);

@@ -24,7 +24,9 @@ main() {
   var provider = new MemorySourceFileProvider();
   void diagnosticHandler(Uri uri, int begin, int end,
                          String message, Diagnostic kind) {
-    if (kind == Diagnostic.VERBOSE_INFO || kind == Diagnostic.WARNING) {
+    if (kind == Diagnostic.VERBOSE_INFO
+        || kind == Diagnostic.WARNING
+        || kind == Diagnostic.HINT) {
       return;
     }
     throw '$uri:$begin:$end:$message:$kind';

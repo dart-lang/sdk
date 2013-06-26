@@ -27,6 +27,25 @@ class_literal_test/27: Fail # Class literals are expression now; delete this tes
 class_literal_test/28: Fail # Class literals are expression now; delete this test.
 class_literal_test/29: Fail # Class literals are expression now; delete this test.
 
+argument_definition2_test: Fail, OK # Depends on ?parameter check.
+argument_definition3_test: Fail, OK # Depends on ?parameter check.
+argument_definition4_test: Fail, OK # Depends on ?parameter check.
+argument_definition5_test: Fail, OK # Depends on ?parameter check.
+argument_definition6_test: Fail, OK # Depends on ?parameter check.
+argument_definition_test/none: Fail, OK # Depends on ?parameter check.
+constructor8_test: Fail, OK # Depends on ?parameter check.
+constructor_initializer_test: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/01: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/02: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/03: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/04: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/05: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/06: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/07: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/08: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/09: Fail, OK # Depends on ?parameter check.
+optional_named_parameters_test/none: Fail, OK # Depends on ?parameter check.
+
 # Fails due to inlining. Not all expected frames are in the trace.
 full_stacktrace1_test: Pass, Fail  # issue 9895
 full_stacktrace2_test: Pass, Fail  # issue 9895

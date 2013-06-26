@@ -9,13 +9,13 @@ import '../../../sdk/lib/_internal/compiler/implementation/filenames.dart';
 import 'analyze_helper.dart';
 
 /**
- * Map of white-listed warnings and errors.
+ * Map of whitelisted warnings and errors.
  *
- * Only add a white-listing together with a bug report to dartbug.com and add
- * the bug issue number as a comment on the white-listing.
+ * Only add a whitelisting together with a bug report to dartbug.com and add
+ * the bug issue number as a comment on the whitelisting.
  *
  * Use an identifiable suffix of the file uri as key. Use a fixed substring of
- * the error/warning message in the list of white-listings for each file.
+ * the error/warning message in the list of whitelistings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.

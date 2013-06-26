@@ -51,6 +51,14 @@ class Simulator {
   void set_dregister(DRegister reg, double value);
   double get_dregister(DRegister reg) const;
 
+  // When moving integer (rather than floating point) values to/from
+  // the FPU registers, use the _bits calls to avoid gcc taking liberties with
+  // integers that map to such things as NaN floating point values.
+  void set_sregister_bits(SRegister reg, int32_t value);
+  int32_t get_sregister_bits(SRegister reg) const;
+  void set_dregister_bits(DRegister reg, int64_t value);
+  int64_t get_dregister_bits(DRegister reg) const;
+
   // Accessor to the internal simulator stack top.
   uword StackTop() const;
 
@@ -119,8 +127,8 @@ class Simulator {
 
   // VFP state.
   union {  // S and D register banks are overlapping.
-    float sregisters_[kNumberOfSRegisters];
-    double dregisters_[kNumberOfDRegisters];
+    int32_t sregisters_[kNumberOfSRegisters];
+    int64_t dregisters_[kNumberOfDRegisters];
   };
   bool fp_n_flag_;
   bool fp_z_flag_;

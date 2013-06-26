@@ -83,10 +83,11 @@ class File {
     kWriteFromRequest = 18,
     kCreateLinkRequest = 19,
     kDeleteLinkRequest = 20,
-    kLinkTargetRequest = 21,
-    kTypeRequest = 22,
-    kIdenticalRequest = 23,
-    kStatRequest = 24
+    kRenameLinkRequest = 21,
+    kLinkTargetRequest = 22,
+    kTypeRequest = 23,
+    kIdenticalRequest = 24,
+    kStatRequest = 25
   };
 
   enum FileStat {
@@ -154,6 +155,7 @@ class File {
   static bool Delete(const char* path);
   static bool DeleteLink(const char* path);
   static bool Rename(const char* old_path, const char* new_path);
+  static bool RenameLink(const char* old_path, const char* new_path);
   static off_t LengthFromPath(const char* path);
   static void Stat(const char* path, int64_t* data);
   static time_t LastModified(const char* path);

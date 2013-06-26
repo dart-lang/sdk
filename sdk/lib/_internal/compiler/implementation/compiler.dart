@@ -1147,6 +1147,13 @@ abstract class Compiler implements DiagnosticListener {
                   api.Diagnostic.INFO);
   }
 
+  void reportHint(Spannable node, MessageKind errorCode,
+                  [Map arguments = const {}]) {
+    reportMessage(spanFromSpannable(node),
+                  errorCode.error(arguments),
+                  api.Diagnostic.HINT);
+  }
+
   void reportInternalError(Spannable node, String message) {
     reportMessage(spanFromSpannable(node),
                   MessageKind.GENERIC.error({'text': message}),
