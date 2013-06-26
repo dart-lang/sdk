@@ -200,6 +200,10 @@ class Docgen {
         }
      }
     });
+    // Outputs a text file with a list of files available after creating all 
+    // the libraries. This will help the viewer know what files are available 
+    // to read in. 
+    _writeToFile(listDir("docs").join('\n'), 'library_list.txt');
    }
 
   /// Saves list of libraries for Docgen object.
