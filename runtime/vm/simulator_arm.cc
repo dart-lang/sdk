@@ -760,7 +760,7 @@ Simulator::Simulator() {
 
   // All double-precision registers are initialized to zero.
   for (int i = 0; i < kNumberOfDRegisters; i++) {
-    dregisters_[i] = 0.0;
+    dregisters_[i] = 0;
   }
   // Since VFP registers are overlapping, single-precision registers should
   // already be initialized.
@@ -901,23 +901,47 @@ int32_t Simulator::get_pc() const {
 // Accessors for VFP register state.
 void Simulator::set_sregister(SRegister reg, float value) {
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
-  sregisters_[reg] = value;
+  sregisters_[reg] = bit_cast<int32_t, float>(value);
 }
 
 
 float Simulator::get_sregister(SRegister reg) const {
   ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
-  return sregisters_[reg];
+  return bit_cast<float, int32_t>(sregisters_[reg]);
 }
 
 
 void Simulator::set_dregister(DRegister reg, double value) {
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
-  dregisters_[reg] = value;
+  dregisters_[reg] = bit_cast<int64_t, double>(value);
 }
 
 
 double Simulator::get_dregister(DRegister reg) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
+  return bit_cast<double, int64_t>(dregisters_[reg]);
+}
+
+
+void Simulator::set_sregister_bits(SRegister reg, int32_t value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
+  sregisters_[reg] = value;
+}
+
+
+int32_t Simulator::get_sregister_bits(SRegister reg) const {
+  ASSERT((reg >= 0) && (reg < kNumberOfSRegisters));
+  return sregisters_[reg];
+}
+
+
+void Simulator::set_dregister_bits(DRegister reg, int64_t value) {
+  ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
+  dregisters_[reg] = value;
+}
+
+
+int64_t Simulator::get_dregister_bits(DRegister reg) const {
   ASSERT((reg >= 0) && (reg < kNumberOfDRegisters));
   return dregisters_[reg];
 }
@@ -2371,25 +2395,25 @@ void Simulator::DecodeType6(Instr* instr) {
       ASSERT(sm1 < kNumberOfSRegisters);
       if (instr->Bit(20) == 1) {
         // Format(instr, "vmovrrs'cond 'rd, 'rn, {'sm', 'sm1}");
-        set_register(rd, bit_cast<int32_t, float>(get_sregister(sm)));
-        set_register(rn, bit_cast<int32_t, float>(get_sregister(sm1)));
+        set_register(rd, get_sregister_bits(sm));
+        set_register(rn, get_sregister_bits(sm1));
       } else {
         // Format(instr, "vmovsrr'cond {'sm, 'sm1}, 'rd', 'rn");
-        set_sregister(sm, bit_cast<float, int32_t>(get_register(rd)));
-        set_sregister(sm1, bit_cast<float, int32_t>(get_register(rn)));
+        set_sregister_bits(sm, get_register(rd));
+        set_sregister_bits(sm1, get_register(rn));
       }
     } else {
       DRegister dm = instr->DmField();
       if (instr->Bit(20) == 1) {
         // Format(instr, "vmovrrd'cond 'rd, 'rn, 'dm");
-        int64_t dm_val = bit_cast<int64_t, double>(get_dregister(dm));
+        int64_t dm_val = get_dregister_bits(dm);
         set_register(rd, Utils::Low32Bits(dm_val));
         set_register(rn, Utils::High32Bits(dm_val));
       } else {
         // Format(instr, "vmovdrr'cond 'dm, 'rd, 'rn");
         int64_t dm_val = Utils::LowHighTo64Bits(get_register(rd),
                                                 get_register(rn));
-        set_dregister(dm, bit_cast<double, int64_t>(dm_val));
+        set_dregister_bits(dm, dm_val);
       }
     }
   } else if (instr-> IsVFPLoadStore()) {
@@ -2409,11 +2433,11 @@ void Simulator::DecodeType6(Instr* instr) {
         if (instr->Bit(20) == 1) {  // vldrs
           // Format(instr, "vldrs'cond 'sd, ['rn, #+'off10]");
           // Format(instr, "vldrs'cond 'sd, ['rn, #-'off10]");
-          set_sregister(sd, bit_cast<float, int32_t>(ReadW(addr, instr)));
+          set_sregister_bits(sd, ReadW(addr, instr));
         } else {  // vstrs
           // Format(instr, "vstrs'cond 'sd, ['rn, #+'off10]");
           // Format(instr, "vstrs'cond 'sd, ['rn, #-'off10]");
-          WriteW(addr, bit_cast<int32_t, float>(get_sregister(sd)), instr);
+          WriteW(addr, get_sregister_bits(sd), instr);
         }
       } else {
         DRegister dd = instr->DdField();
@@ -2422,11 +2446,11 @@ void Simulator::DecodeType6(Instr* instr) {
           // Format(instr, "vldrd'cond 'dd, ['rn, #-'off10]");
           int64_t dd_val = Utils::LowHighTo64Bits(ReadW(addr, instr),
                                                   ReadW(addr + 4, instr));
-          set_dregister(dd, bit_cast<double, int64_t>(dd_val));
+          set_dregister_bits(dd, dd_val);
         } else {  // vstrd
           // Format(instr, "vstrd'cond 'dd, ['rn, #+'off10]");
           // Format(instr, "vstrd'cond 'dd, ['rn, #-'off10]");
-          int64_t dd_val = bit_cast<int64_t, double>(get_dregister(dd));
+          int64_t dd_val = get_dregister_bits(dd);
           WriteW(addr, Utils::Low32Bits(dd_val), instr);
           WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
         }
@@ -2456,10 +2480,10 @@ void Simulator::DecodeType6(Instr* instr) {
           SRegister sd = static_cast<SRegister>(i);
           if (instr->Bit(20) == 1) {
             // Format(instr, "vldms'cond'pu 'rn'w, 'slist");
-            set_sregister(sd, bit_cast<float, int32_t>(ReadW(addr, instr)));
+            set_sregister_bits(sd, ReadW(addr, instr));
           } else {
             // Format(instr, "vstms'cond'pu 'rn'w, 'slist");
-            WriteW(addr, bit_cast<int32_t, float>(get_sregister(sd)), instr);
+            WriteW(addr, get_sregister_bits(sd), instr);
           }
           addr += 4;
         }
@@ -2472,10 +2496,10 @@ void Simulator::DecodeType6(Instr* instr) {
             // Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
             int64_t dd_val = Utils::LowHighTo64Bits(ReadW(addr, instr),
                                                     ReadW(addr + 4, instr));
-            set_dregister(dd, bit_cast<double, int64_t>(dd_val));
+            set_dregister_bits(dd, dd_val);
           } else {
             // Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
-            int64_t dd_val = bit_cast<int64_t, double>(get_dregister(dd));
+            int64_t dd_val = get_dregister_bits(dd);
             WriteW(addr, Utils::Low32Bits(dd_val), instr);
             WriteW(addr + 4, Utils::High32Bits(dd_val), instr);
           }
@@ -2726,13 +2750,13 @@ void Simulator::DecodeType7(Instr* instr) {
             }
             case 8: {  // vcvt, vcvtr between floating-point and integer
               sm = instr->SmField();
-              float sm_val = get_sregister(sm);
+              int32_t sm_int = get_sregister_bits(sm);
               uint32_t ud_val = 0;
               int32_t id_val = 0;
               if (instr->Bit(7) == 0) {  // vcvtsu, vcvtdu
-                ud_val = bit_cast<uint32_t, float>(sm_val);
+                ud_val = static_cast<uint32_t>(sm_int);
               } else {  // vcvtsi, vcvtdi
-                id_val = bit_cast<int32_t, float>(sm_val);
+                id_val = sm_int;
               }
               if (instr->Bit(8) == 0) {
                 float sd_val;
@@ -2810,13 +2834,13 @@ void Simulator::DecodeType7(Instr* instr) {
                   ASSERT((id_val >= 0) || !(dm_val >= 0.0));
                 }
               }
-              float sd_val;
+              int32_t sd_val;
               if (instr->Bit(16) == 0) {
-                sd_val = bit_cast<float, uint32_t>(ud_val);
+                sd_val = static_cast<int32_t>(ud_val);
               } else {
-                sd_val = bit_cast<float, int32_t>(id_val);
+                sd_val = id_val;
               }
-              set_sregister(sd, sd_val);
+              set_sregister_bits(sd, sd_val);
               break;
             }
             case 2:  // vcvtb, vcvtt
@@ -2841,10 +2865,10 @@ void Simulator::DecodeType7(Instr* instr) {
         SRegister sn = instr->SnField();
         if (instr->Bit(20) == 0) {
           // Format(instr, "vmovs'cond 'sn, 'rd");
-          set_sregister(sn, bit_cast<float, int32_t>(get_register(rd)));
+          set_sregister_bits(sn, get_register(rd));
         } else {
           // Format(instr, "vmovr'cond 'rd, 'sn");
-          set_register(rd, bit_cast<int32_t, float>(get_sregister(sn)));
+          set_register(rd, get_sregister_bits(sn));
         }
       } else if ((instr->Bits(20, 4) == 0xf) && (instr->Bit(8) == 0) &&
                  (instr->Bits(12, 4) == 0xf)) {

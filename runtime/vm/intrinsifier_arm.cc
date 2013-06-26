@@ -1096,7 +1096,7 @@ bool Intrinsifier::Smi_bitNegate(Assembler* assembler) {
   __ mvn(R0, ShifterOperand(R0));
   __ bic(R0, R0, ShifterOperand(kSmiTagMask));  // Remove inverted smi-tag.
   __ Ret();
-  return false;
+  return true;
 }
 
 
