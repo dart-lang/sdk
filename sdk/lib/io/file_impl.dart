@@ -220,10 +220,11 @@ const int _READ_LIST_REQUEST = 17;
 const int _WRITE_LIST_REQUEST = 18;
 const int _CREATE_LINK_REQUEST = 19;
 const int _DELETE_LINK_REQUEST = 20;
-const int _LINK_TARGET_REQUEST = 21;
-const int _TYPE_REQUEST = 22;
-const int _IDENTICAL_REQUEST = 23;
-const int _STAT_REQUEST = 24;
+const int _RENAME_LINK_REQUEST = 21;
+const int _LINK_TARGET_REQUEST = 22;
+const int _TYPE_REQUEST = 23;
+const int _IDENTICAL_REQUEST = 24;
+const int _STAT_REQUEST = 25;
 
 // TODO(ager): The only reason for this class is that the patching
 // mechanism doesn't seem to like patching a private top level
@@ -333,6 +334,8 @@ class _File implements File {
   }
 
   external static _rename(String oldPath, String newPath);
+
+  external static _renameLink(String oldPath, String newPath);
 
   File renameSync(String newPath) {
     var result = _rename(_path, newPath);

@@ -164,6 +164,44 @@ Future testCreateLoopingLink() {
 }
 
 
+Future testRename() {
+  Future testRename(Path base, String target) {
+    Link link1;
+    Link link2;
+    return new Link.fromPath(base.append('c')).create(target)
+    .then((link) {
+      link1 = link;
+      Expect.isTrue(link1.existsSync());
+      return link1.rename(base.append('d').toNativePath());
+    })
+    .then((link) {
+      link2 = link;
+      Expect.isFalse(link1.existsSync());
+      Expect.isTrue(link2.existsSync());
+      return link2.delete();
+    })
+    .then((_) => Expect.isFalse(link2.existsSync()));
+  }
+
+  return new Directory('').createTemp().then((baseDir) {
+    Path base = new Path(baseDir.path);
+    var targetsFutures = [];
+    targetsFutures.add(new Directory.fromPath(base.append('a')).create());
+    if (Platform.isWindows) {
+      // Currently only links to directories are supported on Windows.
+      targetsFutures.add(
+          new Directory.fromPath(base.append('b')).create());
+    } else {
+      targetsFutures.add(new File.fromPath(base.append('b')).create());
+    }
+    return Future.wait(targetsFutures).then((targets) {
+      return testRename(base, targets[0].path)
+      .then((_) => testRename(base, targets[1].path))
+      .then((_) => baseDir.delete(recursive: true));
+    });
+  });
+}
+
 Future testDirectoryListing(Path base, Directory baseDir) {
   Map makeExpected(bool recursive, bool followLinks) {
     Map expected = new Map();
@@ -219,5 +257,6 @@ main() {
   ReceivePort keepAlive = new ReceivePort();
   testCreate()
   .then((_) => testCreateLoopingLink())
+  .then((_) => testRename())
   .then((_) => keepAlive.close());
 }

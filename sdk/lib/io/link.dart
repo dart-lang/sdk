@@ -81,6 +81,26 @@ abstract class Link implements FileSystemEntity {
   void deleteSync();
 
   /**
+   * Renames this link. Returns a `Future<Link>` that completes
+   * with a [Link] instance for the renamed link.
+   *
+   * If [newPath] identifies an existing link, that link is
+   * replaced. If [newPath] identifies an existing file or directory,
+   * the operation fails and the future completes with an exception.
+   */
+  Future<Link> rename(String newPath);
+
+   /**
+   * Synchronously renames this link. Returns a [Link]
+   * instance for the renamed link.
+   *
+   * If [newPath] identifies an existing link, that link is
+   * replaced. If [newPath] identifies an existing file or directory
+   * the operation fails and an exception is thrown.
+   */
+  Link renameSync(String newPath);
+
+  /**
    * Gets the target of the link. Returns a future that completes with
    * the path to the target.
    *
@@ -193,6 +213,27 @@ class _Link extends FileSystemEntity implements Link {
   void deleteSync() {
     var result = _File._deleteLink(path);
     throwIfError(result, "Cannot delete link", path);
+  }
+
+  Future<Link> rename(String newPath) {
+    _ensureFileService();
+    List request = new List(3);
+    request[0] = _RENAME_LINK_REQUEST;
+    request[1] = path;
+    request[2] = newPath;
+    return _fileService.call(request).then((response) {
+      if (_isErrorResponse(response)) {
+        throw _exceptionFromResponse(
+            response, "Cannot rename link '$_path' to '$newPath'");
+      }
+      return new Link(newPath);
+    });
+  }
+
+  Link renameSync(String newPath) {
+    var result = _File._renameLink(path, newPath);
+    throwIfError(result, "Cannot rename link '$path' to '$newPath'");
+    return new Link(newPath);
   }
 
   Future<String> target() {

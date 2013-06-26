@@ -208,6 +208,19 @@ bool File::Rename(const char* old_path, const char* new_path) {
 }
 
 
+bool File::RenameLink(const char* old_path, const char* new_path) {
+  File::Type type = File::GetType(old_path, false);
+  if (type == kIsLink) {
+    return TEMP_FAILURE_RETRY(rename(old_path, new_path)) == 0;
+  } else if (type == kIsDirectory) {
+    errno = EISDIR;
+  } else {
+    errno = EINVAL;
+  }
+  return false;
+}
+
+
 off_t File::LengthFromPath(const char* name) {
   struct stat st;
   if (TEMP_FAILURE_RETRY(stat(name, &st)) == 0) {
