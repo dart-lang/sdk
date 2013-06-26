@@ -1,4 +1,8 @@
 /// The Dart HTML library.
+///
+/// For examples, see
+/// [Dart HTML5 Samples](https://github.com/dart-lang/dart-html5-samples)
+/// on Github.
 library dart.dom.html;
 
 import 'dart:async';
