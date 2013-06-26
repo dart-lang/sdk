@@ -1786,7 +1786,7 @@ class Uint32List extends TypedData implements JavaScriptIndexingBehavior, List<i
   // -- end List<int> mixins.
 }
 
-class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, List<int> native "Uint8ClampedArray" {
+class Uint8ClampedList extends Uint8List implements JavaScriptIndexingBehavior, List<int> native "Uint8ClampedArray,CanvasPixelArray" {
 
   factory Uint8ClampedList(int length) =>
     _TypedArrayFactoryProvider.createUint8ClampedList(length);

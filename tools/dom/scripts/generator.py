@@ -78,6 +78,7 @@ _dart_attribute_renames = monitored.Dict('generator._dart_attribute_renames', {
 interface_factories = monitored.Dict('generator.interface_factories', {
 })
 
+
 #
 # Custom native specs for the dart2js dom.
 #
@@ -88,12 +89,35 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     # tags here provided there is not conflict in usage (e.g. browser X has tag
     # T and no other browser has tag T).
 
+    'AnalyserNode': 'AnalyserNode,RealtimeAnalyserNode',
+
+    'ChannelMergerNode': 'ChannelMergerNode,AudioChannelMerger',
+    'ChannelSplitterNode': 'ChannelSplitterNode,AudioChannelSplitter',
+
+    'CSSStyleDeclaration':
+        #                    IE                   Firefox
+        'CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties',
+
     'DOMApplicationCache':
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
+
+    'HTMLTableCellElement':
+        'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
+
+    'GainNode': 'GainNode,AudioGainNode',
+
+    'IDBOpenDBRequest':
+        'IDBOpenDBRequest,IDBVersionChangeRequest',
+
+    'MouseEvent': 'MouseEvent,DragEvent',
 
     'MutationObserver': 'MutationObserver,WebKitMutationObserver',
 
     'NodeList': 'NodeList,RadioNodeList',
+
+    'OscillatorNode': 'OscillatorNode,Oscillator',
+
+    'PannerNode': 'PannerNode,AudioPannerNode',
 
     'RTCPeerConnection': 'RTCPeerConnection,mozRTCPeerConnection',
 
@@ -102,6 +126,8 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'RTCSessionDescription': 'RTCSessionDescription,mozRTCSessionDescription',
 
     'RTCDataChannel': 'RTCDataChannel,DataChannel',
+
+    'ScriptProcessorNode': 'ScriptProcessorNode,JavaScriptAudioNode',
 
     'TransitionEvent': 'TransitionEvent,WebKitTransitionEvent',
 

@@ -2498,7 +2498,7 @@ class CssRule native "CSSRule" {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration native "CSSStyleDeclaration" {
+class CssStyleDeclaration native "CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties" {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
   factory CssStyleDeclaration.css(String css) {
@@ -15627,7 +15627,7 @@ class ModElement extends _HTMLElement native "HTMLModElement" {
 
 
 @DomName('MouseEvent')
-class MouseEvent extends UIEvent native "MouseEvent" {
+class MouseEvent extends UIEvent native "MouseEvent,DragEvent" {
   factory MouseEvent(String type,
       {Window view, int detail: 0, int screenX: 0, int screenY: 0,
       int clientX: 0, int clientY: 0, int button: 0, bool canBubble: true,
@@ -20799,7 +20799,7 @@ class TableCaptionElement extends _HTMLElement native "HTMLTableCaptionElement" 
 
 @DocsEditable
 @DomName('HTMLTableCellElement')
-class TableCellElement extends _HTMLElement native "HTMLTableCellElement" {
+class TableCellElement extends _HTMLElement native "HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement" {
 
   @DomName('HTMLTableCellElement.HTMLTableCellElement')
   @DocsEditable

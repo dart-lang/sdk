@@ -1056,7 +1056,7 @@ class ObjectStore native "IDBObjectStore" {
 @DocsEditable
 @DomName('IDBOpenDBRequest')
 @Unstable
-class OpenDBRequest extends Request implements EventTarget native "IDBOpenDBRequest" {
+class OpenDBRequest extends Request implements EventTarget native "IDBOpenDBRequest,IDBVersionChangeRequest" {
 
   @DomName('IDBOpenDBRequest.blockedEvent')
   @DocsEditable
