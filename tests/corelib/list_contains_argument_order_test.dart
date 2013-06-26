@@ -6,13 +6,13 @@ import "package:expect/expect.dart";
 
 class A {
   const A();
-  bool operator ==(A other) {
+  bool operator ==(Object other) {
     return false;
   }
 }
 
 class B {
-  bool operator ==(B other) {
+  bool operator ==(Object other) {
     Expect.fail("Bad equality order.");
   }
 }
