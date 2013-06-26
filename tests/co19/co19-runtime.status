@@ -489,8 +489,10 @@ LibTest/math/tan_A01_t01: Fail, OK  # Issue co19 - 44
 [ $compiler == none && $runtime == vm && $system == linux ]
 LibTest/math/exp_A01_t01: Fail
 
-[ $compiler == none && $runtime == vm && $arch != x64 ]
+[ $compiler == none && $runtime == vm && $system != win32 && $arch != x64 ]
 LibTest/math/tan_A01_t01: Fail
+
+[ $compiler == none && $runtime == vm && $arch != x64 ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 
