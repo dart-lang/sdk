@@ -55,7 +55,8 @@ void _scheduleAsyncCallback(callback) {
  *     }
  */
 void runAsync(void callback()) {
-  _Zone._current.runAsync(callback);
+  _Zone currentZone = _Zone._current;
+  currentZone.runAsync(callback, currentZone);
 }
 
 class _AsyncRun {
