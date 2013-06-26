@@ -24437,7 +24437,7 @@ typedef void VoidCallback();
  *
  * To receive data on the WebSocket, register a listener for message events.
  *
- *     webSocket.on.message.add((MessageEvent e) {
+ *     webSocket.onMessage.listen((MessageEvent e) {
  *       receivedData(e.data);
  *     });
  *
