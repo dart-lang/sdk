@@ -13457,6 +13457,15 @@ class InputMethodContext native "InputMethodContext" {
 // BSD-style license that can be found in the LICENSE file.
 
 
+/**
+ * An event that describes user interaction with the keyboard.
+ *
+ * The [type] of the event identifies what kind of interaction occurred.
+ *
+ * See also:
+ *
+ * * [KeyboardEvent](https://developer.mozilla.org/en/DOM/KeyboardEvent) at MDN.
+ */
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent native "KeyboardEvent" {
 
