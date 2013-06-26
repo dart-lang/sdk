@@ -48,24 +48,29 @@ static Dart_Handle TypeToHandle(Isolate* isolate,
 
 // --- Classes and Interfaces Reflection ---
 
-DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz) {
+DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (obj.IsType() || obj.IsClass()) {
+    const Class& cls = (obj.IsType()) ?
+        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
+    return Api::NewHandle(isolate, cls.UserVisibleName());
+  } else {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
-  return Api::NewHandle(isolate, cls.UserVisibleName());
 }
 
 
-DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
+DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
 
 #if defined(DEBUG)
   const Library& lib = Library::Handle(cls.library());
@@ -81,15 +86,16 @@ DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
+DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle object,
                                                     intptr_t* count) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
-
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
   const Array& interface_types = Array::Handle(isolate, cls.interfaces());
   if (interface_types.IsNull()) {
     *count = 0;
@@ -100,14 +106,16 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
 }
 
 
-DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
+DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle object,
                                                  intptr_t index) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
 
   // Finalize all classes.
   Dart_Handle state = Api::CheckIsolateState(isolate);
@@ -131,27 +139,30 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
 }
 
 
-DART_EXPORT bool Dart_ClassIsTypedef(Dart_Handle clazz) {
+DART_EXPORT bool Dart_ClassIsTypedef(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
   // For now we represent typedefs as non-canonical signature classes.
   // I anticipate this may change if we make typedefs more general.
   return cls.IsSignatureClass() && !cls.IsCanonicalSignatureClass();
 }
 
 
-DART_EXPORT Dart_Handle Dart_ClassGetTypedefReferent(Dart_Handle clazz) {
+DART_EXPORT Dart_Handle Dart_ClassGetTypedefReferent(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
-
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
   if (!cls.IsSignatureClass() && !cls.IsCanonicalSignatureClass()) {
     const String& cls_name = String::Handle(cls.UserVisibleName());
     return Api::NewError("%s: class '%s' is not a typedef class. "
@@ -164,26 +175,30 @@ DART_EXPORT Dart_Handle Dart_ClassGetTypedefReferent(Dart_Handle clazz) {
 }
 
 
-DART_EXPORT bool Dart_ClassIsFunctionType(Dart_Handle clazz) {
+DART_EXPORT bool Dart_ClassIsFunctionType(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
   // A class represents a function type when it is a canonical
   // signature class.
   return cls.IsCanonicalSignatureClass();
 }
 
 
-DART_EXPORT Dart_Handle Dart_ClassGetFunctionTypeSignature(Dart_Handle clazz) {
+DART_EXPORT Dart_Handle Dart_ClassGetFunctionTypeSignature(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
   if (!cls.IsCanonicalSignatureClass()) {
     const String& cls_name = String::Handle(cls.UserVisibleName());
     return Api::NewError("%s: class '%s' is not a function-type class. "
@@ -221,8 +236,12 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
   Function& func = Function::Handle();
   String& name = String::Handle();
 
-  if (obj.IsClass()) {
-    const Class& cls = Class::Cast(obj);
+  if (obj.IsType() || obj.IsClass()) {
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_Invoke is removed.
+    const Class& cls = (obj.IsType()) ?
+        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
     const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
     if (!error.IsNull()) {
       return Api::NewHandle(isolate, error.raw());
@@ -283,8 +302,12 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
 
   Function& func = Function::Handle(isolate);
   String& tmp_name = String::Handle(isolate);
-  if (obj.IsClass()) {
-    const Class& cls = Class::Cast(obj);
+  if (obj.IsType() || obj.IsClass()) {
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_Invoke is removed.
+    const Class& cls = (obj.IsType()) ?
+        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
 
     // Case 1.  Lookup the unmodified function name.
     func = cls.LookupFunctionAllowPrivate(func_name);
@@ -561,8 +584,12 @@ DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
   Field& field = Field::Handle(isolate);
   String& name = String::Handle(isolate);
 
-  if (obj.IsClass()) {
-    const Class& cls = Class::Cast(obj);
+  if (obj.IsType() || obj.IsClass()) {
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_Invoke is removed.
+    const Class& cls = (obj.IsType()) ?
+        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
     const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
     if (!error.IsNull()) {
       return Api::NewHandle(isolate, error.raw());
@@ -614,8 +641,12 @@ DART_EXPORT Dart_Handle Dart_LookupVariable(Dart_Handle target,
   if (var_name.IsNull()) {
     RETURN_TYPE_ERROR(isolate, variable_name, String);
   }
-  if (obj.IsClass()) {
-    const Class& cls = Class::Cast(obj);
+  if (obj.IsType() || obj.IsClass()) {
+    // For backwards compatibility we allow class objects to be passed in
+    // for now. This needs to be removed once all code that uses class
+    // objects to invoke Dart_Invoke is removed.
+    const Class& cls = (obj.IsType()) ?
+        Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
     return Api::NewHandle(isolate, cls.LookupField(var_name));
   }
   if (obj.IsLibrary()) {
@@ -684,14 +715,15 @@ DART_EXPORT Dart_Handle Dart_VariableType(Dart_Handle variable) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_GetTypeVariableNames(Dart_Handle clazz) {
+DART_EXPORT Dart_Handle Dart_GetTypeVariableNames(Dart_Handle object) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
-
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
   const intptr_t num_type_params = cls.NumTypeParameters();
   const TypeArguments& type_params =
       TypeArguments::Handle(cls.type_parameters());
@@ -710,14 +742,16 @@ DART_EXPORT Dart_Handle Dart_GetTypeVariableNames(Dart_Handle clazz) {
 
 
 DART_EXPORT Dart_Handle Dart_LookupTypeVariable(
-    Dart_Handle clazz,
+    Dart_Handle object,
     Dart_Handle type_variable_name) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  const Class& cls = Api::UnwrapClassHandle(isolate, clazz);
-  if (cls.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, clazz, Class);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
+  if (!obj.IsType() && !obj.IsClass()) {
+    RETURN_TYPE_ERROR(isolate, object, Class/Type);
   }
+  const Class& cls = (obj.IsType()) ?
+      Class::Handle(Type::Cast(obj).type_class()) : Class::Cast(obj);
   const String& var_name = Api::UnwrapStringHandle(isolate, type_variable_name);
   if (var_name.IsNull()) {
     RETURN_TYPE_ERROR(isolate, type_variable_name, String);
