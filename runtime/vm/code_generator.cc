@@ -1169,13 +1169,10 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
   args.SetAt(0, receiver);
   const Object& value = Object::Handle(DartEntry::InvokeFunction(getter, args));
 
-  // 3. If the getter threw an exception, treat it as no such method.
-  if (value.IsUnhandledException()) return false;
-
-  // 4. If there was some other error, propagate it.
+  // 3. If there was some error, propagate it.
   CheckResultError(value);
 
-  // 5. Invoke the value as a closure.
+  // 4. Invoke the value as a closure.
   Instance& instance = Instance::Handle();
   instance ^= value.raw();
   arguments.SetAt(0, instance);
