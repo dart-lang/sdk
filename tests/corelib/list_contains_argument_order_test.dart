@@ -30,14 +30,12 @@ main() {
     const <A>[ const A() ],
     new Set()..add(new A()),
     (new Map()..[new A()] = 0).keys,
-    (new Map()..[0] = new A()).values];
-int i = 0;
+    (new Map()..[0] = new A()).values
+  ];
+
   for (var iterable in iterables) {
-    print(i++);
     test(iterable);
-    print(i++);
     test(iterable.map((x) => x));
-    print(i++);
     test(iterable.take(1));
   }
 }
