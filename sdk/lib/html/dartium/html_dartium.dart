@@ -1057,7 +1057,7 @@ class CanvasElement extends _HTMLElement implements CanvasImageSource {
    *     var ctx = canvas.context2D
    *     ..fillStyle = "rgb(200,0,0)"
    *     ..fillRect(10, 10, 55, 50);
-   *     var dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+   *     var dataUrl = canvas.toDataUrl("image/jpeg", 0.95);
    *     // The Data Uri would look similar to
    *     // 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA
    *     // AAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO
