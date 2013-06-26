@@ -32,7 +32,7 @@ Language/15_Reference/1_Lexical_Rules/1_Reserved_Words_A40_t04: fail
 Language/15_Reference/1_Lexical_Rules_A02_t06: fail
 
 # analyzer problem: forward reference of typedef with type parameters
-Language/13_Libraries_and_Scripts/3_Parts_A02_t03: fail
+Language/13_Libraries_and_Scripts/3_Parts_A02_t03: skip
 
 # co19 issue #380, Strings class has been removed
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: fail, OK
