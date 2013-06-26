@@ -844,7 +844,10 @@ abstract class HttpResponse implements IOSink {
  * [getUrl] and [open].
  *
  * When the HTTP response is ready a [HttpClientResponse] object is
- * provided which provides access to the headers and body of the response.
+ * provided which provides access to the headers and body of the response. The
+ * body is available as a stream implemented by [HttpClientResponse].
+ * If a body is present, it must be read. Otherwise, it'll lead to a resource
+ * leaks. Consider using [HttpClientResponse.drain] if the body is unused.
  *
  *     HttpClient client = new HttpClient();
  *     client.getUrl(Uri.parse("http://www.example.com/"))
