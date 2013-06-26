@@ -1375,12 +1375,16 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilterNoSmi(object, value, &done);
   }
   // A store buffer update is required.
-  if (value != R0) Push(R0);  // Preserve R0.
+  RegList regs = (1 << LR);
+  if (value != R0) {
+    regs |= (1 << R0);  // Preserve R0.
+  }
+  PushList(regs);
   if (object != R0) {
     mov(R0, ShifterOperand(object));
   }
   BranchLink(&StubCode::UpdateStoreBufferLabel());
-  if (value != R0) Pop(R0);  // Restore R0.
+  PopList(regs);
   Bind(&done);
 }
 

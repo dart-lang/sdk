@@ -241,7 +241,6 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
   // Note that T1 is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  // Destroy T2 as we will not continue in the function.
   __ lw(T2, Address(SP, 0 * kWordSize));  // Value.
   __ sll(T1, T1, 1);  // T1 is Smi.
   __ addu(T1, T0, T1);

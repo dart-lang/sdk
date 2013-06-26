@@ -264,12 +264,26 @@ void Assembler::StoreIntoObject(Register object,
     StoreIntoObjectFilterNoSmi(object, value, &done);
   }
   // A store buffer update is required.
-  if (value != T0) Push(T0);  // Preserve T0.
+  if (value != T0) {
+    // Preserve T0.
+    addiu(SP, SP, Immediate(-2 * kWordSize));
+    sw(T0, Address(SP, 1 * kWordSize));
+  } else {
+    addiu(SP, SP, Immediate(-1 * kWordSize));
+  }
+  sw(RA, Address(SP, 0 * kWordSize));
   if (object != T0) {
     mov(T0, object);
   }
   BranchLink(&StubCode::UpdateStoreBufferLabel());
-  if (value != T0) Pop(T0);  // Restore T0.
+  lw(RA, Address(SP, 0 * kWordSize));
+  if (value != T0) {
+    // Restore T0.
+    lw(T0, Address(SP, 1 * kWordSize));
+    addiu(SP, SP, Immediate(2 * kWordSize));
+  } else {
+    addiu(SP, SP, Immediate(1 * kWordSize));
+  }
   Bind(&done);
 }
 

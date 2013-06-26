@@ -235,7 +235,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
   __ j(ABOVE_EQUAL, &fall_through);
   // Note that EBX is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
-  // Destroy ECX as we will not continue in the function.
+  // Destroy ECX (ic data) as we will not continue in the function.
   __ movl(ECX, Address(ESP, + 1 * kWordSize));  // Value.
   __ StoreIntoObject(EAX,
                      FieldAddress(EAX, EBX, TIMES_2, Array::data_offset()),
