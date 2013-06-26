@@ -82,8 +82,8 @@ class CodeEmitterTask extends CompilerTask {
   final List<ClassElement> nativeClasses = <ClassElement>[];
   final List<Selector> trivialNsmHandlers = <Selector>[];
   final Map<String, String> mangledFieldNames = <String, String>{};
+  final Set<String> recordedMangledNames = new Set<String>();
   final Set<String> interceptorInvocationNames = new Set<String>();
-  final Set<String> recordedUnmangledNames = new Set<String>();
 
   // TODO(ngeoffray): remove this field.
   Set<ClassElement> instantiatedClasses;
@@ -641,7 +641,7 @@ class CodeEmitterTask extends CompilerTask {
            */
           js('var classData = desc[""], supr, name = cls, fields = classData'),
           optional(
-              compiler.mirrorsEnabled,
+              backend.hasRetainedMetadata,
               js.if_('typeof classData == "object" && '
                      'classData instanceof Array',
                      [js('classData = fields = classData[0]')])),
@@ -675,7 +675,7 @@ class CodeEmitterTask extends CompilerTask {
           ])),
 
           js('var constructor = defineClass(name, cls, fields, desc)'),
-          optional(compiler.mirrorsEnabled,
+          optional(backend.hasRetainedMetadata,
                    js('constructor["${namer.metadataField}"] = desc')),
           js('isolateProperties[cls] = constructor'),
           js.if_('supr', js('pendingClasses[cls] = supr'))
@@ -1043,7 +1043,7 @@ class CodeEmitterTask extends CompilerTask {
 
     defineStub(invocationName, function);
 
-    String reflectionName = getReflectionName(selector);
+    String reflectionName = getReflectionName(selector, invocationName);
     if (reflectionName != null) {
       defineStub('+$reflectionName', js('0'));
     }
@@ -1164,7 +1164,7 @@ class CodeEmitterTask extends CompilerTask {
   bool instanceFieldNeedsGetter(Element member) {
     assert(member.isField());
     if (fieldAccessNeverThrows(member)) return false;
-    return compiler.mirrorsEnabled
+    return backend.retainGetter(member)
         || compiler.codegenWorld.hasInvokedGetter(member, compiler);
   }
 
@@ -1172,7 +1172,7 @@ class CodeEmitterTask extends CompilerTask {
     assert(member.isField());
     if (fieldAccessNeverThrows(member)) return false;
     return (!member.modifiers.isFinalOrConst())
-        && (compiler.mirrorsEnabled
+        && (backend.retainSetter(member)
             || compiler.codegenWorld.hasInvokedSetter(member, compiler));
   }
 
@@ -1215,7 +1215,7 @@ class CodeEmitterTask extends CompilerTask {
       if (metadata != null) {
         builder.addProperty('@$name', metadata);
       }
-      String reflectionName = getReflectionName(member);
+      String reflectionName = getReflectionName(member, name);
       if (reflectionName != null) {
         builder.addProperty('+$reflectionName', js('0'));
       }
@@ -1235,18 +1235,26 @@ class CodeEmitterTask extends CompilerTask {
     emitExtraAccessors(member, builder);
   }
 
-  String getReflectionName(elementOrSelector) {
-    if (!compiler.mirrorsEnabled) return null;
-    String result = getReflectionNameInternal(elementOrSelector);
-    if (recordedUnmangledNames.contains(result)) return null;
-    recordedUnmangledNames.add(result);
-    return result;
+  String getReflectionName(elementOrSelector, String mangledName) {
+    if (!backend.retainName(elementOrSelector.name)) return null;
+    // TODO(ahe): Enable the next line when I can tell the difference between
+    // an instance method and a global.  They may have the same mangled name.
+    // if (recordedMangledNames.contains(mangledName)) return null;
+    recordedMangledNames.add(mangledName);
+    return getReflectionNameInternal(elementOrSelector, mangledName);
   }
 
-  String getReflectionNameInternal(elementOrSelector) {
+  String getReflectionNameInternal(elementOrSelector, String mangledName) {
     String name = elementOrSelector.name.slowToString();
     if (elementOrSelector.isGetter()) return name;
-    if (elementOrSelector.isSetter()) return '$name=';
+    if (elementOrSelector.isSetter()) {
+      if (!mangledName.startsWith(namer.setterPrefix)) return '$name=';
+      String base = mangledName.substring(namer.setterPrefix.length);
+      String getter = '${namer.getterPrefix}$base';
+      mangledFieldNames[getter] = name;
+      recordedMangledNames.add(getter);
+      return null;
+    }
     if (elementOrSelector is Selector
         || elementOrSelector.isFunction()
         || elementOrSelector.isConstructor()) {
@@ -1587,16 +1595,12 @@ class CodeEmitterTask extends CompilerTask {
   void recordMangledField(Element member,
                           String accessorName,
                           String memberName) {
+    if (!backend.retainGetter(member)) return;
     String previousName = mangledFieldNames.putIfAbsent(
         '${namer.getterPrefix}$accessorName',
         () => memberName);
     assert(invariant(member, previousName == memberName,
                      message: '$previousName != ${memberName}'));
-    previousName = mangledFieldNames.putIfAbsent(
-        '${namer.setterPrefix}$accessorName',
-        () => '${memberName}=');
-    assert(invariant(member, previousName == '${memberName}=',
-                     message: '$previousName != ${memberName}='));
   }
 
   /// Returns `true` if fields added.
@@ -1632,18 +1636,14 @@ class CodeEmitterTask extends CompilerTask {
       if (!classIsNative || needsAccessor) {
         buffer.write(separator);
         separator = ',';
-        if (compiler.mirrorsEnabled) {
-          var metadata = buildMetadataFunction(member);
-          if (metadata != null) {
-            hasMetadata = true;
-          } else {
-            metadata = new jsAst.LiteralNull();
-          }
-          fieldMetadata.add(metadata);
+        var metadata = buildMetadataFunction(member);
+        if (metadata != null) {
+          hasMetadata = true;
+        } else {
+          metadata = new jsAst.LiteralNull();
         }
-        if (compiler.mirrorsEnabled) {
-          recordMangledField(member, accessorName, member.name.slowToString());
-        }
+        fieldMetadata.add(metadata);
+        recordMangledField(member, accessorName, member.name.slowToString());
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
@@ -1774,7 +1774,7 @@ class CodeEmitterTask extends CompilerTask {
     }
     buffer.write('$className:$_');
     buffer.write(jsAst.prettyPrint(builder.toObjectInitializer(), compiler));
-    if (compiler.mirrorsEnabled) {
+    if (backend.retainName(classElement.name)) {
       buffer.write(',$n$n"+${classElement.name.slowToString()}": 0');
     }
   }
@@ -2065,7 +2065,7 @@ class CodeEmitterTask extends CompilerTask {
         buffer.write(',$n$n"@$name":$_');
         buffer.write(jsAst.prettyPrint(metadata, compiler));
       }
-      String reflectionName = getReflectionName(element);
+      String reflectionName = getReflectionName(element, name);
       if (reflectionName != null) {
         buffer.write(',$n$n"+$reflectionName":${_}0');
       }
@@ -2623,7 +2623,7 @@ class CodeEmitterTask extends CompilerTask {
         if (mask.willHit(selector, compiler)) continue;
         String jsName = namer.invocationMirrorInternalName(selector);
         addedJsNames[jsName] = selector;
-        String reflectionName = getReflectionName(selector);
+        String reflectionName = getReflectionName(selector, jsName);
         if (reflectionName != null) {
           mangledFieldNames[jsName] = reflectionName;
         }
@@ -3252,7 +3252,7 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   /// annotated with itself.  The metadata function is used by
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun buildMetadataFunction(Element element) {
-    if (!compiler.mirrorsEnabled) return null;
+    if (!backend.retainMetadataOf(element)) return null;
     return compiler.withCurrentElement(element, () {
       var metadata = [];
       Link link = element.metadata;
@@ -3582,6 +3582,8 @@ if (typeof document !== "undefined" && document.readyState !== "complete") {
   if (!init.libraries) init.libraries = [];
   if (!init.mangledNames) init.mangledNames = {};
   if (!init.mangledGlobalNames) init.mangledGlobalNames = {};
+  init.getterPrefix = "${namer.getterPrefix}";
+  init.setterPrefix = "${namer.setterPrefix}";
   var libraries = init.libraries;
   var mangledNames = init.mangledNames;
   var mangledGlobalNames = init.mangledGlobalNames;

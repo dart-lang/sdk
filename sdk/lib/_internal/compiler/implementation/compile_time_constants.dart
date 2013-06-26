@@ -59,7 +59,10 @@ class ConstantHandler extends CompilerTask {
   }
 
   void registerInstantiatedType(DartType type, TreeElements elements) {
-    if (isMetadata) return;
+    if (isMetadata) {
+      compiler.backend.registerMetadataInstantiatedType(type, elements);
+      return;
+    }
     compiler.enqueuer.codegen.registerInstantiatedType(type, elements);
     if (type is InterfaceType &&
         !type.isRaw &&
@@ -69,13 +72,19 @@ class ConstantHandler extends CompilerTask {
   }
 
   void registerStaticUse(Element element) {
-    if (isMetadata) return;
+    if (isMetadata) {
+      compiler.backend.registerMetadataStaticUse(element);
+      return;
+    }
     compiler.analyzeElement(element.declaration);
     compiler.enqueuer.codegen.registerStaticUse(element);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
-    if (isMetadata) return;
+    if (isMetadata) {
+      compiler.backend.registerMetadataGetOfStaticFunction(element);
+      return;
+    }
     compiler.analyzeElement(element.declaration);
     compiler.enqueuer.codegen.registerGetOfStaticFunction(element);
   }
@@ -459,9 +468,7 @@ class CompileTimeConstantEvaluator extends Visitor {
 
   Constant makeTypeConstant(Element element) {
     DartType elementType = element.computeType(compiler).asRaw();
-    if (compiler.mirrorsEnabled) {
-      handler.registerInstantiatedType(elementType, elements);
-    }
+    compiler.backend.registerTypeLiteral(element, elements);
     DartType constantType =
         compiler.backend.typeImplementation.computeType(compiler);
     Constant constant = new TypeConstant(elementType, constantType);

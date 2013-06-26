@@ -20,9 +20,13 @@ import 'dart:_js_helper' show
 import 'dart:_interceptors' show Interceptor, JSExtendableArray;
 import 'dart:_js_names';
 
-/// No-op method that is called to inform the compiler that
-/// tree-shaking needs to be disabled.
+/// No-op method that is called to inform the compiler that tree-shaking needs
+/// to be disabled.
 disableTreeShaking() => preserveNames();
+
+/// No-op method that is called to inform the compiler that metadata must be
+/// preserved at runtime.
+preserveMetadata() {}
 
 String getName(Symbol symbol) {
   preserveNames();
@@ -212,7 +216,10 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     return result;
   }
 
-  List<InstanceMirror> get metadata => _metadata.map(reflect).toList();
+  List<InstanceMirror> get metadata {
+    preserveMetadata();
+    return _metadata.map(reflect).toList();
+  }
 }
 
 String n(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
@@ -632,6 +639,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
   Symbol get qualifiedName => computeQualifiedName(owner, simpleName);
 
   List<InstanceMirror> get metadata {
+    preserveMetadata();
     if (_metadata == null) {
       _metadata = (_metadataFunction == null)
           ? const [] : JS('', '#()', _metadataFunction);
@@ -769,6 +777,7 @@ Symbol computeQualifiedName(DeclarationMirror owner, Symbol simpleName) {
 }
 
 List extractMetadata(victim) {
+  preserveMetadata();
   var metadataFunction = JS('', '#["@"]', victim);
   return (metadataFunction == null)
       ? const [] : JS('', '#()', metadataFunction);

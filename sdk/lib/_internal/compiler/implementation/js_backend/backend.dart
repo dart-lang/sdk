@@ -11,7 +11,6 @@ class JavaScriptItemCompilationContext extends ItemCompilationContext {
       : boundsChecked = new Set<HInstruction>();
 }
 
-
 class CheckedModeHelper {
   final SourceString name;
 
@@ -268,6 +267,38 @@ class JavaScriptBackend extends Backend {
   /// Holds the method "preserveNames" in js_mirrors when
   /// dart:mirrors has been loaded.
   FunctionElement preserveNamesMarker;
+
+  /// Holds the method "preserveMetadata" in js_mirrors when
+  /// dart:mirrors has been loaded.
+  FunctionElement preserveMetadataMarker;
+
+  /// True if a call to preserveMetadataMarker has been seen.  This means that
+  /// metadata must be retained for dart:mirrors to work correctly.
+  bool mustRetainMetadata = false;
+
+  /// True if any metadata has been retained.  This is slightly different from
+  /// [mustRetainMetadata] and tells us if any metadata was retained.  For
+  /// example, if [mustRetainMetadata] is true but there is no metadata in the
+  /// program, this variable will stil be false.
+  bool hasRetainedMetadata = false;
+
+  /// True if a call to preserveNames has been seen.
+  bool mustPreserveNames = false;
+
+  /// True if a call to disableTreeShaking has been seen.
+  bool isTreeShakingDisabled = false;
+
+  /// List of instantiated types from metadata.  If metadata must be preserved,
+  /// these types must registered.
+  final List<Dependency> metadataInstantiatedTypes = <Dependency>[];
+
+  /// List of elements used from metadata.  If metadata must be preserved,
+  /// these elements must be compiled.
+  final List<Element> metadataStaticUse = <Element>[];
+
+  /// List of tear-off functions referenced from metadata.  If metadata must be
+  /// preserved, these elements must be compiled.
+  final List<FunctionElement> metadataGetOfStaticFunction = <FunctionElement>[];
 
   JavaScriptBackend(Compiler compiler, bool generateSourceMap, bool disableEval)
       : namer = determineNamer(compiler),
@@ -710,8 +741,11 @@ class JavaScriptBackend extends Backend {
     enqueueInResolution(getCyclicThrowHelper(), elements);
   }
 
-  void registerTypeLiteral(TreeElements elements) {
+  void registerTypeLiteral(Element element, TreeElements elements) {
     enqueueInResolution(getCreateRuntimeType(), elements);
+    // TODO(ahe): Might want to register [element] as an instantiated class
+    // when reflection is used.  However, as long as we disable tree-shaking
+    // eagerly it doesn't matter.
   }
 
   void registerStackTraceInCatch(TreeElements elements) {
@@ -1318,19 +1352,102 @@ class JavaScriptBackend extends Backend {
   ClassElement get boolImplementation => jsBoolClass;
   ClassElement get nullImplementation => jsNullClass;
 
-  void enableMirrors() {
-    LibraryElement library = compiler.libraries['dart:_js_mirrors'];
-    disableTreeShakingMarker =
-        library.find(const SourceString('disableTreeShaking'));
-    preserveNamesMarker =
-        library.find(const SourceString('preserveNames'));
- }
-
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == disableTreeShakingMarker) {
       enqueuer.enqueueEverything();
+      if (isTreeShakingDisabled) return;
       compiler.disableTypeInferenceForMirrors = true;
+      isTreeShakingDisabled = true;
     } else if (element == preserveNamesMarker) {
+      if (mustPreserveNames) return;
+      mustPreserveNames = true;
+      compiler.log('Preserving names.');
+    } else if (element == preserveMetadataMarker) {
+      if (mustRetainMetadata) return;
+      compiler.log('Retaining metadata.');
+      mustRetainMetadata = true;
+      for (LibraryElement library in compiler.libraries.values) {
+        if (retainMetadataOf(library)) {
+          for (Link link = library.metadata; !link.isEmpty; link = link.tail) {
+            link.head.ensureResolved(compiler);
+          }
+        }
+      }
+      for (Dependency dependency in metadataInstantiatedTypes) {
+        registerMetadataInstantiatedType(dependency.type, dependency.user);
+      }
+      metadataInstantiatedTypes.clear();
+      for (Element e in metadataStaticUse) {
+        registerMetadataStaticUse(e);
+      }
+      metadataStaticUse.clear();
+      for (Element e in metadataGetOfStaticFunction) {
+        registerMetadataGetOfStaticFunction(e);
+      }
+      metadataGetOfStaticFunction.clear();
     }
   }
+
+  /// Called when [:const Symbol(name):] is seen.
+  void registerConstSymbol(String name, TreeElements elements) {
+  }
+
+  /// Called when [:new Symbol(...):] is seen.
+  void registerNewSymbol(TreeElements elements) {
+  }
+
+  bool retainGetter(Element element) => isTreeShakingDisabled;
+
+  bool retainSetter(Element element) => isTreeShakingDisabled;
+
+  bool retainName(SourceString name) => mustPreserveNames;
+
+  bool retainMetadataOf(Element element) {
+    if (mustRetainMetadata) hasRetainedMetadata = true;
+    return mustRetainMetadata;
+  }
+
+  void onLibraryScanned(LibraryElement library, Uri uri) {
+    if (uri == Uri.parse('dart:_js_mirrors')) {
+      disableTreeShakingMarker =
+          library.find(const SourceString('disableTreeShaking'));
+      preserveMetadataMarker =
+          library.find(const SourceString('preserveMetadata'));
+    } else if (uri == Uri.parse('dart:_js_names')) {
+      preserveNamesMarker =
+          library.find(const SourceString('preserveNames'));
+    }
+  }
+
+  void registerMetadataInstantiatedType(DartType type, TreeElements elements) {
+    if (mustRetainMetadata) {
+      compiler.constantHandler.registerInstantiatedType(type, elements);
+    } else {
+      metadataInstantiatedTypes.add(new Dependency(type, elements));
+    }
+  }
+
+  void registerMetadataStaticUse(Element element) {
+    if (mustRetainMetadata) {
+      compiler.constantHandler.registerStaticUse(element);
+    } else {
+      metadataStaticUse.add(element);
+    }
+  }
+
+  void registerMetadataGetOfStaticFunction(FunctionElement element) {
+    if (mustRetainMetadata) {
+      compiler.constantHandler.registerGetOfStaticFunction(element);
+    } else {
+      metadataGetOfStaticFunction.add(element);
+    }
+  }
+}
+
+/// Records that [type] is used by [user.element].
+class Dependency {
+  final DartType type;
+  final TreeElements user;
+
+  const Dependency(this.type, this.user);
 }

@@ -141,7 +141,7 @@ abstract class Backend {
   void registerThrowExpression(TreeElements elements) {}
   void registerLazyField(TreeElements elements) {}
   void registerTypeVariableExpression(TreeElements elements) {}
-  void registerTypeLiteral(TreeElements elements) {}
+  void registerTypeLiteral(Element element, TreeElements elements) {}
   void registerStackTraceInCatch(TreeElements elements) {}
   void registerIsCheck(DartType type,
                        Enqueuer enqueuer,
@@ -175,6 +175,9 @@ abstract class Backend {
   void registerRequiredType(DartType type, Element enclosingElement) {}
   void registerClassUsingVariableExpression(ClassElement cls) {}
 
+  void registerConstSymbol(String name, TreeElements elements) {}
+  void registerNewSymbol(TreeElements elements) {}
+
   bool isNullImplementation(ClassElement cls) {
     return cls == compiler.nullClass;
   }
@@ -201,9 +204,13 @@ abstract class Backend {
     return classElement == compiler.objectClass;
   }
 
-  void enableMirrors() {}
-
   void registerStaticUse(Element element, Enqueuer enqueuer) {}
+
+  void onLibraryScanned(LibraryElement library, Uri uri) {}
+
+  void registerMetadataInstantiatedType(DartType type, TreeElements elements) {}
+  void registerMetadataStaticUse(Element element) {}
+  void registerMetadataGetOfStaticFunction(FunctionElement element) {}
 }
 
 /**
@@ -547,8 +554,6 @@ abstract class Compiler implements DiagnosticListener {
 
   bool get hasBuildId => buildId != UNDETERMINED_BUILD_ID;
 
-  bool get mirrorsEnabled => mirrorSystemClass != null;
-
   bool get analyzeAll => analyzeAllFlag || compileAll;
 
   bool get compileAll => false;
@@ -692,11 +697,10 @@ abstract class Compiler implements DiagnosticListener {
     }
     if (uri == Uri.parse('dart:mirrors')) {
       mirrorSystemClass = library.find(const SourceString('MirrorSystem'));
-      backend.enableMirrors();
-      metadataHandler = constantHandler;
     } else if (uri == Uri.parse('dart:_collection-dev')) {
       symbolImplementationClass = library.find(const SourceString('Symbol'));
     }
+    backend.onLibraryScanned(library, uri);
   }
 
   void onClassResolved(ClassElement cls) {
@@ -884,7 +888,6 @@ abstract class Compiler implements DiagnosticListener {
     // Elements required by enqueueHelpers are global dependencies
     // that are not pulled in by a particular element.
     backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
-    resolveReflectiveDataIfNeeded();
     processQueue(enqueuer.resolution, main);
     enqueuer.resolution.logSummary(log);
 
@@ -928,17 +931,6 @@ abstract class Compiler implements DiagnosticListener {
     backend.assembleProgram();
 
     checkQueues();
-  }
-
-  void resolveReflectiveDataIfNeeded() {
-    // Only need reflective data when dart:mirrors is loaded.
-    if (!mirrorsEnabled) return;
-
-    for (LibraryElement library in libraries.values) {
-      for (Link link = library.metadata; !link.isEmpty; link = link.tail) {
-        link.head.ensureResolved(this);
-      }
-    }
   }
 
   void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {

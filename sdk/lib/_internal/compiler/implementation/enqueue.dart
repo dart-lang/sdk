@@ -152,11 +152,7 @@ abstract class Enqueuer {
 
   void registerTypeLiteral(Element element, TreeElements elements) {
     registerInstantiatedClass(compiler.typeClass, elements);
-    compiler.backend.registerTypeLiteral(elements);
-    if (compiler.mirrorsEnabled) {
-      // In order to use reflectClass, we need to find the constructor.
-      registerInstantiatedClass(element, elements);
-    }
+    compiler.backend.registerTypeLiteral(element, elements);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
@@ -326,18 +322,7 @@ abstract class Enqueuer {
 
   /// Called when [:const Symbol(name):] is seen.
   void registerConstSymbol(String name, TreeElements elements) {
-    // If dart:mirrors is loaded, a const symbol may be used to call a
-    // static/top-level method or accessor, instantiate a class, call
-    // an instance method or accessor with the given name.
-    if (!compiler.mirrorsEnabled) return;
-
-    task.ensureAllElementsByName();
-
-    for (var link = task.allElementsByName[name];
-         link != null && !link.isEmpty;
-         link = link.tail) {
-      pretendElementWasUsed(link.head, elements);
-    }
+    compiler.backend.registerConstSymbol(name, elements);
   }
 
   void pretendElementWasUsed(Element element, TreeElements elements) {
@@ -381,6 +366,7 @@ abstract class Enqueuer {
 
   /// Called when [:new Symbol(...):] is seen.
   void registerNewSymbol(TreeElements elements) {
+    compiler.backend.registerNewSymbol(elements);
   }
 
   void enqueueEverything() {
