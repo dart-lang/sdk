@@ -4346,6 +4346,18 @@ static AliasedSet* NumberPlaces(
 }
 
 
+static bool HasSimpleTypeArguments(AllocateObjectInstr* alloc) {
+  if (alloc->ArgumentCount() == 0) return true;
+  ASSERT(alloc->ArgumentCount() == 2);
+  Value* arg1 = alloc->PushArgumentAt(1)->value();
+  if (!arg1->BindsToConstant()) return false;
+
+  const Object& obj = arg1->BoundConstant();
+  return obj.IsSmi()
+      && (Smi::Cast(obj).Value() == StubCode::kNoInstantiator);
+}
+
+
 class LoadOptimizer : public ValueObject {
  public:
   LoadOptimizer(FlowGraph* graph,
@@ -4507,11 +4519,10 @@ class LoadOptimizer : public ValueObject {
         // constructor invocation.
         // TODO(vegorov): record null-values at least for not final fields of
         // escaping object.
-        // TODO(vegorov): enable forwarding of type arguments.
         AllocateObjectInstr* alloc = instr->AsAllocateObject();
         if ((alloc != NULL) &&
             (alloc->identity() == AllocateObjectInstr::kNotAliased) &&
-            (alloc->ArgumentCount() == 0)) {
+            HasSimpleTypeArguments(alloc)) {
           for (Value* use = alloc->input_use_list();
                use != NULL;
                use = use->next_use()) {
@@ -4522,9 +4533,21 @@ class LoadOptimizer : public ValueObject {
 
             LoadFieldInstr* load = use->instruction()->AsLoadField();
             if (load != NULL) {
-              // Found a load. Initialize current value of the field to null.
+              // Found a load. Initialize current value of the field to null for
+              // normal fields, or with type arguments.
               gen->Add(load->place_id());
               if (out_values == NULL) out_values = CreateBlockOutValues();
+
+              if (alloc->ArgumentCount() > 0) {
+                ASSERT(alloc->ArgumentCount() == 2);
+                const Class& cls = Class::Handle(alloc->constructor().Owner());
+                intptr_t type_args_offset = cls.type_arguments_field_offset();
+                if (load->offset_in_bytes() == type_args_offset) {
+                  (*out_values)[load->place_id()] =
+                      alloc->PushArgumentAt(0)->value()->definition();
+                  continue;
+                }
+              }
               (*out_values)[load->place_id()] = graph_->constant_null();
             }
           }
@@ -6877,10 +6900,7 @@ void FlowGraphOptimizer::EliminateEnvironments() {
 // instructions that write into fields of the allocated object.
 // We do not support materialization of the object that has type arguments.
 static bool IsAllocationSinkingCandidate(AllocateObjectInstr* alloc) {
-  // TODO(vegorov): support AllocateObject with type arguments.
-  if (alloc->ArgumentCount() > 0) {
-    return false;
-  }
+  if (!HasSimpleTypeArguments(alloc)) return false;
 
   for (Value* use = alloc->input_use_list();
        use != NULL;
@@ -6918,6 +6938,12 @@ static void EliminateAllocation(AllocateObjectInstr* alloc) {
   ASSERT(alloc->env_use_list() == NULL);
   ASSERT(alloc->input_use_list() == NULL);
   alloc->RemoveFromGraph();
+  if (alloc->ArgumentCount() > 0) {
+    ASSERT(alloc->ArgumentCount() == 2);
+    for (intptr_t i = 0; i < alloc->ArgumentCount(); ++i) {
+      alloc->PushArgumentAt(i)->RemoveFromGraph();
+    }
+  }
 }
 
 
@@ -6967,6 +6993,10 @@ void AllocationSinking::Optimize() {
   //   b) candidate does not escape and thus its fields is not affected by
   //      external effects from calls.
   LoadOptimizer::OptimizeGraph(flow_graph_);
+
+  if (FLAG_trace_optimization) {
+    FlowGraphPrinter::PrintGraph("Sinking", flow_graph_);
+  }
 
   // At this point we have computed the state of object at each deoptimization
   // point and we can eliminate it. Loads inserted above were forwarded so there
@@ -7081,6 +7111,22 @@ void AllocationSinking::InsertMaterializations(AllocateObjectInstr* alloc) {
        use = use->next_use()) {
     ASSERT(use->instruction()->IsStoreInstanceField());
     AddField(fields, use->instruction()->AsStoreInstanceField()->field());
+  }
+
+  if (alloc->ArgumentCount() > 0) {
+    ASSERT(alloc->ArgumentCount() == 2);
+    const String& name = String::Handle(Symbols::New(":type_args"));
+    const Field& type_args_field =
+        Field::ZoneHandle(Field::New(
+            name,
+            false,  // !static
+            false,  // !final
+            false,  // !const
+            Class::Handle(alloc->constructor().Owner()),
+            0));  // No token position.
+    const Class& cls = Class::Handle(alloc->constructor().Owner());
+    type_args_field.SetOffset(cls.type_arguments_field_offset());
+    AddField(fields, type_args_field);
   }
 
   // Collect all instructions that mention this object in the environment.
