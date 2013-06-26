@@ -75,6 +75,15 @@ class Docgen {
    * Also initializes the command line arguments. 
    */
   Docgen(ArgResults argResults) {  
+    setCommandLineArguments(argResults);
+    
+    this.linkResolver = (name) => 
+        fixReference(name, _currentLibrary, _currentClass, _currentMember);
+    
+    getMirrorSystem(argResults.rest).then(setLibraries);
+  }
+
+  void setCommandLineArguments(ArgResults argResults) {
     outputToYaml = argResults['yaml'] || argResults['output-format'] == 'yaml';
     outputToJson = argResults['json'] || argResults['output-format'] == 'json';
     if (outputToYaml && outputToJson) {
@@ -84,11 +93,6 @@ class Docgen {
     includePrivate = argResults['include-private'];
     parseSdk = argResults['parse-sdk'];
     includeSdk = parseSdk || argResults['include-sdk'];
-    
-    this.linkResolver = (name) => 
-        fixReference(name, _currentLibrary, _currentClass, _currentMember);
-    
-    analyze(argResults.rest);
   }
   
   List<String> listLibraries(List<String> args) {
@@ -130,11 +134,19 @@ class Docgen {
     return sdk;
   }
   
+  void setLibraries(MirrorSystem mirrorSystem) {
+    if (mirrorSystem.libraries.values.isEmpty) {
+      throw new UnsupportedError('No Library Mirrors.');
+    } 
+    this.libraries = mirrorSystem.libraries.values;
+    documentLibraries();
+  }
+  
   /**
    * Analyzes set of libraries by getting a mirror system and triggers the 
    * documentation of the libraries. 
    */
-  void analyze(List<String> args) {
+  Future<MirrorSystem> getMirrorSystem(List<String> args) {
     var libraries = !parseSdk ? listLibraries(args) : listSdk();
     if (libraries.isEmpty) throw new StateError('No Libraries.');
     // DART_SDK should be set to the root of the SDK library. 
@@ -148,21 +160,14 @@ class Docgen {
       logger.info('SDK Root: ${sdkRoot}');
     }
     
-    getMirrorSystem(libraries, sdkRoot, packageRoot: packageDir)
-        .then((MirrorSystem mirrorSystem) {
-          if (mirrorSystem.libraries.values.isEmpty) {
-            throw new UnsupportedError('No Library Mirrors.');
-          } 
-          this.libraries = mirrorSystem.libraries.values;
-          documentLibraries();
-        });
+    return getMirrorSystemHelper(libraries, sdkRoot, packageRoot: packageDir);
   }
   
   /**
    * Analyzes set of libraries and provides a mirror system which can be used 
    * for static inspection of the source code.
    */
-  Future<MirrorSystem> getMirrorSystem(List<String> libraries,
+  Future<MirrorSystem> getMirrorSystemHelper(List<String> libraries,
         String libraryRoot, {String packageRoot}) {
     SourceFileProvider provider = new SourceFileProvider();
     api.DiagnosticHandler diagnosticHandler =
@@ -185,26 +190,36 @@ class Docgen {
    * Creates documentation for filtered libraries.
    */
   void documentLibraries() {
-    _libraries.forEach((library) {
+    _libraries.forEach((lib) {
       // Files belonging to the SDK have a uri that begins with 'dart:'.
-      if (includeSdk || !library.uri.toString().startsWith('dart:')) {
-        _currentLibrary = library;
-        var result = new Library(library.qualifiedName, _getComment(library),
-            _getVariables(library.variables), _getMethods(library.functions),
-            _getClasses(library.classes));
-        if (outputToJson) {
-          _writeToFile(stringify(result.toMap()), '${result.name}.json');
-        } 
-        if (outputToYaml) {
-          _writeToFile(getYamlString(result.toMap()), '${result.name}.yaml');
-        }
-     }
+      if (includeSdk || !lib.uri.toString().startsWith('dart:')) {
+        var library = generateLibrary(lib);
+        outputLibrary(library);
+      }
     });
     // Outputs a text file with a list of files available after creating all 
     // the libraries. This will help the viewer know what files are available 
     // to read in. 
     _writeToFile(listDir("docs").join('\n'), 'library_list.txt');
-   }
+  }
+
+  Library generateLibrary(dart2js.Dart2JsLibraryMirror library) {
+    _currentLibrary = library;
+    var result = new Library(library.qualifiedName, _getComment(library),
+        _getVariables(library.variables), _getMethods(library.functions),
+        _getClasses(library.classes));
+    logger.fine('Generated library for ${result.name}');
+    return result;
+  }
+
+  void outputLibrary(Library result) {
+    if (outputToJson) {
+      _writeToFile(stringify(result.toMap()), '${result.name}.json');
+    } 
+    if (outputToYaml) {
+      _writeToFile(getYamlString(result.toMap()), '${result.name}.yaml');
+    }
+  }
 
   /// Saves list of libraries for Docgen object.
   void set libraries(value){
