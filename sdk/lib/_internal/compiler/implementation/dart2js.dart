@@ -227,6 +227,8 @@ void compile(List<String> argv) {
                       (_) => diagnosticHandler.throwOnError = true),
     new OptionHandler('--suppress-warnings',
                       (_) => diagnosticHandler.showWarnings = false),
+    new OptionHandler('--suppress-hints',
+                      (_) => diagnosticHandler.showHints = false),
     new OptionHandler('--output-type=dart|--output-type=js', setOutputType),
     new OptionHandler('--verbose', setVerbose),
     new OptionHandler('--version', (_) => wantVersion = true),
@@ -478,6 +480,9 @@ Supported options:
 
   --suppress-warnings
     Do not display any warnings.
+
+  --suppress-hints
+    Do not display any hints.
 
   --enable-diagnostic-colors
     Add colors to diagnostic messages.

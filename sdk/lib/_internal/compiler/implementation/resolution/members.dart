@@ -772,6 +772,7 @@ class ResolverTask extends CompilerTask {
     } else if (isBinaryOperator(value)) {
       messageKind = MessageKind.BINARY_OPERATOR_BAD_ARITY;
       requiredParameterCount = 1;
+      if (identical(value, '==')) checkOverrideHashCode(member);
     } else if (isTernaryOperator(value)) {
       messageKind = MessageKind.TERNARY_OPERATOR_BAD_ARITY;
       requiredParameterCount = 2;
@@ -780,6 +781,17 @@ class ResolverTask extends CompilerTask {
           'Unexpected user defined operator $value');
     }
     checkArity(function, requiredParameterCount, messageKind, isMinus);
+  }
+
+  void checkOverrideHashCode(FunctionElement operatorEquals) {
+    if (operatorEquals.isAbstract(compiler)) return;
+    ClassElement cls = operatorEquals.getEnclosingClass();
+    Element hashCodeImplementation =
+        cls.lookupLocalMember(const SourceString('hashCode'));
+    if (hashCodeImplementation != null) return;
+    compiler.reportHint(
+        operatorEquals, MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
+        {'class': cls.name.slowToString()});
   }
 
   void checkArity(FunctionElement function,
@@ -2230,7 +2242,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
     sendIsMemberAccess = oldSendIsMemberAccess;
 
     if (target != null && target == compiler.mirrorSystemGetNameFunction) {
-      compiler.reportWarningCode(
+      compiler.reportHint(
           node.selector, MessageKind.STATIC_FUNCTION_BLOAT,
           {'class': compiler.mirrorSystemClass.name,
            'name': compiler.mirrorSystemGetNameFunction.name});
@@ -2642,7 +2654,7 @@ class ResolverVisitor extends MappingVisitor<Element> {
           }
         }
       } else {
-        compiler.reportWarningCode(
+        compiler.reportHint(
             node.newToken, MessageKind.NON_CONST_BLOAT,
             {'name': compiler.symbolClass.name});
         world.registerNewSymbol(mapping);

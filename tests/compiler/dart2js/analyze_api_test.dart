@@ -21,8 +21,16 @@ import 'analyze_helper.dart';
 // values.
 const Map<String, List<String>> WHITE_LIST = const {
   'path_observer.dart':
-      const ['Warning: Using "new Symbol"', // Issue 10565.
+      const ['Hint: Using "new Symbol"', // Issue 10565.
             ],
+  'sdk/lib/html/dart2js/html_dart2js.dart':
+      const ['Hint: The class "Rect" overrides "operator==", '
+             'but not "get hashCode".',
+             'Hint: The class "Point" overrides "operator==", '
+             'but not "get hashCode".',
+             'Hint: The class "_ClientRect" overrides "operator==", '
+             'but not "get hashCode".',
+      ],
 };
 
 void main() {

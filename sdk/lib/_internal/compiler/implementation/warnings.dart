@@ -412,10 +412,10 @@ Length: #{length}''');
       " a class.");
 
   static const STATIC_FUNCTION_BLOAT = const MessageKind(
-      'Warning: Using "#{class}.#{name}" may result in larger output.');
+      'Hint: Using "#{class}.#{name}" may result in larger output.');
 
   static const NON_CONST_BLOAT = const MessageKind('''
-Warning: Using "new #{name}" may result in larger output.
+Hint: Using "new #{name}" may result in larger output.
 Use "const #{name}" if possible.''');
 
   static const STRING_EXPECTED = const MessageKind(
@@ -433,13 +433,17 @@ Error: "#{value}" is not a valid Symbol name because is not:
  * a qualified non-private identifier followed by "." and a user-defined operator.''');
 
   static const AMBIGUOUS_REEXPORT = const MessageKind(
-    'Info: "#{element}" is (re)exported by multiple libraries.');
+      'Info: "#{element}" is (re)exported by multiple libraries.');
 
   static const AMBIGUOUS_LOCATION = const MessageKind(
-    'Info: "#{element}" is defined here.');
+      'Info: "#{element}" is defined here.');
 
   static const IMPORTED_HERE = const MessageKind(
-    'Info: "#{element}" is imported here.');
+      'Info: "#{element}" is imported here.');
+
+  static const OVERRIDE_EQUALS_NOT_HASH_CODE = const MessageKind(
+      'Hint: The class "#{class}" overrides "operator==", '
+      'but not "get hashCode".');
 
   static const COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");

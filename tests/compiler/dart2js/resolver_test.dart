@@ -74,6 +74,7 @@ main() {
   testToString();
   testIndexedOperator();
   testIncrementsAndDecrements();
+  testOverrideHashCodeCheck();
 }
 
 testTypeVariables() {
@@ -844,4 +845,23 @@ testIncrementsAndDecrements() {
   checkMemberResolved(compiler, 'B', operatorName('+', false));
   checkMemberResolved(compiler, 'C', operatorName('-', false));
   checkMemberResolved(compiler, 'D', operatorName('-', false));
+}
+
+testOverrideHashCodeCheck() {
+  final script = r"""
+      class A {
+        operator==(other) => true;
+      }
+      class B {
+        operator==(other) => true;
+        get hashCode => 0;
+      }
+      main() {
+        new A() == new B();
+      }""";
+  final compiler = compileScript(script);
+  Expect.equals(1, compiler.warnings.length);
+  Expect.equals(MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
+                compiler.warnings[0].message.kind);
+  Expect.equals(0, compiler.errors.length);
 }

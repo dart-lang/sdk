@@ -137,7 +137,7 @@ class Diagnostic {
   /**
    * Any other warning that is not covered by [WARNING].
    */
-  static const Diagnostic LINT = const Diagnostic(4, 'lint');
+  static const Diagnostic HINT = const Diagnostic(4, 'hint');
 
   /**
    * Informational messages.

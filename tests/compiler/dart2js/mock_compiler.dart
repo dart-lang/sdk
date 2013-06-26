@@ -96,6 +96,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   class Interceptor {
     toString() {}
     bool operator==(other) => identical(this, other);
+    get hashCode => throw "Interceptor.hashCode not implemented.";
     noSuchMethod(im) { throw im; }
   }
   abstract class JSIndexable {
@@ -137,6 +138,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
     operator <(other) => true;
     operator <=(other) => true;
     operator ==(other) => true;
+    get hashCode => throw "JSNumber.hashCode not implemented.";
 
     abs() => (this is JSInt) ? 42 : 42.0;
     remainder(other) => (this is JSInt) ? 42 : 42.0;
@@ -147,6 +149,7 @@ const String DEFAULT_INTERCEPTORSLIB = r'''
   }
   class JSNull extends Interceptor {
     bool operator==(other) => identical(null, other);
+    get hashCode => throw "JSNull.hashCode not implemented.";
   }
   class JSBool extends Interceptor implements bool {
   }
@@ -174,6 +177,7 @@ const String DEFAULT_CORELIB = r'''
   class String implements Pattern {}
   class Object {
     operator ==(other) { return true; }
+    get hashCode => throw "Object.hashCode not implemented.";
     String toString() { return null; }
     noSuchMethod(im) { throw im; }
   }
