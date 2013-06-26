@@ -33,6 +33,7 @@ import '../../../sdk/lib/_internal/compiler/implementation/mirrors/dart2js_mirro
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/mirrors/mirrors_util.dart';
 import '../../../sdk/lib/_internal/compiler/implementation/source_file_provider.dart';
+import '../../../sdk/lib/_internal/libraries.dart';
 
 var logger = new Logger('Docgen');
 
@@ -64,30 +65,25 @@ class Docgen {
   bool outputToYaml;
   bool outputToJson;
   bool includePrivate;
-  /// State for whether or not the SDK libraries should also be outputted.
+  /// State for whether imported SDK libraries should also be outputted.
   bool includeSdk;
+  /// State for whether all SDK libraries should be outputted. 
+  bool parseSdk;
 
   /**
    * Docgen constructor initializes the link resolver for markdown parsing.
    * Also initializes the command line arguments. 
    */
   Docgen(ArgResults argResults) {  
-    if (argResults['output-format'] == null) {
-      outputToYaml = 
-          (argResults['yaml'] == false && argResults['json'] == false) ?
-              true : argResults['yaml'];
-    } else {
-      if ((argResults['output-format'] == 'yaml' && 
-          argResults['json'] == true) || 
-          (argResults['output-format'] == 'json' && 
-          argResults['yaml'] == true)) {
-        throw new UnsupportedError('Cannot have contradictory output flags.');
-      }
-      outputToYaml = argResults['output-format'] == 'yaml' ? true : false;
+    outputToYaml = argResults['yaml'] || argResults['output-format'] == 'yaml';
+    outputToJson = argResults['json'] || argResults['output-format'] == 'json';
+    if (outputToYaml && outputToJson) {
+      throw new ArgumentError('Cannot have contradictory output flags.');
     }
-    outputToJson = !outputToYaml;
+    outputToYaml = outputToYaml || !outputToJson;
     includePrivate = argResults['include-private'];
-    includeSdk = argResults['include-sdk'];
+    parseSdk = argResults['parse-sdk'];
+    includeSdk = parseSdk || argResults['include-sdk'];
     
     this.linkResolver = (name) => 
         fixReference(name, _currentLibrary, _currentClass, _currentMember);
@@ -123,12 +119,23 @@ class Docgen {
         ..forEach((lib) => logger.info('Added to libraries: $lib'));
   }
 
+  List<String> listSdk() {
+    var sdk = new List<String>();
+    LIBRARIES.forEach((String name, LibraryInfo info) {
+      if (info.documented) { 
+        sdk.add('dart:$name');
+        logger.info('Add to SDK: ${sdk.last}');
+      }
+    });
+    return sdk;
+  }
+  
   /**
    * Analyzes set of libraries by getting a mirror system and triggers the 
    * documentation of the libraries. 
    */
   void analyze(List<String> args) {
-    var libraries = listLibraries(args);
+    var libraries = !parseSdk ? listLibraries(args) : listSdk();
     if (libraries.isEmpty) throw new StateError('No Libraries.');
     // DART_SDK should be set to the root of the SDK library. 
     var sdkRoot = Platform.environment['DART_SDK'];

@@ -52,6 +52,9 @@ ArgParser initArgParser() {
       help: 'Flag to include private declarations.', negatable: false);
   parser.addFlag('include-sdk', 
       help: 'Flag to parse SDK Library files.', negatable: false);
+  parser.addFlag('parse-sdk', 
+      help: 'Parses the SDK libraries only.', 
+      defaultsTo: false, negatable: false);
   
   return parser;
 }
