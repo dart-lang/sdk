@@ -184,7 +184,7 @@ patch class Stopwatch {
 // Patch for List implementation.
 patch class List<E> {
   patch factory List([int length]) {
-    if (!?length) return Primitives.newGrowableList(0);
+    if (length == null) return Primitives.newGrowableList(0);
     // Explicit type test is necessary to protect Primitives.newFixedList in
     // unchecked mode.
     if ((length is !int) || (length < 0)) {

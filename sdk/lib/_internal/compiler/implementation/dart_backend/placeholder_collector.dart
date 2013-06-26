@@ -49,12 +49,6 @@ class SendVisitor extends ResolvedVisitor {
   SendVisitor(this.collector, TreeElements elements) : super(elements);
 
   visitOperatorSend(Send node) {
-    if (node.isParameterCheck) {
-      final element = elements[node.receiver];
-      if (element != null) {
-        collector.tryMakeLocalPlaceholder(element, node.receiver);
-      }
-    }
   }
 
   visitForeignSend(Send node) {}

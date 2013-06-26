@@ -5,7 +5,6 @@
 part of dart2js;
 
 abstract class ConstantVisitor<R> {
-  R visitSentinel(SentinelConstant constant);
   R visitFunction(FunctionConstant constant);
   R visitNull(NullConstant constant);
   R visitInt(IntConstant constant);
@@ -51,22 +50,6 @@ abstract class Constant {
   List<Constant> getDependencies();
 
   accept(ConstantVisitor visitor);
-}
-
-class SentinelConstant extends Constant {
-  const SentinelConstant();
-  static final SENTINEL = const SentinelConstant();
-
-  List<Constant> getDependencies() => const <Constant>[];
-
-  // Just use a random value.
-  int get hashCode => 24297418;
-
-  bool isSentinel() => true;
-
-  accept(ConstantVisitor visitor) => visitor.visitSentinel(this);
-
-  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
 }
 
 class FunctionConstant extends Constant {

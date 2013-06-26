@@ -976,10 +976,6 @@ class ConstantNamingVisitor implements ConstantVisitor {
     return constant.accept(this);
   }
 
-  visitSentinel(SentinelConstant constant) {
-    add(r'$');
-  }
-
   visitFunction(FunctionConstant constant) {
     add(constant.element.name.slowToString());
   }
@@ -1094,10 +1090,9 @@ class ConstantCanonicalHasher implements ConstantVisitor<int> {
     return hash;
   }
 
-  int visitSentinel(SentinelConstant constant) => 1;
-  int visitNull(NullConstant constant) => 2;
-  int visitTrue(TrueConstant constant) => 3;
-  int visitFalse(FalseConstant constant) => 4;
+  int visitNull(NullConstant constant) => 1;
+  int visitTrue(TrueConstant constant) => 2;
+  int visitFalse(FalseConstant constant) => 3;
 
   int visitFunction(FunctionConstant constant) {
     return _hashString(1, constant.element.name.slowToString());

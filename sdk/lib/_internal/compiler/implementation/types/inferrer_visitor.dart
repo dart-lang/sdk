@@ -418,9 +418,6 @@ abstract class InferrerVisitor extends ResolvedVisitor<TypeMask> {
       TypeMask receiverType = visit(node.receiver);
       DartType type = elements.getType(node.arguments.head);
       return narrowType(receiverType, type, compiler);
-    } else if (node.isParameterCheck) {
-      node.visitChildren(this);
-      return inferrer.boolType;
     } else if (node.argumentsNode is Prefix) {
       // Unary operator.
       return visitDynamicSend(node);

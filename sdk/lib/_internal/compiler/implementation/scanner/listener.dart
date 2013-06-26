@@ -11,12 +11,6 @@ const bool VERBOSE = false;
  * on parser errors.
  */
 class Listener {
-  void beginArgumentDefinitionTest(Token token) {
-  }
-
-  void endArgumentDefinitionTest(Token beginToken, Token endToken) {
-  }
-
   void beginArguments(Token token) {
   }
 
@@ -1172,10 +1166,6 @@ class NodeListener extends ElementListener {
 
   void addPartOfTag(PartOf tag) {
     pushNode(tag);
-  }
-
-  void endArgumentDefinitionTest(Token beginToken, Token endToken) {
-    pushNode(new Send.prefix(popNode(), new Operator(beginToken)));
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,

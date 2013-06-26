@@ -16,7 +16,6 @@ abstract class TreeElements {
   Selector getGetterSelectorInComplexSendSet(SendSet node);
   Selector getOperatorSelectorInComplexSendSet(SendSet node);
   DartType getType(Node node);
-  bool isParameterChecked(Element element);
   void setSelector(Node node, Selector selector);
   void setGetterSelectorInComplexSendSet(SendSet node, Selector selector);
   void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector);
@@ -37,7 +36,6 @@ class TreeElementMapping implements TreeElements {
   final Map<Spannable, Selector> selectors =
       new LinkedHashMap<Spannable, Selector>();
   final Map<Node, DartType> types = new LinkedHashMap<Node, DartType>();
-  final Set<Element> checkedParameters = new LinkedHashSet<Element>();
   final Set<Node> superUses = new LinkedHashSet<Node>();
   final Set<Element> otherDependencies = new LinkedHashSet<Element>();
   final int hashCode = ++hashCodeCounter;
@@ -132,10 +130,6 @@ class TreeElementMapping implements TreeElements {
 
   Selector getCurrentSelector(ForIn node) {
     return selectors[node.inToken];
-  }
-
-  bool isParameterChecked(Element element) {
-    return checkedParameters.contains(element);
   }
 
   void registerDependency(Element element) {
@@ -2285,14 +2279,6 @@ class ResolverVisitor extends MappingVisitor<Element> {
           compiler.enqueuer.resolution.registerAsCheck(type, mapping);
         }
         resolvedArguments = true;
-      } else if (identical(operatorString, '?')) {
-        Element parameter = mapping[node.receiver];
-        if (parameter == null
-            || !identical(parameter.kind, ElementKind.PARAMETER)) {
-          error(node.receiver, MessageKind.PARAMETER_NAME_EXPECTED);
-        } else {
-          mapping.checkedParameters.add(parameter);
-        }
       }
     }
 

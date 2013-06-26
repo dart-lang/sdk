@@ -515,20 +515,6 @@ class ClosureTranslator extends Visitor {
       if (type != null && type.containsTypeVariables) {
         registerNeedsThis();
       }
-    } else if (node.isParameterCheck) {
-      Element parameter = elements[node.receiver];
-      FunctionElement enclosing = parameter.enclosingElement;
-      FunctionExpression function = enclosing.parseNode(compiler);
-      ClosureClassMap cached = closureMappingCache[function];
-      if (!cached.parametersWithSentinel.containsKey(parameter)) {
-        SourceString parameterName = parameter.name;
-        String name = '${parameterName.slowToString()}_check';
-        Element newElement = new CheckVariableElement(new SourceString(name),
-                                                      parameter,
-                                                      enclosing);
-        useLocal(newElement);
-        cached.parametersWithSentinel[parameter] = newElement;
-      }
     } else if (node.isTypeTest) {
       DartType type = elements.getType(node.typeAnnotationFromIsCheckOrCast);
       analyzeType(type);

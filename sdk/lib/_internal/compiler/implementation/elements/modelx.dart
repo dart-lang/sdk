@@ -338,6 +338,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   getLibrary() => enclosingElement.getLibrary();
 
+  computeTargetType(Compiler compiler, InterfaceType newType) => unsupported();
+
   String toString() {
     String n = name.slowToString();
     return '<$n: ${messageKind.message(messageArguments)}>';
